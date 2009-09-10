@@ -48,6 +48,7 @@
 #include "BKE_pointcache.h"
 
 #include "BLI_kdopbvh.h"
+#include "BLI_cellalloc.h"
 
 #ifdef _WIN32
 void tstart ( void )

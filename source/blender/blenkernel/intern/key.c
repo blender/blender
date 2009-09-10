@@ -58,6 +58,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_cellalloc.h"
 
 
 #ifdef HAVE_CONFIG_H

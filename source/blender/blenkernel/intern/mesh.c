@@ -246,7 +246,7 @@ void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
 	
 	for (i=0; i<copycount; i++){
 		if (src[i].dw){
-			dst[i].dw = MEM_callocN (sizeof(MDeformWeight)*src[i].totweight, "copy_deformWeight");
+			dst[i].dw = BLI_cellalloc_calloc (sizeof(MDeformWeight)*src[i].totweight, "copy_deformWeight");
 			memcpy (dst[i].dw, src[i].dw, sizeof (MDeformWeight)*src[i].totweight);
 		}
 	}

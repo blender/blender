@@ -47,6 +47,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_cellalloc.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -185,10 +186,10 @@ MDeformWeight *verify_defweight (MDeformVert *dv, int defgroup)
 	if (newdw)
 		return newdw;
 	
-	newdw = MEM_callocN (sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
+	newdw = BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
 	if (dv->dw){
 		memcpy (newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-		MEM_freeN (dv->dw);
+		BLI_cellalloc_free (dv->dw);
 	}
 	dv->dw=newdw;
 	
@@ -577,13 +578,13 @@ void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 			 * deform weight, and reshuffle the others
 			 */
 			if (dvert->totweight) {
-				newdw = MEM_mallocN (sizeof(MDeformWeight)*(dvert->totweight), 
+				newdw = BLI_cellalloc_malloc (sizeof(MDeformWeight)*(dvert->totweight), 
 									 "deformWeight");
 				if (dvert->dw){
 					memcpy (newdw, dvert->dw, sizeof(MDeformWeight)*i);
 					memcpy (newdw+i, dvert->dw+i+1, 
 							sizeof(MDeformWeight)*(dvert->totweight-i));
-					MEM_freeN (dvert->dw);
+					BLI_cellalloc_free (dvert->dw);
 				}
 				dvert->dw=newdw;
 			}
@@ -591,7 +592,7 @@ void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 			 * left then just remove the deform weight
 			 */
 			else {
-				MEM_freeN (dvert->dw);
+				BLI_cellalloc_free (dvert->dw);
 				dvert->dw = NULL;
 				break;
 			}
@@ -677,11 +678,11 @@ void add_vert_defnr (Object *ob, int def_nr, int vertnum,
 		/* if we are doing an additive assignment, then
 		 * we need to create the deform weight
 		 */
-		newdw = MEM_callocN (sizeof(MDeformWeight)*(dv->totweight+1), 
+		newdw = BLI_cellalloc_calloc (sizeof(MDeformWeight)*(dv->totweight+1), 
 							 "deformWeight");
 		if (dv->dw){
 			memcpy (newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-			MEM_freeN (dv->dw);
+			BLI_cellalloc_free (dv->dw);
 		}
 		dv->dw=newdw;
     
@@ -772,10 +773,10 @@ void assign_verts_defgroup (Object *ob, float weight)
 			 	}
 				/*		If not: Add the group and set its weight */
 				if (!done){
-					newdw = MEM_callocN (sizeof(MDeformWeight)*(dvert->totweight+1), "deformWeight");
+					newdw = BLI_cellalloc_calloc (sizeof(MDeformWeight)*(dvert->totweight+1), "deformWeight");
 					if (dvert->dw){
 						memcpy (newdw, dvert->dw, sizeof(MDeformWeight)*dvert->totweight);
-						MEM_freeN (dvert->dw);
+						BLI_cellalloc_free (dvert->dw);
 					}
 					dvert->dw=newdw;
 
@@ -918,7 +919,7 @@ void remove_verts_defgroup (Object *ob, int allverts)
 					if (eg == dg){
 						dvert->totweight--;
 						if (dvert->totweight){
-							newdw = MEM_mallocN (sizeof(MDeformWeight)*(dvert->totweight), "deformWeight");
+							newdw = BLI_cellalloc_malloc (sizeof(MDeformWeight)*(dvert->totweight), "deformWeight");
 							
 							if (dvert->dw){
 								memcpy (newdw, dvert->dw, sizeof(MDeformWeight)*i);
@@ -928,7 +929,7 @@ void remove_verts_defgroup (Object *ob, int allverts)
 							dvert->dw=newdw;
 						}
 						else{
-							MEM_freeN (dvert->dw);
+							BLI_cellalloc_free (dvert->dw);
 							dvert->dw=NULL;
 							break;
 						}

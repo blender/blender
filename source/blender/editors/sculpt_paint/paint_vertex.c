@@ -44,6 +44,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_memarena.h"
+#include "BLI_cellalloc.h"
 #include "MTC_matrixops.h"
 
 #include "DNA_action_types.h"

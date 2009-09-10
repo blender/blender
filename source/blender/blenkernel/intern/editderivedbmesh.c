@@ -132,6 +132,45 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 	
 	if (tm->looptris) MEM_freeN(tm->looptris);
 
+#if 0 //simple quad/triangle code for performance testing purposes
+	looptris = MEM_callocN(sizeof(void*)*bm->totface*8, "looptris");
+
+	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
+	for ( ; f; f=BMIter_Step(&iter)) {
+		EditVert *v, *lastv=NULL, *firstv=NULL;
+		EditEdge *e;
+		EditFace *efa;
+
+		/*don't consider two-edged faces*/
+		if (f->len < 3) continue;
+		
+		//V_GROW(looptris);
+		//V_GROW(looptris);
+		//V_GROW(looptris);
+
+		looptris[i*3] = f->loopbase;
+		looptris[i*3+1] = f->loopbase->head.next;
+		looptris[i*3+2] = f->loopbase->head.next->next;
+		i++;
+
+		if (f->len > 3) {
+			//V_GROW(looptris);
+			//V_GROW(looptris);
+			//V_GROW(looptris);
+
+			looptris[i*3] = f->loopbase;
+			looptris[i*3+1] = f->loopbase->head.next->next;
+			looptris[i*3+2] = f->loopbase->head.next->next->next;
+			i++;
+		}
+
+	}
+
+	tm->tottri = i;
+	tm->looptris = looptris;
+	return;
+#endif
+
 	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 	for ( ; f; f=BMIter_Step(&iter)) {
 		EditVert *v, *lastv=NULL, *firstv=NULL;
@@ -360,7 +399,7 @@ static void bmDM_recalcTesselation(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 
-	bmdm_recalc_lookups(bmdm);
+	//bmdm_recalc_lookups(bmdm);
 }
 
 static void bmDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no_f, short *no_s), void *userData)
@@ -1463,9 +1502,9 @@ static void bmDM_release(void *dm)
 			MEM_freeN(bmdm->faceNos);
 		}
 		
-		BLI_ghash_free(bmdm->fhash, NULL, NULL);
-		BLI_ghash_free(bmdm->ehash, NULL, NULL);
-		BLI_ghash_free(bmdm->vhash, NULL, NULL);
+		if (bmdm->fhash) BLI_ghash_free(bmdm->fhash, NULL, NULL);
+		if (bmdm->ehash) BLI_ghash_free(bmdm->ehash, NULL, NULL);
+		if (bmdm->vhash) BLI_ghash_free(bmdm->vhash, NULL, NULL);
 
 		if (bmdm->vtable) MEM_freeN(bmdm->vtable);
 		if (bmdm->etable) MEM_freeN(bmdm->etable);
@@ -1630,7 +1669,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
 		}
 	}
 
-	bmdm_recalc_lookups(bmdm);
+	//bmdm_recalc_lookups(bmdm);
 
 	return (DerivedMesh*) bmdm;
 }

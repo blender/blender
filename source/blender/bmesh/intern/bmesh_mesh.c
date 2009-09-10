@@ -188,16 +188,19 @@ void BM_Compute_Normals(BMesh *bm)
 	BMVert *v;
 	BMFace *f;
 	BMLoop *l;
-	
 	BMIter verts;
 	BMIter faces;
 	BMIter loops;
-	
 	unsigned int maxlength = 0;
 	float (*projectverts)[3];
 	
+	//return;
+
 	/*first, find out the largest face in mesh*/
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)){
+		if (BM_TestHFlag(f, BM_HIDDEN))
+			continue;
+
 		if(f->len > maxlength) maxlength = f->len;
 	}
 	
@@ -209,22 +212,36 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/*calculate all face normals*/
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)){
-		if (f->head.flag & BM_NONORMCALC) continue;
+		if (BM_TestHFlag(f, BM_HIDDEN))
+			continue;
+		if (f->head.flag & BM_NONORMCALC)
+			continue;
+
 		bmesh_update_face_normal(bm, f, projectverts);		
 	}
 	
 	/*Zero out vertex normals*/
-	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v = BMIter_Step(&verts))
+	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v = BMIter_Step(&verts)) {
+		if (BM_TestHFlag(v, BM_HIDDEN))
+			continue;
+
 		v->no[0] = v->no[1] = v->no[2] = 0.0;
+	}
 
 	/*add face normals to vertices*/
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)){
+		if (BM_TestHFlag(f, BM_HIDDEN))
+			continue;
+
 		for(l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f ); l; l = BMIter_Step(&loops)) 
 			VecAddf(l->v->no, l->v->no, f->no);
 	}
 	
 	/*average the vertex normals*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v= BMIter_Step(&verts)){
+		if (BM_TestHFlag(v, BM_HIDDEN))
+			continue;
+
 		if (Normalize(v->no)==0.0) {
 			VECCOPY(v->no, v->co);
 			Normalize(v->no);

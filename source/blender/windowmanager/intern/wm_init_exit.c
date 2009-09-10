@@ -55,6 +55,7 @@
 #include "BKE_packedFile.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_cellalloc.h"
 
 #include "RE_pipeline.h"		/* RE_ free stuff */
 
@@ -268,8 +269,11 @@ void WM_exit(bContext *C)
 	
 	SYS_DeleteSystem(SYS_GetSystem());
 
-	if(MEM_get_memory_blocks_in_use()!=0) {
-		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
+	if(MEM_get_memory_blocks_in_use()!=0 || BLI_cellalloc_get_totblock()!=0) {
+		printf("Error Totblock: %d\n", 
+			BLI_cellalloc_get_totblock()+MEM_get_memory_blocks_in_use());
+		BLI_cellalloc_printleaks();
+		BLI_cellalloc_destroy();
 		MEM_printmemlist();
 	}
 //	delete_autosave();

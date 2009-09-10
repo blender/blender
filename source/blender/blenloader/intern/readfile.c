@@ -107,6 +107,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_storage_types.h" // for relname flags
+#include "BLI_cellalloc.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"

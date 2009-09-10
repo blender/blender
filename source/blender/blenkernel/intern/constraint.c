@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_cellalloc.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"

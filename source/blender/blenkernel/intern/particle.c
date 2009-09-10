@@ -56,6 +56,7 @@
 #include "BLI_linklist.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_cellalloc.h"
 
 #include "BKE_anim.h"
 

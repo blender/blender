@@ -50,6 +50,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
+#include "BLI_cellalloc.h"
 
 #include "MEM_guardedalloc.h"
 

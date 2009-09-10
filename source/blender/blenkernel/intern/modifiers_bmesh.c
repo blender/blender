@@ -45,6 +45,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
+#include "BLI_cellalloc.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -288,7 +289,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	int numVerts, numEdges, numFaces;
 	int maxVerts, maxEdges, maxFaces;
 	int finalVerts, finalEdges, finalFaces;
-	int *indexMap;
+	int *indexMap = NULL;
 	DerivedMesh *result, *start_cap = NULL, *end_cap = NULL;
 	MVert *src_mvert;
 
@@ -406,7 +407,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 		#define _E(s, i) ((BMVert**)(s)->data.buf)[i]
 
-#if 0
 		/*calculate merge mapping*/
 		if (j == 0) {
 			BMOperator findop;
@@ -444,20 +444,19 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 			BMO_Finish_Op(em->bm, &findop);
 		} 
-#endif
 
 		/*generate merge mappping using index map.  we do this by using the
 		  operator slots as lookup arrays.*/
 		#define E(i) (i) < s1->len ? _E(s1, i) : _E(s2, (i)-s1->len)
 
-		/*for (i=0; i<indexLen; i++) {
+		for (i=0; i<indexLen; i++) {
 			if (!indexMap[i]) continue;
 
 			v = E(i);
 			v2 = E(indexMap[i]-1);
 
 			BMO_Insert_MapPointer(em->bm, &weldop, "targetmap", v, v2);
-		}*/
+		}
 
 		#undef E
 		#undef _E
@@ -477,7 +476,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	cddm = CDDM_from_BMEditMesh(em, NULL);
 
 	BMEdit_Free(em);
-	//MEM_freeN(indexMap);
+	MEM_freeN(indexMap);
 
 	return cddm;
 }

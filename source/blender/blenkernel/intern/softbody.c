@@ -70,6 +70,7 @@ variables on the UI for now
 #include "BLI_arithb.h"
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
+#include "BLI_cellalloc.h"
 
 #include "BKE_curve.h"
 #include "BKE_effect.h"

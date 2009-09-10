@@ -44,6 +44,7 @@
 #include "BKE_bmesh.h"
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_cellalloc.h"
 
 /*split this all into a seperate bevel.c file in src*/
 

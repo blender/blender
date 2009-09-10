@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_mempool.h"
+#include "BLI_cellalloc.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
@@ -112,7 +113,7 @@ static void layerCopy_mdeformvert(const void *source, void *dest,
 		MDeformVert *dvert = (MDeformVert *)((char *)dest + i * size);
 
 		if(dvert->totweight) {
-			MDeformWeight *dw = MEM_callocN(dvert->totweight * sizeof(*dw),
+			MDeformWeight *dw = BLI_cellalloc_calloc(dvert->totweight * sizeof(*dw),
 											"layerCopy_mdeformvert dw");
 
 			memcpy(dw, dvert->dw, dvert->totweight * sizeof(*dw));
@@ -131,7 +132,7 @@ static void layerFree_mdeformvert(void *data, int count, int size)
 		MDeformVert *dvert = (MDeformVert *)((char *)data + i * size);
 
 		if(dvert->dw) {
-			MEM_freeN(dvert->dw);
+			BLI_cellalloc_free(dvert->dw);
 			dvert->dw = NULL;
 			dvert->totweight = 0;
 		}
@@ -173,7 +174,7 @@ static void layerInterp_mdeformvert(void **sources, float *weights,
 
 			/* if this def_nr is not in the list, add it */
 			if(!node) {
-				MDeformWeight *tmp_dw = MEM_callocN(sizeof(*tmp_dw),
+				MDeformWeight *tmp_dw = BLI_cellalloc_calloc(sizeof(*tmp_dw),
 				                            "layerInterp_mdeformvert tmp_dw");
 				tmp_dw->def_nr = dw->def_nr;
 				tmp_dw->weight = dw->weight * interp_weight;
@@ -184,10 +185,10 @@ static void layerInterp_mdeformvert(void **sources, float *weights,
 	}
 
 	/* now we know how many unique deform weights there are, so realloc */
-	if(dvert->dw) MEM_freeN(dvert->dw);
+	if(dvert->dw) BLI_cellalloc_free(dvert->dw);
 
 	if(totweight) {
-		dvert->dw = MEM_callocN(sizeof(*dvert->dw) * totweight,
+		dvert->dw = BLI_cellalloc_calloc(sizeof(*dvert->dw) * totweight,
 		                        "layerInterp_mdeformvert dvert->dw");
 		dvert->totweight = totweight;
 
