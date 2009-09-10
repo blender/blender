@@ -1,5 +1,5 @@
 /**
- * $Id: CMP_colorMatte.c 12931 2007-12-17 18:20:48Z theeth $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
