@@ -186,6 +186,8 @@ EPath *edge_find_shortest_path(BMesh *bm, BMEdge *edge, EdgeData *edata, PathBas
 			path = NULL;
 	}
 
+	V_FREE(verts);
+	BLI_heap_free(heap, NULL);
 	BLI_ghash_free(gh, NULL, NULL);
 
 	return path;
@@ -271,6 +273,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 	BMO_Flag_To_Slot(bm, op, "faceout", FACE_NEW, BM_FACE);
 
+	V_FREE(edges);
 	edge_pathbase_free(pathbase);
 	MEM_freeN(edata);
 }
@@ -338,27 +341,27 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/*first call dissolve faces*/
 	BMO_InitOpf(bm, &op2, "dissolvefaces faces=%ff", ELE_NEW);
 	BMO_Exec_Op(bm, &op2);
-	BMO_ITER(f, &oiter, bm, &op2, "regionout", BM_FACE) {
-		BMO_SetFlag(bm, f, ELE_OUT);
-
-		/*unflag verts associated with dissolved faces*/
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			BMO_ClearFlag(bm, l->v, ELE_NEW);
-		}
+	
+	/*if we dissolved anything, then return.*/
+	if (BMO_CountSlotBuf(bm, &op2, "regionout")) {
+		BMO_CopySlot(&op2, op, "regionout", "faceout");
+		BMO_Finish_Op(bm, &op2);
+		return;
 	}
+
 	BMO_Finish_Op(bm, &op2);
 
-	/*then call edgenet create*/
+	/*call edgenet create*/
 	BMO_InitOpf(bm, &op2, "edgenet_fill edges=%fe", ELE_NEW);
 	BMO_Exec_Op(bm, &op2);
-	BMO_ITER(f, &oiter, bm, &op2, "faceout", BM_FACE) {
-		BMO_SetFlag(bm, f, ELE_OUT);
 
-		/*unflag verts associated with the output faces*/
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			BMO_ClearFlag(bm, l->v, ELE_NEW);
-		}
+	/*return if edge net create did something*/
+	if (BMO_CountSlotBuf(bm, &op2, "faceout")) {
+		BMO_CopySlot(&op2, op, "faceout", "faceout");
+		BMO_Finish_Op(bm, &op2);
+		return;
 	}
+
 	BMO_Finish_Op(bm, &op2);
 	
 	/*now, count how many verts we have*/
@@ -407,6 +410,4 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 		if (f) BMO_SetFlag(bm, f, ELE_OUT);
 	}
-
-	BMO_Flag_To_Slot(bm, op, "faceout", ELE_OUT, BM_FACE);
 }
