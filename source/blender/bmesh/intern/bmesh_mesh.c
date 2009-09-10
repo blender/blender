@@ -194,8 +194,6 @@ void BM_Compute_Normals(BMesh *bm)
 	unsigned int maxlength = 0;
 	float (*projectverts)[3];
 	
-	//return;
-
 	/*first, find out the largest face in mesh*/
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)){
 		if (BM_TestHFlag(f, BM_HIDDEN))

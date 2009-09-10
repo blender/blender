@@ -204,6 +204,8 @@ static int specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiItemO(layout, "Remove Doubles", 0, "MESH_OT_remove_doubles");
 	uiItemO(layout, "Hide", 0, "MESH_OT_hide");
 	uiItemO(layout, "Reveal", 0, "MESH_OT_reveal");
+	uiItemO(layout, "Pin", 0, "MESH_OT_pin");
+	uiItemO(layout, "Unpin", 0, "MESH_OT_unpin");
 	uiItemO(layout, "Select Inverse", 0, "MESH_OT_select_inverse");
 	uiItemO(layout, NULL, 0, "MESH_OT_flip_normals");
 	uiItemO(layout, "Smooth", 0, "MESH_OT_vertices_smooth");
@@ -248,6 +250,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_linked_pick);
 	WM_operatortype_append(MESH_OT_select_random);
 	WM_operatortype_append(MESH_OT_selection_type);
+	WM_operatortype_append(MESH_OT_pin);
+	WM_operatortype_append(MESH_OT_unpin);
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_by_number_vertices);
@@ -396,6 +400,12 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	/* selection mode */
 	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);
 	
+	/* pin */
+	WM_keymap_add_item(keymap, "MESH_OT_pin", RETKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_pin", RETKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
+	WM_keymap_add_item(keymap, "MESH_OT_unpin", RETKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_unpin", RETKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "unselected", 1);
+
 	/* hide */
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);

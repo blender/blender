@@ -205,6 +205,8 @@ void MESH_OT_select_inverse(struct wmOperatorType *ot);
 void MESH_OT_select_non_manifold(struct wmOperatorType *ot);
 void MESH_OT_select_linked(struct wmOperatorType *ot);
 void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
+void MESH_OT_pin(struct wmOperatorType *ot);
+void MESH_OT_unpin(struct wmOperatorType *ot);
 void MESH_OT_hide(struct wmOperatorType *ot);
 void MESH_OT_reveal(struct wmOperatorType *ot);
 void MESH_OT_select_by_number_vertices(struct wmOperatorType *ot);

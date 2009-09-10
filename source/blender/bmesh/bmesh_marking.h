@@ -8,6 +8,12 @@ typedef struct BMEditSelection
 	void *data;
 } BMEditSelection;
 
+/* pinning code */
+void BM_Pin(BMesh *bm, void *element, int pin);
+void BM_Pin_Vert(BMesh *bm, BMVert *v, int pin);
+void BM_Pin_Edge(BMesh *bm, BMEdge *e, int pin);
+void BM_Pin_Face(BMesh *bm, BMFace *f, int pin);
+
 /*geometry hiding code*/
 void BM_Hide(BMesh *bm, void *element, int hide);
 void BM_Hide_Vert(BMesh *bm, BMVert *v, int hide);

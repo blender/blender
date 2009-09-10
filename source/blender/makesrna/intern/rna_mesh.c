@@ -1412,6 +1412,11 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Face Area", "Displays the area of selected faces");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
+	prop= RNA_def_property(srna, "draw_pins", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_PINS);
+	RNA_def_property_ui_text(prop, "Draw Pins", "Displays pinned mesh elements");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 
 	RNA_api_mesh(srna);

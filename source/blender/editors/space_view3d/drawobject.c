@@ -1528,6 +1528,62 @@ static void draw_dm_vert_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 	glEnd();
 }
 
+/* check if all verts of the face are pinned */
+static int check_pinned_face(BMesh *bm, BMFace *efa)
+{
+	BMIter vfiter;
+	BMVert *v;
+	int vcount = 0;
+
+	BM_ITER(v, &vfiter, bm, BM_VERTS_OF_FACE, efa) {
+		if(BM_TestHFlag(v, BM_PINNED)) vcount ++;
+	}
+
+	if( vcount == efa->len) return 1;
+	return 0;
+}
+
+static void draw_dm_vert_pins__mapFunc(void *userData, int index, float *co)
+{
+	struct {BMEditMesh *em; Mesh *me;} *data = userData;
+	BMVert *eve = EDBM_get_vert_for_index(data->em, index);
+	BMFace *fv;
+	BMIter fviter;
+	float vsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
+	int small=0;
+
+	if (!BM_TestHFlag(eve, BM_HIDDEN)) {
+		if (BM_TestHFlag(eve, BM_PINNED)) {
+			BM_ITER(fv, &fviter, data->em->bm, BM_FACES_OF_VERT, eve) {
+				small += check_pinned_face(data->em->bm, fv);
+			}
+			if(small == 0) {
+				bglEnd();
+				glPointSize(vsize*1.5);
+				glBegin(GL_POINTS);
+				glVertex3fv(co);
+			}
+			else {
+				bglEnd();
+				glPointSize(vsize*0.5);
+				glBegin(GL_POINTS);
+				glVertex3fv(co);
+			}
+		}
+	}
+}
+
+static void draw_dm_vert_pins(BMEditMesh *em, DerivedMesh *dm, Mesh *me)
+{
+	struct { BMEditMesh *em; Mesh *me;} data;
+
+	data.em = em;
+	data.me = me;
+
+	dm->foreachMappedVert(dm, draw_dm_vert_pins__mapFunc, &data);
+	glEnd();
+}
+
 	/* Draw verts with color set based on selection */
 static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
@@ -1661,6 +1717,55 @@ static void draw_dm_edges_seams(BMEditMesh *em, DerivedMesh *dm)
 	dm->drawMappedEdges(dm, draw_dm_edges_seams__setDrawOptions, em);
 }
 
+/* Draw only pinned edges */
+static int draw_dm_edges_pins__setDrawOptions(void *userData, int index)
+{
+	struct {BMEditMesh *em; Mesh *me;} *data = userData;
+
+	BMEdge *eed = EDBM_get_edge_for_index(data->em, index);
+	BMIter feiter;
+	BMFace *fe;
+
+	int fcount, fpcount = 0;
+	int pin = 0;
+
+	/* If pinned faces are drawn then only draw pinned edges at the borders.
+	   This looks way better and the user still has all the info he needs. */
+	if(data->me->drawflag & ME_DRAW_PINS) {
+		if( BM_TestHFlag(eed->v1, BM_PINNED) && BM_TestHFlag(eed->v2, BM_PINNED) ) {
+			pin = 1;
+
+			fcount = 0;
+			BM_ITER(fe, &feiter, data->em->bm, BM_FACES_OF_EDGE, eed) {
+				fcount ++;
+				fpcount += check_pinned_face(data->em->bm, fe);
+			}
+		}
+	}
+	else {
+		pin = BM_TestHFlag(eed->v1, BM_PINNED) && BM_TestHFlag(eed->v2, BM_PINNED);
+	}
+
+	if( !BM_TestHFlag(eed, BM_HIDDEN)) {
+		/* Edges with at least one adherent pinned face are considered borders.
+		   If there are more than two adherent faces overall of which at least two are pinned it's also consideres a border. */
+		if( fpcount == 2 && fcount <= 2) {
+			return 0; }
+		else {
+			return pin; }
+	}
+}
+
+static void draw_dm_edges_pins(BMEditMesh *em, DerivedMesh *dm, Mesh *me)
+{
+	struct { BMEditMesh *em; Mesh *me;} data;
+
+	data.em = em;
+	data.me = me;
+
+	dm->drawMappedEdges(dm, draw_dm_edges_pins__setDrawOptions, &data);
+}
+
 	/* Draw only sharp edges */
 static int draw_dm_edges_sharp__setDrawOptions(void *userData, int index)
 {
@@ -1678,18 +1783,35 @@ static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
-	struct { unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; } *data = userData;
+	struct { unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; Mesh *me;} *data = userData;
 	BMFace *efa = EDBM_get_face_for_index(data->em, index);
 	unsigned char *col;
+	BMIter vfiter;
+	BMVert *v;
+	int vcount, pin=0;
+	int opac = UI_GetThemeValue(TH_PIN_OPAC);
 	
 	if (!BM_TestHFlag(efa, BM_HIDDEN)) {
+
+		/* Check if all verts of a face are pinned. If so, then display it in a darker shade. */
+		if(data->me->drawflag & ME_DRAW_PINS)
+			pin = check_pinned_face(data->em->bm, efa);
+
 		if (efa == data->efa_act) {
-			glColor4ubv(data->cols[2]);
+			if(pin==0) { glColor4ubv(data->cols[2]); }
+			else {
+				col = data->cols[2];
+				glColor4ub(col[0]-col[0]*0.9, col[1]-col[1]*0.9, col[2]-col[2]*0.9, opac*2.55);
+			}
+			
 			return 2; /* stipple */
 		} else {
 			col = data->cols[BM_TestHFlag(efa, BM_SELECT)?1:0];
 			if (col[3]==0) return 0;
-			glColor4ubv(col);
+
+			if(pin==0) { glColor4ubv(col); }
+			else { glColor4ub(col[0]-col[0]*0.9, col[1]-col[1]*0.9, col[2]-col[2]*0.9, opac*2.55); }
+
 			return 1;
 		}
 	}
@@ -1698,15 +1820,16 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *dra
 
 /* also draws the active face */
 static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
-			      unsigned char *selCol, unsigned char *actCol, BMFace *efa_act) 
+			      unsigned char *selCol, unsigned char *actCol, BMFace *efa_act, Mesh *me) 
 {
-	struct { unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; } data;
+	struct { unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; Mesh *me;} data;
 
 	data.cols[0] = baseCol;
 	data.em = em;
 	data.cols[1] = selCol;
 	data.cols[2] = actCol;
 	data.efa_act = efa_act;
+	data.me = me;
 	
 	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0);
 }
@@ -2168,7 +2291,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		if CHECK_OB_DRAWTEXTURE(v3d, dt)
 			col1[3] = 0;
 		
-		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
+		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act, me);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
@@ -2183,7 +2306,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
-		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
+		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act, me);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
@@ -2224,6 +2347,16 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		if(me->drawflag & ME_DRAWBWEIGHTS) {
 			draw_dm_bweights(em, scene, cageDM);
 		}
+
+		if(me->drawflag & ME_DRAW_PINS) {
+			UI_ThemeColor(TH_PIN);
+			glLineWidth(2);
+	
+			draw_dm_edges_pins(em, cageDM, me);
+	
+			glColor3ub(0,0,0);
+			glLineWidth(1);
+		}
 	
 		draw_em_fancy_edges(em, scene, v3d, me, cageDM, 0, eed_act);
 	}
@@ -2239,6 +2372,10 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		if(me->drawflag & ME_DRAW_VNORMALS) {
 			UI_ThemeColor(TH_NORMAL);
 			draw_dm_vert_normals(em, scene, cageDM);
+		}
+		if(me->drawflag & ME_DRAW_PINS) {
+			UI_ThemeColor(TH_PIN);
+			draw_dm_vert_pins(em, cageDM, me);
 		}
 
 		if(me->drawflag & (ME_DRAW_EDGELEN|ME_DRAW_FACEAREA|ME_DRAW_EDGEANG))

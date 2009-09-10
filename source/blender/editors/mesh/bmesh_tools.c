@@ -1703,6 +1703,127 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around.");
 }
 
+/* pinning code */
+
+/* swap is 0 or 1, if 1 it pins not selected */
+void EDBM_pin_mesh(BMEditMesh *em, int swap)
+{
+	BMIter iter;
+	BMHeader *h;
+	int itermode;
+
+	if(em==NULL) return;
+	
+	if (em->selectmode & SCE_SELECT_VERTEX)
+		itermode = BM_VERTS_OF_MESH;
+	else if (em->selectmode & SCE_SELECT_EDGE)
+		itermode = BM_EDGES_OF_MESH;
+	else
+		itermode = BM_FACES_OF_MESH;
+
+	BM_ITER(h, &iter, em->bm, itermode, NULL) {
+		if (BM_TestHFlag(h, BM_SELECT) ^ swap)
+			BM_Pin(em->bm, h, 1);
+	}
+
+	EDBM_selectmode_flush(em);
+}
+
+static int pin_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	Mesh *me= ((Mesh *)obedit->data);
+
+	me->drawflag |= ME_DRAW_PINS;
+	
+	EDBM_pin_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
+		
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_pin(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Pin Selection";
+	ot->idname= "MESH_OT_pin";
+	
+	/* api callbacks */
+	ot->exec= pin_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	ot->description= "Pin (un)selected vertices, edges or faces.";
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Pin unselected rather than selected.");
+}
+
+/* swap is 0 or 1, if 1 it unhides not selected */
+void EDBM_unpin_mesh(BMEditMesh *em, int swap)
+{
+	BMIter iter;
+	BMHeader *ele;
+	int i, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	int sels[3] = {1, !(em->selectmode & SCE_SELECT_VERTEX), !(em->selectmode & SCE_SELECT_VERTEX | SCE_SELECT_EDGE)};
+	int itermode;
+	
+	if(em==NULL) return;
+	
+	if (em->selectmode & SCE_SELECT_VERTEX)
+		itermode = BM_VERTS_OF_MESH;
+	else if (em->selectmode & SCE_SELECT_EDGE)
+		itermode = BM_EDGES_OF_MESH;
+	else
+		itermode = BM_FACES_OF_MESH;
+
+	BM_ITER(ele, &iter, em->bm, itermode, NULL) {
+		if (BM_TestHFlag(ele, BM_SELECT) ^ swap)
+			BM_Pin(em->bm, ele, 0);
+	}
+
+	EDBM_selectmode_flush(em);
+}
+
+static int unpin_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	Mesh *me= ((Mesh *)obedit->data);
+	
+	EDBM_unpin_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_unpin(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Unpin Selection";
+	ot->idname= "MESH_OT_unpin";
+	ot->description= "Unpin (un)selected vertices, edges or faces.";
+	
+	/* api callbacks */
+	ot->exec= unpin_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Unpin unselected rather than selected.");
+}
+
+
 /* swap is 0 or 1, if 1 it hides not selected */
 void EDBM_hide_mesh(BMEditMesh *em, int swap)
 {

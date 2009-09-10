@@ -202,6 +202,9 @@ enum {
 	
 	TH_DOPESHEET_CHANNELOB,
 	TH_DOPESHEET_CHANNELSUBOB,
+
+	TH_PIN,
+	TH_PIN_OPAC,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

@@ -679,6 +679,16 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "pin", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Pin", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "pin_opac", PROP_INT, PROP_PERCENTAGE);
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "Pin Face Opacity", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
 static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)

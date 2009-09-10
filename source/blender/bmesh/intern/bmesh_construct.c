@@ -542,6 +542,7 @@ int BMFlags_To_MEFlags(void *element) {
 	BMHeader *h = element;
 	int f = 0;
 
+	if (h->flag & BM_PINNED) f |= ME_PIN;
 	if (h->flag & BM_HIDDEN) f |= ME_HIDE;
 
 	if (h->type == BM_FACE) {
@@ -571,6 +572,7 @@ int BMFlags_To_MEFlags(void *element) {
 */
 int MEFlags_To_BMFlags(int flag, int type) {
 	int f = 0;
+	if (flag & ME_PIN) f |= BM_PINNED;
 
 	if (type == BM_FACE) {
 		if (flag & ME_FACE_SEL) f |= BM_SELECT;

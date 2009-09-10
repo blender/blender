@@ -109,6 +109,7 @@ struct EditMesh;
 #define BM_SMOOTH	(1<<5)
 #define BM_ACTIVE	(1<<6)
 #define BM_NONORMCALC	(1<<7)
+#define BM_PINNED	(1<<8)
 
 typedef struct BMHeader {
 	struct BMHeader *next, *prev;

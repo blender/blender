@@ -2281,6 +2281,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			if(propmode || selstate[a]) {
 				VertsToTransData(t, tob, bm, eve);
 
+				/* pinned */
+				if(BM_TestHFlag(eve,BM_PINNED)) tob->flag |= TD_SKIP;
+
 				/* selected */
 				if(selstate[a]) tob->flag |= TD_SELECTED;
 

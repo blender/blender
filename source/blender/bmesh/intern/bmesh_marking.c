@@ -532,6 +532,51 @@ void BM_validate_selections(BMesh *em)
 	}
 }
 
+/***************** Pinning **************/
+
+#define SETPIN(ele) pin ? BM_SetHFlag(ele, BM_PINNED) : BM_ClearHFlag(ele, BM_PINNED);
+
+
+void BM_Pin_Vert(BMesh *bm, BMVert *v, int pin)
+{
+	SETPIN(v);
+}
+
+void BM_Pin_Edge(BMesh *bm, BMEdge *e, int pin)
+{
+	SETPIN(e->v1);
+	SETPIN(e->v2);
+}
+
+void BM_Pin_Face(BMesh *bm, BMFace *f, int pin)
+{
+	BMIter vfiter;
+	BMVert *vf;
+
+	BM_ITER(vf, &vfiter, bm, BM_VERTS_OF_FACE, f) {
+		SETPIN(vf);
+	}
+}
+
+void BM_Pin(BMesh *bm, void *element, int pin)
+{
+	BMHeader *h = element;
+
+	switch (h->type) {
+		case BM_VERT:
+			BM_Pin_Vert(bm, element, pin);
+			break;
+		case BM_EDGE:
+			BM_Pin_Edge(bm, element, pin);
+			break;
+		case BM_FACE:
+			BM_Pin_Face(bm, element, pin);
+			break;
+	}
+}
+
+
+
 /***************** Mesh Hiding stuff *************/
 
 #define SETHIDE(ele) hide ? BM_SetHFlag(ele, BM_HIDDEN) : BM_ClearHFlag(ele, BM_HIDDEN);
