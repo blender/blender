@@ -5750,7 +5750,11 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = userData;
 
-	if (!(me->mface[index].flag&ME_HIDE)) {
+	/*sanity check*/
+	if (index >= me->totpoly)
+		return 0;
+
+	if (!(me->mpoly[index].flag&ME_HIDE)) {
 		WM_set_framebuffer_index_color(index+1);
 		return 1;
 	} else {

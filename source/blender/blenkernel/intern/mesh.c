@@ -206,9 +206,10 @@ void unlink_mesh(Mesh *me)
 
 
 /* do not free mesh itself */
-void free_mesh(Mesh *me)
+void free_mesh(Mesh *me, int unlink)
 {
-	unlink_mesh(me);
+	if (unlink)
+		unlink_mesh(me);
 
 	if(me->pv) {
 		if(me->pv->vert_map) MEM_freeN(me->pv->vert_map);

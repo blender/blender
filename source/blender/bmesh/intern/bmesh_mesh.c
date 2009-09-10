@@ -195,7 +195,7 @@ void BM_Compute_Normals(BMesh *bm)
 	float (*projectverts)[3];
 	
 	/*first, find out the largest face in mesh*/
-	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)){
+	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
 
@@ -209,7 +209,7 @@ void BM_Compute_Normals(BMesh *bm)
 	projectverts = MEM_callocN(sizeof(float) * maxlength * 3, "BM normal computation array");
 	
 	/*calculate all face normals*/
-	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)){
+	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
 		if (f->head.flag & BM_NONORMCALC)
@@ -219,7 +219,7 @@ void BM_Compute_Normals(BMesh *bm)
 	}
 	
 	/*Zero out vertex normals*/
-	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v = BMIter_Step(&verts)) {
+	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_TestHFlag(v, BM_HIDDEN))
 			continue;
 
@@ -227,7 +227,7 @@ void BM_Compute_Normals(BMesh *bm)
 	}
 
 	/*add face normals to vertices*/
-	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)){
+	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
 
@@ -236,7 +236,7 @@ void BM_Compute_Normals(BMesh *bm)
 	}
 	
 	/*average the vertex normals*/
-	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v= BMIter_Step(&verts)){
+	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_TestHFlag(v, BM_HIDDEN))
 			continue;
 

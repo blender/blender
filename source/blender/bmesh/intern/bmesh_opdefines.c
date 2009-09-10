@@ -411,10 +411,24 @@ BMOpDefine def_object_load_bmesh = {
 	{{BMOP_OPSLOT_PNT, "scene"},
 	{BMOP_OPSLOT_PNT, "object"},
 	{0, /*null-terminating sentinel*/}},
-	bmesh_to_mesh_exec,
+	object_load_bmesh_exec,
 	0,
 };
 
+
+/*
+  BMesh to Mesh
+
+  Converts a bmesh to a Mesh
+*/
+BMOpDefine def_bmesh_to_mesh = {
+	"bmesh_to_mesh",
+	{{BMOP_OPSLOT_PNT, "meshptr"}, //pointer to a mesh structure to fill in
+	 {BMOP_OPSLOT_INT, "notesselation"}, //don't calculate mfaces
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_to_mesh_exec,
+	0,
+};
 
 /*
   Mesh to BMesh
@@ -749,6 +763,7 @@ BMOpDefine *opdefines[] = {
 	&def_pointmerge_facedata,
 	&def_vert_average_facedata,
 	&def_meshrotateuvs,
+	&def_bmesh_to_mesh,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

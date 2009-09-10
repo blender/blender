@@ -1215,7 +1215,7 @@ int BMO_CallOpf(BMesh *bm, char *fmt, ...) {
 
 	va_start(list, fmt);
 	if (!BMO_VInitOpf(bm, &op, fmt, list)) {
-		printf("BMO_CallOpf failed\n");
+		printf("BMO_CallOpf failed, format is:\n    \"%s\"\n", fmt);
 		va_end(list);
 		return 0;
 	}

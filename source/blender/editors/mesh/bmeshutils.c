@@ -539,32 +539,52 @@ static void *getEditMesh(bContext *C)
 	return NULL;
 }
 
+typedef struct undomesh {
+	Mesh me;
+	int selectmode;
+} undomesh;
+
 /*undo simply makes copies of a bmesh*/
 static void *editbtMesh_to_undoMesh(void *emv)
 {
+	BMEditMesh *em = emv;
+	undomesh *me = MEM_callocN(sizeof(undomesh), "undo Mesh");
+
 	/*we recalc the tesselation here, to avoid seeding calls to
 	  BMEdit_RecalcTesselation throughout the code.*/
-	BMEdit_RecalcTesselation(emv);
+	BMEdit_RecalcTesselation(em);
 
-	return BMEdit_Copy(emv);
+	BMO_CallOpf(em->bm, "bmesh_to_mesh meshptr=%p notesselation=%i", me, 1);
+	me->selectmode = em->selectmode;
+
+	return me;
 }
 
 static void undoMesh_to_editbtMesh(void *umv, void *emv)
 {
-	BMEditMesh *em1 = umv, *em2 = emv;
+	BMEditMesh *em = emv, *em2;
+	undomesh *me = umv;
+	BMesh *bm;
+	int allocsize[4] = {512, 512, 2048, 512};
 
-	BMEdit_Free(em2);
+	BMEdit_Free(em);
 
-	*em2 = *BMEdit_Copy(em1);
+	bm = BM_Make_Mesh(allocsize);
+	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p", me);
+
+	em2 = BMEdit_Create(bm);
+	*em = *em2;
+	
+	em->selectmode = me->selectmode;
+
+	MEM_freeN(em2);
 }
 
 
 static void free_undo(void *umv)
 {
-	BMEditMesh *em = umv;
-
-	BMEdit_Free(em);
-	MEM_freeN(em);
+	free_mesh(umv, 0);
+	MEM_freeN(umv);
 }
 
 /* and this is all the undo system needs to know */

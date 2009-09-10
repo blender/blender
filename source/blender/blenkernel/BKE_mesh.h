@@ -66,7 +66,7 @@ int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata,
 	int totloop, int totpoly);
 
 void unlink_mesh(struct Mesh *me);
-void free_mesh(struct Mesh *me);
+void free_mesh(struct Mesh *me, int unlink);
 struct Mesh *add_mesh(char *name);
 struct Mesh *copy_mesh(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me);
