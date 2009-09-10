@@ -98,6 +98,7 @@ char OP_WARP[] = "TFM_OT_warp";
 char OP_SHRINK_FATTEN[] = "TFM_OT_shrink_fatten";
 char OP_TILT[] = "TFM_OT_tilt";
 char OP_TRACKBALL[] = "TFM_OT_trackball";
+char OP_MIRROR[] = "TFM_OT_mirror";
 
 
 TransformModeItem transform_modes[] =
@@ -111,6 +112,7 @@ TransformModeItem transform_modes[] =
 	{OP_SHRINK_FATTEN, TFM_SHRINKFATTEN},
 	{OP_TILT, TFM_TILT},
 	{OP_TRACKBALL, TFM_TRACKBALL},
+	{OP_MIRROR, TFM_MIRROR},
 	{NULL, 0}
 };
 
@@ -528,6 +530,25 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
+void TFM_OT_mirror(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Mirror";
+	ot->description= "Mirror selected vertices around one or more axes.";
+	ot->idname = OP_MIRROR;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	/* api callbacks */
+	ot->invoke = transform_invoke;
+	ot->exec   = transform_exec;
+	ot->modal  = transform_modal;
+	ot->cancel  = transform_cancel;
+	ot->poll   = ED_operator_areaactive;
+
+	Properties_Proportional(ot);
+	Properties_Constraints(ot);
+}
+
 void TFM_OT_transform(struct wmOperatorType *ot)
 {
 	static EnumPropertyItem transform_mode_types[] = {
@@ -595,6 +616,7 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TFM_OT_shrink_fatten);
 	WM_operatortype_append(TFM_OT_tilt);
 	WM_operatortype_append(TFM_OT_trackball);
+	WM_operatortype_append(TFM_OT_mirror);
 
 	WM_operatortype_append(TFM_OT_select_orientation);
 }
@@ -699,8 +721,7 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_transform", MKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_MIRROR);
+			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, 0, 0);
 			break;
 		default:
 			break;

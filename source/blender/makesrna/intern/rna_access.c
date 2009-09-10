@@ -2748,7 +2748,7 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name)
 		return (rna_idproperty_find(ptr, name) != NULL);
 	}
 	else {
-		printf("RNA_property_is_set: %s.%s not found.\n", ptr->type->identifier, name);
+		// printf("RNA_property_is_set: %s.%s not found.\n", ptr->type->identifier, name);
 		return 0;
 	}
 }

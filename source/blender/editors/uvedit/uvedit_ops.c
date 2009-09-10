@@ -942,50 +942,6 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 	EM_free_uv_vert_map(vmap);
 }
 
-/* ******************** mirror operator **************** */
-
-static int mirror_exec(bContext *C, wmOperator *op)
-{
-	float mat[3][3];
-	int axis;
-	
-	Mat3One(mat);
-	axis= RNA_enum_get(op->ptr, "axis");
-
-	if(axis == 'x') {
-		/* XXX initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-		BIF_setSingleAxisConstraint(mat[0], " on X axis");
-		Transform(); */
-	}
-	else {
-		/* XXX initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-		BIF_setSingleAxisConstraint(mat[1], " on Y axis");
-		Transform(); */
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-void UV_OT_mirror(wmOperatorType *ot)
-{
-	static EnumPropertyItem axis_items[] = {
-		{'x', "MIRROR_X", 0, "Mirror X", "Mirror UVs over X axis."},
-		{'y', "MIRROR_Y", 0, "Mirror Y", "Mirror UVs over Y axis."},
-		{0, NULL, 0, NULL, NULL}};
-
-	/* identifiers */
-	ot->name= "Mirror";
-	ot->idname= "UV_OT_mirror";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* api callbacks */
-	ot->exec= mirror_exec;
-	ot->poll= ED_operator_uvedit;
-
-	/* properties */
-	RNA_def_enum(ot->srna, "axis", axis_items, 'x', "Axis", "Axis to mirror UV locations over.");
-}
-
 /* ******************** align operator **************** */
 
 static void weld_align_uv(bContext *C, int tool)
@@ -3092,7 +3048,6 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_snap_selection);
 
 	WM_operatortype_append(UV_OT_align);
-	WM_operatortype_append(UV_OT_mirror);
 	WM_operatortype_append(UV_OT_stitch);
 	WM_operatortype_append(UV_OT_weld);
 	WM_operatortype_append(UV_OT_pin);

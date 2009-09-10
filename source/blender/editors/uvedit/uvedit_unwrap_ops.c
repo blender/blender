@@ -44,6 +44,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
@@ -75,6 +76,11 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
+	Image *ima;
+	bScreen *sc;
+	ScrArea *sa;
+	SpaceLink *slink;
+	SpaceImage *sima;
 
 	if(ED_uvedit_test(obedit)) {
 		BKE_mesh_end_editmesh(obedit->data, em);
@@ -88,10 +94,31 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return 0;
 	}
+
+	ima= CTX_data_edit_image(C);
+
+	if(!ima) {
+		/* no image in context in the 3d view, we find first image window .. */
+		sc= CTX_wm_screen(C);
+
+		for(sa=sc->areabase.first; sa; sa=sa->next) {
+			slink= sa->spacedata.first;
+			if(slink->spacetype == SPACE_IMAGE) {
+				sima= (SpaceImage*)slink;
+
+				ima= sima->image;
+				if(ima) {
+					if(ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
+						ima= NULL;
+					else
+						break;
+				}
+			}
+		}
+	}
 	
-	// XXX this image is not in context in 3d view .. only
-	// way to get would be to find the first image window?
-	ED_uvedit_assign_image(scene, obedit, CTX_data_edit_image(C), NULL);
+	if(ima)
+		ED_uvedit_assign_image(scene, obedit, ima, NULL);
 	
 	/* select new UV's */
 	for(efa=em->faces.first; efa; efa=efa->next) {

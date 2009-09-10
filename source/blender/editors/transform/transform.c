@@ -1257,13 +1257,16 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	int constraint_axis[3] = {0, 0, 0};
 	int proportional = 0;
 
-	if (t->flag & T_AUTOVALUES)
+	if (RNA_struct_find_property(op->ptr, "value"))
 	{
-		RNA_float_set_array(op->ptr, "value", t->auto_values);
-	}
-	else
-	{
-		RNA_float_set_array(op->ptr, "value", t->values);
+		if (t->flag & T_AUTOVALUES)
+		{
+			RNA_float_set_array(op->ptr, "value", t->auto_values);
+		}
+		else
+		{
+			RNA_float_set_array(op->ptr, "value", t->values);
+		}
 	}
 
 	/* XXX convert stupid flag to enum */
@@ -4145,7 +4148,10 @@ int Mirror(TransInfo *t, short mval[2])
 
 		recalcData(t);
 
-		ED_area_headerprint(t->sa, "Select a mirror axis (X, Y, Z)");
+		if(t->flag & T_2D_EDIT)
+			ED_area_headerprint(t->sa, "Select a mirror axis (X, Y)");
+		else
+			ED_area_headerprint(t->sa, "Select a mirror axis (X, Y, Z)");
 	}
 
 	return 1;
