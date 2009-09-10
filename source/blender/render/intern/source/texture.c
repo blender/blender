@@ -1455,12 +1455,22 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 		VECCOPY(in, out);
 		ramp_blend(MA_RAMP_COLOR, in, in+1, in+2, fact, tex);
 		break;
+    case MTEX_SOFT_LIGHT: 
+        fact*= facg; 
+        VECCOPY(in, out); 
+        ramp_blend(MA_RAMP_SOFT, in, in+1, in+2, fact, tex); 
+        break; 
+    case MTEX_LIN_LIGHT: 
+        fact*= facg; 
+        VECCOPY(in, out); 
+        ramp_blend(MA_RAMP_LINEAR, in, in+1, in+2, fact, tex); 
+        break; 
 	}
 }
 
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip)
 {
-	float in=0.0, facm, col;
+	float in=0.0, facm, col, scf;
 	
 	fact*= facg;
 	facm= 1.0-fact;
@@ -1505,6 +1515,19 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		col= fact*tex;
 		if(col > out) in= col; else in= out;
 		break;
+
+    case MTEX_SOFT_LIGHT: 
+        col= fact*tex; 
+        scf=1.0 - (1.0 - tex) * (1.0 - out); 
+        in= facm*out + fact * ((1.0 - out) * tex * out) + (out * scf); 
+        break;       
+
+    case MTEX_LIN_LIGHT: 
+        if (tex > 0.5) 
+            in = out + fact*(2*(tex - 0.5)); 
+        else 
+            in = out + fact*(2*tex - 1); 
+        break;
 	}
 	
 	return in;

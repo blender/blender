@@ -448,6 +448,8 @@ typedef struct TexMapping {
 #define MTEX_BLEND_VAL		12
 #define MTEX_BLEND_COLOR	13
 #define MTEX_NUM_BLENDTYPES	14
+#define MTEX_SOFT_LIGHT     15 
+#define MTEX_LIN_LIGHT      16
 
 /* brush_map_mode */
 #define MTEX_MAP_MODE_FIXED    0

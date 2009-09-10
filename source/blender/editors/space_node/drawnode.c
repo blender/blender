@@ -247,7 +247,7 @@ static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 		
 		/* blend type */
 		uiBlockBeginAlign(block);
-		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12",
+		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12|Soft Light %x16|Linear Light %x17", 
 					 (short)butr->xmin, (short)butr->ymin, butr->xmax-butr->xmin -(a_but?20:0), 20, 
 					 &node->custom1, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
