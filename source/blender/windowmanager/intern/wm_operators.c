@@ -837,7 +837,7 @@ static EnumPropertyItem *open_recentfile_itemf(bContext *C, PointerRNA *ptr, int
 	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
 		tmp.value= i+ofs+1;
 		tmp.identifier= recent->filename;
-		tmp.name= recent->filename;
+		tmp.name= BLI_short_filename(recent->filename);
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
 

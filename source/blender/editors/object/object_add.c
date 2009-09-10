@@ -1122,7 +1122,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "keep_original", 0, "Keep Original", "Keep original objects instead of replacing them.");
 }
 
-/************************** Add Duplicate **********************/
+/**************************** Duplicate ************************/
 
 /* 
 	dupflag: a flag made from constants declared in DNA_userdef_types.h

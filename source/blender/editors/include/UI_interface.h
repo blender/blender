@@ -589,6 +589,7 @@ void UI_exit(void);
 #define UI_ITEM_R_EXPAND		2
 #define UI_ITEM_R_SLIDER		4
 #define UI_ITEM_R_TOGGLE		8
+#define UI_ITEM_R_ICON_ONLY		16
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);

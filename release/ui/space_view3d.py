@@ -410,7 +410,7 @@ class VIEW3D_MT_OBJECT(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.itemO("object.duplicate")
+		layout.itemO("object.duplicate_move")
 		layout.item_booleanO("object.duplicate", "linked", True, text="Duplicate Linked")
 		layout.itemO("object.delete", text="Delete...")
 		layout.itemO("object.proxy_make", text="Make Proxy...")

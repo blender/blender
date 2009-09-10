@@ -176,7 +176,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(LATTICE_OT_make_regular);
 	
 	/* macros */
-	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		WM_operatortype_macro_define(ot, "TFM_OT_translate");

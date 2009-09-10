@@ -242,33 +242,41 @@ static char *wm_keymap_item_to_string(wmKeymapItem *kmi, char *str, int len)
 	return str;
 }
 
-static wmKeymapItem *wm_keymap_item_find_handlers(ListBase *handlers, const char *opname, int opcontext, IDProperty *properties)
+static wmKeymapItem *wm_keymap_item_find_handlers(ListBase *handlers, const char *opname, int opcontext, IDProperty *properties, int compare_props)
 {
 	wmEventHandler *handler;
 	wmKeymapItem *kmi;
 
 	/* find keymap item in handlers */
-	for(handler=handlers->first; handler; handler=handler->next)
-		if(handler->keymap)
-			for(kmi=handler->keymap->first; kmi; kmi=kmi->next)
-				if(strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0])
-					if(kmi->ptr && IDP_EqualsProperties(properties, kmi->ptr->data))
+	for(handler=handlers->first; handler; handler=handler->next) {
+		if(handler->keymap) {
+			for(kmi=handler->keymap->first; kmi; kmi=kmi->next) {
+				if(strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0]) {
+					if(compare_props) {
+						if(kmi->ptr && IDP_EqualsProperties(properties, kmi->ptr->data))
+							return kmi;
+					}
+					else
 						return kmi;
+				}
+			}
+		}
+	}
 	
 	return NULL;
 }
 
-static wmKeymapItem *wm_keymap_item_find(const bContext *C, const char *opname, int opcontext, IDProperty *properties)
+static wmKeymapItem *wm_keymap_item_find(const bContext *C, const char *opname, int opcontext, IDProperty *properties, int compare_props)
 {
 	wmKeymapItem *found= NULL;
 
 	/* look into multiple handler lists to find the item */
 	if(CTX_wm_window(C))
-		found= wm_keymap_item_find_handlers(&CTX_wm_window(C)->handlers, opname, opcontext, properties);
+		found= wm_keymap_item_find_handlers(&CTX_wm_window(C)->handlers, opname, opcontext, properties, compare_props);
 	
 
 	if(CTX_wm_area(C) && found==NULL)
-		found= wm_keymap_item_find_handlers(&CTX_wm_area(C)->handlers, opname, opcontext, properties);
+		found= wm_keymap_item_find_handlers(&CTX_wm_area(C)->handlers, opname, opcontext, properties, compare_props);
 
 	if(found==NULL) {
 		if(ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
@@ -279,12 +287,12 @@ static wmKeymapItem *wm_keymap_item_find(const bContext *C, const char *opname, 
 						break;
 
 				if(ar)
-					found= wm_keymap_item_find_handlers(&ar->handlers, opname, opcontext, properties);
+					found= wm_keymap_item_find_handlers(&ar->handlers, opname, opcontext, properties, compare_props);
 			}
 		}
 		else {
 			if(CTX_wm_region(C))
-				found= wm_keymap_item_find_handlers(&CTX_wm_region(C)->handlers, opname, opcontext, properties);
+				found= wm_keymap_item_find_handlers(&CTX_wm_region(C)->handlers, opname, opcontext, properties, compare_props);
 		}
 	}
 	
@@ -293,7 +301,10 @@ static wmKeymapItem *wm_keymap_item_find(const bContext *C, const char *opname, 
 
 char *WM_key_event_operator_string(const bContext *C, const char *opname, int opcontext, IDProperty *properties, char *str, int len)
 {
-	wmKeymapItem *found= wm_keymap_item_find(C, opname, opcontext, properties);
+	wmKeymapItem *found= wm_keymap_item_find(C, opname, opcontext, properties, 1);
+
+	if(!found)
+		found= wm_keymap_item_find(C, opname, opcontext, properties, 0);
 	
 	if(found) {
 		wm_keymap_item_to_string(found, str, len);
@@ -306,7 +317,10 @@ char *WM_key_event_operator_string(const bContext *C, const char *opname, int op
 /* searches context and changes keymap item, if found */
 void WM_key_event_operator_change(const bContext *C, const char *opname, int opcontext, IDProperty *properties, short key, short modifier)
 {
-	wmKeymapItem *found= wm_keymap_item_find(C, opname, opcontext, properties);
+	wmKeymapItem *found= wm_keymap_item_find(C, opname, opcontext, properties, 1);
+
+	if(!found)
+		found= wm_keymap_item_find(C, opname, opcontext, properties, 0);
 
 	if(found) {
 		keymap_event_set(found, key, KM_PRESS, modifier, 0);

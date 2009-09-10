@@ -443,7 +443,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 	uiBlockSetCurLayout(block, layout);
 }
 
-static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, char *uiname, int x, int y, int w, int h)
+static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, char *uiname, int x, int y, int w, int h, int icon_only)
 {
 	EnumPropertyItem *item;
 	const char *identifier;
@@ -463,7 +463,7 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 		value= item[a].value;
 		itemw= ui_text_icon_width(block->curlayout, name, icon, 0);
 
-		if(icon && strcmp(name, "") != 0)
+		if(icon && strcmp(name, "") != 0 && !icon_only)
 			uiDefIconTextButR(block, ROW, 0, icon, name, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
 		else if(icon)
 			uiDefIconButR(block, ROW, 0, icon, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
@@ -477,7 +477,7 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 }
 
 /* create label + button for RNA property */
-static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h)
+static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h, int icon_only)
 {
 	uiLayout *sub;
 	uiBut *but;
@@ -506,7 +506,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
 	}
 	else
-		but= uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w, h);
+		but= uiDefAutoButR(block, ptr, prop, index, (icon_only)? "": NULL, icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
 	return but;
@@ -788,7 +788,7 @@ void uiItemO(uiLayout *layout, char *name, int icon, char *opname)
 
 /* RNA property items */
 
-static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int *r_w, int *r_h)
+static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int icon_only, int *r_w, int *r_h)
 {
 	PropertyType type;
 	PropertySubType subtype;
@@ -799,9 +799,9 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PointerRNA 
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(ptr, prop);
 
-	if(ELEM3(type, PROP_STRING, PROP_POINTER, PROP_ENUM) && !name[0])
+	if(ELEM3(type, PROP_STRING, PROP_POINTER, PROP_ENUM) && !name[0] && !icon_only)
 		name= "non-empty text";
-	else if(type == PROP_BOOLEAN && !name[0])
+	else if(type == PROP_BOOLEAN && !name[0] && !icon_only)
 		icon= ICON_DOT;
 
 	w= ui_text_icon_width(layout, name, icon, 0);
@@ -823,7 +823,7 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PointerRNA 
 		if(type == PROP_BOOLEAN && strcmp(name, "") != 0)
 			w += UI_UNIT_X/5;
 		else if(type == PROP_ENUM)
-			w += UI_UNIT_X/2;
+			w += UI_UNIT_X/4;
 		else if(type == PROP_FLOAT || type == PROP_INT)
 			w += UI_UNIT_X*3;
 	}
@@ -838,7 +838,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	uiBut *but;
 	PropertyType type;
 	char namestr[UI_MAX_NAME_STR];
-	int len, w, h, slider, toggle, expand;
+	int len, w, h, slider, toggle, expand, icon_only;
 
 	if(!ptr->data || !prop)
 		return;
@@ -872,9 +872,10 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	slider= (flag & UI_ITEM_R_SLIDER);
 	toggle= (flag & UI_ITEM_R_TOGGLE);
 	expand= (flag & UI_ITEM_R_EXPAND);
+	icon_only= (flag & UI_ITEM_R_ICON_ONLY);
 
 	/* get size */
-	ui_item_rna_size(layout, name, icon, ptr, prop, index, &w, &h);
+	ui_item_rna_size(layout, name, icon, ptr, prop, index, icon_only, &w, &h);
 
 	/* array property */
 	if(index == RNA_NO_INDEX && len > 0)
@@ -883,7 +884,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
 		char *identifier= (char*)RNA_property_identifier(prop);
 
-		if(icon && strcmp(name, "") != 0)
+		if(icon && strcmp(name, "") != 0 && !icon_only)
 			uiDefIconTextButR(block, ROW, 0, icon, name, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
 		else if(icon)
 			uiDefIconButR(block, ROW, 0, icon, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
@@ -892,10 +893,10 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	}
 	/* expanded enum */
 	else if(type == PROP_ENUM && expand)
-		ui_item_enum_row(layout, block, ptr, prop, name, 0, 0, w, h);
+		ui_item_enum_row(layout, block, ptr, prop, name, 0, 0, w, h, icon_only);
 	/* property with separate label */
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
-		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h);
+		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, icon_only);
 		ui_but_add_search(but, ptr, prop, NULL, NULL);
 	}
 	/* single button */
@@ -1160,8 +1161,8 @@ void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *p
 	/* create button */
 	block= uiLayoutGetBlock(layout);
 
-	ui_item_rna_size(layout, name, icon, ptr, prop, 0, &w, &h);
-	but= ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h);
+	ui_item_rna_size(layout, name, icon, ptr, prop, 0, 0, &w, &h);
+	but= ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
 	ui_but_add_search(but, ptr, prop, searchptr, searchprop);
 }
