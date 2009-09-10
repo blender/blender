@@ -86,11 +86,11 @@ void free_path(Path *path)
 void calc_curvepath(Object *ob)
 {
 	BevList *bl;
-	BevPoint *bevp, *bevpn, *bevpfirst, *bevplast, *tempbevp;
+	BevPoint *bevp, *bevpn, *bevpfirst, *bevplast;
 	Curve *cu;
 	Nurb *nu;
 	Path *path;
-	float *fp, *dist, *maxdist, x, y, z;
+	float *fp, *dist, *maxdist, xyz[3];
 	float fac, d=0, fac1, fac2;
 	int a, tot, cycl=0;
 	float *ft;
@@ -129,19 +129,12 @@ void calc_curvepath(Object *ob)
 	*fp= 0;
 	for(a=0; a<tot; a++) {
 		fp++;
-		if(cycl && a==tot-1) {
-			x= bevpfirst->x - bevp->x;
-			y= bevpfirst->y - bevp->y;
-			z= bevpfirst->z - bevp->z;
-		}
-		else {
-                        tempbevp = bevp+1;
-			x= (tempbevp)->x - bevp->x;
-			y= (tempbevp)->y - bevp->y;
-			z= (tempbevp)->z - bevp->z;
-		}
-		*fp= *(fp-1)+ (float)sqrt(x*x+y*y+z*z);
+		if(cycl && a==tot-1)
+			VecSubf(xyz, bevpfirst->vec, bevp->vec);
+		else
+			VecSubf(xyz, (bevp+1)->vec, bevp->vec);
 		
+		*fp= *(fp-1)+VecLength(xyz);
 		bevp++;
 	}
 	
@@ -178,14 +171,11 @@ void calc_curvepath(Object *ob)
 		fac2= *(fp)-d;
 		fac1= fac2/fac1;
 		fac2= 1.0f-fac1;
-
-		ft[0]= fac1*bevp->x+ fac2*(bevpn)->x;
-		ft[1]= fac1*bevp->y+ fac2*(bevpn)->y;
-		ft[2]= fac1*bevp->z+ fac2*(bevpn)->z;
+		
+		VecLerpf(ft, bevp->vec, bevpn->vec, fac2);
 		ft[3]= fac1*bevp->alfa+ fac2*(bevpn)->alfa;
 		
 		ft+= 4;
-
 	}
 	
 	MEM_freeN(dist);

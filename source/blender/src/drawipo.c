@@ -1514,8 +1514,8 @@ static void draw_ipocurves(int sel)
 									
 									correct_bezpart(v1, v2, v3, v4);
 									
-									forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, 3);
-									forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data+1, resol, 3);
+									forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, 3*sizeof(float));
+									forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data+1, resol, 3*sizeof(float));
 									
 									fp= data;
 									while(resol--) {

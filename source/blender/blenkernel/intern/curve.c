@@ -64,7 +64,6 @@
 #include "BKE_library.h"  
 #include "BKE_key.h"  
 
-
 /* globals */
 
 extern ListBase editNurb;  /* editcurve.c */
@@ -813,7 +812,7 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 	MEM_freeN(jend);
 }
 
-void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu)
+void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu, int stride)
 /* coord_array has to be 3*4*pntsu*resolu in size and zero-ed
  * tilt_array and radius_array will be written to if valid */
 {
@@ -897,10 +896,10 @@ void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radiu
 			}
 		}
 
-		coord_fp+= 3;
+		coord_fp = (float *)(((char *)coord_fp) + stride);
 		
-		if (tilt_fp) tilt_fp++;
-		if (radius_fp) radius_fp++;
+		if (tilt_fp)	tilt_fp = (float *)(((char *)tilt_fp) + stride);
+		if (radius_fp)	radius_fp = (float *)(((char *)radius_fp) + stride);
 		
 		u+= ustep;
 	}
@@ -931,7 +930,7 @@ void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int i
   
   	for(a=0; a<=it; a++) {
 		*p= q0;
-		p+= stride;
+		p = (float *)(((char *)p)+stride);
 		q0+= q1;
  		q1+= q2;
  		q2+= q3;
@@ -1350,8 +1349,8 @@ static short bevelinside(BevList *bl1,BevList *bl2)
 	/* take first vertex of possible hole */
 
 	bevp= (BevPoint *)(bl2+1);
-	hvec1[0]= bevp->x; 
-	hvec1[1]= bevp->y; 
+	hvec1[0]= bevp->vec[0]; 
+	hvec1[1]= bevp->vec[1]; 
 	hvec1[2]= 0.0;
 	VECCOPY(hvec2,hvec1);
 	hvec2[0]+=1000;
@@ -1364,16 +1363,16 @@ static short bevelinside(BevList *bl1,BevList *bl2)
 	prevbevp= bevp+(nr-1);
 
 	while(nr--) {
-		min= prevbevp->y;
-		max= bevp->y;
+		min= prevbevp->vec[0];
+		max= bevp->vec[1];
 		if(max<min) {
 			min= max;
-			max= prevbevp->y;
+			max= prevbevp->vec[1];
 		}
 		if(min!=max) {
 			if(min<=hvec1[1] && max>=hvec1[1]) {
 				/* there's a transition, calc intersection point */
-				mode= cu_isectLL(&(prevbevp->x),&(bevp->x),hvec1,hvec2,0,1,&lab,&mu,vec);
+				mode= cu_isectLL(prevbevp->vec, bevp->vec, hvec1, hvec2, 0, 1, &lab, &mu, vec);
 				/* if lab==0.0 or lab==1.0 then the edge intersects exactly a transition
 			           only allow for one situation: we choose lab= 1.0
 				 */
@@ -1446,11 +1445,14 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 
 }
 
-static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *tilt_array, float *radius_array, int resolu)
+static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *tilt_array, float *radius_array, int resolu, int stride)
 {
 	BezTriple *pprev, *next, *last;
 	float fac, dfac, t[4];
 	int a;
+	
+	if(tilt_array==NULL && radius_array==NULL)
+		return;
 	
 	last= nu->bezt+(nu->pntsu-1);
 	
@@ -1474,11 +1476,13 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 	for(a=0; a<resolu; a++, fac+= dfac) {
 		if (tilt_array) {
 			if (nu->tilt_interp==3) { /* May as well support for tilt also 2.47 ease interp */
-				tilt_array[a] = prevbezt->alfa + (bezt->alfa - prevbezt->alfa)*(3.0f*fac*fac - 2.0f*fac*fac*fac);
+				*tilt_array = prevbezt->alfa + (bezt->alfa - prevbezt->alfa)*(3.0f*fac*fac - 2.0f*fac*fac*fac);
 			} else {
 				key_curve_position_weights(fac, t, nu->tilt_interp);
-				tilt_array[a]= t[0]*pprev->alfa + t[1]*prevbezt->alfa + t[2]*bezt->alfa + t[3]*next->alfa;
+				*tilt_array= t[0]*pprev->alfa + t[1]*prevbezt->alfa + t[2]*bezt->alfa + t[3]*next->alfa;
 			}
+			
+			tilt_array = (float *)(((char *)tilt_array) + stride); 
 		}
 		
 		if (radius_array) {
@@ -1486,15 +1490,17 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 				/* Support 2.47 ease interp
 				 * Note! - this only takes the 2 points into account,
 				 * giving much more localized results to changes in radius, sometimes you want that */
-				radius_array[a] = prevbezt->radius + (bezt->radius - prevbezt->radius)*(3.0f*fac*fac - 2.0f*fac*fac*fac);
+				*radius_array = prevbezt->radius + (bezt->radius - prevbezt->radius)*(3.0f*fac*fac - 2.0f*fac*fac*fac);
 			} else {
 				
 				/* reuse interpolation from tilt if we can */
 				if (tilt_array==NULL || nu->tilt_interp != nu->radius_interp) {
 					key_curve_position_weights(fac, t, nu->radius_interp);
 				}
-				radius_array[a]= t[0]*pprev->radius + t[1]*prevbezt->radius + t[2]*bezt->radius + t[3]*next->radius;
+				*radius_array= t[0]*pprev->radius + t[1]*prevbezt->radius + t[2]*bezt->radius + t[3]*next->radius;
 			}
+			
+			radius_array = (float *)(((char *)radius_array) + stride); 
 		}
 	}
 }
@@ -1514,8 +1520,6 @@ void makeBevelList(Object *ob)
 	BevList *bl, *blnew, *blnext;
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
 	float min, inp, x1, x2, y1, y2, vec[3], vec_prev[3], q[4], quat[4], quat_prev[4], cross[3];
-	float *coord_array, *tilt_array=NULL, *radius_array=NULL, *coord_fp, *tilt_fp=NULL, *radius_fp=NULL;
-	float *v1, *v2;
 	struct bevelsort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu, len=0;
 	int do_tilt, do_radius;
@@ -1558,17 +1562,15 @@ void makeBevelList(Object *ob)
 				if(nu->flagu & CU_CYCLIC) bl->poly= 0;
 				else bl->poly= -1;
 				bl->nr= len;
-				bl->flag= 0;
+				bl->dupe_nr= 0;
 				bevp= (BevPoint *)(bl+1);
 				bp= nu->bp;
 	
 				while(len--) {
-					bevp->x= bp->vec[0];
-					bevp->y= bp->vec[1];
-					bevp->z= bp->vec[2];
+					VECCOPY(bevp->vec, bp->vec);
 					bevp->alfa= bp->alfa;
 					bevp->radius= bp->radius;
-					bevp->f1= SELECT;
+					bevp->split_tag= TRUE;
 					bevp++;
 					bp++;
 				}
@@ -1594,88 +1596,52 @@ void makeBevelList(Object *ob)
 					bezt++;
 				}
 				
-				coord_array= coord_fp= MEM_mallocN(3*sizeof(float)*(resolu+1), "makeBevelCoords");
-				
-				if(do_tilt)
-					tilt_array= tilt_fp= MEM_callocN(sizeof(float)*(resolu+1), "makeBevelTilt");
-				
-				if (do_radius)
-					radius_array= radius_fp= MEM_callocN(sizeof(float)*(resolu+1), "nakeBevelRadius");
-				
 				while(a--) {
 					if(prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) {
-	
-						bevp->x= prevbezt->vec[1][0];
-						bevp->y= prevbezt->vec[1][1];
-						bevp->z= prevbezt->vec[1][2];
+
+						VECCOPY(bevp->vec, prevbezt->vec[1]);
 						bevp->alfa= prevbezt->alfa;
 						bevp->radius= prevbezt->radius;
-						bevp->f1= SELECT;
-						bevp->f2= 0;
+						bevp->split_tag= TRUE;
+						bevp->dupe_tag= FALSE;
 						bevp++;
 						bl->nr++;
-						bl->flag= 1;
+						bl->dupe_nr= 1;
 					}
 					else {
-						v1= prevbezt->vec[1];
-						v2= bezt->vec[0];
-						
 						/* always do all three, to prevent data hanging around */
-						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], coord_array, resolu, 3);
-						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], coord_array+1, resolu, 3);
-						forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], coord_array+2, resolu, 3);
+						int j;
 						
-						if (do_tilt || do_radius)
-							alfa_bezpart(prevbezt, bezt, nu, tilt_array, radius_array, resolu);
+						/* BevPoint must stay aligned to 4 so sizeof(BevPoint)/sizeof(float) works */
+						for(j=0; j<3; j++) {
+							forward_diff_bezier(	prevbezt->vec[1][j],	prevbezt->vec[2][j],
+													bezt->vec[0][j],		bezt->vec[1][j],
+													&(bevp->vec[j]), resolu, sizeof(BevPoint));
+						}
+						
+						/* if both arrays are NULL do nothiong */
+						alfa_bezpart(	prevbezt, bezt, nu,
+										 do_tilt	? &bevp->alfa : NULL,
+										 do_radius	? &bevp->radius : NULL,
+										 resolu, sizeof(BevPoint));
 						
 						/* indicate with handlecodes double points */
 						if(prevbezt->h1==prevbezt->h2) {
-							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->f1= SELECT;
+							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->split_tag= TRUE;
 						}
 						else {
-							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->f1= SELECT;
-							else if(prevbezt->h2==0 || prevbezt->h2==HD_VECT) bevp->f1= SELECT;
-						}
-						
-						nr= resolu;
-						
-						coord_fp = coord_array;
-						tilt_fp = tilt_array;
-						radius_fp = radius_array;
-						
-						while(nr--) {
-							bevp->x= coord_fp[0]; 
-							bevp->y= coord_fp[1];
-							bevp->z= coord_fp[2];
-							coord_fp+=3;
-							
-							if (do_tilt) {
-								bevp->alfa= *tilt_fp;
-								tilt_fp++;
-							}
-							
-							if (do_radius) {
-								bevp->radius= *radius_fp;
-								radius_fp++;
-							}
-							bevp++;
+							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->split_tag= TRUE;
+							else if(prevbezt->h2==0 || prevbezt->h2==HD_VECT) bevp->split_tag= TRUE;
 						}
 						bl->nr+= resolu;
-	
+						bevp+= resolu;
 					}
 					prevbezt= bezt;
 					bezt++;
 				}
 				
-				MEM_freeN(coord_array);
-				if (do_tilt)	MEM_freeN(tilt_array);
-				if (do_radius)	MEM_freeN(radius_array);
-				coord_array = tilt_array = radius_array = NULL;
-				
 				if((nu->flagu & CU_CYCLIC)==0) {	    /* not cyclic: endpoint */
-					bevp->x= prevbezt->vec[1][0];
-					bevp->y= prevbezt->vec[1][1];
-					bevp->z= prevbezt->vec[1][2];
+					VECCOPY(bevp->vec, prevbezt->vec[1]);
 					bevp->alfa= prevbezt->alfa;
 					bevp->radius= prevbezt->radius;
 					bl->nr++;
@@ -1688,45 +1654,15 @@ void makeBevelList(Object *ob)
 					bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList3");
 					BLI_addtail(&(cu->bev), bl);
 					bl->nr= len;
-					bl->flag= 0;
+					bl->dupe_nr= 0;
 					if(nu->flagu & CU_CYCLIC) bl->poly= 0;
 					else bl->poly= -1;
 					bevp= (BevPoint *)(bl+1);
-	
-					coord_array= coord_fp= MEM_callocN(3*sizeof(float)*len, "makeBevelCoords");    /* has to be zero-ed */
 					
-					if(do_tilt)
-						tilt_array= tilt_fp= MEM_callocN(sizeof(float)*len, "makeBevelTilt");
-					
-					if (do_radius)
-						radius_array= radius_fp= MEM_callocN(sizeof(float)*len, "nakeBevelRadius");
-					
-					makeNurbcurve(nu, coord_array, tilt_array, radius_array, resolu);
-					
-					while(len--) {
-						bevp->x= coord_fp[0]; 
-						bevp->y= coord_fp[1];
-						bevp->z= coord_fp[2];
-						coord_fp+=3;
-						
-						if (do_tilt) {
-							bevp->alfa= *tilt_fp;
-							tilt_fp++;
-						}
-						
-						if (do_radius) {
-							bevp->radius= *radius_fp;
-							radius_fp++;
-						}
-						
-						
-						bevp->f1= bevp->f2= 0;
-						bevp++;
-					}
-					MEM_freeN(coord_array);
-					if (do_tilt)	MEM_freeN(tilt_array);
-					if (do_radius)	MEM_freeN(radius_array);
-					coord_array = tilt_array = radius_array = NULL;
+					makeNurbcurve(	nu, &bevp->vec[0],
+									do_tilt		? &bevp->alfa : NULL,
+									do_radius	? &bevp->radius : NULL,
+									resolu, sizeof(BevPoint));
 				}
 			}
 		}
@@ -1742,11 +1678,11 @@ void makeBevelList(Object *ob)
 			bevp0= bevp1+(nr-1);
 			nr--;
 			while(nr--) {
-				if( fabs(bevp0->x-bevp1->x)<0.00001 ) {
-					if( fabs(bevp0->y-bevp1->y)<0.00001 ) {
-						if( fabs(bevp0->z-bevp1->z)<0.00001 ) {
-							bevp0->f2= SELECT;
-							bl->flag++;
+				if( fabs(bevp0->vec[0]-bevp1->vec[0])<0.00001 ) {
+					if( fabs(bevp0->vec[1]-bevp1->vec[1])<0.00001 ) {
+						if( fabs(bevp0->vec[2]-bevp1->vec[2])<0.00001 ) {
+							bevp0->dupe_tag= TRUE;
+							bl->dupe_nr++;
 						}
 					}
 				}
@@ -1759,8 +1695,8 @@ void makeBevelList(Object *ob)
 	bl= cu->bev.first;
 	while(bl) {
 		blnext= bl->next;
-		if(bl->nr && bl->flag) {
-			nr= bl->nr- bl->flag+1;	/* +1 because vectorbezier sets flag too */
+		if(bl->nr && bl->dupe_nr) {
+			nr= bl->nr- bl->dupe_nr+1;	/* +1 because vectorbezier sets flag too */
 			blnew= MEM_mallocN(sizeof(BevList)+nr*sizeof(BevPoint), "makeBevelList4");
 			memcpy(blnew, bl, sizeof(BevList));
 			blnew->nr= 0;
@@ -1770,7 +1706,7 @@ void makeBevelList(Object *ob)
 			bevp1= (BevPoint *)(blnew+1);
 			nr= bl->nr;
 			while(nr--) {
-				if(bevp0->f2==0) {
+				if(bevp0->dupe_tag==0) {
 					memcpy(bevp1, bevp0, sizeof(BevPoint));
 					bevp1++;
 					blnew->nr++;
@@ -1778,7 +1714,7 @@ void makeBevelList(Object *ob)
 				bevp0++;
 			}
 			MEM_freeN(bl);
-			blnew->flag= 0;
+			blnew->dupe_nr= 0;
 		}
 		bl= blnext;
 	}
@@ -1807,8 +1743,8 @@ void makeBevelList(Object *ob)
 				bevp= (BevPoint *)(bl+1);
 				nr= bl->nr;
 				while(nr--) {
-					if(min>bevp->x) {
-						min= bevp->x;
+					if(min>bevp->vec[0]) {
+						min= bevp->vec[0];
 						bevp1= bevp;
 					}
 					bevp++;
@@ -1823,8 +1759,7 @@ void makeBevelList(Object *ob)
 				if(bevp1== bevp) bevp2= (BevPoint *)(bl+1);
 				else bevp2= bevp1+1;
 
-				inp= (bevp1->x- bevp0->x)*(bevp0->y- bevp2->y)
-				    +(bevp0->y- bevp1->y)*(bevp0->x- bevp2->x);
+				inp= (bevp1->vec[0]- bevp0->vec[0]) * (bevp0->vec[1]- bevp2->vec[1]) + (bevp0->vec[1]- bevp1->vec[1]) * (bevp0->vec[0]- bevp2->vec[0]);
 
 				if(inp>0.0) sd->dir= 1;
 				else sd->dir= 0;
@@ -1879,8 +1814,8 @@ void makeBevelList(Object *ob)
 			bevp2= (BevPoint *)(bl+1);
 			bevp1= bevp2+1;
 
-			x1= bevp1->x- bevp2->x;
-			y1= bevp1->y- bevp2->y;
+			x1= bevp1->vec[0]- bevp2->vec[0];
+			y1= bevp1->vec[1]- bevp2->vec[1];
 
 			calc_bevel_sin_cos(x1, y1, -x1, -y1, &(bevp1->sina), &(bevp1->cosa));
 			bevp2->sina= bevp1->sina;
@@ -1889,7 +1824,7 @@ void makeBevelList(Object *ob)
 			if(cu->flag & CU_3D) {	/* 3D */
 				float quat[4], q[4];
 			
-				VecSubf(vec, &bevp1->x, &bevp2->x);
+				VecSubf(vec, bevp1->vec, bevp2->vec);
 				
 				vectoquat(vec, 5, 1, quat);
 				
@@ -1924,7 +1859,7 @@ void makeBevelList(Object *ob)
 				while(nr--) {
 	
 					/* Normalizes */
-					VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+					VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
 
 					if(bl->nr==nr+1) { /* first time */
 						vectoquat(vec, 5, 1, quat);
@@ -1976,7 +1911,7 @@ void makeBevelList(Object *ob)
 			nr= bl->nr;
 			while(nr--) {
 
-				VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+				VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
 
 				quat_tmp1= (float *)bevp1->mat;
 				quat_tmp2= quat_tmp1+4;
@@ -1989,10 +1924,10 @@ void makeBevelList(Object *ob)
 				QuatToMat3(quat, bevp1->mat);
 				
 				/* generic */
-				x1= bevp1->x- bevp0->x;
-				x2= bevp1->x- bevp2->x;
-				y1= bevp1->y- bevp0->y;
-				y2= bevp1->y- bevp2->y;
+				x1= bevp1->vec[0]- bevp0->vec[0];
+				x2= bevp1->vec[0]- bevp2->vec[0];
+				y1= bevp1->vec[1]- bevp0->vec[1];
+				y2= bevp1->vec[1]- bevp2->vec[1];
 			
 				calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
 				
@@ -2014,7 +1949,7 @@ void makeBevelList(Object *ob)
 				if(cu->flag & CU_3D) {	/* 3D */
 
 					/* Normalizes */
-					VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+					VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
 
 					if(bl->nr==nr+1 || !(cu->flag & CU_NO_TWIST)) { /* first time */
 						vectoquat(vec, 5, 1, quat);
@@ -2039,10 +1974,10 @@ void makeBevelList(Object *ob)
 					QuatToMat3(quat, bevp1->mat);
 				}
 
-				x1= bevp1->x- bevp0->x;
-				x2= bevp1->x- bevp2->x;
-				y1= bevp1->y- bevp0->y;
-				y2= bevp1->y- bevp2->y;
+				x1= bevp1->vec[0]- bevp0->vec[0];
+				x2= bevp1->vec[0]- bevp2->vec[0];
+				y1= bevp1->vec[1]- bevp0->vec[1];
+				y2= bevp1->vec[1]- bevp2->vec[1];
 
 				calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
 

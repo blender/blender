@@ -60,7 +60,7 @@ typedef struct Path {
 #
 typedef struct BevList {
 	struct BevList *next, *prev;
-	int nr, flag;
+	int nr, dupe_nr;
 	short poly, hole;
 } BevList;
 
@@ -68,8 +68,8 @@ typedef struct BevList {
 #
 #
 typedef struct BevPoint {
-	float x, y, z, alfa, radius, sina, cosa, mat[3][3];
-	short f1, f2;
+	float vec[3], mat[3][3], alfa, radius, sina, cosa;
+	short split_tag, dupe_tag;
 } BevPoint;
 
 /* Keyframes on IPO curves and Points on Bezier Curves/Paths are generally BezTriples */
