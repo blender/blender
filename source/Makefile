@@ -113,7 +113,6 @@ COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sdl.a
 COMLIB += $(NAN_SAMPLERATE)/lib/$(DEBUG_DIR)libsamplerate.a
 COMLIB += $(NAN_LZO)/lib/$(DEBUG_DIR)libminilzo.a
 COMLIB += $(NAN_LZMA)/lib/$(DEBUG_DIR)liblzma.a
-COMLIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)/libsmoke.a 
 
 ifeq ($(WITH_FFMPEG),true)
     COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
