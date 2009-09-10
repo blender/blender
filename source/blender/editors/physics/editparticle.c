@@ -120,6 +120,20 @@ static int PE_poll(bContext *C)
 	return (edit && (ob->mode & OB_MODE_PARTICLE_EDIT));
 }
 
+static int PE_hair_poll(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	PTCacheEdit *edit;
+
+	if(!scene || !ob)
+		return 0;
+	
+	edit= PE_get_current(scene, ob);
+
+	return (edit && edit->psys && (ob->mode & OB_MODE_PARTICLE_EDIT));
+}
+
 static int PE_poll_3dview(bContext *C)
 {
 	return PE_poll(C) && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
@@ -169,6 +183,8 @@ int PE_start_edit(PTCacheEdit *edit)
 {
 	if(edit) {
 		edit->edited = 1;
+		if(edit->psys)
+			edit->psys->flag |= PSYS_EDITED;
 		return 1;
 	}
 
@@ -218,9 +234,16 @@ PTCacheEdit *PE_get_current(Scene *scene, Object *ob)
 
 			if(psys->flag & PSYS_CURRENT) {
 				if(psys->part && psys->part->type == PART_HAIR) {
-					if(!psys->edit && psys->flag & PSYS_HAIR_DONE)
-						PE_create_particle_edit(scene, ob, NULL, psys);
-					edit = psys->edit;
+					if(psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED) {
+						if(!psys->pointcache->edit)
+							PE_create_particle_edit(scene, ob, pid->cache, NULL);
+						edit = pid->cache->edit;
+					}
+					else {
+						if(!psys->edit && psys->flag & PSYS_HAIR_DONE)
+							PE_create_particle_edit(scene, ob, NULL, psys);
+						edit = psys->edit;
+					}
 				}
 				else {
 					if(pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
@@ -2387,7 +2410,7 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= delete_exec;
 	ot->invoke= WM_menu_invoke;
-	ot->poll= PE_poll;
+	ot->poll= PE_hair_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3858,6 +3881,7 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 
 			psys->recalc |= PSYS_RECALC_RESET;
 			psys->flag &= ~PSYS_GLOBAL_HAIR;
+			psys->flag &= ~PSYS_EDITED;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -3894,15 +3918,13 @@ static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	pup= uiPupMenuBegin(C, "Specials", 0);
 	layout= uiPupMenuLayout(pup);
 
-	if(edit->psys) {
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey");
-		if(pset->selectmode & SCE_SELECT_POINT) {
-			uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide");
-			uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first");
-			uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last");
-		}
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey");
+	if(pset->selectmode & SCE_SELECT_POINT) {
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide");
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first");
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last");
 	}
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles");
 
 	uiPupMenuEnd(C, pup);
 
@@ -3917,7 +3939,7 @@ void PARTICLE_OT_specials_menu(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= specials_menu_invoke;
-	ot->poll= PE_poll;
+	ot->poll= PE_hair_poll;
 }
 
 /**************************** registration **********************************/

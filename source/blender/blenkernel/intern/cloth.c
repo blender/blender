@@ -496,9 +496,11 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	if(!do_init_cloth(ob, clmd, result, framenr))
 		return result;
 
-	if(framenr == startframe && cache->flag & PTCACHE_REDO_NEEDED) {
+	if(framenr == startframe) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+		do_init_cloth(ob, clmd, result, framenr);
 		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 		return result;
 	}
@@ -530,36 +532,25 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return result;
 	}
 
-	if(framenr == startframe) {
-		implicit_set_positions(clmd);
+	/* if on second frame, write cache for first frame */
+	if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
+		BKE_ptcache_write_cache(&pid, startframe);
 
-		cache->simframe= framenr;
-		cache->flag |= PTCACHE_SIMULATION_VALID;
+	clmd->sim_parms->timescale *= framenr - cache->simframe;
 
-		/* don't write cache on first frame, but on second frame write
-		 * cache for frame 1 and 2 */
+	/* do simulation */
+	cache->flag |= PTCACHE_SIMULATION_VALID;
+	cache->simframe= framenr;
+
+	if(!do_step_cloth(ob, clmd, result, framenr)) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+		cache->last_exact= 0;
 	}
-	else {
-		/* if on second frame, write cache for first frame */
-		if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
-			BKE_ptcache_write_cache(&pid, startframe);
+	else
+		BKE_ptcache_write_cache(&pid, framenr);
 
-		clmd->sim_parms->timescale *= framenr - cache->simframe;
-
-		/* do simulation */
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
-
-		if(!do_step_cloth(ob, clmd, result, framenr)) {
-			cache->flag &= ~PTCACHE_SIMULATION_VALID;
-			cache->simframe= 0;
-			cache->last_exact= 0;
-		}
-		else
-			BKE_ptcache_write_cache(&pid, framenr);
-
-		cloth_to_object (ob, clmd, result);
-	}
+	cloth_to_object (ob, clmd, result);
 
 	return result;
 }

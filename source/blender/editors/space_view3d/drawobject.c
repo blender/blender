@@ -3727,6 +3727,12 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	float nosel_col[3];
 	float *pathcol = NULL, *pcol;
 
+
+	if(edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED) {
+		PE_update_object(scene, ob, 0);
+		edit->psys->flag &= ~PSYS_HAIR_UPDATED;
+	}
+
 	/* create path and child path cache if it doesn't exist already */
 	if(edit->pathcache==0)
 		psys_cache_edit_paths(scene, ob, edit, CFRA);

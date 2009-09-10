@@ -33,6 +33,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
@@ -96,7 +97,9 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
+#include "BKE_cloth.h"
 #include "BKE_depsgraph.h"
+#include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
@@ -248,6 +251,21 @@ static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+}
+static void rna_Particle_hair_dynamics(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene = CTX_data_scene(C);
+	ParticleSystem *psys = (ParticleSystem*)ptr->data;
+	
+	if(psys && !psys->clmd) {
+		psys->clmd = (ClothModifierData*)modifier_new(eModifierType_Cloth);
+		psys->clmd->sim_parms->goalspring = 0.0f;
+		psys->clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_GOAL|CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
+		psys->clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_SELF;
+		rna_Particle_redo(C, ptr);
+	}
+	else
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
 }
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {
@@ -467,7 +485,7 @@ static int rna_ParticleSystem_edited_get(PointerRNA *ptr)
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
 
 	if(psys->part && psys->part->type==PART_HAIR)
-		return (psys->edit && psys->edit->edited);
+		return (psys->flag & PSYS_EDITED || (psys->edit && psys->edit->edited));
 	else
 		return (psys->pointcache->edit && psys->pointcache->edit->edited);
 }
@@ -1876,18 +1894,21 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* hair */
-	prop= RNA_def_property(srna, "softbody", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "soft");
-	RNA_def_property_ui_text(prop, "Soft Body", "Soft body settings for hair physics simulation.");
-
-	prop= RNA_def_property(srna, "use_softbody", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_ENABLE);
-	RNA_def_property_ui_text(prop, "Use Soft Body", "Enable use of soft body for hair physics simulation.");
-
 	prop= RNA_def_property(srna, "global_hair", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_GLOBAL_HAIR);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Global Hair", "Hair keys are in global coordinate space");
+
+	prop= RNA_def_property(srna, "hair_dynamics", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_HAIR_DYNAMICS);
+	RNA_def_property_ui_text(prop, "Hair Dynamics", "Enable hair dynamics using cloth simulation.");
+	RNA_def_property_update(prop, 0, "rna_Particle_hair_dynamics");
+
+	prop= RNA_def_property(srna, "cloth", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "clmd");
+	RNA_def_property_struct_type(prop, "ClothModifier");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Cloth", "Cloth dynamics for hair");
 
 	/* reactor */
 	prop= RNA_def_property(srna, "reactor_target_object", PROP_POINTER, PROP_NONE);

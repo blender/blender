@@ -382,8 +382,6 @@ static int ptcache_totpoint_cloth(void *cloth_v)
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 {
-	ParticleSystemModifierData *psmd;
-
 	memset(pid, 0, sizeof(PTCacheID));
 
 	pid->ob= ob;
@@ -406,12 +404,7 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 	pid->data_types= (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY);
 	pid->info_types= 0;
 
-	if(sb->particles) {
-		psmd= psys_get_modifier(ob, sb->particles);
-		// pid->stack_index= modifiers_indexInObject(ob, (ModifierData*)psmd);  XXX TODO - get other index DG
-	}
-	else 
-		pid->stack_index = pid->cache->index;
+	pid->stack_index = pid->cache->index;
 }
 
 void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *psys)
@@ -426,7 +419,8 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	pid->cache_ptr= &psys->pointcache;
 	pid->ptcaches= &psys->ptcaches;
 
-	pid->flag |= PTCACHE_VEL_PER_SEC;
+	if(psys->part->type != PART_HAIR)
+		pid->flag |= PTCACHE_VEL_PER_SEC;
 
 	pid->write_elem= ptcache_write_particle;
 	pid->write_stream = NULL;
@@ -816,12 +810,6 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 			pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
 			BKE_ptcache_id_from_particles(pid, ob, psys);
 			BLI_addtail(lb, pid);
-
-			if(psys->soft) {
-				pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-				BKE_ptcache_id_from_softbody(pid, ob, psys->soft);
-				BLI_addtail(lb, pid);
-			}
 		}
 	}
 
@@ -1828,9 +1816,10 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 	else if(mode == PTCACHE_RESET_OUTDATED) {
 		reset = 1;
 
-		if(cache->flag & PTCACHE_OUTDATED)
-			if(!(cache->flag & PTCACHE_BAKED))
-				clear= 1;
+		if(cache->flag & PTCACHE_OUTDATED && !(cache->flag & PTCACHE_BAKED)) {
+			clear= 1;
+			cache->flag &= ~PTCACHE_OUTDATED;
+		}
 	}
 
 	if(reset) {
@@ -1873,10 +1862,10 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		/* Baked softbody hair has to be checked first, because we don't want to reset */
-		/* particles or softbody in that case -jahka */
-		if(psys->soft) {
-			BKE_ptcache_id_from_softbody(&pid, ob, psys->soft);
+		/* Baked cloth hair has to be checked first, because we don't want to reset */
+		/* particles or cloth in that case -jahka */
+		if(psys->clmd) {
+			BKE_ptcache_id_from_cloth(&pid, ob, psys->clmd);
 			if(mode == PSYS_RESET_ALL || !(psys->part->type == PART_HAIR && (pid.cache->flag & PTCACHE_BAKED))) 
 				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 			else

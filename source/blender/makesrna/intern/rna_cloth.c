@@ -152,7 +152,7 @@ static char *rna_ClothSettings_path(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
 
-	return BLI_sprintfN("modifiers[%s].settings", md->name);
+	return md ? BLI_sprintfN("modifiers[%s].settings", md->name) : NULL;
 }
 
 static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
@@ -160,7 +160,7 @@ static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
 
-	return BLI_sprintfN("modifiers[%s].collision_settings", md->name);
+	return md ? BLI_sprintfN("modifiers[%s].collision_settings", md->name) : NULL;
 }
 
 #else
@@ -205,6 +205,12 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "goalfrict");
 	RNA_def_property_range(prop, 0.0f, 50.0f);
 	RNA_def_property_ui_text(prop, "Goal Damping", "Goal (vertex target position) friction.");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop= RNA_def_property(srna, "internal_friction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "velocity_smooth");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Internal Friction", "");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	/* mass */

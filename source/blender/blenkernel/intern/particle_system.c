@@ -73,7 +73,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
-#include "BKE_softbody.h"
+#include "BKE_cloth.h"
 #include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_pointcache.h"
@@ -126,7 +126,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 	PARTICLE_P;
 
 	if(ELEM(mode, PSYS_RESET_ALL, PSYS_RESET_DEPSGRAPH)) {
-		if(mode == PSYS_RESET_ALL || !(part->type == PART_HAIR && (psys->edit && psys->edit->edited))) {
+		if(mode == PSYS_RESET_ALL || !(psys->flag & PSYS_EDITED)) {
 			psys_free_particles(psys);
 
 			psys->totpart= 0;
@@ -3432,6 +3432,190 @@ static void deflect_particle(Scene *scene, Object *pob, ParticleSystemModifierDa
 /************************************************/
 /*			Hair								*/
 /************************************************/
+/* check if path cache or children need updating and do it if needed */
+static void psys_update_path_cache(Scene *scene, Object *ob, ParticleSystemModifierData *psmd, ParticleSystem *psys, float cfra)
+{
+	ParticleSettings *part=psys->part;
+	ParticleEditSettings *pset=&scene->toolsettings->particle;
+	int distr=0,alloc=0,skip=0;
+
+	if((psys->part->childtype && psys->totchild != get_psys_tot_child(scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
+		alloc=1;
+
+	if(alloc || psys->recalc&PSYS_RECALC_CHILD || (psys->vgroup[PSYS_VG_DENSITY] && (ob && ob->mode & OB_MODE_WEIGHT_PAINT)))
+		distr=1;
+
+	if(distr){
+		if(alloc)
+			realloc_particles(ob,psys,psys->totpart);
+
+		if(get_psys_tot_child(scene, psys)) {
+			/* don't generate children while computing the hair keys */
+			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE)) {
+				distribute_particles(scene, ob, psys, PART_FROM_CHILD);
+
+				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES && part->parents!=0.0)
+					psys_find_parents(ob,psmd,psys);
+			}
+		}
+	}
+
+	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->flag & PTCACHE_BAKED)==0)
+		skip = 1; /* only hair, keyed and baked stuff can have paths */
+	else if(part->ren_as != PART_DRAW_PATH)
+		skip = 1; /* particle visualization must be set as path */
+	else if(!psys->renderdata) {
+		if(part->draw_as != PART_DRAW_REND)
+			skip = 1; /* draw visualization */
+		else if(psys->pointcache->flag & PTCACHE_BAKING)
+			skip = 1; /* no need to cache paths while baking dynamics */
+		else if(psys_in_edit_mode(scene, psys)) {
+			if((pset->flag & PE_DRAW_PART)==0)
+				skip = 1;
+			else if(part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)
+				skip = 1; /* in edit mode paths are needed for child particles and dynamic hair */
+		}
+	}
+
+	if(!skip) {
+		psys_cache_paths(scene, ob, psys, cfra);
+
+		/* for render, child particle paths are computed on the fly */
+		if(part->childtype) {
+			if(!psys->totchild)
+				skip = 1;
+			else if((psys->part->type == PART_HAIR && psys->flag & PSYS_HAIR_DONE)==0)
+				skip = 1;
+
+			if(!skip)
+				psys_cache_child_paths(scene, ob, psys, cfra, 0);
+		}
+	}
+	else if(psys->pathcache)
+		psys_free_path_cache(psys, NULL);
+}
+
+static void do_hair_dynamics(Scene *scene, Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd)
+{
+	DerivedMesh *dm = psys->hair_in_dm;
+	MVert *mvert = NULL;
+	MEdge *medge = NULL;
+	MDeformVert *dvert = NULL;
+	HairKey *key;
+	PARTICLE_P;
+	int totpoint = 0;
+	int totedge;
+	int k;
+	float hairmat[4][4];
+
+	if(!psys->clmd) {
+		psys->clmd = (ClothModifierData*)modifier_new(eModifierType_Cloth);
+		psys->clmd->sim_parms->goalspring = 0.0f;
+		psys->clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_GOAL|CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
+		psys->clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_SELF;
+	}
+
+	/* create a dm from hair vertices */
+	LOOP_PARTICLES
+		totpoint += pa->totkey;
+
+	totedge = totpoint - psys->totpart;
+
+	if(dm && (totpoint != dm->getNumVerts(dm) || totedge != dm->getNumEdges(dm))) {
+		dm->release(dm);
+		dm = psys->hair_in_dm = NULL;
+	}
+
+	if(!dm) {
+		dm = psys->hair_in_dm = CDDM_new(totpoint, totedge, 0);
+		DM_add_vert_layer(dm, CD_MDEFORMVERT, CD_CALLOC, NULL);
+	}
+
+	mvert = CDDM_get_verts(dm);
+	medge = CDDM_get_edges(dm);
+	dvert = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
+
+	psys->clmd->sim_parms->vgroup_mass = 1;
+
+	/* make vgroup for pin roots etc.. */
+	psys->particles->hair_index = 0;
+	LOOP_PARTICLES {
+		if(p)
+			pa->hair_index = (pa-1)->hair_index + (pa-1)->totkey;
+
+		psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, pa, hairmat);
+
+		for(k=0, key=pa->hair; k<pa->totkey; k++,key++) {
+			VECCOPY(mvert->co, key->co);
+			Mat4MulVecfl(hairmat, mvert->co);
+			mvert++;
+			
+			if(k) {
+				medge->v1 = pa->hair_index + k - 1;
+				medge->v2 = pa->hair_index + k;
+				medge++;
+			}
+
+			if(dvert) {
+				if(!dvert->totweight) {
+					dvert->dw = MEM_callocN (sizeof(MDeformWeight), "deformWeight");
+					dvert->totweight = 1;
+				}
+
+				/* no special reason for the 0.5 */
+				/* just seems like a nice value from experiments */
+				dvert->dw->weight = k ? 0.5f : 1.0f;
+				dvert++;
+			}
+		}
+	}
+
+	if(psys->hair_out_dm)
+		psys->hair_out_dm->release(psys->hair_out_dm);
+
+	psys->clmd->point_cache = psys->pointcache;
+
+	psys->hair_out_dm = clothModifier_do(psys->clmd, scene, ob, dm, 0, 0);
+}
+static void hair_step(Scene *scene, Object *ob, ParticleSystemModifierData *psmd, ParticleSystem *psys, float cfra)
+{
+	ParticleSettings *part = psys->part;
+	PARTICLE_P;
+	float disp = (float)get_current_display_percentage(psys)/100.0f;
+
+	BLI_srandom(psys->seed);
+
+	LOOP_PARTICLES {
+		if(BLI_frand() > disp)
+			pa->flag |= PARS_NO_DISP;
+		else
+			pa->flag &= ~PARS_NO_DISP;
+	}
+
+	if(psys->recalc & PSYS_RECALC_RESET) {
+		/* need this for changing subsurf levels */
+		psys_calc_dmcache(ob, psmd->dm, psys);
+
+		if(psys->clmd)
+			cloth_free_modifier(ob, psys->clmd);
+	}
+
+	if(psys->effectors.first)
+		psys_end_effectors(psys);
+
+	/* dynamics with cloth simulation */
+	if(psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS)
+		do_hair_dynamics(scene, ob, psys, psmd);
+
+	psys_init_effectors(scene, ob, part->eff_group, psys);
+	if(psys->effectors.first)
+		precalc_effectors(scene, ob,psys,psmd,cfra);
+
+	psys_update_path_cache(scene, ob,psmd,psys,cfra);
+
+	psys->flag |= PSYS_HAIR_UPDATED;
+}
+
 static void save_hair(Scene *scene, Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, float cfra){
 	HairKey *key, *root;
 	PARTICLE_P;
@@ -3692,79 +3876,6 @@ static void dynamics_step(Scene *scene, Object *ob, ParticleSystem *psys, Partic
 		BLI_kdtree_free(tree);
 }
 
-/* check if path cache or children need updating and do it if needed */
-static void psys_update_path_cache(Scene *scene, Object *ob, ParticleSystemModifierData *psmd, ParticleSystem *psys, float cfra)
-{
-	ParticleSettings *part=psys->part;
-	ParticleEditSettings *pset=&scene->toolsettings->particle;
-	int distr=0,alloc=0;
-
-	if((psys->part->childtype && psys->totchild != get_psys_tot_child(scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
-		alloc=1;
-
-	if(alloc || psys->recalc&PSYS_RECALC_CHILD || (psys->vgroup[PSYS_VG_DENSITY] && (ob && ob->mode & OB_MODE_WEIGHT_PAINT)))
-		distr=1;
-
-	if(distr){
-		if(alloc)
-			realloc_particles(ob,psys,psys->totpart);
-
-		if(get_psys_tot_child(scene, psys)) {
-			/* don't generate children while computing the hair keys */
-			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE)) {
-				distribute_particles(scene, ob, psys, PART_FROM_CHILD);
-
-				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES && part->parents!=0.0)
-					psys_find_parents(ob,psmd,psys);
-			}
-		}
-	}
-
-	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->flag & PTCACHE_BAKED) && ( psys_in_edit_mode(scene, psys) || (part->type==PART_HAIR 
-		|| (part->ren_as == PART_DRAW_PATH && (part->draw_as == PART_DRAW_REND || psys->renderdata))))){
-
-		psys_cache_paths(scene, ob, psys, cfra);
-
-		/* for render, child particle paths are computed on the fly */
-		if(part->childtype) {
-			if(((psys->totchild!=0)) || (psys_in_edit_mode(scene, psys) && (pset->flag&PE_DRAW_PART)))
-				if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE))
-					psys_cache_child_paths(scene, ob, psys, cfra, 0);
-		}
-	}
-	else if(psys->pathcache)
-		psys_free_path_cache(psys, NULL);
-}
-
-static void hair_step(Scene *scene, Object *ob, ParticleSystemModifierData *psmd, ParticleSystem *psys, float cfra)
-{
-	ParticleSettings *part = psys->part;
-	PARTICLE_P;
-	float disp = (float)get_current_display_percentage(psys)/100.0f;
-
-	BLI_srandom(psys->seed);
-
-	LOOP_PARTICLES {
-		if(BLI_frand() > disp)
-			pa->flag |= PARS_NO_DISP;
-		else
-			pa->flag &= ~PARS_NO_DISP;
-	}
-
-	if(psys->recalc & PSYS_RECALC_RESET)
-		/* need this for changing subsurf levels */
-		psys_calc_dmcache(ob, psmd->dm, psys);
-
-	if(psys->effectors.first)
-		psys_end_effectors(psys);
-
-	psys_init_effectors(scene, ob, part->eff_group, psys);
-	if(psys->effectors.first)
-		precalc_effectors(scene, ob,psys,psmd,cfra);
-
-	psys_update_path_cache(scene, ob,psmd,psys,cfra);
-}
-
 /* updates cached particles' alive & other flags etc..*/
 static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *psmd, ParticleSystem *psys, float cfra)
 {
@@ -3889,13 +4000,11 @@ static void psys_changed_type(Object *ob, ParticleSystem *psys)
 		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
 	}
 	else {
-		free_hair(psys, 1);
+		free_hair(ob, psys, 1);
 
 		CLAMP(part->path_start, 0.0f, MAX2(100.0f, part->end + part->lifetime));
 		CLAMP(part->path_end, 0.0f, MAX2(100.0f, part->end + part->lifetime));
 	}
-
-	psys->softflag= 0;
 
 	psys_reset(psys, PSYS_RESET_ALL);
 }
@@ -4082,7 +4191,7 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 	framedelta= framenr - cache->simframe;
 
 	/* set suitable cache range automatically */
-	if((cache->flag & (PTCACHE_BAKING|PTCACHE_BAKED))==0)
+	if((cache->flag & (PTCACHE_BAKING|PTCACHE_BAKED))==0 && !(psys->flag & PSYS_HAIR_DYNAMICS))
 		psys_get_pointcache_start_end(scene, psys, &cache->startframe, &cache->endframe);
 
 	BKE_ptcache_id_from_particles(&pid, ob, psys);
@@ -4307,39 +4416,9 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 	}
 }
 
-static void psys_to_softbody(Scene *scene, Object *ob, ParticleSystem *psys)
-{
-	SoftBody *sb;
-	short softflag; 
-
-	if(!(psys->softflag & OB_SB_ENABLE))
-		return;
-
-	/* let's replace the object's own softbody with the particle softbody */
-	/* a temporary solution before cloth simulation is implemented, jahka */
-
-	/* save these */
-	sb= ob->soft;
-	softflag= ob->softflag;
-
-	/* swich to new ones */
-	ob->soft= psys->soft;
-	ob->softflag= psys->softflag;
-
-	/* do softbody */
-	sbObjectStep(scene, ob, (float)scene->r.cfra, NULL, psys_count_keys(psys));
-
-	/* return things back to normal */
-	psys->soft= ob->soft;
-	psys->softflag= ob->softflag;
-	
-	ob->soft= sb;
-	ob->softflag= softflag;
-}
-
 static int hair_needs_recalc(ParticleSystem *psys)
 {
-	if((!psys->edit || !psys->edit->edited) &&
+	if(!(psys->flag & PSYS_EDITED) && (!psys->edit || !psys->edit->edited) &&
 		((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_RESET)) {
 		return 1;
 	}
@@ -4380,7 +4459,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		float hcfra=0.0f;
 		int i;
 
-		free_hair(psys, 0);
+		free_hair(ob, psys, 0);
 
 		/* first step is negative so particles get killed and reset */
 		psys->cfra= 1.0f;
@@ -4393,10 +4472,6 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 		psys->flag |= PSYS_HAIR_DONE;
 	}
-
-	/* handle softbody hair */
-	if(psys->part->type==PART_HAIR && psys->soft)
-		psys_to_softbody(scene, ob, psys);
 
 	/* the main particle system step */
 	system_step(scene, ob, psys, psmd, cfra);

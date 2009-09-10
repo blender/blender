@@ -54,6 +54,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -728,6 +729,7 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	PTCacheEdit *edit = psys->edit;
 	PTCacheEditPoint *point = edit ? edit->points : NULL;
 	PTCacheEditKey *ekey = NULL;
+	DerivedMesh *dm = NULL;
 	HairKey *key;
 	int i, k;
 	float hairmat[4][4];
@@ -738,13 +740,18 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(!psys->part || psys->part->type != PART_HAIR)
 		return;
 
+	if(psmd->dm->deformedOnly)
+		dm= psmd->dm;
+	else
+		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+
 	for(i=0; i<psys->totpart; i++,pa++) {
 		if(point) {
 			ekey = point->keys;
 			point++;
 		}
 
-		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_global(ob, dm, psys->part->from, pa, hairmat);
 
 		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
 			Mat4MulVecfl(hairmat,key->co);
@@ -757,6 +764,9 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	}
 
 	psys_free_path_cache(psys, psys->edit);
+
+	if(!psmd->dm->deformedOnly)
+		dm->release(dm);
 
 	psys->flag |= PSYS_GLOBAL_HAIR;
 
@@ -814,14 +824,21 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	BVHTreeFromMesh bvhtree;
 	BVHTreeNearest nearest;
 	MFace *mface;
-	DerivedMesh *dm = CDDM_copy(psmd->dm);
-	int numverts = dm->getNumVerts (dm);
+	DerivedMesh *dm = NULL;
+	int numverts;
 	int i, k;
 	float hairmat[4][4], imat[4][4];
 	float v[4][3], vec[3];
 
 	if(!psys || !psys->part || psys->part->type != PART_HAIR)
 		return;
+
+	if(psmd->dm->deformedOnly)
+		dm= psmd->dm;
+	else
+		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+
+	numverts = dm->getNumVerts (dm);
 
 	memset( &bvhtree, 0, sizeof(bvhtree) );
 
@@ -881,7 +898,8 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	}
 
 	free_bvhtree_from_mesh(&bvhtree);
-	dm->release(dm);
+	if(!psmd->dm->deformedOnly)
+		dm->release(dm);
 
 	psys_free_path_cache(psys, psys->edit);
 

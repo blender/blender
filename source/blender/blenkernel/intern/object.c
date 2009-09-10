@@ -1113,9 +1113,10 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 		}
 	}
 
-	if(psys->soft) {
-		psysn->soft= copy_softbody(psys->soft);
-		psysn->soft->particles = psysn;
+	if(psys->clmd) {
+		ClothModifierData *nclmd = modifier_new(eModifierType_Cloth);
+		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)nclmd);
+		psys->hair_in_dm = psys->hair_out_dm = NULL;
 	}
 
 	BLI_duplicatelist(&psysn->targets, &psys->targets);

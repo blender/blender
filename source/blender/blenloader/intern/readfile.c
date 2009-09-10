@@ -3114,17 +3114,6 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->child=newdataadr(fd,psys->child);
 		psys->effectors.first=psys->effectors.last=0;
 
-		psys->soft= newdataadr(fd, psys->soft);
-		if(psys->soft) {
-			SoftBody *sb = psys->soft;
-			sb->particles = psys;
-			sb->bpoint= NULL;	// init pointers so it gets rebuilt nicely
-			sb->bspring= NULL;
-			sb->scratch= NULL;
-
-			direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
-		}
-
 		link_list(fd, &psys->targets);
 
 		psys->edit = NULL;
@@ -3136,6 +3125,23 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->reactevents.first = psys->reactevents.last = 0;
 
 		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache);
+
+		if(psys->clmd) {
+			psys->clmd = newdataadr(fd, psys->clmd);
+			psys->clmd->clothObject = NULL;
+			
+			psys->clmd->sim_parms= newdataadr(fd, psys->clmd->sim_parms);
+			psys->clmd->coll_parms= newdataadr(fd, psys->clmd->coll_parms);
+			
+			if(psys->clmd->sim_parms) {
+				if(psys->clmd->sim_parms->presets > 10)
+					psys->clmd->sim_parms->presets = 0;
+			}
+
+			psys->hair_in_dm = psys->hair_out_dm = NULL;
+
+			psys->clmd->point_cache = psys->pointcache;
+		}
 
 		psys->tree = NULL;
 	}
@@ -8342,8 +8348,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob->soft->pointcache= BKE_ptcache_add(&ob->soft->ptcaches);
 
 			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-				if(psys->soft && !psys->soft->pointcache)
-					psys->soft->pointcache= BKE_ptcache_add(&psys->soft->ptcaches);
+				//if(psys->soft && !psys->soft->pointcache)
+				//	psys->soft->pointcache= BKE_ptcache_add(&psys->soft->ptcaches);
 				if(!psys->pointcache)
 					psys->pointcache= BKE_ptcache_add(&psys->ptcaches);
 			}

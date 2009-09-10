@@ -208,7 +208,7 @@ void psys_free_boid_rules(struct ListBase *list);
 void psys_free_settings(struct ParticleSettings *part);
 void free_child_path_cache(struct ParticleSystem *psys);
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
-void free_hair(struct ParticleSystem *psys, int softbody);
+void free_hair(struct Object *ob, struct ParticleSystem *psys, int dynamics);
 void free_keyed_keys(struct ParticleSystem *psys);
 void psys_free_particles(struct ParticleSystem *psys);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);

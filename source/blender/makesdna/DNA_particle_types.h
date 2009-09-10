@@ -105,7 +105,7 @@ typedef struct ParticleData {
 	short flag;
 	short alive;			/* the life state of a particle */
 	short loop;				/* how many times particle life has looped */
-	short rt;
+	short hair_index;
 } ParticleData;
 
 typedef struct ParticleSettings {
@@ -202,7 +202,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct ParticleCacheKey **childcache;	/* child cache (runtime) */
 	ListBase pathcachebufs, childcachebufs;	/* buffers for the above */
 
-	struct SoftBody *soft;					/* hair softbody */
+	struct ClothModifierData *clmd;					/* cloth simulation for hair */
+	struct DerivedMesh *hair_in_dm, *hair_out_dm;	/* input/output for cloth simulation */
 
 	struct Object *target_ob;
 	struct Object *lattice;
@@ -216,9 +217,9 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	
 	float imat[4][4];	/* used for duplicators */
 	float cfra, tree_frame;
-	int seed;
+	int seed, rt;
 	int flag, totpart, totchild, totcached, totchildcache;
-	short recalc, target_psys, totkeyed, softflag, bakespace, rt2;
+	short recalc, target_psys, totkeyed, bakespace;
 
 	char bb_uvname[3][32];					/* billboard uv name */
 
@@ -411,16 +412,16 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 /* psys->flag */
 #define PSYS_CURRENT		1
 #define PSYS_GLOBAL_HAIR	2
-//#define PSYS_BAKE_UI		4
+#define PSYS_HAIR_DYNAMICS	4
 #define	PSYS_KEYED_TIMING	8
 #define PSYS_ENABLED		16	/* deprecated */
-//#define PSYS_FIRST_KEYED	32
+#define PSYS_HAIR_UPDATED	32  /* signal for updating hair particle mode */
 #define PSYS_DRAWING		64
 //#define PSYS_SOFT_BAKE		128
 #define PSYS_DELETE			256	/* remove particlesystem as soon as possible */
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024
-//#define PSYS_EDITED			2048
+#define PSYS_EDITED			2048
 //#define PSYS_PROTECT_CACHE	4096
 #define PSYS_DISABLED		8192
 

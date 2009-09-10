@@ -660,8 +660,13 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 			writestruct(wd, DATA, "ParticleTarget", 1, pt);
 
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
-		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
-		if(psys->soft) write_pointcaches(wd, &psys->soft->ptcaches);
+
+		if(psys->clmd) {
+			writestruct(wd, DATA, "ClothModifierData", 1, psys->clmd);
+			writestruct(wd, DATA, "ClothSimSettings", 1, psys->clmd->sim_parms);
+			writestruct(wd, DATA, "ClothCollSettings", 1, psys->clmd->coll_parms);
+		}
+		
 		write_pointcaches(wd, &psys->ptcaches);
 	}
 }

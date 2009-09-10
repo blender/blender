@@ -184,8 +184,6 @@ typedef struct BulletSoftBody {
 
 
 typedef struct SoftBody {
-	struct ParticleSystem *particles;	/* particlesystem softbody */
-
 	/* dynamic data */
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
