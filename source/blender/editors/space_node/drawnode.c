@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): David Millan Escriva, Juho Vepsäläinen
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen, Bob Holcomb
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1647,45 +1647,35 @@ static int node_composit_buts_dilateerode(uiBlock *block, bNodeTree *ntree, bNod
 static int node_composit_buts_diff_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
-		short sx= (butr->xmax-butr->xmin)/4;
-		short dx= (butr->xmax-butr->xmin)/3;
 		NodeChroma *c= node->storage;
 		
 		uiBlockBeginAlign(block);
-		/*color space selectors*/
-		uiDefButS(block, ROW,B_NODE_EXEC,"RGB",
-							butr->xmin,butr->ymin+60,sx,20,
-							&node->custom1,1,1, 0, 0, "RGB Color Space");
-		uiDefButS(block, ROW,B_NODE_EXEC,"HSV",
-							butr->xmin+sx,butr->ymin+60,sx,20,
-							&node->custom1,1,2, 0, 0, "HSV Color Space");
-		uiDefButS(block, ROW,B_NODE_EXEC,"YUV",
-							butr->xmin+2*sx,butr->ymin+60,sx,20,
-							&node->custom1,1,3, 0, 0, "YUV Color Space");
-					uiDefButS(block, ROW,B_NODE_EXEC,"YCC",
-							butr->xmin+3*sx,butr->ymin+60,sx,20,
-							&node->custom1,1,4, 0, 0, "YCbCr Color Space");
-		/*channel tolorences*/
-		uiDefButF(block, NUM, B_NODE_EXEC, " ",
-							butr->xmin, butr->ymin+40, dx, 20,
-							&c->t1, 0.0f, 1.0f, 100, 0, "Channel 1 Tolerance");
-		uiDefButF(block, NUM, B_NODE_EXEC, " ",
-							butr->xmin+dx, butr->ymin+40, dx, 20,
-							&c->t2, 0.0f, 1.0f, 100, 0, "Channel 2 Tolorence");
-		uiDefButF(block, NUM, B_NODE_EXEC, " ",
-							butr->xmin+2*dx, butr->ymin+40, dx, 20,
-							&c->t3, 0.0f, 1.0f, 100, 0, "Channel 3 Tolorence");
-		/*falloff parameters*/
-		/*
-		uiDefButF(block, NUMSLI, B_NODE_EXEC, "Falloff Size ",
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Tolerance: ", 
 			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-			&c->fsize, 0.0f, 1.0f, 100, 0, "");
-		*/
-		uiDefButF(block, NUMSLI, B_NODE_EXEC, "Falloff: ",
-			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-			&c->fstrength, 0.0f, 1.0f, 100, 0, "");
+			&c->t1, 0.0f, 1.0f, 100, 0, "Color differences below this threshold are keyed.");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Falloff: ", 
+			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
+			&c->t2, 0.0f, 1.0f, 100, 0, "Color differences below this additional threshold are partially keyed.");
+      uiBlockEndAlign(block);
 	}
-	return 80;
+	return 40;
+}
+
+static int node_composit_buts_distance_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeChroma *c= node->storage;
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Tolerance: ", 
+			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
+			&c->t1, 0.0f, 1.0f, 100, 0, "Color distances below this threshold are keyed.");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Falloff: ", 
+			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
+			&c->t2, 0.0f, 1.0f, 100, 0, "Color distances below this additional threshold are partially keyed.");
+       uiBlockEndAlign(block);
+	}
+	return 40;
 }
 
 static int node_composit_buts_color_spill(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
@@ -1717,6 +1707,7 @@ static int node_composit_buts_chroma_matte(uiBlock *block, bNodeTree *ntree, bNo
 	if(block) {
 		short dx=(butr->xmax-butr->xmin)/2;
 		NodeChroma *c= node->storage;
+
 		uiBlockBeginAlign(block);
 
 		uiDefButF(block, NUMSLI, B_NODE_EXEC, "Acceptance ",
@@ -1736,12 +1727,35 @@ static int node_composit_buts_chroma_matte(uiBlock *block, bNodeTree *ntree, bNo
 		uiDefButF(block, NUMSLI, B_NODE_EXEC, "Shadow Adjust ",
 			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
 			&c->t3, 0.0f, 1.0f, 100, 0, "Adjusts the brightness of any shadows captured");
+		uiBlockEndAlign(block);
 
 		if(c->t2 > c->t1)
 			c->t2=c->t1;
 	}
 	return 80;
 }
+
+static int node_composit_buts_color_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeChroma *c= node->storage;
+		uiBlockBeginAlign(block);
+
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "H: ",
+			butr->xmin, butr->ymin+40, butr->xmax-butr->xmin, 20,
+			&c->t1, 0.0f, 0.25f, 100, 0, "Hue tolerance for colors to be considered a keying color");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "S: ",
+			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
+			&c->t2, 0.0f, 1.0f, 100, 0, "Saturation Tolerance for the color");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "V: ",
+			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
+			&c->t3, 0.0f, 1.0f, 100, 0, "Value Tolerance for the color");
+
+		uiBlockEndAlign(block);
+	}
+	return 60;
+}
+
 
 static int node_composit_buts_channel_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -1977,6 +1991,29 @@ static int node_composit_buts_premulkey(uiBlock *block, bNodeTree *ntree, bNode 
 	return 20;
 }
 
+static int node_composit_buts_view_levels(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		short sx= (butr->xmax-butr->xmin)/5;
+	
+		/*color space selectors*/
+		uiBlockBeginAlign(block);
+		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"C",
+			butr->xmin,butr->ymin,sx,20,&node->custom1,1,1, 0, 0, "Combined RGB");
+		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"R",
+			butr->xmin+sx,butr->ymin,sx,20,&node->custom1,1,2, 0, 0, "Red Channel");
+		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"G",
+			butr->xmin+2*sx,butr->ymin,sx,20,&node->custom1,1,3, 0, 0, "Green Channel");
+		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"B",
+			butr->xmin+3*sx,butr->ymin,sx,20,&node->custom1,1,4, 0, 0, "Blue Channel");
+      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"L",
+			butr->xmin+4*sx,butr->ymin,sx,20,&node->custom1,1,5, 0, 0, "Luminenc Channel");
+		uiBlockEndAlign(block);
+	}
+	return 20;
+}
+
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2070,16 +2107,21 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->butfunc= node_composit_buts_file_output;
-			break;
-	
+			break;	
 		case CMP_NODE_DIFF_MATTE:
 			ntype->butfunc=node_composit_buts_diff_matte;
+			break;
+		case CMP_NODE_DIST_MATTE:
+			ntype->butfunc=node_composit_buts_distance_matte;
 			break;
 		case CMP_NODE_COLOR_SPILL:
 			ntype->butfunc=node_composit_buts_color_spill;
 			break;
-		case CMP_NODE_CHROMA:
+		case CMP_NODE_CHROMA_MATTE:
 			ntype->butfunc=node_composit_buts_chroma_matte;
+			break;
+		case CMP_NODE_COLOR_MATTE:
+			ntype->butfunc=node_composit_buts_color_matte;
 			break;
 		case CMP_NODE_SCALE:
 			ntype->butfunc= node_composit_buts_scale;
@@ -2105,6 +2147,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_PREMULKEY:
 			ntype->butfunc= node_composit_buts_premulkey;
 			break;
+      case CMP_NODE_VIEW_LEVELS:
+			ntype->butfunc=node_composit_buts_view_levels;
+ 			break;
 		default:
 			ntype->butfunc= NULL;
 	}

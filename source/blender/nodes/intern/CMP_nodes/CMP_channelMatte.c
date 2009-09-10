@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -180,7 +180,7 @@ static void node_composit_init_channel_matte(bNode *node)
 {
    NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
    node->storage=c;
-   c->t1= 0.0f;
+   c->t1= 1.0f;
    c->t2= 0.0f;
    c->t3= 0.0f;
    c->fsize= 0.0f;

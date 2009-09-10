@@ -747,43 +747,63 @@ static void def_cmp_scale(StructRNA *srna)
 static void def_cmp_diff_matte(StructRNA *srna)
 {
 	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
+
+	/* TODO: nicer wrapping for tolerances */	
 	
-	static EnumPropertyItem color_space_items[] = {
-		{1, "RGB", 0, "RGB",   ""},
-		{2, "HSV", 0, "HSV",   ""},
-		{3, "YUV", 0, "YUV",   ""},
-		{4, "YCC", 0, "YCbCr", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+	prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "t1");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed.");
 	
-	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, color_space_items);
-	RNA_def_property_ui_text(prop, "Color Space", "");
+	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "t2");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed.");
+}
+
+static void def_cmp_color_matte(StructRNA *srna)
+{
+	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
 	
 	/* TODO: nicer wrapping for tolerances */
 	
-	prop = RNA_def_property(srna, "tolerance1", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "h", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Channel 1 Tolerance", "");
+	RNA_def_property_ui_text(prop, "H", "Hue tolerance for colors to be considered a keying color");
 	
-	prop = RNA_def_property(srna, "tolerance2", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "s", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Channel 2 Tolerance", "");
+	RNA_def_property_ui_text(prop, "S", "Saturation Tolerance for the color");
 	
-	prop = RNA_def_property(srna, "tolerance3", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "v", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t3");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Channel 3 Tolerance", "");
+	RNA_def_property_ui_text(prop, "V", "Value Tolerance for the color");
+}
+
+static void def_cmp_distance_matte(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
+	
+	/* TODO: nicer wrapping for tolerances */
+	
+	prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "t1");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed.");
 	
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "fstrength");
+	RNA_def_property_float_sdna(prop, NULL, "t2");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Falloff", "");
+	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed.");
 }
 
 static void def_cmp_color_spill(StructRNA *srna)
@@ -810,7 +830,7 @@ static void def_cmp_color_spill(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Amount", "How much the selected channel is affected by");
 }
 
-static void def_cmp_chroma(StructRNA *srna)
+static void def_cmp_chroma_matte(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	

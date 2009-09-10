@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -325,7 +325,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_COMBYUVA	234
 #define CMP_NODE_DIFF_MATTE	235
 #define CMP_NODE_COLOR_SPILL	236
-#define CMP_NODE_CHROMA		237
+#define CMP_NODE_CHROMA_MATTE	237
 #define CMP_NODE_CHANNEL_MATTE	238
 #define CMP_NODE_FLIP		239
 #define CMP_NODE_SPLITVIEWER	240
@@ -345,6 +345,9 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_DBLUR		254
 #define CMP_NODE_BILATERALBLUR  255
 #define CMP_NODE_PREMULKEY  256
+#define CMP_NODE_DIST_MATTE	257
+#define CMP_NODE_VIEW_LEVELS    258
+#define CMP_NODE_COLOR_MATTE 259
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

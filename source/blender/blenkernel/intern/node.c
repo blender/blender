@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -2597,7 +2597,7 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 				if(outsocket_exists(lnode->new_node, lsock->new_sock)) {
 					lsock->new_sock->ns.data= lsock->ns.data;
 					lsock->ns.data= NULL;
-					lsock->new_sock= NULL;
+						lsock->new_sock= NULL;
 				}
 			}
 		}
@@ -2932,6 +2932,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_viewer);
 	nodeRegisterType(ntypelist, &cmp_node_splitviewer);
 	nodeRegisterType(ntypelist, &cmp_node_output_file);
+	nodeRegisterType(ntypelist, &cmp_node_view_levels);
 	
 	nodeRegisterType(ntypelist, &cmp_node_curve_rgb);
 	nodeRegisterType(ntypelist, &cmp_node_mix_rgb);
@@ -2971,7 +2972,9 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_premulkey);
 	
 	nodeRegisterType(ntypelist, &cmp_node_diff_matte);
-	nodeRegisterType(ntypelist, &cmp_node_chroma);
+	nodeRegisterType(ntypelist, &cmp_node_distance_matte);
+	nodeRegisterType(ntypelist, &cmp_node_chroma_matte);
+	nodeRegisterType(ntypelist, &cmp_node_color_matte);
 	nodeRegisterType(ntypelist, &cmp_node_channel_matte);
 	nodeRegisterType(ntypelist, &cmp_node_color_spill);
 	nodeRegisterType(ntypelist, &cmp_node_luma_matte);
