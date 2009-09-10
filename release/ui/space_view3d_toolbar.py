@@ -40,6 +40,13 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		col = layout.column(align=True)
 		col.itemO("anim.insert_keyframe_menu", text="Insert")
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_mesh ****************
 
@@ -83,6 +90,13 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col.itemO("uv.mapping_menu", text="Unwrap")
 		col.itemO("mesh.uvs_rotate")
 		col.itemO("mesh.uvs_mirror")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_curve ****************
 
@@ -114,6 +128,13 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 		col = layout.column(align=True)
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_surface ****************
 
@@ -144,6 +165,13 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 		col = layout.column(align=True)
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_text ****************
 
@@ -153,14 +181,26 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
-
+		
+		layout.itemL(text="Text Edit:")
+		
 		col = layout.column(align=True)
 		col.itemO("font.text_copy", text="Copy")
+		col.itemO("font.text_cut", text="Cut")
 		col.itemO("font.text_paste", text="Paste")
 		
-		col = layout.column()
+		layout.itemL(text="Style:")
+		
+		col = layout.column(align=True)
 		col.itemO("font.case_set")
 		col.itemO("font.style_toggle")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_armature ****************
 
@@ -187,6 +227,13 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		
 		layout.itemL(text="Modeling:")
 		layout.itemO("armature.extrude")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_mball ****************
 
@@ -203,6 +250,13 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for editmode_lattice ****************
 
@@ -219,6 +273,13 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for posemode ****************
 
@@ -259,6 +320,13 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col = layout.column(align=True)
 		col.itemO("poselib.pose_add", text="Add")
 		col.itemO("poselib.pose_remove", text="Remove")
+		
+		layout.itemL(text="Repeat:")
+		
+		col = layout.column(align=True)
+		col.itemO("screen.repeat_last")
+		col.itemO("screen.repeat_history", text="History...")
+		col.itemO("screen.redo_last", text="Tweak...")
 
 # ********** default tools for paint modes ****************
 
