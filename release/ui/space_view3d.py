@@ -40,6 +40,18 @@ class VIEW3D_HT_header(bpy.types.Header):
 # ********** Menu **********
 
 # ********** Utilities **********
+class VIEW3D_MT_pinunpin(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Pin/Unpin"
+	_operator_name = ""
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("%s.pin" % self._operator_name, text="Pin Selected")
+		layout.itemO("%s.unpin" % self._operator_name, text="Unpin Selected")
+		layout.item_booleanO("%s.pin" % self._operator_name, "unselected", True, text="Pin Unselected")
+		layout.item_booleanO("%s.unpin" % self._operator_name, "unselected", True, text="Unpin Unselected")
 
 class VIEW3D_MT_showhide(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
@@ -760,6 +772,10 @@ class VIEW3D_MT_edit_MESH(bpy.types.Menu):
 		layout.itemS()
 		
 		layout.itemM("VIEW3D_MT_edit_MESH_showhide")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_edit_MESH_pinunpin")
 
 class VIEW3D_MT_edit_MESH_vertices(bpy.types.Menu):
 	__space_type__ = 'VIEW_3D'
@@ -840,6 +856,9 @@ class VIEW3D_MT_edit_MESH_normals(bpy.types.Menu):
 		layout.itemO("mesh.flip_normals")
 		
 class VIEW3D_MT_edit_MESH_showhide(VIEW3D_MT_showhide):
+	_operator_name = "mesh"
+
+class VIEW3D_MT_edit_MESH_pinunpin(VIEW3D_MT_pinunpin):
 	_operator_name = "mesh"
 
 # Edit CURVE
@@ -1198,6 +1217,7 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
 		col.itemR(mesh, "draw_bevel_weights", text="Bevel Weights")
 		col.itemR(mesh, "draw_seams", text="Seams")
 		col.itemR(mesh, "draw_sharp", text="Sharp")
+		col.itemR(mesh, "draw_pins", text="Pins")
 		
 		col.itemS()
 		col.itemL(text="Normals:")
@@ -1297,6 +1317,7 @@ bpy.types.register(VIEW3D_MT_edit_MESH_edges)
 bpy.types.register(VIEW3D_MT_edit_MESH_faces)
 bpy.types.register(VIEW3D_MT_edit_MESH_normals)
 bpy.types.register(VIEW3D_MT_edit_MESH_showhide)
+bpy.types.register(VIEW3D_MT_edit_MESH_pinunpin)
 
 bpy.types.register(VIEW3D_MT_edit_CURVE)
 bpy.types.register(VIEW3D_MT_edit_CURVE_ctrlpoints)

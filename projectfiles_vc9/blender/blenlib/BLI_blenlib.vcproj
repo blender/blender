@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="BLI_blenlib"
 	ProjectGUID="{31628053-825D-4C06-8A21-D13883489718}"
 	RootNamespace="BLI_blenlib"
@@ -483,6 +483,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_cellalloc.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_dynstr.c"
 				>
 			</File>
@@ -641,6 +645,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_callbacks.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_cellalloc.h"
 				>
 			</File>
 			<File

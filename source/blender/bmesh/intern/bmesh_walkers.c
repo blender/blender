@@ -651,6 +651,8 @@ static void *loopWalker_step(BMWalker *walker)
 	
 	rlen = owalk.startrad;
 	l = e->loop;
+	if (!l)
+		return owalk.cur;
 
 	if (val == 4 || val == 2 || rlen == 1) {		
 		i = 0;
@@ -670,11 +672,13 @@ static void *loopWalker_step(BMWalker *walker)
 			}
 
 			l = l2;
-
 			i += 1;
 		}
 	}
 	
+	if (!l)
+		return owalk.cur;
+
 	if (l != e->loop && !BLI_ghash_haskey(walker->visithash, l->e)) {
 		if (!(rlen != 1 && i != stopi)) {
 			BMW_pushstate(walker);

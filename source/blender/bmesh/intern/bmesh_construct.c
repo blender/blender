@@ -274,6 +274,12 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 			if (!BMO_TestFlag
 		}*/
 
+		/*clear flags first*/
+		for(i = 0; i < len; i++){
+			BMO_ClearFlag(bm, edges[i]->v1, BM_EDGEVERT);
+			BMO_ClearFlag(bm, edges[i]->v2, BM_EDGEVERT);
+		}
+
 		for(i = 0, j=0; i < len; i++){
 			if(!BMO_TestFlag(bm, edges[i]->v1, BM_EDGEVERT)){
 				BMO_SetFlag(bm, edges[i]->v1, BM_EDGEVERT);
@@ -304,7 +310,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 
 	if((!f) && (!overlap)) {
 		f = bmesh_mf(bm, v1, v2, edges, len);
-	}
+	} else return NULL;
 
 	return f;
 }

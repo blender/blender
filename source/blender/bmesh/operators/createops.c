@@ -2,8 +2,10 @@
 
 #include "BKE_utildefines.h"
 
-#include "BLI_ghash.h"
 #include "BLI_memarena.h"
+#include "BLI_mempool.h"
+#include "BLI_heap.h"
+#include "BLI_ghash.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
@@ -13,10 +15,264 @@
 #define ELE_NEW		1
 #define ELE_OUT		2
 
+typedef struct EPathNode {
+	struct EPathNode *next, *prev;
+	BMVert *v;
+	BMEdge *e;
+} EPathNode;
+
+typedef struct EPath {
+	ListBase nodes;
+	float weight;
+} EPath;
+
+typedef struct PathBase {
+	BLI_mempool *nodepool, *pathpool;
+} PathBase;
+
+typedef struct EdgeData {
+	int tag;
+	int ftag;
+} EdgeData;
+
+#define EDGE_MARK	1
+#define EDGE_VIS	2
+
+#define VERT_VIS	1
+
+#define FACE_NEW	1
+
+PathBase *edge_pathbase_new(void)
+{
+	PathBase *pb = MEM_callocN(sizeof(PathBase), "PathBase");
+
+	pb->nodepool = BLI_mempool_create(sizeof(EPathNode), 1, 512);
+	pb->pathpool = BLI_mempool_create(sizeof(EPath), 1, 512);
+
+	return pb;
+}
+
+void edge_pathbase_free(PathBase *pathbase)
+{
+	BLI_mempool_destroy(pathbase->nodepool);
+	BLI_mempool_destroy(pathbase->pathpool);
+	MEM_freeN(pathbase);
+}
+
+EPath *edge_copy_add_path(PathBase *pb, EPath *path, BMVert *appendv, BMEdge *e)
+{
+	EPath *path2;
+	EPathNode *node, *node2;
+
+	path2 = BLI_mempool_calloc(pb->pathpool);
+	
+	for (node=path->nodes.first; node; node=node->next) {
+		node2 = BLI_mempool_calloc(pb->nodepool);
+		*node2 = *node;
+		BLI_addtail(&path2->nodes, node2);
+	}
+
+	node2 = BLI_mempool_calloc(pb->nodepool);
+	node2->v = appendv;
+	node2->e = e;
+
+	BLI_addtail(&path2->nodes, node2);
+
+	return path2;
+}
+
+EPath *edge_path_new(PathBase *pb, BMVert *start)
+{
+	EPath *path;
+	EPathNode *node;
+
+	path = BLI_mempool_calloc(pb->pathpool);
+	node = BLI_mempool_calloc(pb->nodepool);
+
+	node->v = start;
+	node->e = NULL;
+
+	BLI_addtail(&path->nodes, node);
+	path->weight = 0.0f;
+
+	return path;
+}
+
+float edge_weight_path(EPath *path, EdgeData *edata)
+{
+	EPathNode *node;
+	float w;
+
+	for (node=path->nodes.first; node; node=node->next) {
+		if (node->e) {
+			w += edata[BMINDEX_GET(node->e)].ftag;
+		}
+
+		w += 1.0f;
+	}
+
+	return w;
+}
+
+
+void edge_free_path(PathBase *pathbase, EPath *path)
+{
+	EPathNode *node, *next;
+
+	for (node=path->nodes.first; node; node=next) {
+		next = node->next;
+		BLI_mempool_free(pathbase->nodepool, node);
+	}
+
+	BLI_mempool_free(pathbase->pathpool, path);
+}
+
+EPath *edge_find_shortest_path(BMesh *bm, BMEdge *edge, EdgeData *edata, PathBase *pathbase)
+{
+	BMIter iter;
+	BMEdge *e;
+	GHash *gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	BMVert *v1, *v2;
+	BMVert **verts = NULL;
+	V_DECLARE(verts);
+	Heap *heap = BLI_heap_new();
+	EPath *path = NULL, *path2;
+	EPathNode *node;
+	int i;
+
+	path = edge_path_new(pathbase, edge->v1);
+	BLI_heap_insert(heap, path->weight, path);
+	path = NULL;
+
+	while (BLI_heap_size(heap)) {
+		if (path)
+			edge_free_path(pathbase, path);
+		path = BLI_heap_popmin(heap);
+		v1 = ((EPathNode*)path->nodes.last)->v;
+		
+		if (v1 == edge->v2) {
+			/*make sure this path loop doesn't already exist*/
+			i = 0;
+			V_RESET(verts);
+			for (i=0, node = path->nodes.first; node; node=node->next, i++) {
+				V_GROW(verts);
+				verts[i] = node->v;
+			}
+
+			if (!BM_Face_Exists(bm, verts, i, NULL))
+				break;
+			else
+				continue;
+		}
+
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v1) {
+			if (e == edge || !BMO_TestFlag(bm, e, EDGE_MARK))
+				continue;
+			
+			v2 = BM_OtherEdgeVert(e, v1);
+			
+			if (BLI_ghash_haskey(gh, v2))
+				continue;
+
+			BLI_ghash_insert(gh, v2, NULL);
+
+			path2 = edge_copy_add_path(pathbase, path, v2, e);
+			path2->weight = edge_weight_path(path2, edata);
+
+			BLI_heap_insert(heap, path2->weight, path2);
+		}
+
+		if (BLI_heap_size(heap) == 0)
+			path = NULL;
+	}
+
+	BLI_ghash_free(gh, NULL, NULL);
+
+	return path;
+}
+
 void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 {
-	/*unimplemented, need to think on how to do this.  probably are graph
-	  theory stuff that could help with this problem.*/
+	BMIter iter, liter;
+	BMOIter siter;
+	BMEdge *e, *edge;
+	BMLoop *l;
+	BMFace *f;
+	EPath *path;
+	EPathNode *node;
+	EdgeData *edata;
+	BMEdge **edges = NULL;
+	PathBase *pathbase = edge_pathbase_new();
+	V_DECLARE(edges);
+	int i, j;
+
+	if (!bm->totvert || !bm->totedge)
+		return;
+
+	edata = MEM_callocN(sizeof(EdgeData)*bm->totedge, "EdgeData");
+	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
+
+	i = 0;
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BMINDEX_SET(e, i);
+		
+		if (!BMO_TestFlag(bm, e, EDGE_MARK)) {
+			edata[i].tag = 2;
+		}
+
+		i += 1;
+	}
+
+	while (1) {
+		edge = NULL;
+
+		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+			if (edata[BMINDEX_GET(e)].tag < 2) {
+				edge = e;
+				break;
+			}
+		}
+
+		if (!edge)
+			break;
+
+		edata[BMINDEX_GET(edge)].tag += 1;
+
+		path = edge_find_shortest_path(bm, edge, edata, pathbase);
+		if (!path)
+			continue;
+		
+		V_RESET(edges);
+		i = 0;
+		for (node=path->nodes.first; node; node=node->next) {
+			if (!node->next)
+				continue;
+
+			e = BM_Edge_Exist(node->v, node->next->v);
+			
+			/*this should never happen*/
+			if (!e)
+				break;
+			
+			edata[BMINDEX_GET(e)].ftag++;
+			V_GROW(edges);
+			edges[i++] = e;
+		}
+		
+		V_GROW(edges);
+		edges[i++] = edge;
+
+		f = BM_Make_Ngon(bm, edge->v1, edge->v2, edges, i, 1);
+		if (f)
+			BMO_SetFlag(bm, f, FACE_NEW);
+
+		edge_free_path(pathbase, path);
+	}
+
+	BMO_Flag_To_Slot(bm, op, "faceout", FACE_NEW, BM_FACE);
+
+	edge_pathbase_free(pathbase);
+	MEM_freeN(edata);
 }
 
 /* evaluate if entire quad is a proper convex quad */
@@ -92,7 +348,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	}
 	BMO_Finish_Op(bm, &op2);
 
-	/*then call edgenet create, which may still be unimplemented, heh*/
+	/*then call edgenet create*/
 	BMO_InitOpf(bm, &op2, "edgenet_fill edges=%fe", ELE_NEW);
 	BMO_Exec_Op(bm, &op2);
 	BMO_ITER(f, &oiter, bm, &op2, "faceout", BM_FACE) {
