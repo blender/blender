@@ -110,7 +110,7 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 	
 	# if not ACCEPTED (but not processed), send files
 	if response.status == http.client.ACCEPTED:
-		for filepath in job.files:
+		for filepath, start, end in job.files:
 			f = open(filepath, "rb")
 			conn.request("PUT", "file", f, headers={"job-id": job_id, "job-file": filepath})
 			f.close()
