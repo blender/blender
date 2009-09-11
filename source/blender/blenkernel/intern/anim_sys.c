@@ -1450,7 +1450,6 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-// FIXME?: we currently go over entire 'main' database...
 void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
@@ -1474,8 +1473,11 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
 	 * which should ultimately be empty, since it is not possible for now to have any animation 
 	 * without some actions, and drivers wouldn't get affected by any state changes
+	 *
+	 * however, if there are some curves, we will need to make sure that their 'ctime' property gets
+	 * set correctly, so this optimisation must be skipped in that case...
 	 */
-	if (main->action.first == NULL) {
+	if ((main->action.first == NULL) && (main->curve.first == NULL)) {
 		if (G.f & G_DEBUG)
 			printf("\tNo Actions, so no animation needs to be evaluated...\n");
 			
@@ -1509,6 +1511,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 		 * value of the curve gets set in case there's no animation for that
 		 *	- it needs to be set before animation is evaluated just so that 
 		 *	  animation can successfully override...
+		 *	- it shouldn't get set when calculating drivers...
 		 */
 	for (id= main->curve.first; id; id= id->next) {
 		AnimData *adt= BKE_animdata_from_id(id);
