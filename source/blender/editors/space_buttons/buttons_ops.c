@@ -729,7 +729,6 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	PTCacheEdit *edit = psys->edit;
 	PTCacheEditPoint *point = edit ? edit->points : NULL;
 	PTCacheEditKey *ekey = NULL;
-	DerivedMesh *dm = NULL;
 	HairKey *key;
 	int i, k;
 	float hairmat[4][4];
@@ -740,18 +739,13 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(!psys->part || psys->part->type != PART_HAIR)
 		return;
 
-	if(psmd->dm->deformedOnly)
-		dm= psmd->dm;
-	else
-		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
-
 	for(i=0; i<psys->totpart; i++,pa++) {
 		if(point) {
 			ekey = point->keys;
 			point++;
 		}
 
-		psys_mat_hair_to_global(ob, dm, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
 
 		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
 			Mat4MulVecfl(hairmat,key->co);
@@ -764,9 +758,6 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	}
 
 	psys_free_path_cache(psys, psys->edit);
-
-	if(!psmd->dm->deformedOnly)
-		dm->release(dm);
 
 	psys->flag |= PSYS_GLOBAL_HAIR;
 
