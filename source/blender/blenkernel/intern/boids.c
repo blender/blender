@@ -74,14 +74,15 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 	BoidSettings *boids = bbd->part->boids;
 	ParticleEffectorCache *ec;
 	Object *priority_ob = NULL;
+	BoidParticle *bpa = pa->boid;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
 	float mul = (rule->type == eBoidRuleType_Avoid ? 1.0 : -1.0);
-	float priority = 0.0f, len;
+	float priority = 0.0f, len = 0.0f;
 	int ret = 0;
 
 	/* first find out goal/predator with highest priority */
 	/* if rule->ob specified use it */
-	if(gabr->ob && (rule->type != eBoidRuleType_Goal || gabr->ob != pa->stick_ob)) {
+	if(gabr->ob && (rule->type != eBoidRuleType_Goal || gabr->ob != bpa->ground)) {
 		PartDeflect *pd = gabr->ob->pd;
 		float vec_to_part[3];
 
@@ -104,7 +105,7 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 			PartDeflect *pd = eob->pd;
 
 			/* skip current object */
-			if(rule->type == eBoidRuleType_Goal && eob == pa->stick_ob)
+			if(rule->type == eBoidRuleType_Goal && eob == bpa->ground)
 				continue;
 
 			if(pd->forcefield == PFIELD_BOID && mul * pd->f_strength > 0.0f) {
@@ -169,10 +170,10 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 				VECCOPY(bbd->goal_nor, nor);
 			}
 		}
-		else if(rule->type == eBoidRuleType_Avoid && pa->boid->mode == eBoidMode_Climbing &&
+		else if(rule->type == eBoidRuleType_Avoid && bpa->data.mode == eBoidMode_Climbing &&
 			priority > 2.0f * gabr->fear_factor) {
 			/* detach from surface and try to fly away from danger */
-			VECCOPY(vec_to_part, pa->r_ve);
+			VECCOPY(vec_to_part, bpa->gravity);
 			VecMulf(vec_to_part, -1.0f);
 		}
 
@@ -205,6 +206,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 	KDTreeNearest *ptn = NULL;
 	ParticleEffectorCache *ec;
 	ParticleTarget *pt;
+	BoidParticle *bpa = pa->boid;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
 	float co1[3], vel1[3], co2[3], vel2[3];
 	float  len, t, inp, t_min = 2.0f;
@@ -231,7 +233,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 				Object *eob = ec->ob;
 
 				/* don't check with current ground object */
-				if(eob == pa->stick_ob)
+				if(eob == bpa->ground)
 					continue;
 
 				col.md = ( CollisionModifierData * ) ( modifiers_findByType ( eob, eModifierType_Collision ) );
@@ -558,18 +560,19 @@ static int rule_follow_leader(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 }
 static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, ParticleData *pa)
 {
+	BoidParticle *bpa = pa->boid;
 	BoidRuleAverageSpeed *asbr = (BoidRuleAverageSpeed*)rule;
 	float vec[3] = {0.0f, 0.0f, 0.0f};
 
 	if(asbr->wander > 0.0f) {
 		/* abuse pa->r_ave for wandering */
-		pa->r_ave[0] += asbr->wander * (-1.0f + 2.0f * BLI_frand());
-		pa->r_ave[1] += asbr->wander * (-1.0f + 2.0f * BLI_frand());
-		pa->r_ave[2] += asbr->wander * (-1.0f + 2.0f * BLI_frand());
+		bpa->wander[0] += asbr->wander * (-1.0f + 2.0f * BLI_frand());
+		bpa->wander[1] += asbr->wander * (-1.0f + 2.0f * BLI_frand());
+		bpa->wander[2] += asbr->wander * (-1.0f + 2.0f * BLI_frand());
 
-		Normalize(pa->r_ave);
+		Normalize(bpa->wander);
 
-		VECCOPY(vec, pa->r_ave);
+		VECCOPY(vec, bpa->wander);
 
 		QuatMulVecf(pa->prev_state.rot, vec);
 
@@ -614,7 +617,8 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 	KDTreeNearest *ptn = NULL;
 	ParticleTarget *pt;
 	ParticleData *epars;
-	ParticleData *enemy_pa;
+	ParticleData *enemy_pa = NULL;
+	BoidParticle *bpa;
 	/* friends & enemies */
 	float closest_enemy[3] = {0.0f,0.0f,0.0f};
 	float closest_dist = fbr->distance + 1.0f;
@@ -624,8 +628,10 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 
 	/* calculate own group strength */
 	int neighbors = BLI_kdtree_range_search(bbd->psys->tree, fbr->distance, pa->prev_state.co, NULL, &ptn);
-	for(n=0; n<neighbors; n++)
-		health += bbd->psys->particles[ptn[n].index].boid->health;
+	for(n=0; n<neighbors; n++) {
+		bpa = bbd->psys->particles[ptn[n].index].boid;
+		health += bpa->data.health;
+	}
 
 	f_strength += bbd->part->boids->strength * health;
 
@@ -642,7 +648,8 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 			health = 0.0f;
 
 			for(n=0; n<neighbors; n++) {
-				health += epars[ptn[n].index].boid->health;
+				bpa = epars[ptn[n].index].boid;
+				health += bpa->data.health;
 
 				if(n==0 && pt->mode==PTARGET_MODE_ENEMY && ptn[n].dist < closest_dist) {
 					VECCOPY(closest_enemy, ptn[n].co);
@@ -674,7 +681,8 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 
 			/* must face enemy to fight */
 			if(Inpf(pa->prev_state.ave, enemy_dir)>0.5f) {
-				enemy_pa->boid->health -= bbd->part->boids->strength * bbd->timestep * ((1.0f-bbd->part->boids->accuracy)*damage + bbd->part->boids->accuracy);
+				bpa = enemy_pa->boid;
+				bpa->data.health -= bbd->part->boids->strength * bbd->timestep * ((1.0f-bbd->part->boids->accuracy)*damage + bbd->part->boids->accuracy);
 			}
 		}
 		else {
@@ -683,7 +691,8 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 		}
 
 		/* check if boid doesn't want to fight */
-		if(pa->boid->health/bbd->part->boids->health * bbd->part->boids->aggression < e_strength / f_strength) {
+		bpa = pa->boid;
+		if(bpa->data.health/bbd->part->boids->health * bbd->part->boids->aggression < e_strength / f_strength) {
 			/* decide to flee */
 			if(closest_dist < fbr->flee_distance * fbr->distance) {
 				VecMulf(bbd->wanted_co, -1.0f);
@@ -721,18 +730,20 @@ static boid_rule_cb boid_rules[] = {
 
 static void set_boid_values(BoidValues *val, BoidSettings *boids, ParticleData *pa)
 {
-	if(ELEM(pa->boid->mode, eBoidMode_OnLand, eBoidMode_Climbing)) {
-		val->max_speed = boids->land_max_speed * pa->boid->health/boids->health;
+	BoidParticle *bpa = pa->boid;
+
+	if(ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)) {
+		val->max_speed = boids->land_max_speed * bpa->data.health/boids->health;
 		val->max_acc = boids->land_max_acc * val->max_speed;
-		val->max_ave = boids->land_max_ave * M_PI * pa->boid->health/boids->health;
+		val->max_ave = boids->land_max_ave * M_PI * bpa->data.health/boids->health;
 		val->min_speed = 0.0f; /* no minimum speed on land */
 		val->personal_space = boids->land_personal_space;
-		val->jump_speed = boids->land_jump_speed * pa->boid->health/boids->health;
+		val->jump_speed = boids->land_jump_speed * bpa->data.health/boids->health;
 	}
 	else {
-		val->max_speed = boids->air_max_speed * pa->boid->health/boids->health;
+		val->max_speed = boids->air_max_speed * bpa->data.health/boids->health;
 		val->max_acc = boids->air_max_acc * val->max_speed;
-		val->max_ave = boids->air_max_ave * M_PI * pa->boid->health/boids->health;
+		val->max_ave = boids->air_max_ave * M_PI * bpa->data.health/boids->health;
 		val->min_speed = boids->air_min_speed * boids->air_max_speed;
 		val->personal_space = boids->air_personal_space;
 		val->jump_speed = 0.0f; /* no jumping in air */
@@ -740,11 +751,13 @@ static void set_boid_values(BoidValues *val, BoidSettings *boids, ParticleData *
 }
 static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *ground_co, float *ground_nor)
 {
-	if(pa->boid->mode == eBoidMode_Climbing) {
+	BoidParticle *bpa = pa->boid;
+
+	if(bpa->data.mode == eBoidMode_Climbing) {
 		SurfaceModifierData *surmd = NULL;
 		float x[3], v[3];
 
-		surmd = (SurfaceModifierData *)modifiers_findByType ( pa->stick_ob, eModifierType_Surface );
+		surmd = (SurfaceModifierData *)modifiers_findByType ( bpa->ground, eModifierType_Surface );
 
 		/* take surface velocity into account */
 		effector_find_co(bbd->scene, pa->state.co, surmd, NULL, NULL, x, NULL, v, NULL);
@@ -753,7 +766,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		/* get actual position on surface */
 		effector_find_co(bbd->scene, x, surmd, NULL, NULL, ground_co, ground_nor, NULL, NULL);
 
-		return pa->stick_ob;
+		return bpa->ground;
 	}
 	else {
 		float zvec[3] = {0.0f, 0.0f, 2000.0f};
@@ -803,13 +816,15 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 }
 static int boid_rule_applies(ParticleData *pa, BoidSettings *boids, BoidRule *rule)
 {
+	BoidParticle *bpa = pa->boid;
+
 	if(rule==NULL)
 		return 0;
 	
-	if(ELEM(pa->boid->mode, eBoidMode_OnLand, eBoidMode_Climbing) && rule->flag & BOIDRULE_ON_LAND)
+	if(ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing) && rule->flag & BOIDRULE_ON_LAND)
 		return 1;
 	
-	if(pa->boid->mode==eBoidMode_InAir && rule->flag & BOIDRULE_IN_AIR)
+	if(bpa->data.mode==eBoidMode_InAir && rule->flag & BOIDRULE_IN_AIR)
 		return 1;
 
 	return 0;
@@ -835,12 +850,13 @@ void boids_precalc_rules(ParticleSettings *part, float cfra)
 }
 static void boid_climb(BoidSettings *boids, ParticleData *pa, float *surface_co, float *surface_nor)
 {
+	BoidParticle *bpa = pa->boid;
 	float nor[3], vel[3];
 	VECCOPY(nor, surface_nor);
 
-	/* gather apparent gravity to r_ve */
-	VECADDFAC(pa->r_ve, pa->r_ve, surface_nor, -1.0);
-	Normalize(pa->r_ve);
+	/* gather apparent gravity */
+	VECADDFAC(bpa->gravity, bpa->gravity, surface_nor, -1.0);
+	Normalize(bpa->gravity);
 
 	/* raise boid it's size from surface */
 	VecMulf(nor, pa->size * boids->height);
@@ -877,16 +893,17 @@ static int apply_boid_rule(BoidBrainData *bbd, BoidRule *rule, BoidValues *val, 
 }
 static BoidState *get_boid_state(BoidSettings *boids, ParticleData *pa) {
 	BoidState *state = boids->states.first;
+	BoidParticle *bpa = pa->boid;
 
 	for(; state; state=state->next) {
-		if(state->id==pa->boid->state_id)
+		if(state->id==bpa->data.state_id)
 			return state;
 	}
 
 	/* for some reason particle isn't at a valid state */
 	state = boids->states.first;
 	if(state)
-		pa->boid->state_id = state->id;
+		bpa->data.state_id = state->id;
 
 	return state;
 }
@@ -902,9 +919,11 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	BoidSettings *boids = bbd->part->boids;
 	BoidValues val;
 	BoidState *state = get_boid_state(boids, pa);
+	BoidParticle *bpa = pa->boid;
+	int rand;
 	//BoidCondition *cond;
 
-	if(pa->boid->health <= 0.0f) {
+	if(bpa->data.health <= 0.0f) {
 		pa->alive = PARS_DYING;
 		return;
 	}
@@ -922,7 +941,9 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	bbd->wanted_co[0]=bbd->wanted_co[1]=bbd->wanted_co[2]=bbd->wanted_speed=0.0f;
 
 	/* create random seed for every particle & frame */
-	BLI_srandom(bbd->psys->seed + p + (int)bbd->cfra + (int)(1000*pa->r_rot[0]));
+	BLI_srandom(bbd->psys->seed + p);
+	rand = BLI_rand();
+	BLI_srandom((int)bbd->cfra + rand);
 
 	set_boid_values(&val, bbd->part->boids, pa);
 
@@ -939,7 +960,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 		case eBoidRulesetType_Random:
 		{
 			/* use random rule for each particle (allways same for same particle though) */
-			rule = BLI_findlink(&state->rules, (int)(1000.0f * pa->r_rot[1]) % BLI_countlist(&state->rules));
+			rule = BLI_findlink(&state->rules, rand % BLI_countlist(&state->rules));
 
 			apply_boid_rule(bbd, rule, &val, pa, -1.0);
 		}
@@ -969,7 +990,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	}
 
 	/* decide on jumping & liftoff */
-	if(pa->boid->mode == eBoidMode_OnLand) {
+	if(bpa->data.mode == eBoidMode_OnLand) {
 		/* fuzziness makes boids capable of misjudgement */
 		float mul = 1.0 + state->rule_fuzziness;
 		
@@ -983,7 +1004,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 			Normalize2(cvel);
 
 			if(Inp2f(cvel, dir) > 0.95 / mul)
-				pa->boid->mode = eBoidMode_Liftoff;
+				bpa->data.mode = eBoidMode_Liftoff;
 		}
 		else if(val.jump_speed > 0.0f) {
 			float jump_v[3];
@@ -1036,7 +1057,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 
 			if(jump) {
 				VECCOPY(pa->prev_state.vel, jump_v);
-				pa->boid->mode = eBoidMode_Falling;
+				bpa->data.mode = eBoidMode_Falling;
 			}
 		}
 	}
@@ -1045,6 +1066,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 void boid_body(BoidBrainData *bbd, ParticleData *pa)
 {
 	BoidSettings *boids = bbd->part->boids;
+	BoidParticle *bpa = pa->boid;
 	BoidValues val;
 	float acc[3] = {0.0f, 0.0f, 0.0f}, tan_acc[3], nor_acc[3];
 	float dvec[3], bvec[3];
@@ -1066,10 +1088,10 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		pa_mass*=pa->size;
 
 	/* if boids can't fly they fall to the ground */
-	if((boids->options & BOID_ALLOW_FLIGHT)==0 && ELEM(pa->boid->mode, eBoidMode_OnLand, eBoidMode_Climbing)==0 && bbd->part->acc[2] != 0.0f)
-		pa->boid->mode = eBoidMode_Falling;
+	if((boids->options & BOID_ALLOW_FLIGHT)==0 && ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)==0 && bbd->part->acc[2] != 0.0f)
+		bpa->data.mode = eBoidMode_Falling;
 
-	if(pa->boid->mode == eBoidMode_Falling) {
+	if(bpa->data.mode == eBoidMode_Falling) {
 		/* Falling boids are only effected by gravity. */
 		acc[2] = bbd->part->acc[2];
 	}
@@ -1079,14 +1101,14 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		float level = landing_level + 1.0f;
 		float new_vel[3];
 
-		if(pa->boid->mode == eBoidMode_Liftoff) {
-			pa->boid->mode = eBoidMode_InAir;
-			pa->stick_ob = boid_find_ground(bbd, pa, ground_co, ground_nor);
+		if(bpa->data.mode == eBoidMode_Liftoff) {
+			bpa->data.mode = eBoidMode_InAir;
+			bpa->ground = boid_find_ground(bbd, pa, ground_co, ground_nor);
 		}
-		else if(pa->boid->mode == eBoidMode_InAir && boids->options & BOID_ALLOW_LAND) {
+		else if(bpa->data.mode == eBoidMode_InAir && boids->options & BOID_ALLOW_LAND) {
 			/* auto-leveling & landing if close to ground */
 
-			pa->stick_ob = boid_find_ground(bbd, pa, ground_co, ground_nor);
+			bpa->ground = boid_find_ground(bbd, pa, ground_co, ground_nor);
 			
 			/* level = how many particle sizes above ground */
 			level = (pa->prev_state.co[2] - ground_co[2])/(2.0f * pa->size) - 0.5;
@@ -1097,7 +1119,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 				if(level < 1.0f) {
 					bbd->wanted_co[0] = bbd->wanted_co[1] = bbd->wanted_co[2] = 0.0f;
 					bbd->wanted_speed = 0.0f;
-					pa->boid->mode = eBoidMode_Falling;
+					bpa->data.mode = eBoidMode_Falling;
 				}
 				else if(level < landing_level) {
 					bbd->wanted_speed *= (level - 1.0f)/landing_level;
@@ -1188,7 +1210,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	/* account for effectors */
 	do_effectors(p, pa, &pa->state, bbd->scene, bbd->ob, bbd->psys, pa->state.co, force, tvel, bbd->dfra, bbd->cfra);
 
-	if(ELEM(pa->boid->mode, eBoidMode_OnLand, eBoidMode_Climbing)) {
+	if(ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)) {
 		float length = Normalize(force);
 
 		length = MAX2(0.0f, length - boids->land_stick_force);
@@ -1199,8 +1221,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	VecAddf(acc, acc, force);
 
 	/* store smoothed acceleration for nice banking etc. */
-	VECADDFAC(pa->boid->acc, pa->boid->acc, acc, dtime);
-	VecMulf(pa->boid->acc, 1.0f / (1.0f + dtime));
+	VECADDFAC(bpa->data.acc, bpa->data.acc, acc, dtime);
+	VecMulf(bpa->data.acc, 1.0f / (1.0f + dtime));
 
 	/* integrate new location & velocity */
 
@@ -1218,32 +1240,32 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
 	VECADDFAC(pa->state.vel, pa->state.vel, acc, dtime);
 
-	if(pa->boid->mode != eBoidMode_InAir)
-		pa->stick_ob = boid_find_ground(bbd, pa, ground_co, ground_nor);
+	if(bpa->data.mode != eBoidMode_InAir)
+		bpa->ground = boid_find_ground(bbd, pa, ground_co, ground_nor);
 
 	/* change modes, constrain movement & keep track of down vector */
-	switch(pa->boid->mode) {
+	switch(bpa->data.mode) {
 		case eBoidMode_InAir:
 		{
 			float grav[3] = {0.0f, 0.0f, bbd->part->acc[2] < 0.0f ? -1.0f : 0.0f};
 
 			/* don't take forward acceleration into account (better banking) */
-			if(Inpf(pa->boid->acc, pa->state.vel) > 0.0f) {
-				Projf(dvec, pa->boid->acc, pa->state.vel);
-				VecSubf(dvec, pa->boid->acc, dvec);
+			if(Inpf(bpa->data.acc, pa->state.vel) > 0.0f) {
+				Projf(dvec, bpa->data.acc, pa->state.vel);
+				VecSubf(dvec, bpa->data.acc, dvec);
 			}
 			else {
-				VECCOPY(dvec, pa->boid->acc);
+				VECCOPY(dvec, bpa->data.acc);
 			}
 
-			/* gather apparent gravity to r_ve */
-			VECADDFAC(pa->r_ve, grav, dvec, -boids->banking);
-			Normalize(pa->r_ve);
+			/* gather apparent gravity */
+			VECADDFAC(bpa->gravity, grav, dvec, -boids->banking);
+			Normalize(bpa->gravity);
 
 			/* stick boid on goal when close enough */
 			if(bbd->goal_ob && boid_goal_signed_dist(pa->state.co, bbd->goal_co, bbd->goal_nor) <= pa->size * boids->height) {
-				pa->boid->mode = eBoidMode_Climbing;
-				pa->stick_ob = bbd->goal_ob;
+				bpa->data.mode = eBoidMode_Climbing;
+				bpa->ground = bbd->goal_ob;
 				boid_find_ground(bbd, pa, ground_co, ground_nor);
 				boid_climb(boids, pa, ground_co, ground_nor);
 			}
@@ -1251,7 +1273,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 			else if(boids->options & BOID_ALLOW_LAND && pa->state.co[2] <= ground_co[2] + pa->size * boids->height) {
 				pa->state.co[2] = ground_co[2] + pa->size * boids->height;
 				pa->state.vel[2] = 0.0f;
-				pa->boid->mode = eBoidMode_OnLand;
+				bpa->data.mode = eBoidMode_OnLand;
 			}
 			break;
 		}
@@ -1259,15 +1281,15 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		{
 			float grav[3] = {0.0f, 0.0f, bbd->part->acc[2] < 0.0f ? -1.0f : 0.0f};
 
-			/* gather apparent gravity to r_ve */
-			VECADDFAC(pa->r_ve, pa->r_ve, grav, dtime);
-			Normalize(pa->r_ve);
+			/* gather apparent gravity */
+			VECADDFAC(bpa->gravity, bpa->gravity, grav, dtime);
+			Normalize(bpa->gravity);
 
 			if(boids->options & BOID_ALLOW_LAND) {
 				/* stick boid on goal when close enough */
 				if(bbd->goal_ob && boid_goal_signed_dist(pa->state.co, bbd->goal_co, bbd->goal_nor) <= pa->size * boids->height) {
-					pa->boid->mode = eBoidMode_Climbing;
-					pa->stick_ob = bbd->goal_ob;
+					bpa->data.mode = eBoidMode_Climbing;
+					bpa->ground = bbd->goal_ob;
 					boid_find_ground(bbd, pa, ground_co, ground_nor);
 					boid_climb(boids, pa, ground_co, ground_nor);
 				}
@@ -1275,14 +1297,14 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 				else if(pa->state.co[2] <= ground_co[2] + 1.01 * pa->size * boids->height){
 					pa->state.co[2] = ground_co[2] + pa->size * boids->height;
 					pa->state.vel[2] = 0.0f;
-					pa->boid->mode = eBoidMode_OnLand;
+					bpa->data.mode = eBoidMode_OnLand;
 				}
 				/* if we're falling, can fly and want to go upwards lets fly */
 				else if(boids->options & BOID_ALLOW_FLIGHT && bbd->wanted_co[2] > 0.0f)
-					pa->boid->mode = eBoidMode_InAir;
+					bpa->data.mode = eBoidMode_InAir;
 			}
 			else
-				pa->boid->mode = eBoidMode_InAir;
+				bpa->data.mode = eBoidMode_InAir;
 			break;
 		}
 		case eBoidMode_Climbing:
@@ -1308,14 +1330,14 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		{
 			/* stick boid on goal when close enough */
 			if(bbd->goal_ob && boid_goal_signed_dist(pa->state.co, bbd->goal_co, bbd->goal_nor) <= pa->size * boids->height) {
-				pa->boid->mode = eBoidMode_Climbing;
-				pa->stick_ob = bbd->goal_ob;
+				bpa->data.mode = eBoidMode_Climbing;
+				bpa->ground = bbd->goal_ob;
 				boid_find_ground(bbd, pa, ground_co, ground_nor);
 				boid_climb(boids, pa, ground_co, ground_nor);
 			}
 			/* ground is too far away so boid falls */
 			else if(pa->state.co[2]-ground_co[2] > 1.1 * pa->size * boids->height)
-				pa->boid->mode = eBoidMode_Falling;
+				bpa->data.mode = eBoidMode_Falling;
 			else {
 				/* constrain to surface */
 				pa->state.co[2] = ground_co[2] + pa->size * boids->height;
@@ -1329,17 +1351,17 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 				VECCOPY(grav, ground_nor);
 				VecMulf(grav, -1.0f);
 				
-				Projf(dvec, pa->boid->acc, pa->state.vel);
-				VecSubf(dvec, pa->boid->acc, dvec);
+				Projf(dvec, bpa->data.acc, pa->state.vel);
+				VecSubf(dvec, bpa->data.acc, dvec);
 
-				/* gather apparent gravity to r_ve */
-				VECADDFAC(pa->r_ve, grav, dvec, -boids->banking);
-				Normalize(pa->r_ve);
+				/* gather apparent gravity */
+				VECADDFAC(bpa->gravity, grav, dvec, -boids->banking);
+				Normalize(bpa->gravity);
 			}
 			else {
-				/* gather negative surface normal to r_ve */
-				VECADDFAC(pa->r_ve, pa->r_ve, ground_nor, -1.0f);
-				Normalize(pa->r_ve);
+				/* gather negative surface normal */
+				VECADDFAC(bpa->gravity, bpa->gravity, ground_nor, -1.0f);
+				Normalize(bpa->gravity);
 			}
 			break;
 		}
@@ -1347,29 +1369,29 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
 	/* save direction to state.ave unless the boid is falling */
 	/* (boids can't effect their direction when falling) */
-	if(pa->boid->mode!=eBoidMode_Falling && VecLength(pa->state.vel) > 0.1*pa->size) {
+	if(bpa->data.mode!=eBoidMode_Falling && VecLength(pa->state.vel) > 0.1*pa->size) {
 		VECCOPY(pa->state.ave, pa->state.vel);
 		Normalize(pa->state.ave);
 	}
 
 	/* apply damping */
-	if(ELEM(pa->boid->mode, eBoidMode_OnLand, eBoidMode_Climbing))
+	if(ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing))
 		VecMulf(pa->state.vel, 1.0f - 0.2f*bbd->part->dampfac);
 
 	/* calculate rotation matrix based on forward & down vectors */
-	if(pa->boid->mode == eBoidMode_InAir) {
+	if(bpa->data.mode == eBoidMode_InAir) {
 		VECCOPY(mat[0], pa->state.ave);
 
-		Projf(dvec, pa->r_ve, pa->state.ave);
-		VecSubf(mat[2], pa->r_ve, dvec);
+		Projf(dvec, bpa->gravity, pa->state.ave);
+		VecSubf(mat[2], bpa->gravity, dvec);
 		Normalize(mat[2]);
 	}
 	else {
-		Projf(dvec, pa->state.ave, pa->r_ve);
+		Projf(dvec, pa->state.ave, bpa->gravity);
 		VecSubf(mat[0], pa->state.ave, dvec);
 		Normalize(mat[0]);
 
-		VECCOPY(mat[2], pa->r_ve);
+		VECCOPY(mat[2], bpa->gravity);
 	}
 	VecMulf(mat[2], -1.0f);
 	Crossf(mat[1], mat[2], mat[0]);

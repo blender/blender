@@ -218,6 +218,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_info.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_interface.h"
 				>
 			</File>
@@ -287,6 +291,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_sequencer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_sound.h"
 				>
 			</File>
 			<File
@@ -459,6 +467,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\drawvolume.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\space_view3d.c"
 				>
 			</File>
@@ -508,10 +520,6 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_time\space_time.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\space_time\time_header.c"
 				>
 			</File>
 			<File
@@ -807,6 +815,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_info\info_stats.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_info\space_info.c"
 				>
 			</File>
@@ -1063,19 +1075,11 @@
 			Name="object"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\editconstraint.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_add.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\editgroup.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\object\editkey.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\object\editlattice.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_constraint.c"
 				>
 			</File>
 			<File
@@ -1083,7 +1087,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_group.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_hook.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_lattice.c"
 				>
 			</File>
 			<File
@@ -1092,6 +1108,22 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_relations.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_select.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_shapekey.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_transform.c"
 				>
 			</File>
 			<File
@@ -1275,6 +1307,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_stroke.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_utils.c"
 				>
 			</File>
@@ -1288,10 +1324,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_intern.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_stroke.c"
 				>
 			</File>
 		</Filter>
@@ -1335,11 +1367,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_buttons.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_edit.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_paint.c"
 				>
 			</File>
 		</Filter>
@@ -1455,7 +1499,7 @@
 			Name="metaball"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\metaball\editmball.c"
+				RelativePath="..\..\..\source\blender\editors\metaball\mball_edit.c"
 				>
 			</File>
 			<File
@@ -1464,6 +1508,34 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\metaball\mball_ops.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_userpref"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_userpref\space_userpref.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_userpref\userpref_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_userpref\userpref_ops.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sound"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sound\sound_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sound\sound_ops.c"
 				>
 			</File>
 		</Filter>

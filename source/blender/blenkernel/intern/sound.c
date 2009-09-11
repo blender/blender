@@ -34,7 +34,7 @@
 void sound_init()
 {
 	AUD_Specs specs;
-	int device, buffersize, success;
+	int device, buffersize;
 
 	device = U.audiodevice;
 	buffersize = U.mixbufsize;
@@ -54,15 +54,8 @@ void sound_init()
 	if(specs.channels <= AUD_CHANNELS_INVALID)
 		specs.channels = AUD_CHANNELS_STEREO;
 
-	if(!AUD_init(device, specs, buffersize)) {
-		if(device == AUD_SDL_DEVICE)
-			success= AUD_init(AUD_OPENAL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE*4);
-		else
-			success= AUD_init(AUD_SDL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE*4);
-
-		if(!success)
-			AUD_init(AUD_NULL_DEVICE, specs, buffersize);
-	}
+	if(!AUD_init(device, specs, buffersize))
+		AUD_init(AUD_NULL_DEVICE, specs, buffersize);
 }
 
 void sound_exit()
@@ -78,7 +71,7 @@ struct bSound* sound_new_file(struct Main *main, char* filename)
 	int len;
 
 	strcpy(str, filename);
-	BLI_convertstringcode(str, G.sce);
+	BLI_convertstringcode(str, main->name);
 
 	len = strlen(filename);
 	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
@@ -86,11 +79,11 @@ struct bSound* sound_new_file(struct Main *main, char* filename)
 
 	sound = alloc_libblock(&main->sound, ID_SO, filename+len);
 	strcpy(sound->name, filename);
-	sound->type = SOUND_TYPE_FILE;
+// XXX unused currently	sound->type = SOUND_TYPE_FILE;
 
-	sound_load(sound);
+	sound_load(main, sound);
 
-	if(!sound->snd_sound)
+	if(!sound->handle)
 	{
 		free_libblock(&main->sound, sound);
 		sound = NULL;
@@ -114,9 +107,9 @@ struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source)
 	sound->child_sound = source;
 	sound->type = SOUND_TYPE_BUFFER;
 
-	sound_load(sound);
+	sound_load(CTX_data_main(C), sound);
 
-	if(!sound->snd_sound)
+	if(!sound->handle)
 	{
 		free_libblock(&CTX_data_main(C)->sound, sound);
 		sound = NULL;
@@ -140,9 +133,9 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 	sound->end = end;
 	sound->type = SOUND_TYPE_LIMITER;
 
-	sound_load(sound);
+	sound_load(CTX_data_main(C), sound);
 
-	if(!sound->snd_sound)
+	if(!sound->handle)
 	{
 		free_libblock(&CTX_data_main(C)->sound, sound);
 		sound = NULL;
@@ -169,22 +162,35 @@ void sound_cache(struct bSound* sound, int ignore)
 	if(sound->cache && !ignore)
 		AUD_unload(sound->cache);
 
-	sound->cache = AUD_bufferSound(sound->snd_sound);
+	sound->cache = AUD_bufferSound(sound->handle);
+	sound->changed++;
 }
 
-void sound_load(struct bSound* sound)
+void sound_delete_cache(struct bSound* sound)
+{
+	if(sound->cache)
+	{
+		AUD_unload(sound->cache);
+		sound->cache = NULL;
+	}
+}
+
+void sound_load(struct Main *main, struct bSound* sound)
 {
 	if(sound)
 	{
-		if(sound->snd_sound)
+		if(sound->handle)
 		{
-			AUD_unload(sound->snd_sound);
-			sound->snd_sound = NULL;
+			AUD_unload(sound->handle);
+			sound->handle = NULL;
 		}
 
+// XXX unused currently
+#if 0
 		switch(sound->type)
 		{
 		case SOUND_TYPE_FILE:
+#endif
 		{
 			char fullpath[FILE_MAX];
 			char *path;
@@ -198,32 +204,32 @@ void sound_load(struct bSound* sound)
 			if(sound->id.lib)
 				path = sound->id.lib->filename;
 			else
-				path = G.sce;
+				path = main ? main->name : G.sce;
 
 			BLI_convertstringcode(fullpath, path);
 
 			/* but we need a packed file then */
 			if (pf)
-				sound->snd_sound = AUD_loadBuffer((unsigned char*) pf->data, pf->size);
+				sound->handle = AUD_loadBuffer((unsigned char*) pf->data, pf->size);
 			/* or else load it from disk */
 			else
-				sound->snd_sound = AUD_load(fullpath);
+				sound->handle = AUD_load(fullpath);
+		} // XXX
+// XXX unused currently
+#if 0
 			break;
 		}
 		case SOUND_TYPE_BUFFER:
-			if(sound->child_sound && sound->child_sound->snd_sound)
-				sound->snd_sound = AUD_bufferSound(sound->child_sound->snd_sound);
+			if(sound->child_sound && sound->child_sound->handle)
+				sound->handle = AUD_bufferSound(sound->child_sound->handle);
 			break;
 		case SOUND_TYPE_LIMITER:
-			if(sound->child_sound && sound->child_sound->snd_sound)
-				sound->snd_sound = AUD_limitSound(sound->child_sound, sound->start, sound->end);
+			if(sound->child_sound && sound->child_sound->handle)
+				sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
 			break;
 		}
-
-		if(sound->cache)
-		{
-
-		}
+#endif
+		sound->changed++;
 	}
 }
 
@@ -235,33 +241,36 @@ void sound_free(struct bSound* sound)
 		sound->packedfile = NULL;
 	}
 
-	if(sound->snd_sound)
+	if(sound->handle)
 	{
-		AUD_unload(sound->snd_sound);
-		sound->snd_sound = NULL;
+		AUD_unload(sound->handle);
+		sound->handle = NULL;
 	}
 }
 
 void sound_unlink(struct bContext *C, struct bSound* sound)
 {
-	bSound *snd;
 	Scene *scene;
 	SoundHandle *handle;
 
+// XXX unused currently
+#if 0
+	bSound *snd;
 	for(snd = CTX_data_main(C)->sound.first; snd; snd = snd->id.next)
 	{
 		if(snd->child_sound == sound)
 		{
 			snd->child_sound = NULL;
-			if(snd->snd_sound)
+			if(snd->handle)
 			{
-				AUD_unload(sound->snd_sound);
-				snd->snd_sound = NULL;
+				AUD_unload(sound->handle);
+				snd->handle = NULL;
 			}
 
 			sound_unlink(C, snd);
 		}
 	}
+#endif
 
 	for(scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next)
 	{
@@ -319,8 +328,6 @@ void sound_stop_all(struct bContext *C)
 	}
 }
 
-#define SOUND_PLAYBACK_LAMBDA 1.0
-
 void sound_update_playing(struct bContext *C)
 {
 	SoundHandle *handle;
@@ -366,12 +373,10 @@ void sound_update_playing(struct bContext *C)
 						action = 3;
 					else
 					{
-						float diff = AUD_getPosition(handle->handle) - (cfra - handle->startframe) / fps;
-// AUD_XXX						float diff = AUD_getPosition(handle->handle) * fps - cfra + handle->startframe
+						float diff = AUD_getPosition(handle->handle) * fps - cfra + handle->startframe;
 						if(diff < 0.0)
 							diff = -diff;
-						if(diff > SOUND_PLAYBACK_LAMBDA)
-// AUD_XXX						if(diff > 5.0f)
+						if(diff > FPS/2.0)
 						{
 							action = 2;
 						}
@@ -383,9 +388,9 @@ void sound_update_playing(struct bContext *C)
 			{
 				if(handle->state == AUD_STATUS_INVALID)
 				{
-					if(handle->source && handle->source->snd_sound)
+					if(handle->source && handle->source->handle)
 					{
-						AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->snd_sound, handle->frameskip / fps, (handle->frameskip + handle->endframe - handle->startframe)/fps);
+						AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->handle, handle->frameskip / fps, (handle->frameskip + handle->endframe - handle->startframe)/fps);
 						handle->handle = AUD_play(limiter, 1);
 						AUD_unload(limiter);
 						if(handle->handle)
@@ -424,10 +429,10 @@ void sound_scrub(struct bContext *C)
 		{
 			if(cfra >= handle->startframe && cfra < handle->endframe && !handle->mute)
 			{
-				if(handle->source && handle->source->snd_sound)
+				if(handle->source && handle->source->handle)
 				{
 					int frameskip = handle->frameskip + cfra - handle->startframe;
-					AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->snd_sound, frameskip / fps, (frameskip + 1)/fps);
+					AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->handle, frameskip / fps, (frameskip + 1)/fps);
 					AUD_play(limiter, 0);
 					AUD_unload(limiter);
 				}
@@ -450,7 +455,7 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 
 	for(handle = scene->sound_handles.first; handle; handle = handle->next)
 	{
-		if(start < handle->endframe && end > handle->startframe && !handle->mute && handle->source && handle->source->snd_sound)
+		if(start < handle->endframe && end > handle->startframe && !handle->mute && handle->source && handle->source->handle)
 		{
 			frameskip = handle->frameskip;
 			s = handle->startframe - start;
@@ -462,7 +467,7 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 				s = 0;
 			}
 
-			limiter = AUD_limitSound(handle->source->snd_sound, frameskip / fps, e / fps);
+			limiter = AUD_limitSound(handle->source->handle, frameskip / fps, e / fps);
 			delayer = AUD_delaySound(limiter, s / fps);
 
 			AUD_playDevice(mixdown, delayer);

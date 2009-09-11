@@ -20,7 +20,7 @@
  * The Original Code is Copyright (C) 2009 by Daniel Genrich
  * All rights reserved.
  *
- * Contributor(s): None
+ * Contributor(s): Daniel Genrich
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -32,6 +32,12 @@
 extern "C" {
 #endif
 
+struct FLUID_3D;
+
+// export
+void smoke_export(struct FLUID_3D *fluid, float *dt, float *dx, float **dens, float **densold, float **heat, float **heatold, float **vx, float **vy, float **vz, float **vxold, float **vyold, float **vzold, unsigned char **obstacles);
+
+// low res
 struct FLUID_3D *smoke_init(int *res, float *p0, float dt);
 void smoke_free(struct FLUID_3D *fluid);
 
@@ -62,6 +68,9 @@ void smoke_turbulence_set_noise(struct WTURBULENCE *wt, int type);
 void smoke_initWaveletBlenderRNA(struct WTURBULENCE *wt, float *strength);
 
 void smoke_dissolve_wavelet(struct WTURBULENCE *wt, int speed, int log);
+
+// export
+void smoke_turbulence_export(struct WTURBULENCE *wt, float **dens, float **densold, float **tcu, float **tcv, float **tcw);
 
 #ifdef __cplusplus
 }

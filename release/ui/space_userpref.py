@@ -2,21 +2,26 @@
 import bpy
 
 class USERPREF_HT_header(bpy.types.Header):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 
 	def draw(self, context):
 		layout = self.layout
 		layout.template_header(menus=False)
+		
+		userpref = context.user_preferences
+	
+		layout.operator_context = "EXEC_AREA"
+		layout.itemO("wm.save_homefile", text="Save As Default")
 			
 class USERPREF_MT_view(bpy.types.Menu):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "View"
 
 	def draw(self, context):
 		layout = self.layout
 
 class USERPREF_PT_tabs(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__show_header__ = False
 
 	def draw(self, context):
@@ -27,7 +32,7 @@ class USERPREF_PT_tabs(bpy.types.Panel):
 		layout.itemR(userpref, "active_section", expand=True)
 
 class USERPREF_PT_view(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "View"
 	__show_header__ = False
 
@@ -59,11 +64,11 @@ class USERPREF_PT_view(bpy.types.Panel):
 		sub1.itemS()
 		sub1.itemS()
 		sub1.itemS()
-		sub1.itemR(view, "show_mini_axis")
+		sub1.itemR(view, "show_mini_axis", text="Display Mini Axis")
 		sub2 = sub1.column()
 		sub2.enabled = view.show_mini_axis
-		sub2.itemR(view, "mini_axis_size")
-		sub2.itemR(view, "mini_axis_brightness")
+		sub2.itemR(view, "mini_axis_size", text="Size")
+		sub2.itemR(view, "mini_axis_brightness", text="Brightness")
 		
 		col = split.column()
 		sub = col.split(percentage=0.85)
@@ -130,7 +135,7 @@ class USERPREF_PT_view(bpy.types.Panel):
 		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
 
 class USERPREF_PT_edit(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "Edit"
 	__show_header__ = False
 
@@ -225,9 +230,10 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub1.itemR(edit, "duplicate_texture", text="Texture")
 		sub1.itemR(edit, "duplicate_ipo", text="F-Curve")
 		sub1.itemR(edit, "duplicate_action", text="Action")
+		sub1.itemR(edit, "duplicate_particle", text="Particle")
 		
 class USERPREF_PT_system(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "System"
 	__show_header__ = False
 
@@ -308,7 +314,7 @@ class USERPREF_PT_system(bpy.types.Panel):
 		sub1.itemR(system, "texture_collection_rate", text="Collection Rate")		
 		
 class USERPREF_PT_filepaths(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "File Paths"
 	__show_header__ = False
 
@@ -359,6 +365,9 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub2.itemL(text="Save & Load:")
 		sub2.itemR(paths, "use_relative_paths")
 		sub2.itemR(paths, "compress_file")
+		sub2.itemR(paths, "load_ui")
+		sub2.itemS()
+		sub2.itemS()
 		sub2.itemL(text="Auto Save:")
 		sub2.itemR(paths, "save_version")
 		sub2.itemR(paths, "recent_files")
@@ -366,10 +375,10 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub2.itemR(paths, "auto_save_temporary_files")
 		sub3 = sub2.column()
 		sub3.enabled = paths.auto_save_temporary_files
-		sub3.itemR(paths, "auto_save_time")
+		sub3.itemR(paths, "auto_save_time", text="Timer (mins)")
 
 class USERPREF_PT_language(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "Language"
 	__show_header__ = False
 
@@ -387,24 +396,16 @@ class USERPREF_PT_language(bpy.types.Panel):
 		col = split.column()
 		
 		col.itemR(lan, "language")
-		col.itemR(lan, "translate_tooltips")
-		col.itemR(lan, "translate_buttons")
-		col.itemR(lan, "translate_toolbox")
+		col.itemL(text="Translate:")
+		col.itemR(lan, "translate_tooltips", text="Tooltips")
+		col.itemR(lan, "translate_buttons", text="Labels")
+		col.itemR(lan, "translate_toolbox", text="Toolbox")
+		col.itemS()
+		col.itemS()
 		col.itemR(lan, "use_textured_fonts")
 		
-class USERPREF_PT_bottombar(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
-	__label__ = " "
-	__show_header__ = False
-
-	def draw(self, context):
-		layout = self.layout
-		userpref = context.user_preferences
-	
-		split = layout.split(percentage=0.8)
-		split.itemL(text="")
-		layout.operator_context = "EXEC_AREA"
-		split.itemO("wm.save_homefile", text="Save As Default")
+		col = split.column()
+		
 
 bpy.types.register(USERPREF_HT_header)
 bpy.types.register(USERPREF_MT_view)
@@ -414,5 +415,4 @@ bpy.types.register(USERPREF_PT_edit)
 bpy.types.register(USERPREF_PT_system)
 bpy.types.register(USERPREF_PT_filepaths)
 bpy.types.register(USERPREF_PT_language)
-bpy.types.register(USERPREF_PT_bottombar)
 

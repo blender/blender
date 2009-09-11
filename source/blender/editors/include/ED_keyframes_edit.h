@@ -40,8 +40,6 @@ struct Scene;
 
 /* --------- BezTriple Selection ------------- */
 
-#define BEZSELECTED(bezt) ((bezt->f2 & SELECT) || (bezt->f1 & SELECT) || (bezt->f3 & SELECT))
-
 #define BEZ_SEL(bezt)		{ (bezt)->f1 |=  SELECT; (bezt)->f2 |=  SELECT; (bezt)->f3 |=  SELECT; }
 #define BEZ_DESEL(bezt)		{ (bezt)->f1 &= ~SELECT; (bezt)->f2 &= ~SELECT; (bezt)->f3 &= ~SELECT; }
 #define BEZ_INVSEL(bezt)	{ (bezt)->f1 ^=  SELECT; (bezt)->f2 ^=  SELECT; (bezt)->f3 ^=  SELECT; }
@@ -133,6 +131,7 @@ BeztEditFunc ANIM_editkeyframes_mirror(short mode);
 BeztEditFunc ANIM_editkeyframes_select(short mode);
 BeztEditFunc ANIM_editkeyframes_handles(short mode);
 BeztEditFunc ANIM_editkeyframes_ipo(short mode);
+BeztEditFunc ANIM_editkeyframes_keytype(short mode);
 
 /* ----------- BezTriple Callback (Assorted Utilities) ---------- */
 
@@ -148,6 +147,7 @@ void duplicate_fcurve_keys(struct FCurve *fcu);
 
 void clean_fcurve(struct FCurve *fcu, float thresh);
 void smooth_fcurve(struct FCurve *fcu);
+void sample_fcurve(struct FCurve *fcu);
 
 /* ----------- */
 

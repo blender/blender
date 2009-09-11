@@ -90,11 +90,6 @@ public:
 	/* python */
 	virtual sensortype GetSensorType() { return ST_RADAR; }
 
-	//Deprecated ----->
-	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeOrigin);
-	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeTarget);
-	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeHeight);
-	//<-----
 };
 
 #endif //__KX_RADAR_SENSOR_H

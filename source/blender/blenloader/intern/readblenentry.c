@@ -67,6 +67,10 @@
 
 #include "BLO_sys_types.h" // needed for intptr_t
 
+#ifdef _WIN32
+#include "BLI_winstuff.h"
+#endif
+
 	/**
 	 * IDType stuff, I plan to move this
 	 * out into its own file + prefix, and
@@ -200,7 +204,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 			buf[2]= buf[2]?buf[2]:' ';
 			buf[3]= buf[3]?buf[3]:' ';
 			
-			fprintf(fp, "['%.4s', '%s', %d, %ld ], \n", buf, name, bhead->nr, (intptr_t)bhead->len+sizeof(BHead));
+			fprintf(fp, "['%.4s', '%s', %d, %ld ], \n", buf, name, bhead->nr, (long int)bhead->len+sizeof(BHead));
 		}
 	}
 	fprintf(fp, "]\n");
@@ -331,11 +335,7 @@ BlendFileData *BLO_read_from_file(char *file, ReportList *reports)
 	fd = blo_openblenderfile(file, reports);
 	if (fd) {
 		fd->reports= reports;
-		bfd= blo_read_file_internal(fd);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strncpy(bfd->main->name, file, sizeof(bfd->main->name)-1);
-		}
+		bfd= blo_read_file_internal(fd, file);
 		blo_freefiledata(fd);			
 	}
 
@@ -350,11 +350,7 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
 	fd = blo_openblendermemory(mem, memsize,  reports);
 	if (fd) {
 		fd->reports= reports;
-		bfd= blo_read_file_internal(fd);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strcpy(bfd->main->name, "");
-		}
+		bfd= blo_read_file_internal(fd, "");
 		blo_freefiledata(fd);			
 	}
 
@@ -383,11 +379,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		/* makes lookup of existing images in old main */
 		blo_make_image_pointer_map(fd, oldmain);
 		
-		bfd= blo_read_file_internal(fd);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strcpy(bfd->main->name, "");
-		}
+		bfd= blo_read_file_internal(fd, "");
 		
 		/* ensures relinked images are not freed */
 		blo_end_image_pointer_map(fd, oldmain);

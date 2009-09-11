@@ -79,8 +79,11 @@ class RAS_DisplayArray
 public:
 	vector<RAS_TexVert> m_vertex;
 	vector<unsigned short> m_index;
+	/* LINE currently isnt used */
 	enum { LINE = 2, TRIANGLE = 3, QUAD = 4 } m_type;
 	//RAS_MeshSlot *m_origSlot;
+	
+	/* Number of RAS_MeshSlot using this array */
 	int m_users;
 
 	enum { BUCKET_MAX_INDEX = 65535 };

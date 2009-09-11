@@ -37,20 +37,19 @@ struct ParticleSystem;
 struct RadialControl;
 struct rcti;
 struct wmWindowManager;
+struct PTCacheEdit;
 
 /* particle edit mode */
-void PE_change_act(void *ob_v, void *act_v);
-void PE_change_act_psys(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
-int PE_can_edit(struct ParticleSystem *psys);
+void PE_free_ptcache_edit(struct PTCacheEdit *edit);
+int PE_start_edit(struct PTCacheEdit *edit);
 
 /* access */
-struct ParticleSystem *PE_get_current(struct Scene *scene, struct Object *ob);
-short PE_get_current_num(struct Object *ob);
+struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob);
 int PE_minmax(struct Scene *scene, float *min, float *max);
 struct ParticleEditSettings *PE_settings(Scene *scene);
 
 /* update calls */
-void PE_hide_keys_time(struct Scene *scene, struct ParticleSystem *psys, float cfra);
+void PE_hide_keys_time(struct Scene *scene, struct PTCacheEdit *edit, float cfra);
 void PE_update_object(struct Scene *scene, struct Object *ob, int useflag);
 
 /* selection tools */

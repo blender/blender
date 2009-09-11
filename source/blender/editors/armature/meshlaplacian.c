@@ -672,9 +672,9 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 		/* clear weights */
 		if(bbone && firstsegment) {
 			for(a=0; a<me->totvert; a++) {
-				remove_vert_defgroup(ob, dgrouplist[j], a);
+				ED_vgroup_vert_remove(ob, dgrouplist[j], a);
 				if(vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0)
-					remove_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
+					ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
 			}
 		}
 
@@ -694,32 +694,32 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 				
 				if(bbone) {
 					if(solution > 0.0f)
-						add_vert_to_defgroup(ob, dgrouplist[j], a, solution,
+						ED_vgroup_vert_add(ob, dgrouplist[j], a, solution,
 							WEIGHT_ADD);
 				}
 				else {
 					weight= heat_limit_weight(solution);
 					if(weight > 0.0f)
-						add_vert_to_defgroup(ob, dgrouplist[j], a, weight,
+						ED_vgroup_vert_add(ob, dgrouplist[j], a, weight,
 							WEIGHT_REPLACE);
 					else
-						remove_vert_defgroup(ob, dgrouplist[j], a);
+						ED_vgroup_vert_remove(ob, dgrouplist[j], a);
 				}
 
 				/* do same for mirror */
 				if(vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
 					if(bbone) {
 						if(solution > 0.0f)
-							add_vert_to_defgroup(ob, dgroupflip[j], vertsflipped[a],
+							ED_vgroup_vert_add(ob, dgroupflip[j], vertsflipped[a],
 								solution, WEIGHT_ADD);
 					}
 					else {
 						weight= heat_limit_weight(solution);
 						if(weight > 0.0f)
-							add_vert_to_defgroup(ob, dgroupflip[j], vertsflipped[a],
+							ED_vgroup_vert_add(ob, dgroupflip[j], vertsflipped[a],
 								weight, WEIGHT_REPLACE);
 						else
-							remove_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
+							ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
 					}
 				}
 			}
@@ -734,16 +734,16 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 		/* remove too small vertex weights */
 		if(bbone && lastsegment) {
 			for(a=0; a<me->totvert; a++) {
-				weight= get_vert_defgroup(ob, dgrouplist[j], a);
+				weight= ED_vgroup_vert_weight(ob, dgrouplist[j], a);
 				weight= heat_limit_weight(weight);
 				if(weight <= 0.0f)
-					remove_vert_defgroup(ob, dgrouplist[j], a);
+					ED_vgroup_vert_remove(ob, dgrouplist[j], a);
 
 				if(vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
-					weight= get_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
+					weight= ED_vgroup_vert_weight(ob, dgroupflip[j], vertsflipped[a]);
 					weight= heat_limit_weight(weight);
 					if(weight <= 0.0f)
-						remove_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
+						ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
 				}
 			}
 		}

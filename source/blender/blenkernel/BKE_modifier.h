@@ -90,7 +90,10 @@ typedef enum {
 	eModifierTypeFlag_UsesPointCache = (1<<6),
 
 	/* For physics modifiers, max one per type */
-	eModifierTypeFlag_Single = (1<<7)
+	eModifierTypeFlag_Single = (1<<7),
+
+	/* Some modifier can't be added manually by user */
+	eModifierTypeFlag_NoUserAdd = (1<<8)
 } ModifierTypeFlag;
 
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);

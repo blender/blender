@@ -19,7 +19,7 @@ incs  = ['.',
 
 incs.append(env['BF_QUICKTIME_INC'])
 
-types = ['core']
-priorities = [200]
+types = ['core','player']
+priorities = [200,235]
 
 env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=['WITH_QUICKTIME'], libtype=types, priority=priorities)

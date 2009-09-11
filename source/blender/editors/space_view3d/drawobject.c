@@ -37,7 +37,7 @@
 #include "IMB_imbuf.h"
 
 
-#include "MTC_matrixops.h"
+
 
 #include "DNA_armature_types.h"
 #include "DNA_boid_types.h"
@@ -89,6 +89,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
 #include "BKE_unit.h"
@@ -1123,7 +1124,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 			Mat4Ortho(vec);
 			wmMultMatrix(vec);
 
-			MTC_Mat4SwapMat4(rv3d->persmat, tmat);
+			Mat4SwapMat4(rv3d->persmat, tmat);
 			wmGetSingleMatrix(rv3d->persmat);
 
 			if(cam->flag & CAM_SHOWLIMITS) {
@@ -1136,7 +1137,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 			if(cam->flag & CAM_SHOWMIST) 
 				if(wrld) draw_limit_line(wrld->miststa, wrld->miststa+wrld->mistdist, 0xFFFFFF);
 				
-			MTC_Mat4SwapMat4(rv3d->persmat, tmat);
+			Mat4SwapMat4(rv3d->persmat, tmat);
 		}
 	}
 }
@@ -1197,7 +1198,7 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 
 	if(use_wcol) {
 		float col[3];
-		MDeformWeight *mdw= get_defweight (lt->dvert+index, use_wcol-1);
+		MDeformWeight *mdw= ED_vgroup_weight_get (lt->dvert+index, use_wcol-1);
 		
 		weight_to_rgb(mdw?mdw->weight:0.0f, col, col+1, col+2);
 		glColor3fv(col);
@@ -1391,12 +1392,13 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	int i;
 
 	for (nu= cu->editnurb->first; nu; nu=nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
+		if(nu->type == CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
 				BezTriple *bezt = &nu->bezt[i];
 
 				if(bezt->hide==0) {
-					if (G.f & G_HIDDENHANDLES) {
+					
+					if(cu->drawflag & CU_HIDE_HANDLES) {
 						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
@@ -2796,7 +2798,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 		if(solid) {
 			dl= lb->first;
 			if(dl==NULL) return 1;
-			
+
 			if(dl->nors==0) addnormalsDispList(ob, lb);
 			index3_nors_incr= 0;
 			
@@ -2837,7 +2839,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 		}
 		break;
 	case OB_SURF:
-	
+
 		lb= &((Curve *)ob->data)->disp;
 		
 		if(solid) {
@@ -3138,6 +3140,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 {
 	Object *ob=base->object;
 	ParticleSystemModifierData *psmd;
+	ParticleEditSettings *pset = PE_settings(scene);
 	ParticleSettings *part;
 	ParticleData *pars, *pa;
 	ParticleKey state, *states=0;
@@ -3166,9 +3169,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(pars==0) return;
 
-	// XXX what logic is this?
-	if(!scene->obedit && psys_in_edit_mode(scene, psys)
-		&& psys->flag & PSYS_HAIR_DONE && part->draw_as==PART_DRAW_PATH)
+	/* don't draw normal paths in edit mode */
+	if(psys_in_edit_mode(scene, psys) && (pset->flag & PE_DRAW_PART)==0)
 		return;
 		
 	if(part->draw_as==PART_DRAW_NOT) return;
@@ -3372,8 +3374,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				pa_birthtime=pa->time;
 				pa_dietime = pa->dietime;
 				pa_size=pa->size;
-				if(part->phystype==PART_PHYS_BOIDS)
-					pa_health = pa->boid->health;
+				if(part->phystype==PART_PHYS_BOIDS) {
+					pa_health = pa->boid->data.health;
+				}
 				else
 					pa_health = -1.0;
 
@@ -3408,8 +3411,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				}
 #endif // XXX old animation system
 
-				r_tilt = 1.0f + pa->r_ave[0];
-				r_length = 0.5f * (1.0f + pa->r_ave[1]);
+				BLI_srandom(psys->seed+a);
+
+				r_tilt = 2.0f*(BLI_frand() - 0.5f);
+				r_length = BLI_frand();
 			}
 			else{
 				ChildParticle *cpa= &psys->child[a-totpart];
@@ -3709,33 +3714,27 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		wmLoadMatrix(rv3d->viewmat);
 }
 
-static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, ParticleSystem *psys, int dt)
+static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, PTCacheEdit *edit, int dt)
 {
-	ParticleEdit *edit = psys->edit;
-	ParticleData *pa;
-	ParticleCacheKey **path;
-	ParticleEditKey *key;
+	ParticleCacheKey **cache, *path, *pkey;
+	PTCacheEditPoint *point;
+	PTCacheEditKey *key;
 	ParticleEditSettings *pset = PE_settings(scene);
-	int i, k, totpart = psys->totpart, totchild=0, timed = pset->draw_timed;
+	int i, k, totpoint = edit->totpoint, timed = pset->flag & PE_FADE_TIME ? pset->fade_frames : 0;
+	int steps;
 	char nosel[4], sel[4];
 	float sel_col[3];
 	float nosel_col[3];
-	char val[32];
+	float *pathcol = NULL, *pcol;
 
 	/* create path and child path cache if it doesn't exist already */
-	if(psys->pathcache==0){
-		PE_hide_keys_time(scene, psys,CFRA);
-		psys_cache_paths(scene, ob, psys, CFRA,0);
-	}
-	if(psys->pathcache==0)
+	if(edit->pathcache==0)
+		psys_cache_edit_paths(scene, ob, edit, CFRA);
+
+	if(edit->pathcache==0)
 		return;
 
-	if(pset->flag & PE_SHOW_CHILD && psys->part->draw_as == PART_DRAW_PATH) {
-		if(psys->childcache==0)
-			psys_cache_child_paths(scene, ob, psys, CFRA, 0);
-	}
-	else if(!(pset->flag & PE_SHOW_CHILD) && psys->childcache)
-		free_child_path_cache(psys);
+	PE_hide_keys_time(scene, edit, CFRA);
 
 	/* opengl setup */
 	if((v3d->flag & V3D_ZBUF_SELECT)==0)
@@ -3751,129 +3750,115 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 	nosel_col[1]=(float)nosel[1]/255.0f;
 	nosel_col[2]=(float)nosel[2]/255.0f;
 
-	if(psys->childcache)
-		totchild = psys->totchildcache;
-
 	/* draw paths */
-	if(timed)
+	if(timed) {
 		glEnable(GL_BLEND);
+		steps = (*edit->pathcache)->steps + 1;
+		pathcol = MEM_callocN(steps*4*sizeof(float), "particle path color data");
+	}
 
 	glEnableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 
-	if(dt > OB_WIRE) {
-		/* solid shaded with lighting */
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 
-		glEnable(GL_COLOR_MATERIAL);
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-	}
-	else {
-		/* flat wire color */
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisable(GL_LIGHTING);
-		UI_ThemeColor(TH_WIRE);
-	}
+	cache=edit->pathcache;
+	for(i=0; i<totpoint; i++){
+		path = cache[i];
+		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 
-	/* only draw child paths with lighting */
-	if(dt > OB_WIRE)
-		glEnable(GL_LIGHTING);
-
-	if(psys->part->draw_as == PART_DRAW_PATH) {
-		for(i=0, path=psys->childcache; i<totchild; i++,path++){
-			glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
-			if(dt > OB_WIRE) {
-				glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
-				glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+		if(timed) {
+			for(k=0, pcol=pathcol, pkey=path; k<steps; k++, pkey++, pcol+=4){
+				VECCOPY(pcol, pkey->col);
+				pcol[3] = 1.0f - fabs((float)CFRA - pkey->time)/(float)pset->fade_frames;
 			}
 
-			glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+			glColorPointer(4, GL_FLOAT, 4*sizeof(float), pathcol);
 		}
+		else
+			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+
+		glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 	}
 
-	if(dt > OB_WIRE)
-		glDisable(GL_LIGHTING);
+	if(pathcol) { MEM_freeN(pathcol); pathcol = pcol = NULL; }
 
-	if(pset->brushtype == PE_BRUSH_WEIGHT) {
-		glLineWidth(2.0f);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glDisable(GL_LIGHTING);
-	}
-
-	/* draw parents last without lighting */
-	for(i=0, pa=psys->particles, path = psys->pathcache; i<totpart; i++, pa++, path++){
-		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
-		if(dt > OB_WIRE)
-			glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
-		if(dt > OB_WIRE || pset->brushtype == PE_BRUSH_WEIGHT)
-			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
-
-		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
-	}
 
 	/* draw edit vertices */
 	if(pset->selectmode!=SCE_SELECT_PATH){
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glDisable(GL_LIGHTING);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if(pset->selectmode==SCE_SELECT_POINT){
+			float *pd=0,*pdata=0;
 			float *cd=0,*cdata=0;
-			cd=cdata=MEM_callocN(edit->totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
+			int totkeys = 0;
 
-			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
-				for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++){
+			for (i=0, point=edit->points; i<totpoint; i++, point++)
+				if(!(point->flag & PEP_HIDE))
+					totkeys += point->totkey;
+
+			if(!(edit->points->keys->flag & PEK_USE_WCO))
+				pd=pdata=MEM_callocN(totkeys*3*sizeof(float), "particle edit point data");
+			cd=cdata=MEM_callocN(totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
+
+			for(i=0, point=edit->points; i<totpoint; i++, point++){
+				if(point->flag & PEP_HIDE)
+					continue;
+
+				for(k=0, key=point->keys; k<point->totkey; k++, key++){
+					if(pd) {
+						VECCOPY(pd, key->co);
+						pd += 3;
+					}
+
 					if(key->flag&PEK_SELECT){
 						VECCOPY(cd,sel_col);
 					}
 					else{
 						VECCOPY(cd,nosel_col);
 					}
+
 					if(timed)
-						*(cd+3) = (key->flag&PEK_HIDE)?0.0f:1.0f;
+						*(cd+3) = 1.0f - fabs((float)CFRA - *key->time)/(float)pset->fade_frames;
+
 					cd += (timed?4:3);
 				}
 			}
 			cd=cdata;
-			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
-				if((pa->flag & PARS_HIDE)==0){
-					glVertexPointer(3, GL_FLOAT, sizeof(ParticleEditKey), edit->keys[i]->world_co);
-					glColorPointer((timed?4:3), GL_FLOAT, (timed?4:3)*sizeof(float), cd);
-					glDrawArrays(GL_POINTS, 0, pa->totkey);
-				}
-				cd += (timed?4:3) * pa->totkey;
+			pd=pdata;
+			for(i=0, point=edit->points; i<totpoint; i++, point++){
+				if(point->flag & PEP_HIDE)
+					continue;
 
-				if((pset->flag&PE_SHOW_TIME) && (pa->flag&PARS_HIDE)==0 && !(G.f & G_RENDER_SHADOW)){
-					for(k=0, key=edit->keys[i]+k; k<pa->totkey; k++, key++){
-						if(key->flag & PEK_HIDE) continue;
+				if(point->keys->flag & PEK_USE_WCO)
+					glVertexPointer(3, GL_FLOAT, sizeof(PTCacheEditKey), point->keys->world_co);
+				else
+					glVertexPointer(3, GL_FLOAT, 3*sizeof(float), pd);
 
-						sprintf(val," %.1f",*key->time);
-						view3d_particle_text_draw_add(key->world_co[0], key->world_co[1], key->world_co[2], val, 0);
-					}
-				}
+				glColorPointer((timed?4:3), GL_FLOAT, (timed?4:3)*sizeof(float), cd);
+
+				glDrawArrays(GL_POINTS, 0, point->totkey);
+
+				pd += pd ? 3 * point->totkey : 0;
+				cd += (timed?4:3) * point->totkey;
 			}
-			if(cdata)
-				MEM_freeN(cdata);
-			cd=cdata=0;
+			if(pdata) { MEM_freeN(pdata); pd=pdata=0; }
+			if(cdata) { MEM_freeN(cdata); cd=cdata=0; }
 		}
 		else if(pset->selectmode == SCE_SELECT_END){
-			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
-				if((pa->flag & PARS_HIDE)==0){
-					key = edit->keys[i] + pa->totkey - 1;
+			for(i=0, point=edit->points; i<totpoint; i++, point++){
+				if((point->flag & PEP_HIDE)==0){
+					key = point->keys + point->totkey - 1;
 					if(key->flag & PEK_SELECT)
 						glColor3fv(sel_col);
 					else
 						glColor3fv(nosel_col);
 					/* has to be like this.. otherwise selection won't work, have try glArrayElement later..*/
 					glBegin(GL_POINTS);
-					glVertex3fv(key->world_co);
+					glVertex3fv(key->flag & PEK_USE_WCO ? key->world_co : key->co);
 					glEnd();
-
-					if((pset->flag & PE_SHOW_TIME) && !(G.f & G_RENDER_SHADOW)){
-						sprintf(val," %.1f",*key->time);
-						view3d_particle_text_draw_add(key->world_co[0], key->world_co[1], key->world_co[2], val, 0);
-					}
 				}
 			}
 		}
@@ -3893,18 +3878,18 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 unsigned int nurbcol[8]= {
 	0, 0x9090, 0x409030, 0x603080, 0, 0x40fff0, 0x40c033, 0xA090F0 };
 
-static void tekenhandlesN(Nurb *nu, short sel)
+static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	float *fp;
 	unsigned int *col;
 	int a;
 	
-	if(nu->hide || (G.f & G_HIDDENHANDLES)) return;
+	if(nu->hide || hide_handles) return;
 	
 	glBegin(GL_LINES); 
 	
-	if( (nu->type & 7)==CU_BEZIER) {
+	if(nu->type == CU_BEZIER) {
 		if(sel) col= nurbcol+4;
 		else col= nurbcol;
 
@@ -3944,7 +3929,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 	glEnd();
 }
 
-static void tekenvertsN(Nurb *nu, short sel)
+static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	BPoint *bp;
@@ -3961,13 +3946,13 @@ static void tekenvertsN(Nurb *nu, short sel)
 	
 	bglBegin(GL_POINTS);
 	
-	if((nu->type & 7)==CU_BEZIER) {
+	if(nu->type == CU_BEZIER) {
 
 		bezt= nu->bezt;
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if (G.f & G_HIDDENHANDLES) {
+				if (hide_handles) {
 					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
 				} else {
 					if((bezt->f1 & SELECT)==sel) bglVertex3fv(bezt->vec[0]);
@@ -4002,7 +3987,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 	nu= nurb;
 	while(nu) {
 		if(nu->hide==0) {
-			switch(nu->type & 7) {
+			switch(nu->type) {
 			case CU_POLY:
 				cpack(nurbcol[3]);
 				bp= nu->bp;
@@ -4099,6 +4084,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	Curve *cu = ob->data;
 	Nurb *nu;
 	BevList *bl;
+	short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
 
 // XXX	retopo_matrix_update(v3d);
 
@@ -4110,23 +4096,25 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	
 	/* first non-selected handles */
 	for(nu=nurb; nu; nu=nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
-			tekenhandlesN(nu, 0);
+		if(nu->type == CU_BEZIER) {
+			tekenhandlesN(nu, 0, hide_handles);
 		}
 	}
 	draw_editnurb(ob, nurb, 0);
 	draw_editnurb(ob, nurb, 1);
 	/* selected handles */
 	for(nu=nurb; nu; nu=nu->next) {
-		if((nu->type & 7)==1) tekenhandlesN(nu, 1);
-		tekenvertsN(nu, 0);
+		if(nu->type == CU_BEZIER && (cu->drawflag & CU_HIDE_HANDLES)==0)
+			tekenhandlesN(nu, 1, hide_handles);
+		tekenvertsN(nu, 0, hide_handles);
 	}
 	
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 	/*	direction vectors for 3d curve paths
 		when at its lowest, dont render normals */
-	if(cu->flag & CU_3D && ts->normalsize > 0.0015) {
+	if(cu->flag & CU_3D && ts->normalsize > 0.0015 && (cu->drawflag & CU_HIDE_NORMALS)==0) {
+
 		UI_ThemeColor(TH_WIRE);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
 			BevPoint *bevp= (BevPoint *)(bl+1);		
@@ -4161,7 +4149,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	for(nu=nurb; nu; nu=nu->next) {
-		tekenvertsN(nu, 1);
+		tekenvertsN(nu, 1, hide_handles);
 	}
 	
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST); 
@@ -5023,6 +5011,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
+	
+	/* draw paths... */
+	// TODO...
 
 	/* multiply view with object matrix */
 	wmMultMatrix(ob->obmat);
@@ -5295,17 +5286,27 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		
-		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
-			psys= PE_get_current(scene, ob);
-			if(psys && !scene->obedit && psys_in_edit_mode(scene, psys))
-				draw_particle_edit(scene, v3d, rv3d, ob, psys, dt);
-		}
 		view3d_particle_text_draw(v3d, ar);
 
 		wmMultMatrix(ob->obmat);
 		
 		//glDepthMask(GL_TRUE);
 		if(col) cpack(col);
+	}
+	
+	if(		(warning_recursive==0) &&
+			(flag & DRAW_PICKING)==0 &&
+			(!scene->obedit)	
+	  ) {
+
+		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+			PTCacheEdit *edit = PE_get_current(scene, ob);
+			if(edit) {
+				wmLoadMatrix(rv3d->viewmat);
+				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);
+				wmMultMatrix(ob->obmat);
+			}
+		}
 	}
 
 	/* draw code for smoke */
@@ -5351,314 +5352,20 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		// only draw domains
 		if(smd->domain && smd->domain->fluid)
 		{
-			int x, y, z, i;
-			float viewnormal[3];
-			int mainaxis[3] = {0,0,0};
-			float align = 0, signed_align = 0;
-			int max_textures = 0, counter_textures = 0;
-			float *buffer = NULL;
-			int res[3];
-			float bigfactor = 1.0;
-			int big = (smd->domain->flags & MOD_SMOKE_HIGHRES) && (smd->domain->viewsettings & MOD_SMOKE_VIEW_USEBIG);
-			int new = 0;
-			int have_lamp = 0;
-			
-			// GUI sent redraw event
-			if(smd->domain->flags & MOD_SMOKE_VIEW_REDRAWNICE)
+			if(!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
 			{
-				new = 1;
-				smd->domain->flags &= ~MOD_SMOKE_VIEW_REDRAWNICE;
+				smd->domain->tex = NULL;
+				GPU_create_smoke(smd, 0);
+				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res, smd->domain->dx, smd->domain->tex_shadow);
+				GPU_free_smoke(smd);
 			}
-			
-			if(!big)
+			else if(smd->domain->wt || (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
 			{
-				res[0] = smd->domain->res[0];
-				res[1] = smd->domain->res[1];
-				res[2] = smd->domain->res[2];
+				smd->domain->tex = NULL;
+				GPU_create_smoke(smd, 1);
+				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res_wt, smd->domain->dx_wt, smd->domain->tex_shadow);
+				GPU_free_smoke(smd);
 			}
-			else
-			{
-				smoke_turbulence_get_res(smd->domain->wt, res);
-				bigfactor = 1.0 / (smd->domain->amplify + 1);
-			}
-
-			wmLoadMatrix(rv3d->viewmat);
-
-			if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
-			glDepthMask(GL_FALSE);
-			glEnable(GL_BLEND);
-
-			// get view vector
-			VECCOPY(viewnormal, rv3d->viewinv[2]);
-			Normalize(viewnormal);
-			for(i = 0; i < 3; i++)
-			{
-				if(ABS(viewnormal[i]) > align)
-				{
-					mainaxis[0] = i;
-					align = ABS(viewnormal[i]);
-					signed_align = viewnormal[i];
-				}
-			}
-			mainaxis[1] = (mainaxis[0] + 1) % 3;
-			mainaxis[2] = (mainaxis[0] + 2) % 3;
-			
-			if(!smd->domain->bind)
-			{
-				smd->domain->bind = MEM_callocN(sizeof(GLuint)*256, "Smoke_bind");
-				if(big)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_CHANGETOBIG;
-				new = 3;
-			}
-			
-			// check if view axis / mode has been changed
-			if(smd->domain->viewsettings)
-			{
-				if(big)
-				{
-					if(!(smd->domain->viewsettings & MOD_SMOKE_VIEW_BIG))
-						new = 2;
-					else if(!(smd->domain->viewsettings & MOD_SMOKE_VIEW_CHANGETOBIG))
-						new = 1;
-					
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_CHANGETOBIG;
-				}
-				else
-				{
-					if(!(smd->domain->viewsettings & MOD_SMOKE_VIEW_SMALL))
-						new = 2;
-					else if(smd->domain->viewsettings & MOD_SMOKE_VIEW_CHANGETOBIG)
-						new = 1;
-					
-					smd->domain->viewsettings &= ~MOD_SMOKE_VIEW_CHANGETOBIG;
-				}
-	
-				if(!new)
-				{
-					if((mainaxis[0] == 0) && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_X))
-						new = 1;
-					else if((mainaxis[0] == 1) && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_Y))
-						new = 1;
-					else if((mainaxis[0] == 2) && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_Z))
-						new = 1;
-					
-					// printf("check axis\n");
-				}
-			}
-			else
-				new = 3;
-			
-			if(new > 1)
-			{
-				float light[3] = {0.0,0.0,0.0}; // TODO: take real LAMP coordinates - dg
-				Base *base_tmp = NULL;
-
-				for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 
-				{
-					if(base_tmp->object->type == OB_LAMP) 
-					{
-						Lamp *la = (Lamp *)base_tmp->object->data;
-						
-						if(la->type == LA_LOCAL)
-						{
-							VECCOPY(light, base_tmp->object->obmat[3]);
-							have_lamp = 1;
-							break;
-						}
-					}
-				}
-
-				if(!big && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SMALL))
-				{
-					smoke_prepare_View(smd, light);
-					// printf("prepared View!\n");
-				}
-				else if(big && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_BIG))
-				{
-					smoke_prepare_bigView(smd, light);
-					// printf("prepared bigView!\n");
-				}
-			}
-			
-			// printf("big: %d, new: %d\n", big, new);
-			
-			// only create buffer if we need to create new textures
-			if(new)	
-				buffer = MEM_mallocN(sizeof(float)*res[mainaxis[1]]*res[mainaxis[2]]*4, "SmokeDrawBuffer");
-			
-			if(buffer || smd->domain->viewsettings)
-			{
-				int mod_texture = 0;
-				
-				// printf("if(buffer || smd->domain->viewsettings)\n");
-				
-				max_textures = (res[mainaxis[0]] > 256) ? 256 : res[mainaxis[0]];
-				
-				if(!smd->domain->viewsettings) // new frame or new start
-				{
-					smd->domain->max_textures = max_textures;
-					glGenTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
-					new = 1;
-					// printf("glGenTextures\n");
-				}
-				else
-				{
-					if(new)
-					{
-						// printf("glDeleteTextures\n");
-						glDeleteTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
-						smd->domain->max_textures = max_textures;
-						glGenTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
-					}
-				}
-
-				mod_texture = MAX3(1, smd->domain->visibility, (int)(res[mainaxis[0]] / smd->domain->max_textures ));
-				
-				// align order of billboards to be front or backview (e.g. +x or -x axis)
-				if(signed_align < 0)
-				{
-					z = res[mainaxis[0]] - 1;
-				}
-				else
-				{
-					z = 0;
-				}
-
-				for (; signed_align > 0 ? (z < res[mainaxis[0]]) : (z >= 0); signed_align > 0 ? z++ : z--) // 2
-				{
-					float quad[4][3];
-
-					if(new)
-					{
-						for (y = 0; y < res[mainaxis[1]]; y++) // 1
-						{
-							for (x = 0; x < res[mainaxis[2]]; x++) // 0
-							{
-								size_t index;
-								size_t image_index;
-								float tray, tvox;
-
-								image_index = smoke_get_index2d(y, res[mainaxis[1]], x);
-		
-								if(mainaxis[0] == 0)
-								{
-									// mainaxis[1] == 1, mainaxis[2] == 2
-									index = smoke_get_index(z, res[mainaxis[0]], y, res[mainaxis[1]], x);
-								}
-								else if(mainaxis[0] == 1)
-								{
-									// mainaxis[1] == 2, mainaxis[2] == 0
-									index = smoke_get_index(x, res[mainaxis[2]], z, res[mainaxis[0]], y);
-								}
-								else // mainaxis[0] == 2
-								{
-									// mainaxis[1] == 0, mainaxis[2] == 1
-									index = smoke_get_index(y, res[mainaxis[1]], x, res[mainaxis[2]], z);
-								}
-								
-								if(!big)
-								{
-									tvox =  smoke_get_tvox(smd, index);
-									tray = smoke_get_tray(smd, index);
-								}
-								else
-								{
-									tvox =  smoke_get_bigtvox(smd, index);
-									tray = smoke_get_bigtray(smd, index);
-								}
-
-								if(!have_lamp)
-									tray = 1.0;
-								
-								// fill buffer with luminance and alpha
-								// 1 - T_vox
-								buffer[image_index*4 + 3] = 1.0 - tvox; // 0 = transparent => d.h. tvox = 1
-		
-								// L_vox = Omega * L_light * (1 - T_vox) * T_ray
-								buffer[image_index*4] = buffer[image_index*4 + 1] = buffer[image_index*4 + 2] = smd->domain->omega * 1.0 * tvox * tray; 
-							}
-						}
-					}
-					glBindTexture(GL_TEXTURE_2D, smd->domain->bind[counter_textures]);
-					glEnable(GL_TEXTURE_2D);
-	
-					if(new)
-					{
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, res[mainaxis[1]], res[mainaxis[2]], 0, GL_RGBA, GL_FLOAT, buffer);
-						glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	// Linear Filtering
-						glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	// Linear Filtering
-					}
-					
-					if((z % mod_texture) == 0 )
-					{
-						// botttom left
-						quad[3][mainaxis[0]] =  smd->domain->p0[mainaxis[0]] + z * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[3][mainaxis[1]] =  smd->domain->p0[mainaxis[1]] + smd->domain->dx * bigfactor * 0.5;
-						quad[3][mainaxis[2]] =  smd->domain->p0[mainaxis[2]] + smd->domain->dx * bigfactor * 0.5;
-		
-						// top right
-						quad[1][mainaxis[0]] =  smd->domain->p0[mainaxis[0]] + z * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[1][mainaxis[1]] =  smd->domain->p0[mainaxis[1]] + (res[mainaxis[1]] - 1) * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[1][mainaxis[2]] =  smd->domain->p0[mainaxis[2]] + (res[mainaxis[2]] - 1) * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-		
-						// top left
-						quad[2][mainaxis[0]] =  smd->domain->p0[mainaxis[0]] + z * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[2][mainaxis[1]] =  smd->domain->p0[mainaxis[1]] + smd->domain->dx * bigfactor * 0.5;
-						quad[2][mainaxis[2]] =  smd->domain->p0[mainaxis[2]] + (res[mainaxis[2]] - 1) * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-		
-						// bottom right
-						quad[0][mainaxis[0]] =  smd->domain->p0[mainaxis[0]] + z * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[0][mainaxis[1]] =  smd->domain->p0[mainaxis[1]] + (res[mainaxis[1]] - 1) * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[0][mainaxis[2]] =  smd->domain->p0[mainaxis[2]] + smd->domain->dx * bigfactor * 0.5;
-		
-						glBegin(GL_QUADS); // Start Drawing Quads
-		
-						glTexCoord2f(1.0f, 0.0f);
-						glVertex3fv(quad[0]);	// Left And Up 1 Unit (Top Left)
-						glTexCoord2f(1.0f, 1.0f);
-						glVertex3fv(quad[1]);	// Right And Up 1 Unit (Top Right)
-						glTexCoord2f(0.0f, 1.0f);
-						glVertex3fv(quad[2]);	// Right And Down One Unit (Bottom Right)
-						glTexCoord2f(0.0f, 0.0f);
-						glVertex3fv(quad[3]);	// Left And Down One Unit (Bottom Left)
-		
-						glEnd();
-					}
-					counter_textures++;
-				}
-			}
-			if(buffer)
-			{
-				MEM_freeN(buffer);
-				buffer = NULL;
-			}
-			
-			// set correct flag for viewsettings
-			if(1)
-			{
-				// do not clear BIG/SMALL flag
-				smd->domain->viewsettings &= ~MOD_SMOKE_VIEW_X;
-				smd->domain->viewsettings &= ~MOD_SMOKE_VIEW_Y;
-				smd->domain->viewsettings &= ~MOD_SMOKE_VIEW_Z;
-				
-				// set what caches we have
-				if(big)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_BIG;
-				else
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_SMALL;
-	
-				if(mainaxis[0] == 0)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_X;
-				else if(mainaxis[0] == 1)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_Y;
-				else if(mainaxis[0] == 2)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_Z;
-			}
-
-			wmMultMatrix(ob->obmat);
-			glDisable(GL_BLEND);
-			glDepthMask(GL_TRUE);
-			if(col) cpack(col);
 		}
 	}
 

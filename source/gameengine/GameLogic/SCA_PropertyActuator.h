@@ -83,14 +83,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	// python wrapped methods
-	KX_PYMETHOD_DOC(SCA_PropertyActuator,SetProperty);
-	KX_PYMETHOD_DOC(SCA_PropertyActuator,GetProperty);
-	KX_PYMETHOD_DOC(SCA_PropertyActuator,SetValue);
-	KX_PYMETHOD_DOC(SCA_PropertyActuator,GetValue);
-	
-	/* 5. - ... setObject, getObject, setProp2, getProp2, setMode, getMode*/
 	
 };
 

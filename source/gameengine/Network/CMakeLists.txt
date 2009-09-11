@@ -27,10 +27,10 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  .
-  ../../../source/kernel/gen_system
-  ../../../intern/string
-  ../../../intern/moto/include
+	.
+	../../../source/kernel/gen_system
+	../../../intern/string
+	../../../intern/moto/include
 )
 
 BLENDERLIB(bf_ngnetwork "${SRC}" "${INC}")

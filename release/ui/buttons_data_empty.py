@@ -2,8 +2,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -17,7 +17,7 @@ class DATA_PT_empty(DataButtonsPanel):
 		
 		ob = context.object
 
-		layout.itemR(ob, "empty_draw_type")
-		layout.itemR(ob, "empty_draw_size")
+		layout.itemR(ob, "empty_draw_type", text="Draw Type")
+		layout.itemR(ob, "empty_draw_size", text="Draw Size")
 		
 bpy.types.register(DATA_PT_empty)

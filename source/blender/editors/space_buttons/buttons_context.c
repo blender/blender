@@ -200,7 +200,7 @@ static int buttons_context_path_modifier(ButsContextPath *path)
 	if(buttons_context_path_object(path)) {
 		ob= path->ptr[path->len-1].data;
 
-		if(ob && ELEM4(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF))
+		if(ob && ELEM5(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_LATTICE))
 			return 1;
 	}
 
@@ -553,7 +553,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			"world", "object", "mesh", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
 			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
-			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
+			"cloth", "soft_body", "fluid", "smoke", "smoke_hr", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;

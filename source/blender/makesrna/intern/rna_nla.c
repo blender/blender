@@ -61,6 +61,30 @@ void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
 	}
 }
 
+static char *rna_NlaStrip_path(PointerRNA *ptr)
+{
+	NlaStrip *strip= (NlaStrip *)ptr->data;
+	AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+	
+	/* if we're attached to AnimData, try to resolve path back to AnimData */
+	if (adt) {
+		NlaTrack *nlt;
+		NlaStrip *nls;
+		
+		for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+			for (nls = nlt->strips.first; nls; nls = nls->next) {
+				if (nls == strip) {
+					// XXX but if we animate like this, the control will never work...
+					return BLI_sprintfN("animation_data.nla_tracks[\"%s\"].strips[\"%s\"]", nlt->name, strip->name);
+				}
+			}
+		}
+	}
+	
+	/* no path */
+	return "";
+}
+
 
 static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 {
@@ -271,6 +295,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	/* struct definition */
 	srna= RNA_def_struct(brna, "NlaStrip", NULL);
 	RNA_def_struct_ui_text(srna, "NLA Strip", "A container referencing an existing Action.");
+	RNA_def_struct_path_func(srna, "rna_NlaStrip_path");
 	RNA_def_struct_ui_icon(srna, ICON_NLA); // XXX
 	
 	/* name property */
@@ -325,6 +350,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	/* Action */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act");
+	RNA_def_property_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Action", "Action referenced by this strip.");
 	
 	/* Action extents */

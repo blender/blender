@@ -26,6 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -90,7 +91,7 @@ static void wm_window_check_position(rcti *rect)
 	wm_get_screensize(&width, &height);
 	
 #ifdef __APPLE__
-	height -= 42;
+	height -= 70;
 #endif
 	
 	if(rect->xmin < 0) {
@@ -690,12 +691,13 @@ static int wm_window_timer(const bContext *C)
 		wmTimer *wt;
 		for(wt= win->timers.first; wt; wt= wt->next) {
 			if(wt->sleep==0) {
-				if(wt->timestep < time - wt->ltime) {
+				if(time > wt->ntime) {
 					wmEvent event= *(win->eventstate);
 					
 					wt->delta= time - wt->ltime;
 					wt->duration += wt->delta;
 					wt->ltime= time;
+					wt->ntime= wt->stime + wt->timestep*ceil(wt->duration/wt->timestep);
 					
 					event.type= wt->event_type;
 					event.custom= EVT_DATA_TIMER;
@@ -790,6 +792,8 @@ wmTimer *WM_event_add_window_timer(wmWindow *win, int event_type, double timeste
 	
 	wt->event_type= event_type;
 	wt->ltime= PIL_check_seconds_timer();
+	wt->ntime= wt->ltime + timestep;
+	wt->stime= wt->ltime;
 	wt->timestep= timestep;
 	
 	BLI_addtail(&win->timers, wt);

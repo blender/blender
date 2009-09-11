@@ -6,10 +6,4 @@ sources = env.Glob('*.cpp')
 incs ='. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/SceneGraph #source/blender/blenloader'
 incs += ' ' + env['BF_PYTHON_INC']
 
-cxxflags = []
-if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-	cxxflags.append ('/EHsc')
-
-env.BlenderLib ( 'bf_expressions', sources, Split(incs), [], libtype=['core','player'], priority = [360,120], cxx_compileflags=cxxflags)
+env.BlenderLib ( 'bf_expressions', sources, Split(incs), [], libtype=['core','player'], priority = [360,80], cxx_compileflags=env['BGE_CXXFLAGS'])

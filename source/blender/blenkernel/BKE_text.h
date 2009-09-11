@@ -35,6 +35,7 @@
 extern "C" {
 #endif
 
+struct Main;
 struct Text;
 struct TextLine;
 struct SpaceText;
@@ -46,6 +47,7 @@ struct Text*	add_empty_text	(char *name);
 int	            reopen_text		(struct Text *text);
 struct Text*	add_text		(char *file, const char *relpath); 
 struct Text*	copy_text		(struct Text *ta);
+void			unlink_text		(struct Main *bmain, struct Text *text);
 
 char*	txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);

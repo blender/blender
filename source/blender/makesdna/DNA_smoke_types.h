@@ -30,7 +30,7 @@
 #define DNA_SMOKE_TYPES_H
 
 /* flags */
-#define MOD_SMOKE_HIGHRES (1<<1) /* compute high resolution */
+#define MOD_SMOKE_HIGHRES (1<<1) /* enable high resolution */
 #define MOD_SMOKE_DISSOLVE (1<<2) /* let smoke dissolve */
 #define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
 
@@ -39,15 +39,7 @@
 #define MOD_SMOKE_NOISEFFT (1<<1)
 #define MOD_SMOKE_NOISECURL (1<<2)
 /* viewsettings */
-#define MOD_SMOKE_VIEW_X (1<<0)
-#define MOD_SMOKE_VIEW_Y (1<<1)
-#define MOD_SMOKE_VIEW_Z (1<<2)
-#define MOD_SMOKE_VIEW_SMALL (1<<3)
-#define MOD_SMOKE_VIEW_BIG (1<<4)
-#define MOD_SMOKE_VIEW_CHANGETOBIG (1<<5)
-#define MOD_SMOKE_VIEW_REDRAWNICE (1<<6)
-#define MOD_SMOKE_VIEW_REDRAWALL (1<<7)
-#define MOD_SMOKE_VIEW_USEBIG (1<<8)
+#define MOD_SMOKE_VIEW_SHOWBIG (1<<0)
 
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -55,16 +47,14 @@ typedef struct SmokeDomainSettings {
 	struct Group *fluid_group;
 	struct Group *eff_group; // effector group for e.g. wind force
 	struct Group *coll_group; // collision objects group
-	unsigned int *bind;
-	float *tvox;
-	float *tray;
-	float *tvoxbig;
-	float *traybig;
+	struct WTURBULENCE *wt; // WTURBULENCE object, if active
+	struct GPUTexture *tex;
+	struct GPUTexture *tex_wt;
+	struct GPUTexture *tex_shadow;
+	float *shadow;
 	float p0[3]; /* start point of BB */
 	float p1[3]; /* end point of BB */
 	float dx; /* edge length of one cell */
-	float firstframe;
-	float lastframe;
 	float omega; /* smoke color - from 0 to 1 */
 	float temp; /* fluid temperature */
 	float tempAmb; /* ambient temperature */
@@ -74,14 +64,17 @@ typedef struct SmokeDomainSettings {
 	int amplify; /* wavelet amplification */
 	int maxres; /* longest axis on the BB gets this resolution assigned */
 	int flags; /* show up-res or low res, etc */
-	int visibility; /* how many billboards to show (every 2nd, 3rd, 4th,..) */
+	int pad; 
 	int viewsettings;
-	int max_textures;
 	short noise; /* noise type: wave, curl, anisotropic */
 	short diss_percent; 
 	int diss_speed;/* in frames */
 	float strength;
-	struct WTURBULENCE *wt; // WTURBULENCE object, if active
+	int res_wt[3];
+	float dx_wt;
+	int v3dnum;
+	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */
+	struct ListBase ptcaches[2];
 } SmokeDomainSettings;
 
 

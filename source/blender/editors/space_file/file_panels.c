@@ -63,7 +63,7 @@ static void file_panel_cb(bContext *C, void *arg_entry, void *arg_unused)
 	WM_operator_properties_free(&ptr);
 }
 
-static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory category, short *nr, int icon, int allow_delete)
+static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory category, short *nr, int icon, int allow_delete, int reverse)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	uiBlock *block;
@@ -71,7 +71,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	uiLayout *box, *col;
 	struct FSMenu* fsmenu = fsmenu_get();
 	char *curdir= (sfile->params)? sfile->params->dir: "";
-	int i, nentries = fsmenu_get_nentries(fsmenu, category);
+	int i, i_iter, nentries = fsmenu_get_nentries(fsmenu, category);
 
 	/* reset each time */
 	*nr= -1;
@@ -86,12 +86,16 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	box= uiLayoutBox(pa->layout);
 	col= uiLayoutColumn(box, 1);
 
-	for (i=0; i< nentries;++i) {
+	for (i_iter=0; i_iter< nentries;++i_iter) {
 		char dir[FILE_MAX];
 		char temp[FILE_MAX];
 		uiLayout* layout = uiLayoutRow(col, 0);
-		char *entry = fsmenu_get_entry(fsmenu, category, i);
+		char *entry;
 
+		i= reverse ? nentries-(i_iter+1) : i_iter;
+		
+		entry = fsmenu_get_entry(fsmenu, category, i);
+		
 		/* set this list item as active if we have a match */
 		if(strcmp(curdir, entry) == 0)
 			*nr= i;
@@ -124,7 +128,7 @@ static void file_panel_system(const bContext *C, Panel *pa)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
 	if(sfile)
-		file_panel_category(C, pa, FS_CATEGORY_SYSTEM, &sfile->systemnr, ICON_DISK_DRIVE, 0);
+		file_panel_category(C, pa, FS_CATEGORY_SYSTEM, &sfile->systemnr, ICON_DISK_DRIVE, 0, 0);
 }
 
 static void file_panel_bookmarks(const bContext *C, Panel *pa)
@@ -137,7 +141,7 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 		uiItemO(row, "Add", ICON_ZOOMIN, "file.add_bookmark");
 		uiItemL(row, NULL, 0);
 
-		file_panel_category(C, pa, FS_CATEGORY_BOOKMARKS, &sfile->bookmarknr, ICON_BOOKMARKS, 1);
+		file_panel_category(C, pa, FS_CATEGORY_BOOKMARKS, &sfile->bookmarknr, ICON_BOOKMARKS, 1, 0);
 	}
 }
 
@@ -146,7 +150,7 @@ static void file_panel_recent(const bContext *C, Panel *pa)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
 	if(sfile)
-		file_panel_category(C, pa, FS_CATEGORY_RECENT, &sfile->recentnr, ICON_FILE_FOLDER, 0);
+		file_panel_category(C, pa, FS_CATEGORY_RECENT, &sfile->recentnr, ICON_FILE_FOLDER, 0, 1);
 }
 
 
@@ -184,7 +188,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 			if(strncmp(RNA_property_identifier(prop), "filter", 6) == 0)
 				continue;
 
-			uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0, 0, 0);
+			uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0);
 			empty= 0;
 		}
 		RNA_STRUCT_END;

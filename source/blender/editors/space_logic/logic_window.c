@@ -28,6 +28,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <float.h>
 
 #include "DNA_actuator_types.h"
 #include "DNA_controller_types.h"
@@ -73,17 +74,9 @@
 #include "logic_intern.h"
 
 
-
-/* XXX */
-static int pupmenu() {return 1;}
-/* XXX */
-
 #define MAX_RENDER_PASS   100
 #define B_REDR		1
 #define B_IDNAME	2
-
-#define B_ADD_PROP		2701
-#define B_CHANGE_PROP		2702
 
 #define B_ADD_SENS		2703
 #define B_CHANGE_SENS		2704
@@ -204,7 +197,7 @@ static void make_unique_prop_names_cb(bContext *C, void *strv, void *redraw_view
 }
 
 
-static void sca_move_sensor(bContext *C, void *datav, void *data2_unused)
+static void sca_move_sensor(bContext *C, void *datav, void *move_up)
 {
 	Scene *scene= CTX_data_scene(C);
 	bSensor *sens_to_delete= datav;
@@ -212,7 +205,8 @@ static void sca_move_sensor(bContext *C, void *datav, void *data2_unused)
 	Base *base;
 	bSensor *sens, *tmp;
 	
-	val= pupmenu("Move up%x1|Move down %x2");
+	// val= pupmenu("Move up%x1|Move down %x2");
+	val = move_up ? 1:2;
 	
 	if(val>0) {
 		/* now find out which object has this ... */
@@ -255,7 +249,7 @@ static void sca_move_sensor(bContext *C, void *datav, void *data2_unused)
 	}
 }
 
-static void sca_move_controller(bContext *C, void *datav, void *data2_unused)
+static void sca_move_controller(bContext *C, void *datav, void *move_up)
 {
 	Scene *scene= CTX_data_scene(C);
 	bController *controller_to_del= datav;
@@ -263,7 +257,8 @@ static void sca_move_controller(bContext *C, void *datav, void *data2_unused)
 	Base *base;
 	bController *cont, *tmp;
 	
-	val= pupmenu("Move up%x1|Move down %x2");
+	//val= pupmenu("Move up%x1|Move down %x2");
+	val = move_up ? 1:2;
 	
 	if(val>0) {
 		/* now find out which object has this ... */
@@ -309,7 +304,7 @@ static void sca_move_controller(bContext *C, void *datav, void *data2_unused)
 	}
 }
 
-static void sca_move_actuator(bContext *C, void *datav, void *data2_unused)
+static void sca_move_actuator(bContext *C, void *datav, void *move_up)
 {
 	Scene *scene= CTX_data_scene(C);
 	bActuator *actuator_to_move= datav;
@@ -317,7 +312,8 @@ static void sca_move_actuator(bContext *C, void *datav, void *data2_unused)
 	Base *base;
 	bActuator *act, *tmp;
 	
-	val= pupmenu("Move up%x1|Move down %x2");
+	//val= pupmenu("Move up%x1|Move down %x2");
+	val = move_up ? 1:2;
 	
 	if(val>0) {
 		/* now find out which object has this ... */
@@ -363,7 +359,6 @@ static void sca_move_actuator(bContext *C, void *datav, void *data2_unused)
 
 void do_logic_buts(bContext *C, void *arg, int event)
 {
-	bProperty *prop;
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -385,25 +380,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 	case B_SETMAINACTOR:
 		ob->gameflag &= ~(OB_SECTOR|OB_PROP);
 		break;
-
-
-	case B_ADD_PROP:
-		prop= new_property(PROP_FLOAT);
-		make_unique_prop_names(C, prop->name);
-		BLI_addtail(&ob->prop, prop);
-		ED_undo_push(C, "Add property");
-		break;
-#if 0 // XXX Now done in python
-	case B_CHANGE_PROP:
-		prop= ob->prop.first;
-		while(prop) {
-			if(prop->type!=prop->otype) {
-				init_property(prop);
-			}
-			prop= prop->next;
-		}
-		break;
-#endif
+	
 	case B_ADD_SENS:
 		for(ob=G.main->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ADDSENS) {
@@ -1002,6 +979,7 @@ static void draw_default_sensor_header(bSensor *sens,
 	uiBut *but;
 	
 	/* Pulsing and frequency */
+	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, TOG, SENS_PULSE_REPEAT, 1, ICON_DOTSUP,
 			 (short)(x + 10 + 0. * (w-20)), (short)(y - 21), (short)(0.1 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
@@ -1015,8 +993,10 @@ static void draw_default_sensor_header(bSensor *sens,
 			 (short)(x + 10 + 0.2 * (w-20)), (short)(y - 21), (short)(0.275 * (w-20)), 19,
 			 &sens->freq, 0.0, 10000.0, 0, 0,
 			 "Delay between repeated pulses (in logic tics, 0 = no delay)");
+	uiBlockEndAlign(block);
 	
 	/* value or shift? */
+	uiBlockBeginAlign(block);
 	but= uiDefButS(block, TOG, 1, "Level",
 			 (short)(x + 10 + 0.5 * (w-20)), (short)(y - 21), (short)(0.20 * (w-20)), 19,
 			 &sens->level, 0.0, 0.0, 0, 0,
@@ -1027,6 +1007,7 @@ static void draw_default_sensor_header(bSensor *sens,
 			 &sens->tap, 0.0, 0.0, 0, 0,
 			 "Trigger controllers only for an instant, even while the sensor remains true");
 	uiButSetFunc(but, verify_logicbutton_func, sens, &(sens->tap));
+	uiBlockEndAlign(block);
 	
 	uiDefButS(block, TOG, 1, "Inv",
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
@@ -1314,9 +1295,15 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			* proper compatibility with older .blend files. */
 			str= "Type %t|Left button %x1|Middle button %x2|"
 				"Right button %x4|Wheel Up %x5|Wheel Down %x6|Movement %x8|Mouse over %x16|Mouse over any%x32"; 
-			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, width-20, 19,
+			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, (width*0.8f)-20, 19,
 				&ms->type, 0, 31, 0, 0,
 				"Specify the type of event this mouse sensor should trigger on");
+			
+			if(ms->type==32) {
+				uiDefButBitS(block, TOG, SENS_MOUSE_FOCUS_PULSE, B_REDR, "Pulse",(short)(xco + 10) + (width*0.8f)-20,(short)(yco - 44),
+					(short)(0.20 * (width-20)), 19, &ms->flag, 0.0, 0.0, 0, 0,
+					"Moving the mouse over a different object generates a pulse");	
+			}
 			
 			yco-= ysize;
 			break;
@@ -1659,7 +1646,8 @@ char *get_state_name(Object *ob, short bit)
 
 static void check_state_mask(bContext *C, void *arg1_but, void *arg2_mask)
 {
-	int shift= 0; // XXX
+	wmWindow *win= CTX_wm_window(C);
+	int shift= win->eventstate->shift;
 	unsigned int *cont_mask = arg2_mask;
 	uiBut *but = arg1_but;
 
@@ -1984,7 +1972,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			sa->sndnr = 0;
 			
 			if(sa->flag & ACT_SND_3D_SOUND)
-				ysize = 114;
+				ysize = 180;
 			else
 				ysize = 92;
 
@@ -1997,24 +1985,31 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				/* reset this value, it is for handling the event */
 				sa->sndnr = 0;
 				uiDefButS(block, MENU, B_SOUNDACT_BROWSE, str, xco+10,yco-22,20,19, &(sa->sndnr), 0, 0, 0, 0, "");	
+				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+wval+10, yco-22, wval, 19, "Load a sound file. Remember to set caching on for small sounds that are played often.");
 
 				if(sa->sound) {
 					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
-					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,width-40,19, sa->sound->id.name+2,    0.0, 21.0, 0, 0, "");
+					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,wval-20,19, sa->sound->id.name+2,    0.0, 21.0, 0, 0, "");
 					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19, &sa->type, 0.0, 0.0, 0, 0, "");
 					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
 					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
 					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19, &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space.");
 					if(sa->flag & ACT_SND_3D_SOUND)
 					{
-						uiDefButF(block, NUM, 0, "Rolloff: ", xco+10, yco-110, wval, 19, &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0, "The rolloff factor defines the influence factor on volume depending on distance.");
-						uiDefButF(block, NUM, 0, "Reference distance: ", xco+wval+10, yco-110, wval, 19, &sa->sound3D.reference_distance, 0.0, 1000.0, 0.0, 0.0, "The reference distance is the distance where the sound has a gain of 1.0.");
+						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19, &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0, "The minimum gain of the sound, no matter how far it is away.");
+						uiDefButF(block, NUM, 0, "Maximum Gain: ", xco+10, yco-132, wval, 19, &sa->sound3D.max_gain, 0.0, 1.0, 0.0, 0.0, "The maximum gain of the sound, no matter how near it is..");
+						uiDefButF(block, NUM, 0, "Reference Distance: ", xco+10, yco-154, wval, 19, &sa->sound3D.reference_distance, 0.0, FLT_MAX, 0.0, 0.0, "The reference distance is the distance where the sound has a gain of 1.0.");
+						uiDefButF(block, NUM, 0, "Maximum Distance: ", xco+10, yco-176, wval, 19, &sa->sound3D.max_distance, 0.0, FLT_MAX, 0.0, 0.0, "The maximum distance at which you can hear the sound.");
+						uiDefButF(block, NUM, 0, "Rolloff: ", xco+wval+10, yco-110, wval, 19, &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0, "The rolloff factor defines the influence factor on volume depending on distance.");
+						uiDefButF(block, NUM, 0, "Cone Outer Gain: ", xco+wval+10, yco-132, wval, 19, &sa->sound3D.cone_outer_gain, 0.0, 1.0, 0.0, 0.0, "The gain outside the outer cone. The gain in the outer cone will be interpolated between this value und the normal gain in the inner cone.");
+						uiDefButF(block, NUM, 0, "Cone Outer Angle: ", xco+wval+10, yco-154, wval, 19, &sa->sound3D.cone_outer_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the outer cone.");
+						uiDefButF(block, NUM, 0, "Cone Inner Angle: ", xco+wval+10, yco-176, wval, 19, &sa->sound3D.cone_inner_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the inner cone.");
 					}
 				}
 				MEM_freeN(str);
 			} 
 			else {
-				uiDefBut(block, LABEL, 0, "Use Sound window (F10) to load samples", xco, yco-24, width, 19, NULL, 0, 0, 0, 0, "");
+				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+10, yco-22, width-20, 19, "Load a sound file.");
 			}
 					
 			yco-= ysize;
@@ -3027,7 +3022,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		
 	/* start with the controller because we need to know which one is visible */
 	/* ******************************* */
-	xco= 500; yco= 170; width= 300;
+	xco= 400; yco= 170; width= 300;
 
 	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco+35, 100, UI_UNIT_Y, "");
 	
@@ -3136,9 +3131,17 @@ void logic_buttons(bContext *C, ARegion *ar)
 							cpack(0x999999);
 							glRecti(xco+22, yco, xco+width-22,yco+19);
 							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller type");
-							uiButSetFunc(but, sca_move_controller, cont, NULL);
+							//uiButSetFunc(but, sca_move_controller, cont, NULL);
 							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller name");
-							uiButSetFunc(but, sca_move_controller, cont, NULL);
+							//uiButSetFunc(but, sca_move_controller, cont, NULL);
+
+							uiBlockBeginAlign(block);
+							but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+							uiButSetFunc(but, sca_move_controller, cont, (void *)TRUE);
+							but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+							uiButSetFunc(but, sca_move_controller, cont, (void *)FALSE);
+							uiBlockEndAlign(block);
+
 							ycoo= yco;
 						}
 				
@@ -3159,7 +3162,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	}
 	
 	/* ******************************* */
-	xco= 10; yco= 170; width= 400;
+	xco= 10; yco= 170; width= 300;
 
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 70, UI_UNIT_Y, "");
 	
@@ -3220,9 +3223,16 @@ void logic_buttons(bContext *C, ARegion *ar)
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
 						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, UI_UNIT_Y, sens, 0, 0, 0, 0, "");
-						uiButSetFunc(but, sca_move_sensor, sens, NULL);
+						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
 						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens, 0, 31, 0, 0, "");
-						uiButSetFunc(but, sca_move_sensor, sens, NULL);
+						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
+
+						uiBlockBeginAlign(block);
+						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						uiButSetFunc(but, sca_move_sensor, sens, (void *)TRUE);
+						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						uiButSetFunc(but, sca_move_sensor, sens, (void *)FALSE);
+						uiBlockEndAlign(block);
 					}
 
 					but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
@@ -3237,7 +3247,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	}
 
 	/* ******************************* */
-	xco= 900; yco= 170; width= 400;
+	xco= 800; yco= 170; width= 300;
 	
 	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco+35, 90, UI_UNIT_Y, "");
 
@@ -3293,9 +3303,17 @@ void logic_buttons(bContext *C, ARegion *ar)
 						set_col_actuator(act->type, 1);
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
 						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator type");
-						uiButSetFunc(but, sca_move_actuator, act, NULL);
+						// uiButSetFunc(but, sca_move_actuator, act, NULL);
 						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator name");
-						uiButSetFunc(but, sca_move_actuator, act, NULL);
+						// uiButSetFunc(but, sca_move_actuator, act, NULL);
+
+						uiBlockBeginAlign(block);
+						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						uiButSetFunc(but, sca_move_actuator, act, (void *)TRUE);
+						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						uiButSetFunc(but, sca_move_actuator, act, (void *)FALSE);
+						uiBlockEndAlign(block);
+
 						ycoo= yco;
 					}
 

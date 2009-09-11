@@ -423,6 +423,10 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 			}*/
 			ED_area_tag_refresh(sa);
 			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_GRAPH)
+				ED_area_tag_redraw(sa);
+			break;
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_area_tag_refresh(sa);

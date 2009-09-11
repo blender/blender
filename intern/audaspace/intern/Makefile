@@ -35,6 +35,32 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
+ifeq ($(WITH_SDL),true)
+	CPPFLAGS += -DWITH_SDL
+	CPPFLAGS += $(NAN_SDLCFLAGS)
+endif
+
+ifeq ($(WITH_OPENAL),true)
+	CPPFLAGS += -DWITH_OPENAL
+	CPPFLAGS += -I../OpenAL
+endif
+
+ifeq ($(WITH_JACK),true)
+	CPPFLAGS += -DWITH_JACK
+	CPPFLAGS += $(NAN_JACKCFLAGS)
+	CPPFLAGS += -I../jack
+endif
+
+ifeq ($(WITH_FFMPEG),true)
+	CPPFLAGS += -DWITH_FFMPEG
+	CPPFLAGS += $(NAN_FFMPEGCFLAGS)
+endif
+
+ifeq ($(WITH_SNDFILE),true)
+	CPPFLAGS += -DWITH_SNDFILE
+	CPPFLAGS += -I../sndfile
+endif
+
 CPPFLAGS += -I$(LCGDIR)/samplerate/include/
 CPPFLAGS += -I../ffmpeg
 CPPFLAGS += -I../FX

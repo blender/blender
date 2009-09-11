@@ -84,12 +84,6 @@ public:
 		KX_RAY_AXIS_NEG_Z
 	};
 	
-	// Deprecated ----->
-	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitObject);
-	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitPosition);
-	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitNormal);
-	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetRayDirection);
-	// <-----
 
 	/* Attributes */
 	static PyObject* pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

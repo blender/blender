@@ -1,9 +1,11 @@
 
 import bpy
 
+from buttons_particle import point_cache_ui
+
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "physics"
 
 	def poll(self, context):
@@ -49,13 +51,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				col = split.column()
 				col.itemL(text="Resolution:")
 				col.itemR(domain, "maxres", text="Divisions")
-
-				col.itemL(text="Display:")
-				col.itemR(domain, "visibility", text="Resolution")
-				col.itemR(domain, "color", slider=True)
-				sub = col.column()
-				sub.active = domain.highres
-				sub.itemR(domain, "viewhighres")
 				
 				col = split.column()
 				col.itemL(text="Behavior:")
@@ -64,7 +59,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				col.itemR(domain, "dissolve_smoke", text="Dissolve")
 				sub = col.column()
 				sub.active = domain.dissolve_smoke
-				sub.itemR(domain, "dissolve_speed", text="Speed")
+				sub.itemR(domain, "dissolve_speed", text="Time")
 				sub.itemR(domain, "dissolve_smoke_log", text="Slow")
 				
 			elif md.smoke_type == 'TYPE_FLOW':
@@ -88,43 +83,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 					
 			#elif md.smoke_type == 'TYPE_COLL':
 			#	layout.itemS()
-			
-class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
-	__label__ = "Smoke High Resolution"
-	__default_closed__ = True
-	
-	def poll(self, context):
-		md = context.smoke
-		if md:
-				return (md.smoke_type == 'TYPE_DOMAIN')
-		
-		return False
 
-	def draw_header(self, context):
-		layout = self.layout
-		
-		high = context.smoke.domain_settings
-	
-		layout.itemR(high, "highres", text="")
-		
-	def draw(self, context):
-		layout = self.layout
-		
-		high = context.smoke.domain_settings
-		
-		layout.active = high.highres
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemL(text="Resolution:")
-		col.itemR(high, "amplify", text="Divisions")
-		
-		sub = split.column()
-		sub.itemL(text="Noise Method:")
-		sub.row().itemR(high, "noise_type", text="")
-		sub.itemR(high, "strength")
-			
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
 	__label__ = "Smoke Groups"
 	__default_closed__ = True
@@ -154,6 +113,70 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
 		col.itemL(text="Collision Group:")
 		col.itemR(group, "coll_group", text="")
 
+class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
+	__label__ = "Smoke Cache"
+	__default_closed__ = True
+
+	def poll(self, context):
+		md = context.smoke
+		return md and (md.smoke_type == 'TYPE_DOMAIN')
+
+	def draw(self, context):
+		layout = self.layout
+
+		md = context.smoke.domain_settings
+		cache = md.point_cache_low
+			
+		point_cache_ui(self, cache, cache.baked==False, 0, 1)
+					
+class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
+	__label__ = "Smoke High Resolution"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		md = context.smoke
+		return md and (md.smoke_type == 'TYPE_DOMAIN')
+
+	def draw_header(self, context):	
+		high = context.smoke.domain_settings
+	
+		self.layout.itemR(high, "highres", text="")
+		
+	def draw(self, context):
+		layout = self.layout
+		
+		md = context.smoke.domain_settings
+
+		split = layout.split()
+			
+		col = split.column()
+		col.itemL(text="Resolution:")
+		col.itemR(md, "amplify", text="Divisions")
+			
+		col = split.column()
+		col.itemL(text="Noise Method:")
+		col.row().itemR(md, "noise_type", text="")
+		col.itemR(md, "strength")
+		col.itemR(md, "viewhighres")
+		
+class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
+	__label__ = "Smoke High Resolution Cache"
+	__default_closed__ = True
+
+	def poll(self, context):
+		md = context.smoke
+		return md and (md.smoke_type == 'TYPE_DOMAIN') and md.domain_settings.highres
+
+	def draw(self, context):
+		layout = self.layout
+
+		md = context.smoke.domain_settings
+		cache = md.point_cache_high
+			
+		point_cache_ui(self, cache, cache.baked==False, 0, 1)
+					
 bpy.types.register(PHYSICS_PT_smoke)
+bpy.types.register(PHYSICS_PT_smoke_cache)
 bpy.types.register(PHYSICS_PT_smoke_highres)
 bpy.types.register(PHYSICS_PT_smoke_groups)
+bpy.types.register(PHYSICS_PT_smoke_cache_highres)

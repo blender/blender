@@ -212,14 +212,14 @@ static void file_listener(ScrArea *sa, wmNotifier *wmn)
 
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					if (sfile->files) filelist_free(sfile->files);
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
-				case ND_PARAMS:
+				case ND_SPACE_FILE_PARAMS:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
@@ -249,12 +249,12 @@ static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					ED_region_tag_redraw(ar);
 					break;
-				case ND_PARAMS:
+				case ND_SPACE_FILE_PARAMS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -310,12 +310,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		file_hilight_set(sfile, ar, event->x, event->y);
 	}
 	
-	if (params->display == FILE_IMGDISPLAY) {
-		file_draw_previews(C, ar);
-	} else {
-		file_draw_list(C, ar);
-	}
-	
+	file_draw_list(C, ar);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -335,7 +330,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_select_bookmark);
 	WM_operatortype_append(FILE_OT_loadimages);
 	WM_operatortype_append(FILE_OT_highlight);
-	WM_operatortype_append(FILE_OT_exec);
+	WM_operatortype_append(FILE_OT_execute);
 	WM_operatortype_append(FILE_OT_cancel);
 	WM_operatortype_append(FILE_OT_parent);
 	WM_operatortype_append(FILE_OT_previous);
@@ -475,9 +470,9 @@ static void file_ui_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					ED_region_tag_redraw(ar);
 					break;
 			}

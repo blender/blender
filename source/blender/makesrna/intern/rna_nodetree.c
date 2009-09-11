@@ -57,6 +57,15 @@ StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 	}
 }
 
+static char *rna_Node_path(PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNode *node= (bNode*)ptr->data;
+	int index = BLI_findindex(&ntree->nodes, node);
+	
+	return BLI_sprintfN("nodes[%d]", index);
+}
+
 #else
 
 #define MaxNodes 1000
@@ -387,6 +396,7 @@ static void def_cmp_alpha_over(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "premul", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "x");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Premul", "Mix Factor");
 }
 
@@ -410,38 +420,46 @@ static void def_cmp_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "sizex", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sizex");
+	RNA_def_property_range(prop, 0, 256);
 	RNA_def_property_ui_text(prop, "Size X", "");
 	
 	prop = RNA_def_property(srna, "sizey", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sizey");
+	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Size Y", "");
 	
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "samples");
+	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Samples", "");
 	
 	prop = RNA_def_property(srna, "max_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxspeed");
+	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_text(prop, "Max Speed", "");
 	
 	prop = RNA_def_property(srna, "min_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "minspeed");
+	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_text(prop, "Min Speed", "");
-	
+
 	prop = RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "relative", 1);
 	RNA_def_property_ui_text(prop, "Relative", "");
 	
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
+	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Factor", "");
 	
 	prop = RNA_def_property(srna, "factor_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "percentx");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Relative Size X", "");
 	
 	prop = RNA_def_property(srna, "factor_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "percenty");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Relative Size Y", "");
 	
 	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
@@ -497,10 +515,12 @@ static void def_cmp_map_value(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_range(prop, -1000.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Offset", "");
 	
 	prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_range(prop, -1000.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Size", "");
 	
 	prop = RNA_def_property(srna, "use_min", PROP_BOOLEAN, PROP_NONE);
@@ -513,10 +533,12 @@ static void def_cmp_map_value(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min");
+	RNA_def_property_range(prop, -1000.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Minimum", "");
 	
 	prop = RNA_def_property(srna, "max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max");
+	RNA_def_property_range(prop, -1000.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Maximum", "");
 }
 
@@ -571,14 +593,17 @@ static void def_cmp_image(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "frames", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frames");
+	RNA_def_property_range(prop, 1, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Frames", "Number of images used in animation");
 	
 	prop = RNA_def_property(srna, "start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
+	RNA_def_property_range(prop, 1, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	
 	prop = RNA_def_property(srna, "offset", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "offset");
+	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Offset", "Offsets the number of the frame to use in the animation");
 	
 	prop = RNA_def_property(srna, "cyclic", PROP_BOOLEAN, PROP_NONE);
@@ -595,6 +620,7 @@ static void def_cmp_image(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "layer", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "layer");
+	RNA_def_property_range(prop, 0, 10000);
 	RNA_def_property_ui_text(prop, "Layer", "");
 	
 	/* } */
@@ -683,10 +709,12 @@ static void def_cmp_output_file(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
+	RNA_def_property_range(prop, 1, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	
 	prop = RNA_def_property(srna, "end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "efra");
+	RNA_def_property_range(prop, 1, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 }
 
@@ -719,39 +747,63 @@ static void def_cmp_scale(StructRNA *srna)
 static void def_cmp_diff_matte(StructRNA *srna)
 {
 	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
+
+	/* TODO: nicer wrapping for tolerances */	
 	
-	static EnumPropertyItem color_space_items[] = {
-		{1, "RGB", 0, "RGB",   ""},
-		{2, "HSV", 0, "HSV",   ""},
-		{3, "YUV", 0, "YUV",   ""},
-		{4, "YCC", 0, "YCbCr", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
+	prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "t1");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed.");
 	
-	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, color_space_items);
-	RNA_def_property_ui_text(prop, "Color Space", "");
+	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "t2");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed.");
+}
+
+static void def_cmp_color_matte(StructRNA *srna)
+{
+	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
 	
 	/* TODO: nicer wrapping for tolerances */
 	
-	prop = RNA_def_property(srna, "tolerance1", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "h", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
-	RNA_def_property_ui_text(prop, "Channel 1 Tolerance", "");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "H", "Hue tolerance for colors to be considered a keying color");
 	
-	prop = RNA_def_property(srna, "tolerance2", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "s", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
-	RNA_def_property_ui_text(prop, "Channel 2 Tolerance", "");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "S", "Saturation Tolerance for the color");
 	
-	prop = RNA_def_property(srna, "tolerance3", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "v", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t3");
-	RNA_def_property_ui_text(prop, "Channel 3 Tolerance", "");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "V", "Value Tolerance for the color");
+}
+
+static void def_cmp_distance_matte(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
+	
+	/* TODO: nicer wrapping for tolerances */
+	
+	prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "t1");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed.");
 	
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "fstrength");
-	RNA_def_property_ui_text(prop, "Falloff", "");
+	RNA_def_property_float_sdna(prop, NULL, "t2");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed.");
 }
 
 static void def_cmp_color_spill(StructRNA *srna)
@@ -774,10 +826,11 @@ static void def_cmp_color_spill(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
+	RNA_def_property_range(prop, 0.0f, 0.5f);
 	RNA_def_property_ui_text(prop, "Amount", "How much the selected channel is affected by");
 }
 
-static void def_cmp_chroma(StructRNA *srna)
+static void def_cmp_chroma_matte(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -785,22 +838,27 @@ static void def_cmp_chroma(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "acceptance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
+	RNA_def_property_range(prop, 1.0f, 80.0f);
 	RNA_def_property_ui_text(prop, "Acceptance", "Tolerance for a color to be considered a keying color");
 	
 	prop = RNA_def_property(srna, "cutoff", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
+	RNA_def_property_range(prop, 0.0f, 30.0f);
 	RNA_def_property_ui_text(prop, "Cutoff", "Tolerance below which colors will be considered as exact matches");
 
 	prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fsize");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Lift", "Alpha lift");
 	
 	prop = RNA_def_property(srna, "gain", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fstrength");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gain", "Alpha gain");
 	
 	prop = RNA_def_property(srna, "shadow_adjust", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t3");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Shadow Adjust", "Adjusts the brightness of any shadows captured");
 	
 	/* TODO: 
@@ -835,10 +893,12 @@ static void def_cmp_channel_matte(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "high", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "High", "Values higher than this setting are 100% opaque");
 	
 	prop = RNA_def_property(srna, "low", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Low", "Values lower than this setting are 100% keyed");
 	
 	/* TODO:
@@ -880,8 +940,9 @@ static void def_cmp_splitviewer(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Axis", "");
 	
 	/* TODO: percentage */
-	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "custom1");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Factor", "");
 }
 
@@ -891,6 +952,7 @@ static void def_cmp_id_mask(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom1");
+	RNA_def_property_range(prop, 0, 10000);
 	RNA_def_property_ui_text(prop, "Index", "Pass index number to convert to alpha");
 }
 
@@ -899,8 +961,9 @@ static void def_cmp_map_uv(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	/* TODO: percentage */
-	prop = RNA_def_property(srna, "alpha", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "alpha", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "custom1");
+	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Alpha", "");
 }
 
@@ -929,6 +992,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	/* TODO: angle in degrees */		
 	prop = RNA_def_property(srna, "angle", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rotation");
+	RNA_def_property_range(prop, 0, 90);
 	RNA_def_property_ui_text(prop, "Angle", "Bokeh shape rotation offset in degrees");
 	
 	prop = RNA_def_property(srna, "gamma_correction", PROP_BOOLEAN, PROP_NONE);
@@ -938,14 +1002,17 @@ static void def_cmp_defocus(StructRNA *srna)
 	/* TODO */
 	prop = RNA_def_property(srna, "f_stop", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fstop");
+	RNA_def_property_range(prop, 0.0f, 128.0f);
 	RNA_def_property_ui_text(prop, "fStop", "Amount of focal blur, 128=infinity=perfect focus, half the value doubles the blur radius");
 	
 	prop = RNA_def_property(srna, "max_blur", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxblur");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Max Blur", "blur limit, maximum CoC radius, 0=no limit");
 	
 	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bthresh");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "CoC radius threshold, prevents background bleed on in-focus midground, 0=off");
 	
 	prop = RNA_def_property(srna, "preview", PROP_BOOLEAN, PROP_NONE);
@@ -954,6 +1021,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "samples");
+	RNA_def_property_range(prop, 16, 256);
 	RNA_def_property_ui_text(prop, "Samples", "Number of samples (16=grainy, higher=less noise)");
 	
 	prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
@@ -962,6 +1030,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "z_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Z-Scale", "Scales the Z input when not using a zbuffer, controls maximum blur designated by the color white or input value 1");
 }
 
@@ -973,10 +1042,12 @@ static void def_cmp_luma_matte(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "high", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "High", "Values higher than this setting are 100% opaque");
 	
 	prop = RNA_def_property(srna, "low", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Low", "Values lower than this setting are 100% keyed");
 	
 	/* TODO: keep low less than high */
@@ -1008,18 +1079,22 @@ static void def_cmp_crop(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "x1", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "x1");
+	RNA_def_property_range(prop, 0, 10000);
 	RNA_def_property_ui_text(prop, "X1", "");
 	
 	prop = RNA_def_property(srna, "x2", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "x2");
+	RNA_def_property_range(prop, 0, 10000);
 	RNA_def_property_ui_text(prop, "X2", "");
 	
 	prop = RNA_def_property(srna, "y1", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "y1");
+	RNA_def_property_range(prop, 0, 10000);
 	RNA_def_property_ui_text(prop, "Y1", "");
 	
 	prop = RNA_def_property(srna, "y2", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "y2");
+	RNA_def_property_range(prop, 0, 10000);
 	RNA_def_property_ui_text(prop, "Y2", "");
 }
 
@@ -1031,6 +1106,7 @@ static void def_cmp_dblur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "iter");
+	RNA_def_property_range(prop, 1, 128);
 	RNA_def_property_ui_text(prop, "Iterations", "");
 	
 	prop = RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
@@ -1039,26 +1115,32 @@ static void def_cmp_dblur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "center_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "center_x");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Center X", "");
 	
 	prop = RNA_def_property(srna, "center_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "center_y");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Center Y", "");
 	
 	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "distance");
+	RNA_def_property_range(prop, -1.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Distance", "");
 	
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
+	RNA_def_property_range(prop, 0.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Angle", "");
 	
 	prop = RNA_def_property(srna, "spin", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spin");
+	RNA_def_property_range(prop, -360.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Spin", "");
 	
 	prop = RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "zoom");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Zoom", "");
 }
 
@@ -1070,16 +1152,18 @@ static void def_cmp_bilateral_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "iter");
+	RNA_def_property_range(prop, 1, 128);
 	RNA_def_property_ui_text(prop, "Iterations", "");
 	
 	prop = RNA_def_property(srna, "sigma_color", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sigma_color");
+	RNA_def_property_range(prop, 0.01f, 3.0f);
 	RNA_def_property_ui_text(prop, "Color Sigma", "");
 	
 	prop = RNA_def_property(srna, "sigma_space", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sigma_space");
-	RNA_def_property_ui_text(prop, "Space Sigma", "");
-	
+	RNA_def_property_range(prop, 0.01f, 30.0f);
+	RNA_def_property_ui_text(prop, "Space Sigma", "");	
 }
 
 static void def_cmp_premul_key(StructRNA *srna)
@@ -1132,30 +1216,37 @@ static void def_cmp_glare(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "iter");
+	RNA_def_property_range(prop, 2, 5);
 	RNA_def_property_ui_text(prop, "Iterations", "");
 	
 	prop = RNA_def_property(srna, "color_modulation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colmod");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Color Modulation", "");
 	
 	prop = RNA_def_property(srna, "mix", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mix");
+	RNA_def_property_range(prop, -1.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Mix", "-1 is original image only, 0 is exact 50/50 mix, 1 is processed image only");
 	
 	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "threshold");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "The glare filter will only be applied to pixels brighter than this value");
 	
 	prop = RNA_def_property(srna, "streaks", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "angle");
+	RNA_def_property_range(prop, 2, 16);
 	RNA_def_property_ui_text(prop, "Streaks", "Total number of streaks");
 	
 	prop = RNA_def_property(srna, "angle_offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle_ofs");
+	RNA_def_property_range(prop, 0.0f, 180.0f);
 	RNA_def_property_ui_text(prop, "Angle Offset", "Streak angle offset in degrees");
 	
 	prop = RNA_def_property(srna, "fade", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fade");
+	RNA_def_property_range(prop, 0.75f, 1.0f);
 	RNA_def_property_ui_text(prop, "Fade", "Streak fade-out factor");
 	
 	prop = RNA_def_property(srna, "rotate_45", PROP_BOOLEAN, PROP_NONE);
@@ -1164,6 +1255,7 @@ static void def_cmp_glare(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "size");
+	RNA_def_property_range(prop, 6, 9);
 	RNA_def_property_ui_text(prop, "Size", "Glow/glare size (not actual size; relative to initial size of bright area of pixels)");
 	
 	/* TODO */
@@ -1190,32 +1282,39 @@ static void def_cmp_tonemap(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "key", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "key");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Key", "The value the average luminance is mapped to");
 	
 	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_range(prop, 0.001f, 10.0f);
 	RNA_def_property_ui_text(prop, "Offset", "Normally always 1, but can be used as an extra control to alter the brightness curve");
 	
 	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_range(prop, 0.001f, 3.0f);
 	RNA_def_property_ui_text(prop, "Gamma", "If not used, set to 1");
 	
 	/* TODO: } else { */
 	
 	prop = RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "f");
+	RNA_def_property_range(prop, -8.0f, 8.0f);
 	RNA_def_property_ui_text(prop, "Intensity", "If less than zero, darkens image; otherwise, makes it brighter");
 	
 	prop = RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "m");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Contrast", "Set to 0 to use estimate from input image");
 	
 	prop = RNA_def_property(srna, "adaptation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "a");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Adaptation", "If 0, global; if 1, based on pixel intensity");
 	
 	prop = RNA_def_property(srna, "correction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "c");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Color Correction", "If 0, same for all channels; if 1, each independent");
 }
 
@@ -1271,18 +1370,22 @@ static void def_tex_bricks(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Offset Amount", "");
 	
 	prop = RNA_def_property(srna, "offset_frequency", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom1");
+	RNA_def_property_range(prop, 2, 99);
 	RNA_def_property_ui_text(prop, "Offset Frequency", "Offset every N rows");
 	
 	prop = RNA_def_property(srna, "squash", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "custom4");
+	RNA_def_property_range(prop, 0.0f, 99.0f);
 	RNA_def_property_ui_text(prop, "Squash Amount", "");
 	
 	prop = RNA_def_property(srna, "squash_frequency", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom2");
+	RNA_def_property_range(prop, 2, 99);
 	RNA_def_property_ui_text(prop, "Squash Frequency", "Squash every N rows");
 }
 
@@ -1353,6 +1456,7 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Node", "Node in a node tree.");
 	RNA_def_struct_sdna(srna, "bNode");
 	RNA_def_struct_refine_func(srna, "rna_Node_refine");
+	RNA_def_struct_path_func(srna, "rna_Node_path");
 	
 	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "locx");

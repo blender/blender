@@ -31,27 +31,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include <errno.h>
+
 #include "zlib.h"
 
 #ifdef WIN32
-#include "BLI_winstuff.h"
 #include <io.h>
+#include "BLI_winstuff.h"
 #else
 #include <unistd.h> // for read close
 #include <sys/param.h>
 #endif
+
 
 #include "BLI_blenlib.h"
 #include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_callbacks.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include "BKE_utildefines.h"
-#include <errno.h>
 
 #include "BLO_sys_types.h" // for intptr_t support
 

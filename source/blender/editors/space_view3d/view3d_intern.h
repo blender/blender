@@ -156,6 +156,9 @@ void VIEW3D_OT_snap_menu(struct wmOperatorType *ot);
 ARegion *view3d_has_buttons_region(ScrArea *sa);
 ARegion *view3d_has_tools_region(ScrArea *sa);
 
+/* draw_volume.c */
+void draw_volume(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct Base *base, struct GPUTexture *tex, int res[3], float dx, struct GPUTexture *tex_shadow);
+
 
 #endif /* ED_VIEW3D_INTERN_H */
 

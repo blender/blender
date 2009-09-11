@@ -1615,7 +1615,10 @@ PyTypeObject KX_Scene::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
+	0,
+	&Sequence,
+	&Mapping,
+	0,0,0,0,0,0,
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
 	Methods,
@@ -1627,12 +1630,116 @@ PyTypeObject KX_Scene::Type = {
 };
 
 PyMethodDef KX_Scene::Methods[] = {
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getLightList),
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getObjectList),
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getName),
 	KX_PYMETHODTABLE(KX_Scene, addObject),
 	
+	/* dict style access */
+	KX_PYMETHODTABLE(KX_Scene, get),
+	
 	{NULL,NULL} //Sentinel
+};
+static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
+{
+	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	const char *attr_str= _PyUnicode_AsString(item);
+	PyObject* pyconvert;
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "val = scene[key]: KX_Scene, "BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
+	if (self->m_attr_dict && (pyconvert=PyDict_GetItem(self->m_attr_dict, item))) {
+		
+		if (attr_str)
+			PyErr_Clear();
+		Py_INCREF(pyconvert);
+		return pyconvert;
+	}
+	else {
+		if(attr_str)	PyErr_Format(PyExc_KeyError, "value = scene[key]: KX_Scene, key \"%s\" does not exist", attr_str);
+		else			PyErr_SetString(PyExc_KeyError, "value = scene[key]: KX_Scene, key does not exist");
+		return NULL;
+	}
+		
+}
+
+static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
+{
+	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	const char *attr_str= _PyUnicode_AsString(key);
+	if(attr_str==NULL)
+		PyErr_Clear();
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "scene[key] = value: KX_Scene, "BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if (val==NULL) { /* del ob["key"] */
+		int del= 0;
+		
+		if(self->m_attr_dict)
+			del |= (PyDict_DelItem(self->m_attr_dict, key)==0) ? 1:0;
+		
+		if (del==0) {
+			if(attr_str)	PyErr_Format(PyExc_KeyError, "scene[key] = value: KX_Scene, key \"%s\" could not be set", attr_str);
+			else			PyErr_SetString(PyExc_KeyError, "del scene[key]: KX_Scene, key could not be deleted");
+			return -1;
+		}
+		else if (self->m_attr_dict) {
+			PyErr_Clear(); /* PyDict_DelItem sets an error when it fails */
+		}
+	}
+	else { /* ob["key"] = value */
+		int set = 0;
+
+		if (self->m_attr_dict==NULL) /* lazy init */
+			self->m_attr_dict= PyDict_New();
+		
+		
+		if(PyDict_SetItem(self->m_attr_dict, key, val)==0)
+			set= 1;
+		else
+			PyErr_SetString(PyExc_KeyError, "scene[key] = value: KX_Scene, key not be added to internal dictionary");
+	
+		if(set==0)
+			return -1; /* pythons error value */
+		
+	}
+	
+	return 0; /* success */
+}
+
+static int Seq_Contains(PyObject *self_v, PyObject *value)
+{
+	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "val in scene: KX_Scene, "BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if (self->m_attr_dict && PyDict_GetItem(self->m_attr_dict, value))
+		return 1;
+	
+	return 0;
+}
+
+PyMappingMethods KX_Scene::Mapping = {
+	(lenfunc)NULL					, 			/*inquiry mp_length */
+	(binaryfunc)Map_GetItem,		/*binaryfunc mp_subscript */
+	(objobjargproc)Map_SetItem,	/*objobjargproc mp_ass_subscript */
+};
+
+PySequenceMethods KX_Scene::Sequence = {
+	NULL,		/* Cant set the len otherwise it can evaluate as false */
+	NULL,		/* sq_concat */
+	NULL,		/* sq_repeat */
+	NULL,		/* sq_item */
+	NULL,		/* sq_slice */
+	NULL,		/* sq_ass_item */
+	NULL,		/* sq_ass_slice */
+	(objobjproc)Seq_Contains,	/* sq_contains */
 };
 
 PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1714,33 +1821,6 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
-"getLightList() -> list [KX_Light]\n"
-"Returns a list of all lights in the scene.\n"
-)
-{
-	ShowDeprecationWarning("getLightList()", "the lights property");
-	return m_lightlist->GetProxy();
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
-"getObjectList() -> list [KX_GameObject]\n"
-"Returns a list of all game objects in the scene.\n"
-)
-{
-	ShowDeprecationWarning("getObjectList()", "the objects property");
-	return m_objectlist->GetProxy();
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
-"getName() -> string\n"
-"Returns the name of the scene.\n"
-)
-{
-	ShowDeprecationWarning("getName()", "the name property");
-	return PyUnicode_FromString(GetName());
-}
-
 KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 "addObject(object, other, time=0)\n"
 "Returns the added object.\n")
@@ -1764,4 +1844,23 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 	// the object is added to the scene so we dont want python to own a reference
 	replica->Release();
 	return replica->GetProxy();
+}
+
+/* Matches python dict.get(key, [default]) */
+KX_PYMETHODDEF_DOC(KX_Scene, get, "")
+{
+	PyObject *key;
+	PyObject* def = Py_None;
+	PyObject* ret;
+
+	if (!PyArg_ParseTuple(args, "O|O:get", &key, &def))
+		return NULL;
+	
+	if (m_attr_dict && (ret=PyDict_GetItem(m_attr_dict, key))) {
+		Py_INCREF(ret);
+		return ret;
+	}
+	
+	Py_INCREF(def);
+	return def;
 }

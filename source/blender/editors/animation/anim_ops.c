@@ -381,13 +381,14 @@ void ANIM_OT_time_toggle(wmOperatorType *ot)
 
 void ED_operatortypes_anim(void)
 {
+	/* Animation Editors only -------------------------- */
 	WM_operatortype_append(ANIM_OT_change_frame);
 	WM_operatortype_append(ANIM_OT_time_toggle);
 	
 	WM_operatortype_append(ANIM_OT_previewrange_set);
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
 	
-		// XXX this is used all over... maybe for screen instead?
+	/* Entire UI --------------------------------------- */
 	WM_operatortype_append(ANIM_OT_insert_keyframe);
 	WM_operatortype_append(ANIM_OT_delete_keyframe);
 	WM_operatortype_append(ANIM_OT_insert_keyframe_menu);
@@ -399,8 +400,8 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);
 	
-	WM_operatortype_append(ANIM_OT_keyingset_add_new);
-	WM_operatortype_append(ANIM_OT_keyingset_add_destination);
+	WM_operatortype_append(ANIM_OT_add_keyingset_button);
+	WM_operatortype_append(ANIM_OT_remove_keyingset_button);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)
@@ -409,10 +410,10 @@ void ED_keymap_anim(wmWindowManager *wm)
 	
 	/* frame management */
 		/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons */
-	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_time_toggle", TKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* preview range */
-	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_set", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_clear", PKEY, KM_PRESS, KM_ALT, 0);
 }

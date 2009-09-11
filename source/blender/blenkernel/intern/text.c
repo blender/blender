@@ -37,14 +37,22 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_controller_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_text.h"
-#include "BKE_library.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
+#include "BKE_text.h"
+#include "BKE_utildefines.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -450,6 +458,85 @@ Text *copy_text(Text *ta)
 
 	return tan;
 }
+
+void unlink_text(Main *bmain, Text *text)
+{
+	bScreen *scr;
+	ScrArea *area;
+	SpaceLink *sl;
+	Scene *scene;
+	Object *ob;
+	bController *cont;
+	bConstraint *con;
+	short update;
+
+	/* dome */
+	for(scene=bmain->scene.first; scene; scene=scene->id.next)
+		if(scene->r.dometext == text)
+			scene->r.dometext = NULL;
+	
+	for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		/* game controllers */
+		for(cont=ob->controllers.first; cont; cont=cont->next) {
+			if(cont->type==CONT_PYTHON) {
+				bPythonCont *pc;
+				
+				pc= cont->data;
+				if(pc->text==text) pc->text= NULL;
+			}
+		}
+
+		/* pyconstraints */
+		update = 0;
+
+		if(ob->type==OB_ARMATURE && ob->pose) {
+			bPoseChannel *pchan;
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				for(con = pchan->constraints.first; con; con=con->next) {
+					if(con->type==CONSTRAINT_TYPE_PYTHON) {
+						bPythonConstraint *data = con->data;
+						if (data->text==text) data->text = NULL;
+						update = 1;
+						
+					}
+				}
+			}
+		}
+
+		for(con = ob->constraints.first; con; con=con->next) {
+			if(con->type==CONSTRAINT_TYPE_PYTHON) {
+				bPythonConstraint *data = con->data;
+				if (data->text==text) data->text = NULL;
+				update = 1;
+			}
+		}
+		
+		if(update)
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	}
+
+	/* pynodes */
+	// XXX nodeDynamicUnlinkText(&text->id);
+	
+	/* text space */
+	for(scr= bmain->screen.first; scr; scr= scr->id.next) {
+		for(area= scr->areabase.first; area; area= area->next) {
+			for(sl= area->spacedata.first; sl; sl= sl->next) {
+				if(sl->spacetype==SPACE_TEXT) {
+					SpaceText *st= (SpaceText*) sl;
+					
+					if(st->text==text) {
+						st->text= NULL;
+						st->top= 0;
+					}
+				}
+			}
+		}
+	}
+
+	text->id.us= 0;
+}
+
 
 /*****************************/
 /* Editing utility functions */

@@ -47,6 +47,8 @@
 
 #define PREV_RES 128 /* default preview resolution */
 
+int preview_flag = 0;
+
 void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
 	if(dg->node->need_exec)
@@ -108,12 +110,6 @@ static void init_preview(bNode *node)
 	if(node->preview==NULL)
 		node->preview= MEM_callocN(sizeof(bNodePreview), "node preview");
 	
-	if(node->preview->rect)
-		if(node->preview->xsize!=xsize && node->preview->ysize!=ysize) {
-			MEM_freeN(node->preview->rect);
-			node->preview->rect= NULL;
-		}
-	
 	if(node->preview->rect==NULL) {
 		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(float)*4, "node preview rect");
 		node->preview->xsize= xsize;
@@ -136,6 +132,8 @@ void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata)
 	bNodePreview *preview;
 	float coord[3] = {0, 0, 0};
 	TexParams params;
+	int resolution;
+	int xsize, ysize;
 	
 	if(!cdata->do_preview)
 		return;
@@ -146,19 +144,23 @@ void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata)
 	init_preview(node);
 	
 	preview = node->preview;
+	xsize = preview->xsize;
+	ysize = preview->ysize;
 	
 	params.dxt = 0;
 	params.dyt = 0;
 	params.cfra = cdata->cfra;
 	params.coord = coord;
 	
-	for(x=0; x<preview->xsize; x++)
-	for(y=0; y<preview->ysize; y++)
+	resolution = (xsize < ysize) ? xsize : ysize;
+	
+	for(x=0; x<xsize; x++)
+	for(y=0; y<ysize; y++)
 	{
-		params.coord[0] = ((float) x / preview->xsize) * 2 - 1;
-		params.coord[1] = ((float) y / preview->ysize) * 2 - 1;
+		params.coord[0] = ((float) x / resolution) * 2 - 1;
+		params.coord[1] = ((float) y / resolution) * 2 - 1;
 		
-		result = preview->rect + 4 * (preview->xsize*y + x);
+		result = preview->rect + 4 * (xsize*y + x);
 		
 		tex_input_rgba(result, ns, &params, cdata->thread);
 	}
@@ -212,7 +214,6 @@ void ntreeTexExecTree(
 	TexResult *texres,
 	float *coord,
 	float *dxt, float *dyt,
-	char do_preview, 
 	short thread, 
 	Tex *tex, 
 	short which_output, 
@@ -230,28 +231,19 @@ void ntreeTexExecTree(
 	data.dxt = dxt;
 	data.dyt = dyt;
 	data.target = texres;
-	data.do_preview = do_preview;
+	data.do_preview = preview_flag;
 	data.thread = thread;
 	data.which_output = which_output;
 	data.cfra= cfra;
 	
+	preview_flag = 0;
+	
 	ntreeExecTree(nodes, &data, thread);
 }
 
-void ntreeTexUpdatePreviews(bNodeTree* nodetree)
+void ntreeTexSetPreviewFlag(int doit)
 {
-	Tex *tex;
-	float coord[] = {0,0,0};
-	TexResult dummy_texres;
-	
-	for(tex= G.main->tex.first; tex; tex= tex->id.next)
-		if(tex->nodetree == nodetree) break;
-	if(tex) {
-		dummy_texres.nor = 0;
-	
-		ntreeBeginExecTree(nodetree);
-		ntreeTexExecTree(nodetree, &dummy_texres, coord, 0, 0, 1, 0, tex, 0, 0);
-	}
+	preview_flag = doit;
 }
 
 char* ntreeTexOutputMenu(bNodeTree *ntree)

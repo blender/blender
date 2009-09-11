@@ -549,13 +549,15 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
-
+	struct { ViewContext vc; short (*mcords)[2]; short moves; short select; } *data = userData;
+	
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
-			if (G.f & G_HIDDENHANDLES) {
+			Curve *cu= data->vc.obedit->data;
+			
+			if (cu->drawflag & CU_HIDE_HANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
@@ -573,9 +575,10 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp
 
 static void do_lasso_select_curve(ViewContext *vc, short mcords[][2], short moves, short select)
 {
-	struct { short (*mcords)[2]; short moves; short select; } data;
+	struct { ViewContext vc; short (*mcords)[2]; short moves; short select; } data;
 
 	/* set vc->editnurb */
+	data.vc = *vc;
 	data.mcords = mcords;
 	data.moves = moves;
 	data.select = select;
@@ -756,6 +759,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 {
 	ot->name= "Lasso Select";
+	ot->description= "Select items using lasso selection.";
 	ot->idname= "VIEW3D_OT_select_lasso";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
@@ -1195,7 +1199,9 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
-			if (G.f & G_HIDDENHANDLES) {
+			Curve *cu= data->vc.obedit->data;
+			
+			if (cu->drawflag & CU_HIDE_HANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
@@ -1214,7 +1220,7 @@ static void do_nurbs_box_select(ViewContext *vc, rcti *rect, int select)
 {
 	struct { ViewContext vc; rcti *rect; int select; } data;
 	
-	data.vc= *vc;
+	data.vc = *vc;
 	data.rect = rect;
 	data.select = select;
 
@@ -1359,7 +1365,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			vc.em= me->edit_mesh;
 			do_mesh_box_select(&vc, &rect, (val==LEFTMOUSE));
 //			if (EM_texFaceCheck())
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			
 		}
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
@@ -1534,6 +1540,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
+	ot->description= "Select items using border selection.";
 	ot->idname= "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
@@ -1593,6 +1600,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select";
+	ot->description= "Activate/select item(s).";
 	ot->idname= "VIEW3D_OT_select";
 	
 	/* api callbacks */
@@ -1802,7 +1810,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 		if(CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obact);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 		}
 		else
 			return PE_circle_select(C, selecting, mval, (float)radius);
@@ -1831,6 +1839,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
 	ot->name= "Circle Select";
+	ot->description= "Select items using circle selection.";
 	ot->idname= "VIEW3D_OT_select_circle";
 	
 	ot->invoke= WM_gesture_circle_invoke;

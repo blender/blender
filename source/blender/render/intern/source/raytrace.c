@@ -931,7 +931,7 @@ int RE_ray_face_intersection(Isect *is, RayObjectTransformFunc transformfunc, Ra
 		intersection to be detected in its neighbour face */
 		
 		if(is->facecontr && is->faceisect);	// optimizing, the tests below are not needed
-		else if(is->labda< .1) {
+		else if(is->labda< .1 && is->faceorig) {
 			RayFace *face= is->faceorig;
 			float *origv1, *origv2, *origv3, *origv4;
 			short de= 0;

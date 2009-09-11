@@ -1084,7 +1084,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					te->flag |= TE_LAZY_CLOSED;
 			}
 			else if(ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-				tot= RNA_property_array_length(prop);
+				tot= RNA_property_array_length(ptr, prop);
 
 				if(!(tselem->flag & TSE_CLOSED)) {
 					for(a=0; a<tot; a++)
@@ -1994,7 +1994,7 @@ static int tree_element_active_defgroup(bContext *C, Scene *scene, TreeElement *
 	ob= (Object *)tselem->id;
 	if(set) {
 		ob->actdef= te->index+1;
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 	}
 	else {
@@ -2120,10 +2120,8 @@ static int tree_element_active_psys(bContext *C, Scene *scene, TreeElement *te, 
 {
 	if(set) {
 		Object *ob= (Object *)tselem->id;
-		ParticleSystem *psys= te->directdata;
 		
-		PE_change_act_psys(scene, ob, psys);
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 		
 // XXX		extern_set_butspace(F7KEY, 0);
 	}
@@ -3721,7 +3719,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* item is part of an array, so must set the array_index */
 			*array_index= te->index;
 		}
-		else if (RNA_property_array_length(prop)) {
+		else if (RNA_property_array_length(ptr, prop)) {
 			/* entire array was selected, so keyframe all */
 			*flag |= KSP_FLAG_WHOLE_ARRAY;
 		}
@@ -4684,7 +4682,7 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	object_handle_update(scene, ob);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -5274,7 +5272,10 @@ void draw_outliner(const bContext *C)
 		sizex_rna= MAX2(OL_RNA_COLX, sizex_rna+OL_RNA_COL_SPACEX);
 		
 		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
-		sizex= sizex_rna + OL_RNA_COL_SIZEX + 50;
+		if (soops->outlinevis == SO_KEYMAP) 
+			sizex= sizex_rna + OL_RNA_COL_SIZEX*3 + 50; // XXX this is only really a quick hack to make this wide enough...
+		else
+			sizex= sizex_rna + OL_RNA_COL_SIZEX + 50;
 	}
 	else {
 		/* width must take into account restriction columns (if visible) so that entries will still be visible */
@@ -5286,6 +5287,9 @@ void draw_outliner(const bContext *C)
 		if ((soops->flag & SO_HIDE_RESTRICTCOLS)==0)
 			sizex += OL_TOGW*3;
 	}
+	
+	/* tweak to display last line (when list bigger than window) */
+	sizey += V2D_SCROLL_HEIGHT;
 	
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, sizex, sizey);

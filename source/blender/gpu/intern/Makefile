@@ -47,6 +47,7 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I$(NAN_SMOKE)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I../

@@ -27,23 +27,23 @@ FILE(GLOB SRC intern/*.c)
 FILE(GLOB GENSRC generic/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../blenlib ../makesdna ../makesrna
-  ../blenkernel ../editors/include ../windowmanager ${PYTHON_INC}
-  ../../../extern/glew/include
+	. ../../../intern/guardedalloc ../blenlib ../makesdna ../makesrna
+	../blenkernel ../editors/include ../windowmanager ${PYTHON_INC}
+	../../../extern/glew/include
 )
 
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	SET(INC ${INC} ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
-  SET(INC ${INC} ${FFMPEG_INC})
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	SET(INC ${INC} ${FFMPEG_INC})
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 ADD_DEFINITIONS(-DWITH_CCGSUBSURF)

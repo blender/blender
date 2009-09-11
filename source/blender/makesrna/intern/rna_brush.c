@@ -32,6 +32,8 @@
 #include "DNA_brush_types.h"
 #include "DNA_texture_types.h"
 
+#include "IMB_imbuf.h"
+
 EnumPropertyItem brush_sculpt_tool_items[] = {
 	{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
 	{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
@@ -93,14 +95,14 @@ void rna_def_brush(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_blend_items[] = {
-		{BRUSH_BLEND_MIX, "MIX", 0, "Mix", "Use mix blending mode while painting."},
-		{BRUSH_BLEND_ADD, "ADD", 0, "Add", "Use add blending mode while painting."},
-		{BRUSH_BLEND_SUB, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
-		{BRUSH_BLEND_MUL, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
-		{BRUSH_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
-		{BRUSH_BLEND_DARKEN, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
-		{BRUSH_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting."},
-		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
+		{IMB_BLEND_MIX, "MIX", 0, "Mix", "Use mix blending mode while painting."},
+		{IMB_BLEND_ADD, "ADD", 0, "Add", "Use add blending mode while painting."},
+		{IMB_BLEND_SUB, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
+		{IMB_BLEND_MUL, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
+		{IMB_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
+		{IMB_BLEND_DARKEN, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
+		{IMB_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting."},
+		{IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "Brush", "ID");
@@ -164,18 +166,22 @@ void rna_def_brush(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "strength_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength.");
 	
 	prop= RNA_def_property(srna, "size_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size.");
 	
 	prop= RNA_def_property(srna, "falloff_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAD_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Falloff Pressure", "Enable tablet pressure sensitivity for falloff.");
 	
 	prop= RNA_def_property(srna, "spacing_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACING_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Spacing Pressure", "Enable tablet pressure sensitivity for spacing.");
 
 	prop= RNA_def_property(srna, "rake", PROP_BOOLEAN, PROP_NONE);

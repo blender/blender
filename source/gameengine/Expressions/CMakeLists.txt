@@ -27,13 +27,13 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  .
-  ../../../source/kernel/gen_system
-  ../../../intern/string
-  ../../../intern/moto/include
-  ../../../source/gameengine/SceneGraph
-  ../../../source/blender/blenloader
-  ${PYTHON_INC}
+	.
+	../../../source/kernel/gen_system
+	../../../intern/string
+	../../../intern/moto/include
+	../../../source/gameengine/SceneGraph
+	../../../source/blender/blenloader
+	${PYTHON_INC}
 )
 
 BLENDERLIB(bf_expressions "${SRC}" "${INC}")

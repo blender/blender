@@ -291,7 +291,7 @@ NlaStrip *add_nlastrip (bAction *act)
 	/* determine initial range 
 	 *	- strip length cannot be 0... ever...
 	 */
-	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+	calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
 	
 	strip->start = strip->actstart;
 	strip->end = (IS_EQ(strip->actstart, strip->actend)) ?  (strip->actstart + 1.0f): (strip->actend);

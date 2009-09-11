@@ -62,10 +62,4 @@ incs += Split(env['BF_PYTHON_INC'])
 incs += Split(env['BF_PNG_INC'])
 incs += Split(env['BF_ZLIB_INC'])
 
-cxxflags = []
-if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-	cxxflags.append ('/EHsc')
-
-env.BlenderLib (libname='gp_common', sources=source_files, includes=incs, defines = [], libtype='player', priority=5, cxx_compileflags=cxxflags)
+env.BlenderLib (libname='gp_common', sources=source_files, includes=incs, defines = [], libtype=['player'], priority=[5], cxx_compileflags=env['BGE_CXXFLAGS'])

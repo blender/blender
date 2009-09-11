@@ -86,16 +86,6 @@ typedef struct Brush {
 #define BRUSH_SMOOTH_STROKE	2048
 #define BRUSH_PERSISTENT	4096
 
-/* Brush.blend */
-#define BRUSH_BLEND_MIX 		0
-#define BRUSH_BLEND_ADD 		1
-#define BRUSH_BLEND_SUB 		2
-#define BRUSH_BLEND_MUL 		3
-#define BRUSH_BLEND_LIGHTEN		4
-#define BRUSH_BLEND_DARKEN		5
-#define BRUSH_BLEND_ERASE_ALPHA	6
-#define BRUSH_BLEND_ADD_ALPHA	7
-
 /* Brush.sculpt_tool */
 #define SCULPT_TOOL_DRAW    1
 #define SCULPT_TOOL_SMOOTH  2

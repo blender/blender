@@ -32,11 +32,6 @@
 
 // directory header for py function getBlendFileList
 #include <stdlib.h>
-#ifndef WIN32
-  #include <dirent.h>
-#else
-  #include "BLI_winstuff.h"
-#endif
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -80,8 +75,6 @@ extern "C" {
 #include "InputParser.h"
 #include "KX_Scene.h"
 
-#include "NG_NetworkScene.h" //Needed for sendMessage()
-
 #include "BL_Shader.h"
 
 #include "KX_PyMath.h"
@@ -110,6 +103,13 @@ extern "C" {
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
+
+#ifndef WIN32
+  #include <dirent.h>
+#else
+  #include "BLI_winstuff.h"
+#endif
+#include "NG_NetworkScene.h" //Needed for sendMessage()
 
 static void setSandbox(TPythonSecurityLevel level);
 
@@ -142,7 +142,7 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 // List of methods defined in the module
 
 static PyObject* ErrorObject;
-STR_String gPyGetRandomFloat_doc="getRandomFloat returns a random floating point value in the range [0..1)";
+static const char *gPyGetRandomFloat_doc="getRandomFloat returns a random floating point value in the range [0..1]";
 
 static PyObject* gPyGetRandomFloat(PyObject*)
 {
@@ -346,7 +346,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
     return list;
 }
 
-static STR_String gPyGetCurrentScene_doc =  
+static const char *gPyGetCurrentScene_doc =
 "getCurrentScene()\n"
 "Gets a reference to the current scene.\n";
 static PyObject* gPyGetCurrentScene(PyObject* self)
@@ -354,7 +354,7 @@ static PyObject* gPyGetCurrentScene(PyObject* self)
 	return gp_KetsjiScene->GetProxy();
 }
 
-static STR_String gPyGetSceneList_doc =  
+static const char *gPyGetSceneList_doc =
 "getSceneList()\n"
 "Return a list of converted scenes.\n";
 static PyObject* gPyGetSceneList(PyObject* self)
@@ -448,46 +448,18 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 }
 
 
-static PyObject *gEvalExpression(PyObject*, PyObject* value)
-{
-	char* txt= _PyUnicode_AsString(value);
-	
-	if (txt==NULL) {
-		PyErr_SetString(PyExc_TypeError, "Expression.calc(text): expects a single string argument");
-		return NULL;
-	}
-	
-	CParser parser;
-	CExpression* expr = parser.ProcessText(txt);
-	CValue* val = expr->Calculate();
-	expr->Release();
-	
-	if (val) {	
-		PyObject* pyobj = val->ConvertValueToPython();
-		if (pyobj)
-			return pyobj;
-		else
-			return val->GetProxy();
-	}
-	
-	Py_RETURN_NONE;
-}
-
-
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (const char *)gPyExpandPath_doc},
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (const char *)gPySendMessage_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
-	METH_NOARGS, (const char *)SCA_PythonController::sPyGetCurrentController__doc__},
+	METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
-	METH_NOARGS, (const char *)gPyGetCurrentScene_doc.Ptr()},
+	METH_NOARGS, gPyGetCurrentScene_doc},
 	{"getSceneList", (PyCFunction) gPyGetSceneList,
-	METH_NOARGS, (const char *)gPyGetSceneList_doc.Ptr()},
-	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
-	METH_VARARGS, (const char *)SCA_PythonController::sPyAddActiveActuator__doc__},
+	METH_NOARGS, (const char *)gPyGetSceneList_doc},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
-	METH_NOARGS, (const char *)gPyGetRandomFloat_doc.Ptr()},
+	METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (const char *)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (const char *)"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (const char *)"stop using the audio dsp (for performance reasons)"},
@@ -502,7 +474,6 @@ static struct PyMethodDef game_methods[] = {
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (const char *)"Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (const char *)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (const char *)"Prints GL Extension Info"},
-	{"EvalExpression", (PyCFunction)gEvalExpression, METH_O, (const char *)"Evaluate a string as a game logic expression"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -2045,6 +2016,3 @@ void resetGamePythonPath()
 {
 	gp_GamePythonPathOrig[0] = '\0';
 }
-
-
-

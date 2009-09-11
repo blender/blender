@@ -47,6 +47,34 @@ struct Ipo;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 
+typedef struct VolumeSettings {
+	float density;
+	float emission;
+	float absorption;
+	float scattering;
+
+	float emission_col[3];
+	float absorption_col[3];
+	float density_scale;
+	float depth_cutoff;
+
+	short phasefunc_type;
+	short vpad[3];
+	float phasefunc_g;
+	
+	float stepsize;
+	float shade_stepsize;
+	
+	short stepsize_type;
+	short shadeflag;
+	short shade_type;
+	short precache_resolution;
+	
+	float ms_diff;
+	float ms_intensity;
+	int ms_steps;
+} VolumeSettings;
+
 typedef struct Material {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -62,6 +90,8 @@ typedef struct Material {
 	float translucency;
 	/* end synced with render_types.h */
 	
+	struct VolumeSettings vol;
+
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
 	float filter;		/* filter added, for raytrace transparency and transmissivity */
@@ -249,6 +279,8 @@ typedef struct Material {
 #define MA_RAMP_SAT			13
 #define MA_RAMP_VAL			14
 #define MA_RAMP_COLOR		15
+#define MA_RAMP_SOFT        16 
+#define MA_RAMP_LINEAR      17 
 
 /* texco */
 #define TEXCO_ORCO		1
@@ -286,6 +318,14 @@ typedef struct Material {
 #define MAP_DISPLACE	4096
 #define MAP_WARP		8192
 #define MAP_LAYER		16384
+
+/* volume mapto - reuse definitions for now - a bit naughty! */
+#define MAP_DENSITY			128
+#define MAP_EMISSION		64
+#define MAP_EMISSION_COL	1
+#define MAP_ABSORPTION		512
+#define MAP_ABSORPTION_COL	8
+#define MAP_SCATTERING		16
 
 /* mapto for halo */
 //#define MAP_HA_COL		1
@@ -329,6 +369,30 @@ typedef struct Material {
 
 /* sss_flag */
 #define MA_DIFF_SSS		1
+
+/* vol_stepsize_type */
+#define MA_VOL_STEP_RANDOMIZED	0
+#define MA_VOL_STEP_CONSTANT	1
+#define MA_VOL_STEP_ADAPTIVE	2
+
+/* vol_shadeflag */
+#define MA_VOL_SHADED		1
+#define MA_VOL_RECVSHADOW	4
+#define MA_VOL_PRECACHESHADING	8
+
+/* vol_shading_type */
+#define MA_VOL_SHADE_NONE					0
+#define MA_VOL_SHADE_SINGLE					1
+#define MA_VOL_SHADE_MULTIPLE				2
+#define MA_VOL_SHADE_SINGLEPLUSMULTIPLE		3
+
+/* vol_phasefunc_type */
+#define MA_VOL_PH_ISOTROPIC		0
+#define MA_VOL_PH_MIEHAZY		1
+#define MA_VOL_PH_MIEMURKY		2
+#define MA_VOL_PH_RAYLEIGH		3
+#define MA_VOL_PH_HG			4
+#define MA_VOL_PH_SCHLICK		5
 
 #endif
 

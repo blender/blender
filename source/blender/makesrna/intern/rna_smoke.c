@@ -51,7 +51,7 @@
 
 static void rna_Smoke_update(bContext *C, PointerRNA *ptr)
 {
-	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
+	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 }
 
 static void rna_Smoke_dependency_update(bContext *C, PointerRNA *ptr)
@@ -76,13 +76,6 @@ static void rna_Smoke_reset_dependancy(bContext *C, PointerRNA *ptr)
 	smokeModifier_reset(settings->smd);
 
 	rna_Smoke_dependency_update(C, ptr);
-}
-
-static void rna_Smoke_redraw(bContext *C, PointerRNA *ptr)
-{
-	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
-
-	settings->flags |= MOD_SMOKE_VIEW_REDRAWNICE;
 }
 
 static char *rna_SmokeDomainSettings_path(PointerRNA *ptr)
@@ -136,13 +129,6 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Max Res", "Maximal resolution used in the fluid domain.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
-	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "omega");
-	RNA_def_property_range(prop, 0.02, 1.0);
-	RNA_def_property_ui_range(prop, 0.02, 1.0, 0.02, 2);
-	RNA_def_property_ui_text(prop, "Color", "Smoke color (0 = black, 1 = white).");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Smoke_redraw");
-
 	prop= RNA_def_property(srna, "amplify", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "amplify");
 	RNA_def_property_range(prop, 1, 10);
@@ -156,22 +142,15 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "viewhighres", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "viewsettings", MOD_SMOKE_VIEW_USEBIG);
+	RNA_def_property_boolean_sdna(prop, NULL, "viewsettings", MOD_SMOKE_VIEW_SHOWBIG);
 	RNA_def_property_ui_text(prop, "Show High Resolution", "Show high resolution (using amplification).");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_redraw");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noise");
 	RNA_def_property_enum_items(prop, prop_noise_type_items);
 	RNA_def_property_ui_text(prop, "Noise Method", "Noise method which is used for creating the high resolution");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
-
-	prop= RNA_def_property(srna, "visibility", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "visibility");
-	RNA_def_property_range(prop, 1, 15);
-	RNA_def_property_ui_range(prop, 1, 15, 1, 0);
-	RNA_def_property_ui_text(prop, "Display", "How much of the resolution should be shown during preview (every 2nd, 3rd, etc).");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Smoke_redraw");
 
 	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
@@ -220,17 +199,25 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0, 100.0);
 	RNA_def_property_ui_range(prop, 1.0, 1000.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Dissolve Speed", "Dissolve Speed");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, 0, NULL);
 
 	prop= RNA_def_property(srna, "dissolve_smoke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE);
 	RNA_def_property_ui_text(prop, "Dissolve Smoke", "Enable smoke to disappear over time.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, 0, NULL);
 
 	prop= RNA_def_property(srna, "dissolve_smoke_log", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE_LOG);
 	RNA_def_property_ui_text(prop, "Logarithmic dissolve", "Using 1/x ");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, 0, NULL);
+
+	prop= RNA_def_property(srna, "point_cache_low", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "point_cache[0]");
+	RNA_def_property_ui_text(prop, "Point Cache", "");
+
+	prop= RNA_def_property(srna, "point_cache_high", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "point_cache[1]");
+	RNA_def_property_ui_text(prop, "Point Cache", "");
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)
@@ -248,26 +235,26 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.001, 1);
 	RNA_def_property_ui_range(prop, 0.001, 1.0, 1.0, 4);
 	RNA_def_property_ui_text(prop, "Density", "");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, 0, NULL); // NC_OBJECT|ND_MODIFIER
 
 	prop= RNA_def_property(srna, "temperature", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "temp");
 	RNA_def_property_range(prop, -10, 10);
 	RNA_def_property_ui_range(prop, -10, 10, 1, 1);
 	RNA_def_property_ui_text(prop, "Temp. Diff.", "Temperature difference to ambientt temperature.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, 0, NULL);
 	
 	prop= RNA_def_property(srna, "psys", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "psys");
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset_dependancy");
+	RNA_def_property_update(prop, 0, "rna_Smoke_reset_dependancy");
 
 	prop= RNA_def_property(srna, "outflow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", MOD_SMOKE_FLOW_TYPE_OUTFLOW);
 	RNA_def_property_ui_text(prop, "Outflow", "Deletes smoke from simulation");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, 0, NULL);
 }
 
 static void rna_def_smoke_coll_settings(BlenderRNA *brna)

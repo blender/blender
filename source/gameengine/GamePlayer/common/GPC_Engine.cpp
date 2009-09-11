@@ -58,7 +58,6 @@
 #include "NG_LoopBackNetworkDeviceInterface.h"
 
 #include "RAS_IRenderTools.h"
-#include "SND_DeviceManager.h"
 
 #include "GPC_Engine.h"
 #include "GPC_KeyboardDevice.h"
@@ -75,8 +74,7 @@ GPC_Engine::GPC_Engine(char *customLoadingAnimationURL,
 		m_system(NULL), m_keyboarddev(NULL),
 		m_mousedev(NULL), m_canvas(NULL), m_rendertools(NULL),
 		m_portal(NULL), m_sceneconverter(NULL), m_networkdev(NULL),
-		m_audiodevice(NULL), m_curarea(NULL),
-		m_customLoadingAnimationURL(NULL),
+		m_curarea(NULL), m_customLoadingAnimationURL(NULL),
 		m_foregroundColor(foregroundColor), m_backgroundColor(backgroundColor),
 		m_frameRate(frameRate),
 		m_BlenderLogo(0), m_Blender3DLogo(0)/*, m_NaNLogo(0)*/
@@ -201,7 +199,6 @@ bool GPC_Engine::StartKetsji(void)
 			m_keyboarddev,
 			m_mousedev,
 			m_networkdev,
-			m_audiodevice,
 			m_system);
 
 	m_system->SetMainLoop(m_portal->m_ketsjieng);
@@ -335,12 +332,6 @@ void GPC_Engine::Exit()
 	if (m_networkdev) {
 		delete m_networkdev;
 		m_networkdev = 0;
-	}
-
-	if (m_audiodevice)
-	{
-		SND_DeviceManager::Unsubscribe();
-		m_audiodevice = 0;
 	}
 
 	m_initialized = false;

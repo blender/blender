@@ -2,13 +2,13 @@
 import bpy
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "physics"
 
 	def poll(self, context):
 		rd = context.scene.render_data
-		return (context.object != None) and (not rd.use_game_engine)
+		return (context.object) and (not rd.use_game_engine)
 		
 class PHYSICS_PT_field(PhysicButtonsPanel):
 	__label__ = "Force Fields"
@@ -146,15 +146,15 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 				sub.active = field.use_radial_max
 				sub.itemR(field, "radial_maximum", text="Distance")
 				
-		#if ob.type in "CURVE":
-			#if field.type == "GUIDE":
+		#if ob.type in 'CURVE':
+			#if field.type == 'GUIDE':
 				#colsub = col.column(align=True)
 			
-		#if field.type != "NONE":
+		#if field.type != 'NONE':
 			#layout.itemR(field, "strength")
 
-		#if field.type in ("HARMONIC", "SPHERICAL", "CHARGE", "LENNARDj"):
-			#if ob.type in ("MESH", "SURFACE", "FONT", "CURVE"):
+		#if field.type in ('HARMONIC', 'SPHERICAL', 'CHARGE', "LENNARDj"):
+			#if ob.type in ('MESH', 'SURFACE', 'FONT', 'CURVE'):
 				#layout.itemR(field, "surface")
 
 class PHYSICS_PT_collision(PhysicButtonsPanel):

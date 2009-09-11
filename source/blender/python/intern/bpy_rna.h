@@ -55,6 +55,10 @@ typedef struct {
 	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
 	PropertyRNA *prop;
+
+	/* Arystan: this is a hack to allow sub-item r/w access like: face.uv[n][m] */
+	int arraydim; /* array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
+	int arrayoffset; /* array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n */
 } BPy_PropertyRNA;
 
 /* cheap trick */
@@ -90,5 +94,13 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args);
 /* called before stopping python */
 void pyrna_alloc_types(void);
 void pyrna_free_types(void);
+
+/* primitive type conversion */
+int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data, PyObject *py, const char *error_prefix);
+int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, int arrayoffset, int index, PyObject *py, const char *error_prefix);
+
+PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop);
+PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, int index);
+PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 
 #endif

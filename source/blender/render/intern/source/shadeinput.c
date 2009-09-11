@@ -29,7 +29,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "MTC_matrixops.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -52,6 +52,7 @@
 #include "shading.h"
 #include "strand.h"
 #include "texture.h"
+#include "volumetric.h"
 #include "zbuf.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -166,6 +167,11 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
 	}	
+	
+	if(R.r.mode & R_RAYTRACE) {
+		if (R.render_volumes_inside.first)
+			shade_volume_inside(shi, shr);
+	}
 }
 
 
@@ -183,7 +189,12 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
 		shade_input_init_material(shi);
 		
-		shade_material_loop(shi, shr);
+		if (shi->mat->material_type == MA_TYPE_VOLUME) {
+			if(R.r.mode & R_RAYTRACE)
+				shade_volume_outside(shi, shr);
+		} else { /* MA_TYPE_SURFACE, MA_TYPE_WIRE */
+			shade_material_loop(shi, shr);
+		}
 	}
 	
 	/* copy additional passes */
@@ -210,11 +221,12 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	if(shr->alpha!=1.0f || alpha!=1.0f) {
 		float fac= alpha*(shr->alpha);
 		shr->combined[3]= fac;
-		shr->combined[0]*= fac;
-		shr->combined[1]*= fac;
-		shr->combined[2]*= fac;
+		
+		if (shi->mat->material_type!= MA_TYPE_VOLUME)
+			VecMulf(shr->combined, fac);
 	}
-	else shr->combined[3]= 1.0f;
+	else
+		shr->combined[3]= 1.0f;
 	
 	/* add z */
 	shr->z= -shi->co[2];
@@ -446,13 +458,13 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			Mat4MulVecfl(R.viewinv, shi->gl);
 			
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
-				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				Mat3MulVecfl(R.imat, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				Mat3MulVecfl(R.imat, shi->dyco);
 			}
 		}
 
@@ -697,6 +709,10 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 			}
 		}
 	}
+	
+	/* set camera coords - for scanline, it's always 0.0,0.0,0.0 (render is in camera space)
+	 * however for raytrace it can be different - the position of the last intersection */
+	shi->camera_co[0] = shi->camera_co[1] = shi->camera_co[2] = 0.0f;
 	
 	/* cannot normalize earlier, code above needs it at viewplane level */
 	Normalize(view);
@@ -1005,15 +1021,15 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			Mat4MulVecfl(R.viewinv, shi->gl);
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
 				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
-				//MTC_Mat3MulVecfl(R.imat, shi->dxco);
-				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dxco);
+				//Mat3MulVecfl(R.imat, shi->dxco);
+				Mat4Mul3Vecfl(R.viewinv, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				//MTC_Mat3MulVecfl(R.imat, shi->dyco);
-				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dyco);
+				//Mat3MulVecfl(R.imat, shi->dyco);
+				Mat4Mul3Vecfl(R.viewinv, shi->dyco);
 			}
 		}
 		

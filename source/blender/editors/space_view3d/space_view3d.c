@@ -280,7 +280,7 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	
 	/* copy last mode, then we can re-init the region maps */
 	rv3d->lastmode= stype;
-
+	
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	if(ELEM(stype, 0, NS_MODE_OBJECT))
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -304,6 +304,12 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+		
+	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
+	if(stype==NS_MODE_POSE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 
 	keymap= WM_keymap_listbase(wm, "Metaball", 0, 0);
 	if(stype==NS_EDITMODE_MBALL)
@@ -319,7 +325,7 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 
 	/* armature sketching needs to take over mouse */
 	keymap= WM_keymap_listbase(wm, "Armature_Sketch", 0, 0);
-	if(stype==NS_EDITMODE_TEXT)
+	if(stype==NS_EDITMODE_ARMATURE)
 		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
@@ -446,16 +452,24 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
 				case ND_DRAW:
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
 				case ND_KEYS:
-				case ND_PARTICLE:
+				case ND_PARTICLE_SELECT:
+				case ND_PARTICLE_DATA:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_GROUP:
 			/* all group ops for now */
 			ED_region_tag_redraw(ar);
@@ -476,6 +490,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* this could be more fine grained checks if we had
 			 * more context than just the region */
 			ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -521,6 +539,10 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -570,13 +592,24 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
 				case ND_DRAW:
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -865,7 +898,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
 	art->free= view3d_main_area_free;

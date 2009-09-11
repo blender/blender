@@ -62,16 +62,8 @@ PyTypeObject CValue::Type = {
 };
 
 PyMethodDef CValue::Methods[] = {
-	{ "getName", (PyCFunction) CValue::sPyGetName, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
-
-PyObject* CValue::PyGetName()
-{
-	ShowDeprecationWarning("getName()", "the name property");
-	
-	return PyUnicode_FromString(this->GetName());
-}
 
 /*#define CVALUE_DEBUG*/
 #ifdef CVALUE_DEBUG

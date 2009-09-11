@@ -74,9 +74,6 @@ PyTypeObject KX_SCA_ReplaceMeshActuator::Type = {
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
 	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
-	// Deprecated ----->
-	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (const char *)SetMesh_doc},
-   	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
 	{NULL,NULL} //Sentinel
 };
 
@@ -107,37 +104,6 @@ int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYAT
 	actuator->m_mesh = new_mesh;
 	return PY_SET_ATTR_SUCCESS;
 }
-
-/* 1. setMesh */
-const char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] = 
-	"setMesh(name)\n"
-	"\t- name: string or None\n"
-	"\tSet the mesh that will be substituted for the current one.\n";
-
-PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* value)
-{
-	ShowDeprecationWarning("setMesh()", "the mesh property");
-	RAS_MeshObject* new_mesh;
-	
-	if (!ConvertPythonToMesh(value, &new_mesh, true, "actuator.mesh = value: KX_SCA_ReplaceMeshActuator"))
-		return NULL;
-	
-	m_mesh = new_mesh;
-	Py_RETURN_NONE;
-}
-
-KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
-"getMesh() -> string\n"
-"Returns the name of the mesh to be substituted.\n"
-)
-{
-	ShowDeprecationWarning("getMesh()", "the mesh property");
-	if (!m_mesh)
-		Py_RETURN_NONE;
-
-	return PyUnicode_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
-}
-
 
 KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, instantReplaceMesh,
 "instantReplaceMesh() : immediately replace mesh without delay\n")

@@ -7,4 +7,4 @@ sources += ' gen_system/SYS_System.cpp'
 
 incs = 'gen_messaging gen_system #/intern/string #/intern/moto/include #/source/blender/blenloader '
 
-env.BlenderLib ( 'bf_kernel', Split(sources), Split(incs), [], libtype = ['core', 'player'], priority = [400, 150] )
+env.BlenderLib ( 'bf_kernel', Split(sources), Split(incs), [], libtype = ['core','player'], priority = [400,100] )

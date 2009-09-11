@@ -58,6 +58,7 @@
 #include "ED_armature.h"
 #include "ED_particle.h"
 #include "ED_curve.h"
+#include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -239,6 +240,7 @@ void ED_OT_undo(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Undo";
+    ot->description= "Undo previous action.";
 	ot->idname= "ED_OT_undo";
 	
 	/* api callbacks */
@@ -250,6 +252,7 @@ void ED_OT_redo(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Redo";
+    ot->description= "Redo previous action.";
 	ot->idname= "ED_OT_redo";
 	
 	/* api callbacks */

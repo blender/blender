@@ -258,14 +258,14 @@ static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm
 	
 	/* add the settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemR(col, "", 0, &ptr, "type", 0, 0, 0);
-		uiItemR(col, NULL, 0, &ptr, "additive", 0, 0, 1);
+		uiItemR(col, "", 0, &ptr, "type", 0);
+		uiItemR(col, NULL, 0, &ptr, "additive", UI_ITEM_R_TOGGLE);
 	
 	col= uiLayoutColumn(layout, 0); // no grouping for now
-		uiItemR(col, NULL, 0, &ptr, "amplitude", 0, 0, 0);
-		uiItemR(col, NULL, 0, &ptr, "phase_multiplier", 0, 0, 0);
-		uiItemR(col, NULL, 0, &ptr, "phase_offset", 0, 0, 0);
-		uiItemR(col, NULL, 0, &ptr, "value_offset", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "amplitude", 0);
+		uiItemR(col, NULL, 0, &ptr, "phase_multiplier", 0);
+		uiItemR(col, NULL, 0, &ptr, "phase_offset", 0);
+		uiItemR(col, NULL, 0, &ptr, "value_offset", 0);
 }
 
 /* --------------- */
@@ -287,14 +287,14 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 	/* before range */
 	col= uiLayoutColumn(split, 1);
 	uiItemL(col, "Before:", 0);
-	uiItemR(col, "", 0, &ptr, "before_mode", 0, 0, 0);
-	uiItemR(col, NULL, 0, &ptr, "before_cycles", 0, 0, 0);
+	uiItemR(col, "", 0, &ptr, "before_mode", 0);
+	uiItemR(col, NULL, 0, &ptr, "before_cycles", 0);
 		
 	/* after range */
 	col= uiLayoutColumn(split, 1);
 	uiItemL(col, "After:", 0);
-	uiItemR(col, "", 0, &ptr, "after_mode", 0, 0, 0);
-	uiItemR(col, NULL, 0, &ptr, "after_cycles", 0, 0, 0);
+	uiItemR(col, "", 0, &ptr, "after_mode", 0);
+	uiItemR(col, NULL, 0, &ptr, "after_cycles", 0);
 }
 
 /* --------------- */
@@ -309,20 +309,20 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	RNA_pointer_create(id, &RNA_FModifierNoise, fcm, &ptr);
 	
 	/* blending mode */
-	uiItemR(layout, NULL, 0, &ptr, "modification", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &ptr, "modification", 0);
 	
 	/* split into 2 columns */
 	split= uiLayoutSplit(layout, 0.5f);
 	
 	/* col 1 */
 	col= uiLayoutColumn(split, 0);
-	uiItemR(col, NULL, 0, &ptr, "size", 0, 0, 0);
-	uiItemR(col, NULL, 0, &ptr, "strength", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "size", 0);
+	uiItemR(col, NULL, 0, &ptr, "strength", 0);
 	
 	/* col 2 */
 	col= uiLayoutColumn(split, 0);
-	uiItemR(col, NULL, 0, &ptr, "phase", 0, 0, 0);
-	uiItemR(col, NULL, 0, &ptr, "depth", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "phase", 0);
+	uiItemR(col, NULL, 0, &ptr, "depth", 0);
 }
 
 /* --------------- */
@@ -503,11 +503,11 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	/* general settings */
 	col= uiLayoutColumn(layout, 1);
 		uiItemL(col, "Envelope:", 0);
-		uiItemR(col, NULL, 0, &ptr, "reference_value", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "reference_value", 0);
 		
 		row= uiLayoutRow(col, 1);
-			uiItemR(row, "Min", 0, &ptr, "default_minimum", 0, 0, 0);
-			uiItemR(row, "Max", 0, &ptr, "default_maximum", 0, 0, 0);
+			uiItemR(row, "Min", 0, &ptr, "default_minimum", 0);
+			uiItemR(row, "Max", 0, &ptr, "default_maximum", 0);
 			
 	/* control points header */
 	// TODO: move this control-point control stuff to using the new special widgets for lists
@@ -559,13 +559,13 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_minimum_x", 0, 0, 0);
-		uiItemR(col, NULL, 0, &ptr, "minimum_x", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "use_minimum_x", 0);
+		uiItemR(col, NULL, 0, &ptr, "minimum_x", 0);
 			
 		/* y-minimum*/
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_minimum_y", 0, 0, 0);
-		uiItemR(col, NULL, 0, &ptr, "minimum_y", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "use_minimum_y", 0);
+		uiItemR(col, NULL, 0, &ptr, "minimum_y", 0);
 	}
 	
 	/* row 2: minimum */
@@ -577,13 +577,13 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_maximum_x", 0, 0, 0);
-		uiItemR(col, NULL, 0, &ptr, "maximum_x", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "use_maximum_x", 0);
+		uiItemR(col, NULL, 0, &ptr, "maximum_x", 0);
 			
 		/* y-minimum*/
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_maximum_y", 0, 0, 0);
-		uiItemR(col, NULL, 0, &ptr, "maximum_y", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "use_maximum_y", 0);
+		uiItemR(col, NULL, 0, &ptr, "maximum_y", 0);
 	}
 }
 

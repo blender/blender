@@ -71,11 +71,6 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 		KX_DYN_DISABLE_RIGID_BODY,
 		KX_DYN_SET_MASS,
 	};
-
-	/* 1. setOperation */
-	KX_PYMETHOD_DOC(KX_SCA_DynamicActuator,setOperation);
-	KX_PYMETHOD_DOC(KX_SCA_DynamicActuator,getOperation);
-
 }; 
 
 #endif

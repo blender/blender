@@ -46,6 +46,7 @@
 
 #include "ED_screen.h"
 #include "ED_physics.h"
+#include "ED_particle.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -69,6 +70,12 @@ static int ptcache_bake_all_poll(bContext *C)
 		return 0;
 	
 	return 1;
+}
+
+static int ptcache_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	return (ptr.data && ptr.id.data);
 }
 
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
@@ -184,8 +191,16 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
-	
-	cache->flag &= ~PTCACHE_BAKED;
+
+	if(cache->edit) {
+		if(!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
+			PE_free_ptcache_edit(cache->edit);
+			cache->edit = NULL;
+			cache->flag &= ~PTCACHE_BAKED;
+		}
+	}
+	else
+		cache->flag &= ~PTCACHE_BAKED;
 
 	return OPERATOR_FINISHED;
 }
@@ -206,12 +221,12 @@ void PTCACHE_OT_bake(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_bake_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "bake", 1, "Bake", "");
+	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
 }
 void PTCACHE_OT_free_bake(wmOperatorType *ot)
 {
@@ -221,7 +236,7 @@ void PTCACHE_OT_free_bake(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_free_bake_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -234,7 +249,7 @@ void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_bake_from_cache_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -299,7 +314,7 @@ void PTCACHE_OT_add_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_add_new_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll; // ptcache_bake_all_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -312,7 +327,7 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_remove_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

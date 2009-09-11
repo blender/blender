@@ -233,14 +233,13 @@ void console_keymap(struct wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Console", SPACE_CONSOLE, 0);
 	
-	/*
+	#ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", RIGHTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
-	
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", EKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", EKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "type", LINE_END);
-	*/
+	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", RIGHTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_END);
+	#endif
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
@@ -278,8 +277,8 @@ void console_keymap(struct wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_CHAR);
 
 #ifndef DISABLE_PYTHON
-	WM_keymap_add_item(keymap, "CONSOLE_OT_exec", RETKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
-	WM_keymap_add_item(keymap, "CONSOLE_OT_exec", PADENTER, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CONSOLE_OT_execute", RETKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
+	WM_keymap_add_item(keymap, "CONSOLE_OT_execute", PADENTER, KM_PRESS, 0, 0);
 	
 	//WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", TABKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
 	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
@@ -321,11 +320,11 @@ static void console_main_area_listener(ScrArea *sa, wmNotifier *wmn)
 
 	/* context changes */
 	switch(wmn->category) {
-		case NC_CONSOLE:
-			if(wmn->data == ND_CONSOLE) { /* generic redraw request */
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_CONSOLE) { /* generic redraw request */
 				ED_area_tag_redraw(sa);
 			}
-			else if(wmn->data == ND_CONSOLE_REPORT && sc->type==CONSOLE_TYPE_REPORT) {
+			else if(wmn->data == ND_SPACE_CONSOLE_REPORT && sc->type==CONSOLE_TYPE_REPORT) {
 				/* redraw also but only for report view, could do less redraws by checking the type */
 				ED_area_tag_redraw(sa);
 			}

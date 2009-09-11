@@ -106,7 +106,7 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 	
 	if(obedit) {
 		
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 		
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
@@ -302,7 +302,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		int totmalloc= 0;
 		
 		for(nu= cu->editnurb->first; nu; nu= nu->next) {
-			if((nu->type & 7)==CU_BEZIER)
+			if(nu->type == CU_BEZIER)
 				totmalloc += 3*nu->pntsu;
 			else
 				totmalloc += nu->pntsu*nu->pntsv;
@@ -311,7 +311,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 
 		nu= cu->editnurb->first;
 		while(nu) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				a= nu->pntsu;
 				bezt= nu->bezt;
 				while(a--) {
@@ -514,7 +514,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 				
 				/* auto-keyframing */
 // XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -555,6 +555,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Grid";
+	ot->description= "Snap selected item(s) to nearest grid node.";
 	ot->idname= "VIEW3D_OT_snap_selected_to_grid";
 	
 	/* api callbacks */
@@ -640,7 +641,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 				
 				/* auto-keyframing */
 // XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -680,6 +681,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Cursor";
+	ot->description= "Snap selected item(s) to cursor.";
 	ot->idname= "VIEW3D_OT_snap_selected_to_cursor";
 	
 	/* api callbacks */
@@ -715,6 +717,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Grid";
+	ot->description= "Snap cursor to nearest grid node.";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_grid";
 	
 	/* api callbacks */
@@ -821,6 +824,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Selected";
+	ot->description= "Snap cursor to center of selected item(s)."; 
 	ot->idname= "VIEW3D_OT_snap_cursor_to_selected";
 	
 	/* api callbacks */
@@ -870,6 +874,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Active";
+	ot->description= "Snap cursor to active item.";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_active";
 	
 	/* api callbacks */
@@ -1028,7 +1033,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 				/* auto-keyframing */
 				ob->pose->flag |= POSE_DO_UNLOCK;
 // XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -1069,6 +1074,7 @@ void VIEW3D_OT_snap_selected_to_center(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Center";
+	ot->description= "Snap selected items to selections geometric center.";
 	ot->idname= "VIEW3D_OT_snap_selected_to_center";
 	
 	/* api callbacks */
@@ -1135,6 +1141,7 @@ void VIEW3D_OT_snap_menu(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Snap Menu";
+	ot->description= "Display snap menu.";
 	ot->idname= "VIEW3D_OT_snap_menu";
 	
 	/* api callbacks */

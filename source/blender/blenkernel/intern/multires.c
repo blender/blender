@@ -83,7 +83,7 @@ int multiresModifier_switch_level(Object *ob, const int distance)
 		mmd->lvl += distance;
 		if(mmd->lvl < 1) mmd->lvl = 1;
 		else if(mmd->lvl > mmd->totlvl) mmd->lvl = mmd->totlvl;
-		/* XXX: DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+		/* XXX: DAG_id_flush_update(&ob->id, OB_RECALC_DATA); 
 		   object_handle_update(ob);*/
 		return 1;
 	}
@@ -204,10 +204,11 @@ static void VecAddUf(float a[3], float b[3])
 	a[2] += b[2];
 }
 
-static void multires_subdisp(DerivedMesh *orig, Mesh *me, DerivedMesh *final, int lvl, int totlvl,
+static void multires_subdisp(DerivedMesh *orig, Object *ob, DerivedMesh *final, int lvl, int totlvl,
 			     int totsubvert, int totsubedge, int totsubface, int addverts)
 {
 	DerivedMesh *mrdm;
+	Mesh *me = ob->data;
 	MultiresModifierData mmd_sub;
 	MVert *mvs = CDDM_get_verts(final);
 	MVert *mvd, *mvd_f1, *mvs_f1, *mvd_f3, *mvd_f4;
@@ -222,7 +223,7 @@ static void multires_subdisp(DerivedMesh *orig, Mesh *me, DerivedMesh *final, in
 
 	memset(&mmd_sub, 0, sizeof(MultiresModifierData));
 	mmd_sub.lvl = mmd_sub.totlvl = totlvl;
-	mrdm = multires_dm_create_from_derived(&mmd_sub, orig, me, 0, 0);
+	mrdm = multires_dm_create_from_derived(&mmd_sub, 1, orig, ob, 0, 0);
 		
 	mvd = CDDM_get_verts(mrdm);
 	/* Need to map from ccg to mrdm */
@@ -395,7 +396,7 @@ static void multires_subdisp(DerivedMesh *orig, Mesh *me, DerivedMesh *final, in
 		}
 	}
 
-	final->needsFree = 1;
+	final->needsFree  = 1;
 	final->release(final);
 	mrdm->needsFree = 1;
 	MultiresDM_mark_as_modified(mrdm);
@@ -468,7 +469,8 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int dista
 		orig = CDDM_from_mesh(me, NULL);
 		memset(&mmd_sub, 0, sizeof(MultiresModifierData));
 		mmd_sub.lvl = mmd_sub.totlvl = mmd->lvl;
-		mrdm = multires_dm_create_from_derived(&mmd_sub, orig, me, 0, 0);
+		mmd_sub.simple = simple;
+		mrdm = multires_dm_create_from_derived(&mmd_sub, 1, orig, ob, 0, 0);
 		totsubvert = mrdm->getNumVerts(mrdm);
 		totsubedge = mrdm->getNumEdges(mrdm);
 		totsubface = mrdm->getNumFaces(mrdm);
@@ -497,7 +499,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int dista
 
 		orig = CDDM_from_mesh(me, NULL);
 
-		multires_subdisp(orig, me, final, mmd->lvl, mmd->totlvl, totsubvert, totsubedge, totsubface, 0);
+		multires_subdisp(orig, ob, final, mmd->lvl, mmd->totlvl, totsubvert, totsubedge, totsubface, 0);
 
 		orig->needsFree = 1;
 		orig->release(orig);
@@ -1166,9 +1168,11 @@ static void multiresModifier_disp_run(DerivedMesh *dm, MVert *subco, int invert)
 
 static void multiresModifier_update(DerivedMesh *dm)
 {
+	Object *ob;
 	Mesh *me;
 	MDisps *mdisps;
 
+	ob = MultiresDM_get_object(dm);
 	me = MultiresDM_get_mesh(dm);
 	mdisps = CustomData_get_layer(&me->fdata, CD_MDISPS);
 
@@ -1189,7 +1193,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			   (includes older displacements but not new sculpts) */
 			mmd.totlvl = totlvl;
 			mmd.lvl = lvl;
-			subco_dm = multires_dm_create_from_derived(&mmd, orig, me, 0, 0);
+			subco_dm = multires_dm_create_from_derived(&mmd, 1, orig, ob, 0, 0);
 			cur_lvl_orig_verts = CDDM_get_verts(subco_dm);
 
 			/* Subtract the original vertex cos from the new vertex cos */
@@ -1199,7 +1203,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 
 			final = multires_subdisp_pre(dm, totlvl - lvl, 0);
 
-			multires_subdisp(orig, me, final, lvl, totlvl, dm->getNumVerts(dm), dm->getNumEdges(dm),
+			multires_subdisp(orig, ob, final, lvl, totlvl, dm->getNumVerts(dm), dm->getNumEdges(dm),
 					 dm->getNumFaces(dm), 1);
 
 			subco_dm->release(subco_dm);
@@ -1226,7 +1230,7 @@ void multires_force_update(Object *ob)
 	}
 }
 
-struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, DerivedMesh *dm, Mesh *me,
+struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
 						    int useRenderParams, int isFinalCalc)
 {
 	SubsurfModifierData smd;
@@ -1235,7 +1239,8 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, D
 	int i;
 
 	ms.mmd = mmd;
-	ms.me = me;
+	ms.ob = ob;
+	ms.local_mmd = local_mmd;
 
 	memset(&smd, 0, sizeof(SubsurfModifierData));
 	smd.levels = smd.renderLevels = mmd->lvl - 1;

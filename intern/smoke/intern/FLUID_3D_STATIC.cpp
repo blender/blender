@@ -80,7 +80,7 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res, float value)
 void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	size_t index;
+	int index;
 	for (int z = 0; z < res[2]; z++)
 		for (int y = 0; y < res[1]; y++)
 		{
@@ -92,6 +92,18 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 			index += res[0] - 1;
 			field[index] = field[index - 2];
 		}
+
+	// fix, force top slab to only allow outwards flux
+	for (int y = 0; y < res[1]; y++)
+		for (int z = 0; z < res[2]; z++)
+		{
+			// top slab
+			int index = y * res[0] + z * slabSize;
+			index += res[0] - 1;
+			if(field[index]<0.) field[index] = 0.;
+			index -= 1;
+			if(field[index]<0.) field[index] = 0.;
+		}
  }
 
 //////////////////////////////////////////////////////////////////////
@@ -100,18 +112,31 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 void FLUID_3D::setNeumannY(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	size_t index;
+	int index;
 	for (int z = 0; z < res[2]; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
-			// front slab
+			// bottom slab
 			index = x + z * slabSize;
 			field[index] = field[index + 2 * res[0]];
 
-			// back slab
+			// top slab
 			index += slabSize - res[0];
 			field[index] = field[index - 2 * res[0]];
 		}
+
+	// fix, force top slab to only allow outwards flux
+	for (int z = 0; z < res[2]; z++)
+		for (int x = 0; x < res[0]; x++)
+		{
+			// top slab
+			int index = x + z * slabSize;
+			index += slabSize - res[0];
+			if(field[index]<0.) field[index] = 0.;
+			index -= res[0];
+			if(field[index]<0.) field[index] = 0.;
+		}
+		
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -121,15 +146,15 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
 	const int totalCells = res[0] * res[1] * res[2];
-	size_t index;
+	int index;
 	for (int y = 0; y < res[1]; y++)
 		for (int x = 0; x < res[0]; x++)
 		{
-			// bottom slab
+			// front slab
 			index = x + y * res[0];
 			field[index] = field[index + 2 * slabSize];
 
-			// top slab
+			// back slab
 			index += totalCells - slabSize;
 			field[index] = field[index - 2 * slabSize];
 		}
@@ -139,11 +164,11 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// top slab
-			index = x + y * res[0];
+			int index = x + y * res[0];
 			index += totalCells - slabSize;
-			if(field[index]<0.) field[index] = 0.0f;
+			if(field[index]<0.) field[index] = 0.;
 			index -= slabSize;
-			if(field[index]<0.) field[index] = 0.0f;
+			if(field[index]<0.) field[index] = 0.;
 		}
 		
 }
@@ -231,13 +256,14 @@ void FLUID_3D::copyBorderX(float* field, Vec3Int res)
 void FLUID_3D::copyBorderY(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
+	const int totalCells = res[0] * res[1] * res[2];
 	int index;
 	for (int z = 0; z < res[2]; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// bottom slab
 			index = x + z * slabSize;
-			field[index] = field[index + res[0]];
+			field[index] = field[index + res[0]]; 
 			// top slab
 			index += slabSize - res[0];
 			field[index] = field[index - res[0]];
@@ -253,7 +279,7 @@ void FLUID_3D::copyBorderZ(float* field, Vec3Int res)
 		{
 			// front slab
 			index = x + y * res[0];
-			field[index] = field[index + slabSize];
+			field[index] = field[index + slabSize]; 
 			// back slab
 			index += totalCells - slabSize;
 			field[index] = field[index - slabSize];
@@ -269,18 +295,21 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 	const int xres = res[0];
 	const int yres = res[1];
 	const int zres = res[2];
+	static int hits = 0;
+	static int total = 0;
 	const int slabSize = res[0] * res[1];
 
 	// scale dt up to grid resolution
-#if PARALLEL==1
-#pragma omp parallel for schedule(static)
+#if PARALLEL==1 && !_WIN32
+#pragma omp parallel
+#pragma omp for  schedule(static)
 #endif
 	for (int z = 0; z < zres; z++)
 		for (int y = 0; y < yres; y++)
 			for (int x = 0; x < xres; x++)
 			{
 				const int index = x + y * xres + z * xres*yres;
-
+				
         // backtrace
 				float xTrace = x - dt * velx[index];
 				float yTrace = y - dt * vely[index];
@@ -337,8 +366,8 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 //
 // comments are the pseudocode from selle's paper
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity,
-		float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles)
+void FLUID_3D::advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
+				float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles)
 {
 	float* phiHatN  = temp1;
 	float* phiHatN1 = temp2;
@@ -359,7 +388,7 @@ void FLUID_3D::advectFieldMacCormack(const float dt, const float* xVelocity, con
 	advectFieldSemiLagrange( -1.0*dt, xVelocity, yVelocity, zVelocity, phiHatN1, phiHatN, res);
 
 	// phiN1 = phiHatN1 + (phiN - phiHatN) / 2
-	const int border = 0;
+	const int border = 0; 
 	for (int z = border; z < sz-border; z++)
 		for (int y = border; y < sy-border; y++)
 			for (int x = border; x < sx-border; x++) {
@@ -376,7 +405,7 @@ void FLUID_3D::advectFieldMacCormack(const float dt, const float* xVelocity, con
 
 	// if the error estimate was bad, revert to first order
 	clampOutsideRays(dt, xVelocity, yVelocity, zVelocity, oldField, newField, res, obstacles, phiHatN1);
-}
+} 
 
 
 //////////////////////////////////////////////////////////////////////
@@ -454,17 +483,18 @@ void FLUID_3D::clampExtrema(const float dt, const float* velx, const float* vely
 }
 
 //////////////////////////////////////////////////////////////////////
-// Reverts any backtraces that go into boundaries back to first
+// Reverts any backtraces that go into boundaries back to first 
 // order -- in this case the error correction term was totally
 // incorrect
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* vely, const float* velz,
-		float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection)
+void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* vely,  const float* velz,
+				float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection)
 {
 	const int sx= res[0];
 	const int sy= res[1];
 	const int sz= res[2];
 	const int slabSize = res[0] * res[1];
+
 	for (int z = 1; z < sz-1; z++)
 		for (int y = 1; y < sy-1; y++)
 			for (int x = 1; x < sx-1; x++)
@@ -479,7 +509,7 @@ void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* 
 				float zTrace    = z - dt * velz[index];
 
 				// see if it goes outside the boundaries
-				bool hasObstacle =
+				bool hasObstacle = 
 					(zTrace < 1.0f)    || (zTrace > sz - 2.0f) ||
 					(yTrace < 1.0f)    || (yTrace > sy - 2.0f) ||
 					(xTrace < 1.0f)    || (xTrace > sx - 2.0f) ||
@@ -515,7 +545,7 @@ void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* 
 				int z0 = (int)zBackward;
 				int z1 = z0 + 1;
 				if(obstacles && !hasObstacle) {
-					hasObstacle = hasObstacle ||
+					hasObstacle = hasObstacle || 
 						obstacles[x0 + y0 * sx + z0*slabSize] ||
 						obstacles[x0 + y1 * sx + z0*slabSize] ||
 						obstacles[x1 + y0 * sx + z0*slabSize] ||
@@ -535,7 +565,7 @@ void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* 
 				z0 = (int)zTrace;
 				z1 = z0 + 1;
 				if(obstacles && !hasObstacle) {
-					hasObstacle = hasObstacle ||
+					hasObstacle = hasObstacle || 
 						obstacles[x0 + y0 * sx + z0*slabSize] ||
 						obstacles[x0 + y1 * sx + z0*slabSize] ||
 						obstacles[x1 + y0 * sx + z0*slabSize] ||
@@ -577,84 +607,8 @@ void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* 
 						u1 * (s0 * (t0 * oldField[i001] +
 									t1 * oldField[i011]) +
 								s1 * (t0 * oldField[i101] +
-									t1 * oldField[i111]));
+									t1 * oldField[i111])); 
 				}
 			} // xyz
 }
-
-//////////////////////////////////////////////////////////////////////
-// image output
-//////////////////////////////////////////////////////////////////////
-/*
-void FLUID_3D::writeImageSliceXY(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale) {
-  writeProjectedIntern(field, res, 0,1, prefix, picCnt, scale);
-}
-void FLUID_3D::writeImageSliceYZ(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale) {
-  writeProjectedIntern(field, res, 1,2, prefix, picCnt, scale);
-}
-void FLUID_3D::writeImageSliceXZ(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale) {
-  writeProjectedIntern(field, res, 0,2, prefix, picCnt, scale);
-}
-*/
-
-//////////////////////////////////////////////////////////////////////
-// Helper function for projecting densities along a dimension
-//////////////////////////////////////////////////////////////////////
-/*
-static int getOtherDir(int dir1, int dir2) {
-	switch(dir1) {
-		case 0:
-			switch(dir2) {
-				case 1: return 2;
-				case 2: return 1; }
-			break;
-		case 1:
-			switch(dir2) {
-				case 0: return 2;
-				case 2: return 0; }
-			break;
-		case 2:
-			switch(dir2) {
-				case 0: return 1;
-				case 1: return 0; }
-			break;
-		default:
-			return 0;
-	}
-	return 0;
-}
-*/
-
-//////////////////////////////////////////////////////////////////////
-// average densities along third spatial direction
-//////////////////////////////////////////////////////////////////////
-/*
-void FLUID_3D::writeProjectedIntern(const float *field, Vec3Int res,
-		int dir1, int dir2, string prefix, int picCnt, float scale) {
-	const int nitems = res[dir1]*res[dir2];
-	const int otherDir = getOtherDir(dir1,dir2);
-	float *buf = new float[nitems];
-	Vec3Int min = Vec3Int(0);
-	Vec3Int max = res;
-
-	min[otherDir] = 0;
-	max[otherDir] = res[otherDir];
-	float div = 1./(float)MIN3V(res); // normalize for shorter sides, old: res[otherDir];
-	div *= 4.; //slightly increase contrast
-	for(int i=0; i<nitems; i++) buf[i] = 0.;
-
-	Vec3Int cnt = 0;
-	for (cnt[2] = min[2]; cnt[2] < max[2]; cnt[2]++) {
-		for (cnt[1] = min[1]; cnt[1] < max[1]; cnt[1]++)
-			for (cnt[0] = min[0]; cnt[0] < max[0]; cnt[0]++)
-			{
-				const int index = cnt[0] + cnt[1] * res[0] + cnt[2] * res[0]*res[1];
-				const int bufindex = cnt[dir1] + cnt[dir2] * res[dir1];
-				buf[bufindex] += field[index] * scale *div;
-			}
-	}
-	// IMAGE::dumpNumberedPNG(picCnt, prefix, buf, res[dir1], res[dir2]);
-	delete[] buf;
-}
-*/
 

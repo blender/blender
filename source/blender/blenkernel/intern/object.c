@@ -101,13 +101,13 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sculpt.h"
 #include "BKE_softbody.h"
 
 #include "LBM_fluidsim.h"
@@ -284,6 +284,7 @@ void free_object(Object *ob)
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->dup_group) ob->dup_group->id.us--;
+	if(ob->gpd) ob->gpd->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
@@ -307,6 +308,8 @@ void free_object(Object *ob)
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
 
 	free_sculptsession(&ob->sculpt);
+
+	if(ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -478,15 +481,15 @@ void unlink_object(Scene *scene, Object *ob)
 				if(tpsys->part->dup_ob==ob)
 					tpsys->part->dup_ob= NULL;
 
-				if(tpsys->part->flag&PART_STICKY) {
+				if(tpsys->part->phystype==PART_PHYS_BOIDS) {
 					ParticleData *pa;
+					BoidParticle *bpa;
 					int p;
 
 					for(p=0,pa=tpsys->particles; p<tpsys->totpart; p++,pa++) {
-						if(pa->stick_ob==ob) {
-							pa->stick_ob= 0;
-							pa->flag &= ~PARS_STICKY;
-						}
+						bpa = pa->boid;
+						if(bpa->ground == ob)
+							bpa->ground = NULL;
 					}
 				}
 				if(tpsys->part->boids) {
@@ -1016,6 +1019,8 @@ Object *add_only_object(int type, char *name)
 	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
 
+	ob->pc_ids.first = ob->pc_ids.last = NULL;
+
 	return ob;
 }
 
@@ -1077,19 +1082,35 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
 	ParticleData *pa;
-	int a;
+	int p;
 
 	psysn= MEM_dupallocN(psys);
 	psysn->particles= MEM_dupallocN(psys->particles);
 	psysn->child= MEM_dupallocN(psys->child);
-	if(psysn->particles->keys)
-		psysn->particles->keys = MEM_dupallocN(psys->particles->keys);
 
-	for(a=0, pa=psysn->particles; a<psysn->totpart; a++, pa++) {
-		if(pa->hair)
-			pa->hair= MEM_dupallocN(pa->hair);
-		if(a)
-			pa->keys= (pa-1)->keys + (pa-1)->totkey;
+	if(psys->part->type == PART_HAIR) {
+		for(p=0, pa=psysn->particles; p<psysn->totpart; p++, pa++)
+			pa->hair = MEM_dupallocN(pa->hair);
+	}
+
+	if(psysn->particles->keys || psysn->particles->boid) {
+		ParticleKey *key = psysn->particles->keys;
+		BoidParticle *boid = psysn->particles->boid;
+
+		if(key)
+			key = MEM_dupallocN(key);
+		
+		if(boid)
+			boid = MEM_dupallocN(boid);
+		
+		for(p=0, pa=psysn->particles; p<psysn->totpart; p++, pa++) {
+			if(boid)
+				pa->boid = boid++;
+			if(key) {
+				pa->keys = key;
+				key += pa->totkey;
+			}
+		}
 	}
 
 	if(psys->soft) {
@@ -1097,14 +1118,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 		psysn->soft->particles = psysn;
 	}
 
-	if(psys->particles->boid) {
-		psysn->particles->boid = MEM_dupallocN(psys->particles->boid);
-		for(a=1, pa=psysn->particles+1; a<psysn->totpart; a++, pa++)
-			pa->boid = (pa-1)->boid + 1;
-	}
-
-	if(psys->targets.first)
-		BLI_duplicatelist(&psysn->targets, &psys->targets);
+	BLI_duplicatelist(&psysn->targets, &psys->targets);
 	
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
@@ -1268,7 +1282,8 @@ Object *copy_object(Object *ob)
 	obn->derivedFinal = NULL;
 
 	obn->gpulamp.first = obn->gpulamp.last = NULL;
-
+	obn->pc_ids.first = obn->pc_ids.last = NULL;
+	
 	return obn;
 }
 
@@ -1792,7 +1807,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		
 		count= 0;
 		while(nu && !found) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -2535,3 +2550,61 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 	
 	return result;
 }
+
+static int pc_cmp(void *a, void *b)
+{
+	LinkData *ad = a, *bd = b;
+	if((int)ad->data > (int)bd->data)
+		return 1;
+	else return 0;
+}
+
+int object_insert_ptcache(Object *ob) 
+{
+	LinkData *link = NULL;
+	int i = 0;
+
+	BLI_sortlist(&ob->pc_ids, pc_cmp);
+
+	for(link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
+	{
+		int index =(int)link->data;
+
+		if(i < index)
+			break;
+	}
+
+	link = MEM_callocN(sizeof(LinkData), "PCLink");
+	link->data = (void *)i;
+	BLI_addtail(&ob->pc_ids, link);
+
+	return i;
+}
+
+#if 0
+static int pc_findindex(ListBase *listbase, int index)
+{
+	LinkData *link= NULL;
+	int number= 0;
+	
+	if (listbase == NULL) return -1;
+	
+	link= listbase->first;
+	while (link) {
+		if ((int)link->data == index)
+			return number;
+		
+		number++;
+		link= link->next;
+	}
+	
+	return -1;
+}
+
+void object_delete_ptcache(Object *ob, int index) 
+{
+	int list_index = pc_findindex(&ob->pc_ids, index);
+	LinkData *link = BLI_findlink(&ob->pc_ids, list_index);
+	BLI_freelinkN(&ob->pc_ids, link);
+}
+#endif

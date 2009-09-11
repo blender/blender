@@ -5,10 +5,4 @@ sources = 'PHY_IMotionState.cpp PHY_IController.cpp PHY_IPhysicsController.cpp P
 
 incs = '. ../Dummy #intern/moto/include'
 
-cxxflags = []
-if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-	cxxflags.append ('/EHsc')
-
-env.BlenderLib ( 'bf_common', Split(sources), Split(incs), [], libtype=['core','player'], priority=[360, 90], cxx_compileflags = cxxflags )
+env.BlenderLib ( 'bf_physics_common', Split(sources), Split(incs), [], libtype=['core','player'], priority=[360,55], cxx_compileflags=env['BGE_CXXFLAGS'])

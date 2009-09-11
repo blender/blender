@@ -168,7 +168,7 @@ static PyObject *Vector_Resize2D(VectorObject * self)
 		return NULL;
 	}
 	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize a vector that has an owner");
+		PyErr_SetString(PyExc_TypeError, "vector.resize2d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
 	
@@ -191,7 +191,7 @@ static PyObject *Vector_Resize3D(VectorObject * self)
 		return NULL;
 	}
 	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize a vector that has an owner");
+		PyErr_SetString(PyExc_TypeError, "vector.resize3d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
 	
@@ -354,18 +354,12 @@ static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 
 /*----------------------------Vector.reflect(mirror) ----------------------
   return a reflected vector on the mirror normal
-  ((2 * DotVecs(vec, mirror)) * mirror) - vec
-  using arithb.c would be nice here */
+   vec - ((2 * DotVecs(vec, mirror)) * mirror)
+*/
 static PyObject *Vector_Reflect( VectorObject * self, VectorObject * value )
 {
-	float mirror[3];
-	float vec[3];
-	float reflect[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	float dot2;
-	
-	/* for normalizing */
-	int i;
-	float norm = 0.0f;
+	float mirror[3], vec[3];
+	float reflect[3] = {0.0f, 0.0f, 0.0f};
 	
 	if (!VectorObject_Check(value)) {
 		PyErr_SetString( PyExc_TypeError, "vec.reflect(value): expected a vector argument" );
@@ -380,26 +374,12 @@ static PyObject *Vector_Reflect( VectorObject * self, VectorObject * value )
 	if (value->size > 2)	mirror[2] = value->vec[2];
 	else					mirror[2] = 0.0;
 	
-	/* normalize, whos idea was it not to use arithb.c? :-/ */
-	for(i = 0; i < 3; i++) {
-		norm += mirror[i] * mirror[i];
-	}
-	norm = (float) sqrt(norm);
-	for(i = 0; i < 3; i++) {
-		mirror[i] /= norm;
-	}
-	/* done */
-	
 	vec[0] = self->vec[0];
 	vec[1] = self->vec[1];
 	if (self->size > 2)		vec[2] = self->vec[2];
 	else					vec[2] = 0.0;
 	
-	dot2 = 2 * vec[0]*mirror[0]+vec[1]*mirror[1]+vec[2]*mirror[2];
-	
-	reflect[0] = (dot2 * mirror[0]) - vec[0];
-	reflect[1] = (dot2 * mirror[1]) - vec[1];
-	reflect[2] = (dot2 * mirror[2]) - vec[2];
+	VecReflect(reflect, vec, mirror);
 	
 	return newVectorObject(reflect, self->size, Py_NEW, NULL);
 }
@@ -1955,9 +1935,9 @@ PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_su
 
 //-----------------row_vector_multiplication (internal)-----------
 //ROW VECTOR Multiplication - Vector X Matrix
-//[x][y][z] *  [1][2][3]
-//             [4][5][6]
-//             [7][8][9]
+//[x][y][z] *  [1][4][7]
+//             [2][5][8]
+//             [3][6][9]
 //vector/matrix multiplication IS NOT COMMUTATIVE!!!!
 static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
 {
@@ -1966,7 +1946,7 @@ static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat
 	int x, y, z = 0, vec_size = vec->size;
 
 	if(mat->colSize != vec_size){
-		if(mat->rowSize == 4 && vec_size != 3){
+		if(mat->colSize == 4 && vec_size != 3){
 			PyErr_SetString(PyExc_AttributeError, "vector * matrix: matrix column size and the vector size must be the same");
 			return NULL;
 		}else{
@@ -1980,11 +1960,11 @@ static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat
 	for(x = 0; x < vec_size; x++){
 		vecCopy[x] = vec->vec[x];
 	}
-
+	vecNew[3] = 1.0f;
 	//muliplication
-	for(x = 0; x < mat->colSize; x++) {
-		for(y = 0; y < mat->rowSize; y++) {
-			dot += mat->matrix[y][x] * vecCopy[y];
+	for(x = 0; x < mat->rowSize; x++) {
+		for(y = 0; y < mat->colSize; y++) {
+			dot += mat->matrix[x][y] * vecCopy[y];
 		}
 		vecNew[z++] = (float)dot;
 		dot = 0.0f;

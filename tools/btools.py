@@ -32,6 +32,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
 			'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH',
 			'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH',
+			'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
 			'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
 			'WITH_BF_DDS',
@@ -69,8 +70,7 @@ def validate_arguments(args, bc):
 			'BF_NUMJOBS',
 			'BF_MSVS',
 
-			'WITH_BF_UNIT_TEST',
-			'BF_CHECK_LIB',
+			# 'BF_CHECK_LIB',
 			]
 	
 	# Have options here that scons expects to be lists
@@ -79,6 +79,7 @@ def validate_arguments(args, bc):
 			'BF_OPENGL_LINKFLAGS',
 			'CFLAGS', 'CCFLAGS', 'CXXFLAGS', 'CPPFLAGS',
 			'REL_CFLAGS', 'REL_CCFLAGS', 'REL_CXXFLAGS',
+			'BGE_CXXFLAGS',
 			'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
 			'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
 			'C_WARN', 'CC_WARN', 'CXX_WARN',
@@ -92,7 +93,7 @@ def validate_arguments(args, bc):
 			'BF_BSC', 'BF_CONFIG',
 			'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
 			'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-			'BF_DOCDIR']
+			'BF_DOCDIR', 'BF_UNIT_TEST']
 
 	okdict = {}
 
@@ -174,13 +175,13 @@ def read_opts(cfg, args):
 
 		(BoolVariable('WITH_BF_SDL', 'Use SDL if true', False)),
 		('BF_SDL', 'SDL base path', ''),
-		('BF_SDL_INC', 'SDL include path', ''),	 #$(shell $(BF_SDL)/bin/sdl-config --cflags)
-		('BF_SDL_LIB', 'SDL library', ''),	  #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
+		('BF_SDL_INC', 'SDL include path', ''),
+		('BF_SDL_LIB', 'SDL library', ''),
 		('BF_SDL_LIBPATH', 'SDL library path', ''),
 
 		('BF_LIBSAMPLERATE', 'libsamplerate aka SRC base path', ''),
-		('BF_LIBSAMPLERATE_INC', 'libsamplerate aka SRC include path', ''),	 #$(shell $(BF_SDL)/bin/sdl-config --cflags)
-		('BF_LIBSAMPLERATE_LIB', 'libsamplerate aka SRC library', ''),	  #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
+		('BF_LIBSAMPLERATE_INC', 'libsamplerate aka SRC include path', ''),
+		('BF_LIBSAMPLERATE_LIB', 'libsamplerate aka SRC library', ''),
 		('BF_LIBSAMPLERATE_LIBPATH', 'libsamplerate aka SRC library path', ''),
 
 		(BoolVariable('WITH_BF_JACK', 'Enable jack support if true', True)),
@@ -188,6 +189,12 @@ def read_opts(cfg, args):
 		('BF_JACK_INC', 'jack include path', ''),
 		('BF_JACK_LIB', 'jack library', ''),
 		('BF_JACK_LIBPATH', 'jack library path', ''),
+
+		(BoolVariable('WITH_BF_SNDFILE', 'Enable sndfile support if true', True)),
+		('BF_SNDFILE', 'sndfile base path', ''),
+		('BF_SNDFILE_INC', 'sndfile include path', ''),
+		('BF_SNDFILE_LIB', 'sndfile library', ''),
+		('BF_SNDFILE_LIBPATH', 'sndfile library path', ''),
 
 		('BF_PTHREADS', 'Pthreads base path', ''),
 		('BF_PTHREADS_INC', 'Pthreads include path', ''),
@@ -329,6 +336,7 @@ def read_opts(cfg, args):
 		('CFLAGS', 'C only flags', ''),
 		('CCFLAGS', 'Generic C and C++ flags', ''),
 		('CXXFLAGS', 'C++ only flags', ''),
+		('BGE_CXXFLAGS', 'C++ only flags for BGE', ''),
 		('CPPFLAGS', 'Defines', ''),
 		('REL_CFLAGS', 'C only release flags', ''),
 		('REL_CCFLAGS', 'Generic C and C++ release flags', ''),
@@ -382,8 +390,8 @@ def read_opts(cfg, args):
 		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
 		('BF_MSVS', 'Generate MSVS project files and solution', False),
 
-		(BoolVariable('WITH_BF_UNIT_TEST', 'Build unit tests', False)),
-		('BF_CHECK_LIB', 'Check unit testing framework library', 'check'),
+		(BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False)),
+		# ('BF_CHECK_LIB', 'Check unit testing framework library', 'check')
 
 	) # end of opts.AddOptions()
 

@@ -267,7 +267,7 @@ void undo_editmode_step(bContext *C, int step)
 		}
 	}
 
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	/* XXX notifiers */
 }
 

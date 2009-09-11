@@ -119,6 +119,13 @@
 
 #define MAX_IDPUP		60	/* was 24 */
 
+/* GS reads the memory pointed at in a specific ordering. 
+   only use this definition, makes little and big endian systems
+   work fine, in conjunction with MAKE_ID */
+
+/* from blendef: */
+#define GS(a)	(*((short *)(a)))
+
 /* ************* general ************************ */
 
 void id_lib_extern(ID *id)
@@ -146,6 +153,220 @@ void id_us_min(ID *id)
 {
 	if(id)
 		id->us--;
+}
+
+int id_make_local(ID *id, int test)
+{
+	if(id->flag & LIB_INDIRECT)
+		return 0;
+
+	switch(GS(id->name)) {
+		case ID_SCE:
+			return 0; /* not implemented */
+		case ID_LI:
+			return 0; /* can't be linked */
+		case ID_OB:
+			if(!test) make_local_object((Object*)id);
+			return 1;
+		case ID_ME:
+			if(!test) {
+				make_local_mesh((Mesh*)id);
+				make_local_key(((Mesh*)id)->key);
+			}
+			return 1;
+		case ID_CU:
+			if(!test) {
+				make_local_curve((Curve*)id);
+				make_local_key(((Curve*)id)->key);
+			}
+			return 1;
+		case ID_MB:
+			if(!test) make_local_mball((MetaBall*)id);
+			return 1;
+		case ID_MA:
+			if(!test) make_local_material((Material*)id);
+			return 1;
+		case ID_TE:
+			if(!test) make_local_texture((Tex*)id);
+			return 1;
+		case ID_IM:
+			return 0; /* not implemented */
+		case ID_WV:
+			return 0; /* deprecated */
+		case ID_LT:
+			if(!test) {
+				make_local_lattice((Lattice*)id);
+				make_local_key(((Lattice*)id)->key);
+			}
+			return 1;
+		case ID_LA:
+			if(!test) make_local_lamp((Lamp*)id);
+			return 1;
+		case ID_CA:
+			if(!test) make_local_camera((Camera*)id);
+			return 1;
+		case ID_IP:
+			return 0; /* deprecated */
+		case ID_KE:
+			if(!test) make_local_key((Key*)id);
+			return 1;
+		case ID_WO:
+			if(!test) make_local_world((World*)id);
+			return 1;
+		case ID_SCR:
+			return 0; /* can't be linked */
+		case ID_VF:
+			return 0; /* not implemented */
+		case ID_TXT:
+			return 0; /* not implemented */
+		case ID_SCRIPT:
+			return 0; /* deprecated */
+		case ID_SO:
+			return 0; /* not implemented */
+		case ID_GR:
+			return 0; /* not implemented */
+		case ID_AR:
+			if(!test) make_local_armature((bArmature*)id);
+			return 1;
+		case ID_AC:
+			if(!test) make_local_action((bAction*)id);
+			return 1;
+		case ID_NT:
+			return 0; /* not implemented */
+		case ID_BR:
+			if(!test) make_local_brush((Brush*)id);
+			return 1;
+		case ID_PA:
+			if(!test) make_local_particlesettings((ParticleSettings*)id);
+			return 1;
+		case ID_WM:
+			return 0; /* can't be linked */
+		case ID_GD:
+			return 0; /* not implemented */
+	}
+
+	return 0;
+}
+
+int id_copy(ID *id, ID **newid, int test)
+{
+	if(!test) *newid= NULL;
+
+	/* conventions:
+	 * - make shallow copy, only this ID block
+	 * - id.us of the new ID is set to 1 */
+	switch(GS(id->name)) {
+		case ID_SCE:
+			return 0; /* can't be copied from here */
+		case ID_LI:
+			return 0; /* can't be copied from here */
+		case ID_OB:
+			if(!test) *newid= (ID*)copy_object((Object*)id);
+			return 1;
+		case ID_ME:
+			if(!test) *newid= (ID*)copy_mesh((Mesh*)id);
+			return 1;
+		case ID_CU:
+			if(!test) *newid= (ID*)copy_curve((Curve*)id);
+			return 1;
+		case ID_MB:
+			if(!test) *newid= (ID*)copy_mball((MetaBall*)id);
+			return 1;
+		case ID_MA:
+			if(!test) *newid= (ID*)copy_material((Material*)id);
+			return 1;
+		case ID_TE:
+			if(!test) *newid= (ID*)copy_texture((Tex*)id);
+			return 1;
+		case ID_IM:
+			return 0; /* not implemented */
+		case ID_WV:
+			return 0; /* deprecated */
+		case ID_LT:
+			if(!test) *newid= (ID*)copy_lattice((Lattice*)id);
+			return 1;
+		case ID_LA:
+			if(!test) *newid= (ID*)copy_lamp((Lamp*)id);
+			return 1;
+		case ID_CA:
+			if(!test) *newid= (ID*)copy_camera((Camera*)id);
+			return 1;
+		case ID_IP:
+			return 0; /* deprecated */
+		case ID_KE:
+			if(!test) *newid= (ID*)copy_key((Key*)id);
+			return 1;
+		case ID_WO:
+			if(!test) *newid= (ID*)copy_world((World*)id);
+			return 1;
+		case ID_SCR:
+			return 0; /* can't be copied from here */
+		case ID_VF:
+			return 0; /* not implemented */
+		case ID_TXT:
+			if(!test) *newid= (ID*)copy_text((Text*)id);
+			return 1;
+		case ID_SCRIPT:
+			return 0; /* deprecated */
+		case ID_SO:
+			return 0; /* not implemented */
+		case ID_GR:
+			if(!test) *newid= (ID*)copy_group((Group*)id);
+			return 1;
+		case ID_AR:
+			if(!test) *newid= (ID*)copy_armature((bArmature*)id);
+			return 1;
+		case ID_AC:
+			if(!test) *newid= (ID*)copy_action((bAction*)id);
+			return 1;
+		case ID_NT:
+			if(!test) *newid= (ID*)ntreeCopyTree((bNodeTree*)id, 0);
+			return 1;
+		case ID_BR:
+			if(!test) *newid= (ID*)copy_brush((Brush*)id);
+			return 1;
+		case ID_PA:
+			if(!test) *newid= (ID*)psys_copy_settings((ParticleSettings*)id);
+			return 1;
+		case ID_WM:
+			return 0; /* can't be copied from here */
+		case ID_GD:
+			return 0; /* not implemented */
+	}
+	
+	return 0;
+}
+
+int id_unlink(ID *id, int test)
+{
+	Main *mainlib= G.main;
+	ListBase *lb;
+
+	switch(GS(id->name)) {
+		case ID_TXT:
+			if(test) return 1;
+			unlink_text(mainlib, (Text*)id);
+			break;
+		case ID_GR:
+			if(test) return 1;
+			unlink_group((Group*)id);
+			break;
+		case ID_OB:
+			if(test) return 1;
+			unlink_object(NULL, (Object*)id);
+			break;
+	}
+
+	if(id->us == 0) {
+		if(test) return 1;
+
+		lb= wich_libbase(mainlib, GS(id->name));
+		free_libblock(lb, id);
+
+		return 1;
+	}
+
+	return 0;
 }
 
 ListBase *wich_libbase(Main *mainlib, short type)
@@ -408,13 +629,6 @@ void *alloc_libblock(ListBase *lb, short type, const char *name)
 	}
 	return id;
 }
-
-/* GS reads the memory pointed at in a specific ordering. 
-   only use this definition, makes little and big endian systems
-   work fine, in conjunction with MAKE_ID */
-
-/* from blendef: */
-#define GS(a)	(*((short *)(a)))
 
 /* by spec, animdata is first item after ID */
 /* we still read ->adt itself, to ensure compiler warns when it doesnt exist */

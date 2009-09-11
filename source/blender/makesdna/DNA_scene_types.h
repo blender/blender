@@ -47,6 +47,8 @@ struct Text;
 struct bNodeTree;
 struct AnimData;
 struct Editing;
+struct SceneStats;
+struct bGPdata;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -454,8 +456,11 @@ typedef struct Paint {
 	Brush **brushes;
 	int active_brush_index, brush_count;
 	
-	/* WM handle */
+	/* WM Paint cursor */
 	void *paint_cursor;
+	unsigned char paint_cursor_col[4];
+
+	int pad;
 } Paint;
 
 typedef struct ImagePaintSettings {
@@ -483,10 +488,15 @@ typedef struct ParticleEditSettings {
 	ParticleBrushData brush[7]; /* 7 = PE_TOT_BRUSH */
 	void *paintcursor;			/* runtime */
 
-	float emitterdist;
-	int draw_timed;
+	float emitterdist, rt;
 
-	int selectmode, pad;
+	int selectmode;
+	int edittype;
+
+	int draw_step, fade_frames;
+
+	struct Scene *scene;
+	struct Object *object;
 } ParticleEditSettings;
 
 typedef struct TransformOrientation {
@@ -497,9 +507,6 @@ typedef struct TransformOrientation {
 
 typedef struct Sculpt {
 	Paint paint;
-	
-	/* WM handle */
-	void *cursor;
 
 	/* For rotating around a pivot point */
 	float pivot[3];
@@ -717,7 +724,9 @@ typedef struct Scene {
 
 	/* Units */
 	struct UnitSettings unit;
-
+	
+	/* Grease Pencil */
+	struct bGPdata *gpd;
 } Scene;
 
 
@@ -1038,9 +1047,10 @@ typedef enum SculptFlags {
 #define PE_LOCK_FIRST			2
 #define PE_DEFLECT_EMITTER		4
 #define PE_INTERPOLATE_ADDED	8
-#define PE_SHOW_CHILD			16
-#define PE_SHOW_TIME			32
+#define PE_DRAW_PART			16
 #define PE_X_MIRROR				64
+#define PE_FADE_TIME			128
+#define PE_AUTO_VELOCITY		256
 
 /* toolsetting->particle brushtype */
 #define PE_BRUSH_NONE		-1
@@ -1049,11 +1059,15 @@ typedef enum SculptFlags {
 #define PE_BRUSH_LENGTH		2
 #define PE_BRUSH_PUFF		3
 #define PE_BRUSH_ADD		4
-#define PE_BRUSH_WEIGHT		5
-#define PE_BRUSH_SMOOTH		6
+#define PE_BRUSH_SMOOTH		5
 
 /* this must equal ParticleEditSettings.brush array size */
-#define PE_TOT_BRUSH		7  
+#define PE_TOT_BRUSH		6
+
+/* tooksettings->particle edittype */
+#define PE_TYPE_PARTICLES	0
+#define PE_TYPE_SOFTBODY	1
+#define PE_TYPE_CLOTH		2
 
 /* toolsettings->retopo_mode */
 #define RETOPO 1

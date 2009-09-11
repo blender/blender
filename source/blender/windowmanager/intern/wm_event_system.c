@@ -52,6 +52,7 @@
 #include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
+#include "ED_info.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
@@ -129,7 +130,7 @@ static wmNotifier *wm_notifier_next(wmWindowManager *wm)
 void wm_event_do_notifiers(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
-	wmNotifier *note;
+	wmNotifier *note, *next;
 	wmWindow *win;
 	
 	if(wm==NULL)
@@ -141,7 +142,9 @@ void wm_event_do_notifiers(bContext *C)
 		
 		CTX_wm_window_set(C, win);
 		
-		for(note= wm->queue.first; note; note= note->next) {
+		for(note= wm->queue.first; note; note= next) {
+			next= note->next;
+
 			if(note->category==NC_WM) {
 				if( ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
 					wm->file_saved= 1;
@@ -173,6 +176,10 @@ void wm_event_do_notifiers(bContext *C)
 					else if(note->data==ND_FRAME)
 						do_anim= 1;
 				}
+			}
+			if(ELEM4(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE)) {
+				ED_info_stats_clear(CTX_data_scene(C));
+				WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
 			}
 		}
 		if(do_anim) {
@@ -338,11 +345,12 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 
 	/* initialize error reports */
 	if (reports) {
-		op->reports= reports; /* must be initialized alredy */
+		op->reports= reports; /* must be initialized already */
 	}
 	else {
 		op->reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
 		BKE_reports_init(op->reports, RPT_STORE);
+		op->flag |= OPERATOR_REPORT_FREE;
 	}
 	
 	/* recursive filling of operator macro list */
@@ -385,13 +393,13 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties)
+static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
 
 	if(wm_operator_poll(C, ot)) {
-		wmOperator *op= wm_operator_create(wm, ot, properties, NULL);
+		wmOperator *op= wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
 		
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
 			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
@@ -435,10 +443,12 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 	return retval;
 }
 
-/* invokes operator in context */
-int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties)
+/* WM_operator_name_call is the main accessor function
+ * this is for python to access since its done the operator lookup
+ * 
+ * invokes operator in context */
+static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
 {
-	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 	wmWindow *window= CTX_wm_window(C);
 	wmEvent *event;
 	
@@ -466,7 +476,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 						CTX_wm_region_set(C, ar1);
 				}
 				
-				retval= wm_operator_invoke(C, ot, event, properties);
+				retval= wm_operator_invoke(C, ot, event, properties, reports);
 				
 				/* set region back */
 				CTX_wm_region_set(C, ar);
@@ -481,7 +491,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 				ARegion *ar= CTX_wm_region(C);
 
 				CTX_wm_region_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties);
+				retval= wm_operator_invoke(C, ot, event, properties, reports);
 				CTX_wm_region_set(C, ar);
 
 				return retval;
@@ -496,7 +506,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties);
+				retval= wm_operator_invoke(C, ot, event, properties, reports);
 				CTX_wm_region_set(C, ar);
 				CTX_wm_area_set(C, area);
 
@@ -505,10 +515,21 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 			case WM_OP_EXEC_DEFAULT:
 				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_DEFAULT:
-				return wm_operator_invoke(C, ot, event, properties);
+				return wm_operator_invoke(C, ot, event, properties, reports);
 		}
 	}
 	
+	return 0;
+}
+
+
+/* invokes operator in context */
+int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties)
+{
+	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
+	if(ot)
+		return wm_operator_call_internal(C, ot, context, properties, NULL);
+
 	return 0;
 }
 
@@ -517,20 +538,22 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
    - poll() must be called by python before this runs.
    - reports can be passed to this function (so python can report them as exceptions)
 */
-int WM_operator_call_py(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
+int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
 {
-	wmWindowManager *wm=	CTX_wm_manager(C);
-	wmOperator *op=			wm_operator_create(wm, ot, properties, reports);
 	int retval= OPERATOR_CANCELLED;
-	
+
+#if 0
+	wmOperator *op;
+	wmWindowManager *wm=	CTX_wm_manager(C);
+	op= wm_operator_create(wm, ot, properties, reports);
+
 	if (op->type->exec)
 		retval= op->type->exec(C, op);
 	else
 		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
-	
-	if (reports)
-		op->reports= NULL; /* dont let the operator free reports passed to this function */
-	WM_operator_free(op);
+#endif
+
+	retval= wm_operator_call_internal(C, ot, context, properties, reports);
 	
 	return retval;
 }
@@ -813,7 +836,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname, 0);
 
 		if(ot)
-			retval= wm_operator_invoke(C, ot, event, properties);
+			retval= wm_operator_invoke(C, ot, event, properties, NULL);
 	}
 
 	if(retval & OPERATOR_PASS_THROUGH)

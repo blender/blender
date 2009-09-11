@@ -84,7 +84,5 @@ int get_render_child_particle_number(struct RenderData *r, int num);
 int get_render_shadow_samples(struct RenderData *r, int samples);
 float get_render_aosss_error(struct RenderData *r, float error);
 
-void free_dome_warp_text(struct Text *txt);
-
 #endif
 

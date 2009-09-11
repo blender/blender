@@ -39,7 +39,6 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 # The external modules follow after. There should be a nicer way to say this.
 CPPFLAGS += -I../include 
 CPPFLAGS += -I../../extern/include 
-CPPFLAGS += -I../../../radiosity/extern/include 
 CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../makesdna
@@ -51,6 +50,7 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # not very neat: the rest of blender..
 CPPFLAGS += -I../../../editors/include 
 CPPFLAGS += $(NAN_SDLCFLAGS)
+CPPFLAGS += -I../../../../../intern/smoke/extern
 
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -DWITH_QUICKTIME

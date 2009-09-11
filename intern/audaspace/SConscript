@@ -26,4 +26,9 @@ if env['WITH_BF_JACK']:
 	incs += ' jack ' + env['BF_JACK_INC']
 	defs.append('WITH_JACK')
 
-env.BlenderLib ('bf_audaspace', sources, Split(incs), defs, libtype=['intern'], priority = [25] )
+if env['WITH_BF_SNDFILE']:
+	sources += env.Glob('sndfile/*.cpp')
+	incs += ' sndfile ' + env['BF_SNDFILE_INC']
+	defs.append('WITH_SNDFILE')
+
+env.BlenderLib ('bf_audaspace', sources, Split(incs), defs, libtype=['intern','player'], priority = [25,215] )

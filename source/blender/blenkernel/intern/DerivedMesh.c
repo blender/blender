@@ -2077,7 +2077,7 @@ static void clear_mesh_caches(Object *ob)
 static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Object *obact = scene->basact?scene->basact->object:NULL;
-	int editing = paint_facesel_test(ob)|(ob && ob->mode & OB_MODE_PARTICLE_EDIT);
+	int editing = paint_facesel_test(ob);
 	int needMapping = editing && (ob==obact);
 	float min[3], max[3];
 	

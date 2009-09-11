@@ -2,8 +2,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -13,9 +13,7 @@ class DATA_PT_preview(DataButtonsPanel):
 	__label__ = "Preview"
 
 	def draw(self, context):
-		layout = self.layout
-
-		layout.template_preview(context.lamp)
+		self.layout.template_preview(context.lamp)
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
 	__show_header__ = False
@@ -69,8 +67,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		if lamp.type == 'AREA':
 			col.itemR(lamp, "distance")
 			col.itemR(lamp, "gamma")
-
-			
+	
 		col = split.column()
 		col.itemR(lamp, "negative")
 		col.itemR(lamp, "layer", text="This Layer Only")
@@ -299,18 +296,12 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 	def poll(self, context):
 		lamp = context.lamp
 
-		if lamp and lamp.type in ('POINT', 'SPOT'):
-			if lamp.falloff_type == 'CUSTOM_CURVE':
-				return True
-
-		return False
+		return (lamp and lamp.type in ('POINT', 'SPOT') and lamp.falloff_type == 'CUSTOM_CURVE')
 
 	def draw(self, context):
-		layout = self.layout
-		
 		lamp = context.lamp
 
-		layout.template_curve_mapping(lamp.falloff_curve)
+		self.layout.template_curve_mapping(lamp.falloff_curve)
 
 bpy.types.register(DATA_PT_context_lamp)
 bpy.types.register(DATA_PT_preview)

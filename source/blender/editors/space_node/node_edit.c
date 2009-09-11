@@ -574,7 +574,6 @@ void ED_node_texture_default(Tex *tx)
 	nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
 	
 	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
-	ntreeTexUpdatePreviews(tx->nodetree); /* XXX texture nodes should follow shader node methods (ton) */
 }
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
@@ -1111,9 +1110,6 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 				node->width= nsw->oldwidth + mx - nsw->mxstart;
 				CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
 			}
-			// XXX
-			if(snode->nodetree->type == NTREE_TEXTURE)
-				ntreeTexUpdatePreviews(snode->nodetree); /* XXX texture nodes should follow shader node methods (ton) */
 				
 			ED_region_tag_redraw(ar);
 
@@ -1659,7 +1655,6 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 	
 	if(snode->nodetree->type==NTREE_TEXTURE) {
 		ntreeTexCheckCyclics(snode->edittree);
-		ntreeTexUpdatePreviews(snode->edittree); /* XXX texture nodes should follow shader node methods (ton) */
 	}
 	
 	return node;

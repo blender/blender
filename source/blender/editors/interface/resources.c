@@ -445,6 +445,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
 	
 	SETCOLF(btheme->tv3d.header,	0.45, 0.45, 0.45, 1.0);
+	SETCOLF(btheme->tv3d.button,	0.45, 0.45, 0.45, 1.0);
 	SETCOL(btheme->tv3d.panel,      165, 165, 165, 127);
 	
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
@@ -1243,6 +1244,18 @@ void init_userdef_do_versions(void)
 			SETCOLF(btheme->tinfo.back, 0.45, 0.45, 0.45, 1.0);
 			SETCOLF(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
 		}
+	}
+
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 3)) {
+		/* new audio system */
+		if(U.audiochannels == 0)
+			U.audiochannels = 2;
+		if(U.audiodevice == 0)
+			U.audiodevice = 2;
+		if(U.audioformat == 0)
+			U.audioformat = 0x24;
+		if(U.audiorate == 0)
+			U.audiorate = 44100;
 	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */

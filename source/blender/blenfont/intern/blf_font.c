@@ -151,7 +151,7 @@ void blf_font_draw(FontBLF *font, char *str)
 
 void blf_font_buffer(FontBLF *font, char *str)
 {
-	unsigned char *data;
+	unsigned char *data, *cbuf;
 	unsigned int c;
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
@@ -197,30 +197,27 @@ void blf_font_buffer(FontBLF *font, char *str)
 				pen_x += delta.x >> 6;
 		}
 
-		if (font->b_fbuf) {
-			chx= pen_x + ((int)g->pos_x);
-
-			diff= g->height - ((int)g->pos_y);
-
-			if (diff > 0) {
-				if (g->pitch < 0)
-					pen_y += diff;
-				else
-					pen_y -= diff;
-			}
-			else if (diff < 0) {
-				if (g->pitch < 0)
-					pen_y -= diff;
-				else
-					pen_y += diff;
-			}
-
-
+		chx= pen_x + ((int)g->pos_x);
+		diff= g->height - ((int)g->pos_y);
+		if (diff > 0) {
 			if (g->pitch < 0)
-				chy= pen_y - ((int)g->pos_y);
+				pen_y += diff;
 			else
-				chy= pen_y + ((int)g->pos_y);
+				pen_y -= diff;
+		}
+		else if (diff < 0) {
+			if (g->pitch < 0)
+				pen_y -= diff;
+			else
+				pen_y += diff;
+		}
 
+		if (g->pitch < 0)
+			chy= pen_y - ((int)g->pos_y);
+		else
+			chy= pen_y + ((int)g->pos_y);
+
+		if (font->b_fbuf) {
 			if (chx >= 0 && chx < font->bw && pen_y >= 0 && pen_y < font->bh) {
 				if (g->pitch < 0)
 					yb= 0;
@@ -251,20 +248,52 @@ void blf_font_buffer(FontBLF *font, char *str)
 						yb--;
 				}
 			}
+		}
 
-			if (diff > 0) {
+		if (font->b_cbuf) {
+			if (chx >= 0 && chx < font->bw && pen_y >= 0 && pen_y < font->bh) {
 				if (g->pitch < 0)
-					pen_x -= diff;
+					yb= 0;
 				else
-					pen_y += diff;
-			}
-			else if (diff < 0) {
-				if (g->pitch < 0)
-					pen_x += diff;
-				else
-					pen_y -= diff;
-			}
+					yb= g->height-1;
 
+				for (y= 0; y < g->height; y++) {
+					for (x= 0; x < g->width; x++) {
+						cbuf= font->b_cbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
+						data= g->bitmap + x + (yb * g->pitch);
+						a= data[0];
+
+						if (a == 256) {
+							cbuf[0]= font->b_col[0];
+							cbuf[1]= font->b_col[1];
+							cbuf[2]= font->b_col[2];
+						}
+						else {
+							cbuf[0]= (font->b_col[0]*a) + (cbuf[0] * (256-a));
+							cbuf[1]= (font->b_col[1]*a) + (cbuf[1] * (256-a));
+							cbuf[2]= (font->b_col[2]*a) + (cbuf[2] * (256-a));
+						}
+					}
+
+					if (g->pitch < 0)
+						yb++;
+					else
+						yb--;
+				}
+			}
+		}
+
+		if (diff > 0) {
+			if (g->pitch < 0)
+				pen_x -= diff;
+			else
+				pen_y += diff;
+		}
+		else if (diff < 0) {
+			if (g->pitch < 0)
+				pen_x += diff;
+			else
+				pen_y -= diff;
 		}
 
 		pen_x += g->advance;

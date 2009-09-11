@@ -67,6 +67,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
@@ -520,13 +521,13 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 		uiBlockBeginAlign(block);
 		uiDefButF(block, COL, B_VPCOLSLI, "",					0,yco,200,19, brush->rgb, 0, 0, 0, 0, "");
 		uiDefButF(block, NUMSLI, evt_nop, "Opacity ",		0,yco-20,180,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, evt_nop, "P",	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefIconButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButI(block, NUMSLI, evt_nop, "Size ",		0,yco-40,180,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, evt_nop, "P",	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefIconButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButF(block, NUMSLI, evt_nop, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, evt_nop, "P",	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefIconButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButF(block, NUMSLI, evt_nop, "Spacing ",0,yco-80,180,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
-		uiDefButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, evt_nop, "P",	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefIconButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiBlockEndAlign(block);
 		
 		yco -= 110;
@@ -1437,6 +1438,12 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "IMAGE_PT_curves");
 	strcpy(pt->label, "Curves");
 	pt->draw= image_panel_curves;
+	BLI_addtail(&art->paneltypes, pt);
+	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel gpencil");
+	strcpy(pt->idname, "IMAGE_PT_gpencil");
+	strcpy(pt->label, "Grease Pencil");
+	pt->draw= gpencil_panel_standard;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

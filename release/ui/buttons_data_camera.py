@@ -2,12 +2,12 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 
 	def poll(self, context):
-		return (context.camera != None)
+		return (context.camera)
 		
 class DATA_PT_context_camera(DataButtonsPanel):
 	__show_header__ = False
@@ -49,7 +49,7 @@ class DATA_PT_camera(DataButtonsPanel):
 		elif cam.type == 'ORTHO':
 			row.itemR(cam, "ortho_scale")
 
-		layout.itemR(cam, "panorama");
+		layout.itemR(cam, "panorama")
 				
 		split = layout.split()
 			

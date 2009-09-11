@@ -170,7 +170,22 @@ void init_material(Material *ma)
 	ma->sss_front= 1.0f;
 	ma->sss_back= 1.0f;
 
-	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR;
+	ma->vol.density = 1.0f;
+	ma->vol.emission = 0.0f;
+	ma->vol.absorption = 1.0f;
+	ma->vol.scattering = 1.0f;
+	ma->vol.emission_col[0] = ma->vol.emission_col[1] = ma->vol.emission_col[2] = 1.0f;
+	ma->vol.absorption_col[0] = ma->vol.absorption_col[1] = ma->vol.absorption_col[2] = 0.0f;
+	ma->vol.density_scale = 1.0f;
+	ma->vol.depth_cutoff = 0.01f;
+	ma->vol.stepsize_type = MA_VOL_STEP_RANDOMIZED;
+	ma->vol.stepsize = 0.2f;
+	ma->vol.shade_stepsize = 0.2f;
+	ma->vol.shade_type = MA_VOL_SHADE_SINGLE;
+	ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
+	ma->vol.precache_resolution = 50;
+	
+	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR|MA_ZTRANSP;
 
 	ma->preview = NULL;
 }
@@ -1016,15 +1031,15 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			}
 				break;
 		case MA_RAMP_DARK:
-			tmp= fac*col[0];
-			if(tmp < *r) *r= tmp; 
-				if(g) {
-					tmp= fac*col[1];
-					if(tmp < *g) *g= tmp; 
-					tmp= fac*col[2];
-					if(tmp < *b) *b= tmp; 
-				}
-					break;
+            tmp=col[0]+((1-col[0])*facm); 
+            if(tmp < *r) *r= tmp; 
+            if(g) { 
+                tmp=col[1]+((1-col[1])*facm); 
+                if(tmp < *g) *g= tmp; 
+                tmp=col[2]+((1-col[2])*facm); 
+                if(tmp < *b) *b= tmp; 
+            } 
+                break; 
 		case MA_RAMP_LIGHT:
 			tmp= fac*col[0];
 			if(tmp > *r) *r= tmp; 
@@ -1154,8 +1169,37 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 				}
 			}
 				break;
-	}
-	
+        case MA_RAMP_SOFT: 
+            if (g){ 
+                float scr, scg, scb; 
+                 
+                /* first calculate non-fac based Screen mix */ 
+                scr = 1.0 - ((1.0 - col[0])) * (1.0 - *r); 
+                scg = 1.0 - ((1.0 - col[1])) * (1.0 - *g); 
+                scb = 1.0 - ((1.0 - col[2])) * (1.0 - *b); 
+                 
+                *r = facm*(*r) + fac*(((1.0 - *r) * col[0] * (*r)) + (*r * scr)); 
+                *g = facm*(*g) + fac*(((1.0 - *g) * col[1] * (*g)) + (*g * scg)); 
+                *b = facm*(*b) + fac*(((1.0 - *b) * col[2] * (*b)) + (*b * scb)); 
+            } 
+                break; 
+        case MA_RAMP_LINEAR: 
+            if (col[0] > 0.5)  
+                *r = *r + fac*(2*(col[0]-0.5)); 
+            else  
+                *r = *r + fac*(2*(col[0]) - 1); 
+            if (g){ 
+                if (col[1] > 0.5)  
+                    *g = *g + fac*(2*(col[1]-0.5)); 
+                else  
+                    *g = *g + fac*(2*(col[1]) -1); 
+                if (col[2] > 0.5)  
+                    *b = *b + fac*(2*(col[2]-0.5)); 
+                else  
+                    *b = *b + fac*(2*(col[2]) - 1); 
+            } 
+                break; 
+	}	
 }
 
 

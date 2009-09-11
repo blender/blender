@@ -36,8 +36,6 @@
 #ifndef BLI_FILEOPS_H
 #define BLI_FILEOPS_H
 
-
-
 void  BLI_recurdir_fileops(char *dirname);
 int BLI_link(char *file, char *to);
 int BLI_is_writable(char *filename);

@@ -190,7 +190,7 @@ ConsoleLine *console_history_verify(const bContext *C)
 static void console_line_verify_length(ConsoleLine *ci, int len)
 {
 	/* resize the buffer if needed */
-	if(len > ci->len_alloc) {
+	if(len >= ci->len_alloc) {
 		int new_len= len * 2; /* new length */
 		char *new_line= MEM_callocN(new_len, "console line");
 		memcpy(new_line, ci->line, ci->len);
@@ -232,6 +232,11 @@ static int console_edit_poll(bContext *C)
 		return 0;
 
 	return 1;
+}
+
+static int console_poll(bContext *C)
+{
+	return (CTX_wm_space_console(C) != NULL);
 }
 
 
@@ -280,6 +285,7 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Cursor";
+    ot->description= "Move cursor position.";
 	ot->idname= "CONSOLE_OT_move";
 	
 	/* api callbacks */
@@ -324,6 +330,7 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert";
+    ot->description= "Insert text at cursor position.";
 	ot->idname= "CONSOLE_OT_insert";
 	
 	/* api callbacks */
@@ -391,6 +398,7 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
+    ot->description= "Delete text by cursor position.";
 	ot->idname= "CONSOLE_OT_delete";
 	
 	/* api callbacks */
@@ -434,6 +442,7 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear";
+    ot->description= "Clear text by type.";
 	ot->idname= "CONSOLE_OT_clear";
 	
 	/* api callbacks */
@@ -478,6 +487,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "History Cycle";
+    ot->description= "Cycle through history.";
 	ot->idname= "CONSOLE_OT_history_cycle";
 	
 	/* api callbacks */
@@ -525,6 +535,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "History Append";
+    ot->description= "Append history at cursor position.";
 	ot->idname= "CONSOLE_OT_history_append";
 	
 	/* api callbacks */
@@ -572,6 +583,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Scrollback Append";
+    ot->description= "Append scrollback text by type.";
 	ot->idname= "CONSOLE_OT_scrollback_append";
 	
 	/* api callbacks */
@@ -614,6 +626,7 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy to Clipboard";
+    ot->description= "Copy selected text to clipboard.";
 	ot->idname= "CONSOLE_OT_copy";
 
 	/* api callbacks */
@@ -648,6 +661,7 @@ void CONSOLE_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste from Clipboard";
+    ot->description= "Paste text from clipboard.";
 	ot->idname= "CONSOLE_OT_paste";
 
 	/* api callbacks */
@@ -679,10 +693,14 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Console Zoom";
+    /*optionals - 
+      "Zoom view font." */
+    ot->description= "Zoom screen area.";
 	ot->idname= "CONSOLE_OT_zoom";
 	
 	/* api callbacks */
 	ot->exec= zoom_exec;
+	ot->poll= console_poll;
 
 	/* flags */
 	/* ot->flag= OPTYPE_REGISTER; */ /* super annoying */

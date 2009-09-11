@@ -271,8 +271,8 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	nu= cu->nurb.first;
 
 	/* make sure that first and last frame are included in the vectors here  */
-	if((nu->type & 7)==CU_POLY) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
-	else if((nu->type & 7)==CU_BEZIER) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
+	if(nu->type == CU_POLY) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
+	else if(nu->type == CU_BEZIER) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
 	else if(s0==s1 || p2==p3) set_four_ipo(1.0f-fac, data, KEY_CARDINAL);
 	else set_four_ipo(1.0f-fac, data, KEY_BSPLINE);
 

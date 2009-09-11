@@ -109,20 +109,13 @@ static void rna_Mesh_calc_edges(Mesh *mesh)
 
 static void rna_Mesh_update(Mesh *mesh, bContext *C)
 {
-	Main *bmain= CTX_data_main(C);
-	Object *ob;
-
 	if(mesh->totface && mesh->totedge == 0)
 		rna_Mesh_calc_edges(mesh);
 
 	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mface, mesh->totface, NULL);
 
-	for(ob=bmain->object.first; ob; ob=ob->id.next) {
-		if(ob->data == mesh) {
-			ob->recalc |= OB_RECALC_DATA;
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
-		}
-	}
+	DAG_id_flush_update(&mesh->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
 }
 
 static void rna_Mesh_transform(Mesh *me, float *mat)
@@ -293,7 +286,7 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func= RNA_def_function(srna, "transform", "rna_Mesh_transform");
 	RNA_def_function_ui_description(func, "Transform mesh vertices by a matrix.");
-	parm= RNA_def_float_matrix(func, "matrix", 16, NULL, 0.0f, 0.0f, "", "Matrix.", 0.0f, 0.0f);
+	parm= RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix.", 0.0f, 0.0f);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "add_geometry", "rna_Mesh_add_geometry");

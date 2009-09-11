@@ -2,12 +2,12 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.mesh != None)
+		return (context.mesh)
 
 class DATA_PT_context_mesh(DataButtonsPanel):
 	__show_header__ = False
@@ -48,36 +48,6 @@ class DATA_PT_normals(DataButtonsPanel):
 		col.itemR(mesh, "vertex_normal_flip")
 		col.itemR(mesh, "double_sided")
 
-class DATA_PT_meshdraw(DataButtonsPanel):
-	__label__ = "Draw"
-
-	def draw(self, context):
-		layout = self.layout
-		
-		mesh = context.mesh
-		
-		layout.itemL(text="Edit Mode only, WIP")
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemR(mesh, "draw_edges", text="Edges")
-		col.itemR(mesh, "draw_faces", text="Faces")
-		col.itemR(mesh, "draw_creases", text="Creases")
-		col.itemR(mesh, "draw_bevel_weights", text="Bevel Weights")
-		col.itemR(mesh, "draw_seams", text="Seams")
-		col.itemR(mesh, "draw_sharp", text="Sharp")
-		
-		col = split.column()
-		col.itemR(mesh, "draw_normals", text="Face Normals")
-		col.itemR(mesh, "draw_vertex_normals", text="Vertex Normals")
-		
-		col.itemS()
-		
-		col.itemR(mesh, "draw_edge_lenght")
-		col.itemR(mesh, "draw_edge_angle")
-		col.itemR(mesh, "draw_face_area")
-
 class DATA_PT_vertex_groups(DataButtonsPanel):
 	__label__ = "Vertex Groups"
 	
@@ -93,19 +63,19 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 		row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index")
 
 		col = row.column(align=True)
-		col.itemO("object.vertex_group_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("object.vertex_group_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("object.vertex_group_add", icon='ICON_ZOOMIN', text="")
+		col.itemO("object.vertex_group_remove", icon='ICON_ZOOMOUT', text="")
 
-		col.itemO("object.vertex_group_copy", icon="ICON_BLANK1", text="")
+		col.itemO("object.vertex_group_copy", icon='ICON_BLANK1', text="")
 		if ob.data.users > 1:
-			col.itemO("object.vertex_group_copy_to_linked", icon="ICON_BLANK1", text="")
+			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_BLANK1', text="")
 
 		group = ob.active_vertex_group
 		if group:
 			row = layout.row()
 			row.itemR(group, "name")
 
-		if context.edit_object:
+		if ob.mode == 'EDIT':
 			row = layout.row()
 			
 			sub = row.row(align=True)
@@ -132,20 +102,20 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		kb = ob.active_shape_key
 
 		row = layout.row()
-		row.template_list(key, "keys", ob, "active_shape_key_index")
+		row.template_list(key, "keys", ob, "active_shape_key_index", rows=2)
 
 		col = row.column()
 
 		subcol = col.column(align=True)
-		subcol.itemO("object.shape_key_add", icon="ICON_ZOOMIN", text="")
-		subcol.itemO("object.shape_key_remove", icon="ICON_ZOOMOUT", text="")
+		subcol.itemO("object.shape_key_add", icon='ICON_ZOOMIN', text="")
+		subcol.itemO("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
 
 		if kb:
 			col.itemS()
 
 			subcol = col.column(align=True)
-			subcol.itemR(ob, "shape_key_lock", icon="ICON_UNPINNED", text="")
-			subcol.itemR(kb, "mute", icon="ICON_MUTE_IPO_ON", text="")
+			subcol.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
+			subcol.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
 
 			if key.relative:
 				row = layout.row()
@@ -180,7 +150,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
 				layout.itemR(kb, "name")
 
-		if context.edit_object:
+		if ob.mode == 'EDIT':
 			layout.enabled = False
 
 class DATA_PT_uv_texture(DataButtonsPanel):
@@ -197,8 +167,8 @@ class DATA_PT_uv_texture(DataButtonsPanel):
 		col.template_list(me, "uv_textures", me, "active_uv_texture_index", rows=2)
 
 		col = row.column(align=True)
-		col.itemO("mesh.uv_texture_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("mesh.uv_texture_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("mesh.uv_texture_add", icon='ICON_ZOOMIN', text="")
+		col.itemO("mesh.uv_texture_remove", icon='ICON_ZOOMOUT', text="")
 
 		lay = me.active_uv_texture
 		if lay:
@@ -218,8 +188,8 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 		col.template_list(me, "vertex_colors", me, "active_vertex_color_index", rows=2)
 
 		col = row.column(align=True)
-		col.itemO("mesh.vertex_color_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("mesh.vertex_color_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("mesh.vertex_color_add", icon='ICON_ZOOMIN', text="")
+		col.itemO("mesh.vertex_color_remove", icon='ICON_ZOOMOUT', text="")
 
 		lay = me.active_vertex_color
 		if lay:
@@ -227,7 +197,6 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 
 bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_normals)
-bpy.types.register(DATA_PT_meshdraw)
 bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)

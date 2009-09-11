@@ -28,9 +28,16 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
 {
 	int x, y, z;
 	size_t index;
+	float *_q, *_Precond, *_h, *_residual, *_direction;
 
 	// i = 0
 	int i = 0;
+
+	_residual     = new float[_totalCells]; // set 0
+	_direction    = new float[_totalCells]; // set 0
+	_q            = new float[_totalCells]; // set 0
+	_h			  = new float[_totalCells]; // set 0
+	_Precond	  = new float[_totalCells]; // set 0
 
 	memset(_residual, 0, sizeof(float)*_xRes*_yRes*_zRes);
 	memset(_q, 0, sizeof(float)*_xRes*_yRes*_zRes);
@@ -191,11 +198,18 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
     i++;
   }
   // cout << i << " iterations converged to " << sqrt(maxR) << endl;
+
+	if (_h) delete[] _h;
+	if (_Precond) delete[] _Precond;
+	if (_residual) delete[] _residual;
+	if (_direction) delete[] _direction;
+	if (_q)       delete[] _q;
 }
 
 //////////////////////////////////////////////////////////////////////
 // solve the poisson equation with CG
 //////////////////////////////////////////////////////////////////////
+#if 0
 void FLUID_3D::solvePressure(float* field, float* b, unsigned char* skip)
 {
 	int x, y, z;
@@ -344,6 +358,7 @@ void FLUID_3D::solvePressure(float* field, float* b, unsigned char* skip)
   }
   // cout << i << " iterations converged to " << maxR << endl;
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // solve the heat equation with CG
@@ -353,9 +368,14 @@ void FLUID_3D::solveHeat(float* field, float* b, unsigned char* skip)
 	int x, y, z;
 	size_t index;
 	const float heatConst = _dt * _heatDiffusion / (_dx * _dx);
+	float *_q, *_residual, *_direction;
 
 	// i = 0
 	int i = 0;
+
+	_residual     = new float[_totalCells]; // set 0
+	_direction    = new float[_totalCells]; // set 0
+	_q            = new float[_totalCells]; // set 0
 
   	memset(_residual, 0, sizeof(float)*_xRes*_yRes*_zRes);
 	memset(_q, 0, sizeof(float)*_xRes*_yRes*_zRes);
@@ -496,5 +516,9 @@ void FLUID_3D::solveHeat(float* field, float* b, unsigned char* skip)
     i++;
   }
   // cout << i << " iterations converged to " << maxR << endl;
+
+	if (_residual) delete[] _residual;
+	if (_direction) delete[] _direction;
+	if (_q)       delete[] _q;
 }
 

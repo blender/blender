@@ -14,4 +14,4 @@ incs = ['.',
 
 defs = []
 
-env.BlenderLib ('bf_cineon', source_files, incs, defs, libtype=['core','player'], priority = [220, 75])
+env.BlenderLib ('bf_cineon', source_files, incs, defs, libtype=['core','player'], priority = [220,175])

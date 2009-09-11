@@ -152,20 +152,21 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 
 /*********************** UV texture operators ************************/
 
+static int layers_poll(bContext *C)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	ID *data= (ob)? ob->data: NULL;
+	return (ob && !ob->id.lib && ob->type==OB_MESH && data && !data->lib);
+}
+
 static int uv_texture_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Mesh *me;
+	Mesh *me= ob->data;
 	EditMesh *em;
 	int layernum;
 
-	if(!ob || ob->type!=OB_MESH)
-		return OPERATOR_CANCELLED;
-	
-	me= (Mesh*)ob->data;
-
-	if(scene->obedit == ob) {
+	if(me->edit_mesh) {
 		em= me->edit_mesh;
 
 		layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
@@ -175,7 +176,7 @@ static int uv_texture_add_exec(bContext *C, wmOperator *op)
 		EM_add_data_layer(em, &em->fdata, CD_MTFACE);
 		CustomData_set_layer_active(&em->fdata, CD_MTFACE, layernum);
 	}
-	else if(ob) {
+	else {
 		layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 		if(layernum >= MAX_MTFACE)
 			return OPERATOR_CANCELLED;
@@ -189,8 +190,8 @@ static int uv_texture_add_exec(bContext *C, wmOperator *op)
 		mesh_update_customdata_pointers(me);
 	}
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
 }
@@ -203,6 +204,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 	ot->idname= "MESH_OT_uv_texture_add";
 	
 	/* api callbacks */
+	ot->poll= layers_poll;
 	ot->exec= uv_texture_add_exec;
 
 	/* flags */
@@ -211,16 +213,11 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 
 static int uv_texture_remove_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Mesh *me;
+	Mesh *me= ob->data;
 	CustomDataLayer *cdl;
 	int index;
 
-	if(!ob || ob->type!=OB_MESH)
-		return OPERATOR_CANCELLED;
-	
-	me= (Mesh*)ob->data;
  	index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
 	cdl= (index == -1)? NULL: &me->fdata.layers[index];
 
@@ -229,8 +226,8 @@ static int uv_texture_remove_exec(bContext *C, wmOperator *op)
 
 	delete_customdata_layer(C, ob, cdl);
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
 }
@@ -243,6 +240,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 	ot->idname= "MESH_OT_uv_texture_remove";
 	
 	/* api callbacks */
+	ot->poll= layers_poll;
 	ot->exec= uv_texture_remove_exec;
 
 	/* flags */
@@ -255,17 +253,12 @@ static int vertex_color_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Mesh *me;
+	Mesh *me= ob->data;
 	EditMesh *em;
 	MCol *mcol;
 	int layernum;
 
-	if(!ob || ob->type!=OB_MESH)
-		return OPERATOR_CANCELLED;
-	
-	me= (Mesh*)ob->data;
-
-	if(scene->obedit == ob) {
+	if(me->edit_mesh) {
 		em= me->edit_mesh;
 
 		layernum= CustomData_number_of_layers(&em->fdata, CD_MCOL);
@@ -294,8 +287,8 @@ static int vertex_color_add_exec(bContext *C, wmOperator *op)
 			shadeMeshMCol(scene, ob, me);
 	}
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
 }
@@ -308,6 +301,7 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 	ot->idname= "MESH_OT_vertex_color_add";
 	
 	/* api callbacks */
+	ot->poll= layers_poll;
 	ot->exec= vertex_color_add_exec;
 
 	/* flags */
@@ -316,16 +310,11 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 
 static int vertex_color_remove_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Mesh *me;
+	Mesh *me= ob->data;
 	CustomDataLayer *cdl;
 	int index;
 
-	if(!ob || ob->type!=OB_MESH)
-		return OPERATOR_CANCELLED;
-	
-	me= (Mesh*)ob->data;
  	index= CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
 	cdl= (index == -1)? NULL: &me->fdata.layers[index];
 
@@ -334,8 +323,8 @@ static int vertex_color_remove_exec(bContext *C, wmOperator *op)
 
 	delete_customdata_layer(C, ob, cdl);
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
 }
@@ -349,6 +338,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= vertex_color_remove_exec;
+	ot->poll= layers_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -358,22 +348,16 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 
 static int sticky_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Mesh *me;
-
-	if(!ob || ob->type!=OB_MESH)
-		return OPERATOR_CANCELLED;
-	
-	me= (Mesh*)ob->data;
+	Mesh *me= ob->data;
 
 	if(me->msticky)
 		return OPERATOR_CANCELLED;
 
 	// XXX RE_make_sticky();
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
 }
@@ -386,6 +370,7 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 	ot->idname= "MESH_OT_sticky_add";
 	
 	/* api callbacks */
+	ot->poll= layers_poll;
 	ot->exec= sticky_add_exec;
 
 	/* flags */
@@ -394,14 +379,8 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 
 static int sticky_remove_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Mesh *me;
-
-	if(!ob || ob->type!=OB_MESH)
-		return OPERATOR_CANCELLED;
-	
-	me= (Mesh*)ob->data;
+	Mesh *me= ob->data;
 
 	if(!me->msticky)
 		return OPERATOR_CANCELLED;
@@ -409,8 +388,8 @@ static int sticky_remove_exec(bContext *C, wmOperator *op)
 	CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
 	me->msticky= NULL;
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
 }
@@ -423,6 +402,7 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 	ot->idname= "MESH_OT_sticky_remove";
 	
 	/* api callbacks */
+	ot->poll= layers_poll;
 	ot->exec= sticky_remove_exec;
 
 	/* flags */

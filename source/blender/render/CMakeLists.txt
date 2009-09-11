@@ -27,23 +27,24 @@
 FILE(GLOB SRC intern/source/*.c)
 
 SET(INC 
-  intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
-  extern/include ../blenkernel ../radiosity/extern/include ../imbuf
-  ../quicktime ../include ../../kernel/gen_messaging ../blenloader
-  ../makesrna
+	intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
+	extern/include ../blenkernel ../imbuf
+	../include ../../kernel/gen_messaging ../blenloader
+	../../../intern/smoke/extern
+	../makesrna
 )
 
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 #TODO

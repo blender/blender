@@ -47,7 +47,7 @@ struct BevList;
 #define SEGMENTSU(nu)	    ( ((nu)->flagu & CU_CYCLIC) ? (nu)->pntsu : (nu)->pntsu-1 )
 #define SEGMENTSV(nu)	    ( ((nu)->flagv & CU_CYCLIC) ? (nu)->pntsv : (nu)->pntsv-1 )
 
-#define CU_DO_TILT(cu, nu) (((nu->type & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1)
+#define CU_DO_TILT(cu, nu) (((nu->flag & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1)
 #define CU_DO_RADIUS(cu, nu) ((CU_DO_TILT(cu, nu) || cu->bevobj || cu->ext1!=0.0 || cu->ext2!=0.0) ? 1:0)
 
 

@@ -58,6 +58,7 @@ void	ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
 void	ED_region_panels(const struct bContext *C, struct ARegion *ar, int vertical, char *context, int contextnr);
 void	ED_region_header_init(struct ARegion *ar);
 void	ED_region_header(const struct bContext *C, struct ARegion *ar);
+void	region_scissor_winrct(struct ARegion *ar, struct rcti *winrct);
 
 /* spaces */
 void	ED_spacetypes_init(void);
@@ -149,7 +150,7 @@ int		ED_operator_posemode(struct bContext *C);
 #define ED_KEYMAP_MARKERS	4
 #define ED_KEYMAP_ANIMATION	8
 #define ED_KEYMAP_FRAMES	16
-
+#define ED_KEYMAP_GPENCIL	32
 
 #endif /* ED_SCREEN_H */
 

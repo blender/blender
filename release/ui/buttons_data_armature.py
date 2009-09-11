@@ -2,8 +2,8 @@
 import bpy
  
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -41,21 +41,22 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		split = layout.split()
 
 		col = split.column()
+		col.itemL(text="Layers:")
+		col.itemR(arm, "layer", text="")
+		col.itemL(text="Protected Layers:")
+		col.itemR(arm, "layer_protection", text="")
+		col.itemL(text="Edit Options:")
+		col.itemR(arm, "x_axis_mirror")
+		col.itemR(arm, "auto_ik")
+		
+		col = split.column()
 		col.itemR(arm, "rest_position")
 		col.itemL(text="Deform:")
 		col.itemR(arm, "deform_vertexgroups", text="Vertex Groups")
 		col.itemR(arm, "deform_envelope", text="Envelopes")
 		col.itemR(arm, "deform_quaternion", text="Quaternion")
 		col.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
-		#col.itemR(arm, "x_axis_mirror")
-		#col.itemR(arm, "auto_ik")
-			
-		col = split.column()
-		col.itemL(text="Layers:")
-		col.template_layers(arm, "layer")
-		col.itemL(text="Protected Layers:")
-		col.template_layers(arm, "layer_protection")
-
+		
 class DATA_PT_display(DataButtonsPanel):
 	__label__ = "Display"
 	
@@ -83,15 +84,15 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 		layout = self.layout
 		
 		ob = context.object
-		pose= ob.pose
+		pose = ob.pose
 		
 		row = layout.row()
 		row.template_list(pose, "bone_groups", pose, "active_bone_group_index")
 		
 		col = row.column(align=True)
 		col.active = (ob.proxy == None)
-		col.itemO("pose.group_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("pose.group_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("pose.group_add", icon='ICON_ZOOMIN', text="")
+		col.itemO("pose.group_remove", icon='ICON_ZOOMOUT', text="")
 		
 		group = pose.active_bone_group
 		if group:
@@ -154,7 +155,7 @@ class DATA_PT_ghost(DataButtonsPanel):
 		split = layout.split()
 
 		col = split.column()
-		col.itemR(arm, "ghost_type", text="Scope")
+		col.itemR(arm, "ghost_type", text="")
 
 		sub = col.column(align=True)
 		if arm.ghost_type == 'RANGE':

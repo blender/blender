@@ -27,11 +27,11 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../blenlib ../blenkernel
-  ../makesdna ../readblenfile ../include ../makesrna
-  ../python ../../kernel/gen_messaging
-  ../render/extern/include
-  ${ZLIB_INC}
+	. ../../../intern/guardedalloc ../blenlib ../blenkernel
+	../makesdna ../readblenfile ../include ../makesrna
+	../python ../../kernel/gen_messaging
+	../render/extern/include
+	${ZLIB_INC}
 )
 
 BLENDERLIB(bf_blenloader "${SRC}" "${INC}")

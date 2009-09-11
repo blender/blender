@@ -40,42 +40,23 @@
 #include "BKE_utildefines.h"
 
 
-/* 'self' stores the operator string */
 static PyObject *pyop_call( PyObject * self, PyObject * args)
 {
 	wmOperatorType *ot;
 	int error_val = 0;
 	PointerRNA ptr;
 	
-	char *opname;
-	PyObject *kw= NULL;
+	char		*opname;
+	PyObject	*kw= NULL; /* optional args */
+
+	/* note that context is an int, python does the conversion in this case */
+	int context= WM_OP_EXEC_DEFAULT;
 
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
 	bContext *C = BPy_GetContext();
 	
-
-	switch(PyTuple_Size(args)) {
-	case 2:
-		kw = PyTuple_GET_ITEM(args, 1);
-
-		if(!PyDict_Check(kw)) {
-			PyErr_SetString( PyExc_AttributeError, "bpy.__ops__.call: expected second arg to be a dict");
-			return NULL;
-		}
-		/* pass through */
-	case 1:
-		opname = _PyUnicode_AsString(PyTuple_GET_ITEM(args, 0));
-
-		if(opname==NULL) {
-			PyErr_SetString( PyExc_AttributeError, "bpy.__ops__.call: expected the first arg to be a string");
-			return NULL;
-		}
-		break;
-	default:
-		PyErr_SetString( PyExc_AttributeError, "bpy.__ops__.call: expected a string and optional dict");
+	if (!PyArg_ParseTuple(args, "s|O!i:bpy.__ops__.call", &opname, &PyDict_Type, &kw, &context))
 		return NULL;
-	}
-
 
 	ot= WM_operatortype_find(opname, TRUE);
 
@@ -88,7 +69,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		PyErr_SetString( PyExc_SystemError, "bpy.__ops__.call: operator poll() function failed, context is incorrect");
 		return NULL;
 	}
-	
+
 	/* WM_operator_properties_create(&ptr, opname); */
 	/* Save another lookup */
 	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
@@ -102,7 +83,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 
 		BKE_reports_init(&reports, RPT_STORE);
 
-		WM_operator_call_py(C, ot, &ptr, &reports);
+		WM_operator_call_py(C, ot, context, &ptr, &reports);
 
 		if(BPy_reports_to_error(&reports))
 			error_val = -1;

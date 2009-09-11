@@ -30,7 +30,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "MTC_matrixops.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -65,6 +65,8 @@
 #include "BKE_ipo.h"
 
 #include "envmap.h"
+#include "pointdensity.h"
+#include "voxeldata.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "rendercore.h"
@@ -719,7 +721,7 @@ static int evalnodes(Tex *tex, float *texvec, float *dxt, float *dyt, TexResult 
 	short rv = TEX_INT;
 	bNodeTree *nodes = tex->nodetree;
 	
-	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, 0, thread, tex, which_output, R.r.cfra);
+	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, thread, tex, which_output, R.r.cfra);
 	
 	if(texres->nor) rv |= TEX_NOR;
 	rv |= TEX_RGB;
@@ -830,7 +832,7 @@ static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float 
 	else {
 		VECCOPY(nor, n);
 	}
-	MTC_Mat4Mul3Vecfl(R.viewinv, nor);
+	Mat4Mul3Vecfl(R.viewinv, nor);
 
 	x1= fabs(nor[0]);
 	y1= fabs(nor[1]);
@@ -923,7 +925,7 @@ static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *ad
 	if(n==NULL) return 0;
 	
 	VECCOPY(nor, n);
-	if(ob) MTC_Mat4Mul3Vecfl(ob->imat, nor);
+	if(ob) Mat4Mul3Vecfl(ob->imat, nor);
 	
 	x1= fabs(nor[0]);
 	y1= fabs(nor[1]);
@@ -1262,6 +1264,13 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		
 		retval= mg_distNoiseTex(tex, tmpvec, texres);
 		break;
+	case TEX_POINTDENSITY:
+		retval= pointdensitytex(tex, texvec, texres);
+		break;
+	case TEX_VOXELDATA:
+		retval= voxeldatatex(tex, texvec, texres);  
+		break;
+
 	}
 
 	if (tex->flag & TEX_COLORBAND) {
@@ -1272,7 +1281,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 			texres->tg= col[1];
 			texres->tb= col[2];
 			texres->ta= col[3];
-			retval |= 1;
+			retval |= TEX_RGB;
 		}
 	}
 	return retval;
@@ -1446,12 +1455,22 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 		VECCOPY(in, out);
 		ramp_blend(MA_RAMP_COLOR, in, in+1, in+2, fact, tex);
 		break;
+    case MTEX_SOFT_LIGHT: 
+        fact*= facg; 
+        VECCOPY(in, out); 
+        ramp_blend(MA_RAMP_SOFT, in, in+1, in+2, fact, tex); 
+        break; 
+    case MTEX_LIN_LIGHT: 
+        fact*= facg; 
+        VECCOPY(in, out); 
+        ramp_blend(MA_RAMP_LINEAR, in, in+1, in+2, fact, tex); 
+        break; 
 	}
 }
 
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip)
 {
-	float in=0.0, facm, col;
+	float in=0.0, facm, col, scf;
 	
 	fact*= facg;
 	facm= 1.0-fact;
@@ -1496,6 +1515,19 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		col= fact*tex;
 		if(col > out) in= col; else in= out;
 		break;
+
+    case MTEX_SOFT_LIGHT: 
+        col= fact*tex; 
+        scf=1.0 - (1.0 - tex) * (1.0 - out); 
+        in= facm*out + fact * ((1.0 - out) * tex * out) + (out * scf); 
+        break;       
+
+    case MTEX_LIN_LIGHT: 
+        if (tex > 0.5) 
+            in = out + fact*(2*(tex - 0.5)); 
+        else 
+            in = out + fact*(2*tex - 1); 
+        break;
 	}
 	
 	return in;
@@ -1639,13 +1671,13 @@ void do_material_tex(ShadeInput *shi)
 					VECCOPY(tempvec, shi->co);
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG)
 						if(shi->obi && shi->obi->duplitexmat)
-							MTC_Mat4MulVecfl(shi->obi->duplitexmat, tempvec);
-					MTC_Mat4MulVecfl(ob->imat, tempvec);
+							Mat4MulVecfl(shi->obi->duplitexmat, tempvec);
+					Mat4MulVecfl(ob->imat, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						MTC_Mat4Mul3Vecfl(ob->imat, dxt);
-						MTC_Mat4Mul3Vecfl(ob->imat, dyt);
+						Mat4Mul3Vecfl(ob->imat, dxt);
+						Mat4Mul3Vecfl(ob->imat, dyt);
 					}
 				}
 				else {
@@ -2248,6 +2280,187 @@ void do_material_tex(ShadeInput *shi)
 	}
 }
 
+
+void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val)
+{
+	MTex *mtex;
+	Tex *tex;
+	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
+	int tex_nr, rgbnor= 0;
+	float co[3], texvec[3];
+	float fact, stencilTin=1.0;
+	
+	if (R.r.scemode & R_NO_TEX) return;
+	/* here: test flag if there's a tex (todo) */
+	
+	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
+		/* separate tex switching */
+		if(shi->mat->septex & (1<<tex_nr)) continue;
+		
+		if(shi->mat->mtex[tex_nr]) {
+			mtex= shi->mat->mtex[tex_nr];
+			tex= mtex->tex;
+			if(tex==0) continue;
+			
+			/* only process if this texture is mapped 
+			 * to one that we're interested in */
+			if (!(mtex->mapto & mapto_flag)) continue;
+			
+			/* which coords */
+			if(mtex->texco==TEXCO_OBJECT) { 
+				Object *ob= mtex->object;
+				ob= mtex->object;
+				if(ob) {						
+					VECCOPY(co, xyz);	
+					if(mtex->texflag & MTEX_OB_DUPLI_ORIG) {
+						if(shi->obi && shi->obi->duplitexmat)
+							Mat4MulVecfl(shi->obi->duplitexmat, co);					
+					} 
+					Mat4MulVecfl(ob->imat, co);
+				}
+			}
+			/* not really orco, but 'local' */
+			else if(mtex->texco==TEXCO_ORCO) {
+				
+				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
+					VECCOPY(co, shi->duplilo);
+				}
+				else {
+					Object *ob= shi->obi->ob;
+					VECCOPY(co, xyz);
+					Mat4MulVecfl(ob->imat, co);
+				}
+			}
+			else if(mtex->texco==TEXCO_GLOB) {							
+			   VECCOPY(co, xyz);
+			   Mat4MulVecfl(R.viewinv, co);
+			}
+			else continue;	// can happen when texco defines disappear and it renders old files
+
+			texres.nor= NULL;
+			
+			if(tex->type==TEX_IMAGE) {
+				continue;	/* not supported yet */				
+				//do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
+			}
+			else {
+				/* placement */
+				if(mtex->projx) texvec[0]= mtex->size[0]*(co[mtex->projx-1]+mtex->ofs[0]);
+				else texvec[0]= mtex->size[0]*(mtex->ofs[0]);
+
+				if(mtex->projy) texvec[1]= mtex->size[1]*(co[mtex->projy-1]+mtex->ofs[1]);
+				else texvec[1]= mtex->size[1]*(mtex->ofs[1]);
+
+				if(mtex->projz) texvec[2]= mtex->size[2]*(co[mtex->projz-1]+mtex->ofs[2]);
+				else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
+			}
+			
+			rgbnor= multitex(tex, texvec, NULL, NULL, 0, &texres, 0, mtex->which_output);	/* NULL = dxt/dyt, 0 = shi->osatex - not supported */
+			
+			/* texture output */
+
+			if( (rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
+				texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
+				rgbnor-= TEX_RGB;
+			}
+			if(mtex->texflag & MTEX_NEGATIVE) {
+				if(rgbnor & TEX_RGB) {
+					texres.tr= 1.0-texres.tr;
+					texres.tg= 1.0-texres.tg;
+					texres.tb= 1.0-texres.tb;
+				}
+				texres.tin= 1.0-texres.tin;
+			}
+			if(mtex->texflag & MTEX_STENCIL) {
+				if(rgbnor & TEX_RGB) {
+					fact= texres.ta;
+					texres.ta*= stencilTin;
+					stencilTin*= fact;
+				}
+				else {
+					fact= texres.tin;
+					texres.tin*= stencilTin;
+					stencilTin*= fact;
+				}
+			}
+			
+			
+			if((mapto_flag & (MAP_EMISSION_COL+MAP_ABSORPTION_COL)) && (mtex->mapto & (MAP_EMISSION_COL+MAP_ABSORPTION_COL))) {
+				float tcol[3], colfac;
+				
+				/* stencil maps on the texture control slider, not texture intensity value */
+				colfac= mtex->colfac*stencilTin;
+				
+				if((rgbnor & TEX_RGB)==0) {
+					tcol[0]= mtex->r;
+					tcol[1]= mtex->g;
+					tcol[2]= mtex->b;
+				} else {
+					tcol[0]=texres.tr;
+					tcol[1]=texres.tg;
+					tcol[2]=texres.tb;
+					if(texres.talpha)
+						texres.tin= texres.ta;
+				}
+				
+				/* inverse gamma correction */
+				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+					color_manage_linearize(tcol, tcol);
+				}
+				
+				/* used for emit */
+				if((mapto_flag & MAP_EMISSION_COL) && (mtex->mapto & MAP_EMISSION_COL)) {
+					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
+				}
+				
+				/* MAP_COLMIR is abused for absorption colour at the moment */
+				if((mapto_flag & MAP_ABSORPTION_COL) && (mtex->mapto & MAP_ABSORPTION_COL)) {
+					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
+				}
+			}
+			
+			if((mapto_flag & MAP_VARS) && (mtex->mapto & MAP_VARS)) {
+				/* stencil maps on the texture control slider, not texture intensity value */
+				float varfac= mtex->varfac*stencilTin;
+				
+				/* convert RGB to intensity if intensity info isn't provided */
+				if (!(rgbnor & TEX_INT)) {
+					if (rgbnor & TEX_RGB) {
+						if(texres.talpha) texres.tin= texres.ta;
+						else texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
+					}
+				}
+				
+				if((mapto_flag & MAP_EMISSION) && (mtex->mapto & MAP_EMISSION)) {
+					int flip= mtex->maptoneg & MAP_EMISSION;
+
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					if(*val<0.0) *val= 0.0;
+				}
+				if((mapto_flag & MAP_DENSITY) && (mtex->mapto & MAP_DENSITY)) {
+					int flip= mtex->maptoneg & MAP_DENSITY;
+
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
+				}
+				if((mapto_flag & MAP_ABSORPTION) && (mtex->mapto & MAP_ABSORPTION)) {
+					int flip= mtex->maptoneg & MAP_ABSORPTION;
+					
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
+				}
+				if((mapto_flag & MAP_SCATTERING) && (mtex->mapto & MAP_SCATTERING)) {
+					int flip= mtex->maptoneg & MAP_SCATTERING;
+					
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
+				}
+			}
+		}
+	}
+}
+
+
 /* ------------------------------------------------------------------------- */
 
 void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
@@ -2449,7 +2662,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_OBJECT:
 				if(mtex->object) {
 					VECCOPY(tempvec, lo);
-					MTC_Mat4MulVecfl(mtex->object->imat, tempvec);
+					Mat4MulVecfl(mtex->object->imat, tempvec);
 					co= tempvec;
 				}
 				break;
@@ -2457,16 +2670,16 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_GLOB:
 				if(rco) {
 					VECCOPY(tempvec, rco);
-					MTC_Mat4MulVecfl(R.viewinv, tempvec);
+					Mat4MulVecfl(R.viewinv, tempvec);
 					co= tempvec;
 				}
 				else
 					co= lo;
 				
 //				VECCOPY(shi->dxgl, shi->dxco);
-//				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+//				Mat3MulVecfl(R.imat, shi->dxco);
 //				VECCOPY(shi->dygl, shi->dyco);
-//				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+//				Mat3MulVecfl(R.imat, shi->dyco);
 				break;
 			}
 			
@@ -2593,12 +2806,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					dx= dxt;
 					dy= dyt;
 					VECCOPY(tempvec, shi->co);
-					MTC_Mat4MulVecfl(ob->imat, tempvec);
+					Mat4MulVecfl(ob->imat, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						MTC_Mat4Mul3Vecfl(ob->imat, dxt);
-						MTC_Mat4Mul3Vecfl(ob->imat, dyt);
+						Mat4Mul3Vecfl(ob->imat, dxt);
+						Mat4Mul3Vecfl(ob->imat, dyt);
 					}
 				}
 				else {
@@ -2609,12 +2822,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 			else if(mtex->texco==TEXCO_GLOB) {
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
 				VECCOPY(shi->gl, shi->co);
-				MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+				Mat4MulVecfl(R.viewinv, shi->gl);
 			}
 			else if(mtex->texco==TEXCO_VIEW) {
 				
 				VECCOPY(tempvec, lavec);
-				MTC_Mat3MulVecfl(la->imat, tempvec);
+				Mat3MulVecfl(la->imat, tempvec);
 				
 				if(la->type==LA_SPOT) {
 					tempvec[0]*= la->spottexfac;
@@ -2627,8 +2840,8 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					VECCOPY(dxt, shi->dxlv);
 					VECCOPY(dyt, shi->dylv);
 					/* need some matrix conversion here? la->imat is a [3][3]  matrix!!! **/
-					MTC_Mat3MulVecfl(la->imat, dxt);
-					MTC_Mat3MulVecfl(la->imat, dyt);
+					Mat3MulVecfl(la->imat, dxt);
+					Mat3MulVecfl(la->imat, dyt);
 					
 					VecMulf(dxt, la->spottexfac);
 					VecMulf(dyt, la->spottexfac);

@@ -79,6 +79,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h" // XXX move the select modes out of there!
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -1869,13 +1870,14 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 
 // XXX hardcoded size of icons
 #define ICON_WIDTH		17
+// XXX hardcoded width of sliders
+#define SLIDER_WIDTH	70
 
 /* Draw the given channel */
 // TODO: make this use UI controls for the buttons
 void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
-	View2D *v2d= &ac->ar->v2d;
 	short selected, offset;
 	float y, ymid, ytext;
 	
@@ -1970,26 +1972,6 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		offset += 3;
 		UI_DrawString(offset, ytext, name);
 	}
-	
-	/* step 6) draw mute+protection toggles + (sliders) ....................... */
-	/* reset offset - now goes from RHS of panel */
-	offset = 0;
-	
-	// TODO: we need a mechanism of drawing over (and hiding) stuff from here...
-	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
-	
-	if (v2d) {
-		/* protect... */
-		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
-			/* just skip - drawn as widget now */
-			offset += ICON_WIDTH;
-		}
-		/* mute... */
-		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
-			/* just skip - drawn as widget now */
-			offset += ICON_WIDTH;
-		}
-	}
 }
 
 /* ------------------ */
@@ -1999,6 +1981,50 @@ static void achannel_setting_widget_cb(bContext *C, void *poin, void *poin2)
 {
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 }
+
+/* callback for widget sliders - insert keyframes */
+static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poin)
+{
+	ID *id= (ID *)id_poin;
+	FCurve *fcu= (FCurve *)fcu_poin;
+	
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	short flag=0, done=0;
+	float cfra;
+	
+	/* get current frame */
+	// NOTE: this will do for now...
+	cfra= (float)CFRA;
+	
+	/* get flags for keyframing */
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED))
+		flag |= INSERTKEY_NEEDED;
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY))
+		flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+		flag |= INSERTKEY_REPLACE;
+	
+	
+	/* get RNA pointer, and resolve the path */
+	RNA_id_pointer_create(id, &id_ptr);
+	
+	/* try to resolve the path stored in the F-Curve */
+	if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+		/* set the special 'replace' flag if on a keyframe */
+		if (fcurve_frame_has_keyframe(fcu, cfra, 0))
+			flag |= INSERTKEY_REPLACE;
+		
+		/* insert a keyframe for this F-Curve */
+		done= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
+		
+		if (done)
+			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	}
+}
+
+
 
 /* Draw a widget for some setting */
 static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf, uiBlock *block, int xpos, int ypos, int setting)
@@ -2164,15 +2190,75 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
 	
 	if (v2d) {
-		/* protect... */
-		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
-			offset += ICON_WIDTH; 
-			draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax-offset, ymid, ACHANNEL_SETTING_PROTECT);
+		short draw_sliders = 0;
+		
+		/* check if we need to show the sliders */
+		if ((ac->sa) && ELEM(ac->spacetype, SPACE_ACTION, SPACE_IPO)) {
+			switch (ac->spacetype) {
+				case SPACE_ACTION:
+				{
+					SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+					draw_sliders= (saction->flag & SACTION_SLIDERS);
+				}
+					break;
+				case SPACE_IPO:
+				{
+					SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+					draw_sliders= (sipo->flag & SIPO_SLIDERS);
+				}
+					break;
+			}
 		}
-		/* mute... */
-		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
-			offset += ICON_WIDTH;
-			draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax-offset, ymid, ACHANNEL_SETTING_MUTE);
+		
+		/* check if there's enough space for the toggles if the sliders are drawn too */
+		if ( !(draw_sliders) || ((v2d->mask.xmax-v2d->mask.xmin) > ACHANNEL_BUTTON_WIDTH/2) ) {
+			/* protect... */
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
+				offset += ICON_WIDTH; 
+				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax-offset, ymid, ACHANNEL_SETTING_PROTECT);
+			}
+			/* mute... */
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
+				offset += ICON_WIDTH;
+				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax-offset, ymid, ACHANNEL_SETTING_MUTE);
+			}
+		}
+		
+		/* draw slider
+		 *	- even if we can draw sliders for this view, we must also check that the channel-type supports them
+		 *	  (only only F-Curves really can support them for now)
+		 *	- to make things easier, we use RNA-autobuts for this so that changes are reflected immediately, 
+		 *	  whereever they occurred. BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
+		 *	  and wouldn't be able to auto-keyframe...
+		 *	- slider should start before the toggles (if they're visible) to keep a clean line down the side
+		 */
+		if ((draw_sliders) && (ale->type == ANIMTYPE_FCURVE)) {
+			/* adjust offset */
+			offset += SLIDER_WIDTH;
+			
+			/* need backdrop behind sliders... */
+			uiBlockSetEmboss(block, UI_EMBOSS);
+			
+			if (ale->id) { /* Slider using RNA Access -------------------- */
+				FCurve *fcu= (FCurve *)ale->data;
+				PointerRNA id_ptr, ptr;
+				PropertyRNA *prop;
+				
+				/* get RNA pointer, and resolve the path */
+				RNA_id_pointer_create(ale->id, &id_ptr);
+				
+				/* try to resolve the path */
+				if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+					uiBut *but;
+					
+					/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
+					but= uiDefAutoButR(block, &ptr, prop, fcu->array_index, "", 0, (int)v2d->cur.xmax-offset, ymid, SLIDER_WIDTH, (int)ymaxc-yminc);
+					uiButSetFunc(but, achannel_setting_slider_cb, ale->id, fcu);
+				}
+			}
+			else { /* Special Slider for stuff without RNA Access ---------- */
+				// TODO: only implement this case when we really need it...
+			}
 		}
 	}
 }

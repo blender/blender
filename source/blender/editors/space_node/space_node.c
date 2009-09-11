@@ -163,6 +163,15 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->data==ND_NODES)
 				ED_area_tag_refresh(sa);
 			break;
+		case NC_TEXT:
+			/* pynodes */
+			if(wmn->data==ND_SHADING)
+				ED_area_tag_refresh(sa);
+			break;
+		case NC_SPACE:
+			if(wmn->data==ND_SPACE_NODE)
+				ED_area_tag_refresh(sa);
+			break;
 	}
 }
 
@@ -184,8 +193,9 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 		}
 		else if(snode->treetype==NTREE_TEXTURE) {
 			Tex *tex= (Tex *)snode->id;
-			if(tex->use_nodes)
-				ntreeTexUpdatePreviews(tex->nodetree);
+			if(tex->use_nodes) {
+				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100);
+			}
 		}
 	}
 }

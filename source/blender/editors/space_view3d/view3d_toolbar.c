@@ -270,7 +270,7 @@ static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 		for(ct= st->toolshelf.first; ct; ct= ct->next) {
 			if(0==strncmp(context, ct->context, OP_MAX_TYPENAME)) {
 				col= uiLayoutColumn(pa->layout, 1);
-				uiItemFullO(col, NULL, 0, ct->opname, NULL, WM_OP_INVOKE_REGION_WIN);
+				uiItemFullO(col, NULL, 0, ct->opname, NULL, WM_OP_INVOKE_REGION_WIN, 0);
 			}
 		}
 	}
@@ -322,6 +322,7 @@ static int view3d_toolbar(bContext *C, wmOperator *op)
 void VIEW3D_OT_toolbar(wmOperatorType *ot)
 {
 	ot->name= "Toolbar";
+	ot->description= "Toggles toolbar display.";
 	ot->idname= "VIEW3D_OT_toolbar";
 	
 	ot->exec= view3d_toolbar;

@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -58,6 +58,7 @@
 #include "UI_view2d.h"
 
 #include "ED_markers.h"
+#include "ED_object.h"
 
 #include "info_intern.h"	// own include
 
@@ -164,6 +165,10 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCENE:
 			if(wmn->data==ND_RENDER_RESULT)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:	
+			if(wmn->data == ND_SPACE_INFO)
 				ED_region_tag_redraw(ar);
 			break;
 	}

@@ -377,22 +377,22 @@ static void rna_def_event(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "shift", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shift", 1);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Shift", "True when the shift key is held.");
+	RNA_def_property_ui_text(prop, "Shift", "True when the Shift key is held.");
 	
 	prop= RNA_def_property(srna, "ctrl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ctrl", 1);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Ctrl", "True when the shift key is held.");
+	RNA_def_property_ui_text(prop, "Ctrl", "True when the Ctrl key is held.");
 	
 	prop= RNA_def_property(srna, "alt", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "alt", 1);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Alt", "True when the shift key is held.");
+	RNA_def_property_ui_text(prop, "Alt", "True when the Alt/Option key is held.");
 	
 	prop= RNA_def_property(srna, "oskey", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "oskey", 1);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "OS Key", "True when the shift key is held.");
+	RNA_def_property_ui_text(prop, "OS Key", "True when the Cmd key is held.");
 }
 
 static void rna_def_window(BlenderRNA *brna)
@@ -419,6 +419,7 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "WindowManager", "ID");
 	RNA_def_struct_ui_text(srna, "Window Manager", "Window manager datablock defining open windows and other user interface data.");
+	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 	RNA_def_struct_sdna(srna, "wmWindowManager");
 
 	prop= RNA_def_property(srna, "operators", PROP_COLLECTION, PROP_NONE);

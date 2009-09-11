@@ -89,14 +89,11 @@ void object_test_constraints(struct Object *ob);
 void ED_object_constraint_rename(struct Object *ob, struct bConstraint *con, char *oldname);
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
 
-/* editlattice.c */
+/* object_lattice.c */
 void mouse_lattice(struct bContext *C, short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, char *name);
 
-/* editmball.c */
-void undo_push_mball(struct bContext *C, char *name);
-
-/* editkey.c */
+/* object_shapekey.c */
 void insert_shapekey(struct Scene *scene, struct Object *ob);
 void delete_key(struct Scene *scene, struct Object *ob);
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
