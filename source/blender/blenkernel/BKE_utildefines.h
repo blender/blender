@@ -107,6 +107,7 @@
 #define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
 #define VECSUB2D(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1);}
 #define VECADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac);}
+#define VECSUBFAC(v1,v2,v3,fac) {*(v1)= *(v2) - *(v3)*(fac); *(v1+1)= *(v2+1) - *(v3+1)*(fac); *(v1+2)= *(v2+2) - *(v3+2)*(fac);}
 #define QUATADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac); *(v1+3)= *(v2+3) + *(v3+3)*(fac);}
 
 #define INPR(v1, v2)		( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )

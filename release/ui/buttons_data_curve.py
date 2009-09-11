@@ -56,8 +56,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
 		if not is_surf:
 			row = layout.row()
-			row.itemR(curve, "curve_2d")			
-			row.itemR(curve, "use_twist_correction")
+			row.itemR(curve, "curve_2d")
 		
 		split = layout.split()
 		
@@ -86,6 +85,11 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 			sub.itemR(curve, "resolution_v", text="Preview V")
 			sub.itemR(curve, "render_resolution_v", text="Render V")
 		
+		# XXX - put somewhere nicer.
+		row= layout.row()
+		row.itemR(curve, "twist_mode")
+		row.itemR(curve, "twist_smooth") # XXX - may not be kept
+
 
 #		col.itemL(text="Display:")
 #		col.itemL(text="HANDLES")

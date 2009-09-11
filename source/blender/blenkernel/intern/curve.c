@@ -975,7 +975,26 @@ void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int i
  		q1+= q2;
  		q2+= q3;
  	}
-}	
+}
+
+void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float *p3, float *p, int it, int stride)
+{
+	/* note that these are not purpendicular to the curve
+	 * they need to be rotated for this,
+	 *
+	 * This could also be optimized like forward_diff_bezier */
+	int a;
+  	for(a=0; a<=it; a++) {
+		float t = (float)a / (float)it;
+
+		int i;
+		for(i=0; i<3; i++) {
+			p[i]= (-6*t + 6)*p0[i] + (18*t - 12)*p1[i] + (-18*t + 6)*p2[i] + (6*t)*p3[i];
+		}
+		Normalize(p);
+		p = (float *)(((char *)p)+stride);
+ 	}
+}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -1545,6 +1564,348 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 	}
 }
 
+/* make_bevel_list_3D_* funcs, at a minimum these must
+ * fill in the bezp->quat and bezp->dir values */
+
+/* correct non-cyclic cases by copying direction and rotation
+ * values onto the first & last end-points */
+static void bevel_list_cyclic_fix(BevList *bl)
+{
+	BevPoint *bevp, *bevp1;
+
+	bevp= (BevPoint *)(bl+1);
+	bevp1= bevp+1;
+	QUATCOPY(bevp->quat, bevp1->quat);
+	VECCOPY(bevp->dir, bevp1->dir);
+	VECCOPY(bevp->tan, bevp1->tan);
+	bevp= (BevPoint *)(bl+1);
+	bevp+= (bl->nr-1);
+	bevp1= bevp-1;
+	QUATCOPY(bevp->quat, bevp1->quat);
+	VECCOPY(bevp->dir, bevp1->dir);
+	VECCOPY(bevp->tan, bevp1->tan);
+}
+/* utility for make_bevel_list_3D_* funcs */
+static void bevel_list_calc_bisect(BevList *bl)
+{
+	BevPoint *bevp2, *bevp1, *bevp0;
+	int nr;
+
+	bevp2= (BevPoint *)(bl+1);
+	bevp1= bevp2+(bl->nr-1);
+	bevp0= bevp1-1;
+
+	nr= bl->nr;
+	while(nr--) {
+		/* totally simple */
+		VecBisect3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
+
+		bevp0= bevp1;
+		bevp1= bevp2;
+		bevp2++;
+	}
+}
+static void bevel_list_flip_tangents(BevList *bl)
+{
+	BevPoint *bevp2, *bevp1, *bevp0;
+	int nr;
+
+	bevp2= (BevPoint *)(bl+1);
+	bevp1= bevp2+(bl->nr-1);
+	bevp0= bevp1-1;
+
+	nr= bl->nr;
+	while(nr--) {
+		if(VecAngle2(bevp0->tan, bevp1->tan) > 90)
+			VecNegf(bevp1->tan);
+
+		bevp0= bevp1;
+		bevp1= bevp2;
+		bevp2++;
+	}
+}
+/* apply user tilt */
+static void bevel_list_apply_tilt(BevList *bl)
+{
+	BevPoint *bevp2, *bevp1, *bevp0;
+	int nr;
+	float q[4];
+
+	bevp2= (BevPoint *)(bl+1);
+	bevp1= bevp2+(bl->nr-1);
+	bevp0= bevp1-1;
+
+	nr= bl->nr;
+	while(nr--) {
+		AxisAngleToQuat(q, bevp1->dir, bevp1->alfa);
+		QuatMul(bevp1->quat, q, bevp1->quat);
+		NormalQuat(bevp1->quat);
+
+		bevp0= bevp1;
+		bevp1= bevp2;
+		bevp2++;
+	}
+}
+/* smooth quats, this function should be optimized, it can get slow with many iterations. */
+static void bevel_list_smooth(BevList *bl, int smooth_iter)
+{
+	BevPoint *bevp2, *bevp1, *bevp0;
+	int nr;
+
+	float q[4];
+	float bevp0_quat[4];
+	int a;
+
+	for(a=0; a < smooth_iter; a++) {
+
+		bevp2= (BevPoint *)(bl+1);
+		bevp1= bevp2+(bl->nr-1);
+		bevp0= bevp1-1;
+
+		nr= bl->nr;
+
+		if(bl->poly== -1) { /* check its not cyclic */
+			/* skip the first point */
+			bevp0= bevp1;
+			bevp1= bevp2;
+			bevp2++;
+			nr--;
+
+			bevp0= bevp1;
+			bevp1= bevp2;
+			bevp2++;
+			nr--;
+
+		}
+
+		QUATCOPY(bevp0_quat, bevp0->quat);
+
+		while(nr--) {
+			/* interpolate quats */
+			float zaxis[3] = {0,0,1}, cross[3], q2[4];
+			QuatInterpol(q, bevp0_quat, bevp2->quat, 0.5);
+			NormalQuat(q);
+
+			QuatMulVecf(q, zaxis);
+			Crossf(cross, zaxis, bevp1->dir);
+			AxisAngleToQuat(q2, cross, NormalizedVecAngle2(zaxis, bevp1->dir));
+			NormalQuat(q2);
+
+			QUATCOPY(bevp0_quat, bevp1->quat);
+			QuatMul(q, q2, q);
+			QuatInterpol(bevp1->quat, bevp1->quat, q, 0.5);
+			NormalQuat(bevp1->quat);
+
+
+			bevp0= bevp1;
+			bevp1= bevp2;
+			bevp2++;
+		}
+	}
+}
+
+static void make_bevel_list_3D_zup(BevList *bl)
+{
+	BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
+	int nr;
+
+	bevp2= (BevPoint *)(bl+1);
+	bevp1= bevp2+(bl->nr-1);
+	bevp0= bevp1-1;
+
+	nr= bl->nr;
+	while(nr--) {
+		/* totally simple */
+		VecBisect3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
+		vectoquat(bevp1->dir, 5, 1, bevp1->quat);
+
+		bevp0= bevp1;
+		bevp1= bevp2;
+		bevp2++;
+	}
+}
+
+static void make_bevel_list_3D_minimum_twist(BevList *bl)
+{
+	BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
+	int nr;
+	float q[4];
+
+	float cross_tmp[3];
+
+	bevel_list_calc_bisect(bl);
+
+	bevp2= (BevPoint *)(bl+1);
+	bevp1= bevp2+(bl->nr-1);
+	bevp0= bevp1-1;
+
+	nr= bl->nr;
+	while(nr--) {
+
+		if(nr+4 > bl->nr) { /* first time and second time, otherwise first point adjusts last */
+			vectoquat(bevp1->dir, 5, 1, bevp1->quat);
+		}
+		else {
+			float angle= NormalizedVecAngle2(bevp0->dir, bevp1->dir);
+
+			if(angle > 0.0f) { /* otherwise we can keep as is */
+				Crossf(cross_tmp, bevp0->dir, bevp1->dir);
+				AxisAngleToQuat(q, cross_tmp, angle);
+				QuatMul(bevp1->quat, q, bevp0->quat);
+			}
+			else {
+				QUATCOPY(bevp1->quat, bevp0->quat);
+			}
+		}
+
+		bevp0= bevp1;
+		bevp1= bevp2;
+		bevp2++;
+	}
+
+	if(bl->poly != -1) { /* check for cyclic */
+
+		/* Need to correct for the start/end points not matching
+		 * do this by calculating the tilt angle difference, then apply
+		 * the rotation gradually over the entire curve
+		 *
+		 * note that the split is between last and second last, rather then first/last as youd expect.
+		 *
+		 * real order is like this
+		 * 0,1,2,3,4 --> 1,2,3,4,0
+		 *
+		 * this is why we compare last with second last
+		 * */
+		float vec_1[3]= {0,1,0}, vec_2[3]= {0,1,0}, angle, ang_fac, cross_tmp[3];
+
+		BevPoint *bevp_first;
+		BevPoint *bevp_last;
+
+
+		bevp_first= (BevPoint *)(bl+1);
+		bevp_first+= bl->nr-1;
+		bevp_last = bevp_first;
+		bevp_last--;
+
+		/* quats and vec's are normalized, should not need to re-normalize */
+		QuatMulVecf(bevp_first->quat, vec_1);
+		QuatMulVecf(bevp_last->quat, vec_2);
+		Normalize(vec_1);
+		Normalize(vec_2);
+
+		/* align the vector, can avoid this and it looks 98% OK but
+		 * better to align the angle quat roll's before comparing */
+		{
+			Crossf(cross_tmp, bevp_last->dir, bevp_first->dir);
+			angle = NormalizedVecAngle2(bevp_first->dir, bevp_last->dir);
+			AxisAngleToQuat(q, cross_tmp, angle);
+			QuatMulVecf(q, vec_2);
+		}
+
+		angle= NormalizedVecAngle2(vec_1, vec_2);
+
+		/* flip rotation if needs be */
+		Crossf(cross_tmp, vec_1, vec_2);
+		Normalize(cross_tmp);
+		if(NormalizedVecAngle2(bevp_first->dir, cross_tmp) < 90/(180.0/M_PI))
+			angle = -angle;
+
+		bevp2= (BevPoint *)(bl+1);
+		bevp1= bevp2+(bl->nr-1);
+		bevp0= bevp1-1;
+
+		nr= bl->nr;
+		while(nr--) {
+			ang_fac= angle * (1.0f-((float)nr/bl->nr)); /* also works */
+
+			AxisAngleToQuat(q, bevp1->dir, ang_fac);
+			QuatMul(bevp1->quat, q, bevp1->quat);
+
+			bevp0= bevp1;
+			bevp1= bevp2;
+			bevp2++;
+		}
+	}
+}
+
+static void make_bevel_list_3D_tangent(BevList *bl)
+{
+	BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
+	int nr;
+
+	float bevp0_tan[3], cross_tmp[3];
+
+	bevel_list_calc_bisect(bl);
+	if(bl->poly== -1) /* check its not cyclic */
+		bevel_list_cyclic_fix(bl); // XXX - run this now so tangents will be right before doing the flipping
+	bevel_list_flip_tangents(bl);
+
+	/* correct the tangents */
+	bevp2= (BevPoint *)(bl+1);
+	bevp1= bevp2+(bl->nr-1);
+	bevp0= bevp1-1;
+
+	nr= bl->nr;
+	while(nr--) {
+
+		Crossf(cross_tmp, bevp1->tan, bevp1->dir);
+		Crossf(bevp1->tan, cross_tmp, bevp1->dir);
+		Normalize(bevp1->tan);
+
+		bevp0= bevp1;
+		bevp1= bevp2;
+		bevp2++;
+	}
+
+
+	/* now for the real twist calc */
+	bevp2= (BevPoint *)(bl+1);
+	bevp1= bevp2+(bl->nr-1);
+	bevp0= bevp1-1;
+
+	VECCOPY(bevp0_tan, bevp0->tan);
+
+	nr= bl->nr;
+	while(nr--) {
+
+		/* make perpendicular, modify tan in place, is ok */
+		float cross_tmp[3];
+		float zero[3] = {0,0,0};
+
+		Crossf(cross_tmp, bevp1->tan, bevp1->dir);
+		Normalize(cross_tmp);
+		triatoquat(zero, cross_tmp, bevp1->tan, bevp1->quat); /* XXX - could be faster */
+
+		bevp0= bevp1;
+		bevp1= bevp2;
+		bevp2++;
+	}
+}
+
+void make_bevel_list_3D(BevList *bl, int smooth_iter, int twist_mode)
+{
+	switch(twist_mode) {
+	case CU_TWIST_TANGENT:
+		make_bevel_list_3D_tangent(bl);
+		break;
+	case CU_TWIST_MINIMUM:
+		make_bevel_list_3D_minimum_twist(bl);
+		break;
+	default: /* CU_TWIST_Z_UP default, pre 2.49c */
+		make_bevel_list_3D_zup(bl);
+	}
+
+	if(bl->poly== -1) /* check its not cyclic */
+		bevel_list_cyclic_fix(bl);
+
+	if(smooth_iter)
+		bevel_list_smooth(bl, smooth_iter);
+
+	bevel_list_apply_tilt(bl);
+}
+
+
+
 void makeBevelList(Object *ob)
 {
 	/*
@@ -1559,7 +1920,7 @@ void makeBevelList(Object *ob)
 	BPoint *bp;
 	BevList *bl, *blnew, *blnext;
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
-	float min, inp, x1, x2, y1, y2, vec[3], vec_prev[3], q[4], quat[4], quat_prev[4], cross[3];
+	float min, inp, x1, x2, y1, y2;
 	struct bevelsort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu, len=0;
 	int do_tilt, do_radius;
@@ -1664,7 +2025,15 @@ void makeBevelList(Object *ob)
 										 do_tilt	? &bevp->alfa : NULL,
 										 do_radius	? &bevp->radius : NULL,
 										 resolu, sizeof(BevPoint));
+
 						
+						if(cu->twist_mode==CU_TWIST_TANGENT) {
+							forward_diff_bezier_cotangent(
+													prevbezt->vec[1],	prevbezt->vec[2],
+													bezt->vec[0],		bezt->vec[1],
+													bevp->tan, resolu, sizeof(BevPoint));
+						}
+
 						/* indicate with handlecodes double points */
 						if(prevbezt->h1==prevbezt->h2) {
 							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->split_tag= TRUE;
@@ -1843,208 +2212,90 @@ void makeBevelList(Object *ob)
 		MEM_freeN(sortdata);
 	}
 
-	/* STEP 4: COSINES */
-	bl= cu->bev.first;
-	while(bl) {
-	
-		if(bl->nr < 2) {
-			/* do nothing */
-		}
-		else if(bl->nr==2) {	/* 2 pnt, treat separate */
-			bevp2= (BevPoint *)(bl+1);
-			bevp1= bevp2+1;
+	/* STEP 4: 2D-COSINES or 3D ORIENTATION */
+	if((cu->flag & CU_3D)==0) { /* 3D */
+		bl= cu->bev.first;
+		while(bl) {
 
-			x1= bevp1->vec[0]- bevp2->vec[0];
-			y1= bevp1->vec[1]- bevp2->vec[1];
-
-			calc_bevel_sin_cos(x1, y1, -x1, -y1, &(bevp1->sina), &(bevp1->cosa));
-			bevp2->sina= bevp1->sina;
-			bevp2->cosa= bevp1->cosa;
-
-			if(cu->flag & CU_3D) {	/* 3D */
-				float quat[4], q[4];
-			
-				VecSubf(vec, bevp1->vec, bevp2->vec);
-				
-				vectoquat(vec, 5, 1, quat);
-				
-				AxisAngleToQuat(q, vec, bevp1->alfa);
-				QuatMul(quat, q, quat);
-				
-				QuatToMat3(quat, bevp1->mat);
-				Mat3CpyMat3(bevp2->mat, bevp1->mat);
+			if(bl->nr < 2) {
+				/* do nothing */
 			}
+			else if(bl->nr==2) {	/* 2 pnt, treat separate */
+				bevp2= (BevPoint *)(bl+1);
+				bevp1= bevp2+1;
 
-		}	/* this has to be >2 points */
-		else if(cu->flag & CU_NO_TWIST && cu->flag & CU_3D && bl->poly != -1) {
+				x1= bevp1->vec[0]- bevp2->vec[0];
+				y1= bevp1->vec[1]- bevp2->vec[1];
 
-			/* Special case, cyclic curve with no twist. tricky... */
-
-			float quat[4], q[4], cross[3];
-
-			/* correcting a cyclic curve is more complicated, need to be corrected from both ends */
-			float *quat_tmp1, *quat_tmp2; /* store a quat in the matrix temporarily */
-			int iter_dir;
-			BevPoint *bevp_start= (BevPoint *)(bl+1);
-
-			/* loop over the points twice, once up, once back, accumulate the quat rotations
-			 * in both directions, then blend them in the 3rd loop and apply the tilt */
-			for(iter_dir = 0; iter_dir < 2; iter_dir++) {
-
+				calc_bevel_sin_cos(x1, y1, -x1, -y1, &(bevp1->sina), &(bevp1->cosa));
+				bevp2->sina= bevp1->sina;
+				bevp2->cosa= bevp1->cosa;
+			}
+			else {
 				bevp2= (BevPoint *)(bl+1);
 				bevp1= bevp2+(bl->nr-1);
 				bevp0= bevp1-1;
 
 				nr= bl->nr;
 				while(nr--) {
-	
-					/* Normalizes */
-					VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
+					x1= bevp1->vec[0]- bevp0->vec[0];
+					x2= bevp1->vec[0]- bevp2->vec[0];
+					y1= bevp1->vec[1]- bevp0->vec[1];
+					y2= bevp1->vec[1]- bevp2->vec[1];
 
-					if(bl->nr==nr+1) { /* first time */
-						vectoquat(vec, 5, 1, quat);
-					}
-					else {
-						float angle = NormalizedVecAngle2(vec_prev, vec);
-					
-						if(angle > 0.0f) { /* otherwise we can keep as is */
-							Crossf(cross, vec_prev, vec);
-							AxisAngleToQuat(q, cross, angle);
-							QuatMul(quat, q, quat_prev);
-						}
-						else {
-							QUATCOPY(quat, quat_prev);
-						}
-					}
-					QUATCOPY(quat_prev, quat); /* quat_prev can't have the tilt applied */
-					VECCOPY(vec_prev, vec);
+					calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
 
-					if(iter_dir==0) { /* up, first time */
-						quat_tmp1= (float *)bevp1->mat;
-
-						bevp0= bevp1;
-						bevp1= bevp2;
-						bevp2++;
-					}
-					else { /* down second time */
-						quat_tmp1= ((float *)bevp1->mat)+4;
-
-						bevp2= bevp1;
-						bevp1= bevp0;
-						bevp0--;
-
-						/* wrap around */
-						if (bevp0 < bevp_start)
-							bevp0= bevp_start+(bl->nr-1);
-					}
-
-					QUATCOPY(quat_tmp1, quat);
-				}
-			}
-
-			/* Now interpolate the 2 quats and apply tilt */
-
-			bevp2= (BevPoint *)(bl+1);
-			bevp1= bevp2+(bl->nr-1);
-			bevp0= bevp1-1;
-
-			nr= bl->nr;
-			while(nr--) {
-
-				VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
-
-				quat_tmp1= (float *)bevp1->mat;
-				quat_tmp2= quat_tmp1+4;
-
-				/* blend the 2 rotations gathered from both directions */
-				QuatInterpol(quat, quat_tmp1, quat_tmp2, 1.0 - (((float)nr)/bl->nr));
-
-				AxisAngleToQuat(q, vec, bevp1->alfa);
-				QuatMul(quat, q, quat);
-				QuatToMat3(quat, bevp1->mat);
-				
-				/* generic */
-				x1= bevp1->vec[0]- bevp0->vec[0];
-				x2= bevp1->vec[0]- bevp2->vec[0];
-				y1= bevp1->vec[1]- bevp0->vec[1];
-				y2= bevp1->vec[1]- bevp2->vec[1];
-			
-				calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
-				
-				bevp0= bevp1;
-				bevp1= bevp2;
-				bevp2++;
-			}
-		}
-		else {
-			/* Any curve with 3 or more points */
-
-			bevp2= (BevPoint *)(bl+1);
-			bevp1= bevp2+(bl->nr-1);
-			bevp0= bevp1-1;
-
-			nr= bl->nr;
-			while(nr--) {
-
-				if(cu->flag & CU_3D) {	/* 3D */
-
-					/* Normalizes */
-					VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
-
-					if(bl->nr==nr+1 || !(cu->flag & CU_NO_TWIST)) { /* first time */
-						vectoquat(vec, 5, 1, quat);
-					}
-					else {
-						float angle = NormalizedVecAngle2(vec_prev, vec);
-
-						if(angle > 0.0f) { /* otherwise we can keep as is */
-							Crossf(cross, vec_prev, vec);
-							AxisAngleToQuat(q, cross, angle);
-							QuatMul(quat, q, quat_prev);
-						}
-						else {
-							QUATCOPY(quat, quat_prev);
-						}
-					}
-					QUATCOPY(quat_prev, quat); /* quat_prev can't have the tilt applied */
-					VECCOPY(vec_prev, vec);
-					
-					AxisAngleToQuat(q, vec, bevp1->alfa);
-					QuatMul(quat, q, quat);
-					QuatToMat3(quat, bevp1->mat);
+					bevp0= bevp1;
+					bevp1= bevp2;
+					bevp2++;
 				}
 
-				x1= bevp1->vec[0]- bevp0->vec[0];
-				x2= bevp1->vec[0]- bevp2->vec[0];
-				y1= bevp1->vec[1]- bevp0->vec[1];
-				y2= bevp1->vec[1]- bevp2->vec[1];
-
-				calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
-
-
-				bevp0= bevp1;
-				bevp1= bevp2;
-				bevp2++;
-			}
-
-			/* correct non-cyclic cases */
-			if(bl->poly== -1) {
-				if(bl->nr>2) {
+				/* correct non-cyclic cases */
+				if(bl->poly== -1) {
 					bevp= (BevPoint *)(bl+1);
 					bevp1= bevp+1;
 					bevp->sina= bevp1->sina;
 					bevp->cosa= bevp1->cosa;
-					Mat3CpyMat3(bevp->mat, bevp1->mat);
 					bevp= (BevPoint *)(bl+1);
 					bevp+= (bl->nr-1);
 					bevp1= bevp-1;
 					bevp->sina= bevp1->sina;
 					bevp->cosa= bevp1->cosa;
-					Mat3CpyMat3(bevp->mat, bevp1->mat);
 				}
 			}
+			bl= bl->next;
 		}
-		bl= bl->next;
+	}
+	else { /* 3D Curves */
+		bl= cu->bev.first;
+		while(bl) {
+
+			if(bl->nr < 2) {
+				/* do nothing */
+			}
+			else if(bl->nr==2) {	/* 2 pnt, treat separate */
+				float q[4];
+
+				bevp2= (BevPoint *)(bl+1);
+				bevp1= bevp2+1;
+
+				/* simple quat/dir */
+				VecSubf(bevp1->dir, bevp1->vec, bevp2->vec);
+				Normalize(bevp1->dir);
+				
+				vectoquat(bevp1->dir, 5, 1, bevp1->quat);
+				
+				AxisAngleToQuat(q, bevp1->dir, bevp1->alfa);
+				QuatMul(bevp1->quat, q, bevp1->quat);
+				NormalQuat(bevp1->quat);
+				VECCOPY(bevp2->dir, bevp1->dir);
+				QUATCOPY(bevp2->quat, bevp1->quat);
+			}
+			else {
+				make_bevel_list_3D(bl, (int)(resolu*cu->twist_smooth), cu->twist_mode);
+			}
+			bl= bl->next;
+		}
 	}
 }
 

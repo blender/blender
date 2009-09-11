@@ -1599,7 +1599,7 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 										vec[1]= fp1[2];
 										vec[2]= 0.0;
 										
-										Mat3MulVecfl(bevp->mat, vec);
+										QuatMulVecf(bevp->quat, vec);
 										
 										data[0]= bevp->vec[0] + fac*vec[0];
 										data[1]= bevp->vec[1] + fac*vec[1];

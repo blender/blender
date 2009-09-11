@@ -71,7 +71,9 @@ typedef struct BevList {
 #
 #
 typedef struct BevPoint {
-	float vec[3], mat[3][3], alfa, radius, sina, cosa;
+	float vec[3], alfa, radius;
+	float sina, cosa;				/* 2D Only */
+	float dir[3], tan[3], quat[4];	/* 3D Only */
 	short split_tag, dupe_tag;
 } BevPoint;
 
@@ -165,7 +167,8 @@ typedef struct Curve {
 
 	int texflag; /* keep an int because of give_obdata_texspace() */
 
-	short drawflag, pad[3];
+	short drawflag, twist_mode,  pad[2];
+	float twist_smooth, pad2;
 
 	short pathlen, totcol;
 	short flag, bevresol;
@@ -174,7 +177,7 @@ typedef struct Curve {
 	/* default */
 	short resolu, resolv;
 	short resolu_ren, resolv_ren;
-	
+
 	/* edit, index in nurb list */
 	int actnu;
 	/* edit, last selected bpoint */
@@ -231,7 +234,12 @@ typedef struct Curve {
 #define CU_RETOPO               1024
 #define CU_DS_EXPAND	2048
 
-#define CU_NO_TWIST		4096
+/* twist mode */
+#define CU_TWIST_Z_UP			0
+// #define CU_TWIST_Y_UP			1 // not used yet
+// #define CU_TWIST_X_UP			2
+#define CU_TWIST_MINIMUM		3
+#define CU_TWIST_TANGENT		4
 
 /* spacemode */
 #define CU_LEFT			0

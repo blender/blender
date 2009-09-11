@@ -664,6 +664,12 @@ static void rna_def_curve(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	static EnumPropertyItem curve_twist_mode_items[] = {
+			{CU_TWIST_Z_UP, "Z_UP", 0, "Z-Up", "Use Z-Up axis to calculate the curve twist at each point"},
+			{CU_TWIST_MINIMUM, "MINIMUM", 0, "Minimum", "Use the least twist over the entire curve"},
+			{CU_TWIST_TANGENT, "TANGENT", 0, "Tangent", "Use the tangent to calculate twist"},
+			{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "Curve", "ID");
 	RNA_def_struct_ui_text(srna, "Curve", "Curve datablock storing curves, splines and NURBS.");
 	RNA_def_struct_ui_icon(srna, ICON_CURVE_DATA);
@@ -782,11 +788,21 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_BACK);
 	RNA_def_property_ui_text(prop, "Back", "Draw filled back for extruded/beveled curves.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
-	prop= RNA_def_property(srna, "use_twist_correction", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_NO_TWIST);
-	RNA_def_property_ui_text(prop, "Minimal Twist", "Correct for twisting.");
+
+	prop= RNA_def_property(srna, "twist_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "twist_mode");
+	RNA_def_property_enum_items(prop, curve_twist_mode_items);
+	RNA_def_property_ui_text(prop, "Twist Method", "The type of tilt calculation for 3D Curves.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	// XXX - would be nice to have a better way to do this, only add for testing.
+	prop= RNA_def_property(srna, "twist_smooth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "twist_smooth");
+	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
+	RNA_def_property_ui_text(prop, "Twist Smooth", "Smoothing iteration for tangents");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+
 
 	prop= RNA_def_property(srna, "retopo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_RETOPO);

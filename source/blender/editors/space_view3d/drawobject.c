@@ -4129,21 +4129,21 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 			
 			while (nr-->0) { /* accounts for empty bevel lists */
 				float fac= bevp->radius * ts->normalsize;
-				float ox,oy,oz; // Offset perpendicular to the curve
-				float dx,dy,dz; // Delta along the curve
+				float vec_a[3] = { fac,0, 0}; // Offset perpendicular to the curve
+				float vec_b[3] = {-fac,0, 0}; // Delta along the curve
+
+				QuatMulVecf(bevp->quat, vec_a);
+				QuatMulVecf(bevp->quat, vec_b);
+				VecAddf(vec_a, vec_a, bevp->vec);
+				VecAddf(vec_b, vec_b, bevp->vec);
 				
-				ox = fac*bevp->mat[0][0];
-				oy = fac*bevp->mat[0][1];
-				oz = fac*bevp->mat[0][2];
-			
-				dx = fac*bevp->mat[2][0];
-				dy = fac*bevp->mat[2][1];
-				dz = fac*bevp->mat[2][2];
+				VECSUBFAC(vec_a, vec_a, bevp->dir, fac);
+				VECSUBFAC(vec_b, vec_b, bevp->dir, fac);
 
 				glBegin(GL_LINE_STRIP);
-				glVertex3f(bevp->vec[0] - ox - dx, bevp->vec[1] - oy - dy, bevp->vec[2] - oz - dz);
+				glVertex3fv(vec_a);
 				glVertex3fv(bevp->vec);
-				glVertex3f(bevp->vec[0] + ox - dx, bevp->vec[1] + oy - dy, bevp->vec[2] + oz - dz);
+				glVertex3fv(vec_b);
 				glEnd();
 				
 				bevp += skip+1;
