@@ -4141,9 +4141,9 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 				dz = fac*bevp->mat[2][2];
 
 				glBegin(GL_LINE_STRIP);
-				glVertex3f(bevp->x - ox - dx, bevp->y - oy - dy, bevp->z - oz - dz);
-				glVertex3f(bevp->x, bevp->y, bevp->z);
-				glVertex3f(bevp->x + ox - dx, bevp->y + oy - dy, bevp->z + oz - dz);
+				glVertex3f(bevp->vec[0] - ox - dx, bevp->vec[1] - oy - dy, bevp->vec[2] - oz - dz);
+				glVertex3fv(bevp->vec);
+				glVertex3f(bevp->vec[0] + ox - dx, bevp->vec[1] + oy - dy, bevp->vec[2] + oz - dz);
 				glEnd();
 				
 				bevp += skip+1;

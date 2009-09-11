@@ -91,7 +91,7 @@ void calc_curvepath(Object *ob)
 	Curve *cu;
 	Nurb *nu;
 	Path *path;
-	float *fp, *dist, *maxdist, x, y, z;
+	float *fp, *dist, *maxdist, xyz[3];
 	float fac, d=0, fac1, fac2;
 	int a, tot, cycl=0;
 	float *ft;
@@ -132,19 +132,12 @@ void calc_curvepath(Object *ob)
 	*fp= 0;
 	for(a=0; a<tot; a++) {
 		fp++;
-		if(cycl && a==tot-1) {
-			x= bevpfirst->x - bevp->x;
-			y= bevpfirst->y - bevp->y;
-			z= bevpfirst->z - bevp->z;
-		}
-		else {
-                        tempbevp = bevp+1;
-			x= (tempbevp)->x - bevp->x;
-			y= (tempbevp)->y - bevp->y;
-			z= (tempbevp)->z - bevp->z;
-		}
-		*fp= *(fp-1)+ (float)sqrt(x*x+y*y+z*z);
+		if(cycl && a==tot-1)
+			VecSubf(xyz, bevpfirst->vec, bevp->vec);
+		else
+			VecSubf(xyz, (bevp+1)->vec, bevp->vec);
 		
+		*fp= *(fp-1)+VecLength(xyz);
 		bevp++;
 	}
 	
@@ -182,13 +175,10 @@ void calc_curvepath(Object *ob)
 		fac1= fac2/fac1;
 		fac2= 1.0f-fac1;
 
-		ft[0]= fac1*bevp->x+ fac2*(bevpn)->x;
-		ft[1]= fac1*bevp->y+ fac2*(bevpn)->y;
-		ft[2]= fac1*bevp->z+ fac2*(bevpn)->z;
+		VecLerpf(ft, bevp->vec, bevpn->vec, fac2);
 		ft[3]= fac1*bevp->alfa+ fac2*(bevpn)->alfa;
 		
 		ft+= 4;
-
 	}
 	
 	MEM_freeN(dist);
@@ -256,7 +246,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	/* note, commented out for follow constraint */
 	//if(cu->flag & CU_FOLLOW) {
 		
-		set_afgeleide_four_ipo(1.0f-fac, data, KEY_BSPLINE);
+		key_curve_tangent_weights(1.0f-fac, data, KEY_BSPLINE);
 		
 		dir[0]= data[0]*p0[0] + data[1]*p1[0] + data[2]*p2[0] + data[3]*p3[0] ;
 		dir[1]= data[0]*p0[1] + data[1]*p1[1] + data[2]*p2[1] + data[3]*p3[1] ;
@@ -271,10 +261,10 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	nu= cu->nurb.first;
 
 	/* make sure that first and last frame are included in the vectors here  */
-	if(nu->type == CU_POLY) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
-	else if(nu->type == CU_BEZIER) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
-	else if(s0==s1 || p2==p3) set_four_ipo(1.0f-fac, data, KEY_CARDINAL);
-	else set_four_ipo(1.0f-fac, data, KEY_BSPLINE);
+	if(nu->type == CU_POLY) key_curve_position_weights(1.0f-fac, data, KEY_LINEAR);
+	else if(nu->type == CU_BEZIER) key_curve_position_weights(1.0f-fac, data, KEY_LINEAR);
+	else if(s0==s1 || p2==p3) key_curve_position_weights(1.0f-fac, data, KEY_CARDINAL);
+	else key_curve_position_weights(1.0f-fac, data, KEY_BSPLINE);
 
 	vec[0]= data[0]*p0[0] + data[1]*p1[0] + data[2]*p2[0] + data[3]*p3[0] ;
 	vec[1]= data[0]*p0[1] + data[1]*p1[1] + data[2]*p2[1] + data[3]*p3[1] ;
