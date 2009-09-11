@@ -1620,6 +1620,83 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	BLI_edgehash_free(eh, NULL);
 }
 
+
+void CDDM_calc_edges_poly(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	CustomData edgeData;
+	EdgeHashIterator *ehi;
+	MPoly *mp = cddm->mpoly;
+	MLoop *ml;
+	MEdge *med;
+	EdgeHash *eh = BLI_edgehash_new();
+	int v1, v2;
+	int *eindex;
+	int i, j, k, *index, numEdges = cddm->dm.numEdgeData, maxFaces = dm->numPolyData;
+
+	eindex = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
+
+	med = cddm->medge;
+	if (med) {
+		for (i=0; i < numEdges; i++, med++) {
+			BLI_edgehash_insert(eh, med->v1, med->v2, SET_INT_IN_POINTER(i+1));
+		}
+	}
+
+	for (i=0; i < maxFaces; i++, mp++) {
+		ml = cddm->mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			v1 = ml->v;
+			v2 = (cddm->mloop + mp->loopstart + ((j+1)%mp->totloop))->v;
+			if (!BLI_edgehash_haskey(eh, v1, v2)) {
+				BLI_edgehash_insert(eh, v1, v2, NULL);
+			}
+		}
+	}
+
+	k = numEdges;
+	numEdges = BLI_edgehash_size(eh);
+
+	/* write new edges into a temporary CustomData */
+	memset(&edgeData, 0, sizeof(edgeData));
+	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+
+	ehi = BLI_edgehashIterator_new(eh);
+	med = CustomData_get_layer(&edgeData, CD_MEDGE);
+	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
+	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
+	    BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
+		BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
+		j = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+
+		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
+		*index = j==0 ? ORIGINDEX_NONE : eindex[j-1];
+
+		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(i));
+	}
+	BLI_edgehashIterator_free(ehi);
+
+	/* free old CustomData and assign new one */
+	CustomData_free(&dm->edgeData, dm->numEdgeData);
+	dm->edgeData = edgeData;
+	dm->numEdgeData = numEdges;
+
+	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
+
+	mp = cddm->mpoly;
+	for (i=0; i < maxFaces; i++, mp++) {
+		ml = cddm->mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			v1 = ml->v;
+			v2 = (cddm->mloop + mp->loopstart + ((j+1)%mp->totloop))->v;
+			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, v1, v2));
+		}
+	}
+
+	BLI_edgehash_free(eh, NULL);
+}
+
 void CDDM_lower_num_verts(DerivedMesh *dm, int numVerts)
 {
 	if (numVerts < dm->numVertData)
@@ -1751,6 +1828,42 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 
 	BLI_edgehash_free(eh, NULL);
 }
+
+void CDDM_set_mvert(DerivedMesh *dm, MVert *mvert)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	CustomData_add_layer(&cddm->dm.vertData, CD_MVERT, CD_ASSIGN, mvert, cddm->dm.numVertData);
+	cddm->mvert = mvert;
+}
+
+void CDDM_set_medge(DerivedMesh *dm, MEdge *medge)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	CustomData_add_layer(&cddm->dm.edgeData, CD_MEDGE, CD_ASSIGN, medge, cddm->dm.numEdgeData);
+	cddm->medge = medge;
+}
+
+void CDDM_set_mface(DerivedMesh *dm, MFace *mface)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	CustomData_add_layer(&cddm->dm.faceData, CD_MFACE, CD_ASSIGN, mface, cddm->dm.numFaceData);
+	cddm->mface = mface;
+}
+
+void CDDM_set_mloop(DerivedMesh *dm, MLoop *mloop)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	CustomData_add_layer(&cddm->dm.loopData, CD_MLOOP, CD_ASSIGN, mloop, cddm->dm.numLoopData);
+	cddm->mloop = mloop;
+}
+
+void CDDM_set_mpoly(DerivedMesh *dm, MPoly *mpoly)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	CustomData_add_layer(&cddm->dm.polyData, CD_MPOLY, CD_ASSIGN, mpoly, cddm->dm.numPolyData);
+	cddm->mpoly = mpoly;
+}
+
 
 /* Multires DerivedMesh, extends CDDM */
 typedef struct MultiresDM {

@@ -235,9 +235,13 @@ behaviour, though it may not be the best in practice.
 	_##vec##_count++)
 
 #define V_FREE(vec) if (vec) MEM_freeN(vec);
+
 /*resets the logical size of an array to zero, but doesn't
   free the memory.*/
 #define V_RESET(vec) _##vec##_count=0
+
+/*set the count of the array*/
+#define V_SETCOUNT(vec, count) _##vec##_count = (count)
 
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)

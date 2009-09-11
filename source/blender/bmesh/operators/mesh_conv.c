@@ -141,6 +141,12 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 		f = BM_Make_Ngon(bm, v1, v2, fedges, mpoly->totloop, 0);
 
+		if (!f) {
+			printf("Warning! Bad face in mesh"
+			       " \"%s\" at index %d!\n", me->id.name+2, i);
+			continue;
+		}
+
 		/*this is necassary for selection counts to work properly*/
 		if (f->head.flag & BM_SELECT) BM_Select(bm, f, 1);
 

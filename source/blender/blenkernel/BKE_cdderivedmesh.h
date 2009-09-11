@@ -93,8 +93,13 @@ void CDDM_calc_normals(struct DerivedMesh *dm);
 
 /* calculates edges for a CDDerivedMesh (from face data)
  * this completely replaces the current edge data in the DerivedMesh
+ * builds edges from the tesselated face data.
  */
 void CDDM_calc_edges(struct DerivedMesh *dm);
+
+/* same as CDDM_calc_edges only makes edges from ngon faces instead of tesselation
+   faces*/
+void CDDM_calc_edges_poly(struct DerivedMesh *dm);
 
 /* lowers the number of vertices/edges/faces in a CDDerivedMesh
  * the layer data stays the same size
@@ -123,6 +128,15 @@ struct MEdge *CDDM_get_edges(struct DerivedMesh *dm);
 struct MFace *CDDM_get_tessfaces(struct DerivedMesh *dm);
 struct MLoop *CDDM_get_loops(struct DerivedMesh *dm);
 struct MPoly *CDDM_get_faces(struct DerivedMesh *dm);
+
+/*Assigns news m*** layers to the cddm.  Note that you must handle
+  freeing the old ones yourself.  Also you must ensure dm->num****Data
+  is correct.*/
+void CDDM_set_mvert(struct DerivedMesh *dm, struct MVert *mvert);
+void CDDM_set_medge(struct DerivedMesh *dm, struct MEdge *medge);
+void CDDM_set_mface(struct DerivedMesh *dm, struct MFace *mface);
+void CDDM_set_mloop(struct DerivedMesh *dm, struct MLoop *mloop);
+void CDDM_set_mpoly(struct DerivedMesh *dm, struct MPoly *mpoly);
 
 #endif
 
