@@ -58,6 +58,10 @@ class BONE_PT_transform(BoneButtonsPanel):
 			col = row.column()
 			if pchan.rotation_mode == 'QUATERNION':
 				col.itemR(pchan, "rotation", text="Rotation")
+			elif pchan.rotation_mode == 'AXIS_ANGLE':
+				col.itemL(text="Rotation")
+				col.itemR(pchan, "rotation_angle", text="Angle")
+				col.itemR(pchan, "rotation_axis", text="Axis")
 			else:
 				col.itemR(pchan, "euler_rotation", text="Rotation")
 

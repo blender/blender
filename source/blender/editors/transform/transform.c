@@ -2663,7 +2663,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
-			/* euler or quaternion? */
+			/* euler or quaternion/axis-angle? */
 			if (td->flag & TD_USEQUAT) {
 				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 
@@ -2672,6 +2672,15 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				QuatMul(td->ext->quat, quat, td->ext->iquat);
 				/* this function works on end result */
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				
+				/* if axis-angle, we now convert the quat representation to axis-angle again
+				 * 	- this means that the math above is not totally correct, but it works well enough so far...
+				 */
+				if (td->rotOrder == PCHAN_ROT_AXISANGLE) {	
+					/* make temp copy (since stored in same place) */
+					QuatCopy(quat, td->ext->quat);
+					QuatToAxisAngle(quat, &td->ext->quat[1], &td->ext->quat[0]); 
+				}
 			}
 			else { 
 				float eulmat[3][3];

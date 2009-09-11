@@ -281,7 +281,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 
 /* called on startup,  (context entirely filled with NULLs) */
-/* or called for 'Erase All' */
+/* or called for 'New File' */
 /* op can be NULL */
 int WM_read_homefile(bContext *C, wmOperator *op)
 {

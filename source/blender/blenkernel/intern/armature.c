@@ -1986,10 +1986,14 @@ void chan_calc_mat(bPoseChannel *chan)
 	/* get scaling matrix */
 	SizeToMat3(chan->size, smat);
 	
-	/* rotations may either be quats or eulers (no rotation modes for now...) */
+	/* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
 	if (chan->rotmode > 0) {
-		/* euler rotations (will cause gimble lock... no rotation order to solve that yet) */
+		/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
 		EulOToMat3(chan->eul, chan->rotmode, rmat);
+	}
+	else if (chan->rotmode == PCHAN_ROT_AXISANGLE) {
+		/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
+		VecRotToMat3(&chan->quat[1], chan->quat[0], rmat);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */

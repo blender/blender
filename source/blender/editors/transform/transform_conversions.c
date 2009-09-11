@@ -552,8 +552,9 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 	td->ob = ob;
 	td->flag = TD_SELECTED;
-	if (pchan->rotmode == PCHAN_ROT_QUAT)
+	if ((pchan->rotmode == PCHAN_ROT_QUAT) || (pchan->rotmode == PCHAN_ROT_AXISANGLE)) 
 	{
+		// XXX: for now, axis-angle will be treated like for quats (the only difference is the normalisation)
 		td->flag |= TD_USEQUAT;
 	}
 	if (bone->flag & BONE_HINGE_CHILD_TRANSFORM)
@@ -587,6 +588,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		td->ext->quat= pchan->quat;
 		
 		QUATCOPY(td->ext->iquat, pchan->quat);
+		td->rotOrder= pchan->rotmode;
 	}
 	
 

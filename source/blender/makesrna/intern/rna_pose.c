@@ -110,24 +110,62 @@ IDProperty *rna_PoseChannel_idproperties(PointerRNA *ptr, int create)
 	return pchan->prop;
 }
 
+/* rotation - euler angles */
 static void rna_PoseChannel_euler_rotation_get(PointerRNA *ptr, float *value)
 {
 	bPoseChannel *pchan= ptr->data;
-
-	if(pchan->rotmode == PCHAN_ROT_QUAT)
+	
+	if(pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+		float m[3][3];
+		
+		/* go through a 3x3 matrix */
+		VecRotToMat3(&pchan->quat[1], pchan->quat[0], m);
+		Mat3ToEul(m, value);
+	}
+	else if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers when using axis-angle... */
 		QuatToEul(pchan->quat, value);
 	else
 		VECCOPY(value, pchan->eul);
 }
 
+/* rotation - euler angles */
 static void rna_PoseChannel_euler_rotation_set(PointerRNA *ptr, const float *value)
 {
 	bPoseChannel *pchan= ptr->data;
-
-	if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers when using quats... */
+	
+	if(pchan->rotmode == PCHAN_ROT_AXISANGLE) { /* default XYZ eulers when using axis-angle... */
+		float q[4];
+		
+		/* convert to temp quat, then to axis angle (since stored in same var) */
+		EulToQuat((float *)value, q);
+		QuatToAxisAngle(q, &pchan->quat[1], &pchan->quat[0]);
+	}
+	else if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers when using quats... */
 		EulToQuat((float*)value, pchan->quat);
 	else
 		VECCOPY(pchan->eul, value);
+}
+
+/* rotation - axis angle only */
+static void rna_PoseChannel_rotation_axis_get(PointerRNA *ptr, float *value)
+{
+	bPoseChannel *pchan= ptr->data;
+	
+	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+		/* axis is stord in quat for now */
+		VecCopyf(value, &pchan->quat[1]);
+	}
+}
+
+/* rotation - axis angle only */
+static void rna_PoseChannel_rotation_axis_set(PointerRNA *ptr, const float *value)
+{
+	bPoseChannel *pchan= ptr->data;
+	
+	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+		/* axis is stored in quat for now */
+		VecCopyf(&pchan->quat[1], (float *)value);
+	}
 }
 
 static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
@@ -184,6 +222,12 @@ static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
 			/* copy to temp var first, since quats and axis-angle are stored in same place */
 			QuatCopy(q, pchan->quat);
 			QuatToAxisAngle(q, &pchan->quat[1], &pchan->quat[0]);
+		}
+		
+		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
+		if (IS_EQ(pchan->quat[1], pchan->quat[2]) && IS_EQ(pchan->quat[2], pchan->quat[3])) {
+			/* for now, rotate around y-axis then (so that it simply becomes the roll) */
+			pchan->quat[2]= 1.0f;
 		}
 	}
 	
@@ -421,7 +465,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 		{PCHAN_ROT_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order. Prone to Gimbal Lock"},
 		{PCHAN_ROT_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order. Prone to Gimbal Lock"},
 		{PCHAN_ROT_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
-		//{PCHAN_ROT_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector."},
+		{PCHAN_ROT_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector."},
 		{0, NULL, 0, NULL, NULL}};
 	
 	StructRNA *srna;
@@ -491,6 +535,18 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
 	RNA_def_property_ui_text(prop, "Rotation", "Rotation in Quaternions.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
+	
+	prop= RNA_def_property(srna, "rotation_angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "quat[0]");
+	RNA_def_property_ui_text(prop, "Rotation Angle", "Angle of Rotation for Axis-Angle rotation representation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
+	
+	prop= RNA_def_property(srna, "rotation_axis", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "quat");
+	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_axis_get", "rna_PoseChannel_rotation_axis_set", NULL);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Rotation Axis", "Axis for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "euler_rotation", PROP_FLOAT, PROP_EULER);
@@ -662,8 +718,14 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_XYZ);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTX);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Lock Rotation", "Lock editing of rotation in the interface.");
+	RNA_def_property_ui_text(prop, "Lock Rotation", "Lock editing of rotation (with three components) in the interface.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+	
+	//prop= RNA_def_property(srna, "lock_rotation_4d", PROP_BOOLEAN, PROP_XYZ);
+	//RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTW);
+	//RNA_def_property_array(prop, 4);
+	//RNA_def_property_ui_text(prop, "Lock Rotation (4D)", "Lock editing of rotations (with four components) in the interface.");
+	//RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "lock_scale", PROP_BOOLEAN, PROP_XYZ);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_SCALEX);
