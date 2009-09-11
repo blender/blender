@@ -1034,7 +1034,12 @@ void ED_area_prevspace(bContext *C)
 		}
 #endif
 
-		ED_area_newspace(C, sa, sl->next->spacetype);
+		/* workaround for case of double prevspace, render window
+		   with a file browser on top of it */
+		if(sl->next->spacetype == SPACE_FILE && sl->next->next)
+			ED_area_newspace(C, sa, sl->next->next->spacetype);
+		else
+			ED_area_newspace(C, sa, sl->next->spacetype);
 	}
 	else {
 		ED_area_newspace(C, sa, SPACE_INFO);
