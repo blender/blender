@@ -511,8 +511,17 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 		but= uiDefBut(block, TEX, B_NOP, "Bone:",				160, 140, 140, 19, bone->name, 1, 31, 0, 0, "");
 	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
 	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
-
-	QuatToEulO(pchan->quat, tfp->ob_eul, pchan->rotmode); // XXX?
+	
+	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+		float quat[4];
+		/* convert to euler, passing through quats... */
+		AxisAngleToQuat(quat, &pchan->quat[1], pchan->quat[0]);
+		QuatToEul(quat, tfp->ob_eul);
+	}
+	else if (pchan->rotmode == PCHAN_ROT_QUAT)
+		QuatToEul(pchan->quat, tfp->ob_eul);
+	else
+		VecCopyf(tfp->ob_eul, pchan->eul);
 	tfp->ob_eul[0]*= 180.0/M_PI;
 	tfp->ob_eul[1]*= 180.0/M_PI;
 	tfp->ob_eul[2]*= 180.0/M_PI;
@@ -841,7 +850,18 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			eul[0]= M_PI*tfp->ob_eul[0]/180.0;
 			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
 			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
-			EulOToQuat(eul, pchan->rotmode, pchan->quat); // xxx?
+			
+			if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+				float quat[4];
+				/* convert to axis-angle, passing through quats  */
+				EulToQuat(eul, quat);
+				QuatToAxisAngle(quat, &pchan->quat[1], &pchan->quat[0]);
+			}
+			else if (pchan->rotmode == PCHAN_ROT_QUAT)
+				EulToQuat(eul, pchan->quat);
+			else
+				VecCopyf(pchan->eul, eul);
+			
 		}
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:

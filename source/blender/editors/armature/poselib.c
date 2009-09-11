@@ -278,8 +278,7 @@ void poselib_validate_act (bAction *act)
 /* ************************************************************* */
 
 /* Pointers to the builtin KeyingSets that we want to use */
-static KeyingSet *poselib_ks_locrotscale = NULL;		/* quaternion rotations */
-static KeyingSet *poselib_ks_locrotscale2 = NULL;		/* euler rotations */		// XXX FIXME...
+static KeyingSet *poselib_ks_locrotscale = NULL;		/* the only keyingset we'll need*/
 static short poselib_ks_need_init= 1;					/* have the above been obtained yet? */
 
 /* Make sure the builtin KeyingSets are initialised properly 
@@ -290,12 +289,8 @@ static void poselib_get_builtin_keyingsets (void)
 	/* only if we haven't got these yet */
 	// FIXME: this assumes that we will always get the builtin sets... 
 	if (poselib_ks_need_init) {
-		/* LocRotScale (quaternions) */
+		/* LocRotScale (quaternions or eulers depending on context) */
 		poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-		
-		/* LocRotScale (euler) */
-		//ks_locrotscale2= ANIM_builtin_keyingset_get_named(ks_locrotscale, "LocRotScale");
-		poselib_ks_locrotscale2= poselib_ks_locrotscale; // FIXME: for now, just use the same one...
 		
 		/* clear flag requesting init */
 		poselib_ks_need_init= 0;
@@ -410,11 +405,8 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 				/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
 				cks.pchan= pchan;
 				
-				/* KeyingSet to use depends on rotation mode  */
-				if (pchan->rotmode)
-					modify_keyframes(C, &dsources, act, poselib_ks_locrotscale2, MODIFYKEY_MODE_INSERT, (float)frame);
-				else
-					modify_keyframes(C, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
+				/* KeyingSet to use depends on rotation mode (but that's handled by the templates code)  */
+				modify_keyframes(C, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
 			}
 		}
 	}

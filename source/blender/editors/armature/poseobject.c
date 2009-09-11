@@ -812,10 +812,17 @@ void pose_copy_menu(Scene *scene)
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
 						
-						if (pchan->rotmode > 0) 
-							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
-						else
+						if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+							float tmp_quat[4];
+							
+							/* need to convert to quat first (in temp var)... */
+							Mat4ToQuat(delta_mat, tmp_quat);
+							QuatToAxisAngle(tmp_quat, &pchan->quat[1], &pchan->quat[0]);
+						}
+						else if (pchan->rotmode == PCHAN_ROT_QUAT)
 							Mat4ToQuat(delta_mat, pchan->quat);
+						else
+							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -991,6 +998,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				pchan->flag= chan->flag;
 				
 				/* check if rotation modes are compatible (i.e. do they need any conversions) */
+				// FIXME: add axis-angle here too...
 				if (pchan->rotmode == chan->rotmode) {
 					/* copy the type of rotation in use */
 					if (pchan->rotmode > 0) {

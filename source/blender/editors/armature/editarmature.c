@@ -4856,9 +4856,13 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 				QUATCOPY(quat1, pchan->quat);
 				QuatToEul(pchan->quat, oldeul);
 			}
+			else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+				continue; // XXX
+			}
 			else {
 				VECCOPY(oldeul, pchan->eul);
 			}
+			
 			eul[0]= eul[1]= eul[2]= 0.0f;
 			
 			if (pchan->protectflag & OB_LOCK_ROTX)
@@ -4875,6 +4879,9 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 					QuatMulf(pchan->quat, -1.0f);
 				}
 			}
+			else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+				// TODO...
+			}
 			else {
 				VECCOPY(pchan->eul, eul);
 			}
@@ -4883,6 +4890,11 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			if (pchan->rotmode == PCHAN_ROT_QUAT) {
 				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]= 0.0f; 
 				pchan->quat[0]= 1.0f;
+			}
+			else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+				/* by default, make rotation of 0 radians around y-axis (roll) */
+				pchan->quat[0]=pchan->quat[1]=pchan->quat[3]= 0.0f;
+				pchan->quat[2]= 1.0f;
 			}
 			else {
 				pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
