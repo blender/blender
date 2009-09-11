@@ -242,10 +242,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
 		layout.itemS()
 		
-		layout.itemO("object.meshdeform_bind", text="Bind")
-		row = layout.row()
-		row.itemR(md, "precision")
-		row.itemR(md, "dynamic")
+		if md.is_bound:
+			layout.itemO("object.meshdeform_bind", text="Unbind")
+		else:
+			layout.itemO("object.meshdeform_bind", text="Bind")
+			row = layout.row()
+			row.itemR(md, "precision")
+			row.itemR(md, "dynamic")
 		
 	def MIRROR(self, layout, ob, md):
 		layout.itemR(md, "merge_limit")

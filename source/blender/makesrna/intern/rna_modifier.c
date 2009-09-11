@@ -384,6 +384,11 @@ static void rna_ArrayModifier_curve_set(PointerRNA *ptr, PointerRNA value)
 	modifier_object_set(&((ArrayModifierData*)ptr->data)->curve_ob, OB_CURVE, value);
 }
 
+static int rna_MeshDeformModifier_is_bound_get(PointerRNA *ptr)
+{
+	return (((MeshDeformModifierData*)ptr->data)->bindcos != NULL);
+}
+
 static PointerRNA rna_SoftBodyModifier_settings_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -1368,7 +1373,12 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_MeshDeformModifier_object_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
-
+	
+	prop= RNA_def_property(srna, "is_bound", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_MeshDeformModifier_is_bound_get", NULL);
+	RNA_def_property_ui_text(prop, "Bound", "Whether geometry has been bound to control cage.");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	
 	prop= RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MDEF_INVERT_VGROUP);
 	RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence.");
