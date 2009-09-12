@@ -396,15 +396,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 					break;
 			}
 			else if(az->type == AZONE_REGION) {
-				float v1[2], v2[2], v3[2], pt[2];
-				
-				v1[0]= az->x1; v1[1]= az->y1;
-				v2[0]= az->x2; v2[1]= az->y2;
-				v3[0]= az->x3; v3[1]= az->y3;
-				pt[0]= x; pt[1]=y;
-
-				if(IsPointInTri2D(v1, v2, v3, pt)) 
-					break;
+				break;
 			}
 		}
 	}
@@ -1273,7 +1265,9 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 /* ************** scale region edge operator *********************************** */
 
 typedef struct RegionMoveData {
+	AZone *az;
 	ARegion *ar;
+	ScrArea *sa;
 	int bigger, smaller, origval;
 	int origx, origy;
 	char edge;
@@ -1290,7 +1284,9 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		op->customdata= rmd;
 		
+		rmd->az = az;
 		rmd->ar= az->ar;
+		rmd->sa = sad->sa1;
 		rmd->edge= az->edge;
 		rmd->origx= event->x;
 		rmd->origy= event->y;
@@ -1322,8 +1318,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(rmd->edge=='l') delta= -delta;
 				rmd->ar->type->minsizex= rmd->origval + delta;
 				CLAMP(rmd->ar->type->minsizex, 0, 1000);
-				if(rmd->ar->type->minsizex < 10) {
-					rmd->ar->type->minsizex= 10;
+				if(rmd->ar->type->minsizex < 24) {
+					rmd->ar->type->minsizex= rmd->origval;
 					rmd->ar->flag |= RGN_FLAG_HIDDEN;
 				}
 				else
@@ -1334,8 +1330,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(rmd->edge=='b') delta= -delta;
 				rmd->ar->type->minsizey= rmd->origval + delta;
 				CLAMP(rmd->ar->type->minsizey, 0, 1000);
-				if(rmd->ar->type->minsizey < 10) {
-					rmd->ar->type->minsizey= 10;
+				if(rmd->ar->type->minsizey < 24) {
+					rmd->ar->type->minsizey= rmd->origval;
 					rmd->ar->flag |= RGN_FLAG_HIDDEN;
 				}
 				else

@@ -742,7 +742,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (printable) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(10,  ar->winy-20, 0.0f, printable);
+		BLF_draw_default(20,  ar->winy-20, 0.0f, printable);
 	}
 
 	if (v3d->localview) {
