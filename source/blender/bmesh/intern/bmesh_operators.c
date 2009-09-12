@@ -679,6 +679,25 @@ void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag
 	}
 }
 
+int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, int toolflag)
+{
+	BMNode *diskbase;
+	BMEdge *curedge;
+	int i, len=0, count=0;
+	
+	if(v->edge){
+		diskbase = bmesh_disk_getpointer(v->edge, v);
+		len = bmesh_cycle_length(diskbase);
+		
+		for(i = 0, curedge=v->edge; i<len; i++){
+			if (BMO_TestFlag(bm, curedge, toolflag))
+				count++;
+			curedge = bmesh_disk_nextedge(curedge, v);
+		}
+	}
+
+	return count;
+}
 
 /*
  *

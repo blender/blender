@@ -38,8 +38,6 @@ typedef struct EdgeData {
 #define EDGE_MARK	1
 #define EDGE_VIS	2
 
-#define VERT_VIS	1
-
 #define FACE_NEW	1
 
 PathBase *edge_pathbase_new(void)
@@ -195,10 +193,9 @@ EPath *edge_find_shortest_path(BMesh *bm, BMEdge *edge, EdgeData *edata, PathBas
 
 void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 {
-	BMIter iter, liter;
+	BMIter iter;
 	BMOIter siter;
 	BMEdge *e, *edge;
-	BMLoop *l;
 	BMFace *f;
 	EPath *path;
 	EPathNode *node;
@@ -206,7 +203,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge **edges = NULL;
 	PathBase *pathbase = edge_pathbase_new();
 	V_DECLARE(edges);
-	int i, j;
+	int i;
 
 	if (!bm->totvert || !bm->totedge)
 		return;
@@ -314,16 +311,195 @@ static int convex(float *v1, float *v2, float *v3, float *v4)
 	return 0;
 }
 
+BMEdge *edge_next(BMesh *bm, BMEdge *e)
+{
+	BMIter iter;
+	BMEdge *e2;
+	int i;
+
+	for (i=0; i<2; i++) {
+		BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, i?e->v2:e->v1) {
+			if (BMO_TestFlag(bm, e2, EDGE_MARK) 
+			    && !BMO_TestFlag(bm, e2, EDGE_VIS) && e2 != e)
+			{
+				return e2;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMIter iter;
+	BMEdge *e, *e2;
+	BMEdge **edges1 = NULL, **edges2 = NULL, **edges;
+	V_DECLARE(edges1);
+	V_DECLARE(edges2);
+	V_DECLARE(edges);
+	int ok = 1;
+	int i, count;
+
+	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	
+	/*validate that each edge has at most one other tagged edge in the
+	  disk cycle around each of it's vertices*/
+	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		for (i=0; i<2; i++) {
+			count = BMO_Vert_CountEdgeFlags(bm, i?e->v2:e->v1, EDGE_MARK);
+			if (count > 2) {
+				ok = 0;
+				break;
+			}
+		}
+
+		if (!ok) break;
+	}
+
+	/*we don't have valid edge layouts, return*/
+	if (!ok)
+		return;
+
+
+	/*find connected loops within the input edges*/
+	count = 0;
+	while (1) {
+		BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+			if (!BMO_TestFlag(bm, e, EDGE_VIS)) {
+				if (BMO_Vert_CountEdgeFlags(bm, e->v1, EDGE_MARK)==1)
+					break;
+				if (BMO_Vert_CountEdgeFlags(bm, e->v2, EDGE_MARK)==1)
+					break;
+			}
+		}
+		
+		if (!e) break;
+		
+		if (!count)
+			edges = edges1;
+		else if (count==1)
+			edges = edges2;
+		else break;
+		
+		i = 0;
+		while (e) {
+			BMO_SetFlag(bm, e, EDGE_VIS);
+			V_GROW(edges);
+			edges[i] = e;
+
+			e = edge_next(bm, e);
+			i++;
+		}
+
+		if (!count) {
+			edges1 = edges;
+			V_SETCOUNT(edges1, V_COUNT(edges));
+		} else {
+			edges2 = edges;
+			V_SETCOUNT(edges2, V_COUNT(edges));
+		}
+
+		V_RESET(edges);
+		count++;
+	}
+
+#define EDGECON(e1, e2) (e1->v1 == e2->v1 || e1->v2 == e2->v2 || e1->v1 == e2->v2)
+
+	if (edges1 && V_COUNT(edges1) > 2 && EDGECON(edges1[0], edges1[V_COUNT(edges1)-1])) {
+		if (edges2 && V_COUNT(edges2) > 2 && EDGECON(edges2[0], edges2[V_COUNT(edges2)-1])) {
+			V_FREE(edges1);
+			V_FREE(edges2);
+			return;
+		} else {
+			edges1 = edges2;
+			edges2 = NULL;
+		}
+	}
+
+	if (edges2 && V_COUNT(edges2) > 2 && EDGECON(edges2[0], edges2[V_COUNT(edges2)-1])) {
+		edges2 = NULL;
+	}
+
+	/*two unconnected loops, connect them*/
+	if (edges1 && edges2) {
+		BMVert *v1, *v2, *v3, *v4;
+
+		if (V_COUNT(edges1)==1) {
+			v1 = edges1[0]->v1;
+			v2 = edges1[0]->v2;
+		} else {
+			if (BM_Vert_In_Edge(edges1[1], edges1[0]->v1))
+				v1 = edges1[0]->v2;
+			else v1 = edges1[0]->v1;
+
+			i = V_COUNT(edges1)-1;
+			if (BM_Vert_In_Edge(edges1[i-1], edges1[i]->v1))
+				v2 = edges1[i]->v2;
+			else v2 = edges1[i]->v1;
+		}
+
+		if (V_COUNT(edges2)==1) {
+			v3 = edges2[0]->v1;
+			v4 = edges2[0]->v2;
+		} else {
+			if (BM_Vert_In_Edge(edges2[1], edges2[0]->v1))
+				v3 = edges2[0]->v2;
+			else v3 = edges2[0]->v1;
+
+			i = V_COUNT(edges2)-1;
+			if (BM_Vert_In_Edge(edges2[i-1], edges2[i]->v1))
+				v4 = edges2[i]->v2;
+			else v4 = edges2[i]->v1;
+		}
+
+		if (VecLenf(v1->co, v3->co) > VecLenf(v1->co, v4->co)) {
+			BMVert *v;
+			v = v3;
+			v3 = v4;
+			v4 = v;
+		}
+
+		e = BM_Make_Edge(bm, v1, v3, NULL, 1);
+		BMO_SetFlag(bm, e, ELE_NEW);
+		e = BM_Make_Edge(bm, v2, v4, NULL, 1);
+		BMO_SetFlag(bm, e, ELE_NEW);
+	} else if (edges1) {
+		BMVert *v1, *v2;
+		
+		if (V_COUNT(edges1) > 1) {
+			if (BM_Vert_In_Edge(edges1[1], edges1[0]->v1))
+				v1 = edges1[0]->v2;
+			else v1 = edges1[0]->v1;
+
+			i = V_COUNT(edges1)-1;
+			if (BM_Vert_In_Edge(edges1[i-1], edges1[i]->v1))
+				v2 = edges1[i]->v2;
+			else v2 = edges1[i]->v1;
+
+			e = BM_Make_Edge(bm, v1, v2, NULL, 1);
+			BMO_SetFlag(bm, e, ELE_NEW);
+		}
+	}
+	
+	BMO_Flag_To_Slot(bm, op, "edgeout", ELE_NEW, BM_EDGE);
+
+	V_FREE(edges1);
+	V_FREE(edges2);
+
+#undef EDGECON
+}
+
 /*this is essentially new fkey*/
 void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator op2;
 	BMOIter oiter;
-	BMIter iter, liter;
+	BMIter iter;
 	BMHeader *h;
 	BMVert *v, *verts[4];
 	BMEdge *e;
-	BMLoop *l;
 	BMFace *f;
 	int totv=0, tote=0, totf=0, amount;
 
@@ -338,20 +514,13 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMO_SetFlag(bm, h, ELE_NEW);
 	}
 	
-	/*first call dissolve faces*/
-	BMO_InitOpf(bm, &op2, "dissolvefaces faces=%ff", ELE_NEW);
+	/*call edgenet create*/
+	/*  call edgenet prepare op so additional face creation cases work*/
+	BMO_InitOpf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
 	BMO_Exec_Op(bm, &op2);
-	
-	/*if we dissolved anything, then return.*/
-	if (BMO_CountSlotBuf(bm, &op2, "regionout")) {
-		BMO_CopySlot(&op2, op, "regionout", "faceout");
-		BMO_Finish_Op(bm, &op2);
-		return;
-	}
-
+	BMO_Flag_Buffer(bm, &op2, "edgeout", ELE_NEW, BM_EDGE);
 	BMO_Finish_Op(bm, &op2);
 
-	/*call edgenet create*/
 	BMO_InitOpf(bm, &op2, "edgenet_fill edges=%fe", ELE_NEW);
 	BMO_Exec_Op(bm, &op2);
 
@@ -364,6 +533,19 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	BMO_Finish_Op(bm, &op2);
 	
+	/*now call dissolve faces*/
+	BMO_InitOpf(bm, &op2, "dissolvefaces faces=%ff", ELE_NEW);
+	BMO_Exec_Op(bm, &op2);
+	
+	/*if we dissolved anything, then return.*/
+	if (BMO_CountSlotBuf(bm, &op2, "regionout")) {
+		BMO_CopySlot(&op2, op, "regionout", "faceout");
+		BMO_Finish_Op(bm, &op2);
+		return;
+	}
+
+	BMO_Finish_Op(bm, &op2);
+
 	/*now, count how many verts we have*/
 	amount = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {

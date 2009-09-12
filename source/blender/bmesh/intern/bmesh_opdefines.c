@@ -343,13 +343,31 @@ BMOpDefine def_contextual_create= {
 	0,
 };
 
-/*this may be unimplemented*/
 BMOpDefine def_edgenet_fill= {
 	"edgenet_fill",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
 	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
 	{0, /*null-terminating sentinel*/}},
 	bmesh_edgenet_fill_exec,
+	0,
+};
+
+/*
+  Edgenet Prepare
+
+  Identifies several useful edge loop cases and modifies them so
+  they'll become a face when edgenet_fill is called.  The cases covered are:
+
+  * One single loop; an edge is added to connect the ends
+  * Two loops; two edges are added to connect the endpoints (based on the
+    shortest distance between each endpont).
+*/
+BMOpDefine def_edgenet_prepare= {
+	"edgenet_prepare",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
+	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //new edges
+	{0, /*null-terminating sentinel*/}},
+	bmesh_edgenet_prepare,
 	0,
 };
 
@@ -777,6 +795,7 @@ BMOpDefine *opdefines[] = {
 	&def_meshrotateuvs,
 	&def_bmesh_to_mesh,
 	&def_meshreverseuvs,
+	&def_edgenet_prepare,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

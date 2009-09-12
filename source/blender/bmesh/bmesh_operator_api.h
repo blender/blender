@@ -255,6 +255,10 @@ void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, char *slotn
 int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, char *slotname);
 int BMO_CountSlotMap(struct BMesh *bm, struct BMOperator *op, char *slotname);
 
+/*Counts the number of edges with tool flag toolflag around
+  v*/
+int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, int toolflag);
+
 /*inserts a key/value mapping into a mapping slot.  note that it copies the
   value, it doesn't store a reference to it.*/
 //BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname, 
