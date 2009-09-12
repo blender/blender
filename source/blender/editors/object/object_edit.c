@@ -334,10 +334,20 @@ void ED_object_exit_editmode(bContext *C, int flag)
 
 	/* freedata only 0 now on file saves */
 	if(freedata) {
+		ListBase pidlist;
+		PTCacheID *pid;
+
 		/* for example; displist make is different in editmode */
 		scene->obedit= NULL; // XXX for context
+
+		/* flag object caches as outdated */
+		BKE_ptcache_ids_from_object(&pidlist, obedit);
+		for(pid=pidlist.first; pid; pid=pid->next) {
+			if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
+				pid->cache->flag |= PTCACHE_OUTDATED;
+		}
 		
-		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_DEPSGRAPH);
+		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
 		DAG_id_flush_update(&obedit->id, OB_RECALC_OB|OB_RECALC_DATA);
