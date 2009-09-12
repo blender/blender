@@ -1067,7 +1067,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* Append, rather than linking */
 	if ((flag & FILE_LINK)==0) {
-		make_library_local(main, libname);
+		make_library_local(libname, main);
 	}
 
 	/* do we need to do this? */
