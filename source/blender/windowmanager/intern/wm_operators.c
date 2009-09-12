@@ -46,12 +46,16 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 
+#include "BLO_readfile.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
@@ -496,10 +500,10 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
-/* op->invoke, opens fileselect if filename property not set, otherwise executes */
+/* op->invoke, opens fileselect if path property not set, otherwise executes */
 int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (RNA_property_is_set(op->ptr, "filename")) {
+	if (RNA_property_is_set(op->ptr, "path")) {
 		return WM_operator_call(C, op);
 	} 
 	else {
@@ -509,9 +513,11 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* default properties for fileselect */
-void WM_operator_properties_filesel(wmOperatorType *ot, int filter)
+void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 {
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "Path to file.");
+	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "FilePath", "Path to file.");
+	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "FileName", "Name of the file.");
+	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
 
 	RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
 	RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
@@ -521,6 +527,10 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter)
 	RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
 	RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
 	RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+
+	RNA_def_int(ot->srna, "type", type, FILE_LOADLIB, FILE_SPECIAL, 
+		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
+		FILE_LOADLIB, FILE_SPECIAL);
 }
 
 /* op->poll */
@@ -891,7 +901,7 @@ static void load_set_load_ui(wmOperator *op)
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RNA_string_set(op->ptr, "filename", G.sce);
+	RNA_string_set(op->ptr, "path", G.sce);
 	load_set_load_ui(op);
 
 	WM_event_add_fileselect(C, op);
@@ -901,9 +911,9 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
-	char filename[FILE_MAX];
+	char path[FILE_MAX];
 
-	RNA_string_get(op->ptr, "filename", filename);
+	RNA_string_get(op->ptr, "path", path);
 	load_set_load_ui(op);
 
 	if(RNA_boolean_get(op->ptr, "load_ui"))
@@ -915,7 +925,7 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 	// do it before for now, but is this correct with multiple windows?
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-	WM_read_file(C, filename, op->reports);
+	WM_read_file(C, path, op->reports);
 	
 	return 0;
 }
@@ -930,10 +940,167 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 
 	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
 }
+
+static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (RNA_property_is_set(op->ptr, "path")) {
+		return WM_operator_call(C, op);
+	} 
+	else {
+		/* XXX solve where to get last linked library from */
+		RNA_string_set(op->ptr, "path", G.lib);
+		WM_event_add_fileselect(C, op);
+		return OPERATOR_RUNNING_MODAL;
+	}
+}
+
+static short wm_link_append_flag(wmOperator *op)
+{
+	short flag = 0;
+	if (RNA_boolean_get(op->ptr, "autoselect")) flag |= FILE_AUTOSELECT;
+	if (RNA_boolean_get(op->ptr, "active_layer")) flag |= FILE_ACTIVELAY;
+	if (RNA_boolean_get(op->ptr, "relative_paths")) flag |= FILE_STRINGCODE;
+	if (RNA_boolean_get(op->ptr, "link")) flag |= FILE_LINK;
+	return flag;
+}
+
+#define GROUP_MAX 32
+
+
+static void make_library_local(const char *libname, Main *main)
+{
+	struct Library *lib;
+
+	/* and now find the latest append lib file */
+	lib= main->library.first;
+	while(lib) {
+		if (BLI_streq(libname, lib->filename)) break;
+		lib= lib->id.next;
+	}
+	
+	/* make local */
+	if(lib) {
+		all_local(lib, 1);
+		/* important we unset, otherwise these object wont
+		 * link into other scenes from this blend file */
+		flag_all_listbases_ids(LIB_APPEND_TAG, 0);
+	}
+}
+
+static int wm_link_append_exec(bContext *C, wmOperator *op)
+{
+	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX], group[GROUP_MAX];
+	int idcode;
+	BlendHandle *bh;
+	struct Main *main= CTX_data_main(C);
+	struct Scene *scene= CTX_data_scene(C);
+	struct Main *mainl= 0;
+	
+	struct ScrArea *sa= CTX_wm_area(C);
+	PropertyRNA *prop;
+	int totfiles=0;
+	short flag;
+
+	name[0] = '\0';
+	RNA_string_get(op->ptr, "filename", name);
+	RNA_string_get(op->ptr, "directory", dir);
+
+	if ( BLO_is_a_library(dir, libname, group)==0 ) {
+		BKE_report(op->reports, RPT_ERROR, "Not a library");
+		return OPERATOR_FINISHED;
+	} else if (group[0]==0) {
+		BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
+		return OPERATOR_FINISHED;
+	} else if (BLI_streq(main->name, libname)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot use current file as library");
+		return OPERATOR_FINISHED;
+	}
+
+	/* check if something is indicated for append/link */
+	prop = RNA_struct_find_property(op->ptr, "files");
+	if (prop) {
+		totfiles= RNA_property_collection_length(op->ptr, prop);
+		if (totfiles == 0) {
+			if (name[0] == '\0') {
+				BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
+				return OPERATOR_FINISHED;
+			}
+		}
+	} else if (name[0] == '\0') {
+		BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
+		return OPERATOR_FINISHED;
+	}
+
+	/* now we have or selected, or an indicated file */
+	if (RNA_boolean_get(op->ptr, "autoselect"))
+		scene_deselect_all(scene);
+
+	bh = BLO_blendhandle_from_file(libname);
+	idcode = BLO_idcode_from_name(group);
+	
+	flag = wm_link_append_flag(op);
+
+	if((flag & FILE_LINK)==0) {
+		/* tag everything, all untagged data can be made local */
+		flag_all_listbases_ids(LIB_APPEND_TAG, 1);
+	}
+
+	/* here appending/linking starts */
+	mainl = BLO_library_append_begin(C, &bh, libname);
+	if (totfiles == 0) {
+		BLO_library_append_named_part(C, mainl, &bh, name, idcode, flag);
+	} else {
+		RNA_BEGIN(op->ptr, itemptr, "files") {
+			RNA_string_get(&itemptr, "name", name);
+			BLO_library_append_named_part(C, mainl, &bh, name, idcode, flag);
+		}
+		RNA_END;
+	}
+	BLO_library_append_end(C, mainl, &bh, idcode, flag);
+	
+	/* DISPLISTS? */
+	recalc_all_library_objects(main);
+
+	/* Append, rather than linking */
+	if ((flag & FILE_LINK)==0) {
+		make_library_local(main, libname);
+	}
+
+	/* do we need to do this? */
+	if(scene)
+		DAG_scene_sort(scene);
+
+	BLO_blendhandle_close(bh);
+	BLI_strncpy(G.lib, dir, FILE_MAX);
+
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_link_append(wmOperatorType *ot)
+{
+	ot->name= "Link/Append from Library";
+	ot->idname= "WM_OT_link_append";
+	ot->description= "Link or Append from a Library .blend file";
+	
+	ot->invoke= wm_link_append_invoke;
+	ot->exec= wm_link_append_exec;
+	ot->poll= WM_operator_winactive;
+	
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB);
+	
+	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
+	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects.");
+	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer.");
+	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file.");
+
+	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+}	
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
@@ -987,7 +1154,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
-	RNA_string_set(op->ptr, "filename", name);
+	RNA_string_set(op->ptr, "path", name);
 	
 	WM_event_add_fileselect(C, op);
 
@@ -997,20 +1164,20 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 /* function used for WM_OT_save_mainfile too */
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
-	char filename[FILE_MAX];
+	char path[FILE_MAX];
 	int compress;
 
 	save_set_compress(op);
 	compress= RNA_boolean_get(op->ptr, "compress");
 	
-	if(RNA_property_is_set(op->ptr, "filename"))
-		RNA_string_get(op->ptr, "filename", filename);
+	if(RNA_property_is_set(op->ptr, "path"))
+		RNA_string_get(op->ptr, "path", path);
 	else {
-		BLI_strncpy(filename, G.sce, FILE_MAX);
-		untitled(filename);
+		BLI_strncpy(path, G.sce, FILE_MAX);
+		untitled(path);
 	}
 
-	WM_write_file(C, filename, compress, op->reports);
+	WM_write_file(C, path, compress, op->reports);
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
@@ -1027,7 +1194,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 }
 
@@ -1041,7 +1208,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
-	RNA_string_set(op->ptr, "filename", name);
+	RNA_string_set(op->ptr, "path", name);
 	uiPupMenuSaveOver(C, op, name);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -1057,7 +1224,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 }
 
@@ -1913,6 +2080,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_exit_blender);
 	WM_operatortype_append(WM_OT_open_recentfile);
 	WM_operatortype_append(WM_OT_open_mainfile);
+	WM_operatortype_append(WM_OT_link_append);
 	WM_operatortype_append(WM_OT_recover_last_session);
 	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
@@ -1944,6 +2112,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0); 
 	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 

@@ -89,6 +89,7 @@ typedef enum PropertySubType {
 	/* strings */
 	PROP_FILEPATH = 1,
 	PROP_DIRPATH = 2,
+	PROP_FILENAME = 3,
 
 	/* numbers */
 	PROP_UNSIGNED = 13,

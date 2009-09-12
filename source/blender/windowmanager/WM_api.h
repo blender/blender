@@ -139,7 +139,7 @@ void		WM_event_window_timer_sleep(struct wmWindow *win, struct wmTimer *timer, i
 int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-		/* invoke callback, file selector "filename" unset + exec */
+		/* invoke callback, file selector "path" unset + exec */
 int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
@@ -169,7 +169,7 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int con
 
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
-void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter);
+void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);

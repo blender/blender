@@ -113,6 +113,7 @@
 #include "BKE_cloth.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -1063,6 +1064,46 @@ void blo_freefiledata(FileData *fd)
 int BLO_has_bfile_extension(char *str)
 {
 	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend")||BLI_testextensie(str, ".blend.gz"));
+}
+
+int BLO_is_a_library(char *path, char *dir, char *group)
+{
+	/* return ok when a blenderfile, in dir is the filename,
+	 * in group the type of libdata
+	 */
+	int len;
+	char *fd;
+	
+	strcpy(dir, path);
+	len= strlen(dir);
+	if(len<7) return 0;
+	if( dir[len-1] != '/' && dir[len-1] != '\\') return 0;
+	
+	group[0]= 0;
+	dir[len-1]= 0;
+
+	/* Find the last slash */
+	fd= (strrchr(dir, '/')>strrchr(dir, '\\'))?strrchr(dir, '/'):strrchr(dir, '\\');
+
+	if(fd==0) return 0;
+	*fd= 0;
+	if(BLO_has_bfile_extension(fd+1)) {
+		/* the last part of the dir is a .blend file, no group follows */
+		*fd= '/'; /* put back the removed slash separating the dir and the .blend file name */
+	}
+	else {		
+		char *gp = fd+1; // in case we have a .blend file, gp points to the group
+
+		/* Find the last slash */
+		fd= (strrchr(dir, '/')>strrchr(dir, '\\'))?strrchr(dir, '/'):strrchr(dir, '\\');
+		if (!fd || !BLO_has_bfile_extension(fd+1)) return 0;
+
+		/* now we know that we are in a blend file and it is safe to 
+		   assume that gp actually points to a group */
+		if (BLI_streq("Screen", gp)==0)
+			BLI_strncpy(group, gp, GROUP_MAX);
+	}
+	return 1;
 }
 
 /* ************** OLD POINTERS ******************* */
@@ -10729,8 +10770,9 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 }
 
 
-static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *name, int idcode, short flag)
+static void append_named_part(const bContext *C, Main *mainl, FileData *fd, char *name, int idcode, short flag)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	Base *base;
 	BHead *bhead;
@@ -10746,9 +10788,9 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 				
 			if(strcmp(idname+2, name)==0) {
 
-				id= is_yet_read(fd, mainvar, bhead);
+				id= is_yet_read(fd, mainl, bhead);
 				if(id==NULL) {
-					read_libblock(fd, mainvar, bhead, LIB_TESTEXT, NULL);
+					read_libblock(fd, mainl, bhead, LIB_TESTEXT, NULL);
 				}
 				else {
 					printf("append: already linked\n");
@@ -10763,13 +10805,18 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					base= MEM_callocN( sizeof(Base), "app_nam_part");
 					BLI_addtail(&scene->base, base);
 
-					if(id==NULL) ob= mainvar->object.last;
+					if(id==NULL) ob= mainl->object.last;
 					else ob= (Object *)id;
 					
-					/* XXX use context to find view3d->lay */
-					//if((flag & FILE_ACTIVELAY)) {
-					//	scene->lay;
-					//}
+					/* link at active layer (view3d->lay if in context, else scene->lay */
+					if((flag & FILE_ACTIVELAY)) {
+						View3D *v3d = CTX_wm_view3d(C);
+						if (v3d) {
+							ob->lay = v3d->layact;
+						} else {
+							ob->lay = scene->lay;
+						}
+					}
 					base->lay= ob->lay;
 					base->object= ob;
 					ob->id.us++;
@@ -10786,6 +10833,12 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 
 		bhead = blo_nextbhead(fd, bhead);
 	}
+}
+
+void BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, char *name, int idcode, short flag)
+{
+	FileData *fd= (FileData*)(*bh);
+	append_named_part(C, mainl, fd, name, idcode, flag);
 }
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
@@ -10810,11 +10863,10 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 /* common routine to append/link something from a library */
 
-static Library* library_append(Main *mainvar, Scene *scene, char* file, char *dir, int idcode,
-		int totsel, FileData **fd, struct direntry* filelist, int totfile, short flag)
+static Main* library_append_begin(const bContext *C, FileData **fd, char *dir)
 {
+	Main *mainvar= CTX_data_main(C);
 	Main *mainl;
-	Library *curlib;
 
 	/* make mains */
 	blo_split_main(&(*fd)->mainlist, mainvar);
@@ -10824,19 +10876,69 @@ static Library* library_append(Main *mainvar, Scene *scene, char* file, char *di
 	
 	mainl->versionfile= (*fd)->fileversion;	/* needed for do_version */
 	
-	curlib= mainl->curlib;
+	return mainl;
+}
+
+Main* BLO_library_append_begin(const bContext *C, BlendHandle** bh, char *dir)
+{
+	FileData *fd= (FileData*)(*bh);
+	return library_append_begin(C, &fd, dir);
+}
+
+static void append_do_cursor(Scene *scene, Library *curlib, short flag)
+{
+	Base *centerbase;
+	Object *ob;
+	float *curs, centerloc[3], vec[3], min[3], max[3];
+	int count= 0;
+
+	/* when not linking (appending)... */
+	if(flag & FILE_LINK) 
+		return;
+
+	/* we're not appending at cursor */
+	if((flag & FILE_ATCURSOR) == 0) 
+		return;
 	
-	if(totsel==0) {
-		append_named_part(*fd, mainl, scene, file, idcode, flag);
-	}
-	else {
-		int a;
-		for(a=0; a<totfile; a++) {
-			if(filelist[a].flags & ACTIVE) {
-				append_named_part(*fd, mainl, scene, filelist[a].relname, idcode, flag);
-			}
+	/* find the center of everything appended */
+	INIT_MINMAX(min, max);
+	centerbase= (scene->base.first);
+	while(centerbase) {
+		if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
+			VECCOPY(vec, centerbase->object->loc);
+			DO_MINMAX(vec, min, max);
+			count++;
 		}
+		centerbase= centerbase->next;
 	}
+	/* we haven't found any objects to move to cursor */
+	if(!count) 
+		return;
+	
+	/* move from the center of the appended objects to cursor */
+	centerloc[0]= (min[0]+max[0])/2;
+	centerloc[1]= (min[1]+max[1])/2;
+	centerloc[2]= (min[2]+max[2])/2;
+	curs = scene->cursor;
+	VECSUB(centerloc,curs,centerloc);
+	
+	/* now translate the center of the objects */
+	centerbase= (scene->base.first);
+	while(centerbase) {
+		if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
+			ob= centerbase->object;
+			ob->loc[0] += centerloc[0];
+			ob->loc[1] += centerloc[1];
+			ob->loc[2] += centerloc[2];
+		}
+		centerbase= centerbase->next;
+	}
+}
+
+static void library_append_end(const bContext *C, Main *mainl, FileData **fd, int idcode, short flag)
+{
+	Main *mainvar= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 
 	/* make main consistant */
 	expand_main(*fd, mainl);
@@ -10844,6 +10946,7 @@ static Library* library_append(Main *mainvar, Scene *scene, char* file, char *di
 	/* do this when expand found other libs */
 	read_libraries(*fd, &(*fd)->mainlist);
 
+	/* make the lib path relative if required */
 	if(flag & FILE_STRINGCODE) {
 
 		/* use the full path, this could have been read by other library even */
@@ -10866,7 +10969,7 @@ static Library* library_append(Main *mainvar, Scene *scene, char* file, char *di
 			if (flag & FILE_LINK) {
 				give_base_to_objects(mainvar, scene, NULL, 0);
 			} else {
-				give_base_to_objects(mainvar, scene, curlib, 1);
+				give_base_to_objects(mainvar, scene, mainl->curlib, 1);
 			}	
 		} else {
 			give_base_to_objects(mainvar, scene, NULL, 0);
@@ -10882,14 +10985,23 @@ static Library* library_append(Main *mainvar, Scene *scene, char* file, char *di
 		*fd = NULL;
 	}	
 
-	return curlib;
+	append_do_cursor(scene, mainl->curlib, flag);
+}
+
+void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag)
+{
+	FileData *fd= (FileData*)(*bh);
+	library_append_end(C, mainl, &fd, idcode, flag);
+	*bh= (BlendHandle*)fd;
 }
 
 /* this is a version of BLO_library_append needed by the BPython API, so
  * scripts can load data from .blend files -- see Blender.Library module.*/
 /* append to scene */
 /* this should probably be moved into the Python code anyway */
-
+/* tentatively removed, Python should be able to use the split functions too: */
+/* BLO_library_append_begin, BLO_library_append_end, BLO_library_append_named_part */
+#if 0 
 void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, 
 		int idcode, short flag, Main *mainvar, Scene *scene, ReportList *reports)
 {
@@ -10906,88 +11018,7 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 
 	*bh= (BlendHandle*)fd;
 }
-
-/* append to scene */
-void BLO_library_append(BlendHandle** bh, struct direntry* filelist, int totfile, 
-						 char *dir, char* file, short flag, int idcode, Main *mainvar, Scene *scene, ReportList *reports)
-{
-	FileData *fd= (FileData*)(*bh);
-	Library *curlib;
-	Base *centerbase;
-	Object *ob;
-	int a, totsel=0;
-	
-	/* are there files selected? */
-	for(a=0; a<totfile; a++) {
-		if(filelist[a].flags & ACTIVE) {
-			totsel++;
-		}
-	}
-
-	if(totsel==0) {
-		/* is the indicated file in the filelist? */
-		if(file[0]) {
-			for(a=0; a<totfile; a++) {
-				if( strcmp(filelist[a].relname, file)==0) break;
-			}
-			if(a==totfile) {
-				BKE_report(reports, RPT_ERROR, "Wrong indicated name");
-				return;
-			}
-		}
-		else {
-			BKE_report(reports, RPT_ERROR, "Nothing indicated");
-			return;
-		}
-	}
-	/* now we have or selected, or an indicated file */
-	
-	if(flag & FILE_AUTOSELECT) scene_deselect_all(scene);
-
-	fd->reports= reports;
-	curlib = library_append(mainvar, scene, file, dir, idcode, totsel, &fd, filelist, totfile,flag );
-	if(fd) fd->reports= NULL;
-
-	*bh= (BlendHandle*)fd;
-
-	/* when not linking (appending)... */
-	if((flag & FILE_LINK)==0) {
-		if(flag & FILE_ATCURSOR) {
-			float *curs, centerloc[3], vec[3], min[3], max[3];
-			int count= 0;
-			
-			INIT_MINMAX(min, max);
-			
-			centerbase= (scene->base.first);
-			while(centerbase) {
-				if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
-					VECCOPY(vec, centerbase->object->loc);
-					DO_MINMAX(vec, min, max);
-					count++;
-				}
-				centerbase= centerbase->next;
-			}
-			if(count) {
-				centerloc[0]= (min[0]+max[0])/2;
-				centerloc[1]= (min[1]+max[1])/2;
-				centerloc[2]= (min[2]+max[2])/2;
-				curs = scene->cursor;
-				VECSUB(centerloc,curs,centerloc);
-			
-				centerbase= (scene->base.first);
-				while(centerbase) {
-					if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
-						ob= centerbase->object;
-						ob->loc[0] += centerloc[0];
-						ob->loc[1] += centerloc[1];
-						ob->loc[2] += centerloc[2];
-					}
-					centerbase= centerbase->next;
-				}
-			}
-		}
-	}
-}
+#endif
 
 /* ************* READ LIBRARY ************** */
 

@@ -119,6 +119,7 @@ static void file_free(SpaceLink *sl)
 	SpaceFile *sfile= (SpaceFile *) sl;
 	
 	if(sfile->files) {
+		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
@@ -165,7 +166,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	sfilen->op = NULL; /* file window doesn't own operators */
 
-	sfilen->files = filelist_new();
+	sfilen->files = filelist_new(sfileo->params->type);
 	if(sfileo->folders_prev)
 		sfilen->folders_prev = MEM_dupallocN(sfileo->folders_prev);
 
@@ -190,7 +191,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	if (!sfile->folders_prev)
 		sfile->folders_prev = folderlist_new();
 	if (!sfile->files) {
-		sfile->files = filelist_new();
+		sfile->files = filelist_new(params->type);
 		file_change_dir(sfile);
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}

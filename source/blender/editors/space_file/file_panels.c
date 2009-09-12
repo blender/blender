@@ -181,6 +181,12 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 		RNA_STRUCT_BEGIN(op->ptr, prop) {
 			if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 				continue;
+			if(strcmp(RNA_property_identifier(prop), "type") == 0)
+				continue;
+			if(strcmp(RNA_property_identifier(prop), "path") == 0)
+				continue;
+			if(strcmp(RNA_property_identifier(prop), "directory") == 0)
+				continue;
 			if(strcmp(RNA_property_identifier(prop), "filename") == 0)
 				continue;
 			if(strcmp(RNA_property_identifier(prop), "display") == 0)

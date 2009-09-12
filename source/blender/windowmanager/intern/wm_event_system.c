@@ -895,9 +895,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 	switch(event->val) {
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
-			{
-				char *dir= NULL; char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
-					
+			{	
 				if(event->val==EVT_FILESELECT_OPEN)
 					ED_area_newspace(C, handler->op_area, SPACE_FILE);
 				else
@@ -908,8 +906,6 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				sfile->op= handler->op;
 
 				ED_fileselect_set_params(sfile);
-				dir = NULL;
-				MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
 			}
@@ -920,7 +916,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			{
 				/* XXX validate area and region? */
 				bScreen *screen= CTX_wm_screen(C);
-				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
+				char *path= RNA_string_get_alloc(handler->op->ptr, "path", NULL, 0);
 				
 				if(screen != handler->filescreen)
 					ED_screen_full_prevspace(C);
@@ -1250,7 +1246,7 @@ void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
 	}
 }
 
-/* operator is supposed to have a filled "filename" property */
+/* operator is supposed to have a filled "path" property */
 /* optional property: filetype (XXX enum?) */
 
 /* Idea is to keep a handler alive on window queue, owning the operator.

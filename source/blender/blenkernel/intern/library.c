@@ -455,6 +455,17 @@ void flag_all_listbases_ids(short flag, short value)
 	while(a--)	flag_listbase_ids(lbarray[a], flag, value);
 }
 
+void recalc_all_library_objects(struct Main *main)
+{
+	/* DISPLISTS? */
+	Object *ob= main->object.first;
+	while(ob) {
+		if(ob->id.lib) {
+			ob->recalc |= OB_RECALC;
+		}
+		ob= ob->id.next;
+	}
+}
 
 /* note: MAX_LIBARRAY define should match this code */
 int set_listbasepointers(Main *main, ListBase **lb)

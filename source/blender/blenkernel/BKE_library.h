@@ -77,6 +77,7 @@ void IPOnames_to_pupstring(char **str, char *title, char *extraops, struct ListB
 
 void flag_listbase_ids(ListBase *lb, short flag, short value);
 void flag_all_listbases_ids(short flag, short value);
+void recalc_all_library_objects(struct Main *main);
 
 void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
 

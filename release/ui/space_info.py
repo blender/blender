@@ -60,6 +60,9 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.itemO("screen.userpref_show", text="User Preferences...")
 
 		layout.itemS()
+		layout.operator_context = "INVOKE_AREA"
+		layout.itemO("wm.link_append", text="Append or Link")
+		layout.itemS()
 
 		layout.itemM("INFO_MT_file_import")
 		layout.itemM("INFO_MT_file_export")

@@ -123,6 +123,22 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	/* set the parameters from the operator, if it exists */
 	if (op) {
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
+
+		params->type = RNA_int_get(op->ptr, "type");
+
+		if (RNA_property_is_set(op->ptr, "path")) {
+			RNA_string_get(op->ptr, "path", name);
+			if (params->type == FILE_LOADLIB) {
+				BLI_strncpy(params->dir, name, sizeof(params->dir));
+				BLI_cleanup_dir(G.sce, params->dir);	
+			} else { 
+				/* if operator has path set, use it, otherwise keep the last */
+				BLI_convertstringcode(name, G.sce);
+				BLI_split_dirfile(name, dir, file);
+				BLI_strncpy(params->file, file, sizeof(params->file));
+				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
+			}
+		}
 		params->filter = 0;
 		params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
 		params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
@@ -136,21 +152,18 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		if (params->filter != 0)
 			params->flag |= FILE_FILTER;
 
-		params->flag |= FILE_HIDE_DOT;
-		
+		if (params->type == FILE_LOADLIB) {
+			params->flag |= FILE_HIDE_DOT;
+			params->flag |= RNA_boolean_get(op->ptr, "link") ? FILE_LINK : 0;
+			params->flag |= RNA_boolean_get(op->ptr, "autoselect") ? FILE_AUTOSELECT : 0;
+			params->flag |= RNA_boolean_get(op->ptr, "active_layer") ? FILE_ACTIVELAY : 0;
+		}
+
 		if(params->filter & (IMAGEFILE|MOVIEFILE))
 			params->display= FILE_IMGDISPLAY;
 		else
 			params->display= FILE_SHORTDISPLAY;
 		
-		/* if operator has path set, use it, otherwise keep the last */
-		if (RNA_property_is_set(op->ptr, "filename")) {
-			RNA_string_get(op->ptr, "filename", name);
-			BLI_convertstringcode(name, G.sce);
-			BLI_split_dirfile(name, dir, file);
-			BLI_strncpy(params->file, file, sizeof(params->file));
-			BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */		
-		}
 	} else {
 		/* default values, if no operator */
 		params->flag |= FILE_HIDE_DOT;
@@ -357,19 +370,15 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 void file_change_dir(struct SpaceFile *sfile)
 {
 	if (sfile->params) { 
-		if (BLI_exists(sfile->params->dir)) {
-			filelist_setdir(sfile->files, sfile->params->dir);
+		filelist_setdir(sfile->files, sfile->params->dir);
 
-			if(folderlist_clear_next(sfile))
-				folderlist_free(sfile->folders_next);
+		if(folderlist_clear_next(sfile))
+			folderlist_free(sfile->folders_next);
 
-			folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
+		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-			filelist_free(sfile->files);
-			sfile->params->active_file = -1;
-		} else {
-			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), FILE_MAX);
-		}
+		filelist_free(sfile->files);
+		sfile->params->active_file = -1;
 	}
 }
 

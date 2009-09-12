@@ -520,9 +520,11 @@ int file_exec(bContext *C, wmOperator *unused)
 		wmOperator *op= sfile->op;
 		
 		sfile->op = NULL;
+		RNA_string_set(op->ptr, "filename", sfile->params->file);
 		BLI_strncpy(name, sfile->params->dir, sizeof(name));
+		RNA_string_set(op->ptr, "directory", name);
 		strcat(name, sfile->params->file);
-		RNA_string_set(op->ptr, "filename", name);
+		RNA_string_set(op->ptr, "path", name);
 		
 		/* some ops have multiple files to select */
 		{
@@ -872,11 +874,13 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 int file_filenum_exec(bContext *C, wmOperator *op)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
+	ScrArea *sa= CTX_wm_area(C);
 	
 	int inc = RNA_int_get(op->ptr, "increment");
 	if(sfile->params && (inc != 0)) {
 		BLI_newname(sfile->params->file, inc);
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		ED_area_tag_redraw(sa);
+		// WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -916,6 +920,24 @@ int file_rename_exec(bContext *C, wmOperator *op)
 
 }
 
+int file_rename_poll(bContext *C)
+{
+	int poll = ED_operator_file_active(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	if (sfile && sfile->params) {
+		if (sfile->params->active_file < 0) { 
+			poll= 0;
+		} else {
+			char dir[FILE_MAX], group[FILE_MAX];	
+			if (filelist_islibrary(sfile->files, dir, group)) poll= 0;
+		}
+	}
+	else
+		poll= 0;
+	return poll;
+}
+
 void FILE_OT_rename(struct wmOperatorType *ot)
 {
 	/* identifiers */
@@ -924,7 +946,7 @@ void FILE_OT_rename(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= file_rename_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->poll= file_rename_poll; 
 
 }
 
@@ -938,6 +960,8 @@ int file_delete_poll(bContext *C)
 		if (sfile->params->active_file < 0) { 
 			poll= 0;
 		} else {
+			char dir[FILE_MAX], group[FILE_MAX];	
+			if (filelist_islibrary(sfile->files, dir, group)) poll= 0;
 			file = filelist_file(sfile->files, sfile->params->active_file);
 			if (file && S_ISDIR(file->type)) poll= 0;
 		}

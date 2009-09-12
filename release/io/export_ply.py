@@ -242,7 +242,7 @@ class EXPORT_OT_ply(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 	
 	__props__ = [
-		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= ""),
 		bpy.props.BoolProperty(attr="use_modifiers", name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True),
 		bpy.props.BoolProperty(attr="use_normals", name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True),
 		bpy.props.BoolProperty(attr="use_uvs", name="Export UVs", description="Exort the active UV layer", default= True),

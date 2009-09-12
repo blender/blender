@@ -289,7 +289,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, TRUE);
 
 	struct anim *an;
-	char filename[FILE_MAX];
+	char path[FILE_MAX];
 
 	Sequence *seq, *soundseq=NULL;	/* generic strip vars */
 	Strip *strip;
@@ -301,12 +301,12 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 	channel= RNA_int_get(op->ptr, "channel");
 	sound = RNA_boolean_get(op->ptr, "sound");
 
-	RNA_string_get(op->ptr, "filename", filename);
+	RNA_string_get(op->ptr, "path", path);
 	
-	an = openanim(filename, IB_rect);
+	an = openanim(path, IB_rect);
 
 	if (an==NULL) {
-		BKE_reportf(op->reports, RPT_ERROR, "Filename \"%s\" could not be loaded as a movie", filename);
+		BKE_reportf(op->reports, RPT_ERROR, "File \"%s\" could not be loaded as a movie", path);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -323,7 +323,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 	
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 	
-	BLI_split_dirfile_basic(filename, strip->dir, se->name);
+	BLI_split_dirfile_basic(path, strip->dir, se->name);
 
 	RNA_string_get(op->ptr, "name", seq->name);
 	
@@ -332,7 +332,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 
 	if(sound)
 	{
-		soundseq = sequencer_add_sound_strip(C, NULL, start_frame, channel+1, filename);
+		soundseq = sequencer_add_sound_strip(C, NULL, start_frame, channel+1, path);
 		if(soundseq != NULL)
 			RNA_string_get(op->ptr, "name", soundseq->name);
 	}
@@ -376,7 +376,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE, FILE_SPECIAL);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load sound with the movie");
 }
@@ -384,7 +384,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 /* add sound operator */
 static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 {
-	char filename[FILE_MAX];
+	char path[FILE_MAX];
 	Scene *scene= CTX_data_scene(C);
 	Sequence *seq;	/* generic strip vars */
 	int start_frame, channel; /* operator props */
@@ -392,9 +392,9 @@ static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 	start_frame= RNA_int_get(op->ptr, "start_frame");
 	channel= RNA_int_get(op->ptr, "channel");
 	
-	RNA_string_get(op->ptr, "filename", filename);
+	RNA_string_get(op->ptr, "path", path);
 
-	seq = sequencer_add_sound_strip(C, op, start_frame, channel, filename);
+	seq = sequencer_add_sound_strip(C, op, start_frame, channel, path);
 
 	if(seq == NULL)
 		return OPERATOR_CANCELLED;
@@ -442,7 +442,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
 }
@@ -455,7 +455,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 	int tot_images;
 
-	char filename[FILE_MAX];
+	char path[FILE_MAX];
 
 	Sequence *seq;	/* generic strip vars */
 	Strip *strip;
@@ -466,14 +466,14 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	start_frame= RNA_int_get(op->ptr, "start_frame");
 	channel= RNA_int_get(op->ptr, "channel");
 	
-	RNA_string_get(op->ptr, "filename", filename);
+	RNA_string_get(op->ptr, "path", path);
 
 	seq = alloc_sequence(ed->seqbasep, start_frame, channel);	
 	seq->type= SEQ_IMAGE;
 	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	BLI_split_dirfile_basic(filename, strip->dir, NULL);
+	BLI_split_dirfile_basic(path, strip->dir, NULL);
 	
 	tot_images= RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
 	
@@ -490,7 +490,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 		RNA_END;
 	}
 	else {
-		BLI_split_dirfile_basic(filename, NULL, se->name);
+		BLI_split_dirfile_basic(path, NULL, se->name);
 	}
 
 	RNA_string_get(op->ptr, "name", seq->name);
@@ -538,7 +538,7 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	
 	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
@@ -606,15 +606,15 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
 	if (seq->type==SEQ_PLUGIN) {
-		char filename[FILE_MAX];
-		RNA_string_get(op->ptr, "filename", filename);
+		char path[FILE_MAX];
+		RNA_string_get(op->ptr, "path", path);
 
-		sh.init_plugin(seq, filename);
+		sh.init_plugin(seq, path);
 
 		if(seq->plugin==NULL) {
 			BLI_remlink(ed->seqbasep, seq);
 			seq_free_sequence(scene, seq);
-			BKE_reportf(op->reports, RPT_ERROR, "Sequencer plugin \"%s\" could not load.", filename);
+			BKE_reportf(op->reports, RPT_ERROR, "Sequencer plugin \"%s\" could not load.", path);
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -673,7 +673,7 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, 0);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);
 	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
 	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, "Color", "Initialize the strip with this color (only used when type='COLOR')", 0.0f, 1.0f);
