@@ -2536,7 +2536,7 @@ static void precalc_effectors(Scene *scene, Object *ob, ParticleSystem *psys, Pa
 			&& part->phystype!=PART_PHYS_BOIDS) {
 			float vec[4];
 
-			where_on_path(ec->ob, 0.0, vec, vec2);
+			where_on_path(ec->ob, 0.0, vec, vec2, NULL, NULL);
 
 			Mat4MulVecfl(ec->ob->obmat,vec);
 			Mat4Mul3Vecfl(ec->ob->obmat,vec2);

@@ -1174,7 +1174,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path==NULL || cu->path->data==NULL) 
+		if (cu->path==NULL || cu->path->data==NULL)
 			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 		
 		if (cu->path && cu->path->data) {
@@ -1196,7 +1196,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				curvetime= data->offset; // XXX might need a more sensible value
 			}
 			
-			if ( where_on_path(ct->tar, curvetime, vec, dir) ) {
+			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, NULL) ) {
 				if (data->followflag & FOLLOWPATH_FOLLOW) {
 					vectoquat(dir, (short) data->trackflag, (short) data->upflag, quat);
 					
@@ -2864,7 +2864,7 @@ static void clampto_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path==NULL || cu->path->data==NULL) 
+		if (cu->path==NULL || cu->path->data==NULL)
 			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 	}
 	
@@ -2975,7 +2975,7 @@ static void clampto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			}
 			
 			/* 3. position on curve */
-			if (where_on_path(ct->tar, curvetime, vec, dir) ) {
+			if (where_on_path(ct->tar, curvetime, vec, dir, NULL, NULL) ) {
 				Mat4One(totmat);
 				VECCOPY(totmat[3], vec);
 				

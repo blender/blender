@@ -87,15 +87,16 @@ void free_path(Path *path)
 void calc_curvepath(Object *ob)
 {
 	BevList *bl;
-	BevPoint *bevp, *bevpn, *bevpfirst, *bevplast, *tempbevp;
+	BevPoint *bevp, *bevpn, *bevpfirst, *bevplast;
+	PathPoint *pp;
 	Curve *cu;
 	Nurb *nu;
 	Path *path;
 	float *fp, *dist, *maxdist, xyz[3];
 	float fac, d=0, fac1, fac2;
 	int a, tot, cycl=0;
-	float *ft;
 	
+
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
 	
@@ -145,7 +146,7 @@ void calc_curvepath(Object *ob)
 
 		/* the path verts  in path->data */
 		/* now also with TILT value */
-	ft= path->data = (float *)MEM_callocN(16*path->len, "pathdata");
+	pp= path->data = (PathPoint *)MEM_callocN(sizeof(PathPoint)*4*path->len, "pathdata"); // XXX - why *4? - in 2.4x each element was 4 and the size was 16, so better leave for now - Campbell
 	
 	bevp= bevpfirst;
 	bevpn= bevp+1;
@@ -175,10 +176,13 @@ void calc_curvepath(Object *ob)
 		fac1= fac2/fac1;
 		fac2= 1.0f-fac1;
 
-		VecLerpf(ft, bevp->vec, bevpn->vec, fac2);
-		ft[3]= fac1*bevp->alfa+ fac2*(bevpn)->alfa;
+		VecLerpf(pp->vec, bevp->vec, bevpn->vec, fac2);
+		pp->vec[3]= fac1*bevp->alfa + fac2*bevpn->alfa;
+		pp->radius= fac1*bevp->radius + fac2*bevpn->radius;
+		QuatInterpol(pp->quat, bevp->quat, bevpn->quat, fac2);
+		NormalQuat(pp->quat);
 		
-		ft+= 4;
+		pp++;
 	}
 	
 	MEM_freeN(dist);
@@ -202,13 +206,14 @@ int interval_test(int min, int max, int p1, int cycl)
 
 /* warning, *vec needs FOUR items! */
 /* ctime is normalized range <0-1> */
-int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK */
+int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
 {
 	Curve *cu;
 	Nurb *nu;
 	BevList *bl;
 	Path *path;
-	float *fp, *p0, *p1, *p2, *p3, fac;
+	PathPoint *pp, *p0, *p1, *p2, *p3;
+	float fac;
 	float data[4];
 	int cycl=0, s0, s1, s2, s3;
 
@@ -219,7 +224,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 		return 0;
 	}
 	path= cu->path;
-	fp= path->data;
+	pp= path->data;
 	
 	/* test for cyclic */
 	bl= cu->bev.first;
@@ -238,19 +243,19 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	s2= interval_test(0, path->len-1-cycl, s1+1, cycl);
 	s3= interval_test(0, path->len-1-cycl, s1+2, cycl);
 
-	p0= fp + 4*s0;
-	p1= fp + 4*s1;
-	p2= fp + 4*s2;
-	p3= fp + 4*s3;
+	p0= pp + s0;
+	p1= pp + s1;
+	p2= pp + s2;
+	p3= pp + s3;
 
 	/* note, commented out for follow constraint */
 	//if(cu->flag & CU_FOLLOW) {
 		
 		key_curve_tangent_weights(1.0f-fac, data, KEY_BSPLINE);
 		
-		dir[0]= data[0]*p0[0] + data[1]*p1[0] + data[2]*p2[0] + data[3]*p3[0] ;
-		dir[1]= data[0]*p0[1] + data[1]*p1[1] + data[2]*p2[1] + data[3]*p3[1] ;
-		dir[2]= data[0]*p0[2] + data[1]*p1[2] + data[2]*p2[2] + data[3]*p3[2] ;
+		dir[0]= data[0]*p0->vec[0] + data[1]*p1->vec[0] + data[2]*p2->vec[0] + data[3]*p3->vec[0] ;
+		dir[1]= data[0]*p0->vec[1] + data[1]*p1->vec[1] + data[2]*p2->vec[1] + data[3]*p3->vec[1] ;
+		dir[2]= data[0]*p0->vec[2] + data[1]*p1->vec[2] + data[2]*p2->vec[2] + data[3]*p3->vec[2] ;
 		
 		/* make compatible with vectoquat */
 		dir[0]= -dir[0];
@@ -266,11 +271,30 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	else if(s0==s1 || p2==p3) key_curve_position_weights(1.0f-fac, data, KEY_CARDINAL);
 	else key_curve_position_weights(1.0f-fac, data, KEY_BSPLINE);
 
-	vec[0]= data[0]*p0[0] + data[1]*p1[0] + data[2]*p2[0] + data[3]*p3[0] ;
-	vec[1]= data[0]*p0[1] + data[1]*p1[1] + data[2]*p2[1] + data[3]*p3[1] ;
-	vec[2]= data[0]*p0[2] + data[1]*p1[2] + data[2]*p2[2] + data[3]*p3[2] ;
+	vec[0]= data[0]*p0->vec[0] + data[1]*p1->vec[0] + data[2]*p2->vec[0] + data[3]*p3->vec[0] ; /* X */
+	vec[1]= data[0]*p0->vec[1] + data[1]*p1->vec[1] + data[2]*p2->vec[1] + data[3]*p3->vec[1] ; /* Y */
+	vec[2]= data[0]*p0->vec[2] + data[1]*p1->vec[2] + data[2]*p2->vec[2] + data[3]*p3->vec[2] ; /* Z */
+	vec[3]= data[0]*p0->vec[3] + data[1]*p1->vec[3] + data[2]*p2->vec[3] + data[3]*p3->vec[3] ; /* Tilt, should not be needed since we have quat still used */
+	/* Need to verify the quat interpolation is correct - XXX */
 
-	vec[3]= data[0]*p0[3] + data[1]*p1[3] + data[2]*p2[3] + data[3]*p3[3] ;
+	if (quat) {
+		float totfac, q1[4], q2[4];
+
+		totfac= data[0]+data[1];
+		QuatInterpol(q1, p0->quat, p1->quat, data[0] / totfac);
+		NormalQuat(q1);
+
+		totfac= data[2]+data[3];
+		QuatInterpol(q2, p2->quat, p3->quat, data[2] / totfac);
+		NormalQuat(q2);
+
+		totfac = data[0]+data[1]+data[2]+data[3];
+		QuatInterpol(quat, q1, q2, (data[0]+data[1]) / totfac);
+		NormalQuat(quat);
+	}
+
+	if(radius)
+		*radius= data[0]*p0->radius + data[1]*p1->radius + data[2]*p2->radius + data[3]*p3->radius;
 
 	return 1;
 }

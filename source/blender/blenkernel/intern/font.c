@@ -1039,8 +1039,8 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 				/* calc the right loc AND the right rot separately */
 				/* vec, tvec need 4 items */
-				where_on_path(cu->textoncurve, ctime, vec, tvec);
-				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec);
+				where_on_path(cu->textoncurve, ctime, vec, tvec, NULL, NULL);
+				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec, NULL, NULL);
 				
 				VecMulf(vec, sizefac);
 				

@@ -614,17 +614,17 @@ void Mat4CpyMat4(float m1[][4], float m2[][4])
 	memcpy(m1, m2, 4*4*sizeof(float));
 }
 
-void Mat4SwapMat4(float *m1, float *m2)
+void Mat4SwapMat4(float m1[][4], float m2[][4])
 {
 	float t;
-	int i;
+	int i, j;
 
-	for(i=0;i<16;i++) {
-		t= *m1;
-		*m1= *m2;
-		*m2= t;
-		m1++; 
-		m2++;
+	for(i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
+			t        = m1[i][j];
+			m1[i][j] = m2[i][j];
+			m2[i][j] = t;
+		}
 	}
 }
 

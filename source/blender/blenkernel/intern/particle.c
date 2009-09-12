@@ -60,6 +60,7 @@
 #include "BKE_anim.h"
 
 #include "BKE_boids.h"
+#include "BKE_cloth.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_lattice.h"
@@ -1974,9 +1975,9 @@ int do_guide(Scene *scene, ParticleKey *state, int pa_num, float time, ListBase 
 					}
 
 					if(pd->flag & PFIELD_GUIDE_PATH_ADD)
-						where_on_path(eob, f_force*guidetime, guidevec, guidedir);
+						where_on_path(eob, f_force*guidetime, guidevec, guidedir, NULL, NULL);
 					else
-						where_on_path(eob, guidetime, guidevec, guidedir);
+						where_on_path(eob, guidetime, guidevec, guidedir, NULL, NULL);
 
 					Mat4MulVecfl(ec->ob->obmat,guidevec);
 					Mat4Mul3Vecfl(ec->ob->obmat,guidedir);

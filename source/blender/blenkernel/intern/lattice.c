@@ -472,7 +472,7 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd, int dloc
 }
 
 /* this makes sure we can extend for non-cyclic. *vec needs 4 items! */
-static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)	/* returns OK */
+static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
 {
 	Curve *cu= ob->data;
 	BevList *bl;
@@ -490,21 +490,25 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 	else ctime1= ctime;
 	
 	/* vec needs 4 items */
-	if(where_on_path(ob, ctime1, vec, dir)) {
+	if(where_on_path(ob, ctime1, vec, dir, quat, radius)) {
 		
 		if(cycl==0) {
 			Path *path= cu->path;
 			float dvec[3];
 			
 			if(ctime < 0.0) {
-				VecSubf(dvec, path->data+4, path->data);
+				VecSubf(dvec, path->data[1].vec, path->data[0].vec);
 				VecMulf(dvec, ctime*(float)path->len);
 				VECADD(vec, vec, dvec);
+				if(quat) QUATCOPY(quat, path->data[0].quat);
+				if(radius) *radius= path->data[0].radius;
 			}
 			else if(ctime > 1.0) {
-				VecSubf(dvec, path->data+4*path->len-4, path->data+4*path->len-8);
+				VecSubf(dvec, path->data[path->len-1].vec, path->data[path->len-2].vec);
 				VecMulf(dvec, (ctime-1.0)*(float)path->len);
 				VECADD(vec, vec, dvec);
+				if(quat) QUATCOPY(quat, path->data[path->len-1].quat);
+				if(radius) *radius= path->data[path->len-1].radius;
 			}
 		}
 		return 1;
@@ -575,7 +579,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 	}
 #endif // XXX old animation system
 	
-	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
+	if( where_on_path_deform(par, fac, loc, dir, NULL, NULL)) {	/* returns OK */
 		float q[4], mat[3][3], quat[4];
 		
 		if(cd->no_rot_axis)	/* set by caller */

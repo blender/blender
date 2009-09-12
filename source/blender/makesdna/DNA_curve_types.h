@@ -52,9 +52,18 @@ struct EditFont;
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
+typedef struct PathPoint {
+	float vec[4]; /* grr, cant get rid of tilt yet */
+	float quat[4];
+	float radius;
+} PathPoint;
+
+/* These two Lines with # tell makesdna this struct can be excluded. */
+#
+#
 typedef struct Path {
 	int len;
-	float *data;
+	struct PathPoint *data;
 	float totdist;
 } Path;
 

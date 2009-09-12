@@ -38,6 +38,7 @@
 #include <float.h>
 #include <math.h>
 #include "stdio.h"
+#include "string.h" /* memset */
 
 #include "BLI_linklist.h"
 #include "BLI_rand.h"

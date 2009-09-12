@@ -1114,7 +1114,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	}
 
 	if(psys->clmd) {
-		ClothModifierData *nclmd = modifier_new(eModifierType_Cloth);
+		ClothModifierData *nclmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
 		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)nclmd);
 		psys->hair_in_dm = psys->hair_out_dm = NULL;
 	}
@@ -1694,7 +1694,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	
 	
 	/* vec: 4 items! */
- 	if( where_on_path(par, ctime, vec, dir) ) {
+ 	if( where_on_path(par, ctime, vec, dir, NULL, NULL) ) {
 
 		if(cu->flag & CU_FOLLOW) {
 			vectoquat(dir, ob->trackflag, ob->upflag, quat);
