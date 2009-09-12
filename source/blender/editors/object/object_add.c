@@ -307,7 +307,6 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_enter_editmode(C, 0);
 		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
