@@ -3338,44 +3338,66 @@ void EulOToAxisAngle(float eul[3], short order, float axis[3], float *angle)
 /* axis angle to 3x3 matrix - safer version (normalisation of axis performed) */
 void AxisAngleToMat3(float axis[3], float angle, float mat[3][3])
 {
-	float nor[3];
+	float nor[3], nsi[3], co, si, ico;
 	
 	/* normalise the axis first (to remove unwanted scaling) */
 	VecCopyf(nor, axis);
 	Normalize(nor);
 	
 	/* now convert this to a 3x3 matrix */
-	VecRotToMat3(nor, angle, mat);
+	co= (float)cos(angle);		
+	si= (float)sin(angle);
+	
+	ico= (1.0f - co);
+	nsi[0]= nor[0]*si;
+	nsi[1]= nor[1]*si;
+	nsi[2]= nor[2]*si;
+	
+	mat[0][0] = ((nor[0] * nor[0]) * ico) + co;
+	mat[0][1] = ((nor[0] * nor[1]) * ico) + nsi[2];
+	mat[0][2] = ((nor[0] * nor[2]) * ico) - nsi[1];
+	mat[1][0] = ((nor[0] * nor[1]) * ico) - nsi[2];
+	mat[1][1] = ((nor[1] * nor[1]) * ico) + co;
+	mat[1][2] = ((nor[1] * nor[2]) * ico) + nsi[0];
+	mat[2][0] = ((nor[0] * nor[2]) * ico) + nsi[1];
+	mat[2][1] = ((nor[1] * nor[2]) * ico) - nsi[0];
+	mat[2][2] = ((nor[2] * nor[2]) * ico) + co;
 }
 
 /* axis angle to 4x4 matrix - safer version (normalisation of axis performed) */
 void AxisAngleToMat4(float axis[3], float angle, float mat[4][4])
 {
-	float nor[3];
+	float tmat[3][3];
 	
-	/* normalise the axis first (to remove unwanted scaling) */
-	VecCopyf(nor, axis);
-	Normalize(nor);
-	
-	/* now convert this to a 4x4 matrix */
-	VecRotToMat4(nor, angle, mat);
+	AxisAngleToMat3(axis, angle, mat);
+	Mat4One(mat);
+	Mat4CpyMat3(mat, tmat);
 }
 
-/* 3x3 matrix to axis angle (alias around the other call) */
+/* 3x3 matrix to axis angle (see Mat4ToVecRot too) */
 void Mat3ToAxisAngle(float mat[3][3], float axis[3], float *angle)
 {
-	/* note different order of calling args... */
-	Mat3ToVecRot(axis, angle, mat);
+	float q[4];
+	
+	/* use quaternions as intermediate representation */
+	// TODO: it would be nicer to go straight there...
+	Mat3ToQuat(mat, q);
+	QuatToAxisAngle(q, axis, angle);
 }
 
-/* 4x4 matrix to axis angle (alias around the other call) */
+/* 4x4 matrix to axis angle (see Mat4ToVecRot too) */
 void Mat4ToAxisAngle(float mat[4][4], float axis[3], float *angle)
 {
-	/* note different order of calling args... */
-	Mat4ToVecRot(axis, angle, mat);
+	float q[4];
+	
+	/* use quaternions as intermediate representation */
+	// TODO: it would be nicer to go straight there...
+	Mat4ToQuat(mat, q);
+	QuatToAxisAngle(q, axis, angle);
 }
 
 /* ************ AXIS ANGLE (unchecked) *************** */
+// TODO: the following calls should probably be depreceated sometime
 
 /* 3x3 matrix to axis angle */
 void Mat3ToVecRot(float mat[3][3], float axis[3], float *angle)
