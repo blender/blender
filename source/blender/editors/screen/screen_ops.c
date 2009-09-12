@@ -1261,7 +1261,7 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->modal= area_split_modal;
 	
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
 	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
@@ -2127,7 +2127,7 @@ static void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 //	ot->invoke= WM_operator_confirm;
 	ot->exec= region_foursplit_exec;
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 }
 
 
@@ -2165,7 +2165,7 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	ot->exec= region_flip_exec;
 	
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 }
 
@@ -3327,10 +3327,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
-	#ifdef __APPLE__
-	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_OSKEY, 0);
-	#endif
-	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
