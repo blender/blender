@@ -65,6 +65,10 @@ int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata,
 	struct CustomData *pdata, struct MVert *mvert, int totface, 
 	int totloop, int totpoly);
 
+/*calculates a face normal.*/
+void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 
+                           struct MVert *mvarray, float *no);
+
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me, int unlink);
 struct Mesh *add_mesh(char *name);

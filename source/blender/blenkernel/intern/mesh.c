@@ -71,6 +71,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
+#include "BLI_cellalloc.h"
 
 #include "bmesh.h"
 
@@ -79,6 +80,7 @@ EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 	return bmesh_to_editmesh(me->edit_btmesh->bm);
 }
 
+void free_editMesh(EditMesh *em);
 void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
 {
 	BM_Free_Mesh(me->edit_btmesh->bm);
@@ -1568,4 +1570,105 @@ int mesh_recalcTesselation(CustomData *fdata,
 	}
 
 	return totface;
+}
+
+/*
+ * COMPUTE POLY NORMAL
+ *
+ * Computes the normal of a planar 
+ * polygon See Graphics Gems for 
+ * computing newell normal.
+ *
+*/
+static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart, 
+				  MVert *mvert, float *normal)
+{
+
+	MVert *v1, *v2, *v3;
+	double u[3],  v[3], w[3];
+	double n[3] = {0.0, 0.0, 0.0}, l;
+	int i, s=0;
+
+	for(i = 0; i < mpoly->totloop; i++){
+		v1 = mvert + loopstart[i].v;
+		v2 = mvert + loopstart[(i+1)%mpoly->totloop].v;
+		v3 = mvert + loopstart[(i+2)%mpoly->totloop].v;
+		
+		VECCOPY(u, v1->co);
+		VECCOPY(v, v2->co);
+		VECCOPY(w, v3->co);
+
+		/*this fixes some weird numerical error*/
+		if (i==0) {
+			u[0] += 0.0001f;
+			u[1] += 0.0001f;
+			u[2] += 0.0001f;
+		}
+		
+		/* newell's method
+		
+		so thats?:
+		(a[1] - b[1]) * (a[2] + b[2]);
+		a[1]*b[2] - b[1]*a[2] - b[1]*b[2] + a[1]*a[2]
+
+		odd.  half of that is the cross product. . .what's the
+		other half?
+
+		also could be like a[1]*(b[2] + a[2]) - b[1]*(a[2] - b[2])
+		*/
+
+		n[0] += (u[1] - v[1]) * (u[2] + v[2]);
+		n[1] += (u[2] - v[2]) * (u[0] + v[0]);
+		n[2] += (u[0] - v[0]) * (u[1] + v[1]);
+	}
+	
+	l = n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
+	l = sqrt(l);
+
+	if (l == 0.0) {
+		normal[0] = 0.0f;
+		normal[1] = 0.0f;
+		normal[2] = 1.0f;
+
+		return;
+	} else l = 1.0f / l;
+
+	n[0] *= l;
+	n[1] *= l;
+	n[2] *= l;
+	
+	normal[0] = (float) n[0];
+	normal[1] = (float) n[1];
+	normal[2] = (float) n[2];
+
+}
+
+void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart, 
+                           MVert *mvarray, float *no)
+{
+	if(mpoly->totloop > 4) {
+		mesh_calc_ngon_normal(mpoly, loopstart, mvarray, no);
+	}
+	else if(mpoly->totloop == 3){
+		MVert *v1, *v2, *v3;
+
+		v1 = mvarray + (loopstart++)->v;
+		v2 = mvarray + (loopstart++)->v;
+		v3 = mvarray + loopstart->v;
+		CalcNormFloat(v1->co, v2->co, v3->co, no);
+	}
+	else if(mpoly->totloop == 4){
+		MVert *v1, *v2, *v3, *v4;
+
+		v1 = mvarray + (loopstart++)->v;
+		v2 = mvarray + (loopstart++)->v;
+		v3 = mvarray + (loopstart++)->v;
+		v4 = mvarray + loopstart->v;
+		CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, no);
+	}
+	else{ /*horrible, two sided face!*/
+		no[0] = 0.0;
+		no[1] = 0.0;
+		no[2] = 1.0;
+	}
 }
