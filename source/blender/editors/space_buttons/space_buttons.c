@@ -319,6 +319,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
+			/* lazy general redraw tag here, in case more than 1 propertie window is opened 
+			Not all RNA props have a ND_sub notifier(yet) */
+			ED_area_tag_redraw(sa);
 			switch(wmn->data) {
 				case ND_FRAME:
 				case ND_MODE:
@@ -333,10 +336,14 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_OBJECT:
+			ED_area_tag_redraw(sa);
+			/* lazy general redraw tag here, in case more than 1 propertie window is opened 
+			Not all RNA props have a ND_ notifier(yet) */
 			switch(wmn->data) {
 				case ND_TRANSFORM:
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
+				case ND_MODIFIER:
 				case ND_CONSTRAINT:
 					ED_area_tag_redraw(sa);
 					break;
@@ -356,7 +363,6 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_MATERIAL:
 			ED_area_tag_redraw(sa);
-			
 			switch(wmn->data) {
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
