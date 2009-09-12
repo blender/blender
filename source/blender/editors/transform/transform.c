@@ -1610,29 +1610,88 @@ static void protectedRotateBits(short protectflag, float *eul, float *oldeul)
 		eul[2]= oldeul[2];
 }
 
+
+/* this function only does the delta rotation */
+/* axis-angle is usually internally stored as quats... */
+static void protectedAxisAngleBits(short protectflag, float *quat, float *oldquat)
+{
+	/* check that protection flags are set */
+	if ((protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) == 0)
+		return;
+	
+	if (protectflag & OB_LOCK_ROT4D) {
+		/* axis-angle getting limited as 4D entities that they are... */
+		if (protectflag & OB_LOCK_ROTW)
+			quat[0]= oldquat[0];
+		if (protectflag & OB_LOCK_ROTX)
+			quat[1]= oldquat[1];
+		if (protectflag & OB_LOCK_ROTY)
+			quat[2]= oldquat[2];
+		if (protectflag & OB_LOCK_ROTZ)
+			quat[3]= oldquat[3];
+	}
+	else {
+		/* axis-angle get limited with euler... */
+		float eul[3], oldeul[3], quat1[4];
+		
+		QUATCOPY(quat1, quat);
+		AxisAngleToEulO(quat+1, quat[0], eul, EULER_ORDER_DEFAULT);
+		AxisAngleToEulO(oldquat+1, oldquat[0], oldeul, EULER_ORDER_DEFAULT);
+		
+		if (protectflag & OB_LOCK_ROTX)
+			eul[0]= oldeul[0];
+		if (protectflag & OB_LOCK_ROTY)
+			eul[1]= oldeul[1];
+		if (protectflag & OB_LOCK_ROTZ)
+			eul[2]= oldeul[2];
+		
+		EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, quat+1, quat);
+		
+		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
+		if (IS_EQ(quat[1], quat[2]) && IS_EQ(quat[2], quat[3])) {
+			/* for now, rotate around y-axis then (so that it simply becomes the roll) */
+			quat[2]= 1.0f;
+		}
+	}
+}
+
+/* this function only does the delta rotation */
 static void protectedQuaternionBits(short protectflag, float *quat, float *oldquat)
 {
-	/* quaternions get limited with euler... */
-	/* this function only does the delta rotation */
+	/* check that protection flags are set */
+	if ((protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) == 0)
+		return;
 	
-	// FIXME: need special checks for quality here...
-	if(protectflag) {
+	if (protectflag & OB_LOCK_ROT4D) {
+		/* quaternions getting limited as 4D entities that they are... */
+		if (protectflag & OB_LOCK_ROTW)
+			quat[0]= oldquat[0];
+		if (protectflag & OB_LOCK_ROTX)
+			quat[1]= oldquat[1];
+		if (protectflag & OB_LOCK_ROTY)
+			quat[2]= oldquat[2];
+		if (protectflag & OB_LOCK_ROTZ)
+			quat[3]= oldquat[3];
+	}
+	else {
+		/* quaternions get limited with euler... (compatability mode) */
 		float eul[3], oldeul[3], quat1[4];
-
+		
 		QUATCOPY(quat1, quat);
 		QuatToEul(quat, eul);
 		QuatToEul(oldquat, oldeul);
-
-		if(protectflag & OB_LOCK_ROTX)
+		
+		if (protectflag & OB_LOCK_ROTX)
 			eul[0]= oldeul[0];
-		if(protectflag & OB_LOCK_ROTY)
+		if (protectflag & OB_LOCK_ROTY)
 			eul[1]= oldeul[1];
-		if(protectflag & OB_LOCK_ROTZ)
+		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
-
+		
 		EulToQuat(eul, quat);
+		
 		/* quaternions flip w sign to accumulate rotations correctly */
-		if( (quat1[0]<0.0f && quat[0]>0.0f) || (quat1[0]>0.0f && quat[0]<0.0f) ) {
+		if ( (quat1[0]<0.0f && quat[0]>0.0f) || (quat1[0]>0.0f && quat[0]<0.0f) ) {
 			QuatMulf(quat, -1.0f);
 		}
 	}
@@ -1733,16 +1792,23 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			else
 				return;
 		}
-		else if (td->tdi) {
+		else if (td->tdi) { // XXX depreceated
 			/* ipo-keys eulers */
 			TransDataIpokey *tdi= td->tdi;
 			float eul[3];
-
+			
 			eul[0]= tdi->rotx[0];
 			eul[1]= tdi->roty[0];
 			eul[2]= tdi->rotz[0];
-
+			
 			EulOToMat4(eul, td->rotOrder, cob.matrix);
+		}
+		else if (td->rotOrder == PCHAN_ROT_AXISANGLE) {
+			/* axis angle */
+			if (td->ext)
+				AxisAngleToMat4(&td->ext->quat[1], td->ext->quat[0], cob.matrix);
+			else
+				return;
 		}
 		else {
 			/* eulers */
@@ -1751,22 +1817,22 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			else
 				return;
 		}
-
+		
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
 			/* only consider constraint if enabled */
 			if (con->flag & CONSTRAINT_DISABLE) continue;
 			if (con->enforce == 0.0f) continue;
-
+			
 			/* we're only interested in Limit-Rotation constraints */
 			if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
 				bRotLimitConstraint *data= con->data;
 				float tmat[4][4];
-
+				
 				/* only use it if it's tagged for this purpose */
 				if ((data->flag2 & LIMIT_TRANSFORM)==0)
 					continue;
-
+				
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
@@ -1777,10 +1843,10 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 					/* skip... incompatable spacetype */
 					continue;
 				}
-
+				
 				/* do constraint */
 				cti->evaluate_constraint(con, &cob, NULL);
-
+				
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
@@ -1789,7 +1855,7 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 				}
 			}
 		}
-
+		
 		/* copy results from cob->matrix */
 		if (td->flag & TD_USEQUAT) {
 			/* quats */
@@ -1799,12 +1865,16 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			/* ipo-keys eulers */
 			TransDataIpokey *tdi= td->tdi;
 			float eul[3];
-
+			
 			Mat4ToEulO(cob.matrix, eul, td->rotOrder);
-
+			
 			tdi->rotx[0]= eul[0];
 			tdi->roty[0]= eul[1];
 			tdi->rotz[0]= eul[2];
+		}
+		else if (td->rotOrder == PCHAN_ROT_AXISANGLE) {
+			/* axis angle */
+			Mat4ToAxisAngle(cob.matrix, &td->ext->quat[1], &td->ext->quat[0]);
 		}
 		else {
 			/* eulers */
@@ -2688,12 +2758,11 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				QuatMul(td->ext->quat, quat, iquat);
 				
 				/* make temp copy (since stored in same place) */
-				QuatCopy(quat, td->ext->quat); // this is just a 4d vector copying function
+				QUATCOPY(quat, td->ext->quat); // this is just a 4d vector copying macro
 				QuatToAxisAngle(quat, &td->ext->quat[1], &td->ext->quat[0]); 
 				
 				/* this function works on end result */
-				// TODO: we really need a specialised version of this for axis-angle that doesn't try to do quats...
-				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				protectedAxisAngleBits(td->protectflag, td->ext->quat, td->ext->iquat);
 			}
 			else { 
 				float eulmat[3][3];
@@ -2714,7 +2783,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
 				VECCOPY(td->ext->rot, eul);
 			}
-
+			
 			constraintRotLim(t, td);
 		}
 	}

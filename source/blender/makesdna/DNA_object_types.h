@@ -515,6 +515,8 @@ extern Object workob;
 #define OB_LOCK_SCALEY	128
 #define OB_LOCK_SCALEZ	256
 #define OB_LOCK_SCALE	448
+#define OB_LOCK_ROTW	512
+#define OB_LOCK_ROT4D	1024
 
 /* ob->mode */
 typedef enum ObjectMode {

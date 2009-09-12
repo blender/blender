@@ -4849,42 +4849,56 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
-		if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ)) {
-			float eul[3], oldeul[3], quat1[4];
-			
-			if (pchan->rotmode == PCHAN_ROT_QUAT) {
-				QUATCOPY(quat1, pchan->quat);
-				QuatToEul(pchan->quat, oldeul);
-			}
-			else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
-				continue; // XXX
+		if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
+			/* check if convert to eulers for locking... */
+			if (pchan->protectflag & OB_LOCK_ROT4D) {
+				/* perform clamping on a component by component basis */
+				if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
+					pchan->quat[0]= (pchan->rotmode == PCHAN_ROT_AXISANGLE) ? 0.0f : 1.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+					pchan->quat[1]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+					pchan->quat[2]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+					pchan->quat[3]= 0.0f;
 			}
 			else {
-				VECCOPY(oldeul, pchan->eul);
-			}
-			
-			eul[0]= eul[1]= eul[2]= 0.0f;
-			
-			// TODO: for 4 channel rotations, we need special flags for those too...
-			if (pchan->protectflag & OB_LOCK_ROTX)
-				eul[0]= oldeul[0];
-			if (pchan->protectflag & OB_LOCK_ROTY)
-				eul[1]= oldeul[1];
-			if (pchan->protectflag & OB_LOCK_ROTZ)
-				eul[2]= oldeul[2];
-			
-			if (pchan->rotmode == PCHAN_ROT_QUAT) {
-				EulToQuat(eul, pchan->quat);
-				/* quaternions flip w sign to accumulate rotations correctly */
-				if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
-					QuatMulf(pchan->quat, -1.0f);
+				/* perform clamping using euler form (3-components) */
+				float eul[3], oldeul[3], quat1[4];
+				
+				if (pchan->rotmode == PCHAN_ROT_QUAT) {
+					QUATCOPY(quat1, pchan->quat);
+					QuatToEul(pchan->quat, oldeul);
 				}
-			}
-			else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
-				// TODO...
-			}
-			else {
-				VECCOPY(pchan->eul, eul);
+				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+					AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], oldeul, EULER_ORDER_DEFAULT);
+				}
+				else {
+					VECCOPY(oldeul, pchan->eul);
+				}
+				
+				eul[0]= eul[1]= eul[2]= 0.0f;
+				
+				if (pchan->protectflag & OB_LOCK_ROTX)
+					eul[0]= oldeul[0];
+				if (pchan->protectflag & OB_LOCK_ROTY)
+					eul[1]= oldeul[1];
+				if (pchan->protectflag & OB_LOCK_ROTZ)
+					eul[2]= oldeul[2];
+				
+				if (pchan->rotmode == PCHAN_ROT_QUAT) {
+					EulToQuat(eul, pchan->quat);
+					/* quaternions flip w sign to accumulate rotations correctly */
+					if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
+						QuatMulf(pchan->quat, -1.0f);
+					}
+				}
+				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+					AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], oldeul, EULER_ORDER_DEFAULT);
+				}
+				else {
+					VECCOPY(pchan->eul, eul);
+				}
 			}
 		}						
 		else { 

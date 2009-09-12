@@ -998,7 +998,6 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				pchan->flag= chan->flag;
 				
 				/* check if rotation modes are compatible (i.e. do they need any conversions) */
-				// FIXME: add axis-angle here too...
 				if (pchan->rotmode == chan->rotmode) {
 					/* copy the type of rotation in use */
 					if (pchan->rotmode > 0) {
