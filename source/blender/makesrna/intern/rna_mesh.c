@@ -447,7 +447,7 @@ static void rna_MeshTextureFaceLayer_name_set(PointerRNA *ptr, const char *value
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
 	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(&me->pdata, cdl - me->pdata.layers);
+	CustomData_set_layer_unique_name(&me->pdata, cdl - rna_mesh_pdata(me)->layers);
 }
 
 static int rna_vertex_color_check(CollectionPropertyIterator *iter, void *data)
@@ -563,7 +563,7 @@ static void rna_MeshColorLayer_name_set(PointerRNA *ptr, const char *value)
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
 	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(&me->ldata, cdl - me->ldata.layers);
+	CustomData_set_layer_unique_name(&me->ldata, cdl - rna_mesh_pdata(me)->layers);
 }
 
 static void rna_MeshFloatPropertyLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

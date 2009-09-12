@@ -2598,16 +2598,18 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 	return OPERATOR_FINISHED;
 }
 
-static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, 
+static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob, 
                         int target, int uvmerge, wmOperator *wmop)
 {
 	BMIter iter;
 	BMVert *v;
-	float *co, cent[3] = {0.0f, 0.0f, 0.0f}, fac;
+	float *vco, co[3], cent[3] = {0.0f, 0.0f, 0.0f}, fac;
 	int i;
 
 	if (target) {
-		co = give_cursor(scene, v3d);
+		vco = give_cursor(scene, v3d);
+		VECCOPY(co, vco);
+		Mat4MulVecfl(ob->imat, co);
 	} else {
 		i = 0;
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -2622,7 +2624,7 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d,
 
 		fac = 1.0f / (float)i;
 		VECMUL(cent, fac);
-		co = cent;
+		VECCOPY(co, cent);
 	}
 
 	if (!co)
@@ -2649,10 +2651,10 @@ static int merge_exec(bContext *C, wmOperator *op)
 
 	switch(RNA_enum_get(op->ptr, "type")) {
 		case 3:
-			status = merge_target(em, scene, v3d, 0, uvs, op);
+			status = merge_target(em, scene, v3d, obedit, 0, uvs, op);
 			break;
 		case 4:
-			status = merge_target(em, scene, v3d, 1, uvs, op);
+			status = merge_target(em, scene, v3d, obedit, 1, uvs, op);
 			break;
 		case 1:
 			status = merge_firstlast(em, 0, uvs, op);

@@ -2203,20 +2203,20 @@ typedef struct MemBase {
 	BLI_mempool *vertuserpool;
 } MemBase;
 
-static EdgeData *edge_get_next(EdgeData *e, int ov) {
+BM_INLINE EdgeData *edge_get_next(EdgeData *e, int ov) {
 	if (ov == e->v1)
 		return e->v1node.next ? e->v1node.next->edge : NULL;
 	else return e->v2node.next ? e->v2node.next->edge : NULL;
 }
 
-static EdgeNode *edge_get_node(EdgeData *e, int ov)
+BM_INLINE EdgeNode *edge_get_node(EdgeData *e, int ov)
 {
 	if (ov == e->v1)
 		return &e->v1node;
 	else return &e->v2node;
 }
 
-static VertUser *edge_get_vuser(MemBase *b, EdgeData *edge, int ov)
+BM_INLINE VertUser *edge_get_vuser(MemBase *b, EdgeData *edge, int ov)
 {
 	if (ov == edge->v1)
 		return edge->v1user;
@@ -2228,7 +2228,7 @@ static VertUser *edge_get_vuser(MemBase *b, EdgeData *edge, int ov)
 	}
 }
 
-static void edge_set_vuser(MemBase *b, EdgeData *e, int ov, VertUser *vu)
+BM_INLINE void edge_set_vuser(MemBase *b, EdgeData *e, int ov, VertUser *vu)
 
 {
 	VertUser *olduser = edge_get_vuser(b, e, ov);
@@ -2245,14 +2245,14 @@ static void edge_set_vuser(MemBase *b, EdgeData *e, int ov, VertUser *vu)
 	else e->v2user = vu;
 }
 
-static VertUser *new_vuser(MemBase *base)
+BM_INLINE VertUser *new_vuser(MemBase *base)
 {
 	VertUser *vusr = BLI_mempool_calloc(base->vertuserpool);
 
 	return vusr;
 }
 
-static MemBase *new_membase(void)
+BM_INLINE MemBase *new_membase(void)
 {
 	MemBase *b = MEM_callocN(sizeof(MemBase), "MemBase for edgesplit in modifier.c");
 	b->vertuserpool = BLI_mempool_create(sizeof(VertUser), 1, 2048);
@@ -2260,13 +2260,13 @@ static MemBase *new_membase(void)
 	return b;
 }
 
-static void free_membase(MemBase *b)
+BM_INLINE void free_membase(MemBase *b)
 {
 	BLI_mempool_destroy(b->vertuserpool);
 	MEM_freeN(b);
 }
 
-static EdgeData *edge_get_first(VertUser *vu)
+BM_INLINE EdgeData *edge_get_first(VertUser *vu)
 {
 	return vu->users.first ? ((EdgeNode*)vu->users.first)->edge : NULL;
 }
