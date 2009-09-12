@@ -349,6 +349,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_colorMatte.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_colorSpill.c"
 					>
 				</File>
@@ -385,6 +389,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_distanceMatte.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_filter.c"
 					>
 				</File>
@@ -418,6 +426,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_lensdist.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_levels.c"
 					>
 				</File>
 				<File
