@@ -524,7 +524,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, CurveDeform *cd, float *quatp)
 {
 	Curve *cu= par->data;
-	float fac, loc[4], dir[3], cent[3];
+	float fac, loc[4], dir[3], cent[3], radius;
 	short upflag, index;
 	
 	if(axis==MOD_CURVE_POSX || axis==MOD_CURVE_NEGX) {
@@ -579,7 +579,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 	}
 #endif // XXX old animation system
 	
-	if( where_on_path_deform(par, fac, loc, dir, NULL, NULL)) {	/* returns OK */
+	if( where_on_path_deform(par, fac, loc, dir, NULL, &radius)) {	/* returns OK */
 		float q[4], mat[3][3], quat[4];
 		
 		if(cd->no_rot_axis)	/* set by caller */
@@ -599,7 +599,14 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 			QuatMul(quat, q, quat);
 		}		
 		QuatToMat3(quat, mat);
-	
+
+		if(cu->flag & CU_PATH_RADIUS) {
+			float tmat[3][3], rmat[3][3];
+			Mat3Scale(tmat, radius);
+			Mat3MulMat3(rmat, mat, tmat);
+			Mat3CpyMat3(mat, rmat);
+		}
+
 		/* local rotation */
 		Mat3MulVecfl(mat, cent);
 		

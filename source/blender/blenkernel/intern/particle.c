@@ -1932,7 +1932,7 @@ int do_guide(Scene *scene, ParticleKey *state, int pa_num, float time, ListBase 
 	ParticleKey key, par;
 
 	float effect[3]={0.0,0.0,0.0}, distance, f_force, mindist, totforce=0.0;
-	float guidevec[4], guidedir[3], rot2[4], temp[3], angle, pa_loc[3], pa_zero[3]={0.0f,0.0f,0.0f};
+	float guidevec[4], guidedir[3], rot2[4], radius, temp[3], angle, pa_loc[3], pa_zero[3]={0.0f,0.0f,0.0f};
 	float veffect[3]={0.0,0.0,0.0}, guidetime;
 
 	effect[0]=effect[1]=effect[2]=0.0;
@@ -1975,9 +1975,9 @@ int do_guide(Scene *scene, ParticleKey *state, int pa_num, float time, ListBase 
 					}
 
 					if(pd->flag & PFIELD_GUIDE_PATH_ADD)
-						where_on_path(eob, f_force*guidetime, guidevec, guidedir, NULL, NULL);
+						where_on_path(eob, f_force*guidetime, guidevec, guidedir, NULL, &radius);
 					else
-						where_on_path(eob, guidetime, guidevec, guidedir, NULL, NULL);
+						where_on_path(eob, guidetime, guidevec, guidedir, NULL, &radius);
 
 					Mat4MulVecfl(ec->ob->obmat,guidevec);
 					Mat4Mul3Vecfl(ec->ob->obmat,guidedir);
@@ -2007,10 +2007,12 @@ int do_guide(Scene *scene, ParticleKey *state, int pa_num, float time, ListBase 
 					/* curve taper */
 					if(cu->taperobj)
 						VecMulf(pa_loc, calc_taper(scene, cu->taperobj, (int)(f_force*guidetime*100.0), 100));
-					/* TODO */
-					//else{
-					///* curve size*/
-					//}
+
+					else{ /* curve size*/
+						if(cu->flag & CU_PATH_RADIUS) {
+							VecMulf(pa_loc, radius);
+						}
+					}
 					par.co[0]=par.co[1]=par.co[2]=0.0f;
 					VECCOPY(key.co,pa_loc);
 					do_prekink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, pd->kink, pd->kink_axis, 0);

@@ -242,6 +242,7 @@ typedef struct Curve {
 #define CU_FAST			512 /* Font: no filling inside editmode */
 #define CU_RETOPO               1024
 #define CU_DS_EXPAND	2048
+#define CU_PATH_RADIUS	4096 /* make use of the path radius if this is enabled (default for new curves) */
 
 /* twist mode */
 #define CU_TWIST_Z_UP			0

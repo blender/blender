@@ -893,15 +893,20 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Up Axis", "Axis that points upward.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "curve_follow", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_curve_follow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "followflag", FOLLOWPATH_FOLLOW);
 	RNA_def_property_ui_text(prop, "Follow Curve", "Object will follow the heading and banking of the curve.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
 		// TODO: do we need to do some special trickery to get offset sane for this?
-	prop= RNA_def_property(srna, "fixed_position", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_fixed_position", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "followflag", FOLLOWPATH_STATIC);
 	RNA_def_property_ui_text(prop, "Fixed Position", "Object will stay locked to a single point somewhere along the length of the curve regardless of time.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "use_curve_radius", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "followflag", FOLLOWPATH_RADIUS);
+	RNA_def_property_ui_text(prop, "Curve Radius", "Objects scale by the curve radius.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 

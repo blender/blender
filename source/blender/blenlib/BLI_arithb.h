@@ -320,6 +320,9 @@ void Mat3Clr(float *m);
 void Mat3One(float m[][3]);
 void Mat4One(float m[][4]);
 
+void Mat3Scale(float m[][3], float scale);
+void Mat4Scale(float m[][4], float scale);
+
 void Mat3Ortho(float mat[][3]);
 void Mat4Ortho(float mat[][4]);
 

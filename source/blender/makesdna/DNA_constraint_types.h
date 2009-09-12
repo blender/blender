@@ -453,6 +453,7 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 /* FollowPath flags */
 #define FOLLOWPATH_FOLLOW	0x01
 #define FOLLOWPATH_STATIC	0x02
+#define FOLLOWPATH_RADIUS	0x04
 
 /* bTrackToConstraint->flags */
 #define TARGET_Z_UP 0x01

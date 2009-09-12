@@ -426,6 +426,11 @@ static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_OFFS_PATHDIST);
 	RNA_def_property_ui_text(prop, "Offset Path Distance", "Children will use TimeOffs value as path distance offset.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop= RNA_def_property(srna, "use_radius", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_PATH_RADIUS);
+	RNA_def_property_ui_text(prop, "Radius", "Option for paths: apply the curve radius with path following it and deforming.");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
 static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)

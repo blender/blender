@@ -124,11 +124,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(con, "curve_follow")
+		col.itemR(con, "use_curve_follow")
+		col.itemR(con, "use_curve_radius")
 		
 		col = split.column()
-		col.itemR(con, "fixed_position")
-		if con.fixed_position:
+		col.itemR(con, "use_fixed_position")
+		if con.use_fixed_position:
 			col.itemR(con, "offset_percentage", text="Offset")
 		else:
 			col.itemR(con, "offset")

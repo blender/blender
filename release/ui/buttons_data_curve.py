@@ -142,6 +142,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
 
 		col = split.column()
 		col.itemR(curve, "use_stretch")
+		col.itemR(curve, "use_radius")
 		col.itemR(curve, "use_time_offset", text="Offset Children")
 	
 class DATA_PT_active_spline(DataButtonsPanelActive):

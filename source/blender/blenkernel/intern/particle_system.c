@@ -2526,7 +2526,7 @@ static void precalc_effectors(Scene *scene, Object *ob, ParticleSystem *psys, Pa
 	ParticleSettings *part=psys->part;
 	PARTICLE_P;
 	int totpart;
-	float vec2[3],loc[3],*co=0;
+	float vec2[3],loc[3],radius,*co=0;
 	
 	for(ec= lb->first; ec; ec= ec->next) {
 		PartDeflect *pd= ec->ob->pd;
@@ -2536,13 +2536,15 @@ static void precalc_effectors(Scene *scene, Object *ob, ParticleSystem *psys, Pa
 			&& part->phystype!=PART_PHYS_BOIDS) {
 			float vec[4];
 
-			where_on_path(ec->ob, 0.0, vec, vec2, NULL, NULL);
+			where_on_path(ec->ob, 0.0, vec, vec2, NULL, &radius);
 
 			Mat4MulVecfl(ec->ob->obmat,vec);
 			Mat4Mul3Vecfl(ec->ob->obmat,vec2);
 
 			QUATCOPY(ec->firstloc,vec);
 			VECCOPY(ec->firstdir,vec2);
+
+			/* TODO - use 'radius' to adjust the effector */
 
 			totpart=psys->totpart;
 

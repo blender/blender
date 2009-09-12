@@ -1162,7 +1162,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
-		float q[4], vec[4], dir[3], quat[4], x1;
+		float q[4], vec[4], dir[3], quat[4], radius, x1;
 		float totmat[4][4];
 		float curvetime;
 		
@@ -1196,7 +1196,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				curvetime= data->offset; // XXX might need a more sensible value
 			}
 			
-			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, NULL) ) {
+			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius) ) {
 				if (data->followflag & FOLLOWPATH_FOLLOW) {
 					vectoquat(dir, (short) data->trackflag, (short) data->upflag, quat);
 					
@@ -1210,6 +1210,14 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					
 					QuatToMat4(quat, totmat);
 				}
+
+				if (data->followflag & FOLLOWPATH_RADIUS) {
+					float tmat[4][4], rmat[4][4];
+					Mat4Scale(tmat, radius);
+					Mat4MulMat4(rmat, totmat, tmat);
+					Mat4CpyMat4(totmat, rmat);
+				}
+
 				VECCOPY(totmat[3], vec);
 				
 				Mat4MulSerie(ct->matrix, ct->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1227,7 +1235,8 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 	/* only evaluate if there is a target */
 	if (VALID_CONS_TARGET(ct)) {
 		float obmat[4][4];
-		float size[3], obsize[3];
+		float size[3];
+		bFollowPathConstraint *data= con->data;
 		
 		/* get Object local transform (loc/rot/size) to determine transformation from path */
 		//object_to_mat4(ob, obmat);
@@ -1240,13 +1249,17 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		Mat4MulSerie(cob->matrix, ct->matrix, obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 		
 		/* un-apply scaling caused by path */
-		Mat4ToSize(cob->matrix, obsize);
-		if (obsize[0])
-			VecMulf(cob->matrix[0], size[0] / obsize[0]);
-		if (obsize[1])
-			VecMulf(cob->matrix[1], size[1] / obsize[1]);
-		if (obsize[2])
-			VecMulf(cob->matrix[2], size[2] / obsize[2]);
+		if ((data->followflag & FOLLOWPATH_RADIUS)==0) { /* XXX - assume that scale correction means that radius will have some scale error in it - Campbell */
+			float obsize[3];
+
+			Mat4ToSize(cob->matrix, obsize);
+			if (obsize[0])
+				VecMulf(cob->matrix[0], size[0] / obsize[0]);
+			if (obsize[1])
+				VecMulf(cob->matrix[1], size[1] / obsize[1]);
+			if (obsize[2])
+				VecMulf(cob->matrix[2], size[2] / obsize[2]);
+		}
 	}
 }
 

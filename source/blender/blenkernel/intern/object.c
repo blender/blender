@@ -1646,7 +1646,7 @@ int enable_cu_speed= 1;
 static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
-	float q[4], vec[4], dir[3], quat[4], x1, ctime;
+	float q[4], vec[4], dir[3], quat[4], radius, x1, ctime;
 	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	Mat4One(mat);
@@ -1694,7 +1694,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	
 	
 	/* vec: 4 items! */
- 	if( where_on_path(par, ctime, vec, dir, NULL, NULL) ) {
+ 	if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
 
 		if(cu->flag & CU_FOLLOW) {
 			vectoquat(dir, ob->trackflag, ob->upflag, quat);
@@ -1711,6 +1711,13 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 			QuatToMat4(quat, mat);
 		}
 		
+		if(cu->flag & CU_PATH_RADIUS) {
+			float tmat[4][4], rmat[4][4];
+			Mat4Scale(tmat, radius);
+			Mat4MulMat4(rmat, mat, tmat);
+			Mat4CpyMat4(mat, rmat);
+		}
+
 		VECCOPY(mat[3], vec);
 		
 	}
