@@ -36,6 +36,10 @@
 #include <vector>
 #include <algorithm>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class		RAS_IPolyMaterial;
 struct		RAS_LightObject;
 
@@ -180,6 +184,13 @@ public:
 	virtual
 		void
 		Render2DFilters(RAS_ICanvas* canvas)=0;
+		
+		
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_IRenderTools"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_IRENDERTOOLS

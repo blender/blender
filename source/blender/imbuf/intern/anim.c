@@ -778,7 +778,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 					}
 				}
 
-				if (G.order == B_ENDIAN) {
+				if (ENDIAN_ORDER == B_ENDIAN) {
 					int * dstStride 
 						= anim->pFrameRGB->linesize;
 					uint8_t** dst = anim->pFrameRGB->data;

@@ -101,8 +101,7 @@ public:
 	};
 
 	SCA_ISensor(SCA_IObject* gameobj,
-				class SCA_EventManager* eventmgr,
-				PyTypeObject* T );;
+				class SCA_EventManager* eventmgr);;
 	~SCA_ISensor();
 	virtual void	ReParent(SCA_IObject* parent);
 
@@ -173,25 +172,6 @@ public:
 		{ return !m_links; }
 
 	/* Python functions: */
-	
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
-
-	//Deprecated functions ----->
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsPositive);
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsTriggered);
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUsePosPulseMode);
-	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetUsePosPulseMode);
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetFrequency);
-	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetFrequency);
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUseNegPulseMode);
-	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetUseNegPulseMode);
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetInvert);
-	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetInvert);
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetLevel);
-	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetLevel);
-	//<------
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,reset);
 	
 	static PyObject*	pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

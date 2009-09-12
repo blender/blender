@@ -35,7 +35,7 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
+ifeq ($(OS),$(findstring $(OS), "darwin freebsd linux openbsd solaris windows"))
     CFLAGS += -funsigned-char
 endif
 
@@ -47,6 +47,7 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I$(NAN_SMOKE)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I../

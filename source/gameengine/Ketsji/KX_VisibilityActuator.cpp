@@ -39,10 +39,9 @@ KX_VisibilityActuator::KX_VisibilityActuator(
 	SCA_IObject* gameobj,
 	bool visible,
 	bool occlusion,
-	bool recursive,
-	PyTypeObject* T
+	bool recursive
 	) 
-	: SCA_IActuator(gameobj,T),
+	: SCA_IActuator(gameobj),
 	  m_visible(visible),
 	  m_occlusion(occlusion),
 	  m_recursive(recursive)
@@ -92,13 +91,7 @@ KX_VisibilityActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_VisibilityActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_VisibilityActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -108,29 +101,18 @@ PyTypeObject KX_VisibilityActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-
-};
-
-PyParentObject 
-KX_VisibilityActuator::Parents[] = {
-	&KX_VisibilityActuator::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
-PyMethodDef 
-KX_VisibilityActuator::Methods[] = {
-	// Deprecated ----->
-	{"set", (PyCFunction) KX_VisibilityActuator::sPySetVisible, METH_VARARGS,
-		(PY_METHODCHAR) SetVisible_doc},
-	// <-----
+PyMethodDef KX_VisibilityActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
@@ -140,41 +122,3 @@ PyAttributeDef KX_VisibilityActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("useRecursion", KX_VisibilityActuator, m_recursive),
 	{ NULL }	//Sentinel
 };
-
-PyObject* KX_VisibilityActuator::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* KX_VisibilityActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_VisibilityActuator::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_IActuator);
-}
-
-
-/* set visibility ---------------------------------------------------------- */
-const char 
-KX_VisibilityActuator::SetVisible_doc[] = 
-"setVisible(visible?)\n"
-"\t - visible? : Make the object visible? (KX_TRUE, KX_FALSE)"
-"\tSet the properties of the actuator.\n";
-PyObject* 
-
-KX_VisibilityActuator::PySetVisible(PyObject* args) {
-	int vis;
-	ShowDeprecationWarning("SetVisible()", "the visible property");
-
-	if(!PyArg_ParseTuple(args, "i:setVisible", &vis)) {
-		return NULL;
-	}
-
-	m_visible = PyArgToBool(vis);
-
-	Py_RETURN_NONE;
-}
-
-

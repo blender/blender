@@ -32,6 +32,10 @@
 
 #include "STR_HashedString.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class NG_NetworkMessage
 {
 	static int			s_nextID;
@@ -122,6 +126,13 @@ public:
 	int GetMessageID() {
 		return m_uniqueMessageID;
 	}
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:NG_NetworkMessage"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //NG_NETWORKMESSAGE_H

@@ -38,7 +38,6 @@
 
 struct Ipo;
 struct Scene;
-struct StripColorBalanceGUIHelper;
 
 /* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
 
@@ -72,11 +71,9 @@ typedef struct StripColorBalance {
 	float gamma[3];
 	float gain[3];
 	int flag;
-	int mode;
+	int pad;
 	float exposure;
 	float saturation;
-	int pad;
-	struct StripColorBalanceGUIHelper * gui;
 } StripColorBalance;
 
 typedef struct StripProxy {
@@ -150,7 +147,7 @@ typedef struct Sequence {
 
 	Strip *strip;
 
-	struct Ipo *ipo;
+	struct Ipo *ipo;	// xxx depreceated... old animation system
 	struct Scene *scene;
 	struct anim *anim;
 	float facf0, facf1;
@@ -163,7 +160,7 @@ typedef struct Sequence {
 	ListBase seqbase;	/* list of strips for metastrips */
 
 	struct bSound *sound;	/* the linked "bSound" object */
-        struct hdaudio *hdaudio; /* external hdaudio object */
+	struct SoundHandle *sound_handle;
 	float level, pan;	/* level in dB (0=full), pan -1..1 */
 	int scenenr;          /* for scene selection */
 	float strobe;
@@ -188,9 +185,11 @@ typedef struct Editing {
 	ListBase *seqbasep;
 	ListBase seqbase;
 	ListBase metastack;
-	short flag;
-	short pad;
-	int rt;
+	
+	/* Context vars, used to be static */
+	Sequence *act_seq;
+	char act_imagedir[256];
+	char act_sounddir[256];
 } Editing;
 
 /* ************* Effect Variable Structs ********* */
@@ -234,9 +233,10 @@ typedef struct SpeedControlVars {
 	int flags;
 	int length;
 	int lastValidFrame;
-	int blendFrames;
-	int pad;
 } SpeedControlVars;
+
+#define SEQ_STRIP_OFSBOTTOM		0.2f
+#define SEQ_STRIP_OFSTOP		0.8f
 
 /* SpeedControlVars->flags */
 #define SEQ_SPEED_INTEGRATE      1
@@ -265,19 +265,14 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_CROP                           131072
 #define SEQ_USE_COLOR_BALANCE                  262144
 #define SEQ_USE_PROXY_CUSTOM_DIR               524288
-#define SEQ_ACTIVE                            1048576
 #define SEQ_USE_PROXY_CUSTOM_FILE             2097152
 
-#define SEQ_COLOR_BALANCE_INVERSE_GAIN      1
-#define SEQ_COLOR_BALANCE_INVERSE_GAMMA     2
-#define SEQ_COLOR_BALANCE_INVERSE_LIFT      4
+/* deprecated, dont use a flag anymore*/
+/*#define SEQ_ACTIVE                            1048576*/
 
-#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN      8
-#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA    16
-#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT     32
-
-#define SEQ_COLOR_BALANCE_GUI_MODE_LGG         0
-#define SEQ_COLOR_BALANCE_GUI_MODE_ASC_CDL     1
+#define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
+#define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
+#define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0
@@ -286,7 +281,7 @@ typedef struct SpeedControlVars {
 #define SEQ_MOVIE		3
 #define SEQ_RAM_SOUND		4
 #define SEQ_HD_SOUND            5
-#define SEQ_MOVIE_AND_HD_SOUND  6 /* helper for add_sequence */
+#define SEQ_SOUND		4
 
 #define SEQ_EFFECT		8
 #define SEQ_CROSS		8

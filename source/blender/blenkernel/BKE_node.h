@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -47,13 +47,11 @@ struct rctf;
 struct ListBase;
 struct RenderData;
 struct Scene;
+struct Main;
 struct Tex;
 struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
-
-#define SOCK_IN		1
-#define SOCK_OUT	2
 
 /* ************** NODE TYPE DEFINITIONS ***** */
 
@@ -106,6 +104,7 @@ typedef struct bNodeType {
 #define NODE_BREAK		2
 #define NODE_FINISHED	4
 #define NODE_FREEBUFS	8
+#define NODE_SKIPPED	16
 
 /* nodetype->nclass, for add-menu and themes */
 #define NODE_CLASS_INPUT		0
@@ -148,6 +147,11 @@ void			ntreeInitPreview(struct bNodeTree *, int xsize, int ysize);
 void			ntreeClearPreview(struct bNodeTree *ntree);
 
 void			ntreeFreeCache(struct bNodeTree *ntree);
+				
+				/* calls allowing threaded composite */
+struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
+void			ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
+void			ntreeLocalMerge(struct bNodeTree *localtree, struct bNodeTree *ntree);
 
 /* ************** GENERIC API, NODES *************** */
 
@@ -321,7 +325,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_COMBYUVA	234
 #define CMP_NODE_DIFF_MATTE	235
 #define CMP_NODE_COLOR_SPILL	236
-#define CMP_NODE_CHROMA		237
+#define CMP_NODE_CHROMA_MATTE	237
 #define CMP_NODE_CHANNEL_MATTE	238
 #define CMP_NODE_FLIP		239
 #define CMP_NODE_SPLITVIEWER	240
@@ -341,6 +345,9 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_DBLUR		254
 #define CMP_NODE_BILATERALBLUR  255
 #define CMP_NODE_PREMULKEY  256
+#define CMP_NODE_DIST_MATTE	257
+#define CMP_NODE_VIEW_LEVELS    258
+#define CMP_NODE_COLOR_MATTE 259
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302
@@ -376,7 +383,7 @@ struct CompBuf;
 void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
-void ntreeCompositForceHidden(struct bNodeTree *ntree);
+void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
 
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
@@ -417,10 +424,9 @@ extern struct ListBase node_all_textures;
 
 /* API */
 int  ntreeTexTagAnimated(struct bNodeTree *ntree);
-void ntreeTexUpdatePreviews( struct bNodeTree* nodetree );
-void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, char do_preview, short thread, struct Tex *tex, short which_output);
+void ntreeTexSetPreviewFlag(int);
+void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, short thread, struct Tex *tex, short which_output, int cfra);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
-void ntreeTexAssignIndex(struct bNodeTree *ntree, struct bNode *node);
 char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 
 
@@ -428,5 +434,9 @@ char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 
 void init_nodesystem(void);
 void free_nodesystem(void);
+
+/**/
+
+void clear_scene_in_nodes(struct Main *bmain, struct Scene *sce);
 
 #endif

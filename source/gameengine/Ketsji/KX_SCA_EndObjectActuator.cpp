@@ -43,9 +43,8 @@
 #endif
 
 KX_SCA_EndObjectActuator::KX_SCA_EndObjectActuator(SCA_IObject *gameobj,
-												   SCA_IScene* scene,
-												   PyTypeObject* T): 
-	SCA_IActuator(gameobj, T),
+												   SCA_IScene* scene):
+	SCA_IActuator(gameobj),
 	m_scene(scene)
 {
     // intentionally empty 
@@ -92,13 +91,7 @@ CValue* KX_SCA_EndObjectActuator::GetReplica()
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject KX_SCA_EndObjectActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_SCA_EndObjectActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -108,23 +101,16 @@ PyTypeObject KX_SCA_EndObjectActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-
-PyParentObject KX_SCA_EndObjectActuator::Parents[] = {
-	&KX_SCA_EndObjectActuator::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
 
 PyMethodDef KX_SCA_EndObjectActuator::Methods[] = {
   {NULL,NULL} //Sentinel
@@ -133,14 +119,5 @@ PyMethodDef KX_SCA_EndObjectActuator::Methods[] = {
 PyAttributeDef KX_SCA_EndObjectActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-
-PyObject* KX_SCA_EndObjectActuator::py_getattro(PyObject *attr)
-{
-  py_getattro_up(SCA_IActuator);
-}
-
-PyObject* KX_SCA_EndObjectActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
 
 /* eof */

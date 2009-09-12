@@ -113,7 +113,7 @@ struct Render
 	char name[RE_MAXNAME];
 	
 	/* state settings */
-	short flag, osa, ok, do_gamma;
+	short flag, osa, ok, result_ok;
 	
 	/* result of rendering */
 	RenderResult *result;
@@ -201,6 +201,9 @@ struct Render
 	ListBase customdata_names;
 
 	struct Object *excludeob;
+	ListBase render_volumes_inside;
+	ListBase volumes;
+	ListBase volume_precache_parts;
 
 	/* arena for allocating data for use during render, for
 		* example dynamic TFaces to go in the VlakRen structure.
@@ -208,16 +211,23 @@ struct Render
 	struct MemArena *memArena;
 	
 	/* callbacks */
-	void (*display_init)(RenderResult *rr);
-	void (*display_clear)(RenderResult *rr);
-	void (*display_draw)(RenderResult *rr, volatile rcti *rect);
+	void (*display_init)(void *handle, RenderResult *rr);
+	void *dih;
+	void (*display_clear)(void *handle, RenderResult *rr);
+	void *dch;
+	void (*display_draw)(void *handle, RenderResult *rr, volatile rcti *rect);
+	void *ddh;
 	
-	void (*stats_draw)(RenderStats *ri);
-	void (*timecursor)(int i);
+	void (*stats_draw)(void *handle, RenderStats *ri);
+	void *sdh;
+	void (*timecursor)(void *handle, int i);
+	void *tch;
 	
-	int (*test_break)(void);
-	int (*test_return)(void);
-	void (*error)(char *str);
+	int (*test_break)(void *handle);
+	void *tbh;
+	
+	void (*error)(void *handle, char *str);
+	void *erh;
 	
 	RenderStats i;
 };
@@ -285,7 +295,9 @@ typedef struct ObjectInstanceRen {
 
 	float dupliorco[3], dupliuv[2];
 	float (*duplitexmat)[4];
-
+	
+	struct VolumePrecache *volume_precache;
+	
 	float *vectors;
 	int totvector;
 } ObjectInstanceRen;
@@ -395,6 +407,46 @@ typedef struct StrandRen {
 	float orco[3];
 } StrandRen;
 
+/* ------------------------------------------------------------------------- */
+
+typedef struct VolumeOb
+{
+	struct VolumeOb *next, *prev;
+	struct Material *ma;
+	struct ObjectRen *obr;
+} VolumeOb;
+
+typedef struct MatInside {
+	struct MatInside *next, *prev;
+	struct Material *ma;
+	struct ObjectInstanceRen *obi;
+} MatInside;
+
+typedef struct VolPrecachePart
+{
+	struct VolPrecachePart *next, *prev;
+	struct RayTree *tree;
+	struct ShadeInput *shi;
+	struct ObjectInstanceRen *obi;
+	int num;
+	int minx, maxx;
+	int miny, maxy;
+	int minz, maxz;
+	int res[3];
+	float bbmin[3];
+	float voxel[3];
+	int working, done;
+} VolPrecachePart;
+
+typedef struct VolumePrecache
+{
+	int res[3];
+	float *data_r;
+	float *data_g;
+	float *data_b;
+} VolumePrecache;
+
+/* ------------------------------------------------------------------------- */
 
 struct LampRen;
 struct MTex;
@@ -505,7 +557,6 @@ typedef struct LampRen {
 #define R_LAMPHALO		8
 #define R_GLOB_NOPUNOFLIP	16
 #define R_NEED_TANGENT	32
-#define R_SKIP_MULTIRES	64
 #define R_BAKE_TRACE	128
 #define R_BAKING		256
 

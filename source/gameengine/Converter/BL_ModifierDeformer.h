@@ -48,11 +48,13 @@ public:
 
 
 	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
+						Scene *scene,
 						Object *bmeshobj,
 						BL_SkinMeshObject *mesh)
 						:	
 						BL_ShapeDeformer(gameobj,bmeshobj, mesh),
 						m_lastModifierUpdate(-1),
+						m_scene(scene),
 						m_dm(NULL)
 	{
 		m_recalcNormal = false;
@@ -60,6 +62,7 @@ public:
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
 	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
+						struct Scene *scene,
 						struct Object *bmeshobj_old,
 						struct Object *bmeshobj_new,
 						class BL_SkinMeshObject *mesh,
@@ -68,6 +71,7 @@ public:
 						:
 						BL_ShapeDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, false, arma),
 						m_lastModifierUpdate(-1),
+						m_scene(scene),
 						m_dm(NULL)
 	{
 	};
@@ -94,8 +98,15 @@ public:
 
 protected:
 	double					 m_lastModifierUpdate;
+	Scene					*m_scene;
 	DerivedMesh				*m_dm;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ModifierDeformer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

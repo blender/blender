@@ -104,7 +104,9 @@ typedef enum {
 	GHOST_kWindowState8Normal = 8,
 	GHOST_kWindowState8Maximized,
 	GHOST_kWindowState8Minimized,
-	GHOST_kWindowState8FullScreen
+	GHOST_kWindowState8FullScreen,
+	GHOST_kWindowStateModified,
+	GHOST_kWindowStateUnModified
 } GHOST_TWindowState;
 
 
@@ -150,6 +152,9 @@ typedef enum {
 	GHOST_kEventWindowDeactivate,
 	GHOST_kEventWindowUpdate,
 	GHOST_kEventWindowSize,
+	GHOST_kEventWindowMove,
+
+	GHOST_kEventTimer,
 
 	GHOST_kNumEventTypes
 } GHOST_TEventType;

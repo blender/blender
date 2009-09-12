@@ -1,6 +1,5 @@
 /**
- * BKE_fluidsim.h
- * 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -28,29 +27,40 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "DNA_modifier_types.h"
-#include "DNA_object_fluidsim.h" // N_T
-#include "DNA_object_types.h"
+#ifndef BKE_FLUIDSIM_H
+#define BKE_FLUIDSIM_H
 
-#include "BKE_DerivedMesh.h"
+struct Object;
+struct Scene;
+struct FluidsimModifierData;
+struct DerivedMesh;
+struct MVert;
 
 /* old interface */
-FluidsimSettings *fluidsimSettingsNew(Object *srcob);
+struct FluidsimSettings *fluidsimSettingsNew(struct Object *srcob);
 
-void initElbeemMesh(Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles, int useGlobalCoords, int modifierIndex);
-
+void initElbeemMesh(struct Scene *scene, struct Object *ob,
+	int *numVertices, float **vertices,
+	int *numTriangles, int **triangles,
+	int useGlobalCoords, int modifierIndex);
 
 /* new fluid-modifier interface */
-void fluidsim_init(FluidsimModifierData *fluidmd);
-void fluidsim_free(FluidsimModifierData *fluidmd);
+void fluidsim_init(struct FluidsimModifierData *fluidmd);
+void fluidsim_free(struct FluidsimModifierData *fluidmd);
 
-DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams);
-void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *dm, char *filename);
-DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
+struct DerivedMesh *fluidsim_read_cache(struct Object *ob, struct DerivedMesh *orgdm,
+	struct FluidsimModifierData *fluidmd, int framenr, int useRenderParams);
+void fluidsim_read_vel_cache(struct FluidsimModifierData *fluidmd, struct DerivedMesh *dm,
+	char *filename);
+struct DerivedMesh *fluidsimModifier_do(struct FluidsimModifierData *fluidmd,
+	struct Scene *scene, struct Object *ob, struct DerivedMesh *dm,
+	int useRenderParams, int isFinalCalc);
 
-// get bounding box of mesh
-void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
-		 /*RET*/ float start[3], /*RET*/ float size[3] );
+/* bounding box & memory estimate */
+void fluid_get_bb(struct MVert *mvert, int totvert, float obmat[][4],
+		 float start[3], float size[3]);
 
+void fluid_estimate_memory(struct Object *ob, struct FluidsimSettings *fss, char *value);
 
+#endif
 

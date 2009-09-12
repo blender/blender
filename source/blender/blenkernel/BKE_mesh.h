@@ -36,9 +36,11 @@
 struct BoundBox;
 struct DispList;
 struct ListBase;
+struct EditMesh;
 struct MDeformVert;
 struct Mesh;
 struct MFace;
+struct MEdge;
 struct MVert;
 struct MCol;
 struct Object;
@@ -49,6 +51,9 @@ struct CustomData;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct EditMesh *BKE_mesh_get_editmesh(struct Mesh *me);
+void BKE_mesh_end_editmesh(struct Mesh *me, struct EditMesh *em);
 
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me);
@@ -108,6 +113,16 @@ typedef struct UvMapVert {
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit);
 UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);
 void free_uv_vert_map(UvVertMap *vmap);
+
+/* Connectivity data */
+typedef struct IndexNode {
+	struct IndexNode *next, *prev;
+	int index;
+} IndexNode;
+void create_vert_face_map(ListBase **map, IndexNode **mem, const struct MFace *mface,
+			  const int totvert, const int totface);
+void create_vert_edge_map(ListBase **map, IndexNode **mem, const struct MEdge *medge,
+			  const int totvert, const int totedge);
 
 /* Partial Mesh Visibility */
 struct PartialVisibility *mesh_pmv_copy(struct PartialVisibility *);

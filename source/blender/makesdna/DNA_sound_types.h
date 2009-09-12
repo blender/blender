@@ -37,94 +37,92 @@
 /* stupid... could easily be solved */
 #include "DNA_view2d_types.h"
 
-/* extern int noaudio; * defined in sound.c . also not very nice */
-/*  extern ListBase *samples; don't do this in DNA, but in BKE_... instead */
-
-struct bSample;
 struct Ipo;
 struct PackedFile;
 struct SpaceLink;
 
-/* should not be here! */
-#
-#
-typedef struct bSample {
-	ID id;
-	void *data;
-	void *snd_sample;
-	short type, bits;
-	short channels;
-	int len, rate;
-//	int buffer;
-	int alindex;
-	char fakedata[16];
-	int flags;
-	char name[160];
-	struct PackedFile * packedfile;
-	short us;
-} bSample;
+// runtime only - no saving
+typedef struct SoundHandle {
+	struct SoundHandle *next, *prev;
+	struct bSound *source;
+	void *handle;
+	int state;
+	int startframe;
+	int endframe;
+	int frameskip;
+	int mute;
+	int changed;
+	float volume;
+	float pad;
+} SoundHandle;
 
-
+typedef struct Sound3D
+{
+	float min_gain;
+	float max_gain;
+	float reference_distance;
+	float max_distance;
+	float rolloff_factor;
+	float cone_inner_angle;
+	float cone_outer_angle;
+	float cone_outer_gain;
+} Sound3D;
 
 typedef struct bSound {
 	ID id;
-	char name[160];
-	struct bSample *sample;
-	void *stream;
-	struct PackedFile *packedfile;
-	struct PackedFile *newpackedfile;
-	void *snd_sound;
-	struct Ipo *ipo;
-	float volume, panning;
+
 	/**
-	 * Sets the rollofffactor. The	rollofffactor is a per-Source parameter
-	 * the application can use to increase or decrease	the range of a source
-	 * by decreasing or increasing the attenuation, respectively. The default
-	 * value is 1. The implementation is free to optimize for a rollofffactor
-	 * value of 0, which indicates that the application does not wish any
-	 * distance attenuation on the respective Source.
+	 * The path to the sound file.
 	 */
+	char name[160];
+
+	/**
+	 * The packed file.
+	 */
+	struct PackedFile *packedfile;
+
+	/**
+	 * The handle for audaspace.
+	 */
+	void *handle;
+
+	/**
+	 * Deprecated; used for loading pre 2.5 files.
+	 */
+	struct PackedFile *newpackedfile;
+	struct Ipo *ipo;
+	float volume;
 	float attenuation;
 	float pitch;
-	/**
-	 * min_gain indicates the minimal gain which is always guaranteed for this sound
-	 */
 	float min_gain;
-	/**
-	 * max_gain indicates the maximal gain which is always guaranteed for this sound
-	 */
 	float max_gain;
-	/**
-	 * Sets the referencedistance at which the listener will experience gain.
-	 */
 	float distance;
 	int flags;
-	int streamlen;
-	char channels;
-	char highprio;
-	char pad[10];
+
+/**	currently	int type;
+	struct bSound *child_sound;*/
+
+	/**
+	 * Whether the sound has been changed and must be restarted if playing.
+	 */
+	int changed;
+
+	/**
+	 * The audaspace handle for cache.
+	 */
+	void *cache;
+
+/**	XXX unused currently	// SOUND_TYPE_LIMITER
+	float start, end;*/
 } bSound;
 
-typedef struct bSoundListener {
-	ID id;
-	/**
-	 * Overall gain
-	 */
-	float gain;
-	/**
-	 * Sets a scaling to exaggerate or deemphasize the Doppler (pitch) shift
-	 * resulting from the calculation.
-	 */
-	float dopplerfactor;
-	/**
-	 * Sets the value of the propagation speed relative to which the source
-	 * velocities are interpreted.
-	 */
-	float dopplervelocity;
-	short numsoundsblender;
-	short numsoundsgameengine;
-	
-} bSoundListener;
+/* XXX unused currently
+typedef enum eSound_Type {
+	SOUND_TYPE_INVALID = -1,
+	SOUND_TYPE_FILE = 0,
+	SOUND_TYPE_BUFFER,
+	SOUND_TYPE_LIMITER
+} eSound_Type;*/
 
 /* spacesound->flag */
 #define SND_DRAWFRAMES	1
@@ -132,6 +130,7 @@ typedef struct bSoundListener {
 
 typedef struct SpaceSound {
 	struct SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 	struct ScrArea *area;
@@ -145,34 +144,7 @@ typedef struct SpaceSound {
 	int pad2;
 } SpaceSound;
 
-
-enum SAMPLE_FileTypes {
-	SAMPLE_INVALID = -1,		// must be negative
-	SAMPLE_UNKNOWN = 0,
-	SAMPLE_RAW,
-	SAMPLE_WAV,
-	SAMPLE_MP2,
-	SAMPLE_MP3,
-	SAMPLE_OGG_VORBIS,
-	SAMPLE_WMA,
-	SAMPLE_ASF,
-	SAMPLE_AIFF
-};
-
-
-#define SOUND_CHANNELS_STEREO	0
-#define SOUND_CHANNELS_LEFT		1
-#define SOUND_CHANNELS_RIGHT	2
-
-#define SOUND_FLAGS_LOOP 				(1 << 0)
-#define SOUND_FLAGS_FIXED_VOLUME 		(1 << 1)
-#define SOUND_FLAGS_FIXED_PANNING 		(1 << 2)
 #define SOUND_FLAGS_3D					(1 << 3)
-#define SOUND_FLAGS_BIDIRECTIONAL_LOOP	(1 << 4)
-#define SOUND_FLAGS_PRIORITY			(1 << 5)
-#define SOUND_FLAGS_SEQUENCE			(1 << 6)
-
-#define SAMPLE_NEEDS_SAVE		(1 << 0)
 
 /* to DNA_sound_types.h*/
 

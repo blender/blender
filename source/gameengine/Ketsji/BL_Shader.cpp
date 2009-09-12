@@ -113,8 +113,8 @@ bool BL_Shader::Ok()const
 	return (mShader !=0 && mOk && mUse);
 }
 
-BL_Shader::BL_Shader(PyTypeObject *T)
-:	PyObjectPlus(T),
+BL_Shader::BL_Shader()
+:	PyObjectPlus(),
 	mShader(0),
 	mPass(1),
 	mOk(0),
@@ -728,17 +728,6 @@ void BL_Shader::SetUniform(int uniform, const int* val, int len)
 	}
 }
 
-
-PyObject* BL_Shader::py_getattro(PyObject *attr)
-{
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* BL_Shader::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
-
 PyMethodDef BL_Shader::Methods[] = 
 {
 	// creation
@@ -776,36 +765,26 @@ PyAttributeDef BL_Shader::Attributes[] = {
 };
 
 PyTypeObject BL_Shader::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"BL_Shader",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-
-PyParentObject BL_Shader::Parents[] = {
-	&BL_Shader::Type,
+	"BL_Shader",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&PyObjectPlus::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
 
 KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProgram)" )
 {
@@ -848,17 +827,17 @@ KX_PYMETHODDEF_DOC( BL_Shader, delSource, "delSource( )" )
 
 KX_PYMETHODDEF_DOC( BL_Shader, isValid, "isValid()" )
 {
-	return PyInt_FromLong( ( mShader !=0 &&  mOk ) );
+	return PyLong_FromSsize_t( ( mShader !=0 &&  mOk ) );
 }
 
 KX_PYMETHODDEF_DOC( BL_Shader, getVertexProg ,"getVertexProg( )" )
 {
-	return PyString_FromString(vertProg?vertProg:"");
+	return PyUnicode_FromString(vertProg?vertProg:"");
 }
 
 KX_PYMETHODDEF_DOC( BL_Shader, getFragmentProg ,"getFragmentProg( )" )
 {
-	return PyString_FromString(fragProg?fragProg:"");
+	return PyUnicode_FromString(fragProg?fragProg:"");
 }
 
 KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
@@ -1223,7 +1202,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2
 	for(unsigned int i=0; (i<list_size && i<4); i++)
 	{
 		PyObject *item = PySequence_GetItem(listPtr, i);
-		array_data[i] = PyInt_AsLong(item);
+		array_data[i] = PyLong_AsSsize_t(item);
 		Py_DECREF(item);
 	}
 	

@@ -42,6 +42,10 @@
 #include <map>		// array functionality for the propertylist
 #include "STR_String.h"	// STR_String class
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 #ifndef GEN_NO_ASSERT
 #undef  assert
 #define	assert(exp)			((void)NULL)
@@ -173,6 +177,13 @@ public:
 	virtual ~CAction(){
 	};
 	virtual void Execute() const =0;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CAction"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 //
@@ -215,32 +226,22 @@ public:
 	// Construction / Destruction
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
-	CValue(PyTypeObject *T = &Type);
+	CValue();
 	//static PyObject*	PyMake(PyObject*,PyObject*);
 	virtual PyObject *py_repr(void)
 	{
-		return PyString_FromString((const char*)GetText());
+		return PyUnicode_FromString((const char*)GetText());
 	}
 
-
-
-	virtual PyObject*			py_getattro(PyObject *attr);
-	virtual PyObject*			py_getattro_dict();
 	virtual PyObject*	ConvertValueToPython() {
 		return NULL;
 	}
 
 	virtual CValue*	ConvertPythonToValue(PyObject* pyobj, const char *error_prefix);
-
-
-	virtual int				py_delattro(PyObject *attr);
-	virtual int				py_setattro(PyObject *attr, PyObject* value);
 	
 	static PyObject * pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 	
 	virtual PyObject* ConvertKeysToPython( void );
-	
-	KX_PYMETHOD_NOARGS(CValue,GetName);
 
 #else
 	CValue();
@@ -415,10 +416,9 @@ public:																									\
 class CPropValue : public CValue
 {
 public:
-
 #ifndef NO_EXP_PYTHON_EMBEDDING	
-	CPropValue(PyTypeObject* T=&Type) :
-	  CValue(T),
+	CPropValue() :
+	  CValue(),
 #else
 	CPropValue() :
 #endif //NO_EXP_PYTHON_EMBEDDING
@@ -444,6 +444,13 @@ public:
 	
 protected:
 	STR_String					m_strNewName;				    // Identification
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CPropValue"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined _VALUEBASECLASS_H

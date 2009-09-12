@@ -8,9 +8,4 @@ incs += ' #source/blender/gpu #extern/glew/include ' + env['BF_OPENGL_INC']
 incs += ' #source/blender/gameengine/Ketsji #source/gameengine/SceneGraph #source/blender/makesdna #source/blender/blenkernel'
 incs += ' #intern/guardedalloc #source/blender/blenlib'
 
-cxxflags = []
-if env['OURPLATFORM']=='win32-vc':
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-
-env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), [], libtype=['game','player'], priority=[40, 120], cxx_compileflags = cxxflags )
+env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), [], libtype=['core','player'], priority=[350,75], cxx_compileflags=env['BGE_CXXFLAGS'])

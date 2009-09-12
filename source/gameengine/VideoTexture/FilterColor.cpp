@@ -41,13 +41,7 @@ static PyGetSetDef filterGrayGetSets[] =
 // define python type
 PyTypeObject FilterGrayType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.FilterGray",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
@@ -147,10 +141,10 @@ static int setMatrix (PyFilter * self, PyObject * value, void * closure)
 		for (int c = 0; valid && c < 5; ++c)
 		{
 			// item must be int
-			valid = PyInt_Check(PySequence_Fast_GET_ITEM(row, c));
+			valid = PyLong_Check(PySequence_Fast_GET_ITEM(row, c));
 			// if it is valid, save it in matrix
 			if (valid)
-				mat[r][c] = short(PyInt_AsLong(PySequence_Fast_GET_ITEM(row, c)));
+				mat[r][c] = short(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(row, c)));
 		}
 	}
 	// if parameter is not valid, report error
@@ -178,13 +172,7 @@ static PyGetSetDef filterColorGetSets[] =
 // define python type
 PyTypeObject FilterColorType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.FilterColor",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
@@ -286,10 +274,10 @@ static int setLevels (PyFilter * self, PyObject * value, void * closure)
 		for (int c = 0; valid && c < 2; ++c)
 		{
 			// item must be int
-			valid = PyInt_Check(PySequence_Fast_GET_ITEM(row, c));
+			valid = PyLong_Check(PySequence_Fast_GET_ITEM(row, c));
 			// if it is valid, save it in matrix
 			if (valid)
-				lev[r][c] = (unsigned short)(PyInt_AsLong(PySequence_Fast_GET_ITEM(row, c)));
+				lev[r][c] = (unsigned short)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(row, c)));
 		}
 	}
 	// if parameter is not valid, report error
@@ -317,13 +305,7 @@ static PyGetSetDef filterLevelGetSets[] =
 // define python type
 PyTypeObject FilterLevelType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.FilterLevel",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

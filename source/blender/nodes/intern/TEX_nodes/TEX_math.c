@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -42,10 +42,10 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" } 
 };
 
-static void valuefn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float in0 = tex_input_value(in[0], coord, thread);
-	float in1 = tex_input_value(in[1], coord, thread);
+	float in0 = tex_input_value(in[0], p, thread);
+	float in1 = tex_input_value(in[1], p, thread);
 	
 	switch(node->custom1){ 
 	

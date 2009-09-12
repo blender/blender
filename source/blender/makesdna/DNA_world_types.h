@@ -32,8 +32,8 @@
 #define DNA_WORLD_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 
+struct AnimData;
 struct Ipo;
 struct MTex;
 
@@ -48,6 +48,7 @@ struct MTex;
  * data and modeling data. */
 typedef struct World {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short colormodel, totex;
 	short texact, mistype;
@@ -70,12 +71,12 @@ typedef struct World {
 	/**
 	 * Gravitation constant for the game world
 	 */
-	float gravity;
+	float gravity; // XXX moved to scene->gamedata in 2.5
 
 	/**
 	 * Radius of the activity bubble, in Manhattan length. Objects
 	 * outside the box are activity-culled. */
-	float activityBoxRadius;
+	float activityBoxRadius; // XXX moved to scene->gamedata in 2.5
 	
 	short skytype;
 	/**
@@ -87,10 +88,10 @@ typedef struct World {
 	 * bit 4: ambient occlusion
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling 
 	 */
-	short mode;
-	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
-	short physicsEngine;	/* here it's aligned */
-	short ticrate, maxlogicstep, physubstep, maxphystep;
+	short mode;												// partially moved to scene->gamedata in 2.5
+	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */	// XXX moved to scene->gamedata in 2.5
+	short physicsEngine;	/* here it's aligned */					// XXX moved to scene->gamedata in 2.5
+	short ticrate, maxlogicstep, physubstep, maxphystep;	// XXX moved to scene->gamedata in 2.5
 	
 	float misi, miststa, mistdist, misthi;
 	
@@ -106,18 +107,21 @@ typedef struct World {
 	short aomode, aosamp, aomix, aocolor;
 	float ao_adapt_thresh, ao_adapt_speed_fac;
 	float ao_approx_error, ao_approx_correction;
-	short ao_samp_method, ao_gather_method, ao_approx_passes, pad1;
+	short ao_samp_method, ao_gather_method, ao_approx_passes;
 	
+	/* assorted settings (in the middle of ambient occlusion settings for padding reasons) */
+	short flag;
+	
+	/* ambient occlusion (contd...) */
 	float *aosphere, *aotables;
 	
 	
-	struct Ipo *ipo;
+	struct Ipo *ipo;			// XXX depreceated... old animation system
 	struct MTex *mtex[18];		/* MAX_MTEX */
+	short pr_texture, pad[3];
 
 	/* previews */
 	struct PreviewImage *preview;
-
-	ScriptLink scriptlink;
 
 } World;
 
@@ -175,13 +179,8 @@ typedef struct World {
 #define WOMAP_ZENDOWN	8
 #define WOMAP_MIST		16
 
-/* physicsEngine */
-#define WOPHY_NONE		0
-#define WOPHY_ENJI		1
-#define WOPHY_SUMO		2
-#define WOPHY_DYNAMO	3
-#define WOPHY_ODE		4
-#define WOPHY_BULLET	5
+/* flag */
+#define WO_DS_EXPAND	(1<<0)
 
 #endif
 

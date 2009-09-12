@@ -27,17 +27,11 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../blenlib ../blenkernel
-  ../makesdna ../readblenfile ../include
-  ../python ../../kernel/gen_messaging
-  ../render/extern/include
-  ${ZLIB_INC}
+	. ../../../intern/guardedalloc ../blenlib ../blenkernel
+	../makesdna ../readblenfile ../include ../makesrna
+	../python ../../kernel/gen_messaging
+	../render/extern/include
+	${ZLIB_INC}
 )
 
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} ${VERSE_INC})
-ENDIF(WITH_VERSE)
-
 BLENDERLIB(bf_blenloader "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_blenloader', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [70, 30] )

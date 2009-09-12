@@ -71,6 +71,10 @@ typedef struct bArmature {
 	ID			id;
 	ListBase	bonebase;
 	ListBase	chainbase;
+	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
+	
+	void		*sketch;				/* sketch struct for etch-a-ton */
+	
 	int			flag;
 	int			drawtype;			
 	short		deformflag; 
@@ -157,6 +161,7 @@ typedef enum eBone_Flag {
 	BONE_NO_CYCLICOFFSET		= (1<<18),	/* when no parent, bone will not get cyclic offset */
 	BONE_EDITMODE_LOCKED		= (1<<19),	/* bone transforms are locked in EditMode */
 	BONE_TRANSFORM_CHILD		= (1<<20),	/* Indicates that a parent is also being transformed */
+	BONE_UNSELECTABLE			= (1<<21),	/* bone cannot be selected */
 } eBone_Flag;
 
 #endif

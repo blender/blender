@@ -78,8 +78,7 @@ public:
 		class KX_GameObject* gameobj,
 		bool bFindMaterial,
 		bool bTouchPulse,
-		const STR_String& touchedpropname,
-		PyTypeObject* T=&Type) ;
+		const STR_String& touchedpropname) ;
 	virtual ~KX_TouchSensor();
 
 	virtual CValue* GetReplica();
@@ -120,27 +119,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
-
-	//Deprecated ----->
-	/* 1. setProperty */
-	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetProperty);
-	/* 2. getProperty */
-	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetProperty);
-	/* 3. getHitObject */
-	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetHitObject);
-	/* 4. getHitObject */
-	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetHitObjectList);
-	/* 5. getTouchMaterial */
-	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetTouchMaterial);
-#if 0
-	/* 6. setTouchMaterial */
-	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetTouchMaterial);
-#endif
-	//<-----
 	
 	static PyObject*	pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

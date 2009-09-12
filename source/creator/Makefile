@@ -40,19 +40,19 @@ include nan_compile.mk
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I../blender/render/extern/include
-CPPFLAGS += -I../blender/radiosity/extern/include
 
 # two needed for the kernel
 CPPFLAGS += -I../blender/imbuf
 CPPFLAGS += -I../blender/makesdna
 CPPFLAGS += -I../blender/makesrna
 CPPFLAGS += -I../blender/blenlib
-CPPFLAGS += -I../blender/include
+CPPFLAGS += -I../blender/editors/include
 CPPFLAGS += -I../blender/renderconverter
 CPPFLAGS += -I../blender/blenkernel
 CPPFLAGS += -I../blender/python
 CPPFLAGS += -I../blender/blenloader
 CPPFLAGS += -I../blender/gpu
+CPPFLAGS += -I../blender/windowmanager
 CPPFLAGS += -I../kernel/gen_system
 CPPFLAGS += -I../kernel/gen_messaging
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

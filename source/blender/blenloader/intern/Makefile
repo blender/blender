@@ -44,11 +44,6 @@ ifeq ($(OS),$(findstring $(OS), "solaris windows"))
     CPPFLAGS += -I$(NAN_ZLIB)/include
 endif
 
-ifeq ($(WITH_VERSE), true)
-    CPPFLAGS += -DWITH_VERSE
-    CPPFLAGS += -I$(NAN_VERSE)/include
-endif
-
 # streaming write function
 CPPFLAGS += -I../../writestreamglue
 CPPFLAGS += -I../../readstreamglue
@@ -59,6 +54,7 @@ CPPFLAGS += -I../../readblenfile
 # This mod uses the GEN, DNA, BLI and BKE modules
 CPPFLAGS += -I../../../kernel/gen_messaging
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../blenlib
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
@@ -67,7 +63,7 @@ CPPFLAGS += -I../../render/extern/include/
 CPPFLAGS += -I../../python
 
 # we still refer to /include a bit...
-CPPFLAGS += -I../../include
+CPPFLAGS += -I../../editors/include
 
 # path to our own external headerfiles
 CPPFLAGS += -I..

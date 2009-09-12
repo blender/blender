@@ -59,6 +59,12 @@ public:
 	GHOST_SystemX11(
 	);
 	
+	/**
+	 * Destructor.
+	 */
+	virtual ~GHOST_SystemX11();
+
+
 		GHOST_TSuccess 
 	init(
 	);
@@ -207,19 +213,31 @@ public:
 
 	/**
 	 * Returns unsinged char from CUT_BUFFER0
-	 * @param flag		Flag indicates which buffer to return 0 for clipboard 1 for selection
-	 * @return		Returns the Clipboard indicated by Flag
+	 * @param selection		Get selection, X11 only feature
+	 * @return				Returns the Clipboard indicated by Flag
 	 */
-	GHOST_TUns8 *getClipboard(int flag) const;
+	GHOST_TUns8 *getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
 	 * @param buffer	The buffer to copy to the clipboard	
-	 * @param flag		Flag indicates which buffer to set ownership of 0 for clipboard 1 for selection
+	 * @param selection	Set the selection into the clipboard, X11 only feature
 	 */
-	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
-	/* Atom used for ICCCM. */
+	/**
+	 * Atom used for ICCCM, WM-spec and Motif.
+	 * We only need get this atom at the start, it's relative
+	 * to the display not the window and are public for every
+	 * window that need it.
+	 */
+	Atom m_wm_state;
+	Atom m_wm_change_state;
+	Atom m_net_state;
+	Atom m_net_max_horz;
+	Atom m_net_max_vert;
+	Atom m_net_fullscreen;
+	Atom m_motif;
 	Atom m_wm_take_focus;
 	Atom m_wm_protocols;
 	Atom m_delete_window_atom;

@@ -33,7 +33,7 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-# CPPFLAGS += $(LEVEL_2_CPP_WARNINGS)
+CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # path to SDNA types
 CPPFLAGS += -I../../makesdna
@@ -46,15 +46,12 @@ CPPFLAGS += -I$(NAN_FREETYPE)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 # path to blenkernel
 CPPFLAGS += -I$(SRCHOME)/blender/blenkernel
-CPPFLAGS += -I../../include/
+CPPFLAGS += -I../../editors/include/
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include
 
 ifdef NAN_PTHREADS
   CPPFLAGS += -I$(NAN_PTHREADS)/include
-endif
-ifeq ($(WITH_FREETYPE2), true)
-	CPPFLAGS += -DWITH_FREETYPE2
 endif
 ifeq ($(OS),linux)
 	CPPFLAGS += -I$(OCGDIR)/extern/binreloc/include

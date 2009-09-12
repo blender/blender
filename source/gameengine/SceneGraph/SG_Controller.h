@@ -40,6 +40,12 @@
 class SG_Controller 
 {
 public:
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "SG_Controller"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
+
 	SG_Controller(
 	) :
 		m_pObject(NULL) {

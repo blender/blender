@@ -42,6 +42,12 @@ protected:
 	float m_float;
 	STR_String* m_pstrRep;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CFloatValue"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined _FLOATVALUE_H

@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BL_avi"
 	ProjectGUID="{9A307EE5-CD77-47BC-BD87-62508C7E19D8}"
+	RootNamespace="BL_avi"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -127,7 +128,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\avi\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\avi\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\avi\debug\"
-				WarningLevel="2"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"

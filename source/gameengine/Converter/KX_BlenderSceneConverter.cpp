@@ -44,19 +44,10 @@
 
 #include "DummyPhysicsEnvironment.h"
 
-//to decide to use sumo/ode or dummy physics - defines USE_ODE
 #include "KX_ConvertPhysicsObject.h"
 
 #ifdef USE_BULLET
 #include "CcdPhysicsEnvironment.h"
-#endif
-
-#ifdef USE_ODE
-#include "OdePhysicsEnvironment.h"
-#endif //USE_ODE
-
-#ifdef USE_SUMO_SOLID
-#include "SumoPhysicsEnvironment.h"
 #endif
 
 #include "KX_BlenderSceneConverter.h"
@@ -83,8 +74,8 @@ extern "C"
 #include "DNA_curve_types.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
-#include "BSE_editipo.h"
-#include "BSE_editipo_types.h"
+//XXX #include "BSE_editipo.h"
+//XXX #include "BSE_editipo_types.h"
 #include "DNA_ipo_types.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h" // eval_icu
@@ -113,11 +104,11 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	// delete sumoshapes
 	
 
-	int numipolists = m_map_blender_to_gameipolist.size();
-	for (i=0; i<numipolists; i++) {
-		BL_InterpolatorList *ipoList= *m_map_blender_to_gameipolist.at(i);
+	int numAdtLists = m_map_blender_to_gameAdtList.size();
+	for (i=0; i<numAdtLists; i++) {
+		BL_InterpolatorList *adtList= *m_map_blender_to_gameAdtList.at(i);
 
-		delete (ipoList);
+		delete (adtList);
 	}
 
 	vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator itw = m_worldinfos.begin();
@@ -145,10 +136,6 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (*itm).second;
 		itm++;
 	}
-	
-#ifdef USE_SUMO_SOLID
-	KX_ClearSumoSharedShapes();
-#endif
 
 #ifdef USE_BULLET
 	KX_ClearBulletSharedShapes();
@@ -273,38 +260,34 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	if (blenderscene)
 	{
 	
-		if (blenderscene->world)
+		switch (blenderscene->gm.physicsEngine)
 		{
-			switch (blenderscene->world->physicsEngine)
+		case WOPHY_BULLET:
 			{
-			case WOPHY_BULLET:
-				{
-					physics_engine = UseBullet;
-					useDbvtCulling = (blenderscene->world->mode & WO_DBVT_CULLING) != 0;
-					break;
-				}
-                                
-				case WOPHY_ODE:
-				{
-					physics_engine = UseODE;
-					break;
-				}
-				case WOPHY_DYNAMO:
-				{
-					physics_engine = UseDynamo;
-					break;
-				}
-				case WOPHY_SUMO:
-				{
-					physics_engine = UseSumo; 
-					break;
-				}
-				case WOPHY_NONE:
-				{
-					physics_engine = UseNone;
-				}
+				physics_engine = UseBullet;
+				useDbvtCulling = (blenderscene->gm.mode & WO_DBVT_CULLING) != 0;
+				break;
 			}
-		  
+							
+			case WOPHY_ODE:
+			{
+				physics_engine = UseODE;
+				break;
+			}
+			case WOPHY_DYNAMO:
+			{
+				physics_engine = UseDynamo;
+				break;
+			}
+			case WOPHY_SUMO:
+			{
+				physics_engine = UseSumo; 
+				break;
+			}
+			case WOPHY_NONE:
+			{
+				physics_engine = UseNone;
+			}
 		}
 	}
 
@@ -329,20 +312,7 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 				destinationscene->SetPhysicsEnvironment(ccdPhysEnv);
 				break;
 			}
-#endif
-
-#ifdef USE_SUMO_SOLID
-		case UseSumo:
-			destinationscene ->SetPhysicsEnvironment(new SumoPhysicsEnvironment());
-			break;
-#endif
-#ifdef USE_ODE
-
-		case UseODE:
-			destinationscene ->SetPhysicsEnvironment(new ODEPhysicsEnvironment());
-			break;
-#endif //USE_ODE
-	
+#endif	
 		case UseDynamo:
 		{
 		}
@@ -554,18 +524,18 @@ void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 
 
 void KX_BlenderSceneConverter::RegisterInterpolatorList(
-									BL_InterpolatorList *ipoList,
-									struct Ipo *for_ipo)
+									BL_InterpolatorList *adtList,
+									struct AnimData *for_adt)
 {
-	m_map_blender_to_gameipolist.insert(CHashedPtr(for_ipo), ipoList);
+	m_map_blender_to_gameAdtList.insert(CHashedPtr(for_adt), adtList);
 }
 
 
 
 BL_InterpolatorList *KX_BlenderSceneConverter::FindInterpolatorList(
-									struct Ipo *for_ipo)
+									struct AnimData *for_adt)
 {
-	BL_InterpolatorList **listp = m_map_blender_to_gameipolist[CHashedPtr(for_ipo)];
+	BL_InterpolatorList **listp = m_map_blender_to_gameAdtList[CHashedPtr(for_adt)];
 		
 	return listp?*listp:NULL;
 }
@@ -620,8 +590,9 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
  * When deleting an IPO curve from Python, check if the IPO is being
  * edited and if so clear the pointer to the old curve.
  */
-void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu)
+void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu )
 {
+#if 0 //XXX
 	if (!G.sipo)
 		return;
 
@@ -636,15 +607,16 @@ void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu)
 			return;
 		}
 	}
+#endif
 }
 
 //quick hack
 extern "C"
 {
 	Ipo *add_ipo( char *name, int idcode );
-	char *getIpoCurveName( IpoCurve * icu );
-	struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int, short);
-	void testhandles_ipocurve(struct IpoCurve *icu);
+	//XXX char *getIpoCurveName( IpoCurve * icu );
+	//XXX struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
+	//XXX void testhandles_ipocurve(struct IpoCurve *icu);
 	void insert_vert_icu(struct IpoCurve *, float, float, short);
 	float eval_icu(struct IpoCurve *icu, float ipotime);
 	//void Mat3ToEul(float tmat[][3], float *eul);
@@ -656,11 +628,11 @@ IpoCurve* findIpoCurve(IpoCurve* first, const char* searchName)
 	IpoCurve* icu1;
 	for( icu1 = first; icu1; icu1 = icu1->next ) 
 	{
-		char* curveName = getIpoCurveName( icu1 );
+		/*XXX char* curveName = getIpoCurveName( icu1 );
 		if( !strcmp( curveName, searchName) )
 		{
 			return icu1;
-		}
+		}*/
 	}
 	return 0;
 }
@@ -734,7 +706,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 							}
 					  	}
 					} else
-					{	ipo = add_ipo(blenderObject->id.name+2, ID_OB);
+					{	ipo = NULL; // XXX add_ipo(blenderObject->id.name+2, ID_OB);
 						blenderObject->ipo = ipo;
 
 					}
@@ -823,6 +795,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject && blenderObject->ipo)
 				{
+#if 0
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
 					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
 					const MT_Matrix3x3& orn = gameObj->NodeGetWorldOrientation();
@@ -831,6 +804,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 					float eulerAnglesOld[3] = {0.0f, 0.0f, 0.0f};						
 					float tmat[3][3];
 					
+					// XXX animato
 					Ipo* ipo = blenderObject->ipo;
 
 					//create the curves, if not existing, set linear if new
@@ -891,6 +865,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 					if (icu_rz) insert_vert_icu(icu_rz, frameNumber, eulerAngles[2], 1);
 					
 					// Handles are corrected at the end, testhandles_ipocurve isnt needed yet
+#endif
 				}
 			}
 		}
@@ -921,6 +896,8 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject && blenderObject->ipo)
 				{
+					// XXX animato
+#if 0
 					Ipo* ipo = blenderObject->ipo;
 					
 					//create the curves, if not existing
@@ -931,6 +908,7 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotX"));
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotY"));
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ"));
+#endif
 				}
 			}
 

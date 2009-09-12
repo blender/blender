@@ -62,8 +62,8 @@ int GPU_print_error(char *str);
    - if texture with non square dimensions is created, depending on the
      graphics card capabilities the texture may actually be stored in a
 	 larger texture with power of two dimensions. the actual dimensions
-	 may be querd with GPU_texture_opengl_width/height. GPU_texture_coord_2f
-	 calls glTexCoord2f with the coordinates adjust for this.
+	 may be queried with GPU_texture_opengl_width/height. GPU_texture_coord_2f
+	 calls glTexCoord2f with the coordinates adjusted for this.
    - can use reference counting:
        - reference counter after GPU_texture_create is 1
        - GPU_texture_ref increases by one
@@ -73,9 +73,10 @@ int GPU_print_error(char *str);
 
 GPUTexture *GPU_texture_create_1D(int w, float *pixels);
 GPUTexture *GPU_texture_create_2D(int w, int h, float *pixels);
+GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels);
 GPUTexture *GPU_texture_create_depth(int w, int h);
 GPUTexture *GPU_texture_from_blender(struct Image *ima,
-	struct ImageUser *iuser, double time);
+	struct ImageUser *iuser, double time, int mipmap);
 void GPU_texture_free(GPUTexture *tex);
 
 void GPU_texture_ref(GPUTexture *tex);

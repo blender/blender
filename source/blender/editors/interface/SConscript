@@ -1,0 +1,19 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+for source in env.Glob('*_api.c'):
+	sources.remove(source)
+
+incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
+incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc'
+incs += ' #/extern/glew/include'
+incs += ' ../../python/' # python button eval
+
+defs = []
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('INTERNATIONAL')
+
+env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), Split(defs), libtype=['core'], priority=[110] )

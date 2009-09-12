@@ -34,22 +34,25 @@
 #endif
 
 /* TODO, support python3.x */
-#if PY_VERSION_HEX >= 0x03000000
 #define DISABLE_PYTHON 1
-#endif
 
 #include "DNA_text_types.h"
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 
+// XXX
+#if 0
 #ifndef DISABLE_PYTHON
 #include "api2_2x/Node.h"
 #include "api2_2x/gen_utils.h"
 #include "BPY_extern.h"
 #endif
+#endif
 
 #include "../SHD_util.h"
 
+// XXX
+#if 0
 static void node_dynamic_setup(bNode *node);
 static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNodeStack **out);
 static void node_dynamic_free_storage_cb(bNode *node);
@@ -771,5 +774,11 @@ bNodeType node_dynamic_typeinfo = {
 	/* copyfunc    */	node_dynamic_copy_cb,
 	/* id          */	NULL
 };
+
+#else
+
+bNodeType node_dynamic_typeinfo = {NULL};
+
+#endif
 
 

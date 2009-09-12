@@ -1095,13 +1095,13 @@ PyObject * VideoFFmpeg_getPreseek (PyImage *self, void * closure)
 int VideoFFmpeg_setPreseek (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PyInt_Check(value))
+	if (value == NULL || !PyLong_Check(value))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be an integer");
 		return -1;
 	}
 	// set preseek
-	getFFmpeg(self)->setPreseek(PyInt_AsLong(value));
+	getFFmpeg(self)->setPreseek(PyLong_AsSsize_t(value));
 	// success
 	return 0;
 }
@@ -1160,13 +1160,7 @@ static PyGetSetDef videoGetSets[] =
 // python type declaration
 PyTypeObject VideoFFmpegType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.VideoFFmpeg",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
@@ -1284,13 +1278,7 @@ static PyGetSetDef imageGetSets[] =
 // python type declaration
 PyTypeObject ImageFFmpegType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.ImageFFmpeg",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

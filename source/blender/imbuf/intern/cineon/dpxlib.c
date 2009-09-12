@@ -240,7 +240,7 @@ dpxGetRowBytes(DpxFile* dpx, unsigned short* row, int y) {
 	/* read enough longwords */
 	readLongs = pixelsToLongs(numPixels - dpx->pixelBufferUsed);
 	if (logimage_fread(dpx->lineBuffer, 4, readLongs, dpx) != readLongs) {
-		if (verbose) d_printf("Couldn't read line %d length %d\n", y, readLongs * 4);
+		if (verbose) d_printf("Couldn't read line %d length %d\n", y, (int)readLongs * 4);
 		return 1;
 	}
 	++dpx->fileYPos;
@@ -352,7 +352,7 @@ dpxSetRowBytes(DpxFile* dpx, const unsigned short* row, int y) {
 
 	/* write them */
 	if (fwrite(dpx->lineBuffer, 4, writeLongs, dpx->file) != writeLongs) {
-		if (verbose) d_printf("Couldn't write line %d length %d\n", y, writeLongs * 4);
+		if (verbose) d_printf("Couldn't write line %d length %d\n", y, (int)writeLongs * 4);
 		return 1;
 	}
 	++dpx->fileYPos;
@@ -462,7 +462,7 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 	dpx->pixelBuffer = malloc((dpx->lineBufferLength * 3 + 2) * sizeof(unsigned short));
 	if (dpx->pixelBuffer == 0) {
 		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(dpx->width * dpx->depth + 2 + 2) * sizeof(unsigned short));
+				(dpx->width * dpx->depth + 2 + 2) * (int)sizeof(unsigned short));
 		dpxClose(dpx);
 		return 0;
 	}
@@ -604,7 +604,7 @@ dpxCreate(const char* filename, int width, int height, int depth) {
 	dpx->pixelBuffer = malloc((dpx->lineBufferLength * 3 + 2) * sizeof(unsigned short));
 	if (dpx->pixelBuffer == 0) {
 		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(dpx->width * dpx->depth + 2 + 2) * sizeof(unsigned short));
+				(dpx->width * dpx->depth + 2 + 2) * (int)sizeof(unsigned short));
 		dpxClose(dpx);
 		return 0;
 	}

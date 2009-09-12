@@ -31,23 +31,19 @@
 #define SHD_NODE_UTIL_H_
 
 #include <math.h>
+#include <float.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
 #include "DNA_color_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
@@ -62,17 +58,6 @@
 #include "../SHD_node.h"
 #include "node_util.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-#include "BIF_interface.h"
-#include "BIF_interface_icons.h"
-#include "BIF_language.h"
-#include "BIF_mywindow.h"
-#include "BIF_previewrender.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
@@ -81,19 +66,10 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "BSE_drawipo.h"
-#include "BSE_node.h"
-#include "BSE_view.h"
-
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
 #include "GPU_material.h"
-
-#include "butspace.h"
-#include "blendef.h"
-#include "mydevice.h"
-
 
 /* ********* exec data struct, remains internal *********** */
 

@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 #include "BKE_writeavi.h"
 #include "AVI_avi.h"
 
@@ -48,10 +49,6 @@
 
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
-#endif
-
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
-#include "BIF_writeavicodec.h"
 #endif
 
 #ifdef WITH_FFMPEG
@@ -68,7 +65,7 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 	mh.start_movie= start_avi;
 	mh.append_movie= append_avi;
 	mh.end_movie= end_avi;
-	mh.get_next_frame = 0;
+	mh.get_next_frame = NULL;
 	
 	/* do the platform specific handles */
 #ifdef __sgi
@@ -78,9 +75,9 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 #endif
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	if (imtype == R_AVICODEC) {		
-		mh.start_movie= start_avi_codec;
-		mh.append_movie= append_avi_codec;
-		mh.end_movie= end_avi_codec;
+		//XXX mh.start_movie= start_avi_codec;
+		//XXX mh.append_movie= append_avi_codec;
+		//XXX mh.end_movie= end_avi_codec;
 	}
 #endif
 #ifdef WITH_QUICKTIME
@@ -91,7 +88,7 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 	}
 #endif
 #ifdef WITH_FFMPEG
-	if (imtype == R_FFMPEG) {
+	if (ELEM4(imtype, R_FFMPEG, R_H264, R_XVID, R_THEORA)) {
 		mh.start_movie = start_ffmpeg;
 		mh.append_movie = append_ffmpeg;
 		mh.end_movie = end_ffmpeg;
@@ -130,7 +127,7 @@ void makeavistring (RenderData *rd, char *string)
 	}
 }
 
-void start_avi(RenderData *rd, int rectx, int recty)
+void start_avi(struct Scene *scene, RenderData *rd, int rectx, int recty)
 {
 	int x, y;
 	char name[256];
@@ -175,7 +172,7 @@ void start_avi(RenderData *rd, int rectx, int recty)
 	printf("Created avi: %s\n", name);
 }
 
-void append_avi(int frame, int *pixels, int rectx, int recty)
+void append_avi(RenderData *rd, int frame, int *pixels, int rectx, int recty)
 {
 	unsigned int *rt1, *rt2, *rectot;
 	int x, y;

@@ -167,13 +167,13 @@ PyObject * Video_getRepeat (PyImage * self, void * closure)
 int Video_setRepeat (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PyInt_Check(value))
+	if (value == NULL || !PyLong_Check(value))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be an int");
 		return -1;
 	}
 	// set repeat
-	getVideo(self)->setRepeat(int(PyInt_AsLong(value)));
+	getVideo(self)->setRepeat(int(PyLong_AsSsize_t(value)));
 	// success
 	return 0;
 }

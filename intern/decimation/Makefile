@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # decimation main makefile.
@@ -38,16 +40,13 @@ TESTDIRS = test
 
 include nan_subdirs.mk
 
-install: all debug
+install:  $(ALL_OR_DEBUG)
 	@[ -d $(NAN_DECIMATION) ] || mkdir $(NAN_DECIMATION)
 	@[ -d $(NAN_DECIMATION)/include ] || mkdir $(NAN_DECIMATION)/include
-	@[ -d $(NAN_DECIMATION)/lib ] || mkdir $(NAN_DECIMATION)/lib
-	@[ -d $(NAN_DECIMATION)/lib/debug ] || mkdir $(NAN_DECIMATION)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libdecimation.a $(NAN_DECIMATION)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libdecimation.a $(NAN_DECIMATION)/lib/debug/
+	@[ -d $(NAN_DECIMATION)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_DECIMATION)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libdecimation.a $(NAN_DECIMATION)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_DECIMATION)/lib/libdecimation.a
-	ranlib $(NAN_DECIMATION)/lib/debug/libdecimation.a
+	ranlib $(NAN_DECIMATION)/lib/$(DEBUG_DIR)libdecimation.a
 endif
 	@../tools/cpifdiff.sh extern/*.h $(NAN_DECIMATION)/include/
 

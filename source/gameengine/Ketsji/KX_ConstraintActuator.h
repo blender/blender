@@ -126,8 +126,7 @@ protected:
 						  int locrot,
 						  int time,
 						  int option,
-						  char *property,
-						  PyTypeObject* T=&Type);
+						  char *property);
 	virtual ~KX_ConstraintActuator();
 	virtual CValue* GetReplica() {
 		KX_ConstraintActuator* replica = new KX_ConstraintActuator(*this);
@@ -141,35 +140,9 @@ protected:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject* value);
-
 	static int pyattr_check_direction(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_check_min(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetDamp);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDamp);
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetRotDamp);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetRotDamp);
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetDirection);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDirection);
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetOption);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetOption);
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetTime);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetTime);
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetProperty);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetProperty);
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetMin);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMin);
-	static const char SetDistance_doc[];
-	static const char GetDistance_doc[];
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetMax);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMax);
-	static const char SetRayLength_doc[];
-	static const char GetRayLength_doc[];
-	KX_PYMETHOD_DOC_VARARGS(KX_ConstraintActuator,SetLimit);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetLimit);
 };
 
 #endif //__KX_CONSTRAINTACTUATOR

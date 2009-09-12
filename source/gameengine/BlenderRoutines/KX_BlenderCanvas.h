@@ -40,7 +40,12 @@
 
 #include "KX_BlenderGL.h"
 
-struct ScrArea;
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
+struct ARegion;
+struct wmWindow;
 
 /**
  * 2D Blender device context abstraction. 
@@ -57,9 +62,9 @@ private:
 public:
 	/* Construct a new canvas.
 	 * 
-	 * @param area The Blender ScrArea to run the game within.
+	 * @param area The Blender ARegion to run the game within.
 	 */
-	KX_BlenderCanvas(struct ScrArea* area);
+	KX_BlenderCanvas(struct wmWindow* win, struct ARegion* ar);
 	~KX_BlenderCanvas();
 
 		void 
@@ -162,8 +167,16 @@ public:
 
 private:
 	/** Blender area the game engine is running within */
-	struct ScrArea* m_area;
+	struct ARegion* m_ar;
+	struct wmWindow* m_win;
 	RAS_Rect 	m_area_rect;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderCanvas"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // __KX_BLENDERCANVAS

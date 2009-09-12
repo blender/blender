@@ -51,6 +51,15 @@ GHOST_EventManager::GHOST_EventManager()
 GHOST_EventManager::~GHOST_EventManager()
 {
 	disposeEvents();
+
+	TConsumerVector::iterator iter= m_consumers.begin();
+	while (iter != m_consumers.end())
+	{
+		GHOST_IEventConsumer* consumer = *iter;
+		delete consumer;
+		m_consumers.erase(iter);
+		iter = m_consumers.begin();
+	}
 }
 
 

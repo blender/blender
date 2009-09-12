@@ -26,12 +26,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef B_DYNAMIC_LIST_H
-#define B_DYNAMIC_LIST_H
+#ifndef BLI_DYNAMIC_LIST_H
+#define BLI_DYNAMIC_LIST_H
 
-#define PAGE_SIZE 4
-
-struct ListBase;
+#include "DNA_listBase.h"
 
 /*
  * Access array using realloc 
@@ -51,5 +49,17 @@ typedef struct DynamicList {
 	struct DynamicArray da;		/* access array */
 	struct ListBase lb;		/* two way linked dynamic list */
 } DynamicList;
+
+/* note: 'index' is a string.h function, do not use in includes */
+struct DynamicList *BLI_dlist_from_listbase(struct ListBase *);
+struct ListBase *BLI_listbase_from_dlist(struct DynamicList *, struct ListBase *);
+void * BLI_dlist_find_link(struct DynamicList *, unsigned int);
+unsigned int BLI_count_items(struct DynamicList *);
+void BLI_dlist_free_item(struct DynamicList *, unsigned int);
+void BLI_dlist_rem_item(struct DynamicList *, unsigned int);
+void * BLI_dlist_add_item_index(struct DynamicList *, void *, unsigned int);
+void BLI_dlist_destroy(struct DynamicList *);
+void BLI_dlist_init(struct DynamicList *);
+void BLI_dlist_reinit(struct DynamicList *);
 
 #endif

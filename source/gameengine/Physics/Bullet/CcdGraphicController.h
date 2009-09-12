@@ -75,6 +75,12 @@ private:
 	btBroadphaseProxy* m_handle;
 	void* m_newClientInfo;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CcdGraphicController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //BULLET2_PHYSICSCONTROLLER_H

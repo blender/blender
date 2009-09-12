@@ -45,7 +45,6 @@
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
-#include "mydevice.h"
 
 #include "Bullet-C-Api.h"
 
@@ -592,7 +591,9 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 	ClothModifierData *clmd = ( ClothModifierData * ) md1;
 	CollisionModifierData *collmd = ( CollisionModifierData * ) md2;
 	MFace *face1=NULL, *face2 = NULL;
+#ifdef USE_BULLET
 	ClothVertex *verts1 = clmd->clothObject->verts;
+#endif
 	double distance = 0;
 	float epsilon1 = clmd->coll_parms->epsilon;
 	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
@@ -668,7 +669,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 				break;
 		}
 
-#ifdef WITH_BULLET
+#ifdef USE_BULLET
 		// calc distance + normal
 		distance = plNearestPoints (
 			verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector );
@@ -1295,7 +1296,7 @@ int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *col
 
 // return all collision objects in scene
 // collision object will exclude self 
-CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
+CollisionModifierData **get_collisionobjects(Scene *scene, Object *self, int *numcollobj)
 {
 	Base *base=NULL;
 	CollisionModifierData **objs = NULL;
@@ -1305,7 +1306,7 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 	
 	objs = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
 	// check all collision objects
-	for ( base = G.scene->base.first; base; base = base->next )
+	for ( base = scene->base.first; base; base = base->next )
 	{
 		/*Only proceed for mesh object in same layer */
 		if(!(base->object->type==OB_MESH && (base->lay & self->lay))) 
@@ -1450,7 +1451,7 @@ int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, CollisionModifie
 }
 
 // cloth - object collisions
-int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, float dt )
+int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, float dt )
 {
 	Cloth *cloth=NULL;
 	BVHTree *cloth_bvh=NULL;
@@ -1480,7 +1481,7 @@ int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, f
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
-	collobjs = get_collisionobjects(ob, &numcollobj);
+	collobjs = get_collisionobjects(clmd->scene, ob, &numcollobj);
 	
 	if(!collobjs)
 		return 0;

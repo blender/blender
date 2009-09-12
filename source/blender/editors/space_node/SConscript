@@ -1,0 +1,18 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf'
+incs += ' ../../nodes ../../render/extern/include'
+incs += ' ../../windowmanager #intern/guardedalloc #extern/glew/include'
+defs = []
+cf = []
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+	#cf.append('/WX')
+	pass
+if env['CC'] == 'gcc':
+	#cf.append('-Werror')
+	pass
+	
+env.BlenderLib ( 'bf_editors_space_node', sources, Split(incs), defs, libtype=['core'], priority=[55], compileflags=cf )

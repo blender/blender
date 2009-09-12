@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -950,9 +950,6 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	if(ntype->initfunc!=NULL)
 		ntype->initfunc(node);
 	
-	if(type==TEX_NODE_OUTPUT)
-		ntreeTexAssignIndex(ntree, node);
-
 	nodeAddSockets(node, ntype);
 	
 	return node;
@@ -994,7 +991,7 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	*nnode= *node;
 	BLI_addtail(&ntree->nodes, nnode);
 	
-	duplicatelist(&nnode->inputs, &node->inputs);
+	BLI_duplicatelist(&nnode->inputs, &node->inputs);
 	oldsock= node->inputs.first;
 	for(sock= nnode->inputs.first; sock; sock= sock->next, oldsock= oldsock->next) {
 		oldsock->new_sock= sock;
@@ -1002,7 +999,7 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 			sock->own_index= 0;
 	}
 	
-	duplicatelist(&nnode->outputs, &node->outputs);
+	BLI_duplicatelist(&nnode->outputs, &node->outputs);
 	oldsock= node->outputs.first;
 	for(sock= nnode->outputs.first; sock; sock= sock->next, oldsock= oldsock->next) {
 		if(internal)
@@ -1012,8 +1009,7 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 		oldsock->new_sock= sock;
 	}
 	
-	if(nnode->id)
-		nnode->id->us++;
+	/* don't increase node->id users, freenode doesn't decrement either */
 	
 	if(node->typeinfo->copystoragefunc)
 		node->typeinfo->copystoragefunc(node, nnode);
@@ -1022,9 +1018,6 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	nnode->new_node= NULL;
 	nnode->preview= NULL;
 	
-	if(node->type==TEX_NODE_OUTPUT)
-		ntreeTexAssignIndex(ntree, node);
-
 	return nnode;
 }
 
@@ -1056,6 +1049,14 @@ bNodeTree *ntreeAddTree(int type)
 	ntree->type= type;
 	ntree->alltypes.first = NULL;
 	ntree->alltypes.last = NULL;
+
+	/* this helps RNA identify ID pointers as nodetree */
+    if(ntree->type==NTREE_SHADER)
+		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
+    else if(ntree->type==NTREE_COMPOSIT)
+		BLI_strncpy(ntree->id.name, "NTComposit Nodetree", sizeof(ntree->id.name));
+    else if(ntree->type==NTREE_TEXTURE)
+		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
 	
 	ntreeInitTypes(ntree);
 	return ntree;
@@ -1124,7 +1125,8 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	
 	/* check for copying links */
 	for(link= ntree->links.first; link; link= link->next) {
-		if(link->fromnode->new_node && link->tonode->new_node) {
+		if(link->fromnode==NULL || link->tonode==NULL);
+		else if(link->fromnode->new_node && link->tonode->new_node) {
 			nlink= nodeAddLink(newtree, link->fromnode->new_node, NULL, link->tonode->new_node, NULL);
 			/* sockets were copied in order */
 			for(a=0, sock= link->fromnode->outputs.first; sock; sock= sock->next, a++) {
@@ -1157,6 +1159,104 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 
 	return newtree;
 }
+
+/* *************** preview *********** */
+/* if node->preview, then we assume the rect to exist */
+
+static void node_free_preview(bNode *node)
+{
+	if(node->preview) {
+		if(node->preview->rect)
+			MEM_freeN(node->preview->rect);
+		MEM_freeN(node->preview);
+		node->preview= NULL;
+	}	
+}
+
+static void node_init_preview(bNode *node, int xsize, int ysize)
+{
+	
+	if(node->preview==NULL) {
+		node->preview= MEM_callocN(sizeof(bNodePreview), "node preview");
+		//		printf("added preview %s\n", node->name);
+	}
+	
+	/* node previews can get added with variable size this way */
+	if(xsize==0 || ysize==0)
+		return;
+	
+	/* sanity checks & initialize */
+	if(node->preview->rect) {
+		if(node->preview->xsize!=xsize && node->preview->ysize!=ysize) {
+			MEM_freeN(node->preview->rect);
+			node->preview->rect= NULL;
+		}
+	}
+	
+	if(node->preview->rect==NULL) {
+		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(float)*4, "node preview rect");
+		node->preview->xsize= xsize;
+		node->preview->ysize= ysize;
+	}
+}
+
+void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)
+{
+	bNode *node;
+	
+	if(ntree==NULL)
+		return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->flag & NODE_PREVIEW)	/* hrms, check for closed nodes? */
+			node_init_preview(node, xsize, ysize);
+		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+			ntreeInitPreview((bNodeTree *)node->id, xsize, ysize);
+	}		
+}
+
+static void nodeClearPreview(bNode *node)
+{
+	if(node->preview && node->preview->rect)
+		memset(node->preview->rect, 0, MEM_allocN_len(node->preview->rect));
+}
+
+/* use it to enforce clear */
+void ntreeClearPreview(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL)
+		return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->flag & NODE_PREVIEW)
+			nodeClearPreview(node);
+		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+			ntreeClearPreview((bNodeTree *)node->id);
+	}		
+}
+
+/* hack warning! this function is only used for shader previews, and 
+since it gets called multiple times per pixel for Ztransp we only
+add the color once. Preview gets cleared before it starts render though */
+void nodeAddToPreview(bNode *node, float *col, int x, int y)
+{
+	bNodePreview *preview= node->preview;
+	if(preview) {
+		if(x>=0 && y>=0) {
+			if(x<preview->xsize && y<preview->ysize) {
+				float *tar= preview->rect+ 4*((preview->xsize*y) + x);
+				//if(tar[0]==0.0f) {
+				QUATCOPY(tar, col);
+				//}
+			}
+			//else printf("prv out bound x y %d %d\n", x, y);
+		}
+		//else printf("prv out bound x y %d %d\n", x, y);
+	}
+}
+
 
 /* ************** Free stuff ********** */
 
@@ -1215,11 +1315,8 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	BLI_freelistN(&node->inputs);
 	BLI_freelistN(&node->outputs);
 	
-	if(node->preview) {
-		if(node->preview->rect)
-			MEM_freeN(node->preview->rect);
-		MEM_freeN(node->preview);
-	}
+	node_free_preview(node);
+
 	if(node->typeinfo && node->typeinfo->freestoragefunc) {
 		node->typeinfo->freestoragefunc(node);
 	}
@@ -1653,14 +1750,8 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 
 		for(sock= node->outputs.first; sock; sock= sock->next) {
 			if(sock->ns.data) {
-				free_compbuf(sock->ns.data);
-				sock->ns.data= NULL;
-				
-				//if(node->preview && node->preview->rect) {
-				//	MEM_freeN(node->preview->rect);
-				//	node->preview->rect= NULL;
-				//}
-					
+				//free_compbuf(sock->ns.data);
+				//sock->ns.data= NULL;
 			}
 		}
 		node->need_exec= 1;
@@ -1678,95 +1769,6 @@ void NodeTagIDChanged(bNodeTree *ntree, ID *id)
 		for(node= ntree->nodes.first; node; node= node->next)
 			if(node->id==id)
 				NodeTagChanged(ntree, node);
-	}
-}
-
-
-/* *************** preview *********** */
-
-/* if node->preview, then we assume the rect to exist */
-
-static void nodeInitPreview(bNode *node, int xsize, int ysize)
-{
-	
-	if(node->preview==NULL) {
-		node->preview= MEM_callocN(sizeof(bNodePreview), "node preview");
-//		printf("added preview %s\n", node->name);
-	}
-	
-	/* node previews can get added with variable size this way */
-	if(xsize==0 || ysize==0)
-		return;
-	
-	/* sanity checks & initialize */
-	if(node->preview->rect) {
-		if(node->preview->xsize!=xsize && node->preview->ysize!=ysize) {
-			MEM_freeN(node->preview->rect);
-			node->preview->rect= NULL;
-		}
-	}
-	
-	if(node->preview->rect==NULL) {
-		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(float)*4, "node preview rect");
-		node->preview->xsize= xsize;
-		node->preview->ysize= ysize;
-	}
-}
-
-void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)
-{
-	bNode *node;
-	
-	if(ntree==NULL)
-		return;
-	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->flag & NODE_PREVIEW)	/* hrms, check for closed nodes? */
-			nodeInitPreview(node, xsize, ysize);
-		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
-			ntreeInitPreview((bNodeTree *)node->id, xsize, ysize);
-	}		
-}
-
-static void nodeClearPreview(bNode *node)
-{
-	if(node->preview && node->preview->rect)
-		memset(node->preview->rect, 0, MEM_allocN_len(node->preview->rect));
-}
-
-/* use it to enforce clear */
-void ntreeClearPreview(bNodeTree *ntree)
-{
-	bNode *node;
-	
-	if(ntree==NULL)
-		return;
-	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->flag & NODE_PREVIEW)
-			nodeClearPreview(node);
-		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
-			ntreeClearPreview((bNodeTree *)node->id);
-	}		
-}
-
-/* hack warning! this function is only used for shader previews, and 
-   since it gets called multiple times per pixel for Ztransp we only
-   add the color once. Preview gets cleared before it starts render though */
-void nodeAddToPreview(bNode *node, float *col, int x, int y)
-{
-	bNodePreview *preview= node->preview;
-	if(preview) {
-		if(x>=0 && y>=0) {
-			if(x<preview->xsize && y<preview->ysize) {
-				float *tar= preview->rect+ 4*((preview->xsize*y) + x);
-				if(tar[0]==0.0f) {
-					QUATCOPY(tar, col);
-				}
-			}
-			//else printf("prv out bound x y %d %d\n", x, y);
-		}
-		//else printf("prv out bound x y %d %d\n", x, y);
 	}
 }
 
@@ -2223,7 +2225,7 @@ static void *exec_composite_node(void *node_v)
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
 	bNode *node= node_v;
-	ThreadData *thd= (ThreadData *)node->new_node; /* abuse */
+	ThreadData *thd= (ThreadData *)node->threaddata;
 	
 	node_get_stack(node, thd->stack, nsin, nsout);
 	
@@ -2287,8 +2289,10 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 			/* is sock in use? */
 			else if(sock->link) {
 				bNodeLink *link= sock->link;
+				
 				/* this is the test for a cyclic case */
-				if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
+				if(link->fromnode==NULL || link->tonode==NULL);
+				else if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
 					if(link->fromnode->need_exec) {
 						node->need_exec= 1;
 						break;
@@ -2318,7 +2322,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 		}
 		else {
 			/* tag for getExecutableNode() */
-			node->exec= NODE_READY|NODE_FINISHED;
+			node->exec= NODE_READY|NODE_FINISHED|NODE_SKIPPED;
 			
 		}
 	}
@@ -2428,7 +2432,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 
 	/* sets need_exec tags in nodes */
 	totnode= setExecutableNodes(ntree, &thdata);
-	
+
 	BLI_init_threads(&threads, exec_composite_node, rd->threads);
 	
 	while(rendering) {
@@ -2436,17 +2440,17 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		if(BLI_available_threads(&threads)) {
 			node= getExecutableNode(ntree);
 			if(node) {
-
+				
 				if(ntree->timecursor)
-					ntree->timecursor(totnode);
+					ntree->timecursor(ntree->tch, totnode);
 				if(ntree->stats_draw) {
 					char str[64];
 					sprintf(str, "Compositing %d %s", totnode, node->name);
-					ntree->stats_draw(str);
+					ntree->stats_draw(ntree->sdh, str);
 				}
 				totnode--;
 				
-				node->new_node = (bNode *)&thdata;
+				node->threaddata = &thdata;
 				node->exec= NODE_PROCESSING;
 				BLI_insert_thread(&threads, node);
 			}
@@ -2458,7 +2462,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		
 		rendering= 0;
 		/* test for ESC */
-		if(ntree->test_break && ntree->test_break()) {
+		if(ntree->test_break && ntree->test_break(ntree->tbh)) {
 			for(node= ntree->nodes.first; node; node= node->next)
 				node->exec |= NODE_READY;
 		}
@@ -2479,11 +2483,130 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		}
 	}
 	
-	
 	BLI_end_threads(&threads);
 	
 	ntreeEndExecTree(ntree);
 }
+
+
+/* ********** copy composite tree entirely, to allow threaded exec ******************* */
+/* ***************** do NOT execute this in a thread!               ****************** */
+
+/* returns localized composite tree for execution in threads */
+/* local tree then owns all compbufs */
+bNodeTree *ntreeLocalize(bNodeTree *ntree)
+{
+	bNodeTree *ltree= ntreeCopyTree(ntree, 0);
+	bNode *node;
+	bNodeSocket *sock;
+	
+	/* move over the compbufs */
+	/* right after ntreeCopyTree() oldsock pointers are valid */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		
+		/* store new_node pointer to original */
+		node->new_node->new_node= node;
+		/* ensure new user input gets handled ok */
+		node->need_exec= 0;
+		
+		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+			if(node->id) {
+				if(node->flag & NODE_DO_OUTPUT)
+					node->new_node->id= (ID *)BKE_image_copy((Image *)node->id);
+				else
+					node->new_node->id= NULL;
+			}
+		}
+		
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			
+			sock->new_sock->ns.data= sock->ns.data;
+			sock->ns.data= NULL;
+			sock->new_sock->new_sock= sock;
+		}
+	}
+	
+	return ltree;
+}
+
+static int node_exists(bNodeTree *ntree, bNode *testnode)
+{
+	bNode *node= ntree->nodes.first;
+	for(; node; node= node->next)
+		if(node==testnode)
+			return 1;
+	return 0;
+}
+
+static int outsocket_exists(bNode *node, bNodeSocket *testsock)
+{
+	bNodeSocket *sock= node->outputs.first;
+	for(; sock; sock= sock->next)
+		if(sock==testsock)
+			return 1;
+	return 0;
+}
+
+
+/* sync local composite with real tree */
+/* local composite is supposed to be running, be careful moving previews! */
+void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
+{
+	bNode *lnode;
+	
+	/* move over the compbufs and previews */
+	for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		if( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
+			if(node_exists(ntree, lnode->new_node)) {
+				
+				if(lnode->preview && lnode->preview->rect) {
+					node_free_preview(lnode->new_node);
+					lnode->new_node->preview= lnode->preview;
+					lnode->preview= NULL;
+				}
+			}
+		}
+	}
+}
+
+/* merge local tree results back, and free local tree */
+/* we have to assume the editor already changed completely */
+void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
+{
+	bNode *lnode;
+	bNodeSocket *lsock;
+	
+	/* move over the compbufs and previews */
+	for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		if(node_exists(ntree, lnode->new_node)) {
+			
+			if(lnode->preview && lnode->preview->rect) {
+				node_free_preview(lnode->new_node);
+				lnode->new_node->preview= lnode->preview;
+				lnode->preview= NULL;
+			}
+			
+			if(ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				if(lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
+					/* image_merge does sanity check for pointers */
+					BKE_image_merge((Image *)lnode->new_node->id, (Image *)lnode->id);
+				}
+			}
+			
+			for(lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
+				if(outsocket_exists(lnode->new_node, lsock->new_sock)) {
+					lsock->new_sock->ns.data= lsock->ns.data;
+					lsock->ns.data= NULL;
+						lsock->new_sock= NULL;
+				}
+			}
+		}
+	}
+	ntreeFreeTree(localtree);
+	MEM_freeN(localtree);
+}
+
+/* *********************************************** */
 
 /* GPU material from shader nodes */
 
@@ -2646,7 +2769,7 @@ static void force_hidden_passes(bNode *node, int passflag)
 }
 
 /* based on rules, force sockets hidden always */
-void ntreeCompositForceHidden(bNodeTree *ntree)
+void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
 {
 	bNode *node;
 	
@@ -2654,7 +2777,7 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if( node->type==CMP_NODE_R_LAYERS) {
-			Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
+			Scene *sce= node->id?(Scene *)node->id:curscene;
 			SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
 			if(srl)
 				force_hidden_passes(node, srl->passflag);
@@ -2809,6 +2932,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_viewer);
 	nodeRegisterType(ntypelist, &cmp_node_splitviewer);
 	nodeRegisterType(ntypelist, &cmp_node_output_file);
+	nodeRegisterType(ntypelist, &cmp_node_view_levels);
 	
 	nodeRegisterType(ntypelist, &cmp_node_curve_rgb);
 	nodeRegisterType(ntypelist, &cmp_node_mix_rgb);
@@ -2848,7 +2972,9 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_premulkey);
 	
 	nodeRegisterType(ntypelist, &cmp_node_diff_matte);
-	nodeRegisterType(ntypelist, &cmp_node_chroma);
+	nodeRegisterType(ntypelist, &cmp_node_distance_matte);
+	nodeRegisterType(ntypelist, &cmp_node_chroma_matte);
+	nodeRegisterType(ntypelist, &cmp_node_color_matte);
 	nodeRegisterType(ntypelist, &cmp_node_channel_matte);
 	nodeRegisterType(ntypelist, &cmp_node_color_spill);
 	nodeRegisterType(ntypelist, &cmp_node_luma_matte);
@@ -2983,3 +3109,29 @@ void free_nodesystem(void)
 	BLI_freelistN(&node_all_shaders);
 	BLI_freelistN(&node_all_textures);
 }
+
+/* called from unlink_scene, when deleting a scene goes over all scenes
+ * other than the input, checks if they have render layer nodes referencing
+ * the to-be-deleted scene, and resets them to NULL. */
+
+/* XXX needs to get current scene then! */
+void clear_scene_in_nodes(Main *bmain, Scene *sce)
+{
+	Scene *sce1;
+	bNode *node;
+
+	for(sce1= bmain->scene.first; sce1; sce1=sce1->id.next) {
+		if(sce1!=sce) {
+			if(sce1->nodetree) {
+				for(node= sce1->nodetree->nodes.first; node; node= node->next) {
+					if(node->type==CMP_NODE_R_LAYERS) {
+						Scene *nodesce= (Scene *)node->id;
+						
+						if (nodesce==sce) node->id = NULL;
+					}
+				}
+			}
+		}
+	}
+}
+

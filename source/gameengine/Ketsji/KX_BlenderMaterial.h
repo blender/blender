@@ -15,6 +15,10 @@
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 struct MTFace;
 class KX_Scene;
 
@@ -23,9 +27,7 @@ class KX_BlenderMaterial :  public PyObjectPlus, public RAS_IPolyMaterial
 	Py_Header;
 public:
 	// --------------------------------
-	KX_BlenderMaterial(
-		PyTypeObject*	T=&Type
-	);
+	KX_BlenderMaterial();
 	void Initialize(
 		class KX_Scene*	scene,
 		BL_Material*	mat,
@@ -82,10 +84,7 @@ public:
 	);
 	
 	// --------------------------------
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
-	virtual PyObject* py_repr(void) { return PyString_FromString(mMaterial->matname.ReadPtr()); }
+	virtual PyObject* py_repr(void) { return PyUnicode_FromString(mMaterial->matname.ReadPtr()); }
 
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getShader );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getMaterialIndex );

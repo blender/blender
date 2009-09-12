@@ -27,30 +27,20 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../makesdna ../blenkernel ../../../intern/guardedalloc ../include
-  ${FREETYPE_INC}
-  ${SDL_INC}
-  ${ZLIB_INC}
+	. ../makesdna ../blenkernel ../../../intern/guardedalloc ../include
+	${FREETYPE_INCLUDE_DIRS}
+	${ZLIB_INC}
 )
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 SET(INC
-  ${INC}
-  ${BINRELOC_INC}
+	${INC}
+	${BINRELOC_INC}
 )
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} ${VERSE_INC})
-ENDIF(WITH_VERSE)
-
-IF(WITH_INTERNATIONAL)
-  ADD_DEFINITIONS(-DWITH_FREETYPE2)
-ENDIF(WITH_INTERNATIONAL)
-
 IF(WIN32)
-  SET(INC ${INC} ${PTHREADS_INC})
+	SET(INC ${INC} ${PTHREADS_INC})
 ENDIF(WIN32)
 
 BLENDERLIB(bf_blenlib "${SRC}" "${INC}")

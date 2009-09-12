@@ -35,7 +35,10 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* called by meshtools */
-void	RE_make_sticky(void);
+struct View3D;
+struct Scene;
+
+void	RE_make_sticky(struct Scene *scene, struct View3D *v3d);
 	
 /* for radiosity module */	
 struct RadView;
@@ -44,7 +47,8 @@ struct Render;
 struct MTex;
 struct ImBuf;
 
-void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_totelem, struct Render *re);
+// RADIO REMOVED, Maybe this will be useful later
+//void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_totelem, struct Render *re);
 
 /* particle.c, effect.c, editmesh_modes.c and brush.c, returns 1 if rgb, 0 otherwise */
 int	externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta);

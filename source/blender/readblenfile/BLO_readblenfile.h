@@ -35,21 +35,23 @@
 extern "C" {
 #endif
 
+struct ReportList;
+
 	BlendFileData *
 BLO_readblenfilename(
 	char *fileName, 
-	BlendReadError *error_r);
+	struct ReportList *reports);
 
 	BlendFileData *
 BLO_readblenfilehandle(
 	int fileHandle, 
-	BlendReadError *error_r);
+	struct ReportList *reports);
 
 	BlendFileData *
 BLO_readblenfilememory(
 	char *fromBuffer,
 	int fromBufferSize, 
-	BlendReadError *error_r);
+	struct ReportList *reports);
 
 
 	void
@@ -68,7 +70,7 @@ blo_is_a_runtime(
 	BlendFileData *
 blo_read_runtime(
 	char *file, 
-	BlendReadError *error_r);
+	struct ReportList *reports);
 
 #define BLO_RESERVEDSIZE 12
 extern char *headerMagic;

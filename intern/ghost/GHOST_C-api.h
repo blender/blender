@@ -367,6 +367,17 @@ extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 											  GHOST_TInt32 x,
 											  GHOST_TInt32 y);
 
+/**
+ * Grabs the cursor for a modal operation, to keep receiving
+ * events when the mouse is outside the window. X11 only, others
+ * do this automatically.
+ * @param windowhandle The handle to the window
+ * @param	grab The new grab state of the cursor.
+ * @return	Indication of success.
+ */
+extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
+										  int grab);
+
 /***************************************************************************************
  ** Access to mouse button and keyboard states.
  ***************************************************************************************/
@@ -771,14 +782,16 @@ extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 
 /**
  * Return the data from the clipboad
- * @return clipboard data
+ * @param	return the selection instead, X11 only feature
+ * @return	clipboard data
  */
-extern GHOST_TUns8* GHOST_getClipboard(int flag);
+extern GHOST_TUns8* GHOST_getClipboard(int selection);
 
 /**
  * Put data to the Clipboard
+ * @param	set the selection instead, X11 only feature
  */
-extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag);
+extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
 
 #ifdef __cplusplus
 }

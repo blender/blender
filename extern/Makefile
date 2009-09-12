@@ -30,11 +30,7 @@ include nan_definitions.mk
 
 SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid glew/src
-
-ifeq ($(WITH_FREETYPE2), true)
-    DIRS += bFTGL/src
-endif
+DIRS = glew/src
 
 ifeq ($(WITH_FFMPEG), true)
 ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)
@@ -43,10 +39,6 @@ endif
 ifeq ($(NAN_FFMPEG), $(LCGDIR)/gcc/ffmpeg)
     DIRS += ffmpeg
 endif
-endif
-
-ifeq ($(WITH_VERSE), true)
-   DIRS += verse
 endif
 
 # Cloth requires it
@@ -60,6 +52,14 @@ endif
 
 ifeq ($(WITH_OPENJPEG), true)
     DIRS += libopenjpeg
+endif
+
+ifeq ($(WITH_LZO), true)
+    DIRS += lzo/minilzo
+endif
+
+ifeq ($(WITH_LZMA), true)
+    DIRS += lzma
 endif
 
 TARGET = solid

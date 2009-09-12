@@ -29,11 +29,22 @@
 #ifndef KX_ISCALARINTERPOLATOR_H
 #define KX_ISCALARINTERPOLATOR_H
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class KX_IScalarInterpolator {	
 public:
 	virtual ~KX_IScalarInterpolator() {}
 	
 	virtual float GetValue(float currentTime) const = 0; 
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_IScalarInterpolator"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

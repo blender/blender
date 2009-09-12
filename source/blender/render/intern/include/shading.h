@@ -33,6 +33,7 @@ struct VlakRen;
 struct StrandSegment;
 struct StrandPoint;
 struct ObjectInstanceRen obi;
+struct Isect;
 
 /* shadeinput.c */
 
@@ -52,6 +53,7 @@ typedef struct ShadeSample {
 
 	/* also the node shader callback */
 void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
+void shade_volume_loop(struct ShadeInput *shi, struct ShadeResult *shr);
 
 void shade_input_set_triangle_i(struct ShadeInput *shi, struct ObjectInstanceRen *obi, struct VlakRen *vlr, short i1, short i2, short i3);
 void shade_input_set_triangle(struct ShadeInput *shi, volatile int obi, volatile int facenr, int normal_flip);
@@ -66,6 +68,7 @@ void shade_input_set_strand(struct ShadeInput *shi, struct StrandRen *strand, st
 void shade_input_set_strand_texco(struct ShadeInput *shi, struct StrandRen *strand, struct StrandVert *svert, struct StrandPoint *spoint);
 void shade_input_do_shade(struct ShadeInput *shi, struct ShadeResult *shr);
 
+void shade_input_init_material(struct ShadeInput *shi);
 void shade_input_initialize(struct ShadeInput *shi, struct RenderPart *pa, struct RenderLayer *rl, int sample);
 
 void shade_sample_initialize(struct ShadeSample *ssamp, struct RenderPart *pa, struct RenderLayer *rl);
@@ -86,7 +89,11 @@ void shade_color(struct ShadeInput *shi, ShadeResult *shr);
 void ambient_occlusion_to_diffuse(struct ShadeInput *shi, float *diff);
 void ambient_occlusion(struct ShadeInput *shi);
 
+ListBase *get_lights(struct ShadeInput *shi);
 float lamp_get_visibility(struct LampRen *lar, float *co, float *lv, float *dist);
 void lamp_get_shadow(struct LampRen *lar, ShadeInput *shi, float inp, float *shadfac, int do_real);
 
 float	fresnel_fac(float *view, float *vn, float fresnel, float fac);
+
+/* rayshade.c */
+extern void shade_ray(struct Isect *is, struct ShadeInput *shi, struct ShadeResult *shr);

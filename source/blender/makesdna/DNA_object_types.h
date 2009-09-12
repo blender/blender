@@ -35,7 +35,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +42,7 @@ extern "C" {
 
 struct bPose;	
 struct Object;
+struct AnimData;
 struct Ipo;
 struct BoundBox;
 struct Path;
@@ -53,7 +53,11 @@ struct SoftBody;
 struct FluidsimSettings;
 struct ParticleSystem;
 struct DerivedMesh;
+struct SculptSession;
+struct bGPdata;
 
+
+/* Vertex Groups - Name Info */
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
 	char name[32];
@@ -90,7 +94,10 @@ typedef struct BoundBox {
 
 typedef struct Object {
 	ID id;
+	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
 
+	struct SculptSession *sculpt;
+	
 	short type, partype;
 	int par1, par2, par3;	/* can be vertexnrs */
 	char parsubstr[32];	/* String describing subobject info */
@@ -98,21 +105,30 @@ typedef struct Object {
 	/* if ob->proxy (or proxy_group), this object is proxy for object ob->proxy */
 	/* proxy_from is set in target back to the proxy. */
 	struct Object *proxy, *proxy_group, *proxy_from;
-	struct Ipo *ipo;
+	struct Ipo *ipo;		// XXX depreceated... old animation system
 	struct Path *path;
 	struct BoundBox *bb;
-	struct bAction *action;	
+	struct bAction *action;	 // XXX depreceated... old animation system
 	struct bAction *poselib;
 	struct bPose *pose;	
 	void *data;
 	
-	ListBase constraintChannels;
+	struct bGPdata *gpd;	/* Grease Pencil data */
+	
+	ListBase constraintChannels; // XXX depreceated... old animation system
 	ListBase effect;
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
-	
-	struct Material **mat;
+
+	int mode;           /* Local object mode */
+	int restore_mode;   /* Keep track of what mode to return to after toggling a mode */
+
+	/* materials */
+	struct Material **mat;	/* material slots */
+	char *matbits;			/* 1 if material linked to object */
+	int totcol;				/* copy of mesh or curve or meta */
+	int actcol;				/* currently selected material in the UI */
 	
 	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
@@ -127,17 +143,17 @@ typedef struct Object {
 	unsigned int lay;				/* copy of Base */
 	
 	short flag;			/* copy of Base */
-	short colbits;		/* when zero, from obdata */
+	short colbits;		/* deprecated */
 	
-	short transflag, ipoflag;	/* transformation and ipo settings */
+	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
-	short nlaflag, protectflag;	/* nlaflag defines NLA override, protectflag is bits to lock transform */
+	short nlaflag, ipoflag;		// xxx depreceated... old animation system
 	short ipowin, scaflag;		/* ipowin: blocktype last ipowindow */
 	short scavisflag, boundtype;
 	
 	int dupon, dupoff, dupsta, dupend;
 
-	float sf, ctime; /* sf is time-offset, ctime is the objects current time */
+	float sf, ctime; /* sf is time-offset, ctime is the objects current time (XXX timing needs to be revised) */
 	
 	/* during realtime */
 
@@ -162,13 +178,10 @@ typedef struct Object {
 	float m_contactProcessingThreshold;
 
 	char dt, dtx;
-	char totcol;	/* copy of mesh or curve or meta */
-	char actcol;	/* currently selected material in the user interface */
-	char empty_drawtype, pad1[3];
+	char empty_drawtype, pad1[5];
 	float empty_drawsize;
 	float dupfacesca;	/* dupliface scale */
 	
-	ScriptLink scriptlink;
 	ListBase prop;
 	ListBase sensors;
 	ListBase controllers;
@@ -201,8 +214,8 @@ typedef struct Object {
 	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 
-	ListBase constraints;
-	ListBase nlastrips;
+	ListBase constraints;		/* object constraints */
+	ListBase nlastrips;			// XXX depreceated... old animation system
 	ListBase hooks;
 	ListBase particlesystem;	/* particle systems */
 	
@@ -225,13 +238,11 @@ typedef struct Object {
 	int lastDataMask;			/* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
 	unsigned int state;			/* bit masks of game controllers that are active */
 	unsigned int init_state;	/* bit masks of initial state as recorded by the users */
+
 	int pad2;
 
-/*#ifdef WITH_VERSE*/
-	void *vnode;			/* pointer at object VerseNode */
-/*#endif*/
-
 	ListBase gpulamp;		/* runtime, for lamps only */
+	ListBase pc_ids;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -308,6 +319,7 @@ extern Object workob;
 #define OB_RENDER_DUPLI		4096
 
 /* (short) ipoflag */
+	// XXX depreceated - old animation system crap
 #define OB_DRAWKEY			1
 #define OB_DRAWKEYSEL		2
 #define OB_OFFS_OB			4
@@ -341,18 +353,6 @@ extern Object workob;
 #define OB_SOLID		3
 #define OB_SHADED		4
 #define OB_TEXTURE		5
-
-/* this condition has been made more complex since editmode can draw textures */
-#define CHECK_OB_DRAWTEXTURE(vd, dt) \
-	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
-	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
-
-#define CHECK_OB_DRAWFACEDOT(sce, vd, dt) \
-	(	(sce->selectmode & SCE_SELECT_FACE) && \
-		(vd->drawtype<=OB_SOLID) && \
-		(((vd->drawtype==OB_SOLID) && (dt>=OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX) && (vd->flag & V3D_ZBUF_SELECT)) == 0) \
-	)
-
 
 /* dtx: flags, char! */
 #define OB_AXIS			2
@@ -408,7 +408,6 @@ extern Object workob;
 #define OB_DONE				1024
 #define OB_RADIO			2048
 #define OB_FROMGROUP		4096
-#define OB_POSEMODE			8192
 
 /* ob->recalc (flag bits!) */
 #define OB_RECALC_OB		1
@@ -488,8 +487,20 @@ extern Object workob;
 #define OB_SHAPE_TEMPLOCK	2
 
 /* ob->nlaflag */
-#define OB_NLA_OVERRIDE		1
-#define OB_NLA_COLLAPSED	2
+	// XXX depreceated - old animation system
+#define OB_NLA_OVERRIDE		(1<<0)
+#define OB_NLA_COLLAPSED	(1<<1)
+
+	/* object-channel expanded status */
+#define OB_ADS_COLLAPSED	(1<<10)
+	/* object's ipo-block */
+#define OB_ADS_SHOWIPO		(1<<11)
+	/* object's constraint channels */
+#define OB_ADS_SHOWCONS		(1<<12)
+	/* object's material channels */
+#define OB_ADS_SHOWMATS		(1<<13)
+	/* object's marticle channels */
+#define OB_ADS_SHOWPARTS	(1<<14)
 
 /* ob->protectflag */
 #define OB_LOCK_LOCX	1
@@ -504,8 +515,20 @@ extern Object workob;
 #define OB_LOCK_SCALEY	128
 #define OB_LOCK_SCALEZ	256
 #define OB_LOCK_SCALE	448
+#define OB_LOCK_ROTW	512
+#define OB_LOCK_ROT4D	1024
 
-/* ob->softflag in DNA_object_force.h */
+/* ob->mode */
+typedef enum ObjectMode {
+	OB_MODE_OBJECT = 0,
+	OB_MODE_EDIT = 1,
+	OB_MODE_SCULPT = 2,
+	OB_MODE_VERTEX_PAINT = 4,
+	OB_MODE_WEIGHT_PAINT = 8,
+	OB_MODE_TEXTURE_PAINT = 16,
+	OB_MODE_PARTICLE_EDIT = 32,
+	OB_MODE_POSE = 64
+} ObjectMode;
 
 #ifdef __cplusplus
 }

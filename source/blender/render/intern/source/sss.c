@@ -55,6 +55,7 @@
 
 #include "DNA_material_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -852,7 +853,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
 	int totpoint = 0, osa, osaflag, partsdone;
 
-	if(re->test_break())
+	if(re->test_break(re->tbh))
 		return;
 	
 	points.first= points.last= NULL;
@@ -888,7 +889,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		return;
 
 	/* merge points together into a single buffer */
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		for(totpoint=0, p=points.first; p; p=p->next)
 			totpoint += p->totpoint;
 		
@@ -913,10 +914,10 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	BLI_freelistN(&points);
 
 	/* build tree */
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		SSSData *sss= MEM_callocN(sizeof(*sss), "SSSData");
 		float ior= mat->sss_ior, cfac= mat->sss_colfac;
-		float *col= mat->sss_col, *radius= mat->sss_radius;
+		float col[3], *radius= mat->sss_radius;
 		float fw= mat->sss_front, bw= mat->sss_back;
 		float error = mat->sss_error;
 
@@ -924,6 +925,9 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		if((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
 			error= 0.5f;
 
+		if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(col, mat->sss_col);
+		else VECCOPY(col, mat->sss_col);
+		
 		sss->ss[0]= scatter_settings_new(col[0], radius[0], ior, cfac, fw, bw);
 		sss->ss[1]= scatter_settings_new(col[1], radius[1], ior, cfac, fw, bw);
 		sss->ss[2]= scatter_settings_new(col[2], radius[2], ior, cfac, fw, bw);
@@ -981,7 +985,7 @@ void make_sss_tree(Render *re)
 	re->sss_hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 
 	re->i.infostr= "SSS preprocessing";
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	
 	for(mat= G.main->mat.first; mat; mat= mat->id.next)
 		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))

@@ -42,10 +42,8 @@ BL_BlenderShader *KX_BlenderMaterial::mLastBlenderShader = NULL;
 
 //static PyObject *gTextureDict = 0;
 
-KX_BlenderMaterial::KX_BlenderMaterial(
-	PyTypeObject *T
-	)
-:	PyObjectPlus(T),
+KX_BlenderMaterial::KX_BlenderMaterial()
+:	PyObjectPlus(),
 	RAS_IPolyMaterial(),
 	mMaterial(NULL),
 	mShader(0),
@@ -237,7 +235,7 @@ void KX_BlenderMaterial::OnExit()
 	}
 
 	if( mMaterial->tface ) 
-		GPU_set_tpage(mMaterial->tface);
+		GPU_set_tpage(mMaterial->tface, 1);
 }
 
 
@@ -796,51 +794,26 @@ PyAttributeDef KX_BlenderMaterial::Attributes[] = {
 };
 
 PyTypeObject KX_BlenderMaterial::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_BlenderMaterial",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-
-PyParentObject KX_BlenderMaterial::Parents[] = {
-	&KX_BlenderMaterial::Type,
+	"KX_BlenderMaterial",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&PyObjectPlus::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
-PyObject* KX_BlenderMaterial::py_getattro(PyObject *attr)
-{
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* KX_BlenderMaterial::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
-int KX_BlenderMaterial::py_setattro(PyObject *attr, PyObject *pyvalue)
-{
-	return PyObjectPlus::py_setattro(attr, pyvalue);
-}
-
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 {
@@ -911,7 +884,7 @@ void KX_BlenderMaterial::SetBlenderGLSLShader(int layer)
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 {
-	return PyInt_FromLong( GetMaterialIndex() );
+	return PyLong_FromSsize_t( GetMaterialIndex() );
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getTexture, "getTexture( index )" )

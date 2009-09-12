@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\editors\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern;..\..\..\extern\lzo\minilzo;..\..\..\extern\lzma;..\..\..\source\blender\blenfont"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -118,8 +118,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2;WITH_VERSE;WITH_OPENEXR;WITH_DDS;WITH_BULLET;WITH_FFMPEG"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\editors\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern;..\..\..\extern\lzo\minilzo;..\..\..\extern\lzma;..\..\..\source\blender\blenfont"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_OPENEXR;WITH_DDS;WITH_BULLET;WITH_FFMPEG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
@@ -128,7 +128,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\blenkernel\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\blenkernel\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\blenkernel\debug\"
-				WarningLevel="2"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
@@ -193,8 +193,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_FREETYPE2;UNWRAPPER;WITH_VERSE;WITH_OPENEXR;WITH_DDS;WITH_BULLET=1;WITH_FFMPEG"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\editors\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern;..\..\..\extern\lzo\minilzo;..\..\..\extern\lzma;..\..\..\source\blender\blenfont"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;UNWRAPPER;WITH_OPENEXR;WITH_DDS;WITH_BULLET=1;WITH_FFMPEG"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -268,7 +268,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\editors\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern;..\..\..\extern\lzo\minilzo;..\..\..\extern\lzma;..\..\..\source\blender\blenfont"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -343,8 +343,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2;WITH_FFMPEG"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\editors\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern;..\..\..\extern\lzo\minilzo;..\..\..\extern\lzma;..\..\..\source\blender\blenfont"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FFMPEG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
@@ -418,8 +418,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_FREETYPE2;UNWRAPPER;WITH_FFMPEG"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\editors\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\verse\include;..\..\..\..\build\msvc_9\intern\opennl\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern;..\..\..\extern\lzo\minilzo;..\..\..\extern\lzma;..\..\..\source\blender\blenfont"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;UNWRAPPER;WITH_FFMPEG"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -482,6 +482,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\anim_sys.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\armature.c"
 				>
 			</File>
@@ -515,6 +519,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\bmfont.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\boids.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\booleanops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\booleanops_mesh.c"
 				>
 			</File>
 			<File
@@ -554,6 +570,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\context.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\curve.c"
 				>
 			</File>
@@ -586,11 +606,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\fcurve.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\fluidsim.c"
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\fmodifier.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\font.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\gpencil.c"
 				>
 			</File>
 			<File
@@ -646,10 +678,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\multires-firstlevel.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\multires.c"
 				>
 			</File>
@@ -670,6 +698,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\paint.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\particle.c"
 				>
 			</File>
@@ -683,6 +715,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\property.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\report.c"
 				>
 			</File>
 			<File
@@ -702,11 +738,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\seqeffects.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\sequence.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\shrinkwrap.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\simple_deform.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\sketch.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\smoke.c"
 				>
 			</File>
 			<File
@@ -734,27 +786,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_bitmap_node.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_geometry_node.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_method.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_node.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_object_node.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_session.c"
+				RelativePath="..\..\..\source\blender\blenkernel\intern\unit.c"
 				>
 			</File>
 			<File
@@ -787,6 +819,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_animsys.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_armature.h"
 				>
 			</File>
@@ -812,6 +848,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_bmfont_types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_boids.h"
 				>
 			</File>
 			<File
@@ -855,6 +895,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_context.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_curve.h"
 				>
 			</File>
@@ -888,6 +932,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_exotic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_fcurve.h"
 				>
 			</File>
 			<File
@@ -975,6 +1023,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_paint.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_particle.h"
 				>
 			</File>
@@ -988,6 +1040,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_property.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_report.h"
 				>
 			</File>
 			<File
@@ -1015,6 +1071,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_sketch.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_smoke.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_softbody.h"
 				>
 			</File>
@@ -1036,6 +1100,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_texture.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_unit.h"
 				>
 			</File>
 			<File
@@ -1072,6 +1140,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\depsgraph_private.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\Makefile"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\nla_private.h"
 				>
 			</File>
 		</Filter>

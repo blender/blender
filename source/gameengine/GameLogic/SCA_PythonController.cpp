@@ -47,10 +47,8 @@
 SCA_PythonController* SCA_PythonController::m_sCurrentController = NULL;
 
 
-SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj,
-										   int mode,
-										   PyTypeObject* T)
-	: SCA_IController(gameobj, T),
+SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj, int mode)
+	: SCA_IController(gameobj),
 	m_bytecode(NULL),
 	m_function(NULL),
 	m_function_argc(0),
@@ -150,7 +148,7 @@ void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 	
 	/* Without __file__ set the sys.argv[0] is used for the filename
 	 * which ends up with lines from the blender binary being printed in the console */
-	PyDict_SetItemString(m_pythondictionary, "__file__", PyString_FromString(m_scriptName.Ptr()));
+	PyDict_SetItemString(m_pythondictionary, "__file__", PyUnicode_FromString(m_scriptName.Ptr()));
 	
 }
 
@@ -180,16 +178,16 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	std::vector<SCA_IActuator*> lacts =  m_sCurrentController->GetLinkedActuators();
 	std::vector<SCA_IActuator*>::iterator it;
 	
-	if (PyString_Check(value)) {
+	if (PyUnicode_Check(value)) {
 		/* get the actuator from the name */
-		char *name= PyString_AsString(value);
+		char *name= _PyUnicode_AsString(value);
 		for(it = lacts.begin(); it!= lacts.end(); ++it) {
 			if( name == (*it)->GetName() ) {
 				return *it;
 			}
 		}
 	}
-	else if (BGE_PROXY_CHECK_TYPE(value)) {
+	else if (PyObject_TypeCheck(value, &SCA_IActuator::Type)) {
 		PyObjectPlus *value_plus= BGE_PROXY_REF(value);
 		for(it = lacts.begin(); it!= lacts.end(); ++it) {
 			if( static_cast<SCA_IActuator*>(value_plus) == (*it) ) {
@@ -200,72 +198,39 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	
 	/* set the exception */
 	PyObject *value_str = PyObject_Repr(value); /* new ref */
-	PyErr_Format(PyExc_ValueError, "'%s' not in this python controllers actuator list", PyString_AsString(value_str));
+	PyErr_Format(PyExc_ValueError, "'%s' not in this python controllers actuator list", _PyUnicode_AsString(value_str));
 	Py_DECREF(value_str);
 	
 	return false;
 }
 
-/* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
-PyObject* SCA_PythonController::sPyAddActiveActuator(PyObject* self, PyObject* args)
-{
-	ShowDeprecationWarning("GameLogic.addActiveActuator(act, bool)", "controller.activate(act) or controller.deactivate(act)");
-	
-	PyObject* ob1;
-	int activate;
-	if (!PyArg_ParseTuple(args, "Oi:addActiveActuator", &ob1,&activate))
-		return NULL;
-	
-	SCA_IActuator* actu = LinkedActuatorFromPy(ob1);
-	if(actu==NULL)
-		return NULL;
-	
-	bool boolval = (activate!=0);
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu,boolval);
-	Py_RETURN_NONE;
-}
-
 const char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
-const char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuator(actuator,bool)";
 
 PyTypeObject SCA_PythonController::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"SCA_PythonController",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+	"SCA_PythonController",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IController::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
-PyParentObject SCA_PythonController::Parents[] = {
-	&SCA_PythonController::Type,
-	&SCA_IController::Type,
-	&CValue::Type,
-	NULL
-};
 PyMethodDef SCA_PythonController::Methods[] = {
 	{"activate", (PyCFunction) SCA_PythonController::sPyActivate, METH_O},
 	{"deactivate", (PyCFunction) SCA_PythonController::sPyDeActivate, METH_O},
-	
-	//Deprecated functions ------>
-	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
-	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
-	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -490,22 +455,6 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	m_sCurrentController = NULL;
 }
 
-
-
-PyObject* SCA_PythonController::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_IController);
-}
-
-PyObject* SCA_PythonController::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IController);
-}
-
-int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_IController);
-}
-
 PyObject* SCA_PythonController::PyActivate(PyObject *value)
 {
 	if(m_sCurrentController != this) {
@@ -536,44 +485,22 @@ PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 	Py_RETURN_NONE;
 }
 
-/* 1. getScript */
-PyObject* SCA_PythonController::PyGetScript()
-{
-	ShowDeprecationWarning("getScript()", "the script property");
-	return PyString_FromString(m_scriptText);
-}
-
-/* 2. setScript */
-PyObject* SCA_PythonController::PySetScript(PyObject* value)
-{
-	char *scriptArg = PyString_AsString(value);
-	
-	ShowDeprecationWarning("setScript()", "the script property");
-	
-	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
-		return NULL;
-	}
-	
-	/* set scripttext sets m_bModified to true, 
-		so next time the script is needed, a reparse into byte code is done */
-
-	this->SetScriptText(scriptArg);
-	
-	Py_RETURN_NONE;
-}
-
 PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
+	//SCA_PythonController* self= static_cast<SCA_PythonController*>(static_cast<SCA_IController*>(static_cast<SCA_ILogicBrick*>(static_cast<CValue*>(static_cast<PyObjectPlus*>(self_v)))));
+	// static_cast<void *>(dynamic_cast<Derived *>(obj)) - static_cast<void *>(obj)
+
 	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
-	return PyString_FromString(self->m_scriptText);
+	return PyUnicode_FromString(self->m_scriptText);
 }
+
+
 
 int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
 	
-	char *scriptArg = PyString_AsString(value);
+	char *scriptArg = _PyUnicode_AsString(value);
 	
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.script = string: Python Controller, expected a string script text");

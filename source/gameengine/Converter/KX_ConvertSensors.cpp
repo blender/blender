@@ -37,6 +37,7 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#include "wm_event_types.h"
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertSensors.h"
 
@@ -121,10 +122,11 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		gReverseKeyTranslateTable[TIMER0			] = SCA_IInputDevice::KX_TIMER0;                  
 		gReverseKeyTranslateTable[TIMER1			] = SCA_IInputDevice::KX_TIMER1;                  
 		gReverseKeyTranslateTable[TIMER2			] = SCA_IInputDevice::KX_TIMER2;                  
-		gReverseKeyTranslateTable[TIMER3			] = SCA_IInputDevice::KX_TIMER3;                  
 		
 		// SYSTEM                                                                                                  
 		
+#if 0			
+		/* **** XXX **** */
 		gReverseKeyTranslateTable[KEYBD				] = SCA_IInputDevice::KX_KEYBD;                  
 		gReverseKeyTranslateTable[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;                  
 		gReverseKeyTranslateTable[REDRAW			] = SCA_IInputDevice::KX_REDRAW;                  
@@ -135,6 +137,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		gReverseKeyTranslateTable[WINCLOSE			] = SCA_IInputDevice::KX_WINCLOSE;                  
 		gReverseKeyTranslateTable[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;                  
 		gReverseKeyTranslateTable[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;                  
+		/* **** XXX **** */
+#endif	
 		
 		// standard keyboard                                                                                       
 		
@@ -145,7 +149,17 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		gReverseKeyTranslateTable[EKEY				] = SCA_IInputDevice::KX_EKEY;                  
 		gReverseKeyTranslateTable[FKEY				] = SCA_IInputDevice::KX_FKEY;                  
 		gReverseKeyTranslateTable[GKEY				] = SCA_IInputDevice::KX_GKEY;                  
+
+//XXX clean up
+#ifdef WIN32
+#define HKEY	'h'
+#endif
 		gReverseKeyTranslateTable[HKEY				] = SCA_IInputDevice::KX_HKEY;                  
+//XXX clean up
+#ifdef WIN32
+#undef HKEY
+#endif
+
 		gReverseKeyTranslateTable[IKEY				] = SCA_IInputDevice::KX_IKEY;                  
 		gReverseKeyTranslateTable[JKEY				] = SCA_IInputDevice::KX_JKEY;                  
 		gReverseKeyTranslateTable[KKEY				] = SCA_IInputDevice::KX_KKEY;                  

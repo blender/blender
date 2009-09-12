@@ -1,0 +1,15 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna'
+incs += ' ../../windowmanager ../../python ../../makesrna'
+incs += ' #/intern/guardedalloc #/extern/glew/include'
+
+defs = ''
+
+if not env['WITH_BF_PYTHON']:
+    defs += 'DISABLE_PYTHON'
+
+env.BlenderLib ( 'bf_editors_space_api', sources, Split(incs), Split(defs), libtype=['core'], priority=[30] )

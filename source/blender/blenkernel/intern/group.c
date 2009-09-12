@@ -142,6 +142,16 @@ Group *add_group(char *name)
 	return group;
 }
 
+Group *copy_group(Group *group)
+{
+	Group *groupn;
+
+	groupn= MEM_dupallocN(group);
+	BLI_duplicatelist(&groupn->gobject, &group->gobject);
+
+	return groupn;
+}
+
 /* external */
 void add_to_group(Group *group, Object *ob)
 {
@@ -280,7 +290,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 you can draw everything, leaves tags in objects to signal it needs further updating */
 
 /* note: does not work for derivedmesh and render... it recreates all again in convertblender.c */
-void group_handle_recalc_and_update(Object *parent, Group *group)
+void group_handle_recalc_and_update(Scene *scene, Object *parent, Group *group)
 {
 	GroupObject *go;
 	
@@ -289,8 +299,8 @@ void group_handle_recalc_and_update(Object *parent, Group *group)
 		int cfrao;
 		
 		/* switch to local time */
-		cfrao= G.scene->r.cfra;
-		G.scene->r.cfra -= (int)give_timeoffset(parent);
+		cfrao= scene->r.cfra;
+		scene->r.cfra -= (int)give_timeoffset(parent);
 		
 		/* we need a DAG per group... */
 		for(go= group->gobject.first; go; go= go->next) {
@@ -298,7 +308,7 @@ void group_handle_recalc_and_update(Object *parent, Group *group)
 				go->ob->recalc= go->recalc;
 				
 				group_replaces_nla(parent, go->ob, 's');
-				object_handle_update(go->ob);
+				object_handle_update(scene, go->ob);
 				group_replaces_nla(parent, go->ob, 'e');
 				
 				/* leave recalc tags in case group members are in normal scene */
@@ -307,14 +317,14 @@ void group_handle_recalc_and_update(Object *parent, Group *group)
 		}
 		
 		/* restore */
-		G.scene->r.cfra= cfrao;
+		scene->r.cfra= cfrao;
 	}
 	else {
 		/* only do existing tags, as set by regular depsgraph */
 		for(go= group->gobject.first; go; go= go->next) {
 			if(go->ob) {
 				if(go->ob->recalc) {
-					object_handle_update(go->ob);
+					object_handle_update(scene, go->ob);
 				}
 			}
 		}

@@ -28,7 +28,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <math.h>
 
 
-#include <BIF_gl.h>
+#include "GL/glew.h"
 
 #include "KX_PythonInit.h"
 #include "DNA_scene_types.h"
@@ -331,19 +331,19 @@ static int setBackground (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 4
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 1))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 2))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 3)))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 3)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 4 integer between 0 and 255");
 		return -1;
 	}
 	// set background color
-	getImageRender(self)->setBackground((unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1))),
-		(unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2))),
-        (unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 3))));
+	getImageRender(self)->setBackground((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
+		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
+		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))),
+        (unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 3))));
 	// success
 	return 0;
 }
@@ -376,13 +376,7 @@ static PyGetSetDef imageRenderGetSets[] =
 // define python type
 PyTypeObject ImageRenderType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.ImageRender",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
@@ -715,13 +709,7 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 // define python type
 PyTypeObject ImageMirrorType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.ImageMirror",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

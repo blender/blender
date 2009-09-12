@@ -30,6 +30,9 @@ def validate_arguments(args, bc):
 			'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
+			'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH',
+			'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH',
+			'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
 			'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
 			'WITH_BF_DDS',
@@ -44,28 +47,25 @@ def validate_arguments(args, bc):
 			'WITH_BF_INTERNATIONAL',
 			'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'BF_GETTEXT_LIBPATH',
 			'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
-			'WITH_BF_ODE', 'BF_ODE', 'BF_ODE_INC', 'BF_ODE_LIB',
-			'WITH_BF_GAMEENGINE', 'WITH_BF_SOLID', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
-			'BF_SOLID', 'BF_SOLID_INC', 'BF_WINTAB', 'BF_WINTAB_INC',
-			'WITH_BF_YAFRAY',
+			'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
+			'BF_WINTAB', 'BF_WINTAB_INC',
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
+			'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
-			'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
 			'WITH_BF_BINRELOC',
 			'LCGDIR',
 			'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
-			'WITH_BF_VERSE', 'BF_VERSE_INCLUDE',
-			'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
 			'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
 			'WITHOUT_BF_INSTALL',
+			'WITHOUT_BF_PYTHON_INSTALL',
 			'WITH_BF_OPENMP',
-			'WITHOUT_BF_INSTALL',
 			'BF_FANCY', 'BF_QUIET',
 			'BF_X264_CONFIG',
 			'BF_XVIDCORE_CONFIG',
+			'WITH_BF_LCMS', 'BF_LCMS_LIB',
 			'WITH_BF_DOCS',
 			'BF_NUMJOBS',
 			'BF_MSVS',
@@ -77,6 +77,7 @@ def validate_arguments(args, bc):
 			'BF_OPENGL_LINKFLAGS',
 			'CFLAGS', 'CCFLAGS', 'CXXFLAGS', 'CPPFLAGS',
 			'REL_CFLAGS', 'REL_CCFLAGS', 'REL_CXXFLAGS',
+			'BGE_CXXFLAGS',
 			'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
 			'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
 			'C_WARN', 'CC_WARN', 'CXX_WARN',
@@ -90,7 +91,7 @@ def validate_arguments(args, bc):
 			'BF_BSC', 'BF_CONFIG',
 			'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
 			'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-			'BF_DOCDIR']
+			'BF_DOCDIR', 'BF_UNIT_TEST']
 
 	okdict = {}
 
@@ -148,17 +149,7 @@ def SetupSpawn( env ):
 def read_opts(cfg, args):
 	localopts = Variables.Variables(cfg, args)
 	localopts.AddVariables(
-		('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
-		('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
-		('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
-		(BoolVariable('WITH_BF_VERSE', 'Use VERSE if true', False)),
-		('BF_VERSE_INCLUDE', 'verse include dir', '/usr/include'),
 		('LCGDIR', 'location of cvs lib dir'),
-		('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
-		('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
-		('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
-		('BF_DEBUG_LIBS', 'list of libraries to build with debug symbols'),
-
 		(BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
 		('BF_PYTHON', 'base path for python', ''),
 		('BF_PYTHON_VERSION', 'Python version to use', ''),
@@ -171,8 +162,7 @@ def read_opts(cfg, args):
 		(BoolVariable('WITH_BF_STATICPYTHON', 'Staticly link to python', False)),
 
 		(BoolVariable('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
-		(BoolVariable('WITH_BF_YAFRAY', 'Enable Yafray', True)),
-
+		('BF_PROFILE_FLAGS', 'Profiling compiler flags', ''),
 		(BoolVariable('WITH_BF_OPENAL', 'Use OpenAL if true', False)),
 		('BF_OPENAL', 'base path for OpenAL', ''),
 		('BF_OPENAL_INC', 'include path for python headers', ''),
@@ -183,9 +173,26 @@ def read_opts(cfg, args):
 
 		(BoolVariable('WITH_BF_SDL', 'Use SDL if true', False)),
 		('BF_SDL', 'SDL base path', ''),
-		('BF_SDL_INC', 'SDL include path', ''),	 #$(shell $(BF_SDL)/bin/sdl-config --cflags)
-		('BF_SDL_LIB', 'SDL library', ''),	  #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
+		('BF_SDL_INC', 'SDL include path', ''),
+		('BF_SDL_LIB', 'SDL library', ''),
 		('BF_SDL_LIBPATH', 'SDL library path', ''),
+
+		('BF_LIBSAMPLERATE', 'libsamplerate aka SRC base path', ''),
+		('BF_LIBSAMPLERATE_INC', 'libsamplerate aka SRC include path', ''),
+		('BF_LIBSAMPLERATE_LIB', 'libsamplerate aka SRC library', ''),
+		('BF_LIBSAMPLERATE_LIBPATH', 'libsamplerate aka SRC library path', ''),
+
+		(BoolVariable('WITH_BF_JACK', 'Enable jack support if true', True)),
+		('BF_JACK', 'jack base path', ''),
+		('BF_JACK_INC', 'jack include path', ''),
+		('BF_JACK_LIB', 'jack library', ''),
+		('BF_JACK_LIBPATH', 'jack library path', ''),
+
+		(BoolVariable('WITH_BF_SNDFILE', 'Enable sndfile support if true', True)),
+		('BF_SNDFILE', 'sndfile base path', ''),
+		('BF_SNDFILE_INC', 'sndfile include path', ''),
+		('BF_SNDFILE_LIB', 'sndfile library', ''),
+		('BF_SNDFILE_LIBPATH', 'sndfile library path', ''),
 
 		('BF_PTHREADS', 'Pthreads base path', ''),
 		('BF_PTHREADS_INC', 'Pthreads include path', ''),
@@ -250,7 +257,7 @@ def read_opts(cfg, args):
 		('BF_ZLIB_LIB', 'ZLib library', ''),
 		('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
 
-		(BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext and Freetype if true', True)),
+		(BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext if true', True)),
 
 		('BF_GETTEXT', 'gettext base path', ''),
 		('BF_GETTEXT_INC', 'gettext include path', ''),
@@ -263,21 +270,13 @@ def read_opts(cfg, args):
 		('BF_ICONV_LIB', 'iconv library', ''),
 		('BF_ICONV_LIBPATH', 'iconv library path', ''),
 		
-		(BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , True)),
-
-		(BoolVariable('WITH_BF_ODE', 'Use ODE if true', True)),
-		('BF_ODE', 'ODE base path', ''),
-		('BF_ODE_INC', 'ODE include path' , ''),
-		('BF_ODE_LIB', 'ODE library', ''),
+		(BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , False)),
 
 		(BoolVariable('WITH_BF_BULLET', 'Use Bullet if true', True)),
 		('BF_BULLET', 'Bullet base dir', ''),
 		('BF_BULLET_INC', 'Bullet include path', ''),
 		('BF_BULLET_LIB', 'Bullet library', ''),
 		
-		(BoolVariable('WITH_BF_SOLID', 'Use Sumo/Solid deprecated physics system if true', True)),
-		('BF_SOLID', 'Solid base dir', '#/extern/solid'),
-		('BF_SOLID_INC', 'Solid include path', ''),
 		('BF_WINTAB', 'WinTab base dir', ''),
 		('BF_WINTAB_INC', 'WinTab include dir', ''),
 		('BF_CXX', 'c++ base path for libstdc++, only used when static linking', ''),
@@ -314,6 +313,12 @@ def read_opts(cfg, args):
 		('BF_QUICKTIME_INC', 'QuickTime include path', ''),
 		('BF_QUICKTIME_LIB', 'QuickTime library', ''),
 		('BF_QUICKTIME_LIBPATH', 'QuickTime library path', ''),
+		
+		(BoolVariable('WITH_BF_FFTW3', 'Use FFTW3 if true', False)),
+		('BF_FFTW3', 'FFTW3 base path', ''),
+		('BF_FFTW3_INC', 'FFTW3 include path', ''),
+		('BF_FFTW3_LIB', 'FFTW3 library', ''),
+		('BF_FFTW3_LIBPATH', 'FFTW3 library path', ''),
 
 		(BoolVariable('WITH_BF_STATICOPENGL', 'Use MESA if true', True)),
 		('BF_OPENGL', 'OpenGL base path', ''),
@@ -323,17 +328,13 @@ def read_opts(cfg, args):
 		('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
 		('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
 		
-		(BoolVariable('WITH_BF_FTGL', 'Use FTGL if true', True)),
-		('BF_FTGL', 'FTGL base path', ''),
-		('BF_FTGL_INC', 'FTGL include path', ''),
-		('BF_FTGL_LIB', 'FTGL libraries', ''),
-
 		(BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
 		(BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 
 		('CFLAGS', 'C only flags', ''),
 		('CCFLAGS', 'Generic C and C++ flags', ''),
 		('CXXFLAGS', 'C++ only flags', ''),
+		('BGE_CXXFLAGS', 'C++ only flags for BGE', ''),
 		('CPPFLAGS', 'Defines', ''),
 		('REL_CFLAGS', 'C only release flags', ''),
 		('REL_CCFLAGS', 'Generic C and C++ release flags', ''),
@@ -371,9 +372,13 @@ def read_opts(cfg, args):
 		(BoolVariable('BF_TWEAK_MODE', 'Enable tweak mode if true', False)),
 		(BoolVariable('BF_SPLIT_SRC', 'Split src lib into several chunks if true', False)),
 		(BoolVariable('WITHOUT_BF_INSTALL', 'dont install if true', False)),
+		(BoolVariable('WITHOUT_BF_PYTHON_INSTALL', 'dont install Python modules if true', False)),
 		(BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
 		(BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
 		(BoolVariable('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),
+		
+		(BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
+		('BF_LCMS_LIB', 'LCMSlibrary', 'lcms'),
 
 		('BF_X264_CONFIG', 'configuration flags for x264', ''),
 		('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
@@ -381,7 +386,9 @@ def read_opts(cfg, args):
 		
 		('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
-		('BF_MSVS', 'Generate MSVS project files and solution', False)
+		('BF_MSVS', 'Generate MSVS project files and solution', False),
+
+		(BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False))
 
 	) # end of opts.AddOptions()
 

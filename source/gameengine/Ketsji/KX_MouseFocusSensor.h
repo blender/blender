@@ -57,8 +57,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 						bool bTouchPulse,
 						KX_Scene* kxscene,
 						KX_KetsjiEngine* kxengine,
-						SCA_IObject* gameobj,
-						PyTypeObject* T=&Type );
+						SCA_IObject* gameobj);
 
 	virtual ~KX_MouseFocusSensor() { ; };
 	virtual CValue* GetReplica() {
@@ -90,16 +89,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-
-	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayTarget);
-	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRaySource);
-	
-	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitObject);
-	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitPosition);
-	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitNormal);
-	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayDirection);
 
 	/* attributes */
 	static PyObject*	pyattr_get_ray_source(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

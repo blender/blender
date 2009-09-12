@@ -33,6 +33,7 @@
 
 struct MetaBall;
 struct Object;
+struct Scene;
 struct MetaElem;
 
 typedef struct point {			/* a three-dimensional point */
@@ -154,7 +155,7 @@ void subdivide_metaball_octal_node(octal_node *node, float size_x, float size_y,
 void free_metaball_octal_node(octal_node *node);
 void init_metaball_octal_tree(int depth);
 void polygonize(PROCESS *mbproc, struct MetaBall *mb);
-float init_meta(struct Object *ob);
+float init_meta(struct Scene *scene, struct Object *ob);
 
 void unlink_mball(struct MetaBall *mb);
 void free_mball(struct MetaBall *mb);
@@ -163,9 +164,10 @@ struct MetaBall *copy_mball(struct MetaBall *mb);
 void make_local_mball(struct MetaBall *mb);
 void tex_space_mball(struct Object *ob);
 float *make_orco_mball(struct Object *ob);
-struct Object *find_basis_mball( struct Object *ob);
+void copy_mball_properties(struct Scene *scene, struct Object *active_object);
+struct Object *find_basis_mball(struct Scene *scene, struct Object *ob);
 int is_basis_mball(struct Object *ob);
-void metaball_polygonize(struct Object *ob);
+void metaball_polygonize(struct Scene *scene, struct Object *ob);
 void calc_mballco(struct MetaElem *ml, float *vec);
 float densfunc(struct MetaElem *ball, float x, float y, float z);
 float metaball(float x, float y, float z);

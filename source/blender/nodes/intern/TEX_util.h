@@ -34,7 +34,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
 #include "DNA_color_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_ID.h"
@@ -43,10 +42,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
@@ -75,12 +71,20 @@
 typedef struct TexCallData {
 	TexResult *target;
 	float *coord;
+	float *dxt, *dyt;
 	char do_preview;
 	short thread;
 	short which_output;
+	int cfra;
 } TexCallData;
 
-typedef void(*TexFn) (float *out, float *coord, bNode *node, bNodeStack **in, short thread);
+typedef struct TexParams {
+	float *coord;
+	float *dxt, *dyt;
+	int cfra;
+} TexParams;
+
+typedef void(*TexFn) (float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);
 
 typedef struct TexDelegate {
 	TexFn fn;
@@ -89,16 +93,17 @@ typedef struct TexDelegate {
 	int type;
 } TexDelegate;
 
-void tex_call_delegate(TexDelegate*, float *out, float *coord, short thread);
+void tex_call_delegate(TexDelegate*, float *out, TexParams *params, short thread);
 
-void tex_input_rgba(float *out, bNodeStack *in, float *coord, short thread);
-void tex_input_vec(float *out, bNodeStack *in, float *coord, short thread);
-float tex_input_value(bNodeStack *in, float *coord, short thread);
+void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread);
+void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread);
+float tex_input_value(bNodeStack *in, TexParams *params, short thread);
 
 void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn);
 void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata);
 
-void ntreeTexUpdatePreviews( bNodeTree* nodetree );
-void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do_preview, short thread, struct Tex *tex, short which_output);
- 
+void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, float *dxt, float *dyt, short thread, struct Tex *tex, short which_output, int cfra);
+
+void params_from_cdata(TexParams *out, TexCallData *in);
+
 #endif

@@ -25,6 +25,12 @@ public:
 	{
 	}
 	int				mLoc;		// Sampler location
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_Sampler"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /**
@@ -65,6 +71,13 @@ public:
 
 	int GetLocation()	{ return mLoc; }
 	void* getData()		{ return mData; }
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_Uniform"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /**
@@ -83,6 +96,13 @@ public:
 	int				mType;
 	int				mLoc;
 	unsigned int	mFlag;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_DefUniform"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /**
@@ -120,7 +140,7 @@ private:
 	void			ClearUniforms();
 
 public:
-	BL_Shader(PyTypeObject *T=&Type);
+	BL_Shader();
 	virtual ~BL_Shader();
 
 	// Unused for now tangent is set as 
@@ -202,9 +222,7 @@ public:
 	void SetUniform(int uniform, const int val);
 
 	// Python interface
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual PyObject* py_repr(void) { return PyString_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
+	virtual PyObject* py_repr(void) { return PyUnicode_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
 
 	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, setSource );

@@ -460,21 +460,21 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 	bool anyProcessed = false;
 	EventRef event;
 	
+//	SetMouseCoalescingEnabled(false, NULL);
+
 	do {
 		GHOST_TimerManager* timerMgr = getTimerManager();
 		
 		if (waitForEvent) {
-			GHOST_TUns64 curtime = getMilliSeconds();
 			GHOST_TUns64 next = timerMgr->nextFireTime();
 			double timeOut;
 			
 			if (next == GHOST_kFireTimeNever) {
 				timeOut = kEventDurationForever;
 			} else {
-				if (next<=curtime)
+				timeOut = (double)(next - getMilliSeconds())/1000.0;
+				if (timeOut < 0.0)
 					timeOut = 0.0;
-				else
-					timeOut = (double) (next - getMilliSeconds())/1000.0;
 			}
 			
 			::ReceiveNextEvent(0, NULL, timeOut, false, &event);
@@ -493,7 +493,6 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 			}
 		}
 
-		
 		/* end loop when no more events available */
 		while (::ReceiveNextEvent(0, NULL, 0, true, &event)==noErr) {
 			OSStatus status= ::SendEventToEventTarget(event, ::GetEventDispatcherTarget());
@@ -981,10 +980,16 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 			 * events. By setting m_ignoreWindowSizedMessages these are suppressed.
 			 * @see GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 			 */
+			/* even worse: scale window also generates a load of events, and nothing 
+			   is handled (read: client's event proc called) until you release mouse (ton) */
+			
 			GHOST_ASSERT(validWindow(ghostWindow), "GHOST_SystemCarbon::handleMouseDown: invalid window");
 			m_ignoreWindowSizedMessages = true;
 			::DragWindow(window, mousePos, &GetQDGlobalsScreenBits(&screenBits)->bounds);
 			m_ignoreWindowSizedMessages = false;
+			
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, ghostWindow) );
+
 			break;
 		
 		case inContent:
@@ -1136,7 +1141,7 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
     return err;
 }
 
-GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
+GHOST_TUns8* GHOST_SystemCarbon::getClipboard(bool selection) const
 {
 	PasteboardRef inPasteboard;
 	PasteboardItemID itemID;
@@ -1175,9 +1180,9 @@ GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
 	}
 }
 
-void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, int flag) const
+void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
-	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if(selection) {return;} // for copying the selection, used on X11
 
 	PasteboardRef inPasteboard;
 	CFDataRef textData = NULL;

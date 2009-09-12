@@ -25,7 +25,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <PyObjectPlus.h>
 #include <structmember.h>
 
-#include <BIF_gl.h>
+#include "GL/glew.h"
 
 #include "Texture.h"
 #include "ImageBase.h"
@@ -218,16 +218,16 @@ static int ImageViewport_setPosition (PyImage * self, PyObject * value, void * c
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 2
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 1)))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 ints");
 		return -1;
 	}
 	// set position
 	GLint pos [] = {
-		GLint(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-			GLint(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1)))
+		GLint(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
+			GLint(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1)))
 	};
 	getImageViewport(self)->setPosition(pos);
 	// success
@@ -246,16 +246,16 @@ int ImageViewport_setCaptureSize (PyImage * self, PyObject * value, void * closu
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 2
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 1)))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 ints");
 		return -1;
 	}
 	// set capture size
 	short size [] = {
-		short(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-			short(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1)))
+		short(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
+			short(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1)))
 	};
 	getImageViewport(self)->setCaptureSize(size);
 	// success
@@ -289,13 +289,7 @@ static PyGetSetDef imageViewportGetSets[] =
 // define python type
 PyTypeObject ImageViewportType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.ImageViewport",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

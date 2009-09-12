@@ -38,6 +38,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_shrinkwrap.h"
 #include "BKE_DerivedMesh.h"
@@ -47,15 +48,18 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 
 #include "BLI_arithb.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_editVert.h"
 
 #include "RE_raytrace.h"
 #include "MEM_guardedalloc.h"
 
+#include "ED_mesh.h"
 
 /* Util macros */
 #define TO_STR(a)	#a
@@ -91,16 +95,21 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 
 /* get derived mesh */
 //TODO is anyfunction that does this? returning the derivedFinal witouth we caring if its in edit mode or not?
-DerivedMesh *object_get_derived_final(Object *ob, CustomDataMask dataMask)
+DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
 {
-	if (ob==G.obedit)
+	Mesh *me= ob->data;
+	EditMesh *em = BKE_mesh_get_editmesh(me);
+
+	if (em)
 	{
 		DerivedMesh *final = NULL;
-		editmesh_get_derived_cage_and_final(&final, dataMask);
+		editmesh_get_derived_cage_and_final(scene, ob, em, &final, dataMask);
+		
+		BKE_mesh_end_editmesh(me, em);
 		return final;
 	}
 	else
-		return mesh_get_derived_final(ob, dataMask);
+		return mesh_get_derived_final(scene, ob, dataMask);
 }
 
 /* Space transform */
@@ -122,13 +131,13 @@ void space_transform_invert(const SpaceTransform *data, float *co)
 	VecMat4MulVecfl(co, ((SpaceTransform*)data)->target2local, co);
 }
 
-void space_transform_apply_normal(const SpaceTransform *data, float *no)
+static void space_transform_apply_normal(const SpaceTransform *data, float *no)
 {
 	Mat4Mul3Vecfl( ((SpaceTransform*)data)->local2target, no);
 	Normalize(no); // TODO: could we just determine de scale value from the matrix?
 }
 
-void space_transform_invert_normal(const SpaceTransform *data, float *no)
+static void space_transform_invert_normal(const SpaceTransform *data, float *no)
 {
 	Mat4Mul3Vecfl(((SpaceTransform*)data)->target2local, no);
 	Normalize(no); // TODO: could we just determine de scale value from the matrix?
@@ -144,117 +153,13 @@ static float squared_dist(const float *a, const float *b)
 	return INPR(tmp, tmp);
 }
 
-/* Main shrinkwrap function */
-void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
-{
-
-	DerivedMesh *ss_mesh	= NULL;
-	ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
-
-	//remove loop dependencies on derived meshs (TODO should this be done elsewhere?)
-	if(smd->target == ob) smd->target = NULL;
-	if(smd->auxTarget == ob) smd->auxTarget = NULL;
-
-
-	//Configure Shrinkwrap calc data
-	calc.smd = smd;
-	calc.ob = ob;
-	calc.numVerts = numVerts;
-	calc.vertexCos = vertexCos;
-
-	//DeformVertex
-	calc.vgroup = get_named_vertexgroup_num(calc.ob, calc.smd->vgroup_name);
-	if(dm)
-	{
-		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	}
-	else if(calc.ob->type == OB_LATTICE)
-	{
-		calc.dvert = lattice_get_deform_verts(calc.ob);
-	}
-
-
-	if(smd->target)
-	{
-		calc.target = object_get_derived_final(smd->target, CD_MASK_BAREMESH);
-
-		//TODO there might be several "bugs" on non-uniform scales matrixs
-		//because it will no longer be nearest surface, not sphere projection
-		//because space has been deformed
-		space_transform_setup(&calc.local2target, ob, smd->target);
-
-		//TODO: smd->keepDist is in global units.. must change to local
-		calc.keepDist = smd->keepDist;
-	}
-
-
-
-	calc.vgroup = get_named_vertexgroup_num(calc.ob, smd->vgroup_name);
-
-	if(dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
-	{
-		//Setup arrays to get vertexs positions, normals and deform weights
-		calc.vert   = dm->getVertDataArray(dm, CD_MVERT);
-		calc.dvert  = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-
-		//Using vertexs positions/normals as if a subsurface was applied 
-		if(smd->subsurfLevels)
-		{
-			SubsurfModifierData ssmd;
-			memset(&ssmd, 0, sizeof(ssmd));
-			ssmd.subdivType	= ME_CC_SUBSURF;		//catmull clark
-			ssmd.levels		= smd->subsurfLevels;	//levels
-
-			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, FALSE, NULL, 0, 0);
-
-			if(ss_mesh)
-			{
-				calc.vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);
-				if(calc.vert)
-				{
-					//TRICKY: this code assumes subsurface will have the transformed original vertices
-					//in their original order at the end of the vert array.
-					calc.vert = calc.vert + ss_mesh->getNumVerts(ss_mesh) - dm->getNumVerts(dm);
-				}
-			}
-
-			//Just to make sure we are not letting any memory behind
-			assert(ssmd.emCache == NULL);
-			assert(ssmd.mCache == NULL);
-		}
-	}
-
-	//Projecting target defined - lets work!
-	if(calc.target)
-	{
-		switch(smd->shrinkType)
-		{
-			case MOD_SHRINKWRAP_NEAREST_SURFACE:
-				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
-			break;
-
-			case MOD_SHRINKWRAP_PROJECT:
-				BENCH(shrinkwrap_calc_normal_projection(&calc));
-			break;
-
-			case MOD_SHRINKWRAP_NEAREST_VERTEX:
-				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
-			break;
-		}
-	}
-
-	//free memory
-	if(ss_mesh)
-		ss_mesh->release(ss_mesh);
-}
-
 /*
  * Shrinkwrap to the nearest vertex
  *
  * it builds a kdtree of vertexs we can attach to and then
  * for each vertex performs a nearest vertex search on the tree
  */
-void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
+static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
 	int i;
 
@@ -272,8 +177,9 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	//Setup nearest
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
-
+#ifndef __APPLE__
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(treeData,calc) schedule(static)
+#endif
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
@@ -389,7 +295,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 }
 
 
-void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
+static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct Scene *scene)
 {
 	int i;
 
@@ -434,7 +340,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 	if(calc->smd->auxTarget)
 	{
-		auxMesh = object_get_derived_final(calc->smd->auxTarget, CD_MASK_BAREMESH);
+		auxMesh = object_get_derived_final(scene, calc->smd->auxTarget, CD_MASK_BAREMESH);
 		space_transform_setup( &local2aux, calc->ob, calc->smd->auxTarget);
 	}
 
@@ -443,7 +349,9 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	&&  (auxMesh == NULL || bvhtree_from_mesh_faces(&auxData, auxMesh, 0.0, 4, 6)))
 	{
 
+#ifndef __APPLE__
 #pragma omp parallel for private(i,hit) schedule(static)
+#endif
 		for(i = 0; i<calc->numVerts; ++i)
 		{
 			float *co = calc->vertexCos[i];
@@ -511,7 +419,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
  * it builds a BVHTree from the target mesh and then performs a
  * NN matchs for each vertex
  */
-void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
+static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 {
 	int i;
 
@@ -532,7 +440,9 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 
 	//Find the nearest vertex
+#ifndef __APPLE__
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(calc,treeData) schedule(static)
+#endif
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
@@ -588,5 +498,109 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	}
 
 	free_bvhtree_from_mesh(&treeData);
+}
+
+/* Main shrinkwrap function */
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+{
+
+	DerivedMesh *ss_mesh	= NULL;
+	ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
+
+	//remove loop dependencies on derived meshs (TODO should this be done elsewhere?)
+	if(smd->target == ob) smd->target = NULL;
+	if(smd->auxTarget == ob) smd->auxTarget = NULL;
+
+
+	//Configure Shrinkwrap calc data
+	calc.smd = smd;
+	calc.ob = ob;
+	calc.numVerts = numVerts;
+	calc.vertexCos = vertexCos;
+
+	//DeformVertex
+	calc.vgroup = get_named_vertexgroup_num(calc.ob, calc.smd->vgroup_name);
+	if(dm)
+	{
+		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	}
+	else if(calc.ob->type == OB_LATTICE)
+	{
+		calc.dvert = lattice_get_deform_verts(calc.ob);
+	}
+
+
+	if(smd->target)
+	{
+		calc.target = object_get_derived_final(scene, smd->target, CD_MASK_BAREMESH);
+
+		//TODO there might be several "bugs" on non-uniform scales matrixs
+		//because it will no longer be nearest surface, not sphere projection
+		//because space has been deformed
+		space_transform_setup(&calc.local2target, ob, smd->target);
+
+		//TODO: smd->keepDist is in global units.. must change to local
+		calc.keepDist = smd->keepDist;
+	}
+
+
+
+	calc.vgroup = get_named_vertexgroup_num(calc.ob, smd->vgroup_name);
+
+	if(dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
+	{
+		//Setup arrays to get vertexs positions, normals and deform weights
+		calc.vert   = dm->getVertDataArray(dm, CD_MVERT);
+		calc.dvert  = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+
+		//Using vertexs positions/normals as if a subsurface was applied 
+		if(smd->subsurfLevels)
+		{
+			SubsurfModifierData ssmd;
+			memset(&ssmd, 0, sizeof(ssmd));
+			ssmd.subdivType	= ME_CC_SUBSURF;		//catmull clark
+			ssmd.levels		= smd->subsurfLevels;	//levels
+
+			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, FALSE, NULL, 0, 0);
+
+			if(ss_mesh)
+			{
+				calc.vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);
+				if(calc.vert)
+				{
+					//TRICKY: this code assumes subsurface will have the transformed original vertices
+					//in their original order at the end of the vert array.
+					calc.vert = calc.vert + ss_mesh->getNumVerts(ss_mesh) - dm->getNumVerts(dm);
+				}
+			}
+
+			//Just to make sure we are not leaving any memory behind
+			assert(ssmd.emCache == NULL);
+			assert(ssmd.mCache == NULL);
+		}
+	}
+
+	//Projecting target defined - lets work!
+	if(calc.target)
+	{
+		switch(smd->shrinkType)
+		{
+			case MOD_SHRINKWRAP_NEAREST_SURFACE:
+				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
+			break;
+
+			case MOD_SHRINKWRAP_PROJECT:
+				BENCH(shrinkwrap_calc_normal_projection(&calc, scene));
+			break;
+
+			case MOD_SHRINKWRAP_NEAREST_VERTEX:
+				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
+			break;
+		}
+	}
+
+	//free memory
+	if(ss_mesh)
+		ss_mesh->release(ss_mesh);
 }
 

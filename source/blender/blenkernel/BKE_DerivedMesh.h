@@ -51,6 +51,7 @@ struct MEdge;
 struct MFace;
 struct MTFace;
 struct Object;
+struct Scene;
 struct Mesh;
 struct EditMesh;
 struct ModifierData;
@@ -84,7 +85,7 @@ struct DerivedMesh {
 	/* copy a single vert/edge/face from the derived mesh into
 	 * *{vert/edge/face}_r. note that the current implementation
 	 * of this function can be quite slow, iterating over all
-	 * elements (editmesh, verse mesh)
+	 * elements (editmesh)
 	 */
 	void (*getVert)(DerivedMesh *dm, int index, struct MVert *vert_r);
 	void (*getEdge)(DerivedMesh *dm, int index, struct MEdge *edge_r);
@@ -420,48 +421,48 @@ void vDM_ColorBand_store(struct ColorBand *coba);
 /* Simple function to get me->totvert amount of vertices/normals,
    correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
    In use now by vertex/weigt paint and particles */
-float *mesh_get_mapped_verts_nors(struct Object *ob);
+float *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 
 	/* */
-DerivedMesh *mesh_get_derived_final(struct Object *ob,
+DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,
                                     CustomDataMask dataMask);
-DerivedMesh *mesh_get_derived_deform(struct Object *ob,
+DerivedMesh *mesh_get_derived_deform(struct Scene *scene, struct Object *ob,
                                      CustomDataMask dataMask);
 
-DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct ModifierData *md);
+DerivedMesh *mesh_create_derived_for_modifier(struct Scene *scene, struct Object *ob, struct ModifierData *md);
 
-DerivedMesh *mesh_create_derived_render(struct Object *ob,
+DerivedMesh *mesh_create_derived_render(struct Scene *scene, struct Object *ob,
                                         CustomDataMask dataMask);
 
-DerivedMesh *mesh_create_derived_index_render(struct Object *ob, CustomDataMask dataMask, int index);
+DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
 
 		/* same as above but wont use render settings */
-DerivedMesh *mesh_create_derived_view(struct Object *ob,
+DerivedMesh *mesh_create_derived_view(struct Scene *scene, struct Object *ob,
                                       CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform(struct Object *ob,
+DerivedMesh *mesh_create_derived_no_deform(struct Scene *scene, struct Object *ob,
                                            float (*vertCos)[3],
                                            CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob,
+DerivedMesh *mesh_create_derived_no_deform_render(struct Scene *scene, struct Object *ob,
                                                   float (*vertCos)[3],
                                                   CustomDataMask dataMask);
 /* for gameengine */
-DerivedMesh *mesh_create_derived_no_virtual(struct Object *ob, float (*vertCos)[3],
+DerivedMesh *mesh_create_derived_no_virtual(struct Scene *scene, struct Object *ob, float (*vertCos)[3],
                                             CustomDataMask dataMask);
 
-DerivedMesh *editmesh_get_derived_base(void);
-DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask);
-DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r,
+DerivedMesh *editmesh_get_derived_base(struct Object *, struct EditMesh *em);
+DerivedMesh *editmesh_get_derived_cage(struct Scene *scene, struct Object *, 
+									   struct EditMesh *em, CustomDataMask dataMask);
+DerivedMesh *editmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
+												 struct EditMesh *em, DerivedMesh **final_r,
                                                  CustomDataMask dataMask);
+void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em, CustomDataMask dataMask);
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */
-int editmesh_get_first_deform_matrices(float (**deformmats)[3][3],
+int editmesh_get_first_deform_matrices(struct Object *, struct EditMesh *em, float (**deformmats)[3][3],
                                        float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
-
-/* determines required DerivedMesh data according to view and edit modes */
-CustomDataMask get_viewedit_datamask();
 
 /* convert layers requested by a GLSL material to actually available layers in
  * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */

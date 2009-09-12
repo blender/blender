@@ -40,18 +40,22 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "MEM_guardedalloc.h"
-
-/* ugly bad level, should be fixed */
-#include "DNA_scene_types.h"
 #include "BKE_global.h"
+
+#include "MEM_guardedalloc.h"
 
 static void cineon_conversion_parameters(LogImageByteConversionParameters *params)
 {
-	params->blackPoint = G.scene?G.scene->r.cineonblack:95;
-	params->whitePoint = G.scene?G.scene->r.cineonwhite:685;
-	params->gamma = G.scene?G.scene->r.cineongamma:1.7f;
-	params->doLogarithm = G.scene?G.scene->r.subimtype & R_CINEON_LOG:0;
+//	params->blackPoint = scene?scene->r.cineonblack:95;
+//	params->whitePoint = scene?scene->r.cineonwhite:685;
+//	params->gamma = scene?scene->r.cineongamma:1.7f;
+//	params->doLogarithm = scene?scene->r.subimtype & R_CINEON_LOG:0;
+	
+	params->blackPoint = 95;
+	params->whitePoint = 685;
+	params->gamma = 1.7f;
+	params->doLogarithm = 0;
+	
 }
 
 static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)

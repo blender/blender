@@ -1,10 +1,4 @@
 /*
- * blenlib/fileops.h 
- *
- * cleaned up (a bit) mar-01 nzc
- *
- * More low-level file things.
- *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,30 +31,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include <errno.h>
 
 #include "zlib.h"
 
 #ifdef WIN32
-#include "BLI_winstuff.h"
 #include <io.h>
+#include "BLI_winstuff.h"
 #else
+#include <unistd.h> // for read close
 #include <sys/param.h>
 #endif
+
 
 #include "BLI_blenlib.h"
 #include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_callbacks.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include "BKE_utildefines.h"
-#include <errno.h>
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -91,20 +84,48 @@ char *BLI_last_slash(const char *string) {
 	else return lfslash;
 }
 
+static const char *last_slash_len(const char *string, int len) {
+	int a;
+
+	for(a=len-1; a>=0; a--)
+		if(string[a] == '/' || string[a] == '\\')
+			return &string[a];
+	
+	return NULL;
+}
+
+const char *BLI_short_filename(const char *string) {
+	const char *ls, *lls;
+	
+	ls= last_slash_len(string, strlen(string));
+	if(!ls)
+		return string;
+	
+	lls= last_slash_len(string, ls-string);
+
+	if(lls)
+		return lls+1;
+	else
+		return ls+1;
+}
+
 /* adds a slash if there isnt one there alredy */
-void BLI_add_slash(char *string) {
+int BLI_add_slash(char *string) {
 	int len = strlen(string);
 #ifdef WIN32
 	if (len==0 || string[len-1]!='\\') {
 		string[len] = '\\';
 		string[len+1] = '\0';
+		return len+1;
 	}
 #else
 	if (len==0 || string[len-1]!='/') {
 		string[len] = '/';
 		string[len+1] = '\0';
+		return len+1;
 	}
 #endif
+	return len;
 }
 
 /* removes a slash if there is one */
@@ -162,10 +183,24 @@ int BLI_is_writable(char *filename)
 {
 	int file;
 	
-	file = open(filename, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
+	/* first try to open without creating */
+	file = open(filename, O_BINARY | O_RDWR, 0666);
 	
-	if (file < 0)
-		return 0;
+	if (file < 0) {
+		/* now try to open and create. a test without actually
+		 * creating a file would be nice, but how? */
+		file = open(filename, O_BINARY | O_RDWR | O_CREAT, 0666);
+		
+		if(file < 0) {
+			return 0;
+		}
+		else {
+			/* success, delete the file we create */
+			close(file);
+			BLI_delete(filename, 0, 0);
+			return 1;
+		}
+	}
 	else {
 		close(file);
 		return 1;
@@ -306,7 +341,7 @@ int BLI_rename(char *from, char *to) {
 	/* make sure the filenames are different (case insensitive) before removing */
 	if (BLI_exists(to) && BLI_strcasecmp(from, to))
 		if(BLI_delete(to, 0, 0)) return 1;
-		
+
 	return rename(from, to);
 }
 
@@ -384,7 +419,7 @@ int BLI_rename(char *from, char *to) {
 	if (!BLI_exists(from)) return 0;
 	
 	if (BLI_exists(to))	if(BLI_delete(to, 0, 0)) return 1;
-		
+
 	return rename(from, to);
 }
 

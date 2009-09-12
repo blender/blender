@@ -55,7 +55,11 @@ struct direntry{
 	char	*string;
 	mode_t	type;
 	char	*relname;
+#if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)
+	struct _stat64 s;
+#else
 	struct	stat s;
+#endif
 	unsigned int	flags;
 	char	size[16];
 	char	mode1[4];
@@ -69,6 +73,14 @@ struct direntry{
 	int		nr;
 	struct ImBuf *image;
 };
+
+#define SELECT			1
+#define HIDDEN			1
+#define FIRST			1
+#define DESELECT		0
+#define NOT_YET			0
+#define VISIBLE			0
+#define LAST			0
 
 struct dirlink
 {

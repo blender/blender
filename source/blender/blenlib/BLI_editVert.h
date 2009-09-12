@@ -70,9 +70,6 @@ typedef struct EditVert
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
 	int hash;
 	int keyindex; /* original index #, for restoring  key information */
-/*#ifdef WITH_VERSE*/
-	void *vvert;
-/*#endif*/
 
 	void *data;		/* custom vertex data */
 } EditVert;
@@ -128,13 +125,11 @@ typedef struct EditFace
 		float			fp;
 	} tmp;
 	float n[3], cent[3];
-	unsigned char mat_nr, flag;
+	unsigned char flag;
 	unsigned char f, f1, h;
 	unsigned char fast;			/* only 0 or 1, for editmesh_fastmalloc */
 	unsigned char fgonf;		/* flag for fgon options */
-/*#ifdef WITH_VERSE*/
-	void *vface;
-/*#endif*/
+	short mat_nr;
 	void *data;		/* custom face data */
 } EditFace;
 
@@ -172,6 +167,13 @@ typedef struct EditMesh
 	 * never access this directly, use EM_set_actFace and EM_get_actFace */
 	EditFace *act_face; 
 	
+	/* copy from scene */
+	short selectmode;
+	/* copy from object actcol */
+	short mat_nr;
+	/* stats */
+	int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
+	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate
 	 * derivedCage and derivedFinal
@@ -182,9 +184,6 @@ typedef struct EditMesh
 
 	CustomData vdata, edata, fdata;
 
-#ifdef WITH_VERSE
-	void *vnode;
-#endif
 } EditMesh;
 
 #endif

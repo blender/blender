@@ -53,10 +53,9 @@ KX_ObjectActuator(
 	const MT_Vector3& linV,
 	const MT_Vector3& angV,
 	const short damping,
-	const KX_LocalFlags& flag,
-	PyTypeObject* T
+	const KX_LocalFlags& flag
 ) : 
-	SCA_IActuator(gameobj,T),
+	SCA_IActuator(gameobj),
 	m_force(force),
 	m_torque(torque),
 	m_dloc(dloc),
@@ -326,13 +325,7 @@ bool KX_ObjectActuator::isValid(KX_ObjectActuator::KX_OBJECT_ACT_VEC_TYPE type)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ObjectActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_ObjectActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -342,48 +335,18 @@ PyTypeObject KX_ObjectActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_ObjectActuator::Parents[] = {
-	&KX_ObjectActuator::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_ObjectActuator::Methods[] = {
-	// Deprecated ----->
-	{"getForce", (PyCFunction) KX_ObjectActuator::sPyGetForce, METH_NOARGS},
-	{"setForce", (PyCFunction) KX_ObjectActuator::sPySetForce, METH_VARARGS},
-	{"getTorque", (PyCFunction) KX_ObjectActuator::sPyGetTorque, METH_NOARGS},
-	{"setTorque", (PyCFunction) KX_ObjectActuator::sPySetTorque, METH_VARARGS},
-	{"getDLoc", (PyCFunction) KX_ObjectActuator::sPyGetDLoc, METH_NOARGS},
-	{"setDLoc", (PyCFunction) KX_ObjectActuator::sPySetDLoc, METH_VARARGS},
-	{"getDRot", (PyCFunction) KX_ObjectActuator::sPyGetDRot, METH_NOARGS},
-	{"setDRot", (PyCFunction) KX_ObjectActuator::sPySetDRot, METH_VARARGS},
-	{"getLinearVelocity", (PyCFunction) KX_ObjectActuator::sPyGetLinearVelocity, METH_NOARGS},
-	{"setLinearVelocity", (PyCFunction) KX_ObjectActuator::sPySetLinearVelocity, METH_VARARGS},
-	{"getAngularVelocity", (PyCFunction) KX_ObjectActuator::sPyGetAngularVelocity, METH_NOARGS},
-	{"setAngularVelocity", (PyCFunction) KX_ObjectActuator::sPySetAngularVelocity, METH_VARARGS},
-	{"setDamping", (PyCFunction) KX_ObjectActuator::sPySetDamping, METH_VARARGS},
-	{"getDamping", (PyCFunction) KX_ObjectActuator::sPyGetDamping, METH_NOARGS},
-	{"setForceLimitX", (PyCFunction) KX_ObjectActuator::sPySetForceLimitX, METH_VARARGS},
-	{"getForceLimitX", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitX, METH_NOARGS},
-	{"setForceLimitY", (PyCFunction) KX_ObjectActuator::sPySetForceLimitY, METH_VARARGS},
-	{"getForceLimitY", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitY, METH_NOARGS},
-	{"setForceLimitZ", (PyCFunction) KX_ObjectActuator::sPySetForceLimitZ, METH_VARARGS},
-	{"getForceLimitZ", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitZ, METH_NOARGS},
-	{"setPID", (PyCFunction) KX_ObjectActuator::sPyGetPID, METH_NOARGS},
-	{"getPID", (PyCFunction) KX_ObjectActuator::sPySetPID, METH_VARARGS},
-
-	// <----- Deprecated
-
 	{NULL,NULL} //Sentinel
 };
 
@@ -396,9 +359,14 @@ PyAttributeDef KX_ObjectActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("useLocalDLoc", KX_ObjectActuator, m_bitLocalFlag.DLoc),
 	KX_PYATTRIBUTE_VECTOR_RW_CHECK("dRot", -1000, 1000, false, KX_ObjectActuator, m_drot, PyUpdateFuzzyFlags),
 	KX_PYATTRIBUTE_BOOL_RW("useLocalDRot", KX_ObjectActuator, m_bitLocalFlag.DRot),
+#ifdef USE_MATHUTILS
+	KX_PYATTRIBUTE_RW_FUNCTION("linV", KX_ObjectActuator, pyattr_get_linV, pyattr_set_linV),
+	KX_PYATTRIBUTE_RW_FUNCTION("angV", KX_ObjectActuator, pyattr_get_angV, pyattr_set_angV),
+#else
 	KX_PYATTRIBUTE_VECTOR_RW_CHECK("linV", -1000, 1000, false, KX_ObjectActuator, m_linear_velocity, PyUpdateFuzzyFlags),
-	KX_PYATTRIBUTE_BOOL_RW("useLocalLinV", KX_ObjectActuator, m_bitLocalFlag.LinearVelocity),
 	KX_PYATTRIBUTE_VECTOR_RW_CHECK("angV", -1000, 1000, false, KX_ObjectActuator, m_angular_velocity, PyUpdateFuzzyFlags),
+#endif
+	KX_PYATTRIBUTE_BOOL_RW("useLocalLinV", KX_ObjectActuator, m_bitLocalFlag.LinearVelocity),
 	KX_PYATTRIBUTE_BOOL_RW("useLocalAngV", KX_ObjectActuator, m_bitLocalFlag.AngularVelocity),
 	KX_PYATTRIBUTE_SHORT_RW("damping", 0, 1000, false, KX_ObjectActuator, m_damping),
 	KX_PYATTRIBUTE_RW_FUNCTION("forceLimitX", KX_ObjectActuator, pyattr_get_forceLimitX, pyattr_set_forceLimitX),
@@ -409,21 +377,130 @@ PyAttributeDef KX_ObjectActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_ObjectActuator::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IActuator);
-}
-
-
-PyObject* KX_ObjectActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_ObjectActuator::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_IActuator);
-}
-
 /* Attribute get/set functions */
+
+#ifdef USE_MATHUTILS
+
+/* These require an SGNode */
+#define MATHUTILS_VEC_CB_LINV 1
+#define MATHUTILS_VEC_CB_ANGV 2
+
+static int mathutils_kxobactu_vector_cb_index= -1; /* index for our callbacks */
+
+static int mathutils_obactu_generic_check(PyObject *self_v)
+{
+	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(self_v);
+	if(self==NULL)
+		return 0;
+
+	return 1;
+}
+
+static int mathutils_obactu_vector_get(PyObject *self_v, int subtype, float *vec_from)
+{
+	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(self_v);
+	if(self==NULL)
+		return 0;
+
+	switch(subtype) {
+		case MATHUTILS_VEC_CB_LINV:
+			self->m_linear_velocity.getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_ANGV:
+			self->m_angular_velocity.getValue(vec_from);
+			break;
+	}
+
+	return 1;
+}
+
+static int mathutils_obactu_vector_set(PyObject *self_v, int subtype, float *vec_to)
+{
+	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(self_v);
+	if(self==NULL)
+		return 0;
+
+	switch(subtype) {
+		case MATHUTILS_VEC_CB_LINV:
+			self->m_linear_velocity.setValue(vec_to);
+			break;
+		case MATHUTILS_VEC_CB_ANGV:
+			self->m_angular_velocity.setValue(vec_to);
+			break;
+	}
+
+	return 1;
+}
+
+static int mathutils_obactu_vector_get_index(PyObject *self_v, int subtype, float *vec_from, int index)
+{
+	float f[4];
+	/* lazy, avoid repeteing the case statement */
+	if(!mathutils_obactu_vector_get(self_v, subtype, f))
+		return 0;
+
+	vec_from[index]= f[index];
+	return 1;
+}
+
+static int mathutils_obactu_vector_set_index(PyObject *self_v, int subtype, float *vec_to, int index)
+{
+	float f= vec_to[index];
+
+	/* lazy, avoid repeteing the case statement */
+	if(!mathutils_obactu_vector_get(self_v, subtype, vec_to))
+		return 0;
+
+	vec_to[index]= f;
+	mathutils_obactu_vector_set(self_v, subtype, vec_to);
+
+	return 1;
+}
+
+Mathutils_Callback mathutils_obactu_vector_cb = {
+	mathutils_obactu_generic_check,
+	mathutils_obactu_vector_get,
+	mathutils_obactu_vector_set,
+	mathutils_obactu_vector_get_index,
+	mathutils_obactu_vector_set_index
+};
+
+PyObject* KX_ObjectActuator::pyattr_get_linV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxobactu_vector_cb_index, MATHUTILS_VEC_CB_LINV);
+}
+
+int KX_ObjectActuator::pyattr_set_linV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>(self_v);
+	if (!PyVecTo(value, self->m_linear_velocity))
+		return PY_SET_ATTR_FAIL;
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_ObjectActuator::pyattr_get_angV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxobactu_vector_cb_index, MATHUTILS_VEC_CB_ANGV);
+}
+
+int KX_ObjectActuator::pyattr_set_angV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>(self_v);
+	if (!PyVecTo(value, self->m_angular_velocity))
+		return PY_SET_ATTR_FAIL;
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+
+void KX_ObjectActuator_Mathutils_Callback_Init(void)
+{
+	// register mathutils callbacks, ok to run more then once.
+	mathutils_kxobactu_vector_cb_index= Mathutils_RegisterCallback(&mathutils_obactu_vector_cb);
+}
+
+#endif // USE_MATHUTILS
 
 PyObject* KX_ObjectActuator::pyattr_get_forceLimitX(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -446,7 +523,7 @@ int KX_ObjectActuator::pyattr_set_forceLimitX(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[0] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[0] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.Torque = (PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.Torque = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{
@@ -482,7 +559,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitY(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[1] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[1] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.DLoc = (PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.DLoc = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{
@@ -518,7 +595,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[2] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[2] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.DRot = (PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.DRot = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{
@@ -563,306 +640,5 @@ int KX_ObjectActuator::pyattr_set_reference(void *self, const struct KX_PYATTRIB
 	
 	return PY_SET_ATTR_SUCCESS;
 }
-
-
-/* 1. set ------------------------------------------------------------------ */
-/* Removed! */
-
-/* 2. getForce                                                               */
-PyObject* KX_ObjectActuator::PyGetForce()
-{
-	ShowDeprecationWarning("getForce()", "the force and the useLocalForce properties");
-	PyObject *retVal = PyList_New(4);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_force[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_force[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_force[2]));
-	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.Force));
-	
-	return retVal;
-}
-/* 3. setForce                                                               */
-PyObject* KX_ObjectActuator::PySetForce(PyObject* args)
-{
-	ShowDeprecationWarning("setForce()", "the force and the useLocalForce properties");
-	float vecArg[3];
-	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi:setForce", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle)) {
-		return NULL;
-	}
-	m_force.setValue(vecArg);
-	m_bitLocalFlag.Force = PyArgToBool(bToggle);
-	UpdateFuzzyFlags();
-	Py_RETURN_NONE;
-}
-
-/* 4. getTorque                                                              */
-PyObject* KX_ObjectActuator::PyGetTorque()
-{
-	ShowDeprecationWarning("getTorque()", "the torque and the useLocalTorque properties");
-	PyObject *retVal = PyList_New(4);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_torque[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_torque[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_torque[2]));
-	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.Torque));
-	
-	return retVal;
-}
-/* 5. setTorque                                                              */
-PyObject* KX_ObjectActuator::PySetTorque(PyObject* args)
-{
-	ShowDeprecationWarning("setTorque()", "the torque and the useLocalTorque properties");
-	float vecArg[3];
-	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi:setTorque", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle)) {
-		return NULL;
-	}
-	m_torque.setValue(vecArg);
-	m_bitLocalFlag.Torque = PyArgToBool(bToggle);
-	UpdateFuzzyFlags();
-	Py_RETURN_NONE;
-}
-
-/* 6. getDLoc                                                                */
-PyObject* KX_ObjectActuator::PyGetDLoc()
-{
-	ShowDeprecationWarning("getDLoc()", "the dLoc and the useLocalDLoc properties");
-	PyObject *retVal = PyList_New(4);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_dloc[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_dloc[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_dloc[2]));
-	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.DLoc));
-	
-	return retVal;
-}
-/* 7. setDLoc                                                                */
-PyObject* KX_ObjectActuator::PySetDLoc(PyObject* args)
-{
-	ShowDeprecationWarning("setDLoc()", "the dLoc and the useLocalDLoc properties");
-	float vecArg[3];
-	int bToggle = 0;
-	if(!PyArg_ParseTuple(args, "fffi:setDLoc", &vecArg[0], &vecArg[1], 
-						 &vecArg[2], &bToggle)) {
-		return NULL;
-	}
-	m_dloc.setValue(vecArg);
-	m_bitLocalFlag.DLoc = PyArgToBool(bToggle);
-	UpdateFuzzyFlags();
-	Py_RETURN_NONE;
-}
-
-/* 8. getDRot                                                                */
-PyObject* KX_ObjectActuator::PyGetDRot()
-{
-	ShowDeprecationWarning("getDRot()", "the dRot and the useLocalDRot properties");
-	PyObject *retVal = PyList_New(4);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_drot[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_drot[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_drot[2]));
-	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.DRot));
-	
-	return retVal;
-}
-/* 9. setDRot                                                                */
-PyObject* KX_ObjectActuator::PySetDRot(PyObject* args)
-{
-	ShowDeprecationWarning("setDRot()", "the dRot and the useLocalDRot properties");
-	float vecArg[3];
-	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi:setDRot", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle)) {
-		return NULL;
-	}
-	m_drot.setValue(vecArg);
-	m_bitLocalFlag.DRot = PyArgToBool(bToggle);
-	UpdateFuzzyFlags();
-	Py_RETURN_NONE;
-}
-
-/* 10. getLinearVelocity                                                 */
-PyObject* KX_ObjectActuator::PyGetLinearVelocity() {
-	ShowDeprecationWarning("getLinearVelocity()", "the linV and the useLocalLinV properties");
-	PyObject *retVal = PyList_New(4);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_linear_velocity[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_linear_velocity[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_linear_velocity[2]));
-	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.LinearVelocity));
-	
-	return retVal;
-}
-
-/* 11. setLinearVelocity                                                 */
-PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* args) {
-	ShowDeprecationWarning("setLinearVelocity()", "the linV and the useLocalLinV properties");
-	float vecArg[3];
-	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi:setLinearVelocity", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle)) {
-		return NULL;
-	}
-	m_linear_velocity.setValue(vecArg);
-	m_bitLocalFlag.LinearVelocity = PyArgToBool(bToggle);
-	UpdateFuzzyFlags();
-	Py_RETURN_NONE;
-}
-
-
-/* 12. getAngularVelocity                                                */
-PyObject* KX_ObjectActuator::PyGetAngularVelocity() {
-	ShowDeprecationWarning("getAngularVelocity()", "the angV and the useLocalAngV properties");
-	PyObject *retVal = PyList_New(4);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_angular_velocity[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_angular_velocity[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_angular_velocity[2]));
-	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.AngularVelocity));
-	
-	return retVal;
-}
-/* 13. setAngularVelocity                                                */
-PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* args) {
-	ShowDeprecationWarning("setAngularVelocity()", "the angV and the useLocalAngV properties");
-	float vecArg[3];
-	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi:setAngularVelocity", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle)) {
-		return NULL;
-	}
-	m_angular_velocity.setValue(vecArg);
-	m_bitLocalFlag.AngularVelocity = PyArgToBool(bToggle);
-	UpdateFuzzyFlags();
-	Py_RETURN_NONE;
-}
-
-/* 13. setDamping                                                */
-PyObject* KX_ObjectActuator::PySetDamping(PyObject* args) {
-	ShowDeprecationWarning("setDamping()", "the damping property");
-	int damping = 0;
-	if (!PyArg_ParseTuple(args, "i:setDamping", &damping) || damping < 0 || damping > 1000) {
-		return NULL;
-	}
-	m_damping = damping;
-	Py_RETURN_NONE;
-}
-
-/* 13. getVelocityDamping                                                */
-PyObject* KX_ObjectActuator::PyGetDamping() {
-	ShowDeprecationWarning("getDamping()", "the damping property");
-	return Py_BuildValue("i",m_damping);
-}
-/* 6. getForceLimitX                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitX()
-{
-	ShowDeprecationWarning("getForceLimitX()", "the forceLimitX property");
-	PyObject *retVal = PyList_New(3);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_drot[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_dloc[0]));
-	PyList_SET_ITEM(retVal, 2, BoolToPyArg(m_bitLocalFlag.Torque));
-	
-	return retVal;
-}
-/* 7. setForceLimitX                                                         */
-PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* args)
-{
-	ShowDeprecationWarning("setForceLimitX()", "the forceLimitX property");
-	float vecArg[2];
-	int bToggle = 0;
-	if(!PyArg_ParseTuple(args, "ffi:setForceLimitX", &vecArg[0], &vecArg[1], &bToggle)) {
-		return NULL;
-	}
-	m_drot[0] = vecArg[0];
-	m_dloc[0] = vecArg[1];
-	m_bitLocalFlag.Torque = PyArgToBool(bToggle);
-	Py_RETURN_NONE;
-}
-
-/* 6. getForceLimitY                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitY()
-{
-	ShowDeprecationWarning("getForceLimitY()", "the forceLimitY property");
-	PyObject *retVal = PyList_New(3);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_drot[1]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_dloc[1]));
-	PyList_SET_ITEM(retVal, 2, BoolToPyArg(m_bitLocalFlag.DLoc));
-	
-	return retVal;
-}
-/* 7. setForceLimitY                                                                */
-PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* args)
-{
-	ShowDeprecationWarning("setForceLimitY()", "the forceLimitY property");
-	float vecArg[2];
-	int bToggle = 0;
-	if(!PyArg_ParseTuple(args, "ffi:setForceLimitY", &vecArg[0], &vecArg[1], &bToggle)) {
-		return NULL;
-	}
-	m_drot[1] = vecArg[0];
-	m_dloc[1] = vecArg[1];
-	m_bitLocalFlag.DLoc = PyArgToBool(bToggle);
-	Py_RETURN_NONE;
-}
-
-/* 6. getForceLimitZ                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitZ()
-{
-	ShowDeprecationWarning("getForceLimitZ()", "the forceLimitZ property");
-	PyObject *retVal = PyList_New(3);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_drot[2]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_dloc[2]));
-	PyList_SET_ITEM(retVal, 2, BoolToPyArg(m_bitLocalFlag.DRot));
-	
-	return retVal;
-}
-/* 7. setForceLimitZ                                                                */
-PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* args)
-{
-	ShowDeprecationWarning("setForceLimitZ()", "the forceLimitZ property");
-	float vecArg[2];
-	int bToggle = 0;
-	if(!PyArg_ParseTuple(args, "ffi:setForceLimitZ", &vecArg[0], &vecArg[1], &bToggle)) {
-		return NULL;
-	}
-	m_drot[2] = vecArg[0];
-	m_dloc[2] = vecArg[1];
-	m_bitLocalFlag.DRot = PyArgToBool(bToggle);
-	Py_RETURN_NONE;
-}
-
-/* 4. getPID                                                              */
-PyObject* KX_ObjectActuator::PyGetPID()
-{
-	ShowDeprecationWarning("getPID()", "the pid property");
-	PyObject *retVal = PyList_New(3);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_pid[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_pid[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_pid[2]));
-	
-	return retVal;
-}
-/* 5. setPID                                                              */
-PyObject* KX_ObjectActuator::PySetPID(PyObject* args)
-{
-	ShowDeprecationWarning("setPID()", "the pid property");
-	float vecArg[3];
-	if (!PyArg_ParseTuple(args, "fff:setPID", &vecArg[0], &vecArg[1], &vecArg[2])) {
-		return NULL;
-	}
-	m_pid.setValue(vecArg);
-	Py_RETURN_NONE;
-}
-
-
-
-
 
 /* eof */

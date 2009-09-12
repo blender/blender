@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -40,12 +40,12 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float x  = coord[0];
-	float y  = coord[1];
-	float z  = coord[2];
-	float sz = tex_input_value(in[2], coord, thread);
+	float x  = p->coord[0];
+	float y  = p->coord[1];
+	float z  = p->coord[2];
+	float sz = tex_input_value(in[2], p, thread);
 	
 	/* 0.00001  because of unit sized stuff */
 	int xi = (int)fabs(floor(0.00001 + x / sz));
@@ -53,9 +53,9 @@ static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 	int zi = (int)fabs(floor(0.00001 + z / sz));
 	
 	if( (xi % 2 == yi % 2) == (zi % 2) ) {
-		tex_input_rgba(out, in[0], coord, thread);
+		tex_input_rgba(out, in[0], p, thread);
 	} else {
-		tex_input_rgba(out, in[1], coord, thread);
+		tex_input_rgba(out, in[1], p, thread);
 	} 
 }
 

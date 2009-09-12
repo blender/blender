@@ -42,10 +42,9 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					 SG_Callbacks callbacks,
 					 const RAS_CameraData& camdata,
 					 bool frustum_culling,
-					 bool delete_node,
-					 PyTypeObject *T)
+					 bool delete_node)
 					:
-					KX_GameObject(sgReplicationInfo,callbacks,T),
+					KX_GameObject(sgReplicationInfo,callbacks),
 					m_camdata(camdata),
 					m_dirty(true),
 					m_normalized(false),
@@ -497,12 +496,6 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_Camera, getScreenPosition),
 	KX_PYMETHODTABLE(KX_Camera, getScreenVect),
 	KX_PYMETHODTABLE(KX_Camera, getScreenRay),
-
-	// DEPRECATED
-	KX_PYMETHODTABLE_O(KX_Camera, enableViewport),
-	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
-	KX_PYMETHODTABLE_O(KX_Camera, setProjectionMatrix),
-	
 	{NULL,NULL} //Sentinel
 };
 
@@ -531,60 +524,32 @@ PyAttributeDef KX_Camera::Attributes[] = {
 };
 
 PyTypeObject KX_Camera::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_Camera",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,
-		&KX_GameObject::Sequence,
-		&KX_GameObject::Mapping,
-		0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,
-		Py_TPFLAGS_DEFAULT,
-		0,0,0,0,0,0,0,
-		Methods
-};
-
-
-
-
-
-
-PyParentObject KX_Camera::Parents[] = {
-	&KX_Camera::Type,
+	"KX_Camera",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,
+	&KX_GameObject::Sequence,
+	&KX_GameObject::Mapping,
+	0,0,0,
+	NULL,
+	NULL,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&KX_GameObject::Type,
-		&SCA_IObject::Type,
-		&CValue::Type,
-		NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-PyObject* KX_Camera::py_getattro(PyObject *attr)
-{
-	py_getattro_up(KX_GameObject);
-}
-
-PyObject* KX_Camera::py_getattro_dict() {
-	py_getattro_dict_up(KX_GameObject);
-}
-
-int KX_Camera::py_setattro(PyObject *attr, PyObject *value)
-{	
-	py_setattro_up(KX_GameObject);
-}
 
 KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,
 "sphereInsideFrustum(center, radius) -> Integer\n"
@@ -611,7 +576,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,
 		MT_Point3 center;
 		if (PyVecTo(pycenter, center))
 		{
-			return PyInt_FromLong(SphereInsideFrustum(center, radius)); /* new ref */
+			return PyLong_FromSsize_t(SphereInsideFrustum(center, radius)); /* new ref */
 		}
 	}
 
@@ -662,7 +627,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, boxInsideFrustum,
 			return NULL;
 	}
 	
-	return PyInt_FromLong(BoxInsideFrustum(box)); /* new ref */
+	return PyLong_FromSsize_t(BoxInsideFrustum(box)); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC_O(KX_Camera, pointInsideFrustum,
@@ -684,7 +649,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, pointInsideFrustum,
 	MT_Point3 point;
 	if (PyVecTo(value, point))
 	{
-		return PyInt_FromLong(PointInsideFrustum(point)); /* new ref */
+		return PyLong_FromSsize_t(PointInsideFrustum(point)); /* new ref */
 	}
 	
 	PyErr_SetString(PyExc_TypeError, "camera.pointInsideFrustum(point): KX_Camera, expected point argument.");
@@ -707,92 +672,6 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, getWorldToCamera,
 )
 {
 	return PyObjectFrom(GetWorldToCamera()); /* new ref */
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, getProjectionMatrix,
-"getProjectionMatrix() -> Matrix4x4\n"
-"\treturns this camera's projection matrix, as a list of four lists of four values.\n\n"
-"\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
-)
-{
-	ShowDeprecationWarning("getProjectionMatrix()", "the projection_matrix property");
-	return PyObjectFrom(GetProjectionMatrix()); /* new ref */
-}
-
-KX_PYMETHODDEF_DOC_O(KX_Camera, setProjectionMatrix,
-"setProjectionMatrix(MT_Matrix4x4 m) -> None\n"
-"\tSets this camera's projection matrix\n"
-"\n"
-"\tExample:\n"
-"\timport GameLogic\n"
-"\t# Set a perspective projection matrix\n"
-"\tdef Perspective(left, right, bottom, top, near, far):\n"
-"\t\tm = MT_Matrix4x4()\n"
-"\t\tm[0][0] = m[0][2] = right - left\n"
-"\t\tm[1][1] = m[1][2] = top - bottom\n"
-"\t\tm[2][2] = m[2][3] = -far - near\n"
-"\t\tm[3][2] = -1\n"
-"\t\tm[3][3] = 0\n"
-"\t\treturn m\n"
-"\n"
-"\t# Set an orthographic projection matrix\n"
-"\tdef Orthographic(left, right, bottom, top, near, far):\n"
-"\t\tm = MT_Matrix4x4()\n"
-"\t\tm[0][0] = right - left\n"
-"\t\tm[0][3] = -right - left\n"
-"\t\tm[1][1] = top - bottom\n"
-"\t\tm[1][3] = -top - bottom\n"
-"\t\tm[2][2] = far - near\n"
-"\t\tm[2][3] = -far - near\n"
-"\t\tm[3][3] = 1\n"
-"\t\treturn m\n"
-"\n"
-"\t# Set an isometric projection matrix\n"
-"\tdef Isometric(left, right, bottom, top, near, far):\n"
-"\t\tm = MT_Matrix4x4()\n"
-"\t\tm[0][0] = m[0][2] = m[1][1] = 0.8660254037844386\n"
-"\t\tm[1][0] = 0.25\n"
-"\t\tm[1][2] = -0.25\n"
-"\t\tm[3][3] = 1\n"
-"\t\treturn m\n"
-"\n"
-"\t"
-"\tco = GameLogic.getCurrentController()\n"
-"\tcam = co.getOwner()\n"
-"\tcam.setProjectionMatrix(Perspective(-1.0, 1.0, -1.0, 1.0, 0.1, 1))\n")
-{
-	ShowDeprecationWarning("setProjectionMatrix(mat)", "the projection_matrix property");
-	
-	MT_Matrix4x4 mat;
-	if (!PyMatTo(value, mat))
-	{
-		PyErr_SetString(PyExc_TypeError, "camera.setProjectionMatrix(matrix): KX_Camera, expected 4x4 list as matrix argument.");
-		return NULL;
-	}
-	
-	SetProjectionMatrix(mat);
-	Py_RETURN_NONE;
-}
-
-KX_PYMETHODDEF_DOC_O(KX_Camera, enableViewport,
-"enableViewport(viewport)\n"
-"Sets this camera's viewport status\n"
-)
-{
-	ShowDeprecationWarning("enableViewport(bool)", "the useViewport property");
-	
-	int viewport = PyObject_IsTrue(value);
-	if (viewport == -1) {
-		PyErr_SetString(PyExc_ValueError, "camera.enableViewport(bool): KX_Camera, expected True/False or 0/1");
-		return NULL;
-	}
-	
-	if(viewport)
-		EnableViewport(true);
-	else
-		EnableViewport(false);
-	
-	Py_RETURN_NONE;
 }
 
 KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, setViewport,
@@ -952,11 +831,11 @@ PyObject* KX_Camera::pyattr_get_world_to_camera(void *self_v, const KX_PYATTRIBU
 
 
 PyObject* KX_Camera::pyattr_get_INSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyInt_FromLong(INSIDE); }
+{	return PyLong_FromSsize_t(INSIDE); }
 PyObject* KX_Camera::pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyInt_FromLong(OUTSIDE); }
+{	return PyLong_FromSsize_t(OUTSIDE); }
 PyObject* KX_Camera::pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyInt_FromLong(INTERSECT); }
+{	return PyLong_FromSsize_t(INTERSECT); }
 
 
 bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix)
@@ -978,14 +857,14 @@ bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok
 		}
 	}
 	
-	if (PyString_Check(value)) {
-		STR_String value_str = PyString_AsString(value);
+	if (PyUnicode_Check(value)) {
+		STR_String value_str = _PyUnicode_AsString(value);
 		*object = KX_GetActiveScene()->FindCamera(value_str);
 		
 		if (*object) {
 			return true;
 		} else {
-			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_Camera in this scene", error_prefix, PyString_AsString(value));
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_Camera in this scene", error_prefix, _PyUnicode_AsString(value));
 			return false;
 		}
 	}
@@ -1142,7 +1021,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 		PyTuple_SET_ITEM(argValue, 0, PyObjectFrom(vect));
 		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(dist));
 		if (propName)
-			PyTuple_SET_ITEM(argValue, 2, PyString_FromString(propName));
+			PyTuple_SET_ITEM(argValue, 2, PyUnicode_FromString(propName));
 
 		PyObject* ret= this->PyrayCastTo(argValue,NULL);
 		Py_DECREF(argValue);

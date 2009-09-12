@@ -43,8 +43,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_VERSE"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
@@ -53,7 +53,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\loader\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\loader\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\loader\debug\"
-				WarningLevel="2"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -193,7 +193,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -268,8 +268,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_VERSE"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -343,7 +343,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -418,7 +418,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -473,58 +473,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
-			<File
-				RelativePath="..\..\..\source\blender\blenloader\intern\genfile.c"
-				>
-				<FileConfiguration
-					Name="Blender Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="3D Plugin Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="3D Plugin Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Blender Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="BlenderPlayer Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="BlenderPlayer Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenloader\intern\readblenentry.c"
 				>

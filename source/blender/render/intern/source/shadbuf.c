@@ -425,7 +425,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 			/* create Z tiles (for compression): this system is 24 bits!!! */
 			compress_shadowbuf(shb, rectz, lar->mode & LA_SQUARE);
 
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 		}
 		
@@ -457,13 +457,13 @@ static void *do_shadow_thread(void *re_v)
 			lar->thread_ready= 1;
 			BLI_unlock_thread(LOCK_CUSTOM1);
 		}
-	} while(lar && !re->test_break());
+	} while(lar && !re->test_break(re->tbh));
 
 	return NULL;
 }
 
 static volatile int g_break= 0;
-static int thread_break(void)
+static int thread_break(void *unused)
 {
 	return g_break;
 }
@@ -473,7 +473,7 @@ void threaded_makeshadowbufs(Render *re)
 	ListBase threads;
 	LampRen *lar;
 	int a, totthread= 0;
-	int (*test_break)(void);
+	int (*test_break)(void *);
 
 	/* count number of threads to use */
 	if(G.rendering) {
@@ -488,7 +488,7 @@ void threaded_makeshadowbufs(Render *re)
 
 	if(totthread <= 1) {
 		for(lar=re->lampren.first; lar; lar= lar->next) {
-			if(re->test_break()) break;
+			if(re->test_break(re->tbh)) break;
 			if(lar->shb) {
 				/* if type is irregular, this only sets the perspective matrix and autoclips */
 				makeshadowbuf(re, lar);
@@ -512,7 +512,7 @@ void threaded_makeshadowbufs(Render *re)
 
 		/* keep rendering as long as there are shadow buffers not ready */
 		do {
-			if((g_break=test_break()))
+			if((g_break=test_break(re->tbh)))
 				break;
 
 			PIL_sleep_ms(50);
@@ -1557,7 +1557,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 				ma= vlr->mat;
 				ok= 1;
 				if((ma->mode & MA_SHADBUF)==0) ok= 0;
-				if(ma->mode & MA_WIRE) ok= 0;
+				if(ma->material_type == MA_TYPE_WIRE) ok= 0;
 				zspanstrand.shad_alpha= zspan.shad_alpha= ma->shad_alpha;
 			}
 			
@@ -1589,7 +1589,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 						c4= testclip(hoco[3]); 
 					
 					/* ***** NO WIRE YET */			
-					if(ma->mode & MA_WIRE)  {
+					if(ma->material_type == MA_TYPE_WIRE) {
 						if(vlr->v4)
 							zbufclipwire(&zspan, i, a+1, vlr->ec, hoco[0], hoco[1], hoco[2], hoco[3], c1, c2, c3, c4);
 						else

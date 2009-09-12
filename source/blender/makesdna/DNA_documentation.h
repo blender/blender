@@ -65,7 +65,7 @@
 
 /* PLEASE READ INSTRUCTIONS ABOUT ADDING VARIABLES IN 'DNA' STRUCTS IN
 
-  ../blenloader/intern/genfile.c
+  intern/dna_genfile.c
   (ton)
 
  */

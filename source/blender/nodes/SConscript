@@ -7,8 +7,8 @@ shdsources = env.Glob('intern/SHD_nodes/*.c')
 texsources = env.Glob('intern/TEX_nodes/*.c')
 
 incs = '. ./intern '
-incs += '#/intern/guardedalloc ../include ../blenlib ../makesdna'
-incs += ' ../render/extern/include '
+incs += '#/intern/guardedalloc ../editors/include ../blenlib ../makesdna'
+incs += ' ../render/extern/include ../makesrna '
 incs += ' ../imbuf ../avi '
 incs += ' ../blenloader'
 incs += ' ../blenkernel ../renderconverter '
@@ -27,9 +27,6 @@ if env['WITH_BF_PYTHON']:
 else:
 	defs.append('DISABLE_PYTHON')
 
-if env['WITH_BF_INTERNATIONAL']:
-	defs.append('WITH_FREETYPE2')
-
 if env['WITH_BF_OPENEXR']:
 	defs.append('WITH_OPENEXR')
 
@@ -41,7 +38,7 @@ if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
 	incs += ' ' + env['BF_QUICKTIME_INC']
 
-env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = defs, libtype=['intern', 'core', 'player'], priority = [200, 200, 400] )
-env.BlenderLib ( libname = 'bf_cmpnodes', sources = cmpsources, includes = Split(incs), defines = defs, libtype=['intern', 'core', 'player'], priority = [200, 175, 300] )
-env.BlenderLib ( libname = 'bf_shdnodes', sources = shdsources, includes = Split(incs), defines = defs, libtype=['intern', 'core', 'player'], priority = [200, 175, 300] )
-env.BlenderLib ( libname = 'bf_texnodes', sources = texsources, includes = Split(incs), defines = defs, libtype=['intern', 'core', 'player'], priority = [200, 175, 300] )
+env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [190,105] )
+env.BlenderLib ( libname = 'bf_cmpnodes', sources = cmpsources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [175,101] )
+env.BlenderLib ( libname = 'bf_shdnodes', sources = shdsources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [175,101] )
+env.BlenderLib ( libname = 'bf_texnodes', sources = texsources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [175,101] )

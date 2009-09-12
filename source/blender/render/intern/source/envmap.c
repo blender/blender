@@ -142,7 +142,9 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	
 	/* callbacks */
 	envre->display_draw= re->display_draw;
+	envre->ddh= re->ddh;
 	envre->test_break= re->test_break;
+	envre->tbh= re->tbh;
 	
 	/* and for the evil stuff; copy the database... */
 	envre->totvlak= re->totvlak;
@@ -369,7 +371,7 @@ static void env_set_imats(Render *re)
 	Base *base;
 	float mat[4][4];
 	
-	base= G.scene->base.first;
+	base= re->scene->base.first;
 	while(base) {
 		Mat4MulMat4(mat, base->object->obmat, re->viewmat);
 		Mat4Invert(base->object->imat, mat);
@@ -408,7 +410,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		if(env->type==ENV_PLANE && part!=1)
 			continue;
 		
-		re->display_clear(envre->result);
+		re->display_clear(re->dch, envre->result);
 		
 		Mat4CpyMat4(tmat, orthmat);
 		envmap_transmatrix(tmat, part);
@@ -429,7 +431,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		env_hideobject(envre, env->object);
 		env_set_imats(envre);
 				
-		if(re->test_break()==0) {
+		if(re->test_break(re->tbh)==0) {
 			RE_TileProcessor(envre, 0, 0);
 		}
 		
@@ -437,7 +439,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		env_showobjects(envre);
 		env_rotate_scene(envre, tmat, 0);
 
-		if(re->test_break()==0) {
+		if(re->test_break(re->tbh)==0) {
 			RenderLayer *rl= envre->result->layers.first;
 			int y;
 			char *alpha;
@@ -455,15 +457,15 @@ static void render_envmap(Render *re, EnvMap *env)
 			env->cube[part]= ibuf;
 		}
 		
-		if(re->test_break()) break;
+		if(re->test_break(re->tbh)) break;
 
 	}
 	
-	if(re->test_break()) BKE_free_envmapdata(env);
+	if(re->test_break(re->tbh)) BKE_free_envmapdata(env);
 	else {
 		if(envre->r.mode & R_OSA) env->ok= ENV_OSA;
 		else env->ok= ENV_NORMAL;
-		env->lastframe= G.scene->r.cfra;	/* hurmf */
+		env->lastframe= re->scene->r.cfra;
 	}
 	
 	/* restore */
@@ -486,7 +488,7 @@ void make_envmaps(Render *re)
 	re->r.mode &= ~R_RAYTRACE;
 
 	re->i.infostr= "Creating Environment maps";
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	
 	/* 5 = hardcoded max recursion level */
 	while(depth<5) {
@@ -496,7 +498,7 @@ void make_envmaps(Render *re)
 				if(tex->env && tex->env->object) {
 					EnvMap *env= tex->env;
 					
-					if(env->object->lay & G.scene->lay) {
+					if(env->object->lay & re->scene->lay) {
 						if(env->stype==ENV_LOAD) {
 							float orthmat[4][4], mat[4][4], tmat[4][4];
 							
@@ -547,8 +549,8 @@ void make_envmaps(Render *re)
 	}
 
 	if(do_init) {
-		re->display_init(re->result);
-		re->display_clear(re->result);
+		re->display_init(re->dih, re->result);
+		re->display_clear(re->dch, re->result);
 		// re->flag |= R_REDRAW_PRV;
 	}	
 	// restore

@@ -107,6 +107,16 @@ GHOST_SystemX11(
 
 	m_wm_protocols= XInternAtom(m_display, "WM_PROTOCOLS", False);
 	m_wm_take_focus= XInternAtom(m_display, "WM_TAKE_FOCUS", False);
+	m_wm_state= XInternAtom(m_display, "WM_STATE", False);
+	m_wm_change_state= XInternAtom(m_display, "WM_CHANGE_STATE", False);
+	m_net_state= XInternAtom(m_display, "_NET_WM_STATE", False);
+	m_net_max_horz= XInternAtom(m_display,
+					"_NET_WM_STATE_MAXIMIZED_HORZ", False);
+	m_net_max_vert= XInternAtom(m_display,
+					"_NET_WM_STATE_MAXIMIZED_VERT", False);
+	m_net_fullscreen= XInternAtom(m_display,
+					"_NET_WM_STATE_FULLSCREEN", False);
+	m_motif= XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
 	m_targets= XInternAtom(m_display, "TARGETS", False);
 	m_string= XInternAtom(m_display, "STRING", False);
 	m_compound_text= XInternAtom(m_display, "COMPOUND_TEXT", False);
@@ -137,6 +147,13 @@ GHOST_SystemX11(
 	}
 	
 }
+
+GHOST_SystemX11::
+~GHOST_SystemX11()
+{
+	XCloseDisplay(m_display);
+}
+
 
 	GHOST_TSuccess 
 GHOST_SystemX11::
@@ -229,11 +246,8 @@ createWindow(
 	);
 
 	if (window) {
-
-		// Install a new protocol for this window - so we can overide
-		// the default window closure mechanism.
-
-		XSetWMProtocols(m_display, window->getXWindow(), &m_delete_window_atom, 1);
+		// Both are now handle in GHOST_WindowX11.cpp
+		// Focus and Delete atoms.
 
 		if (window->getValid()) {
 			// Store the pointer to the window 
@@ -315,7 +329,10 @@ processEvents(
 			if (next==GHOST_kFireTimeNever) {
 				SleepTillEvent(m_display, -1);
 			} else {
-				SleepTillEvent(m_display, next - getMilliSeconds());
+				GHOST_TInt64 maxSleep = next - getMilliSeconds();
+
+				if(maxSleep >= 0)
+					SleepTillEvent(m_display, next - getMilliSeconds());
 			}
 		}
 		
@@ -555,12 +572,45 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		// We're not interested in the following things.(yet...)
 		case NoExpose : 
 		case GraphicsExpose :
+			break;
 		
 		case EnterNotify:
 		case LeaveNotify:
+		{
 			// XCrossingEvents pointer leave enter window.
+			// also do cursor move here, MotionNotify only
+			// happens when motion starts & ends inside window
+			XCrossingEvent &xce = xe->xcrossing;
+			
+			g_event = new 
+			GHOST_EventCursor(
+				getMilliSeconds(),
+				GHOST_kEventCursorMove,
+				window,
+				xce.x_root,
+				xce.y_root
+			);
 			break;
+		}
 		case MapNotify:
+			/*
+			 * From ICCCM:
+			 * [ Clients can select for StructureNotify on their
+			 *   top-level windows to track transition between
+			 *   Normal and Iconic states. Receipt of a MapNotify
+			 *   event will indicate a transition to the Normal
+			 *   state, and receipt of an UnmapNotify event will
+			 *   indicate a transition to the Iconic state. ]
+			 */
+			if (window->m_post_init == True) {
+				/*
+				 * Now we are sure that the window is
+				 * mapped, so only need change the state.
+				 */
+				window->setState (window->m_post_state);
+				window->m_post_init = False;
+			}
+			break;
 		case UnmapNotify:
 			break;
 		case MappingNotify:
@@ -999,7 +1049,6 @@ convertXKey(
 
 #undef GXMAP
 
-
 /* from xclip.c xcout() v0.11 */
 
 #define XCLIB_XCOUT_NONE		0 /* no context */
@@ -1174,13 +1223,9 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 	return;
 }
 
-GHOST_TUns8 *GHOST_SystemX11::getClipboard(int flag) const
+GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 {
-	//Flag 
-	//0 = Regular clipboard 1 = selection
-	
-	// Options for where to get the selection from
-	Atom sseln= flag ? m_primary : m_clipboard;
+	Atom sseln;
 	Atom target= m_string;
 	Window owner;
 
@@ -1189,6 +1234,11 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(int flag) const
 	unsigned long sel_len= 0;
 	XEvent evt;
 	unsigned int context= XCLIB_XCOUT_NONE;
+
+	if (selection == True)
+		sseln= m_primary;
+	else
+		sseln= m_clipboard;
 
 	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
 	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
@@ -1262,7 +1312,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(int flag) const
 	return(NULL);
 }
 
-void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, int flag) const
+void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
 	Window m_window, owner;
 
@@ -1272,7 +1322,7 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, int flag) const
 	m_window = window->getXWindow();
 
 	if (buffer) {
-		if (flag == 0) {
+		if (selection == False) {
 			XSetSelectionOwner(m_display, m_clipboard, m_window, CurrentTime);
 			owner= XGetSelectionOwner(m_display, m_clipboard);
 			if (txt_cut_buffer)
@@ -1294,4 +1344,3 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, int flag) const
 			fprintf(stderr, "failed to own primary\n");
 	}
 }
-

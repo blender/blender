@@ -31,7 +31,6 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <DNA_meshdata_types.h>
 #include <DNA_image_types.h>
 #include <IMB_imbuf_types.h>
-#include <BDR_drawmesh.h>
 #include <KX_PolygonMaterial.h>
 
 #include <MEM_guardedalloc.h>
@@ -46,7 +45,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include "Exception.h"
 
 #include <memory.h>
-#include <BIF_gl.h>
+#include "GL/glew.h"
 
 
 // macro for exception handling and logging
@@ -435,13 +434,7 @@ static PyGetSetDef textureGetSets[] =
 // class Texture declaration
 PyTypeObject TextureType =
 {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.Texture",   /*tp_name*/
 	sizeof(Texture),           /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

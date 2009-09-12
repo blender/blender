@@ -2,10 +2,6 @@ import os
 
 LCGDIR = os.getcwd()+"/../lib/irix-6.5-mips"
 LIBDIR = LCGDIR
-print LCGDIR
-
-WITH_BF_VERSE = 'false'
-BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 BF_PYTHON = LCGDIR+'/python'
 BF_PYTHON_VERSION = '2.5'
@@ -27,6 +23,11 @@ BF_OPENAL_LIBPATH = LIBDIR + '/lib'
 BF_CXX = '/usr'
 WITH_BF_STATICCXX = 'false'
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
+
+BF_LIBSAMPLERATE = LCGDIR+'/samplerate'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 WITH_BF_SDL = 'true'
 BF_SDL = LCGDIR+'/sdl' #$(shell sdl-config --prefix)
@@ -76,28 +77,13 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextpo intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = 'true'
-BF_FTGL = '#extern/bFTGL'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
-
 WITH_BF_GAMEENGINE='false'
-
-WITH_BF_ODE = 'false'
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
+WITH_BF_PLAYER = 'false'
 
 WITH_BF_BULLET = 'true'
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
-
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
-
-WITH_BF_YAFRAY = 'true'
 
 #WITH_BF_NSPR = 'true'
 #BF_NSPR = $(LIBDIR)/nspr

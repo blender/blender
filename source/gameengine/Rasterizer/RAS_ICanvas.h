@@ -33,6 +33,10 @@
  * 2D rendering device context. The connection from 3d rendercontext to 2d surface.
  */
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class RAS_Rect;
 
 
@@ -173,6 +177,13 @@ public:
 	MakeScreenShot(
 		const char* filename
 	)=0;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_ICanvas"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_ICANVAS

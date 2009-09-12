@@ -29,9 +29,7 @@
  * $Id$
  */
 
-#ifdef WIN32
-#include <io.h>
-#endif
+#include <stdio.h>
 
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
@@ -69,6 +67,10 @@
 #include "IMB_bitplanes.h"
 #include "IMB_divers.h"
 
+#ifdef WIN32
+#include <io.h>
+#include "BLI_winstuff.h"
+#endif
 /* added facility to copy with saving non-float rects */
 
 short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)

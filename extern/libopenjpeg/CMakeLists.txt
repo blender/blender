@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC . src ${FREETYPE_INC})
+SET(INC . src)
 
 FILE(GLOB SRC *.c except t1_generate_luts.c)
 ADD_DEFINITIONS(-DWITH_OPENJPEG)

@@ -71,6 +71,13 @@ public:
 
 protected:
 	EVENT_MANAGER_TYPE		m_mgrtype;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_EventManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

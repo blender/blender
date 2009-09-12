@@ -48,8 +48,7 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 			double margin,
 			double resetmargin,
 			bool bFindMaterial,
-			const STR_String& touchedpropname,
-			PyTypeObject* T)
+			const STR_String& touchedpropname)
 
 			: KX_NearSensor(
 				eventmgr,
@@ -59,8 +58,8 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 				resetmargin,
 				bFindMaterial,
 				touchedpropname,
-				physCtrl,
-				T),
+				physCtrl),
+
 				m_coneradius(coneradius),
 				m_coneheight(coneheight),
 				m_axis(axis)
@@ -177,63 +176,13 @@ void KX_RadarSensor::SynchronizeTransform()
 /* Python Functions															 */
 /* ------------------------------------------------------------------------- */
 
-//Deprecated ----->
-/* getConeOrigin */
-const char KX_RadarSensor::GetConeOrigin_doc[] = 
-"getConeOrigin()\n"
-"\tReturns the origin of the cone with which to test. The origin\n"
-"\tis in the middle of the cone.";
-PyObject* KX_RadarSensor::PyGetConeOrigin() {
-	ShowDeprecationWarning("getConeOrigin()", "the coneOrigin property");
-
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_cone_origin[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_cone_origin[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_cone_origin[2]));
-	
-	return retVal;
-}
-
-/* getConeOrigin */
-const char KX_RadarSensor::GetConeTarget_doc[] = 
-"getConeTarget()\n"
-"\tReturns the center of the bottom face of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeTarget() {
-	ShowDeprecationWarning("getConeTarget()", "the coneTarget property");
-
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_cone_target[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_cone_target[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_cone_target[2]));
-	
-	return retVal;
-}
-
-/* getConeHeight */
-const char KX_RadarSensor::GetConeHeight_doc[] = 
-"getConeHeight()\n"
-"\tReturns the height of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeHeight() {
-											  
-	ShowDeprecationWarning("getConeHeight()", "the distance property");
-
-	return PyFloat_FromDouble(m_coneheight);
-}
-//<----- Deprecated
+/* none */
 
 /* ------------------------------------------------------------------------- */
 /* Python Integration Hooks                                                  */
 /* ------------------------------------------------------------------------- */
 PyTypeObject KX_RadarSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_RadarSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -243,32 +192,18 @@ PyTypeObject KX_RadarSensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_RadarSensor::Parents[] = {
-	&KX_RadarSensor::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&KX_NearSensor::Type,
-	&KX_TouchSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_RadarSensor::Methods[] = {
-	//Deprecated ----->
-	{"getConeOrigin", (PyCFunction) KX_RadarSensor::sPyGetConeOrigin, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeOrigin_doc},
-	{"getConeTarget", (PyCFunction) KX_RadarSensor::sPyGetConeTarget, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeTarget_doc},
-	{"getConeHeight", (PyCFunction) KX_RadarSensor::sPyGetConeHeight, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeHeight_doc},
-	 //<-----
 	{NULL} //Sentinel
 };
 
@@ -281,16 +216,3 @@ PyAttributeDef KX_RadarSensor::Attributes[] = {
 	{NULL} //Sentinel
 };
 
-PyObject* KX_RadarSensor::py_getattro(PyObject *attr)
-{
-	py_getattro_up(KX_NearSensor);
-}
-
-PyObject* KX_RadarSensor::py_getattro_dict() {
-	py_getattro_dict_up(KX_NearSensor);
-}
-
-int KX_RadarSensor::py_setattro(PyObject *attr, PyObject* value)
-{
-	py_setattro_up(KX_NearSensor);
-}

@@ -50,6 +50,7 @@ GHOST_Window::GHOST_Window(
 :
 	m_drawingContextType(type),
 	m_cursorVisible(true),
+	m_cursorGrabbed(true),
 	m_cursorShape(GHOST_kStandardCursorDefault),
 	m_stereoVisual(stereoVisual)
 {
@@ -86,6 +87,20 @@ GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 {
 	if (setWindowCursorVisibility(visible)) {
 		m_cursorVisible = visible;
+		return GHOST_kSuccess;
+	}
+	else {
+		return GHOST_kFailure;
+	}
+}
+
+GHOST_TSuccess GHOST_Window::setCursorGrab(bool grab)
+{
+	if(m_cursorGrabbed == grab)
+		return GHOST_kSuccess;
+
+	if (setWindowCursorGrab(grab)) {
+		m_cursorGrabbed = grab;
 		return GHOST_kSuccess;
 	}
 	else {

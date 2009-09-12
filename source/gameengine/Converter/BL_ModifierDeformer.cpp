@@ -48,6 +48,7 @@
 #include "DNA_ipo_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_key.h"
@@ -132,7 +133,7 @@ bool BL_ModifierDeformer::Update(void)
 			Mesh *oldmesh = (Mesh*)blendobj->data;
 			blendobj->data = m_bmesh;
 			/* execute the modifiers */		
-			DerivedMesh *dm = mesh_create_derived_no_virtual(blendobj, m_transverts, CD_MASK_MESH);
+			DerivedMesh *dm = mesh_create_derived_no_virtual(m_scene, blendobj, m_transverts, CD_MASK_MESH);
 			/* restore object data */
 			blendobj->data = oldmesh;
 			/* free the current derived mesh and replace, (dm should never be NULL) */

@@ -33,6 +33,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "DNA_listBase.h"
 	
 typedef struct PartDeflect {
 	short deflect;		/* Deflection flag - does mesh deflect particles*/
@@ -72,12 +74,56 @@ typedef struct PartDeflect {
 	int seed; /* wind noise random seed */
 } PartDeflect;
 
+/* Point cache file data types:
+ * - used as (1<<flag) so poke jahka if you reach the limit of 15
+ * - to add new data types update:
+ *		* BKE_ptcache_data_size()
+ *		* ptcache_file_init_pointers()
+*/
+#define BPHYS_DATA_INDEX		0
+#define BPHYS_DATA_LOCATION		1
+#define BPHYS_DATA_VELOCITY		2
+#define BPHYS_DATA_ROTATION		3
+#define BPHYS_DATA_AVELOCITY	4	/* used for particles */
+#define BPHYS_DATA_XCONST		4	/* used for cloth */
+#define BPHYS_DATA_SIZE			5
+#define BPHYS_DATA_TIMES		6
+#define BPHYS_DATA_BOIDS		7
+
+#define BPHYS_TOT_DATA			8
+
+typedef struct PTCacheMem {
+	struct PTCacheMem *next, *prev;
+	int frame, totpoint;
+	unsigned int data_types, flag;
+	int *index_array; /* quick access to stored points with index */
+
+	void *data[8]; /* BPHYS_TOT_DATA */
+	void *cur[8]; /* BPHYS_TOT_DATA */
+} PTCacheMem;
+
 typedef struct PointCache {
+	struct PointCache *next, *prev;
 	int flag;		/* generic flag */
+	int step;		/* frames between cached frames */
 	int simframe;	/* current frame of simulation (only if SIMULATION_VALID) */
 	int startframe;	/* simulation start frame */
 	int endframe;	/* simulation end frame */
 	int editframe;	/* frame being edited (runtime only) */
+	int last_exact; /* last exact frame that's cached */
+
+	/* for external cache files */
+	int totpoint;   /* number of cached points */
+	int index, rt;	/* modifier stack index */
+	
+	char name[64];
+	char prev_name[64];
+	char info[64];
+	char path[240]; /* file path */
+	struct ListBase mem_cache;
+
+	struct PTCacheEdit *edit;
+	void (*free_edit)(struct PTCacheEdit *edit);	/* free callback */
 } PointCache;
 
 typedef struct SBVertex {
@@ -138,8 +184,6 @@ typedef struct BulletSoftBody {
 
 
 typedef struct SoftBody {
-	struct ParticleSystem *particles;	/* particlesystem softbody */
-
 	/* dynamic data */
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
@@ -208,6 +252,7 @@ typedef struct SoftBody {
 	float inpush;
 
 	struct PointCache *pointcache;
+	struct ListBase ptcaches;
 
 } SoftBody;
 
@@ -221,6 +266,7 @@ typedef struct SoftBody {
 #define PFIELD_HARMONIC	7
 #define PFIELD_CHARGE	8
 #define PFIELD_LENNARDJ	9
+#define PFIELD_BOID		10
 
 
 /* pd->flag: various settings */
@@ -255,11 +301,19 @@ typedef struct SoftBody {
 #define PTCACHE_OUTDATED			2
 #define PTCACHE_SIMULATION_VALID	4
 #define PTCACHE_BAKING				8
-#define PTCACHE_BAKE_EDIT			16
-#define PTCACHE_BAKE_EDIT_ACTIVE	32
+//#define PTCACHE_BAKE_EDIT			16
+//#define PTCACHE_BAKE_EDIT_ACTIVE	32
+#define PTCACHE_DISK_CACHE			64
+#define PTCACHE_QUICK_CACHE			128
+#define PTCACHE_FRAMES_SKIPPED		256
+#define PTCACHE_EXTERNAL			512
+#define PTCACHE_READ_INFO			1024
+
+/* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
+#define PTCACHE_REDO_NEEDED			258
 
 /* ob->softflag */
-#define OB_SB_ENABLE	1
+#define OB_SB_ENABLE	1		/* deprecated, use modifier */
 #define OB_SB_GOAL		2
 #define OB_SB_EDGES		4
 #define OB_SB_QUADS		8

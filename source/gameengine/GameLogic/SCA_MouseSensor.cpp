@@ -49,9 +49,8 @@
 SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr, 
 								 int startx,int starty,
 								 short int mousemode,
-								 SCA_IObject* gameobj, 
-								 PyTypeObject* T)
-    : SCA_ISensor(gameobj,eventmgr, T),
+								 SCA_IObject* gameobj)
+    : SCA_ISensor(gameobj,eventmgr),
 	m_x(startx),
 	m_y(starty)
 {
@@ -244,37 +243,13 @@ bool SCA_MouseSensor::isValid(SCA_MouseSensor::KX_MOUSESENSORMODE m)
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-//Deprecated functions ------>
-/* get x position ---------------------------------------------------------- */
-const char SCA_MouseSensor::GetXPosition_doc[] = 
-"getXPosition\n"
-"\tReturns the x-coordinate of the mouse sensor, in frame coordinates.\n"
-"\tThe lower-left corner is the origin. The coordinate is given in\n"
-"\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetXPosition() {
-	ShowDeprecationWarning("getXPosition()", "the position property");
-	return PyInt_FromLong(m_x);
-}
-
-/* get y position ---------------------------------------------------------- */
-const char SCA_MouseSensor::GetYPosition_doc[] = 
-"getYPosition\n"
-"\tReturns the y-coordinate of the mouse sensor, in frame coordinates.\n"
-"\tThe lower-left corner is the origin. The coordinate is given in\n"
-"\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetYPosition() {
-	ShowDeprecationWarning("getYPosition()", "the position property");
-	return PyInt_FromLong(m_y);
-}
-//<----- Deprecated
-
 KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 "getButtonStatus(button)\n"
 "\tGet the given button's status (KX_INPUT_NONE, KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED).\n")
 {
-	if (PyInt_Check(value))
+	if (PyLong_Check(value))
 	{
-		int button = PyInt_AsLong(value);
+		int button = PyLong_AsSsize_t(value);
 		
 		if ((button < SCA_IInputDevice::KX_LEFTMOUSE)
 			|| (button > SCA_IInputDevice::KX_RIGHTMOUSE)){
@@ -284,7 +259,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 		
 		SCA_IInputDevice* mousedev = ((SCA_MouseManager *)m_eventmgr)->GetInputDevice();
 		const SCA_InputEvent& event = mousedev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) button);
-		return PyInt_FromLong(event.m_status);
+		return PyLong_FromSsize_t(event.m_status);
 	}
 	
 	Py_RETURN_NONE;
@@ -295,13 +270,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject SCA_MouseSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_MouseSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -311,26 +280,18 @@ PyTypeObject SCA_MouseSensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_MouseSensor::Parents[] = {
-	&SCA_MouseSensor::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_MouseSensor::Methods[] = {
-	//Deprecated functions ------>
-	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, (PY_METHODCHAR)GetXPosition_doc},
-	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, (PY_METHODCHAR)GetYPosition_doc},
-	//<----- Deprecated
 	KX_PYMETHODTABLE_O(SCA_MouseSensor, getButtonStatus),
 	{NULL,NULL} //Sentinel
 };
@@ -340,19 +301,5 @@ PyAttributeDef SCA_MouseSensor::Attributes[] = {
 	KX_PYATTRIBUTE_SHORT_LIST_RO("position",SCA_MouseSensor,m_x,2),
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_MouseSensor::py_getattro(PyObject *attr) 
-{
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_MouseSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_MouseSensor::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_ISensor);
-}
 
 /* eof */

@@ -39,8 +39,8 @@
 
 KX_PhysicsObjectWrapper::KX_PhysicsObjectWrapper(
 						PHY_IPhysicsController* ctrl,
-						PHY_IPhysicsEnvironment* physenv,PyTypeObject *T) :
-					PyObjectPlus(T),
+						PHY_IPhysicsEnvironment* physenv) :
+					PyObjectPlus(),
 					m_ctrl(ctrl),
 					m_physenv(physenv)
 {
@@ -113,61 +113,26 @@ PyAttributeDef KX_PhysicsObjectWrapper::Attributes[] = {
 
 //python specific stuff
 PyTypeObject KX_PhysicsObjectWrapper::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_PhysicsObjectWrapper",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+	"KX_PhysicsObjectWrapper",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&PyObjectPlus::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-PyParentObject KX_PhysicsObjectWrapper::Parents[] = {
-	&KX_PhysicsObjectWrapper::Type,
-	NULL
-};
-
-PyObject* KX_PhysicsObjectWrapper::py_getattro(PyObject *attr)
-{
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* KX_PhysicsObjectWrapper::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
-int	KX_PhysicsObjectWrapper::py_setattro(PyObject *attr,PyObject *pyobj)
-{
-	int result = 1;
-
-	if (PyInt_Check(pyobj))
-	{
-		result = 0;
-	}
-	if (PyString_Check(pyobj))
-	{
-		result = 0;
-	}
-	if (result)
-		result = PyObjectPlus::py_setattro(attr,pyobj);
-		
-	return result;
-};
-
 
 PyMethodDef KX_PhysicsObjectWrapper::Methods[] = {
 	{"setPosition",(PyCFunction) KX_PhysicsObjectWrapper::sPySetPosition, METH_VARARGS},

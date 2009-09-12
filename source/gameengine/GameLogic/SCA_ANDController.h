@@ -39,18 +39,10 @@ class SCA_ANDController : public SCA_IController
 	Py_Header;
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
-	SCA_ANDController(SCA_IObject* gameobj,PyTypeObject* T=&Type);
+	SCA_ANDController(SCA_IObject* gameobj);
 	virtual ~SCA_ANDController();
 	virtual CValue* GetReplica();
 	virtual void Trigger(SCA_LogicManager* logicmgr);
-
-	/* --------------------------------------------------------------------- */
-	/* Python interface ---------------------------------------------------- */
-	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-
 };
 
 #endif //__KX_ANDCONTROLLER

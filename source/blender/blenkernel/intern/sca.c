@@ -35,9 +35,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
+
 #include "MEM_guardedalloc.h"
 
-#include "nla.h"	/* For __NLA: Important, do not remove */
 #include "DNA_text_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_sensor_types.h"
@@ -45,34 +46,11 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_blender.h"
 #include "BKE_sca.h"
-
-void free_text_controllers(Text *txt)
-{
-	Object *ob;
-	bController *cont;
-	
-	ob= G.main->object.first;
-	while(ob) {
-		cont= ob->controllers.first;
-		while(cont) {
-			if(cont->type==CONT_PYTHON) {
-				bPythonCont *pc;
-				
-				pc= cont->data;
-				if(pc->text==txt) pc->text= NULL;
-			}
-			cont= cont->next;
-		}
-		ob= ob->id.next;
-	}
-}
-
 
 /* ******************* SENSORS ************************ */
 
@@ -158,7 +136,7 @@ void init_sensor(bSensor *sens)
 		break;
 	case SENS_MOUSE:
 		ms=sens->data= MEM_callocN(sizeof(bMouseSensor), "mousesens");
-		ms->type= LEFTMOUSE;
+		//XXX ms->type= LEFTMOUSE;
 		break;
 	case SENS_COLLISION:
 		sens->data= MEM_callocN(sizeof(bCollisionSensor), "colsens");
@@ -195,7 +173,7 @@ bSensor *new_sensor(int type)
 	init_sensor(sens);
 	
 	strcpy(sens->name, "sensor");
-	make_unique_prop_names(sens->name);
+// XXX	make_unique_prop_names(sens->name);
 	
 	return sens;
 }
@@ -319,7 +297,7 @@ bController *new_controller(int type)
 	init_controller(cont);
 	
 	strcpy(cont->name, "cont");
-	make_unique_prop_names(cont->name);
+// XXX	make_unique_prop_names(cont->name);
 	
 	return cont;
 }
@@ -410,22 +388,25 @@ void init_actuator(bActuator *act)
 {
 	/* also use when actuator changes type */
 	bObjectActuator *oa;
+	bSoundActuator *sa;
 	
 	if(act->data) MEM_freeN(act->data);
 	act->data= 0;
 	
 	switch(act->type) {
-#ifdef __NLA
 	case ACT_ACTION:
 	case ACT_SHAPEACTION:
 		act->data= MEM_callocN(sizeof(bActionActuator), "actionact");
 		break;
-#endif
 	case ACT_SOUND:
-		act->data= MEM_callocN(sizeof(bSoundActuator), "soundact");
-		break;
-	case ACT_CD:
-		act->data= MEM_callocN(sizeof(bCDActuator), "cdact");
+		sa = act->data= MEM_callocN(sizeof(bSoundActuator), "soundact");
+		sa->volume = 1.0f;
+		sa->sound3D.rolloff_factor = 1.0f;
+		sa->sound3D.reference_distance = 1.0f;
+		sa->sound3D.max_gain = 1.0f;
+		sa->sound3D.cone_inner_angle = 360.0f;
+		sa->sound3D.cone_outer_angle = 360.0f;
+		sa->sound3D.max_distance = FLT_MAX;
 		break;
 	case ACT_OBJECT:
 		act->data= MEM_callocN(sizeof(bObjectActuator), "objectact");
@@ -491,7 +472,7 @@ bActuator *new_actuator(int type)
 	init_actuator(act);
 	
 	strcpy(act->name, "act");
-	make_unique_prop_names(act->name);
+// XXX	make_unique_prop_names(act->name);
 	
 	return act;
 }

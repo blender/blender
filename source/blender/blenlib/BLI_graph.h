@@ -88,6 +88,7 @@ typedef struct BArcIterator {
 	StoppedFct	stopped;
 	
 	float *p, *no;
+	float size;
 	
 	int length;
 	int index;

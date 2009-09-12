@@ -143,7 +143,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		ibuf = imb_bmp_decode((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);
 
-		ibuf = imb_loadtarga((uchar *)mem, flags);
+		ibuf = imb_loadtarga((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);
 
 		ibuf = imb_loaddpx((uchar *)mem, size, flags);
@@ -229,7 +229,7 @@ struct ImBuf *IMB_loadiffmem(int *mem, int flags) {
 		}
 	}
 
-	ibuf = imb_loadtarga((uchar *) mem,flags);
+	ibuf = imb_loadtarga((uchar *) mem,maxlen,flags);
 	if (ibuf) return(ibuf);
 
 	if (IB_verbose) fprintf(stderr,"Unknown fileformat\n");
@@ -244,26 +244,6 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 
 	size = BLI_filesize(file);
 
-#if defined(AMIGA) || defined(__BeOS)
-	mem= (int *)malloc(size);
-	if (mem==0) {
-		printf("Out of mem\n");
-		return (0);
-	}
-
-	if (read(file, mem, size)!=size){
-		printf("Read Error\n");
-		free(mem);
-		return (0);
-	}
-
-	ibuf = IMB_ibImageFromMemory(mem, size, flags);
-	free(mem);
-
-	/* for jpeg read */
-	lseek(file, 0L, SEEK_SET);
-
-#else
 	mem= (int *)mmap(0,size,PROT_READ,MAP_SHARED,file,0);
 	if (mem==(int *)-1){
 		printf("Couldn't get mapping\n");
@@ -275,7 +255,6 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 	if (munmap( (void *) mem, size)){
 		printf("Couldn't unmap file.\n");
 	}
-#endif
 	return(ibuf);
 }
 

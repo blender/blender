@@ -92,8 +92,7 @@ public:
 					   bool bAllKeys,
 					   const STR_String& targetProp,
 					   const STR_String& toggleProp,
-					   SCA_IObject* gameobj,
-					   PyTypeObject* T=&Type );
+					   SCA_IObject* gameobj);
 	virtual ~SCA_KeyboardSensor();
 	virtual CValue* GetReplica();
 	virtual void Init();
@@ -108,29 +107,6 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
-
-	//Deprecated functions ----->
-	/** 1. GetKey : check which key this sensor looks at */
-	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetKey);
-	/** 2. SetKey: change the key to look at */
-	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetKey);
-	/** 3. GetHold1 : set the first bucky bit */
-	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetHold1);
-	/** 4. SetHold1: change the first bucky bit */
-	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetHold1);
-	/** 5. GetHold2 : set the second bucky bit */
-	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetHold2);
-	/** 6. SetHold2: change the second bucky bit */
-	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetHold2);
-	/** 9. GetPressedKeys: */
-	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetPressedKeys); 
-	/** 9. GetCurrrentlyPressedKeys: */
-	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetCurrentlyPressedKeys); 
-	// <------
-	
 	// KeyEvents: 
 	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,getEventList); 
 	// KeyStatus: 

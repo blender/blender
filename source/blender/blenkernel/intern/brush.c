@@ -28,21 +28,30 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_color_types.h"
 #include "DNA_image_types.h"
+#include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "RNA_access.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -50,10 +59,11 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h" /* externtex */
+#include "RE_shader_ext.h"
 
 /* Datablock add/copy/free/make_local */
 
-Brush *add_brush(char *name)
+Brush *add_brush(const char *name)
 {
 	Brush *brush;
 
@@ -65,9 +75,14 @@ Brush *add_brush(char *name)
 	brush->alpha= 0.2f;
 	brush->size= 25;
 	brush->spacing= 10.0f;
+	brush->smooth_stroke_radius= 75;
+	brush->smooth_stroke_factor= 0.9;
 	brush->rate= 0.1f;
 	brush->innerradius= 0.5f;
 	brush->clone.alpha= 0.5;
+	brush->sculpt_tool = SCULPT_TOOL_DRAW;
+
+	brush_curve_preset(brush, BRUSH_PRESET_SHARP);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
@@ -92,6 +107,8 @@ Brush *copy_brush(Brush *brush)
 		}
 	}
 
+	brushn->curve= curvemapping_copy(brush->curve);
+
 	/* enable fake user by default */
 	if (!(brushn->id.flag & LIB_FAKEUSER)) {
 		brushn->id.flag |= LIB_FAKEUSER;
@@ -114,6 +131,8 @@ void free_brush(Brush *brush)
 			MEM_freeN(mtex);
 		}
 	}
+
+	curvemapping_free(brush->curve);
 }
 
 void make_local_brush(Brush *brush)
@@ -137,7 +156,7 @@ void make_local_brush(Brush *brush)
 	}
 
 	for(scene= G.main->scene.first; scene; scene=scene->id.next)
-		if(scene->toolsettings->imapaint.brush==brush) {
+		if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
 			if(scene->id.lib) lib= 1;
 			else local= 1;
 		}
@@ -159,9 +178,9 @@ void make_local_brush(Brush *brush)
 		brushn->id.flag |= LIB_FAKEUSER;
 		
 		for(scene= G.main->scene.first; scene; scene=scene->id.next)
-			if(scene->toolsettings->imapaint.brush==brush)
+			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush)
 				if(scene->id.lib==0) {
-					scene->toolsettings->imapaint.brush= brushn;
+					paint_brush_set(&scene->toolsettings->imapaint.paint, brushn);
 					brushn->id.us++;
 					brush->id.us--;
 				}
@@ -170,7 +189,7 @@ void make_local_brush(Brush *brush)
 
 /* Library Operations */
 
-int brush_set_nr(Brush **current_brush, int nr)
+int brush_set_nr(Brush **current_brush, int nr, const char *name)
 {
 	ID *idtest, *id;
 	
@@ -179,7 +198,7 @@ int brush_set_nr(Brush **current_brush, int nr)
 	
 	if(idtest==0) { /* new brush */
 		if(id) idtest= (ID *)copy_brush((Brush *)id);
-		else idtest= (ID *)add_brush("Brush");
+		else idtest= (ID *)add_brush(name);
 		idtest->us--;
 	}
 	if(idtest!=id) {
@@ -215,6 +234,68 @@ void brush_toggled_fake_user(Brush *brush)
 			id->us--;
 		}
 	}
+}
+
+void brush_curve_preset(Brush *b, BrushCurvePreset preset)
+{
+	CurveMap *cm = NULL;
+
+	if(!b->curve)
+		b->curve = curvemapping_add(1, 0, 0, 1, 1);
+
+	cm = b->curve->cm;
+
+	if(cm->curve)
+		MEM_freeN(cm->curve);
+
+	if(preset == BRUSH_PRESET_SHARP)
+		cm->totpoint= 3;
+	if(preset == BRUSH_PRESET_SMOOTH)
+		cm->totpoint= 6;
+	if(preset == BRUSH_PRESET_MAX)
+		cm->totpoint= 2;
+
+
+	cm->curve= MEM_callocN(cm->totpoint*sizeof(CurveMapPoint), "curve points");
+	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+
+	if(preset == BRUSH_PRESET_SHARP) {
+		cm->curve[0].x= 0;
+		cm->curve[0].y= 1;
+		cm->curve[1].x= 0.33;
+		cm->curve[1].y= 0.33;
+		cm->curve[2].x= 1;
+		cm->curve[2].y= 0;
+	}
+	else if(preset == BRUSH_PRESET_SMOOTH) {
+		cm->curve[0].x= 0;
+		cm->curve[0].y= 1;
+		cm->curve[1].x= 0.1;
+		cm->curve[1].y= 0.97553;
+		cm->curve[2].x= 0.3;
+		cm->curve[2].y= 0.79389;
+		cm->curve[3].x= 0.9;
+		cm->curve[3].y= 0.02447;
+		cm->curve[4].x= 0.7;
+		cm->curve[4].y= 0.20611;
+		cm->curve[5].x= 1;
+		cm->curve[5].y= 0;
+	}
+	else if(preset == BRUSH_PRESET_MAX) {
+		cm->curve[0].x= 0;
+		cm->curve[0].y= 1;
+		cm->curve[1].x= 1;
+		cm->curve[1].y= 1;
+	}
+
+	curvemapping_changed(b->curve, 0);
+}
+
+static MTex *brush_active_texture(Brush *brush)
+{
+	if(brush && brush->texact >= 0)
+		return brush->mtex[brush->texact];
+	return NULL;
 }
 
 int brush_texture_set_nr(Brush *brush, int nr)
@@ -291,10 +372,10 @@ int brush_clone_image_delete(Brush *brush)
 	return 0;
 }
 
-void brush_check_exists(Brush **brush)
+void brush_check_exists(Brush **brush, const char *name)
 {
 	if(*brush==NULL)
-		brush_set_nr(brush, 1);
+		brush_set_nr(brush, 1, name);
 }
 
 /* Brush Sampling */
@@ -323,23 +404,6 @@ float brush_sample_falloff(Brush *brush, float dist)
 		/* formula used by sculpt, with taylor approx 
 		a = 0.5f*(taylor_approx_cos(3.0f*(dist - inner)/(outer - inner)) + 1.0f);
 		return a*brush->alpha; */
-	}
-	else 
-		return 0.0f;
-}
-
-float brush_sample_falloff_noalpha(Brush *brush, float dist)
-{
-	float outer, inner;
-
-	outer = brush->size >> 1;
-	inner = outer*brush->innerradius;
-
-	if (dist <= inner) {
-		return 1.0f;
-	}
-	else if ((dist < outer) && (inner < outer)) {
-		return 1.0f - sqrt((dist - inner)/(outer - inner));
 	}
 	else 
 		return 0.0f;
@@ -895,4 +959,130 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 	return totpaintops;
 }
 
+/* Uses the brush curve control to find a strength value between 0 and 1 */
+float brush_curve_strength(Brush *br, float p, const float len)
+{
+	if(p > len) p= len;
+	return curvemapping_evaluateF(br->curve, 0, p/len);
+}
 
+/* TODO: should probably be unified with BrushPainter stuff? */
+unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
+{
+	unsigned int *texcache = NULL;
+	MTex *mtex = br->mtex[br->texact];
+	TexResult texres;
+	int hasrgb, ix, iy;
+	int side = half_side * 2;
+
+	memset(&texres, 0, sizeof(TexResult));
+	
+	if(mtex && mtex->tex) {
+		float x, y, step = 2.0 / side, co[3];
+
+		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
+
+		BKE_image_get_ibuf(mtex->tex->ima, NULL);
+		
+		/*do normalized cannonical view coords for texture*/
+		for (y=-1.0, iy=0; iy<side; iy++, y += step) {
+			for (x=-1.0, ix=0; ix<side; ix++, x += step) {
+				co[0]= x;
+				co[1]= y;
+				co[2]= 0.0f;
+				
+				/* This is copied from displace modifier code */
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 1, &texres);
+			
+				/* if the texture gave an RGB value, we assume it didn't give a valid
+				 * intensity, so calculate one (formula from do_material_tex).
+				 * if the texture didn't give an RGB value, copy the intensity across
+				 */
+				if(hasrgb & TEX_RGB)
+					texres.tin = (0.35 * texres.tr + 0.45 *
+					              texres.tg + 0.2 * texres.tb);
+
+				texres.tin = texres.tin * 255.0;
+				((char*)texcache)[(iy*side+ix)*4] = (char)texres.tin;
+				((char*)texcache)[(iy*side+ix)*4+1] = (char)texres.tin;
+				((char*)texcache)[(iy*side+ix)*4+2] = (char)texres.tin;
+				((char*)texcache)[(iy*side+ix)*4+3] = (char)texres.tin;
+			}
+		}
+	}
+
+	return texcache;
+}
+
+/**** Radial Control ****/
+static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
+{
+	ImBuf *im = MEM_callocN(sizeof(ImBuf), "radial control texture");
+	unsigned int *texcache;
+	int side = 128;
+	int half = side / 2;
+	int i, j;
+
+	texcache = brush_gen_texture_cache(br, half);
+	im->rect_float = MEM_callocN(sizeof(float) * side * side, "radial control rect");
+	im->x = im->y = side;
+
+	for(i=0; i<side; ++i) {
+		for(j=0; j<side; ++j) {
+			float magn= sqrt(pow(i - half, 2) + pow(j - half, 2));
+			im->rect_float[i*side + j]= brush_curve_strength(br, magn, half);
+		}
+	}
+
+	/* Modulate curve with texture */
+	if(texcache) {
+		for(i=0; i<side; ++i) {
+			for(j=0; j<side; ++j) {
+				const int col= texcache[i*side+j];
+				im->rect_float[i*side+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
+			}
+		}
+
+		MEM_freeN(texcache);
+	}
+
+	return im;
+}
+
+void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
+{
+	int mode = RNA_int_get(op->ptr, "mode");
+	float original_value= 0;
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		original_value = br->size * size_weight;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		original_value = br->alpha;
+	else if(mode == WM_RADIALCONTROL_ANGLE) {
+		MTex *mtex = brush_active_texture(br);
+		if(mtex)
+			original_value = mtex->rot;
+	}
+
+	RNA_float_set(op->ptr, "initial_value", original_value);
+	op->customdata = brush_gen_radial_control_imbuf(br);
+}
+
+int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
+{
+	int mode = RNA_int_get(op->ptr, "mode");
+	float new_value = RNA_float_get(op->ptr, "new_value");
+	const float conv = 0.017453293;
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		br->size = new_value * size_weight;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		br->alpha = new_value;
+	else if(mode == WM_RADIALCONTROL_ANGLE) {
+		MTex *mtex = brush_active_texture(br);
+		if(mtex)
+			mtex->rot = new_value * conv;
+	}
+
+	return OPERATOR_FINISHED;
+}

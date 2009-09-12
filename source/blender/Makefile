@@ -30,18 +30,20 @@
 
 include nan_definitions.mk
 
-DIRS = blenloader readblenfile
-DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
-DIRS += makesdna src yafray
+DIRS = windowmanager editors blenloader readblenfile
+DIRS += avi imbuf render blenlib blenkernel blenpluginapi
+DIRS += makesdna makesrna
 DIRS += python nodes gpu
-
-ifeq ($(WITH_FREETYPE2), true)
-	DIRS += ftfont
-endif
+DIRS += blenfont
 
 ifeq ($(WITH_QUICKTIME), true)
 	DIRS += quicktime
 endif
+
+ifeq ($(WITH_OPENJPEG), true)
+    CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
+endif
+
 
 DIR = $(OCGDIR)/blender
 SOURCEDIR = source/blender

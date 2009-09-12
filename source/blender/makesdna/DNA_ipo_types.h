@@ -28,6 +28,17 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+ 
+/* ============================================== 
+ * ATTENTION: 
+ *
+ * The contents of this file are now officially depreceated. They were used for the 'old' animation system,
+ * which has (as of 2.50) been replaced with a completely new system by Joshua Leung (aligorith). All defines, 
+ * etc. are only still maintained to provide backwards compatability for old files...
+ *
+ * =============================================
+ */ 
+ 
 #ifndef DNA_IPO_TYPES_H
 #define DNA_IPO_TYPES_H
 
@@ -349,8 +360,8 @@ typedef struct Ipo {
 
 /* ******* PoseChannel (ID_PO) ********* */
 
-#define AC_TOTIPO	10
-#define AC_TOTNAM	10
+#define AC_TOTIPO	13
+#define AC_TOTNAM	13
 
 #define AC_LOC_X	1
 #define AC_LOC_Y	2
@@ -359,6 +370,10 @@ typedef struct Ipo {
 #define AC_SIZE_X	13
 #define AC_SIZE_Y	14
 #define AC_SIZE_Z	15
+
+#define AC_EUL_X	16
+#define AC_EUL_Y	17
+#define AC_EUL_Z	18
 
 #define AC_QUAT_W	25
 #define AC_QUAT_X	26

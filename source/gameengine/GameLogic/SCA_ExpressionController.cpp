@@ -46,9 +46,8 @@
 /* ------------------------------------------------------------------------- */
 
 SCA_ExpressionController::SCA_ExpressionController(SCA_IObject* gameobj,
-												   const STR_String& exprtext,
-												   PyTypeObject* T)
-	:SCA_IController(gameobj,T),
+												   const STR_String& exprtext)
+	:SCA_IController(gameobj),
 	m_exprText(exprtext),
 	m_exprCache(NULL)
 {

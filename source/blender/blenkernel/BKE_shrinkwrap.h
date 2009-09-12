@@ -30,11 +30,12 @@
 #define BKE_SHRINKWRAP_H
 
 /* mesh util */
+
 //TODO: move this somewhere else
 #include "BKE_customdata.h"
 struct DerivedMesh;
 struct Object;
-struct DerivedMesh *object_get_derived_final(struct Object *ob, CustomDataMask dataMask);
+struct DerivedMesh *object_get_derived_final(struct Scene *scene, struct Object *ob, CustomDataMask dataMask);
 
 
 /* SpaceTransform stuff */
@@ -69,14 +70,11 @@ typedef struct SpaceTransform
 
 } SpaceTransform;
 
-void space_transform_from_matrixs(SpaceTransform *data, float local[][4], float target[][4]);
+void space_transform_from_matrixs(struct SpaceTransform *data, float local[4][4], float target[4][4]);
+void space_transform_apply(const struct SpaceTransform *data, float *co);
+void space_transform_invert(const struct SpaceTransform *data, float *co);
+
 #define space_transform_setup(data, local, target) space_transform_from_matrixs(data, (local)->obmat, (target)->obmat)
-
-void space_transform_apply (const SpaceTransform *data, float *co);
-void space_transform_invert(const SpaceTransform *data, float *co);
-
-void space_transform_apply_normal (const SpaceTransform *data, float *no);
-void space_transform_invert_normal(const SpaceTransform *data, float *no);
 
 /* Shrinkwrap stuff */
 #include "BKE_bvhutils.h"
@@ -94,6 +92,7 @@ void space_transform_invert_normal(const SpaceTransform *data, float *no);
  */
 
 struct Object;
+struct Scene;
 struct DerivedMesh;
 struct MVert;
 struct MDeformVert;
@@ -116,17 +115,13 @@ typedef struct ShrinkwrapCalcData
 	int vgroup;						//Vertex group num
 
 	struct DerivedMesh *target;		//mesh we are shrinking to	
-	SpaceTransform local2target;	//transform to move bettwem local and target space
+	SpaceTransform local2target;	//transform to move between local and target space
 
-	float keepDist;					//Distance to kept from target (units are in local space)
+	float keepDist;					//Distance to keep above target surface (units are in local space)
 
 } ShrinkwrapCalcData;
 
-void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *data);
-void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *data);
-void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *data);
-
-void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
+void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
 
 /*
  * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:

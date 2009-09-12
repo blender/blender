@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -44,9 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_listBase.h"
 
-
 #include "BLI_blenlib.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_property.h"
 
 void free_property(bProperty *prop)
@@ -101,24 +100,17 @@ void init_property(bProperty *prop)
 	if(prop->poin && prop->poin != &prop->data) MEM_freeN(prop->poin);
 	prop->poin= 0;
 	
-	prop->otype= prop->type;
 	prop->data= 0;
 	
 	switch(prop->type) {
-	case PROP_BOOL:
+	case GPROP_BOOL:
+	case GPROP_INT:
+	case GPROP_FLOAT:
+	case GPROP_TIME:
 		prop->poin= &prop->data;
 		break;
-	case PROP_INT:
-		prop->poin= &prop->data;
-		break;
-	case PROP_FLOAT:
-		prop->poin= &prop->data;
-		break;
-	case PROP_STRING:
+	case GPROP_STRING:
 		prop->poin= MEM_callocN(MAX_PROPSTRING, "property string");
-		break;
-	case PROP_TIME:
-		prop->poin= &prop->data;
 		break;
 	}
 }
@@ -136,6 +128,60 @@ bProperty *new_property(int type)
 	strcpy(prop->name, "prop");
 
 	return prop;
+}
+
+/* used by unique_property() only */
+static bProperty *get_property__internal(bProperty *first, bProperty *self, const char *name)
+{
+	bProperty *p;
+	for(p= first; p; p= p->next) {
+		if (p!=self && (strcmp(p->name, name)==0))
+			return p;
+	}
+	return NULL;
+}
+void unique_property(bProperty *first, bProperty *prop, int force)
+{
+	bProperty *p;
+
+	/* set the first if its not set */
+	if(first==NULL) {
+		first= prop;
+		while(first->prev) {
+			first= first->prev;
+		}
+	}
+
+	if(force) {
+		/* change other names to make them unique */
+		while((p = get_property__internal(first, prop, prop->name))) {
+			unique_property(first, p, 0);
+		}
+	}else {
+		/* change our own name until its unique */
+		if(get_property__internal(first, prop, prop->name)) {
+			/* there is a collision */
+			char new_name[sizeof(prop->name)];
+			char base_name[sizeof(prop->name)];
+			char num[sizeof(prop->name)];
+			int i= 0;
+
+			/* strip numbers */
+			strcpy(base_name, prop->name);
+			for(i= strlen(base_name)-1; (i>=0 && isdigit(base_name[i])); i--) {
+				base_name[i]= '\0';
+			}
+			i= 0;
+
+			do { /* ensure we have enough chars for the new number in the name */
+				sprintf(num, "%d", i++);
+				BLI_strncpy(new_name, base_name, sizeof(prop->name) - strlen(num));
+				strcat(new_name, num);
+			} while(get_property__internal(first, prop, new_name));
+
+			strcpy(prop->name, new_name);
+		}
+	}
 }
 
 bProperty *get_ob_property(Object *ob, char *name)
@@ -170,7 +216,7 @@ int compare_property(bProperty *prop, char *str)
 	float fvalue, ftest;
 	
 	switch(prop->type) {
-	case PROP_BOOL:
+	case GPROP_BOOL:
 		if(BLI_strcasecmp(str, "true")==0) {
 			if(prop->data==1) return 0;
 			else return 1;
@@ -179,14 +225,14 @@ int compare_property(bProperty *prop, char *str)
 			if(prop->data==0) return 0;
 			else return 1;
 		}
-		/* no break, do prop_int too! */
+		/* no break, do GPROP_int too! */
 		
-	case PROP_INT:
+	case GPROP_INT:
 		return prop->data - atoi(str);
 
-	case PROP_FLOAT:
-	case PROP_TIME:
-		// WARNING: untested for PROP_TIME
+	case GPROP_FLOAT:
+	case GPROP_TIME:
+		// WARNING: untested for GPROP_TIME
 		// function isn't used currently
 		fvalue= *((float *)&prop->data);
 		ftest= (float)atof(str);
@@ -194,7 +240,7 @@ int compare_property(bProperty *prop, char *str)
 		else if( fvalue < ftest) return -1;
 		return 0;
 
-	case PROP_STRING:
+	case GPROP_STRING:
 		return strcmp(prop->poin, str);
 	}
 	
@@ -206,19 +252,19 @@ void set_property(bProperty *prop, char *str)
 //	extern int Gdfra;		/* sector.c */
 
 	switch(prop->type) {
-	case PROP_BOOL:
+	case GPROP_BOOL:
 		if(BLI_strcasecmp(str, "true")==0) prop->data= 1;
 		else if(BLI_strcasecmp(str, "false")==0) prop->data= 0;
 		else prop->data= (atoi(str)!=0);
 		break;
-	case PROP_INT:
+	case GPROP_INT:
 		prop->data= atoi(str);
 		break;
-	case PROP_FLOAT:
-	case PROP_TIME:
+	case GPROP_FLOAT:
+	case GPROP_TIME:
 		*((float *)&prop->data)= (float)atof(str);
 		break;
-	case PROP_STRING:
+	case GPROP_STRING:
 		strcpy(prop->poin, str);
 		break;
 	}
@@ -230,15 +276,15 @@ void add_property(bProperty *prop, char *str)
 //	extern int Gdfra;		/* sector.c */
 
 	switch(prop->type) {
-	case PROP_BOOL:
-	case PROP_INT:
+	case GPROP_BOOL:
+	case GPROP_INT:
 		prop->data+= atoi(str);
 		break;
-	case PROP_FLOAT:
-	case PROP_TIME:
+	case GPROP_FLOAT:
+	case GPROP_TIME:
 		*((float *)&prop->data)+= (float)atof(str);
 		break;
-	case PROP_STRING:
+	case GPROP_STRING:
 		/* strcpy(prop->poin, str); */
 		break;
 	}
@@ -252,15 +298,15 @@ void set_property_valstr(bProperty *prop, char *str)
 	if(str == NULL) return;
 
 	switch(prop->type) {
-	case PROP_BOOL:
-	case PROP_INT:
+	case GPROP_BOOL:
+	case GPROP_INT:
 		sprintf(str, "%d", prop->data);
 		break;
-	case PROP_FLOAT:
-	case PROP_TIME:
+	case GPROP_FLOAT:
+	case GPROP_TIME:
 		sprintf(str, "%f", *((float *)&prop->data));
 		break;
-	case PROP_STRING:
+	case GPROP_STRING:
 		BLI_strncpy(str, prop->poin, MAX_PROPSTRING);
 		break;
 	}

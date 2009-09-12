@@ -1,0 +1,54 @@
+/**
+ * BKE_fluidsim.h 
+ *	
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+#ifndef ED_FLUIDSIM_H
+#define ED_FLUIDSIM_H
+
+struct Object;
+struct FluidsimSettings;
+
+extern double fluidsimViscosityPreset[6];
+extern char* fluidsimViscosityPresetString[6];
+
+/* allocates and initializes fluidsim data */
+struct FluidsimSettings* fluidsimSettingsNew(struct Object *srcob);
+
+/* frees internal data itself */
+void fluidsimSettingsFree(struct FluidsimSettings* sb);
+
+/* duplicate internal data */
+struct FluidsimSettings* fluidsimSettingsCopy(struct FluidsimSettings* sb);
+
+/* memory estimate */
+void fluidsimEstimateMemory(struct Object *ob, struct FluidsimSettings *fs, char *value);
+
+#endif /* ED_FLUIDSIM_H */
+
+

@@ -16,6 +16,11 @@ WITH_BF_OPENAL = False
 #BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 #BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
+BF_LIBSAMPLERATE = '/usr/local'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
 WITH_BF_SDL = True
 BF_SDL = '/usr/local' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
@@ -59,28 +64,13 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'intl iconv'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = True
-BF_FTGL = '#extern/bFTGL'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
-
 WITH_BF_GAMEENGINE=False
-
-WITH_BF_ODE = False
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = '${BF_ODE}/include'
-BF_ODE_LIB = '${BF_ODE}/lib/libode.a'
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
-
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
-
-WITH_BF_YAFRAY = True
 
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr

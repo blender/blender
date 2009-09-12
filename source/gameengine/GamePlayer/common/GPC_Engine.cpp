@@ -39,6 +39,7 @@
 
 #include "BKE_blender.h"  // initglobals()
 #include "BKE_global.h"  // Global G
+#include "BKE_report.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"  // Camera
 #include "DNA_object_types.h"  // Object
@@ -57,7 +58,6 @@
 #include "NG_LoopBackNetworkDeviceInterface.h"
 
 #include "RAS_IRenderTools.h"
-#include "SND_DeviceManager.h"
 
 #include "GPC_Engine.h"
 #include "GPC_KeyboardDevice.h"
@@ -74,8 +74,7 @@ GPC_Engine::GPC_Engine(char *customLoadingAnimationURL,
 		m_system(NULL), m_keyboarddev(NULL),
 		m_mousedev(NULL), m_canvas(NULL), m_rendertools(NULL),
 		m_portal(NULL), m_sceneconverter(NULL), m_networkdev(NULL),
-		m_audiodevice(NULL), m_curarea(NULL),
-		m_customLoadingAnimationURL(NULL),
+		m_curarea(NULL), m_customLoadingAnimationURL(NULL),
 		m_foregroundColor(foregroundColor), m_backgroundColor(backgroundColor),
 		m_frameRate(frameRate),
 		m_BlenderLogo(0), m_Blender3DLogo(0)/*, m_NaNLogo(0)*/
@@ -135,15 +134,19 @@ GPC_Engine::~GPC_Engine()
 
 bool GPC_Engine::Start(char *filename)
 {
-	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_file(filename, &error);
+	ReportList reports;
+	BlendFileData *bfd;
+	
+	BKE_reports_init(&reports, RPT_STORE);
+	bfd= BLO_read_from_file(filename, &reports);
+	BKE_reports_clear(&reports);
 
 	if (!bfd) {
 			// XXX, deal with error here
 		cout << "Unable to load: " << filename << endl;
 		return false;
 	}
-	
+
 	StartKetsji();
 
 	if(bfd->type == BLENFILETYPE_PUB)
@@ -156,8 +159,12 @@ bool GPC_Engine::Start(char *filename)
 bool GPC_Engine::Start(unsigned char *blenderDataBuffer,
 		unsigned int blenderDataBufferSize)
 {
-	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_memory(blenderDataBuffer, blenderDataBufferSize, &error);
+	ReportList reports;
+	BlendFileData *bfd;
+	
+	BKE_reports_init(&reports, RPT_STORE);
+	bfd= BLO_read_from_memory(blenderDataBuffer, blenderDataBufferSize, &reports);
+	BKE_reports_clear(&reports);
 
 	if (!bfd) {
 			// XXX, deal with error here
@@ -176,7 +183,7 @@ bool GPC_Engine::Start(unsigned char *blenderDataBuffer,
 
 bool GPC_Engine::StartKetsji(void)
 {
-	STR_String startSceneName = G.scene->id.name + 2;
+	STR_String startSceneName = ""; // XXX scene->id.name + 2;
 /*
 	KX_KetsjiEngine* ketsjieng = new KX_KetsjiEngine(m_system);
 	m_portal = new KetsjiPortal(ketsjieng);
@@ -192,7 +199,6 @@ bool GPC_Engine::StartKetsji(void)
 			m_keyboarddev,
 			m_mousedev,
 			m_networkdev,
-			m_audiodevice,
 			m_system);
 
 	m_system->SetMainLoop(m_portal->m_ketsjieng);
@@ -326,12 +332,6 @@ void GPC_Engine::Exit()
 	if (m_networkdev) {
 		delete m_networkdev;
 		m_networkdev = 0;
-	}
-
-	if (m_audiodevice)
-	{
-		SND_DeviceManager::Unsubscribe();
-		m_audiodevice = 0;
 	}
 
 	m_initialized = false;

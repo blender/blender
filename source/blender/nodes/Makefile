@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id: Makefile
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) Blender Foundation.
 # All rights reserved.
 #
 # The Original Code is: all of this file.

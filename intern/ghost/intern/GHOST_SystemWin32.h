@@ -170,17 +170,17 @@ public:
 
 	/**
 	 * Returns unsinged char from CUT_BUFFER0
-	 * @param flag		Flag is not used on win32 on used on X11
-	 * @return		Returns the Clipboard
+	 * @param selection		Used by X11 only
+	 * @return				Returns the Clipboard
 	 */
-	virtual GHOST_TUns8* getClipboard(int flag) const;
+	virtual GHOST_TUns8* getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
-	 * @param flag		Flag is not used on win32 on used on X11
-	 * @return		No return
+	 * @param selection		Used by X11 only
+	 * @return				No return
 	 */
-	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 	 
 protected:
 	/**

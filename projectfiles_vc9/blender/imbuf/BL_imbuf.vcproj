@@ -53,7 +53,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\imbuf\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\imbuf\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\imbuf\debug\"
-				WarningLevel="2"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"

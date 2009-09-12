@@ -62,8 +62,7 @@ public:
 					bool bXRay,
 					double distance,
 					int axis,
-					class KX_Scene* ketsjiScene,
-					PyTypeObject* T = &Type);
+					class KX_Scene* ketsjiScene);
 	virtual ~KX_RaySensor();
 	virtual CValue* GetReplica();
 
@@ -84,18 +83,7 @@ public:
 		KX_RAY_AXIS_NEG_Y,
 		KX_RAY_AXIS_NEG_Z
 	};
-
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 	
-	// Deprecated ----->
-	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitObject);
-	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitPosition);
-	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitNormal);
-	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetRayDirection);
-	// <-----
 
 	/* Attributes */
 	static PyObject* pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

@@ -38,8 +38,6 @@
 
 #include "RAS_IRenderTools.h"
 
-#include "BMF_Api.h"
-
 struct KX_ClientObjectInfo;
 class KX_RayCast;
 
@@ -57,7 +55,7 @@ class GPC_RenderTools : public RAS_IRenderTools
 	void	*m_lastauxinfo;
 	static unsigned int m_numgllights;
 
-	BMF_Font* m_font;
+// XXX	BMF_Font* m_font;
 
 public:
 						GPC_RenderTools();

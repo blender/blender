@@ -13,10 +13,6 @@ incs += ' ' + env['BF_ZLIB_INC']
 
 defs = []
 
-if env['WITH_BF_VERSE']:
-	defs.append('WITH_VERSE')
-	incs += ' ' + env['BF_VERSE_INCLUDE']
-	
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 
@@ -39,4 +35,4 @@ if env['WITH_BF_QUICKTIME']:
 	incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']
 	defs.append('WITH_QUICKTIME')
 
-env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [80, 40] )
+env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [185,115] )

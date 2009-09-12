@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BLI_blenlib"
 	ProjectGUID="{31628053-825D-4C06-8A21-D13883489718}"
+	RootNamespace="BLI_blenlib"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -43,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -119,7 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2;WITH_VERSE"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_NO_WARNINGS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
@@ -129,7 +130,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\blenlib\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\blenlib\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\blenlib\debug\"
-				WarningLevel="2"
+				WarningLevel="4"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
@@ -195,7 +196,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_FREETYPE2;WITH_VERSE"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -346,7 +347,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
@@ -422,7 +423,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -522,6 +523,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\DLRB_tree.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\dynamiclist.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\dynlib.c"
 				>
 			</File>
@@ -554,15 +563,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\matrixops.c"
+				RelativePath="..\..\..\source\blender\blenlib\intern\listbase.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\noise.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\psfont.c"
 				>
 			</File>
 			<File
@@ -582,6 +587,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\string.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\threads.c"
 				>
 			</File>
@@ -594,7 +603,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\vectorops.c"
+				RelativePath="..\..\..\source\blender\blenlib\intern\voxel.c"
 				>
 			</File>
 			<File
@@ -627,6 +636,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_dlrbTree.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_dynamiclist.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_edgehash.h"
 				>
 			</File>
@@ -635,7 +652,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_fileops.h"
+				RelativePath="..\..\..\source\blender\blenlib\BLI_fileops.h"
 				>
 			</File>
 			<File
@@ -679,11 +696,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_scanfill.h"
+				RelativePath="..\..\..\source\blender\blenlib\BLI_scanfill.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_storage.h"
+				RelativePath="..\..\..\source\blender\blenlib\BLI_storage.h"
 				>
 			</File>
 			<File
@@ -691,23 +708,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_string.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_threads.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_util.h"
+				RelativePath="..\..\..\source\blender\blenlib\BLI_util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_voxel.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_winstuff.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\MTC_matrixops.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\MTC_vectorops.h"
 				>
 			</File>
 			<File

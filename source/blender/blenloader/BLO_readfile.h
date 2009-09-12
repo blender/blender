@@ -34,16 +34,17 @@
 extern "C" {
 #endif
 
-struct SpaceFile;
-struct SpaceImaSel;
+struct bScreen;
+struct direntry;
 struct FileList;
 struct LinkNode;
 struct Main;
-struct UserDef;
-struct bScreen;
-struct Scene;
 struct MemFile;
-struct direntry;
+struct ReportList;
+struct Scene;
+struct SpaceFile;
+struct SpaceImaSel;
+struct UserDef;
 
 typedef struct BlendHandle	BlendHandle;
 
@@ -53,29 +54,6 @@ typedef enum BlenFileType {
 	BLENFILETYPE_RUNTIME= 3
 } BlenFileType;
 
-typedef enum {
-	BRE_NONE, 
-	
-	BRE_UNABLE_TO_OPEN, 
-	BRE_UNABLE_TO_READ, 
-
-	BRE_OUT_OF_MEMORY, 
-	BRE_INTERNAL_ERROR, 
-
-	BRE_NOT_A_BLEND, 
-	BRE_NOT_A_PUBFILE,
-	BRE_INCOMPLETE, 
-	BRE_CORRUPT, 
-	
-	BRE_TOO_NEW, 
-	BRE_NOT_ALLOWED, 
-	
-	BRE_NO_SCREEN, 
-	BRE_NO_SCENE, 
-	
-	BRE_INVALID
-} BlendReadError;
-
 typedef struct BlendFileData {
 	struct Main*	main;
 	struct UserDef*	user;
@@ -84,7 +62,7 @@ typedef struct BlendFileData {
 	int fileflags;
 	int displaymode;
 	int globalf;
-
+	
 	struct bScreen*	curscreen;
 	struct Scene*	curscene;
 	
@@ -93,46 +71,34 @@ typedef struct BlendFileData {
 
 	/**
 	 * Open a blender file from a pathname. The function
-	 * returns NULL and sets the @a error_r argument if
+	 * returns NULL and sets a report in the list if
 	 * it cannot open the file.
 	 * 
 	 * @param file The path of the file to open.
-	 * @param error_r If the return value is NULL, an error
-	 * code indicating the cause of the failure.
+	 * @param reports If the return value is NULL, errors
+	 * indicating the cause of the failure.
 	 * @return The data of the file.
 	 */
-BlendFileData*	BLO_read_from_file		(char *file, BlendReadError *error_r);
+BlendFileData*	BLO_read_from_file		(char *file, struct ReportList *reports);
 
 	/**
 	 * Open a blender file from memory. The function
-	 * returns NULL and sets the @a error_r argument if
+	 * returns NULL and sets a report in the list if
 	 * it cannot open the file.
 	 * 
 	 * @param mem The file data.
 	 * @param memsize The length of @a mem.
-	 * @param error_r If the return value is NULL, an error
-	 * code indicating the cause of the failure.
+	 * @param reports If the return value is NULL, errors
+	 * indicating the cause of the failure.
 	 * @return The data of the file.
 	 */
-BlendFileData*	BLO_read_from_memory(void *mem, int memsize, BlendReadError *error_r);
+BlendFileData*	BLO_read_from_memory(void *mem, int memsize, struct ReportList *reports);
 
 /**
+ * oldmain is old main, from which we will keep libraries, images, ..
  * file name is current file, only for retrieving library data */
 
-BlendFileData *BLO_read_from_memfile(const char *filename, struct MemFile *memfile, BlendReadError *error_r);
-
-/**
- * Convert a BlendReadError to a human readable string.
- * The string is static and does not need to be free'd.
- * 
- * @param error The error to return a string for.
- * @return A static human readable string representation
- * of @a error.
- */
- 
-	char*
-BLO_bre_as_string(
-	BlendReadError error);
+BlendFileData *BLO_read_from_memfile(struct Main *oldmain, const char *filename, struct MemFile *memfile, struct ReportList *reports);
 
 /**
  * Free's a BlendFileData structure and _all_ the
@@ -233,11 +199,12 @@ BLO_blendhandle_close(
 
 char *BLO_gethome(void);
 int BLO_has_bfile_extension(char *str);
-void BLO_library_append(struct SpaceFile *sfile, char *dir, int idcode);
-void BLO_library_append_(BlendHandle **libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode);
-void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Scene *scene);
 
-BlendFileData* blo_read_blendafterruntime(int file, char *name, int actualsize, BlendReadError *error_r);
+void BLO_library_append(BlendHandle **libfiledata, struct direntry* filelist, int totfile, 
+						 char *dir, char* file, short flag, int idcode, struct Main *mainvar, struct Scene *scene, struct ReportList *reports);
+void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Main *mainvar, struct Scene *scene, struct ReportList *reports);
+
+BlendFileData* blo_read_blendafterruntime(int file, char *name, int actualsize, struct ReportList *reports);
 
 #ifdef __cplusplus
 } 

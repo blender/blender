@@ -49,9 +49,8 @@ public:
 						short	blendin,
 						short	priority,
 						short	end_reset,
-						float	stride,
-						PyTypeObject* T=&Type) 
-		: SCA_IActuator(gameobj,T),
+						float	stride) 
+		: SCA_IActuator(gameobj),
 		
 		m_lastpos(0, 0, 0),
 		m_blendframe(0),
@@ -85,37 +84,8 @@ public:
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
 
-	//Deprecated ----->
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetAction);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendin);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetPriority);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetStart);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetEnd);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrame);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetProperty);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrameProperty);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendtime);
-
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetAction);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetBlendin);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetPriority);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetStart);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetEnd);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrame);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetProperty);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrameProperty);
 	KX_PYMETHOD_O(BL_ActionActuator,GetChannel);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetType);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
-	KX_PYMETHOD_NOARGS(BL_ActionActuator,GetContinue);
-	KX_PYMETHOD_O(BL_ActionActuator,SetContinue);
-	//<-----
-
 	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel);
-
-	virtual PyObject* py_getattro(PyObject* attr);
-	virtual PyObject*		py_getattro_dict();
-	virtual int py_setattro(PyObject* attr, PyObject* value);
 
 	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

@@ -31,6 +31,7 @@
 
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
                             BLI_countlist BLI_stringdec */
+
 #include "imbuf.h"
 #include "imbuf_patch.h"
 
@@ -45,6 +46,11 @@
 #include "IMB_anim.h"
 
 #include "IMB_anim5.h"
+
+#ifdef _WIN32
+#include <io.h>
+#include "BLI_winstuff.h"
+#endif
 
 typedef struct Anhd{
 	unsigned char type, mask;

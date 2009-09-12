@@ -45,55 +45,11 @@
  * Python defines
 ------------------------------*/
 
-
-
-#if PY_VERSION_HEX > 0x03000000
-#define PyString_FromString PyUnicode_FromString
-#define PyString_FromFormat PyUnicode_FromFormat
-#define PyString_Check PyUnicode_Check
-#define PyString_Size PyUnicode_GetSize
-
-#define PyInt_FromLong PyLong_FromSsize_t
-#define PyInt_AsLong PyLong_AsSsize_t
-#define PyString_AsString _PyUnicode_AsString
-#define PyInt_Check PyLong_Check
-#define PyInt_AS_LONG PyLong_AsLong // TODO - check this one
+#ifdef USE_MATHUTILS
+extern "C" {
+#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+}
 #endif
-
-
-
-/*
-   Py_RETURN_NONE
-   Python 2.4 macro.
-   defined here until we switch to 2.4
-   also in api2_2x/gen_utils.h 
-*/
-#ifndef Py_RETURN_NONE
-#define Py_RETURN_NONE  return Py_INCREF(Py_None), Py_None
-#endif
-#ifndef Py_RETURN_FALSE
-#define Py_RETURN_FALSE  return Py_INCREF(Py_False), Py_False
-#endif
-#ifndef Py_RETURN_TRUE
-#define Py_RETURN_TRUE  return Py_INCREF(Py_True), Py_True
-#endif
-
-/*  for pre Py 2.5 */
-#if PY_VERSION_HEX < 0x02050000
-typedef int Py_ssize_t;
-typedef Py_ssize_t (*lenfunc)(PyObject *);
-#define PY_SSIZE_T_MAX INT_MAX
-#define PY_SSIZE_T_MIN INT_MIN
-#define PY_METHODCHAR char *
-#else
-/* Py 2.5 and later */
-#define  intargfunc  ssizeargfunc
-#define intintargfunc  ssizessizeargfunc
-#define PY_METHODCHAR const char *
-#endif
-
-#include "descrobject.h"
-
 
 static inline void Py_Fatal(const char *M) {
 	fprintf(stderr, "%s\n", M);
@@ -130,7 +86,7 @@ typedef struct {
 
 
 
-typedef struct {
+typedef struct PyObjectPlus_Proxy {
 	PyObject_HEAD		/* required python macro   */
 	class PyObjectPlus *ref;
 	bool py_owns;
@@ -141,50 +97,32 @@ typedef struct {
 #define BGE_PROXY_PYOWNS(_self) (((PyObjectPlus_Proxy *)_self)->py_owns)
 
 /* Note, sometimes we dont care what BGE type this is as long as its a proxy */
-#define BGE_PROXY_CHECK_TYPE(_self) ((_self)->ob_type->tp_dealloc == PyObjectPlus::py_base_dealloc)
+#define BGE_PROXY_CHECK_TYPE(_type) ((_type)->tp_dealloc == PyObjectPlus::py_base_dealloc)
+
+/* Opposite of BGE_PROXY_REF */
+#define BGE_PROXY_FROM_REF(_self) (((PyObjectPlus *)_self)->GetProxy())
 
 
 								// This must be the first line of each 
 								// PyC++ class
-#define Py_Header \
+#define __Py_Header \
  public: \
   static PyTypeObject   Type; \
   static PyMethodDef    Methods[]; \
   static PyAttributeDef Attributes[]; \
-  static PyParentObject Parents[]; \
   virtual PyTypeObject *GetType(void) {return &Type;}; \
-  virtual PyParentObject *GetParents(void) {return Parents;} \
   virtual PyObject *GetProxy() {return GetProxy_Ext(this, &Type);}; \
   virtual PyObject *NewProxy(bool py_owns) {return NewProxy_Ext(this, &Type, py_owns);}; \
 
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#define Py_Header __Py_Header \
+  void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
+  void operator delete( void *mem ) { MEM_freeN(mem); } \
 
-
-								// This defines the py_getattro_up macro
-								// which allows attribute and method calls
-								// to be properly passed up the hierarchy.
-								// 
-								// Note, PyDict_GetItem() WONT set an exception!
-								// let the py_base_getattro function do this.
-
-#define py_getattro_up(Parent) \
-	\
-	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
-	 \
-	if(descr) { \
-		if (PyCObject_Check(descr)) { \
-			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr)); \
-		} else if (descr->ob_type->tp_descr_get) { \
-			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy); \
-		} else { \
-			return NULL; \
-		} \
-	} else { \
-		return Parent::py_getattro(attr); \
-	}
-
-#define py_getattro_dict_up(Parent) \
-	return py_getattr_dict(Parent::py_getattro_dict(), Type.tp_dict);
+#else
+#define Py_Header __Py_Header
+#endif
 
 /*
  * nonzero values are an error for setattr
@@ -196,29 +134,6 @@ typedef struct {
 #define PY_SET_ATTR_FAIL		 1
 #define PY_SET_ATTR_MISSING		-1
 #define PY_SET_ATTR_SUCCESS		 0
-
-#define py_setattro_up(Parent) \
-	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
-	 \
-	if(descr) { \
-		if (PyCObject_Check(descr)) { \
-			const PyAttributeDef* attrdef= reinterpret_cast<const PyAttributeDef *>(PyCObject_AsVoidPtr(descr)); \
-			if (attrdef->m_access == KX_PYATTRIBUTE_RO) { \
-				PyErr_Format(PyExc_AttributeError, "\"%s\" is read only", PyString_AsString(attr)); \
-				return PY_SET_ATTR_FAIL; \
-			} \
-			else { \
-				return py_set_attrdef((void *)this, attrdef, value); \
-			} \
-		} else { \
-			PyErr_Format(PyExc_AttributeError, "\"%s\" cannot be set", PyString_AsString(attr)); \
-			return PY_SET_ATTR_FAIL; \
-		} \
-	} else { \
-		PyErr_Clear(); \
-		return Parent::py_setattro(attr, value); \
-	}
-
 
 /**
  * These macros are helpfull when embedding Python routines. The second
@@ -290,13 +205,13 @@ typedef struct {
  * Method table macro (with doc)
  */
 #define KX_PYMETHODTABLE(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (PY_METHODCHAR)class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (const char *)class_name::method_name##_doc}
 
 #define KX_PYMETHODTABLE_O(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_O, (PY_METHODCHAR)class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_O, (const char *)class_name::method_name##_doc}
 
 #define KX_PYMETHODTABLE_NOARGS(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (PY_METHODCHAR)class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (const char *)class_name::method_name##_doc}
 
 /**
  * Function implementation macro
@@ -489,7 +404,7 @@ class PyObjectPlus : public SG_QList
 	Py_Header;							// Always start with Py_Header
 	
 public:
-	PyObjectPlus(PyTypeObject *T);
+	PyObjectPlus();
 
 	PyObject *m_proxy; /* actually a PyObjectPlus_Proxy */
 	
@@ -497,30 +412,19 @@ public:
 	
 	/* These static functions are referenced by ALL PyObjectPlus_Proxy types
 	 * they take the C++ reference from the PyObjectPlus_Proxy and call
-	 * its own virtual py_getattro, py_setattro etc. functions.
+	 * its own virtual py_repr, py_base_dealloc ,etc. functions.
 	 */
+
+	static PyObject*		py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds); /* allows subclassing */
 	static void			py_base_dealloc(PyObject *self);
-	static  PyObject*		py_base_getattro(PyObject * self, PyObject *attr);
-	static  int			py_base_setattro(PyObject *self, PyObject *attr, PyObject *value);
 	static PyObject*		py_base_repr(PyObject *self);
 
 	/* These are all virtual python methods that are defined in each class
 	 * Our own fake subclassing calls these on each class, then calls the parent */
-	virtual PyObject*		py_getattro(PyObject *attr);
-	virtual PyObject*		py_getattro_dict();
-	virtual int			py_delattro(PyObject *attr);
-	virtual int			py_setattro(PyObject *attr, PyObject *value);
 	virtual PyObject*		py_repr(void);
 
-	static PyObject*		py_get_attrdef(void *self, const PyAttributeDef *attrdef);
-	static int				py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value);
-	
-	/* isA() methods, shonky replacement for pythons issubclass()
-	 * which we cant use because we have our own subclass system  */
-	bool isA(PyTypeObject *T);
-	bool isA(const char *mytypename);
-	
-	KX_PYMETHOD_O(PyObjectPlus,isA);
+	static PyObject*		py_get_attrdef(PyObject *self_py, const PyAttributeDef *attrdef);
+	static int				py_set_attrdef(PyObject *self_py, PyObject *value, const PyAttributeDef *attrdef);
 	
 	/* Kindof dumb, always returns True, the false case is checked for, before this function gets accessed */
 	static PyObject*	pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

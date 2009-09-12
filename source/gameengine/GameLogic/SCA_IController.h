@@ -47,7 +47,7 @@ protected:
 	bool								m_justActivated;
 	bool								m_bookmark;
 public:
-	SCA_IController(SCA_IObject* gameobj,PyTypeObject* T);
+	SCA_IController(SCA_IObject* gameobj);
 	virtual ~SCA_IController();
 	virtual void Trigger(class SCA_LogicManager* logicmgr)=0;
 	void	LinkToSensor(SCA_ISensor* sensor);
@@ -97,16 +97,6 @@ public:
 			}
 		}
 	}
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
-	
-	KX_PYMETHOD_NOARGS(SCA_IController,GetSensors);
-	KX_PYMETHOD_NOARGS(SCA_IController,GetActuators);
-	KX_PYMETHOD_O(SCA_IController,GetSensor);
-	KX_PYMETHOD_O(SCA_IController,GetActuator);
-	KX_PYMETHOD_NOARGS(SCA_IController,GetState);
 	
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

@@ -83,6 +83,7 @@ typedef struct ImBuf {
 	int	ftype;					/**< File type we are going to save as */
 	unsigned int	*cmap;		/**< Color map data. */
 	unsigned int	*rect;		/**< pixel values stored here */
+	unsigned int	*crect;		/**< color corrected pixel values stored here */
 	unsigned int	**planes;	/**< bitplanes */
 	int	flags;				/**< Controls which components should exist. */
 	int	mall;				/**< what is malloced internal, and can be freed */
@@ -97,9 +98,13 @@ typedef struct ImBuf {
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
 
-	float *rect_float;		/**< floating point Rect equivilant */
+	float *rect_float;		/**< floating point Rect equivalent
+								Linear RGB color space - may need gamma correction to 
+								sRGB when generating 8bit representations */
 	int channels;			/**< amount of channels in rect_float (0 = 4 channel default) */
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
+	short profile;			/** color space/profile preset that the byte rect buffer represents */
+	char profile_filename[256];		/** to be implemented properly, specific filename for custom profiles */
 	
 	struct MEM_CacheLimiterHandle_s * c_handle; /**< handle for cache limiter */
 	struct ImgInfo * img_info;
@@ -211,6 +216,18 @@ typedef enum {
 #define AN_hamx			(Anim | HAMX)
 #define AN_tanx			(Anim | TANX)
 /**@}*/
+
+/**
+ * \name Imbuf preset profile tags
+ * \brief Some predefined color space profiles that 8 bit imbufs can represent
+ */
+/**@{*/
+#define IB_PROFILE_NONE			0
+#define IB_PROFILE_LINEAR_RGB	1
+#define IB_PROFILE_SRGB			2
+#define IB_PROFILE_CUSTOM		3
+/**@}*/
+
 
 /** \name Imbuf File Type Tests
  * \brief These macros test if an ImBuf struct is the corresponding file type.

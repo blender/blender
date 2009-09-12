@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BRA_radiosity"
 	ProjectGUID="{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}"
+	RootNamespace="BRA_radiosity"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -42,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\..\build\msvc_9\extern\glew\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\..\build\msvc_9\extern\glew\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -117,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\..\build\msvc_9\extern\glew\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\..\build\msvc_9\extern\glew\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"

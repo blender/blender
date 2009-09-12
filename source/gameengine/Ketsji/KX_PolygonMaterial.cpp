@@ -51,8 +51,8 @@
 
 #include "KX_PyMath.h"
 
-KX_PolygonMaterial::KX_PolygonMaterial(PyTypeObject *T) 
-		: PyObjectPlus(T),
+KX_PolygonMaterial::KX_PolygonMaterial()
+		: PyObjectPlus(),
 		  RAS_IPolyMaterial(),
 
 	m_tface(NULL),
@@ -114,7 +114,7 @@ bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingI
 		PyObject *ret = PyObject_CallMethod(m_pymaterial, "activate", "(NNO)", pyRasty, pyCachingInfo, (PyObject*) this->m_proxy);
 		if (ret)
 		{
-			bool value = PyInt_AsLong(ret);
+			bool value = PyLong_AsSsize_t(ret);
 			Py_DECREF(ret);
 			dopass = value;
 		}
@@ -148,7 +148,7 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 	if (GetCachingInfo() != cachingInfo)
 	{
 		if (!cachingInfo)
-			GPU_set_tpage(NULL);
+			GPU_set_tpage(NULL, 0);
 
 		cachingInfo = GetCachingInfo();
 
@@ -156,10 +156,10 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 		{
 			Image *ima = (Image*)m_tface->tpage;
 			GPU_update_image_time(ima, rasty->GetTime());
-			GPU_set_tpage(m_tface);
+			GPU_set_tpage(m_tface, 1);
 		}
 		else
-			GPU_set_tpage(NULL);
+			GPU_set_tpage(NULL, 0);
 		
 		if(m_drawingmode & RAS_IRasterizer::KX_TWOSIDE)
 			rasty->SetCullFace(false);
@@ -238,48 +238,26 @@ PyAttributeDef KX_PolygonMaterial::Attributes[] = {
 };
 
 PyTypeObject KX_PolygonMaterial::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_PolygonMaterial",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-PyParentObject KX_PolygonMaterial::Parents[] = {
-	&KX_PolygonMaterial::Type,
+	"KX_PolygonMaterial",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&PyObjectPlus::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-PyObject* KX_PolygonMaterial::py_getattro(PyObject *attr)
-{	
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* KX_PolygonMaterial::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
-int KX_PolygonMaterial::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(PyObjectPlus);
-}
 
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setCustomMaterial, "setCustomMaterial(material)")
 {
@@ -319,7 +297,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 	if (PyArg_ParseTuple(args, "O!:setTexture", &PyCObject_Type, &pytface))
 	{
 		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
-		GPU_set_tpage(tface);
+		GPU_set_tpage(tface, 1);
 		Py_RETURN_NONE;
 	}
 	
@@ -346,13 +324,13 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, activate, "activate(rasty, cachingInfo)")
 PyObject* KX_PolygonMaterial::pyattr_get_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
-	return PyString_FromString(self->m_texturename.ReadPtr());
+	return PyUnicode_FromString(self->m_texturename.ReadPtr());
 }
 
 PyObject* KX_PolygonMaterial::pyattr_get_material(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
-	return PyString_FromString(self->m_materialname.ReadPtr());
+	return PyUnicode_FromString(self->m_materialname.ReadPtr());
 }
 
 /* this does not seem useful */
@@ -369,7 +347,7 @@ PyObject* KX_PolygonMaterial::pyattr_get_gl_texture(void *self_v, const KX_PYATT
 	if (self->m_tface && self->m_tface->tpage)
 		bindcode= self->m_tface->tpage->bindcode;
 	
-	return PyInt_FromLong(bindcode);
+	return PyLong_FromSsize_t(bindcode);
 }
 
 

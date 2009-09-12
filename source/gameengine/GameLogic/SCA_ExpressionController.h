@@ -42,8 +42,7 @@ class SCA_ExpressionController : public SCA_IController
 
 public:
 	SCA_ExpressionController(SCA_IObject* gameobj,
-							 const STR_String& exprtext,
-							 PyTypeObject* T=&Type );
+							 const STR_String& exprtext);
 
 	virtual ~SCA_ExpressionController();
 	virtual CValue* GetReplica();
@@ -55,13 +54,12 @@ public:
 	 */
 	virtual void Delete();
 
-	/* --------------------------------------------------------------------- */
-	/* Python interface ---------------------------------------------------- */
-	/* --------------------------------------------------------------------- */
 
-//	virtual PyObject* py_getattro(PyObject *attr);
-//	virtual PyObject* py_getattro_dict();
-
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_ExpressionController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_EXPRESSIONCONTROLLER

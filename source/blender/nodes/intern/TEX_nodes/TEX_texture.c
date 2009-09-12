@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -40,10 +40,11 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	static float red[] = {1,0,0,1};
 	static float white[] = {1,1,1,1};
+	float *coord = p->coord;
 	
 	Tex *nodetex = (Tex *)node->id;
 	
@@ -60,8 +61,8 @@ static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 		float nor[] = {0,0,0};
 		float col1[4], col2[4];
 		
-		tex_input_rgba(col1, in[0], coord, thread);
-		tex_input_rgba(col2, in[1], coord, thread);
+		tex_input_rgba(col1, in[0], p, thread);
+		tex_input_rgba(col2, in[1], p, thread);
 		
 		texres.nor = nor;
 		textype = multitex_ext(nodetex, coord, 0, 0, 0, &texres);

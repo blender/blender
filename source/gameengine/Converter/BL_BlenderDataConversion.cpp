@@ -101,9 +101,6 @@
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderSceneConverter.h"
 
-#include"SND_Scene.h"
-#include "SND_SoundListener.h"
-
 /* This little block needed for linking to Blender... */
 #ifdef WIN32
 #include "BLI_winstuff.h"
@@ -163,7 +160,6 @@ extern "C" {
 #include "SG_BBox.h"
 #include "SG_Tree.h"
 
-// defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
 #ifdef USE_BULLET
 #include "CcdPhysicsEnvironment.h"
@@ -183,8 +179,8 @@ extern "C" {
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "BSE_headerbuttons.h"
-void update_for_newframe();
+//XXX #include "BSE_headerbuttons.h"
+//XXX void update_for_newframe();
 //void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 //#include "BKE_ipo.h"
 //void do_all_data_ipos(void);
@@ -558,7 +554,7 @@ bool ConvertMaterial(
 		material->ref			= mat->ref;
 		material->amb			= mat->amb;
 
-		material->ras_mode |= (mat->mode & MA_WIRE)? WIRE: 0;
+		material->ras_mode |= (mat->material_type == MA_TYPE_WIRE)? WIRE: 0;
 	}
 	else {
 		int valid = 0;
@@ -627,7 +623,7 @@ bool ConvertMaterial(
 	}
 
 	// with ztransp enabled, enforce alpha blending mode
-	if(validmat && (mat->mode & MA_ZTRA) && (material->transp == TF_SOLID))
+	if(validmat && (mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (material->transp == TF_SOLID))
 		material->transp = TF_ALPHA;
 
   	// always zsort alpha + add
@@ -1609,18 +1605,6 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			break;
 
 #endif
-#ifdef USE_SUMO_SOLID
-		case UseSumo:
-			KX_ConvertSumoObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
-			break;
-#endif
-			
-#ifdef USE_ODE
-		case UseODE:
-			KX_ConvertODEEngineObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
-			break;
-#endif //USE_ODE
-
 		case UseDynamo:
 			//KX_ConvertDynamoObject(gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
 			break;
@@ -1755,7 +1739,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 
 		if (bHasModifier) {
 			BL_ModifierDeformer *dcont = new BL_ModifierDeformer((BL_DeformableGameObject *)gameobj,
-																ob,	(BL_SkinMeshObject *)meshobj);
+																kxscene->GetBlenderScene(), ob,	(BL_SkinMeshObject *)meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 			if (bHasShapeKey && bHasArmature)
 				dcont->LoadShapeDrivers(ob->parent);
@@ -1793,7 +1777,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 		gameobj = new BL_ArmatureObject(
 			kxscene,
 			KX_Scene::m_callbacks,
-			ob // handle
+			ob,
+			kxscene->GetBlenderScene() // handle
 		);
 		/* Get the current pose from the armature object and apply it as the rest pose */
 		break;
@@ -1822,7 +1807,7 @@ struct parentChildLink {
 };
 
 #include "DNA_constraint_types.h"
-#include "BIF_editconstraint.h"
+//XXX #include "BIF_editconstraint.h"
 
 bPoseChannel *get_active_posechannel2 (Object *ob)
 {
@@ -1843,7 +1828,8 @@ ListBase *get_active_constraints2(Object *ob)
 	if (!ob)
 		return NULL;
 
-	if (ob->flag & OB_POSEMODE) {
+  // XXX - shouldnt we care about the pose data and not the mode???
+	if (ob->mode & OB_MODE_POSE) { 
 		bPoseChannel *pchan;
 
 		pchan = get_active_posechannel2(ob);
@@ -1938,39 +1924,35 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		aspect_width = canvas->GetWidth();
 		aspect_height = canvas->GetHeight();
 	} else {
-		if (blenderscene->framing.type == SCE_GAMEFRAMING_BARS) {
+		if (blenderscene->gm.framing.type == SCE_GAMEFRAMING_BARS) {
 			frame_type = RAS_FrameSettings::e_frame_bars;
-		} else if (blenderscene->framing.type == SCE_GAMEFRAMING_EXTEND) {
+		} else if (blenderscene->gm.framing.type == SCE_GAMEFRAMING_EXTEND) {
 			frame_type = RAS_FrameSettings::e_frame_extend;
 		} else {
 			frame_type = RAS_FrameSettings::e_frame_scale;
 		}
 		
-		aspect_width = blenderscene->r.xsch;
-		aspect_height = blenderscene->r.ysch;
+		aspect_width = blenderscene->gm.xsch;
+		aspect_height = blenderscene->gm.ysch;
 	}
 	
 	RAS_FrameSettings frame_settings(
 		frame_type,
-		blenderscene->framing.col[0],
-		blenderscene->framing.col[1],
-		blenderscene->framing.col[2],
+		blenderscene->gm.framing.col[0],
+		blenderscene->gm.framing.col[1],
+		blenderscene->gm.framing.col[2],
 		aspect_width,
 		aspect_height
 	);
 	kxscene->SetFramingType(frame_settings);
 
-	kxscene->SetGravity(MT_Vector3(0,0,(blenderscene->world != NULL) ? -blenderscene->world->gravity : -9.8));
+	kxscene->SetGravity(MT_Vector3(0,0, -blenderscene->gm.gravity));
 	
 	/* set activity culling parameters */
-	if (blenderscene->world) {
-		kxscene->SetActivityCulling( (blenderscene->world->mode & WO_ACTIVITY_CULLING) != 0);
-		kxscene->SetActivityCullingRadius(blenderscene->world->activityBoxRadius);
-		kxscene->SetDbvtCulling((blenderscene->world->mode & WO_DBVT_CULLING) != 0);
-	} else {
-		kxscene->SetActivityCulling(false);
-		kxscene->SetDbvtCulling(false);
-	}
+	kxscene->SetActivityCulling( (blenderscene->gm.mode & WO_ACTIVITY_CULLING) != 0);
+	kxscene->SetActivityCullingRadius(blenderscene->gm.activityBoxRadius);
+	kxscene->SetDbvtCulling((blenderscene->gm.mode & WO_DBVT_CULLING) != 0);
+	
 	// no occlusion culling by default
 	kxscene->SetDbvtOcclusionRes(0);
 
@@ -2039,7 +2021,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			if (converter->addInitFromFrame){//rcruiz
 				float eulxyzPrev[3];
 				blenderscene->r.cfra=blenderscene->r.sfra-1;
-				update_for_newframe();
+				//XXX update_for_newframe();
 				MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
 											blenderobject->loc[1]+blenderobject->dloc[1],
 											blenderobject->loc[2]+blenderobject->dloc[2]
@@ -2057,7 +2039,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				tmp.scale(fps, fps, fps);
 				iniang.push_back(tmp);
 				blenderscene->r.cfra=blenderscene->r.sfra;
-				update_for_newframe();
+				//XXX update_for_newframe();
 			}		
 						
 			gameobj->NodeSetLocalPosition(pos);
@@ -2230,7 +2212,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							if (converter->addInitFromFrame){//rcruiz
 								float eulxyzPrev[3];
 								blenderscene->r.cfra=blenderscene->r.sfra-1;
-								update_for_newframe();
+								//XXX update_for_newframe();
 								MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
 															blenderobject->loc[1]+blenderobject->dloc[1],
 															blenderobject->loc[2]+blenderobject->dloc[2]
@@ -2248,7 +2230,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								tmp.scale(fps, fps, fps);
 								iniang.push_back(tmp);
 								blenderscene->r.cfra=blenderscene->r.sfra;
-								update_for_newframe();
+								//XXX update_for_newframe();
 							}		
 										
 							gameobj->NodeSetLocalPosition(pos);
@@ -2451,7 +2433,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			case PARBONE:
 			{
 				// parent this to a bone
-				Bone *parent_bone = get_named_bone(get_armature(blenderchild->parent), blenderchild->parsubstr);
+				Bone *parent_bone = get_named_bone( (bArmature *)(blenderchild->parent)->data, blenderchild->parsubstr);
 
 				if(parent_bone) {
 					KX_BoneParentRelation *bone_parent_relation = KX_BoneParentRelation::New(parent_bone);
@@ -2505,10 +2487,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 		}
 		if (occlusion)
-			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
+			kxscene->SetDbvtOcclusionRes(blenderscene->gm.occlusionRes);
 	}
 	if (blenderscene->world)
-		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->world->physubstep);
+		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->gm.physubstep);
 
 	// now that the scenegraph is complete, let's instantiate the deformers.
 	// We need that to create reusable derived mesh and physic shapes
@@ -2637,23 +2619,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 	}
 
-	sumolist->Release();	
-
-	// convert global sound stuff
-
-	/* XXX, glob is the very very wrong place for this
-	 * to be, re-enable once the listener has been moved into
-	 * the scene. */
-#if 1
-	SND_Scene* soundscene = kxscene->GetSoundScene();
-	SND_SoundListener* listener = soundscene->GetListener();
-	if (listener && G.listener)
-	{
-		listener->SetDopplerFactor(G.listener->dopplerfactor);
-		listener->SetDopplerVelocity(G.listener->dopplervelocity);
-		listener->SetGain(G.listener->gain);
-	}
-#endif
+	sumolist->Release();
 
 	// convert world
 	KX_WorldInfo* worldinfo = new BlenderWorldInfo(blenderscene->world);

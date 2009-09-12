@@ -31,6 +31,10 @@
 
 #include "MT_Scalar.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class MT_CmMatrix4x4;
 
 class KX_WorldInfo
@@ -59,6 +63,13 @@ public:
 	virtual void	setMistColorRed(float)=0;
 	virtual void	setMistColorGreen(float)=0;
 	virtual void	setMistColorBlue(float)=0;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_WorldInfo"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_WORLDINFO_H

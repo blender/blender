@@ -537,7 +537,7 @@ attributeRenameDict = {
  'getFrameMessageCount': (replaceSimpleGetter, 'frameMessageCount'), # KX_NetworkMessageSensor
  'getFrameProperty': (replaceSimpleGetter, 'framePropName'), # BL_ShapeActionActuator, BL_ActionActuator
  'getFrequency': (replaceSimpleGetter, 'frequency'), # SCA_ISensor
- 'getGain': (replaceSimpleGetter, 'volume'), # KX_SoundActuator, KX_CDActuator
+ 'getGain': (replaceSimpleGetter, 'volume'), # KX_SoundActuator
  'getHat': (replaceSimpleGetter, 'hat'), # SCA_JoystickSensor
  'getHeight': (replaceSimpleGetter, 'height'), # KX_CameraActuator
  'getHitNormal': (replaceSimpleGetter, 'hitNormal'), # KX_MouseFocusSensor, KX_RaySensor
@@ -620,7 +620,7 @@ attributeRenameDict = {
  'setFrame': (replaceSimpleSetter, 'frame'), # BL_ShapeActionActuator, BL_ActionActuator
  'setFrameProperty': (replaceSimpleSetter, 'framePropName'), # BL_ShapeActionActuator, BL_ActionActuator
  'setFrequency': (replaceSimpleSetter, 'frequency'), # SCA_ISensor
- 'setGain': (replaceSimpleSetter, 'volume'), # KX_SoundActuator, KX_CDActuator
+ 'setGain': (replaceSimpleSetter, 'volume'), # KX_SoundActuator
  'setHeight': (replaceSimpleSetter, 'height'), # KX_CameraActuator
  'setHold1': (replaceSimpleSetter, 'hold1'), # SCA_KeyboardSensor
  'setHold2': (replaceSimpleSetter, 'hold2'), # SCA_KeyboardSensor

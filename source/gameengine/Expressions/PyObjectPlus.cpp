@@ -57,13 +57,7 @@
 
 
 PyTypeObject PyObjectPlus::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,				/*ob_size*/
-#endif
 	"PyObjectPlus",			/*tp_name*/
 	sizeof(PyObjectPlus_Proxy),		/*tp_basicsize*/
 	0,				/*tp_itemsize*/
@@ -74,11 +68,13 @@ PyTypeObject PyObjectPlus::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	NULL // no subtype
 };
 
 
@@ -91,106 +87,9 @@ PyObjectPlus::~PyObjectPlus()
 //	assert(ob_refcnt==0);
 }
 
-void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
-{
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-	if(self_plus) {
-		if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
-			self_plus->m_proxy = NULL; /* Need this to stop ~PyObjectPlus from decrefing m_proxy otherwise its decref'd twice and py-debug crashes */
-			delete self_plus;
-		}
-		
-		BGE_PROXY_REF(self)= NULL; // not really needed
-	}
-	PyObject_DEL( self );
-};
-
-PyObjectPlus::PyObjectPlus(PyTypeObject *T) : SG_QList()				// constructor
-{
-	MT_assert(T != NULL);
-	m_proxy= NULL;
-};
-  
-/*------------------------------
- * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
-------------------------------*/
-PyMethodDef PyObjectPlus::Methods[] = {
-  {"isA",		 (PyCFunction) sPyisA,			METH_O},
-  {NULL, NULL}		/* Sentinel */
-};
-
-PyAttributeDef PyObjectPlus::Attributes[] = {
-	KX_PYATTRIBUTE_RO_FUNCTION("invalid",		PyObjectPlus, pyattr_get_invalid),
-	{NULL} //Sentinel
-};
-
-PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	
-	Py_RETURN_FALSE;
-}
-
-/*------------------------------
- * PyObjectPlus Parents		-- Every class, even the abstract one should have parents
-------------------------------*/
-PyParentObject PyObjectPlus::Parents[] = {&PyObjectPlus::Type, NULL};
-
-/*------------------------------
- * PyObjectPlus attributes	-- attributes
-------------------------------*/
-
-
-/* This should be the entry in Type since it takes the C++ class from PyObjectPlus_Proxy */
-PyObject *PyObjectPlus::py_base_getattro(PyObject * self, PyObject *attr)
-{
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-	if(self_plus==NULL) {
-		if(!strcmp("invalid", PyString_AsString(attr))) {
-			Py_RETURN_TRUE;
-		}
-		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
-		return NULL;
-	}
-	
-	PyObject *ret= self_plus->py_getattro(attr);
-	
-	/* Attribute not found, was this a __dict__ lookup?, otherwise set an error if none is set */
-	if(ret==NULL) {
-		char *attr_str= PyString_AsString(attr);
-		
-		if (strcmp(attr_str, "__dict__")==0)
-		{
-			/* the error string will probably not
-			 * be set but just incase clear it */
-			PyErr_Clear(); 
-			ret= self_plus->py_getattro_dict();
-		}
-		else if (!PyErr_Occurred()) {
-			/* We looked for an attribute but it wasnt found
-			 * since py_getattro didnt set the error, set it here */
-			PyErr_Format(PyExc_AttributeError, "'%s' object has no attribute '%s'", self->ob_type->tp_name, attr_str);
-		}
-	}
-	return ret;
-}
-
-/* This should be the entry in Type since it takes the C++ class from PyObjectPlus_Proxy */
-int PyObjectPlus::py_base_setattro(PyObject *self, PyObject *attr, PyObject *value)
-{
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-	if(self_plus==NULL) {
-		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
-		return -1;
-	}
-	
-	if (value==NULL)
-		return self_plus->py_delattro(attr);
-	
-	return self_plus->py_setattro(attr, value); 
-}
 
 PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the entry in Type.
 {
-	
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
@@ -200,42 +99,134 @@ PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the ent
 	return self_plus->py_repr();  
 }
 
-PyObject *PyObjectPlus::py_getattro(PyObject* attr)
+
+PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
-	if (descr == NULL) {
-		return NULL; /* py_base_getattro sets the error, this way we can avoid setting the error at many levels */
-	} else {
-		/* Copied from py_getattro_up */
-		if (PyCObject_Check(descr)) {
-			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr));
-		} else if (descr->ob_type->tp_descr_get) {
-			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy);
-		} else {
-			return NULL;
-		}
-		/* end py_getattro_up copy */
+	PyTypeObject *base_type;
+	PyObjectPlus_Proxy *base = NULL;
+
+	if (!PyArg_ParseTuple(args, "O:Base PyObjectPlus", &base))
+		return NULL;
+
+	/* the 'base' PyObject may be subclassed (multiple times even)
+	 * we need to find the first C++ defined class to check 'type'
+	 * is a subclass of the base arguments type.
+	 *
+	 * This way we can share one tp_new function for every PyObjectPlus
+	 *
+	 * eg.
+	 *
+	 * # CustomOb is called 'type' in this C code
+	 * class CustomOb(GameTypes.KX_GameObject):
+	 *     pass
+	 *
+	 * # this calls py_base_new(...), the type of 'CustomOb' is checked to be a subclass of the 'cont.owner' type
+	 * ob = CustomOb(cont.owner)
+	 *
+	 * */
+	base_type= Py_TYPE(base);
+	while(base_type && !BGE_PROXY_CHECK_TYPE(base_type))
+		base_type= base_type->tp_base;
+
+	if(base_type==NULL || !BGE_PROXY_CHECK_TYPE(base_type)) {
+		PyErr_SetString(PyExc_TypeError, "can't subclass from a blender game type because the argument given is not a game class or subclass");
+		return NULL;
 	}
+
+	/* use base_type rather then Py_TYPE(base) because we could alredy be subtyped */
+	if(!PyType_IsSubtype(type, base_type)) {
+		PyErr_Format(PyExc_TypeError, "can't subclass blender game type <%s> from <%s> because it is not a subclass", base_type->tp_name, type->tp_name);
+		return NULL;
+	}
+
+	/* invalidate the existing base and return a new subclassed one,
+	 * this is a bit dodgy in that it also attaches its self to the existing object
+	 * which is not really 'correct' python OO but for our use its OK. */
+
+	PyObjectPlus_Proxy *ret = (PyObjectPlus_Proxy *) type->tp_alloc(type, 0); /* starts with 1 ref, used for the return ref' */
+	ret->ref= base->ref;
+	base->ref= NULL;		/* invalidate! disallow further access */
+
+	ret->py_owns= base->py_owns;
+
+	ret->ref->m_proxy= NULL;
+
+	/* 'base' may be free'd after this func finished but not necessarily
+	 * there is no reference to the BGE data now so it will throw an error on access */
+	Py_DECREF(base);
+
+	ret->ref->m_proxy= (PyObject *)ret; /* no need to add a ref because one is added when creating. */
+	Py_INCREF(ret); /* we return a new ref but m_proxy holds a ref so we need to add one */
+
+
+	/* 'ret' will have 2 references.
+	 * - One ref is needed because ret->ref->m_proxy holds a refcount to the current proxy.
+	 * - Another is needed for returning the value.
+	 *
+	 * So we should be ok with 2 refs, but for some reason this crashes. so adding a new ref...
+	 * */
+
+	return (PyObject *)ret;
 }
 
-PyObject* PyObjectPlus::py_getattro_dict() {
-	return py_getattr_dict(NULL, Type.tp_dict);
-}
-
-int PyObjectPlus::py_delattro(PyObject* attr)
+void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 {
-	PyErr_SetString(PyExc_AttributeError, "attribute cant be deleted");
-	return 1;
+	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+	if(self_plus) {
+		if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
+			self_plus->m_proxy = NULL; /* Need this to stop ~PyObjectPlus from decrefing m_proxy otherwise its decref'd twice and py-debug crashes */
+			delete self_plus;
+		}
+
+		BGE_PROXY_REF(self)= NULL; // not really needed
+	}
+
+#if 0
+	/* is ok normally but not for subtyping, use tp_free instead. */
+	PyObject_DEL( self );
+#else
+	Py_TYPE(self)->tp_free(self);
+#endif
+};
+
+PyObjectPlus::PyObjectPlus() : SG_QList()				// constructor
+{
+	m_proxy= NULL;
+};
+
+/*------------------------------
+ * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
+------------------------------*/
+PyMethodDef PyObjectPlus::Methods[] = {
+  {NULL, NULL}		/* Sentinel */
+};
+
+#define attr_invalid (&(PyObjectPlus::Attributes[0]))
+PyAttributeDef PyObjectPlus::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("invalid",		PyObjectPlus, pyattr_get_invalid),
+	{NULL} //Sentinel
+};
+
+
+
+PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	return PyBool_FromLong(self_v ? 1:0);
 }
 
-int PyObjectPlus::py_setattro(PyObject *attr, PyObject* value)
+/* note, this is called as a python 'getset, where the PyAttributeDef is the closure */
+PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *attrdef)
 {
-	PyErr_SetString(PyExc_AttributeError, "attribute cant be set");
-	return PY_SET_ATTR_MISSING;
-}
+	void *self= (void *)(BGE_PROXY_REF(self_py));
+	if(self==NULL) {
+		if(attrdef == attr_invalid)
+			Py_RETURN_TRUE; // dont bother running the function
 
-PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef)
-{
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+
+
 	if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
 	{
 		// fake attribute, ignore
@@ -259,14 +250,14 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 				{
 					bool *val = reinterpret_cast<bool*>(ptr);
 					ptr += sizeof(bool);
-					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyLong_FromSsize_t(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_SHORT:
 				{
 					short int *val = reinterpret_cast<short int*>(ptr);
 					ptr += sizeof(short int);
-					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyLong_FromSsize_t(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_ENUM:
@@ -281,7 +272,7 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 				{
 					int *val = reinterpret_cast<int*>(ptr);
 					ptr += sizeof(int);
-					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyLong_FromSsize_t(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_FLOAT:
@@ -305,12 +296,12 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 		case KX_PYATTRIBUTE_TYPE_BOOL:
 			{
 				bool *val = reinterpret_cast<bool*>(ptr);
-				return PyInt_FromLong(*val);
+				return PyLong_FromSsize_t(*val);
 			}
 		case KX_PYATTRIBUTE_TYPE_SHORT:
 			{
 				short int *val = reinterpret_cast<short int*>(ptr);
-				return PyInt_FromLong(*val);
+				return PyLong_FromSsize_t(*val);
 			}
 		case KX_PYATTRIBUTE_TYPE_ENUM:
 			// enum are like int, just make sure the field size is the same
@@ -322,7 +313,7 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 		case KX_PYATTRIBUTE_TYPE_INT:
 			{
 				int *val = reinterpret_cast<int*>(ptr);
-				return PyInt_FromLong(*val);
+				return PyLong_FromSsize_t(*val);
 			}
 		case KX_PYATTRIBUTE_TYPE_FLOAT:
 			{
@@ -331,18 +322,23 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 			}
 		case KX_PYATTRIBUTE_TYPE_VECTOR:
 			{
-				PyObject* resultlist = PyList_New(3);
 				MT_Vector3 *val = reinterpret_cast<MT_Vector3*>(ptr);
+#ifdef USE_MATHUTILS
+				float fval[3]= {(*val)[0], (*val)[1], (*val)[2]};
+				return newVectorObject(fval, 3, Py_NEW, NULL);
+#else
+				PyObject* resultlist = PyList_New(3);
 				for (unsigned int i=0; i<3; i++)
 				{
 					PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble((*val)[i]));
 				}
 				return resultlist;
+#endif
 			}
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *val = reinterpret_cast<STR_String*>(ptr);
-				return PyString_FromString(*val);
+				return PyUnicode_FromString(*val);
 			}
 		default:
 			return NULL;
@@ -350,8 +346,15 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 	}
 }
 
-int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value)
+/* note, this is called as a python getset */
+int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAttributeDef *attrdef)
 {
+	void *self= (void *)(BGE_PROXY_REF(self_py));
+	if(self==NULL) {
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
+		return PY_SET_ATTR_FAIL;
+	}
+
 	void *undoBuffer = NULL;
 	void *sourceBuffer = NULL;
 	size_t bufferSize = 0;
@@ -416,9 +419,9 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				{
 					bool *var = reinterpret_cast<bool*>(ptr);
 					ptr += sizeof(bool);
-					if (PyInt_Check(item)) 
+					if (PyLong_Check(item)) 
 					{
-						*var = (PyInt_AsLong(item) != 0);
+						*var = (PyLong_AsSsize_t(item) != 0);
 					} 
 					else if (PyBool_Check(item))
 					{
@@ -435,9 +438,9 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				{
 					short int *var = reinterpret_cast<short int*>(ptr);
 					ptr += sizeof(short int);
-					if (PyInt_Check(item)) 
+					if (PyLong_Check(item)) 
 					{
-						long val = PyInt_AsLong(item);
+						long val = PyLong_AsSsize_t(item);
 						if (attrdef->m_clamp)
 						{
 							if (val < attrdef->m_imin)
@@ -471,9 +474,9 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				{
 					int *var = reinterpret_cast<int*>(ptr);
 					ptr += sizeof(int);
-					if (PyInt_Check(item)) 
+					if (PyLong_Check(item)) 
 					{
-						long val = PyInt_AsLong(item);
+						long val = PyLong_AsSsize_t(item);
 						if (attrdef->m_clamp)
 						{
 							if (val < attrdef->m_imin)
@@ -606,9 +609,9 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		case KX_PYATTRIBUTE_TYPE_BOOL:
 			{
 				bool *var = reinterpret_cast<bool*>(ptr);
-				if (PyInt_Check(value)) 
+				if (PyLong_Check(value)) 
 				{
-					*var = (PyInt_AsLong(value) != 0);
+					*var = (PyLong_AsSsize_t(value) != 0);
 				} 
 				else if (PyBool_Check(value))
 				{
@@ -624,9 +627,9 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		case KX_PYATTRIBUTE_TYPE_SHORT:
 			{
 				short int *var = reinterpret_cast<short int*>(ptr);
-				if (PyInt_Check(value)) 
+				if (PyLong_Check(value)) 
 				{
-					long val = PyInt_AsLong(value);
+					long val = PyLong_AsSsize_t(value);
 					if (attrdef->m_clamp)
 					{
 						if (val < attrdef->m_imin)
@@ -659,9 +662,9 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		case KX_PYATTRIBUTE_TYPE_INT:
 			{
 				int *var = reinterpret_cast<int*>(ptr);
-				if (PyInt_Check(value)) 
+				if (PyLong_Check(value)) 
 				{
-					long val = PyInt_AsLong(value);
+					long val = PyLong_AsSsize_t(value);
 					if (attrdef->m_clamp)
 					{
 						if (val < attrdef->m_imin)
@@ -746,18 +749,19 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *var = reinterpret_cast<STR_String*>(ptr);
-				if (PyString_Check(value)) 
+				if (PyUnicode_Check(value)) 
 				{
-					char *val = PyString_AsString(value);
+					Py_ssize_t val_len;
+					char *val = _PyUnicode_AsStringAndSize(value, &val_len);
 					if (attrdef->m_clamp)
 					{
-						if (strlen(val) < attrdef->m_imin)
+						if (val_len < attrdef->m_imin)
 						{
 							// can't increase the length of the string
 							PyErr_Format(PyExc_ValueError, "string length too short for attribute \"%s\"", attrdef->m_name);
 							goto FREE_AND_ERROR;
 						}
-						else if (strlen(val) > attrdef->m_imax)
+						else if (val_len > attrdef->m_imax)
 						{
 							// trim the string
 							char c = val[attrdef->m_imax];
@@ -766,7 +770,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 							val[attrdef->m_imax] = c;
 							break;
 						}
-					} else if (strlen(val) < attrdef->m_imin || strlen(val) > attrdef->m_imax)
+					} else if (val_len < attrdef->m_imin || val_len > attrdef->m_imax)
 					{
 						PyErr_Format(PyExc_ValueError, "string length out of range for attribute \"%s\"", attrdef->m_name);
 						goto FREE_AND_ERROR;
@@ -829,48 +833,6 @@ PyObject *PyObjectPlus::py_repr(void)
 	return NULL;
 }
 
-/*------------------------------
- * PyObjectPlus isA		-- the isA functions
-------------------------------*/
-bool PyObjectPlus::isA(PyTypeObject *T)		// if called with a Type, use "typename"
-{
-	int i;
-	PyParentObject  P;
-	PyParentObject *Ps = GetParents();
-
-	for (P = Ps[i=0]; P != NULL; P = Ps[i++])
-		if (P==T)
-			return true;
-
-	return false;
-}
-
-
-bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
-{
-	int i;
-	PyParentObject  P;
-	PyParentObject *Ps = GetParents();
-  
-	for (P = Ps[i=0]; P != NULL; P = Ps[i++])
-		if (strcmp(P->tp_name, mytypename)==0)
-			return true;
-
-	return false;
-}
-
-PyObject *PyObjectPlus::PyisA(PyObject *value)		// Python wrapper for isA
-{
-	if (PyType_Check(value)) {
-		return PyBool_FromLong(isA((PyTypeObject *)value));
-	} else if (PyString_Check(value)) {
-		return PyBool_FromLong(isA(PyString_AsString(value)));
-	}
-    PyErr_SetString(PyExc_TypeError, "object.isA(value): expected a type or a string");
-    return NULL;	
-}
-
-
 void PyObjectPlus::ProcessReplica()
 {
 	/* Clear the proxy, will be created again if needed with GetProxy()
@@ -894,27 +856,6 @@ void PyObjectPlus::InvalidateProxy()		// check typename of each parent
 		m_proxy= NULL;
 	}
 }
-
-/* Utility function called by the macro py_getattro_up()
- * for getting ob.__dict__() values from our PyObject
- * this is used by python for doing dir() on an object, so its good
- * if we return a list of attributes and methods.
- * 
- * Other then making dir() useful the value returned from __dict__() is not useful
- * since every value is a Py_None
- * */
-PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict)
-{
-    if(pydict==NULL) { /* incase calling __dict__ on the parent of this object raised an error */
-    	PyErr_Clear();
-    	pydict = PyDict_New();
-    }
-	
-	PyDict_Update(pydict, tp_dict);
-	return pydict;
-}
-
-
 
 PyObject *PyObjectPlus::GetProxy_Ext(PyObjectPlus *self, PyTypeObject *tp)
 {
@@ -966,45 +907,47 @@ void PyObjectPlus::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
 	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
 }
 
-void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* new_way)
+void PyDebugLine()
 {
-	{
-		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
-		
-		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
-		
-		PyObject *getframe, *frame;
-		PyObject *f_lineno, *f_code, *co_filename;
-		
-		getframe = PySys_GetObject((char *)"_getframe"); // borrowed
-		if (getframe) {
-			frame = PyObject_CallObject(getframe, NULL);
-			if (frame) {
-				f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-				f_code= PyObject_GetAttrString(frame, "f_code");
-				if (f_lineno && f_code) {
-					co_filename= PyObject_GetAttrString(f_code, "co_filename");
-					if (co_filename) {
-						
-						printf("\t%s:%d\n", PyString_AsString(co_filename), (int)PyInt_AsLong(f_lineno));
-						
-						Py_DECREF(f_lineno);
-						Py_DECREF(f_code);
-						Py_DECREF(co_filename);
-						Py_DECREF(frame);
-						return;
-					}
+	// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
+
+	PyObject *getframe, *frame;
+	PyObject *f_lineno, *f_code, *co_filename;
+
+	getframe = PySys_GetObject((char *)"_getframe"); // borrowed
+	if (getframe) {
+		frame = PyObject_CallObject(getframe, NULL);
+		if (frame) {
+			f_lineno= PyObject_GetAttrString(frame, "f_lineno");
+			f_code= PyObject_GetAttrString(frame, "f_code");
+			if (f_lineno && f_code) {
+				co_filename= PyObject_GetAttrString(f_code, "co_filename");
+				if (co_filename) {
+
+					printf("\t%s:%d\n", _PyUnicode_AsString(co_filename), (int)PyLong_AsSsize_t(f_lineno));
+
+					Py_DECREF(f_lineno);
+					Py_DECREF(f_code);
+					Py_DECREF(co_filename);
+					Py_DECREF(frame);
+					return;
 				}
-				
-				Py_XDECREF(f_lineno);
-				Py_XDECREF(f_code);
-				Py_DECREF(frame);
 			}
 			
+			Py_XDECREF(f_lineno);
+			Py_XDECREF(f_code);
+			Py_DECREF(frame);
 		}
-		PyErr_Clear();
-		printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
+
 	}
+	PyErr_Clear();
+	printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
+}
+
+void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* new_way)
+{
+	printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
+	PyDebugLine();
 }
 
 void PyObjectPlus::ClearDeprecationWarning()

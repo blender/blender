@@ -41,7 +41,6 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include
-CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../..
 
@@ -49,7 +48,6 @@ OCGGHOST = $(OCGDIR)/intern/ghost
 
 LIBS = $(OCGGHOST)/$(DEBUG_DIR)libghost.a
 SLIBS += $(LCGDIR)/string/lib/libstring.a
-SLIBS += $(LCGDIR)/bmfont/lib/libbmfont.a
 SLIBS += $(LCGDIR)/guardedalloc/lib/libguardedalloc.a
 
 all::

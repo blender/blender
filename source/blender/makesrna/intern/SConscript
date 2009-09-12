@@ -1,0 +1,149 @@
+#!/usr/bin/python
+import sys
+import os
+
+def normpath(path):
+	return os.path.abspath(os.path.normpath(path))
+
+Import ('env')
+cflags = ['-Wall']
+defines = []
+root_build_dir=normpath(env['BF_BUILDDIR'])
+
+source_files = env.Glob('*.c')
+source_files.remove('rna_access.c')
+
+generated_files = source_files[:]
+generated_files.remove('rna_define.c')
+generated_files.remove('makesrna.c')
+
+api_files = env.Glob('*_api.c')
+for api_file in api_files:
+    generated_files.remove(api_file)
+
+generated_files = [filename[:-2] + '_gen.c' for filename in generated_files]
+
+makesrna_tool = env.Clone()
+rna = env.Clone()
+makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
+
+defs = []
+
+incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel'
+incs += ' ../../imbuf ../../makesdna ../../makesrna'
+incs += ' ../../windowmanager ../../editors/include'
+incs += ' ../../render/extern/include'
+
+if env['WITH_BF_OPENEXR']:
+	defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_OPENJPEG']:
+	defs.append('WITH_OPENJPEG')
+
+if env['WITH_BF_DDS']:
+	defs.append('WITH_DDS')
+
+if env['WITH_BF_FFMPEG']:
+	defs.append('WITH_FFMPEG')
+	incs += ' ' + env['BF_FFMPEG_INC']
+
+if env['WITH_BF_OGG']:
+	defs.append('WITH_OGG')
+
+if env['WITH_BF_QUICKTIME']:
+	defs.append('WITH_QUICKTIME')
+
+if env['WITH_BF_LCMS']:
+	defs.append('WITH_LCMS')
+
+if env['WITH_BF_GAMEENGINE']:
+	defs.append('GAMEBLENDER=1')
+	
+if env['WITH_BF_FFTW3']:
+    defs.append('FFTW3=1')
+
+if env['WITH_BF_SDL']:
+    defs.append('WITH_SDL')
+
+if env['WITH_BF_OPENAL']:
+    defs.append('WITH_OPENAL')
+
+if env['WITH_BF_JACK']:
+    defs.append('WITH_JACK')
+
+if env['BF_UNIT_TEST']:
+	defs.append('UNIT_TEST')
+
+makesrna_tool.Append(CPPDEFINES=defs)
+
+makesrna_tool.Append (CPPPATH = Split(incs))
+
+if env['OURPLATFORM'] == 'linuxcross':
+	USE_WINE = True # when cross compiling on linux 64bit this is useful
+else:
+	USE_WINE = False
+
+if not USE_WINE:
+	if env['OURPLATFORM'] == 'linuxcross':
+		makesdna_tool.Replace(CC='gcc')
+		makesdna_tool.Replace(AR='ar')
+		makesdna_tool.Replace(LINK='gcc')
+
+if sys.platform != 'cygwin':
+	makesrna_tool.Append (CCFLAGS = cflags)
+makesrna_tool.Append (CPPDEFINES = defines)
+
+libdir = root_build_dir+'/lib'
+if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+	libdir = '#' + libdir
+
+makesrna_tool.Append (LIBPATH = libdir)
+
+makesrna_tool.Append( CFLAGS = env['CFLAGS'])
+makesrna_tool.Append( CCFLAGS = env['CCFLAGS'])
+makesrna_tool.Append( LINKFLAGS = env['PLATFORM_LINKFLAGS'])
+
+if env['BF_PROFILE']:
+	makesrna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
+
+if env['BF_DEBUG']:
+	makesrna_tool.Append(CFLAGS = env['BF_DEBUG_CFLAGS'])
+	makesrna_tool.Append(CCFLAGS = env['BF_DEBUG_CCFLAGS'])
+	if env['OURPLATFORM'] in ('win32-vc','win64-vc'):
+		makesrna_tool.Append(LINKFLAGS = ['/DEBUG','/PDB:makesrna.pdb'])
+
+targetpath = root_build_dir+'/makesrna'
+if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+	targetpath = '#' + targetpath
+
+if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
+	makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+else:
+	makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+
+rna_dict = rna.Dictionary()
+rna.Depends (generated_files, makesrna)
+
+# this seems bad, how to retrieve it from scons?
+build_dir = root_build_dir + os.sep +'source' + os.sep + 'blender' + os.sep + 'makesrna' + os.sep + 'intern' + os.sep
+
+if env['OURPLATFORM'] != 'linuxcross':
+	if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
+		rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna.exe\" \""  + build_dir )
+	else:
+		rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna "  + build_dir)
+else:
+	rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+	
+	if USE_WINE:
+		rna.Command (generated_files, '', 'wine ' + root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+	else:
+		rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+
+
+obj = ['intern/rna_access.c']
+for generated_file in generated_files:
+	obj += ['intern/' + generated_file]
+
+Return ('obj')
+

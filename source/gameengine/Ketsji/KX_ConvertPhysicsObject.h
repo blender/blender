@@ -32,10 +32,7 @@
 /* These are defined by the build system... */
 //but the build system is broken, because it doesn't allow for 2 or more defines at once.
 //Please leave Sumo _AND_ Bullet enabled
-//#define USE_SUMO_SOLID // scons defines this
 #define USE_BULLET
-
-//#define USE_ODE
 
 //on visual studio 7/8, always enable BULLET for now 
 //you can have multiple physics engines running anyway, and 
@@ -148,20 +145,6 @@ struct KX_ObjectProperties
 	} m_boundobject;
 };
 
-#ifdef USE_ODE
-
-
-void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
-	RAS_MeshObject* meshobj,
-	KX_Scene* kxscene,
-	struct	PHY_ShapeProps* shapeprops,
-	struct	PHY_MaterialProps*	smmaterial,
-	struct	KX_ObjectProperties*	objprop);
-
-
-#endif //USE_ODE
-
-
 void	KX_ConvertDynamoObject(KX_GameObject* gameobj,
 	RAS_MeshObject* meshobj,
 	KX_Scene* kxscene,
@@ -169,19 +152,6 @@ void	KX_ConvertDynamoObject(KX_GameObject* gameobj,
 	struct	PHY_MaterialProps*	smmaterial,
 	struct	KX_ObjectProperties*	objprop);
 
-#ifdef USE_SUMO_SOLID
-
-void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
-	class	RAS_MeshObject* meshobj,
-	class	KX_Scene* kxscene,
-	struct	PHY_ShapeProps* shapeprops,
-	struct	PHY_MaterialProps*	smmaterial,
-	struct	KX_ObjectProperties*	objprop);
-	
-void	KX_ClearSumoSharedShapes();
-bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
-
-#endif
 
 #ifdef USE_BULLET
 

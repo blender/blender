@@ -221,11 +221,11 @@ static PyObject * KX_PythonSeq_subscript(PyObject * self, PyObject *key)
 		return NULL;
 	}
 	
-	if (PyInt_Check(key)) {
-		return KX_PythonSeq_getIndex(self, PyInt_AS_LONG( key ));
+	if (PyLong_Check(key)) {
+		return KX_PythonSeq_getIndex(self, PyLong_AsSsize_t( key ));
 	}
-	else if ( PyString_Check(key) ) {
-		char *name = PyString_AsString(key);
+	else if ( PyUnicode_Check(key) ) {
+		char *name = _PyUnicode_AsString(key);
 		PyObjectPlus *ret = KX_PythonSeq_subscript__internal(self, name);
 		
 		if(ret) {
@@ -250,12 +250,12 @@ static int KX_PythonSeq_contains(PyObject *self, PyObject *key)
 		PyErr_SetString(PyExc_SystemError, "key in seq, KX_PythonSeq: "BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
-	if(!PyString_Check(key)) {
+	if(!PyUnicode_Check(key)) {
 		PyErr_SetString(PyExc_SystemError, "key in seq, KX_PythonSeq: key must be a string");
 		return -1;
 	}
 	
-	if(KX_PythonSeq_subscript__internal(self, PyString_AsString(key)))
+	if(KX_PythonSeq_subscript__internal(self, _PyUnicode_AsString(key)))
 		return 1;
 	
 	return 0;
@@ -340,10 +340,41 @@ static PyObject *KX_PythonSeq_nextIter(KX_PythonSeq *self)
 }
 
 
-static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b ) /* TODO - python3.x wants richcmp */
+static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b )
 {
 	return ( a->type == b->type && a->base == b->base) ? 0 : -1;	
 }
+
+static PyObject *KX_PythonSeq_richcmp(PyObject *a, PyObject *b, int op)
+{
+	PyObject *res;
+	int ok= -1; /* zero is true */
+
+	if(BPy_KX_PythonSeq_Check(a) && BPy_KX_PythonSeq_Check(b))
+		ok= KX_PythonSeq_compare((KX_PythonSeq *)a, (KX_PythonSeq *)b);
+	
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
+
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
+	}
+	
+	Py_INCREF(res);
+	return res;
+}
+
 
 /*
  * repr function
@@ -362,13 +393,7 @@ static PyObject *KX_PythonSeq_repr( KX_PythonSeq * self )
 /* Python KX_PythonSeq_Type structure definition:                               */
 /*****************************************************************************/
 PyTypeObject KX_PythonSeq_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	/*  For printing, in format "<module>.<name>" */
 	"KX_PythonSeq",           /* char *tp_name; */
 	sizeof( KX_PythonSeq ),       /* int tp_basicsize; */
@@ -380,11 +405,7 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-#if PY_VERSION_HEX >= 0x03000000 // TODO - richcmp
-	NULL,
-#else
-	( cmpfunc ) KX_PythonSeq_compare, /* cmpfunc tp_compare; */
-#endif
+	NULL,						/* cmpfunc tp_compare; */
 	( reprfunc ) KX_PythonSeq_repr,   /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
@@ -410,14 +431,14 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
+	NULL,						/* traverseproc tp_traverse; */
 
 	/* delete references to contained objects */
 	NULL,                       /* inquiry tp_clear; */
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
+	(richcmpfunc)KX_PythonSeq_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
 	0,                          /* long tp_weaklistoffset; */

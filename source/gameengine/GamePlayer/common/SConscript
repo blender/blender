@@ -18,9 +18,7 @@ incs = ['.',
         '#intern/string',
         '#intern/ghost',
         '#intern/guardedalloc',
-        '#intern/bmfont',
         '#intern/moto/include',
-        '#intern/SoundSystem',
         '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
         '#source/kernel/gen_system',
         '#source/kernel/gen_messaging',
@@ -60,18 +58,8 @@ incs = ['.',
 #                    'unix/GPU_System.cpp']
 #   gp_common_env.Append ( CPPPATH = ['unix'])
 
-if env['WITH_BF_SOLID']:
-	incs.append('#source/gameengine/Physics/Sumo')
-	incs.append('#source/gameengine/Physics/Sumo/Fuzzics/include')
-	incs += Split(env['BF_SOLID_INC'])
-
 incs += Split(env['BF_PYTHON_INC'])
 incs += Split(env['BF_PNG_INC'])
 incs += Split(env['BF_ZLIB_INC'])
 
-cxxflags = []
-if env['OURPLATFORM']=='win32-vc':
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-
-env.BlenderLib (libname='gp_common', sources=source_files, includes=incs, defines = [], libtype='player', priority=5, cxx_compileflags=cxxflags)
+env.BlenderLib (libname='gp_common', sources=source_files, includes=incs, defines = [], libtype=['player'], priority=[5], cxx_compileflags=env['BGE_CXXFLAGS'])

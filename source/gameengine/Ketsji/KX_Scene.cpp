@@ -34,7 +34,6 @@
 
 #include "KX_Scene.h"
 #include "MT_assert.h"
-#include "SND_Scene.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderMaterial.h"
 #include "RAS_IPolygonMaterial.h"
@@ -135,16 +134,14 @@ extern bool gUseVisibilityTemp;
 KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class SCA_IInputDevice* mousedevice,
 				   class NG_NetworkDeviceInterface *ndi,
-				   class SND_IAudioDevice* adi,
 				   const STR_String& sceneName,
 				   Scene *scene): 
-	PyObjectPlus(&KX_Scene::Type),
+	PyObjectPlus(),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
 	m_sceneConverter(NULL),
 	m_physicsEnvironment(0),
 	m_sceneName(sceneName),
-	m_adi(adi),
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
 	m_ueberExecutionPriority(0),
@@ -200,7 +197,6 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		m_logicmgr->RegisterEventManager(joymgr);
 	}
 
-	m_soundScene = new SND_Scene(adi);
 	MT_assert (m_networkDeviceInterface != NULL);
 	m_networkScene = new NG_NetworkScene(m_networkDeviceInterface);
 	
@@ -249,9 +245,6 @@ KX_Scene::~KX_Scene()
 
 	if (m_physicsEnvironment)
 		delete m_physicsEnvironment;
-
-	if (m_soundScene)
-		delete m_soundScene;
 
 	if (m_networkScene)
 		delete m_networkScene;
@@ -363,12 +356,6 @@ class KX_WorldInfo* KX_Scene::GetWorldInfo()
 	return m_worldinfo;
 }
 
-
-
-SND_Scene* KX_Scene::GetSoundScene()
-{
-	return m_soundScene;
-}
 
 const STR_String& KX_Scene::GetName()
 {
@@ -1030,110 +1017,86 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 		std::cout << "KX_Scene::ReplaceMesh Warning: invalid object, doing nothing" << std::endl;
 		return;
 	}
-	
+
 	if(use_gfx && mesh != NULL)
 	{		
-		gameobj->RemoveMeshes();
-		gameobj->AddMesh(mesh);
+	gameobj->RemoveMeshes();
+	gameobj->AddMesh(mesh);
+	
+	if (gameobj->m_isDeformable)
+	{
+		BL_DeformableGameObject* newobj = static_cast<BL_DeformableGameObject*>( gameobj );
 		
-		if (gameobj->m_isDeformable)
+		if (newobj->GetDeformer())
 		{
-			BL_DeformableGameObject* newobj = static_cast<BL_DeformableGameObject*>( gameobj );
+			delete newobj->GetDeformer();
+			newobj->SetDeformer(NULL);
+		}
+
+		if (mesh->IsDeformed())
+		{
+			// we must create a new deformer but which one?
+			KX_GameObject* parentobj = newobj->GetParent();
+			// this always return the original game object (also for replicate)
+			Object* blendobj = newobj->GetBlenderObject();
+			// object that owns the new mesh
+			Object* oldblendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName()));
+			Mesh* blendmesh = mesh->GetMesh();
+
+			bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(blendobj);
+			bool bHasShapeKey = blendmesh->key != NULL && blendmesh->key->type==KEY_RELATIVE;
+			bool bHasDvert = blendmesh->dvert != NULL;
+			bool bHasArmature = 
+				parentobj &&								// current parent is armature
+				parentobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE &&
+				oldblendobj &&								// needed for mesh deform
+				blendobj->parent &&							// original object had armature (not sure this test is needed)
+				blendobj->parent->type == OB_ARMATURE && 
+				blendobj->partype==PARSKEL && 
+				blendmesh->dvert!=NULL;						// mesh has vertex group
+			bool releaseParent = true;
+
 			
-			if (newobj->GetDeformer())
-			{
-				delete newobj->GetDeformer();
-				newobj->SetDeformer(NULL);
+			if (oldblendobj==NULL) {
+				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
+				bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
 			}
-	
-			if (mesh->IsDeformed())
+			
+			if (bHasModifier)
 			{
-				// we must create a new deformer but which one?
-				KX_GameObject* parentobj = newobj->GetParent();
-				// this always return the original game object (also for replicate)
-				Object* blendobj = newobj->GetBlenderObject();
-				// object that owns the new mesh
-				Object* oldblendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName()));
-				Mesh* blendmesh = mesh->GetMesh();
-	
-				bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(blendobj);
-				bool bHasShapeKey = blendmesh->key != NULL && blendmesh->key->type==KEY_RELATIVE;
-				bool bHasDvert = blendmesh->dvert != NULL;
-				bool bHasArmature = 
-					parentobj &&								// current parent is armature
-					parentobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE &&
-					oldblendobj &&								// needed for mesh deform
-					blendobj->parent &&							// original object had armature (not sure this test is needed)
-					blendobj->parent->type == OB_ARMATURE && 
-					blendobj->partype==PARSKEL && 
-					blendmesh->dvert!=NULL;						// mesh has vertex group
-				bool releaseParent = true;
-	
-				
-				if (oldblendobj==NULL) {
-					std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
-					bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
+				BL_ModifierDeformer* modifierDeformer;
+				if (bHasShapeKey || bHasArmature)
+				{
+					modifierDeformer = new BL_ModifierDeformer(
+						newobj,
+						m_blenderScene,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						true,
+						static_cast<BL_ArmatureObject*>( parentobj )
+					);
+					releaseParent= false;
+					modifierDeformer->LoadShapeDrivers(blendobj->parent);
 				}
-				
-				if (bHasModifier)
+				else
 				{
-					BL_ModifierDeformer* modifierDeformer;
-					if (bHasShapeKey || bHasArmature)
-					{
-						modifierDeformer = new BL_ModifierDeformer(
-							newobj,
-							oldblendobj, blendobj,
-							static_cast<BL_SkinMeshObject*>(mesh),
-							true,
-							static_cast<BL_ArmatureObject*>( parentobj )
-						);
-						releaseParent= false;
-						modifierDeformer->LoadShapeDrivers(blendobj->parent);
-					}
-					else
-					{
-						modifierDeformer = new BL_ModifierDeformer(
-							newobj,
-							oldblendobj, blendobj,
-							static_cast<BL_SkinMeshObject*>(mesh),
-							false,
-							NULL
-						);
-					}
-					newobj->SetDeformer(modifierDeformer);
-				} 
-				else 	if (bHasShapeKey)
-				{
-					BL_ShapeDeformer* shapeDeformer;
-					if (bHasArmature) 
-					{
-						shapeDeformer = new BL_ShapeDeformer(
-							newobj,
-							oldblendobj, blendobj,
-							static_cast<BL_SkinMeshObject*>(mesh),
-							true,
-							true,
-							static_cast<BL_ArmatureObject*>( parentobj )
-						);
-						releaseParent= false;
-						shapeDeformer->LoadShapeDrivers(blendobj->parent);
-					}
-					else
-					{
-						shapeDeformer = new BL_ShapeDeformer(
-							newobj,
-							oldblendobj, blendobj,
-							static_cast<BL_SkinMeshObject*>(mesh),
-							false,
-							true,
-							NULL
-						);
-					}
-					newobj->SetDeformer( shapeDeformer);
+					modifierDeformer = new BL_ModifierDeformer(
+						newobj,
+						m_blenderScene,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						false,
+						NULL
+					);
 				}
-				else if (bHasArmature) 
+				newobj->SetDeformer(modifierDeformer);
+			} 
+			else 	if (bHasShapeKey)
+			{
+				BL_ShapeDeformer* shapeDeformer;
+				if (bHasArmature) 
 				{
-					BL_SkinDeformer* skinDeformer = new BL_SkinDeformer(
+					shapeDeformer = new BL_ShapeDeformer(
 						newobj,
 						oldblendobj, blendobj,
 						static_cast<BL_SkinMeshObject*>(mesh),
@@ -1142,23 +1105,49 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 						static_cast<BL_ArmatureObject*>( parentobj )
 					);
 					releaseParent= false;
-					newobj->SetDeformer(skinDeformer);
+					shapeDeformer->LoadShapeDrivers(blendobj->parent);
 				}
-				else if (bHasDvert)
+				else
 				{
-					BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
-						newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
+					shapeDeformer = new BL_ShapeDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						false,
+						true,
+						NULL
 					);
-					newobj->SetDeformer(meshdeformer);
 				}
-	
-				// release parent reference if its not being used 
-				if( releaseParent && parentobj)
-					parentobj->Release();
+				newobj->SetDeformer( shapeDeformer);
 			}
-		}
+			else if (bHasArmature) 
+			{
+				BL_SkinDeformer* skinDeformer = new BL_SkinDeformer(
+					newobj,
+					oldblendobj, blendobj,
+					static_cast<BL_SkinMeshObject*>(mesh),
+					true,
+					true,
+					static_cast<BL_ArmatureObject*>( parentobj )
+				);
+				releaseParent= false;
+				newobj->SetDeformer(skinDeformer);
+			}
+			else if (bHasDvert)
+			{
+				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
+					newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
+				);
+				newobj->SetDeformer(meshdeformer);
+			}
 
-		gameobj->AddMeshUser();
+			// release parent reference if its not being used 
+			if( releaseParent && parentobj)
+				parentobj->Release();
+		}
+	}
+
+	gameobj->AddMeshUser();
 	}
 	
 	if(use_phys) { /* update the new assigned mesh with the physics mesh */
@@ -1616,48 +1605,147 @@ double KX_Scene::getSuspendedDelta()
 //Python
 
 PyTypeObject KX_Scene::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_Scene",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-PyParentObject KX_Scene::Parents[] = {
-	&KX_Scene::Type,
-		&CValue::Type,
-		NULL
+	"KX_Scene",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,
+	&Sequence,
+	&Mapping,
+	0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&CValue::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_Scene::Methods[] = {
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getLightList),
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getObjectList),
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getName),
 	KX_PYMETHODTABLE(KX_Scene, addObject),
 	
+	/* dict style access */
+	KX_PYMETHODTABLE(KX_Scene, get),
+	
 	{NULL,NULL} //Sentinel
+};
+static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
+{
+	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	const char *attr_str= _PyUnicode_AsString(item);
+	PyObject* pyconvert;
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "val = scene[key]: KX_Scene, "BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
+	if (self->m_attr_dict && (pyconvert=PyDict_GetItem(self->m_attr_dict, item))) {
+		
+		if (attr_str)
+			PyErr_Clear();
+		Py_INCREF(pyconvert);
+		return pyconvert;
+	}
+	else {
+		if(attr_str)	PyErr_Format(PyExc_KeyError, "value = scene[key]: KX_Scene, key \"%s\" does not exist", attr_str);
+		else			PyErr_SetString(PyExc_KeyError, "value = scene[key]: KX_Scene, key does not exist");
+		return NULL;
+	}
+		
+}
+
+static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
+{
+	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	const char *attr_str= _PyUnicode_AsString(key);
+	if(attr_str==NULL)
+		PyErr_Clear();
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "scene[key] = value: KX_Scene, "BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if (val==NULL) { /* del ob["key"] */
+		int del= 0;
+		
+		if(self->m_attr_dict)
+			del |= (PyDict_DelItem(self->m_attr_dict, key)==0) ? 1:0;
+		
+		if (del==0) {
+			if(attr_str)	PyErr_Format(PyExc_KeyError, "scene[key] = value: KX_Scene, key \"%s\" could not be set", attr_str);
+			else			PyErr_SetString(PyExc_KeyError, "del scene[key]: KX_Scene, key could not be deleted");
+			return -1;
+		}
+		else if (self->m_attr_dict) {
+			PyErr_Clear(); /* PyDict_DelItem sets an error when it fails */
+		}
+	}
+	else { /* ob["key"] = value */
+		int set = 0;
+
+		if (self->m_attr_dict==NULL) /* lazy init */
+			self->m_attr_dict= PyDict_New();
+		
+		
+		if(PyDict_SetItem(self->m_attr_dict, key, val)==0)
+			set= 1;
+		else
+			PyErr_SetString(PyExc_KeyError, "scene[key] = value: KX_Scene, key not be added to internal dictionary");
+	
+		if(set==0)
+			return -1; /* pythons error value */
+		
+	}
+	
+	return 0; /* success */
+}
+
+static int Seq_Contains(PyObject *self_v, PyObject *value)
+{
+	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "val in scene: KX_Scene, "BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if (self->m_attr_dict && PyDict_GetItem(self->m_attr_dict, value))
+		return 1;
+	
+	return 0;
+}
+
+PyMappingMethods KX_Scene::Mapping = {
+	(lenfunc)NULL					, 			/*inquiry mp_length */
+	(binaryfunc)Map_GetItem,		/*binaryfunc mp_subscript */
+	(objobjargproc)Map_SetItem,	/*objobjargproc mp_ass_subscript */
+};
+
+PySequenceMethods KX_Scene::Sequence = {
+	NULL,		/* Cant set the len otherwise it can evaluate as false */
+	NULL,		/* sq_concat */
+	NULL,		/* sq_repeat */
+	NULL,		/* sq_item */
+	NULL,		/* sq_slice */
+	NULL,		/* sq_ass_item */
+	NULL,		/* sq_ass_slice */
+	(objobjproc)Seq_Contains,	/* sq_contains */
 };
 
 PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	return PyString_FromString(self->GetName().ReadPtr());
+	return PyUnicode_FromString(self->GetName().ReadPtr());
 }
 
 PyObject* KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1733,99 +1821,6 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_Scene::py_getattro__internal(PyObject *attr)
-{	
-	py_getattro_up(PyObjectPlus);
-}
-
-int KX_Scene::py_setattro__internal(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(PyObjectPlus);
-}
-
-PyObject* KX_Scene::py_getattro(PyObject *attr)
-{
-	PyObject *object = py_getattro__internal(attr);
-	
-	if (object==NULL)
-	{
-		PyErr_Clear();
-		object = PyDict_GetItem(m_attr_dict, attr);
-		if(object) {
-			Py_INCREF(object);
-		}
-		else {
-			PyErr_Format(PyExc_AttributeError, "value = scene.myAttr: KX_Scene, attribute \"%s\" not found", PyString_AsString(attr));
-		}
-	}
-	
-	return object;
-}
-
-PyObject* KX_Scene::py_getattro_dict() {
-	//py_getattro_dict_up(PyObjectPlus);
-	
-	PyObject *dict= py_getattr_dict(PyObjectPlus::py_getattro_dict(), Type.tp_dict);
-	if(dict==NULL)
-		return NULL;
-	
-	/* normally just return this but KX_Scene has some more items */
-	
-	PyDict_Update(dict, m_attr_dict);
-	return dict;
-}
-
-int KX_Scene::py_setattro(PyObject *attr, PyObject *value)
-{
-	int ret= py_setattro__internal(attr, value);
-	
-	if (ret==PY_SET_ATTR_MISSING) {
-		if (PyDict_SetItem(m_attr_dict, attr, value)==0) {
-			PyErr_Clear();
-			ret= PY_SET_ATTR_SUCCESS;
-		}
-		else {
-			PyErr_SetString(PyExc_AttributeError, "scene.UserAttr = value: KX_Scenes, failed assigning value to internal dictionary");
-			ret= PY_SET_ATTR_FAIL;
-		}
-	}
-	
-	return ret;
-}
-
-int KX_Scene::py_delattro(PyObject *attr)
-{
-	PyDict_DelItem(m_attr_dict, attr);
-	return 0;
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
-"getLightList() -> list [KX_Light]\n"
-"Returns a list of all lights in the scene.\n"
-)
-{
-	ShowDeprecationWarning("getLightList()", "the lights property");
-	return m_lightlist->GetProxy();
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
-"getObjectList() -> list [KX_GameObject]\n"
-"Returns a list of all game objects in the scene.\n"
-)
-{
-	ShowDeprecationWarning("getObjectList()", "the objects property");
-	return m_objectlist->GetProxy();
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
-"getName() -> string\n"
-"Returns the name of the scene.\n"
-)
-{
-	ShowDeprecationWarning("getName()", "the name property");
-	return PyString_FromString(GetName());
-}
-
 KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 "addObject(object, other, time=0)\n"
 "Returns the added object.\n")
@@ -1849,4 +1844,23 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 	// the object is added to the scene so we dont want python to own a reference
 	replica->Release();
 	return replica->GetProxy();
+}
+
+/* Matches python dict.get(key, [default]) */
+KX_PYMETHODDEF_DOC(KX_Scene, get, "")
+{
+	PyObject *key;
+	PyObject* def = Py_None;
+	PyObject* ret;
+
+	if (!PyArg_ParseTuple(args, "O|O:get", &key, &def))
+		return NULL;
+	
+	if (m_attr_dict && (ret=PyDict_GetItem(m_attr_dict, key))) {
+		Py_INCREF(ret);
+		return ret;
+	}
+	
+	Py_INCREF(def);
+	return def;
 }

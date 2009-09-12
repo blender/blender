@@ -35,10 +35,9 @@
 
 SCA_LogicManager* SCA_ILogicBrick::m_sCurrentLogicManager = NULL;
 
-SCA_ILogicBrick::SCA_ILogicBrick(SCA_IObject* gameobj,
-								 PyTypeObject* T)
+SCA_ILogicBrick::SCA_ILogicBrick(SCA_IObject* gameobj)
 	:
-	CValue(T),
+	CValue(),
 	m_gameobj(gameobj),
 	m_Execute_Priority(0),
 	m_Execute_Ueber_Priority(0),
@@ -178,13 +177,7 @@ CValue* SCA_ILogicBrick::GetEvent()
 /* python stuff */
 
 PyTypeObject SCA_ILogicBrick::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_ILogicBrick",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -194,29 +187,18 @@ PyTypeObject SCA_ILogicBrick::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-
-
-PyParentObject SCA_ILogicBrick::Parents[] = {
-	&SCA_ILogicBrick::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
-	// --> Deprecated
-  {"getOwner", (PyCFunction) SCA_ILogicBrick::sPyGetOwner, METH_NOARGS},
-  {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPyGetExecutePriority, METH_NOARGS},
-  {"setExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_VARARGS},
-  // <-- Deprecated
   {NULL,NULL} //Sentinel
 };
 
@@ -245,61 +227,6 @@ int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
 	return 0;
 }
 
-PyObject* SCA_ILogicBrick::py_getattro(PyObject *attr)
-{
-  py_getattro_up(CValue);
-}
-
-PyObject* SCA_ILogicBrick::py_getattro_dict() {
-	py_getattro_dict_up(CValue);
-}
-
-int SCA_ILogicBrick::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(CValue);
-}
-
-
-PyObject* SCA_ILogicBrick::PyGetOwner()
-{
-	ShowDeprecationWarning("getOwner()", "the owner property");
-	
-	CValue* parent = GetParent();
-	if (parent)
-	{
-		return parent->GetProxy();
-	}
-
-	printf("ERROR: Python scriptblock without owner\n");
-	Py_RETURN_NONE; //Int_FromLong(IsPositiveTrigger());
-}
-
-
-
-PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* args)
-{
-	ShowDeprecationWarning("setExecutePriority()", "the executePriority property");
-
-	int priority=0;
-
-    if (!PyArg_ParseTuple(args, "i:setExecutePriority", &priority)) {
-		return NULL;
-    }
-	
-	m_Execute_Priority = priority;
-
-	Py_RETURN_NONE;
-}
-
-
-
-PyObject* SCA_ILogicBrick::PyGetExecutePriority()
-{
-	ShowDeprecationWarning("getExecutePriority()", "the executePriority property");
-	return PyInt_FromLong(m_Execute_Priority);
-}
-
-
 /*Attribute functions */
 PyObject* SCA_ILogicBrick::pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -326,5 +253,5 @@ bool SCA_ILogicBrick::PyArgToBool(int boolArg)
 
 PyObject* SCA_ILogicBrick::BoolToPyArg(bool boolarg)
 {
-	return PyInt_FromLong(boolarg? KX_TRUE: KX_FALSE);	
+	return PyLong_FromSsize_t(boolarg? KX_TRUE: KX_FALSE);	
 }

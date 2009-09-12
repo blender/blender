@@ -36,8 +36,7 @@ extern char btempdir[];		/* use this to store a valid temp directory */
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
 struct Object; /* DNA_object_types.h */
-struct IpoDriver; /* DNA_curve_types.h */
-struct ScriptLink; /* DNA_scriptlink_types.h */
+struct ChannelDriver; /* DNA_anim_types.h */
 struct ListBase; /* DNA_listBase.h */
 struct SpaceText; /* DNA_space_types.h */
 struct SpaceScript; /* DNA_space_types.h */
@@ -49,6 +48,9 @@ struct bConstraintOb; /* DNA_constraint_types.h */
 struct bConstraintTarget; /* DNA_constraint_types.h*/
 struct Script;				/* DNA_screen_types.h */
 struct BPyMenu;
+struct bContext;
+struct ReportList;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -94,17 +96,20 @@ extern "C" {
 	int BPY_menu_do_python( short menutype, int event );
 	int BPY_menu_do_shortcut( short menutype, unsigned short key, unsigned short modifiers );
 	int BPY_menu_invoke( struct BPyMenu *pym, short menutype );
-	void BPY_run_python_script( const char *filename );
+	
+	/* 2.5 UI Scripts */
+	int BPY_run_python_script( struct bContext *C, const char *filename, struct Text *text, struct ReportList *reports ); // 2.5 working
+	int BPY_run_script_space_draw(const struct bContext *C, struct SpaceScript * sc); // 2.5 working
+	void BPY_run_ui_scripts(struct bContext *C, int reload);
+//	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
+	void BPY_update_modules( void ); // XXX - annoying, need this for pointers that get out of date
+	
+	
+	
 	int BPY_run_script(struct Script *script);
 	void BPY_free_compiled_text( struct Text *text );
 
-	void BPY_clear_bad_scriptlinks( struct Text *byebye );
 	int BPY_has_onload_script( void );
-	void BPY_do_all_scripts( short event, short anim );
-	int BPY_check_all_scriptlinks( struct Text *text );
-	void BPY_do_pyscript( struct ID *id, short event );
-	void BPY_free_scriptlink( struct ScriptLink *slink );
-	void BPY_copy_scriptlink( struct ScriptLink *scriptlink );
 
 	int BPY_is_spacehandler(struct Text *text, char spacetype);
 	int BPY_del_spacehandler(struct Text *text, struct ScrArea *sa);
@@ -115,10 +120,9 @@ extern "C" {
 		short eventValue, unsigned short space_event);
 
 	void BPY_pydriver_update(void);
-	float BPY_pydriver_eval(struct IpoDriver *driver);
-	struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
+	float BPY_pydriver_eval(struct ChannelDriver *driver);
 
-	int BPY_button_eval(char *expr, double *value);
+	int BPY_button_eval(struct bContext *C, char *expr, double *value);
 
 /* format importer hook */
 	int BPY_call_importloader( char *name );
@@ -131,10 +135,9 @@ extern "C" {
 	void BPY_scripts_clear_pyobjects( void );
 	
 	void error_pyscript( void );
-	
+	void BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
+
 /* void BPY_Err_Handle(struct Text *text); */
-/* void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
-/* void BPY_clear_bad_scriptlist(struct ListBase *, struct Text *byebye); */
 /* int BPY_spacetext_is_pywin(struct SpaceText *st); */
 
 #ifdef __cplusplus

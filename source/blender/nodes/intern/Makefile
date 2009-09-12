@@ -38,10 +38,14 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../blenlib
-CPPFLAGS += -I../../include
+CPPFLAGS += -I../../editors/include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I../../gpu
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
+
+DIRS = SHD_nodes CMP_nodes TEX_nodes
+include nan_subdirs.mk

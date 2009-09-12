@@ -37,19 +37,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h" /* qdn: defocus node, need camera info */
-#include "DNA_action_types.h"
 #include "DNA_color_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
@@ -65,17 +60,6 @@
 #include "../CMP_node.h"
 #include "node_util.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-#include "BIF_interface.h"
-#include "BIF_interface_icons.h"
-#include "BIF_language.h"
-#include "BIF_mywindow.h"
-#include "BIF_previewrender.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
@@ -84,17 +68,9 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "BSE_drawipo.h"
-#include "BSE_node.h"
-#include "BSE_view.h"
-
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 #include "RE_render_ext.h"
-
-#include "butspace.h"
-#include "blendef.h"
-#include "mydevice.h"
 
 /* *************************** operations support *************************** */
 
@@ -192,7 +168,7 @@ typedef float fRGB[4];
 /* clear color */
 #define fRGB_clear(c) { c[0]=c[1]=c[2]=0.f; }
 /* copy c2 to c1 */
-#define fRGB_copy(c1, c2) { c1[0]=c2[0];  c1[1]=c2[1];  c1[2]=c2[2]; }
+#define fRGB_copy(c1, c2) { c1[0]=c2[0];  c1[1]=c2[1];  c1[2]=c2[2]; c1[3]=c2[3]; }
 /* add c2 to c1 */
 #define fRGB_add(c1, c2) { c1[0]+=c2[0];  c1[1]+=c2[1];  c1[2]+=c2[2]; }
 /* subtract c2 from c1 */
@@ -210,7 +186,8 @@ typedef float fRGB[4];
 /* swap colors c1 & c2 */
 #define fRGB_swap(c1, c2) { float _t=c1[0];  c1[0]=c2[0];  c2[0]=_t;\
                                   _t=c1[1];  c1[1]=c2[1];  c2[1]=_t;\
-                                  _t=c1[2];  c1[2]=c2[2];  c2[2]=_t; }
+                                  _t=c1[2];  c1[2]=c2[2];  c2[2]=_t;\
+								  _t=c1[3];  c1[3]=c2[3];  c3[3]=_t;}
 
 void qd_getPixel(CompBuf* src, int x, int y, float* col);
 void qd_setPixel(CompBuf* src, int x, int y, float* col);

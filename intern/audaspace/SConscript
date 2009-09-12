@@ -1,0 +1,34 @@
+#!/usr/bin/python
+
+Import ('env')
+
+sources = env.Glob('intern/*.cpp') + env.Glob('FX/*.cpp') + env.Glob('SRC/*.cpp')
+incs = '. intern FX SRC ' + env['BF_PTHREADS_INC'] + ' ' + env['BF_LIBSAMPLERATE_INC']
+defs = []
+
+if env['WITH_BF_FFMPEG']:
+	sources += env.Glob('ffmpeg/*.cpp')
+	incs += ' ffmpeg ' + env['BF_FFMPEG_INC']
+	defs.append('WITH_FFMPEG')
+
+if env['WITH_BF_SDL']:
+	sources += env.Glob('SDL/*.cpp')
+	incs += ' SDL ' + env['BF_SDL_INC']
+	defs.append('WITH_SDL')
+
+if env['WITH_BF_OPENAL']:
+	sources += env.Glob('OpenAL/*.cpp')
+	incs += ' OpenAL ' + env['BF_OPENAL_INC']
+	defs.append('WITH_OPENAL')
+
+if env['WITH_BF_JACK']:
+	sources += env.Glob('jack/*.cpp')
+	incs += ' jack ' + env['BF_JACK_INC']
+	defs.append('WITH_JACK')
+
+if env['WITH_BF_SNDFILE']:
+	sources += env.Glob('sndfile/*.cpp')
+	incs += ' sndfile ' + env['BF_SNDFILE_INC']
+	defs.append('WITH_SNDFILE')
+
+env.BlenderLib ('bf_audaspace', sources, Split(incs), defs, libtype=['intern','player'], priority = [25,215] )

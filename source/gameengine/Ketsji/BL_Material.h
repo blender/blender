@@ -4,6 +4,10 @@
 #include "STR_String.h"
 #include "MT_Point2.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 // --
 struct MTex;
 struct Material;
@@ -98,6 +102,13 @@ public:
 	void SetSharedMaterial(bool v);
 	bool IsShared();
 	void SetUsers(int num);
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_Material"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 // BL_Material::IdMode

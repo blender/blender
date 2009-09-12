@@ -62,11 +62,6 @@
 #define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }
 #define SHIFT4(type, a, b, c, d) { type tmp; tmp = a; a = d; d = c; c = b; b = tmp; }
 
-/* string compare */
-#define STREQ(str, a)           ( strcmp((str), (a))==0 )
-#define STREQ2(str, a, b)       ( STREQ(str, a) || STREQ(str, b) )
-#define STREQ3(str, a, b, c)    ( STREQ2(str, a, b) || STREQ(str, c) )
-
 /* min/max */
 #define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
 #define MIN3(x,y,z)             MIN2( MIN2((x),(y)) , (z) )
@@ -92,8 +87,6 @@
 							  if( (max)[0]<(vec)[0] ) (max)[0]= (vec)[0]; \
 							  if( (max)[1]<(vec)[1] ) (max)[1]= (vec)[1]; }
 
-#define MINSIZE(val, size)	( ((val)>=0.0) ? (((val)<(size)) ? (size): (val)) : ( ((val)>(-size)) ? (-size) : (val)))
-
 /* some math and copy defines */
 
 #define SWAP(type, a, b)        { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
@@ -114,6 +107,7 @@
 #define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
 #define VECSUB2D(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1);}
 #define VECADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac);}
+#define VECSUBFAC(v1,v2,v3,fac) {*(v1)= *(v2) - *(v3)*(fac); *(v1+1)= *(v2+1) - *(v3+1)*(fac); *(v1+2)= *(v2+2) - *(v3+2)*(fac);}
 #define QUATADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac); *(v1+3)= *(v2+3) + *(v3+3)*(fac);}
 
 #define INPR(v1, v2)		( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )
@@ -128,9 +122,10 @@
 
 #define IS_EQT(a, b, c) ((a > b)? (((a-b) <= c)? 1:0) : ((((b-a) <= c)? 1:0)))
 #define IN_RANGE(a, b, c) ((b < c)? ((b<a && a<c)? 1:0) : ((c<a && a<b)? 1:0))
+#define IN_RANGE_INCL(a, b, c) ((b < c)? ((b<=a && a<=c)? 1:0) : ((c<=a && a<=b)? 1:0))
 
 /* this weirdo pops up in two places ... */
-#if !defined(WIN32) && !defined(__BeOS)
+#if !defined(WIN32)
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
@@ -148,12 +143,6 @@
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 
 #define FORM MAKE_ID('F','O','R','M')
-#define DDG1 MAKE_ID('3','D','G','1')
-#define DDG2 MAKE_ID('3','D','G','2')
-#define DDG3 MAKE_ID('3','D','G','3')
-#define DDG4 MAKE_ID('3','D','G','4')
-
-#define GOUR MAKE_ID('G','O','U','R')
 
 #define BLEN MAKE_ID('B','L','E','N')
 #define DER_ MAKE_ID('D','E','R','_')

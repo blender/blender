@@ -34,6 +34,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_utildefines.h" // CLAMP
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_mempool.h"
@@ -44,6 +45,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <math.h>
 #include <string.h>
 
 /* number of layers to add when growing a CustomData object */
@@ -378,6 +380,156 @@ static void layerDefault_origspace_face(void *data, int count)
 	for(i = 0; i < count; i++)
 		osf[i] = default_osf;
 }
+
+/* Adapted from sculptmode.c */
+static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float v)
+{
+	int x, y, x2, y2;
+	const int st_max = st - 1;
+	float urat, vrat, uopp;
+	float d[4][3], d2[2][3];
+
+	if(u < 0)
+		u = 0;
+	else if(u >= st)
+		u = st_max;
+	if(v < 0)
+		v = 0;
+	else if(v >= st)
+		v = st_max;
+
+	x = floor(u);
+	y = floor(v);
+	x2 = x + 1;
+	y2 = y + 1;
+
+	if(x2 >= st) x2 = st_max;
+	if(y2 >= st) y2 = st_max;
+	
+	urat = u - x;
+	vrat = v - y;
+	uopp = 1 - urat;
+
+	VecCopyf(d[0], disps[y * st + x]);
+	VecCopyf(d[1], disps[y * st + x2]);
+	VecCopyf(d[2], disps[y2 * st + x]);
+	VecCopyf(d[3], disps[y2 * st + x2]);
+	VecMulf(d[0], uopp);
+	VecMulf(d[1], urat);
+	VecMulf(d[2], uopp);
+	VecMulf(d[3], urat);
+
+	VecAddf(d2[0], d[0], d[1]);
+	VecAddf(d2[1], d[2], d[3]);
+	VecMulf(d2[0], 1 - vrat);
+	VecMulf(d2[1], vrat);
+
+	VecAddf(out, d2[0], d2[1]);
+}
+
+static void layerSwap_mdisps(void *data, int *ci)
+{
+	MDisps *s = data;
+	float (*d)[3] = NULL;
+	int x, y, st;
+
+	if(!(ci[0] == 2 && ci[1] == 3 && ci[2] == 0 && ci[3] == 1)) return;
+
+	d = MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
+	st = sqrt(s->totdisp);
+
+	for(y = 0; y < st; ++y) {
+		for(x = 0; x < st; ++x) {
+			VecCopyf(d[(st - y - 1) * st + (st - x - 1)], s->disps[y * st + x]);
+		}
+	}
+	
+	if(s->disps)
+		MEM_freeN(s->disps);
+	s->disps = d;
+}
+
+static void layerInterp_mdisps(void **sources, float *weights, float *sub_weights,
+			       int count, void *dest)
+{
+	MDisps *d = dest;
+	MDisps *s = NULL;
+	int st, stl;
+	int i, x, y;
+	float crn[4][2];
+	float (*sw)[4] = NULL;
+
+	/* Initialize the destination */
+	for(i = 0; i < d->totdisp; ++i) {
+		float z[3] = {0,0,0};
+		VecCopyf(d->disps[i], z);
+	}
+
+	/* For now, some restrictions on the input */
+	if(count != 1 || !sub_weights) return;
+
+	st = sqrt(d->totdisp);
+	stl = st - 1;
+
+	sw = (void*)sub_weights;
+	for(i = 0; i < 4; ++i) {
+		crn[i][0] = 0 * sw[i][0] + stl * sw[i][1] + stl * sw[i][2] + 0 * sw[i][3];
+		crn[i][1] = 0 * sw[i][0] + 0 * sw[i][1] + stl * sw[i][2] + stl * sw[i][3];
+	}
+
+	s = sources[0];
+	for(y = 0; y < st; ++y) {
+		for(x = 0; x < st; ++x) {
+			/* One suspects this code could be cleaner. */
+			float xl = (float)x / (st - 1);
+			float yl = (float)y / (st - 1);
+			float mid1[2] = {crn[0][0] * (1 - xl) + crn[1][0] * xl,
+					 crn[0][1] * (1 - xl) + crn[1][1] * xl};
+			float mid2[2] = {crn[3][0] * (1 - xl) + crn[2][0] * xl,
+					 crn[3][1] * (1 - xl) + crn[2][1] * xl};
+			float mid3[2] = {mid1[0] * (1 - yl) + mid2[0] * yl,
+					 mid1[1] * (1 - yl) + mid2[1] * yl};
+
+			float srcdisp[3];
+
+			mdisps_bilinear(srcdisp, s->disps, st, mid3[0], mid3[1]);
+			VecCopyf(d->disps[y * st + x], srcdisp);
+		}
+	}
+}
+
+static void layerCopy_mdisps(const void *source, void *dest, int count)
+{
+	int i;
+	const MDisps *s = source;
+	MDisps *d = dest;
+
+	for(i = 0; i < count; ++i) {
+		if(s[i].disps) {
+			d[i].disps = MEM_dupallocN(s[i].disps);
+			d[i].totdisp = s[i].totdisp;
+		}
+		else {
+			d[i].disps = NULL;
+			d[i].totdisp = 0;
+		}
+		
+	}
+}
+
+static void layerFree_mdisps(void *data, int count, int size)
+{
+	int i;
+	MDisps *d = data;
+
+	for(i = 0; i < count; ++i) {
+		if(d[i].disps)
+			MEM_freeN(d[i].disps);
+		d[i].disps = NULL;
+		d[i].totdisp = 0;
+	}
+}
+
 /* --------- */
 
 static void layerDefault_mloopcol(void *data, int count)
@@ -569,27 +721,32 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL},
 	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, layerDefault_mloopcol},
-	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
+	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
+	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL},
+	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
+	 layerSwap_mcol, layerDefault_mcol},
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
 	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
-	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent"};
+	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
+	"CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol"};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
 const CustomDataMask CD_MASK_MESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
-	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
+	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS;
 const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
-	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
+	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS;
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
-	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT;
+	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | CD_MASK_WEIGHT_MCOL;
 const CustomDataMask CD_MASK_BMESH = 
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
 const CustomDataMask CD_MASK_FACECORNERS =

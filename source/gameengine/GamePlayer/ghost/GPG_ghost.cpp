@@ -58,14 +58,19 @@ extern "C"
 #include "BKE_global.h"	
 #include "BKE_icons.h"	
 #include "BKE_node.h"	
+#include "BKE_report.h"	
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 #include "BLO_readfile.h"
 #include "BLO_readblenfile.h"
 #include "IMB_imbuf.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
+extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
+extern char btempdir[];		/* use this to store a valid temp directory */
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
@@ -84,6 +89,8 @@ extern "C"
 
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+
+#include "RNA_define.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -259,35 +266,33 @@ static void get_filename(int argc, char **argv, char *filename)
 #endif // !_APPLE
 }
 
-static BlendFileData *load_game_data(char *progname, char *filename = NULL, char *relativename = NULL) {
-	BlendReadError error;
+static BlendFileData *load_game_data(char *progname, char *filename = NULL, char *relativename = NULL)
+{
+	ReportList reports;
 	BlendFileData *bfd = NULL;
+
+	BKE_reports_init(&reports, RPT_STORE);
 	
 	/* try to load ourself, will only work if we are a runtime */
 	if (blo_is_a_runtime(progname)) {
-		bfd= blo_read_runtime(progname, &error);
+		bfd= blo_read_runtime(progname, &reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_RUNTIME;
 			strcpy(bfd->main->name, progname);
 		}
 	} else {
-		bfd= BLO_read_from_file(progname, &error);
+		bfd= BLO_read_from_file(progname, &reports);
 	}
- 	
-	/*
-	if (bfd && bfd->type == BLENFILETYPE_BLEND) {
-		BLO_blendfiledata_free(bfd);
-		bfd = NULL;
-		error = BRE_NOT_A_PUBFILE;
-	}
-	*/
 	
 	if (!bfd && filename) {
 		bfd = load_game_data(filename);
 		if (!bfd) {
-			printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
+			printf("Loading %s failed: ", filename);
+			BKE_reports_print(&reports, RPT_ERROR);
 		}
 	}
+
+	BKE_reports_clear(&reports);
 	
 	return bfd;
 }
@@ -345,6 +350,8 @@ int main(int argc, char** argv)
     */
 #endif // __APPLE__
 
+	RNA_init();
+
 	init_nodesystem();
 	
 	initglobals();
@@ -384,6 +391,13 @@ int main(int argc, char** argv)
 		}
 	}
 #endif
+	// XXX add the ability to change this values to the command line parsing.
+	U.mixbufsize = 2048;
+	U.audiodevice = 2;
+	U.audiorate = 44100;
+	U.audioformat = 0x24;
+	U.audiochannels = 2;
+
 	for (i = 1; (i < argc) && !error 
 #ifdef WIN32
 		&& scr_saver_mode == SCREEN_SAVER_MODE_NONE

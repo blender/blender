@@ -31,6 +31,9 @@
 #ifndef DNA_FILEGLOBAL_TYPES_H
 #define DNA_FILEGLOBAL_TYPES_H
 
+struct bScreen;
+struct Scene;
+
 /**
  * FileGlobal stores a part of the current user-unterface settings at
  * the moment of saving, and the file-specific settings.
@@ -40,8 +43,8 @@ typedef struct FileGlobal {
 	short subversion, pads;
 	short minversion, minsubversion;
 	short displaymode, winpos;
-	void *curscreen;
-	void *curscene;
+	struct bScreen *curscreen;
+	struct Scene *curscene;
 	int fileflags;
 	int globalf;
 } FileGlobal;

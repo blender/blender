@@ -39,6 +39,8 @@ struct Material;
 struct ID;
 struct Object;
 
+/* materials */
+
 void init_def_material(void);
 void free_material(struct Material *sc); 
 void test_object_materials(struct ID *id);
@@ -47,15 +49,22 @@ struct Material *add_material(char *name);
 struct Material *copy_material(struct Material *ma);
 void make_local_material(struct Material *ma);
 
+void automatname(struct Material *);
+
+/* material slots */
+
 struct Material ***give_matarar(struct Object *ob);
 short *give_totcolp(struct Object *ob);
 struct Material *give_current_material(struct Object *ob, int act);
 struct ID *material_from(struct Object *ob, int act);
 void assign_material(struct Object *ob, struct Material *ma, int act);
-void new_material_to_objectdata(struct Object *ob);
 
 int find_material_index(struct Object *ob, struct Material *ma);
 
+void object_add_material_slot(struct Object *ob);
+void object_remove_material_slot(struct Object *ob);
+
+/* rendering */
 
 void init_render_material(struct Material *, int, float *);
 void init_render_materials(int, float *);
@@ -64,11 +73,7 @@ void end_render_materials(void);
 
 int material_in_material(struct Material *parmat, struct Material *mat);
 
-void automatname(struct Material *);
-void delete_material_index(void);            
-
 void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col);
-
 
 #ifdef __cplusplus
 }

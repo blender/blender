@@ -91,10 +91,10 @@ LOD_QSDecimator(
 	LOD_ExternNormalEditor &face_editor,
 	LOD_ExternBufferEditor &extern_editor
 ) :
+	m_is_armed (false),
 	m_mesh(mesh),
 	m_face_editor(face_editor),
-	m_extern_editor(extern_editor),
-	m_is_armed (false)
+	m_extern_editor(extern_editor)
 {	
 	m_deg_edges.reserve(32);
 	m_deg_faces.reserve(32);
@@ -318,7 +318,7 @@ UpdateHeap(
 		LOD_Edge &e = edge_set[*edge_it];
 		m_heap->Remove(&edge_set[0],e.HeapPos());
 
-		e.HeapPos() = 0xffffffff;
+		e.HeapPos() = -1;
 
 	}
 }

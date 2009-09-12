@@ -27,8 +27,8 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  .
-  ../../../intern/moto/include
+	.
+	../../../intern/moto/include
 )
 
 BLENDERLIB(bf_scenegraph "${SRC}" "${INC}")

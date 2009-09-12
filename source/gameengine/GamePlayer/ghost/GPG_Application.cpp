@@ -57,6 +57,7 @@ extern "C"
 #include "BLO_readfile.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_sound.h"
 #include "IMB_imbuf.h"
 #include "DNA_scene_types.h"
 #ifdef __cplusplus
@@ -84,7 +85,6 @@ extern "C"
 
 #include "KX_BlenderSceneConverter.h"
 #include "NG_LoopBackNetworkDeviceInterface.h"
-#include "SND_DeviceManager.h"
 
 #include "GPC_MouseDevice.h"
 #include "GPC_RenderTools.h"
@@ -125,8 +125,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 	  m_rendertools(0), 
 	  m_rasterizer(0), 
 	  m_sceneconverter(0),
-	  m_networkdevice(0), 
-	  m_audiodevice(0),
+	  m_networkdevice(0),
 	  m_blendermat(0),
 	  m_blenderglslmat(0),
 	  m_pyGlobalDictString(0),
@@ -157,7 +156,7 @@ bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene, int a
 
 	if (maggie != NULL && scene != NULL)
 	{
-		G.scene = scene;
+// XXX		G.scene = scene;
 		m_maggie = maggie;
 		m_startSceneName = scene->id.name+2;
 		m_startScene = scene;
@@ -524,16 +523,17 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		
 		// SYS_WriteCommandLineInt(syshandle, "fixedtime", 0);
 		// SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
+		GameData *gm= &m_startScene->gm;
 		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
-		bool fixedFr = (G.fileflags & G_FILE_ENABLE_ALL_FRAMES);
+		bool fixedFr = (gm->flag & GAME_ENABLE_ALL_FRAMES);
 
-		bool showPhysics = (G.fileflags & G_FILE_SHOW_PHYSICS);
+		bool showPhysics = (gm->flag & GAME_SHOW_PHYSICS);
 		SYS_WriteCommandLineInt(syshandle, "show_physics", showPhysics);
 
 		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
-		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DISPLAY_LISTS) != 0);
+		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", gm->flag & GAME_DISPLAY_LISTS) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 1) != 0);
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
@@ -541,7 +541,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		if(GPU_extensions_minimum_support())
 			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
-		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+		else if(gm->matmode == GAME_MAT_GLSL)
 			m_blendermat = false;
 
 		// create the canvas, rasterizer and rendertools
@@ -583,13 +583,8 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		if (!m_networkdevice)
 			goto initFailed;
 			
-		// get an audiodevice
-		SND_DeviceManager::Subscribe();
-		m_audiodevice = SND_DeviceManager::Instance();
-		if (!m_audiodevice)
-			goto initFailed;
-		m_audiodevice->UseCD();
-		
+		sound_init();
+
 		// create a ketsjisystem (only needed for timing and stuff)
 		m_kxsystem = new GPG_System (m_system);
 		if (!m_kxsystem)
@@ -606,7 +601,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetRenderTools(m_rendertools);
 		m_ketsjiengine->SetRasterizer(m_rasterizer);
 		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
-		m_ketsjiengine->SetAudioDevice(m_audiodevice);
+
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
 
 		CValue::SetDeprecationWarnings(nodepwarnings);
@@ -619,8 +614,8 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 	return m_engineInitialized;
 initFailed:
+	sound_exit();
 	delete m_kxsystem;
-	delete m_audiodevice;
 	delete m_networkdevice;
 	delete m_mouse;
 	delete m_keyboard;
@@ -633,7 +628,6 @@ initFailed:
 	m_keyboard = NULL;
 	m_mouse = NULL;
 	m_networkdevice = NULL;
-	m_audiodevice = NULL;
 	m_kxsystem = NULL;
 	return false;
 }
@@ -650,7 +644,7 @@ bool GPG_Application::startEngine(void)
 	/*
 	m_canvas->SetBannerDisplayEnabled(true);	
 	Camera* cam;
-	cam = (Camera*)G.scene->camera->data;
+	cam = (Camera*)scene->camera->data;
 	if (cam) {
 	if (((cam->flag) & 48)==48) {
 	m_canvas->SetBannerDisplayEnabled(false);
@@ -671,15 +665,14 @@ bool GPG_Application::startEngine(void)
 
 		//	if (always_use_expand_framing)
 		//		sceneconverter->SetAlwaysUseExpandFraming(true);
-		if(m_blendermat && (G.fileflags & G_FILE_GAME_MAT))
+		if(m_blendermat && (m_startScene->gm.matmode != GAME_MAT_TEXFACE))
 			m_sceneconverter->SetMaterials(true);
-		if(m_blenderglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
+		if(m_blenderglslmat && (m_startScene->gm.matmode == GAME_MAT_GLSL))
 			m_sceneconverter->SetGLSLMaterials(true);
 
 		KX_Scene* startscene = new KX_Scene(m_keyboard,
 			m_mouse,
 			m_networkdevice,
-			m_audiodevice,
 			startscenename,
 			m_startScene);
 		
@@ -700,8 +693,8 @@ bool GPG_Application::startEngine(void)
 #endif
 
 		//initialize Dome Settings
-		if(m_startScene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
-			m_ketsjiengine->InitDome(m_startScene->r.domeres, m_startScene->r.domemode, m_startScene->r.domeangle, m_startScene->r.domeresbuf, m_startScene->r.dometilt, m_startScene->r.dometext);
+		if(m_startScene->gm.stereoflag == STEREO_DOME)
+			m_ketsjiengine->InitDome(m_startScene->gm.dome.res, m_startScene->gm.dome.mode, m_startScene->gm.dome.angle, m_startScene->gm.dome.resbuf, m_startScene->gm.dome.tilt, m_startScene->gm.dome.warptext);
 
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict
@@ -725,7 +718,7 @@ bool GPG_Application::startEngine(void)
 		// Set the animation playback rate for ipo's and actions
 		// the framerate below should patch with FPS macro defined in blendef.h
 		// Could be in StartEngine set the framerate, we need the scene to do this
-		m_ketsjiengine->SetAnimFrameRate( (((double) G.scene->r.frs_sec) / G.scene->r.frs_sec_base) );
+// XXX		m_ketsjiengine->SetAnimFrameRate( (((double) scene->r.frs_sec) / scene->r.frs_sec_base) );
 		
 	}
 	
@@ -769,6 +762,7 @@ void GPG_Application::stopEngine()
 
 void GPG_Application::exitEngine()
 {
+	sound_exit();
 	if (m_ketsjiengine)
 	{
 		stopEngine();
@@ -779,11 +773,6 @@ void GPG_Application::exitEngine()
 	{
 		delete m_kxsystem;
 		m_kxsystem = 0;
-	}
-	if (m_audiodevice)
-	{
-		SND_DeviceManager::Unsubscribe();
-		m_audiodevice = 0;
 	}
 	if (m_networkdevice)
 	{

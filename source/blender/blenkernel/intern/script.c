@@ -35,7 +35,6 @@
 #include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
-#include "BKE_bad_level_calls.h" /* for BPY_clear_script */
 
 /*
 #include "BLI_blenlib.h"
@@ -47,15 +46,14 @@
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h" // Blender Python library
 #endif
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 */
 
 /* XXX this function and so also the file should not be needed anymore,
  * since we have to force clearing all Python related data before freeing
  * Blender's library. Still testing, will decide later (Willian). */
+
+//XXX 
+#if 0
 void free_script (Script *script)
 {
 	if (!script) return;
@@ -63,3 +61,4 @@ void free_script (Script *script)
 	BPY_clear_script(script);
 #endif
 }
+#endif

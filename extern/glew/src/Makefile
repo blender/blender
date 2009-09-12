@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -25,7 +27,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 #
@@ -42,15 +44,13 @@ CSRCS = glew.c
 CCSRCS = 
 include nan_compile.mk 
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_GLEW) ] || mkdir -p $(NAN_GLEW)
 	@[ -d $(NAN_GLEW)/include/GL ] || mkdir -p $(NAN_GLEW)/include/GL
-	@[ -d $(NAN_GLEW)/lib ] || mkdir -p $(NAN_GLEW)/lib
-	@[ -d $(NAN_GLEW)/lib/debug ] || mkdir -p $(NAN_GLEW)/lib/debug
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/lib$(LIBNAME).a $(NAN_GLEW)/lib/
+	@[ -d $(NAN_GLEW)/lib/$(DEBUG_DIR) ] || mkdir -p $(NAN_GLEW)/lib/$(DEBUG_DIR)
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)lib$(LIBNAME).a $(NAN_GLEW)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_GLEW)/lib/lib$(LIBNAME).a
-	ranlib $(NAN_GLEW)/lib/lib$(LIBNAME).a
+	ranlib $(NAN_GLEW)/lib/$(DEBUG_DIR)lib$(LIBNAME).a
 endif
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh ../include/GL/*.h $(NAN_GLEW)/include/GL
 

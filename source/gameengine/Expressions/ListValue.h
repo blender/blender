@@ -24,7 +24,7 @@ class CListValue : public CPropValue
 	//PLUGIN_DECLARE_SERIAL (CListValue,CValue)
 
 public:
-	CListValue(PyTypeObject *T = &Type);
+	CListValue();
 	virtual ~CListValue();
 
 	void AddConfigurationData(CValue* menuvalue);
@@ -60,8 +60,6 @@ public:
 
 	bool CheckEqual(CValue* first,CValue* second);
 
-	virtual PyObject* py_getattro(PyObject* attr);
-	virtual PyObject* py_getattro_dict();
 	virtual PyObject* py_repr(void) {
 		PyObject *py_proxy= this->GetProxy();
 		PyObject *py_list= PySequence_List(py_proxy);
@@ -76,7 +74,6 @@ public:
 	KX_PYMETHOD_O(CListValue,index);
 	KX_PYMETHOD_O(CListValue,count);
 	KX_PYMETHOD_VARARGS(CListValue,get);
-	KX_PYMETHOD_O(CListValue,has_key);
 	KX_PYMETHOD_O(CListValue,from_id);
 
 	

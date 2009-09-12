@@ -1,35 +1,42 @@
 LCGDIR = '#../lib/windows'
 LIBDIR = "${LCGDIR}"
 
-WITH_BF_VERSE = False
-BF_VERSE_INCLUDE = "#extern/verse/dist"
-
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '2.5'
-#BF_PYTHON_VERSION = '2.6'
+BF_PYTHON_VERSION = '3.1'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
-#BF_PYTHON_LIB = 'python25'
-#BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/lib25_vs2005'
-#BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/lib25_vs2005/libpython25.a'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/libpython${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}.a'
 
 WITH_BF_OPENAL = True
-WITH_BF_STATICOPENAL = False
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'wrap_oal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
-# Warning, this static lib configuration is untested! users of this OS please confirm.
-BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
-WITH_BF_FFMPEG = True
+WITH_BF_FFMPEG = False
 BF_FFMPEG_LIB = 'avformat-52 avcodec-52 avdevice-52 avutil-50 swscale-0'
 BF_FFMPEG_LIBPATH = LIBDIR + '/ffmpeg/lib'
 BF_FFMPEG_INC =  LIBDIR + '/ffmpeg/include'
+
+BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'libsamplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
+WITH_BF_JACK = False
+BF_JACK = LIBDIR + '/jack'
+BF_JACK_INC = '${BF_JACK}/include'
+BF_JACK_LIB = 'libjack'
+BF_JACK_LIBPATH = '${BF_JACK}/lib'
+
+WITH_BF_SNDFILE = False
+BF_SNDFILE = LIBDIR + '/sndfile'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include'
+BF_SNDFILE_LIB = 'libsndfile-1'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
@@ -82,45 +89,16 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = True
-BF_FTGL = LIBDIR + '/ftgl'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
-
 WITH_BF_GAMEENGINE = False
-
-WITH_BF_ODE = True
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
-
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
-
-WITH_BF_YAFRAY = True
-
-#WITH_BF_NSPR = True
-#BF_NSPR = $(LIBDIR)/nspr
-#BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
-#BF_NSPR_LIB = 
-
-# Uncomment the following line to use Mozilla inplace of netscape
-#CPPFLAGS += -DMOZ_NOT_NET
-# Location of MOZILLA/Netscape header files...
-#BF_MOZILLA = $(LIBDIR)/mozilla
-#BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
-#BF_MOZILLA_LIB =
-# Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
-# if this is not set.
 
 # enable freetype2 support for text objects
 BF_FREETYPE = LIBDIR + '/gcc/freetype'
@@ -167,8 +145,9 @@ LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g']
 
-BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_CCFLAGS = ['-pg', '-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
+BF_PROFILE_FLAGS = BF_PROFILE_CCFLAGS
 BF_PROFILE = False
 
 BF_BUILDDIR = '..\\build\\win32-mingw'

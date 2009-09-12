@@ -61,7 +61,7 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	GEN_Map<CHashedPtr,SCA_IActuator*>	m_map_blender_to_gameactuator;		/* cleared after conversion */
 	GEN_Map<CHashedPtr,SCA_IController*>m_map_blender_to_gamecontroller;	/* cleared after conversion */
 	
-	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameipolist;	/* kept, should be freed, TODO */
+	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameAdtList;
 	
 	Main*					m_maggie;
 
@@ -111,8 +111,8 @@ public:
 
 	void RegisterBlenderMaterial(BL_Material *mat);
 	
-	void RegisterInterpolatorList(BL_InterpolatorList *ipoList, struct Ipo *for_ipo);
-	BL_InterpolatorList *FindInterpolatorList(struct Ipo *for_ipo);
+	void RegisterInterpolatorList(BL_InterpolatorList *adtList, struct AnimData *for_adt);
+	BL_InterpolatorList *FindInterpolatorList(struct AnimData *for_adt);
 
 	void RegisterGameActuator(SCA_IActuator *act, struct bActuator *for_actuator);
 	SCA_IActuator *FindGameActuator(struct bActuator *for_actuator);
@@ -143,6 +143,12 @@ public:
 
 	struct Main* GetMain() { return m_maggie; };
 
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderSceneConverter"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_BLENDERSCENECONVERTER_H

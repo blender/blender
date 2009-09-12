@@ -212,6 +212,15 @@ public:
 
 	const GHOST_TabletData* GetTabletData()
 	{ return &m_xtablet.CommonData; }
+
+	/*
+	 * Need this in case that we want start the window
+	 * in FullScree or Maximized state.
+	 * Check GHOST_WindowX11.cpp
+	 */
+	bool m_post_init;
+	GHOST_TWindowState m_post_state;
+
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -240,6 +249,15 @@ protected:
 		bool visible
 	);
 	
+	/**
+	 * Sets the cursor grab on the window using
+	 * native window system calls.
+	 */
+		GHOST_TSuccess 
+	setWindowCursorGrab(
+		bool grab
+	);
+
 	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
@@ -327,6 +345,18 @@ private :
 
 	/* Tablet devices */
 	XTablet m_xtablet;
+
+	void icccmSetState(int state);
+	int icccmGetState() const;
+
+	void netwmMaximized(bool set);
+	bool netwmIsMaximized() const;
+
+	void netwmFullScreen(bool set);
+	bool netwmIsFullScreen() const;
+
+	void motifFullScreen(bool set);
+	bool motifIsFullScreen() const;
 };
 
 

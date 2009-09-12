@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -34,10 +34,10 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float x = coord[0];
-	float y = coord[1];
+	float x = p->coord[0];
+	float y = p->coord[1];
 	Image *ima= (Image *)node->id;
 	ImageUser *iuser= (ImageUser *)node->storage;
 	

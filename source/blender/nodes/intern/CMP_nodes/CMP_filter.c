@@ -211,6 +211,8 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 		}
 			
 		out[0]->data= stackbuf;
+		
+		generate_preview(node, out[0]->data);
 	}
 }
 
@@ -220,7 +222,7 @@ bNodeType cmp_node_filter= {
 	/* type code   */	CMP_NODE_FILTER,
 	/* name        */	"Filter",
 	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	cmp_node_filter_in,
 	/* output sock */	cmp_node_filter_out,
 	/* storage     */	"", 

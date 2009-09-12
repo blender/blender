@@ -72,13 +72,13 @@ static PyObject * getColor (PyFilter * self, void * closure)
 static int setColor (PyFilter * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PyInt_Check(value))
+	if (value == NULL || !PyLong_Check(value))
 	{
 		PyErr_SetString(PyExc_TypeError, "filt.colorIdx = int: VideoTexture.FilterNormal, expected the value must be a int");
 		return -1;
 	}
 	// set color index
-	getFilter(self)->setColor((unsigned short)(PyInt_AsLong(value)));
+	getFilter(self)->setColor((unsigned short)(PyLong_AsSsize_t(value)));
 	// success
 	return 0;
 }
@@ -124,13 +124,7 @@ static PyGetSetDef filterNormalGetSets[] =
 // define python type
 PyTypeObject FilterNormalType =
 { 
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                         /*ob_size*/
-#endif
 	"VideoTexture.FilterNormal",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
