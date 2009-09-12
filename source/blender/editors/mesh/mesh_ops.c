@@ -168,7 +168,8 @@ static int face_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	// uiItemS(layout);
 
 	uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_uvs_rotate", "direction");
-	uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_uvs_mirror", "axis");
+	//uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_uvs_mirror", "axis");
+	uiItemO(layout, NULL, 0, "MESH_OT_uvs_reverse");
 	uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_colors_rotate", "direction");
 	uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_colors_mirror", "axis");
 
@@ -287,7 +288,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_region_to_loop);
 	
 	WM_operatortype_append(MESH_OT_uvs_rotate);
-	WM_operatortype_append(MESH_OT_uvs_mirror);
+	//WM_operatortype_append(MESH_OT_uvs_mirror);
+	WM_operatortype_append(MESH_OT_uvs_reverse);
 	WM_operatortype_append(MESH_OT_colors_rotate);
 	WM_operatortype_append(MESH_OT_colors_mirror);
 	
@@ -436,7 +438,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_region_to_loop",SIXKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_uvs_rotate",SEVENKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_uvs_mirror",SEVENKEY, KM_PRESS, KM_ALT, 0);
+	//WM_keymap_add_item(keymap, "MESH_OT_uvs_mirror",SEVENKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_uvs_reverse",SEVENKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_colors_rotate",EIGHTKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_colors_mirror",EIGHTKEY, KM_PRESS, KM_ALT, 0);
 

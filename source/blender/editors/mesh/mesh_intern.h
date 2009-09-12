@@ -278,7 +278,8 @@ void MESH_OT_loop_to_region(struct wmOperatorType *ot);
 void MESH_OT_region_to_loop(struct wmOperatorType *ot);
 
 void MESH_OT_uvs_rotate(struct wmOperatorType *ot);
-void MESH_OT_uvs_mirror(struct wmOperatorType *ot);
+//void MESH_OT_uvs_mirror(struct wmOperatorType *ot);
+void MESH_OT_uvs_reverse(struct wmOperatorType *ot);
 void MESH_OT_colors_rotate(struct wmOperatorType *ot);
 void MESH_OT_colors_mirror(struct wmOperatorType *ot);
 

@@ -1024,3 +1024,49 @@ void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op)
 	}
 
 }
+
+/******************************************************************************
+** Reverse UVs for a face
+******************************************************************************/
+
+void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter fs_iter;	/* selected faces iterator */
+	BMFace *fs;		/* current face */
+	BMIter l_iter;		/* iteration loop */
+	V_DECLARE(uvs);
+	float (*uvs)[2] = NULL;
+	int max_vert_count = 0;
+
+	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
+		if( CustomData_has_layer(&(bm->ldata), CD_MLOOPUV) ) {
+			BMLoop *lf;	/* current face loops */
+			MLoopUV *f_luv; /* first face loop uv */
+			int num_verts = fs->len;
+			int i = 0;
+
+			V_RESET(uvs);
+			BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
+
+				/* current loop uv is the previous loop uv */
+				V_GROW(uvs);
+				uvs[i][0] = luv->uv[0];
+				uvs[i][1] = luv->uv[1];
+				i++;
+			}
+
+			/* now that we have the uvs in the array, reverse! */
+			i = 0;
+			BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+				/* current loop uv is the previous loop uv */
+				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
+				luv->uv[0] = uvs[(fs->len - i - 1)][0];
+				luv->uv[1] = uvs[(fs->len - i - 1)][1];
+				i++;
+			}
+		}
+	}
+
+	V_FREE(uvs);
+}

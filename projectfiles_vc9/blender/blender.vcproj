@@ -259,6 +259,10 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 		</Filter>
+		<Filter
+			Name="Source Files"
+			>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

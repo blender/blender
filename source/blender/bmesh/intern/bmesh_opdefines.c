@@ -717,6 +717,18 @@ BMOpDefine def_meshrotateuvs = {
 	0
 };
 
+/*
+** uv reverse
+** reverse the uvs
+*/
+BMOpDefine def_meshreverseuvs = {
+	"meshreverseuvs",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_reverseuvs_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -764,6 +776,7 @@ BMOpDefine *opdefines[] = {
 	&def_vert_average_facedata,
 	&def_meshrotateuvs,
 	&def_bmesh_to_mesh,
+	&def_meshreverseuvs,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

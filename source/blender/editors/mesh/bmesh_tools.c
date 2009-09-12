@@ -2216,169 +2216,30 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
-#if 0
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-	EditFace *efa;
-	short change = 0;
-	MTFace *tf;
-	float u1, v1;
-	int dir= RNA_enum_get(op->ptr, "direction");
-
-	if (!EM_texFaceCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;
-	}
-
-	for(efa=em->faces.first; efa; efa=efa->next) {
-		if (efa->f & SELECT) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			u1= tf->uv[0][0];
-			v1= tf->uv[0][1];
-
-			if (dir == DIRECTION_CCW) {
-				if(efa->v4) {
-					tf->uv[0][0]= tf->uv[3][0];
-					tf->uv[0][1]= tf->uv[3][1];
-
-					tf->uv[3][0]= tf->uv[2][0];
-					tf->uv[3][1]= tf->uv[2][1];
-				} else {
-					tf->uv[0][0]= tf->uv[2][0];
-					tf->uv[0][1]= tf->uv[2][1];
-				}
-
-				tf->uv[2][0]= tf->uv[1][0];
-				tf->uv[2][1]= tf->uv[1][1];
-
-				tf->uv[1][0]= u1;
-				tf->uv[1][1]= v1;
-			} else {
-				tf->uv[0][0]= tf->uv[1][0];
-				tf->uv[0][1]= tf->uv[1][1];
-
-				tf->uv[1][0]= tf->uv[2][0];
-				tf->uv[1][1]= tf->uv[2][1];
-
-				if(efa->v4) {
-					tf->uv[2][0]= tf->uv[3][0];
-					tf->uv[2][1]= tf->uv[3][1];
-
-					tf->uv[3][0]= u1;
-					tf->uv[3][1]= v1;
-				}
-				else {
-					tf->uv[2][0]= u1;
-					tf->uv[2][1]= v1;
-				}
-			}
-			change = 1;
-		}
-	}
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	if(!change)
-		return OPERATOR_CANCELLED;
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-#endif
-	return OPERATOR_FINISHED;
 }
 
-static int mesh_mirror_uvs(bContext *C, wmOperator *op)
+static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 {
-#if 0
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
 
-	EditFace *efa;
-	short change = 0;
-	MTFace *tf;
-	float u1, v1;
-	int axis= RNA_enum_get(op->ptr, "axis");
+	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+	EDBM_InitOpf(em, &bmop, op, "meshreverseuvs faces=%hf", BM_SELECT);
 
-	if (!EM_texFaceCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;
-	}
+	/* execute the operator */
+	BMO_Exec_Op(em->bm, &bmop);
 
-	for(efa=em->faces.first; efa; efa=efa->next) {
-		if (efa->f & SELECT) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (axis == AXIS_Y) {
-				u1= tf->uv[1][0];
-				v1= tf->uv[1][1];
-				if(efa->v4) {
-
-					tf->uv[1][0]= tf->uv[2][0];
-					tf->uv[1][1]= tf->uv[2][1];
-
-					tf->uv[2][0]= u1;
-					tf->uv[2][1]= v1;
-
-					u1= tf->uv[3][0];
-					v1= tf->uv[3][1];
-
-					tf->uv[3][0]= tf->uv[0][0];
-					tf->uv[3][1]= tf->uv[0][1];
-
-					tf->uv[0][0]= u1;
-					tf->uv[0][1]= v1;
-				}
-				else {
-					tf->uv[1][0]= tf->uv[2][0];
-					tf->uv[1][1]= tf->uv[2][1];
-					tf->uv[2][0]= u1;
-					tf->uv[2][1]= v1;
-				}
-
-			} else {
-				u1= tf->uv[0][0];
-				v1= tf->uv[0][1];
-				if(efa->v4) {
-
-					tf->uv[0][0]= tf->uv[1][0];
-					tf->uv[0][1]= tf->uv[1][1];
-
-					tf->uv[1][0]= u1;
-					tf->uv[1][1]= v1;
-
-					u1= tf->uv[3][0];
-					v1= tf->uv[3][1];
-
-					tf->uv[3][0]= tf->uv[2][0];
-					tf->uv[3][1]= tf->uv[2][1];
-
-					tf->uv[2][0]= u1;
-					tf->uv[2][1]= v1;
-				}
-				else {
-					tf->uv[0][0]= tf->uv[1][0];
-					tf->uv[0][1]= tf->uv[1][1];
-					tf->uv[1][0]= u1;
-					tf->uv[1][1]= v1;
-				}
-			}
-			change = 1;
-		}
-	}
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	if(!change)
+	/* finish the operator */
+	if( !EDBM_FinishOp(em, &bmop, op, 1) )
 		return OPERATOR_CANCELLED;
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	/* dependencies graph and notification stuff */
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
 
-#endif
+	/* we succeeded */
 	return OPERATOR_FINISHED;
 }
 
@@ -2517,21 +2378,22 @@ void MESH_OT_uvs_rotate(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate UVs around.");
 }
 
-void MESH_OT_uvs_mirror(wmOperatorType *ot)
+//void MESH_OT_uvs_mirror(wmOperatorType *ot)
+void MESH_OT_uvs_reverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mirror UVs";
-	ot->idname= "MESH_OT_uvs_mirror";
+	ot->name= "Reverse UVs";
+	ot->idname= "MESH_OT_uvs_reverse";
 
 	/* api callbacks */
-	ot->exec= mesh_mirror_uvs;
+	ot->exec= mesh_reverse_uvs;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around.");
+	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around.");
 }
 
 void MESH_OT_colors_rotate(wmOperatorType *ot)
