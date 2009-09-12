@@ -662,7 +662,7 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Effect Strip";
 	ot->idname= "SEQUENCER_OT_effect_strip_add";
-	ot->description= "Add an effect to the sequencer, most are applied ontop of existing strips";
+	ot->description= "Add an effect to the sequencer, most are applied on top of existing strips";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_effect_strip_invoke;

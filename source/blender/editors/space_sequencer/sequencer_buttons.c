@@ -126,6 +126,7 @@ void SEQUENCER_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
 	ot->idname= "SEQUENCER_OT_properties";
+	ot->description= "Open sequencer properties panel.";
 	
 	ot->exec= sequencer_properties;
 	ot->poll= ED_operator_sequencer_active;

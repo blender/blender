@@ -176,9 +176,9 @@ void TEXT_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "New";
-    ot->description= "Create a new text data block.";
 	ot->idname= "TEXT_OT_new";
-
+	ot->description= "Create a new text data block.";
+	
 	/* api callbacks */
 	ot->exec= new_exec;
 	ot->poll= text_new_poll;
@@ -224,8 +224,8 @@ void TEXT_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open";
-    ot->description= "Open a new text data block.";
 	ot->idname= "TEXT_OT_open";
+	ot->description= "Open a new text data block.";
 
 	/* api callbacks */
 	ot->exec= open_exec;
@@ -262,9 +262,9 @@ void TEXT_OT_reload(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reload";
-    ot->description= "Reload active text data block from its file.";
 	ot->idname= "TEXT_OT_reload";
-
+	ot->description= "Reload active text data block from its file.";
+	
 	/* api callbacks */
 	ot->exec= reload_exec;
 	ot->invoke= WM_operator_confirm;
@@ -302,9 +302,9 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unlink";
-    ot->description= "Unlink active text data block.";
 	ot->idname= "TEXT_OT_unlink";
-
+	ot->description= "Unlink active text data block.";
+	
 	/* api callbacks */
 	ot->exec= unlink_exec;
 	ot->invoke= WM_operator_confirm;
@@ -333,8 +333,8 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Internal";
-    ot->description= "Make active text file internal.";
 	ot->idname= "TEXT_OT_make_internal";
+	ot->description= "Make active text file internal.";
 
 	/* api callbacks */
 	ot->exec= make_internal_exec;
@@ -402,8 +402,8 @@ void TEXT_OT_save(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Save";
-    ot->description= "Save active text data block.";
 	ot->idname= "TEXT_OT_save";
+	ot->description= "Save active text data block.";
 
 	/* api callbacks */
 	ot->exec= save_exec;
@@ -458,9 +458,9 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Save As";
-    ot->description= "Save active text file with options.";
 	ot->idname= "TEXT_OT_save_as";
-
+	ot->description= "Save active text file with options.";
+	
 	/* api callbacks */
 	ot->exec= save_as_exec;
 	ot->invoke= save_as_invoke;
@@ -496,9 +496,9 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Run Script";
-    ot->description= "Run active script.";
 	ot->idname= "TEXT_OT_run_script";
-
+	ot->description= "Run active script.";
+	
 	/* api callbacks */
 	ot->exec= run_script_exec;
 	ot->poll= text_edit_poll;
@@ -552,9 +552,9 @@ void TEXT_OT_refresh_pyconstraints(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Refresh PyConstraints";
-    ot->description= "Refresh all pyconstraints.";
 	ot->idname= "TEXT_OT_refresh_pyconstraints";
-
+	ot->description= "Refresh all pyconstraints.";
+	
 	/* api callbacks */
 	ot->exec= refresh_pyconstraints_exec;
 	ot->poll= text_edit_poll;
@@ -674,9 +674,9 @@ void TEXT_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste";
-    ot->description= "Paste text from clipboard.";
 	ot->idname= "TEXT_OT_paste";
-
+	ot->description= "Paste text from clipboard.";
+	
 	/* api callbacks */
 	ot->exec= paste_exec;
 	ot->poll= text_edit_poll;
@@ -715,8 +715,8 @@ void TEXT_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy";
-    ot->description= "Copy selected text to clipboard.";
 	ot->idname= "TEXT_OT_copy";
+	ot->description= "Copy selected text to clipboard.";
 
 	/* api callbacks */
 	ot->exec= copy_exec;
@@ -746,9 +746,9 @@ void TEXT_OT_cut(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cut";
-    ot->description= "Cut selected text to clipboard.";
 	ot->idname= "TEXT_OT_cut";
-
+	ot->description= "Cut selected text to clipboard.";
+	
 	/* api callbacks */
 	ot->exec= cut_exec;
 	ot->poll= text_edit_poll;
@@ -782,9 +782,9 @@ void TEXT_OT_indent(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Indent";
-    ot->description= "Indent selected text.";
 	ot->idname= "TEXT_OT_indent";
-
+	ot->description= "Indent selected text.";
+	
 	/* api callbacks */
 	ot->exec= indent_exec;
 	ot->poll= text_edit_poll;
@@ -818,9 +818,9 @@ void TEXT_OT_unindent(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unindent";
-    ot->description= "Unindent selected text.";
 	ot->idname= "TEXT_OT_unindent";
-
+	ot->description= "Unindent selected text.";
+	
 	/* api callbacks */
 	ot->exec= unindent_exec;
 	ot->poll= text_edit_poll;
@@ -859,9 +859,9 @@ void TEXT_OT_line_break(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Line Break";
-    ot->description= "Insert line break at cursor position.";
 	ot->idname= "TEXT_OT_line_break";
-
+	ot->description= "Insert line break at cursor position.";
+	
 	/* api callbacks */
 	ot->exec= line_break_exec;
 	ot->poll= text_edit_poll;
@@ -892,9 +892,9 @@ void TEXT_OT_comment(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Comment";
-    ot->description= "Convert selected text to comment.";
 	ot->idname= "TEXT_OT_comment";
-
+	ot->description= "Convert selected text to comment.";
+	
 	/* api callbacks */
 	ot->exec= comment_exec;
 	ot->poll= text_edit_poll;
@@ -926,9 +926,9 @@ void TEXT_OT_uncomment(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Uncomment";
-    ot->description= "Convert selected comment to text.";
 	ot->idname= "TEXT_OT_uncomment";
-
+	ot->description= "Convert selected comment to text.";
+	
 	/* api callbacks */
 	ot->exec= uncomment_exec;
 	ot->poll= text_edit_poll;
@@ -1068,9 +1068,9 @@ void TEXT_OT_convert_whitespace(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Convert Whitespace";
-    ot->description= "Convert whitespaces by type.";
 	ot->idname= "TEXT_OT_convert_whitespace";
-
+	ot->description= "Convert whitespaces by type.";
+	
 	/* api callbacks */
 	ot->exec= convert_whitespace_exec;
 	ot->poll= text_edit_poll;
@@ -1099,9 +1099,9 @@ void TEXT_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-    ot->description= "Select all text.";
 	ot->idname= "TEXT_OT_select_all";
-
+	ot->description= "Select all text.";
+	
 	/* api callbacks */
 	ot->exec= select_all_exec;
 	ot->poll= text_edit_poll;
@@ -1127,9 +1127,9 @@ void TEXT_OT_select_line(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Line";
-    ot->description= "Select text by line.";
 	ot->idname= "TEXT_OT_select_line";
-
+	ot->description= "Select text by line.";
+	
 	/* api clinebacks */
 	ot->exec= select_line_exec;
 	ot->poll= text_edit_poll;
@@ -1165,9 +1165,9 @@ void TEXT_OT_previous_marker(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Previous Marker";
-    ot->description= "Move to previous marker.";
 	ot->idname= "TEXT_OT_previous_marker";
-
+	ot->description= "Move to previous marker.";
+	
 	/* api callbacks */
 	ot->exec= previous_marker_exec;
 	ot->poll= text_edit_poll;
@@ -1203,9 +1203,9 @@ void TEXT_OT_next_marker(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Next Marker";
-    ot->description= "Move to next marker";
 	ot->idname= "TEXT_OT_next_marker";
-
+	ot->description= "Move to next marker";
+	
 	/* api callbacks */
 	ot->exec= next_marker_exec;
 	ot->poll= text_edit_poll;
@@ -1231,9 +1231,9 @@ void TEXT_OT_markers_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear All Markers";
-    ot->description= "Clear all markers.";
 	ot->idname= "TEXT_OT_markers_clear";
-
+	ot->description= "Clear all markers.";
+	
 	/* api callbacks */
 	ot->exec= clear_all_markers_exec;
 	ot->poll= text_edit_poll;
@@ -1515,8 +1515,8 @@ void TEXT_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Cursor";
-    ot->description= "Move cursor to position type.";
 	ot->idname= "TEXT_OT_move";
+	ot->description= "Move cursor to position type.";
 	
 	/* api callbacks */
 	ot->exec= move_exec;
@@ -1542,8 +1542,8 @@ void TEXT_OT_move_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Select";
-    ot->description= "Make selection from current cursor position to new cursor position type.";
 	ot->idname= "TEXT_OT_move_select";
+	ot->description= "Make selection from current cursor position to new cursor position type.";
 	
 	/* api callbacks */
 	ot->exec= move_select_exec;
@@ -1582,9 +1582,9 @@ void TEXT_OT_jump(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Jump";
-    ot->description= "Jump cursor to line.";
 	ot->idname= "TEXT_OT_jump";
-
+	ot->description= "Jump cursor to line.";
+	
 	/* api callbacks */
 	ot->exec= jump_exec;
 	ot->poll= text_edit_poll;
@@ -1635,8 +1635,8 @@ void TEXT_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-    ot->description= "Delete text by cursor position.";
 	ot->idname= "TEXT_OT_delete";
+	ot->description= "Delete text by cursor position.";
 	
 	/* api callbacks */
 	ot->exec= delete_exec;
@@ -1665,6 +1665,7 @@ void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Overwrite";
 	ot->idname= "TEXT_OT_overwrite_toggle";
+	ot->description= "Toggle overwrite while typing.";
 	
 	/* api callbacks */
 	ot->exec= toggle_overwrite_exec;
@@ -1819,8 +1820,8 @@ void TEXT_OT_scroll(wmOperatorType *ot)
     /*don't really see the difference between this and
       scroll_bar. Both do basically the same thing (aside 
       from keymaps).*/
-    ot->description= "Scroll text screen.";
 	ot->idname= "TEXT_OT_scroll";
+	ot->description= "Scroll text screen.";
 	
 	/* api callbacks */
 	ot->exec= scroll_exec;
@@ -1871,8 +1872,8 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
     /*don't really see the difference between this and
       scroll. Both do basically the same thing (aside 
       from keymaps).*/
-    ot->description= "Scroll text screen.";
 	ot->idname= "TEXT_OT_scroll_bar";
+	ot->description= "Scroll text screen.";
 	
 	/* api callbacks */
 	ot->invoke= scroll_bar_invoke;
@@ -2147,8 +2148,8 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Cursor";
-    ot->description= "Set cursor selection.";
 	ot->idname= "TEXT_OT_cursor_set";
+	ot->description= "Set cursor selection.";
 	
 	/* api callbacks */
 	ot->invoke= set_cursor_invoke;
@@ -2204,6 +2205,7 @@ void TEXT_OT_line_number(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Line Number";
 	ot->idname= "TEXT_OT_line_number";
+	ot->description= "The current line number.";
 	
 	/* api callbacks */
 	ot->invoke= line_number_invoke;
@@ -2271,8 +2273,8 @@ void TEXT_OT_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert";
-    ot->description= "Insert text at cursor position.";
 	ot->idname= "TEXT_OT_insert";
+	ot->description= "Insert text at cursor position.";
 	
 	/* api callbacks */
 	ot->exec= insert_exec;
@@ -2376,9 +2378,9 @@ void TEXT_OT_find(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Find";
-    ot->description= "Find specified text.";
 	ot->idname= "TEXT_OT_find";
-
+	ot->description= "Find specified text.";
+	
 	/* api callbacks */
 	ot->exec= find_exec;
 	ot->poll= text_space_edit_poll;
@@ -2395,8 +2397,8 @@ void TEXT_OT_replace(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Replace";
-    ot->description= "Replace text with specified text.";
 	ot->idname= "TEXT_OT_replace";
+	ot->description= "Replace text with the specified text.";
 
 	/* api callbacks */
 	ot->exec= replace_exec;
@@ -2414,9 +2416,9 @@ void TEXT_OT_mark_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mark All";
-    ot->description= "Mark all specified text.";
 	ot->idname= "TEXT_OT_mark_all";
-
+	ot->description= "Mark all specified text.";
+	
 	/* api callbacks */
 	ot->exec= mark_all_exec;
 	ot->poll= text_space_edit_poll;
@@ -2444,9 +2446,9 @@ void TEXT_OT_find_set_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Find Set Selected";
-    ot->description= "Find specified text and set as selected.";
 	ot->idname= "TEXT_OT_find_set_selected";
-
+	ot->description= "Find specified text and set as selected.";
+	
 	/* api callbacks */
 	ot->exec= find_set_selected_exec;
 	ot->poll= text_space_edit_poll;
@@ -2471,9 +2473,9 @@ void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Replace Set Selected";
-    ot->description= "Replace text with specified text and set as selected.";
 	ot->idname= "TEXT_OT_replace_set_selected";
-
+	ot->description= "Replace text with specified text and set as selected.";
+	
 	/* api callbacks */
 	ot->exec= replace_set_selected_exec;
 	ot->poll= text_space_edit_poll;
@@ -2634,8 +2636,8 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "To 3D Object";
-    ot->description= "Create 3d text object from active text data block.";
 	ot->idname= "TEXT_OT_to_3d_object";
+	ot->description= "Create 3d text object from active text data block.";
 	
 	/* api callbacks */
 	ot->exec= to_3d_object_exec;

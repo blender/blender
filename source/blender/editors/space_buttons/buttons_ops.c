@@ -106,6 +106,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_add";
+	ot->description="Add a new material slot or duplicate the selected one.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_add_exec;
@@ -132,6 +133,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_remove";
+	ot->description="Remove the selected material slot.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_remove_exec;
@@ -190,6 +192,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Assign Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_assign";
+	ot->description="Assign the material in the selected material slot to the selected vertices.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_assign_exec;
@@ -273,6 +276,7 @@ void OBJECT_OT_material_slot_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_select";
+	ot->description="Select vertices assigned to the selected material slot.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_select_exec;
@@ -291,6 +295,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Deselect Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_deselect";
+	ot->description="Deselect vertices assigned to the selected material slot.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_deselect_exec;
@@ -338,6 +343,7 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Material";
 	ot->idname= "MATERIAL_OT_new";
+	ot->description="Add a new material.";
 	
 	/* api callbacks */
 	ot->exec= new_material_exec;
@@ -390,6 +396,7 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Texture";
 	ot->idname= "TEXTURE_OT_new";
+	ot->description="Add a new texture.";
 	
 	/* api callbacks */
 	ot->exec= new_texture_exec;
@@ -426,6 +433,7 @@ void WORLD_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New World";
 	ot->idname= "WORLD_OT_new";
+	ot->description= "Add a new world.";
 	
 	/* api callbacks */
 	ot->exec= new_world_exec;
@@ -457,6 +465,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Particle System Slot";
 	ot->idname= "OBJECT_OT_particle_system_add";
+	ot->description="Add a particle system.";
 	
 	/* api callbacks */
 	ot->exec= particle_system_add_exec;
@@ -484,6 +493,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Particle System Slot";
 	ot->idname= "OBJECT_OT_particle_system_remove";
+	ot->description="Remove the selected particle system.";
 	
 	/* api callbacks */
 	ot->exec= particle_system_remove_exec;
@@ -541,6 +551,7 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Particle Settings";
 	ot->idname= "PARTICLE_OT_new";
+	ot->description="Add new particle settings.";
 	
 	/* api callbacks */
 	ot->exec= new_particle_settings_exec;
@@ -588,6 +599,7 @@ void PARTICLE_OT_new_target(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Particle Target";
 	ot->idname= "PARTICLE_OT_new_target";
+	ot->description="Add a new particle target.";
 	
 	/* api callbacks */
 	ot->exec= new_particle_target_exec;
@@ -635,6 +647,7 @@ void PARTICLE_OT_remove_target(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Particle Target";
 	ot->idname= "PARTICLE_OT_remove_target";
+	ot->description="Remove the selected particle target.";
 	
 	/* api callbacks */
 	ot->exec= remove_particle_target_exec;
@@ -673,9 +686,9 @@ static int target_move_up_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 {
 	ot->name= "Move Up Target";
-	ot->description= "Move particle target up in the list.";
 	ot->idname= "PARTICLE_OT_target_move_up";
-
+	ot->description= "Move particle target up in the list.";
+	
 	ot->exec= target_move_up_exec;
 	
 	/* flags */
@@ -711,9 +724,9 @@ static int target_move_down_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 {
 	ot->name= "Move Down Target";
-	ot->description= "Move particle target down in the list.";
 	ot->idname= "PARTICLE_OT_target_move_down";
-
+	ot->description= "Move particle target down in the list.";
+	
 	ot->exec= target_move_down_exec;
 	
 	/* flags */
@@ -795,7 +808,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 	ot->name= "Disconnect Hair";
 	ot->description= "Disconnect hair from the emitter mesh.";
 	ot->idname= "PARTICLE_OT_disconnect_hair";
-
+	
 	ot->exec= disconnect_hair_exec;
 	
 	/* flags */
@@ -930,7 +943,7 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
 	ot->name= "Connect Hair";
 	ot->description= "Connect hair to the emitter mesh.";
 	ot->idname= "PARTICLE_OT_connect_hair";
-
+	
 	ot->exec= connect_hair_exec;
 	
 	/* flags */
@@ -958,6 +971,7 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Render Layer";
 	ot->idname= "SCENE_OT_render_layer_add";
+	ot->description="Add a render layer.";
 	
 	/* api callbacks */
 	ot->exec= render_layer_add_exec;
@@ -1003,6 +1017,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Render Layer";
 	ot->idname= "SCENE_OT_render_layer_remove";
+	ot->description="Remove the selected render layer.";
 	
 	/* api callbacks */
 	ot->exec= render_layer_remove_exec;
@@ -1036,6 +1051,7 @@ void BUTTONS_OT_toolbox(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toolbox";
 	ot->idname= "BUTTONS_OT_toolbox";
+	ot->description="Toolbar panel? DOC_BROKEN";
 	
 	/* api callbacks */
 	ot->invoke= toolbox_invoke;
@@ -1104,6 +1120,7 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "File Browse";
 	ot->idname= "BUTTONS_OT_file_browse";
+	ot->description="Open a file browser.";
 	
 	/* api callbacks */
 	ot->invoke= file_browse_invoke;

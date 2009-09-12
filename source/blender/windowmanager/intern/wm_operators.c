@@ -646,6 +646,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 {
 	ot->name= "Debug Menu";
 	ot->idname= "WM_OT_debug_menu";
+	ot->description= "Open a popup to set the debug level.";
 	
 	ot->invoke= wm_debug_menu_invoke;
 	ot->exec= wm_debug_menu_exec;
@@ -760,7 +761,8 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
-	
+	ot->description="Duplicate the current Blender window.";
+		
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= WM_operator_winactive;
 }
@@ -769,7 +771,8 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 {
 	ot->name= "Save User Settings";
 	ot->idname= "WM_OT_save_homefile";
-	
+	ot->description="Make the current file the default .blend file.";
+		
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_write_homefile;
 	ot->poll= WM_operator_winactive;
@@ -779,6 +782,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 {
 	ot->name= "Reload Start-Up File";
 	ot->idname= "WM_OT_read_homefile";
+	ot->description="Open the default file (doesn't save the current file).";
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile;
@@ -855,6 +859,7 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 
 	ot->name= "Open Recent File";
 	ot->idname= "WM_OT_open_recentfile";
+	ot->description="Open recent files list.";
 	
 	ot->invoke= wm_recentfile_invoke;
 	ot->exec= recentfile_exec;
@@ -919,6 +924,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
+	ot->description="Open a Blender file.";
 	
 	ot->invoke= wm_open_mainfile_invoke;
 	ot->exec= wm_open_mainfile_exec;
@@ -957,6 +963,7 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 {
 	ot->name= "Recover Last Session";
 	ot->idname= "WM_OT_recover_last_session";
+	ot->description="Open the last closed file (\"quit.blend\").";
 	
 	ot->exec= wm_recover_last_session_exec;
 	ot->poll= WM_operator_winactive;
@@ -1014,6 +1021,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save As Blender File";
 	ot->idname= "WM_OT_save_as_mainfile";
+	ot->description="Save the current file in the desired location.";
 	
 	ot->invoke= wm_save_as_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
@@ -1043,6 +1051,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save Blender File";
 	ot->idname= "WM_OT_save_mainfile";
+	ot->description="Save the current Blender file.";
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
@@ -1057,11 +1066,12 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
-    ot->name= "Toggle Fullscreen";
-    ot->idname= "WM_OT_window_fullscreen_toggle";
+	ot->name= "Toggle Fullscreen";
+	ot->idname= "WM_OT_window_fullscreen_toggle";
+	ot->description="Toggle the current window fullscreen.";
 
-    ot->exec= wm_window_fullscreen_toggle_op;
-    ot->poll= WM_operator_winactive;
+	ot->exec= wm_window_fullscreen_toggle_op;
+	ot->poll= WM_operator_winactive;
 }
 
 static int wm_exit_blender_op(bContext *C, wmOperator *op)
@@ -1077,6 +1087,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 {
 	ot->name= "Exit Blender";
 	ot->idname= "WM_OT_exit_blender";
+	ot->description= "Quit Blender.";
 
 	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_exit_blender_op;
@@ -1326,6 +1337,7 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 {
 	ot->name= "Circle Gesture";
 	ot->idname= "WM_OT_circle_gesture";
+	ot->description="Enter rotate mode with a circular gesture.";
 	
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
@@ -1539,6 +1551,7 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 	
 	ot->name= "Lasso Gesture";
 	ot->idname= "WM_OT_lasso_gesture";
+	ot->description="Select objects within the lasso as you move the pointer.";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
 	ot->modal= WM_gesture_lasso_modal;
@@ -1864,6 +1877,7 @@ static void WM_OT_ten_timer(wmOperatorType *ot)
 	
 	ot->name= "Ten Timer";
 	ot->idname= "WM_OT_ten_timer";
+	ot->description="Ten Timer operator.";
 	
 	ot->invoke= WM_menu_invoke;
 	ot->exec= ten_timer_exec;

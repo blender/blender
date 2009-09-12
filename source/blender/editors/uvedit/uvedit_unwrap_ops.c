@@ -412,6 +412,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 	ot->name= "Minimize Stretch";
 	ot->idname= "UV_OT_minimize_stretch";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->description="DOC_BROKEN";
 	
 	/* api callbacks */
 	ot->exec= minimize_stretch_exec;
