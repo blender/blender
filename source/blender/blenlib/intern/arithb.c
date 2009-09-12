@@ -3369,7 +3369,7 @@ void AxisAngleToMat4(float axis[3], float angle, float mat[4][4])
 {
 	float tmat[3][3];
 	
-	AxisAngleToMat3(axis, angle, mat);
+	AxisAngleToMat3(axis, angle, tmat);
 	Mat4One(mat);
 	Mat4CpyMat3(mat, tmat);
 }
