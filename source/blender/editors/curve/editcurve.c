@@ -2546,7 +2546,7 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
+	RNA_def_enum(ot->srna, "type", type_items, 1, "Type", "Spline type");
 }
 
 /***************** make segment operator **********************/
@@ -4728,7 +4728,7 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 		cent[2]-= obedit->obmat[3][2];
 		
 		if(rv3d) {
-			if (!(newname) || U.flag & USER_ADD_VIEWALIGNED)
+			if (!newname && U.flag & USER_ADD_VIEWALIGNED)
 				Mat3CpyMat4(imat, rv3d->viewmat);
 			else
 				Mat3One(imat);

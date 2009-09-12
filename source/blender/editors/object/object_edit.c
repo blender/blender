@@ -1985,7 +1985,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
 	if(!ob || !object_mode_set_compat(C, op, ob))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 
 	/* Exit current mode if it's not the mode we're setting */
 	if(ob->mode != OB_MODE_OBJECT && ob->mode != mode)
