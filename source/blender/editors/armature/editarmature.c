@@ -4865,6 +4865,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			
 			eul[0]= eul[1]= eul[2]= 0.0f;
 			
+			// TODO: for 4 channel rotations, we need special flags for those too...
 			if (pchan->protectflag & OB_LOCK_ROTX)
 				eul[0]= oldeul[0];
 			if (pchan->protectflag & OB_LOCK_ROTY)

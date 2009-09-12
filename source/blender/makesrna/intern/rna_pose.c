@@ -115,14 +115,9 @@ static void rna_PoseChannel_euler_rotation_get(PointerRNA *ptr, float *value)
 {
 	bPoseChannel *pchan= ptr->data;
 	
-	if(pchan->rotmode == PCHAN_ROT_AXISANGLE) {
-		float m[3][3];
-		
-		/* go through a 3x3 matrix */
-		VecRotToMat3(&pchan->quat[1], pchan->quat[0], m);
-		Mat3ToEul(m, value);
-	}
-	else if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers when using axis-angle... */
+	if(pchan->rotmode == PCHAN_ROT_AXISANGLE) /* default XYZ eulers */
+		AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], value, EULER_ORDER_DEFAULT);
+	else if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers  */
 		QuatToEul(pchan->quat, value);
 	else
 		VECCOPY(value, pchan->eul);
@@ -133,14 +128,9 @@ static void rna_PoseChannel_euler_rotation_set(PointerRNA *ptr, const float *val
 {
 	bPoseChannel *pchan= ptr->data;
 	
-	if(pchan->rotmode == PCHAN_ROT_AXISANGLE) { /* default XYZ eulers when using axis-angle... */
-		float q[4];
-		
-		/* convert to temp quat, then to axis angle (since stored in same var) */
-		EulToQuat((float *)value, q);
-		QuatToAxisAngle(q, &pchan->quat[1], &pchan->quat[0]);
-	}
-	else if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers when using quats... */
+	if(pchan->rotmode == PCHAN_ROT_AXISANGLE) /* default XYZ eulers */
+		EulOToAxisAngle((float *)value, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
+	else if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers */
 		EulToQuat((float*)value, pchan->quat);
 	else
 		VECCOPY(pchan->eul, value);
@@ -177,13 +167,7 @@ static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
 	if (value > 0) { /* to euler */
 		if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
 			/* axis-angle to euler */
-			float m[3][3];
-			
-			/* convert to 3x3 matrix, then to euler 
-			 *	- axis angle is stored in quats
-			 */
-			VecRotToMat3(&pchan->quat[1], pchan->quat[0], m);
-			Mat3ToEulO(m, pchan->eul, value);
+			AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], pchan->eul, value);
 		}
 		else if (pchan->rotmode == PCHAN_ROT_QUAT) {
 			/* quat to euler */
@@ -209,11 +193,7 @@ static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
 	else { /* to axis-angle */
 		if (pchan->rotmode > 0) {
 			/* euler to axis angle */
-			float q[4];
-			
-			/* convert to temp quat, then to axis angle (since stored in same var) */
-			EulOToQuat(pchan->eul, pchan->rotmode, q);
-			QuatToAxisAngle(q, &pchan->quat[1], &pchan->quat[0]);
+			EulOToAxisAngle(pchan->eul, pchan->rotmode, &pchan->quat[1], &pchan->quat[0]);
 		}
 		else if (pchan->rotmode == PCHAN_ROT_QUAT) {
 			/* quat to axis angle */

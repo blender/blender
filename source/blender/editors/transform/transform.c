@@ -1614,7 +1614,8 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 {
 	/* quaternions get limited with euler... */
 	/* this function only does the delta rotation */
-
+	
+	// FIXME: need special checks for quality here...
 	if(protectflag) {
 		float eul[3], oldeul[3], quat1[4];
 
@@ -2686,12 +2687,13 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				QuatMul(td->ext->quat, quat, iquat);
 				
-				/* this function works on end result */
-				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
-				
 				/* make temp copy (since stored in same place) */
-				QuatCopy(quat, td->ext->quat);
+				QuatCopy(quat, td->ext->quat); // this is just a 4d vector copying function
 				QuatToAxisAngle(quat, &td->ext->quat[1], &td->ext->quat[0]); 
+				
+				/* this function works on end result */
+				// TODO: we really need a specialised version of this for axis-angle that doesn't try to do quats...
+				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 			}
 			else { 
 				float eulmat[3][3];

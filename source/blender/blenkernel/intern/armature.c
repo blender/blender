@@ -1993,7 +1993,7 @@ void chan_calc_mat(bPoseChannel *chan)
 	}
 	else if (chan->rotmode == PCHAN_ROT_AXISANGLE) {
 		/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
-		VecRotToMat3(&chan->quat[1], chan->quat[0], rmat);
+		AxisAngleToMat3(&chan->quat[1], chan->quat[0], rmat);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */

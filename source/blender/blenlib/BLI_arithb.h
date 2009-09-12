@@ -342,8 +342,6 @@ void Mat4AddMat4(float m1[][4], float m2[][4], float m3[][4]);
 
 void VecUpMat3old(float *vec, float mat[][3], short axis);
 void VecUpMat3(float *vec, float mat[][3], short axis);
-void VecRotToMat3(float *vec, float phi, float mat[][3]);
-void VecRotToMat4(float *vec, float phi, float mat[][4]);
 
 void VecCopyf(float *v1, float *v2);
 int VecLen(int *v1, int *v2);
@@ -376,10 +374,23 @@ void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
 void Vec2Lerpf(float *target, float *a, float *b, float t);
 
-void AxisAngleToQuat(float *q, float *axis, float angle);
-void QuatToAxisAngle(float *q, float *axis, float *angle);
+void AxisAngleToQuat(float q[4], float axis[3], float angle);
+void QuatToAxisAngle(float q[4], float axis[3], float *angle);
+void AxisAngleToEulO(float axis[3], float angle, float eul[3], short order);
+void EulOToAxisAngle(float eul[3], short order, float axis[3], float *angle);
+void AxisAngleToMat3(float axis[3], float angle, float mat[3][3]);
+void AxisAngleToMat4(float axis[3], float angle, float mat[4][4]);
+void Mat3ToAxisAngle(float mat[3][3], float axis[3], float *angle);
+void Mat4ToAxisAngle(float mat[4][4], float axis[3], float *angle);
+
+void Mat3ToVecRot(float mat[3][3], float axis[3], float *angle);
+void Mat4ToVecRot(float mat[4][4], float axis[3], float *angle);
+void VecRotToMat3(float *vec, float phi, float mat[][3]);
+void VecRotToMat4(float *vec, float phi, float mat[][4]);
+
 void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3]);
 void vectoquat(float *vec, short axis, short upflag, float *q);
+void Mat3ToQuat_is_ok(float wmat[][3], float *q);
 
 void VecReflect(float *out, float *v1, float *v2);
 void VecBisect3(float *v, float *v1, float *v2, float *v3);
@@ -459,8 +470,6 @@ void MinMaxRGB(short c[]);
 void VecStar(float mat[][3],float *vec);
 
 short EenheidsMat(float mat[][3]);
-
-void Mat3ToQuat_is_ok(float wmat[][3], float *q);
 
 void i_ortho(float left, float right, float bottom, float top, float nearClip, float farClip, float matrix[][4]);
 void i_polarview(float dist, float azimuth, float incidence, float twist, float Vm[][4]);

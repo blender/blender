@@ -1177,7 +1177,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 						/* if this path is exactly "rotation", and the rotation mode is set to eulers,
 						 * use "euler_rotation" instead so that rotations will be keyed correctly
 						 */
-						if (strcmp(ksp->rna_path, "rotation")==0 && (cks->pchan->rotmode))
+						if (strcmp(ksp->rna_path, "rotation")==0 && (cks->pchan->rotmode > 0))
 							BLI_dynstr_append(pathds, "euler_rotation");
 						else
 							BLI_dynstr_append(pathds, ksp->rna_path);

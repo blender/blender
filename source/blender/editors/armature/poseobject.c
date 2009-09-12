@@ -1009,12 +1009,25 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				else if (pchan->rotmode > 0) {
-					/* quat to euler */
-					QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
+					/* quat/axis-angle to euler */
+					if (chan->rotmode == PCHAN_ROT_AXISANGLE)
+						AxisAngleToEulO(&chan->quat[1], chan->quat[0], pchan->eul, pchan->rotmode);
+					else
+						QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
+				}
+				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+					/* quat/euler to axis angle */
+					if (chan->rotmode > 0)
+						EulOToAxisAngle(chan->eul, chan->rotmode, &pchan->quat[1], &pchan->quat[0]);
+					else	
+						QuatToAxisAngle(chan->quat, &pchan->quat[1], &pchan->quat[0]);
 				}
 				else {
-					/* euler to quat */
-					EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
+					/* euler/axis-angle to quat */
+					if (chan->rotmode > 0)
+						EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
+					else
+						AxisAngleToQuat(pchan->quat, &chan->quat[1], chan->quat[0]);
 				}
 				
 				/* paste flipped pose? */
@@ -1025,6 +1038,14 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					if (pchan->rotmode > 0) {
 						pchan->eul[1] *= -1;
 						pchan->eul[2] *= -1;
+					}
+					else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+						float eul[3];
+						
+						AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], eul, EULER_ORDER_DEFAULT);
+						eul[1]*= -1;
+						eul[2]*= -1;
+						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
 					}
 					else {
 						float eul[3];
