@@ -528,7 +528,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 	RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
 	RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
 
-	RNA_def_int(ot->srna, "type", type, FILE_LOADLIB, FILE_SPECIAL, 
+	RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
 		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
 		FILE_LOADLIB, FILE_SPECIAL);
 }

@@ -124,7 +124,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (op) {
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 
-		params->type = RNA_int_get(op->ptr, "type");
+		params->type = RNA_int_get(op->ptr, "filemode");
 
 		if (RNA_property_is_set(op->ptr, "path")) {
 			RNA_string_get(op->ptr, "path", name);
