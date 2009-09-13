@@ -167,12 +167,18 @@ static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int 
 }
 
 
-static void rna_Curve_2d_set(PointerRNA *ptr, int value)
+static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 {
 	Curve *cu= (Curve*)ptr->id.data;
 	Nurb *nu= cu->editnurb ? cu->editnurb->first : cu->nurb.first;
 
-	if(value) {
+	if(value==CU_3D) {
+		cu->flag |=  CU_3D;
+		for( ; nu; nu= nu->next) {
+			nu->flag &= ~CU_2D;
+		}
+	}
+	else {
 		cu->flag &= ~CU_3D;
 		for( ; nu; nu= nu->next) {
 			nu->flag |= CU_2D;
@@ -181,12 +187,6 @@ static void rna_Curve_2d_set(PointerRNA *ptr, int value)
 			/* since the handles are moved they need to be auto-located again */
 			if(nu->type == CU_BEZIER)
 				calchandlesNurb(nu);
-		}
-	}
-	else {
-		cu->flag |=  CU_3D;
-		for( ; nu; nu= nu->next) {
-			nu->flag &= ~CU_2D;
 		}
 	}
 }
@@ -675,6 +675,11 @@ static void rna_def_curve(BlenderRNA *brna)
 			{CU_TWIST_TANGENT, "TANGENT", 0, "Tangent", "Use the tangent to calculate twist"},
 			{0, NULL, 0, NULL, NULL}};
 
+	static const EnumPropertyItem curve_axis_items[]= {
+		{0, "2D", 0, "2D", "Clamp the Z axis of of the curve"},
+		{CU_3D, "3D", 0, "3D", "Allow editing on the Z axis of this curve, also alows tilt and curve radius to be used."},
+		{0, NULL, 0, NULL, NULL}};
+			
 	srna= RNA_def_struct(brna, "Curve", "ID");
 	RNA_def_struct_ui_text(srna, "Curve", "Curve datablock storing curves, splines and NURBS.");
 	RNA_def_struct_ui_icon(srna, ICON_CURVE_DATA);
@@ -778,10 +783,12 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	/* Flags */
-	prop= RNA_def_property(srna, "curve_2d", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_3D);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Curve_2d_set");
-	RNA_def_property_ui_text(prop, "2D Curve", "Define curve in two dimensions only. Note that fill only works when this is enabled.");
+
+	prop= RNA_def_property(srna, "dimensions", PROP_ENUM, PROP_NONE); /* as an enum */
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, curve_axis_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Curve_dimension_set", NULL);
+	RNA_def_property_ui_text(prop, "Dimensions", "Select 2D or 3D curve type.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "front", PROP_BOOLEAN, PROP_NONE);

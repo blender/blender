@@ -56,7 +56,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
 		if not is_surf:
 			row = layout.row()
-			row.itemR(curve, "curve_2d")
+			row.itemR(curve, "dimensions", expand=True)
 		
 		split = layout.split()
 		
@@ -64,7 +64,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 		
 		if not is_surf:
 			sub = col.column()
-			sub.active = curve.curve_2d
+			sub.active = (curve.dimensions=='2D')
 			sub.itemL(text="Caps:")
 			row = sub.row()
 			row.itemR(curve, "front")
@@ -208,7 +208,7 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
 			if not is_surf:
 				split = layout.split()
 				col = split.column()
-				col.active = (not curve.curve_2d)
+				col.active = (curve.dimensions=='3D')
 				
 				col.itemL(text="Interpolation:")
 				col.itemR(act_spline, "tilt_interpolation", text="Tilt")

@@ -3329,7 +3329,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
 	
-	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", F7KEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
+	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", F7KEY, KM_PRESS, 0, 0)->ptr, "path", "test.py");
 	WM_keymap_verify_item(keymap, "SCRIPT_OT_python_run_ui_scripts", F8KEY, KM_PRESS, 0, 0);
 
 	/* files */
