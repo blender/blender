@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BLI_blenlib"
 	ProjectGUID="{31628053-825D-4C06-8A21-D13883489718}"
+	RootNamespace="BLI_blenlib"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -554,10 +555,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\matrixops.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\noise.c"
 				>
 			</File>
@@ -591,10 +588,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\util.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\vectorops.c"
 				>
 			</File>
 			<File
@@ -700,14 +693,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_winstuff.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\MTC_matrixops.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\MTC_vectorops.h"
 				>
 			</File>
 			<File
