@@ -341,6 +341,8 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		// custom parameter for smoke style (higher = thicker)
 		glProgramLocalParameter4fARB (GL_FRAGMENT_PROGRAM_ARB, 1, 7.0, 7.0, 7.0, 1.0);
 	}
+	else
+		printf("Your gfx card does not support 3dview smoke drawing.");
 
 	GPU_texture_bind(tex, 0);
 	if(tex_shadow)
