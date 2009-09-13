@@ -199,6 +199,7 @@ static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int prev
 		}
 	}
 }
+
 void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 {
 	ViewContext vc; // XXX
