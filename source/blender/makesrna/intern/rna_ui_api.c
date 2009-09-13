@@ -44,6 +44,9 @@ static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr,
 	flag |= (slider)? UI_ITEM_R_SLIDER: 0;
 	flag |= (expand)? UI_ITEM_R_EXPAND: 0;
 	flag |= (toggle)? UI_ITEM_R_TOGGLE: 0;
+	
+		// XXX: an 'icon_only' prop should be added instead, but for now, this makes ptrs look ok
+	flag |= (name && name[0]==0)? UI_ITEM_R_ICON_ONLY: 0; 
 
 	uiItemR(layout, name, icon, ptr, propname, flag);
 }

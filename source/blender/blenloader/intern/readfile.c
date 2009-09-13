@@ -11062,9 +11062,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 					printf("read library: lib %s\n", mainptr->curlib->name);
 					fd= blo_openblenderfile(mainptr->curlib->filename, &reports);
-					fd->reports= basefd->reports;
 
 					if (fd) {
+						fd->reports= basefd->reports;
+						
 						if (fd->libmap)
 							oldnewmap_free(fd->libmap);
 
