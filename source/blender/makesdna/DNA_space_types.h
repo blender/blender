@@ -165,7 +165,7 @@ typedef struct FileSelectParams {
 	int	active_file;
 	int selstate;
 
-	/* short 
+	/* short */
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
 	short menu; /* currently selected option in pupmenu */
