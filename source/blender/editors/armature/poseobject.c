@@ -961,6 +961,11 @@ void POSE_OT_copy (wmOperatorType *ot)
 
 /* ---- */
 
+/* Pointers to the builtin KeyingSets that we want to use */
+static KeyingSet *posePaste_ks_locrotscale = NULL;		/* the only keyingset we'll need */
+
+/* ---- */
+
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -968,6 +973,13 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	bPoseChannel *chan, *pchan;
 	char name[32];
 	int flip= RNA_boolean_get(op->ptr, "flipped");
+	
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* sanity checks */
 	if ELEM(NULL, ob, ob->pose)
@@ -1045,6 +1057,13 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 						eul[1]*= -1;
 						eul[2]*= -1;
 						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
+						
+						// experimental method (uncomment to test):
+#if 0
+						/* experimental method: just flip the orientation of the axis on x/y axes */
+						pchan->quat[1] *= -1;
+						pchan->quat[2] *= -1;
+#endif
 					}
 					else {
 						float eul[3];
@@ -1056,28 +1075,16 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				
-#if 0 // XXX old animation system
-				if (autokeyframe_cfra_can_key(ob)) {
-					ID *id= &ob->id;
+				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+					/* Set keys on pose
+					 *	- KeyingSet to use depends on rotation mode 
+					 *	(but that's handled by the templates code)  
+					 */
+					// TODO: for getting the KeyingSet used, we should really check which channels were affected
+					if (posePaste_ks_locrotscale == NULL)
+						posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
-					/* Set keys on pose */
-					// TODO: make these use keyingsets....
-					if (chan->flag & POSE_ROT) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					}
-					if (chan->flag & POSE_SIZE) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
-					}
-					if (chan->flag & POSE_LOC) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-					}
+					modify_keyframes(C, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
 					if (chan->bone)
@@ -1088,7 +1095,6 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					if (chan->bone)
 						chan->bone->flag |= BONE_UNKEYED;
 				}
-#endif // XXX old animation system
 			}
 		}
 	}
@@ -1975,6 +1981,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers that bone belongs to.");
 }
 
+/* ********************************************** */
 
 #if 0
 // XXX old sys
