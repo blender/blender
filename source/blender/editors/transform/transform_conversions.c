@@ -4946,8 +4946,18 @@ void special_aftertrans_update(TransInfo *t)
 			ob= base->object;
 
 			if (base->flag & SELECT && (t->mode != TFM_DUMMY)) {
+				ListBase pidlist;
+				PTCacheID *pid;
+
+				/* flag object caches as outdated */
+				BKE_ptcache_ids_from_object(&pidlist, ob);
+				for(pid=pidlist.first; pid; pid=pid->next) {
+					if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
+						pid->cache->flag |= PTCACHE_OUTDATED;
+				}
+
 				/* pointcache refresh */
-				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
+				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
 					ob->recalc |= OB_RECALC_DATA;
 
 				/* Needed for proper updating of "quick cached" dynamics. */
