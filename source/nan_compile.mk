@@ -62,27 +62,27 @@ ifdef NAN_DEBUG
     CCFLAGS += $(NAN_DEBUG)
 endif
 
-REL_CFLAGS	+= -DNDEBUG
-REL_CCFLAGS	+= -DNDEBUG
-DBG_CFLAGS	+= -g
-DBG_CCFLAGS	+= -g
+REL_CFLAGS  += -DNDEBUG
+REL_CCFLAGS += -DNDEBUG
+DBG_CFLAGS  += -g
+DBG_CCFLAGS += -g
 
 # OS dependent parts ---------------------------------------------------
 
 ifeq ($(OS),darwin)
-    CC	= gcc
-    CCC	= g++
-	ifeq ($(CPU),powerpc)
-        CFLAGS	+= -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing
-        CCFLAGS	+= -pipe -fPIC  -funsigned-char -fno-strict-aliasing
-	else
-        CFLAGS	+= -pipe -fPIC -ffast-math -march=pentium-m -funsigned-char -fno-strict-aliasing
-        CCFLAGS	+= -pipe -fPIC  -funsigned-char -fno-strict-aliasing
-	endif
-#   REL_CFLAGS	+= -O
-#    REL_CCFLAGS	+= -O2
-    CPPFLAGS	+= -D_THREAD_SAFE
-    NAN_DEPEND	= true
+    CC  ?= gcc
+    CCC ?= g++
+    ifeq ($(CPU),powerpc)
+        CFLAGS  += -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing
+        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing
+    else
+        CFLAGS  += -pipe -fPIC -ffast-math -march=pentium-m -funsigned-char -fno-strict-aliasing
+        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing
+    endif
+#   REL_CFLAGS  += -O
+#   REL_CCFLAGS += -O2
+    CPPFLAGS    += -D_THREAD_SAFE
+    NAN_DEPEND  = true
     OPENGL_HEADERS = /System/Library/Frameworks/OpenGL.framework
     AR = ar
     ARFLAGS = ruv
@@ -91,28 +91,28 @@ ifeq ($(OS),darwin)
 endif
 
 ifeq ($(OS),freebsd)
-    CC	= gcc
-    CCC	= g++
+    CC  ?= gcc
+    CCC ?= g++
     JAVAC = javac
     JAVAH = javah
-    CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
-    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
-    REL_CFLAGS	+= -O2
-    REL_CCFLAGS	+= -O2
-    CPPFLAGS	+= -D_THREAD_SAFE
-    NAN_DEPEND	= true
+    CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    REL_CFLAGS  += -O2
+    REL_CCFLAGS += -O2
+    CPPFLAGS += -D_THREAD_SAFE
+    NAN_DEPEND = true
     OPENGL_HEADERS  = /usr/X11R6/include
     JAVA_HEADERS = /usr/local/jdk1.3.1/include
     JAVA_SYSTEM_HEADERS = /usr/local/jdk1.3.1/include/freebsd
-    AR	= ar
+    AR = ar
     ARFLAGS = ruv
     ARFLAGSQUIET = ru
 endif
 
 ifeq ($(OS),irix)
     ifeq ($(IRIX_USE_GCC),true)
-        CC = gcc
-        CCC = g++
+        CC  ?= gcc
+        CCC ?= g++
         CFLAGS += -fPIC -funsigned-char -fno-strict-aliasing -mabi=n32 -mips4
         CCFLAGS += -fPIC -fpermissive -funsigned-char -fno-strict-aliasing -mabi=n32 -mips4
         REL_CFLAGS += -O2
@@ -121,16 +121,16 @@ ifeq ($(OS),irix)
         DBG_CFLAGS += -g3 -gdwarf-2 -ggdb
         DBG_CCFLAGS += -g3 -gdwarf-2 -ggdb
     else
-        CC = cc
-        CCC = CC
-        CFLAGS	+= -n32 -mips3 -Xcpluscomm
-        CCFLAGS	+= -n32 -mips3 -Xcpluscomm -LANG:std
+        CC  ?= cc
+        CCC ?= CC
+        CFLAGS  += -n32 -mips3 -Xcpluscomm
+        CCFLAGS += -n32 -mips3 -Xcpluscomm -LANG:std
         ifdef MIPS73_ISOHEADERS
-            CCFLAGS	+= -LANG:libc_in_namespace_std=off -I$(MIPS73_ISOHEADERS)
+            CCFLAGS += -LANG:libc_in_namespace_std=off -I$(MIPS73_ISOHEADERS)
         else
-            CCFLAGS	+= -LANG:libc_in_namespace_std=off
+            CCFLAGS += -LANG:libc_in_namespace_std=off
         endif
-        REL_CFLAGS	+= -n32 -mips3 -O2 -OPT:Olimit=0
+        REL_CFLAGS  += -n32 -mips3 -O2 -OPT:Olimit=0
         REL_CCFLAGS += -n32 -mips3 -O2 -OPT:Olimit=0
     endif
     OPENGL_HEADERS = /usr/include
@@ -141,14 +141,14 @@ ifeq ($(OS),irix)
 endif
 
 ifeq ($(OS),linux)
-    CC	= gcc
-    CCC	= g++
-#    CFLAGS	+= -pipe
-    CFLAGS	+= -pipe -fPIC  -funsigned-char -fno-strict-aliasing
-    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
-#    CCFLAGS	+= -pipe
-    REL_CFLAGS	+= -O2
-    REL_CCFLAGS	+= -O2
+    CC  ?= gcc
+    CCC ?= g++
+#    CFLAGS += -pipe
+#    CCFLAGS += -pipe
+    CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    REL_CFLAGS  += -O2
+    REL_CCFLAGS += -O2
     NAN_DEPEND = true
   ifeq ($(CPU),alpha)
     CFLAGS += -mieee
@@ -160,11 +160,11 @@ ifeq ($(OS),linux)
 endif
 
 ifeq ($(OS),openbsd)
-    CC	= gcc
-    CCC = g++
-    CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
-    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
-    REL_CFLAGS	+= -O2
+    CC  ?= gcc
+    CCC ?= g++
+    CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    REL_CFLAGS  += -O2
     REL_CCFLAGS += -O2
     NAN_DEPEND = true
     CPPFLAGS += -D__FreeBSD__
@@ -177,30 +177,30 @@ endif
 ifeq ($(OS),solaris)
     # Adding gcc flag to $CC is not good, however if its not there makesdna wont build - Campbell
     ifeq (x86_64, $(findstring x86_64, $(CPU)))
-        CC  = gcc -m64
-        CCC = g++ -m64
+        CC  ?= gcc -m64
+        CCC ?= g++ -m64
     else
-        CC  = gcc
-        CCC = g++
-        #CC  = cc
-        #CCC = CC
+        CC  ?= gcc
+        CCC ?= g++
+        #CC  ?= cc
+        #CCC ?= CC
     endif
     
     JAVAC = javac
     JAVAH = javah
-    CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
-    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
-#    CFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -KPIC -DPIC -xchar=unsigned"
-#    CCFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -xlibmopt -features=tmplife -norunpath -KPIC -DPIC -xchar=unsigned"
+    CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+#    CFLAGS  += "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -KPIC -DPIC -xchar=unsigned"
+#    CCFLAGS += "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -xlibmopt -features=tmplife -norunpath -KPIC -DPIC -xchar=unsigned"
 
     # Note, you might still want to compile a 32 bit binary if you have a 64bit system. if so remove the following lines
 #    ifeq ($(findstring 64,$(CPU)), 64)
-#        CFLAGS	+= -m64
-#        CCFLAGS	+= -m64
+#        CFLAGS  += -m64
+#        CCFLAGS += -m64
 #    endif
 
-    REL_CFLAGS	+= -O2
-    REL_CCFLAGS	+= -O2
+    REL_CFLAGS  += -O2
+    REL_CCFLAGS += -O2
 
     NAN_DEPEND = true
 #    ifeq ($(CPU),sparc)
@@ -211,7 +211,7 @@ ifeq ($(OS),solaris)
         JAVA_SYSTEM_HEADERS = /usr/java/include/solaris
     else
         # OPENGL_HEADERS = /usr/X11/include/mesa
-	OPENGL_HEADERS = /usr/X11/include/
+        OPENGL_HEADERS = /usr/X11/include/
     endif
     AR = ar
     ARFLAGS = ruv
@@ -220,8 +220,8 @@ endif
 
 ifeq ($(OS),windows)
   ifeq ($(FREE_WINDOWS),true)
-    CC  = gcc
-    CCC = g++
+    CC  ?= gcc
+    CCC ?= g++
     CFLAGS += -pipe -mno-cygwin -mwindows -funsigned-char -fno-strict-aliasing
     CCFLAGS += -pipe -mno-cygwin -mwindows -funsigned-char -fno-strict-aliasing
     CPPFLAGS += -DFREE_WINDOWS
@@ -233,16 +233,16 @@ ifeq ($(OS),windows)
     AR = ar
     ARFLAGS = ruv
     ARFLAGSQUIET = ru
-    WINRC = $(wildcard *.rc)	
+    WINRC = $(wildcard *.rc)
     RANLIB = ranlib
   else
-    CC	= $(SRCHOME)/tools/cygwin/cl_wrapper.pl
-    CCC = $(SRCHOME)/tools/cygwin/cl_wrapper.pl
+    CC  ?= $(SRCHOME)/tools/cygwin/cl_wrapper.pl
+    CCC ?= $(SRCHOME)/tools/cygwin/cl_wrapper.pl
     JAVAC = $(SRCHOME)/tools/cygwin/java_wrapper.pl -c
     JAVAH = $(SRCHOME)/tools/cygwin/java_wrapper.pl -h
-    REL_CFLAGS	+= /O2
+    REL_CFLAGS  += /O2
     REL_CCFLAGS += /O2 -GX
-    DBG_CFLAGS	+= /Fd$(DIR)/debug/
+    DBG_CFLAGS  += /Fd$(DIR)/debug/
     DBG_CCFLAGS += /Fd$(DIR)/debug/
     CFLAGS += /MT
     CCFLAGS += /MT
