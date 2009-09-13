@@ -399,7 +399,9 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		elif context.sculpt_object and settings.brush:
 			col = layout.column()
 			col.itemS()
-				
+			col.itemR(brush, "sculpt_tool", expand=True)
+			col.itemS()
+			
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
 			row.itemR(brush, "size_pressure", toggle=True, text="")
@@ -412,13 +414,13 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				col = layout.column()
 
 				if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
-					col.itemR(brush, "flip_direction")
+					col.row().itemR(brush, "direction", expand=True)
 
 				if brush.sculpt_tool == 'LAYER':
 					col.itemR(brush, "persistent")
 					col.itemO("sculpt.set_persistent_base")
 
-			col.itemR(brush, "sculpt_tool")
+			
 				
 		# Texture Paint Mode #
 		
