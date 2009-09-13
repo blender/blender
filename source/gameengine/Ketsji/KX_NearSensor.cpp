@@ -142,6 +142,22 @@ KX_NearSensor::~KX_NearSensor()
 		delete m_client_info;
 }
 
+void KX_NearSensor::SetPhysCtrlRadius()
+{
+	if (m_bTriggered)
+	{
+		if (m_physCtrl)
+		{
+			m_physCtrl->SetRadius(m_ResetMargin);
+		}
+	} else
+	{
+		if (m_physCtrl)
+		{
+			m_physCtrl->SetRadius(m_Margin);
+		}
+	}
+}
 
 bool KX_NearSensor::Evaluate()
 {
@@ -151,20 +167,9 @@ bool KX_NearSensor::Evaluate()
 	if (m_bTriggered != m_bLastTriggered)
 	{
 		m_bLastTriggered = m_bTriggered;
-		if (m_bTriggered)
-		{
-			if (m_physCtrl)
-			{
-				m_physCtrl->SetRadius(m_ResetMargin);
-			}
-		} else
-		{
-			if (m_physCtrl)
-			{
-				m_physCtrl->SetRadius(m_Margin);
-			}
-
-		}
+		
+		SetPhysCtrlRadius();
+		
 		result = true;
 	}
 
