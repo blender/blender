@@ -70,6 +70,7 @@ public:
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
+	virtual void SetPhysCtrlRadius();
 	virtual bool Evaluate();
 
 	virtual void ReParent(SCA_IObject* parent);
@@ -96,6 +97,8 @@ public:
 		if (sensor->m_Margin > sensor->m_ResetMargin)
 			sensor->m_ResetMargin = sensor->m_Margin;
 
+		sensor->SetPhysCtrlRadius();
+			
 		return 0;
 	}
 
