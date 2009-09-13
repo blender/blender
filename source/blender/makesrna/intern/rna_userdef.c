@@ -1766,27 +1766,37 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static const EnumPropertyItem material_link_items[]= {
+		{0, "OBDATA", 0, "ObData", "Toggle whether the material is linked to object data or the object block."},
+		{USER_MAT_ON_OB, "OBJECT", 0, "Object", "Toggle whether the material is linked to object data or the object block."},
+		{0, NULL, 0, NULL, NULL}};
+		
+	static const EnumPropertyItem object_align_items[]= {
+		{0, "WORLD", 0, "World", "Align newly added objects facing the 3D View direction"},
+		{USER_ADD_VIEWALIGNED, "VIEW", 0, "View", "Align newly added objects to the world coordinates"},
+		{0, NULL, 0, NULL, NULL}};
+
+
 	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
 	RNA_def_struct_ui_text(srna, "Edit Methods", "Settings for interacting with Blender data.");
 	
 	/* Edit Methods */
-	prop= RNA_def_property(srna, "material_linked_object", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_MAT_ON_OB);
-	RNA_def_property_ui_text(prop, "Material Linked Object", "Toggle whether the material is linked to object data or the object block.");
-
-	prop= RNA_def_property(srna, "material_linked_obdata", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_MAT_ON_OB);
-	RNA_def_property_ui_text(prop, "Material Linked ObData", "Toggle whether the material is linked to object data or the object block.");
+	
+	prop= RNA_def_property(srna, "material_link", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, material_link_items);
+	RNA_def_property_ui_text(prop, "Material Link To", "Toggle whether the material is linked to object data or the object block");
+	
+	prop= RNA_def_property(srna, "object_align", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, object_align_items);
+	RNA_def_property_ui_text(prop, "Align Object To", "Align newly added objects facing the 3D View direction or the world coordinates");
 
 	prop= RNA_def_property(srna, "enter_edit_mode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_ADD_EDITMODE);
 	RNA_def_property_ui_text(prop, "Enter Edit Mode", "Enter Edit Mode automatically after adding a new object.");
-
-	prop= RNA_def_property(srna, "align_to_view", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_ADD_VIEWALIGNED);
-	RNA_def_property_ui_text(prop, "Align To View", "Align newly added objects facing the 3D View direction.");
 
 	prop= RNA_def_property(srna, "drag_immediately", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_DRAGIMMEDIATE);

@@ -36,9 +36,7 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		
 		ob = context.object
 		curve = context.curve
-		space = context.space_data
-
-		layout.itemR(curve, "curve_2d")			
+		space = context.space_data		
 							
 		split = layout.split()
 		
@@ -55,8 +53,8 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		col = split.column()	
 		col.itemL(text="Resolution:")
 		sub = col.column(align=True)
-		sub.itemR(curve, "resolution_u", text="Preview U")
-		sub.itemR(curve, "render_resolution_u", text="Render U")
+		sub.itemR(curve, "resolution_u", text="Preview")
+		sub.itemR(curve, "render_resolution_u", text="Render")
 		
 		# resolution_v is not used for text
 		

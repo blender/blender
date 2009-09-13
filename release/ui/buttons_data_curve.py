@@ -96,27 +96,29 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 #		col.itemL(text="NORMALS")
 #		col.itemR(curve, "vertex_normal_flip")
 
-class DATA_PT_geometry_curve(DataButtonsPanelCurve):
-	__label__ = "Geometry "
+class DATA_PT_geometry_curve(DataButtonsPanel):
+	__label__ = "Geometry"
 
 	def draw(self, context):
 		layout = self.layout
 		
 		curve = context.curve
-		
+
 		split = layout.split()
 	
 		col = split.column()
 		col.itemL(text="Modification:")
 		col.itemR(curve, "width")
 		col.itemR(curve, "extrude")
-		col.itemR(curve, "taper_object", icon='ICON_OUTLINER_OB_CURVE')
+		col.itemL(text="Taper Object:")
+		col.itemR(curve, "taper_object", text="")
 		
 		col = split.column()
 		col.itemL(text="Bevel:")
 		col.itemR(curve, "bevel_depth", text="Depth")
 		col.itemR(curve, "bevel_resolution", text="Resolution")
-		col.itemR(curve, "bevel_object", icon='ICON_OUTLINER_OB_CURVE')
+		col.itemL(text="Bevel Object:")
+		col.itemR(curve, "bevel_object", text="")
 
 	
 class DATA_PT_pathanim(DataButtonsPanelCurve):
