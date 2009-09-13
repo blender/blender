@@ -1835,106 +1835,6 @@ void makeBevelList(Object *ob)
 				Mat3CpyMat3(bevp2->mat, bevp1->mat);
 			}
 
-		}	/* this has to be >2 points */
-		else if(cu->flag & CU_NO_TWIST && cu->flag & CU_3D && bl->poly != -1) {
-
-			/* Special case, cyclic curve with no twist. tricky... */
-
-			float quat[4], q[4], cross[3];
-
-			/* correcting a cyclic curve is more complicated, need to be corrected from both ends */
-			float *quat_tmp1, *quat_tmp2; /* store a quat in the matrix temporarily */
-			int iter_dir;
-			BevPoint *bevp_start= (BevPoint *)(bl+1);
-
-			/* loop over the points twice, once up, once back, accumulate the quat rotations
-			 * in both directions, then blend them in the 3rd loop and apply the tilt */
-			for(iter_dir = 0; iter_dir < 2; iter_dir++) {
-
-				bevp2= (BevPoint *)(bl+1);
-				bevp1= bevp2+(bl->nr-1);
-				bevp0= bevp1-1;
-
-				nr= bl->nr;
-				while(nr--) {
-	
-					/* Normalizes */
-					VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
-
-					if(bl->nr==nr+1) { /* first time */
-						vectoquat(vec, 5, 1, quat);
-					}
-					else {
-						float angle = NormalizedVecAngle2(vec_prev, vec);
-					
-						if(angle > 0.0f) { /* otherwise we can keep as is */
-							Crossf(cross, vec_prev, vec);
-							AxisAngleToQuat(q, cross, angle);
-							QuatMul(quat, q, quat_prev);
-						}
-						else {
-							QUATCOPY(quat, quat_prev);
-						}
-					}
-					QUATCOPY(quat_prev, quat); /* quat_prev can't have the tilt applied */
-					VECCOPY(vec_prev, vec);
-
-					if(iter_dir==0) { /* up, first time */
-						quat_tmp1= (float *)bevp1->mat;
-
-						bevp0= bevp1;
-						bevp1= bevp2;
-						bevp2++;
-					}
-					else { /* down second time */
-						quat_tmp1= ((float *)bevp1->mat)+4;
-
-						bevp2= bevp1;
-						bevp1= bevp0;
-						bevp0--;
-
-						/* wrap around */
-						if (bevp0 < bevp_start)
-							bevp0= bevp_start+(bl->nr-1);
-					}
-
-					QUATCOPY(quat_tmp1, quat);
-				}
-			}
-
-			/* Now interpolate the 2 quats and apply tilt */
-
-			bevp2= (BevPoint *)(bl+1);
-			bevp1= bevp2+(bl->nr-1);
-			bevp0= bevp1-1;
-
-			nr= bl->nr;
-			while(nr--) {
-
-				VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
-
-				quat_tmp1= (float *)bevp1->mat;
-				quat_tmp2= quat_tmp1+4;
-
-				/* blend the 2 rotations gathered from both directions */
-				QuatInterpol(quat, quat_tmp1, quat_tmp2, 1.0 - (((float)nr)/bl->nr));
-
-				AxisAngleToQuat(q, vec, bevp1->alfa);
-				QuatMul(quat, q, quat);
-				QuatToMat3(quat, bevp1->mat);
-				
-				/* generic */
-				x1= bevp1->vec[0]- bevp0->vec[0];
-				x2= bevp1->vec[0]- bevp2->vec[0];
-				y1= bevp1->vec[1]- bevp0->vec[1];
-				y2= bevp1->vec[1]- bevp2->vec[1];
-			
-				calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
-				
-				bevp0= bevp1;
-				bevp1= bevp2;
-				bevp2++;
-			}
 		}
 		else {
 			/* Any curve with 3 or more points */
@@ -1951,21 +1851,8 @@ void makeBevelList(Object *ob)
 					/* Normalizes */
 					VecBisect3(vec, bevp0->vec, bevp1->vec, bevp2->vec);
 
-					if(bl->nr==nr+1 || !(cu->flag & CU_NO_TWIST)) { /* first time */
-						vectoquat(vec, 5, 1, quat);
-					}
-					else {
-						float angle = NormalizedVecAngle2(vec_prev, vec);
-
-						if(angle > 0.0f) { /* otherwise we can keep as is */
-							Crossf(cross, vec_prev, vec);
-							AxisAngleToQuat(q, cross, angle);
-							QuatMul(quat, q, quat_prev);
-						}
-						else {
-							QUATCOPY(quat, quat_prev);
-						}
-					}
+					vectoquat(vec, 5, 1, quat);
+					
 					QUATCOPY(quat_prev, quat); /* quat_prev can't have the tilt applied */
 					VECCOPY(vec_prev, vec);
 					
@@ -1981,7 +1868,6 @@ void makeBevelList(Object *ob)
 
 				calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
 
-
 				bevp0= bevp1;
 				bevp1= bevp2;
 				bevp2++;
@@ -1989,19 +1875,17 @@ void makeBevelList(Object *ob)
 
 			/* correct non-cyclic cases */
 			if(bl->poly== -1) {
-				if(bl->nr>2) {
-					bevp= (BevPoint *)(bl+1);
-					bevp1= bevp+1;
-					bevp->sina= bevp1->sina;
-					bevp->cosa= bevp1->cosa;
-					Mat3CpyMat3(bevp->mat, bevp1->mat);
-					bevp= (BevPoint *)(bl+1);
-					bevp+= (bl->nr-1);
-					bevp1= bevp-1;
-					bevp->sina= bevp1->sina;
-					bevp->cosa= bevp1->cosa;
-					Mat3CpyMat3(bevp->mat, bevp1->mat);
-				}
+				bevp= (BevPoint *)(bl+1);
+				bevp1= bevp+1;
+				bevp->sina= bevp1->sina;
+				bevp->cosa= bevp1->cosa;
+				Mat3CpyMat3(bevp->mat, bevp1->mat);
+				bevp= (BevPoint *)(bl+1);
+				bevp+= (bl->nr-1);
+				bevp1= bevp-1;
+				bevp->sina= bevp1->sina;
+				bevp->cosa= bevp1->cosa;
+				Mat3CpyMat3(bevp->mat, bevp1->mat);
 			}
 		}
 		bl= bl->next;
