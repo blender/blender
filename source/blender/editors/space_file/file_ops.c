@@ -524,6 +524,10 @@ int file_exec(bContext *C, wmOperator *unused)
 		BLI_strncpy(name, sfile->params->dir, sizeof(name));
 		RNA_string_set(op->ptr, "directory", name);
 		strcat(name, sfile->params->file);
+
+		if ( RNA_boolean_get(op->ptr, "relative_paths") ) {
+			BLI_makestringcode(G.sce, name);
+		}
 		RNA_string_set(op->ptr, "path", name);
 		
 		/* some ops have multiple files to select */

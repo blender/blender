@@ -166,7 +166,8 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	sfilen->op = NULL; /* file window doesn't own operators */
 
-	sfilen->files = filelist_new(sfileo->params->type);
+	if (sfileo->params)
+		sfilen->files = filelist_new(sfileo->params->type);
 	if(sfileo->folders_prev)
 		sfilen->folders_prev = MEM_dupallocN(sfileo->folders_prev);
 
