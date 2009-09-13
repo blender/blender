@@ -129,20 +129,20 @@ static float cv[][3] = {
 
 // edges have the form edges[n][0][xyz] + t*edges[n][1][xyz]
 static float edges[12][2][3] = {
-	{{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
-	{{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
-	{{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
-	{{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+	{{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
+	{{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
+	{{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
+	{{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
 
-	{{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-	{{-1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-	{{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
-	{{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+	{{1.0f, -1.0f, 1.0f}, {0.0f, 2.0f, 0.0f}},
+	{{-1.0f, -1.0f, 1.0f}, {0.0f, 2.0f, 0.0f}},
+	{{-1.0f, -1.0f, -1.0f}, {0.0f, 2.0f, 0.0f}},
+	{{1.0f, -1.0f, -1.0f}, {0.0f, 2.0f, 0.0f}},
 
-	{{-1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-	{{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-	{{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
-	{{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}}
+	{{-1.0f, 1.0f, 1.0f}, {2.0f, 0.0f, 0.0f}},
+	{{-1.0f, -1.0f, 1.0f}, {2.0f, 0.0f, 0.0f}},
+	{{-1.0f, -1.0f, -1.0f}, {2.0f, 0.0f, 0.0f}},
+	{{-1.0f, 1.0f, -1.0f}, {2.0f, 0.0f, 0.0f}}
 };
 
 int intersect_edges(float *points, float a, float b, float c, float d)
@@ -154,7 +154,7 @@ int intersect_edges(float *points, float a, float b, float c, float d)
 	for (i=0; i<12; i++) {
 		t = -(a*edges[i][0][0] + b*edges[i][0][1] + c*edges[i][0][2] + d)
 			/ (a*edges[i][1][0] + b*edges[i][1][1] + c*edges[i][1][2]);
-		if ((t>0)&&(t<2)) {
+		if ((t>0)&&(t<1)) {
 			points[numpoints * 3 + 0] = edges[i][0][0] + edges[i][1][0]*t;
 			points[numpoints * 3 + 1] = edges[i][0][1] + edges[i][1][1]*t;
 			points[numpoints * 3 + 2] = edges[i][0][2] + edges[i][1][2]*t;
@@ -191,7 +191,7 @@ static int larger_pow2(int n)
 	return n*2;
 }
 
-void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture *tex, int res[3], float dx, GPUTexture *tex_shadow)
+void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture *tex, float *min, float *max, int res[3], float dx, GPUTexture *tex_shadow)
 {
 	Object *ob = base->object;
 	RegionView3D *rv3d= ar->regiondata;
@@ -225,11 +225,82 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 					"END\n";
 	unsigned int prog;
 
+	
+	float size[3];
+
+	VECSUB(size, max, min);
+
+	// maxx, maxy, maxz
+	cv[0][0] = max[0];
+	cv[0][1] = max[1];
+	cv[0][2] = max[2];
+	// minx, maxy, maxz
+	cv[1][0] = min[0];
+	cv[1][1] = max[1];
+	cv[1][2] = max[2];
+	// minx, miny, maxz
+	cv[2][0] = min[0];
+	cv[2][1] = min[1];
+	cv[2][2] = max[2];
+	// maxx, miny, maxz
+	cv[3][0] = max[0];
+	cv[3][1] = min[1];
+	cv[3][2] = max[2];
+
+	// maxx, maxy, minz
+	cv[4][0] = max[0];
+	cv[4][1] = max[1];
+	cv[4][2] = min[2];
+	// minx, maxy, minz
+	cv[5][0] = min[0];
+	cv[5][1] = max[1];
+	cv[5][2] = min[2];
+	// minx, miny, minz
+	cv[6][0] = min[0];
+	cv[6][1] = min[1];
+	cv[6][2] = min[2];
+	// maxx, miny, minz
+	cv[7][0] = max[0];
+	cv[7][1] = min[1];
+	cv[7][2] = min[2];
+
+	VECCOPY(edges[0][0], cv[4]); // maxx, maxy, minz
+	VECCOPY(edges[1][0], cv[5]); // minx, maxy, minz
+	VECCOPY(edges[2][0], cv[6]); // minx, miny, minz
+	VECCOPY(edges[3][0], cv[7]); // maxx, miny, minz
+
+	VECCOPY(edges[4][0], cv[3]); // maxx, miny, maxz
+	VECCOPY(edges[5][0], cv[2]); // minx, miny, maxz
+	VECCOPY(edges[6][0], cv[6]); // minx, miny, minz
+	VECCOPY(edges[7][0], cv[7]); // maxx, miny, minz
+
+	VECCOPY(edges[8][0], cv[1]); // minx, maxy, maxz
+	VECCOPY(edges[9][0], cv[2]); // minx, miny, maxz
+	VECCOPY(edges[10][0], cv[6]); // minx, miny, minz
+	VECCOPY(edges[11][0], cv[5]); // minx, maxy, minz
+
+	// printf("size x: %f, y: %f, z: %f\n", size[0], size[1], size[2]);
+
+	edges[0][1][2] = size[2];
+	edges[1][1][2] = size[2];
+	edges[2][1][2] = size[2];
+	edges[3][1][2] = size[2];
+
+	edges[4][1][1] = size[1];
+	edges[5][1][1] = size[1];
+	edges[6][1][1] = size[1];
+	edges[7][1][1] = size[1];
+
+	edges[8][1][0] = size[0];
+	edges[9][1][0] = size[0];
+	edges[10][1][0] = size[0];
+	edges[11][1][0] = size[0];
+
 	glGetBooleanv(GL_BLEND, (GLboolean *)&gl_blend);
 	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);
 
 	wmLoadMatrix(rv3d->viewmat);
-	wmMultMatrix(ob->obmat);	
+	// wmMultMatrix(ob->obmat);	
 
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
@@ -248,12 +319,14 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		y = cv[i][1] + viewnormal[1];
 		z = cv[i][2] + viewnormal[2];
 
-		if ((x>=-1.0f)&&(x<=1.0f)
-			&&(y>=-1.0f)&&(y<=1.0f)
-			&&(z>=-1.0f)&&(z<=1.0f)) {
+		if ((x>=min[0])&&(x<=max[0])
+			&&(y>=min[1])&&(y<=max[1])
+			&&(z>=min[2])&&(z<=max[2])) {
 			break;
 		}
 	}
+
+	// printf("i: %d\n", i);
 
 	if(GLEW_ARB_fragment_program)
 	{
@@ -318,7 +391,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 			glBegin(GL_POLYGON);
 			for (i = 0; i < numpoints; i++) {
 				glColor3f(1.0, 1.0, 1.0);
-				glTexCoord3d((points[i * 3 + 0] + 1.0)*cor[0]/2.0, (points[i * 3 + 1] + 1)*cor[1]/2.0, (points[i * 3 + 2] + 1.0)*cor[2]/2.0);
+				glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
 				glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
 			}
 			glEnd();

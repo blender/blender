@@ -5362,14 +5362,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			{
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 0);
-				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res, smd->domain->dx, smd->domain->tex_shadow);
+				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->p0, smd->domain->p1, smd->domain->res, smd->domain->dx, smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 			}
 			else if(smd->domain->wt || (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
 			{
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 1);
-				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res_wt, smd->domain->dx_wt, smd->domain->tex_shadow);
+				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->p0, smd->domain->p1, smd->domain->res_wt, smd->domain->dx_wt, smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 			}
 		}

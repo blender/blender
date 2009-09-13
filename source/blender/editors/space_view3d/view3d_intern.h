@@ -157,7 +157,7 @@ ARegion *view3d_has_buttons_region(ScrArea *sa);
 ARegion *view3d_has_tools_region(ScrArea *sa);
 
 /* draw_volume.c */
-void draw_volume(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct Base *base, struct GPUTexture *tex, int res[3], float dx, struct GPUTexture *tex_shadow);
+void draw_volume(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct Base *base, struct GPUTexture *tex, float *min, float *max, int res[3], float dx, struct GPUTexture *tex_shadow);
 
 
 #endif /* ED_VIEW3D_INTERN_H */
