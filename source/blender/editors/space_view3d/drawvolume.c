@@ -121,31 +121,7 @@
 
 struct GPUTexture;
 
-/* draw slices of smoke is adapted from c++ code authored by: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
-static float cv[][3] = {
-	{1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f}, {-1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, 1.0f},
-	{1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}
-};
-
-// edges have the form edges[n][0][xyz] + t*edges[n][1][xyz]
-static float edges[12][2][3] = {
-	{{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
-	{{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
-	{{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
-	{{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
-
-	{{1.0f, -1.0f, 1.0f}, {0.0f, 2.0f, 0.0f}},
-	{{-1.0f, -1.0f, 1.0f}, {0.0f, 2.0f, 0.0f}},
-	{{-1.0f, -1.0f, -1.0f}, {0.0f, 2.0f, 0.0f}},
-	{{1.0f, -1.0f, -1.0f}, {0.0f, 2.0f, 0.0f}},
-
-	{{-1.0f, 1.0f, 1.0f}, {2.0f, 0.0f, 0.0f}},
-	{{-1.0f, -1.0f, 1.0f}, {2.0f, 0.0f, 0.0f}},
-	{{-1.0f, -1.0f, -1.0f}, {2.0f, 0.0f, 0.0f}},
-	{{-1.0f, 1.0f, -1.0f}, {2.0f, 0.0f, 0.0f}}
-};
-
-int intersect_edges(float *points, float a, float b, float c, float d)
+int intersect_edges(float *points, float a, float b, float c, float d, float edges[12][2][3])
 {
 	int i;
 	float t;
@@ -203,6 +179,30 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	int numpoints = 0;
 	float cor[3] = {1.,1.,1.};
 	int gl_depth = 0, gl_blend = 0;
+
+	/* draw slices of smoke is adapted from c++ code authored by: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
+	float cv[][3] = {
+		{1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f}, {-1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, 1.0f},
+		{1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}
+	};
+
+	// edges have the form edges[n][0][xyz] + t*edges[n][1][xyz]
+	float edges[12][2][3] = {
+		{{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
+		{{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
+		{{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
+		{{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
+
+		{{1.0f, -1.0f, 1.0f}, {0.0f, 2.0f, 0.0f}},
+		{{-1.0f, -1.0f, 1.0f}, {0.0f, 2.0f, 0.0f}},
+		{{-1.0f, -1.0f, -1.0f}, {0.0f, 2.0f, 0.0f}},
+		{{1.0f, -1.0f, -1.0f}, {0.0f, 2.0f, 0.0f}},
+
+		{{-1.0f, 1.0f, 1.0f}, {2.0f, 0.0f, 0.0f}},
+		{{-1.0f, -1.0f, 1.0f}, {2.0f, 0.0f, 0.0f}},
+		{{-1.0f, -1.0f, -1.0f}, {2.0f, 0.0f, 0.0f}},
+		{{-1.0f, 1.0f, -1.0f}, {2.0f, 0.0f, 0.0f}}
+	};
 
 	/* Fragment program to calculate the 3dview of smoke */
 	/* using 2 textures, density and shadow */
@@ -368,7 +368,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		float p0[3];
 		// intersect_edges returns the intersection points of all cube edges with
 		// the given plane that lie within the cube
-		numpoints = intersect_edges(points, viewnormal[0], viewnormal[1], viewnormal[2], d);
+		numpoints = intersect_edges(points, viewnormal[0], viewnormal[1], viewnormal[2], d, edges);
 
 		if (numpoints > 2) {
 			VECCOPY(p0, points);
