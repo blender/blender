@@ -615,7 +615,7 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 			"expected filename and optional int or nothing as arguments" );
 
 	if( fname ) {
-		if( strlen( fname ) > FILE_MAXDIR )	/* G.main->name's max length */
+		if( strlen( fname ) > FILE_MAXDIR + FILE_MAXFILE )	/* G.main->name's max length */
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
 						      "filename too long!" );
 		else if( !BLI_exists( fname ) )
