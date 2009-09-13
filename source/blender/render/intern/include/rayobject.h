@@ -67,7 +67,7 @@ extern "C" {
 	 	0		Self (reserved for each structure)
 		1     	RayFace
 		2		RayObject (generic with API callbacks)
-		3		unused
+		3		RayObject_Vlak
 
 	0 means it's reserved and has it own meaning inside each ray acceleration structure
 	(this way each structure can use the allign offset to determine if a node represents a
@@ -77,6 +77,35 @@ extern "C" {
 	described on RE_raytrace.h
  */
 
+/* used to align a given ray object */
+#define RE_rayobject_align(o)				((RayObject*)(((intptr_t)o)&(~3)))
+
+/* used to unalign a given ray object */
+#define RE_rayobject_unalignRayFace(o)		((RayObject*)(((intptr_t)o)|1))
+#define RE_rayobject_unalignRayAPI(o)		((RayObject*)(((intptr_t)o)|2))
+#define RE_rayobject_unalignRayVlak(o)		((RayObject*)(((intptr_t)o)|3))
+
+/* used to test the type of ray object */
+#define RE_rayobject_isAligned(o)	((((intptr_t)o)&3) == 0)
+#define RE_rayobject_isRayFace(o)	((((intptr_t)o)&3) == 1)
+#define RE_rayobject_isRayAPI(o)	((((intptr_t)o)&3) == 2)
+#define RE_rayobject_isRayVlak(o)	((((intptr_t)o)&3) == 3)
+
+
+/*
+ * This ray object represents faces directly from a given VlakRen structure.
+ * Thus allowing to save memory, but making code dependant on render structures
+typedef struct RayVlak
+{
+	struct ObjectInstanceRen *ob;
+	struct VlakRen *face;
+} RayVlak;
+ */
+
+/*
+ * This ray object represents a triangle or a quad face.
+ * All data needed to realize intersection is "localy" available.
+ */
 typedef struct RayFace
 {
 	float v1[4], v2[4], v3[4], v4[3];
@@ -87,7 +116,15 @@ typedef struct RayFace
 } RayFace;
 
 #define RE_rayface_isQuad(a) ((a)->quad)
+/* Loads a VlakRen on a RayFace */
+void RE_rayface_from_vlak(RayFace *face, ObjectInstanceRen *obi, VlakRen *vlr);
 
+
+
+/*
+ * This rayobject represents a generic object. With it's own callbacks for raytrace operations.
+ * It's suitable to implement things like LOD.
+ */
 struct RayObject
 {
 	struct RayObjectAPI *api;
@@ -114,18 +151,8 @@ typedef struct RayObjectAPI
 	
 } RayObjectAPI;
 
-#define RE_rayobject_align(o)				((RayObject*)(((intptr_t)o)&(~3)))
-#define RE_rayobject_unalignRayFace(o)		((RayObject*)(((intptr_t)o)|1))
-#define RE_rayobject_unalignRayAPI(o)		((RayObject*)(((intptr_t)o)|2))
 
-#define RE_rayobject_isAligned(o)	((((intptr_t)o)&3) == 0)
-#define RE_rayobject_isRayFace(o)	((((intptr_t)o)&3) == 1)
-#define RE_rayobject_isRayAPI(o)	((((intptr_t)o)&3) == 2)
 
-/*
- * Loads a VlakRen on a RayFace
- */
-void RE_rayface_from_vlak(RayFace *face, ObjectInstanceRen *obi, VlakRen *vlr);
 
 /*
  * Extend min/max coords so that the rayobject is inside them
@@ -150,6 +177,8 @@ int RE_rayobject_bb_intersect_test(const Isect *i, const float *bb); /* same as 
  * Returns the expected cost of raycast on this node, primitives have a cost of 1
  */
 float RE_rayobject_cost(RayObject *r);
+
+
 
 
 #define ISECT_EPSILON ((float)FLT_EPSILON)

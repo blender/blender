@@ -34,7 +34,7 @@
 #include "RE_raytrace.h"
 #include "render_types.h"
 #include "rayobject.h"
-
+#include "raycounter.h"
 
 /*
  * Determines the distance that the ray must travel to hit the bounding volume of the given node

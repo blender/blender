@@ -27,6 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include "rayobject.h"
+#include "raycounter.h"
 #include "MEM_guardedalloc.h"
 #include "rayobject_rtbuild.h"
 #include "rayobject_hint.h"

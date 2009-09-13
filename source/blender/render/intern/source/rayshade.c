@@ -58,6 +58,7 @@
 
 #include "RE_raytrace.h"
 #include "rayobject.h"
+#include "raycounter.h"
 
 #define RAY_TRA		1
 #define RAY_TRAFLIP	2
@@ -338,6 +339,9 @@ void makeraytree(Render *re)
 {
 	float min[3], max[3], sub[3];
 	int i;
+	
+	re->i.infostr= "Make raytree";
+	re->stats_draw(re->sdh, &re->i);
 
 	BENCH(makeraytree_single(re), tree_build);
 		
@@ -351,6 +355,8 @@ void makeraytree(Render *re)
 		sub[i] = max[i]-min[i];
 	}
 	re->maxdist = sqrt( sub[0]*sub[0] + sub[1]*sub[1] + sub[2]*sub[2] );
+
+	re->i.infostr= "Raytree finished";
 }
 
 

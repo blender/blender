@@ -35,43 +35,12 @@
 extern "C" {
 #endif
 
+//#define RE_RAYCOUNTER			/* enable counters per ray, usefull for measuring raytrace structures performance */
 
 #define RE_RAY_LCTS_MAX_SIZE	256
 #define RT_USE_LAST_HIT			/* last shadow hit is reused before raycasting on whole tree */
 //#define RT_USE_HINT			/* last hit object is reused before raycasting on whole tree */
 
-#define RE_RAYCOUNTER
-
-
-#ifdef RE_RAYCOUNTER
-
-typedef struct RayCounter RayCounter;
-struct RayCounter
-{
-
-	struct
-	{
-		unsigned long long test, hit;
-		
-	} faces, bb, simd_bb, raycast, raytrace_hint, rayshadow_last_hit;
-};
-
-/* #define RE_RC_INIT(isec, shi) (isec).count = re_rc_counter+(shi).thread */
-#define RE_RC_INIT(isec, shi) (isec).raycounter = &((shi).raycounter)
-void RE_RC_INFO (RayCounter *rc);
-void RE_RC_MERGE(RayCounter *rc, RayCounter *tmp);
-#define RE_RC_COUNT(var) (var)++
-
-extern RayCounter re_rc_counter[];
-
-#else
-
-#define RE_RC_INIT(isec,shi)
-#define RE_RC_INFO(rc)
-#define RE_RC_MERGE(dest,src)
-#define	RE_RC_COUNT(var)
-	
-#endif
 
 
 /* Internals about raycasting structures can be found on intern/raytree.h */
@@ -79,6 +48,7 @@ typedef struct RayObject RayObject;
 typedef struct Isect Isect;
 typedef struct RayHint RayHint;
 typedef struct RayTraceHint RayTraceHint;
+typedef struct RayCounter RayCounter;
 
 struct DerivedMesh;
 struct Mesh;
@@ -95,16 +65,16 @@ void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max);
 /* void RE_rayobject_hint_cone(RayObject *r, RayHint *hint, float *); */
 
 /* RayObject constructors */
-
 RayObject* RE_rayobject_octree_create(int ocres, int size);
 RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
 
 RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
 RayObject* RE_rayobject_bvh_create(int size);		/* raytrace/rayobject_bvh.c */
 RayObject* RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
-RayObject* RE_rayobject_qbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
-RayObject* RE_rayobject_svbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
+RayObject* RE_rayobject_qbvh_create(int size);		/* raytrace/rayobject_qbvh.c */
+RayObject* RE_rayobject_svbvh_create(int size);		/* raytrace/rayobject_svbvh.c */
 RayObject* RE_rayobject_bih_create(int size);		/* rayobject_bih.c */
+
 
 typedef struct LCTSHint LCTSHint;
 struct LCTSHint
@@ -166,7 +136,6 @@ struct Isect
 #ifdef RE_RAYCOUNTER
 	RayCounter *raycounter;
 #endif
-	
 };
 
 /* ray types */
