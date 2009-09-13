@@ -259,8 +259,17 @@ void BPY_start_python_path(void)
 	/* set the environment path */
 	printf("found bundled python: %s\n", py_path_bundle);
 
+#if 0
 	BLI_setenv("PYTHONHOME", py_path_bundle);
 	BLI_setenv("PYTHONPATH", py_path_bundle);
+#endif
+
+	{
+		static wchar_t py_path_bundle_wchar[FILE_MAXDIR];
+
+		mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR);
+		Py_SetPythonHome(py_path_bundle_wchar);
+	}
 }
 
 
