@@ -57,7 +57,8 @@ def point_cache_ui(self, cache, enabled, particles, smoke):
 		row = layout.row()
 		row.enabled = enabled
 		row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
-		row.itemR(cache, "step");
+		if not smoke:
+			row.itemR(cache, "step");
 	
 		if not smoke:
 			row = layout.row()
