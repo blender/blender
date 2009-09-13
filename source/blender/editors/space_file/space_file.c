@@ -45,6 +45,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_storage_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -154,6 +155,9 @@ static void file_free(SpaceLink *sl)
 /* spacetype; init callback, area size changes, screen set, etc */
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
+	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
+	MEM_freeN(sfile->params);
+	sfile->params = 0;
 	printf("file_init\n");
 }
 
@@ -203,7 +207,17 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		filelist_readdir(sfile->files);
 	}
 	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
-
+	
+	if (params->renamefile[0] != '\0') {
+		int idx = filelist_find(sfile->files, params->renamefile);
+		if (idx >= 0) {
+			struct direntry *file= filelist_file(sfile->files, idx);
+			if (file) {
+				file->flags |= EDITING;
+			}
+		}
+		params->renamefile[0] = '\0';
+	}
 	if (sfile->layout) sfile->layout->dirty= 1;
 
 }

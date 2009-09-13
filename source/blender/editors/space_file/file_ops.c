@@ -705,7 +705,9 @@ int file_directory_new_exec(bContext *C, wmOperator *unused)
 			BLI_join_dirfile(tmpstr, tmpstr, tmpdir);
 		}
 		BLI_recurdir_fileops(tmpstr);
-		if (!BLI_exists(tmpstr)) {
+		if (BLI_exists(tmpstr)) {
+			BLI_strncpy(sfile->params->renamefile, tmpdir, FILE_MAXFILE);
+		} else {
 			filelist_free(sfile->files);
 			filelist_parent(sfile->files);
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), FILE_MAX);

@@ -154,8 +154,9 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		if (params->filter != 0)
 			params->flag |= FILE_FILTER;
 
+		params->flag |= FILE_HIDE_DOT;
+
 		if (params->type == FILE_LOADLIB) {
-			params->flag |= FILE_HIDE_DOT;
 			params->flag |= RNA_boolean_get(op->ptr, "link") ? FILE_LINK : 0;
 			params->flag |= RNA_boolean_get(op->ptr, "autoselect") ? FILE_AUTOSELECT : 0;
 			params->flag |= RNA_boolean_get(op->ptr, "active_layer") ? FILE_ACTIVELAY : 0;
