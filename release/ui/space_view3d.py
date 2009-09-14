@@ -34,6 +34,8 @@ class VIEW3D_HT_header(bpy.types.Header):
 				
 				if mode_string not in ['PAINT_WEIGHT', 'PAINT_TEXTURE']:
 					sub.itemM("VIEW3D_MT_%s" % mode_string)
+			else:
+				sub.itemM("VIEW3D_MT_OBJECT")
 
 		layout.template_header_3D()
 
