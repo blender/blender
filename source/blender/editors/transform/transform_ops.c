@@ -641,7 +641,7 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_warp", WKEY, KM_PRESS, KM_SHIFT, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_tosphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+			km = WM_keymap_add_item(keymap, "TFM_OT_tosphere", SKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_shear", SKEY, KM_PRESS, KM_ALT|KM_CTRL|KM_SHIFT, 0);
 
