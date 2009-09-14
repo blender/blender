@@ -61,7 +61,8 @@ class INFO_MT_file(bpy.types.Menu):
 
 		layout.itemS()
 		layout.operator_context = "INVOKE_AREA"
-		layout.itemO("wm.link_append", text="Append or Link")
+		layout.itemO("wm.link_append", text="Link")
+		layout.item_booleanO("wm.link_append", "link", False, text="Append")
 		layout.itemS()
 
 		layout.itemM("INFO_MT_file_import")

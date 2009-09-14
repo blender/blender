@@ -1184,11 +1184,6 @@ void filelist_from_main(struct FileList *filelist)
 		id= lb->first;
 		filelist->numfiles= 0;
 		while(id) {
-			/* XXXXX TODO: the selection of the ipo blocktype might go somewhere else? 
-			if(filelist->has_func && idcode==ID_IP) {
-				if(filelist->ipotype== ((Ipo *)id)->blocktype) filelist->numfiles++;
-			}
-			else */
 			if (!filelist->hide_dot || id->name[2] != '.') {
 				filelist->numfiles++;
 			}
@@ -1214,14 +1209,6 @@ void filelist_from_main(struct FileList *filelist)
 		totlib= totbl= 0;
 		
 		while(id) {
-#if 0 
-			// XXXXX TODO: this is deprecated, checks for correct IPO block? 
-			ok= 0;
-			if(filelist->has_func && idcode==ID_IP) {
-				if(filelist->ipotype== ((Ipo *)id)->blocktype) ok= 1;
-			}
-			else ok= 1;
-#endif			
 			ok = 1;
 			if(ok) {
 				if (!filelist->hide_dot || id->name[2] != '.') {
