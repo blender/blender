@@ -770,7 +770,7 @@ class x3d_class:
 		for i in range(alltexture):
 			tex = alltextures[i]
 
-			if tex.type != 'IMAGE':
+			if tex.type != 'IMAGE' or tex.image == None:
 				continue
 
 			namemat = tex.name

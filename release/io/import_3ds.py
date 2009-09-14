@@ -463,7 +463,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			'''
 			
 			if contextMatrix_rot:
-				ob.matrix = [x for row in contextMatrix_rot for x in row]
+				# ob.matrix = [x for row in contextMatrix_rot for x in row]
+				ob.matrix = contextMatrix_rot
 # 				ob.setMatrix(contextMatrix_rot)
 			
 			importedObjects.append(ob)

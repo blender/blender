@@ -118,8 +118,8 @@ def write_mtl(scene, filename, copy_images):
 		if mat:
 			file.write('Ns %.6f\n' % ((mat.specular_hardness-1) * 1.9607843137254901) ) # Hardness, convert blenders 1-511 to MTL's
 			file.write('Ka %.6f %.6f %.6f\n' %	tuple([c*mat.ambient for c in worldAmb])  ) # Ambient, uses mirror colour,
-			file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.diffuse_reflection for c in mat.diffuse_color]) ) # Diffuse
-			file.write('Ks %.6f %.6f %.6f\n' % tuple([c*mat.specular_reflection for c in mat.specular_color]) ) # Specular
+			file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.diffuse_intensity for c in mat.diffuse_color]) ) # Diffuse
+			file.write('Ks %.6f %.6f %.6f\n' % tuple([c*mat.specular_intensity for c in mat.specular_color]) ) # Specular
 			if hasattr(mat, "ior"):
 				file.write('Ni %.6f\n' % mat.ior) # Refraction index
 			else:
@@ -129,7 +129,7 @@ def write_mtl(scene, filename, copy_images):
 			# 0 to disable lighting, 1 for ambient & diffuse only (specular color set to black), 2 for full lighting.
 			if mat.shadeless:
 				file.write('illum 0\n') # ignore lighting
-			elif mat.specular_reflection == 0:
+			elif mat.specular_intensity == 0:
 				file.write('illum 1\n') # no specular.
 			else:
 				file.write('illum 2\n') # light normaly	

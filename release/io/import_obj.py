@@ -715,7 +715,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 	face_mapping= me.faces.extend([f[0] for f in faces], indexList=True)
 	
 	if verts_tex and me.faces:
-		me.add_uv_layer()
+		me.add_uv_texture()
 # 		me.faceUV= 1
 		# TEXMODE= Mesh.FaceModes['TEX']
 	

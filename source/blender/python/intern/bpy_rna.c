@@ -545,9 +545,6 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 	int len = RNA_property_array_length(ptr, prop);
 	
 	if (len > 0) {
-		/* char error_str[512]; */
-		int ok= 1;
-
 #ifdef USE_MATHUTILS
 		if(MatrixObject_Check(value)) {
 			MatrixObject *mat = (MatrixObject*)value;
@@ -559,10 +556,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			PyErr_Format(PyExc_TypeError, "%.200s RNA array assignment expected a sequence instead of %.200s instance.", error_prefix, Py_TYPE(value)->tp_name);
 			return -1;
 		}
-		/* done getting the length */
-		ok= pyrna_py_to_array(ptr, prop, data, value, error_prefix);
-
-		if (!ok) {
+		else if (!pyrna_py_to_array(ptr, prop, data, value, error_prefix)) {
 			/* PyErr_Format(PyExc_AttributeError, "%.200s %s", error_prefix, error_str); */
 			return -1;
 		}
