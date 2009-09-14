@@ -129,17 +129,21 @@ static float jit[8][2]= {{0.468813 , -0.481430}, {-0.155755 , -0.352820},
 {0.219306 , -0.238501},  {-0.393286 , -0.110949}, {-0.024699 , 0.013908}, 
 {0.343805 , 0.147431}, {-0.272855 , 0.269918}, {0.095909 , 0.388710}};
 
-static float num_tria_vert[19][2]= {
+static float num_tria_vert[3][2]= { 
+{-0.352077, 0.532607}, {-0.352077, -0.549313}, {0.330000, -0.008353}};
+
+static int num_tria_face[1][3]= {
+{0, 1, 2}};
+
+static float scroll_circle_vert[16][2]= {
 {0.382684, 0.923879}, {0.000001, 1.000000}, {-0.382683, 0.923880}, {-0.707107, 0.707107},
 {-0.923879, 0.382684}, {-1.000000, 0.000000}, {-0.923880, -0.382684}, {-0.707107, -0.707107},
 {-0.382683, -0.923880}, {0.000000, -1.000000}, {0.382684, -0.923880}, {0.707107, -0.707107},
-{0.923880, -0.382684}, {1.000000, -0.000000}, {0.923880, 0.382683}, {0.707107, 0.707107}, 
-{-0.352077, 0.532607}, {-0.352077, -0.549313}, {0.729843, -0.008353}};
+{0.923880, -0.382684}, {1.000000, -0.000000}, {0.923880, 0.382683}, {0.707107, 0.707107}};
 
-static int num_tria_face[19][3]= {
-{13, 14, 18}, {17, 5, 6}, {12, 13, 18}, {17, 6, 7}, {15, 18, 14}, {16, 4, 5}, {16, 5, 17}, {18, 11, 12}, 
-{18, 17, 10}, {18, 10, 11}, {17, 9, 10}, {15, 0, 18}, {18, 0, 16}, {3, 4, 16}, {8, 9, 17}, {8, 17, 7}, 
-{2, 3, 16}, {1, 2, 16}, {16, 0, 1}};
+static int scroll_circle_face[14][3]= {
+{0, 1, 2}, {2, 0, 3}, {3, 0, 15}, {3, 15, 4}, {4, 15, 14}, {4, 14, 5}, {5, 14, 13}, {5, 13, 6}, 
+{6, 13, 12}, {6, 12, 7}, {7, 12, 11}, {7, 11, 8}, {8, 11, 10}, {8, 10, 9}};
 
 static float menu_tria_vert[6][2]= {
 {-0.41, 0.16}, {0.41, 0.16}, {0, 0.82}, 
@@ -451,13 +455,48 @@ static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, cha
 		i2=0; i1= 1;
 	}	
 	
-	for(a=0; a<19; a++) {
+	for(a=0; a<3; a++) {
 		tria->vec[a][0]= sizex*num_tria_vert[a][i1] + centx;
 		tria->vec[a][1]= sizey*num_tria_vert[a][i2] + centy;
 	}
 	
-	tria->tot= 19;
+	tria->tot= 1;
 	tria->index= num_tria_face;
+}
+
+static void widget_scroll_circle(uiWidgetTrias *tria, rcti *rect, float triasize, char where)
+{
+	float centx, centy, sizex, sizey, minsize;
+	int a, i1=0, i2=1;
+	
+	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
+	
+	/* center position and size */
+	centx= (float)rect->xmin + 0.5f*minsize;
+	centy= (float)rect->ymin + 0.5f*minsize;
+	sizex= sizey= -0.5f*triasize*minsize;
+
+	if(where=='r') {
+		centx= (float)rect->xmax - 0.5f*minsize;
+		sizex= -sizex;
+	}	
+	else if(where=='t') {
+		centy= (float)rect->ymax - 0.5f*minsize;
+		sizey= -sizey;
+		i2=0; i1= 1;
+	}	
+	else if(where=='b') {
+		sizex= -sizex;
+		i2=0; i1= 1;
+	}	
+	
+	for(a=0; a<16; a++) {
+		tria->vec[a][0]= sizex*scroll_circle_vert[a][i1] + centx;
+		tria->vec[a][1]= sizey*scroll_circle_vert[a][i2] + centy;
+	}
+	
+	tria->tot= 14;
+	tria->index= scroll_circle_face;
 }
 
 static void widget_trias_draw(uiWidgetTrias *tria)
@@ -1736,12 +1775,12 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 			wcol->item[3]= 255;
 			
 			if(horizontal) {
-				widget_num_tria(&wtb.tria1, slider, 0.6f, 'l');
-				widget_num_tria(&wtb.tria2, slider, 0.6f, 'r');
+				widget_scroll_circle(&wtb.tria1, slider, 0.6f, 'l');
+				widget_scroll_circle(&wtb.tria2, slider, 0.6f, 'r');
 			}
 			else {
-				widget_num_tria(&wtb.tria1, slider, 0.6f, 'b');
-				widget_num_tria(&wtb.tria2, slider, 0.6f, 't');
+				widget_scroll_circle(&wtb.tria1, slider, 0.6f, 'b');
+				widget_scroll_circle(&wtb.tria2, slider, 0.6f, 't');
 			}
 		}
 		widgetbase_draw(&wtb, wcol);
