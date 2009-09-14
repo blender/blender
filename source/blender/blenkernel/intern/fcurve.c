@@ -916,7 +916,7 @@ void correct_bezpart (float *v1, float *v2, float *v3, float *v4)
 }
 
 /* find root ('zero') */
-int findzero (float x, float q0, float q1, float q2, float q3, float *o)
+static int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 {
 	double c0, c1, c2, c3, a, b, c, p, q, d, t, phi;
 	int nr= 0;
@@ -1010,7 +1010,7 @@ int findzero (float x, float q0, float q1, float q2, float q3, float *o)
 	}
 }
 
-void berekeny (float f1, float f2, float f3, float f4, float *o, int b)
+static void berekeny (float f1, float f2, float f3, float f4, float *o, int b)
 {
 	float t, c0, c1, c2, c3;
 	int a;
@@ -1026,7 +1026,7 @@ void berekeny (float f1, float f2, float f3, float f4, float *o, int b)
 	}
 }
 
-void berekenx (float *f, float *o, int b)
+static void berekenx (float *f, float *o, int b)
 {
 	float t, c0, c1, c2, c3;
 	int a;

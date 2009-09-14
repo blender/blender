@@ -43,7 +43,7 @@
 #include "DNA_scene_types.h"
 
 /* copied from init_render_mesh (render code) */
-Mesh *rna_Object_create_render_mesh(Object *ob, Scene *scene)
+static Mesh *rna_Object_create_render_mesh(Object *ob, Scene *scene)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
 	DerivedMesh *dm;

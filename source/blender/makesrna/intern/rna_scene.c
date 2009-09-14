@@ -70,7 +70,7 @@ EnumPropertyItem prop_mode_items[] ={
 
 #include "RE_pipeline.h"
 
-PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
+static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 
@@ -371,7 +371,7 @@ static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)
 		ntreeCompositForceHidden(scene->nodetree, scene);
 }
 
-void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
+static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 {
 	Scene *scene= (Scene*)ptr->data;
 
@@ -784,7 +784,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
-void rna_def_scene_game_data(BlenderRNA *brna)
+static void rna_def_scene_game_data(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

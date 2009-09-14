@@ -66,7 +66,7 @@ EnumPropertyItem beztriple_keyframe_type_items[] = {
 
 #include "WM_api.h"
 
-StructRNA *rna_Curve_refine(PointerRNA *ptr)
+static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
 	short obtype= curve_type(cu);

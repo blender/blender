@@ -212,7 +212,7 @@ static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 		ma->ramp_spec= add_colorband(0);
 }
 
-void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
+static void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
 {
 	Material *ma= (Material*)ptr->data;
 
@@ -1267,7 +1267,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
-void rna_def_material_specularity(StructRNA *srna)
+static void rna_def_material_specularity(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -1327,7 +1327,7 @@ void rna_def_material_specularity(StructRNA *srna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
-void rna_def_material_strand(BlenderRNA *brna)
+static void rna_def_material_strand(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -1394,7 +1394,7 @@ void rna_def_material_strand(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
-void rna_def_material_physics(BlenderRNA *brna)
+static void rna_def_material_physics(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

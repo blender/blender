@@ -526,7 +526,7 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 	}
 }
 
-void smokeModifier_freeDomain(SmokeModifierData *smd)
+static void smokeModifier_freeDomain(SmokeModifierData *smd)
 {
 	if(smd->domain)
 	{
@@ -550,7 +550,7 @@ void smokeModifier_freeDomain(SmokeModifierData *smd)
 	}
 }
 
-void smokeModifier_freeFlow(SmokeModifierData *smd)
+static void smokeModifier_freeFlow(SmokeModifierData *smd)
 {
 	if(smd->flow)
 	{
@@ -567,7 +567,7 @@ void smokeModifier_freeFlow(SmokeModifierData *smd)
 	}
 }
 
-void smokeModifier_freeCollision(SmokeModifierData *smd)
+static void smokeModifier_freeCollision(SmokeModifierData *smd)
 {
 	if(smd->coll)
 	{
@@ -741,7 +741,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 }
 
 // forward decleration
-void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
+static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 static int get_lamp(Scene *scene, float *light)
 {	
@@ -1337,7 +1337,7 @@ static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int
 	}
 }
 
-void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct)
+static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct)
 {
 	int x, y, z;
 	float bv[6];

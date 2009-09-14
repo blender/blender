@@ -1131,7 +1131,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	
 }
 
-void curve_to_filledpoly(Curve *cu, ListBase *nurb, ListBase *dispbase)
+static void curve_to_filledpoly(Curve *cu, ListBase *nurb, ListBase *dispbase)
 {
 	if(cu->flag & CU_3D) return;
 

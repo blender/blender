@@ -520,7 +520,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_define_verify_sdna(1);
 }
 
-void rna_def_armature(BlenderRNA *brna)
+static void rna_def_armature(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

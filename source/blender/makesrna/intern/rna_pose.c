@@ -98,7 +98,7 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 	}
 }
 
-IDProperty *rna_PoseChannel_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_PoseChannel_idproperties(PointerRNA *ptr, int create)
 {
 	bPoseChannel *pchan= ptr->data;
 
@@ -323,7 +323,7 @@ static void rna_Pose_active_bone_group_index_range(PointerRNA *ptr, int *min, in
 	*max= MAX2(0, *max);
 }
 
-void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int index)
+static void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int index)
 {
 	bPose *pose= (bPose*)ptr->data;
 	bActionGroup *grp;
@@ -334,7 +334,7 @@ void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int index)
 	else BLI_strncpy(value, "", sizeof(grp->name)); // XXX if invalid pointer, won't this crash?
 }
 
-int rna_pose_bgroup_name_index_length(PointerRNA *ptr, int index)
+static int rna_pose_bgroup_name_index_length(PointerRNA *ptr, int index)
 {
 	bPose *pose= (bPose*)ptr->data;
 	bActionGroup *grp;
@@ -343,7 +343,7 @@ int rna_pose_bgroup_name_index_length(PointerRNA *ptr, int index)
 	return (grp)? strlen(grp->name): 0;
 }
 
-void rna_pose_bgroup_name_index_set(PointerRNA *ptr, const char *value, short *index)
+static void rna_pose_bgroup_name_index_set(PointerRNA *ptr, const char *value, short *index)
 {
 	bPose *pose= (bPose*)ptr->data;
 	bActionGroup *grp;
@@ -359,7 +359,7 @@ void rna_pose_bgroup_name_index_set(PointerRNA *ptr, const char *value, short *i
 	*index= 0;
 }
 
-void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
 {
 	bPose *pose= (bPose*)ptr->data;
 	bActionGroup *grp;

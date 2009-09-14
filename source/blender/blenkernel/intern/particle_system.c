@@ -2252,7 +2252,7 @@ void psys_make_temp_pointcache(Object *ob, ParticleSystem *psys)
 
 	BKE_ptcache_disk_to_mem(&pid);
 }
-void psys_clear_temp_pointcache(ParticleSystem *psys)
+static void psys_clear_temp_pointcache(ParticleSystem *psys)
 {
 	if((psys->pointcache->flag & PTCACHE_DISK_CACHE)==0)
 		return;

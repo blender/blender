@@ -214,7 +214,7 @@ bAction *copy_action (bAction *src)
 
 
 /* Get the active action-group for an Action */
-bActionGroup *get_active_actiongroup (bAction *act)
+static bActionGroup *get_active_actiongroup (bAction *act)
 {
 	bActionGroup *agrp= NULL;
 	
@@ -1165,7 +1165,7 @@ typedef struct NlaIpoChannel {
 	int type;
 } NlaIpoChannel;
 
-void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, const char *name, float ctime)
+static void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, const char *name, float ctime)
 {
 	bActionChannel *achan= get_action_channel(act, name);
 	IpoCurve *icu;
@@ -1258,7 +1258,7 @@ static void blend_ipochannels(ListBase *dst, ListBase *src, float srcweight, int
 	}
 }
 
-int execute_ipochannels(ListBase *lb)
+static int execute_ipochannels(ListBase *lb)
 {
 	NlaIpoChannel *nic;
 	int count = 0;

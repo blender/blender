@@ -438,7 +438,7 @@ void BKE_keyingsets_free (ListBase *list)
  *	- path: original path string (as stored in F-Curve data)
  *	- dst: destination string to write data to
  */
-short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
+static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
 	//if (remap) {

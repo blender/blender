@@ -67,7 +67,7 @@ static void rna_MetaBall_update_data(bContext *C, PointerRNA *ptr)
 
 #else
 
-void rna_def_metaelement(BlenderRNA *brna)
+static void rna_def_metaelement(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -143,7 +143,7 @@ void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 }
 
-void rna_def_metaball(BlenderRNA *brna)
+static void rna_def_metaball(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

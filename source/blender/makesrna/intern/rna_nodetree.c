@@ -39,7 +39,7 @@
 
 #ifdef RNA_RUNTIME
 
-StructRNA *rna_Node_refine(struct PointerRNA *ptr)
+static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 {
 	bNode *node = (bNode*)ptr->data;
 

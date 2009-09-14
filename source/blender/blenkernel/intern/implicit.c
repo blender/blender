@@ -43,7 +43,7 @@
 #include <windows.h>
 static LARGE_INTEGER _itstart, _itend;
 static LARGE_INTEGER ifreq;
-void itstart(void)
+static void itstart(void)
 {
 	static int first = 1;
 	if(first) {
@@ -52,7 +52,7 @@ void itstart(void)
 	}
 	QueryPerformanceCounter(&_itstart);
 }
-void itend(void)
+static void itend(void)
 {
 	QueryPerformanceCounter(&_itend);
 }
@@ -74,7 +74,7 @@ double itval()
 {
 	gettimeofday(&_itstart, &itz);
 }
-void itend(void)
+static void itend(void)
 {
 	gettimeofday(&_itend,&itz);
 }
@@ -155,7 +155,7 @@ DO_INLINE void mul_fvectorT_fvectorS(float to[3][3], float vectorA[3], float vec
 
 
 /* printf vector[3] on console: for debug output */
-void print_fvector(float m3[3])
+static void print_fvector(float m3[3])
 {
 	printf("%f\n%f\n%f\n\n",m3[0],m3[1],m3[2]);
 }
@@ -297,7 +297,7 @@ DO_INLINE void sub_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], f
 // 3x3 matrix
 ///////////////////////////
 /* printf 3x3 matrix on console: for debug output */
-void print_fmatrix(float m3[3][3])
+static void print_fmatrix(float m3[3][3])
 {
 	printf("%f\t%f\t%f\n",m3[0][0],m3[0][1],m3[0][2]);
 	printf("%f\t%f\t%f\n",m3[1][0],m3[1][1],m3[1][2]);
@@ -496,7 +496,7 @@ DO_INLINE void mulsub_fmatrix_fvector(float to[3], float matrix[3][3], float fro
 // SPARSE SYMMETRIC big matrix with 3x3 matrix entries
 ///////////////////////////
 /* printf a big matrix on console: for debug output */
-void print_bfmatrix(fmatrix3x3 *m3)
+static void print_bfmatrix(fmatrix3x3 *m3)
 {
 	unsigned int i = 0;
 
@@ -887,7 +887,7 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 	}
 }
 
-int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
+static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
 	// Solves for unknown X in equation AX=B
 	unsigned int conjgrad_loopcount=0, conjgrad_looplimit=100;
@@ -970,7 +970,7 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 }
 /*
 // version 1.3
-int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
+static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
 	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
 	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
@@ -1038,7 +1038,7 @@ int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fma
 }
 */
 // version 1.4
-int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *bigI)
+static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *bigI)
 {
 	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
 	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0, tol = 0;
@@ -1391,7 +1391,7 @@ static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
 	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
 }
 
-float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
+static float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
 	return (INPR(wind, vertexnormal));
 }
@@ -1595,7 +1595,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 	// printf("\n");
 }
 
-void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *M, fmatrix3x3 *bigI)
+static void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *M, fmatrix3x3 *bigI)
 {
 	unsigned int numverts = dFdV[0].vcount;
 

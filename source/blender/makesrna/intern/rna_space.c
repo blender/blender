@@ -211,7 +211,7 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 
 /* Space Text Editor */
 
-void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
+static void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
 {
 	SpaceText *st= (SpaceText*)(ptr->data);
 
@@ -219,7 +219,7 @@ void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
 	st->left= 0;
 }
 
-void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceText *st= (SpaceText*)(ptr->data);
 
@@ -227,7 +227,7 @@ void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 	st->top= 0;
 }
 
-void rna_SpaceFileBrowser_params_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceFileBrowser_params_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceFile *sfile= (SpaceFile*)(ptr->data);
 
@@ -236,7 +236,7 @@ void rna_SpaceFileBrowser_params_set(PointerRNA *ptr, PointerRNA value)
 
 /* Space Properties */
 
-StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
+static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
 
@@ -246,7 +246,7 @@ StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 	return &RNA_ID;
 }
 
-void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
+static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
 

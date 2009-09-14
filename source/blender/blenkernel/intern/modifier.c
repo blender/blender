@@ -214,7 +214,7 @@ static void curveModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tcmd->name, cmd->name, 32);
 }
 
-CustomDataMask curveModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask curveModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CurveModifierData *cmd = (CurveModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -290,7 +290,7 @@ static void latticeModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tlmd->name, lmd->name, 32);
 }
 
-CustomDataMask latticeModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask latticeModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -1104,7 +1104,7 @@ static void arrayModifier_updateDepgraph(ModifierData *md, DagForest *forest, Sc
 	}
 }
 
-float vertarray_size(MVert *mvert, int numVerts, int axis)
+static float vertarray_size(MVert *mvert, int numVerts, int axis)
 {
 	int i;
 	float min_co, max_co;
@@ -1771,7 +1771,7 @@ static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest, S
 
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */
 /* if strip_number: removes number extensions */
-void vertgroup_flip_name (char *name, int strip_number)
+static void vertgroup_flip_name (char *name, int strip_number)
 {
 	int     len;
 	char    prefix[128]={""};   /* The part before the facing */
@@ -3401,7 +3401,7 @@ static void bevelModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tbmd->defgrp_name, bmd->defgrp_name, 32);
 }
 
-CustomDataMask bevelModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask bevelModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	BevelModifierData *bmd = (BevelModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -3481,7 +3481,7 @@ static void displaceModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, 32);
 }
 
-CustomDataMask displaceModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask displaceModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -3825,7 +3825,7 @@ static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
 	tumd->aspecty = umd->aspecty;
 }
 
-CustomDataMask uvprojectModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask uvprojectModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -4278,7 +4278,7 @@ static void smoothModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tsmd->defgrp_name, smd->defgrp_name, 32);
 }
 
-int smoothModifier_isDisabled(ModifierData *md)
+static int smoothModifier_isDisabled(ModifierData *md)
 {
 	SmoothModifierData *smd = (SmoothModifierData*) md;
 	short flag;
@@ -4291,7 +4291,7 @@ int smoothModifier_isDisabled(ModifierData *md)
 	return 0;
 }
 
-CustomDataMask smoothModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask smoothModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	SmoothModifierData *smd = (SmoothModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -4508,7 +4508,7 @@ static void castModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tcmd->defgrp_name, cmd->defgrp_name, 32);
 }
 
-int castModifier_isDisabled(ModifierData *md)
+static int castModifier_isDisabled(ModifierData *md)
 {
 	CastModifierData *cmd = (CastModifierData*) md;
 	short flag;
@@ -4520,7 +4520,7 @@ int castModifier_isDisabled(ModifierData *md)
 	return 0;
 }
 
-CustomDataMask castModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask castModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -5151,7 +5151,7 @@ static void waveModifier_updateDepgraph(
 	}
 }
 
-CustomDataMask waveModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask waveModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	WaveModifierData *wmd = (WaveModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -5487,7 +5487,7 @@ static void armatureModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tamd->defgrp_name, amd->defgrp_name, 32);
 }
 
-CustomDataMask armatureModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask armatureModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -5602,7 +5602,7 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(thmd->subtarget, hmd->subtarget, 32);
 }
 
-CustomDataMask hookModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask hookModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -5947,7 +5947,7 @@ static void clothModifier_updateDepgraph(
 	}
 }
 
-CustomDataMask clothModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask clothModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -6371,7 +6371,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 	return derivedData;
 }
 
-CustomDataMask booleanModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask booleanModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
 
@@ -6419,7 +6419,7 @@ static void particleSystemModifier_copyData(ModifierData *md, ModifierData *targ
 	tpsmd->psys = psmd->psys;
 }
 
-CustomDataMask particleSystemModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask particleSystemModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	CustomDataMask dataMask = 0;
@@ -6832,7 +6832,7 @@ static int explodeModifier_dependsOnTime(ModifierData *md)
 {
 	return 1;
 }
-CustomDataMask explodeModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask explodeModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
 	CustomDataMask dataMask = 0;
@@ -7746,7 +7746,7 @@ static void meshdeformModifier_copyData(ModifierData *md, ModifierData *target)
 	tmmd->object = mmd->object;
 }
 
-CustomDataMask meshdeformModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask meshdeformModifier_requiredDataMask(Object *ob, ModifierData *md)
 {	
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -8126,7 +8126,7 @@ static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->subsurfLevels = smd->subsurfLevels;
 }
 
-CustomDataMask shrinkwrapModifier_requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask shrinkwrapModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -9137,7 +9137,7 @@ int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 	return i;
 }
 
-int modifiers_usesPointCache(Object *ob)
+static int modifiers_usesPointCache(Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
 

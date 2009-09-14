@@ -89,7 +89,7 @@ static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
 
 #else
 
-void rna_def_brush(BlenderRNA *brna)
+static void rna_def_brush(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

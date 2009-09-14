@@ -93,7 +93,7 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 #else
 
 
-void rna_def_keyingset_path(BlenderRNA *brna)
+static void rna_def_keyingset_path(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -132,7 +132,7 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Entire Array", "When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used.");
 }
 
-void rna_def_keyingset(BlenderRNA *brna)
+static void rna_def_keyingset(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

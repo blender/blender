@@ -68,7 +68,7 @@
 /* globals */
 
 /* local */
-int cu_isectLL(float *v1, float *v2, float *v3, float *v4, 
+static int cu_isectLL(float *v1, float *v2, float *v3, float *v4, 
 			   short cox, short coy, 
 			   float *labda, float *mu, float *vec);
 
@@ -977,7 +977,7 @@ void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int i
  	}
 }
 
-void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float *p3, float *p, int it, int stride)
+static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float *p3, float *p, int it, int stride)
 {
 	/* note that these are not purpendicular to the curve
 	 * they need to be rotated for this,
@@ -1363,7 +1363,7 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp)
 	}
 }
 
-int cu_isectLL(float *v1, float *v2, float *v3, float *v4, short cox, short coy, float *labda, float *mu, float *vec)
+static int cu_isectLL(float *v1, float *v2, float *v3, float *v4, short cox, short coy, float *labda, float *mu, float *vec)
 {
 	/* return:
 		-1: colliniar
@@ -1882,7 +1882,7 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 	}
 }
 
-void make_bevel_list_3D(BevList *bl, int smooth_iter, int twist_mode)
+static void make_bevel_list_3D(BevList *bl, int smooth_iter, int twist_mode)
 {
 	switch(twist_mode) {
 	case CU_TWIST_TANGENT:

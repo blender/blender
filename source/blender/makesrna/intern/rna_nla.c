@@ -47,7 +47,7 @@
 /* temp constant defined for these funcs only... */
 #define NLASTRIP_MIN_LEN_THRESH 	0.1f
 
-void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
+static void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
 {
 	NlaStrip *data= (NlaStrip *)ptr->data;
 	
@@ -280,7 +280,7 @@ EnumPropertyItem nla_mode_extend_items[] = {
 	{NLASTRIP_EXTEND_HOLD_FORWARD, "HOLD_FORWARD", 0, "Hold Forward", "Only hold last frame."},
 	{0, NULL, 0, NULL, NULL}};
 
-void rna_def_nlastrip(BlenderRNA *brna)
+static void rna_def_nlastrip(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -433,7 +433,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	// - sync length
 }
 
-void rna_def_nlatrack(BlenderRNA *brna)
+static void rna_def_nlatrack(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

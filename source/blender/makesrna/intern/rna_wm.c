@@ -197,7 +197,7 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
 		return ptr->type;
 }
 
-IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
 {
 	if(create && !ptr->data) {
 		IDPropertyTemplate val = {0};

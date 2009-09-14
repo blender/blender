@@ -66,7 +66,7 @@ void rna_addtail(ListBase *listbase, void *vlink)
 	listbase->last = link;
 }
 
-void rna_remlink(ListBase *listbase, void *vlink)
+static void rna_remlink(ListBase *listbase, void *vlink)
 {
 	Link *link= vlink;
 
@@ -155,7 +155,7 @@ PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 	return NULL;
 }
 
-PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
+static PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
 {
 	PropertyDefRNA *dprop;
 
@@ -239,7 +239,7 @@ PropertyDefRNA *rna_find_parameter_def(PropertyRNA *parm)
 	return NULL;
 }
 
-ContainerDefRNA *rna_find_container_def(ContainerRNA *cont)
+static ContainerDefRNA *rna_find_container_def(ContainerRNA *cont)
 {
 	StructDefRNA *ds;
 	FunctionDefRNA *dfunc;

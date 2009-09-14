@@ -316,7 +316,7 @@ typedef struct WorkParam {
 	int	  index;
 } WorkParam;
 
-void *exec_work_fnct(void *v_param)
+static void *exec_work_fnct(void *v_param)
 {
 	WorkParam *p = (WorkParam*)v_param;
 	void *value;

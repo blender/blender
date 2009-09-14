@@ -1406,7 +1406,7 @@ int object_data_is_libdata(Object *ob)
 /* *************** PROXY **************** */
 
 /* when you make proxy, ensure the exposed layers are extern */
-void armature_set_id_extern(Object *ob)
+static void armature_set_id_extern(Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;

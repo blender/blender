@@ -51,7 +51,7 @@
 
 static ListBase global_font_dir= { NULL, NULL };
 
-DirBLF *blf_dir_find(const char *path)
+static DirBLF *blf_dir_find(const char *path)
 {
 	DirBLF *p;
 	

@@ -95,7 +95,7 @@ static CM_SOLVER_DEF	solvers [] =
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *dm);
 static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
-int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
+static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
 
 
@@ -155,7 +155,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->goalfrict = 0.0f;
 }
 
-BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
+static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
 	unsigned int i;
 	BVHTree *bvhtree;
@@ -196,7 +196,7 @@ BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 	return bvhtree;
 }
 
-BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
+static BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
 	unsigned int i;
 	BVHTree *bvhtree;
@@ -998,7 +998,7 @@ int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned in
 	return 0;
 }
 
-void cloth_free_errorsprings(Cloth *cloth, EdgeHash *edgehash, LinkNode **edgelist)
+static void cloth_free_errorsprings(Cloth *cloth, EdgeHash *edgehash, LinkNode **edgelist)
 {
 	unsigned int i = 0;
 	
@@ -1031,7 +1031,7 @@ void cloth_free_errorsprings(Cloth *cloth, EdgeHash *edgehash, LinkNode **edgeli
 		BLI_edgehash_free ( cloth->edgehash, NULL );
 }
 
-int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
+static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;

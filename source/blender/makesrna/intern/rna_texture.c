@@ -55,7 +55,7 @@ static EnumPropertyItem texture_filter_items[] = {
 #include "BKE_texture.h"
 #include "ED_node.h"
 
-StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
+static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
 	Tex *tex= (Tex*)ptr->data;
 
@@ -202,7 +202,7 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
 		tex->coba= add_colorband(0);
 }
 
-void rna_Texture_use_nodes_set(PointerRNA *ptr, int v)
+static void rna_Texture_use_nodes_set(PointerRNA *ptr, int v)
 {
 	Tex *tex= (Tex*)ptr->data;
 	

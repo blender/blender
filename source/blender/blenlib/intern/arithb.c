@@ -4093,19 +4093,19 @@ void spheremap(float x, float y, float z, float *u, float *v)
 /* proposed api by ton and zr, not used yet */
 #if 0
 /* *****************  m1 = m2 *****************  */
-void cpy_m3_m3(float m1[][3], float m2[][3]) 
+static void cpy_m3_m3(float m1[][3], float m2[][3]) 
 {	
 	memcpy(m1[0], m2[0], 9*sizeof(float));
 }
 
 /* *****************  m1 = m2 *****************  */
-void cpy_m4_m4(float m1[][4], float m2[][4]) 
+static void cpy_m4_m4(float m1[][4], float m2[][4]) 
 {	
 	memcpy(m1[0], m2[0], 16*sizeof(float));
 }
 
 /* ***************** identity matrix *****************  */
-void ident_m4(float m[][4])
+static void ident_m4(float m[][4])
 {
 	
 	m[0][0]= m[1][1]= m[2][2]= m[3][3]= 1.0;
@@ -4116,7 +4116,7 @@ void ident_m4(float m[][4])
 }
 
 /* *****************  m1 = m2 (pre) * m3 (post) ***************** */
-void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
+static void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
 {
 	float m[3][3];
 	
@@ -4136,7 +4136,7 @@ void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
 }
 
 /*  ***************** m1 = m2 (pre) * m3 (post) ***************** */
-void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
+static void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 {
 	float m[4][4];
 	
@@ -4164,7 +4164,7 @@ void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 }
 
 /*  ***************** m1 = inverse(m2)  *****************  */
-void inv_m3_m3(float m1[][3], float m2[][3])
+static void inv_m3_m3(float m1[][3], float m2[][3])
 {
 	short a,b;
 	float det;
@@ -4187,7 +4187,7 @@ void inv_m3_m3(float m1[][3], float m2[][3])
 }
 
 /*  ***************** m1 = inverse(m2)  *****************  */
-int inv_m4_m4(float inverse[][4], float mat[][4])
+static int inv_m4_m4(float inverse[][4], float mat[][4])
 {
 	int i, j, k;
 	double temp;
@@ -4240,7 +4240,7 @@ int inv_m4_m4(float inverse[][4], float mat[][4])
 }
 
 /*  ***************** v1 = v2 * mat  ***************** */
-void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
+static void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
 {
 	float x, y;
 	

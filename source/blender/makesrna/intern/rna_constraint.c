@@ -89,7 +89,7 @@ EnumPropertyItem space_object_items[] = {
 
 #include "ED_object.h"
 
-StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
+static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 {
 	bConstraint *con= (bConstraint*)ptr->data;
 

@@ -514,7 +514,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
 }
 
-void rna_def_editor(BlenderRNA *brna)
+static void rna_def_editor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
