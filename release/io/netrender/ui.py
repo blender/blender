@@ -48,6 +48,7 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 		
 		col = split.column()
 		
+		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animaton on network")
 		col.itemR(scene.network_render, "mode")
 		col.itemR(scene.network_render, "server_address")
 		col.itemR(scene.network_render, "server_port")

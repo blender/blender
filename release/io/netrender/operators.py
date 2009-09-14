@@ -7,6 +7,39 @@ import netrender.client as client
 import netrender.model
 
 @rnaOperator
+class RENDER_OT_netclientanim(bpy.types.Operator):
+	'''
+	Operator documentation text, will be used for the operator tooltip and python docs.
+	'''
+	__idname__ = "render.netclientanim"
+	__label__ = "Net Render Client Anim"
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = []
+	
+	def poll(self, context):
+		return True
+	
+	def execute(self, context):
+		scene = context.scene
+		
+		conn = clientConnection(scene)
+		
+		if conn:
+			# Sending file
+			scene.network_render.job_id = client.clientSendJob(conn, scene, True)
+			conn.close()
+		
+		bpy.ops.screen.render('INVOKE_AREA', animation=True)
+		
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		return self.execute(context)
+
+@rnaOperator
 class RENDER_OT_netclientsend(bpy.types.Operator):
 	'''
 	Operator documentation text, will be used for the operator tooltip and python docs.
@@ -30,6 +63,7 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 		if conn:
 			# Sending file
 			scene.network_render.job_id = client.clientSendJob(conn, scene, True)
+			conn.close()
 		
 		return ('FINISHED',)
 	
