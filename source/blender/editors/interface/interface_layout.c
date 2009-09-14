@@ -506,7 +506,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
 	}
 	else
-		but= uiDefAutoButR(block, ptr, prop, index, (icon_only)? "": NULL, icon, x, y, w, h);
+		but= uiDefAutoButR(block, ptr, prop, index, (!icon_only)? "": NULL, icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
 	return but;
