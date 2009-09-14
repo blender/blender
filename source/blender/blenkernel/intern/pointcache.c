@@ -570,9 +570,9 @@ static int ptcache_write_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 	SmokeDomainSettings *sds = smd->domain;
 	
 	if(sds->wt) {
-		unsigned int res_big_array[3];
-		unsigned int res_big;
-		unsigned int res = sds->res[0]*sds->res[1]*sds->res[2];
+		int res_big_array[3];
+		int res_big;
+		int res = sds->res[0]*sds->res[1]*sds->res[2];
 		float *dens, *densold, *tcu, *tcv, *tcw;
 		unsigned int in_len = sizeof(float)*(unsigned int)res;
 		unsigned int in_len_big;
@@ -678,8 +678,8 @@ static void ptcache_read_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 	SmokeDomainSettings *sds = smd->domain;
 	
 	if(sds->fluid) {
-		unsigned int res = sds->res[0]*sds->res[1]*sds->res[2];
-		unsigned int res_big, res_big_array[3];
+		int res = sds->res[0]*sds->res[1]*sds->res[2];
+		int res_big, res_big_array[3];
 		float *dens, *densold, *tcu, *tcv, *tcw;
 		unsigned int out_len = sizeof(float)*(unsigned int)res;
 		unsigned int out_len_big;
