@@ -348,7 +348,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 
 	type = GL_FLOAT; // GL_UNSIGNED_BYTE
 	format = GL_RED;
-	internalformat = GL_RED;
+	internalformat = GL_INTENSITY;
 
 	//if (fpixels)
 	//	pixels = GPU_texture_convert_pixels(w*h*depth, fpixels);
