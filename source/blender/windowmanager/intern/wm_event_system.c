@@ -555,6 +555,11 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 
 	retval= wm_operator_call_internal(C, ot, context, properties, reports);
 	
+	if (retval & OPERATOR_RUNNING_MODAL)
+	{
+		reports->flag |= RPT_FREE;
+	}
+	
 	return retval;
 }
 

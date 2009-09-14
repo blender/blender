@@ -80,6 +80,7 @@ typedef enum ReportType {
 enum ReportListFlags {
 	RPT_PRINT = 1,
 	RPT_STORE = 2,
+	RPT_FREE = 4,
 };
 typedef struct Report {
 	struct Report *next, *prev;

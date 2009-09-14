@@ -79,16 +79,21 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 
 	
 	if (error_val==0) {
-		ReportList reports;
+		ReportList *reports;
 
-		BKE_reports_init(&reports, RPT_STORE);
+		reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
+		BKE_reports_init(reports, RPT_STORE);
 
-		WM_operator_call_py(C, ot, context, &ptr, &reports);
+		WM_operator_call_py(C, ot, context, &ptr, reports);
 
-		if(BPy_reports_to_error(&reports))
+		if(BPy_reports_to_error(reports))
 			error_val = -1;
 
-		BKE_reports_clear(&reports);
+		BKE_reports_clear(reports);
+		if ((reports->flag & RPT_FREE) == 0)
+		{
+			MEM_freeN(reports);
+		}
 	}
 
 	WM_operator_properties_free(&ptr);
