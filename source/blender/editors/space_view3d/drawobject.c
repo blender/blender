@@ -5360,12 +5360,57 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		{
 			if(!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
 			{
+// #if0
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 0);
 				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->p0, smd->domain->p1, smd->domain->res, smd->domain->dx, smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
+// #endif
+#if 0
+				int x, y, z;
+				float *density = smoke_get_density(smd->domain->fluid);
+
+				wmLoadMatrix(rv3d->viewmat);
+				// wmMultMatrix(ob->obmat);	
+
+				if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	
+				glDepthMask(GL_FALSE);
+				glEnable(GL_BLEND);
+				
+
+				// glPointSize(3.0);
+				bglBegin(GL_POINTS);
+
+				for(x = 0; x < smd->domain->res[0]; x++)
+					for(y = 0; y < smd->domain->res[1]; y++)
+						for(z = 0; z < smd->domain->res[2]; z++)
+				{
+					float tmp[3];
+					int index = smoke_get_index(x, smd->domain->res[0], y, smd->domain->res[1], z);
+
+					if(density[index] > FLT_EPSILON)
+					{
+						float color[3];
+						VECCOPY(tmp, smd->domain->p0);
+						tmp[0] += smd->domain->dx * x + smd->domain->dx * 0.5;
+						tmp[1] += smd->domain->dx * y + smd->domain->dx * 0.5;
+						tmp[2] += smd->domain->dx * z + smd->domain->dx * 0.5;
+						color[0] = color[1] = color[2] = 1.0; // density[index];
+						glColor3fv(color);
+						bglVertex3fv(tmp);
+					}
+				}
+
+				bglEnd();
+				glPointSize(1.0);
+
+				wmMultMatrix(ob->obmat);
+				glDisable(GL_BLEND);
+				glDepthMask(GL_TRUE);
+				if(col) cpack(col);
+#endif
 			}
-			else if(smd->domain->wt || (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
+			else if(smd->domain->wt && (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
 			{
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 1);
