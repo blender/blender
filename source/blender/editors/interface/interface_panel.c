@@ -990,6 +990,7 @@ static void test_add_new_tabs(ARegion *ar)
 	}
 	
 	if(pasel==NULL || palap==NULL) return;
+	if(palap->type && palap->type->flag & PNL_NO_HEADER) return;
 	
 	/* the overlapped panel becomes a tab */
 	palap->paneltab= pasel;

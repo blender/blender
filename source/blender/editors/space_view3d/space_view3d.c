@@ -190,6 +190,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->lens= 35.0f;
 	v3d->near= 0.01f;
 	v3d->far= 500.0f;
+
+	v3d->twtype= V3D_MANIP_TRANSLATE;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for view3d");

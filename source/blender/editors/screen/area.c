@@ -916,6 +916,19 @@ void ED_region_init(bContext *C, ARegion *ar)
 	
 }
 
+void ED_region_toggle_hidden(bContext *C, ARegion *ar)
+{
+	ScrArea *sa= CTX_wm_area(C);
+
+	ar->flag ^= RGN_FLAG_HIDDEN;
+	ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
+
+	if(ar->flag & RGN_FLAG_HIDDEN)
+		WM_event_remove_handlers(C, &ar->handlers);
+
+	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
+	ED_area_tag_redraw(sa);
+}
 
 /* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
 /* area vertices were set */

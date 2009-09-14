@@ -58,6 +58,7 @@ void	ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
 void	ED_region_panels(const struct bContext *C, struct ARegion *ar, int vertical, char *context, int contextnr);
 void	ED_region_header_init(struct ARegion *ar);
 void	ED_region_header(const struct bContext *C, struct ARegion *ar);
+void	ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
 void	region_scissor_winrct(struct ARegion *ar, struct rcti *winrct);
 
 /* spaces */

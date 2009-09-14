@@ -1440,16 +1440,20 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 
 	for(but= actbut->next; but; but= but->next) {
 		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
-			data->postbut= but;
-			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
-			return;
+			if(!(but->flag & UI_BUT_DISABLED)) {
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
+				return;
+			}
 		}
 	}
 	for(but= block->buttons.first; but!=actbut; but= but->next) {
 		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
-			data->postbut= but;
-			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
-			return;
+			if(!(but->flag & UI_BUT_DISABLED)) {
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
+				return;
+			}
 		}
 	}
 }
@@ -1464,16 +1468,20 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 
 	for(but= actbut->prev; but; but= but->prev) {
 		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
-			data->postbut= but;
-			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
-			return;
+			if(!(but->flag & UI_BUT_DISABLED)) {
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
+				return;
+			}
 		}
 	}
 	for(but= block->buttons.last; but!=actbut; but= but->prev) {
 		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
-			data->postbut= but;
-			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
-			return;
+			if(!(but->flag & UI_BUT_DISABLED)) {
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
+				return;
+			}
 		}
 	}
 }

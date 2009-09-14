@@ -1320,10 +1320,11 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				CLAMP(rmd->ar->type->minsizex, 0, 1000);
 				if(rmd->ar->type->minsizex < 24) {
 					rmd->ar->type->minsizex= rmd->origval;
-					rmd->ar->flag |= RGN_FLAG_HIDDEN;
+					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
+						ED_region_toggle_hidden(C, rmd->ar);
 				}
-				else
-					rmd->ar->flag &= ~RGN_FLAG_HIDDEN;
+				else if(rmd->ar->flag & RGN_FLAG_HIDDEN)
+					ED_region_toggle_hidden(C, rmd->ar);
 			}
 			else {
 				delta= event->y - rmd->origy;
@@ -1332,10 +1333,11 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				CLAMP(rmd->ar->type->minsizey, 0, 1000);
 				if(rmd->ar->type->minsizey < 24) {
 					rmd->ar->type->minsizey= rmd->origval;
-					rmd->ar->flag |= RGN_FLAG_HIDDEN;
+					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
+						ED_region_toggle_hidden(C, rmd->ar);
 				}
-				else
-					rmd->ar->flag &= ~RGN_FLAG_HIDDEN;
+				else if(rmd->ar->flag & RGN_FLAG_HIDDEN)
+					ED_region_toggle_hidden(C, rmd->ar);
 			}
 			
 			WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
@@ -1346,7 +1348,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(event->val==0) {
 				
 				if(ABS(event->x - rmd->origx) < 2 && ABS(event->y - rmd->origy) < 2) {
-					rmd->ar->flag ^= RGN_FLAG_HIDDEN;
+					ED_region_toggle_hidden(C, rmd->ar);
 					WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				}				
 				MEM_freeN(op->customdata);

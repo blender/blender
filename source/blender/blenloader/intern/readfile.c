@@ -4861,6 +4861,10 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			QUATCOPY(rv3d->viewquat, v3d->viewquat);
 		}
 	}
+
+	/* this was not initialized correct always */
+	if(v3d->twtype == 0)
+		v3d->twtype= V3D_MANIP_TRANSLATE;
 }
 
 static void direct_link_screen(FileData *fd, bScreen *sc)
@@ -9687,6 +9691,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		Scene *sce;
+
+		for(sce = main->scene.first; sce; sce = sce->id.next)
+			if(sce->unit.scale_length == 0.0f)
+				sce->unit.scale_length= 1.0f;
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -1526,7 +1526,7 @@ static void threaded_tile_processor(Render *re)
 	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
 		RE_FreeRenderResult(re->result);
 	
-		if(re->sss_points)
+		if(re->sss_points && render_display_draw_enabled(re))
 			re->result= new_render_result(re, &re->disprect, 0, 0);
 		else if(re->r.scemode & R_FULL_SAMPLE)
 			re->result= new_full_sample_buffers_exr(re);
