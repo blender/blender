@@ -469,8 +469,9 @@ typedef struct BooleanModifierData {
 	int operation, pad;
 } BooleanModifierData;
 
-#define MOD_MDEF_INVERT_VGROUP (1<<0)
-#define MOD_MDEF_DYNAMIC_BIND  (1<<1)
+#define MOD_MDEF_INVERT_VGROUP	(1<<0)
+#define MOD_MDEF_DYNAMIC_BIND	(1<<1)
+#define MOD_MDEF_USE_FINAL		(1<<2)
 
 typedef struct MDefInfluence {
 	int vertex;

@@ -98,8 +98,6 @@ static void waitcursor(int val) {}
 static int pupmenu() {return 0;}
 static int qtest() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
-static int snap_sel_to_curs() {return 0;}
-static int snap_to_center() {return 0;}
 
 /* XXX */
 
@@ -5735,13 +5733,59 @@ int merge_firstlast(EditMesh *em, int first, int uvmerge)
 	return removedoublesflag(em, 1, 0, MERGELIMIT);
 }
 
-int merge_target(EditMesh *em, int target, int uvmerge)
+void em_snap_to_center(EditMesh *em)
+{
+	EditVert *eve;
+	float cent[3] = {0.0f, 0.0f, 0.0f};
+	int i=0;
+
+	for (eve=em->verts.first; eve; eve=eve->next) {
+		if (eve->f & SELECT) {
+			VecAddf(cent, cent, eve->co);
+			i++;
+		}
+	}
+
+	if (!i)
+		return;
+
+	VecMulf(cent, 1.0f / (float)i);
+
+	for (eve=em->verts.first; eve; eve=eve->next) {
+		if (eve->f & SELECT) {
+			VECCOPY(eve->co, cent);
+		}
+	}
+}
+
+void em_snap_to_cursor(EditMesh *em, bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob= CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	EditVert *eve;
+	float co[3], *vco, invmat[4][4];
+		
+	Mat4Invert(invmat, ob->obmat);
+
+	vco = give_cursor(scene, v3d);
+	VECCOPY(co, vco);
+	Mat4MulVecfl(invmat, co);
+
+	for (eve=em->verts.first; eve; eve=eve->next) {
+		if (eve->f & SELECT) {
+			VECCOPY(eve->co, co);
+		}
+	}
+}
+
+int merge_target(bContext *C, EditMesh *em, int target, int uvmerge)
 {
 	EditVert *eve;
 
 	// XXX not working
-	if(target) snap_sel_to_curs();
-	else snap_to_center();
+	if(target) em_snap_to_cursor(em, C);
+	else em_snap_to_center(em);
 
 	if(uvmerge && CustomData_has_layer(&em->fdata, CD_MTFACE)){
 		for(eve=em->verts.first; eve; eve=eve->next) eve->f1 = 0;
@@ -5763,10 +5807,10 @@ static int merge_exec(bContext *C, wmOperator *op)
 
 	switch(RNA_enum_get(op->ptr, "type")) {
 		case 3:
-			count = merge_target(em, 0, uvs);
+			count = merge_target(C, em, 0, uvs);
 			break;
 		case 4:
-			count = merge_target(em, 1, uvs);
+			count = merge_target(C, em, 1, uvs);
 			break;
 		case 1:
 			count = merge_firstlast(em, 0, uvs);
@@ -5774,7 +5818,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 		case 6:
 			count = merge_firstlast(em, 1, uvs);
 			break;
-		case 2:
+		case 5:
 			count = collapseEdges(em);
 			break;
 	}
