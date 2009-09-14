@@ -328,10 +328,10 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	// printf("i: %d\n", i);
 
-	if(GLEW_ARB_fragment_program)
+	 if (GL_TRUE == glewIsSupported("GL_ARB_fragment_program"))
 	{
-		glGenProgramsARB(1, &prog);
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
+		glGenProgramsARB(1, &prog);
 
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, prog);
 		glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(text), text);
@@ -342,7 +342,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		glProgramLocalParameter4fARB (GL_FRAGMENT_PROGRAM_ARB, 1, 7.0, 7.0, 7.0, 1.0);
 	}
 	else
-		printf("Your gfx card does not support 3dview smoke drawing.");
+		printf("Your gfx card does not support 3dview smoke drawing.\n");
 
 	GPU_texture_bind(tex, 0);
 	if(tex_shadow)

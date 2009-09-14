@@ -5360,7 +5360,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		{
 			if(!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
 			{
-// #if0
+// #if 0
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 0);
 				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->p0, smd->domain->p1, smd->domain->res, smd->domain->dx, smd->domain->tex_shadow);
@@ -5395,7 +5395,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 						tmp[0] += smd->domain->dx * x + smd->domain->dx * 0.5;
 						tmp[1] += smd->domain->dx * y + smd->domain->dx * 0.5;
 						tmp[2] += smd->domain->dx * z + smd->domain->dx * 0.5;
-						color[0] = color[1] = color[2] = 1.0; // density[index];
+						color[0] = color[1] = color[2] = density[index];
 						glColor3fv(color);
 						bglVertex3fv(tmp);
 					}
