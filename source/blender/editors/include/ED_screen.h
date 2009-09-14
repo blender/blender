@@ -104,7 +104,6 @@ void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 
 /* anim */
 void	ED_update_for_newframe(const struct bContext *C, int mute);
-unsigned int ED_screen_view3d_layers(struct bScreen *screen);
 
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmWindowManager *wm);

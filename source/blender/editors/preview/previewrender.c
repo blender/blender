@@ -88,7 +88,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_anim_api.h"
 #include "ED_previewrender.h"
 #include "ED_view3d.h"
 
@@ -736,7 +735,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 			
 			/* database can have created render-resol data... */
 			if(rstats->convertdone) 
-				ED_anim_dag_flush_update(C); // <--- only current scene XXX
+				DAG_scene_flush_update(scene, scene->lay, 0);
 			
 			//printf("dbase update\n");
 		}

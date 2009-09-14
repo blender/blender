@@ -33,8 +33,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -321,4 +323,23 @@ void free_screen(bScreen *sc)
 	BLI_freelistN(&sc->areabase);
 }
 
+/* for depsgraph */
+unsigned int BKE_screen_visible_layers(bScreen *screen)
+{
+	ScrArea *sa;
+	unsigned int layer= 0;
+
+	if(!screen)
+		return layer;
+
+	/* get all used view3d layers */
+	for(sa= screen->areabase.first; sa; sa= sa->next)
+		if(sa->spacetype==SPACE_VIEW3D)
+			layer |= ((View3D *)sa->spacedata.first)->lay;
+
+	if(!layer)
+		return screen->scene->lay;
+
+	return layer;
+}
 

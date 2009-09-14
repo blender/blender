@@ -78,6 +78,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -2142,30 +2143,58 @@ void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 	
 }
 
-void DAG_id_flush_update(ID *id, short flag)
+static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay)
 {
-	Main *bmain= G.main;
 	wmWindowManager *wm;
 	wmWindow *win;
-	Scene *sce;
-	Object *obt, *ob= NULL;
-	short idtype;
 
 	/* only one scene supported currently, making more scenes work
 	   correctly requires changes beyond just the dependency graph */
 
-	if((wm= bmain->wm.first)) {
-		/* if we have a windowmanager, use sce from first window */
-		for(win=wm->windows.first; win; win=win->next) {
-			sce= (win->screen)? win->screen->scene: NULL;
+	*sce= NULL;
+	*lay= 0;
 
-			if(sce)
-				break;
+	if((wm= bmain->wm.first)) {
+		/* if we have a windowmanager, look into windows */
+		for(win=wm->windows.first; win; win=win->next) {
+			if(win->screen) {
+				if(!*sce) *sce= win->screen->scene;
+				*lay |= BKE_screen_visible_layers(win->screen);
+			}
 		}
 	}
-	else
+	else {
 		/* if not, use the first sce */
-		sce= bmain->scene.first;
+		*sce= bmain->scene.first;
+		if(*sce) *lay= (*sce)->lay;
+
+		/* XXX for background mode, we should get the scen
+		   from somewhere, for the -S option, but it's in
+		   the context, how to get it here? */
+	}
+}
+
+void DAG_ids_flush_update(int time)
+{
+	Main *bmain= G.main;
+	Scene *sce;
+	unsigned int lay;
+
+	dag_current_scene_layers(bmain, &sce, &lay);
+
+	if(sce)
+		DAG_scene_flush_update(sce, lay, time);
+}
+
+void DAG_id_flush_update(ID *id, short flag)
+{
+	Main *bmain= G.main;
+	Scene *sce;
+	Object *obt, *ob= NULL;
+	short idtype;
+	unsigned int lay;
+
+	dag_current_scene_layers(bmain, &sce, &lay);
 
 	if(!id || !sce || !sce->theDag)
 		return;
@@ -2213,10 +2242,7 @@ void DAG_id_flush_update(ID *id, short flag)
 	}
 
 	/* flush to other objects that depend on this one */
-// XXX	if(G.curscreen)
-//		DAG_scene_flush_update(sce, dag_screen_view3d_layers(), 0);
-//	else
-		DAG_scene_flush_update(sce, sce->lay, 0);
+	DAG_scene_flush_update(sce, lay, 0);
 }
 
 /* recursively descends tree, each node only checked once */
@@ -2251,10 +2277,25 @@ static int parent_check_node(DagNode *node, int curtime)
 
 /* all nodes that influence this object get tagged, for calculating the exact
    position of this object at a given timeframe */
-void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
+void DAG_id_update_flags(ID *id)
 {
+	Main *bmain= G.main;
+	Scene *sce;
 	DagNode *node;
 	DagAdjList *itA;
+	Object *ob;
+	unsigned int lay;
+
+	dag_current_scene_layers(bmain, &sce, &lay);
+
+	if(!id || !sce || !sce->theDag)
+		return;
+	
+	/* objects only currently */
+	if(GS(id->name) != ID_OB)
+		return;
+	
+	ob= (Object*)id;
 	
 	/* tag nodes unchecked */
 	for(node = sce->theDag->DagNode.first; node; node= node->next) 

@@ -96,19 +96,24 @@ void	draw_all_deps(void);
 /* ********** API *************** */
 /* Note that the DAG never executes changes in Objects, only sets flags in Objects */
 
+		/* (re)-create dependency graph for scene */
 void	DAG_scene_sort(struct Scene *sce);
 
 		/* flag all objects that need recalc because they're animated */
 void	DAG_scene_update_flags(struct Scene *sce, unsigned int lay);
-		/* flag all objects that need recalc because they're animated, influencing this object only */
-void	DAG_object_update_flags(struct Scene *sce, struct Object *ob, unsigned int lay);
-
 		/* flushes all recalc flags in objects down the dependency tree */
 void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay, int time);
-		/* flushes all recalc flags for this object down the dependency tree,
-		   but not the DAG only supports objects and object data currently */
-void	DAG_id_flush_update(struct ID *id, short flag);
 
+		/* flag all IDs that need recalc because they're animated, influencing
+		   this ID only. only for objects currently */
+void	DAG_id_update_flags(struct ID *id);
+		/* flushes all recalc flags for this object down the dependency tree,
+		   but note the DAG only supports objects and object data currently */
+void	DAG_id_flush_update(struct ID *id, short flag);
+		/* when setting manual RECALC flags, call this afterwards */
+void	DAG_ids_flush_update(int time);
+
+		/* (re)-create dependency graph for armature pose */
 void	DAG_pose_sort(struct Object *ob);
 		
 #endif
