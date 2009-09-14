@@ -885,7 +885,7 @@ static int convert_poll(bContext *C)
 static int convert_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Base *basen=NULL, *basact, *basedel=NULL;
+	Base *basen=NULL, *basact=NULL, *basedel=NULL;
 	Object *ob, *ob1, *obact= CTX_data_active_object(C);
 	DerivedMesh *dm;
 	Curve *cu;

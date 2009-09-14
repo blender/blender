@@ -34,6 +34,7 @@
 #include <stdio.h>
 
 #include "DNA_ID.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -751,6 +752,7 @@ int wm_search_menu_poll(bContext *C)
 	if(CTX_wm_window(C)==NULL) return 0;
 	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_CONSOLE) return 0;  // XXX - so we can use the shortcut in the console
 	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_TEXT) return 0;  // XXX - so we can use the spacebar in the text editor
+	if(CTX_data_edit_object(C) && CTX_data_edit_object(C)->type==OB_CURVE) return 0; // XXX - so we can use the spacebar for entering text
 	return 1;
 }
 
@@ -996,11 +998,10 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX], group[GROUP_MAX];
 	int idcode;
 	BlendHandle *bh;
-	struct Main *main= CTX_data_main(C);
+	struct Main *mainvar= CTX_data_main(C);
 	struct Scene *scene= CTX_data_scene(C);
 	struct Main *mainl= 0;
 	
-	struct ScrArea *sa= CTX_wm_area(C);
 	PropertyRNA *prop;
 	int totfiles=0;
 	short flag;
@@ -1015,7 +1016,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	} else if (group[0]==0) {
 		BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
 		return OPERATOR_FINISHED;
-	} else if (BLI_streq(main->name, libname)) {
+	} else if (BLI_streq(mainvar->name, libname)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot use current file as library");
 		return OPERATOR_FINISHED;
 	}
@@ -1063,11 +1064,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	BLO_library_append_end(C, mainl, &bh, idcode, flag);
 	
 	/* DISPLISTS? */
-	recalc_all_library_objects(main);
+	recalc_all_library_objects(mainvar);
 
 	/* Append, rather than linking */
 	if ((flag & FILE_LINK)==0) {
-		make_library_local(libname, main);
+		make_library_local(libname, mainvar);
 	}
 
 	/* do we need to do this? */
