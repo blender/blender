@@ -1123,17 +1123,22 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		cache_wt = sds->point_cache[1];
 		BKE_ptcache_id_from_smoke_turbulence(&pid_wt, ob, smd);
 
+		if(!smd->domain->fluid)
+		{
+			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+			BKE_ptcache_id_reset(scene, &pid_wt, PTCACHE_RESET_OUTDATED);
+		}
+
 		if(framenr < startframe)
 			return;
 
 		if(framenr > endframe)
 			return;
 
-		if(!smd->domain->fluid)
-		{
-			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-			BKE_ptcache_id_reset(scene, &pid_wt, PTCACHE_RESET_OUTDATED);
-		}
+		if(!smd->domain->fluid && (framenr != startframe))
+			return;
+
+		// printf("startframe: %d, framenr: %d\n", startframe, framenr);
 
 		if(!smokeModifier_init(smd, ob, scene, dm))
 		{
