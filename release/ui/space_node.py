@@ -74,11 +74,10 @@ class NODE_MT_select(bpy.types.Menu):
 
 		layout.itemO("node.select_border")
 
-		# XXX
-		# layout.itemS()
-		# layout.itemO("node.select_all")
-		# layout.itemO("node.select_linked_from")
-		# layout.itemO("node.select_linked_to")
+		layout.itemS()
+		layout.itemO("node.select_all")
+		layout.itemO("node.select_linked_from")
+		layout.itemO("node.select_linked_to")
 
 class NODE_MT_node(bpy.types.Menu):
 	__space_type__ = 'NODE_EDITOR'

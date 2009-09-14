@@ -1229,26 +1229,13 @@ Material *editnode_get_active_material(Material *ma)
 
 
 /* no undo here! */
-void node_deselectall(SpaceNode *snode, int swap)
+void node_deselectall(SpaceNode *snode)
 {
 	bNode *node;
-	
-	if(swap) {
-		for(node= snode->edittree->nodes.first; node; node= node->next)
-			if(node->flag & SELECT)
-				break;
-		if(node==NULL) {
-			for(node= snode->edittree->nodes.first; node; node= node->next)
-				node->flag |= SELECT;
-			return;
-		}
-		/* else pass on to deselect */
-	}
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next)
 		node->flag &= ~SELECT;
 }
-
 
 int node_has_hidden_sockets(bNode *node)
 {
@@ -1606,7 +1593,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 {
 	bNode *node= NULL, *gnode;
 	
-	node_deselectall(snode, 0);
+	node_deselectall(snode);
 	
 	if(type>=NODE_DYNAMIC_MENU) {
 		node= nodeAddNodeType(snode->edittree, type, NULL, NULL);
@@ -2091,32 +2078,6 @@ void node_insert_key(SpaceNode *snode)
 	}
 }
 
-void node_select_linked(SpaceNode *snode, int out)
-{
-	bNodeLink *link;
-	bNode *node;
-	
-	/* NODE_TEST is the free flag */
-	for(node= snode->edittree->nodes.first; node; node= node->next)
-		node->flag &= ~NODE_TEST;
-
-	for(link= snode->edittree->links.first; link; link= link->next) {
-		if(out) {
-			if(link->fromnode->flag & NODE_SELECT)
-				link->tonode->flag |= NODE_TEST;
-		}
-		else {
-			if(link->tonode->flag & NODE_SELECT)
-				link->fromnode->flag |= NODE_TEST;
-		}
-	}
-	
-	for(node= snode->edittree->nodes.first; node; node= node->next)
-		if(node->flag & NODE_TEST)
-			node->flag |= NODE_SELECT;
-	
-}
-
 /* makes a link between selected output and input sockets */
 void node_make_link(SpaceNode *snode)
 {
@@ -2450,9 +2411,6 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(G.qual==LR_SHIFTKEY) {
 				if(fromlib) fromlib= -1;
 				else toolbox_n_add();
-			}
-			else if(G.qual==0) {
-				node_deselectall(snode, 1);
 			}
 			break;
 		case BKEY:

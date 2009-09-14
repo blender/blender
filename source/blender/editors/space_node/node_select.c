@@ -83,7 +83,7 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 	}
 	if(node) {
 		if((extend & KM_SHIFT)==0)
-			node_deselectall(snode, 0);
+			node_deselectall(snode);
 		
 		if(extend & KM_SHIFT) {
 			if(node->flag & SELECT)
@@ -291,3 +291,121 @@ void NODE_OT_select_border(wmOperatorType *ot)
 
 	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
+
+/* ****** Select/Deselect All ****** */
+
+static int node_select_all_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNode *first = snode->edittree->nodes.first;
+	bNode *node;
+	int count= 0;
+
+	for(node=first; node; node=node->next)
+		if(node->flag & NODE_SELECT)
+			count++;
+
+	if(count) {
+		for(node=first; node; node=node->next)
+			node->flag &= ~NODE_SELECT;
+	}
+	else {
+		for(node=first; node; node=node->next)
+			node->flag |= NODE_SELECT;
+	}
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select/Deselect All";
+	ot->description = "(De)select all nodes.";
+	ot->idname = "NODE_OT_select_all";
+	
+	/* api callbacks */
+	ot->exec = node_select_all_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****** Select Linked To ****** */
+
+static int node_select_linked_to_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeLink *link;
+	bNode *node;
+	
+	for (node=snode->edittree->nodes.first; node; node=node->next)
+		node->flag &= ~NODE_TEST;
+
+	for (link=snode->edittree->links.first; link; link=link->next)
+		if (link->fromnode->flag & NODE_SELECT)
+			link->tonode->flag |= NODE_TEST;
+	
+	for (node=snode->edittree->nodes.first; node; node=node->next)
+		if (node->flag & NODE_TEST)
+			node->flag |= NODE_SELECT;
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_linked_to(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Linked To";
+	ot->description = "Select nodes linked to the selected ones.";
+	ot->idname = "NODE_OT_select_linked_to";
+	
+	/* api callbacks */
+	ot->exec = node_select_linked_to_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****** Select Linked From ****** */
+
+static int node_select_linked_from_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeLink *link;
+	bNode *node;
+	
+	for(node=snode->edittree->nodes.first; node; node=node->next)
+		node->flag &= ~NODE_TEST;
+
+	for(link=snode->edittree->links.first; link; link=link->next)
+		if(link->tonode->flag & NODE_SELECT)
+			link->fromnode->flag |= NODE_TEST;
+	
+	for(node=snode->edittree->nodes.first; node; node=node->next)
+		if(node->flag & NODE_TEST)
+			node->flag |= NODE_SELECT;
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_linked_from(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Linked From";
+	ot->description = "Select nodes linked from the selected ones.";
+	ot->idname = "NODE_OT_select_linked_from";
+	
+	/* api callbacks */
+	ot->exec = node_select_linked_from_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
