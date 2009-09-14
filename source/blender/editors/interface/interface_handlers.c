@@ -292,8 +292,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 	uiAfterFunc *after;
 	char *str= NULL;
 
-	if ELEM6(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX);
-	else {
+	if(but->flag & UI_BUT_UNDO) {
 		/* define which string to use for undo */
 		if ELEM(but->type, LINK, INLINK) str= "Add button link";
 		else if ELEM(but->type, MENU, ICONTEXTROW) str= but->drawstr;

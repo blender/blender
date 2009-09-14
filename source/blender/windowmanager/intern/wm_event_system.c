@@ -715,7 +715,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
-		if(ISKEYBOARD(winevent->type)) return 1;
+		if(ISKEYBOARD(winevent->type) && winevent->ascii) return 1;
 	if(kmitype!=KM_ANY)
 		if(winevent->type!=kmitype) return 0;
 	

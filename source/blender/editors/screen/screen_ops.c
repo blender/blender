@@ -605,7 +605,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case LEFTMOUSE: /* release LMB */
 			if(event->val==0) {
-				if(sad->sa1 == sad->sa2) {
+				if(!sad->sa2 || sad->sa1 == sad->sa2) {
 
 					return area_swap_cancel(C, op);
 				}

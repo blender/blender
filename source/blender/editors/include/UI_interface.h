@@ -146,6 +146,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_DRIVEN		(1<<22)
 #define UI_BUT_INACTIVE		(1<<23)
 #define UI_BUT_LAST_ACTIVE	(1<<24)
+#define UI_BUT_UNDO			(1<<25)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
