@@ -223,7 +223,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 					"MUL temp.b, temp.b, shadow.r;\n"
 					"MOV result.color, temp;\n"
 					"END\n";
-	unsigned int prog;
+	GLuint prog;
 
 	
 	float size[3];
@@ -328,7 +328,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	// printf("i: %d\n", i);
 
-	 if (GL_TRUE == glewIsSupported("GL_ARB_fragment_program"))
+	if (GL_TRUE == glewIsSupported("GL_ARB_fragment_program"))
 	{
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		glGenProgramsARB(1, &prog);
