@@ -431,6 +431,7 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "ambr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Ambient Color", "");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	/* exp, range */
 	prop= RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_NONE);

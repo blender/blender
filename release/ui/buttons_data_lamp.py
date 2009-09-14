@@ -75,7 +75,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		col.itemR(lamp, "diffuse")	
 
 class DATA_PT_sunsky(DataButtonsPanel):
-	__label__ = "Sun/Sky"
+	__label__ = "Sky & Atmosphere"
 	
 	def poll(self, context):
 		lamp = context.lamp
@@ -86,9 +86,8 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		
 		lamp = context.lamp.sky
 
-		row = layout.row()
-		row.itemR(lamp, "sky")
-		row.itemR(lamp, "atmosphere")
+		layout.itemR(lamp, "sky")
+		
 		
 		row = layout.row()
 		row.active = lamp.sky or lamp.atmosphere
@@ -98,38 +97,39 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		
 		col = split.column()
 		col.active = lamp.sky
-		col.itemL(text="Blend Mode:")
-		sub = col.column(align=True)
+		col.itemL(text="Blending:")
+		sub = col.column()
 		sub.itemR(lamp, "sky_blend_type", text="")
 		sub.itemR(lamp, "sky_blend", text="Factor")
 		
 		col.itemL(text="Color Space:")
-		sub = col.column(align=True)
-		sub.itemR(lamp, "sky_color_space", text="")
+		sub = col.column()
+		sub.row().itemR(lamp, "sky_color_space", expand=True)
 		sub.itemR(lamp, "sky_exposure", text="Exposure")
 			
 		col = split.column()
 		col.active = lamp.sky
 		col.itemL(text="Horizon:")
-		sub = col.column(align=True)
+		sub = col.column()
 		sub.itemR(lamp, "horizon_brightness", text="Brightness")
 		sub.itemR(lamp, "spread", text="Spread")
 		
 		col.itemL(text="Sun:")
-		sub = col.column(align=True)
+		sub = col.column()
 		sub.itemR(lamp, "sun_brightness", text="Brightness")
 		sub.itemR(lamp, "sun_size", text="Size")
 		sub.itemR(lamp, "backscattered_light", slider=True,text="Back Light")
 		
 		layout.itemS()
 		
+		layout.itemR(lamp, "atmosphere")
+		
 		split = layout.split()
 		
 		col = split.column()
 		col.active = lamp.atmosphere
-		col.itemL(text="Sun:")
-		col.itemR(lamp, "sun_intensity", text="Intensity")
-		col.itemL(text="Scale Distance:")
+		col.itemL(text="Intensity:")
+		col.itemR(lamp, "sun_intensity", text="Sun")
 		col.itemR(lamp, "atmosphere_distance_factor", text="Distance")
 			
 		col = split.column()

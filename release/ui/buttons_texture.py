@@ -381,7 +381,10 @@ class TEXTURE_PT_blend(TextureTypePanel):
 		tex = context.texture
 
 		layout.itemR(tex, "progression")
-		layout.itemR(tex, "flip_axis")
+		sub = layout.row()
+
+		sub.active = (tex.progression in ('LINEAR', 'QUADRATIC', 'EASING', 'RADIAL'))
+		sub.itemR(tex, "flip_axis", expand=True)
 			
 class TEXTURE_PT_stucci(TextureTypePanel):
 	__label__ = "Stucci"

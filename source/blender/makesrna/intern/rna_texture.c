@@ -835,6 +835,11 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 		{TEX_RAD, "RADIAL", 0, "Radial", "Creates a radial progression"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static const EnumPropertyItem prop_flip_axis_items[]= {
+		{0, "HORIZONTAL", 0, "Horizontal", "Flips the texture's X and Y axis"},
+		{TEX_FLIPBLEND, "VERTICAL", 0, "Vertical", "Flips the texture's X and Y axis"},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "BlendTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Blend Texture", "Procedural color blending texture.");
 	RNA_def_struct_sdna(srna, "Tex");
@@ -845,10 +850,12 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Progression", "Sets the style of the color blending");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "flip_axis", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_FLIPBLEND);
+	prop= RNA_def_property(srna, "flip_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_flip_axis_items);
 	RNA_def_property_ui_text(prop, "Flip Axis", "Flips the texture's X and Y axis");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
 }
 
 static void rna_def_texture_stucci(BlenderRNA *brna)

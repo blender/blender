@@ -431,7 +431,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	prop= RNA_def_property(srna, "shadow_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "shdwr");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Shadow Color", "Color of shadows casted by the lamp.");
+	RNA_def_property_ui_text(prop, "Shadow Color", "Color of shadows cast by the lamp.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
 	prop= RNA_def_property(srna, "only_shadow", PROP_BOOLEAN, PROP_NONE);
