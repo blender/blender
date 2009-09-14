@@ -294,7 +294,7 @@ GHOST_WindowX11(
 	}
 	
 	// Create some hints for the window manager on how
-	// we want this window treated.	
+	// we want this window treated.
 
 	XSizeHints * xsizehints = XAllocSizeHints();
 	xsizehints->flags = USPosition | USSize;
@@ -514,7 +514,7 @@ GHOST_WindowX11::
 getXWindow(
 ){
 	return m_window;
-}	
+}
 
 	bool 
 GHOST_WindowX11::
@@ -528,7 +528,17 @@ GHOST_WindowX11::
 setTitle(
 	const STR_String& title
 ){
+	Atom name = XInternAtom(m_display, "_NET_WM_NAME", 0);
+	Atom utf8str = XInternAtom(m_display, "UTF8_STRING", 0);
+	XChangeProperty(m_display, m_window,
+	                name, utf8str, 8, PropModeReplace,
+	                (const unsigned char*) title.ReadPtr(),
+	                strlen(title.ReadPtr()));
+
+// This should convert to valid x11 string
+//  and getTitle would need matching change
 	XStoreName(m_display,m_window,title);
+
 	XFlush(m_display);
 }
 
