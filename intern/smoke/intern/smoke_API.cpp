@@ -81,8 +81,7 @@ extern "C" void smoke_step(FLUID_3D *fluid, size_t framenr)
 
 extern "C" void smoke_turbulence_step(WTURBULENCE *wt, FLUID_3D *fluid)
 {
-	if(wt) 
-		wt->stepTurbulenceFull(fluid->_dt/fluid->_dx, fluid->_xVelocity, fluid->_yVelocity, fluid->_zVelocity, fluid->_obstacles); 
+	wt->stepTurbulenceFull(fluid->_dt/fluid->_dx, fluid->_xVelocity, fluid->_yVelocity, fluid->_zVelocity, fluid->_obstacles); 
 }
 
 extern "C" void smoke_initBlenderRNA(FLUID_3D *fluid, float *alpha, float *beta)

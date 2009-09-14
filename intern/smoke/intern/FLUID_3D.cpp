@@ -182,6 +182,9 @@ void FLUID_3D::initBlenderRNA(float *alpha, float *beta)
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::step()
 {
+	// addSmokeTestCase(_density, _res);
+	// addSmokeTestCase(_heat, _res);
+	
 	// wipe forces
 	for (int i = 0; i < _totalCells; i++)
 	{

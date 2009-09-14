@@ -44,8 +44,8 @@ void FLUID_3D::addSmokeColumn() {
 // generic static version, so that it can be applied to the
 // WTURBULENCE grid as well
 //////////////////////////////////////////////////////////////////////
-/*
-void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res, float value)
+
+void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res)
 {
 	const int slabSize = res[0]*res[1]; int maxRes = (int)MAX3V(res);
 	float dx = 1.0f / (float)maxRes;
@@ -57,22 +57,22 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res, float value)
   float heighMin = 0.05;
   float heighMax = 0.10;
 
-  for (int y = 0; y < res[1]; y++)
-    for (int z = (int)(heighMin*res[2]); z <= (int)(heighMax * res[1]); z++)
+  for (int y = 0; y < res[2]; y++)
+    for (int z = (int)(heighMin*res[2]); z <= (int)(heighMax * res[2]); z++)
       for (int x = 0; x < res[0]; x++)
       {
         float xLength = x * dx - xTotal * 0.4f;
-        float yLength = y * dx - zTotal * 0.5f;
+        float yLength = y * dx - yTotal * 0.5f;
         float radius = sqrtf(xLength * xLength + yLength * yLength);
 
         if (radius < 0.075f * xTotal)
         {
           int index = x + y * res[0] + z * slabSize;
-          field[index] = value;
+          field[index] = 1.0f;
         }
       }
 }
-*/
+
 
 //////////////////////////////////////////////////////////////////////
 // set x direction to Neumann boundary conditions
@@ -295,12 +295,10 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 	const int xres = res[0];
 	const int yres = res[1];
 	const int zres = res[2];
-	static int hits = 0;
-	static int total = 0;
 	const int slabSize = res[0] * res[1];
 
 	// scale dt up to grid resolution
-#if PARALLEL==1 && !_WIN32
+#if PARALLEL==1
 #pragma omp parallel
 #pragma omp for  schedule(static)
 #endif

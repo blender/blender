@@ -47,7 +47,7 @@ class FLUID_3D
 		void initVectorNoise(int amplify);
 
 		void addSmokeColumn();
-		static void addSmokeTestCase(float* field, Vec3Int res, float value);
+		static void addSmokeTestCase(float* field, Vec3Int res);
 
 		void step();
 		void addObstacle(OBSTACLE* obstacle);
