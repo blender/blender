@@ -1179,6 +1179,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		// simulate the actual smoke (c++ code in intern/smoke)
 		if(framenr!=startframe)
 			smoke_step(sds->fluid, smd->time);
+
+		// create shadows before writing cache so we get nice shadows for sstartframe, too
+		if(get_lamp(scene, light))
+			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
+	
 		BKE_ptcache_write_cache(&pid, framenr);
 
 		if(sds->wt)
@@ -1191,9 +1196,6 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			BKE_ptcache_write_cache(&pid_wt, framenr);
 		}
 
-		if(get_lamp(scene, light))
-			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
-		
 		tend();
 		printf ( "Frame: %d, Time: %f\n", (int)smd->time, ( float ) tval() );
 	}
