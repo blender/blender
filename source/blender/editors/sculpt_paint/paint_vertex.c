@@ -710,7 +710,9 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	
 	if(totface+4>=MAXINDEX) return 0;
 	
-	if(size>64.0) size= 64.0;
+	/* brecht: disabled this because it obviously failes for
+	   brushes with size > 64, why is this here? */
+	/*if(size>64.0) size= 64.0;*/
 	
 	ibuf= view3d_read_backbuf(vc, x-size, y-size, x+size, y+size);
 	if(ibuf) {
@@ -1732,6 +1734,10 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	}
 						
 	Mat4SwapMat4(vc->rv3d->persmat, mat);
+
+	/* was disabled because it is slow, but necessary for blur */
+	if(vp->mode == VP_BLUR)
+		do_shared_vertexcol(me);
 			
 	ED_region_tag_redraw(vc->ar);
 			

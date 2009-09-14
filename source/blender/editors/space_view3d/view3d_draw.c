@@ -1416,12 +1416,9 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	
-//	glaDefine2DArea(&ar->winrct);
+	/* need to use wm push/pop matrix because ED_region_pixelspace
+	   uses the wm functions too, otherwise gets out of sync */
+	wmPushMatrix();
 	ED_region_pixelspace(ar);
 	
 	glEnable(GL_BLEND);
@@ -1433,10 +1430,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	glPixelZoom(1.0, 1.0);
 	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 	
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	wmPopMatrix();
 	
 	glDisable(GL_BLEND);
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
