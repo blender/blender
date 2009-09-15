@@ -458,6 +458,62 @@ static int rna_IntProperty_default_get(PointerRNA *ptr)
 	rna_idproperty_check(&prop, ptr);
 	return ((IntPropertyRNA*)prop)->defaultvalue;
 }
+/* int/float/bool */
+static int rna_NumberProperty_default_array_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+
+	length[0]= prop->totarraylength;
+
+	return length[0];
+}
+static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	IntPropertyRNA *nprop= (IntPropertyRNA*)prop;
+	rna_idproperty_check(&prop, ptr);
+
+	if(nprop->defaultarray) {
+		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(int));
+	}
+	else {
+		int i;
+		for(i=0; i < prop->totarraylength; i++)
+			values[i]= nprop->defaultvalue;
+	}
+}
+static void rna_BoolProperty_default_array_get(PointerRNA *ptr, int *values)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	BooleanPropertyRNA *nprop= (BooleanPropertyRNA*)prop;
+	rna_idproperty_check(&prop, ptr);
+
+	if(nprop->defaultarray) {
+		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(int));
+	}
+	else {
+		int i;
+		for(i=0; i < prop->totarraylength; i++)
+			values[i]= nprop->defaultvalue;
+	}
+}
+static void rna_FloatProperty_default_array_get(PointerRNA *ptr, float *values)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	FloatPropertyRNA *nprop= (FloatPropertyRNA*)prop;
+	rna_idproperty_check(&prop, ptr);
+
+	if(nprop->defaultarray) {
+		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(float));
+	}
+	else {
+		int i;
+		for(i=0; i < prop->totarraylength; i++)
+			values[i]= nprop->defaultvalue;
+	}
+}
+
 static int rna_IntProperty_hard_min_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -932,13 +988,27 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 	}
 
 
-#if 0 // XXX - Variable length arrays
 	prop= RNA_def_property(srna, "default_array", type, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_default_array_get", NULL, NULL);
-	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_default_array_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Default", "Default value for this number");
-#endif
+	RNA_def_property_array(prop, RNA_MAX_ARRAY_DIMENSION); /* no fixed default length, important its not 0 though */
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_NumberProperty_default_array_get_length"); /* same for all types */
+
+	switch(type) {
+		case PROP_BOOLEAN:
+			RNA_def_property_boolean_funcs(prop, "rna_BoolProperty_default_array_get", NULL);
+			break;
+		case PROP_INT:
+			RNA_def_property_int_funcs(prop, "rna_IntProperty_default_array_get", NULL, NULL);
+			break;
+		case PROP_FLOAT:
+			RNA_def_property_float_funcs(prop, "rna_FloatProperty_default_array_get", NULL, NULL);
+			break;
+		default:
+			break;
+	}
+	RNA_def_property_ui_text(prop, "Default Array", "Default value for this array");
+
 
 	prop= RNA_def_property(srna, "array_length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

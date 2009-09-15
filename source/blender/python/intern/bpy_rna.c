@@ -349,9 +349,8 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(ptr, prop);
 
-	if (len > 0) {
+	if (RNA_property_array_check(ptr, prop)) {
 		return pyrna_py_from_array(ptr, prop);
 	}
 	
@@ -521,9 +520,10 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 {
 	/* XXX hard limits should be checked here */
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(ptr, prop);
 	
-	if (len > 0) {
+
+	if (RNA_property_array_check(ptr, prop)) {
+
 		/* char error_str[512]; */
 		int ok= 1;
 
@@ -819,13 +819,11 @@ static Py_ssize_t pyrna_prop_len( BPy_PropertyRNA * self )
 	
 	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
 		len = RNA_property_collection_length(&self->ptr, self->prop);
-	} else {
+	} else if (RNA_property_array_check(&self->ptr, self->prop)) {
 		len = pyrna_prop_array_length(self);
-		
-		if (len==0) { /* not an array*/
-			PyErr_SetString(PyExc_AttributeError, "len() only available for collection and array RNA types");
-			return -1;
-		}
+	} else {
+		PyErr_SetString(PyExc_AttributeError, "len() only available for collection and array RNA types");
+		len = -1; /* error value */
 	}
 	
 	return len;
@@ -979,7 +977,7 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
 {
 	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
 		return prop_subscript_collection(self, key);
-	} else if (RNA_property_array_length(&self->ptr, self->prop)) { /* zero length means its not an array */
+	} else if (RNA_property_array_check(&self->ptr, self->prop)) {
 		return prop_subscript_array(self, key);
 	} 
 
@@ -1681,32 +1679,31 @@ static  PyObject *pyrna_prop_foreach_set(BPy_PropertyRNA *self, PyObject *args)
 PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 {
 	/* Try get values from a collection */
-	PyObject *ret = pyrna_prop_values(self);
+	PyObject *ret;
 	
-	if (ret==NULL) {
-		/* collection did not work, try array */
+	if(RNA_property_array_check(&self->ptr, self->prop)) {
 		int len = pyrna_prop_array_length(self);
+		int i;
+		PyErr_Clear();
+		ret = PyList_New(len);
 		
-		if (len) {
-			int i;
-			PyErr_Clear();
-			ret = PyList_New(len);
-			
-			for (i=0; i < len; i++) {
-				PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(self, i));
-			}
+		for (i=0; i < len; i++) {
+			PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(self, i));
 		}
 	}
-	
-	if (ret) {
-		/* we know this is a list so no need to PyIter_Check */
-		PyObject *iter = PyObject_GetIter(ret); 
-		Py_DECREF(ret);
-		return iter;
+	else if (ret = pyrna_prop_values(self)) {
+		/* do nothing */
+	}
+	else {
+		PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not iterable" );
+		return NULL;
 	}
 	
-	PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not iterable" );
-	return NULL;
+	
+	/* we know this is a list so no need to PyIter_Check */
+	PyObject *iter = PyObject_GetIter(ret);
+	Py_DECREF(ret);
+	return iter;
 }
 
 static struct PyMethodDef pyrna_struct_methods[] = {
@@ -1776,11 +1773,12 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 {
 	PyObject *ret;
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(ptr, prop);
 
 	int a;
 
-	if(len > 0) {
+	if(RNA_property_array_check(ptr, prop)) {
+		int len = RNA_property_array_length(ptr, prop);
+
 		/* resolve the array from a new pytype */
 		ret = PyTuple_New(len);
 

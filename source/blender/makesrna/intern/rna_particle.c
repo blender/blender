@@ -254,7 +254,7 @@ static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
 }
 static void rna_Particle_hair_dynamics(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
+	/* Scene *scene = CTX_data_scene(C); */
 	ParticleSystem *psys = (ParticleSystem*)ptr->data;
 	
 	if(psys && !psys->clmd) {

@@ -225,6 +225,18 @@ static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 	}
 }
 
+static int rna_ensure_property_array_check(PointerRNA *ptr, PropertyRNA *prop)
+{
+	if(prop->magic == RNA_MAGIC) {
+		return (prop->getlength || prop->totarraylength) ? 1:0;
+	}
+	else {
+		IDProperty *idprop= (IDProperty*)prop;
+
+		return idprop->type == IDP_ARRAY ? 1:0;
+	}
+}
+
 static void rna_ensure_property_multi_array_length(PointerRNA *ptr, PropertyRNA *prop, int length[])
 {
 	if(prop->magic == RNA_MAGIC) {
@@ -572,6 +584,11 @@ int RNA_property_flag(PropertyRNA *prop)
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
 	return rna_ensure_property_array_length(ptr, prop);
+}
+
+int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop)
+{
+	return rna_ensure_property_array_check(ptr, prop);
 }
 
 /* used by BPY to make an array from the python object */
