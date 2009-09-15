@@ -1,5 +1,5 @@
 import sys, os
-import http, http.client, http.server, urllib
+import http, http.client, http.server, urllib, socket
 import subprocess, shutil, time, hashlib
 
 from netrender.utils import *
@@ -529,7 +529,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				job_frame = int(self.headers['job-frame'])
 				
 				buf = self.rfile.read(length)
-				f = open(job.save_path + "%04d" % job_frame + ".log", 'wb')
+				f = open(job.save_path + "%04d" % job_frame + ".log", 'ab')
 				f.write(buf)
 				f.close()
 					
@@ -613,3 +613,23 @@ class RenderMasterServer(http.server.HTTPServer):
 					return job, job.getFrames()
 		
 		return None, None
+
+def runMaster(address, broadcast, path, update_stats, test_break):
+		httpd = RenderMasterServer(address, RenderHandler, path)
+		httpd.timeout = 1
+		httpd.stats = update_stats
+		
+		if broadcast:
+			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+			s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+			start_time = time.time()
+			
+		while not test_break():
+			httpd.handle_request()
+			
+			if broadcast:
+				if time.time() - start_time >= 10: # need constant here
+					print("broadcasting address")
+					s.sendto(bytes("%s:%i" % address, encoding='utf8'), 0, ('<broadcast>',address[1]))
+					start_time = time.time()

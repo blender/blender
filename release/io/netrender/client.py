@@ -138,12 +138,12 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			print("UNKNOWN OPERATION MODE")
 	
 	def render_master(self, scene):
-		server_address = (scene.network_render.server_address, scene.network_render.server_port)
-		httpd = master.RenderMasterServer(server_address, master.RenderHandler, scene.network_render.path)
-		httpd.timeout = 1
-		httpd.stats = self.update_stats
-		while not self.test_break():
-			httpd.handle_request()
+		netsettings = scene.network_render
+		
+		address = "" if netsettings.server_address == "[default]" else netsettings.server_address
+		
+		master.runMaster((address, netsettings.server_port), netsettings.server_broadcast, netsettings.path, self.update_stats, self.test_break)
+
 
 	def render_slave(self, scene):
 		slave.render_slave(self, scene)
@@ -151,6 +151,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 	def render_client(self, scene):
 		netsettings = scene.network_render
 		self.update_stats("", "Network render client initiation")
+		
 		
 		conn = clientConnection(scene)
 		

@@ -1,6 +1,6 @@
 import bpy
 import sys, os
-import http, http.client, http.server, urllib
+import http, http.client, http.server, urllib, socket
 
 from netrender.utils import *
 import netrender.client as client
@@ -312,6 +312,43 @@ class netclientdownload(bpy.types.Operator):
 				f.close()
 			
 			conn.close()
+		
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		return self.execute(context)
+
+@rnaOperator
+class netclientscan(bpy.types.Operator):
+	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	__idname__ = "render.netclientscan"
+	__label__ = "Net Render Client Scan"
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = []
+	
+	def poll(self, context):
+		return True
+		
+	def execute(self, context):
+		netsettings = context.scene.network_render
+		
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		s.settimeout(30)
+
+		s.bind(('', netsettings.server_port))
+		
+		try:
+			buf, address = s.recvfrom(128)
+			
+			print("received:", buf)
+			
+			netsettings.server_address = address[0]
+		except socket.timeout:
+			print("no server info")
 		
 		return ('FINISHED',)
 	

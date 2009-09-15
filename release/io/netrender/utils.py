@@ -22,9 +22,12 @@ def rnaOperator(rna_op):
 	return rna_op
 
 def clientConnection(scene):
-		netrender = scene.network_render
+		netsettings = scene.network_render
 		
-		conn = http.client.HTTPConnection(netrender.server_address, netrender.server_port)
+		if netsettings.server_address == "[default]":
+			bpy.ops.render.netclientscan()
+		
+		conn = http.client.HTTPConnection(netsettings.server_address, netsettings.server_port)
 		
 		if clientVerifyVersion(conn):
 			return conn

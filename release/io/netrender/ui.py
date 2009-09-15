@@ -48,17 +48,24 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 		
 		col = split.column()
 		
-		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animaton on network")
+		if scene.network_render.mode == "RENDER_CLIENT":
+			col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animaton on network")
+			
 		col.itemR(scene.network_render, "mode")
+		col.itemR(scene.network_render, "path")
 		col.itemR(scene.network_render, "server_address")
 		col.itemR(scene.network_render, "server_port")
-		col.itemR(scene.network_render, "path")
+		
+		if scene.network_render.mode == "RENDER_MASTER":
+			col.itemR(scene.network_render, "server_broadcast")
+		else:
+			col.itemO("render.netclientscan", icon="ICON_FILE_REFRESH", text="")
 		
 		if scene.network_render.mode == "RENDER_CLIENT":
-			col.itemR(scene.network_render, "chunks")
-			col.itemR(scene.network_render, "priority")
-			col.itemR(scene.network_render, "job_name")
 			col.itemO("render.netclientsend", text="send job to server")
+			col.itemR(scene.network_render, "job_name")
+			col.itemR(scene.network_render, "priority")
+			col.itemR(scene.network_render, "chunks")
 
 @rnaType
 class SCENE_PT_network_slaves(RenderButtonsPanel):
@@ -192,7 +199,7 @@ NetRenderSettings.StringProperty( attr="server_address",
 				name="Server address",
 				description="IP or name of the master render server",
 				maxlen = 128,
-				default = "127.0.0.1")
+				default = "[default]")
 
 NetRenderSettings.IntProperty( attr="server_port",
 				name="Server port",
@@ -200,6 +207,11 @@ NetRenderSettings.IntProperty( attr="server_port",
 				default = 8000,
 				min=1,
 				max=65535)
+
+NetRenderSettings.BoolProperty( attr="server_broadcast",
+				name="Broadcast server address",
+				description="broadcast server address on local network",
+				default = True)
 
 NetRenderSettings.StringProperty( attr="path",
 				name="Path",

@@ -105,6 +105,8 @@ def render_slave(engine, scene):
 				
 				process = subprocess.Popen([sys.argv[0], "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)	
 				
+				headers = {"job-id":job.id, "slave-id":slave_id}
+				
 				cancelled = False
 				stdout = bytes()
 				run_t = time.time()
@@ -113,10 +115,18 @@ def render_slave(engine, scene):
 					current_t = time.time()
 					cancelled = engine.test_break()
 					if current_t - run_t > CANCEL_POLL_SPEED:
+						
+						# update logs. Eventually, it should support one log file for many frames
+						for frame in job.frames:
+							headers["job-frame"] = str(frame.number)
+							conn.request("PUT", "log", stdout, headers=headers)
+							response = conn.getresponse()
+						
+						stdout = bytes()
+						
+						run_t = current_t
 						if testCancel(conn, job.id):
 							cancelled = True
-						else:
-							run_t = current_t
 				
 				if cancelled:
 					# kill process if needed
@@ -131,6 +141,13 @@ def render_slave(engine, scene):
 				status = process.returncode
 				
 				print("status", status)
+				
+				# flush the rest of the logs
+				if stdout:
+					for frame in job.frames:
+						headers["job-frame"] = str(frame.number)
+						conn.request("PUT", "log", stdout, headers=headers)
+						response = conn.getresponse()
 				
 				headers = {"job-id":job.id, "slave-id":slave_id, "job-time":str(avg_t)}
 				
@@ -150,12 +167,6 @@ def render_slave(engine, scene):
 						# send error result back to server
 						conn.request("PUT", "render", headers=headers)
 						response = conn.getresponse()
-				
-				for frame in job.frames:
-					headers["job-frame"] = str(frame.number)
-					# send log in any case
-					conn.request("PUT", "log", stdout, headers=headers)
-					response = conn.getresponse()
 			else:
 				if timeout < MAX_TIMEOUT:
 					timeout += INCREMENT_TIMEOUT
