@@ -98,11 +98,10 @@ class NODE_MT_node(bpy.types.Menu):
 		# XXX
 		# layout.itemS()
 		# layout.itemO("node.make_link")
-		# layout.itemS()
-		# layout.itemO("node.edit_group")
-		# layout.itemO("node.ungroup")
-		# layout.itemO("node.group")
-		# layout.itemO("node.make_link")
+		layout.itemS()
+		layout.itemO("node.group_edit")
+		layout.itemO("node.group_ungroup")
+		layout.itemO("node.group_make")
 
 		layout.itemS()
 

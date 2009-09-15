@@ -62,6 +62,9 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_resize);
 	WM_operatortype_append(NODE_OT_links_cut);
 	WM_operatortype_append(NODE_OT_duplicate);
+	WM_operatortype_append(NODE_OT_group_make);
+	WM_operatortype_append(NODE_OT_group_ungroup);
+	WM_operatortype_append(NODE_OT_group_edit);
 }
 
 void node_keymap(struct wmWindowManager *wm)
@@ -88,6 +91,10 @@ void node_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "NODE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_linked_to", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_linked_from", LKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "NODE_OT_group_make", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
 	
 	transform_keymap_for_space(wm, keymap, SPACE_NODE);
 }

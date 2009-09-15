@@ -58,6 +58,7 @@
 #include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
@@ -84,6 +85,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
 #include "UI_view2d.h"
  
 #include "node_intern.h"
@@ -327,12 +329,12 @@ static void set_node_imagepath(char *str)	/* called from fileselect */
 
 #endif /* 0 */
 
-bNode *snode_get_editgroup(SpaceNode *snode)
+bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 {
 	bNode *gnode;
 	
 	/* get the groupnode */
-	for(gnode= snode->nodetree->nodes.first; gnode; gnode= gnode->next)
+	for(gnode= nodetree->nodes.first; gnode; gnode= gnode->next)
 		if(gnode->flag & NODE_GROUP_EDIT)
 			break;
 	return gnode;
@@ -441,7 +443,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 				}
 				else {
-					node= snode_get_editgroup(snode);
+					node= node_tree_get_editgroup(snode->nodetree);
 					if(node)
 						NodeTagIDChanged(snode->nodetree, node->id);
 					
@@ -722,7 +724,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 					NodeTagChanged(snode->edittree, node);
 					
 					/* if inside group, tag entire group */
-					gnode= snode_get_editgroup(snode);
+					gnode= node_tree_get_editgroup(snode->nodetree);
 					if(gnode)
 						NodeTagIDChanged(snode->nodetree, gnode->id);
 					
@@ -753,6 +755,8 @@ void node_set_active(SpaceNode *snode, bNode *node)
 	#endif /* 0 */
 }
 
+/* ***************** Edit Group operator ************* */
+
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 {
 	bNode *node;
@@ -768,12 +772,9 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	}
 	
 	if(gnode && gnode->type==NODE_GROUP && gnode->id) {
-		if(gnode->id->lib) {
-			// XXX if(okee("Make Group Local"))
-			//	ntreeMakeLocal((bNodeTree *)gnode->id);
-			// else
-				return;
-		}
+		if(gnode->id->lib)
+			ntreeMakeLocal((bNodeTree *)gnode->id);
+
 		gnode->flag |= NODE_GROUP_EDIT;
 		snode->edittree= (bNodeTree *)gnode->id;
 		
@@ -794,43 +795,102 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 		
 		// XXX BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
 	}
-	
-	// allqueue(REDRAWNODE, 0);
 }
 
-#if 0
-
-void node_ungroup(SpaceNode *snode)
+static int node_group_edit_exec(bContext *C, wmOperator *op)
 {
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNode *gnode;
+
+	gnode= nodeGetActive(snode->edittree);
+	snode_make_group_editable(snode, gnode);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+static int node_group_edit_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNode *gnode;
+
+	gnode= nodeGetActive(snode->edittree);
+	if(gnode && gnode->type==NODE_GROUP && gnode->id && gnode->id->lib) {
+		uiPupMenuOkee(C, op->type->idname, "Make group local?");
+		return OPERATOR_CANCELLED;
+	}
+
+	return node_group_edit_exec(C, op);
+}
+
+void NODE_OT_group_edit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Edit Group";
+	ot->description = "Edit node group.";
+	ot->idname = "NODE_OT_group_edit";
+	
+	/* api callbacks */
+	ot->invoke = node_group_edit_invoke;
+	ot->exec = node_group_edit_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Ungroup operator ********************** */
+
+static int node_group_ungroup_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *gnode;
 
 	/* are we inside of a group? */
-	gnode= snode_get_editgroup(snode);
+	gnode= node_tree_get_editgroup(snode->nodetree);
 	if(gnode)
 		snode_make_group_editable(snode, NULL);
 	
 	gnode= nodeGetActive(snode->edittree);
-	if(gnode==NULL) return;
+	if(gnode==NULL)
+		return OPERATOR_CANCELLED;
 	
-	if(gnode->type!=NODE_GROUP)
-		error("Not a group");
-	else {
-		if(nodeGroupUnGroup(snode->edittree, gnode)) {
-			
-			// allqueue(REDRAWNODE, 0);
-		}
-		else
-			error("Can't ungroup");
+	if(gnode->type!=NODE_GROUP) {
+		BKE_report(op->reports, RPT_ERROR, "Not a group");
+		return OPERATOR_CANCELLED;
 	}
+	else if(!nodeGroupUnGroup(snode->edittree, gnode)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't ungroup");
+		return OPERATOR_CANCELLED;
+	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+
+	return OPERATOR_FINISHED;
 }
 
-#endif /* 0 */
+void NODE_OT_group_ungroup(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Ungroup";
+	ot->description = "Ungroup selected nodes.";
+	ot->idname = "NODE_OT_group_ungroup";
+	
+	/* api callbacks */
+	ot->exec = node_group_ungroup_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* when links in groups change, inputs/outputs change, nodes added/deleted... */
-static void snode_verify_groups(SpaceNode *snode)
+static void node_tree_verify_groups(bNodeTree *nodetree)
 {
 	bNode *gnode;
 	
-	gnode= snode_get_editgroup(snode);
+	gnode= node_tree_get_editgroup(nodetree);
 	
 	/* does all materials */
 	if(gnode)
@@ -1263,7 +1323,7 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 			sock->flag &= ~SOCK_HIDDEN;
 	}
 	else {
-		bNode *gnode= snode_get_editgroup(snode);
+		bNode *gnode= node_tree_get_editgroup(snode->nodetree);
 		
 		/* hiding inside group should not break links in other group users */
 		if(gnode) {
@@ -1291,7 +1351,7 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 	}
 
 	// allqueue(REDRAWNODE, 1);
-	snode_verify_groups(snode);
+	node_tree_verify_groups(snode->nodetree);
 
 }
 
@@ -1418,7 +1478,7 @@ void node_active_link_viewer(SpaceNode *snode)
 	float mx=0, my=0;
 // XXX	short mval[2];
 	
-	gnode= snode_get_editgroup(snode);
+	gnode= node_tree_get_editgroup(snode->nodetree);
 	if(gnode==NULL) return 0;
 	
 // XXX	getmouseco_areawin(mval);
@@ -1618,13 +1678,13 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 		node->locy= locy + 60.0f;		// arbitrary.. so its visible
 		node->flag |= SELECT;
 		
-		gnode= snode_get_editgroup(snode);
+		gnode= node_tree_get_editgroup(snode->nodetree);
 		if(gnode) {
 			node->locx -= gnode->locx;
 			node->locy -= gnode->locy;
 		}
 
-		snode_verify_groups(snode);
+		node_tree_verify_groups(snode->nodetree);
 		node_set_active(snode, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
@@ -1654,7 +1714,7 @@ void node_mute(SpaceNode *snode)
 	bNode *node;
 
 	/* no disabling inside of groups */
-	if(snode_get_editgroup(snode))
+	if(node_tree_get_editgroup(snode->nodetree))
 		return;
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -1680,7 +1740,7 @@ int node_duplicate_exec(bContext *C, wmOperator *op)
 	ntreeCopyTree(snode->edittree, 1);	/* 1 == internally selected nodes */
 	
 	ntreeSolveOrder(snode->edittree);
-	snode_verify_groups(snode);
+	node_tree_verify_groups(snode->nodetree);
 	snode_handle_recalc(C, snode);
 
 	return OPERATOR_FINISHED;
@@ -1891,7 +1951,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			
 			ntreeSolveOrder(snode->edittree);
-			snode_verify_groups(snode);
+			node_tree_verify_groups(snode->nodetree);
 			snode_handle_recalc(C, snode);
 			
 			MEM_freeN(op->customdata);
@@ -2000,35 +2060,6 @@ void NODE_OT_link(wmOperatorType *ot)
 }
 
 
-void node_delete(SpaceNode *snode)
-{
-	bNode *node, *next;
-	bNodeSocket *sock;
-	
-	for(node= snode->edittree->nodes.first; node; node= next) {
-		next= node->next;
-		if(node->flag & SELECT) {
-			/* set selin and selout NULL if the sockets belong to a node to be deleted */
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(snode->edittree->selin == sock) snode->edittree->selin= NULL;
-
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				if(snode->edittree->selout == sock) snode->edittree->selout= NULL;
-
-			/* check id user here, nodeFreeNode is called for free dbase too */
-			if(node->id)
-				node->id->us--;
-			nodeFreeNode(snode->edittree, node);
-		}
-	}
-	
-	snode_verify_groups(snode);
-	// NODE_FIX_ME
-	// snode_handle_recalc(snode);
-	// allqueue(REDRAWNODE, 1);
-}
-
-
 void node_hide(SpaceNode *snode)
 {
 	bNode *node;
@@ -2098,7 +2129,7 @@ void node_make_link(SpaceNode *snode)
 	else return;
 
 	ntreeSolveOrder(snode->edittree);
-	snode_verify_groups(snode);
+	node_tree_verify_groups(snode->nodetree);
 	// XXX			snode_handle_recalc(snode);
 
 }
@@ -2153,7 +2184,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		}
 
 		ntreeSolveOrder(snode->edittree);
-		snode_verify_groups(snode);
+		node_tree_verify_groups(snode->nodetree);
 		snode_handle_recalc(C, snode);
 		
 		return OPERATOR_FINISHED;
@@ -2253,15 +2284,16 @@ void imagepaint_composite_tags(bNodeTree *ntree, Image *image, ImageUser *iuser)
 	}
 }
 
-/* ********************** */
+/* ****************** Make Group operator ******************* */
 
-void node_make_group(SpaceNode *snode)
+static int node_group_make_exec(bContext *C, wmOperator *op)
 {
+	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *gnode;
 	
 	if(snode->edittree!=snode->nodetree) {
-// XXX		error("Can not add a new Group in a Group");
-		return;
+		BKE_report(op->reports, RPT_ERROR, "Can not add a new Group in a Group");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* for time being... is too complex to handle */
@@ -2271,20 +2303,39 @@ void node_make_group(SpaceNode *snode)
 				if(gnode->type==CMP_NODE_R_LAYERS)
 					break;
 		}
+
 		if(gnode) {
-// XXX			error("Can not add RenderLayer in a Group");
-			return;
+			BKE_report(op->reports, RPT_ERROR, "Can not add RenderLayer in a Group");
+			return OPERATOR_CANCELLED;
 		}
 	}
 	
 	gnode= nodeMakeGroupFromSelected(snode->nodetree);
 	if(gnode==NULL) {
-// XXX		error("Can not make Group");
+		BKE_report(op->reports, RPT_ERROR, "Can not make Group");
+		return OPERATOR_CANCELLED;
 	}
 	else {
 		nodeSetActive(snode->nodetree, gnode);
 		ntreeSolveOrder(snode->nodetree);
 	}
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_group_make(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Group";
+	ot->description = "Make group from selected nodes.";
+	ot->idname = "NODE_OT_group_make";
+	
+	/* api callbacks */
+	ot->exec = node_group_make_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 #if 0
@@ -2498,29 +2549,50 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 }
 #endif
 
-static int node_delete_selection_exec(bContext *C, wmOperator *op)
+/* ****************** Delete operator ******************* */
+
+static int node_delete_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	ARegion *ar= CTX_wm_region(C);
+	bNode *node, *next;
+	bNodeSocket *sock;
 	
-	node_delete(snode);
-	ED_region_tag_redraw(ar);
+	for(node= snode->edittree->nodes.first; node; node= next) {
+		next= node->next;
+		if(node->flag & SELECT) {
+			/* set selin and selout NULL if the sockets belong to a node to be deleted */
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				if(snode->edittree->selin == sock) snode->edittree->selin= NULL;
+
+			for(sock= node->outputs.first; sock; sock= sock->next)
+				if(snode->edittree->selout == sock) snode->edittree->selout= NULL;
+
+			/* check id user here, nodeFreeNode is called for free dbase too */
+			if(node->id)
+				node->id->us--;
+			nodeFreeNode(snode->edittree, node);
+		}
+	}
+	
+	node_tree_verify_groups(snode->nodetree);
+
+	// NODE_FIX_ME
+	// snode_handle_recalc(snode);
+
 	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
 
 	return OPERATOR_FINISHED;
 }
 
-/* operators */
-
 void NODE_OT_delete(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Delete";
+	ot->description = "Delete selected nodes.";
 	ot->idname= "NODE_OT_delete";
 	
 	/* api callbacks */
-	ot->exec= node_delete_selection_exec;
+	ot->exec= node_delete_exec;
 	ot->poll= ED_operator_node_active;
 	
 	/* flags */

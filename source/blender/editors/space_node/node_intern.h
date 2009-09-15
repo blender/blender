@@ -81,7 +81,7 @@ void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
-bNode *snode_get_editgroup(SpaceNode *snode);
+bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
@@ -89,6 +89,9 @@ void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
 void NODE_OT_resize(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
+void NODE_OT_group_make(struct wmOperatorType *ot);
+void NODE_OT_group_ungroup(struct wmOperatorType *ot);
+void NODE_OT_group_edit(struct wmOperatorType *ot);
 
 // XXXXXX
 
