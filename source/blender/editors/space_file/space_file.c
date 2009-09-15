@@ -159,6 +159,12 @@ static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 	if(sfile->params) {
 		MEM_freeN(sfile->params);
 		sfile->params = 0;
+		ED_fileselect_set_params(sfile);
+		if (sfile->files) {
+			filelist_free(sfile->files);
+			MEM_freeN(sfile->files);
+			sfile->files= NULL;
+		}
 	}
 	printf("file_init\n");
 }

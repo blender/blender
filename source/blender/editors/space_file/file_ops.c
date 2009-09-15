@@ -496,6 +496,12 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 	WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_CANCEL);
 	sfile->op = NULL;
 	
+	if (sfile->files) {
+		filelist_free(sfile->files);
+		MEM_freeN(sfile->files);
+		sfile->files= NULL;
+	}
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -567,6 +573,10 @@ int file_exec(bContext *C, wmOperator *unused)
 		BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
 		fsmenu_write_file(fsmenu_get(), name);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
+
+		filelist_free(sfile->files);
+		MEM_freeN(sfile->files);
+		sfile->files= NULL;
 	}
 				
 	return OPERATOR_FINISHED;

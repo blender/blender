@@ -169,16 +169,11 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		
 	} else {
 		/* default values, if no operator */
+		params->type = FILE_UNIX;
 		params->flag |= FILE_HIDE_DOT;
 		params->display = FILE_SHORTDISPLAY;
 		params->filter = 0;
 		params->sort = FILE_SORT_ALPHA;
-	}
-
-	/* new params, refresh file list */
-	if(sfile->files) { 
-		filelist_free(sfile->files);
-		filelist_setdir(sfile->files, params->dir);
 	}
 
 	return 1;
