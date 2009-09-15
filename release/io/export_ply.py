@@ -256,10 +256,10 @@ class EXPORT_OT_ply(bpy.types.Operator):
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
 
-		if not self.filename:
+		if not self.path:
 			raise Exception("filename not set")
 			
-		write(self.filename, context.scene, context.active_object,\
+		write(self.path, context.scene, context.active_object,\
 			EXPORT_APPLY_MODIFIERS = self.use_modifiers,
 			EXPORT_NORMALS = self.use_normals,
 			EXPORT_UV = self.use_uvs,
@@ -277,6 +277,6 @@ class EXPORT_OT_ply(bpy.types.Operator):
 bpy.ops.add(EXPORT_OT_ply)
 
 if __name__ == "__main__":
-	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
+	bpy.ops.EXPORT_OT_ply(path="/tmp/test.ply")
 
 
