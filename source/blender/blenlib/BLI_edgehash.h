@@ -100,7 +100,7 @@ void				BLI_edgehashIterator_step		(EdgeHashIterator *ehi);
 int					BLI_edgehashIterator_isDone		(EdgeHashIterator *ehi);
 
 /**************inlined code************/
-static unsigned int hashsizes[]= {
+static unsigned int _ehash_hashsizes[]= {
 	1, 3, 5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209, 
 	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169, 
 	4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 
@@ -146,7 +146,7 @@ BM_INLINE void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 		EdgeEntry *e, **old= eh->buckets;
 		int i, nold= eh->nbuckets;
 		
-		eh->nbuckets= hashsizes[++eh->cursize];
+		eh->nbuckets= _ehash_hashsizes[++eh->cursize];
 		eh->buckets= MEM_mallocN(eh->nbuckets*sizeof(*eh->buckets), "eh buckets");
 		BMEMSET(eh->buckets, 0, eh->nbuckets*sizeof(*eh->buckets));
 		
