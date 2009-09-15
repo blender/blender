@@ -62,11 +62,16 @@ typedef struct MemHeader {
 	int idcheck;
 } MemHeader;
 
+//#define USE_GUARDEDALLOC
+
 void *BLI_cellalloc_malloc(long size, char *tag)
 {
 	MemHeader *memh;
 	int slot = size + sizeof(MemHeader);
-
+	
+#ifdef USE_GUARDEDALLOC
+	return MEM_mallocN(size, tag);
+#endif
 	if (!slot) 
 		return NULL;
 	
@@ -115,6 +120,10 @@ void BLI_cellalloc_free(void *mem)
 	MemHeader *memh = mem;
 	int slot;
 
+#ifdef USE_GUARDEDALLOC
+	MEM_freeN(mem);
+	return;
+#endif
 	if (!memh)
 		return;
 

@@ -121,12 +121,11 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	BMVert *v, **vtable, **verts=NULL;
 	BMEdge *e, **etable, **edges=NULL;
 	BMFace *f;
-	BMIter liter, iter;
+	BMIter liter;
 	V_DECLARE(verts);
 	V_DECLARE(edges);
-	void *tmp;
 	int numTex, numCol;
-	int i, j, k, tot, totvert, totedge, totface;
+	int i, j, k, totvert, totedge, totface;
 	
 	if (em) bm = em->bm;
 	else bm = BM_Make_Mesh(allocsize);
@@ -285,12 +284,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	float final_offset[4][4];
 	float tmp_mat[4][4];
 	float length = amd->length;
-	int count = amd->count;
-	int numVerts, numEdges, numFaces;
-	int maxVerts, maxEdges, maxFaces;
+	int count = amd->count, maxVerts;
 	int finalVerts, finalEdges, finalFaces;
 	int *indexMap = NULL;
-	DerivedMesh *result, *start_cap = NULL, *end_cap = NULL;
+	DerivedMesh *start_cap = NULL, *end_cap = NULL;
 	MVert *src_mvert;
 
 	/* need to avoid infinite recursion here */
@@ -411,7 +408,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		if (j == 0) {
 			BMOperator findop;
 			BMOIter oiter;
-			BMIter iter;
 			BMVert *v, *v2;
 			BMHeader *h;
 
@@ -516,14 +512,14 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	DerivedMesh *result, *cddm;
 	BMEditMesh *em;
 	BMesh *bm;
-	BMOIter siter1, siter2;
+	BMOIter siter1;
 	BMOperator op;
-	BMVert *v1, *v2;
+	BMVert *v1;
 	int vector_size=0, a, b;
 	bDeformGroup *def, *defb;
 	bDeformGroup **vector_def = NULL;
 	float mtx[4][4], imtx[4][4];
-	int i, j;
+	int j;
 
 	cddm = dm; //copying shouldn't be necassary here, as all modifiers return CDDM's
 	em = CDDM_To_BMesh(dm, NULL);
@@ -546,15 +542,27 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 	if (mmd->mirror_ob) {
-		float obinv[4][4];
+		float mtx2[4][4], vec[3];
 		
-		Mat4Invert(obinv, mmd->mirror_ob->obmat);
-		Mat4MulMat4(mtx, ob->obmat, obinv);
-		Mat4Invert(imtx, mtx);
+		Mat4Invert(mtx2, mmd->mirror_ob->obmat);
+		Mat4Ortho(mtx2);
+		Mat4MulMat4(imtx, ob->obmat, mtx2);
+		Mat4Invert(mtx, imtx);
+		
+		/*this math here is probably stupid beyond all reason*/
+		VECCOPY(vec, mtx[3]);
+		VecMulf(vec, -1.0f);
+
+		Mat4One(imtx);
+		imtx[axis][axis] = -1.0f;
+		Mat4MulMat4(mtx2, imtx, mtx);
+
+		Mat4One(imtx);
+		VECCOPY(imtx[3], vec);
+		Mat4MulMat4(mtx, imtx, mtx2);
 	} else {
 		Mat4One(mtx);
-		mtx[axis][axis] = -1;
-		Mat4Invert(imtx, mtx);
+		mtx[axis][axis] = -1.0f;
 	}
 
 	BMO_InitOpf(bm, &op, "mirror geom=%avef mat=%m4 mergedist=%f axis=%d", 

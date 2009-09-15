@@ -565,7 +565,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 	double curt = PIL_check_seconds_timer();
 
 	cgdm = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);
-	result = CDDM_copy(cgdm, 0);
+	result = CDDM_copy(cgdm, 1);
 
 	printf("subsurf conversion time: %.6lf\n", PIL_check_seconds_timer() - curt);
 	
