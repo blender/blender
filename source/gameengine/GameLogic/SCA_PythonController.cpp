@@ -204,27 +204,7 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	return false;
 }
 
-/* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
-PyObject* SCA_PythonController::sPyAddActiveActuator(PyObject* self, PyObject* args)
-{
-	ShowDeprecationWarning("GameLogic.addActiveActuator(act, bool)", "controller.activate(act) or controller.deactivate(act)");
-	
-	PyObject* ob1;
-	int activate;
-	if (!PyArg_ParseTuple(args, "Oi:addActiveActuator", &ob1,&activate))
-		return NULL;
-	
-	SCA_IActuator* actu = LinkedActuatorFromPy(ob1);
-	if(actu==NULL)
-		return NULL;
-	
-	bool boolval = (activate!=0);
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu,boolval);
-	Py_RETURN_NONE;
-}
-
 const char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
-const char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuator(actuator,bool)";
 
 PyTypeObject SCA_PythonController::Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -251,11 +231,6 @@ PyTypeObject SCA_PythonController::Type = {
 PyMethodDef SCA_PythonController::Methods[] = {
 	{"activate", (PyCFunction) SCA_PythonController::sPyActivate, METH_O},
 	{"deactivate", (PyCFunction) SCA_PythonController::sPyDeActivate, METH_O},
-	
-	//Deprecated functions ------>
-	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
-	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
-	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -507,33 +482,6 @@ PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 		return NULL;
 	
 	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, false);
-	Py_RETURN_NONE;
-}
-
-/* 1. getScript */
-PyObject* SCA_PythonController::PyGetScript()
-{
-	ShowDeprecationWarning("getScript()", "the script property");
-	return PyUnicode_FromString(m_scriptText);
-}
-
-/* 2. setScript */
-PyObject* SCA_PythonController::PySetScript(PyObject* value)
-{
-	char *scriptArg = _PyUnicode_AsString(value);
-	
-	ShowDeprecationWarning("setScript()", "the script property");
-	
-	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
-		return NULL;
-	}
-	
-	/* set scripttext sets m_bModified to true, 
-		so next time the script is needed, a reparse into byte code is done */
-
-	this->SetScriptText(scriptArg);
-	
 	Py_RETURN_NONE;
 }
 

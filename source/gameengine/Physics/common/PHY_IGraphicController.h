@@ -39,9 +39,7 @@
 */
 class PHY_IGraphicController : public PHY_IController
 {
-
 	public:
-		
 		virtual ~PHY_IGraphicController();
 		/**
 			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
@@ -53,6 +51,11 @@ class PHY_IGraphicController : public PHY_IController
 
 		virtual PHY_IGraphicController*	GetReplica(class PHY_IMotionState* motionstate) {return 0;}
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //PHY_IGRAPHICCONTROLLER_H

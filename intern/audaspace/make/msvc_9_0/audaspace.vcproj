@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -117,7 +117,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -192,7 +192,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -266,7 +266,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -378,6 +378,14 @@
 			</File>
 			<File
 				RelativePath="..\..\intern\AUD_ConverterReader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_FileFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_FileFactory.h"
 				>
 			</File>
 			<File
@@ -714,6 +722,38 @@
 			</File>
 			<File
 				RelativePath="..\..\SRC\AUD_SRCResampleReader.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="jack"
+			>
+			<File
+				RelativePath="..\..\jack\AUD_JackDevice.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\jack\AUD_JackDevice.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sndfile"
+			>
+			<File
+				RelativePath="..\..\sndfile\AUD_SndFileFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\sndfile\AUD_SndFileFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\sndfile\AUD_SndFileReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\sndfile\AUD_SndFileReader.h"
 				>
 			</File>
 		</Filter>

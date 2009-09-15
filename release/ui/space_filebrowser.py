@@ -1,16 +1,16 @@
 
 import bpy
 
-
 class FILEBROWSER_HT_header(bpy.types.Header):
-	__space_type__ = "FILE_BROWSER"
+	__space_type__ = 'FILE_BROWSER'
 
 	def draw(self, context):
-		st = context.space_data
 		layout = self.layout
 		
+		st = context.space_data
 		params = st.params 
-		layout.template_header()
+		
+		layout.template_header(menus=False)
 		
 		row = layout.row(align=True)
 		row.itemO("file.parent", text="", icon='ICON_FILE_PARENT')
@@ -39,5 +39,4 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 
 		row.active = params.do_filter
 
-		
 bpy.types.register(FILEBROWSER_HT_header)

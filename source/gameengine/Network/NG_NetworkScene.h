@@ -34,6 +34,10 @@
 #include "STR_HashedString.h"
 #include <vector>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 //MSVC defines SendMessage as a win api function, even though we aren't using it
 #ifdef SendMessage
 	#undef SendMessage
@@ -52,7 +56,7 @@ class NG_NetworkScene
 	TMessageMap m_messagesBySenderName;
 	TMessageMap m_messagesBySubject;
 
-public:	
+public:
 	NG_NetworkScene(NG_NetworkDeviceInterface *nic);
 	~NG_NetworkScene();
 
@@ -100,6 +104,13 @@ protected:
 	 * @param map	Message map with messages.
 	 */
 	void ClearMessageMap(TMessageMap& map);	
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:NG_NetworkScene"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__NG_NETWORKSCENE_H

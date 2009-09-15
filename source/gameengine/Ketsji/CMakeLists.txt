@@ -27,48 +27,45 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  .
-  ../../../source/kernel/gen_system
-  ../../../intern/string
-  ../../../intern/guardedalloc
-  ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
-  ../../../source/gameengine/Converter
-  ../../../source/blender/imbuf
-  ../../../intern/ghost/include
-  ../../../intern/moto/include
-  ../../../source/gameengine/Ketsji 
-  ../../../source/blender/blenlib
-  ../../../source/blender/blenkernel
-  ../../../source/blender/python
-  ../../../source/blender/python/generic
-  ../../../source/blender 
-  ../../../source/blender/include
-  ../../../source/blender/makesdna 
-  ../../../source/gameengine/Rasterizer 
-  ../../../source/gameengine/GameLogic
-  ../../../source/gameengine/Expressions 
-  ../../../source/gameengine/Ketsji/KXNetwork
-  ../../../source/gameengine/Network
-  ../../../source/gameengine/SceneGraph 
-  ../../../source/gameengine/Physics/common
-  ../../../source/gameengine/Physics/Bullet 
-  ../../../source/gameengine/Physics/Sumo
-  ../../../source/gameengine/Physics/Sumo/Fuzzics/include 
-  ../../../source/gameengine/Network/LoopBackNetwork
-  ../../../intern/audaspace/intern
-  ../../../source/blender/misc 
-  ../../../source/blender/blenloader
-  ../../../source/blender/gpu
-  ../../../extern/bullet2/src
-  ../../../extern/solid
-  ../../../extern/glew/include
-  ${PYTHON_INC}
+	.
+	../../../source/kernel/gen_system
+	../../../intern/string
+	../../../intern/guardedalloc
+	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
+	../../../source/gameengine/Converter
+	../../../source/blender/imbuf
+	../../../intern/ghost/include
+	../../../intern/moto/include
+	../../../source/gameengine/Ketsji 
+	../../../source/blender/blenlib
+	../../../source/blender/blenkernel
+	../../../source/blender/python
+	../../../source/blender/python/generic
+	../../../source/blender 
+	../../../source/blender/include
+	../../../source/blender/makesdna 
+	../../../source/gameengine/Rasterizer 
+	../../../source/gameengine/GameLogic
+	../../../source/gameengine/Expressions 
+	../../../source/gameengine/Ketsji/KXNetwork
+	../../../source/gameengine/Network
+	../../../source/gameengine/SceneGraph 
+	../../../source/gameengine/Physics/common
+	../../../source/gameengine/Physics/Bullet 
+	../../../source/gameengine/Network/LoopBackNetwork
+	../../../intern/audaspace/intern
+	../../../source/blender/misc 
+	../../../source/blender/blenloader
+	../../../source/blender/gpu
+	../../../extern/bullet2/src
+	../../../extern/glew/include
+	${PYTHON_INC}
 )
 
 IF(WITH_SDL)
-  SET(INC ${INC} ${SDL_INCLUDE_DIR})  
+	SET(INC ${INC} ${SDL_INCLUDE_DIR})  
 ELSE(WITH_SDL)
-  ADD_DEFINITIONS(-DDISABLE_SDL)
+	ADD_DEFINITIONS(-DDISABLE_SDL)
 ENDIF(WITH_SDL)
 
 BLENDERLIB(bf_ketsji "${SRC}" "${INC}")

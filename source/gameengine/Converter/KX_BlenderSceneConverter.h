@@ -143,6 +143,12 @@ public:
 
 	struct Main* GetMain() { return m_maggie; };
 
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderSceneConverter"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_BLENDERSCENECONVERTER_H

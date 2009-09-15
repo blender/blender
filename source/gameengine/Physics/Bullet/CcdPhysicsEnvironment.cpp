@@ -327,7 +327,6 @@ CcdPhysicsEnvironment::CcdPhysicsEnvironment(bool useDbvtCulling,btDispatcher* d
 :m_cullingCache(NULL),
 m_cullingTree(NULL),
 m_numIterations(10),
-m_scalingPropagated(false),
 m_numTimeSubSteps(1),
 m_ccdMode(0),
 m_solverType(-1),
@@ -336,7 +335,8 @@ m_enableSatCollisionDetection(false),
 m_solver(NULL),
 m_ownPairCache(NULL),
 m_filterCallback(NULL),
-m_ownDispatcher(NULL)
+m_ownDispatcher(NULL),
+m_scalingPropagated(false)
 {
 
 	for (int i=0;i<PHY_NUM_RESPONSE;i++)

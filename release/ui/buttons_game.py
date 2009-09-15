@@ -2,8 +2,8 @@
 import bpy
  
 class PhysicsButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "physics"
 
 	def poll(self, context):
@@ -45,10 +45,9 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			
 			col = split.column()
 			col.itemL(text="Attributes:")
-			sub = col.column()
-			sub.itemR(game, "mass")
-			sub.itemR(game, "radius")
-			sub.itemR(game, "form_factor")
+			col.itemR(game, "mass")
+			col.itemR(game, "radius")
+			col.itemR(game, "form_factor")
 			
 			col = split.column()
 			sub = col.column()
@@ -108,8 +107,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			col.itemR(soft, "dynamic_friction", slider=True)
 			col.itemR(soft, "margin", slider=True)
 			col.itemR(soft, "bending_const", text="Bending Constraints")
-			
-			
+
 			col = split.column()
 			col.itemR(soft, "shape_match")
 			sub = col.column()
@@ -134,32 +132,26 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			
 		elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
 			
-			col = layout.column()
-			col.itemR(ob, "restrict_render", text="Invisible")
+			layout.itemR(ob, "restrict_render", text="Invisible")
 			
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
 	__label__ = "Collision Bounds"
 
 	def poll(self, context):
-		ob = context.active_object
-		game = ob.game
+		game = context.object.game
 		rd = context.scene.render_data
 		return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine == 'BLENDER_GAME')
 
 	def draw_header(self, context):
-		layout = self.layout
-		
-		ob = context.active_object
-		game = ob.game
+		game = context.active_object.game
 
-		layout.itemR(game, "use_collision_bounds", text="")
+		self.layout.itemR(game, "use_collision_bounds", text="")
 	
 	def draw(self, context):
 		layout = self.layout
 		
-		ob = context.scene.objects[0]
-		game = ob.game
-		
+		game = context.active_object.game
+
 		layout.active = game.use_collision_bounds
 		layout.itemR(game, "collision_bounds", text="Bounds")
 		
@@ -171,8 +163,8 @@ bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
 
 class SceneButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "scene"
 
 	def poll(self, context):
@@ -184,15 +176,13 @@ class SCENE_PT_game(SceneButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		
-		rd = context.scene.render_data
 
 		row = layout.row()
 		row.itemO("view3d.game_start", text="Start")
 		row.itemL()
 
 class SCENE_PT_game_player(SceneButtonsPanel):
-	__label__ = "Player"
+	__label__ = "Standalone Player"
 
 	def draw(self, context):
 		layout = self.layout
@@ -219,8 +209,8 @@ class SCENE_PT_game_player(SceneButtonsPanel):
 		col = layout.column()
 		col.itemL(text="Framing:")
 		col.row().itemR(gs, "framing_type", expand=True)
-		sub = col.column()
-		sub.itemR(gs, "framing_color", text="")
+		if gs.framing_type == 'LETTERBOX':
+			col.itemR(gs, "framing_color", text="")
 
 class SCENE_PT_game_stereo(SceneButtonsPanel):
 	__label__ = "Stereo"
@@ -271,13 +261,59 @@ class SCENE_PT_game_stereo(SceneButtonsPanel):
 		
 			layout.itemR(gs, "dome_text")
 
+class SCENE_PT_game_shading(SceneButtonsPanel):
+	__label__ = "Shading"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		gs = context.scene.game_data
+		layout.itemR(gs, "material_mode", expand=True)
+ 
+		if gs.material_mode == 'GLSL':
+			split = layout.split()
+
+			col = split.column()
+			col.itemR(gs, "glsl_lights", text="Lights")
+			col.itemR(gs, "glsl_shaders", text="Shaders")
+			col.itemR(gs, "glsl_shadows", text="Shadows")
+
+			col = split.column()
+			col.itemR(gs, "glsl_ramps", text="Ramps")
+			col.itemR(gs, "glsl_nodes", text="Nodes")
+			col.itemR(gs, "glsl_extra_textures", text="Extra Textures")
+
+class SCENE_PT_game_performance(SceneButtonsPanel):
+	__label__ = "Performance"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		gs = context.scene.game_data
+
+		split = layout.split()
+
+		col = split.column()
+		col.itemL(text="Show:")
+		col.itemR(gs, "show_debug_properties", text="Debug Properties")
+		col.itemR(gs, "show_framerate_profile", text="Framerate and Profile")
+		col.itemR(gs, "show_physics_visualization", text="Physics Visualization")
+		col.itemR(gs, "deprecation_warnings")
+ 
+		col = split.column()
+		col.itemL(text="Render:")
+		col.itemR(gs, "all_frames")
+		col.itemR(gs, "display_lists")
+
 bpy.types.register(SCENE_PT_game)
 bpy.types.register(SCENE_PT_game_player)
 bpy.types.register(SCENE_PT_game_stereo)
+bpy.types.register(SCENE_PT_game_shading)
+bpy.types.register(SCENE_PT_game_performance)
 
 class WorldButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "world"
 
 	def poll(self, context):

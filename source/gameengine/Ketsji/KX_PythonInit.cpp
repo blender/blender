@@ -32,11 +32,6 @@
 
 // directory header for py function getBlendFileList
 #include <stdlib.h>
-#ifndef WIN32
-  #include <dirent.h>
-#else
-  #include "BLI_winstuff.h"
-#endif
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -80,8 +75,6 @@ extern "C" {
 #include "InputParser.h"
 #include "KX_Scene.h"
 
-#include "NG_NetworkScene.h" //Needed for sendMessage()
-
 #include "BL_Shader.h"
 
 #include "KX_PyMath.h"
@@ -92,6 +85,7 @@ extern "C" {
 
 /* we only need this to get a list of libraries from the main struct */
 #include "DNA_ID.h"
+#include "DNA_scene_types.h"
 
 
 #include "marshal.h" /* python header for loading/saving dicts */
@@ -109,6 +103,13 @@ extern "C" {
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
+
+#ifndef WIN32
+  #include <dirent.h>
+#else
+  #include "BLI_winstuff.h"
+#endif
+#include "NG_NetworkScene.h" //Needed for sendMessage()
 
 static void setSandbox(TPythonSecurityLevel level);
 
@@ -141,7 +142,7 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 // List of methods defined in the module
 
 static PyObject* ErrorObject;
-STR_String gPyGetRandomFloat_doc="getRandomFloat returns a random floating point value in the range [0..1)";
+static const char *gPyGetRandomFloat_doc="getRandomFloat returns a random floating point value in the range [0..1]";
 
 static PyObject* gPyGetRandomFloat(PyObject*)
 {
@@ -205,8 +206,6 @@ static PyObject* gPySendMessage(PyObject*, PyObject* args)
 
 	Py_RETURN_NONE;
 }
-
-static bool usedsp = false;
 
 // this gets a pointer to an array filled with floats
 static PyObject* gPyGetSpectrum(PyObject*)
@@ -347,7 +346,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
     return list;
 }
 
-static STR_String gPyGetCurrentScene_doc =  
+static const char *gPyGetCurrentScene_doc =
 "getCurrentScene()\n"
 "Gets a reference to the current scene.\n";
 static PyObject* gPyGetCurrentScene(PyObject* self)
@@ -355,7 +354,7 @@ static PyObject* gPyGetCurrentScene(PyObject* self)
 	return gp_KetsjiScene->GetProxy();
 }
 
-static STR_String gPyGetSceneList_doc =  
+static const char *gPyGetSceneList_doc =
 "getSceneList()\n"
 "Return a list of converted scenes.\n";
 static PyObject* gPyGetSceneList(PyObject* self)
@@ -449,46 +448,18 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 }
 
 
-static PyObject *gEvalExpression(PyObject*, PyObject* value)
-{
-	char* txt= _PyUnicode_AsString(value);
-	
-	if (txt==NULL) {
-		PyErr_SetString(PyExc_TypeError, "Expression.calc(text): expects a single string argument");
-		return NULL;
-	}
-	
-	CParser parser;
-	CExpression* expr = parser.ProcessText(txt);
-	CValue* val = expr->Calculate();
-	expr->Release();
-	
-	if (val) {	
-		PyObject* pyobj = val->ConvertValueToPython();
-		if (pyobj)
-			return pyobj;
-		else
-			return val->GetProxy();
-	}
-	
-	Py_RETURN_NONE;
-}
-
-
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (const char *)gPyExpandPath_doc},
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (const char *)gPySendMessage_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
-	METH_NOARGS, (const char *)SCA_PythonController::sPyGetCurrentController__doc__},
+	METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
-	METH_NOARGS, (const char *)gPyGetCurrentScene_doc.Ptr()},
+	METH_NOARGS, gPyGetCurrentScene_doc},
 	{"getSceneList", (PyCFunction) gPyGetSceneList,
-	METH_NOARGS, (const char *)gPyGetSceneList_doc.Ptr()},
-	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
-	METH_VARARGS, (const char *)SCA_PythonController::sPyAddActiveActuator__doc__},
+	METH_NOARGS, (const char *)gPyGetSceneList_doc},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
-	METH_NOARGS, (const char *)gPyGetRandomFloat_doc.Ptr()},
+	METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (const char *)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (const char *)"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (const char *)"stop using the audio dsp (for performance reasons)"},
@@ -503,7 +474,6 @@ static struct PyMethodDef game_methods[] = {
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (const char *)"Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (const char *)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (const char *)"Prints GL Extension Info"},
-	{"EvalExpression", (PyCFunction)gEvalExpression, METH_O, (const char *)"Evaluate a string as a game logic expression"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -769,17 +739,17 @@ static PyObject* gPyDisableMotionBlur(PyObject*)
 int getGLSLSettingFlag(char *setting)
 {
 	if(strcmp(setting, "lights") == 0)
-		return G_FILE_GLSL_NO_LIGHTS;
+		return GAME_GLSL_NO_LIGHTS;
 	else if(strcmp(setting, "shaders") == 0)
-		return G_FILE_GLSL_NO_SHADERS;
+		return GAME_GLSL_NO_SHADERS;
 	else if(strcmp(setting, "shadows") == 0)
-		return G_FILE_GLSL_NO_SHADOWS;
+		return GAME_GLSL_NO_SHADOWS;
 	else if(strcmp(setting, "ramps") == 0)
-		return G_FILE_GLSL_NO_RAMPS;
+		return GAME_GLSL_NO_RAMPS;
 	else if(strcmp(setting, "nodes") == 0)
-		return G_FILE_GLSL_NO_NODES;
+		return GAME_GLSL_NO_NODES;
 	else if(strcmp(setting, "extra_textures") == 0)
-		return G_FILE_GLSL_NO_EXTRA_TEX;
+		return GAME_GLSL_NO_EXTRA_TEX;
 	else
 		return -1;
 }
@@ -788,8 +758,9 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 											PyObject* args,
 											PyObject*)
 {
+	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
 	char *setting;
-	int enable, flag, fileflags;
+	int enable, flag, sceneflag;
 
 	if (!PyArg_ParseTuple(args,"si:setGLSLMaterialSetting",&setting,&enable))
 		return NULL;
@@ -801,15 +772,15 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 		return NULL;
 	}
 
-	fileflags = G.fileflags;
+	sceneflag= gm->flag;
 	
 	if (enable)
-		G.fileflags &= ~flag;
+		gm->flag &= ~flag;
 	else
-		G.fileflags |= flag;
+		gm->flag |= flag;
 
 	/* display lists and GLSL materials need to be remade */
-	if(G.fileflags != fileflags) {
+	if(sceneflag != gm->flag) {
 		GPU_materials_free();
 		if(gp_KetsjiEngine) {
 			KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
@@ -830,6 +801,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 									 PyObject* args, 
 									 PyObject*)
 {
+	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
 	char *setting;
 	int enabled = 0, flag;
 
@@ -843,7 +815,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 		return NULL;
 	}
 
-	enabled = ((G.fileflags & flag) != 0);
+	enabled = ((gm->flag & flag) != 0);
 	return PyLong_FromSsize_t(enabled);
 }
 
@@ -855,35 +827,34 @@ static PyObject* gPySetMaterialType(PyObject*,
 									PyObject* args,
 									PyObject*)
 {
-	int flag, type;
+	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	int type;
 
 	if (!PyArg_ParseTuple(args,"i:setMaterialType",&type))
 		return NULL;
 
 	if(type == KX_BLENDER_GLSL_MATERIAL)
-		flag = G_FILE_GAME_MAT|G_FILE_GAME_MAT_GLSL;
+		gm->matmode= GAME_MAT_GLSL;
 	else if(type == KX_BLENDER_MULTITEX_MATERIAL)
-		flag = G_FILE_GAME_MAT;
+		gm->matmode= GAME_MAT_MULTITEX;
 	else if(type == KX_TEXFACE_MATERIAL)
-		flag = 0;
+		gm->matmode= GAME_MAT_TEXFACE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.setMaterialType(int): material type is not known");
 		return NULL;
 	}
-
-	G.fileflags &= ~(G_FILE_GAME_MAT|G_FILE_GAME_MAT_GLSL);
-	G.fileflags |= flag;
 
 	Py_RETURN_NONE;
 }
 
 static PyObject* gPyGetMaterialType(PyObject*)
 {
+	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
 	int flag;
 
-	if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+	if(gm->matmode == GAME_MAT_GLSL)
 		flag = KX_BLENDER_GLSL_MATERIAL;
-	else if(G.fileflags & G_FILE_GAME_MAT)
+	else if(gm->matmode == GAME_MAT_MULTITEX)
 		flag = KX_BLENDER_MULTITEX_MATERIAL;
 	else
 		flag = KX_TEXFACE_MATERIAL;
@@ -2045,6 +2016,3 @@ void resetGamePythonPath()
 {
 	gp_GamePythonPathOrig[0] = '\0';
 }
-
-
-

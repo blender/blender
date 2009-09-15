@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\yafray;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel;..\..\..\source\kernel\gen_messaging"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\yafray;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -117,7 +117,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\yafray;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel;..\..\..\source\kernel\gen_messaging"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\yafray;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR;_USE_MATH_DEFINES"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\pointdensity.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\rayshade.c"
 				>
 			</File>
@@ -250,6 +254,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\texture.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\volume_precache.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\volumetric.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\voxeldata.c"
 				>
 			</File>
 			<File
@@ -298,6 +314,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\pointdensity.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\extern\include\RE_pipeline.h"
 				>
 			</File>
@@ -307,6 +327,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\extern\include\RE_shader_ext.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\render_types.h"
 				>
 			</File>
 			<File
@@ -351,6 +375,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\vanillaRenderPipe_int.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\volume_precache.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\volumetric.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\voxeldata.h"
 				>
 			</File>
 			<File

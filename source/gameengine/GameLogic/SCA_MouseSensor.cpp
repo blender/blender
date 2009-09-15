@@ -51,7 +51,6 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 								 short int mousemode,
 								 SCA_IObject* gameobj)
     : SCA_ISensor(gameobj,eventmgr),
-	m_pMouseMgr(eventmgr),
 	m_x(startx),
 	m_y(starty)
 {
@@ -147,7 +146,7 @@ bool SCA_MouseSensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;
-	SCA_IInputDevice* mousedev = m_pMouseMgr->GetInputDevice();
+	SCA_IInputDevice* mousedev = ((SCA_MouseManager *)m_eventmgr)->GetInputDevice();
 
 	m_reset = false;
 	switch (m_mousemode) {
@@ -244,30 +243,6 @@ bool SCA_MouseSensor::isValid(SCA_MouseSensor::KX_MOUSESENSORMODE m)
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-//Deprecated functions ------>
-/* get x position ---------------------------------------------------------- */
-const char SCA_MouseSensor::GetXPosition_doc[] = 
-"getXPosition\n"
-"\tReturns the x-coordinate of the mouse sensor, in frame coordinates.\n"
-"\tThe lower-left corner is the origin. The coordinate is given in\n"
-"\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetXPosition() {
-	ShowDeprecationWarning("getXPosition()", "the position property");
-	return PyLong_FromSsize_t(m_x);
-}
-
-/* get y position ---------------------------------------------------------- */
-const char SCA_MouseSensor::GetYPosition_doc[] = 
-"getYPosition\n"
-"\tReturns the y-coordinate of the mouse sensor, in frame coordinates.\n"
-"\tThe lower-left corner is the origin. The coordinate is given in\n"
-"\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetYPosition() {
-	ShowDeprecationWarning("getYPosition()", "the position property");
-	return PyLong_FromSsize_t(m_y);
-}
-//<----- Deprecated
-
 KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 "getButtonStatus(button)\n"
 "\tGet the given button's status (KX_INPUT_NONE, KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED).\n")
@@ -282,7 +257,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 			return NULL;
 		}
 		
-		SCA_IInputDevice* mousedev = m_pMouseMgr->GetInputDevice();
+		SCA_IInputDevice* mousedev = ((SCA_MouseManager *)m_eventmgr)->GetInputDevice();
 		const SCA_InputEvent& event = mousedev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) button);
 		return PyLong_FromSsize_t(event.m_status);
 	}
@@ -317,10 +292,6 @@ PyTypeObject SCA_MouseSensor::Type = {
 };
 
 PyMethodDef SCA_MouseSensor::Methods[] = {
-	//Deprecated functions ------>
-	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, (const char *)GetXPosition_doc},
-	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, (const char *)GetYPosition_doc},
-	//<----- Deprecated
 	KX_PYMETHODTABLE_O(SCA_MouseSensor, getButtonStatus),
 	{NULL,NULL} //Sentinel
 };

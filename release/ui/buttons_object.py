@@ -2,8 +2,8 @@
 import bpy
 
 class ObjectButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "object"
 
 class OBJECT_PT_context_object(ObjectButtonsPanel):
@@ -15,7 +15,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 		ob = context.object
 		
 		row = layout.row()
-		row.itemL(text="", icon="ICON_OBJECT_DATA")
+		row.itemL(text="", icon='ICON_OBJECT_DATA')
 		row.itemR(ob, "name", text="")
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
@@ -79,7 +79,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
 				row = col.box().row()
 				row.itemR(group, "name", text="")
-				row.itemO("object.group_remove", text="", icon="VICON_X")
+				row.itemO("object.group_remove", text="", icon='VICON_X')
 
 				split = col.box().split()
 				split.column().itemR(group, "layer", text="Dupli")
@@ -92,10 +92,14 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 		layout = self.layout
 		
 		ob = context.object
-			
-		row = layout.row()
-		row.itemR(ob, "max_draw_type", text="Type")
-		row.itemR(ob, "draw_bounds_type", text="Bounds")
+		
+		split = layout.split()
+		col = split.column()
+		col.itemR(ob, "max_draw_type", text="Type")
+		col = split.column()
+		row = col.row()
+		row.itemR(ob, "draw_bounds", text="Bounds")
+		row.itemR(ob, "draw_bounds_type", text="")
 
 		flow = layout.column_flow()
 		flow.itemR(ob, "draw_name", text="Name")

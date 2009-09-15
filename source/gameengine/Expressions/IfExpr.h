@@ -44,6 +44,13 @@ public:
 	virtual CExpression*	CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks);
 	virtual void			ClearModified();
 	virtual void			BroadcastOperators(VALUE_OPERATOR op);
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CIfExpr"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined(AFX_IFEXPR_H__1F691841_C5C7_11D1_A863_0000B4542BD8__INCLUDED_)

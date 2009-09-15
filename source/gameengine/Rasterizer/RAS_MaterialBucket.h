@@ -79,8 +79,11 @@ class RAS_DisplayArray
 public:
 	vector<RAS_TexVert> m_vertex;
 	vector<unsigned short> m_index;
+	/* LINE currently isnt used */
 	enum { LINE = 2, TRIANGLE = 3, QUAD = 4 } m_type;
 	//RAS_MeshSlot *m_origSlot;
+	
+	/* Number of RAS_MeshSlot using this array */
 	int m_users;
 
 	enum { BUCKET_MAX_INDEX = 65535 };
@@ -169,6 +172,13 @@ public:
 	bool IsCulled() { return m_bCulled; }
 #endif
 	void SetCulled(bool culled) { m_bCulled = culled; }
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MeshSlot"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /* Used by RAS_MeshObject, to point to it's slots in a bucket */
@@ -179,6 +189,13 @@ public:
 	RAS_MeshSlot *m_baseslot;
 	class RAS_MaterialBucket *m_bucket;
 	GEN_Map<GEN_HashedPtr,RAS_MeshSlot*> m_slots;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MeshMaterial"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /* Contains a list of display arrays with the same material,
@@ -232,6 +249,12 @@ private:
 	RAS_IPolyMaterial*			m_material;
 	SG_DList					m_activeMeshSlotsHead;	// only those which must be rendered
 	
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MaterialBucket"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_MATERIAL_BUCKET

@@ -101,8 +101,7 @@ KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj
 :SCA_ISensor(gameobj,eventmgr),
 m_touchedpropname(touchedpropname),
 m_bFindMaterial(bFindMaterial),
-m_bTouchPulse(bTouchPulse),
-m_eventmgr(eventmgr)
+m_bTouchPulse(bTouchPulse)
 /*m_sumoObj(sumoObj),*/
 {
 //	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
@@ -316,16 +315,6 @@ PyTypeObject KX_TouchSensor::Type = {
 };
 
 PyMethodDef KX_TouchSensor::Methods[] = {
-	//Deprecated ----->
-	{"setProperty", 
-	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_O, (const char *)SetProperty_doc},
-	{"getProperty", 
-	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_NOARGS, (const char *)GetProperty_doc},
-	{"getHitObject", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_NOARGS, (const char *)GetHitObject_doc},
-	{"getHitObjectList", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_NOARGS, (const char *)GetHitObjectList_doc},
-	 //<-----
 	{NULL,NULL} //Sentinel
 };
 
@@ -339,101 +328,6 @@ PyAttributeDef KX_TouchSensor::Attributes[] = {
 };
 
 /* Python API */
-
-/* 1. setProperty */
-const char KX_TouchSensor::SetProperty_doc[] = 
-"setProperty(name)\n"
-"\t- name: string\n"
-"\tSet the property or material to collide with. Use\n"
-"\tsetTouchMaterial() to switch between properties and\n"
-"\tmaterials.";
-PyObject* KX_TouchSensor::PySetProperty(PyObject* value)
-{
-	ShowDeprecationWarning("setProperty()", "the propName property");
-	char *nameArg= _PyUnicode_AsString(value);
-	if (nameArg==NULL) {
-		PyErr_SetString(PyExc_ValueError, "expected a ");
-		return NULL;
-	}
-	
-	m_touchedpropname = nameArg;
-	Py_RETURN_NONE;
-}
-/* 2. getProperty */
-const char KX_TouchSensor::GetProperty_doc[] = 
-"getProperty(name)\n"
-"\tReturns the property or material to collide with. Use\n"
-"\tgetTouchMaterial() to find out whether this sensor\n"
-"\tlooks for properties or materials.";
-PyObject*  KX_TouchSensor::PyGetProperty() {
-	ShowDeprecationWarning("getProperty()", "the propName property");
-	
-	return PyUnicode_FromString(m_touchedpropname);
-}
-
-const char KX_TouchSensor::GetHitObject_doc[] = 
-"getHitObject()\n"
-;
-PyObject* KX_TouchSensor::PyGetHitObject()
-{
-	ShowDeprecationWarning("getHitObject()", "the hitObject property");
-	/* to do: do Py_IncRef if the object is already known in Python */
-	/* otherwise, this leaks memory */
-	if (m_hitObject)
-	{
-		return m_hitObject->GetProxy();
-	}
-	Py_RETURN_NONE;
-}
-
-const char KX_TouchSensor::GetHitObjectList_doc[] = 
-"getHitObjectList()\n"
-"\tReturn a list of the objects this object collided with,\n"
-"\tbut only those matching the property/material condition.\n";
-PyObject* KX_TouchSensor::PyGetHitObjectList()
-{
-	ShowDeprecationWarning("getHitObjectList()", "the hitObjectList property");
-	/* to do: do Py_IncRef if the object is already known in Python */
-	/* otherwise, this leaks memory */ /* Edit, this seems ok and not to leak memory - Campbell */
-	return m_colliders->GetProxy();
-}
-
-/*getTouchMaterial and setTouchMaterial were never added to the api,
-they can probably be removed with out anyone noticing*/
-
-/* 5. getTouchMaterial */
-const char KX_TouchSensor::GetTouchMaterial_doc[] = 
-"getTouchMaterial()\n"
-"\tReturns KX_TRUE if this sensor looks for a specific material,\n"
-"\tKX_FALSE if it looks for a specific property.\n" ;
-PyObject* KX_TouchSensor::PyGetTouchMaterial()
-{
-	ShowDeprecationWarning("getTouchMaterial()", "the useMaterial property");
-	return PyLong_FromSsize_t(m_bFindMaterial);
-}
-
-/* 6. setTouchMaterial */
-#if 0
-const char KX_TouchSensor::SetTouchMaterial_doc[] = 
-"setTouchMaterial(flag)\n"
-"\t- flag: KX_TRUE or KX_FALSE.\n"
-"\tSet flag to KX_TRUE to switch on positive pulse mode,\n"
-"\tKX_FALSE to switch off positive pulse mode.\n" ;
-PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject *value)
-{
-	ShowDeprecationWarning("setTouchMaterial()", "the useMaterial property");
-	int pulseArg = PyLong_AsSsize_t(value);
-
-	if(pulseArg ==-1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_ValueError, "expected a bool");
-		return NULL;
-	}
-	
-	m_bFindMaterial = pulseArg != 0;
-
-	Py_RETURN_NONE;
-}
-#endif
 
 PyObject* KX_TouchSensor::pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {

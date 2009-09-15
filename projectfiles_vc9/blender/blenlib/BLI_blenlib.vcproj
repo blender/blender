@@ -567,10 +567,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\matrixops.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\noise.c"
 				>
 			</File>
@@ -607,7 +603,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\vectorops.c"
+				RelativePath="..\..\..\source\blender\blenlib\intern\voxel.c"
 				>
 			</File>
 			<File
@@ -724,15 +720,11 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_voxel.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_winstuff.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\MTC_matrixops.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenlib\MTC_vectorops.h"
 				>
 			</File>
 			<File

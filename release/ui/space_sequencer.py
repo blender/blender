@@ -7,34 +7,38 @@ def act_strip(context):
 
 # Header
 class SEQUENCER_HT_header(bpy.types.Header):
-	__space_type__ = "SEQUENCE_EDITOR"
+	__space_type__ = 'SEQUENCE_EDITOR'
 
 	def draw(self, context):
 		layout = self.layout
 		
 		st = context.space_data
 
-		layout.template_header()
+		row = layout.row(align=True)
+		row.template_header()
 		
 		if context.area.show_menus:
-			row = layout.row()
-			row.itemR(st, "display_mode", text="")
-			row.itemM("SEQUENCER_MT_view")
+			sub = row.row(align=True)
+			sub.itemM("SEQUENCER_MT_view")
 			
-			layout.itemS()
+			row.itemS()
 			
 			if st.display_mode == 'SEQUENCER':
-				row.itemM("SEQUENCER_MT_select")
-				row.itemM("SEQUENCER_MT_marker")
-				row.itemM("SEQUENCER_MT_add")
-				row.itemM("SEQUENCER_MT_strip")
-				layout.itemS()
-				row.itemO("sequencer.reload")
-			else:
-				row.itemR(st, "display_channel", text="Channel")
+				sub.itemM("SEQUENCER_MT_select")
+				sub.itemM("SEQUENCER_MT_marker")
+				sub.itemM("SEQUENCER_MT_add")
+				sub.itemM("SEQUENCER_MT_strip")
+
+		layout.itemR(st, "display_mode", text="")
+
+		if st.display_mode == 'SEQUENCER':
+			layout.itemS()
+			layout.itemO("sequencer.reload")
+		else:
+			layout.itemR(st, "display_channel", text="Channel")
 
 class SEQUENCER_MT_view(bpy.types.Menu):
-	__space_type__ = "SEQUENCE_EDITOR"
+	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "View"
 	
 	def draw(self, context):
@@ -102,7 +106,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 		"""
 
 class SEQUENCER_MT_select(bpy.types.Menu):
-	__space_type__ = "SEQUENCE_EDITOR"
+	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Select"
 
 	def draw(self, context):
@@ -123,7 +127,7 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 		layout.itemO("sequencer.select_inverse")
 
 class SEQUENCER_MT_marker(bpy.types.Menu):
-	__space_type__ = "SEQUENCE_EDITOR"
+	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Marker (TODO)"
 
 	def draw(self, context):
@@ -142,7 +146,7 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
 		#layout.itemO("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 
 class SEQUENCER_MT_add(bpy.types.Menu):
-	__space_type__ = "SEQUENCE_EDITOR"
+	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Add"
 
 	def draw(self, context):
@@ -159,7 +163,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		layout.itemM("SEQUENCER_MT_add_effect")
 
 class SEQUENCER_MT_add_effect(bpy.types.Menu):
-	__space_type__ = "SEQUENCE_EDITOR"
+	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Effect Strip..."
 
 	def draw(self, context):
@@ -183,7 +187,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
 		layout.item_enumO("sequencer.effect_strip_add", 'type', 'SPEED')
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
-	__space_type__ = "SEQUENCE_EDITOR"
+	__space_type__ = 'SEQUENCE_EDITOR'
 	__label__ = "Strip"
 
 	def draw(self, context):
@@ -250,15 +254,15 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
 # Panels
 class SequencerButtonsPanel(bpy.types.Panel):
-	__space_type__ = "SEQUENCE_EDITOR"
-	__region_type__ = "UI"
+	__space_type__ = 'SEQUENCE_EDITOR'
+	__region_type__ = 'UI'
 
 	def poll(self, context):
 		return context.space_data.display_mode == 'SEQUENCER' and act_strip(context) != None
 		
 class SequencerButtonsPanel_Output(bpy.types.Panel):
-	__space_type__ = "SEQUENCE_EDITOR"
-	__region_type__ = "UI"
+	__space_type__ = 'SEQUENCE_EDITOR'
+	__region_type__ = 'UI'
 
 	def poll(self, context):
 		return context.space_data.display_mode != 'SEQUENCER'
@@ -299,6 +303,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		row.itemR(strip, "frame_locked", text="Frame Lock")
 		
 		col = layout.column()
+		col.enabled = not strip.lock	
 		col.itemR(strip, "channel")
 		col.itemR(strip, "start_frame")
 		col.itemR(strip, "length")
@@ -411,23 +416,28 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		if not strip:
 			return False
 		
-		return strip.type in ('MOVIE', 'IMAGE', 'SOUND')
+		return strip.type in ('MOVIE', 'IMAGE')
 	
 	def draw(self, context):
 		layout = self.layout
 		
 		strip = act_strip(context)
 		
-		layout.itemR(strip, "directory", text="")
+		split = layout.split(percentage=0.2)
+		col = split.column()
+		col.itemL(text="Path:")
+		col = split.column()
+		col.itemR(strip, "directory", text="")
 		
 		# Current element for the filename
-		split = layout.split(percentage=0.3)
-		col = split.column()
-		col.itemL(text="File Name:")
-		col = split.column()
+		
 		
 		elem = strip.getStripElem(context.scene.current_frame)
 		if elem:
+			split = layout.split(percentage=0.2)
+			col = split.column()
+			col.itemL(text="File:")
+			col = split.column()
 			col.itemR(elem, "filename", text="") # strip.elements[0] could be a fallback
 		
 		layout.itemR(strip, "use_translation", text="Image Offset:")
@@ -450,6 +460,37 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		col.itemL(text="Trim Duration:")
 		col.itemR(strip, "animation_start_offset", text="Start")
 		col.itemR(strip, "animation_end_offset", text="End")
+
+class SEQUENCER_PT_sound(SequencerButtonsPanel):
+	__label__ = "Sound"
+	
+	def poll(self, context):
+		if context.space_data.display_mode != 'SEQUENCER':
+			return False
+		
+		strip = act_strip(context)
+		if not strip:
+			return False
+		
+		return strip.type in ('SOUND', )
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		strip = act_strip(context)
+		
+		layout.template_ID(strip, "sound", new="sound.open")
+		
+		layout.itemS()
+		layout.itemR(strip.sound, "filename", text="")
+		
+		row = layout.row()
+		if strip.sound.packed_file:
+			row.itemO("sound.unpack", icon='ICON_PACKAGE', text="Unpack")
+		else:
+			row.itemO("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
+		
+		row.itemR(strip.sound, "caching")
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"
@@ -554,6 +595,7 @@ bpy.types.register(SEQUENCER_MT_strip)
 bpy.types.register(SEQUENCER_PT_edit) # sequencer panels
 bpy.types.register(SEQUENCER_PT_effect)
 bpy.types.register(SEQUENCER_PT_input)
+bpy.types.register(SEQUENCER_PT_sound)
 bpy.types.register(SEQUENCER_PT_filter)
 bpy.types.register(SEQUENCER_PT_proxy)
 

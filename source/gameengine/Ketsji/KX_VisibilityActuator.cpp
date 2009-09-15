@@ -113,10 +113,6 @@ PyTypeObject KX_VisibilityActuator::Type = {
 };
 
 PyMethodDef KX_VisibilityActuator::Methods[] = {
-	// Deprecated ----->
-	{"set", (PyCFunction) KX_VisibilityActuator::sPySetVisible, METH_VARARGS,
-		(const char *) SetVisible_doc},
-	// <-----
 	{NULL,NULL} //Sentinel
 };
 
@@ -126,26 +122,3 @@ PyAttributeDef KX_VisibilityActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("useRecursion", KX_VisibilityActuator, m_recursive),
 	{ NULL }	//Sentinel
 };
-
-/* set visibility ---------------------------------------------------------- */
-const char 
-KX_VisibilityActuator::SetVisible_doc[] = 
-"setVisible(visible?)\n"
-"\t - visible? : Make the object visible? (KX_TRUE, KX_FALSE)"
-"\tSet the properties of the actuator.\n";
-PyObject* 
-
-KX_VisibilityActuator::PySetVisible(PyObject* args) {
-	int vis;
-	ShowDeprecationWarning("SetVisible()", "the visible property");
-
-	if(!PyArg_ParseTuple(args, "i:setVisible", &vis)) {
-		return NULL;
-	}
-
-	m_visible = PyArgToBool(vis);
-
-	Py_RETURN_NONE;
-}
-
-

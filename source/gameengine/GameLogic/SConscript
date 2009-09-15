@@ -17,12 +17,8 @@ if env['WITH_BF_SDL']:
 else:
 	defs.append('DISABLE_SDL')
 
-cxxflags = []
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-	cxxflags.append ('/EHsc')
 	if env['BF_DEBUG']:
 		defs.append('_DEBUG')
 
-env.BlenderLib ( 'bf_logic', sources, Split(incs), defs, libtype=['core','player'], priority=[330, 100], cxx_compileflags=cxxflags )
+env.BlenderLib ( 'bf_logic', sources, Split(incs), defs, libtype=['core','player'], priority=[330,65], cxx_compileflags=env['BGE_CXXFLAGS'])

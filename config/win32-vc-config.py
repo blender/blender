@@ -4,7 +4,7 @@ LIBDIR = '${LCGDIR}'
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR +'/ffmpeg'
-BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}/include/msvc'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avformat-52.lib avcodec-52.lib avdevice-52.lib avutil-50.lib swscale-0.lib'
 
@@ -20,11 +20,6 @@ BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include '
 BF_OPENAL_LIB = 'wrap_oal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
-
-# TODO - are these useful on win32?
-# BF_CXX = '/usr'
-# WITH_BF_STATICCXX = False
-# BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
 WITH_BF_ICONV = True
 BF_ICONV = LIBDIR + '/iconv'
@@ -42,6 +37,12 @@ BF_JACK = LIBDIR + '/jack'
 BF_JACK_INC = '${BF_JACK}/include'
 BF_JACK_LIB = 'libjack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
+
+WITH_BF_SNDFILE = False
+BF_SNDFILE = LIBDIR + '/sndfile'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include'
+BF_SNDFILE_LIB = 'libsndfile-1'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
@@ -108,23 +109,6 @@ BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
 WITH_BF_BINRELOC = False
 
-#WITH_BF_NSPR = True
-#BF_NSPR = $(LIBDIR)/nspr
-#BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
-#BF_NSPR_LIB = 
-
-# Uncomment the following line to use Mozilla inplace of netscape
-#CPPFLAGS += -DMOZ_NOT_NET
-# Location of MOZILLA/Netscape header files...
-#BF_MOZILLA = $(LIBDIR)/mozilla
-#BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
-#BF_MOZILLA_LIB =
-# Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
-# if this is not set.
-#
-# Be paranoid regarding library creation (do not update archives)
-#BF_PARANOID = True
-
 # enable freetype2 support for text objects
 BF_WITH_FREETYPE = True
 BF_FREETYPE = LIBDIR + '/freetype'
@@ -165,6 +149,7 @@ CXX = 'cl.exe'
 
 CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267']
 CXXFLAGS = ['/EHsc']
+BGE_CXXFLAGS = ['/O2', '/EHsc', '/GR', '/fp:fast', '/arch:SSE']
 
 BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
 

@@ -25,52 +25,50 @@
 # ***** END GPL LICENSE BLOCK *****
 
 SET(SRC 
-  bmfont.cpp
-  GPC_Canvas.cpp
-  GPC_Engine.cpp
-  GPC_KeyboardDevice.cpp
-  GPC_MouseDevice.cpp
-  GPC_RawImage.cpp
-  GPC_RawLoadDotBlendArray.cpp
-  GPC_RawLogoArrays.cpp
-  GPC_RenderTools.cpp
-  GPC_System.cpp
+	bmfont.cpp
+	GPC_Canvas.cpp
+	GPC_Engine.cpp
+	GPC_KeyboardDevice.cpp
+	GPC_MouseDevice.cpp
+	GPC_RawImage.cpp
+	GPC_RawLoadDotBlendArray.cpp
+	GPC_RawLogoArrays.cpp
+	GPC_RenderTools.cpp
+	GPC_System.cpp
 )
 
 SET(INC
-  .
-  ../../../../intern/string
-  ../../../../intern/ghost
-  ../../../../intern/guardedalloc
-  ../../../../intern/moto/include
-  ../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-  ../../../../source/kernel/gen_system
-  ../../../../source/kernel/gen_messaging
-  ../../../../source/gameengine/Converter
-  ../../../../source/blender/imbuf
-  ../../../../source/gameengine/Ketsji
-  ../../../../source/blender/blenlib
-  ../../../../source/blender/blenkernel
-  ../../../../source/blender
-  ../../../../source/blender/include
-  ../../../../source/blender/makesdna
-  ../../../../source/gameengine/Rasterizer
-  ../../../../source/gameengine/GameLogic
-  ../../../../source/gameengine/Expressions
-  ../../../../source/gameengine/Network
-  ../../../../source/gameengine/SceneGraph
-  ../../../../source/gameengine/Physics/common
-  ../../../../source/gameengine/Physics/Sumo
-  ../../../../source/gameengine/Physics/Sumo/Fuzzics/include
-  ../../../../source/gameengine/Network/LoopBackNetwork
-  ../../../../source/gameengine/GamePlayer/ghost
-  ../../../../source/blender/misc
-  ../../../../source/blender/blenloader
-  ../../../../source/blender/gpu
-  ../../../../extern/glew/include
-  ${PYTHON_INC}
-  ${PNG_INC}
-  ${ZLIB_INC}
+	.
+	../../../../intern/string
+	../../../../intern/ghost
+	../../../../intern/guardedalloc
+	../../../../intern/moto/include
+	../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
+	../../../../source/kernel/gen_system
+	../../../../source/kernel/gen_messaging
+	../../../../source/gameengine/Converter
+	../../../../source/blender/imbuf
+	../../../../source/gameengine/Ketsji
+	../../../../source/blender/blenlib
+	../../../../source/blender/blenkernel
+	../../../../source/blender
+	../../../../source/blender/include
+	../../../../source/blender/makesdna
+	../../../../source/gameengine/Rasterizer
+	../../../../source/gameengine/GameLogic
+	../../../../source/gameengine/Expressions
+	../../../../source/gameengine/Network
+	../../../../source/gameengine/SceneGraph
+	../../../../source/gameengine/Physics/common
+	../../../../source/gameengine/Network/LoopBackNetwork
+	../../../../source/gameengine/GamePlayer/ghost
+	../../../../source/blender/misc
+	../../../../source/blender/blenloader
+	../../../../source/blender/gpu
+	../../../../extern/glew/include
+	${PYTHON_INC}
+	${PNG_INC}
+	${ZLIB_INC}
 )
 
 BLENDERLIB_NOLIST(gp_common "${SRC}" "${INC}")

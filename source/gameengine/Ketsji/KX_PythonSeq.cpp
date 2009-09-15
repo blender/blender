@@ -340,10 +340,41 @@ static PyObject *KX_PythonSeq_nextIter(KX_PythonSeq *self)
 }
 
 
-static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b ) /* TODO - python3.x wants richcmp */
+static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b )
 {
 	return ( a->type == b->type && a->base == b->base) ? 0 : -1;	
 }
+
+static PyObject *KX_PythonSeq_richcmp(PyObject *a, PyObject *b, int op)
+{
+	PyObject *res;
+	int ok= -1; /* zero is true */
+
+	if(BPy_KX_PythonSeq_Check(a) && BPy_KX_PythonSeq_Check(b))
+		ok= KX_PythonSeq_compare((KX_PythonSeq *)a, (KX_PythonSeq *)b);
+	
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
+
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
+	}
+	
+	Py_INCREF(res);
+	return res;
+}
+
 
 /*
  * repr function
@@ -374,8 +405,7 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	/* TODO, richcmp */
-	NULL, /* ( cmpfunc ) KX_PythonSeq_compare, /* cmpfunc tp_compare; */
+	NULL,						/* cmpfunc tp_compare; */
 	( reprfunc ) KX_PythonSeq_repr,   /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
@@ -401,14 +431,14 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
+	NULL,						/* traverseproc tp_traverse; */
 
 	/* delete references to contained objects */
 	NULL,                       /* inquiry tp_clear; */
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
+	(richcmpfunc)KX_PythonSeq_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
 	0,                          /* long tp_weaklistoffset; */

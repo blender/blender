@@ -55,7 +55,6 @@ class SG_Spatial;
 class SG_ParentRelation {
 
 public :
-
 	/**
 	 * Update the childs local and global coordinates
 	 * based upon the parents global coordinates. 
@@ -128,6 +127,13 @@ protected :
 	SG_ParentRelation(
 		const SG_ParentRelation &
 	); 
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_ParentRelation"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };	
 
 #endif

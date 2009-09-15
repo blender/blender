@@ -5,4 +5,4 @@ sources = 'DummyPhysicsEnvironment.cpp'
 
 incs = '. ../common'
 
-env.BlenderLib ( 'bf_dummy', Split(sources), Split(incs), [], libtype=['core','player'], priority=[350,95] )
+env.BlenderLib ( 'bf_dummy', Split(sources), Split(incs), [], libtype=['core','player'], priority=[350,60] )

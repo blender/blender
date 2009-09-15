@@ -462,10 +462,11 @@ void KX_BlenderSceneConverter::RegisterGameObject(
 	m_map_blender_to_gameobject.insert(CHashedPtr(for_blenderobject),gameobject);
 }
 
+/* only need to run this during conversion since
+ * m_map_blender_to_gameobject is freed after conversion */
 void KX_BlenderSceneConverter::UnregisterGameObject(
 									KX_GameObject *gameobject) 
 {
-#if 0
 	struct Object *bobp= gameobject->GetBlenderObject();
 	if (bobp) {
 		CHashedPtr bptr(bobp);
@@ -477,7 +478,6 @@ void KX_BlenderSceneConverter::UnregisterGameObject(
 			m_map_blender_to_gameobject.remove(bptr);
 		}
 	}
-#endif
 }
 
 KX_GameObject *KX_BlenderSceneConverter::FindGameObject(
@@ -795,6 +795,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject && blenderObject->ipo)
 				{
+#if 0
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
 					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
 					const MT_Matrix3x3& orn = gameObj->NodeGetWorldOrientation();
@@ -804,7 +805,6 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 					float tmat[3][3];
 					
 					// XXX animato
-#if 0
 					Ipo* ipo = blenderObject->ipo;
 
 					//create the curves, if not existing, set linear if new

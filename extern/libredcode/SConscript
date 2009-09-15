@@ -12,5 +12,5 @@ incs = '. ../libopenjpeg'
 env.BlenderLib ( libname='extern_redcode', 
                  sources=sources, includes=Split(incs),
                  defines=[],
-                 libtype=['core','intern','player'],
-                 priority=[5, 5, 200], compileflags = [])
+                 libtype=['core','intern'],
+                 priority=[5, 5], compileflags = [])

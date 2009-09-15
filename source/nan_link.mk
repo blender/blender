@@ -97,7 +97,7 @@ ifeq ($(OS),linux)
     COMMENT = "MESA 3.1"
     LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXmu -lXext -lX11 -lXi
     LLIBS += -lutil -lc -lm -ldl -lpthread
-    LLIBS += -lpython$(NAN_PYTHON_VERSION)
+    LLIBS += -L$(NAN_PYTHON)/lib -Wl,-rpath -Wl,$(NAN_PYTHON)/lib -lpython$(NAN_PYTHON_VERSION)
     LOPTS = -export-dynamic
     DADD = -lGL -lGLU
     SADD = $(NAN_MESA)/lib/libGL.a $(NAN_MESA)/lib/libGLU.a

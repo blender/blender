@@ -42,14 +42,8 @@ incs = ['.',
 
 incs += Split(env['BF_PYTHON_INC'])
 
-cxxflags = []
-if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-	cxxflags.append ('/EHsc')
-
-defs = ''
+defs = []
 if env['WITH_BF_FFMPEG']:
-    defs += ' WITH_FFMPEG'
+    defs.append('WITH_FFMPEG')
 
-env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = Split(defs), libtype='player',priority=5, cxx_compileflags=cxxflags)
+env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = defs, libtype=['player'],priority=[0], cxx_compileflags=env['BGE_CXXFLAGS'])

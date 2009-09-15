@@ -42,6 +42,9 @@
 #include <cstring>
 #include <cstdio>
 
+#include <algorithm>
+#include <string>
+
 // For obscure full screen mode stuuf
 // lifted verbatim from blut.
 
@@ -428,7 +431,20 @@ void GHOST_WindowX11::initXInputDevices()
 			old_handler = XSetErrorHandler(ApplicationErrorHandler) ;
 
 			for(int i=0; i<device_count; ++i) {
-				if(!strcasecmp(device_info[i].name, "stylus")) {
+				std::string type = "";
+				
+				if(device_info[i].type) {
+					const char *orig = XGetAtomName(m_display, device_info[i].type);
+					// Make a copy so we can convert to lower case
+					if(orig) {
+						type = orig;
+						XFree((void*)orig);
+						std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+					}
+				}
+
+
+				if(type.find("stylus") != std::string::npos) {
 					m_xtablet.StylusID= device_info[i].id;
 					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
 
@@ -453,7 +469,7 @@ void GHOST_WindowX11::initXInputDevices()
  						m_xtablet.StylusID= 0;
 					}
 				}
-				if(!strcasecmp(device_info[i].name, "eraser")) {
+				if(type.find("eraser") != std::string::npos) {
 					m_xtablet.EraserID= device_info[i].id;
 					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
 					if (m_xtablet.EraserDevice == NULL) m_xtablet.EraserID= 0;

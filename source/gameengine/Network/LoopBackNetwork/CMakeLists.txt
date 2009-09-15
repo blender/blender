@@ -27,10 +27,10 @@
 SET(SRC NG_LoopBackNetworkDeviceInterface.cpp)
 
 SET(INC
-  .
-  ../../../../source/kernel/gen_system
-  ../../../../intern/string
-  ../../../../source/gameengine/Network
+	.
+	../../../../source/kernel/gen_system
+	../../../../intern/string
+	../../../../source/gameengine/Network
 )
 
 BLENDERLIB(bf_loopbacknetwork "${SRC}" "${INC}")

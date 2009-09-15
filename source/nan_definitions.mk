@@ -113,12 +113,34 @@ ifndef CONFIG_GUESS
     export WITH_OPENEXR ?= true
     export WITH_DDS ?= true
     export WITH_OPENJPEG ?= true
+    export WITH_LZO ?= true
+    export WITH_LZMA ?= true
+    export NAN_LZO ?= $(LCGDIR)/lzo
+    export NAN_LZMA ?= $(LCGDIR)/lzma
+    export WITH_OPENAL ?= false
+    export WITH_JACK ?= false
+    export WITH_SNDFILE ?= false
 
+  ifeq ($(WITH_OPENAL), true)
+    export NAN_OPENAL ?= /usr
+  endif
+
+  ifeq ($(WITH_JACK), true)
+    export NAN_JACK ?= /usr
+    export NAN_JACKCFLAGS ?= -I$(NAN_JACK)/include/jack
+    export NAN_JACKLIBS ?= $(NAN_JACK)/lib/libjack.a
+  endif
+
+  ifeq ($(WITH_SNDFILE),true)
+    export NAN_SNDFILE ?= /usr
+    export NAN_SNDFILECFLAGS ?= -I$(NAN_SNDFILE)/include
+    export NAN_SNDFILELIBS ?= $(NAN_SNDFILE)/lib/libsndfile.a $(NAN_SNDFILE)/lib/libFLAC.a $(NAN_SNDFILE)/lib/libogg.a
+  endif
 
   ifeq ($(NAN_USE_FFMPEG_CONFIG), true)
-    export NAN_FFMPEG ?= $(shell ffmpeg-config --prefix)
-    export NAN_FFMPEGLIBS ?= $(shell ffmpeg-config --libs avformat avcodec)
-    export NAN_FFMPEGCFLAGS ?= $(shell ffmpeg-config --cflags)
+    export NAN_FFMPEG = $(shell pkg-config --variable=prefix libavcodec) # Assume they are all in the same prefix
+    export NAN_FFMPEGLIBS = $(shell pkg-config --libs libavcodec libavdevice libavformat libswscale libavutil)
+    export NAN_FFMPEGCFLAGS = $(shell pkg-config --cflags libavcodec libavdevice libavformat libswscale libavutil)
   endif
 
   # Platform Dependent settings go below:
@@ -172,7 +194,7 @@ ifndef CONFIG_GUESS
     export NAN_NO_KETSJI=false
 
     ifeq ($(CPU), i386)
-      export NAN_NO_OPENAL=true
+      export WITH_OPENAL=false
     endif
 
     # Location of MOZILLA/Netscape header files...
@@ -313,12 +335,6 @@ ifndef CONFIG_GUESS
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
     export NAN_SAMPLERATE ?= /usr
-
-ifneq ($(NAN_USE_FFMPEG_CONFIG), true)
-    export NAN_FFMPEG ?= /usr
-    export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavcodec -lavutil -lswscale -lavdevice -ldts -lz
-    export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
-endif
 
     ifeq ($(WITH_OPENEXR), true)
       export NAN_OPENEXR ?= $(shell pkg-config --variable=prefix OpenEXR )
@@ -532,5 +548,4 @@ endif # CONFIG_GUESS
 # Don't want to build the gameengine?
 ifeq ($(NAN_NO_KETSJI), true)
    export NAN_JUST_BLENDERDYNAMIC=true
-   export NAN_NO_OPENAL=true
 endif

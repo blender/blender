@@ -50,6 +50,13 @@
 
 using namespace std;
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
+#ifdef _WIN32
+#define stricmp _stricmp
+#endif
 
 class STR_String;
 
@@ -191,6 +198,13 @@ protected:
 	char   *pData;													// -> STR_String data
 	int	   Len;														// Data length
 	int	   Max;														// Space in data buffer
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "CXX:STR_String"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 inline  STR_String operator+(rcSTR_String    lhs, rcSTR_String   rhs)	{ return STR_String(lhs.ReadPtr(), lhs.Length(), rhs.ReadPtr(), rhs.Length()); }

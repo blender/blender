@@ -3,4 +3,4 @@ Import ('env')
 
 source = 'winblender.rcscons'
 
-env.BlenderRes('winresource', source, ['core', 'player'], priority=[95 , 100])
+env.BlenderRes('winresource', source, ['core'], priority=[95])

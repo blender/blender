@@ -197,7 +197,7 @@ def is_tricyl_facegroup(faces):
 	is the face group a tri cylinder
 	Returens a bool, true if the faces make an extruded tri solid
 	'''
-	return False
+	
 	# cube must have 5 faces
 	if len(faces) != 5:
 		print '1'

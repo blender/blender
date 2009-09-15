@@ -90,6 +90,7 @@ struct KX_ClientObjectInfo;
 class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
 	Py_Header;
+	PyObject*	m_attr_dict;
 
 	struct CullingInfo {
 		int m_layer;
@@ -262,15 +263,10 @@ protected:
 
 	double				m_suspendedtime;
 	double				m_suspendeddelta;
-	
-	/**
-	 * This stores anything from python
-	 */
-	PyObject* m_attr_dict;
 
 	struct Scene* m_blenderScene;
 
-public:
+public:	
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
 		class NG_NetworkDeviceInterface* ndi,
@@ -521,23 +517,12 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
-	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getLightList);
-	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getObjectList);
-	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getName);
+	/* --------------------------------------------------------------------- */
+	/* Python interface ---------------------------------------------------- */
+	/* --------------------------------------------------------------------- */
+
 	KX_PYMETHOD_DOC(KX_Scene, addObject);
-/*	
-	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
-	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
-	KX_PYMETHOD_DOC(KX_Scene, findCamera);
-	
-	KX_PYMETHOD_DOC(KX_Scene, getGravity);
-	
-	KX_PYMETHOD_DOC(KX_Scene, setActivityCulling);
-	KX_PYMETHOD_DOC(KX_Scene, setActivityCullingRadius);
-	
-	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
-	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
-	*/
+	KX_PYMETHOD_DOC(KX_Scene, get);
 
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -549,7 +534,11 @@ public:
 	static int			pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	virtual PyObject* py_repr(void) { return PyUnicode_FromString(GetName().ReadPtr()); }
-		
+	
+	/* getitem/setitem */
+	static PyMappingMethods	Mapping;
+	static PySequenceMethods	Sequence;
+
 	/**
 	 * Sets the time the scene was suspended
 	 */ 

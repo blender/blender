@@ -31,6 +31,10 @@
 
 #include <stdlib.h>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 /**
  * Double circular linked list
  */
@@ -155,6 +159,13 @@ public:
     { 
         return this; 
     }
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_DList"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__SG_DLIST

@@ -2,8 +2,8 @@
 import bpy
  
 class BoneButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "bone"
 	
 	def poll(self, context):
@@ -20,7 +20,7 @@ class BONE_PT_context_bone(BoneButtonsPanel):
 			bone = context.edit_bone
 		
 		row = layout.row()
-		row.itemL(text="", icon="ICON_BONE_DATA")
+		row.itemL(text="", icon='ICON_BONE_DATA')
 		row.itemR(bone, "name", text="")
 
 class BONE_PT_transform(BoneButtonsPanel):
@@ -58,6 +58,10 @@ class BONE_PT_transform(BoneButtonsPanel):
 			col = row.column()
 			if pchan.rotation_mode == 'QUATERNION':
 				col.itemR(pchan, "rotation", text="Rotation")
+			elif pchan.rotation_mode == 'AXIS_ANGLE':
+				col.itemL(text="Rotation")
+				col.itemR(pchan, "rotation_angle", text="Angle")
+				col.itemR(pchan, "rotation_axis", text="Axis")
 			else:
 				col.itemR(pchan, "euler_rotation", text="Rotation")
 
@@ -67,6 +71,35 @@ class BONE_PT_transform(BoneButtonsPanel):
 				col = layout.column(align=True)
 				col.itemL(text="Euler:")
 				col.row().itemR(pchan, "euler_rotation", text="")
+				
+class BONE_PT_transform_locks(BoneButtonsPanel):
+	__label__ = "Transform Locks"
+	
+	def poll(self, context):
+		return context.bone
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		bone = context.bone
+		pchan = ob.pose.pose_channels[context.bone.name]
+		
+		row = layout.row()
+		col = row.column()
+		col.itemR(pchan, "lock_location")
+		col.active = not (bone.parent and bone.connected)
+		
+		col = row.column()
+		if pchan.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
+			col.itemR(pchan, "lock_rotations_4d", text="Lock Rotation")
+			if pchan.lock_rotations_4d:
+				col.itemR(pchan, "lock_rotation_w", text="W")
+			col.itemR(pchan, "lock_rotation", text="")
+		else:
+			col.itemR(pchan, "lock_rotation", text="Rotation")
+		
+		row.column().itemR(pchan, "lock_scale")
 
 class BONE_PT_bone(BoneButtonsPanel):
 	__label__ = "Bone"
@@ -74,10 +107,15 @@ class BONE_PT_bone(BoneButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
+		ob = context.object
 		bone = context.bone
 		arm = context.armature
+		
 		if not bone:
 			bone = context.edit_bone
+			pchan = None
+		else:
+			pchan = ob.pose.pose_channels[context.bone.name]
 
 		split = layout.split()
 
@@ -87,14 +125,14 @@ class BONE_PT_bone(BoneButtonsPanel):
 			col.itemR(bone, "parent", text="")
 		else:
 			col.item_pointerR(bone, "parent", arm, "edit_bones", text="")
-
+		
 		row = col.row()
 		row.active = bone.parent != None
 		row.itemR(bone, "connected")
-
+		
 		col.itemL(text="Layers:")
-		col.template_layers(bone, "layer")
-
+		col.itemR(bone, "layer", text="")
+		
 		col = split.column()
 		col.itemL(text="Inherit:")
 		col.itemR(bone, "hinge", text="Rotation")
@@ -102,6 +140,17 @@ class BONE_PT_bone(BoneButtonsPanel):
 		col.itemL(text="Display:")
 		col.itemR(bone, "draw_wire", text="Wireframe")
 		col.itemR(bone, "hidden", text="Hide")
+		
+		if ob and pchan:
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Bone Group:")
+			col.item_pointerR(pchan, "bone_group", ob.pose, "bone_groups", text="")
+			
+			col = split.column()
+			col.itemL(text="Custom Shape:")
+			col.itemR(pchan, "custom_shape", text="")
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 	__label__ = "Inverse Kinematics"
@@ -178,18 +227,18 @@ class BONE_PT_deform(BoneButtonsPanel):
 	__default_closed__ = True
 
 	def draw_header(self, context):
-		layout = self.layout
-		
 		bone = context.bone
+		
 		if not bone:
 			bone = context.edit_bone
 			
-		layout.itemR(bone, "deform", text="")
+		self.layout.itemR(bone, "deform", text="")
 
 	def draw(self, context):
 		layout = self.layout
 		
 		bone = context.bone
+		
 		if not bone:
 			bone = context.edit_bone
 	
@@ -223,6 +272,7 @@ class BONE_PT_deform(BoneButtonsPanel):
 
 bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)
+bpy.types.register(BONE_PT_transform_locks)
 bpy.types.register(BONE_PT_bone)
 bpy.types.register(BONE_PT_deform)
 bpy.types.register(BONE_PT_inverse_kinematics)

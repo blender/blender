@@ -101,7 +101,10 @@ def create_blender_liblist(lenv = None, libtype = None):
 		sortlist.sort()
 		for sk in sortlist:
 			v = curlib[sk]
-			target = os.path.abspath(os.getcwd() + os.sep + root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
+			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+				target = os.path.abspath(os.getcwd() + os.sep + root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
+			else:
+				target = os.path.abspath(root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
 			lst.append(target)
 
 	return lst
@@ -130,6 +133,8 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
 	if lenv['WITH_BF_JACK']:
 		libincs += Split(lenv['BF_JACK_LIBPATH'])
+	if lenv['WITH_BF_SNDFILE']:
+		libincs += Split(lenv['BF_SNDFILE_LIBPATH'])
 	if lenv['WITH_BF_OPENEXR']:
 		libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENEXR']:
@@ -191,6 +196,8 @@ def setup_syslibs(lenv):
 			syslibs += Split(lenv['BF_OGG_LIB'])
 	if lenv['WITH_BF_JACK']:
 			syslibs += Split(lenv['BF_JACK_LIB'])
+	if lenv['WITH_BF_SNDFILE']:
+			syslibs += Split(lenv['BF_SNDFILE_LIB'])
 	if lenv['WITH_BF_FFTW3']:
 		syslibs += Split(lenv['BF_FFTW3_LIB'])
 	if lenv['WITH_BF_SDL']:
@@ -461,7 +468,11 @@ class BlenderEnvironment(SConsEnvironment):
 		
 		print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
 		lenv = self.Clone()
-		res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
+		if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+			res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
+		else:
+			res = lenv.RES(root_build_dir+'lib/'+libname, source)
+
 		
 		SConsEnvironment.Default(self, res)
 		resources.append(res)
@@ -587,7 +598,7 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
 		elif os.sep == '/': # any unix
 			if lenv['WITH_BF_PYTHON']:
-				if not lenv['WITHOUT_BF_INSTALL']:
+				if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL']:
 					lenv.AddPostAction(prog,Action(PyInstall,strfunction=my_pyinst_print))
 		
 		return prog

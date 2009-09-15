@@ -250,12 +250,6 @@ PyTypeObject SCA_PropertyActuator::Type = {
 };
 
 PyMethodDef SCA_PropertyActuator::Methods[] = {
-	//Deprecated functions ------>
-	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, (const char *)SetProperty_doc},
-	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, (const char *)GetProperty_doc},
-	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, (const char *)SetValue_doc},
-	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, (const char *)GetValue_doc},
-	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -265,72 +259,5 @@ PyAttributeDef SCA_PropertyActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_PROP_NODEF+1, KX_ACT_PROP_MAX-1, false, SCA_PropertyActuator, m_type), /* ATTR_TODO add constents to game logic dict */
 	{ NULL }	//Sentinel
 };
-
-/* 1. setProperty                                                        */
-const char SCA_PropertyActuator::SetProperty_doc[] = 
-"setProperty(name)\n"
-"\t- name: string\n"
-"\tSet the property on which to operate. If there is no property\n"
-"\tof this name, the call is ignored.\n";
-PyObject* SCA_PropertyActuator::PySetProperty(PyObject* args, PyObject* kwds)
-{
-	ShowDeprecationWarning("setProperty()", "the 'propName' property");
-	/* Check whether the name exists first ! */
-	char *nameArg;
-	if (!PyArg_ParseTuple(args, "s:setProperty", &nameArg)) {
-		return NULL;
-	}
-
-	CValue* prop = GetParent()->FindIdentifier(nameArg);
-
-	if (!prop->IsError()) {
-		m_propname = nameArg;
-	} else {
-		; /* not found ... */
-	}
-	prop->Release();
-	
-	Py_RETURN_NONE;
-}
-
-/* 2. getProperty                                                        */
-const char SCA_PropertyActuator::GetProperty_doc[] = 
-"getProperty(name)\n"
-"\tReturn the property on which the actuator operates.\n";
-PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* args, PyObject* kwds)
-{
-	ShowDeprecationWarning("getProperty()", "the 'propName' property");
-	return PyUnicode_FromString(m_propname);
-}
-
-/* 3. setValue                                                        */
-const char SCA_PropertyActuator::SetValue_doc[] = 
-"setValue(value)\n"
-"\t- value: string\n"
-"\tSet the value with which the actuator operates. If the value\n"
-"\tis not compatible with the type of the property, the subsequent\n"
-"\t action is ignored.\n";
-PyObject* SCA_PropertyActuator::PySetValue(PyObject* args, PyObject* kwds)
-{
-	ShowDeprecationWarning("setValue()", "the value property");
-	char *valArg;
-	if(!PyArg_ParseTuple(args, "s:setValue", &valArg)) {
-		return NULL;		
-	}
-	
-	if (valArg)	m_exprtxt = valArg;
-
-	Py_RETURN_NONE;
-}
-
-/* 4. getValue                                                        */
-const char SCA_PropertyActuator::GetValue_doc[] = 
-"getValue()\n"
-"\tReturns the value with which the actuator operates.\n";
-PyObject* SCA_PropertyActuator::PyGetValue(PyObject* args, PyObject* kwds)
-{
-	ShowDeprecationWarning("getValue()", "the value property");
-	return PyUnicode_FromString(m_exprtxt);
-}
 
 /* eof */

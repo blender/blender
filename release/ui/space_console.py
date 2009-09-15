@@ -5,24 +5,29 @@ import bpy_ops # XXX - should not need to do this
 del bpy_ops
 
 class CONSOLE_HT_header(bpy.types.Header):
-	__space_type__ = "CONSOLE"
+	__space_type__ = 'CONSOLE'
 
 	def draw(self, context):
 		sc = context.space_data
 		# text = sc.text
 		layout = self.layout
 
-		layout.template_header()
+		row= layout.row(align=True)
+		row.template_header()
 
-		row = layout.row()
-		row.itemR(sc, "console_type", expand=True)
+		if context.area.show_menus:
+			sub = row.row(align=True)
+
+			if sc.console_type == 'REPORT':
+				sub.itemM("CONSOLE_MT_report")
+			else:
+				sub.itemM("CONSOLE_MT_console")
+
+		layout.itemS()
+		layout.itemR(sc, "console_type", expand=True)
 
 		if sc.console_type == 'REPORT':
-			
-			if context.area.show_menus:
-				row = layout.row()
-				row.itemM("CONSOLE_MT_report")
-			
+			row = layout.row(align=True)
 			row.itemR(sc, "show_report_debug", text="Debug")
 			row.itemR(sc, "show_report_info", text="Info")
 			row.itemR(sc, "show_report_operator", text="Operators")
@@ -32,15 +37,9 @@ class CONSOLE_HT_header(bpy.types.Header):
 			row = layout.row()
 			row.enabled = sc.show_report_operator
 			row.itemO("console.report_replay")
-		
-		else:
-			if context.area.show_menus:
-				row = layout.row()
-				row.itemM("CONSOLE_MT_console")
-
 
 class CONSOLE_MT_console(bpy.types.Menu):
-	__space_type__ = "CONSOLE"
+	__space_type__ = 'CONSOLE'
 	__label__ = "Console"
 
 	def draw(self, context):
@@ -53,7 +52,7 @@ class CONSOLE_MT_console(bpy.types.Menu):
 		layout.itemO("console.paste")
 
 class CONSOLE_MT_report(bpy.types.Menu):
-	__space_type__ = "CONSOLE"
+	__space_type__ = 'CONSOLE'
 	__label__ = "Report"
 
 	def draw(self, context):
@@ -109,9 +108,9 @@ def get_console(console_id):
 
 class CONSOLE_OT_exec(bpy.types.Operator):
 	'''
-	Operator documentatuon text, will be used for the operator tooltip and python docs.
+	Execute the current console line as a python expression.
 	'''
-	__idname__ = "console.exec"
+	__idname__ = "console.execute"
 	__label__ = "Console Execute"
 	__register__ = False
 	
@@ -386,7 +385,7 @@ def autocomp(bcon):
 
 class CONSOLE_OT_autocomplete(bpy.types.Operator):
 	'''
-	Operator documentatuon text, will be used for the operator tooltip and python docs.
+	Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one.
 	'''
 	__idname__ = "console.autocomplete"
 	__label__ = "Console Autocomplete"

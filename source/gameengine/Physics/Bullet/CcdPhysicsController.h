@@ -58,8 +58,6 @@ class btCollisionShape;
 class CcdShapeConstructionInfo
 {
 public:
-	
-
 	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact);
 
 	CcdShapeConstructionInfo() :
@@ -191,6 +189,13 @@ protected:
 	bool	m_forceReInstance; //use gimpact for concave dynamic/moving collision detection
 	float	m_weldingThreshold1;	//welding closeby vertices together can improve softbody stability etc.
 	CcdShapeConstructionInfo* m_shapeProxy;	// only used for PHY_SHAPE_PROXY, pointer to actual shape info
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CcdShapeConstructionInfo"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 struct CcdConstructionInfo
@@ -559,7 +564,11 @@ protected:
 		}
 
 
-		
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CcdPhysicsController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 
@@ -587,7 +596,13 @@ class	DefaultMotionState : public PHY_IMotionState
 		
 		btTransform	m_worldTransform;
 		btVector3		m_localScaling;
-
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:DefaultMotionState"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 

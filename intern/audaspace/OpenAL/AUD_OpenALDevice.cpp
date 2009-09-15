@@ -544,13 +544,13 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 					if(alGetError() != AL_NO_ERROR)
 						AUD_THROW(AUD_ERROR_OPENAL);
 				}
-				catch(AUD_Exception e)
+				catch(AUD_Exception)
 				{
 					alDeleteSources(1, &sound->source);
 					throw;
 				}
 			}
-			catch(AUD_Exception e)
+			catch(AUD_Exception)
 			{
 				delete sound; AUD_DELETE("handle")
 				alcProcessContext(m_context);
@@ -648,19 +648,19 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 				if(alGetError() != AL_NO_ERROR)
 					AUD_THROW(AUD_ERROR_OPENAL);
 			}
-			catch(AUD_Exception e)
+			catch(AUD_Exception)
 			{
 				alDeleteSources(1, &sound->source);
 				throw;
 			}
 		}
-		catch(AUD_Exception e)
+		catch(AUD_Exception)
 		{
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 			throw;
 		}
 	}
-	catch(AUD_Exception e)
+	catch(AUD_Exception)
 	{
 		delete sound; AUD_DELETE("handle")
 		delete reader; AUD_DELETE("reader")
@@ -1051,13 +1051,13 @@ bool AUD_OpenALDevice::setCapability(int capability, void *value)
 						if(alGetError() != AL_NO_ERROR)
 							AUD_THROW(AUD_ERROR_OPENAL);
 					}
-					catch(AUD_Exception e)
+					catch(AUD_Exception)
 					{
 						alDeleteBuffers(1, &bf->buffer);
 						throw;
 					}
 				}
-				catch(AUD_Exception e)
+				catch(AUD_Exception)
 				{
 					delete bf; AUD_DELETE("bufferedfactory")
 					delete reader; AUD_DELETE("reader")

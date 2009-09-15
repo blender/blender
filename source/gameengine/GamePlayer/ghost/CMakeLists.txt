@@ -25,52 +25,49 @@
 # ***** END GPL LICENSE BLOCK *****
 
 SET(SRC 
-  GPG_Application.cpp
-  GPG_Canvas.cpp
-  GPG_ghost.cpp
-  GPG_KeyboardDevice.cpp
-  GPG_System.cpp
+	GPG_Application.cpp
+	GPG_Canvas.cpp
+	GPG_ghost.cpp
+	GPG_KeyboardDevice.cpp
+	GPG_System.cpp
 )
 
 SET(INC
-  .
-  ../../../../intern/string
-  ../../../../intern/ghost
-  ../../../../intern/guardedalloc
-  ../../../../intern/moto/include
-  ../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-  ../../../../source/kernel/gen_system
-  ../../../../source/kernel/gen_messaging
-  ../../../../source/gameengine/Converter
-  ../../../../source/blender/imbuf
-  ../../../../source/gameengine/Ketsji
-  ../../../../source/blender/blenlib
-  ../../../../source/blender/blenkernel
-  ../../../../source/blender/readblenfile
-  ../../../../source/blender
-  ../../../../source/blender/include
-  ../../../../source/blender/makesdna
-  ../../../../source/blender/makesrna
-  ../../../../source/gameengine/Rasterizer
-  ../../../../source/gameengine/GameLogic
-  ../../../../source/gameengine/Expressions
-  ../../../../source/gameengine/Network
-  ../../../../source/gameengine/SceneGraph
-  ../../../../source/gameengine/Physics/common
-  ../../../../source/gameengine/Physics/Sumo
-  ../../../../source/gameengine/Physics/Sumo/Fuzzics/include
-  ../../../../source/gameengine/Network/LoopBackNetwork
-  ../../../../source/gameengine/GamePlayer/common
-  ../../../../source/blender/misc
-  ../../../../source/blender/blenloader
-  ../../../../source/blender/gpu
-  ../../../../extern/solid
-  ../../../../extern/glew/include
-  ${PYTHON_INC}
+	.
+	../../../../intern/string
+	../../../../intern/ghost
+	../../../../intern/guardedalloc
+	../../../../intern/moto/include
+	../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
+	../../../../source/kernel/gen_system
+	../../../../source/kernel/gen_messaging
+	../../../../source/gameengine/Converter
+	../../../../source/blender/imbuf
+	../../../../source/gameengine/Ketsji
+	../../../../source/blender/blenlib
+	../../../../source/blender/blenkernel
+	../../../../source/blender/readblenfile
+	../../../../source/blender
+	../../../../source/blender/include
+	../../../../source/blender/makesdna
+	../../../../source/blender/makesrna
+	../../../../source/gameengine/Rasterizer
+	../../../../source/gameengine/GameLogic
+	../../../../source/gameengine/Expressions
+	../../../../source/gameengine/Network
+	../../../../source/gameengine/SceneGraph
+	../../../../source/gameengine/Physics/common
+	../../../../source/gameengine/Network/LoopBackNetwork
+	../../../../source/gameengine/GamePlayer/common
+	../../../../source/blender/misc
+	../../../../source/blender/blenloader
+	../../../../source/blender/gpu
+	../../../../extern/glew/include
+	${PYTHON_INC}
 )
 
 IF(WITH_FFMPEG)
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 BLENDERLIB_NOLIST(gp_ghost "${SRC}" "${INC}")
