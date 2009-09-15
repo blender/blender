@@ -268,7 +268,7 @@ void free_dverts(MDeformVert *dvert, int totvert)
 
 	/* Free any special data from the verts */
 	for (i=0; i<totvert; i++){
-		if (dvert[i].dw) MEM_freeN (dvert[i].dw);
+		if (dvert[i].dw) BLI_cellalloc_free (dvert[i].dw);
 	}
 	MEM_freeN (dvert);
 }

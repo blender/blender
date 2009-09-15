@@ -194,7 +194,7 @@
 #define SET_INT_IN_POINTER(i) ((void*)(intptr_t)(i))
 #define GET_INT_FROM_POINTER(i) ((int)(intptr_t)(i))
 
-/*little pointer array macro library.  example of usage:
+/*little array macro library.  example of usage:
 
 int *arr = NULL;
 V_DECLARE(arr);

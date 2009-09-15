@@ -922,13 +922,29 @@ static void customData_update_offsets(CustomData *data);
 static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	int type, int alloctype, void *layerdata, int totelem, const char *name);
 
+void customData_update_typemap(CustomData *data)
+{
+	int i, lasttype = -1;
+
+	for (i=0; i<CD_NUMTYPES; i++) {
+		data->typemap[i] = -1;
+	}
+
+	for (i=0; i<data->totlayer; i++) {
+		if (data->layers[i].type != lasttype) {
+			data->typemap[data->layers[i].type] = i;
+		}
+		lasttype = data->layers[i].type;
+	}
+}
+
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
                       CustomDataMask mask, int alloctype, int totelem)
 {
 	const LayerTypeInfo *typeInfo;
 	CustomDataLayer *layer, *newlayer;
 	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0;
-
+	
 	for(i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
@@ -964,6 +980,8 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			newlayer->active_mask = lastmask;
 		}
 	}
+
+	customData_update_typemap(dest);
 }
 
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
@@ -1041,11 +1059,12 @@ int CustomData_get_named_layer_index(const CustomData *data, int type, char *nam
 
 int CustomData_get_active_layer_index(const CustomData *data, int type)
 {
-	int i;
+	if (!data->totlayer)
+		return -1;
 
-	for(i=0; i < data->totlayer; ++i)
-		if(data->layers[i].type == type)
-			return i + data->layers[i].active;
+	if (data->typemap[type] != -1) {
+		return data->typemap[type] + data->layers[data->typemap[type]].active;
+	}
 
 	return -1;
 }
@@ -1307,6 +1326,7 @@ void *CustomData_add_layer(CustomData *data, int type, int alloctype,
 	
 	layer = customData_add_layer__internal(data, type, alloctype, layerdata,
 	                                       totelem, typeInfo->defaultname);
+	customData_update_typemap(data);
 
 	if(layer)
 		return layer->data;
@@ -1322,6 +1342,7 @@ void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
 	
 	layer = customData_add_layer__internal(data, type, alloctype, layerdata,
 	                                       totelem, name);
+	customData_update_typemap(data);
 
 	if(layer)
 		return layer->data;
@@ -1360,6 +1381,7 @@ int CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 		customData_resize(data, -CUSTOMDATA_GROW);
 
 	customData_update_offsets(data);
+	customData_update_typemap(data);
 
 	return 1;
 }
@@ -1644,7 +1666,7 @@ void *CustomData_get_n(const CustomData *data, int type, int index, int n)
 	int offset;
 
 	/* get the layer index of the first layer of type */
-	layer_index = CustomData_get_layer_index(data, type);
+	layer_index = data->typemap[type];
 	if(layer_index < 0) return NULL;
 	
 	offset = layerType_getInfo(type)->size * index;
@@ -1996,7 +2018,7 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 		}
 		else if(fdata->layers[i].type == CD_MCOL)
 			CustomData_add_layer(ldata, CD_MLOOPCOL, CD_CALLOC, &(fdata->layers[i].name), totloop);
-	}		
+	}
 }
 void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total){
 	int i;

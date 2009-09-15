@@ -366,16 +366,7 @@ void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
 {
 	DMFaceIter *iter = source->newFaceIter(source);
 	DMLoopIter *liter;
-	int totloop = 0;
-
-	for (; !iter->done; iter->step(iter)) {
-		liter = iter->getLoopsIter(iter);
-		for (; !liter->done; liter->step(liter)) {
-			totloop++;
-		}
-	}
-
-	iter->free(iter);
+	int totloop = source->numLoopData;
 
 	dm_add_polys_from_iter(&target->loopData, &target->polyData, source, totloop);
 
@@ -1821,6 +1812,8 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	}
 
 	CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_ASSIGN, wlcol, totloop);
+
+	dfiter->free(dfiter);
 }
 
 /* new value for useDeform -1  (hack for the gameengine):
@@ -1965,7 +1958,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			/* apply vertex coordinates or build a DerivedMesh as necessary */
 			if(dm) {
 				if(deformedVerts) {
-					DerivedMesh *tdm = CDDM_copy(dm);
+					DerivedMesh *tdm = CDDM_copy(dm, 0);
 					dm->release(dm);
 					dm = tdm;
 
@@ -2039,7 +2032,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	 * DerivedMesh then we need to build one.
 	 */
 	if(dm && deformedVerts) {
-		finaldm = CDDM_copy(dm);
+		finaldm = CDDM_copy(dm, 0);
 
 		dm->release(dm);
 
@@ -2180,7 +2173,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			/* apply vertex coordinates or build a DerivedMesh as necessary */
 			if(dm) {
 				if(deformedVerts) {
-					DerivedMesh *tdm = CDDM_copy(dm);
+					DerivedMesh *tdm = CDDM_copy(dm, 0);
 					if(!(cage_r && dm == *cage_r)) dm->release(dm);
 					dm = tdm;
 
@@ -2189,7 +2182,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				} else if(cage_r && dm == *cage_r) {
 					/* dm may be changed by this modifier, so we need to copy it
 					 */
-					dm = CDDM_copy(dm);
+					dm = CDDM_copy(dm, 0);
 				}
 
 			} else {
@@ -2242,7 +2235,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 		if(cage_r && i == cageIndex) {
 			if(dm && deformedVerts) {
-				*cage_r = CDDM_copy(dm);
+				*cage_r = CDDM_copy(dm, 0);
 				CDDM_apply_vert_coords(*cage_r, deformedVerts);
 			} else if(dm) {
 				*cage_r = dm;
@@ -2261,7 +2254,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	 * then we need to build one.
 	 */
 	if(dm && deformedVerts) {
-		*final_r = CDDM_copy(dm);
+		*final_r = CDDM_copy(dm, 0);
 
 		if(!(cage_r && dm == *cage_r)) dm->release(dm);
 

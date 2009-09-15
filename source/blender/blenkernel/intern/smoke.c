@@ -774,7 +774,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			if(smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 
-			smd->coll->dm = CDDM_copy(dm);
+			smd->coll->dm = CDDM_copy(dm, 0);
 
 			// rigid movement support
 			Mat4CpyMat4(smd->coll->mat_old, smd->coll->mat);

@@ -2274,7 +2274,7 @@ BM_INLINE EdgeData *edge_get_first(VertUser *vu)
 
 DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 {
-	DerivedMesh *cddm = CDDM_copy(dm);
+	DerivedMesh *cddm = CDDM_copy(dm, 0);
 	MEdge *medge;
 	V_DECLARE(medge);
 	MLoop *mloop, *ml, *prevl;
@@ -2954,7 +2954,7 @@ static void displaceModifier_deformVerts(
 {
 	DerivedMesh *dm;
 
-	if(derivedData) dm = CDDM_copy(derivedData);
+	if(derivedData) dm = CDDM_copy(derivedData, 0);
 	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	else return;
 
@@ -2973,7 +2973,7 @@ static void displaceModifier_deformVertsEM(
 {
 	DerivedMesh *dm;
 
-	if(derivedData) dm = CDDM_copy(derivedData);
+	if(derivedData) dm = CDDM_copy(derivedData, 0);
 	else dm = CDDM_from_BMEditMesh(editData, ob->data);
 
 	CDDM_apply_vert_coords(dm, vertexCos);
@@ -3639,7 +3639,7 @@ static void smoothModifier_deformVerts(
 {
 	DerivedMesh *dm;
 
-	if(derivedData) dm = CDDM_copy(derivedData);
+	if(derivedData) dm = CDDM_copy(derivedData, 0);
 	else dm = CDDM_from_mesh(ob->data, ob);
 
 	CDDM_apply_vert_coords(dm, vertexCos);
@@ -3657,7 +3657,7 @@ static void smoothModifier_deformVertsEM(
 {
 	DerivedMesh *dm;
 
-	if(derivedData) dm = CDDM_copy(derivedData);
+	if(derivedData) dm = CDDM_copy(derivedData, 0);
 	else dm = CDDM_from_BMEditMesh(editData, ob->data);
 
 	CDDM_apply_vert_coords(dm, vertexCos);
@@ -4647,7 +4647,7 @@ static void waveModifier_deformVertsEM(
 
 	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
 		dm = derivedData;
-	else if(derivedData) dm = CDDM_copy(derivedData);
+	else if(derivedData) dm = CDDM_copy(derivedData, 0);
 	else dm = CDDM_from_BMEditMesh(editData, ob->data);
 
 	if(wmd->flag & MOD_WAVE_NORM) {
@@ -5259,7 +5259,7 @@ static void collisionModifier_deformVerts(
 	MVert *tempVert = NULL;
 	
 	/* if possible use/create DerivedMesh */
-	if(derivedData) dm = CDDM_copy(derivedData);
+	if(derivedData) dm = CDDM_copy(derivedData, 0);
 	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	
 	if(!ob->pd)
@@ -5427,7 +5427,7 @@ static void surfaceModifier_deformVerts(
 		surmd->dm->release(surmd->dm);
 
 	/* if possible use/create DerivedMesh */
-	if(derivedData) surmd->dm = CDDM_copy(derivedData);
+	if(derivedData) surmd->dm = CDDM_copy(derivedData, 0);
 	else surmd->dm = get_original_dm(md->scene, ob, NULL, 0);
 	
 	if(!ob->pd)
@@ -5686,7 +5686,7 @@ static void particleSystemModifier_deformVerts(
 	}
 
 	/* make new dm */
-	psmd->dm=CDDM_copy(dm);
+	psmd->dm=CDDM_copy(dm, 0);
 	CDDM_apply_vert_coords(psmd->dm, vertexCos);
 	CDDM_calc_normals(psmd->dm);
 
@@ -7361,7 +7361,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
 	{
-		if(derivedData) dm = CDDM_copy(derivedData);
+		if(derivedData) dm = CDDM_copy(derivedData, 0);
 		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
@@ -7386,7 +7386,7 @@ static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, BMEdi
 
 	if(dataMask)
 	{
-		if(derivedData) dm = CDDM_copy(derivedData);
+		if(derivedData) dm = CDDM_copy(derivedData, 0);
 		else if(ob->type==OB_MESH) dm = CDDM_from_BMEditMesh(editData, ob->data);
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
@@ -7475,7 +7475,7 @@ static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, Deriv
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
 	{
-		if(derivedData) dm = CDDM_copy(derivedData);
+		if(derivedData) dm = CDDM_copy(derivedData, 0);
 		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
@@ -7502,7 +7502,7 @@ static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, BME
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
 	{
-		if(derivedData) dm = CDDM_copy(derivedData);
+		if(derivedData) dm = CDDM_copy(derivedData, 0);
 		else if(ob->type==OB_MESH) dm = CDDM_from_BMEditMesh(editData, ob->data);
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;

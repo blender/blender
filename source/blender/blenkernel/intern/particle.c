@@ -606,7 +606,7 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 	data->totchildcache= psys->totchildcache;
 
 	if(psmd->dm)
-		data->dm= CDDM_copy(psmd->dm);
+		data->dm= CDDM_copy(psmd->dm, 0);
 	data->totdmvert= psmd->totdmvert;
 	data->totdmedge= psmd->totdmedge;
 	data->totdmface= psmd->totdmface;

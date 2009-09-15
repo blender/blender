@@ -1410,7 +1410,7 @@ DMFaceIter *cdDM_newFaceIter(DerivedMesh *source)
 	return (DMFaceIter*) iter;
 }
 
-DerivedMesh *CDDM_copy(DerivedMesh *source)
+DerivedMesh *CDDM_copy(DerivedMesh *source, int faces_from_tessfaces)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_copy cddm");
 	DerivedMesh *dm = &cddm->dm;
@@ -1438,8 +1438,10 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_ASSIGN, cddm->medge, numEdges);
 	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, cddm->mface, numFaces);
 	
-	DM_DupPolys(source, dm);
- 	//CDDM_tessfaces_to_faces(dm);
+	if (!faces_from_tessfaces)
+		DM_DupPolys(source, dm);
+ 	else
+		CDDM_tessfaces_to_faces(dm);
 
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);

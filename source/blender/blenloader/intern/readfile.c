@@ -3243,7 +3243,19 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 		return;
 
 	for (i=0; i<count; i++) {
+		void *tmp;
+
 		mdverts[i].dw=newdataadr(fd, mdverts[i].dw);
+		
+		/*convert to vgroup allocation system*/
+		if (mdverts[i].dw) {
+			tmp = BLI_cellalloc_malloc(MEM_allocN_len(mdverts[i].dw), "vgroups from readfile.c");
+			memcpy(tmp, mdverts[i].dw, MEM_allocN_len(mdverts[i].dw));
+
+			MEM_freeN(mdverts[i].dw);
+			mdverts[i].dw = tmp;
+		}
+
 		if (!mdverts[i].dw)
 			mdverts[i].totweight=0;
 	}
@@ -3262,6 +3274,8 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps)
 	}       
 }
 
+/*this isn't really a public api function, so prototyped here*/
+void customData_update_typemap(CustomData *data);
 static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 {
 	int i = 0;
@@ -3278,6 +3292,8 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 			i++;
 		}
 	}
+
+	customData_update_typemap(data);
 }
 
 

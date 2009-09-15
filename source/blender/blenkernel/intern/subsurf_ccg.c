@@ -55,11 +55,11 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
-
 #include "BLI_arithb.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 #include "BLI_edgehash.h"
+#include "PIL_time.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -85,6 +85,10 @@ struct CCGDerivedMesh {
 	struct {int startVert; int startEdge; CCEdge *edge;} *edgeMap;
 	struct {int startVert; int startEdge;
 	        int startFace; CCFace *face;} *faceMap;
+	/*maps final faces to faceMap faces*/
+	int *reverseFaceMap;
+
+	EdgeHash *ehash;
 };
 
 typedef struct CCGDerivedMesh CCGDerivedMesh;
@@ -183,7 +187,7 @@ static int getEdgeIndex(CSubSurf *ss, CCEdge *e, int x, int edgeSize) {
 	}
 }
 
-static int getFaceIndex(CSubSurf *ss, CCFace *f, int S, int x, int y, int edgeSize, int gridSize) {
+BM_INLINE int getFaceIndex(CSubSurf *ss, CCFace *f, int S, int x, int y, int edgeSize, int gridSize) {
 	int faceBase = *((int*) CCS_getFaceUserData(ss, f));
 	int numVerts = CCS_getFaceNumVerts(f);
 
@@ -558,9 +562,12 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
                                  DerivedMesh *dm, MultiresSubsurf *ms)
 {
 	DerivedMesh *cgdm, *result;
+	double curt = PIL_check_seconds_timer();
 
 	cgdm = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);
-	result = CDDM_copy(cgdm);
+	result = CDDM_copy(cgdm, 0);
+
+	printf("subsurf conversion time: %.6lf\n", PIL_check_seconds_timer() - curt);
 	
 	cgdm->needsFree = 1;
 	cgdm->release(cgdm);
@@ -1282,10 +1289,10 @@ static void cgdm_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	char *faceFlags = dm->getTessFaceDataArray(dm, CD_FLAGS);
 
 	memset(mf, 0, sizeof(*mf));
+	if (faceNum >= cgdm->dm.numFaceData)
+		return;
 
-	i = 0;
-	while(i < lastface && faceNum >= cgdm->faceMap[i + 1].startFace)
-		++i;
+	i = cgdm->reverseFaceMap[faceNum];
 
 	f = cgdm->faceMap[i].face;
 	numVerts = CCS_getFaceNumVerts(f);
@@ -1456,7 +1463,7 @@ typedef struct cgdm_loopIter {
 typedef struct cgdm_faceIter {
 	DMFaceIter head;
 	CCGDerivedMesh *cgdm;
-	MFace mface;
+	MFace *mface, *mf;
 
 	cgdm_loopIter liter;
 	EdgeHash *ehash; /*edge map for populating loopiter->eindex*/
@@ -1478,10 +1485,10 @@ void cgdm_faceIterStep(void *self)
 		return;
 	};
 
-	cgdm_getFinalFace((DerivedMesh*)fiter->cgdm, fiter->head.index, &fiter->mface);
+	fiter->mf++;
 
-	fiter->head.flags = fiter->mface.flag;
-	fiter->head.mat_nr = fiter->mface.mat_nr;
+	fiter->head.flags = fiter->mface->flag;
+	fiter->head.mat_nr = fiter->mface->mat_nr;
 	fiter->head.len = 4;
 }
 
@@ -1511,25 +1518,25 @@ void cgdm_loopIterStep(void *self)
 
 	switch (i) {
 		case 0:
-			v1 = liter->fiter->mface.v1;
-			v2 = liter->fiter->mface.v2;
+			v1 = liter->fiter->mf->v1;
+			v2 = liter->fiter->mf->v2;
 			break;
 		case 1:
-			v1 = liter->fiter->mface.v2;
-			v2 = liter->fiter->mface.v3;
+			v1 = liter->fiter->mf->v2;
+			v2 = liter->fiter->mf->v3;
 			break;
 		case 2:
-			v1 = liter->fiter->mface.v3;
-			v2 = liter->fiter->mface.v4;
+			v1 = liter->fiter->mf->v3;
+			v2 = liter->fiter->mf->v4;
 			break;
 		case 3:
-			v1 = liter->fiter->mface.v4;
-			v2 = liter->fiter->mface.v1;
+			v1 = liter->fiter->mf->v4;
+			v2 = liter->fiter->mf->v1;
 			break;
 	}
 
 	liter->head.vindex = v1;
-	liter->head.eindex = GET_INT_FROM_POINTER(BLI_edgehash_lookup(liter->fiter->ehash, v1, v2));
+	liter->head.eindex = GET_INT_FROM_POINTER(BLI_edgehash_lookup(liter->fiter->cgdm->ehash, v1, v2));
 	liter->lindex += 1;
 	
 	cgdm_getFinalVert((DerivedMesh*)liter->cgdm, v1, &liter->head.v);	
@@ -1567,7 +1574,8 @@ DMLoopIter *cgdm_faceIterGetLIter(void *self)
 void cgdm_faceIterFree(void *vfiter)
 {
 	cgdm_faceIter *fiter = vfiter;
-	BLI_edgehash_free(fiter->ehash, NULL);
+
+	MEM_freeN(fiter->mface);
 	MEM_freeN(fiter);
 }
 
@@ -1579,12 +1587,8 @@ DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
 
 	fiter->cgdm = dm;
 	fiter->liter.cgdm = dm;
-	fiter->ehash = BLI_edgehash_new();
-	
-	for (i=0; i<totedge; i++) {
-		cgdm_getFinalEdge(dm, i, &medge);
-		BLI_edgehash_insert(fiter->ehash, medge.v1, medge.v2, SET_INT_IN_POINTER(i));
-	}
+	fiter->mface = fiter->mf = dm->dupTessFaceArray(dm);
+	fiter->mf--;
 
 	fiter->head.free = cgdm_faceIterFree;
 	fiter->head.step = cgdm_faceIterStep;
@@ -2547,6 +2551,8 @@ static void cgdm_release(DerivedMesh *dm) {
 		MEM_freeN(cgdm->vertMap);
 		MEM_freeN(cgdm->edgeMap);
 		MEM_freeN(cgdm->faceMap);
+		MEM_freeN(cgdm->reverseFaceMap);
+		BLI_edgehash_free(cgdm->ehash, NULL);
 		MEM_freeN(cgdm);
 	}
 }
@@ -2638,14 +2644,14 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	WeightTable wtable = {0};
 	/* MVert *mvert = NULL; - as yet unused */
 	MCol *mcol;
-	MEdge *medge = NULL;
+	MEdge *medge = NULL, medge2;
 	MFace *mface = NULL;
 	MPoly *mpoly = NULL;
 
 	DM_from_template(&cgdm->dm, dm, CCS_getNumFinalVerts(ss),
 					 CCS_getNumFinalEdges(ss),
 					 CCS_getNumFinalFaces(ss),
-					 CCS_getNumFinalFaces(ss)*4+1, 
+					 CCS_getNumFinalFaces(ss)*4, 
 					 CCS_getNumFinalFaces(ss));
 	DM_add_tessface_layer(&cgdm->dm, CD_FLAGS, CD_CALLOC, NULL);
 	DM_add_face_layer(&cgdm->dm, CD_FLAGS, CD_CALLOC, NULL);
@@ -2737,6 +2743,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 		cgdm->faceMap[GET_INT_FROM_POINTER(CCS_getFaceFaceHandle(ss, f))].face = f;
 	}
 	CCFIter_free(fi);
+
+	cgdm->reverseFaceMap = MEM_callocN(sizeof(int)*CCS_getNumFinalFaces(ss), "reverseFaceMap");
 
 	edgeSize = CCS_getEdgeSize(ss);
 	gridSize = CCS_getGridSize(ss);
@@ -2884,6 +2892,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 					*faceOrigIndex = origIndex;
 					*polyOrigIndex = origIndex;
 
+					cgdm->reverseFaceMap[faceNum] = index;
+
 					faceOrigIndex++;
 					polyOrigIndex++;
 					faceNum++;
@@ -2972,6 +2982,11 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	V_FREE(loopidx);
 	free_ss_weights(&wtable);
 
+	cgdm->ehash = BLI_edgehash_new();
+	for (i=0; i<cgdm->dm.numEdgeData; i++) {
+		cgdm_getFinalEdge((DerivedMesh*)cgdm, i, &medge2);
+		BLI_edgehash_insert(cgdm->ehash, medge2.v1, medge2.v2, SET_INT_IN_POINTER(i));
+	}
 #if 0
 	for(index = 0; index < totface; ++index) {
 		CCFace *f = cgdm->faceMap[index].face;
@@ -3273,7 +3288,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	DerivedMesh *cddm = NULL, *result;
 
 	if (!CDDM_Check(dm)) {
-		cddm = CDDM_copy(dm);
+		cddm = CDDM_copy(dm, 0);
 		dm = cddm;
 	}
 

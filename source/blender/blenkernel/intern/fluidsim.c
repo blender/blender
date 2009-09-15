@@ -226,7 +226,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene, Ob
 			}
 		}
 		
-		result = CDDM_copy(dm);
+		result = CDDM_copy(dm, 0);
 
 		if(result) 
 		{

@@ -598,7 +598,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	BMO_Finish_Op(bm, &op);
 
 	BMEdit_RecalcTesselation(em);
-	result = CDDM_from_BMEditMesh(em, NULL); //CDDM_copy(getEditDerivedBMesh(em, ob, NULL));
+	result = CDDM_from_BMEditMesh(em, NULL); //CDDM_copy(getEditDerivedBMesh(em, ob, NULL), 0);
 
 	BMEdit_Free(em);
 	MEM_freeN(em);

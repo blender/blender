@@ -29,6 +29,10 @@
 /*
 	Simple, fast memory allocator that uses many BLI_mempools for allocation.
 	this is meant to be used by lots of relatively small objects.
+
+	this is a temporary and inperfect fix for performance issues caused
+	by vgroups.  it needs to be replaced with something better, preferably
+	integrated into guardedalloc.
 */
 
 #include "MEM_guardedalloc.h"
@@ -65,6 +69,12 @@ void *BLI_cellalloc_malloc(long size, char *tag)
 
 	if (!slot) 
 		return NULL;
+	
+	/*stupid optimization trick.
+	  round up to nearest 16 bytes boundary.
+	  this is to reduce the number of potential
+	  pools.  hopefully it'll help.*/
+	slot += 16 - (slot & 15);
 
 	if (slot >= totpool) {
 		void *tmp;
@@ -103,7 +113,8 @@ void *BLI_cellalloc_calloc(long size, char *tag)
 void BLI_cellalloc_free(void *mem)
 {
 	MemHeader *memh = mem;
-	
+	int slot;
+
 	if (!memh)
 		return;
 
@@ -113,9 +124,12 @@ void BLI_cellalloc_free(void *mem)
 		return;
 	}
 	
-	if (memh->size > 0 && memh->size+sizeof(MemHeader) < totpool) {
+	slot = memh->size + sizeof(MemHeader);
+	slot += 16 - (slot & 15);
+
+	if (memh->size > 0 && slot < totpool) {
 		BLI_remlink(&active_mem, memh);
-		BLI_mempool_free(pools[memh->size+sizeof(MemHeader)], memh);
+		BLI_mempool_free(pools[slot], memh);
 		celltotblock--;
 	} else {
 		printf("Error in BLI_cellalloc: attempt to free corrupted block.\n");

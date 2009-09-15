@@ -432,7 +432,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	clmd->scene= scene;	/* nice to pass on later :) */
 	framenr= (int)scene->r.cfra;
 	cache= clmd->point_cache;
-	result = CDDM_copy(dm);
+	result = CDDM_copy(dm, 0);
 
 	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
 	BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);

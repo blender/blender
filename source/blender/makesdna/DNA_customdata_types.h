@@ -49,6 +49,7 @@ typedef struct CustomDataLayer {
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
 	CustomDataLayer *layers;  /* CustomDataLayers, ordered by type */
+	int typemap[100];         /* maps types to indices of first layer of that type */
 	int totlayer, maxlayer;   /* number of layers, size of layers array */
 	int totsize, pad;         /* in editmode, total size of all data layers */
 	void *pool;		  /* for Bmesh: Memory pool for allocation of blocks*/
