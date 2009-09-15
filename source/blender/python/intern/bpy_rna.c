@@ -1680,6 +1680,7 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 {
 	/* Try get values from a collection */
 	PyObject *ret;
+	PyObject *iter;
 	
 	if(RNA_property_array_check(&self->ptr, self->prop)) {
 		int len = pyrna_prop_array_length(self);
@@ -1691,7 +1692,7 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 			PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(self, i));
 		}
 	}
-	else if (ret = pyrna_prop_values(self)) {
+	else if ((ret = pyrna_prop_values(self))) {
 		/* do nothing */
 	}
 	else {
@@ -1701,7 +1702,7 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	
 	
 	/* we know this is a list so no need to PyIter_Check */
-	PyObject *iter = PyObject_GetIter(ret);
+	iter = PyObject_GetIter(ret);
 	Py_DECREF(ret);
 	return iter;
 }

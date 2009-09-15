@@ -156,8 +156,10 @@ static void file_free(SpaceLink *sl)
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
-	MEM_freeN(sfile->params);
-	sfile->params = 0;
+	if(sfile->params) {
+		MEM_freeN(sfile->params);
+		sfile->params = 0;
+	}
 	printf("file_init\n");
 }
 
