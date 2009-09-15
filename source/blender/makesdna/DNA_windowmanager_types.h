@@ -298,7 +298,6 @@ typedef struct wmOperator {
 #define OPERATOR_PASS_THROUGH	8
 
 /* wmOperator flag */
-#define OPERATOR_REPORT_FREE	1
 
 
 /* ************** wmEvent ************************ */

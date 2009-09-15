@@ -349,8 +349,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 	}
 	else {
 		op->reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
-		BKE_reports_init(op->reports, RPT_STORE);
-		op->flag |= OPERATOR_REPORT_FREE;
+		BKE_reports_init(op->reports, RPT_STORE|RPT_FREE);
 	}
 	
 	/* recursive filling of operator macro list */
@@ -555,7 +554,8 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 
 	retval= wm_operator_call_internal(C, ot, context, properties, reports);
 	
-	if (retval & OPERATOR_RUNNING_MODAL)
+	/* keep the reports around if needed later */
+	if (retval & OPERATOR_RUNNING_MODAL || ot->flag & OPTYPE_REGISTER)
 	{
 		reports->flag |= RPT_FREE;
 	}
