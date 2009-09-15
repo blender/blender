@@ -9692,10 +9692,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
 		Scene *sce;
+		Object *ob;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next)
 			if(sce->unit.scale_length == 0.0f)
 				sce->unit.scale_length= 1.0f;
+		
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+
+			/* add backwards pointer for fluidsim modifier RNA access */
+			for (md=ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Fluidsim) {
+					FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+					fluidmd->fss->fmd = fluidmd;
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
