@@ -2119,6 +2119,25 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		if((cache->flag & PTCACHE_BAKED)==0) {
 			if(pid->type==PTCACHE_TYPE_PARTICLES)
 				psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+			else if(pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
+				/* get all pids from the object and search for smoke low res */
+				ListBase pidlist2;
+				PTCacheID *pid2;
+				BKE_ptcache_ids_from_object(&pidlist2, pid->ob);
+				for(pid2=pidlist2.first; pid2; pid2=pid2->next) {
+					if(pid2->type == PTCACHE_TYPE_SMOKE_DOMAIN) 
+					{
+						if(pid2->cache && !(pid2->cache->flag & PTCACHE_BAKED)) {
+							if(bake || pid2->cache->flag & PTCACHE_REDO_NEEDED)
+								BKE_ptcache_id_clear(pid2, PTCACHE_CLEAR_ALL, 0);
+							if(bake) {
+								pid2->cache->flag |= PTCACHE_BAKING;
+								pid2->cache->flag &= ~PTCACHE_BAKED;
+							}
+						}
+					}
+				}
+			}
 
 			if(bake || cache->flag & PTCACHE_REDO_NEEDED)
 				BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);

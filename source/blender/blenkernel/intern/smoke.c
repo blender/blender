@@ -1182,6 +1182,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		cache->simframe= framenr;
 
 		// simulate the actual smoke (c++ code in intern/smoke)
+		// DG: interesting commenting this line + deactivating loading of noise files
 		if(framenr!=startframe)
 			smoke_step(sds->fluid, smd->time);
 
