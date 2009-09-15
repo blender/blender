@@ -1215,6 +1215,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\loopcut.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\mesh_intern.h"
 				>
 			</File>
