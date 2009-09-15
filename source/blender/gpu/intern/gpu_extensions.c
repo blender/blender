@@ -346,6 +346,8 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	tex->number = 0;
 	glBindTexture(tex->target, tex->bindcode);
 
+	GPU_print_error("3D glBindTexture");
+
 	type = GL_FLOAT; // GL_UNSIGNED_BYTE
 	format = GL_RED;
 	internalformat = GL_INTENSITY;
@@ -355,16 +357,23 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 
 	glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, 0);
 
+	GPU_print_error("3D glTexImage3D");
+
 	if (fpixels) {
 		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
+		GPU_print_error("3D glTexSubImage3D");
 	}
 
+
 	glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, vfBorderColor);
+	GPU_print_error("3D GL_TEXTURE_BORDER_COLOR");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GPU_print_error("3D GL_LINEAR");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+	GPU_print_error("3D GL_CLAMP_TO_BORDER");
 
 	if (pixels)
 		MEM_freeN(pixels);

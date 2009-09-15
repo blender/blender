@@ -347,6 +347,8 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	GPU_texture_bind(tex, 0);
 	if(tex_shadow)
 		GPU_texture_bind(tex_shadow, 1);
+	else
+		printf("No volume shadow\n");
 
 	if (!GLEW_ARB_texture_non_power_of_two) {
 		cor[0] = (float)res[0]/(float)larger_pow2(res[0]);

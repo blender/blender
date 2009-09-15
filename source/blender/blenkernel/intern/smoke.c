@@ -167,7 +167,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		// calc other res with max_res provided
 		VECSUB(size, max, min);
 
-		printf("size: %f, %f, %f\n", size[0], size[1], size[2]);
+		// printf("size: %f, %f, %f\n", size[0], size[1], size[2]);
 
 		// prevent crash when initializing a plane as domain
 		if((size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) || (size[2] < FLT_EPSILON))
@@ -212,7 +212,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			}
 		}
 
-		printf("smd->domain->dx: %f\n", smd->domain->dx);
+		// printf("smd->domain->dx: %f\n", smd->domain->dx);
 
 		// TODO: put in failsafe if res<=0 - dg
 
@@ -228,8 +228,8 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			smd->domain->res_wt[1] = smd->domain->res[1] * (smd->domain->amplify + 1);			
 			smd->domain->res_wt[2] = smd->domain->res[2] * (smd->domain->amplify + 1);			
 			smd->domain->dx_wt = smd->domain->dx / (smd->domain->amplify + 1);		
-			printf("smd->domain->amplify: %d\n",  smd->domain->amplify);
-			printf("(smd->domain->flags & MOD_SMOKE_HIGHRES)\n");
+			// printf("smd->domain->amplify: %d\n",  smd->domain->amplify);
+			// printf("(smd->domain->flags & MOD_SMOKE_HIGHRES)\n");
 		}
 
 		if(!smd->domain->shadow)
@@ -240,7 +240,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		if(smd->domain->wt)	
 		{
 			smoke_initWaveletBlenderRNA(smd->domain->wt, &(smd->domain->strength));
-			printf("smoke_initWaveletBlenderRNA\n");
+			// printf("smoke_initWaveletBlenderRNA\n");
 		}
 		return 1;
 	}
@@ -624,7 +624,7 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 
 			smd->time = -1;
 
-			printf("reset domain end\n");
+			// printf("reset domain end\n");
 		}
 		else if(smd->flow)
 		{
@@ -1111,7 +1111,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		framenr = scene->r.cfra;
 
-		printf("time: %d\n", scene->r.cfra);
+		// printf("time: %d\n", scene->r.cfra);
 
 		if(framenr == smd->time)
 			return;
@@ -1148,7 +1148,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		/* try to read from cache */
 		cache_result =  BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
-		printf("cache_result: %d\n", cache_result);
+		// printf("cache_result: %d\n", cache_result);
 
 		if(cache_result == PTCACHE_READ_EXACT) 
 		{
