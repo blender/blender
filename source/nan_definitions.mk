@@ -143,6 +143,9 @@ ifndef CONFIG_GUESS
     export NAN_FFMPEGCFLAGS = $(shell pkg-config --cflags libavcodec libavdevice libavformat libswscale libavutil)
   endif
 
+    # Compare recreated .mo files with committed ones
+    export BF_VERIFY_MO_FILES ?= true
+
   # Platform Dependent settings go below:
   ifeq ($(OS),darwin)
 
@@ -308,6 +311,9 @@ ifndef CONFIG_GUESS
 
     # enable l10n
     export INTERNATIONAL ?= true
+
+    # Different endianess will make it fail, rely on other plataforms for checks
+    export BF_VERIFY_MO_FILES = false
 
   else
   ifeq ($(OS),linux)
