@@ -42,6 +42,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 	V_DECLARE(emap);
 	float mtx[4][4];
 	float imtx[4][4];
+	float scale[3] = {1.0f, 1.0f, 1.0f};
 	float dist = BMO_Get_Float(op, "mergedist");
 	int i, ototvert, ototedge, axis = BMO_Get_Int(op, "axis");
 	int mirroru = BMO_Get_Int(op, "mirror_u");
@@ -72,7 +73,10 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 	}
 
 	/*feed old data to transform bmop*/
+	scale[axis] = -1.0f;
 	BMO_CallOpf(bm, "transform verts=%fv mat=%m4", ELE_NEW, mtx);
+	BMO_CallOpf(bm, "scale verts=%fv vec=%v", ELE_NEW, scale);
+	BMO_CallOpf(bm, "transform verts=%fv mat=%m4", ELE_NEW, imtx);
 	
 	BMO_Init_Op(&weldop, "weldverts");
 

@@ -545,24 +545,9 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		float mtx2[4][4], vec[3];
 		
 		Mat4Invert(mtx2, mmd->mirror_ob->obmat);
-		Mat4Ortho(mtx2);
-		Mat4MulMat4(imtx, ob->obmat, mtx2);
-		Mat4Invert(mtx, imtx);
-		
-		/*this math here is probably stupid beyond all reason*/
-		VECCOPY(vec, mtx[3]);
-		VecMulf(vec, -1.0f);
-
-		Mat4One(imtx);
-		imtx[axis][axis] = -1.0f;
-		Mat4MulMat4(mtx2, imtx, mtx);
-
-		Mat4One(imtx);
-		VECCOPY(imtx[3], vec);
-		Mat4MulMat4(mtx, imtx, mtx2);
+		Mat4MulMat4(mtx, ob->obmat, mtx2);
 	} else {
 		Mat4One(mtx);
-		mtx[axis][axis] = -1.0f;
 	}
 
 	BMO_InitOpf(bm, &op, "mirror geom=%avef mat=%m4 mergedist=%f axis=%d", 

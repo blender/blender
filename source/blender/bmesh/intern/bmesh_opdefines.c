@@ -402,6 +402,20 @@ BMOpDefine def_translate= {
 	0,
 };
 
+/*
+  Scale
+
+  Scales vertices by an offset.
+*/
+BMOpDefine def_scale= {
+	"scale",
+	{{BMOP_OPSLOT_VEC, "vec"}, //scale factor
+	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
+	{0, /*null-terminating sentinel*/}},
+	bmesh_scale_exec,
+	0,
+};
+
 
 /*
   Transform
@@ -796,6 +810,7 @@ BMOpDefine *opdefines[] = {
 	&def_bmesh_to_mesh,
 	&def_meshreverseuvs,
 	&def_edgenet_prepare,
+	&def_scale,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

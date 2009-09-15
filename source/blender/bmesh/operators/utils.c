@@ -54,10 +54,6 @@ void bmesh_transform_exec(BMesh *bm, BMOperator *op)
 	}
 }
 
-/*this operator calls the transform operator, which
-  is a little complex, but makes it easier to make
-  sure the transform op is working, since initially
-  only this one will be used.*/
 void bmesh_translate_exec(BMesh *bm, BMOperator *op)
 {
 	float mat[4][4], vec[3];
@@ -68,6 +64,20 @@ void bmesh_translate_exec(BMesh *bm, BMOperator *op)
 	VECCOPY(mat[3], vec);
 
 	BMO_CallOpf(bm, "transform mat=%m4 verts=%s", mat, op, "verts");
+}
+
+void bmesh_scale_exec(BMesh *bm, BMOperator *op)
+{
+	float mat[3][3], vec[3];
+	
+	BMO_Get_Vec(op, "vec", vec);
+
+	Mat3One(mat);
+	mat[0][0] = vec[0];
+	mat[1][1] = vec[1];
+	mat[2][2] = vec[2];
+
+	BMO_CallOpf(bm, "transform mat=%m3 verts=%s", mat, op, "verts");
 }
 
 void bmesh_rotate_exec(BMesh *bm, BMOperator *op)
