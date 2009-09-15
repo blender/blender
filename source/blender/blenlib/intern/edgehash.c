@@ -41,7 +41,7 @@ EdgeHash *BLI_edgehash_new(void) {
 	EdgeHash *eh= MEM_callocN(sizeof(*eh), "EdgeHash");
 	eh->cursize= 0;
 	eh->nentries= 0;
-	eh->nbuckets= hashsizes[eh->cursize];
+	eh->nbuckets= _ehash_hashsizes[eh->cursize];
 	
 	eh->buckets= MEM_callocN(eh->nbuckets*sizeof(*eh->buckets), "eh buckets 2");
 	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512);
