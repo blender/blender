@@ -103,8 +103,6 @@ void BL_SwapBuffers(wmWindow *win)
 
 void DisableForText()
 {
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); /* needed for texture fonts otherwise they render as wireframe */
-
 	if(glIsEnabled(GL_BLEND)) glDisable(GL_BLEND);
 	if(glIsEnabled(GL_ALPHA_TEST)) glDisable(GL_ALPHA_TEST);
 
@@ -137,25 +135,32 @@ void DisableForText()
 	}
 }
 
-void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height)
+void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height)
 {	
 	/* gl prepping */
 	DisableForText();
+	//glDisable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-
-	glOrtho(0, width, 0, height, -100, 100);
-
+	
+	glOrtho(0, width,
+			0, height, 0, 1);
+	
 	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glLoadIdentity();
 
 	/* the actual drawing */
 	glColor3ub(255, 255, 255);
-	BLF_draw_default(xco, height-yco, 0.0f, (char *)text);
+	BLF_draw_default(xco, height-yco, 0.0f, text);
 
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
@@ -163,29 +168,36 @@ void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int 
 	glEnable(GL_DEPTH_TEST);
 }
 
-void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int width, int height)
+void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int height)
 {
 	/* This is a rather important line :( The gl-mode hasn't been left
 	 * behind quite as neatly as we'd have wanted to. I don't know
 	 * what cause it, though :/ .*/
 	DisableForText();
+	//glDisable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
 	
-	glOrtho(0, width, 0, height, -100, 100);
+	glOrtho(0, width,
+			0, height, 0, 1);
 	
 	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glLoadIdentity();
 
 	/* draw in black first*/
 	glColor3ub(0, 0, 0);
-	BLF_draw_default(xco+2, height-yco-2, 0.0f, (char *)text);
+	BLF_draw_default(xco+1, height-yco-1, 0.0f, text);
 	glColor3ub(255, 255, 255);
-	BLF_draw_default(xco, height-yco, 0.0f, (char *)text);
+	BLF_draw_default(xco, height-yco, 0.0f, text);
 
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);

@@ -433,10 +433,8 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 
 /* ------------- Utility macros ----------------------- */
 
-/* provide access to Keyframe Type info in BezTriple
- * NOTE: this is so that we can change it from being stored in 'hide'
- */
-#define BEZKEYTYPE(bezt) ((bezt)->hide)
+/* checks if the given BezTriple is selected */
+#define BEZSELECTED(bezt) ((bezt->f2 & SELECT) || (bezt->f1 & SELECT) || (bezt->f3 & SELECT))
 
 /* set/clear/toggle macro 
  *	- channel - channel with a 'flag' member that we're setting

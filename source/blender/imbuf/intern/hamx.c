@@ -31,6 +31,11 @@
 
 #include "BLI_blenlib.h"
 
+#ifdef WIN32
+#include <io.h>
+#endif
+
+
 #include "imbuf.h"
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
@@ -40,11 +45,6 @@
 #include "IMB_filter.h"
 #include "IMB_ham.h"
 #include "IMB_hamx.h"
-
-#ifdef WIN32
-#include <io.h>
-#include "BLI_winstuff.h"
-#endif
 
 /* actually hard coded endianness */
 #define GET_BIG_LONG(x) (((uchar *) (x))[0] << 24 | ((uchar *) (x))[1] << 16 | ((uchar *) (x))[2] << 8 | ((uchar *) (x))[3])

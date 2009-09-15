@@ -78,7 +78,6 @@
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
-#include "ED_gpencil.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -1093,7 +1092,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
-	rcti winrct;
 
 /*for 2.43 release, don't use glext and just define the constant.
   this to avoid possibly breaking platforms before release.*/
@@ -1138,9 +1136,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
 	glDisable(GL_DITHER);
-
-	region_scissor_winrct(ar, &winrct);
-	glScissor(winrct.xmin, winrct.ymin, winrct.xmax - winrct.xmin, winrct.ymax - winrct.ymin);
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
 	if(v3d->zbuf) {
@@ -1421,8 +1416,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	
-//	glaDefine2DArea(&ar->winrct);
-	ED_region_pixelspace(ar);
+	glaDefine2DArea(&ar->winrct);
 	
 	glEnable(GL_BLEND);
 	
@@ -2084,8 +2078,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	/* draw grease-pencil stuff */
-	//if (v3d->flag2 & V3D_DISPGP)
-		draw_gpencil_3dview((bContext *)C, 1);
+//	if (v3d->flag2 & V3D_DISPGP)
+//		draw_gpencil_3dview(ar, 1);
 	
 	BDR_drawSketch(C);
 	
@@ -2101,9 +2095,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(rv3d->persp>1) drawviewborder(scene, ar, v3d);
 	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
 	
-	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+	/* draw grease-pencil stuff */
 //	if (v3d->flag2 & V3D_DISPGP)
-		draw_gpencil_3dview((bContext *)C, 0);
+//		draw_gpencil_3dview(ar, 0);
 
 	drawcursor(scene, ar, v3d);
 	

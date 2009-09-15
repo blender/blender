@@ -139,7 +139,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 
 	/* and update depdency graph */
 	if(update)
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
@@ -169,8 +169,8 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 			tf->tile= curtile; /* set tile index */
 	}
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
 
@@ -942,6 +942,50 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 	EM_free_uv_vert_map(vmap);
 }
 
+/* ******************** mirror operator **************** */
+
+static int mirror_exec(bContext *C, wmOperator *op)
+{
+	float mat[3][3];
+	int axis;
+	
+	Mat3One(mat);
+	axis= RNA_enum_get(op->ptr, "axis");
+
+	if(axis == 'x') {
+		/* XXX initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+		BIF_setSingleAxisConstraint(mat[0], " on X axis");
+		Transform(); */
+	}
+	else {
+		/* XXX initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+		BIF_setSingleAxisConstraint(mat[1], " on Y axis");
+		Transform(); */
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void UV_OT_mirror(wmOperatorType *ot)
+{
+	static EnumPropertyItem axis_items[] = {
+		{'x', "MIRROR_X", 0, "Mirror X", "Mirror UVs over X axis."},
+		{'y', "MIRROR_Y", 0, "Mirror Y", "Mirror UVs over Y axis."},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Mirror";
+	ot->idname= "UV_OT_mirror";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* api callbacks */
+	ot->exec= mirror_exec;
+	ot->poll= ED_operator_uvedit;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "axis", axis_items, 'x', "Axis", "Axis to mirror UV locations over.");
+}
+
 /* ******************** align operator **************** */
 
 static void weld_align_uv(bContext *C, int tool)
@@ -1014,8 +1058,8 @@ static void weld_align_uv(bContext *C, int tool)
 		}
 	}
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
@@ -1235,8 +1279,8 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		MEM_freeN(uv_average);
 	}
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1292,7 +1336,7 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1362,7 +1406,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1666,8 +1710,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		}
 	}
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
@@ -1790,8 +1834,8 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	uvedit_pixel_to_float(sima, limit, 0.05f);
 	select_linked(scene, ima, em, limit, NULL, extend);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1846,8 +1890,8 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2123,7 +2167,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 		
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
@@ -2218,7 +2262,7 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	if(select) EM_select_flush(em);
 	else EM_deselect_flush(em);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2523,8 +2567,8 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 	if(!change)
 		return OPERATOR_CANCELLED;
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -2583,7 +2627,7 @@ static int pin_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2628,7 +2672,7 @@ static int select_pinned_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2660,7 +2704,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EM_hide_mesh(em, swap);
-		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
@@ -2768,7 +2812,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	}
 	
 	EM_validate_selections(em);
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -2803,7 +2847,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 	/* call the mesh function if we are in mesh sync sel */
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EM_reveal_mesh(em);
-		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
@@ -2899,7 +2943,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 				EM_select_face(efa, 1);
 	}
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -3048,6 +3092,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_snap_selection);
 
 	WM_operatortype_append(UV_OT_align);
+	WM_operatortype_append(UV_OT_mirror);
 	WM_operatortype_append(UV_OT_stitch);
 	WM_operatortype_append(UV_OT_weld);
 	WM_operatortype_append(UV_OT_pin);

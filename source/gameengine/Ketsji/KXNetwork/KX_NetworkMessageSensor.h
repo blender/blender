@@ -39,6 +39,7 @@ class KX_NetworkMessageSensor : public SCA_ISensor
 {
 	// note: Py_Header MUST BE the first listed here
 	Py_Header;
+	KX_NetworkEventManager *m_Networkeventmgr;
 	NG_NetworkScene        *m_NetworkScene;
 
 	// The subject we filter on.
@@ -69,6 +70,14 @@ public:
 	/* ------------------------------------------------------------- */
 	/* Python interface -------------------------------------------- */
 	/* ------------------------------------------------------------- */
+
+	// Deprecated ----->
+	KX_PYMETHOD_DOC_O(KX_NetworkMessageSensor, SetSubjectFilterText);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetFrameMessageCount);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetBodies);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetSubject);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetSubjects);
+	// <-----
 
 	/* attributes */
 	static PyObject*	pyattr_get_bodies(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	

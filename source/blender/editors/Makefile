@@ -66,6 +66,5 @@ DIRS = armature \
   space_sequencer \
   space_logic \
   space_userpref \
-  sound
 
 include nan_subdirs.mk

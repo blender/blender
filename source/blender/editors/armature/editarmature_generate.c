@@ -30,7 +30,6 @@
 
 #include <string.h>
 #include <math.h>
-#include <float.h>
 
 #include "MEM_guardedalloc.h"
 

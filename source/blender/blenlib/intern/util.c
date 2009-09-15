@@ -54,8 +54,6 @@
 #include "BKE_utildefines.h"
 
 
-
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -76,6 +74,11 @@
 #include <shlobj.h>
 
 #include "BLI_winstuff.h"
+
+/* for duplicate_defgroup */
+#if !(defined vsnprintf)
+#define vsnprintf _vsnprintf
+#endif
 
 #endif
 

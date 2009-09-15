@@ -2,11 +2,10 @@
 import bpy
 
 class NODE_HT_header(bpy.types.Header):
-	__space_type__ = 'NODE_EDITOR'
+	__space_type__ = "NODE_EDITOR"
 
 	def draw(self, context):
 		layout = self.layout
-		
 		snode = context.space_data
 
 		row = layout.row(align=True)
@@ -28,7 +27,7 @@ class NODE_HT_header(bpy.types.Header):
 			if ob:
 				layout.template_ID(ob, "active_material", new="material.new")
 			if id:
-				layout.itemR(id, "use_nodes")
+				layout.itemR(id, "use_nodes", toggle=True)
 
 		elif snode.tree_type == 'TEXTURE':
 			row.itemR(snode, "texture_type", text="", expand=True)
@@ -38,17 +37,17 @@ class NODE_HT_header(bpy.types.Header):
 			if id_from:
 				layout.template_ID(id_from, "active_texture", new="texture.new")
 			if id:
-				layout.itemR(id, "use_nodes")
+				layout.itemR(id, "use_nodes", toggle=True)
 
 		elif snode.tree_type == 'COMPOSITING':
 			id = snode.id
 
-			layout.itemR(id, "use_nodes")
-			layout.itemR(id.render_data, "free_unused_nodes", text="Free Unused")
-			layout.itemR(snode, "backdrop")
+			layout.itemR(id, "use_nodes", toggle=True)
+			layout.itemR(id.render_data, "free_unused_nodes", text="Free Unused", toggle=True)
+			layout.itemR(snode, "backdrop", toggle=True)
 
 class NODE_MT_view(bpy.types.Menu):
-	__space_type__ = 'NODE_EDITOR'
+	__space_type__ = "NODE_EDITOR"
 	__label__ = "View"
 
 	def draw(self, context):
@@ -66,7 +65,7 @@ class NODE_MT_view(bpy.types.Menu):
 		layout.itemO("screen.screen_full_area")
 
 class NODE_MT_select(bpy.types.Menu):
-	__space_type__ = 'NODE_EDITOR'
+	__space_type__ = "NODE_EDITOR"
 	__label__ = "Select"
 
 	def draw(self, context):
@@ -81,7 +80,7 @@ class NODE_MT_select(bpy.types.Menu):
 		# layout.itemO("node.select_linked_to")
 
 class NODE_MT_node(bpy.types.Menu):
-	__space_type__ = 'NODE_EDITOR'
+	__space_type__ = "NODE_EDITOR"
 	__label__ = "Node"
 
 	def draw(self, context):
@@ -114,7 +113,9 @@ class NODE_MT_node(bpy.types.Menu):
 		# layout.itemS()
 		# layout.itemO("node.show_cyclic_dependencies")
 
+
 bpy.types.register(NODE_HT_header)
 bpy.types.register(NODE_MT_view)
 bpy.types.register(NODE_MT_select)
 bpy.types.register(NODE_MT_node)
+

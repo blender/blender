@@ -58,6 +58,7 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../gpu
 CPPFLAGS += -I../../render/extern/include
+CPPFLAGS += -I../../radiosity/extern/include
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I../../blenfont
 

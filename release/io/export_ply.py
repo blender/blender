@@ -88,9 +88,9 @@ def write(filename, scene, ob, \
 	
 	# mesh.transform(ob.matrixWorld) # XXX
 	
-	faceUV = len(mesh.uv_textures) > 0
+	faceUV = len(mesh.uv_layers) > 0
 	vertexUV = len(mesh.sticky) > 0
-	vertexColors = len(mesh.vertex_colors) > 0
+	vertexColors = len(mesh.vcol_layers) > 0
 	
 	if (not faceUV) and (not vertexUV):	EXPORT_UV = False
 	if not vertexColors:					EXPORT_COLORS = False
@@ -100,7 +100,7 @@ def write(filename, scene, ob, \
 		
 	if faceUV:
 		active_uv_layer = None
-		for lay in mesh.uv_textures:
+		for lay in mesh.uv_layers:
 			if lay.active:
 				active_uv_layer= lay.data
 				break
@@ -110,7 +110,7 @@ def write(filename, scene, ob, \
 	
 	if vertexColors:
 		active_col_layer = None
-		for lay in mesh.vertex_colors:
+		for lay in mesh.vcol_layers:
 			if lay.active:
 				active_col_layer= lay.data
 		if not active_col_layer:
@@ -141,7 +141,8 @@ def write(filename, scene, ob, \
 			col = active_col_layer[i]
 			col = col.color1, col.color2, col.color3, col.color4
 		
-		f_verts= f.verts
+		f_verts= list(f.verts)
+		if not f_verts[3]: f_verts.pop() # XXX face length should be 3/4, not always 4
 		
 		pf= ply_faces[i]
 		for j, vidx in enumerate(f_verts):

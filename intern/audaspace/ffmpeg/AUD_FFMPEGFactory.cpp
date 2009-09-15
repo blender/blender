@@ -25,24 +25,31 @@
 
 #include "AUD_FFMPEGFactory.h"
 #include "AUD_FFMPEGReader.h"
-#include "AUD_Buffer.h"
+#include "AUD_Space.h"
+
+extern "C" {
+#include <libavformat/avformat.h>
+}
 
 AUD_FFMPEGFactory::AUD_FFMPEGFactory(const char* filename)
 {
-	if(filename != NULL)
+	if(filename != 0)
 	{
 		m_filename = new char[strlen(filename)+1]; AUD_NEW("string")
 		strcpy(m_filename, filename);
 	}
 	else
-		m_filename = NULL;
+		m_filename = 0;
+	m_buffer = 0;
+	m_size = 0;
 }
 
 AUD_FFMPEGFactory::AUD_FFMPEGFactory(unsigned char* buffer, int size)
 {
-	m_filename = NULL;
-	m_buffer = AUD_Reference<AUD_Buffer>(new AUD_Buffer(size));
-	memcpy(m_buffer.get()->getBuffer(), buffer, size);
+	m_filename = 0;
+	m_buffer = (unsigned char*)av_malloc(size); AUD_NEW("buffer")
+	m_size = size;
+	memcpy(m_buffer, buffer, size);
 }
 
 AUD_FFMPEGFactory::~AUD_FFMPEGFactory()
@@ -51,15 +58,31 @@ AUD_FFMPEGFactory::~AUD_FFMPEGFactory()
 	{
 		delete[] m_filename; AUD_DELETE("string")
 	}
+	if(m_buffer)
+	{
+		av_free(m_buffer); AUD_DELETE("buffer")
+	}
 }
 
 AUD_IReader* AUD_FFMPEGFactory::createReader()
 {
-	AUD_IReader* reader;
-	if(m_filename)
-		reader = new AUD_FFMPEGReader(m_filename);
-	else
-		reader = new AUD_FFMPEGReader(m_buffer);
-	AUD_NEW("reader")
-	return reader;
+	try
+	{
+		AUD_IReader* reader;
+		if(m_filename)
+			reader = new AUD_FFMPEGReader(m_filename);
+		else
+			reader = new AUD_FFMPEGReader(m_buffer, m_size);
+		AUD_NEW("reader")
+		return reader;
+	}
+	catch(AUD_Exception e)
+	{
+		// return 0 if ffmpeg cannot read the file
+		if(e.error == AUD_ERROR_FFMPEG)
+			return 0;
+		// but throw an exception if the file doesn't exist
+		else
+			throw;
+	}
 }

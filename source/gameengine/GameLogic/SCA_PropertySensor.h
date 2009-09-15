@@ -88,6 +88,18 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
+	/* 1. getType */
+	KX_PYMETHOD_DOC_NOARGS(SCA_PropertySensor,GetType);
+	/* 2. setType */
+	KX_PYMETHOD_DOC_VARARGS(SCA_PropertySensor,SetType);
+	/* 3. setProperty */
+	KX_PYMETHOD_DOC_VARARGS(SCA_PropertySensor,SetProperty);
+	/* 4. getProperty */
+	KX_PYMETHOD_DOC_NOARGS(SCA_PropertySensor,GetProperty);
+	/* 5. getValue */
+	KX_PYMETHOD_DOC_NOARGS(SCA_PropertySensor,GetValue);
+	/* 6. setValue */
+	KX_PYMETHOD_DOC_VARARGS(SCA_PropertySensor,SetValue);
 	/**
 	 * Test whether this is a sensible value (type check)
 	 */

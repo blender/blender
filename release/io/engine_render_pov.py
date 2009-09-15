@@ -82,8 +82,8 @@ def write_pov(filename, scene=None, info_callback = None):
 		file.write('#declare %s = finish {\n' % name)
 		
 		if material:
-			file.write('\tdiffuse %.3g\n' % material.diffuse_intensity)
-			file.write('\tspecular %.3g\n' % material.specular_intensity)
+			file.write('\tdiffuse %.3g\n' % material.diffuse_reflection)
+			file.write('\tspecular %.3g\n' % material.specular_reflection)
 			
 			file.write('\tambient %.3g\n' % material.ambient)
 			#file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
@@ -101,10 +101,10 @@ def write_pov(filename, scene=None, info_callback = None):
 			
 			if material.raytrace_mirror.enabled:
 				raytrace_mirror= material.raytrace_mirror
-				if raytrace_mirror.reflect_factor:
+				if raytrace_mirror.reflect:
 					file.write('\treflection {\n')
 					file.write('\t\trgb <%.3g, %.3g, %.3g>' % tuple(material.mirror_color))
-					file.write('\t\tfresnel 1 falloff %.3g exponent %.3g metallic %.3g} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_factor, raytrace_mirror.reflect_factor))
+					file.write('\t\tfresnel 1 falloff %.3g exponent %.3g metallic %.3g} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_fac, raytrace_mirror.reflect))
 		
 		else:
 			file.write('\tdiffuse 0.8\n')
@@ -300,7 +300,14 @@ def write_pov(filename, scene=None, info_callback = None):
 			try:	vcol_layer = me.active_vertex_color.data
 			except:vcol_layer = None
 			
-			faces_verts = [f.verts for f in me.faces]
+			
+			def regular_face(f):
+				fv = f.verts
+				if fv[3]== 0:
+					return fv[0], fv[1], fv[2]
+				return fv[0], fv[1], fv[2], fv[3]
+			
+			faces_verts = [regular_face(f) for f in me.faces]
 			faces_normals = [tuple(f.normal) for f in me.faces]
 			verts_normals = [tuple(v.normal) for v in me.verts]
 			
@@ -616,7 +623,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 	
 	file.write('Display=0\n')
 	file.write('Pause_When_Done=0\n')
-	file.write('Output_File_Type=T\n') # TGA, best progressive loading
+	file.write('Output_File_Type=C\n') # TGA, best progressive loading
 	file.write('Output_Alpha=1\n')
 	
 	if render.antialiasing: 
@@ -628,89 +635,11 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 	
 	file.close()
 
-# Radiosity panel, use in the scene for now.
-FloatProperty= bpy.types.Scene.FloatProperty
-IntProperty= bpy.types.Scene.IntProperty
-BoolProperty= bpy.types.Scene.BoolProperty
-
-# Not a real pov option, just to know if we should write
-BoolProperty(	attr="pov_radio_enable",
-				name="Enable Radiosity",
-				description="Enable povrays radiosity calculation.",
-				default= False)
-BoolProperty(	attr="pov_radio_display_advanced",
-				name="Advanced Options",
-				description="Show advanced options.",
-				default= False)
-
-# Real pov options
-FloatProperty(	attr="pov_radio_adc_bailout",
-				name="ADC Bailout",
-				description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results.",
-				min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default= 0.01)
-
-BoolProperty(	attr="pov_radio_always_sample",
-				name="Always Sample",
-				description="Only use the data from the pretrace step and not gather any new samples during the final radiosity pass..",
-				default= True)
-
-FloatProperty(	attr="pov_radio_brightness",
-				name="Brightness",
-				description="Ammount objects are brightened before being returned upwards to the rest of the system.",
-				min=0.0, max=1000.0, soft_min=0.0, soft_max=10.0, default= 1.0)
-
-IntProperty(	attr="pov_radio_count",
-				name="Ray Count",
-				description="number of rays that are sent out whenever a new radiosity value has to be calculated.",
-				min=1, max=1600, default= 35)
-
-FloatProperty(	attr="pov_radio_error_bound",
-				name="Error Bound",
-				description="one of the two main speed/quality tuning values, lower values are more accurate.",
-				min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default= 1.8)
-
-FloatProperty(	attr="pov_radio_gray_threshold",
-				name="Gray Threshold",
-				description="one of the two main speed/quality tuning values, lower values are more accurate.",
-				min=0.0, max=1.0, soft_min=0, soft_max=1, default= 0.0)
-								
-FloatProperty(	attr="pov_radio_low_error_factor",
-				name="Low Error Factor",
-				description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting.",
-				min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default= 0.5)
-
-# max_sample - not available yet
-BoolProperty(	attr="pov_radio_media", 
-				name="Media",
-				description="Radiosity estimation can be affected by media.",
-				default= False)
-
-FloatProperty(	attr="pov_radio_minimum_reuse",
-				name="Minimum Reuse",
-				description="Fraction of the screen width which sets the minimum radius of reuse for each sample point (At values higher than 2% expect errors).",
-				min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default= 0.015)
-				
-IntProperty(	attr="pov_radio_nearest_count",
-				name="Nearest Count",
-				description="Number of old ambient values blended together to create a new interpolated value.",
-				min=1, max=20, default= 5)
-				
-BoolProperty(	attr="pov_radio_normal",
-				name="Normals",
-				description="Radiosity estimation can be affected by normals.",
-				default= False)
-
-IntProperty(	attr="pov_radio_recursion_limit",
-				name="Recursion Limit",
-				description="how many recursion levels are used to calculate the diffuse inter-reflection.",
-				min=1, max=20, default= 3)
-	
 
 class PovrayRender(bpy.types.RenderEngine):
 	__idname__ = 'POVRAY_RENDER'
 	__label__ = "Povray"
 	DELAY = 0.02
-	
 	def _export(self, scene):
 		import tempfile
 		
@@ -740,13 +669,10 @@ class PovrayRender(bpy.types.RenderEngine):
 		pov_binary = "povray"
 		
 		if sys.platform=='win32':
-			import winreg
-			regKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Software\\POV-Ray\\v3.6\\Windows')
-			
 			if bitness == 64:
-				pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine64'
+				pov_binary = "pvengine64"
 			else:
-				pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine'
+				pov_binary = "pvengine"
 			
 		if 1:
 			self.process = subprocess.Popen([pov_binary, self.temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -835,7 +761,10 @@ class PovrayRender(bpy.types.RenderEngine):
 		
 		self._cleanup()
 
+
 bpy.types.register(PovrayRender)
+
+
 
 # Use some of the existing buttons.
 import buttons_scene
@@ -862,8 +791,8 @@ for member in dir(buttons_material):
 del buttons_material
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
+	__space_type__ = "PROPERTIES"
+	__region_type__ = "WINDOW"
 	__context__ = "scene"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
@@ -871,6 +800,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 		rd = context.scene.render_data
 		return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
+# Radiosity panel, use in the scene for now.
 class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 	__label__ = "Radiosity"
 	COMPAT_ENGINES = set(['POVRAY_RENDER'])
@@ -891,38 +821,100 @@ class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 		
 		col = split.column()
 		
-		col.itemR(scene, "pov_radio_count", text="Rays")
-		col.itemR(scene, "pov_radio_recursion_limit", text="Recursions")
-		col = split.column()
-		col.itemR(scene, "pov_radio_error_bound", text="Error")
+		col.itemR(scene, "pov_radio_count")
+		col.itemR(scene, "pov_radio_recursion_limit")
+		col.itemR(scene, "pov_radio_error_bound")
 		
-		layout.itemR(scene, "pov_radio_display_advanced")
+		col.itemR(scene, "pov_radio_display_advanced")
 		
 		if scene.pov_radio_display_advanced:
-			split = layout.split()
-		
-			col = split.column()
-			col.itemR(scene, "pov_radio_adc_bailout", slider=True)
-			col.itemR(scene, "pov_radio_gray_threshold", slider=True)
-			col.itemR(scene, "pov_radio_low_error_factor", slider=True)
-			
-			
-			
-			col = split.column()
+			col.itemR(scene, "pov_radio_adc_bailout")
 			col.itemR(scene, "pov_radio_brightness")
-			col.itemR(scene, "pov_radio_minimum_reuse", text="Min Reuse")
-			col.itemR(scene, "pov_radio_nearest_count")
-			
-			
-			split = layout.split()
-		
-			col = split.column()
-			col.itemL(text="Estimation Influence:")
+			col.itemR(scene, "pov_radio_gray_threshold")
+			col.itemR(scene, "pov_radio_low_error_factor")
+			col.itemR(scene, "pov_radio_minimum_reuse")
 			col.itemR(scene, "pov_radio_media")
+			col.itemR(scene, "pov_radio_nearest_count")
 			col.itemR(scene, "pov_radio_normal")
-			
-			col = split.column()
 			col.itemR(scene, "pov_radio_always_sample")
 		
 
 bpy.types.register(SCENE_PT_povray_radiosity)
+
+
+FloatProperty= bpy.types.Scene.FloatProperty
+IntProperty= bpy.types.Scene.IntProperty
+BoolProperty= bpy.types.Scene.BoolProperty
+
+# Not a real pov option, just to know if we should write
+BoolProperty(	attr="pov_radio_enable",
+				name="Enable Radiosity",
+				description="Enable povrays radiosity calculation.",
+				default= False)
+BoolProperty(	attr="pov_radio_display_advanced",
+				name="Advanced Options",
+				description="Show advanced options.",
+				default= False)
+
+# Real pov options
+FloatProperty(	attr="pov_radio_adc_bailout",
+				name="ADC Bailout",
+				description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results.",
+				min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default= 0.01)
+
+BoolProperty(	attr="pov_radio_always_sample",
+				name="Always Sample",
+				description="Only use the data from the pretrace step and not gather any new samples during the final radiosity pass..",
+				default= True)
+
+FloatProperty(	attr="pov_radio_brightness",
+				name="Brightness",
+				description="Ammount objects are brightened before being returned upwards to the rest of the system.",
+				min=0.0, max=1000.0, soft_min=0.0, soft_max=10.0, default= 1.0)
+
+IntProperty(	attr="pov_radio_count",
+				name="Ray Count",
+				description="number of rays that are sent out whenever a new radiosity value has to be calculated.",
+				min=1, max=1600, default= 35)
+
+FloatProperty(	attr="pov_radio_error_bound",
+				name="Error Bound",
+				description="one of the two main speed/quality tuning values, lower values are more accurate.",
+				min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default= 1.8)
+
+FloatProperty(	attr="pov_radio_gray_threshold",
+				name="Gray Threshold",
+				description="one of the two main speed/quality tuning values, lower values are more accurate.",
+				min=0.0, max=1.0, default= 0.0)
+								
+FloatProperty(	attr="pov_radio_low_error_factor",
+				name="Low Error Factor",
+				description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting.",
+				min=0.0, max=1.0, default= 0.5)
+
+# max_sample - not available yet
+
+BoolProperty(	attr="pov_radio_media",
+				name="Use Media",
+				description="Radiosity estimation can be affected by media.",
+				default= False)
+
+FloatProperty(	attr="pov_radio_minimum_reuse",
+				name="Minimum Reuse",
+				description="Fraction of the screen width which sets the minimum radius of reuse for each sample point (At values higher than 2% expect errors).",
+				min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default= 0.015)
+				
+IntProperty(	attr="pov_radio_nearest_count",
+				name="Nearest Count",
+				description="Number of old ambient values blended together to create a new interpolated value.",
+				min=1, max=20, default= 5)
+				
+BoolProperty(	attr="pov_radio_normal",
+				name="Normals",
+				description="Radiosity estimation can be affected by normals.",
+				default= False)
+
+IntProperty(	attr="pov_radio_recursion_limit",
+				name="Recursion Limit",
+				description="how many recursion levels are used to calculate the diffuse inter-reflection.",
+				min=1, max=20, default= 3)

@@ -1,6 +1,4 @@
 /**
- * $Id$
- * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -43,8 +41,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 
-/* TODO bring back once array return types are allowed */
-#if 0
 /* return frame range of all curves (min, max) or (0, 1) if there are no keys */
 int *rna_Action_get_frame_range(bAction *act, int *ret_length)
 {
@@ -61,7 +57,6 @@ int *rna_Action_get_frame_range(bAction *act, int *ret_length)
 	
 	return ret;
 }
-#endif
 
 #else
 
@@ -70,13 +65,11 @@ void RNA_api_action(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-#if 0
 	func= RNA_def_function(srna, "get_frame_range", "rna_Action_get_frame_range");
 	RNA_def_function_ui_description(func, "Get action frame range as a (min, max) tuple.");
 	parm= RNA_def_int_array(func, "frame_range", 1, NULL, 0, 0, "", "Action frame range.", 0, 0);
-	RNA_def_property_flag(parm, PROP_DYNAMIC);
+	RNA_def_property_flag(parm, PROP_DYNAMIC_ARRAY);
 	RNA_def_function_return(func, parm);
-#endif
 }
 
 #endif

@@ -170,51 +170,40 @@ static void rna_RenderLayer_passes_begin(CollectionPropertyIterator *iter, Point
 	rna_iterator_listbase_begin(iter, &rl->passes, NULL);
 }
 
-static int rna_RenderLayer_rect_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+static float rna_RenderValue_value_get(PointerRNA *ptr)
+{
+	return *(float*)ptr->data;
+}
+
+static void rna_RenderValue_value_set(PointerRNA *ptr, float value)
+{
+	*(float*)ptr->data= value;
+}
+
+static void rna_RenderLayer_rect_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	RenderLayer *rl= (RenderLayer*)ptr->data;
-
-	length[0]= rl->rectx*rl->recty;
-	length[1]= 4;
-
-	return length[0]*length[1];
+	rna_iterator_array_begin(iter, (void*)rl->rectf, sizeof(float), rl->rectx*rl->recty*4, 0, NULL);
 }
 
-static void rna_RenderLayer_rect_get(PointerRNA *ptr, float *values)
+static int rna_RenderLayer_rect_length(PointerRNA *ptr)
 {
 	RenderLayer *rl= (RenderLayer*)ptr->data;
-	memcpy(values, rl->rectf, sizeof(float)*rl->rectx*rl->recty*4);
+	return rl->rectx*rl->recty*4;
 }
 
-static void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values)
-{
-	RenderLayer *rl= (RenderLayer*)ptr->data;
-	memcpy(rl->rectf, values, sizeof(float)*rl->rectx*rl->recty*4);
-}
-
-static int rna_RenderPass_rect_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+static void rna_RenderPass_rect_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	RenderPass *rpass= (RenderPass*)ptr->data;
-
-	length[0]= rpass->rectx*rpass->recty;
-	length[1]= rpass->channels;
-
-	return length[0]*length[1];
+	rna_iterator_array_begin(iter, (void*)rpass->rect, sizeof(float), rpass->rectx*rpass->recty*rpass->channels, 0, NULL);
 }
 
-static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
+static int rna_RenderPass_rect_length(PointerRNA *ptr)
 {
 	RenderPass *rpass= (RenderPass*)ptr->data;
-	printf("rect get\n");
-	memcpy(values, rpass->rect, sizeof(float)*rpass->rectx*rpass->recty*rpass->channels);
+	return rpass->rectx*rpass->recty*rpass->channels;
 }
 
-static void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
-{
-	RenderPass *rpass= (RenderPass*)ptr->data;
-	printf("rect set\n");
-	memcpy(rpass->rect, values, sizeof(float)*rpass->rectx*rpass->recty*rpass->channels);
-}
 
 #else // RNA_RUNTIME
 
@@ -335,11 +324,16 @@ static void rna_def_render_layer(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "RenderPass");
 	RNA_def_property_collection_funcs(prop, "rna_RenderLayer_passes_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0, 0);
 
-	prop= RNA_def_property(srna, "rect", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_DYNAMIC);
-	RNA_def_property_multi_array(prop, 2, NULL);
-	RNA_def_property_dynamic_array_funcs(prop, "rna_RenderLayer_rect_get_length");
-	RNA_def_property_float_funcs(prop, "rna_RenderLayer_rect_get", "rna_RenderLayer_rect_set", NULL);
+	prop= RNA_def_property(srna, "rect", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "RenderValue");
+	RNA_def_property_collection_funcs(prop, "rna_RenderLayer_rect_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_RenderLayer_rect_length", 0, 0, 0, 0);
+
+	/* value */
+	srna= RNA_def_struct(brna, "RenderValue", NULL);
+	RNA_def_struct_ui_text(srna, "Render Value", "");
+
+	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_RenderValue_value_get", "rna_RenderValue_value_set", NULL);
 
 	RNA_define_verify_sdna(1);
 }
@@ -389,11 +383,9 @@ static void rna_def_render_pass(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, pass_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop= RNA_def_property(srna, "rect", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_DYNAMIC);
-	RNA_def_property_multi_array(prop, 2, NULL);
-	RNA_def_property_dynamic_array_funcs(prop, "rna_RenderPass_rect_get_length");
-	RNA_def_property_float_funcs(prop, "rna_RenderPass_rect_get", "rna_RenderPass_rect_set", NULL);
+	prop= RNA_def_property(srna, "rect", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "RenderValue");
+	RNA_def_property_collection_funcs(prop, "rna_RenderPass_rect_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_RenderPass_rect_length", 0, 0, 0, 0);
 
 	RNA_define_verify_sdna(1);
 }

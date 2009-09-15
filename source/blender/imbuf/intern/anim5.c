@@ -31,7 +31,6 @@
 
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
                             BLI_countlist BLI_stringdec */
-
 #include "imbuf.h"
 #include "imbuf_patch.h"
 
@@ -46,11 +45,6 @@
 #include "IMB_anim.h"
 
 #include "IMB_anim5.h"
-
-#ifdef _WIN32
-#include <io.h>
-#include "BLI_winstuff.h"
-#endif
 
 typedef struct Anhd{
 	unsigned char type, mask;
@@ -210,12 +204,12 @@ static void anim5decode(struct ImBuf * ibuf, uchar * dlta) {
 	int *ofspoint;
 	uchar **planes;
 
-	/*	composition delta:
-		list with ofsets for delta' s by bitplane (ofspoint)
-		by column in delta (point)
-			number of operations (noops)
+	/*	samenstelling delta:
+		lijst met ofsets voor delta's per bitplane (ofspoint)
+		per kolom in delta (point)
+			aantal handelingen (noops)
 				code
-					associated data
+					bijbehorende data
 				...
 			...
 	*/

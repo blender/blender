@@ -125,8 +125,9 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	
 	switch (ob->type){
 		case OB_ARMATURE:
-			ob->restore_mode = ob->mode;
+			
 			ob->mode |= OB_MODE_POSE;
+			base->flag= ob->flag;
 			
 			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_POSE, NULL);
 			
@@ -135,7 +136,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			return;
 	}
 
-	//ED_object_toggle_modes(C, ob->mode);
+	ED_object_toggle_modes(C, ob->mode);
 }
 
 void ED_armature_exit_posemode(bContext *C, Base *base)
@@ -143,8 +144,8 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 	if(base) {
 		Object *ob= base->object;
 		
-		ob->restore_mode = ob->mode;
 		ob->mode &= ~OB_MODE_POSE;
+		base->flag= ob->flag;
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}	
@@ -759,7 +760,6 @@ void pose_copy_menu(Scene *scene)
 						break;
 					case 2: /* Local Rotation */
 						QUATCOPY(pchan->quat, pchanact->quat);
-						VECCOPY(pchan->eul, pchanact->eul);
 						break;
 					case 3: /* Local Size */
 						VECCOPY(pchan->size, pchanact->size);
@@ -808,14 +808,11 @@ void pose_copy_menu(Scene *scene)
 						break;
 					case 10: /* Visual Rotation */
 					{
-						float delta_mat[4][4];
+						float delta_mat[4][4], quat[4];
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
-						
-						if (pchan->rotmode > 0) 
-							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
-						else
-							Mat4ToQuat(delta_mat, pchan->quat);
+						Mat4ToQuat(delta_mat, quat);
+						QUATCOPY(pchan->quat, quat);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -892,7 +889,7 @@ void pose_copy_menu(Scene *scene)
 			ob->pose->flag |= POSE_RECALC;
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);	// and all its relations
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);	// and all its relations
 	
 	BIF_undo_push("Copy Pose Attributes");
 	
@@ -993,20 +990,20 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				/* check if rotation modes are compatible (i.e. do they need any conversions) */
 				if (pchan->rotmode == chan->rotmode) {
 					/* copy the type of rotation in use */
-					if (pchan->rotmode > 0) {
+					if (pchan->rotmode) {
 						VECCOPY(pchan->eul, chan->eul);
 					}
 					else {
 						QUATCOPY(pchan->quat, chan->quat);
 					}
 				}
-				else if (pchan->rotmode > 0) {
+				else if (pchan->rotmode) {
 					/* quat to euler */
-					QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
+					QuatToEul(chan->quat, pchan->eul);
 				}
 				else {
 					/* euler to quat */
-					EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
+					EulToQuat(chan->eul, pchan->quat);
 				}
 				
 				/* paste flipped pose? */
@@ -1014,7 +1011,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					pchan->loc[0]*= -1;
 					
 					/* has to be done as eulers... */
-					if (pchan->rotmode > 0) {
+					if (pchan->rotmode) {
 						pchan->eul[1] *= -1;
 						pchan->eul[2] *= -1;
 					}
@@ -1066,7 +1063,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	}
 
 	/* Update event for pose and deformation children */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
 	if (IS_AUTOKEY_ON(scene)) {
 // XXX		remake_action_ipos(ob->action);
@@ -1123,7 +1120,7 @@ void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
 
 	
 	// and all its relations
-	DAG_id_flush_update(&meshobj->id, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, meshobj, OB_RECALC_DATA);
 }
 
 /* ********************************************** */
@@ -1539,6 +1536,7 @@ void pose_select_grouped_menu (Scene *scene)
 
 static int pose_flip_names_exec (bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -1558,7 +1556,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1585,6 +1583,7 @@ void POSE_OT_flip_names (wmOperatorType *ot)
 
 static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -1605,7 +1604,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1673,8 +1672,8 @@ void pose_activate_flipped_bone(Scene *scene)
 			
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-					ED_vgroup_select_by_name(OBACT, name);
-					DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
+					vertexgroup_select_by_name(OBACT, name);
+					DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 				}
 				
 				// XXX notifiers need to be sent to other editors to update
@@ -2113,7 +2112,7 @@ void pose_relax(Scene *scene)
 		pchan->bone->flag &= ~ BONE_TRANSFORM;
 	
 	/* do depsgraph flush */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Relax Pose");
 }
 
@@ -2208,7 +2207,7 @@ void pose_clear_user_transforms(Scene *scene, Object *ob)
 		rest_pose(ob->pose);
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Clear User Transform");
 }
 

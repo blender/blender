@@ -207,29 +207,11 @@ static void rna_Main_particle_begin(CollectionPropertyIterator *iter, PointerRNA
 	rna_iterator_listbase_begin(iter, &bmain->particle, NULL);
 }
 
-static void rna_Main_gpencil_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain= (Main*)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->gpencil, NULL);
-}
-
 static void rna_Main_wm_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->wm, NULL);
 }
-
-#ifdef UNIT_TEST
-
-static PointerRNA rna_Test_test_get(PointerRNA *ptr)
-{
-	PointerRNA ret= *ptr;
-	ret.type= &RNA_Test;
-
-	return ret;
-}
-
-#endif
 
 #else
 
@@ -258,14 +240,13 @@ void RNA_def_main(BlenderRNA *brna)
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks.", NULL, NULL},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks.", NULL, NULL},
 		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks.", NULL, NULL},
-		{"keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks.", NULL, NULL},
+		{"keys", "ID", "rna_Main_key_begin", "Keys", "Key datablocks.", NULL, NULL},
 		{"scripts", "ID", "rna_Main_script_begin", "Scripts", "Script datablocks.", NULL, NULL},
 		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks.", NULL, NULL},
 		{"sounds", "ID", "rna_Main_sound_begin", "Sounds", "Sound datablocks.", NULL, NULL},
 		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks.", NULL, NULL},
 		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks.", NULL, NULL},
 		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle datablocks.", NULL, NULL},
-		{"gpencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks.", NULL, NULL},
 		{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
 	int i;
 	
@@ -288,18 +269,6 @@ void RNA_def_main(BlenderRNA *brna)
 	}
 
 	RNA_api_main(srna);
-
-#ifdef UNIT_TEST
-
-	RNA_define_verify_sdna(0);
-
-	prop= RNA_def_property(srna, "test", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Test");
-	RNA_def_property_pointer_funcs(prop, "rna_Test_test_get", NULL, NULL);
-
-	RNA_define_verify_sdna(1);
-
-#endif
 }
 
 #endif

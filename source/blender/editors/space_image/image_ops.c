@@ -61,7 +61,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
-#include "RNA_enum_types.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
@@ -651,7 +650,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Image";
+	ot->name= "Open";
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */
@@ -1166,6 +1165,15 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 }
 
 /********************* unpack operator *********************/
+
+/* XXX move this to some place where it can be reused */
+
+const EnumPropertyItem unpack_method_items[] = {
+	{PF_USE_LOCAL, "USE_LOCAL", 0, "Use Local File", ""},
+	{PF_WRITE_LOCAL, "WRITE_LOCAL", 0, "Write Local File (overwrite existing)", ""},
+	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use Original File", ""},
+	{PF_WRITE_ORIGINAL, "WRITE_ORIGINAL", 0, "Write Original File (overwrite existing)", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, PackedFile *pf)
 {

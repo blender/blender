@@ -2,8 +2,8 @@
 import bpy
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
+	__space_type__ = "PROPERTIES"
+	__region_type__ = "WINDOW"
 	__context__ = "physics"
 
 	def poll(self, context):
@@ -46,7 +46,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 			layout.itemR(fluid, "type")
 
 			if fluid.type == 'DOMAIN':
-				layout.itemO("fluid.bake", text="Bake Fluid Simulation", icon='ICON_MOD_FLUIDSIM')
+				layout.itemO("fluid.bake", text="BAKE")
 				split = layout.split()
 				
 				col = split.column()
@@ -94,7 +94,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				col.itemL(text="Slip Type:")
 				col.itemR(fluid, "slip_type", text="")
 				if fluid.slip_type == 'PARTIALSLIP':
-					col.itemR(fluid, "partial_slip_factor", slider=True, text="Amount")
+					col.itemR(fluid, "partial_slip_amount", slider=True, text="Amount")
 					
 				col.itemL(text="Impact:")
 				col.itemR(fluid, "impact_factor", text="Factor")
@@ -175,7 +175,11 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -214,7 +218,11 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -228,7 +236,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
 		sub = col.column(align=True)
 		sub.itemR(fluid, "slip_type", text="")
 		if fluid.slip_type == 'PARTIALSLIP':
-			sub.itemR(fluid, "partial_slip_factor", slider=True, text="Amount")
+			sub.itemR(fluid, "partial_slip_amount", slider=True, text="Amount")
 
 		col = split.column()
 		col.itemL(text="Surface:")
@@ -243,8 +251,12 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
-			
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
+
 	def draw(self, context):
 		layout = self.layout
 		

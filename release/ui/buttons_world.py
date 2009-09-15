@@ -2,21 +2,24 @@
 import bpy
 
 class WorldButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
+	__space_type__ = "PROPERTIES"
+	__region_type__ = "WINDOW"
 	__context__ = "world"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
 		rd = context.scene.render_data
-		return (context.world) and (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
+		return (context.world != None) and (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
 class WORLD_PT_preview(WorldButtonsPanel):
 	__label__ = "Preview"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def draw(self, context):
-		self.layout.template_preview(context.world)
+		layout = self.layout
+		world = context.world
+		
+		layout.template_preview(world)
 	
 class WORLD_PT_context_world(WorldButtonsPanel):
 	__show_header__ = False
@@ -49,30 +52,32 @@ class WORLD_PT_world(WorldButtonsPanel):
 
 		world = context.world
 
-		row = layout.row()
-		row.itemR(world, "paper_sky")
-		row.itemR(world, "blend_sky")
-		row.itemR(world, "real_sky")
+		if world:
+		
+			row = layout.row()
+			row.itemR(world, "paper_sky")
+			row.itemR(world, "blend_sky")
+			row.itemR(world, "real_sky")
 			
-		row = layout.row()
-		row.column().itemR(world, "horizon_color")
-		col = row.column()
-		col.itemR(world, "zenith_color")
-		col.active = world.blend_sky
-		row.column().itemR(world, "ambient_color")
+			row = layout.row()
+			row.column().itemR(world, "horizon_color")
+			col = row.column()
+			col.itemR(world, "zenith_color")
+			col.active = world.blend_sky
+			row.column().itemR(world, "ambient_color")
 		
 class WORLD_PT_mist(WorldButtonsPanel):
 	__label__ = "Mist"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
+		layout = self.layout
 		world = context.world
 
-		self.layout.itemR(world.mist, "enabled", text="")
+		layout.itemR(world.mist, "enabled", text="")
 
 	def draw(self, context):
 		layout = self.layout
-		
 		world = context.world
 
 		layout.active = world.mist.enabled
@@ -82,6 +87,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
 		flow.itemR(world.mist, "start")
 		flow.itemR(world.mist, "depth")
 		flow.itemR(world.mist, "height")
+		
 
 		layout.itemR(world.mist, "falloff")
 		
@@ -90,13 +96,13 @@ class WORLD_PT_stars(WorldButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
+		layout = self.layout
 		world = context.world
 
-		self.layout.itemR(world.stars, "enabled", text="")
+		layout.itemR(world.stars, "enabled", text="")
 
 	def draw(self, context):
 		layout = self.layout
-		
 		world = context.world
 
 		layout.active = world.stars.enabled
@@ -112,13 +118,13 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
+		layout = self.layout
 		world = context.world
 
-		self.layout.itemR(world.ambient_occlusion, "enabled", text="")
+		layout.itemR(world.ambient_occlusion, "enabled", text="")
 
 	def draw(self, context):
 		layout = self.layout
-		
 		ao = context.world.ambient_occlusion
 		
 		layout.active = ao.enabled
@@ -180,3 +186,4 @@ bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
+

@@ -74,6 +74,7 @@ public:
 	KX_PYMETHOD_O(CListValue,index);
 	KX_PYMETHOD_O(CListValue,count);
 	KX_PYMETHOD_VARARGS(CListValue,get);
+	KX_PYMETHOD_O(CListValue,has_key);
 	KX_PYMETHOD_O(CListValue,from_id);
 
 	

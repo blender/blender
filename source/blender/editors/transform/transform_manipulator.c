@@ -62,7 +62,6 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -252,7 +251,7 @@ int calc_manipulator_stats(const bContext *C)
 
 			nu= cu->editnurb->first;
 			while(nu) {
-				if(nu->type == CU_BEZIER) {
+				if((nu->type & 7)==CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
@@ -260,7 +259,7 @@ int calc_manipulator_stats(const bContext *C)
 						 * if handles are hidden then only check the center points.
 						 * If 2 or more are selected then only use the center point too.
 						 */
-						if (cu->drawflag & CU_HIDE_HANDLES) {
+						if (G.f & G_HIDDENHANDLES) {
 							if (bezt->f2 & SELECT) {
 								calc_tw_center(scene, bezt->vec[1]);
 								totsel++;
@@ -363,19 +362,18 @@ int calc_manipulator_stats(const bContext *C)
 		;
 	}
 	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-		PTCacheEdit *edit= PE_get_current(scene, ob);
-		PTCacheEditPoint *point;
-		PTCacheEditKey *ek;
+		ParticleSystem *psys= PE_get_current(scene, ob);
+		ParticleData *pa = psys->particles;
+		ParticleEditKey *ek;
 		int k;
 
-		if(edit) {
-			point = edit->points;
-			for(a=0; a<edit->totpoint; a++,point++) {
-				if(point->flag & PEP_HIDE) continue;
+		if(psys->edit) {
+			for(a=0; a<psys->totpart; a++,pa++) {
+				if(pa->flag & PARS_HIDE) continue;
 
-				for(k=0, ek=point->keys; k<point->totkey; k++, ek++) {
+				for(k=0, ek=psys->edit->keys[a]; k<pa->totkey; k++, ek++) {
 					if(ek->flag & PEK_SELECT) {
-						calc_tw_center(scene, ek->flag & PEK_USE_WCO ? ek->world_co : ek->co);
+						calc_tw_center(scene, ek->world_co);
 						totsel++;
 					}
 				}

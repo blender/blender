@@ -38,6 +38,7 @@
 class KX_KetsjiEngine;
 class KX_ISceneConverter;
 class NG_LoopBackNetworkDeviceInterface;
+class SND_IAudioDevice;
 class RAS_IRasterizer;
 class GHOST_IEvent;
 class GHOST_ISystem;
@@ -141,6 +142,8 @@ protected:
 	KX_ISceneConverter* m_sceneconverter;
 	/** Network interface. */
 	NG_LoopBackNetworkDeviceInterface* m_networkdevice;
+	/** Sound device. */
+	SND_IAudioDevice* m_audiodevice;
 
 	bool m_blendermat;
 	bool m_blenderglslmat;

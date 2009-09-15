@@ -47,6 +47,7 @@ void unlink_actuators(struct ListBase *lb);
 void free_actuator(struct bActuator *act);
 void free_actuators(struct ListBase *lb);
 
+void free_text_controllers(struct Text *txt);
 void free_sensor(struct bSensor *sens);
 void free_sensors(struct ListBase *lb);
 struct bSensor *copy_sensor(struct bSensor *sens);

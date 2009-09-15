@@ -89,10 +89,18 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
 
 static void rna_Lattice_update_data(bContext *C, PointerRNA *ptr)
 {
-	ID *id= ptr->id.data;
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	Lattice *lt= ptr->id.data;
+	Object *ob;
 
-	DAG_id_flush_update(id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	for(ob=bmain->object.first; ob; ob= ob->id.next) {
+		if(ob->data == lt) {
+			/* XXX this will loop over all objects again (slow) */
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+		}
+	}
 }
 
 static void rna_Lattice_update_size(bContext *C, PointerRNA *ptr)

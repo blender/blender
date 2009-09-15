@@ -25,7 +25,6 @@
 
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
-#include "AUD_FileFactory.h"
 #include "AUD_StreamBufferFactory.h"
 #include "AUD_DelayFactory.h"
 #include "AUD_LimiterFactory.h"
@@ -49,6 +48,7 @@
 #endif
 
 #ifdef WITH_FFMPEG
+#include "AUD_FFMPEGFactory.h"
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -76,9 +76,6 @@ int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize)
 	av_register_all();
 #endif
 	AUD_IDevice* dev = NULL;
-
-	if(AUD_device)
-		AUD_exit();
 
 	try
 	{
@@ -110,13 +107,16 @@ int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize)
 			return false;
 		}
 
+		if(AUD_device)
+			AUD_exit();
+
 		AUD_device = dev;
 		if(AUD_device->checkCapability(AUD_CAPS_3D_DEVICE))
 			AUD_3ddevice = dynamic_cast<AUD_I3DDevice*>(AUD_device);
 
 		return true;
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return false;
 	}
@@ -187,13 +187,21 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 AUD_Sound* AUD_load(const char* filename)
 {
 	assert(filename);
-	return new AUD_FileFactory(filename);
+#ifdef WITH_FFMPEG
+	return new AUD_FFMPEGFactory(filename);
+#else
+	return NULL;
+#endif
 }
 
 AUD_Sound* AUD_loadBuffer(unsigned char* buffer, int size)
 {
 	assert(buffer);
-	return new AUD_FileFactory(buffer, size);
+#ifdef WITH_FFMPEG
+	return new AUD_FFMPEGFactory(buffer, size);
+#else
+	return NULL;
+#endif
 }
 
 AUD_Sound* AUD_bufferSound(AUD_Sound* sound)
@@ -204,7 +212,7 @@ AUD_Sound* AUD_bufferSound(AUD_Sound* sound)
 	{
 		return new AUD_StreamBufferFactory(sound);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return NULL;
 	}
@@ -218,7 +226,7 @@ AUD_Sound* AUD_delaySound(AUD_Sound* sound, float delay)
 	{
 		return new AUD_DelayFactory(sound, delay);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return NULL;
 	}
@@ -232,7 +240,7 @@ extern AUD_Sound* AUD_limitSound(AUD_Sound* sound, float start, float end)
 	{
 		return new AUD_LimiterFactory(sound, start, end);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return NULL;
 	}
@@ -246,7 +254,7 @@ AUD_Sound* AUD_pingpongSound(AUD_Sound* sound)
 	{
 		return new AUD_PingPongFactory(sound);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return NULL;
 	}
@@ -260,7 +268,7 @@ AUD_Sound* AUD_loopSound(AUD_Sound* sound)
 	{
 		return new AUD_LoopFactory(sound);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return NULL;
 	}
@@ -278,7 +286,7 @@ int AUD_stopLoop(AUD_Handle* handle)
 		{
 			return AUD_device->sendMessage(handle, message);
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception e)
 		{
 		}
 	}
@@ -299,7 +307,7 @@ AUD_Handle* AUD_play(AUD_Sound* sound, int keep)
 	{
 		return AUD_device->play(sound, keep);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return NULL;
 	}
@@ -360,7 +368,7 @@ AUD_Handle* AUD_play3D(AUD_Sound* sound, int keep)
 		else
 			return AUD_device->play(sound, keep);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return NULL;
 	}
@@ -376,7 +384,7 @@ int AUD_updateListener(AUD_3DData* data)
 		if(AUD_3ddevice)
 			return AUD_3ddevice->updateListener(*data);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 	}
 	return false;
@@ -391,7 +399,7 @@ int AUD_set3DSetting(AUD_3DSetting setting, float value)
 		if(AUD_3ddevice)
 			return AUD_3ddevice->setSetting(setting, value);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 	}
 	return false;
@@ -406,7 +414,7 @@ float AUD_get3DSetting(AUD_3DSetting setting)
 		if(AUD_3ddevice)
 			return AUD_3ddevice->getSetting(setting);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 	}
 	return 0.0;
@@ -424,7 +432,7 @@ int AUD_update3DSource(AUD_Handle* handle, AUD_3DData* data)
 			if(AUD_3ddevice)
 				return AUD_3ddevice->updateSource(handle, *data);
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception e)
 		{
 		}
 	}
@@ -443,7 +451,7 @@ int AUD_set3DSourceSetting(AUD_Handle* handle,
 			if(AUD_3ddevice)
 				return AUD_3ddevice->setSourceSetting(handle, setting, value);
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception e)
 		{
 		}
 	}
@@ -461,7 +469,7 @@ float AUD_get3DSourceSetting(AUD_Handle* handle, AUD_3DSourceSetting setting)
 			if(AUD_3ddevice)
 				return AUD_3ddevice->getSourceSetting(handle, setting);
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception e)
 		{
 		}
 	}
@@ -481,7 +489,7 @@ int AUD_setSoundVolume(AUD_Handle* handle, float volume)
 		{
 			return AUD_device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps);
 		}
-		catch(AUD_Exception) {}
+		catch(AUD_Exception e) {}
 	}
 	return false;
 }
@@ -499,7 +507,7 @@ int AUD_setSoundPitch(AUD_Handle* handle, float pitch)
 		{
 			return AUD_device->setCapability(AUD_CAPS_SOURCE_PITCH, &caps);
 		}
-		catch(AUD_Exception) {}
+		catch(AUD_Exception e) {}
 	}
 	return false;
 }
@@ -510,7 +518,7 @@ AUD_Device* AUD_openReadDevice(AUD_Specs specs)
 	{
 		return new AUD_ReadDevice(specs);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return NULL;
 	}
@@ -525,7 +533,7 @@ int AUD_playDevice(AUD_Device* device, AUD_Sound* sound)
 	{
 		return device->play(sound) != NULL;
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return false;
 	}
@@ -540,7 +548,7 @@ int AUD_readDevice(AUD_Device* device, sample_t* buffer, int length)
 	{
 		return device->read(buffer, length);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		return false;
 	}
@@ -554,7 +562,7 @@ void AUD_closeReadDevice(AUD_Device* device)
 	{
 		delete device;
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 	}
 }

@@ -49,7 +49,6 @@ typedef struct bConstraintOb {
 	float startmat[4][4];		/* original matrix (before constraint solving) */
 	
 	short type;					/* type of owner  */
-	short rotOrder;				/* rotation order for constraint owner (as defined in eEulerRotationOrders in BLI_arithb.h) */
 } bConstraintOb;
 
 /* ---------------------------------------------------------------------------- */

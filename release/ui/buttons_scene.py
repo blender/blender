@@ -2,8 +2,8 @@
 import bpy
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
+	__space_type__ = "PROPERTIES"
+	__region_type__ = "WINDOW"
 	__context__ = "scene"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
@@ -41,8 +41,8 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
 		col = row.column(align=True)
-		col.itemO("scene.render_layer_add", icon='ICON_ZOOMIN', text="")
-		col.itemO("scene.render_layer_remove", icon='ICON_ZOOMOUT', text="")
+		col.itemO("scene.render_layer_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("scene.render_layer_remove", icon="ICON_ZOOMOUT", text="")
 
 		rl = rd.layers[rd.active_layer_index]
 
@@ -103,19 +103,19 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		col.itemR(rl, "pass_diffuse")
 		row = col.row()
 		row.itemR(rl, "pass_specular")
-		row.itemR(rl, "pass_specular_exclude", text="", icon='ICON_X')
+		row.itemR(rl, "pass_specular_exclude", text="", icon="ICON_X")
 		row = col.row()
 		row.itemR(rl, "pass_shadow")
-		row.itemR(rl, "pass_shadow_exclude", text="", icon='ICON_X')
+		row.itemR(rl, "pass_shadow_exclude", text="", icon="ICON_X")
 		row = col.row()
 		row.itemR(rl, "pass_ao")
-		row.itemR(rl, "pass_ao_exclude", text="", icon='ICON_X')
+		row.itemR(rl, "pass_ao_exclude", text="", icon="ICON_X")
 		row = col.row()
 		row.itemR(rl, "pass_reflection")
-		row.itemR(rl, "pass_reflection_exclude", text="", icon='ICON_X')
+		row.itemR(rl, "pass_reflection_exclude", text="", icon="ICON_X")
 		row = col.row()
 		row.itemR(rl, "pass_refraction")
-		row.itemR(rl, "pass_refraction_exclude", text="", icon='ICON_X')
+		row.itemR(rl, "pass_refraction_exclude", text="", icon="ICON_X")
 
 class SCENE_PT_shading(RenderButtonsPanel):
 	__label__ = "Shading"
@@ -189,27 +189,20 @@ class SCENE_PT_post_processing(RenderButtonsPanel):
 		col = split.column()
 		col.itemR(rd, "use_compositing")
 		col.itemR(rd, "use_sequencer")
-		
+
 		col = split.column()
-		col.itemR(rd, "dither_intensity", text="Dither", slider=True)
-		
-		layout.itemS()
-				
-		split = layout.split()
-		
-		col = split.column()
-		col.itemR(rd, "fields", text="Fields")
-		sub = col.column()
+		row = col.row()
+		row.itemR(rd, "fields", text="Fields")
+		sub = row.row()
 		sub.active = rd.fields
-		sub.row().itemR(rd, "field_order", expand=True)
 		sub.itemR(rd, "fields_still", text="Still")
-		
-		col = split.column()
-		col.itemR(rd, "edge")
-		sub = col.column()
-		sub.active = rd.edge
-		sub.itemR(rd, "edge_threshold", text="Threshold", slider=True)
-		sub.itemR(rd, "edge_color", text="")
+		sub = col.row()
+		sub.active = rd.fields
+		sub.itemR(rd, "field_order", expand=True)
+
+		split = layout.split()
+		split.itemL()
+		split.itemR(rd, "dither_intensity", text="Dither", slider=True)
 		
 class SCENE_PT_output(RenderButtonsPanel):
 	__label__ = "Output"
@@ -229,8 +222,8 @@ class SCENE_PT_output(RenderButtonsPanel):
 
 		col = split.column()
 		col.itemR(rd, "file_extensions")
-		col.itemR(rd, "use_overwrite")
-		col.itemR(rd, "use_placeholder")
+		col.itemR(rd, "placeholders")
+		col.itemR(rd, "no_overwrite")
 
 		if rd.file_format in ('AVIJPEG', 'JPEG'):
 			split = layout.split()
@@ -330,9 +323,11 @@ class SCENE_PT_antialiasing(RenderButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
+		layout = self.layout
+		
 		rd = context.scene.render_data
 
-		self.layout.itemR(rd, "antialiasing", text="")
+		layout.itemR(rd, "antialiasing", text="")
 
 	def draw(self, context):
 		layout = self.layout
@@ -375,9 +370,9 @@ class SCENE_PT_dimensions(RenderButtonsPanel):
 		sub.itemR(rd, "pixel_aspect_y", text="Y")
 
 		row = col.row()
-		row.itemR(rd, "use_border", text="Border")
+		row.itemR(rd, "border", text="Border")
 		rowsub = row.row()
-		rowsub.active = rd.use_border
+		rowsub.active = rd.border
 		rowsub.itemR(rd, "crop_to_border", text="Crop")
 		
 		col = split.column(align=True)
@@ -396,9 +391,11 @@ class SCENE_PT_stamp(RenderButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
+		layout = self.layout
+		
 		rd = context.scene.render_data
 
-		self.layout.itemR(rd, "render_stamp", text="")
+		layout.itemR(rd, "render_stamp", text="")
 
 	def draw(self, context):
 		layout = self.layout

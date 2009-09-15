@@ -100,8 +100,6 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_KEEP_OPEN		256
 #define UI_BLOCK_POPUP			512
 #define UI_BLOCK_OUT_1			1024
-#define UI_BLOCK_NO_FLIP		2048
-#define UI_BLOCK_POPUP_MEMORY	4096
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
@@ -255,6 +253,8 @@ void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, char *filename
 void uiPupMenuNotice(struct bContext *C, char *str, ...);
 void uiPupMenuError(struct bContext *C, char *str, ...);
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
+
+void uiPupMenuSetActive(int val);
 
 /* Popup Blocks
  *
@@ -585,21 +585,16 @@ void UI_exit(void);
 #define UI_LAYOUT_ALIGN_CENTER	2
 #define UI_LAYOUT_ALIGN_RIGHT	3
 
-#define UI_ITEM_O_RETURN_PROPS	1
-#define UI_ITEM_R_EXPAND		2
-#define UI_ITEM_R_SLIDER		4
-#define UI_ITEM_R_TOGGLE		8
-
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
 void uiBlockLayoutResolve(const struct bContext *C, uiBlock *block, int *x, int *y);
 
 uiBlock *uiLayoutGetBlock(uiLayout *layout);
 
+void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, char *name, struct PointerRNA *ptr);
 
-void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
 void uiLayoutSetActive(uiLayout *layout, int active);
 void uiLayoutSetEnabled(uiLayout *layout, int enabled);
 void uiLayoutSetRedAlert(uiLayout *layout, int redalert);
@@ -633,7 +628,7 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
-	char *newop, char *openop, char *unlinkop);
+	char *newop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
@@ -645,6 +640,9 @@ void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *i
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
+void uiTemplate_view3d_select_metaballmenu(uiLayout *layout, struct bContext *C);
+void uiTemplate_view3d_select_armaturemenu(uiLayout *layout, struct bContext *C);
+void uiTemplate_view3d_select_posemenu(uiLayout *layout, struct bContext *C);
 void uiTemplate_view3d_select_faceselmenu(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 
@@ -666,10 +664,10 @@ void uiItemBooleanO(uiLayout *layout, char *name, int icon, char *opname, char *
 void uiItemIntO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
 void uiItemFloatO(uiLayout *layout, char *name, int icon, char *opname, char *propname, float value);
 void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
-PointerRNA uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct IDProperty *properties, int context, int flag);
+void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct IDProperty *properties, int context);
 
-void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int flag);
-void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag);
+void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand, int slider, int toggle);
+void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand, int slider, int toggle);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
 void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);

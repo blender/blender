@@ -98,7 +98,6 @@ char OP_WARP[] = "TFM_OT_warp";
 char OP_SHRINK_FATTEN[] = "TFM_OT_shrink_fatten";
 char OP_TILT[] = "TFM_OT_tilt";
 char OP_TRACKBALL[] = "TFM_OT_trackball";
-char OP_MIRROR[] = "TFM_OT_mirror";
 
 
 TransformModeItem transform_modes[] =
@@ -112,7 +111,6 @@ TransformModeItem transform_modes[] =
 	{OP_SHRINK_FATTEN, TFM_SHRINKFATTEN},
 	{OP_TILT, TFM_TILT},
 	{OP_TRACKBALL, TFM_TRACKBALL},
-	{OP_MIRROR, TFM_MIRROR},
 	{NULL, 0}
 };
 
@@ -150,7 +148,6 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name   = "Select Orientation";
-	ot->description= "Select orientation type.";
 	ot->idname = "TFM_OT_select_orientation";
 
 	/* api callbacks */
@@ -311,7 +308,6 @@ void TFM_OT_translate(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Translate";
-	ot->description= "Translate selected items.";
 	ot->idname = OP_TRANSLATION;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -337,7 +333,6 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Resize";
-	ot->description= "Resize selected items."; 
 	ot->idname = OP_RESIZE;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -364,7 +359,6 @@ void TFM_OT_trackball(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Trackball";
-	ot->description= "Trackball style rotation of selected items.";
 	ot->idname = OP_TRACKBALL;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -386,7 +380,6 @@ void TFM_OT_rotate(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Rotate";
-	ot->description= "Rotate selected items.";
 	ot->idname = OP_ROTATION;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -412,10 +405,6 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Tilt";
-    /*optionals - 
-        "Tilt selected vertices."
-        "Specify an extra axis rotation for selected vertices of 3d curve." */
-	ot->description= "Tilt selected control vertices of 3d curve."; 
 	ot->idname = OP_TILT;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -439,7 +428,6 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Warp";
-	ot->description= "Warp selected items around the cursor.";
 	ot->idname = OP_WARP;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -464,7 +452,6 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Shear";
-	ot->description= "Shear selected items along the horizontal screen axis.";
 	ot->idname = OP_SHEAR;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -489,7 +476,6 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Shrink/Fatten";
-	ot->description= "Shrink/fatten selected vertices along normals.";
 	ot->idname = OP_SHRINK_FATTEN;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -511,8 +497,6 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "To Sphere";
-    //added "around mesh center" to differentiate between "MESH_OT_vertices_to_sphere()" 
-	ot->description= "Move selected vertices outward in a spherical shape around mesh center.";
 	ot->idname = OP_TOSPHERE;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -528,25 +512,6 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
-}
-
-void TFM_OT_mirror(struct wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name   = "Mirror";
-	ot->description= "Mirror selected vertices around one or more axes.";
-	ot->idname = OP_MIRROR;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-
-	/* api callbacks */
-	ot->invoke = transform_invoke;
-	ot->exec   = transform_exec;
-	ot->modal  = transform_modal;
-	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_areaactive;
-
-	Properties_Proportional(ot);
-	Properties_Constraints(ot);
 }
 
 void TFM_OT_transform(struct wmOperatorType *ot)
@@ -583,7 +548,6 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name   = "Transform";
-	ot->description= "Transform selected items by mode type.";
 	ot->idname = "TFM_OT_transform";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -616,7 +580,6 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TFM_OT_shrink_fatten);
 	WM_operatortype_append(TFM_OT_tilt);
 	WM_operatortype_append(TFM_OT_trackball);
-	WM_operatortype_append(TFM_OT_mirror);
 
 	WM_operatortype_append(TFM_OT_select_orientation);
 }
@@ -721,7 +684,8 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", MKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_MIRROR);
 			break;
 		default:
 			break;

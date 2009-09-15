@@ -214,11 +214,6 @@ bGPdata *gpencil_data_addnew (char name[])
 	/* initial settings */
 	gpd->flag = (GP_DATA_DISPINFO|GP_DATA_EXPAND);
 	
-	/* for now, stick to view is also enabled by default
-	 * since this is more useful...
-	 */
-	gpd->flag |= GP_DATA_VIEWALIGN;
-	
 	return gpd;
 }
 
@@ -313,7 +308,7 @@ bGPdata *gpencil_data_duplicate (bGPdata *src)
 void gpencil_frame_delete_laststroke (bGPDlayer *gpl, bGPDframe *gpf)
 {
 	bGPDstroke *gps= (gpf) ? gpf->strokes.last : NULL;
-	int cfra = (gpf) ? gpf->framenum : 0; /* assume that the current frame was not locked */
+	int cfra = 1; // XXX FIXME!!!
 	
 	/* error checking */
 	if (ELEM(NULL, gpf, gps))

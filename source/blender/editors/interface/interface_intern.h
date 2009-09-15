@@ -287,8 +287,7 @@ struct uiBlock {
 	char *lockstr;
 	
 	float xofs, yofs;				// offset to parent button
-	int dobounds, mx, my;			// for doing delayed
-	int bounds, minbounds;			// for doing delayed
+	int bounds, dobounds, mx, my;	// for doing delayed
 	int endblock;					// uiEndBlock done?
 
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
@@ -298,7 +297,6 @@ struct uiBlock {
 	int tooltipdisabled;		// to avoid tooltip after click
 
 	int active;					// to keep blocks while drawing and free them afterwards
-	int puphash;				// popup menu hash for memory
 
 	void *evil_C;				// XXX hack for dynamic operator enums
 };
@@ -374,14 +372,13 @@ struct uiPopupBlockHandle {
 	float retvec[3];
 };
 
+uiBlock *ui_block_func_MENU(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_ICONROW(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_ICONTEXTROW(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
 uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
-void ui_block_func_ICONROW(struct bContext *C, uiLayout *layout, void *arg_but);
-void ui_block_func_ICONTEXTROW(struct bContext *C, uiLayout *layout, void *arg_but);
 
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
-
-uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but);
 
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
@@ -397,8 +394,7 @@ typedef uiBlock* (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBl
 uiPopupBlockHandle *ui_popup_block_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
 	uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func, void *arg);
 uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
-	uiMenuCreateFunc create_func, void *arg, char *str);
-
+	uiMenuCreateFunc create_func, void *arg);
 void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 
 void ui_set_name_menu(uiBut *but, int value);
@@ -467,8 +463,6 @@ void ui_but_anim_insert_keyframe(struct bContext *C);
 void ui_but_anim_delete_keyframe(struct bContext *C);
 void ui_but_anim_add_driver(struct bContext *C);
 void ui_but_anim_remove_driver(struct bContext *C);
-void ui_but_anim_add_keyingset(struct bContext *C);
-void ui_but_anim_remove_keyingset(struct bContext *C);
 void ui_but_anim_menu(struct bContext *C, uiBut *but);
 int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
 int ui_but_anim_expression_set(uiBut *but, const char *str);

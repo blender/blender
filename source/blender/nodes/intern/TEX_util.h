@@ -102,7 +102,8 @@ float tex_input_value(bNodeStack *in, TexParams *params, short thread);
 void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn);
 void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata);
 
-void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, float *dxt, float *dyt, short thread, struct Tex *tex, short which_output, int cfra);
+void ntreeTexUpdatePreviews( bNodeTree* nodetree );
+void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, float *dxt, float *dyt, char do_preview, short thread, struct Tex *tex, short which_output, int cfra);
 
 void params_from_cdata(TexParams *out, TexCallData *in);
 

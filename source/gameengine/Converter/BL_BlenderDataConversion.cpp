@@ -1377,9 +1377,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	bool isCompoundChild = false;
 	bool hasCompoundChildren = !parent && (blenderobject->gameflag & OB_CHILD);
 
-	/* When the parent is not OB_DYNAMIC and has no OB_COLLISION then it gets no bullet controller
-	 * and cant be apart of the parents compound shape */
-	if (parent && (parent->gameflag & (OB_DYNAMIC | OB_COLLISION))) {
+	if (parent/* && (parent->gameflag & OB_DYNAMIC)*/) {
 		
 		if ((parent->gameflag & OB_CHILD) != 0 && (blenderobject->gameflag & OB_CHILD))
 		{
@@ -2406,11 +2404,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 					obj->Release();
 			}
 			childrenlist->Release();
-			
 			// now destroy recursively
-			converter->UnregisterGameObject(childobj); // removing objects during conversion make sure this runs too
 			kxscene->RemoveObject(childobj);
-			
 			continue;
 		}
 
@@ -2487,10 +2482,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 		}
 		if (occlusion)
-			kxscene->SetDbvtOcclusionRes(blenderscene->gm.occlusionRes);
+			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
 	}
 	if (blenderscene->world)
-		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->gm.physubstep);
+		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->world->physubstep);
 
 	// now that the scenegraph is complete, let's instantiate the deformers.
 	// We need that to create reusable derived mesh and physic shapes

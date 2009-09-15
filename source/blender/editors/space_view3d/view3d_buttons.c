@@ -36,7 +36,6 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
@@ -82,7 +81,6 @@
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_image.h"
-#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -226,7 +224,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 		
 		nu= cu->editnurb->first;
 		while(nu) {
-			if(nu->type == CU_BEZIER) {
+			if((nu->type & 7)==CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -409,7 +407,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 			
 			nu= cu->editnurb->first;
 			while(nu) {
-				if(nu->type == CU_BEZIER) {
+				if((nu->type & 7)==CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
@@ -512,7 +510,7 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
 	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 
-	QuatToEulO(pchan->quat, tfp->ob_eul, pchan->rotmode); // XXX?
+	QuatToEul(pchan->quat, tfp->ob_eul);
 	tfp->ob_eul[0]*= 180.0/M_PI;
 	tfp->ob_eul[1]*= 180.0/M_PI;
 	tfp->ob_eul[2]*= 180.0/M_PI;
@@ -660,7 +658,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		return; /* no notifier! */
 		
 	case B_OBJECTPANEL:
-		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+		DAG_object_flush_update(scene, ob, OB_RECALC_OB);
 		break;
 		
 	case B_OBJECTPANELROT:
@@ -668,7 +666,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			ob->rot[0]= M_PI*tfp->ob_eul[0]/180.0;
 			ob->rot[1]= M_PI*tfp->ob_eul[1]/180.0;
 			ob->rot[2]= M_PI*tfp->ob_eul[2]/180.0;
-			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+			DAG_object_flush_update(scene, ob, OB_RECALC_OB);
 		}
 		break;
 
@@ -706,7 +704,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 				VECCOPY(ob->size, tfp->ob_scale);
 				
 			}
-			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+			DAG_object_flush_update(scene, ob, OB_RECALC_OB);
 		}
 		break;
 
@@ -752,14 +750,14 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			/* prevent multiple B_OBJECTPANELDIMS events to keep scaling, cycling with TAB on buttons can cause that */
 			VECCOPY(tfp->ob_dims, old_dims);
 			
-			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+			DAG_object_flush_update(scene, ob, OB_RECALC_OB);
 		}
 		break;
 	
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
 			v3d_editvertex_buts(C, NULL, v3d, ob, 1.0);
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
 		break;
 		
@@ -770,7 +768,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 				ob->parent= NULL;
 			else {
 				DAG_scene_sort(scene);
-				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+				DAG_object_flush_update(scene, ob, OB_RECALC_OB);
 			}
 		}
 		break;
@@ -841,13 +839,13 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			eul[0]= M_PI*tfp->ob_eul[0]/180.0;
 			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
 			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
-			EulOToQuat(eul, pchan->rotmode, pchan->quat); // xxx?
+			EulToQuat(eul, pchan->quat);
 		}
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:
 		{
 			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
 		break;
 	case B_TRANSFORMSPACEADD:
@@ -899,8 +897,8 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 				Mesh *me= ob->data;
 				int a;
 				for(a=0; a<me->totvert; a++)
-					ED_vgroup_vert_remove (ob, defGroup, a);
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+					remove_vert_defgroup (ob, defGroup, a);
+				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 			}
 		}
 		break;
@@ -1201,6 +1199,33 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 }
 #endif
 
+#if 0
+static void view3d_panel_gpencil(const bContext *C, Panel *pa)
+{
+	View3D *v3d= CTX_wm_view3d(C);
+	uiBlock *block;
+
+	block= uiLayoutFreeBlock(pa->layout);
+
+	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
+	if (v3d->flag2 & V3D_DISPGP) {
+//		if (v3d->gpd == NULL)
+// XXX			gpencil_data_setactive(ar, gpencil_data_addnew());
+	}
+	
+	if (v3d->flag2 & V3D_DISPGP) {
+// XXX		bGPdata *gpd= v3d->gpd;
+		
+		/* draw button for showing gpencil settings and drawings */
+		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &v3d->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View (draw using Shift-LMB)");
+	}
+	else {
+		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &v3d->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View");
+		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	}
+}
+#endif
+
 static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
 {
 	BIF_deleteSketch(C);
@@ -1391,12 +1416,6 @@ void view3d_buttons_register(ARegionType *art)
 	strcpy(pt->label, "Transform");
 	pt->draw= view3d_panel_object;
 	BLI_addtail(&art->paneltypes, pt);
-	
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
-	strcpy(pt->idname, "VIEW3D_PT_gpencil");
-	strcpy(pt->label, "Grease Pencil");
-	pt->draw= gpencil_panel_standard;
-	BLI_addtail(&art->paneltypes, pt);
 /*
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel properties");
 	strcpy(pt->idname, "VIEW3D_PT_properties");
@@ -1451,7 +1470,6 @@ static int view3d_properties(bContext *C, wmOperator *op)
 void VIEW3D_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
-	ot->description= "Display the properties panel.";
 	ot->idname= "VIEW3D_OT_properties";
 	
 	ot->exec= view3d_properties;

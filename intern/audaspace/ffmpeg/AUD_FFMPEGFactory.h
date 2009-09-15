@@ -27,8 +27,6 @@
 #define AUD_FFMPEGFACTORY
 
 #include "AUD_IFactory.h"
-#include "AUD_Reference.h"
-class AUD_Buffer;
 
 /**
  * This factory reads a sound file via ffmpeg.
@@ -46,7 +44,12 @@ private:
 	/**
 	 * The buffer to read from.
 	 */
-	AUD_Reference<AUD_Buffer> m_buffer;
+	unsigned char* m_buffer;
+
+	/**
+	 * The size of the buffer.
+	 */
+	int m_size;
 
 public:
 	/**

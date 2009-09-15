@@ -43,7 +43,6 @@
 
 #ifdef WIN32
 #include <io.h>		// read, open
-#include "BLI_winstuff.h"
 #else // ! WIN32
 #include <unistd.h>		// read
 #endif

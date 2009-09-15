@@ -51,6 +51,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 
+#define WITH_OPENEXR
 #include "openexr_multi.h"
 }
 

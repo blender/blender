@@ -2,8 +2,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
+	__space_type__ = "PROPERTIES"
+	__region_type__ = "WINDOW"
 	__context__ = "modifier"
 	
 class DATA_PT_modifiers(DataButtonsPanel):
@@ -27,7 +27,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	# the mt.type enum is (ab)used for a lookup on function names
 	# ...to avoid lengthy if statements
 	# so each type must have a function here.
-
 	def ARMATURE(self, layout, ob, md):
 		layout.itemR(md, "object")
 		
@@ -171,7 +170,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		if md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinate_object", text="Object")
 		elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
-			layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
+			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
 	
 	def EDGE_SPLIT(self, layout, ob, md):
 		split = layout.split()
@@ -188,40 +187,21 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def EXPLODE(self, layout, ob, md):
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 		layout.itemR(md, "protect")
-
-		flow = layout.column_flow(2)
-		flow.itemR(md, "split_edges")
-		flow.itemR(md, "unborn")
-		flow.itemR(md, "alive")
-		flow.itemR(md, "dead")
-
-		layout.itemO("object.explode_refresh", text="Refresh");
+		layout.itemR(md, "split_edges")
+		layout.itemR(md, "unborn")
+		layout.itemR(md, "alive")
+		layout.itemR(md, "dead")
+		# Missing: "Refresh" and "Clear Vertex Group" Operator
 		
 	def FLUID_SIMULATION(self, layout, ob, md):
 		layout.itemL(text="See Fluid panel.")
 		
 	def HOOK(self, layout, ob, md):
-		col = layout.column()
-		col.itemR(md, "object")
-		if md.object and md.object.type == 'ARMATURE':
-			layout.item_pointerR(md, "subtarget", md.object.data, "bones", text="Bone")
-		
+		layout.itemR(md, "falloff")
+		layout.itemR(md, "force", slider=True)
+		layout.itemR(md, "object")
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-
-		split = layout.split()
-		split.itemR(md, "falloff")
-		split.itemR(md, "force", slider=True)
-
-		layout.itemS()
-
-		row = layout.row()
-		row.itemO("object.hook_reset", text="Reset")
-		row.itemO("object.hook_recenter", text="Recenter")
-
-		if ob.mode == 'EDIT':
-			row = layout.row()
-			row.itemO("object.hook_select", text="Select")
-			row.itemO("object.hook_assign", text="Assign")
+		# Missing: "Reset" and "Recenter" Operator
 		
 	def LATTICE(self, layout, ob, md):
 		layout.itemR(md, "object")
@@ -242,7 +222,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
 		layout.itemS()
 		
-		layout.itemO("object.meshdeform_bind", text="Bind")
+		layout.itemO("object.modifier_mdef_bind", text="Bind")
 		row = layout.row()
 		row.itemR(md, "precision")
 		row.itemR(md, "dynamic")
@@ -269,11 +249,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 	def MULTIRES(self, layout, ob, md):
 		layout.itemR(md, "subdivision_type")
-		
-		row = layout.row()
-		row.itemO("object.multires_subdivide", text="Subdivide")
-		row.itemO("object.multires_higher_levels_delete", text="Delete Higher")
-
+		layout.itemO("object.multires_subdivide", text="Subdivide")
 		layout.itemR(md, "level")
 	
 	def PARTICLE_INSTANCE(self, layout, ob, md):
@@ -370,26 +346,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	
 	def UV_PROJECT(self, layout, ob, md):
 		if ob.type == 'MESH':
-			layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
+			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
+			#layout.itemR(md, "projectors")
 			layout.itemR(md, "image")
 			layout.itemR(md, "override_image")
-
-			split = layout.split()
-
-			col = split.column()
-			col.itemL(text="Aspect Ratio:")
-
-			sub = col.column(align=True)
-			sub.itemR(md, "horizontal_aspect_ratio", text="Horizontal")
-			sub.itemR(md, "vertical_aspect_ratio", text="Vertical")
-
-			col = split.column()
-			col.itemL(text="Projectors:")
-
-			sub = col.column(align=True)
-			sub.itemR(md, "num_projectors", text="Number")
-			for proj in md.projectors:
-				sub.itemR(proj, "object", text="")
+			layout.itemL(text="Aspect Ratio:")
+			col = layout.column(align=True)
+			col.itemR(md, "horizontal_aspect_ratio", text="Horizontal")
+			col.itemR(md, "vertical_aspect_ratio", text="Vertical")
+			
+			#"Projectors" don't work.
 		
 	def WAVE(self, layout, ob, md):
 		split = layout.split()
@@ -402,40 +368,28 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 		col = split.column()
 		col.itemR(md, "normals")
-		sub = col.column()
+		sub = col.row(align=True)
 		sub.active = md.normals
-		sub.itemR(md, "x_normal", text="X")
-		sub.itemR(md, "y_normal", text="Y")
-		sub.itemR(md, "z_normal", text="Z")
+		sub.itemR(md, "x_normal", text="X", toggle=True)
+		sub.itemR(md, "y_normal", text="Y", toggle=True)
+		sub.itemR(md, "z_normal", text="Z", toggle=True)
 		
-		split = layout.split()
-
-		col = split.column()
-		col.itemL(text="Time:")
-		sub = col.column(align=True)
-		sub.itemR(md, "time_offset", text="Offset")
-		sub.itemR(md, "lifetime", text="Life")
-		col.itemR(md, "damping_time", text="Damping")
-		
-		col = split.column()
-		col.itemL(text="Position:")
-		sub = col.column(align=True)
-		sub.itemR(md, "start_position_x", text="X")
-		sub.itemR(md, "start_position_y", text="Y")
-		col.itemR(md, "falloff_radius", text="Falloff")
-		
-		layout.itemS()
+		flow = layout.column_flow()
+		flow.itemR(md, "time_offset")
+		flow.itemR(md, "lifetime")
+		flow.itemR(md, "damping_time")
+		flow.itemR(md, "falloff_radius")
+		flow.itemR(md, "start_position_x")
+		flow.itemR(md, "start_position_y")
 		
 		layout.itemR(md, "start_position_object")
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 		layout.itemR(md, "texture")
 		layout.itemR(md, "texture_coordinates")
 		if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
-			layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
+			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
 		elif md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinates_object")
-		
-		layout.itemS()
 		
 		flow = layout.column_flow()
 		flow.itemR(md, "speed", slider=True)

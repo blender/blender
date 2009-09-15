@@ -835,11 +835,9 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 //	else transopts= ui_translate_buttons();
 	
 	/* cut string in 2 parts - only for menu entries */
-	if((but->block->flag & UI_BLOCK_LOOP)) {
-		if(ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS)==0) {
-			cpoin= strchr(but->drawstr, '|');
-			if(cpoin) *cpoin= 0;		
-		}
+	if(ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS)==0) {
+		cpoin= strchr(but->drawstr, '|');
+		if(cpoin) *cpoin= 0;		
 	}
 	
 	glColor3ubv((unsigned char*)wcol->text);
@@ -1085,7 +1083,7 @@ static struct uiWidgetColors wcol_tool= {
 	{255, 255, 255, 255},
 	
 	1,
-	15, -15
+	25, -25
 };
 
 static struct uiWidgetColors wcol_box= {
@@ -1897,7 +1895,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 		
 	ui_get_but_vectorf(but, col);
 	wcol->inner[0]= FTOCHAR(col[0]);
@@ -1916,7 +1914,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 	
 	widgetbase_draw(&wtb, wcol);
 
@@ -1946,11 +1944,11 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if(state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		float rad= 0.5f*(rect->ymax - rect->ymin); // 4.0f
+		float rad= 0.5f*(rect->ymax - rect->ymin);
 		
 		widget_init(&wtb);
 		
-		/* half rounded */
+		/* fully rounded */
 		round_box_edges(&wtb, 15, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
@@ -2045,11 +2043,11 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
-	float rad= 5.0f; //0.5f*(rect->ymax - rect->ymin);
+	float rad= 0.5f*(rect->ymax - rect->ymin);
 	
 	widget_init(&wtb);
 	
-	/* half rounded */
+	/* fully rounded */
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 
 	widgetbase_draw(&wtb, wcol);

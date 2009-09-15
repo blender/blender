@@ -54,14 +54,6 @@ ifeq ($(WITH_OPENJPEG), true)
     DIRS += libopenjpeg
 endif
 
-ifeq ($(WITH_LZO), true)
-    DIRS += lzo/minilzo
-endif
-
-ifeq ($(WITH_LZMA), true)
-    DIRS += lzma
-endif
-
 TARGET = solid
 
 all::

@@ -35,10 +35,6 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-# If we are here, jack is enable.
-CPPFLAGS += -DWITH_JACK
-CPPFLAGS += $(NAN_JACKCFLAGS)
-
 CPPFLAGS += -I../intern
 CPPFLAGS += -I..
 CPPFLAGS += -I.

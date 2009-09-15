@@ -831,6 +831,7 @@ int main(int argc, char **argv)
 			
 			if (G.background) {
 				int retval = BKE_read_file(C, argv[a], NULL, NULL);
+// XXX			sound_initialize_sounds();
 				
 				/*we successfully loaded a blend file, get sure that
 				pointcache works */

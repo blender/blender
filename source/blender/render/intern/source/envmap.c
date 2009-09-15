@@ -51,7 +51,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-
+#include "MTC_matrixops.h"
 
 /* this module */
 #include "render_types.h"
@@ -211,9 +211,9 @@ static void envmap_transmatrix(float mat[][4], int part)
 		eul[2]= -M_PI/2.0;
 	}
 	
-	Mat4CpyMat4(tmat, mat);
+	MTC_Mat4CpyMat4(tmat, mat);
 	EulToMat4(eul, rotmat);
-	Mat4MulSerie(mat, tmat, rotmat,
+	MTC_Mat4MulSerie(mat, tmat, rotmat,
 					 0,   0,    0,
 					 0,   0,    0);
 }
@@ -231,12 +231,12 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 	int a;
 	
 	if(mode==0) {
-		Mat4Invert(tmat, mat);
-		Mat3CpyMat4(imat, tmat);
+		MTC_Mat4Invert(tmat, mat);
+		MTC_Mat3CpyMat4(imat, tmat);
 	}
 	else {
-		Mat4CpyMat4(tmat, mat);
-		Mat3CpyMat4(imat, mat);
+		MTC_Mat4CpyMat4(tmat, mat);
+		MTC_Mat3CpyMat4(imat, mat);
 	}
 
 	for(obi=re->instancetable.first; obi; obi=obi->next) {
@@ -267,7 +267,7 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 			if((a & 255)==0) har= obr->bloha[a>>8];
 			else har++;
 		
-			Mat4MulVecfl(tmat, har->co);
+			MTC_Mat4MulVecfl(tmat, har->co);
 		}
 	}
 	
@@ -280,22 +280,22 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		Mat3CpyMat3(cmat, lar->imat); 
 		Mat3MulMat3(lar->imat, cmat, imat); 
 
-		Mat3MulVecfl(imat, lar->vec);
-		Mat4MulVecfl(tmat, lar->co);
+		MTC_Mat3MulVecfl(imat, lar->vec);
+		MTC_Mat4MulVecfl(tmat, lar->co);
 
 		lar->sh_invcampos[0]= -lar->co[0];
 		lar->sh_invcampos[1]= -lar->co[1];
 		lar->sh_invcampos[2]= -lar->co[2];
-		Mat3MulVecfl(lar->imat, lar->sh_invcampos);
+		MTC_Mat3MulVecfl(lar->imat, lar->sh_invcampos);
 		lar->sh_invcampos[2]*= lar->sh_zfac;
 		
 		if(lar->shb) {
 			if(mode==1) {
-				Mat4Invert(pmat, mat);
-				Mat4MulMat4(smat, pmat, lar->shb->viewmat);
-				Mat4MulMat4(lar->shb->persmat, smat, lar->shb->winmat);
+				MTC_Mat4Invert(pmat, mat);
+				MTC_Mat4MulMat4(smat, pmat, lar->shb->viewmat);
+				MTC_Mat4MulMat4(lar->shb->persmat, smat, lar->shb->winmat);
 			}
-			else Mat4MulMat4(lar->shb->persmat, lar->shb->viewmat, lar->shb->winmat);
+			else MTC_Mat4MulMat4(lar->shb->persmat, lar->shb->viewmat, lar->shb->winmat);
 		}
 	}
 	
@@ -373,8 +373,8 @@ static void env_set_imats(Render *re)
 	
 	base= re->scene->base.first;
 	while(base) {
-		Mat4MulMat4(mat, base->object->obmat, re->viewmat);
-		Mat4Invert(base->object->imat, mat);
+		MTC_Mat4MulMat4(mat, base->object->obmat, re->viewmat);
+		MTC_Mat4Invert(base->object->imat, mat);
 		
 		base= base->next;
 	}
@@ -393,18 +393,18 @@ static void render_envmap(Render *re, EnvMap *env)
 	short part;
 	
 	/* need a recalc: ortho-render has no correct viewinv */
-	Mat4Invert(oldviewinv, re->viewmat);
+	MTC_Mat4Invert(oldviewinv, re->viewmat);
 
 	envre= envmap_render_copy(re, env);
 	
 	/* precalc orthmat for object */
-	Mat4CpyMat4(orthmat, env->object->obmat);
-	Mat4Ortho(orthmat);
+	MTC_Mat4CpyMat4(orthmat, env->object->obmat);
+	MTC_Mat4Ortho(orthmat);
 	
 	/* need imat later for texture imat */
-	Mat4MulMat4(mat, orthmat, re->viewmat);
-	Mat4Invert(tmat, mat);
-	Mat3CpyMat4(env->obimat, tmat);
+	MTC_Mat4MulMat4(mat, orthmat, re->viewmat);
+	MTC_Mat4Invert(tmat, mat);
+	MTC_Mat3CpyMat4(env->obimat, tmat);
 
 	for(part=0; part<6; part++) {
 		if(env->type==ENV_PLANE && part!=1)
@@ -412,17 +412,17 @@ static void render_envmap(Render *re, EnvMap *env)
 		
 		re->display_clear(re->dch, envre->result);
 		
-		Mat4CpyMat4(tmat, orthmat);
+		MTC_Mat4CpyMat4(tmat, orthmat);
 		envmap_transmatrix(tmat, part);
-		Mat4Invert(mat, tmat);
+		MTC_Mat4Invert(mat, tmat);
 		/* mat now is the camera 'viewmat' */
 
-		Mat4CpyMat4(envre->viewmat, mat);
-		Mat4CpyMat4(envre->viewinv, tmat);
+		MTC_Mat4CpyMat4(envre->viewmat, mat);
+		MTC_Mat4CpyMat4(envre->viewinv, tmat);
 		
 		/* we have to correct for the already rotated vertexcoords */
-		Mat4MulMat4(tmat, oldviewinv, envre->viewmat);
-		Mat4Invert(env->imat, tmat);
+		MTC_Mat4MulMat4(tmat, oldviewinv, envre->viewmat);
+		MTC_Mat4Invert(env->imat, tmat);
 		
 		env_rotate_scene(envre, tmat, 1);
 		init_render_world(envre);
@@ -503,13 +503,13 @@ void make_envmaps(Render *re)
 							float orthmat[4][4], mat[4][4], tmat[4][4];
 							
 							/* precalc orthmat for object */
-							Mat4CpyMat4(orthmat, env->object->obmat);
-							Mat4Ortho(orthmat);
+							MTC_Mat4CpyMat4(orthmat, env->object->obmat);
+							MTC_Mat4Ortho(orthmat);
 							
 							/* need imat later for texture imat */
-							Mat4MulMat4(mat, orthmat, re->viewmat);
-							Mat4Invert(tmat, mat);
-							Mat3CpyMat4(env->obimat, tmat);
+							MTC_Mat4MulMat4(mat, orthmat, re->viewmat);
+							MTC_Mat4Invert(tmat, mat);
+							MTC_Mat3CpyMat4(env->obimat, tmat);
 						}
 						else {
 							
@@ -678,20 +678,20 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	
 	/* rotate to envmap space, if object is set */
 	VECCOPY(vec, texvec);
-	if(env->object) Mat3MulVecfl(env->obimat, vec);
-	else Mat4Mul3Vecfl(R.viewinv, vec);
+	if(env->object) MTC_Mat3MulVecfl(env->obimat, vec);
+	else MTC_Mat4Mul3Vecfl(R.viewinv, vec);
 	
 	face= envcube_isect(env, vec, sco);
 	ibuf= env->cube[face];
 	
 	if(osatex) {
 		if(env->object) {
-			Mat3MulVecfl(env->obimat, dxt);
-			Mat3MulVecfl(env->obimat, dyt);
+			MTC_Mat3MulVecfl(env->obimat, dxt);
+			MTC_Mat3MulVecfl(env->obimat, dyt);
 		}
 		else {
-			Mat4Mul3Vecfl(R.viewinv, dxt);
-			Mat4Mul3Vecfl(R.viewinv, dyt);
+			MTC_Mat4Mul3Vecfl(R.viewinv, dxt);
+			MTC_Mat4Mul3Vecfl(R.viewinv, dyt);
 		}
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
 		imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, texres);

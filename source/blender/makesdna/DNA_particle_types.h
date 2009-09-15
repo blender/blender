@@ -33,7 +33,6 @@
 #define DNA_PARTICLE_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_boid_types.h"
 
 struct AnimData;
 
@@ -53,14 +52,6 @@ typedef struct ParticleKey {	/* when changed update size of struct to copy_parti
 	float time;		/* when this key happens */
 } ParticleKey;
 
-typedef struct BoidParticle {
-	struct Object *ground;
-	struct BoidData data;
-	float gravity[3];
-	float wander[3];
-	float rt;
-} BoidParticle;
-
 /* Child particles are created around or between parent particles */
 typedef struct ChildParticle {
 	int num, parent;	/* num is face index on the final derived mesh */
@@ -78,34 +69,42 @@ typedef struct ParticleTarget {
 	float time, duration;
 } ParticleTarget;
 
+/* Everything that's non dynamic for a particle:			*/
 typedef struct ParticleData {
-	ParticleKey state;		/* current global coordinates */
+	struct Object *stick_ob;/* object that particle sticks to when dead */
+
+	ParticleKey state;		/* normally current global coordinates or	*/
+							/* in sticky object space if dead & sticky	*/
 
 	ParticleKey prev_state; /* previous state */
-	
+
 	HairKey *hair;			/* hair vertices */
 
-	ParticleKey *keys;		/* keyed keys */
+	ParticleKey *keys;		/* keyed states */
 
-	BoidParticle *boid;		/* boids data */
+	struct BoidData *boid;	/* boids data */
 
-	int totkey;				/* amount of hair or keyed keys*/
-
-	float time, lifetime;	/* dietime is not nescessarily time+lifetime as	*/
-	float dietime;			/* particles can die unnaturally (collision)	*/
-
-	int num;				/* index to vert/edge/face */
-	int num_dmcache;		/* index to derived mesh data (face) to avoid slow lookups */
+	float r_rot[4];			/* random values */
+	float r_ave[3],r_ve[3];
 
 	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
 							/* face normal for volume emission						*/
 
-	float size;				/* size and multiplier so that we can update size when ever */
+	float time, lifetime;	/* dietime is not nescessarily time+lifetime as	*/
+	float dietime;			/* particles can die unnaturally (collision)	*/
+
+	float size, sizemul;	/* size and multiplier so that we can update size when ever */
+
+	int num;				/* index to vert/edge/face */
+	int num_dmcache;		/* index to derived mesh data (face) to avoid slow lookups */
+
+	int totkey;
+	int bpi;				/* softbody body point start index */
 
 	short flag;
-	short alive;			/* the life state of a particle */
+	short alive;				/* the life state of a particle */
 	short loop;				/* how many times particle life has looped */
-	short rt;
+	short rt2;
 } ParticleData;
 
 typedef struct ParticleSettings {
@@ -195,8 +194,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	ParticleData *particles;				/* (parent) particles */
 	ChildParticle *child;					/* child particles */
 
-	struct PTCacheEdit *edit;						/* particle editmode (runtime) */
-	void (*free_edit)(struct PTCacheEdit *edit);	/* free callback */
+	struct ParticleEdit *edit;						/* particle editmode (runtime) */
+	void (*free_edit)(struct ParticleSystem *sys);	/* free callback */
 
 	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */
 	struct ParticleCacheKey **childcache;	/* child cache (runtime) */
@@ -259,7 +258,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_TRAND			128	
 #define PART_EDISTR			256	/* particle/face from face areas */
 
-//#define PART_STICKY			512	/*collided particles can stick to collider*/
+#define PART_STICKY			512	/*collided particles can stick to collider*/
 #define PART_DIE_ON_COL		(1<<12)
 #define PART_SIZE_DEFL		(1<<13) /* swept sphere deflections */
 #define PART_ROT_DYN		(1<<14)	/* dynamic rotation */
@@ -410,7 +409,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 /* psys->flag */
 #define PSYS_CURRENT		1
-#define PSYS_GLOBAL_HAIR	2
+//#define PSYS_BAKING			2
 //#define PSYS_BAKE_UI		4
 #define	PSYS_KEYED_TIMING	8
 #define PSYS_ENABLED		16	/* deprecated */
@@ -420,15 +419,19 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PSYS_DELETE			256	/* remove particlesystem as soon as possible */
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024
-//#define PSYS_EDITED			2048
+#define PSYS_EDITED			2048
 //#define PSYS_PROTECT_CACHE	4096
 #define PSYS_DISABLED		8192
 
 /* pars->flag */
 #define PARS_UNEXIST		1
 #define PARS_NO_DISP		2
-//#define PARS_STICKY			4
-#define PARS_REKEY			8
+#define PARS_STICKY			4
+#define PARS_TRANSFORM		8
+#define PARS_HIDE			16
+#define PARS_TAG			32
+#define PARS_REKEY			64
+#define PARS_EDIT_RECALC	128
 
 /* pars->alive */
 #define PARS_KILLED			0

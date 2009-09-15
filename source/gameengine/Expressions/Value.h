@@ -242,6 +242,8 @@ public:
 	static PyObject * pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 	
 	virtual PyObject* ConvertKeysToPython( void );
+	
+	KX_PYMETHOD_NOARGS(CValue,GetName);
 
 #else
 	CValue();

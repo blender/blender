@@ -269,7 +269,7 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 /* tags the given ID block for refreshes (if applicable) due to 
  * Animation Editor editing
  */
-static void animedit_refresh_id_tags (Scene *scene, ID *id)
+static void animedit_refresh_id_tags (ID *id)
 {
 	if (id) {
 		AnimData *adt= BKE_animdata_from_id(id);
@@ -279,11 +279,12 @@ static void animedit_refresh_id_tags (Scene *scene, ID *id)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
 		/* if ID-block is Object, set recalc flags */
+		// TODO: this should probably go through the depsgraph instead... but for now, let's be lazy
 		switch (GS(id->name)) {
 			case ID_OB:
 			{
 				Object *ob= (Object *)id;
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+				ob->recalc |= OB_RECALC;
 			}
 				break;
 		}
@@ -383,7 +384,7 @@ void recalcData(TransInfo *t)
 		/* just tag these animdata-blocks to recalc, assuming that some data there changed */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, ale->id);
+			animedit_refresh_id_tags(ale->id);
 		}
 		
 		/* now free temp channels */
@@ -431,7 +432,7 @@ void recalcData(TransInfo *t)
 				calchandles_fcurve(fcu);
 				
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, ale->id);
+			animedit_refresh_id_tags(ale->id);
 		}
 		
 		/* do resort and other updates? */
@@ -462,7 +463,7 @@ void recalcData(TransInfo *t)
 				continue;
 			
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, tdn->id);
+			animedit_refresh_id_tags(tdn->id);
 			
 			/* if cancelling transform, just write the values without validating, then move on */
 			if (t->state == TRANS_CANCEL) {
@@ -621,7 +622,7 @@ void recalcData(TransInfo *t)
 			Curve *cu= t->obedit->data;
 			Nurb *nu= cu->editnurb->first;
 
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 
 			if (t->state == TRANS_CANCEL) {
 				while(nu) {
@@ -641,7 +642,7 @@ void recalcData(TransInfo *t)
 		}
 		else if(t->obedit->type==OB_LATTICE) {
 			Lattice *la= t->obedit->data;
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 
 			if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
 		}
@@ -653,7 +654,7 @@ void recalcData(TransInfo *t)
 				if(sima->flag & SI_LIVE_UNWRAP)
 					ED_uvedit_live_unwrap_re_solve();
 
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
+				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);
 			} else {
 				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
 				/* mirror modifier clipping? */
@@ -668,7 +669,7 @@ void recalcData(TransInfo *t)
 				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 					editmesh_apply_to_mirror(t);
 
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 
 				recalc_editnormals(em);
 			}
@@ -752,7 +753,7 @@ void recalcData(TransInfo *t)
 
 		}
 		else
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 	}
 	else if( (t->flag & T_POSE) && t->poseobj) {
 		Object *ob= t->poseobj;
@@ -772,7 +773,7 @@ void recalcData(TransInfo *t)
 
 		/* old optimize trick... this enforces to bypass the depgraph */
 		if (!(arm->flag & ARM_DELAYDEFORM)) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
 		}
 		else
 			where_is_pose(scene, ob);
@@ -1323,7 +1324,7 @@ void calculateCenter(TransInfo *t)
 	/* voor panning from cameraview */
 	if(t->flag & T_OBJECT)
 	{
-		if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW)
+		if(t->spacetype==SPACE_VIEW3D)
 		{
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;

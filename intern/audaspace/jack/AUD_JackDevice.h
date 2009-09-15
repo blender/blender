@@ -26,7 +26,6 @@
 #ifndef AUD_JACKDEVICE
 #define AUD_JACKDEVICE
 
-
 #include "AUD_SoftwareDevice.h"
 class AUD_Buffer;
 

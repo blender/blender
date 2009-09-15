@@ -39,6 +39,7 @@
 class SCA_MouseSensor : public SCA_ISensor
 {
 	Py_Header;
+	class SCA_MouseManager*	m_pMouseMgr;
 	
 	/**
 	 * Use SCA_IInputDevice values to encode the mouse mode for now.
@@ -106,6 +107,13 @@ class SCA_MouseSensor : public SCA_ISensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+
+	//Deprecated functions ----->
+	/* read x-coordinate */
+	KX_PYMETHOD_DOC_NOARGS(SCA_MouseSensor,GetXPosition);
+	/* read y-coordinate */
+	KX_PYMETHOD_DOC_NOARGS(SCA_MouseSensor,GetYPosition);
+	//<----- deprecated
 	
 	// get button status
 	KX_PYMETHOD_DOC_O(SCA_MouseSensor,getButtonStatus);

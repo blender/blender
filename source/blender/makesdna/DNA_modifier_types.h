@@ -252,6 +252,7 @@ typedef struct SmokeModifierData {
 	struct SmokeCollSettings *coll; /* collision objects */
 	float time;
 	int type;  /* domain, inflow, outflow, ... */
+	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 } SmokeModifierData;
 
 typedef struct DisplaceModifierData {
@@ -289,7 +290,7 @@ typedef struct UVProjectModifierData {
 	ModifierData modifier;
 
 	/* the objects which do the projecting */
-	struct Object *projectors[10]; /* MOD_UVPROJECT_MAX */
+	struct Object *projectors[10];
 	struct Image *image;      /* the image to project */
 	int flags;
 	int num_projectors;
@@ -397,8 +398,6 @@ typedef struct HookModifierData {
 	ModifierData modifier;
 
 	struct Object *object;
-	char subtarget[32];		/* optional name of bone target */
-	
 	float parentinv[4][4];	/* matrix making current transform unmodified */
 	float cent[3];			/* visualization of hook */
 	float falloff;			/* if not zero, falloff is distance where influence zero */
@@ -641,7 +640,5 @@ typedef struct SimpleDeformModifierData {
 /* indicates whether simple deform should use the local
    coordinates or global coordinates of origin */
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
-
-#define MOD_UVPROJECT_MAX				10
 
 #endif

@@ -335,10 +335,6 @@
 				Name="internal"
 				>
 				<File
-					RelativePath="..\..\..\source\blender\python\intern\bpy_array.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_interface.c"
 					>
 				</File>

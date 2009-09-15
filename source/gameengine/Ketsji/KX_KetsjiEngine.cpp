@@ -382,12 +382,12 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 	m_firstframe = true;
 	m_bInitialized = true;
 	// there is always one scene enabled at startup
-	Scene* scene = m_scenes[0]->GetBlenderScene();
-	if (scene)
+	World* world = m_scenes[0]->GetBlenderScene()->world;
+	if (world)
 	{
-		m_ticrate = scene->gm.ticrate ? scene->gm.ticrate : DEFAULT_LOGIC_TIC_RATE;
-		m_maxLogicFrame = scene->gm.maxlogicstep ? scene->gm.maxlogicstep : 5;
-		m_maxPhysicsFrame = scene->gm.maxphystep ? scene->gm.maxlogicstep : 5;
+		m_ticrate = world->ticrate ? world->ticrate : DEFAULT_LOGIC_TIC_RATE;
+		m_maxLogicFrame = world->maxlogicstep ? world->maxlogicstep : 5;
+		m_maxPhysicsFrame = world->maxphystep ? world->maxlogicstep : 5;
 	}
 	else
 	{

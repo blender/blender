@@ -369,7 +369,6 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_RELPATHS			(1 << 20)
 #define USER_DRAGIMMEDIATE		(1 << 21)
 #define USER_DONT_DOSCRIPTLINKS	(1 << 22)
-#define USER_FILENOUI			(1 << 23)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
@@ -440,7 +439,6 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DUP_TEX			(1 << 8)
 #define	USER_DUP_ARM			(1 << 9)
 #define	USER_DUP_ACT			(1 << 10)
-#define	USER_DUP_PSYS			(1 << 11)
 
 /* gameflags */
 #define USER_DEPRECATED_FLAG	1

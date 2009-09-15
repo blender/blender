@@ -30,7 +30,7 @@
 #include <math.h>
 #include <string.h>
 
-
+#include "MTC_matrixops.h"
 #include "BLI_arithb.h"
 
 #include "BKE_colortools.h"
@@ -58,7 +58,7 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-ListBase *get_lights(ShadeInput *shi)
+static ListBase *get_lights(ShadeInput *shi)
 {
 	
 	if(R.r.scemode & R_PREVIEWBUTS)
@@ -168,7 +168,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		p1[0]= shi->co[0]-lar->co[0];
 		p1[1]= shi->co[1]-lar->co[1];
 		p1[2]= -lar->co[2];
-		Mat3MulVecfl(lar->imat, p1);
+		MTC_Mat3MulVecfl(lar->imat, p1);
 		VECCOPY(npos, p1);	// npos is double!
 		
 		/* pre-scale */
@@ -180,7 +180,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	
 	/* rotate view */
 	VECCOPY(nray, shi->view);
-	Mat3MulVecd(lar->imat, nray);
+	MTC_Mat3MulVecd(lar->imat, nray);
 	
 	if(R.wrld.mode & WO_MIST) {
 		/* patchy... */
@@ -1143,7 +1143,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 							
 							/* rotate view to lampspace */
 							VECCOPY(lvrot, lv);
-							Mat3MulVecfl(lar->imat, lvrot);
+							MTC_Mat3MulVecfl(lar->imat, lvrot);
 							
 							x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
 							/* 1.0f/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */

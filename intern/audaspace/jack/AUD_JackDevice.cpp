@@ -35,7 +35,7 @@
 int AUD_JackDevice::jack_mix(jack_nframes_t length, void *data)
 {
 	AUD_JackDevice* device = (AUD_JackDevice*)data;
-	unsigned int samplesize = AUD_SAMPLE_SIZE(device->m_specs);
+	int samplesize = AUD_SAMPLE_SIZE(device->m_specs);
 	if(device->m_buffer->getSize() < samplesize * length)
 		device->m_buffer->resize(samplesize * length);
 	device->mix(device->m_buffer->getBuffer(), length);
@@ -44,10 +44,10 @@ int AUD_JackDevice::jack_mix(jack_nframes_t length, void *data)
 	float* out;
 	int count = device->m_specs.channels;
 
-	for(unsigned int i = 0; i < count; i++)
+	for(int i = 0; i < count; i++)
 	{
 		out = (float*)jack_port_get_buffer(device->m_ports[i], length);
-		for(unsigned int j = 0; j < length; j++)
+		for(int j = 0; j < length; j++)
 			out[j] = in[j * count + i];
 	}
 
@@ -105,7 +105,7 @@ AUD_JackDevice::AUD_JackDevice(AUD_Specs specs)
 		if(jack_activate(m_client))
 			AUD_THROW(AUD_ERROR_JACK);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception e)
 	{
 		jack_client_close(m_client);
 		delete[] m_ports; AUD_DELETE("jack_port")

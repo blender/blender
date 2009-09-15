@@ -20,7 +20,7 @@
  * The Original Code is Copyright (C) 2009 by Daniel Genrich
  * All rights reserved.
  *
- * Contributor(s): Daniel Genrich
+ * Contributor(s): None
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -181,36 +181,6 @@ template < class T > inline T ABS( T a ) {
 	return (0 < a) ? a : -a ;
 }
 
-extern "C" void smoke_export(FLUID_3D *fluid, float *dt, float *dx, float **dens, float **densold, float **heat, float **heatold, float **vx, float **vy, float **vz, float **vxold, float **vyold, float **vzold, unsigned char **obstacles)
-{
-	*dens = fluid->_density;
-	*densold = fluid->_densityOld;
-	*heat = fluid->_heat;
-	*heatold = fluid->_heatOld;
-	*vx = fluid->_xVelocity;
-	*vy = fluid->_yVelocity;
-	*vz = fluid->_zVelocity;
-	*vxold = fluid->_xVelocityOld;
-	*vyold = fluid->_yVelocityOld;
-	*vzold = fluid->_zVelocityOld;
-	*obstacles = fluid->_obstacles;
-	dt = &(fluid->_dt);
-	dx = &(fluid->_dx);
-
-}
-
-extern "C" void smoke_turbulence_export(WTURBULENCE *wt, float **dens, float **densold, float **tcu, float **tcv, float **tcw)
-{
-	if(!wt)
-		return;
-
-	*dens = wt->_densityBig;
-	*densold = wt->_densityBigOld;
-	*tcu = wt->_tcU;
-	*tcv = wt->_tcV;
-	*tcw = wt->_tcW;
-}
-
 extern "C" float *smoke_get_density(FLUID_3D *fluid)
 {
 	return fluid->_density;
@@ -223,17 +193,17 @@ extern "C" float *smoke_get_heat(FLUID_3D *fluid)
 
 extern "C" float *smoke_get_velocity_x(FLUID_3D *fluid)
 {
-	return fluid->_xVelocity;
+	return fluid->_xVorticity;
 }
 
 extern "C" float *smoke_get_velocity_y(FLUID_3D *fluid)
 {
-	return fluid->_yVelocity;
+	return fluid->_yVorticity;
 }
 
 extern "C" float *smoke_get_velocity_z(FLUID_3D *fluid)
 {
-	return fluid->_zVelocity;
+	return fluid->_zVorticity;
 }
 
 extern "C" float *smoke_turbulence_get_density(WTURBULENCE *wt)

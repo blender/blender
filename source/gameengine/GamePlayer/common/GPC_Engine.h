@@ -40,6 +40,7 @@ class RAS_IRenderTools;
 class KetsjiPortal;
 class KX_ISceneConverter;
 class NG_LoopBackNetworkDeviceInterface;
+class SND_IAudioDevice;
 class GPC_RawImage;
 
 
@@ -76,6 +77,8 @@ public:
 	KX_ISceneConverter* m_sceneconverter;
 	/** Network interface. */
 	NG_LoopBackNetworkDeviceInterface* m_networkdev;
+	/** Audiodevice interface */
+	SND_IAudioDevice* m_audiodevice;
 	
 	struct ScrArea *m_curarea;  // for future use, not used yet
 

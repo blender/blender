@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <float.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -682,7 +681,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 
 	MEM_freeN(index);
 
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 }
 
 

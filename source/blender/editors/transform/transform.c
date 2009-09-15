@@ -333,7 +333,7 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		else force_draw(0);
 #endif
 
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, t->obedit->data);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, t->obedit);
 	}
 }
 
@@ -1257,16 +1257,13 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	int constraint_axis[3] = {0, 0, 0};
 	int proportional = 0;
 
-	if (RNA_struct_find_property(op->ptr, "value"))
+	if (t->flag & T_AUTOVALUES)
 	{
-		if (t->flag & T_AUTOVALUES)
-		{
-			RNA_float_set_array(op->ptr, "value", t->auto_values);
-		}
-		else
-		{
-			RNA_float_set_array(op->ptr, "value", t->values);
-		}
+		RNA_float_set_array(op->ptr, "value", t->auto_values);
+	}
+	else
+	{
+		RNA_float_set_array(op->ptr, "value", t->values);
 	}
 
 	/* XXX convert stupid flag to enum */
@@ -1741,12 +1738,12 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			eul[1]= tdi->roty[0];
 			eul[2]= tdi->rotz[0];
 
-			EulOToMat4(eul, td->rotOrder, cob.matrix);
+			EulToMat4(eul, cob.matrix);
 		}
 		else {
 			/* eulers */
 			if (td->ext)
-				EulOToMat4(td->ext->rot, td->rotOrder, cob.matrix);
+				EulToMat4(td->ext->rot, cob.matrix);
 			else
 				return;
 		}
@@ -1799,7 +1796,7 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			TransDataIpokey *tdi= td->tdi;
 			float eul[3];
 
-			Mat4ToEulO(cob.matrix, eul, td->rotOrder);
+			Mat4ToEul(cob.matrix, eul);
 
 			tdi->rotx[0]= eul[0];
 			tdi->roty[0]= eul[1];
@@ -1807,7 +1804,7 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 		}
 		else {
 			/* eulers */
-			Mat4ToEulO(cob.matrix, td->ext->rot, td->rotOrder);
+			Mat4ToEul(cob.matrix, td->ext->rot);
 		}
 	}
 }
@@ -2673,21 +2670,21 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				/* this function works on end result */
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 			}
-			else { 
+			else {
 				float eulmat[3][3];
-				
+
 				Mat3MulMat3(totmat, mat, td->mtx);
 				Mat3MulMat3(smat, td->smtx, totmat);
-				
+
 				/* calculate the total rotatation in eulers */
 				VECCOPY(eul, td->ext->irot);
-				EulOToMat3(eul, td->rotOrder, eulmat);
-				
+				EulToMat3(eul, eulmat);
+
 				/* mat = transform, obmat = bone rotation */
 				Mat3MulMat3(fmat, smat, eulmat);
-				
-				Mat3ToCompatibleEulO(fmat, eul, td->ext->rot, td->rotOrder);
-				
+
+				Mat3ToCompatibleEul(fmat, eul, td->ext->rot);
+
 				/* and apply (to end result only) */
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
 				VECCOPY(td->ext->rot, eul);
@@ -4148,10 +4145,7 @@ int Mirror(TransInfo *t, short mval[2])
 
 		recalcData(t);
 
-		if(t->flag & T_2D_EDIT)
-			ED_area_headerprint(t->sa, "Select a mirror axis (X, Y)");
-		else
-			ED_area_headerprint(t->sa, "Select a mirror axis (X, Y, Z)");
+		ED_area_headerprint(t->sa, "Select a mirror axis (X, Y, Z)");
 	}
 
 	return 1;

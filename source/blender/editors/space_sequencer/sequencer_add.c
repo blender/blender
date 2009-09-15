@@ -242,13 +242,13 @@ static Sequence* sequencer_add_sound_strip(bContext *C, wmOperator *op, int star
 
 	sound = sound_new_file(CTX_data_main(C), filename);
 
-	if (sound==NULL || sound->handle == NULL) {
+	if (sound==NULL || sound->snd_sound == NULL) {
 		if(op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;
 	}
 
-	info = AUD_getInfo(sound->handle);
+	info = AUD_getInfo(sound->snd_sound);
 
 	if (info.specs.format == AUD_FORMAT_INVALID) {
 		sound_delete(C, sound);
@@ -291,7 +291,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 	struct anim *an;
 	char filename[FILE_MAX];
 
-	Sequence *seq, *soundseq=NULL;	/* generic strip vars */
+	Sequence *seq, *soundseq;	/* generic strip vars */
 	Strip *strip;
 	StripElem *se;
 

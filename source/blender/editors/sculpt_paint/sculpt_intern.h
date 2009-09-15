@@ -32,6 +32,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
+#include "BKE_sculpt.h"
 
 struct Brush;
 struct Mesh;

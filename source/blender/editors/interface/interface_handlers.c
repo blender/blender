@@ -678,11 +678,7 @@ static void ui_add_link(uiBut *from, uiBut *to)
 		return;
 	}
 
-	if (from->type==INLINK && to->type==INLINK) {
-		printf("cannot link\n");
-		return;
-	}
-	else if (from->type==LINK && to->type==INLINK) {
+	if (from->type==LINK && to->type==INLINK) {
 		if( from->link->tocode != (int)to->hardmin ) {
 			printf("cannot link\n");
 			return;
@@ -1724,7 +1720,6 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	uiBlockCreateFunc func= NULL;
 	uiBlockHandleCreateFunc handlefunc= NULL;
 	uiMenuCreateFunc menufunc= NULL;
-	char *menustr= NULL;
 	void *arg= NULL;
 
 	switch(but->type) {
@@ -1749,15 +1744,16 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 				data->value= data->origvalue;
 				but->editval= &data->value;
 
-				menustr= but->str;
+				handlefunc= ui_block_func_MENU;
+				arg= but;
 			}
 			break;
 		case ICONROW:
-			menufunc= ui_block_func_ICONROW;
+			handlefunc= ui_block_func_ICONROW;
 			arg= but;
 			break;
 		case ICONTEXTROW:
-			menufunc= ui_block_func_ICONTEXTROW;
+			handlefunc= ui_block_func_ICONTEXTROW;
 			arg= but;
 			break;
 		case COL:
@@ -1775,8 +1771,8 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 		if(but->block->handle)
 			data->menu->popup= but->block->handle->popup;
 	}
-	else if(menufunc || menustr) {
-		data->menu= ui_popup_menu_create(C, data->region, but, menufunc, arg, menustr);
+	else if(menufunc) {
+		data->menu= ui_popup_menu_create(C, data->region, but, menufunc, arg);
 		if(but->block->handle)
 			data->menu->popup= but->block->handle->popup;
 	}
@@ -3265,34 +3261,23 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ui_but_copy_paste(C, but, data, (event->type == CKEY)? 'c': 'v');
 			return WM_UI_HANDLER_BREAK;
 		}
-		/* handle keyframing */
+		/* handle keyframeing */
 		else if(event->type == IKEY && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_delete_keyframe(C);
 			else
 				ui_but_anim_insert_keyframe(C);
-			
+
 			ED_region_tag_redraw(CTX_wm_region(C));
-			
+
 			return WM_UI_HANDLER_BREAK;
 		}
-		/* handle drivers */
+		/* handle driver adding */
 		else if(event->type == DKEY && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_driver(C);
 			else
 				ui_but_anim_add_driver(C);
-				
-			ED_region_tag_redraw(CTX_wm_region(C));
-			
-			return WM_UI_HANDLER_BREAK;
-		}
-		/* handle keyingsets */
-		else if(event->type == KKEY && event->val == KM_PRESS) {
-			if(event->alt)
-				ui_but_anim_remove_keyingset(C);
-			else
-				ui_but_anim_remove_keyingset(C);
 				
 			ED_region_tag_redraw(CTX_wm_region(C));
 			
@@ -3744,14 +3729,9 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 		}
 	}
 
-	if(!data->cancel) {
-		/* autokey & undo push */
+	/* autokey & undo push */
+	if(!data->cancel)
 		ui_apply_autokey_undo(C, but);
-
-		/* popup menu memory */
-		if(block->flag & UI_BLOCK_POPUP_MEMORY)
-			ui_popup_menu_memory(block, but);
-	}
 
 	/* disable tooltips until mousemove + last active flag */
 	for(block=data->region->uiblocks.first; block; block=block->next) {

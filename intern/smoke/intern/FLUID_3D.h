@@ -64,7 +64,7 @@ class FLUID_3D
 		// dimensions
 		int _xRes, _yRes, _zRes, _maxRes;
 		Vec3Int _res;
-		size_t _totalCells;
+		int _totalCells;
 		int _slabSize;
 		float _dx;
 		float _p0[3];
@@ -81,6 +81,7 @@ class FLUID_3D
 		float* _densityOld;
 		float* _heat;
 		float* _heatOld;
+		float* _pressure;
 		float* _xVelocity;
 		float* _yVelocity;
 		float* _zVelocity;
@@ -90,9 +91,19 @@ class FLUID_3D
 		float* _xForce;
 		float* _yForce;
 		float* _zForce;
+		float* _divergence;
+		float* _xVorticity;
+		float* _yVorticity;
+		float* _zVorticity;
+		float* _vorticity;
+		float* _h;
+		float* _Precond;
 		unsigned char*  _obstacles;
 
 		// CG fields
+		float* _residual;
+		float* _direction;
+		float* _q;
 		int _iterations;
 
 		// simulation constants
@@ -123,8 +134,8 @@ class FLUID_3D
 		void solveHeat(float* field, float* b, unsigned char* skip);
 
 		// handle obstacle boundaries
-		void setObstacleBoundaries(float *_pressure);
-		void setObstaclePressure(float *_pressure);
+		void setObstacleBoundaries();
+		void setObstaclePressure();
 
 	public:
 		// advection, accessed e.g. by WTURBULENCE class

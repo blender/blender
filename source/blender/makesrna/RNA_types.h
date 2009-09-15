@@ -111,10 +111,6 @@ typedef enum PropertySubType {
 
 	/* pointers */
 	PROP_NEVER_NULL = 30,
-
-	/* booleans */
-	PROP_LAYER = 40,
-	PROP_LAYER_MEMBER = 41
 } PropertySubType;
 
 typedef enum PropertyFlag {
@@ -149,6 +145,9 @@ typedef enum PropertyFlag {
 	/* pointers */
 	PROP_ID_REFCOUNT = 64,
 
+	/* arrays */
+	PROP_DYNAMIC_ARRAY = 32768,
+
 	/* internal flags */
 	PROP_BUILTIN = 128,
 	PROP_EXPORT = 256,
@@ -156,8 +155,7 @@ typedef enum PropertyFlag {
 	PROP_IDPROPERTY = 1024,
 	PROP_RAW_ACCESS = 8192,
 	PROP_RAW_ARRAY = 16384,
-	PROP_FREE_POINTERS = 32768,
-	PROP_DYNAMIC = 131072 /* for dynamic arrays and function retvals of string type */
+	PROP_FREE_POINTERS = 32768
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -180,11 +178,11 @@ typedef struct CollectionPointerLink {
 } CollectionPointerLink;
 
 typedef enum RawPropertyType {
-	PROP_RAW_INT, // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.
-	PROP_RAW_SHORT,
 	PROP_RAW_CHAR,
-	PROP_RAW_DOUBLE,
-	PROP_RAW_FLOAT
+	PROP_RAW_SHORT,
+	PROP_RAW_INT,
+	PROP_RAW_FLOAT,
+	PROP_RAW_DOUBLE
 } RawPropertyType;
 
 typedef struct RawArray {

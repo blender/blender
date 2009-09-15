@@ -65,14 +65,13 @@ struct FCurve *verify_fcurve(struct bAction *act, const char group[], const char
  *	Use this when validation of necessary animation data isn't necessary as it already
  * 	exists, and there is a beztriple that can be directly copied into the array.
  */
-int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt, short flag);
+int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt);
 
 /* Main Keyframing API call: 
  *	Use this when validation of necessary animation data isn't necessary as it
  *	already exists. It will insert a keyframe using the current value being keyframed.
- * 	Returns the index at which a keyframe was added (or -1 if failed)
  */
-int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
+void insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
 
 /* -------- */
 
@@ -157,9 +156,12 @@ void init_builtin_keyingsets(void);
 
 /* -------- */
 
-/* KeyingSet managment operators for UI buttons. */
-void ANIM_OT_add_keyingset_button(struct wmOperatorType *ot);
-void ANIM_OT_remove_keyingset_button(struct wmOperatorType *ot);
+/* KeyingSet Editing Operators:
+ *	These can add a new KeyingSet and/or add 'destinations' to the KeyingSets,
+ *	acting as a means by which they can be added outside the Outliner.
+ */
+void ANIM_OT_keyingset_add_new(struct wmOperatorType *ot);
+void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
 
 /* ************ Drivers ********************** */
 

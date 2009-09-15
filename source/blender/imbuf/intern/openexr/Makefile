@@ -35,9 +35,6 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-# If compiling the API, WITH_OPENEXR must be set.
-CPPFLAGS += -DWITH_OPENEXR
-
 CPPFLAGS += -I../../../makesdna
 CPPFLAGS += -I../../../blenkernel
 CPPFLAGS += -I../../../blenlib

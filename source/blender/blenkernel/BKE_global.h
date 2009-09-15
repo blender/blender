@@ -119,6 +119,7 @@ typedef struct Global {
 #define G_GREASEPENCIL 	(1 << 17)
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
+#define G_HIDDENHANDLES (1 << 31) /* used for curves only */
 
 /* G.fileflags */
 

@@ -59,6 +59,11 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+
+	/* 3. setProperty */
+	KX_PYMETHOD_DOC_VARARGS(SCA_ActuatorSensor,SetActuator);
+	/* 4. getProperty */
+	KX_PYMETHOD_DOC_NOARGS(SCA_ActuatorSensor,GetActuator);
 	
 	static int CheckActuator(void *self, const PyAttributeDef*);
 };

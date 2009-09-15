@@ -40,6 +40,7 @@ include nan_compile.mk
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I../blender/render/extern/include
+CPPFLAGS += -I../blender/radiosity/extern/include
 
 # two needed for the kernel
 CPPFLAGS += -I../blender/imbuf

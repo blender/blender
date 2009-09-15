@@ -27,9 +27,7 @@
 #define AUD_FFMPEGREADER
 
 #include "AUD_IReader.h"
-#include "AUD_Reference.h"
 class AUD_Buffer;
-
 struct AVCodecContext;
 extern "C" {
 #include <libavformat/avformat.h>
@@ -92,11 +90,6 @@ private:
 	int m_stream;
 
 	/**
-	 * The memory file to read from, only saved to keep the buffer alive.
-	 */
-	AUD_Reference<AUD_Buffer> m_membuffer;
-
-	/**
 	 * Decodes a packet into the given buffer.
 	 * \param packet The AVPacket to decode.
 	 * \param buffer The target buffer.
@@ -116,10 +109,11 @@ public:
 	/**
 	 * Creates a new reader.
 	 * \param buffer The buffer to read from.
+	 * \param size The size of the buffer.
 	 * \exception AUD_Exception Thrown if the buffer specified cannot be read
 	 *                          with ffmpeg.
 	 */
-	AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer);
+	AUD_FFMPEGReader(unsigned char* buffer, int size);
 
 	/**
 	 * Destroys the reader and closes the file.

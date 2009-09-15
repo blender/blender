@@ -1,3 +1,10 @@
+#
+# Note : if you want to alter this file
+# copy it as a whole in the upper folder
+# as user-config.py
+# dont create a new file with only some
+# vars changed.
+
 import commands
 
 # IMPORTANT NOTE : OFFICIAL BUILDS SHOULD BE DONE WITH SDKs
@@ -111,12 +118,6 @@ BF_JACK = '/usr'
 BF_JACK_INC = '${BF_JACK}/include/jack'
 BF_JACK_LIB = 'jack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
-
-WITH_BF_SNDFILE = False
-BF_SNDFILE = LIBDIR + '/sndfile'
-BF_SNDFILE_INC = '${BF_SNDFILE}/include'
-BF_SNDFILE_LIB = 'sndfile'
-BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl' #$(shell sdl-config --prefix)

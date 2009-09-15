@@ -46,7 +46,7 @@ AUD_IReader* AUD_PingPongFactory::createReader()
 		{
 			reader2 = factory.createReader();
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception e)
 		{
 			reader2 = 0;
 		}

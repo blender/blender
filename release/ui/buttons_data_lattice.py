@@ -2,12 +2,12 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
+	__space_type__ = "PROPERTIES"
+	__region_type__ = "WINDOW"
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.lattice)
+		return (context.lattice != None)
 	
 class DATA_PT_context_lattice(DataButtonsPanel):
 	__show_header__ = False

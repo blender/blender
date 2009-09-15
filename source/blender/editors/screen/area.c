@@ -249,7 +249,7 @@ void ED_area_overdraw(bContext *C)
 }
 
 /* get scissor rect, checking overlapping regions */
-void region_scissor_winrct(ARegion *ar, rcti *winrct)
+static void region_scissor_winrct(ARegion *ar, rcti *winrct)
 {
 	*winrct= ar->winrct;
 	
@@ -797,10 +797,6 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 		ListBase *keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
-	if(flag & ED_KEYMAP_GPENCIL) {
-		ListBase *keymap= WM_keymap_listbase(wm, "Grease Pencil", 0, 0);
-		WM_event_add_keymap_handler(handlers, keymap);
-	}
 }
 
 
@@ -1049,12 +1045,14 @@ static char *windowtype_pup(void)
 		   "|3D View %x1"
 
 		   "|%l"
+		   "|%l"
 		   
 		   "|Timeline %x15"
 		   "|Graph Editor %x2"
 		   "|DopeSheet %x12"
 		   "|NLA Editor %x13"
 		   
+		   "|%l"
 		   "|%l"
 		   
 		   "|UV/Image Editor %x6"
@@ -1065,6 +1063,7 @@ static char *windowtype_pup(void)
 		   "|Logic Editor %x17"
 		   
 		   "|%l"
+		   "|%l"
 		   
 		   "|Properties %x4"
 		   "|Outliner %x3"
@@ -1072,9 +1071,11 @@ static char *windowtype_pup(void)
 		   "|Info%x7"
 		    		   
 		   "|%l"
+		   "|%l"
 		   
 		   "|File Browser %x5"
 		   
+		   "|%l"
 		   "|%l"
 		   
 		   "|Console %x18"
@@ -1248,7 +1249,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 	/* before setting the view */
 	if(vertical) {
-		/* only allow scrolling in vertical direction */
 		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
 		
@@ -1259,12 +1259,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			y= -y;
 	}
 	else {
-		/* for now, allow scrolling in both directions (since layouts are optimised for vertical,
-		 * they often don't fit in horizontal layout)
-		 */
-		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);
-		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
-		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
+		v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
+		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)

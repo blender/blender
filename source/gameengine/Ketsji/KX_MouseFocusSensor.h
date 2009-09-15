@@ -49,12 +49,11 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	
  public:
 	
-	KX_MouseFocusSensor(class SCA_MouseManager* eventmgr,
+	KX_MouseFocusSensor(class SCA_MouseManager* keybdmgr,
 						int startx,
 						int starty,
 						short int mousemode,
 						int focusmode,
-						bool bTouchPulse,
 						KX_Scene* kxscene,
 						KX_KetsjiEngine* kxengine,
 						SCA_IObject* gameobj);
@@ -90,6 +89,14 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayTarget);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRaySource);
+	
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitObject);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitPosition);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitNormal);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayDirection);
+
 	/* attributes */
 	static PyObject*	pyattr_get_ray_source(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_ray_target(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -100,7 +107,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 		
 	/* --------------------------------------------------------------------- */
 	SCA_IObject*	m_hitObject;
-	void*			m_hitObject_Last; /* only use for comparison, never access */
 
  private:
 	/**
@@ -113,11 +119,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 */
 	bool m_mouse_over_in_previous_frame;
 
-	/**
-	 * Flags whether changes in hit object should trigger a pulse
-	 */
-	bool m_bTouchPulse;
-	
 	/**
 	 * Flags whether the previous test evaluated positive.
 	 */

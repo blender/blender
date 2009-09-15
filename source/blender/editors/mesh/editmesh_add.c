@@ -217,8 +217,8 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	//retopo_do_all();
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data); 
-	DAG_id_flush_update(vc.obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit); 
+	DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
 	
 	return OPERATOR_FINISHED;
 }
@@ -343,8 +343,9 @@ static int make_fgon_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 
 	if( make_fgon(em, op, 1) ) {
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
+	
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
@@ -375,8 +376,9 @@ static int clear_fgon_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	if( make_fgon(em, op, 0) ) {
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
+		
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 		
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
@@ -664,7 +666,7 @@ void addfaces_from_edgenet(EditMesh *em)
 
 	EM_select_flush(em);
 	
-// XXX	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+// XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
 static void addedgeface_mesh(EditMesh *em, wmOperator *op)
@@ -693,7 +695,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 		eed= addedgelist(em, neweve[0], neweve[1], NULL);
 		EM_select_edge(eed, 1);
 
-		// XXX		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
+		// XXX		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 		return;
 	}
 	else if(amount > 4) {
@@ -790,8 +792,9 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 	
 	addedgeface_mesh(em, op);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1308,6 +1311,7 @@ static float new_primitive_matrix(bContext *C, float primmat[][4])
 
 static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1317,8 +1321,8 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	
 	make_prim(obedit, PRIM_PLANE, mat, 4, 0, 0, dia, 0.0f, 0, 1);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1340,6 +1344,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 
 static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1349,8 +1354,8 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	
 	make_prim(obedit, PRIM_CUBE, mat, 4, 0, 0, dia, 1.0f, 1, 1);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1372,6 +1377,7 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 
 static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1381,8 +1387,8 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_CIRCLE, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 0.0f, 0, 
 			  RNA_boolean_get(op->ptr, "fill"));
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1409,6 +1415,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 
 static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1418,8 +1425,8 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
 			  RNA_float_get(op->ptr, "depth"), 1, 1);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1446,6 +1453,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 
 static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1455,8 +1463,8 @@ static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
 			  RNA_float_get(op->ptr, "depth"), 1, 0);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1483,6 +1491,7 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 
 static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1492,8 +1501,8 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_CONE, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
 			  RNA_float_get(op->ptr, "depth"), 0, RNA_boolean_get(op->ptr, "cap_end"));
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1522,6 +1531,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1531,8 +1541,8 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_GRID, mat, RNA_int_get(op->ptr, "x_subdivisions"), 
 			  RNA_int_get(op->ptr, "y_subdivisions"), 0, dia, 0.0f, 0, 1);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1559,6 +1569,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 
 static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float mat[4][4];
 	
@@ -1566,8 +1577,8 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	
 	make_prim(obedit, PRIM_MONKEY, mat, 0, 0, 2, 0.0f, 0.0f, 0, 0);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1589,6 +1600,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 
 static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1598,8 +1610,8 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_UVSPHERE, mat, RNA_int_get(op->ptr, "rings"), 
 			  RNA_int_get(op->ptr, "segments"), 0, dia, 0.0f, 0, 0);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1626,6 +1638,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 
 static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float dia, mat[4][4];
 	
@@ -1635,8 +1648,8 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_ICOSPHERE, mat, 0, 0, 
 			  RNA_int_get(op->ptr, "subdivisions"), dia, 0.0f, 0, 0);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
@@ -1664,6 +1677,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 
 static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(ob->data);
 
@@ -1671,8 +1685,8 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(ob->data, em);
 
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
 	
 	return OPERATOR_FINISHED;
 }

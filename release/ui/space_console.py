@@ -5,7 +5,7 @@ import bpy_ops # XXX - should not need to do this
 del bpy_ops
 
 class CONSOLE_HT_header(bpy.types.Header):
-	__space_type__ = 'CONSOLE'
+	__space_type__ = "CONSOLE"
 
 	def draw(self, context):
 		sc = context.space_data
@@ -39,7 +39,7 @@ class CONSOLE_HT_header(bpy.types.Header):
 			row.itemO("console.report_replay")
 
 class CONSOLE_MT_console(bpy.types.Menu):
-	__space_type__ = 'CONSOLE'
+	__space_type__ = "CONSOLE"
 	__label__ = "Console"
 
 	def draw(self, context):
@@ -52,7 +52,7 @@ class CONSOLE_MT_console(bpy.types.Menu):
 		layout.itemO("console.paste")
 
 class CONSOLE_MT_report(bpy.types.Menu):
-	__space_type__ = 'CONSOLE'
+	__space_type__ = "CONSOLE"
 	__label__ = "Report"
 
 	def draw(self, context):
@@ -108,9 +108,9 @@ def get_console(console_id):
 
 class CONSOLE_OT_exec(bpy.types.Operator):
 	'''
-	Execute the current console line as a python expression.
+	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
-	__idname__ = "console.execute"
+	__idname__ = "console.exec"
 	__label__ = "Console Execute"
 	__register__ = False
 	
@@ -385,7 +385,7 @@ def autocomp(bcon):
 
 class CONSOLE_OT_autocomplete(bpy.types.Operator):
 	'''
-	Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one.
+	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
 	__idname__ = "console.autocomplete"
 	__label__ = "Console Autocomplete"

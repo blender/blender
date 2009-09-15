@@ -88,7 +88,9 @@ class KX_StateActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
+	//KX_PYMETHOD_DOC
+	KX_PYMETHOD_DOC_VARARGS(KX_StateActuator,SetOperation);
+	KX_PYMETHOD_DOC_VARARGS(KX_StateActuator,SetMask);
 };
 
 #endif

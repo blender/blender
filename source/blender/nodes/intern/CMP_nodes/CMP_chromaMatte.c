@@ -172,9 +172,9 @@ static void node_composit_init_chroma_matte(bNode *node)
    c->fstrength= 1.0f;
 };
 
-bNodeType cmp_node_chroma_matte={
+bNodeType cmp_node_chroma={
 	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_CHROMA_MATTE,
+	/* type code   */	CMP_NODE_CHROMA,
 	/* name        */	"Chroma Key",
 	/* width+range */	200, 80, 300,
 	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,

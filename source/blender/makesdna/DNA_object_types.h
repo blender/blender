@@ -54,10 +54,7 @@ struct FluidsimSettings;
 struct ParticleSystem;
 struct DerivedMesh;
 struct SculptSession;
-struct bGPdata;
 
-
-/* Vertex Groups - Name Info */
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
 	char name[32];
@@ -113,16 +110,14 @@ typedef struct Object {
 	struct bPose *pose;	
 	void *data;
 	
-	struct bGPdata *gpd;	/* Grease Pencil data */
-	
 	ListBase constraintChannels; // XXX depreceated... old animation system
 	ListBase effect;
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
 
-	int mode;           /* Local object mode */
-	int restore_mode;   /* Keep track of what mode to return to after toggling a mode */
+	/* For now just a flag for sculpt mode, eventually we make the other modes local too */
+	int mode, pad2;
 
 	/* materials */
 	struct Material **mat;	/* material slots */
@@ -214,7 +209,7 @@ typedef struct Object {
 	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 
-	ListBase constraints;		/* object constraints */
+	ListBase constraints;
 	ListBase nlastrips;			// XXX depreceated... old animation system
 	ListBase hooks;
 	ListBase particlesystem;	/* particle systems */
@@ -239,11 +234,10 @@ typedef struct Object {
 	unsigned int state;			/* bit masks of game controllers that are active */
 	unsigned int init_state;	/* bit masks of initial state as recorded by the users */
 
-	int pad2;
+	int restore_mode;		/* Keep track of what mode to return to after edit mode exits */
 
 	ListBase gpulamp;		/* runtime, for lamps only */
 	ListBase *duplilist;	/* only for internal use by RNA API functions. To get dupli list, use object_duplilist instead */
-	ListBase pc_ids;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -526,16 +520,16 @@ extern Object workob;
 #define OB_LOCK_SCALE	448
 
 /* ob->mode */
-typedef enum ObjectMode {
-	OB_MODE_OBJECT = 0,
-	OB_MODE_EDIT = 1,
-	OB_MODE_SCULPT = 2,
-	OB_MODE_VERTEX_PAINT = 4,
-	OB_MODE_WEIGHT_PAINT = 8,
-	OB_MODE_TEXTURE_PAINT = 16,
-	OB_MODE_PARTICLE_EDIT = 32,
-	OB_MODE_POSE = 64
-} ObjectMode;
+#define OB_MODE_OBJECT          0
+#define OB_MODE_EDIT            1
+#define OB_MODE_SCULPT          2
+#define OB_MODE_VERTEX_PAINT    4
+#define OB_MODE_WEIGHT_PAINT    8
+#define OB_MODE_TEXTURE_PAINT  16
+#define OB_MODE_PARTICLE_EDIT  32
+#define OB_MODE_POSE           64
+
+/* ob->softflag in DNA_object_force.h */
 
 #ifdef __cplusplus
 }

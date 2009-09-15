@@ -57,7 +57,6 @@ extern "C"
 #include "BLO_readfile.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_sound.h"
 #include "IMB_imbuf.h"
 #include "DNA_scene_types.h"
 #ifdef __cplusplus
@@ -85,6 +84,7 @@ extern "C"
 
 #include "KX_BlenderSceneConverter.h"
 #include "NG_LoopBackNetworkDeviceInterface.h"
+#include "SND_DeviceManager.h"
 
 #include "GPC_MouseDevice.h"
 #include "GPC_RenderTools.h"
@@ -125,7 +125,8 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 	  m_rendertools(0), 
 	  m_rasterizer(0), 
 	  m_sceneconverter(0),
-	  m_networkdevice(0),
+	  m_networkdevice(0), 
+	  m_audiodevice(0),
 	  m_blendermat(0),
 	  m_blenderglslmat(0),
 	  m_pyGlobalDictString(0),
@@ -583,8 +584,13 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		if (!m_networkdevice)
 			goto initFailed;
 			
-		sound_init();
-
+		// get an audiodevice
+		SND_DeviceManager::Subscribe();
+		m_audiodevice = SND_DeviceManager::Instance();
+		if (!m_audiodevice)
+			goto initFailed;
+		m_audiodevice->UseCD();
+		
 		// create a ketsjisystem (only needed for timing and stuff)
 		m_kxsystem = new GPG_System (m_system);
 		if (!m_kxsystem)
@@ -601,7 +607,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetRenderTools(m_rendertools);
 		m_ketsjiengine->SetRasterizer(m_rasterizer);
 		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
-
+		m_ketsjiengine->SetAudioDevice(m_audiodevice);
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
 
 		CValue::SetDeprecationWarnings(nodepwarnings);
@@ -614,8 +620,8 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 	return m_engineInitialized;
 initFailed:
-	sound_exit();
 	delete m_kxsystem;
+	delete m_audiodevice;
 	delete m_networkdevice;
 	delete m_mouse;
 	delete m_keyboard;
@@ -628,6 +634,7 @@ initFailed:
 	m_keyboard = NULL;
 	m_mouse = NULL;
 	m_networkdevice = NULL;
+	m_audiodevice = NULL;
 	m_kxsystem = NULL;
 	return false;
 }
@@ -673,6 +680,7 @@ bool GPG_Application::startEngine(void)
 		KX_Scene* startscene = new KX_Scene(m_keyboard,
 			m_mouse,
 			m_networkdevice,
+			m_audiodevice,
 			startscenename,
 			m_startScene);
 		
@@ -762,7 +770,6 @@ void GPG_Application::stopEngine()
 
 void GPG_Application::exitEngine()
 {
-	sound_exit();
 	if (m_ketsjiengine)
 	{
 		stopEngine();
@@ -773,6 +780,11 @@ void GPG_Application::exitEngine()
 	{
 		delete m_kxsystem;
 		m_kxsystem = 0;
+	}
+	if (m_audiodevice)
+	{
+		SND_DeviceManager::Unsubscribe();
+		m_audiodevice = 0;
 	}
 	if (m_networkdevice)
 	{

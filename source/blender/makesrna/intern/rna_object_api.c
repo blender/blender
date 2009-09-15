@@ -282,18 +282,18 @@ static void rna_Object_convert_to_triface(Object *ob, bContext *C, ReportList *r
 	if (!ob_editing)
 		free_editMesh(me->edit_mesh);
 
-	DAG_id_flush_update(ob, OB_RECALC_DATA);
+	DAG_object_flush_update(sce, ob, OB_RECALC_DATA);
 }
 
 static bDeformGroup *rna_Object_add_vertex_group(Object *ob, char *group_name)
 {
-	return ED_vgroup_add_name(ob, group_name);
+	return add_defgroup_name(ob, group_name);
 }
 
 static void rna_Object_add_vertex_to_group(Object *ob, int vertex_index, bDeformGroup *def, float weight, int assignmode)
 {
 	/* creates dverts if needed */
-	ED_vgroup_vert_add(ob, def, vertex_index, weight, assignmode);
+	add_vert_to_defgroup(ob, def, vertex_index, weight, assignmode);
 }
 
 /* copied from old API Object.makeDisplayList (Object.c) */
@@ -307,7 +307,7 @@ static void rna_Object_make_display_list(Object *ob, bContext *C)
 		BKE_text_to_curve(sce, ob, CU_LEFT);
 	}
 
-	DAG_id_flush_update(ob, OB_RECALC_DATA);
+	DAG_object_flush_update(sce, ob, OB_RECALC_DATA);
 }
 
 static Object *rna_Object_find_armature(Object *ob)

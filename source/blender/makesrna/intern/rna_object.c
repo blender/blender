@@ -39,8 +39,8 @@
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
+
 
 EnumPropertyItem object_mode_items[] = {
 	{OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object", ""},
@@ -64,22 +64,6 @@ static EnumPropertyItem parent_type_items[] = {
 	{PARBONE, "BONE", 0, "Bone", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem object_type_items[] = {
-	{OB_MESH, "MESH", 0, "Mesh", ""},
-	{OB_CURVE, "CURVE", 0, "Curve", ""},
-	{OB_SURF, "SURFACE", 0, "Surface", ""},
-	{OB_MBALL, "META", 0, "Meta", ""},
-	{OB_FONT, "TEXT", 0, "Text", ""},
-	{0, "", 0, NULL, NULL},
-	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
-	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
-	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
-	{0, "", 0, NULL, NULL},
-	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
-	{OB_LAMP, "LAMP", 0, "Lamp", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 #ifdef RNA_RUNTIME
 
 #include "DNA_key_types.h"
@@ -100,7 +84,7 @@ EnumPropertyItem object_type_items[] = {
 
 void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
-	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
+	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 }
 
 void rna_Object_matrix_update(bContext *C, PointerRNA *ptr)
@@ -111,13 +95,12 @@ void rna_Object_matrix_update(bContext *C, PointerRNA *ptr)
 
 void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 {
-	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ptr->id.data);
+	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
 }
 
 static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
 {
-	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
+	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 	DAG_scene_sort(CTX_data_scene(C));
 }
 
@@ -807,8 +790,8 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
-		{OB_BOUND_POLYT, "CONVEX_HULL", 0, "Convex Hull", ""},
-		{OB_BOUND_POLYH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
+		{OB_BOUND_POLYH, "CONVEX_HULL", 0, "Convex Hull", ""},
+		{OB_BOUND_POLYT, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
 		//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -1062,8 +1045,6 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing."},
 		{0, NULL, 0, NULL, NULL}};
 
-	int matrix_dimsize[]= {4, 4};
-
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
@@ -1075,7 +1056,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_Object_data_editable");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Data", "Object data.");
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
@@ -1089,7 +1070,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode.");
 
-	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Layers", "Layers the object is on.");
@@ -1174,8 +1155,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "actcol");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_material_index_get", "rna_Object_active_material_index_set", "rna_Object_active_material_index_range");
 	RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material slot.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_SHADING, NULL);
-	
+
 	/* transform */
 
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
@@ -1226,7 +1206,7 @@ static void rna_def_object(BlenderRNA *brna)
 	/* matrix */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "obmat");
-	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Matrix", "Transformation matrix.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_matrix_update");
 
@@ -1257,13 +1237,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "VertexGroup");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", "rna_Object_active_vertex_group_set", NULL);
 	RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object.");
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "active_vertex_group_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "actdef");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_vertex_group_index_get", "rna_Object_active_vertex_group_index_set", "rna_Object_active_vertex_group_index_range");
 	RNA_def_property_ui_text(prop, "Active Vertex Group Index", "Active index in vertex group array.");
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 
 	/* empty */
 
@@ -1505,13 +1485,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "X-Ray", "Makes the object draw in front of others.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	/* Grease Pencil */
-	prop= RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, "GreasePencil");
-	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
-	
 	/* pose */
 	prop= RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "poselib");
@@ -1530,7 +1503,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_shape_key_lock_set");
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object.");
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "active_shape_key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ShapeKey");
@@ -1541,7 +1514,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_shape_key_index_get", "rna_Object_active_shape_key_index_set", "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index.");
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 
 	RNA_api_object(srna);
 }

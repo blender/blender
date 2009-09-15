@@ -77,30 +77,10 @@ void BRUSH_OT_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", brush_type_items, OB_MODE_VERTEX_PAINT, "Type", "Which paint mode to create the brush for.");
 }
 
-static int vertex_color_set_exec(bContext *C, wmOperator *op)
+/* Paint operators */
+static int paint_poll(bContext *C)
 {
-	int selected = RNA_boolean_get(op->ptr, "selected");
-	Scene *scene = CTX_data_scene(C);
-
-	clear_vpaint(scene, selected);
-	
-	return OPERATOR_FINISHED;
-}
-
-void PAINT_OT_vertex_color_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Set Vertex Colors";
-	ot->idname= "PAINT_OT_vertex_color_set";
-	
-	/* api callbacks */
-	ot->exec= vertex_color_set_exec;
-	ot->poll= vertex_paint_mode_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_boolean(ot->srna, "selected", 0, "Type", "Only color selected faces.");
+	return !!paint_get_active(CTX_data_scene(C));
 }
 
 /**************************** registration **********************************/
@@ -129,6 +109,5 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_vertex_paint_radial_control);
 	WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
 	WM_operatortype_append(PAINT_OT_vertex_paint);
-	WM_operatortype_append(PAINT_OT_vertex_color_set);
 }
 

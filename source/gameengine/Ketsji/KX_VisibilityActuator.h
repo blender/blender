@@ -67,6 +67,11 @@ class KX_VisibilityActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
+	// Deprecated ----->
+	KX_PYMETHOD_DOC_VARARGS(KX_VisibilityActuator,SetVisible);
+	// <-----
+
+
 };
 
 #endif
