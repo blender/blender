@@ -152,6 +152,7 @@ struct SpaceLogic *CTX_wm_space_logic(const bContext *C);
 struct SpaceIpo *CTX_wm_space_graph(const bContext *C);
 struct SpaceAction *CTX_wm_space_action(const bContext *C);
 struct SpaceInfo *CTX_wm_space_info(const bContext *C);
+struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C);
 
 void CTX_wm_manager_set(bContext *C, struct wmWindowManager *wm);
 void CTX_wm_window_set(bContext *C, struct wmWindow *win);

@@ -234,6 +234,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
+		FCurve *fcu= (FCurve *)ale->key_data;
 		
 		/* set horizontal range (if applicable) */
 		if (mode != BEZT_OK_VALUERANGE) {
@@ -253,7 +254,13 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		}
 		
 		/* select keyframes that are in the appropriate places */
-		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+		ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
+		
+		/* select the curve too 
+		 * NOTE: this should really only happen if the curve got touched...
+		 */
+		if (selectmode == SELECT_ADD)
+			fcu->flag |= FCURVE_SELECTED;
 	}
 	
 	/* cleanup */

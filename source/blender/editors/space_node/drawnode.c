@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): David Millan Escriva, Juho Vepsäläinen
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen, Bob Holcomb
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -247,13 +247,13 @@ static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 		
 		/* blend type */
 		uiBlockBeginAlign(block);
-		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12",
+		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12|Soft Light %x16|Linear Light %x17", 
 					 (short)butr->xmin, (short)butr->ymin, butr->xmax-butr->xmin -(a_but?20:0), 20, 
 					 &node->custom1, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
 		/* Alpha option, composite */
 		if(a_but)
-			uiDefButS(block, TOG, B_NODE_EXEC, "A",
+			uiDefIconButS(block, TOG, B_NODE_EXEC, ICON_IMAGE_RGB_ALPHA,
 				  (short)butr->xmax-20, (short)butr->ymin, 20, 20, 
 				  &node->custom2, 0, 0, 0, 0, "Include Alpha of 2nd input in this operation");
 	}
@@ -1077,7 +1077,7 @@ static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNo
 		/* browse button layer */
 		strp= scene_layer_menu(node->id?(Scene *)node->id:scene);
 		if(node->id)
-			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC, ICON_SCENE_DATA, strp, 
+			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC, ICON_RENDERLAYERS, strp, 
 				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-40, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
 		else
@@ -1459,26 +1459,28 @@ static int node_composit_buts_lensdist(uiBlock *block, bNodeTree *ntree, bNode *
 static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
-		NodeBlurData *nbd= node->storage;
+		PointerRNA ptr;
 		short dy= butr->ymin;
 		short dx= (butr->xmax-butr->xmin);
 		
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_NODE_EXEC, "Samples:",
-				 butr->xmin, dy+76, dx, 19, 
-				 &nbd->samples, 1, 256, 0, 0, "Amount of samples");
-		uiDefButS(block, NUM, B_NODE_EXEC, "MinSpeed:",
-				  butr->xmin, dy+57, dx, 19, 
-				  &nbd->minspeed, 0, 1024, 0, 0, "Minimum speed for a pixel to be blurred, used to separate background from foreground");
-		uiDefButS(block, NUM, B_NODE_EXEC, "MaxSpeed:",
-				  butr->xmin, dy+38, dx, 19, 
-				  &nbd->maxspeed, 0, 1024, 0, 0, "If not zero, maximum speed in pixels");
-		uiDefButF(block, NUM, B_NODE_EXEC, "BlurFac:",
-				  butr->xmin, dy+19, dx, 19, 
-				  &nbd->fac, 0.0f, 2.0f, 10, 2, "Scaling factor for motion vectors, actually 'shutter speed' in frames");
-		uiDefButS(block, TOG, B_NODE_EXEC, "Curved",
-				  butr->xmin, dy, dx, 19, 
-				  &nbd->curved, 0.0f, 2.0f, 10, 2, "Interpolate between frames in a bezier curve, rather than linearly");
+		RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
+		
+		uiBlockBeginAlign(block);	
+		uiDefButR(block, NUM, B_NODE_EXEC, NULL, 
+			butr->xmin, dy+76, dx, 19, 
+			&ptr, "samples", 0, 1, 256, 0, 0, NULL);
+		uiDefButR(block, NUM, B_NODE_EXEC, NULL, 
+			butr->xmin, dy+57, dx, 19, 
+			&ptr, "min_speed", 0, 0, 1024, 0, 0, NULL);
+		uiDefButR(block, NUM, B_NODE_EXEC, NULL, 
+			butr->xmin, dy+38, dx, 19, 
+			&ptr, "max_speed", 0, 0, 1024, 0, 0, NULL);
+		uiDefButR(block, NUM, B_NODE_EXEC, "Blur", 
+			butr->xmin, dy+19, dx, 19, 
+			&ptr, "factor", 0, 0, 2, 10, 2, NULL);
+		uiDefButR(block, TOG, B_NODE_EXEC, NULL, 
+			butr->xmin, dy, dx, 19, 
+			&ptr, "curved", 0, 0, 2, 10, 2, NULL);
 		uiBlockEndAlign(block);
 	}
 	return 95;
@@ -1645,45 +1647,35 @@ static int node_composit_buts_dilateerode(uiBlock *block, bNodeTree *ntree, bNod
 static int node_composit_buts_diff_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
-		short sx= (butr->xmax-butr->xmin)/4;
-		short dx= (butr->xmax-butr->xmin)/3;
 		NodeChroma *c= node->storage;
 		
 		uiBlockBeginAlign(block);
-		/*color space selectors*/
-		uiDefButS(block, ROW,B_NODE_EXEC,"RGB",
-							butr->xmin,butr->ymin+60,sx,20,
-							&node->custom1,1,1, 0, 0, "RGB Color Space");
-		uiDefButS(block, ROW,B_NODE_EXEC,"HSV",
-							butr->xmin+sx,butr->ymin+60,sx,20,
-							&node->custom1,1,2, 0, 0, "HSV Color Space");
-		uiDefButS(block, ROW,B_NODE_EXEC,"YUV",
-							butr->xmin+2*sx,butr->ymin+60,sx,20,
-							&node->custom1,1,3, 0, 0, "YUV Color Space");
-					uiDefButS(block, ROW,B_NODE_EXEC,"YCC",
-							butr->xmin+3*sx,butr->ymin+60,sx,20,
-							&node->custom1,1,4, 0, 0, "YCbCr Color Space");
-		/*channel tolorences*/
-		uiDefButF(block, NUM, B_NODE_EXEC, " ",
-							butr->xmin, butr->ymin+40, dx, 20,
-							&c->t1, 0.0f, 1.0f, 100, 0, "Channel 1 Tolerance");
-		uiDefButF(block, NUM, B_NODE_EXEC, " ",
-							butr->xmin+dx, butr->ymin+40, dx, 20,
-							&c->t2, 0.0f, 1.0f, 100, 0, "Channel 2 Tolorence");
-		uiDefButF(block, NUM, B_NODE_EXEC, " ",
-							butr->xmin+2*dx, butr->ymin+40, dx, 20,
-							&c->t3, 0.0f, 1.0f, 100, 0, "Channel 3 Tolorence");
-		/*falloff parameters*/
-		/*
-		uiDefButF(block, NUMSLI, B_NODE_EXEC, "Falloff Size ",
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Tolerance: ", 
 			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-			&c->fsize, 0.0f, 1.0f, 100, 0, "");
-		*/
-		uiDefButF(block, NUMSLI, B_NODE_EXEC, "Falloff: ",
-			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-			&c->fstrength, 0.0f, 1.0f, 100, 0, "");
+			&c->t1, 0.0f, 1.0f, 100, 0, "Color differences below this threshold are keyed.");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Falloff: ", 
+			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
+			&c->t2, 0.0f, 1.0f, 100, 0, "Color differences below this additional threshold are partially keyed.");
+      uiBlockEndAlign(block);
 	}
-	return 80;
+	return 40;
+}
+
+static int node_composit_buts_distance_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeChroma *c= node->storage;
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Tolerance: ", 
+			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
+			&c->t1, 0.0f, 1.0f, 100, 0, "Color distances below this threshold are keyed.");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Falloff: ", 
+			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
+			&c->t2, 0.0f, 1.0f, 100, 0, "Color distances below this additional threshold are partially keyed.");
+       uiBlockEndAlign(block);
+	}
+	return 40;
 }
 
 static int node_composit_buts_color_spill(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
@@ -1715,6 +1707,7 @@ static int node_composit_buts_chroma_matte(uiBlock *block, bNodeTree *ntree, bNo
 	if(block) {
 		short dx=(butr->xmax-butr->xmin)/2;
 		NodeChroma *c= node->storage;
+
 		uiBlockBeginAlign(block);
 
 		uiDefButF(block, NUMSLI, B_NODE_EXEC, "Acceptance ",
@@ -1734,12 +1727,35 @@ static int node_composit_buts_chroma_matte(uiBlock *block, bNodeTree *ntree, bNo
 		uiDefButF(block, NUMSLI, B_NODE_EXEC, "Shadow Adjust ",
 			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
 			&c->t3, 0.0f, 1.0f, 100, 0, "Adjusts the brightness of any shadows captured");
+		uiBlockEndAlign(block);
 
 		if(c->t2 > c->t1)
 			c->t2=c->t1;
 	}
 	return 80;
 }
+
+static int node_composit_buts_color_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeChroma *c= node->storage;
+		uiBlockBeginAlign(block);
+
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "H: ",
+			butr->xmin, butr->ymin+40, butr->xmax-butr->xmin, 20,
+			&c->t1, 0.0f, 0.25f, 100, 0, "Hue tolerance for colors to be considered a keying color");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "S: ",
+			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
+			&c->t2, 0.0f, 1.0f, 100, 0, "Saturation Tolerance for the color");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "V: ",
+			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
+			&c->t3, 0.0f, 1.0f, 100, 0, "Value Tolerance for the color");
+
+		uiBlockEndAlign(block);
+	}
+	return 60;
+}
+
 
 static int node_composit_buts_channel_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -1975,6 +1991,29 @@ static int node_composit_buts_premulkey(uiBlock *block, bNodeTree *ntree, bNode 
 	return 20;
 }
 
+static int node_composit_buts_view_levels(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		short sx= (butr->xmax-butr->xmin)/5;
+	
+		/*color space selectors*/
+		uiBlockBeginAlign(block);
+		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"C",
+			butr->xmin,butr->ymin,sx,20,&node->custom1,1,1, 0, 0, "Combined RGB");
+		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"R",
+			butr->xmin+sx,butr->ymin,sx,20,&node->custom1,1,2, 0, 0, "Red Channel");
+		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"G",
+			butr->xmin+2*sx,butr->ymin,sx,20,&node->custom1,1,3, 0, 0, "Green Channel");
+		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"B",
+			butr->xmin+3*sx,butr->ymin,sx,20,&node->custom1,1,4, 0, 0, "Blue Channel");
+      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"L",
+			butr->xmin+4*sx,butr->ymin,sx,20,&node->custom1,1,5, 0, 0, "Luminenc Channel");
+		uiBlockEndAlign(block);
+	}
+	return 20;
+}
+
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2068,16 +2107,21 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->butfunc= node_composit_buts_file_output;
-			break;
-	
+			break;	
 		case CMP_NODE_DIFF_MATTE:
 			ntype->butfunc=node_composit_buts_diff_matte;
+			break;
+		case CMP_NODE_DIST_MATTE:
+			ntype->butfunc=node_composit_buts_distance_matte;
 			break;
 		case CMP_NODE_COLOR_SPILL:
 			ntype->butfunc=node_composit_buts_color_spill;
 			break;
-		case CMP_NODE_CHROMA:
+		case CMP_NODE_CHROMA_MATTE:
 			ntype->butfunc=node_composit_buts_chroma_matte;
+			break;
+		case CMP_NODE_COLOR_MATTE:
+			ntype->butfunc=node_composit_buts_color_matte;
 			break;
 		case CMP_NODE_SCALE:
 			ntype->butfunc= node_composit_buts_scale;
@@ -2103,6 +2147,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_PREMULKEY:
 			ntype->butfunc= node_composit_buts_premulkey;
 			break;
+      case CMP_NODE_VIEW_LEVELS:
+			ntype->butfunc=node_composit_buts_view_levels;
+ 			break;
 		default:
 			ntype->butfunc= NULL;
 	}
@@ -2551,8 +2598,8 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	else {
 		
 		/* always do all three, to prevent data hanging around */
-		forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, 2);
-		forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, 2);
+		forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float)*2);
+		forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, sizeof(float)*2);
 		
 		return 1;
 	}
@@ -2625,66 +2672,4 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 	node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, do_shaded);
 }
 
-#if 0
 
-static void nodes_panel_gpencil(short cntrl)	// NODES_HANDLER_GREASEPENCIL
-{
-	uiBlock *block;
-	SpaceNode *snode;
-	
-	snode= curarea->spacedata.first;
-
-	block= uiNewBlock(&curarea->uiblocks, "nodes_panel_gpencil", UI_EMBOSS, UI_HELV, curarea->win);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
-	uiSetPanelHandler(NODES_HANDLER_GREASEPENCIL);  // for close and esc
-	if (uiNewPanel(curarea, block, "Grease Pencil", "SpaceNode", 100, 30, 318, 204)==0) return;
-	
-	/* we can only really draw stuff if there are nodes (otherwise no events are handled */
-	if (snode->nodetree == NULL)
-		return;
-	
-	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
-	if (snode->flag & SNODE_DISPGP) {
-		if (snode->gpd == NULL)
-			gpencil_data_setactive(curarea, gpencil_data_addnew());
-	}
-	
-	if (snode->flag & SNODE_DISPGP) {
-		bGPdata *gpd= snode->gpd;
-		short newheight;
-		
-		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
-		/* so first we make it default height */
-		uiNewPanelHeight(block, 204);
-		
-		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitS(block, TOG, SNODE_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &snode->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Node Editor (draw using Shift-LMB)");
-		
-		/* extend the panel if the contents won't fit */
-		newheight= draw_gpencil_panel(block, gpd, curarea); 
-		uiNewPanelHeight(block, newheight);
-	}
-	else {
-		uiDefButBitS(block, TOG, SNODE_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &snode->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Node Editor");
-		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
-	}
-}
-
-static void nodes_blockhandlers(ScrArea *sa)
-{
-	SpaceNode *snode= sa->spacedata.first;
-	short a;
-	
-	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-		switch(snode->blockhandler[a]) {
-			case NODES_HANDLER_GREASEPENCIL:
-				nodes_panel_gpencil(snode->blockhandler[a+1]);
-				break;
-		}
-		
-		/* clear action value for event */
-		snode->blockhandler[a+1]= 0;
-	}
-	uiDrawBlocksPanels(sa, 0);
-}
-#endif

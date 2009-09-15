@@ -156,6 +156,15 @@ static int vlr_check_intersect(Isect *is, ObjectInstanceRen *obi, VlakRen *vlr)
 		return (is->lay & obi->lay);
 }
 
+static int vlr_check_intersect_solid(Isect *is, ObjectInstanceRen* obi, VlakRen *vlr)
+{
+	/* solid material types only */
+	if (vlr->mat->material_type == MA_TYPE_SURFACE)
+		return 1;
+	else
+		return 0;
+}
+
 /* ray - triangle or quad intersection */
 /* this function shall only modify Isect if it detects an hit */
 static int intersect_rayface(RayFace *face, Isect *is)
@@ -172,6 +181,11 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	if(is->skip & RE_SKIP_VLR_RENDER_CHECK)
 	{
 		if(vlr_check_intersect(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face ) == 0)
+			return 0;
+	}
+	if(is->skip & RE_SKIP_VLR_NON_SOLID_MATERIAL)
+	{
+		if(vlr_check_intersect_solid(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face) == 0)
 			return 0;
 	}
 

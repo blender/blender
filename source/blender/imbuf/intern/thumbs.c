@@ -39,8 +39,15 @@
 #include "IMB_thumbs.h"
 #include "IMB_imginfo.h"
 
-
 #include "md5.h"
+
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
 
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
@@ -48,21 +55,12 @@
 #define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
 #endif
 #include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
-#include "BLI_winstuff.h"
 #include <process.h> /* getpid */
 #include <direct.h> /* chdir */
+#include "BLI_winstuff.h"
 #else
 #include <unistd.h>
 #endif
-
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
 
 #define URI_MAX FILE_MAX*3 + 8
 

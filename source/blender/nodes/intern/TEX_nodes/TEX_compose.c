@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -40,11 +40,11 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	int i;
 	for(i = 0; i < 4; i++)
-		out[i] = tex_input_value(in[i], coord, thread);
+		out[i] = tex_input_value(in[i], p, thread);
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

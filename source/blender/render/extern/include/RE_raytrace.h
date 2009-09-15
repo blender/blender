@@ -58,6 +58,9 @@ void RE_rayobject_add    (RayObject *r, RayObject *);
 void RE_rayobject_done(RayObject *r);
 void RE_rayobject_free(RayObject *r);
 
+/* Extend min/max coords so that the rayobject is inside them */
+void RE_rayobject_merge_bb(RayObject *ob, float *min, float *max);
+
 /* initializes an hint for optiming raycast where it is know that a ray will pass by the given BB often the origin point */
 void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max);
 
@@ -147,8 +150,9 @@ struct Isect
 #define RE_SKIP_CULLFACE		(1 << 0)
 
 /* if using this flag then *face should be a pointer to a VlakRen */
-#define RE_SKIP_VLR_NEIGHBOUR		(1 << 1)
-#define RE_SKIP_VLR_RENDER_CHECK	(1 << 2)
+#define RE_SKIP_VLR_NEIGHBOUR			(1 << 1)
+#define RE_SKIP_VLR_RENDER_CHECK		(1 << 2)
+#define RE_SKIP_VLR_NON_SOLID_MATERIAL	(1 << 3)
 
 /* TODO use: FLT_MAX? */
 #define RE_RAYTRACE_MAXDIST	1e33

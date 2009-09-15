@@ -34,18 +34,43 @@ struct Lattice;
 struct Curve;
 struct Object;
 struct Mesh;
+struct HookModifierData;
 
 /* internal exports only */
 
+/* object_transform.c */
+void OBJECT_OT_location_clear(struct wmOperatorType *ot);
+void OBJECT_OT_rotation_clear(struct wmOperatorType *ot);
+void OBJECT_OT_scale_clear(struct wmOperatorType *ot);
+void OBJECT_OT_origin_clear(struct wmOperatorType *ot);
+void OBJECT_OT_visual_transform_apply(struct wmOperatorType *ot);
+void OBJECT_OT_location_apply(struct wmOperatorType *ot);
+void OBJECT_OT_scale_apply(struct wmOperatorType *ot);
+void OBJECT_OT_rotation_apply(struct wmOperatorType *ot);
+void OBJECT_OT_center_set(struct wmOperatorType *ot);
+
+/* object_relations.c */
+void OBJECT_OT_parent_set(struct wmOperatorType *ot);
+void OBJECT_OT_parent_clear(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_parent_set(struct wmOperatorType *ot);
+void OBJECT_OT_track_set(struct wmOperatorType *ot);
+void OBJECT_OT_track_clear(struct wmOperatorType *ot);
+void OBJECT_OT_slow_parent_set(struct wmOperatorType *ot);
+void OBJECT_OT_slow_parent_clear(struct wmOperatorType *ot);
+void OBJECT_OT_make_local(struct wmOperatorType *ot);
+void OBJECT_OT_move_to_layer(struct wmOperatorType *ot);
 
 /* object_edit.c */
 void OBJECT_OT_mode_set(struct wmOperatorType *ot);
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
-void OBJECT_OT_parent_set(struct wmOperatorType *ot);
-void OBJECT_OT_parent_clear(struct wmOperatorType *ot);
-void OBJECT_OT_track_set(struct wmOperatorType *ot);
-void OBJECT_OT_track_clear(struct wmOperatorType *ot);
+void OBJECT_OT_restrictview_set(struct wmOperatorType *ot);
+void OBJECT_OT_restrictview_clear(struct wmOperatorType *ot);
+void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
+void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
+void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
+
+/* object_select.c */
 void OBJECT_OT_select_all_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_select_inverse(struct wmOperatorType *ot);
 void OBJECT_OT_select_random(struct wmOperatorType *ot);
@@ -53,34 +78,29 @@ void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_layer(struct wmOperatorType *ot);
 void OBJECT_OT_select_linked(struct wmOperatorType *ot);
 void OBJECT_OT_select_grouped(struct wmOperatorType *ot);
-void OBJECT_OT_location_clear(struct wmOperatorType *ot);
-void OBJECT_OT_rotation_clear(struct wmOperatorType *ot);
-void OBJECT_OT_scale_clear(struct wmOperatorType *ot);
-void OBJECT_OT_origin_clear(struct wmOperatorType *ot);
-void OBJECT_OT_restrictview_set(struct wmOperatorType *ot);
-void OBJECT_OT_restrictview_clear(struct wmOperatorType *ot);
-void OBJECT_OT_slowparent_set(struct wmOperatorType *ot);
-void OBJECT_OT_slowparent_clear(struct wmOperatorType *ot);
-void OBJECT_OT_center_set(struct wmOperatorType *ot);
-void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
-void OBJECT_OT_object_add(struct wmOperatorType *ot);
-void OBJECT_OT_duplicate(struct wmOperatorType *ot);
-void OBJECT_OT_delete(struct wmOperatorType *ot);
-void OBJECT_OT_join(struct wmOperatorType *ot);
-void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
-void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
-void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
+void OBJECT_OT_select_mirror(struct wmOperatorType *ot);
 
+/* object_add.c */
+void OBJECT_OT_add(struct wmOperatorType *ot);
 void OBJECT_OT_mesh_add(struct wmOperatorType *ot);
 void OBJECT_OT_curve_add(struct wmOperatorType *ot);
 void OBJECT_OT_surface_add(struct wmOperatorType *ot);
-void OBJECT_OT_metaball_add(wmOperatorType *ot);
+void OBJECT_OT_metaball_add(struct wmOperatorType *ot);
 void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
-	/* only used as menu */
-void OBJECT_OT_primitive_add(struct wmOperatorType *ot);
+void OBJECT_OT_primitive_add(struct wmOperatorType *ot); /* only used as menu */
 
-/* editlattice.c */
+void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
+void OBJECT_OT_duplicate(struct wmOperatorType *ot);
+void OBJECT_OT_delete(struct wmOperatorType *ot);
+void OBJECT_OT_join(struct wmOperatorType *ot);
+void OBJECT_OT_convert(struct wmOperatorType *ot);
+
+/* object_hook.c */
+int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r);
+void object_hook_select(Object *obedit, struct HookModifierData *hmd);
+
+/* object_lattice.c */
 void free_editLatt(Object *ob);
 void make_editLatt(Object *obedit);
 void load_editLatt(Object *obedit);
@@ -89,7 +109,7 @@ void remake_editLatt(Object *obedit);
 void LATTICE_OT_select_all_toggle(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
 
-/* editgroup.c */
+/* object_group.c */
 void GROUP_OT_group_create(struct wmOperatorType *ot);
 void GROUP_OT_objects_remove(struct wmOperatorType *ot);
 void GROUP_OT_objects_add_active(struct wmOperatorType *ot);
@@ -104,9 +124,15 @@ void OBJECT_OT_modifier_apply(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_convert(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_copy(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
-void OBJECT_OT_modifier_mdef_bind(struct wmOperatorType *ot);
+void OBJECT_OT_multires_higher_levels_delete(struct wmOperatorType *ot);
+void OBJECT_OT_meshdeform_bind(struct wmOperatorType *ot);
+void OBJECT_OT_hook_reset(struct wmOperatorType *ot);
+void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
+void OBJECT_OT_hook_select(struct wmOperatorType *ot);
+void OBJECT_OT_hook_assign(struct wmOperatorType *ot);
+void OBJECT_OT_explode_refresh(struct wmOperatorType *ot);
 
-/* editconstraint.c */
+/* object_constraint.c */
 void OBJECT_OT_constraint_add(struct wmOperatorType *ot);
 void OBJECT_OT_constraint_add_with_targets(struct wmOperatorType *ot);
 void POSE_OT_constraint_add(struct wmOperatorType *ot);
@@ -137,8 +163,13 @@ void OBJECT_OT_vertex_group_select(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_deselect(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_linked(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_menu(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 
-/* editkey.c */
+void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
+void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
+
+/* object_shapekey.c */
 void OBJECT_OT_shape_key_add(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_remove(struct wmOperatorType *ot);
 

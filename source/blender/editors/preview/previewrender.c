@@ -113,6 +113,7 @@ typedef struct ShaderPreview {
 	Scene *scene;
 	ID *id;
 	ID *parent;
+	MTex *slot;
 	
 	int sizex, sizey;
 	int *pr_rect;
@@ -306,6 +307,8 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				/* turn on raytracing if needed */
 				if(mat->mode_l & MA_RAYMIRROR)
 					sce->r.mode |= R_RAYTRACE;
+				if(mat->material_type == MA_TYPE_VOLUME)
+					sce->r.mode |= R_RAYTRACE;
 				if((mat->mode_l & MA_RAYTRANSP) && (mat->mode_l & MA_TRANSP))
 					sce->r.mode |= R_RAYTRACE;
 				if(mat->sss_flag & MA_DIFF_SSS)
@@ -346,8 +349,14 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='p') {
-					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL))
-						assign_material(base->object, mat, base->object->actcol);
+					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL)) {
+						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
+						Material ***matar= give_matarar(base->object);
+						int actcol= MAX2(base->object->actcol > 0, 1) - 1;
+
+						if(matar && actcol < base->object->totcol)
+							(*matar)[actcol]= mat;
+					}
 				}
 			}
 		}
@@ -364,6 +373,10 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					Material *mat= give_current_material(base->object, base->object->actcol);
 					if(mat && mat->mtex[0]) {
 						mat->mtex[0]->tex= tex;
+						
+						if(sp && sp->slot)
+							mat->mtex[0]->which_output = sp->slot->which_output;
+						
 						/* show alpha in this case */
 						if(tex==NULL || (tex->flag & TEX_PRV_ALPHA)) {
 							mat->mtex[0]->mapto |= MAP_ALPHA;
@@ -457,13 +470,14 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	return 0;
 }
 
-void ED_preview_draw(const bContext *C, void *idp, void *parentp, rcti *rect)
+void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, rcti *rect)
 {
 	if(idp) {
 		ScrArea *sa= CTX_wm_area(C);
 		Scene *sce = CTX_data_scene(C);
 		ID *id = (ID *)idp;
 		ID *parent= (ID *)parentp;
+		MTex *slot= (MTex *)slotp;
 		SpaceButs *sbuts= sa->spacedata.first;
 		rcti newrect;
 		int ok;
@@ -491,7 +505,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, rcti *rect)
 		}
 		
 		if(ok==0) {
-			ED_preview_shader_job(C, sa, id, parent, newx, newy);
+			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy);
 		}
 	}	
 }
@@ -932,7 +946,7 @@ static void shader_preview_free(void *customdata)
 	MEM_freeN(sp);
 }
 
-void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, int sizex, int sizey)
+void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, MTex *slot, int sizex, int sizey)
 {
 	wmJob *steve;
 	ShaderPreview *sp;
@@ -940,7 +954,11 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, i
 	/* XXX ugly global still, but we can't do preview while rendering */
 	if(G.rendering)
 		return;
-
+	
+	if(GS(id->name) == ID_TE) {
+		ntreeTexSetPreviewFlag(1);
+	}
+	
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
 	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
 
@@ -952,6 +970,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, i
 	sp->pr_method= PR_DO_RENDER;
 	sp->id = id;
 	sp->parent= parent;
+	sp->slot= slot;
 	
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);

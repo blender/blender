@@ -835,9 +835,11 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 //	else transopts= ui_translate_buttons();
 	
 	/* cut string in 2 parts - only for menu entries */
-	if(ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS)==0) {
-		cpoin= strchr(but->drawstr, '|');
-		if(cpoin) *cpoin= 0;		
+	if((but->block->flag & UI_BLOCK_LOOP)) {
+		if(ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS)==0) {
+			cpoin= strchr(but->drawstr, '|');
+			if(cpoin) *cpoin= 0;		
+		}
 	}
 	
 	glColor3ubv((unsigned char*)wcol->text);
@@ -1083,7 +1085,7 @@ static struct uiWidgetColors wcol_tool= {
 	{255, 255, 255, 255},
 	
 	1,
-	25, -25
+	15, -15
 };
 
 static struct uiWidgetColors wcol_box= {
@@ -1645,8 +1647,8 @@ static int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
 	vec[2][0]= vec[3][0]-dist;
 	vec[2][1]= vec[3][1];
 	
-	forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, 2);
-	forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, 2);
+	forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float)*2);
+	forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, sizeof(float)*2);
 	
 	return 1;
 }
@@ -1895,7 +1897,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 		
 	ui_get_but_vectorf(but, col);
 	wcol->inner[0]= FTOCHAR(col[0]);
@@ -1914,7 +1916,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 	
 	widgetbase_draw(&wtb, wcol);
 
@@ -1944,12 +1946,12 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if(state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		float rad= 0.5f*(rect->ymax - rect->ymin);
+		float rad= 0.5f*(rect->ymax - rect->ymin); // 4.0f
 		
 		widget_init(&wtb);
 		
-		/* fully rounded */
-		round_box_edges(&wtb, roundboxalign, rect, rad);
+		/* half rounded */
+		round_box_edges(&wtb, 15, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -2043,11 +2045,11 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
-	float rad= 0.5f*(rect->ymax - rect->ymin);
+	float rad= 5.0f; //0.5f*(rect->ymax - rect->ymin);
 	
 	widget_init(&wtb);
 	
-	/* fully rounded */
+	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 
 	widgetbase_draw(&wtb, wcol);
@@ -2065,7 +2067,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	
 	if(but->block->drawextra) {
 		/* note: drawextra can change rect +1 or -1, to match round errors of existing previews */
-		but->block->drawextra(C, but->poin, but->block->drawextra_arg, rect);
+		but->block->drawextra(C, but->poin, but->block->drawextra_arg1, but->block->drawextra_arg2, rect);
 		
 		/* make mask to draw over image */
 		UI_GetThemeColor3ubv(TH_BACK, col);

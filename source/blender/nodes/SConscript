@@ -38,7 +38,7 @@ if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
 	incs += ' ' + env['BF_QUICKTIME_INC']
 
-env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = defs, libtype=['core'], priority = [190] )
-env.BlenderLib ( libname = 'bf_cmpnodes', sources = cmpsources, includes = Split(incs), defines = defs, libtype=['core'], priority = [175] )
-env.BlenderLib ( libname = 'bf_shdnodes', sources = shdsources, includes = Split(incs), defines = defs, libtype=['core'], priority = [175] )
-env.BlenderLib ( libname = 'bf_texnodes', sources = texsources, includes = Split(incs), defines = defs, libtype=['core'], priority = [175] )
+env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [190,105] )
+env.BlenderLib ( libname = 'bf_cmpnodes', sources = cmpsources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [175,101] )
+env.BlenderLib ( libname = 'bf_shdnodes', sources = shdsources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [175,101] )
+env.BlenderLib ( libname = 'bf_texnodes', sources = texsources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [175,101] )

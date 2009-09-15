@@ -743,78 +743,6 @@ static void edge_drawflags(Mesh *me, EditMesh *em)
 	}
 }
 
-static int editmesh_pointcache_edit(Scene *scene, Object *ob, int totvert, PTCacheID *pid_p, float mat[][4], int load)
-{
-	Cloth *cloth;
-	SoftBody *sb;
-	ClothModifierData *clmd;
-	PTCacheID pid, tmpid;
-	int cfra= (int)scene->r.cfra, found= 0;
-
-	pid.cache= NULL;
-
-	/* check for cloth */
-	if(modifiers_isClothEnabled(ob)) {
-		clmd= (ClothModifierData*)modifiers_findByType(ob, eModifierType_Cloth);
-		cloth= clmd->clothObject;
-		
-		BKE_ptcache_id_from_cloth(&tmpid, ob, clmd);
-
-		/* verify vertex count and baked status */
-		if(cloth && (totvert == cloth->numverts)) {
-			if((tmpid.cache->flag & PTCACHE_BAKED) && (tmpid.cache->flag & PTCACHE_BAKE_EDIT)) {
-				pid= tmpid;
-
-				if(load && (pid.cache->flag & PTCACHE_BAKE_EDIT_ACTIVE))
-					found= 1;
-			}
-		}
-	}
-
-	/* check for softbody */
-	if(!found && ob->soft) {
-		sb= ob->soft;
-
-		BKE_ptcache_id_from_softbody(&tmpid, ob, sb);
-
-		/* verify vertex count and baked status */
-		if(sb->bpoint && (totvert == sb->totpoint)) {
-			if((tmpid.cache->flag & PTCACHE_BAKED) && (tmpid.cache->flag & PTCACHE_BAKE_EDIT)) {
-				pid= tmpid;
-
-				if(load && (pid.cache->flag & PTCACHE_BAKE_EDIT_ACTIVE))
-					found= 1;
-			}
-		}
-	}
-
-	/* if not making editmesh verify editing was active for this point cache */
-	if(load) {
-		if(found)
-			pid.cache->flag &= ~PTCACHE_BAKE_EDIT_ACTIVE;
-		else
-			return 0;
-	}
-
-	/* check if we have cache for this frame */
-	if(pid.cache && BKE_ptcache_id_exist(&pid, cfra)) {
-		*pid_p = pid;
-		
-		if(load) {
-			Mat4CpyMat4(mat, ob->obmat);
-		}
-		else {
-			pid.cache->editframe= cfra;
-			pid.cache->flag |= PTCACHE_BAKE_EDIT_ACTIVE;
-			Mat4Invert(mat, ob->obmat); /* ob->imat is not up to date */
-		}
-
-		return 1;
-	}
-
-	return 0;
-}
-
 /* turns Mesh into editmesh */
 void make_editMesh(Scene *scene, Object *ob)
 {
@@ -828,11 +756,8 @@ void make_editMesh(Scene *scene, Object *ob)
 	EditFace *efa;
 	EditEdge *eed;
 	EditSelection *ese;
-	PTCacheID pid;
-	Cloth *cloth;
-	SoftBody *sb;
-	float cacheco[3], cachemat[4][4], *co;
-	int tot, a, cacheedit= 0, eekadoodle= 0;
+	float *co;
+	int tot, a, eekadoodle= 0;
 
 	if(me->edit_mesh==NULL)
 		me->edit_mesh= MEM_callocN(sizeof(EditMesh), "editmesh");
@@ -867,26 +792,10 @@ void make_editMesh(Scene *scene, Object *ob)
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;
 
-	cacheedit= editmesh_pointcache_edit(scene, ob, tot, &pid, cachemat, 0);
-
 	evlist= (EditVert **)MEM_mallocN(tot*sizeof(void *),"evlist");
 	for(a=0; a<tot; a++, mvert++) {
 		
-		if(cacheedit) {
-			if(pid.type == PTCACHE_TYPE_CLOTH) {
-				cloth= ((ClothModifierData*)pid.calldata)->clothObject;
-				VECCOPY(cacheco, cloth->verts[a].x)
-			}
-			else if(pid.type == PTCACHE_TYPE_SOFTBODY) {
-				sb= (SoftBody*)pid.calldata;
-				VECCOPY(cacheco, sb->bpoint[a].pos)
-			}
-
-			Mat4MulVecfl(cachemat, cacheco);
-			co= cacheco;
-		}
-		else
-			co= mvert->co;
+		co= mvert->co;
 
 		eve= addvertlist(em, co, NULL);
 		evlist[a]= eve;
@@ -1011,11 +920,6 @@ void make_editMesh(Scene *scene, Object *ob)
 	if (EM_get_actFace(em, 0)==NULL) {
 		EM_set_actFace(em, em->faces.first ); /* will use the first face, this is so we alwats have an active face */
 	}
-		
-	/* vertex coordinates change with cache edit, need to recalc */
-	if(cacheedit)
-		recalc_editnormals(em);
-	
 }
 
 /* makes Mesh out of editmesh */
@@ -1031,12 +935,8 @@ void load_editMesh(Scene *scene, Object *ob)
 	EditFace *efa, *efa_act;
 	EditEdge *eed;
 	EditSelection *ese;
-	SoftBody *sb;
-	Cloth *cloth;
-	ClothModifierData *clmd;
-	PTCacheID pid;
-	float *fp, *newkey, *oldkey, nor[3], cacheco[3], cachemat[4][4];
-	int i, a, ototvert, cacheedit= 0;
+	float *fp, *newkey, *oldkey, nor[3];
+	int i, a, ototvert;
 	
 	/* this one also tests of edges are not in faces: */
 	/* eed->f2==0: not in face, f2==1: draw it */
@@ -1090,48 +990,8 @@ void load_editMesh(Scene *scene, Object *ob)
 	eve= em->verts.first;
 	a= 0;
 
-	/* check for point cache editing */
-	cacheedit= editmesh_pointcache_edit(scene, ob, em->totvert, &pid, cachemat, 1);
-
 	while(eve) {
-		if(cacheedit) {
-			if(pid.type == PTCACHE_TYPE_CLOTH) {
-				clmd= (ClothModifierData*)pid.calldata;
-				cloth= clmd->clothObject;
-
-				/* assign position */
-				VECCOPY(cacheco, cloth->verts[a].x)
-				VECCOPY(cloth->verts[a].x, eve->co);
-				Mat4MulVecfl(cachemat, cloth->verts[a].x);
-
-				/* find plausible velocity, not physical correct but gives
-				 * nicer results when commented */
-				VECSUB(cacheco, cloth->verts[a].x, cacheco);
-				VecMulf(cacheco, clmd->sim_parms->stepsPerFrame*10.0f);
-				VECADD(cloth->verts[a].v, cloth->verts[a].v, cacheco);
-			}
-			else if(pid.type == PTCACHE_TYPE_SOFTBODY) {
-				sb= (SoftBody*)pid.calldata;
-
-				/* assign position */
-				VECCOPY(cacheco, sb->bpoint[a].pos)
-				VECCOPY(sb->bpoint[a].pos, eve->co);
-				Mat4MulVecfl(cachemat, sb->bpoint[a].pos);
-
-				/* changing velocity for softbody doesn't seem to give
-				 * good results? */
-#if 0
-				VECSUB(cacheco, sb->bpoint[a].pos, cacheco);
-				VecMulf(cacheco, sb->minloops*10.0f);
-				VECADD(sb->bpoint[a].vec, sb->bpoint[a].pos, cacheco);
-#endif
-			}
-
-			if(oldverts)
-				VECCOPY(mvert->co, oldverts[a].co)
-		}
-		else
-			VECCOPY(mvert->co, eve->co);
+		VECCOPY(mvert->co, eve->co);
 
 		mvert->mat_nr= 32767;  /* what was this for, halos? */
 		
@@ -1155,10 +1015,6 @@ void load_editMesh(Scene *scene, Object *ob)
 		eve= eve->next;
 		mvert++;
 	}
-	
-	/* write changes to cache */
-	if(cacheedit)
-		BKE_ptcache_write_cache(&pid, pid.cache->editframe);
 
 	/* the edges */
 	a= 0;
@@ -1424,7 +1280,7 @@ void load_editMesh(Scene *scene, Object *ob)
 void remake_editMesh(Scene *scene, Object *ob)
 {
 	make_editMesh(scene, ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
 
@@ -1534,8 +1390,8 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	/* hashedges are invalid now, make new! */
 	editMesh_set_hash(em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-	DAG_object_flush_update(scene, basenew->object, OB_RECALC_DATA);	
+	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);	
+	DAG_id_flush_update(&basenew->object->id, OB_RECALC_DATA);	
 
 	BKE_mesh_end_editmesh(me, em);
 
@@ -1613,7 +1469,7 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 		retval= mesh_separate_loose(scene, base);
 	   
 	if(retval) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, base->object);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_CANCELLED;

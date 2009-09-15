@@ -85,6 +85,9 @@ typedef struct GlyphBLF {
 	/* and the character, as UTF8 */
 	unsigned int c;
 
+	/* freetype2 index, to speed-up the search. */
+	FT_UInt idx;
+
 	/* glyph box. */
 	rctf box;
 
@@ -106,6 +109,7 @@ typedef struct GlyphBLF {
 	/* glyph width and height. */
 	int width;
 	int height;
+	int pitch;
 
 	/* uv coords. */
 	float uv[2][2];
@@ -176,6 +180,22 @@ typedef struct FontBLF {
 
 	/* freetype2 face. */
 	FT_Face face;
+
+	/* for draw to buffer, always set this to NULL after finish! */
+	float *b_fbuf;
+
+	/* the same but unsigned char */
+	unsigned char *b_cbuf;
+
+	/* buffer size. */
+	unsigned int bw;
+	unsigned int bh;
+
+	/* number of channels. */
+	int bch;
+
+	/* and the color, the alphas is get from the glyph! */
+	float b_col[4];
 } FontBLF;
 
 typedef struct DirBLF {

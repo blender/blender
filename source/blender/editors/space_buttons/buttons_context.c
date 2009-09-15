@@ -200,7 +200,7 @@ static int buttons_context_path_modifier(ButsContextPath *path)
 	if(buttons_context_path_object(path)) {
 		ob= path->ptr[path->len-1].data;
 
-		if(ob && ELEM4(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF))
+		if(ob && ELEM5(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_LATTICE))
 			return 1;
 	}
 
@@ -311,7 +311,6 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 	ToolSettings *ts;
 	Brush *br= NULL;
 	PointerRNA *ptr= &path->ptr[path->len-1];
-	const Object *obact = CTX_data_active_object(C);
 
 	/* if we already have a (pinned) brush, we're done */
 	if(RNA_struct_is_a(ptr->type, &RNA_Brush)) {
@@ -333,7 +332,7 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 		}
 	}
 
-	/* no path to a world possible */
+	/* no path to a brush possible */
 	return 0;
 }
 
@@ -554,7 +553,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			"world", "object", "mesh", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
 			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
-			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
+			"cloth", "soft_body", "fluid", "smoke", "smoke_hr", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;

@@ -32,6 +32,8 @@
 #include "DNA_brush_types.h"
 #include "DNA_texture_types.h"
 
+#include "IMB_imbuf.h"
+
 EnumPropertyItem brush_sculpt_tool_items[] = {
 	{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
 	{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
@@ -93,14 +95,19 @@ void rna_def_brush(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_blend_items[] = {
-		{BRUSH_BLEND_MIX, "MIX", 0, "Mix", "Use mix blending mode while painting."},
-		{BRUSH_BLEND_ADD, "ADD", 0, "Add", "Use add blending mode while painting."},
-		{BRUSH_BLEND_SUB, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
-		{BRUSH_BLEND_MUL, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
-		{BRUSH_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
-		{BRUSH_BLEND_DARKEN, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
-		{BRUSH_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting."},
-		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
+		{IMB_BLEND_MIX, "MIX", 0, "Mix", "Use mix blending mode while painting."},
+		{IMB_BLEND_ADD, "ADD", 0, "Add", "Use add blending mode while painting."},
+		{IMB_BLEND_SUB, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
+		{IMB_BLEND_MUL, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
+		{IMB_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
+		{IMB_BLEND_DARKEN, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
+		{IMB_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting."},
+		{IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static const EnumPropertyItem prop_flip_direction_items[]= {
+		{0, "ADD", 0, "Add", "Add effect of brush"},
+		{BRUSH_DIR_IN, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "Brush", "ID");
@@ -115,6 +122,11 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, brush_sculpt_tool_items);
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
+
+	prop= RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_flip_direction_items);
+	RNA_def_property_ui_text(prop, "Direction", "Mapping type to use for this image in the game engine.");
 	
 	/* number values */
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
@@ -130,6 +142,14 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "spacing");
 	RNA_def_property_range(prop, 1.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Spacing", "Spacing between brush stamps.");
+
+	prop= RNA_def_property(srna, "smooth_stroke_radius", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 10, 200);
+	RNA_def_property_ui_text(prop, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues.");
+
+	prop= RNA_def_property(srna, "smooth_stroke_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.5, 0.99);
+	RNA_def_property_ui_text(prop, "Smooth Stroke Factor", "Higher values give a smoother stroke.");
 	
 	prop= RNA_def_property(srna, "rate", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rate");
@@ -156,18 +176,22 @@ void rna_def_brush(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "strength_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength.");
 	
 	prop= RNA_def_property(srna, "size_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size.");
 	
 	prop= RNA_def_property(srna, "falloff_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAD_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Falloff Pressure", "Enable tablet pressure sensitivity for falloff.");
 	
 	prop= RNA_def_property(srna, "spacing_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACING_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Spacing Pressure", "Enable tablet pressure sensitivity for spacing.");
 
 	prop= RNA_def_property(srna, "rake", PROP_BOOLEAN, PROP_NONE);
@@ -177,10 +201,6 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "anchored", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ANCHORED);
 	RNA_def_property_ui_text(prop, "Anchored", "Keep the brush anchored to the initial location.");
-
-	prop= RNA_def_property(srna, "flip_direction", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_DIR_IN);
-	RNA_def_property_ui_text(prop, "Flip Direction", "Move vertices in the opposite direction.");
 
 	prop= RNA_def_property(srna, "space", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE);
@@ -247,7 +267,7 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	prop= RNA_def_property(srna, "mouse", PROP_INT, PROP_XYZ);
+	prop= RNA_def_property(srna, "mouse", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Mouse", "");

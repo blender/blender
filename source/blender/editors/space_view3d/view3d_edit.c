@@ -857,6 +857,7 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
+	float *curs;
 
 	int center= RNA_boolean_get(op->ptr, "center");
 
@@ -866,6 +867,10 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	if(center) {
 		min[0]= min[1]= min[2]= 0.0f;
 		max[0]= max[1]= max[2]= 0.0f;
+
+		/* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
+		curs= give_cursor(scene, v3d);
+		curs[0]= curs[1]= curs[2]= 0.0;
 	}
 	else {
 		INIT_MINMAX(min, max);
@@ -1890,7 +1895,7 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "3D Manipulator";
-	ot->description = "";
+	ot->description = "Manipulate selected item by axis.";
 	ot->idname= "VIEW3D_OT_manipulator";
 
 	/* api callbacks */

@@ -1,13 +1,37 @@
-
+/**
+ * $Id:
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney,
+ * Chris Keith, Chris Want, Ken Hughes, Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
-#ifndef WIN32
-#include <dirent.h>
-#else
-#include "BLI_winstuff.h"
+
+/* grr, python redefines */
+#ifdef _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
 #endif
 
 #include <Python.h>
@@ -19,6 +43,12 @@
 #include "bpy_ui.h"
 #include "bpy_util.h"
 
+#ifndef WIN32
+#include <dirent.h>
+#else
+#include "BLI_winstuff.h"
+#endif
+
 #include "DNA_anim_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
@@ -26,6 +56,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_util.h"
+#include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
@@ -228,8 +259,17 @@ void BPY_start_python_path(void)
 	/* set the environment path */
 	printf("found bundled python: %s\n", py_path_bundle);
 
+#if 0
 	BLI_setenv("PYTHONHOME", py_path_bundle);
 	BLI_setenv("PYTHONPATH", py_path_bundle);
+#endif
+
+	{
+		static wchar_t py_path_bundle_wchar[FILE_MAXDIR];
+
+		mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR);
+		Py_SetPythonHome(py_path_bundle_wchar);
+	}
 }
 
 
@@ -589,7 +629,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 				}
 			}
 #ifndef __linux__
-			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exists(path))) {
+			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exist(path))) {
 #else
 			else if(de->d_type==DT_DIR) {
 				BLI_join_dirfile(path, dirname, de->d_name);

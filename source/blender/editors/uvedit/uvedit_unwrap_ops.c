@@ -44,6 +44,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
@@ -75,6 +76,11 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
+	Image *ima;
+	bScreen *sc;
+	ScrArea *sa;
+	SpaceLink *slink;
+	SpaceImage *sima;
 
 	if(ED_uvedit_test(obedit)) {
 		BKE_mesh_end_editmesh(obedit->data, em);
@@ -88,10 +94,31 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return 0;
 	}
+
+	ima= CTX_data_edit_image(C);
+
+	if(!ima) {
+		/* no image in context in the 3d view, we find first image window .. */
+		sc= CTX_wm_screen(C);
+
+		for(sa=sc->areabase.first; sa; sa=sa->next) {
+			slink= sa->spacedata.first;
+			if(slink->spacetype == SPACE_IMAGE) {
+				sima= (SpaceImage*)slink;
+
+				ima= sima->image;
+				if(ima) {
+					if(ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
+						ima= NULL;
+					else
+						break;
+				}
+			}
+		}
+	}
 	
-	// XXX this image is not in context in 3d view .. only
-	// way to get would be to find the first image window?
-	ED_uvedit_assign_image(scene, obedit, CTX_data_edit_image(C), NULL);
+	if(ima)
+		ED_uvedit_assign_image(scene, obedit, ima, NULL);
 	
 	/* select new UV's */
 	for(efa=em->faces.first; efa; efa=efa->next) {
@@ -263,8 +290,8 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interact
 
 		ms->lasttime = PIL_check_seconds_timer();
 
-		DAG_object_flush_update(ms->scene, ms->obedit, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ms->obedit);
+		DAG_id_flush_update(ms->obedit->data, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, ms->obedit->data);
 	}
 }
 
@@ -286,8 +313,8 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, int cancel)
 	param_stretch_end(ms->handle);
 	param_delete(ms->handle);
 
-	DAG_object_flush_update(ms->scene, ms->obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ms->obedit);
+	DAG_id_flush_update(ms->obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ms->obedit->data);
 
 	MEM_freeN(ms);
 	op->customdata= NULL;
@@ -385,6 +412,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 	ot->name= "Minimize Stretch";
 	ot->idname= "UV_OT_minimize_stretch";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->description="DOC_BROKEN";
 	
 	/* api callbacks */
 	ot->exec= minimize_stretch_exec;
@@ -413,8 +441,8 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	param_flush(handle);
 	param_delete(handle);
 	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -446,8 +474,8 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
 	param_flush(handle);
 	param_delete(handle);
 	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -810,8 +838,8 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
 	param_delete(handle);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -943,8 +971,8 @@ static int from_view_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1010,8 +1038,8 @@ static int reset_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1098,8 +1126,8 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1170,8 +1198,8 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -1257,8 +1285,8 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;

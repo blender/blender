@@ -75,6 +75,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACT_OT_handle_type);
 	WM_operatortype_append(ACT_OT_interpolation_type);
 	WM_operatortype_append(ACT_OT_extrapolation_type);
+	WM_operatortype_append(ACT_OT_keyframe_type);
 	WM_operatortype_append(ACT_OT_sample);
 	WM_operatortype_append(ACT_OT_clean);
 	WM_operatortype_append(ACT_OT_delete);
@@ -133,6 +134,7 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "ACT_OT_handle_type", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0); 
+	WM_keymap_add_item(keymap, "ACT_OT_keyframe_type", RKEY, KM_PRESS, 0, 0); 
 	
 		/* destructive */
 	WM_keymap_add_item(keymap, "ACT_OT_clean", OKEY, KM_PRESS, 0, 0);

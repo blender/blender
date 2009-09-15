@@ -278,29 +278,7 @@ void poselib_validate_act (bAction *act)
 /* ************************************************************* */
 
 /* Pointers to the builtin KeyingSets that we want to use */
-static KeyingSet *poselib_ks_locrotscale = NULL;		/* quaternion rotations */
-static KeyingSet *poselib_ks_locrotscale2 = NULL;		/* euler rotations */		// XXX FIXME...
-static short poselib_ks_need_init= 1;					/* have the above been obtained yet? */
-
-/* Make sure the builtin KeyingSets are initialised properly 
- * (only gets called on first run of  poselib_add_current_pose).
- */
-static void poselib_get_builtin_keyingsets (void)
-{
-	/* only if we haven't got these yet */
-	// FIXME: this assumes that we will always get the builtin sets... 
-	if (poselib_ks_need_init) {
-		/* LocRotScale (quaternions) */
-		poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-		
-		/* LocRotScale (euler) */
-		//ks_locrotscale2= ANIM_builtin_keyingset_get_named(ks_locrotscale, "LocRotScale");
-		poselib_ks_locrotscale2= poselib_ks_locrotscale; // FIXME: for now, just use the same one...
-		
-		/* clear flag requesting init */
-		poselib_ks_need_init= 0;
-	}
-}
+static KeyingSet *poselib_ks_locrotscale = NULL;		/* the only keyingset we'll need */
 
 /* ----- */
 
@@ -342,7 +320,7 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		uiItemIntO(layout, "Add New (Current Frame)", 0, "POSELIB_OT_pose_add", "frame", CFRA);
 		
 		/* replace existing - submenu */
-		uiItemMenuF(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu);
+		uiItemMenuF(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu, NULL);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -395,9 +373,6 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	/* validate name */
 	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), 64);
 	
-	/* make sure we've got KeyingSets to use */
-	poselib_get_builtin_keyingsets();
-	
 	/* init common-key-source for use by KeyingSets */
 	memset(&cks, 0, sizeof(bCommonKeySrc));
 	cks.id= &ob->id;
@@ -410,11 +385,10 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 				/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
 				cks.pchan= pchan;
 				
-				/* KeyingSet to use depends on rotation mode  */
-				if (pchan->rotmode)
-					modify_keyframes(C, &dsources, act, poselib_ks_locrotscale2, MODIFYKEY_MODE_INSERT, (float)frame);
-				else
-					modify_keyframes(C, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
+				/* KeyingSet to use depends on rotation mode (but that's handled by the templates code)  */
+				if (poselib_ks_locrotscale == NULL)
+					poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+				modify_keyframes(C, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
 			}
 		}
 	}
@@ -764,12 +738,19 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 }
 
 /* Auto-keys/tags bones affected by the pose used from the poselib */
-static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
+static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData *pld)
 {
 	bPose *pose= pld->pose;
 	bPoseChannel *pchan;
 	bAction *act= pld->act;
 	bActionGroup *agrp;
+	
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &pld->ob->id;
 	
 	/* start tagging/keying */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
@@ -778,28 +759,17 @@ static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
 			pchan= get_pose_channel(pose, agrp->name);
 			
 			if (pchan) {
-#if 0 // XXX old animation system	
 				// TODO: use a standard autokeying function in future (to allow autokeying-editkeys to work)
-				if (IS_AUTOKEY_MODE(NORMAL)) {
-					ID *id= &pld->ob->id;
+				if (IS_AUTOKEY_MODE(scene, NORMAL)) {
+					/* Set keys on pose
+					 *	- KeyingSet to use depends on rotation mode 
+					 *	(but that's handled by the templates code)  
+					 */
+					// TODO: for getting the KeyingSet used, we should really check which channels were affected
+					if (poselib_ks_locrotscale == NULL)
+						poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
-					/* Set keys on pose */
-					if (pchan->flag & POSE_ROT) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					}
-					if (pchan->flag & POSE_SIZE) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
-					}
-					if (pchan->flag & POSE_LOC) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-					}
+					modify_keyframes(C, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
 					if (pchan->bone)
@@ -810,7 +780,6 @@ static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
 					if (pchan->bone)
 						pchan->bone->flag |= BONE_UNKEYED;
 				}
-#endif // XXX old animation system	
 		
 			}
 		}
@@ -843,7 +812,7 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 		 */
 		// FIXME: shouldn't this use the builtin stuff?
 		if ((pld->arm->flag & ARM_DELAYDEFORM)==0)
-			DAG_object_flush_update(pld->scene, pld->ob, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_id_flush_update(&pld->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
 			where_is_pose(pld->scene, pld->ob);
 	}
@@ -1346,21 +1315,21 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		 *	- note: code copied from transform_generics.c -> recalcData()
 		 */
 		if ((arm->flag & ARM_DELAYDEFORM)==0)
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
 			where_is_pose(scene, ob);
 		
 	}
 	else if (pld->state == PL_PREVIEW_CONFIRM) {
 		/* tag poses as appropriate */
-		poselib_keytag_pose(scene, pld);
+		poselib_keytag_pose(C, scene, pld);
 		
 		/* change active pose setting */
 		act->active_marker= BLI_findindex(&act->markers, marker) + 1;
 		action_set_activemarker(act, marker, 0);
 		
 		/* Update event for pose and deformation children */
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		
 		/* updates */
 		if (IS_AUTOKEY_MODE(scene, NORMAL)) {

@@ -47,6 +47,8 @@ struct Text;
 struct bNodeTree;
 struct AnimData;
 struct Editing;
+struct SceneStats;
+struct bGPdata;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -392,7 +394,7 @@ typedef struct GameData {
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
 	*/
-	short mode, pad11;
+	short mode, flag, matmode, pad[3];
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
@@ -406,6 +408,7 @@ typedef struct GameData {
 	struct GameDome dome;
 	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
 } GameData;
+
 #define STEREO_NOSTEREO		1
 #define STEREO_ENABLED 		2
 #define STEREO_DOME	 		3
@@ -427,6 +430,25 @@ typedef struct GameData {
 #define WOPHY_ODE		4
 #define WOPHY_BULLET	5
 
+/* GameData.flag */
+#define GAME_ENABLE_ALL_FRAMES				(1 << 1)
+#define GAME_SHOW_DEBUG_PROPS				(1 << 2)
+#define GAME_SHOW_FRAMERATE					(1 << 3)
+#define GAME_SHOW_PHYSICS					(1 << 4)
+#define GAME_DISPLAY_LISTS					(1 << 5)
+#define GAME_GLSL_NO_LIGHTS					(1 << 6)
+#define GAME_GLSL_NO_SHADERS				(1 << 7)
+#define GAME_GLSL_NO_SHADOWS				(1 << 8)
+#define GAME_GLSL_NO_RAMPS					(1 << 9)
+#define GAME_GLSL_NO_NODES					(1 << 10)
+#define GAME_GLSL_NO_EXTRA_TEX				(1 << 11)
+#define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
+
+/* GameData.matmode */
+#define GAME_MAT_TEXFACE	0
+#define GAME_MAT_MULTITEX	1
+#define GAME_MAT_GLSL		2
+
 typedef struct TimeMarker {
 	struct TimeMarker *next, *prev;
 	int frame;
@@ -439,8 +461,11 @@ typedef struct Paint {
 	Brush **brushes;
 	int active_brush_index, brush_count;
 	
-	/* WM handle */
+	/* WM Paint cursor */
 	void *paint_cursor;
+	unsigned char paint_cursor_col[4];
+
+	int pad;
 } Paint;
 
 typedef struct ImagePaintSettings {
@@ -468,10 +493,15 @@ typedef struct ParticleEditSettings {
 	ParticleBrushData brush[7]; /* 7 = PE_TOT_BRUSH */
 	void *paintcursor;			/* runtime */
 
-	float emitterdist;
-	int draw_timed;
+	float emitterdist, rt;
 
-	int selectmode, pad;
+	int selectmode;
+	int edittype;
+
+	int draw_step, fade_frames;
+
+	struct Scene *scene;
+	struct Object *object;
 } ParticleEditSettings;
 
 typedef struct TransformOrientation {
@@ -482,9 +512,6 @@ typedef struct TransformOrientation {
 
 typedef struct Sculpt {
 	Paint paint;
-	
-	/* WM handle */
-	void *cursor;
 
 	/* For rotating around a pivot point */
 	float pivot[3];
@@ -702,7 +729,9 @@ typedef struct Scene {
 
 	/* Units */
 	struct UnitSettings unit;
-
+	
+	/* Grease Pencil */
+	struct bGPdata *gpd;
 } Scene;
 
 
@@ -1032,9 +1061,10 @@ typedef enum SculptFlags {
 #define PE_LOCK_FIRST			2
 #define PE_DEFLECT_EMITTER		4
 #define PE_INTERPOLATE_ADDED	8
-#define PE_SHOW_CHILD			16
-#define PE_SHOW_TIME			32
+#define PE_DRAW_PART			16
 #define PE_X_MIRROR				64
+#define PE_FADE_TIME			128
+#define PE_AUTO_VELOCITY		256
 
 /* toolsetting->particle brushtype */
 #define PE_BRUSH_NONE		-1
@@ -1043,11 +1073,15 @@ typedef enum SculptFlags {
 #define PE_BRUSH_LENGTH		2
 #define PE_BRUSH_PUFF		3
 #define PE_BRUSH_ADD		4
-#define PE_BRUSH_WEIGHT		5
-#define PE_BRUSH_SMOOTH		6
+#define PE_BRUSH_SMOOTH		5
 
 /* this must equal ParticleEditSettings.brush array size */
-#define PE_TOT_BRUSH		7  
+#define PE_TOT_BRUSH		6
+
+/* tooksettings->particle edittype */
+#define PE_TYPE_PARTICLES	0
+#define PE_TYPE_SOFTBODY	1
+#define PE_TYPE_CLOTH		2
 
 /* toolsettings->retopo_mode */
 #define RETOPO 1

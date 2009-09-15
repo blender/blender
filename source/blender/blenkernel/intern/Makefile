@@ -51,6 +51,7 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../python
+CPPFLAGS += -I../../blenfont
 # also avi is used
 CPPFLAGS += -I../../avi
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
@@ -89,6 +90,10 @@ CPPFLAGS += -I$(NAN_BULLET2)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 
+# lzo and lzma, for pointcache
+CPPFLAGS += -I$(NAN_LZO)/minilzo
+CPPFLAGS += -I$(NAN_LZMA)
+
 ifeq ($(WITH_FFMPEG),true)
     CPPFLAGS += -DWITH_FFMPEG
     CPPFLAGS += $(NAN_FFMPEGCFLAGS)
@@ -110,3 +115,4 @@ ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I../../quicktime
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
+

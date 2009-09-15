@@ -31,27 +31,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include <errno.h>
+
 #include "zlib.h"
 
 #ifdef WIN32
-#include "BLI_winstuff.h"
 #include <io.h>
+#include "BLI_winstuff.h"
 #else
 #include <unistd.h> // for read close
 #include <sys/param.h>
 #endif
+
 
 #include "BLI_blenlib.h"
 #include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_callbacks.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include "BKE_utildefines.h"
-#include <errno.h>
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -80,6 +82,31 @@ char *BLI_last_slash(const char *string) {
 	
 	if ((intptr_t)lfslash < (intptr_t)lbslash) return lbslash;
 	else return lfslash;
+}
+
+static const char *last_slash_len(const char *string, int len) {
+	int a;
+
+	for(a=len-1; a>=0; a--)
+		if(string[a] == '/' || string[a] == '\\')
+			return &string[a];
+	
+	return NULL;
+}
+
+const char *BLI_short_filename(const char *string) {
+	const char *ls, *lls;
+	
+	ls= last_slash_len(string, strlen(string));
+	if(!ls)
+		return string;
+	
+	lls= last_slash_len(string, ls-string);
+
+	if(lls)
+		return lls+1;
+	else
+		return ls+1;
 }
 
 /* adds a slash if there isnt one there alredy */

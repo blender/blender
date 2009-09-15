@@ -45,7 +45,9 @@ void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_s
 
 void blf_font_size(FontBLF *font, int size, int dpi);
 void blf_font_draw(FontBLF *font, char *str);
+void blf_font_buffer(FontBLF *font, char *str);
 void blf_font_boundbox(FontBLF *font, char *str, rctf *box);
+void blf_font_width_and_height(FontBLF *font, char *str, float *width, float *height);
 float blf_font_width(FontBLF *font, char *str);
 float blf_font_height(FontBLF *font, char *str);
 float blf_font_fixed_width(FontBLF *font);

@@ -47,7 +47,7 @@ struct BevList;
 #define SEGMENTSU(nu)	    ( ((nu)->flagu & CU_CYCLIC) ? (nu)->pntsu : (nu)->pntsu-1 )
 #define SEGMENTSV(nu)	    ( ((nu)->flagv & CU_CYCLIC) ? (nu)->pntsv : (nu)->pntsv-1 )
 
-#define CU_DO_TILT(cu, nu) (((nu->type & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1)
+#define CU_DO_TILT(cu, nu) (((nu->flag & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1)
 #define CU_DO_RADIUS(cu, nu) ((CU_DO_TILT(cu, nu) || cu->bevobj || cu->ext1!=0.0 || cu->ext2!=0.0) ? 1:0)
 
 
@@ -72,7 +72,7 @@ void minmaxNurb( struct Nurb *nu, float *min, float *max);
 void makeknots( struct Nurb *nu, short uv);
 
 void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride);
-void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu);
+void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu, int stride);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 float *make_orco_curve(struct Scene *scene, struct Object *ob);
 float *make_orco_surf( struct Object *ob);

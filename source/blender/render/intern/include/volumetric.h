@@ -1,7 +1,4 @@
-/*
- * vectorops.h
- *
- * $Id$
+/**
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,35 +21,27 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Matt Ebb.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef VECTOROPS_H
-#define VECTOROPS_H 
+float vol_get_stepsize(struct ShadeInput *shi, int context);
+float vol_get_density(struct ShadeInput *shi, float *co);
+void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co, float stepsize, float density);
 
-/* ------------------------------------------------------------------------- */
+void shade_volume_outside(ShadeInput *shi, ShadeResult *shr);
+void shade_volume_inside(ShadeInput *shi, ShadeResult *shr);
+void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is);
 
-void  MTC_diff3Int(int v1[3], int v2[3], int v3[3]);
-void  MTC_cross3Int(int v1[3], int v2[3], int v3[3]);
-int   MTC_dot3Int(int v1[3], int v2[3]); 
+#define STEPSIZE_VIEW	0
+#define STEPSIZE_SHADE	1
 
-void  MTC_diff3Float(float v1[3], float v2[3], float v3[3]);
-void  MTC_cross3Float(float v1[3], float v2[3], float v3[3]);
-float MTC_dot3Float(float v1[3], float v2[3]); 
-void  MTC_cp3Float(float v1[3], float v2[3]);
-/**
- * Copy vector with a minus sign (so a = -b)
- */
-void  MTC_cp3FloatInv(float v1[3], float v2[3]);
+#define VOL_IS_BACKFACE			1
+#define VOL_IS_SAMEMATERIAL		2
 
-void  MTC_swapInt(int *i1, int *i2);
+#define VOL_BOUNDS_DEPTH	0
+#define VOL_BOUNDS_SS		1
 
-void  MTC_diff3DFF(double v1[3], float v2[3], float v3[3]);
-void  MTC_cross3Double(double v1[3], double v2[3], double v3[3]);
-float MTC_normalize3DF(float n[3]);
-
-/* ------------------------------------------------------------------------- */
-#endif /* VECTOROPS_H */
-
+#define VOL_SHADE_OUTSIDE	0
+#define VOL_SHADE_INSIDE	1

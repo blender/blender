@@ -73,24 +73,24 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 	if(scd && scd->dumprect) {
 		Scene *scene= CTX_data_scene(C);
 		ImBuf *ibuf;
-		char filename[FILE_MAX];
+		char path[FILE_MAX];
 	
-		RNA_string_get(op->ptr, "filename", filename);
+		RNA_string_get(op->ptr, "path", path);
 	
-		strcpy(G.ima, filename);
-		BLI_convertstringcode(filename, G.sce);
+		strcpy(G.ima, path);
+		BLI_convertstringcode(path, G.sce);
 		
 		/* BKE_add_image_extension() checks for if extension was already set */
 		if(scene->r.scemode & R_EXTENSION) 
-			if(strlen(filename)<FILE_MAXDIR+FILE_MAXFILE-5)
-				BKE_add_image_extension(scene, filename, scene->r.imtype);
+			if(strlen(path)<FILE_MAXDIR+FILE_MAXFILE-5)
+				BKE_add_image_extension(scene, path, scene->r.imtype);
 		
 		ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0, 0);
 		ibuf->rect= scd->dumprect;
 		
 		if(scene->r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
 		
-		BKE_write_ibuf(scene, ibuf, filename, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+		BKE_write_ibuf(scene, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 
 		IMB_freeImBuf(ibuf);
 
@@ -149,10 +149,10 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		scd->dumprect= dumprect;
 		op->customdata= scd;
 		
-		if(RNA_property_is_set(op->ptr, "filename"))
+		if(RNA_property_is_set(op->ptr, "path"))
 			return screenshot_exec(C, op);
 		
-		RNA_string_set(op->ptr, "filename", G.ima);
+		RNA_string_set(op->ptr, "path", G.ima);
 		
 		WM_event_add_fileselect(C, op);
 	
@@ -173,7 +173,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
 }
 
@@ -327,7 +327,7 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
 }
 

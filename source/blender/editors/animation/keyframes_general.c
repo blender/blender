@@ -127,11 +127,11 @@ void duplicate_fcurve_keys(FCurve *fcu)
 {
 	BezTriple *newbezt;
 	int i;
-
-	if (fcu == NULL)
+	
+	/* this can only work when there is an F-Curve, and also when there are some BezTriples */
+	if ELEM(NULL, fcu, fcu->bezt)
 		return;
 	
-	// XXX this does not take into account sample data...
 	for (i=0; i < fcu->totvert; i++) {
 		/* If a key is selected */
 		if (fcu->bezt[i].f2 & SELECT) {
@@ -160,7 +160,7 @@ void duplicate_fcurve_keys(FCurve *fcu)
 /* **************************************************** */
 /* Various Tools */
 
-/* Basic IPO-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on linear-segments only */
+/* Basic F-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on linear-segments only */
 void clean_fcurve(FCurve *fcu, float thresh)
 {
 	BezTriple *old_bezts, *bezt, *beztn;
@@ -285,75 +285,145 @@ void smooth_fcurve (FCurve *fcu)
 		}
 	}
 	
-		/* if any points were selected, allocate tSmooth_Bezt points to work on */
-		if (totSel >= 3) {
-			tSmooth_Bezt *tarray, *tsb;
-			
-			/* allocate memory in one go */
-			tsb= tarray= MEM_callocN(totSel*sizeof(tSmooth_Bezt), "tSmooth_Bezt Array");
-			
-			/* populate tarray with data of selected points */
-			bezt= fcu->bezt;
-			for (i=0, x=0; (i < fcu->totvert) && (x < totSel); i++, bezt++) {
-				if (BEZSELECTED(bezt)) {
-					/* tsb simply needs pointer to vec, and index */
-					tsb->h1 = &bezt->vec[0][1];
-					tsb->h2 = &bezt->vec[1][1];
-					tsb->h3 = &bezt->vec[2][1];
-					
-					/* advance to the next tsb to populate */
-					if (x < totSel- 1) 
-						tsb++;
-					else
-						break;
-				}
+	/* if any points were selected, allocate tSmooth_Bezt points to work on */
+	if (totSel >= 3) {
+		tSmooth_Bezt *tarray, *tsb;
+		
+		/* allocate memory in one go */
+		tsb= tarray= MEM_callocN(totSel*sizeof(tSmooth_Bezt), "tSmooth_Bezt Array");
+		
+		/* populate tarray with data of selected points */
+		bezt= fcu->bezt;
+		for (i=0, x=0; (i < fcu->totvert) && (x < totSel); i++, bezt++) {
+			if (BEZSELECTED(bezt)) {
+				/* tsb simply needs pointer to vec, and index */
+				tsb->h1 = &bezt->vec[0][1];
+				tsb->h2 = &bezt->vec[1][1];
+				tsb->h3 = &bezt->vec[2][1];
+				
+				/* advance to the next tsb to populate */
+				if (x < totSel- 1) 
+					tsb++;
+				else
+					break;
 			}
+		}
 			
-	/* calculate the new smoothed F-Curve's with weighted averages:
-	 *	- this is done with two passes
-	 *	- uses 5 points for each operation (which stores in the relevant handles)
-	 *	-	previous: w/a ratio = 3:5:2:1:1
-	 *	- 	next: w/a ratio = 1:1:2:5:3
-	 */
+		/* calculate the new smoothed F-Curve's with weighted averages:
+		 *	- this is done with two passes
+		 *	- uses 5 points for each operation (which stores in the relevant handles)
+		 *	-	previous: w/a ratio = 3:5:2:1:1
+		 *	- 	next: w/a ratio = 1:1:2:5:3
+		 */
+		
+		/* round 1: calculate previous and next */ 
+		tsb= tarray;
+		for (i=0; i < totSel; i++, tsb++) {
+			/* don't touch end points (otherwise, curves slowly explode) */
+			if (ELEM(i, 0, (totSel-1)) == 0) {
+				const tSmooth_Bezt *tP1 = tsb - 1;
+				const tSmooth_Bezt *tP2 = (i-2 > 0) ? (tsb - 2) : (NULL);
+				const tSmooth_Bezt *tN1 = tsb + 1;
+				const tSmooth_Bezt *tN2 = (i+2 < totSel) ? (tsb + 2) : (NULL);
+				
+				const float p1 = *tP1->h2;
+				const float p2 = (tP2) ? (*tP2->h2) : (*tP1->h2);
+				const float c1 = *tsb->h2;
+				const float n1 = *tN1->h2;
+				const float n2 = (tN2) ? (*tN2->h2) : (*tN1->h2);
+				
+				/* calculate previous and next */
+				*tsb->h1= (3*p2 + 5*p1 + 2*c1 + n1 + n2) / 12;
+				*tsb->h3= (p2 + p1 + 2*c1 + 5*n1 + 3*n2) / 12;
+			}
+		}
+		
+		/* round 2: calculate new values and reset handles */
+		tsb= tarray;
+		for (i=0; i < totSel; i++, tsb++) {
+			/* calculate new position by averaging handles */
+			*tsb->h2 = (*tsb->h1 + *tsb->h3) / 2;
+			
+			/* reset handles now */
+			*tsb->h1 = *tsb->h2;
+			*tsb->h3 = *tsb->h2;
+		}
+		
+		/* free memory required for tarray */
+		MEM_freeN(tarray);
+	}
 	
-	/* round 1: calculate previous and next */ 
-	tsb= tarray;
-	for (i=0; i < totSel; i++, tsb++) {
-		/* don't touch end points (otherwise, curves slowly explode) */
-		if (ELEM(i, 0, (totSel-1)) == 0) {
-			const tSmooth_Bezt *tP1 = tsb - 1;
-			const tSmooth_Bezt *tP2 = (i-2 > 0) ? (tsb - 2) : (NULL);
-			const tSmooth_Bezt *tN1 = tsb + 1;
-			const tSmooth_Bezt *tN2 = (i+2 < totSel) ? (tsb + 2) : (NULL);
-			
-			const float p1 = *tP1->h2;
-			const float p2 = (tP2) ? (*tP2->h2) : (*tP1->h2);
-			const float c1 = *tsb->h2;
-			const float n1 = *tN1->h2;
-			const float n2 = (tN2) ? (*tN2->h2) : (*tN1->h2);
-			
-			/* calculate previous and next */
-			*tsb->h1= (3*p2 + 5*p1 + 2*c1 + n1 + n2) / 12;
-			*tsb->h3= (p2 + p1 + 2*c1 + 5*n1 + 3*n2) / 12;
+	/* recalculate handles */
+	calchandles_fcurve(fcu);
+}
+
+/* ---------------- */
+
+/* little cache for values... */
+typedef struct tempFrameValCache {
+	float frame, val;
+} tempFrameValCache;
+
+
+/* Evaluates the curves between each selected keyframe on each frame, and keys the value  */
+void sample_fcurve (FCurve *fcu)
+{
+	BezTriple *bezt, *start=NULL, *end=NULL;
+	tempFrameValCache *value_cache, *fp;
+	int sfra, range;
+	int i, n, nIndex;
+	
+	/* find selected keyframes... once pair has been found, add keyframes  */
+	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+		/* check if selected, and which end this is */
+		if (BEZSELECTED(bezt)) {
+			if (start) {
+				/* set end */
+				end= bezt;
+				
+				/* cache values then add keyframes using these values, as adding
+				 * keyframes while sampling will affect the outcome...
+				 *	- only start sampling+adding from index=1, so that we don't overwrite original keyframe
+				 */
+				range= (int)( ceil(end->vec[1][0] - start->vec[1][0]) );
+				sfra= (int)( floor(start->vec[1][0]) );
+				
+				if (range) {
+					value_cache= MEM_callocN(sizeof(tempFrameValCache)*range, "IcuFrameValCache");
+					
+					/* 	sample values 	*/
+					for (n=1, fp=value_cache; n<range && fp; n++, fp++) {
+						fp->frame= (float)(sfra + n);
+						fp->val= evaluate_fcurve(fcu, fp->frame);
+					}
+					
+					/* 	add keyframes with these, tagging as 'breakdowns' 	*/
+					for (n=1, fp=value_cache; n<range && fp; n++, fp++) {
+						nIndex= insert_vert_fcurve(fcu, fp->frame, fp->val, 1);
+						BEZKEYTYPE(fcu->bezt + nIndex)= BEZT_KEYTYPE_BREAKDOWN;
+					}
+					
+					/* free temp cache */
+					MEM_freeN(value_cache);
+					
+					/* as we added keyframes, we need to compensate so that bezt is at the right place */
+					bezt = fcu->bezt + i + range - 1;
+					i += (range - 1);
+				}
+				
+				/* bezt was selected, so it now marks the start of a whole new chain to search */
+				start= bezt;
+				end= NULL;
+			}
+			else {
+				/* just set start keyframe */
+				start= bezt;
+				end= NULL;
+			}
 		}
 	}
 	
-	/* round 2: calculate new values and reset handles */
-	tsb= tarray;
-	for (i=0; i < totSel; i++, tsb++) {
-		/* calculate new position by averaging handles */
-		*tsb->h2 = (*tsb->h1 + *tsb->h3) / 2;
-		
-		/* reset handles now */
-		*tsb->h1 = *tsb->h2;
-		*tsb->h3 = *tsb->h2;
-	}
-	
-	/* free memory required for tarray */
-	MEM_freeN(tarray);
-}
-	
-	/* recalculate handles */
+	/* recalculate channel's handles? */
 	calchandles_fcurve(fcu);
 }
 
@@ -371,7 +441,6 @@ ListBase animcopybuf = {NULL, NULL};
 static float animcopy_firstframe= 999999999.0f;
 
 /* datatype for use in copy/paste buffer */
-// XXX F-Curve editor should use this too
 typedef struct tAnimCopybufItem {
 	struct tAnimCopybufItem *next, *prev;
 	
@@ -530,8 +599,10 @@ short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 				bezt->vec[1][0] += offset;
 				bezt->vec[2][0] += offset;
 				
-				/* insert the keyframe */
-				insert_bezt_fcurve(fcu, bezt);
+				/* insert the keyframe
+				 * NOTE: no special flags here for now
+				 */
+				insert_bezt_fcurve(fcu, bezt, 0); 
 				
 				/* un-apply offset from src beztriple after copying */
 				bezt->vec[0][0] -= offset;

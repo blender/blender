@@ -75,6 +75,8 @@ Brush *add_brush(const char *name)
 	brush->alpha= 0.2f;
 	brush->size= 25;
 	brush->spacing= 10.0f;
+	brush->smooth_stroke_radius= 75;
+	brush->smooth_stroke_factor= 0.9;
 	brush->rate= 0.1f;
 	brush->innerradius= 0.5f;
 	brush->clone.alpha= 0.5;
@@ -402,23 +404,6 @@ float brush_sample_falloff(Brush *brush, float dist)
 		/* formula used by sculpt, with taylor approx 
 		a = 0.5f*(taylor_approx_cos(3.0f*(dist - inner)/(outer - inner)) + 1.0f);
 		return a*brush->alpha; */
-	}
-	else 
-		return 0.0f;
-}
-
-float brush_sample_falloff_noalpha(Brush *brush, float dist)
-{
-	float outer, inner;
-
-	outer = brush->size >> 1;
-	inner = outer*brush->innerradius;
-
-	if (dist <= inner) {
-		return 1.0f;
-	}
-	else if ((dist < outer) && (inner < outer)) {
-		return 1.0f - sqrt((dist - inner)/(outer - inner));
 	}
 	else 
 		return 0.0f;

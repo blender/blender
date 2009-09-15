@@ -69,15 +69,17 @@ void WM_operator_free(wmOperator *op)
 		MEM_freeN(op->properties);
 	}
 
-	if(op->reports) {
+	if(op->reports && (op->flag & OPERATOR_REPORT_FREE)) {
 		BKE_reports_clear(op->reports);
 		MEM_freeN(op->reports);
 	}
 
 	if(op->macro.first) {
-		wmOperator *opm;
-		for(opm= op->macro.first; opm; opm= opm->next) 
+		wmOperator *opm, *opmnext;
+		for(opm= op->macro.first; opm; opm= opmnext) {
+			opmnext = opm->next;
 			WM_operator_free(opm);
+		}
 	}
 	
 	MEM_freeN(op);
@@ -108,7 +110,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	MEM_freeN(buf);
 	
 	/* so the console is redrawn */
-	WM_event_add_notifier(C, NC_CONSOLE|ND_CONSOLE_REPORT, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CONSOLE_REPORT, NULL);
 }
 
 

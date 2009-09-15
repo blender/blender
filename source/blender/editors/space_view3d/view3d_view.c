@@ -63,6 +63,7 @@
 #include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -79,6 +80,10 @@
 #include "GPU_draw.h"
 
 #include "PIL_time.h" /* smoothview */
+
+#if GAMEBLENDER == 1
+#include "SYS_System.h"
+#endif
 
 #include "view3d_intern.h"	// own include
 
@@ -371,6 +376,7 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Smooth View";
 	ot->idname= "VIEW3D_OT_smoothview";
+	ot->description="The time to animate the change of view (in milliseconds)";
 	
 	/* api callbacks */
 	ot->invoke= view3d_smoothview_invoke;
@@ -410,6 +416,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Align Camera To View";
+	ot->description= "Set camera view to active view.";
 	ot->idname= "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
@@ -481,7 +488,10 @@ void initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	/* Negative zfac means x, y, z was behind the camera (in perspective).
 		* This gives flipped directions, so revert back to ok default case.
 	*/
-	if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
+	// NOTE: I've changed this to flip zfac to be positive again for now so that GPencil draws ok
+	// 	-- Aligorith, 2009Aug31
+	//if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
+	if (rv3d->zfac < 0.0f) rv3d->zfac= -rv3d->zfac;
 }
 
 /* always call initgrabz */
@@ -543,6 +553,18 @@ void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4]
 	Mat4MulMat4(pmat, vmat, rv3d->winmat);
 }
 
+/* Uses window coordinates (x,y) and depth component z to find a point in
+   modelspace */
+void view3d_unproject(bglMats *mats, float out[3], const short x, const short y, const float z)
+{
+	double ux, uy, uz;
+
+        gluUnProject(x,y,z, mats->modelview, mats->projection,
+		     (GLint *)mats->viewport, &ux, &uy, &uz );
+	out[0] = ux;
+	out[1] = uy;
+	out[2] = uz;
+}
 
 /* use above call to get projecting mat */
 void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
@@ -1375,6 +1397,7 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Local View";
+	ot->description= "Toggle display of selected object(s) seperately and centered in view.";
 	ot->idname= "VIEW3D_OT_localview";
 	
 	/* api callbacks */
@@ -1426,10 +1449,65 @@ static void RestoreState(bContext *C)
 	glPopAttrib();
 }
 
+/* was space_set_commmandline_options in 2.4x */
+void game_set_commmandline_options(GameData *gm)
+{
+	SYS_SystemHandle syshandle;
+	int test;
+
+	if ( (syshandle = SYS_GetSystem()) ) {
+		/* User defined settings */
+		test= (U.gameflags & USER_DISABLE_SOUND);
+		/* if user already disabled audio at the command-line, don't re-enable it */
+		if (test)
+			SYS_WriteCommandLineInt(syshandle, "noaudio", test);
+
+		test= (U.gameflags & USER_DISABLE_MIPMAP);
+		GPU_set_mipmap(!test);
+		SYS_WriteCommandLineInt(syshandle, "nomipmap", test);
+
+		/* File specific settings: */
+		/* Only test the first one. These two are switched
+		 * simultaneously. */
+		test= (gm->flag & GAME_SHOW_FRAMERATE);
+		SYS_WriteCommandLineInt(syshandle, "show_framerate", test);
+		SYS_WriteCommandLineInt(syshandle, "show_profile", test);
+
+		test = (gm->flag & GAME_SHOW_FRAMERATE);
+		SYS_WriteCommandLineInt(syshandle, "show_properties", test);
+
+		test= (gm->flag & GAME_SHOW_PHYSICS);
+		SYS_WriteCommandLineInt(syshandle, "show_physics", test);
+
+		test= (gm->flag & GAME_ENABLE_ALL_FRAMES);
+		SYS_WriteCommandLineInt(syshandle, "fixedtime", test);
+
+//		a= (G.fileflags & G_FILE_GAME_TO_IPO);
+//		SYS_WriteCommandLineInt(syshandle, "game2ipo", a);
+
+		test= (gm->flag & GAME_IGNORE_DEPRECATION_WARNINGS);
+		SYS_WriteCommandLineInt(syshandle, "ignore_deprecation_warnings", test);
+
+		test= (gm->matmode == GAME_MAT_MULTITEX);
+		SYS_WriteCommandLineInt(syshandle, "blender_material", test);
+		test= (gm->matmode == GAME_MAT_GLSL);
+		SYS_WriteCommandLineInt(syshandle, "blender_glsl_material", test);
+		test= (gm->flag & GAME_DISPLAY_LISTS);
+		SYS_WriteCommandLineInt(syshandle, "displaylists", test);
+
+
+	}
+}
+
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_use_expand_framing);
 
 #endif // GAMEBLENDER == 1
+
+int game_engine_poll(bContext *C)
+{
+	return CTX_data_mode_enum(C)==CTX_MODE_OBJECT ? 1:0;
+}
 
 static int game_engine_exec(bContext *C, wmOperator *unused)
 {
@@ -1462,6 +1540,8 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 
 	view3d_operator_needs_opengl(C);
 	
+	game_set_commmandline_options(&startscene->gm);
+
 	SaveState(C);
 	StartKetsjiShell(C, ar, 1);
 	RestoreState(C);
@@ -1485,12 +1565,13 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Start Game Engine";
+	ot->description= "Start game engine.";
 	ot->idname= "VIEW3D_OT_game_start";
 	
 	/* api callbacks */
 	ot->exec= game_engine_exec;
 	
-	//ot->poll= ED_operator_view3d_active;
+	ot->poll= game_engine_poll;
 }
 
 /* ************************************** */

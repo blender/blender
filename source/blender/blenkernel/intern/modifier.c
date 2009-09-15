@@ -73,11 +73,12 @@
 
 #include "BLI_editVert.h"
 
-#include "MTC_matrixops.h"
-#include "MTC_vectorops.h"
+
+
 
 #include "BKE_main.h"
 #include "BKE_anim.h"
+#include "BKE_action.h"
 #include "BKE_bmesh.h"
 // XXX #include "BKE_booleanops.h"
 #include "BKE_cloth.h"
@@ -1189,7 +1190,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->end_cap && amd->end_cap != ob)
 		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
 
-	MTC_Mat4One(offset);
+	Mat4One(offset);
 
 	indexMap = MEM_callocN(sizeof(*indexMap) * dm->getNumVerts(dm),
 			       "indexmap");
@@ -1211,14 +1212,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		float result_mat[4][4];
 
 		if(ob)
-			MTC_Mat4Invert(obinv, ob->obmat);
+			Mat4Invert(obinv, ob->obmat);
 		else
-			MTC_Mat4One(obinv);
+			Mat4One(obinv);
 
-		MTC_Mat4MulSerie(result_mat, offset,
+		Mat4MulSerie(result_mat, offset,
 				 obinv, amd->offset_ob->obmat,
      NULL, NULL, NULL, NULL, NULL);
-		MTC_Mat4CpyMat4(offset, result_mat);
+		Mat4CpyMat4(offset, result_mat);
 	}
 
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
@@ -1243,7 +1244,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	prescribed length */
 	if(amd->fit_type == MOD_ARR_FITLENGTH
 		  || amd->fit_type == MOD_ARR_FITCURVE) {
-		float dist = sqrt(MTC_dot3Float(offset[3], offset[3]));
+		float dist = sqrt(Inpf(offset[3], offset[3]));
 
 		if(dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
@@ -1276,11 +1277,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		  result = CDDM_from_template(dm, finalVerts, finalEdges, finalFaces);
 
 		  /* calculate the offset matrix of the final copy (for merging) */ 
-		  MTC_Mat4One(final_offset);
+		  Mat4One(final_offset);
 
 		  for(j=0; j < count - 1; j++) {
-			  MTC_Mat4MulMat4(tmp_mat, final_offset, offset);
-			  MTC_Mat4CpyMat4(final_offset, tmp_mat);
+			  Mat4MulMat4(tmp_mat, final_offset, offset);
+			  Mat4CpyMat4(final_offset, tmp_mat);
 		  }
 
 		  numVerts = numEdges = numFaces = 0;
@@ -1316,7 +1317,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  if((count > 1) && (amd->flags & MOD_ARR_MERGE)) {
 				  float tmp_co[3];
 				  VECCOPY(tmp_co, mv->co);
-				  MTC_Mat4MulVecfl(offset, tmp_co);
+				  Mat4MulVecfl(offset, tmp_co);
 
 				  for(j = 0; j < maxVerts; j++) {
 					  /* if vertex already merged, don't use it */
@@ -1331,7 +1332,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 						  if(amd->flags & MOD_ARR_MERGEFINAL) {
 							  VECCOPY(tmp_co, inMV->co);
 							  inMV = &src_mvert[i];
-							  MTC_Mat4MulVecfl(final_offset, tmp_co);
+							  Mat4MulVecfl(final_offset, tmp_co);
 							  if(VecLenCompare(tmp_co, inMV->co, amd->merge_dist))
 								  indexMap[i].merge_final = 1;
 						  }
@@ -1349,7 +1350,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  *mv2 = *mv;
 					  numVerts++;
 
-					  MTC_Mat4MulVecfl(offset, co);
+					  Mat4MulVecfl(offset, co);
 					  VECCOPY(mv2->co, co);
 				  }
 			  } else if(indexMap[i].merge != i && indexMap[i].merge_final) {
@@ -3181,7 +3182,7 @@ static void tag_and_count_extra_edges(SmoothMesh *mesh, float split_angle,
 							 /* we know the edge has 2 faces, so check the angle */
 							 SmoothFace *face1 = edge->faces->link;
 							 SmoothFace *face2 = edge->faces->next->link;
-							 float edge_angle_cos = MTC_dot3Float(face1->normal,
+							 float edge_angle_cos = Inpf(face1->normal,
 									 face2->normal);
 
 							 if(edge_angle_cos < threshold) {
@@ -4050,11 +4051,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				/* find the projector which the face points at most directly
 				* (projector normal with largest dot product is best)
 				*/
-				best_dot = MTC_dot3Float(projectors[0].normal, face_no);
+				best_dot = Inpf(projectors[0].normal, face_no);
 				best_projector = &projectors[0];
 
 				for(j = 1; j < num_projectors; ++j) {
-					float tmp_dot = MTC_dot3Float(projectors[j].normal,
+					float tmp_dot = Inpf(projectors[j].normal,
 							face_no);
 					if(tmp_dot > best_dot) {
 						best_dot = tmp_dot;
@@ -5598,6 +5599,7 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
 	strncpy(thmd->name, hmd->name, 32);
+	strncpy(thmd->subtarget, hmd->subtarget, 32);
 }
 
 CustomDataMask hookModifier_requiredDataMask(Object *ob, ModifierData *md)
@@ -5642,9 +5644,11 @@ static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Sce
 
 	if (hmd->object) {
 		DagNode *curNode = dag_get_node(forest, hmd->object);
-
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
-			"Hook Modifier");
+		
+		if (hmd->subtarget[0])
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA|DAG_RL_DATA_DATA, "Hook Modifier");
+		else
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA, "Hook Modifier");
 	}
 }
 
@@ -5653,12 +5657,22 @@ static void hookModifier_deformVerts(
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
-	float vec[3], mat[4][4];
+	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
+	float vec[3], mat[4][4], dmat[4][4];
 	int i;
 	DerivedMesh *dm = derivedData;
-
+	
+	/* get world-space matrix of target, corrected for the space the verts are in */
+	if (hmd->subtarget[0] && pchan) {
+		/* bone target if there's a matching pose-channel */
+		Mat4MulMat4(dmat, pchan->pose_mat, hmd->object->obmat);
+	}
+	else {
+		/* just object target */
+		Mat4CpyMat4(dmat, hmd->object->obmat);
+	}
 	Mat4Invert(ob->imat, ob->obmat);
-	Mat4MulSerie(mat, ob->imat, hmd->object->obmat, hmd->parentinv,
+	Mat4MulSerie(mat, ob->imat, dmat, hmd->parentinv,
 		     NULL, NULL, NULL, NULL, NULL);
 
 	/* vertex indices? */
@@ -5715,7 +5729,8 @@ static void hookModifier_deformVerts(
 				}
 			}
 		}
-	} else {	/* vertex group hook */
+	} 
+	else if(hmd->name[0]) {	/* vertex group hook */
 		bDeformGroup *curdef;
 		Mesh *me = ob->data;
 		int index = 0;
@@ -5801,26 +5816,6 @@ static void smokeModifier_initData(ModifierData *md)
 	smd->coll = NULL;
 	smd->type = 0;
 	smd->time = -1;
-	
-	/*
-	smd->fluid = NULL;
-	smd->maxres = 48;
-	smd->amplify = 4;
-	smd->omega = 0.5;
-	smd->time = 0;
-	smd->flags = 0;
-	smd->noise = MOD_SMOKE_NOISEWAVE;
-	smd->visibility = 1;
-	
-	// init 3dview buffer
-	smd->tvox = NULL;
-	smd->tray = NULL;
-	smd->tvoxbig = NULL;
-	smd->traybig = NULL;
-	smd->viewsettings = 0;
-	smd->bind = NULL;
-	smd->max_textures = 0;
-	*/
 }
 
 static void smokeModifier_freeData(ModifierData *md)
@@ -6701,10 +6696,8 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 		if((psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) && pimd->flag & eParticleInstanceFlag_Path){
 			float ran = 0.0f;
 			if(pimd->random_position != 0.0f) {
-				/* just use some static collection of random numbers */
-				/* TODO: use something else that's unique to each instanced object */
-				pa = psys->particles + (i/totvert)%totpart;
-				ran = pimd->random_position * 0.5 * (1.0f + pa->r_ave[0]);
+				BLI_srandom(psys->seed + (i/totvert)%totpart);
+				ran = pimd->random_position * BLI_frand();
 			}
 
 			if(pimd->flag & eParticleInstanceFlag_KeepShape) {
@@ -8078,14 +8071,13 @@ static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob,
 						   int useRenderParams, int isFinalCalc)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
-	Mesh *me = get_mesh(ob);
 	DerivedMesh *final;
 
 	/* TODO: for now just skip a level1 mesh */
 	if(mmd->lvl == 1)
 		return dm;
 
-	final = multires_dm_create_from_derived(mmd, dm, me, useRenderParams, isFinalCalc);
+	final = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
 	if(mmd->undo_signal && mmd->undo_verts && mmd->undo_verts_tot == final->getNumVerts(final)) {
 		int i;
 		MVert *dst = CDDM_get_verts(final);
@@ -8580,7 +8572,9 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = smokeModifier_initData;
 		mti->freeData = smokeModifier_freeData; 
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_UsesPointCache
+				| eModifierTypeFlag_Single;
 		mti->deformVerts = smokeModifier_deformVerts;
 		mti->dependsOnTime = smokeModifier_dependsOnTime;
 		mti->updateDepgraph = smokeModifier_updateDepgraph;
@@ -8611,7 +8605,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Surface);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = surfaceModifier_initData;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_NoUserAdd;
 		mti->dependsOnTime = surfaceModifier_dependsOnTime;
 		mti->freeData = surfaceModifier_freeData; 
 		mti->deformVerts = surfaceModifier_deformVerts;

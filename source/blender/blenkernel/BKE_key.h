@@ -52,8 +52,9 @@ struct Key *copy_key(struct Key *key);
 void make_local_key(struct Key *key);
 void sort_keys(struct Key *key);
 
-void set_four_ipo(float d, float *data, int type);
-void set_afgeleide_four_ipo(float d, float *data, int type);
+void key_curve_position_weights(float t, float *data, int type);
+void key_curve_tangent_weights(float t, float *data, int type);
+void key_curve_normal_weights(float t, float *data, int type);
 
 /* only exported to curve.c! */
 void cp_cu_key(struct Curve *cu, struct KeyBlock *kb, int start, int end);

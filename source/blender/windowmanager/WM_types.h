@@ -130,9 +130,10 @@ typedef struct wmNotifier {
 #define	NC_BRUSH			(11<<24)
 #define	NC_TEXT				(12<<24)
 #define NC_WORLD			(13<<24)
-#define NC_FILE				(14<<24)
-#define NC_ANIMATION		(15<<24)
-#define NC_CONSOLE			(16<<24)
+#define NC_ANIMATION		(14<<24)
+#define NC_SPACE			(15<<24)
+#define NC_NODE				(15<<24)
+#define	NC_GEOM				(16<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -147,6 +148,7 @@ typedef struct wmNotifier {
 #define ND_SCREENDELETE		(2<<16)
 #define ND_SCREENCAST		(3<<16)
 #define ND_ANIMPLAY			(4<<16)
+#define ND_GPENCIL			(5<<16)
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)
@@ -169,13 +171,12 @@ typedef struct wmNotifier {
 #define ND_POSE				(18<<16)
 #define ND_BONE_ACTIVE		(19<<16)
 #define ND_BONE_SELECT		(20<<16)
-#define ND_GEOM_SELECT		(21<<16)
-#define ND_DRAW				(22<<16)
-#define ND_MODIFIER			(23<<16)
-#define ND_KEYS				(24<<16)
-#define ND_GEOM_DATA		(25<<16)
-#define ND_CONSTRAINT		(26<<16)
-#define ND_PARTICLE			(27<<16)
+#define ND_DRAW				(21<<16)
+#define ND_MODIFIER			(22<<16) /* modifiers edited */
+#define ND_KEYS				(23<<16)
+#define ND_CONSTRAINT		(24<<16) /* constraints edited */
+#define ND_PARTICLE_DATA	(25<<16) /* particles edited */
+#define ND_PARTICLE_SELECT	(26<<16) /* particles selecting change */
 
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)
@@ -190,10 +191,6 @@ typedef struct wmNotifier {
 #define ND_CURSOR			(50<<16)
 #define ND_DISPLAY			(51<<16)
 	
-	/* NC_FILE Filebrowser */
-#define ND_PARAMS			(60<<16)
-#define ND_FILELIST			(61<<16)
-
 	/* NC_ANIMATION Animato */
 #define ND_KEYFRAME_SELECT	(70<<16)
 #define ND_KEYFRAME_EDIT	(71<<16)
@@ -204,9 +201,28 @@ typedef struct wmNotifier {
 #define ND_NLA_EDIT			(76<<16)
 #define ND_NLA_ACTCHANGE	(77<<16)
 
-	/* console */
-#define ND_CONSOLE			(78<<16) /* general redraw */
-#define ND_CONSOLE_REPORT	(79<<16) /* update for reports, could spesify type */
+	/* NC_GEOM Geometry */
+	/* Mesh, Curve, MetaBall, Armature, .. */
+#define ND_SELECT			(80<<16)
+#define ND_DATA				(81<<16)
+
+	/* NC_SPACE */
+#define ND_SPACE_CONSOLE		(1<<16) /* general redraw */
+#define ND_SPACE_CONSOLE_REPORT	(2<<16) /* update for reports, could specify type */
+#define ND_SPACE_INFO			(2<<16)
+#define ND_SPACE_IMAGE			(3<<16)
+#define ND_SPACE_FILE_PARAMS	(4<<16)
+#define ND_SPACE_FILE_LIST		(5<<16)
+#define ND_SPACE_NODE			(6<<16)
+#define ND_SPACE_OUTLINER		(7<<16)
+#define ND_SPACE_VIEW3D			(8<<16)
+#define ND_SPACE_PROPERTIES		(9<<16)
+#define ND_SPACE_TEXT			(10<<16)
+#define ND_SPACE_TIME			(11<<16)
+#define ND_SPACE_GRAPH			(12<<16)
+#define ND_SPACE_DOPESHEET		(13<<16)
+#define ND_SPACE_NLA			(14<<16)
+#define ND_SPACE_SEQUENCER		(15<<16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00
@@ -281,8 +297,15 @@ typedef struct wmTimer {
 	double delta;			/* time since previous step in seconds */
 	
 	double ltime;			/* internal, last time timer was activated */
+	double ntime;			/* internal, next time we want to activate the timer */
+	double stime;			/* internal, when the timer started */
 	int sleep;				/* internal, put timers to sleep when needed */
 } wmTimer;
+
+
+/* **************** Paint Cursor ******************* */
+
+typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata);
 
 
 /* ****************** Messages ********************* */

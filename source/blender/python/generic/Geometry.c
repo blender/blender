@@ -523,7 +523,7 @@ static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
 	
 	coord_array = MEM_callocN(dims * (resolu) * sizeof(float), "BezierInterp");
 	for(i=0; i<dims; i++) {
-		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array+i, resolu-1, dims);
+		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array+i, resolu-1, sizeof(float)*dims);
 	}
 	
 	list= PyList_New(resolu);

@@ -269,6 +269,8 @@ void WM_exit(bContext *C)
 
 	CTX_free(C);
 	
+	SYS_DeleteSystem(SYS_GetSystem());
+
 	if(MEM_get_memory_blocks_in_use()!=0) {
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
@@ -284,9 +286,6 @@ void WM_exit(bContext *C)
 		getchar();
 	}
 #endif 
-	
-	
-	SYS_DeleteSystem(SYS_GetSystem());
 	
 	exit(G.afbreek==1);
 }

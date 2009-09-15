@@ -72,7 +72,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 {
 	uiBut *but=NULL;
 	const char *propname= RNA_property_identifier(prop);
-	int arraylen= RNA_property_array_length(prop);
+	int arraylen= RNA_property_array_length(ptr, prop);
 
 	switch(RNA_property_type(prop)) {
 		case PROP_BOOLEAN: {
@@ -81,7 +81,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			if(arraylen && index == -1)
 				return NULL;
 
-			length= RNA_property_array_length(prop);
+			length= RNA_property_array_length(ptr, prop);
 
 			if(length)
 				value= RNA_property_boolean_get_index(ptr, prop, index);
@@ -108,7 +108,12 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 				but= uiDefButR(block, NUM, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		case PROP_ENUM:
-			but= uiDefButR(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			if(icon && name && strcmp(name, "") == 0)
+				but= uiDefIconButR(block, MENU, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			else if(icon)
+				but= uiDefIconTextButR(block, MENU, 0, icon, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			else
+				but= uiDefButR(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		case PROP_STRING:
 			if(icon && name && strcmp(name, "") == 0)
@@ -175,7 +180,7 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int 
 		if(strcmp(name, "Axis")==0) {
 			uiDefButR(uiLayoutGetBlock(col), BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, "axis", -1, 0, 0, -1, -1, NULL);
 		}
-		else uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0, 0);
+		else uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0);
 	}
 	RNA_STRUCT_END;
 }
@@ -440,6 +445,20 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 			but= uiDefBut(block, BUT, 0, str1, x, y, butwidth, DEF_BUT_HEIGHT, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 			uiButSetNFunc(but, idpoin_cb, MEM_dupallocN(params), SET_INT_IN_POINTER(UI_ID_ALONE));
 			x+= butwidth;
+			
+			uiBlockClearButLock(block);
+		}
+		
+		/* add button */
+		if(events & UI_ID_ADD_NEW) {
+			uiBlockSetButLock(block, (events & UI_ID_PIN) && *pin_p, "Can't unlink pinned data");
+			if(parid && parid->lib);
+			else {
+				dup_params= MEM_dupallocN(params);
+				but= uiDefIconBut(block, BUT, 0, ICON_ZOOMIN, x,y,DEF_ICON_BUT_WIDTH,DEF_BUT_HEIGHT, &dup_params->browsenr, params->browsenr, 32767.0, 0, 0, "Add new data block");
+				uiButSetNFunc(but, idpoin_cb, MEM_dupallocN(params), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
+				x+= DEF_ICON_BUT_WIDTH;
+			}
 			
 			uiBlockClearButLock(block);
 		}

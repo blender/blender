@@ -27,52 +27,52 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC .
-  ../editors/include
-  ../../../intern/guardedalloc ../../../intern/memutil
-  ../blenlib ../makesdna ../makesrna ../blenkernel
-  ../include ../imbuf ../render/extern/include
-  ../../../intern/bsp/extern ../radiosity/extern/include
-  ../../../intern/decimation/extern ../blenloader
-  ../../kernel/gen_system ../readstreamglue
-  ../quicktime ../../../intern/elbeem/extern
-  ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
-  ../nodes
-  ../gpu
-  ../blenfont
-  ${OPENGL_INCLUDE_DIR}
+	../editors/include
+	../../../intern/guardedalloc ../../../intern/memutil
+	../blenlib ../makesdna ../makesrna ../blenkernel
+	../include ../imbuf ../render/extern/include
+	../../../intern/bsp/extern
+	../../../intern/decimation/extern ../blenloader
+	../../kernel/gen_system ../readstreamglue
+	../../../intern/elbeem/extern
+	../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
+	../nodes
+	../gpu
+	../blenfont
+	${OPENGL_INCLUDE_DIR}
 )
 
 IF(WITH_INTERNATIONAL)
-  ADD_DEFINITIONS(-DINTERNATIONAL)
+	ADD_DEFINITIONS(-DINTERNATIONAL)
 ENDIF(WITH_INTERNATIONAL)
 
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
-  SET(INC ${INC} ${FFMPEG_INC})
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	SET(INC ${INC} ${FFMPEG_INC})
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 IF(WITH_PYTHON)
-  SET(INC ${INC} ../python ${PYTHON_INC})
+	SET(INC ${INC} ../python ${PYTHON_INC})
 ELSE(WITH_PYTHON)
-  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)
 
 IF(WIN32)
-  SET(INC ${INC} ${PTHREADS_INC})
+	SET(INC ${INC} ${PTHREADS_INC})
 ENDIF(WIN32)
 
 # TODO buildinfo
 IF(BF_BUILDINFO)
-  ADD_DEFINITIONS(-DNAN_BUILDINFO)
+	ADD_DEFINITIONS(-DNAN_BUILDINFO)
 ENDIF(BF_BUILDINFO)
 
 BLENDERLIB_NOLIST(bf_windowmanager "${SRC}" "${INC}")

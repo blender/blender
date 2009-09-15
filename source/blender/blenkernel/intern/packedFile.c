@@ -63,6 +63,14 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 
+#ifdef _WIN32
+#define open _open
+#define close _close
+#define read _read
+#define write _write
+#endif
+
+
 int seekPackedFile(PackedFile *pf, int offset, int whence)
 {
 	int oldseek = -1, seek = 0;
@@ -473,7 +481,7 @@ int unpackSound(ReportList *reports, bSound *sound, int how)
 			freePackedFile(sound->packedfile);
 			sound->packedfile = 0;
 
-			sound_load(sound);
+			sound_load(NULL, sound);
 
 			ret_value = RET_OK;
 		}

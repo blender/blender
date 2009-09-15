@@ -125,9 +125,8 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	
 	switch (ob->type){
 		case OB_ARMATURE:
-			
+			ob->restore_mode = ob->mode;
 			ob->mode |= OB_MODE_POSE;
-			base->flag= ob->flag;
 			
 			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_POSE, NULL);
 			
@@ -136,7 +135,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			return;
 	}
 
-	ED_object_toggle_modes(C, ob->mode);
+	//ED_object_toggle_modes(C, ob->mode);
 }
 
 void ED_armature_exit_posemode(bContext *C, Base *base)
@@ -144,8 +143,8 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 	if(base) {
 		Object *ob= base->object;
 		
+		ob->restore_mode = ob->mode;
 		ob->mode &= ~OB_MODE_POSE;
-		base->flag= ob->flag;
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}	
@@ -760,6 +759,7 @@ void pose_copy_menu(Scene *scene)
 						break;
 					case 2: /* Local Rotation */
 						QUATCOPY(pchan->quat, pchanact->quat);
+						VECCOPY(pchan->eul, pchanact->eul);
 						break;
 					case 3: /* Local Size */
 						VECCOPY(pchan->size, pchanact->size);
@@ -808,11 +808,21 @@ void pose_copy_menu(Scene *scene)
 						break;
 					case 10: /* Visual Rotation */
 					{
-						float delta_mat[4][4], quat[4];
+						float delta_mat[4][4];
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
-						Mat4ToQuat(delta_mat, quat);
-						QUATCOPY(pchan->quat, quat);
+						
+						if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+							float tmp_quat[4];
+							
+							/* need to convert to quat first (in temp var)... */
+							Mat4ToQuat(delta_mat, tmp_quat);
+							QuatToAxisAngle(tmp_quat, &pchan->quat[1], &pchan->quat[0]);
+						}
+						else if (pchan->rotmode == PCHAN_ROT_QUAT)
+							Mat4ToQuat(delta_mat, pchan->quat);
+						else
+							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -889,7 +899,7 @@ void pose_copy_menu(Scene *scene)
 			ob->pose->flag |= POSE_RECALC;
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);	// and all its relations
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);	// and all its relations
 	
 	BIF_undo_push("Copy Pose Attributes");
 	
@@ -951,6 +961,11 @@ void POSE_OT_copy (wmOperatorType *ot)
 
 /* ---- */
 
+/* Pointers to the builtin KeyingSets that we want to use */
+static KeyingSet *posePaste_ks_locrotscale = NULL;		/* the only keyingset we'll need */
+
+/* ---- */
+
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -958,6 +973,13 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	bPoseChannel *chan, *pchan;
 	char name[32];
 	int flip= RNA_boolean_get(op->ptr, "flipped");
+	
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
 	
 	/* sanity checks */
 	if ELEM(NULL, ob, ob->pose)
@@ -990,20 +1012,33 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				/* check if rotation modes are compatible (i.e. do they need any conversions) */
 				if (pchan->rotmode == chan->rotmode) {
 					/* copy the type of rotation in use */
-					if (pchan->rotmode) {
+					if (pchan->rotmode > 0) {
 						VECCOPY(pchan->eul, chan->eul);
 					}
 					else {
 						QUATCOPY(pchan->quat, chan->quat);
 					}
 				}
-				else if (pchan->rotmode) {
-					/* quat to euler */
-					QuatToEul(chan->quat, pchan->eul);
+				else if (pchan->rotmode > 0) {
+					/* quat/axis-angle to euler */
+					if (chan->rotmode == PCHAN_ROT_AXISANGLE)
+						AxisAngleToEulO(&chan->quat[1], chan->quat[0], pchan->eul, pchan->rotmode);
+					else
+						QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
+				}
+				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+					/* quat/euler to axis angle */
+					if (chan->rotmode > 0)
+						EulOToAxisAngle(chan->eul, chan->rotmode, &pchan->quat[1], &pchan->quat[0]);
+					else	
+						QuatToAxisAngle(chan->quat, &pchan->quat[1], &pchan->quat[0]);
 				}
 				else {
-					/* euler to quat */
-					EulToQuat(chan->eul, pchan->quat);
+					/* euler/axis-angle to quat */
+					if (chan->rotmode > 0)
+						EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
+					else
+						AxisAngleToQuat(pchan->quat, &chan->quat[1], chan->quat[0]);
 				}
 				
 				/* paste flipped pose? */
@@ -1011,9 +1046,24 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					pchan->loc[0]*= -1;
 					
 					/* has to be done as eulers... */
-					if (pchan->rotmode) {
+					if (pchan->rotmode > 0) {
 						pchan->eul[1] *= -1;
 						pchan->eul[2] *= -1;
+					}
+					else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+						float eul[3];
+						
+						AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], eul, EULER_ORDER_DEFAULT);
+						eul[1]*= -1;
+						eul[2]*= -1;
+						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
+						
+						// experimental method (uncomment to test):
+#if 0
+						/* experimental method: just flip the orientation of the axis on x/y axes */
+						pchan->quat[1] *= -1;
+						pchan->quat[2] *= -1;
+#endif
 					}
 					else {
 						float eul[3];
@@ -1025,28 +1075,16 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				
-#if 0 // XXX old animation system
-				if (autokeyframe_cfra_can_key(ob)) {
-					ID *id= &ob->id;
+				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+					/* Set keys on pose
+					 *	- KeyingSet to use depends on rotation mode 
+					 *	(but that's handled by the templates code)  
+					 */
+					// TODO: for getting the KeyingSet used, we should really check which channels were affected
+					if (posePaste_ks_locrotscale == NULL)
+						posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
-					/* Set keys on pose */
-					// TODO: make these use keyingsets....
-					if (chan->flag & POSE_ROT) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					}
-					if (chan->flag & POSE_SIZE) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
-					}
-					if (chan->flag & POSE_LOC) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-					}
+					modify_keyframes(C, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
 					if (chan->bone)
@@ -1057,13 +1095,12 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					if (chan->bone)
 						chan->bone->flag |= BONE_UNKEYED;
 				}
-#endif // XXX old animation system
 			}
 		}
 	}
 
 	/* Update event for pose and deformation children */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	
 	if (IS_AUTOKEY_ON(scene)) {
 // XXX		remake_action_ipos(ob->action);
@@ -1120,7 +1157,7 @@ void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
 
 	
 	// and all its relations
-	DAG_object_flush_update(scene, meshobj, OB_RECALC_DATA);
+	DAG_id_flush_update(&meshobj->id, OB_RECALC_DATA);
 }
 
 /* ********************************************** */
@@ -1536,7 +1573,6 @@ void pose_select_grouped_menu (Scene *scene)
 
 static int pose_flip_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -1556,7 +1592,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1583,7 +1619,6 @@ void POSE_OT_flip_names (wmOperatorType *ot)
 
 static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -1604,7 +1639,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1672,8 +1707,8 @@ void pose_activate_flipped_bone(Scene *scene)
 			
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-					vertexgroup_select_by_name(OBACT, name);
-					DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+					ED_vgroup_select_by_name(OBACT, name);
+					DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 				}
 				
 				// XXX notifiers need to be sent to other editors to update
@@ -1946,6 +1981,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers that bone belongs to.");
 }
 
+/* ********************************************** */
 
 #if 0
 // XXX old sys
@@ -2112,7 +2148,7 @@ void pose_relax(Scene *scene)
 		pchan->bone->flag &= ~ BONE_TRANSFORM;
 	
 	/* do depsgraph flush */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Relax Pose");
 }
 
@@ -2207,7 +2243,7 @@ void pose_clear_user_transforms(Scene *scene, Object *ob)
 		rest_pose(ob->pose);
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Clear User Transform");
 }
 

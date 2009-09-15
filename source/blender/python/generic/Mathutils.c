@@ -353,7 +353,7 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 	VectorObject *vec = NULL;
 	char *axis = NULL;
 	int matSize;
-	float angle = 0.0f, norm = 0.0f, cosAngle = 0.0f, sinAngle = 0.0f;
+	float angle = 0.0f;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -437,40 +437,8 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		mat[8] = 1.0f;
 	} else if((strcmp(axis, "r") == 0) || (strcmp(axis, "R") == 0)) {
 		//arbitrary rotation
-		//normalize arbitrary axis
-		norm = (float) sqrt(vec->vec[0] * vec->vec[0] +
-				       vec->vec[1] * vec->vec[1] +
-				       vec->vec[2] * vec->vec[2]);
-		vec->vec[0] /= norm;
-		vec->vec[1] /= norm;
-		vec->vec[2] /= norm;
-		
-		if (isnan(vec->vec[0]) || isnan(vec->vec[1]) || isnan(vec->vec[2])) {
-			/* zero length vector, return an identity matrix, could also return an error */
-			mat[0]= mat[4] = mat[8] = 1.0f;
-		} else {	
-			/* create matrix */
-			cosAngle = (float) cos(angle);
-			sinAngle = (float) sin(angle);
-			mat[0] = ((vec->vec[0] * vec->vec[0]) * (1 - cosAngle)) +
-				cosAngle;
-			mat[1] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) +
-				(vec->vec[2] * sinAngle);
-			mat[2] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) -
-				(vec->vec[1] * sinAngle);
-			mat[3] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) -
-				(vec->vec[2] * sinAngle);
-			mat[4] = ((vec->vec[1] * vec->vec[1]) * (1 - cosAngle)) +
-				cosAngle;
-			mat[5] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) +
-				(vec->vec[0] * sinAngle);
-			mat[6] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) +
-				(vec->vec[1] * sinAngle);
-			mat[7] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) -
-				(vec->vec[0] * sinAngle);
-			mat[8] = ((vec->vec[2] * vec->vec[2]) * (1 - cosAngle)) +
-				cosAngle;
-		}
+		AxisAngleToMat3(vec->vec, angle, (float *)mat);
+
 	} else {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): unrecognizable axis of rotation type - expected x,y,z or r\n");
 		return NULL;

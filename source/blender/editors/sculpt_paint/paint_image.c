@@ -3707,7 +3707,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	ProjPaintImage *last_projIma= NULL;
 	ImagePaintPartialRedraw *last_partial_redraw_cell;
 	
-	float rgba[4], alpha, dist_nosqrt;
+	float rgba[4], alpha, dist_nosqrt, dist;
 	
 	float brush_size_sqared;
 	float falloff;
@@ -3721,6 +3721,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	float co[2];
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
+	float size_half = ((float)ps->brush->size) * 0.5f;
 	
 	LinkNode *smearPixels = NULL;
 	LinkNode *smearPixels_f = NULL;
@@ -3755,8 +3756,8 @@ static void *do_projectpaint_thread(void *ph_v)
 			dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCoSS, pos);
 			
 			/*if (dist < s->brush->size) {*/ /* correct but uses a sqrtf */
-			if (dist_nosqrt < brush_size_sqared) {
-				falloff = brush_sample_falloff_noalpha(ps->brush, sqrtf(dist_nosqrt));
+			if (dist_nosqrt < brush_size_sqared && (dist=sqrtf(dist_nosqrt)) < size_half) {
+				falloff = brush_curve_strength(ps->brush, dist, size_half);
 				if (falloff > 0.0f) {
 					if (ps->is_texbrush) {
 						brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
@@ -4612,11 +4613,13 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 static void paint_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 {
 	PaintOperation *pop= op->customdata;
-	float time;
+	float time, mousef[2];
 	float pressure;
 	int mouse[2], redraw;
 
-	RNA_int_get_array(itemptr, "mouse", mouse);
+	RNA_float_get_array(itemptr, "mouse", mousef);
+	mouse[0] = mousef[0];
+	mouse[1] = mousef[1];
 	time= RNA_float_get(itemptr, "time");
 	pressure= RNA_float_get(itemptr, "pressure");
 
@@ -4696,7 +4699,7 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	PaintOperation *pop= op->customdata;
 	wmTabletData *wmtab;
 	PointerRNA itemptr;
-	float pressure;
+	float pressure, mousef[2];
 	double time;
 	int tablet, mouse[2];
 
@@ -4717,7 +4720,7 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		tablet= (wmtab->Active != EVT_TABLET_NONE);
 		pressure= wmtab->Pressure;
 		if(wmtab->Active == EVT_TABLET_ERASER)
-			pop->s.blend= BRUSH_BLEND_ERASE_ALPHA;
+			pop->s.blend= IMB_BLEND_ERASE_ALPHA;
 	}
 	else
 		pressure= 1.0f;
@@ -4737,7 +4740,9 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	/* fill in stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
-	RNA_int_set_array(&itemptr, "mouse", mouse);
+	mousef[0] = mouse[0];
+	mousef[1] = mouse[1];
+	RNA_float_set_array(&itemptr, "mouse", mousef);
 	RNA_float_set(&itemptr, "time", (float)(time - pop->starttime));
 	RNA_float_set(&itemptr, "pressure", pressure);
 
@@ -5170,7 +5175,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
 							 NULL, me->totface);
 
-		paint_init(&scene->toolsettings->imapaint.paint, "Brush");
+		paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 
 		if(U.glreslimit != 0)
 			GPU_free_images();
@@ -5179,7 +5184,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		toggle_paint_cursor(C, 1);
 	}
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);
 
 	return OPERATOR_FINISHED;

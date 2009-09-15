@@ -232,7 +232,8 @@ void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "(De)Select All";
 	ot->idname= "SEQUENCER_OT_select_all_toggle";
-
+	ot->description="Select or deselect all strips.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_deselect_exec;
 
@@ -272,7 +273,8 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Inverse";
 	ot->idname= "SEQUENCER_OT_select_inverse";
-
+	ot->description="Select unselected strips.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_select_inverse_exec;
 
@@ -448,6 +450,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Activate/Select";
 	ot->idname= "SEQUENCER_OT_select";
+	ot->description="Select a strip (last selected becomes the \"active strip\").";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_select_invoke;
@@ -533,6 +536,7 @@ void SEQUENCER_OT_select_more(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select More";
 	ot->idname= "SEQUENCER_OT_select_more";
+	ot->description="DOC_BROKEN";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_more_exec;
@@ -562,6 +566,7 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select less";
 	ot->idname= "SEQUENCER_OT_select_less";
+	ot->description="DOC_BROKEN";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_less_exec;
@@ -616,6 +621,7 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select pick linked";
 	ot->idname= "SEQUENCER_OT_select_linked_pick";
+	ot->description="DOC_BROKEN";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_select_linked_pick_invoke;
@@ -650,7 +656,8 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select linked";
 	ot->idname= "SEQUENCER_OT_select_linked";
-
+	ot->description="DOC_BROKEN";
+	
 	/* api callbacks */
 	ot->exec= sequencer_select_linked_exec;
 	ot->poll= ED_operator_sequencer_active;
@@ -701,7 +708,8 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Handles";
 	ot->idname= "SEQUENCER_OT_select_handles";
-
+	ot->description="DOC_BROKEN";
+	
 	/* api callbacks */
 	ot->exec= sequencer_select_handles_exec;
 	ot->poll= ED_operator_sequencer_active;
@@ -737,7 +745,8 @@ void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Active Side";
 	ot->idname= "SEQUENCER_OT_select_active_side";
-
+	ot->description="DOC_BROKEN";
+	
 	/* api callbacks */
 	ot->exec= sequencer_select_active_side_exec;
 	ot->poll= ED_operator_sequencer_active;
@@ -799,6 +808,7 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "SEQUENCER_OT_select_border";
+	ot->description="Enable border select mode.";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;

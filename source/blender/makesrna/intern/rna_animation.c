@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contributor(s): Blender Foundation (2008), Roland Hess
+ * Contributor(s): Blender Foundation (2009), Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -35,6 +35,14 @@
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
+
+/* exported for use in API */
+EnumPropertyItem keyingset_path_grouping_items[] = {
+	{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
+	{KSP_GROUP_NONE, "NONE", 0, "None", ""},
+	{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
+	{KSP_GROUP_TEMPLATE_ITEM, "TEMPLATE", 0, "Innermost Context-Item Name", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -90,13 +98,6 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem prop_mode_grouping_items[] = {
-		{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
-		{KSP_GROUP_NONE, "NONE", 0, "None", ""},
-		{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
-		{KSP_GROUP_TEMPLATE_ITEM, "TEMPLATE", 0, "Innermost Context-Item Name", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
 	srna= RNA_def_struct(brna, "KeyingSetPath", NULL);
 	RNA_def_struct_sdna(srna, "KS_Path");
 	RNA_def_struct_ui_text(srna, "Keying Set Path", "Path to a setting for use in a Keying Set.");
@@ -112,7 +113,7 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 	/* Grouping */
 	prop= RNA_def_property(srna, "grouping", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "groupmode");
-	RNA_def_property_enum_items(prop, prop_mode_grouping_items);
+	RNA_def_property_enum_items(prop, keyingset_path_grouping_items);
 	RNA_def_property_ui_text(prop, "Grouping Method", "Method used to define which Group-name to use.");
 	
 	/* Path + Array Index */
@@ -156,7 +157,6 @@ void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_BUILTIN);
 	RNA_def_property_ui_text(prop, "Built-In", "Keying Set is a built-in to Blender.");
 	
-		/* TODO: for now, this is editable, but do we really want this to happen? */
 	prop= RNA_def_property(srna, "absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_ABSOLUTE);
 	RNA_def_property_ui_text(prop, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
@@ -170,7 +170,8 @@ void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_MATRIX);
 	RNA_def_property_ui_text(prop, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
 	
-	
+	/* Keying Set API */
+	RNA_api_keyingset(srna);
 }
 
 /* --- */

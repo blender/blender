@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -57,8 +57,10 @@ static float noise(int n) /* fast integer noise */
 	return 0.5f * ((float)nn / 1073741824.0f);
 }
 
-static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
+	float *coord = p->coord;
+	
 	float x = coord[0];
 	float y = coord[1];
 	
@@ -71,14 +73,14 @@ static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 	float bricks2[4];
 	float mortar[4];
 	
-	float mortar_thickness = tex_input_value(in[3], coord, thread);
-	float bias             = tex_input_value(in[4], coord, thread);
-	float brick_width      = tex_input_value(in[5], coord, thread);
-	float row_height       = tex_input_value(in[6], coord, thread);
+	float mortar_thickness = tex_input_value(in[3], p, thread);
+	float bias             = tex_input_value(in[4], p, thread);
+	float brick_width      = tex_input_value(in[5], p, thread);
+	float row_height       = tex_input_value(in[6], p, thread);
 	
-	tex_input_rgba(bricks1, in[0], coord, thread);
-	tex_input_rgba(bricks2, in[1], coord, thread);
-	tex_input_rgba(mortar,  in[2], coord, thread);
+	tex_input_rgba(bricks1, in[0], p, thread);
+	tex_input_rgba(bricks2, in[1], p, thread);
+	tex_input_rgba(mortar,  in[2], p, thread);
 	
 	rownum = (int)floor(y / row_height);
 	

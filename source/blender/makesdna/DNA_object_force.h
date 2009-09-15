@@ -95,7 +95,7 @@ typedef struct PartDeflect {
 typedef struct PTCacheMem {
 	struct PTCacheMem *next, *prev;
 	int frame, totpoint;
-	unsigned int data_types, rt;
+	unsigned int data_types, flag;
 	int *index_array; /* quick access to stored points with index */
 
 	void *data[8]; /* BPHYS_TOT_DATA */
@@ -121,6 +121,9 @@ typedef struct PointCache {
 	char info[64];
 	char path[240]; /* file path */
 	struct ListBase mem_cache;
+
+	struct PTCacheEdit *edit;
+	void (*free_edit)(struct PTCacheEdit *edit);	/* free callback */
 } PointCache;
 
 typedef struct SBVertex {
@@ -181,8 +184,6 @@ typedef struct BulletSoftBody {
 
 
 typedef struct SoftBody {
-	struct ParticleSystem *particles;	/* particlesystem softbody */
-
 	/* dynamic data */
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
@@ -300,8 +301,8 @@ typedef struct SoftBody {
 #define PTCACHE_OUTDATED			2
 #define PTCACHE_SIMULATION_VALID	4
 #define PTCACHE_BAKING				8
-#define PTCACHE_BAKE_EDIT			16
-#define PTCACHE_BAKE_EDIT_ACTIVE	32
+//#define PTCACHE_BAKE_EDIT			16
+//#define PTCACHE_BAKE_EDIT_ACTIVE	32
 #define PTCACHE_DISK_CACHE			64
 #define PTCACHE_QUICK_CACHE			128
 #define PTCACHE_FRAMES_SKIPPED		256

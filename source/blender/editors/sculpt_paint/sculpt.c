@@ -65,7 +65,6 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
-#include "BKE_sculpt.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_colortools.h"
@@ -80,6 +79,7 @@
 #include "ED_space_api.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
+#include "paint_intern.h"
 #include "sculpt_intern.h"
 
 #include "RNA_access.h"
@@ -125,25 +125,25 @@ typedef enum StrokeFlags {
 */
 typedef struct StrokeCache {
 	/* Invariants */
-	float radius;
+	float initial_radius;
 	float scale[3];
 	int flag;
 	float clip_tolerance[3];
-	int initial_mouse[2];
+	float initial_mouse[2];
 	float depth;
 
 	/* Variants */
+	float radius;
 	float true_location[3];
 	float location[3];
 	float flip;
 	float pressure;
-	int mouse[2];
+	float mouse[2];
 
 	/* The rest is temporary storage that isn't saved as a property */
 
 	int first_time; /* Beginning of stroke may do some things special */
 
-	ViewContext vc;
 	bglMats *mats;
 
 	short (*orig_norms)[3]; /* Copy of the mesh vertices' normals */
@@ -177,19 +177,6 @@ typedef struct ProjVert {
  * Simple functions to get data from the GL
  */
 
-/* Uses window coordinates (x,y) and depth component z to find a point in
-   modelspace */
-static void unproject(bglMats *mats, float out[3], const short x, const short y, const float z)
-{
-	double ux, uy, uz;
-
-        gluUnProject(x,y,z, mats->modelview, mats->projection,
-		     (GLint *)mats->viewport, &ux, &uy, &uz );
-	out[0] = ux;
-	out[1] = uy;
-	out[2] = uz;
-}
-
 /* Convert a point in model coordinates to 2D screen coordinates. */
 static void projectf(bglMats *mats, const float v[3], float p[2])
 {
@@ -213,21 +200,6 @@ static void project(bglMats *mats, const float v[3], short p[2])
 /* ===== Sculpting =====
  *
  */
-
-/* Return modified brush size. Uses current tablet pressure (if available) to
-   shrink the brush. Skipped for grab brush because only the first mouse down
-   size is used, which is small if the user has just touched the pen to the
-   tablet */
-static char brush_size(Sculpt *sd, SculptSession *ss)
-{
-	Brush *brush = paint_brush(&sd->paint);
-	float size= brush->size;
-	
-	if((brush->sculpt_tool != SCULPT_TOOL_GRAB) && (brush->flag & BRUSH_SIZE_PRESSURE))
-		size *= ss->cache->pressure;
-
-	return size;
-}
 
 /* Return modified brush strength. Includes the direction of the brush, positive
    values pull vertices, negative values push. Uses tablet pressure and a
@@ -542,12 +514,27 @@ static void point_plane_project(float intr[3], float co[3], float plane_normal[3
 	VecAddf(intr, intr, p1);
 }
 
+static int plane_point_side(float co[3], float plane_normal[3], float plane_center[3], int flip)
+{
+	float delta[3];
+	float d;
+
+	VecSubf(delta, co, plane_center);
+	d = Inpf(plane_normal, delta);
+
+	if(flip)
+		d = -d;
+
+	return d <= 0.0f;
+}
+
 static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase *active_verts, int clay)
 {
 	ActiveData *node= active_verts->first;
 	/* area_normal and cntr define the plane towards which vertices are squashed */
 	float area_normal[3];
-	float cntr[3], cntr2[3], bstr;
+	float cntr[3], cntr2[3], bstr = 0;
+	int flip = 0;
 
 	calc_area_normal(sd, ss, area_normal, active_verts);
 	calc_flatten_center(ss, node, cntr);
@@ -558,31 +545,24 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase 
 		cntr2[0]=cntr[0]+area_normal[0]*bstr*ss->cache->scale[0];
 		cntr2[1]=cntr[1]+area_normal[1]*bstr*ss->cache->scale[1];
 		cntr2[2]=cntr[2]+area_normal[2]*bstr*ss->cache->scale[2];
+		flip = bstr < 0;
 	}
 	
 	while(node){
 		float *co= ss->mvert[node->Index].co;
-		float intr[3], val[3], d;
+		float intr[3], val[3];
 		
-		if(clay) {
-			float delta[3];
-
-			VecSubf(delta, co, cntr2);
-			d = Inpf(area_normal, delta);
-
-			/* Check for subtractive mode */
-			if(bstr < 0)
-				d = -d;
-		}
-
-		if(!clay || d <= 0.0f) {
+		if(!clay || plane_point_side(co, area_normal, cntr2, flip)) {
 			/* Find the intersection between squash-plane and vertex (along the area normal) */		
 			point_plane_project(intr, co, area_normal, cntr);
 
 			VecSubf(val, intr, co);
 
 			if(clay) {
-				VecMulf(val, node->Fade / bstr);
+				if(bstr > FLT_EPSILON)
+					VecMulf(val, node->Fade / bstr);
+				else
+					VecMulf(val, node->Fade);
 				/* Clay displacement */
 				val[0]+=area_normal[0] * ss->cache->scale[0]*node->Fade;
 				val[1]+=area_normal[1] * ss->cache->scale[1]*node->Fade;
@@ -592,6 +572,7 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase 
 				VecMulf(val, fabs(node->Fade));
 
 			VecAddf(val, val, co);
+
 			sculpt_clip(sd, ss, co, val);
 		}
 		
@@ -1060,47 +1041,7 @@ static int sculpt_mode_poll(bContext *C)
 
 static int sculpt_poll(bContext *C)
 {
-	return sculpt_mode_poll(C) && paint_brush(&CTX_data_tool_settings(C)->sculpt->paint) &&
-		CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
-		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
-}
-
-/*** Sculpt Cursor ***/
-static void draw_paint_cursor(bContext *C, int x, int y, void *customdata)
-{
-	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
-	SculptSession *ss= CTX_data_active_object(C)->sculpt;
-	Brush *brush = paint_brush(&sd->paint);
-	
-	glColor4ub(255, 100, 100, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-
-	glTranslatef((float)x, (float)y, 0.0f);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
-	glTranslatef((float)-x, (float)-y, 0.0f);
-
-	if(ss && ss->cache && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
-		ARegion *ar = CTX_wm_region(C);
-		sdrawline(x, y, ss->cache->mouse[0] - ar->winrct.xmin, ss->cache->mouse[1] - ar->winrct.ymin);
-	}
-
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-}
-
-static void toggle_paint_cursor(bContext *C)
-{
-	Sculpt *s = CTX_data_scene(C)->toolsettings->sculpt;
-
-	if(s->cursor) {
-		WM_paint_cursor_end(CTX_wm_manager(C), s->cursor);
-		s->cursor = NULL;
-	}
-	else {
-		s->cursor =
-			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_poll, draw_paint_cursor, NULL);
-	}
+	return sculpt_mode_poll(C) && paint_poll(C);
 }
 
 static void sculpt_undo_push(bContext *C, Sculpt *sd)
@@ -1130,8 +1071,11 @@ static void sculpt_undo_push(bContext *C, Sculpt *sd)
 /**** Radial control ****/
 static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->sculpt->paint);
-	toggle_paint_cursor(C);
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(p);
+
+	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
+	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
@@ -1140,7 +1084,7 @@ static int sculpt_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_paint_cursor(C);
+		paint_cursor_start(C, sculpt_poll);
 	return ret;
 }
 
@@ -1174,7 +1118,7 @@ static float unproject_brush_radius(SculptSession *ss, float offset)
 	float brush_edge[3];
 
 	/* In anchored mode, brush size changes with mouse loc, otherwise it's fixed using the brush radius */
-	unproject(ss->cache->mats, brush_edge, ss->cache->initial_mouse[0] + offset,
+	view3d_unproject(ss->cache->mats, brush_edge, ss->cache->initial_mouse[0] + offset,
 		  ss->cache->initial_mouse[1], ss->cache->depth);
 
 	return VecLenf(ss->cache->true_location, brush_edge);
@@ -1182,12 +1126,15 @@ static float unproject_brush_radius(SculptSession *ss, float offset)
 
 static void sculpt_cache_free(StrokeCache *cache)
 {
+	int i;
 	if(cache->orig_norms)
 		MEM_freeN(cache->orig_norms);
 	if(cache->face_norms)
 		MEM_freeN(cache->face_norms);
 	if(cache->mats)
 		MEM_freeN(cache->mats);
+	for(i = 0; i < 8; ++i) 
+		BLI_freelistN(&cache->grab_active_verts[i]);
 	MEM_freeN(cache);
 }
 
@@ -1196,6 +1143,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 {
 	StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	Brush *brush = paint_brush(&sd->paint);
+	ViewContext *vc = paint_stroke_view_context(op->customdata);
 	int i;
 
 	ss->cache = cache;
@@ -1203,7 +1151,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 	RNA_float_get_array(op->ptr, "scale", cache->scale);
 	cache->flag = RNA_int_get(op->ptr, "flag");
 	RNA_float_get_array(op->ptr, "clip_tolerance", cache->clip_tolerance);
-	RNA_int_get_array(op->ptr, "initial_mouse", cache->initial_mouse);
+	RNA_float_get_array(op->ptr, "initial_mouse", cache->initial_mouse);
 	cache->depth = RNA_float_get(op->ptr, "depth");
 
 	cache->mouse[0] = cache->initial_mouse[0];
@@ -1211,10 +1159,8 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 
 	/* Truly temporary data that isn't stored in properties */
 
-	view3d_set_viewcontext(C, &cache->vc);
-
 	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
-	view3d_get_transformation(&cache->vc, cache->vc.obact, cache->mats);
+	view3d_get_transformation(vc, vc->obact, cache->mats);
 
 	sculpt_update_mesh_elements(C);
 
@@ -1254,8 +1200,8 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 		}
 	}
 
-	unproject(cache->mats, cache->true_location, cache->initial_mouse[0], cache->initial_mouse[1], cache->depth);
-	cache->radius = unproject_brush_radius(ss, brush_size(sd, ss));
+	view3d_unproject(cache->mats, cache->true_location, cache->initial_mouse[0], cache->initial_mouse[1], cache->depth);
+	cache->initial_radius = unproject_brush_radius(ss, brush->size);
 	cache->rotation = 0;
 	cache->first_time = 1;
 }
@@ -1266,18 +1212,26 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, PointerR
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
 	float grab_location[3];
+	
 	int dx, dy;
 
 	if(!(brush->flag & BRUSH_ANCHORED))
 		RNA_float_get_array(ptr, "location", cache->true_location);
 	cache->flip = RNA_boolean_get(ptr, "flip");
-	RNA_int_get_array(ptr, "mouse", cache->mouse);
+	RNA_float_get_array(ptr, "mouse", cache->mouse);
 	cache->pressure = RNA_float_get(ptr, "pressure");
 	
 	/* Truly temporary data that isn't stored in properties */
 
 	cache->previous_pixel_radius = cache->pixel_radius;
-	cache->pixel_radius = brush_size(sd, ss);
+	cache->pixel_radius = brush->size;
+
+	if(brush->flag & BRUSH_SIZE_PRESSURE) {
+		cache->pixel_radius *= cache->pressure;
+		cache->radius = cache->initial_radius * cache->pressure;
+	}
+	else
+		cache->radius = cache->initial_radius;
 
 	if(brush->flag & BRUSH_ANCHORED) {
 		dx = cache->mouse[0] - cache->initial_mouse[0];
@@ -1306,7 +1260,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, PointerR
 
 	/* Find the grab delta */
 	if(brush->sculpt_tool == SCULPT_TOOL_GRAB) {
-		unproject(cache->mats, grab_location, cache->mouse[0], cache->mouse[1], cache->depth);
+		view3d_unproject(cache->mats, grab_location, cache->mouse[0], cache->mouse[1], cache->depth);
 		if(!cache->first_time)
 			VecSubf(cache->grab_delta, grab_location, cache->old_grab_location);
 		VecCopyf(cache->old_grab_location, grab_location);
@@ -1319,9 +1273,9 @@ static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmE
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob= CTX_data_active_object(C);
 	ModifierData *md;
-	ViewContext vc;
 	float scale[3], clip_tolerance[3] = {0,0,0};
-	int mouse[2], flag = 0;
+	float mouse[2];
+	int flag = 0;
 
 	/* Set scaling adjustment */
 	scale[0] = 1.0f / ob->size[0];
@@ -1348,16 +1302,15 @@ static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmE
 	/* Initial mouse location */
 	mouse[0] = event->x;
 	mouse[1] = event->y;
-	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
+	RNA_float_set_array(op->ptr, "initial_mouse", mouse);
 
 	/* Initial screen depth under the mouse */
-	view3d_set_viewcontext(C, &vc);
-	RNA_float_set(op->ptr, "depth", read_cached_depth(&vc, event->x, event->y));
+	RNA_float_set(op->ptr, "depth", read_cached_depth(paint_stroke_view_context(op->customdata), event->x, event->y));
 
 	sculpt_update_cache_invariants(sd, ss, C, op);
 }
 
-static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static void sculpt_brush_stroke_init(bContext *C)
 {
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
@@ -1369,10 +1322,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	   changes are made to the texture. */
 	sculpt_update_tex(sd, ss);
 
-	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
-	
-	return OPERATOR_RUNNING_MODAL;
+	sculpt_update_mesh_elements(C);
 }
 
 static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
@@ -1428,158 +1378,69 @@ static void sculpt_flush_update(bContext *C)
 	ED_region_tag_redraw(ar);
 }
 
-/* Returns zero if no sculpt changes should be made, non-zero otherwise */
-static int sculpt_smooth_stroke(Sculpt *s, SculptSession *ss, int output[2], wmEvent *event)
+static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
 {
-	Brush *brush = paint_brush(&s->paint);
-
-	output[0] = event->x;
-	output[1] = event->y;
-
-	if(brush->flag & BRUSH_SMOOTH_STROKE && brush->sculpt_tool != SCULPT_TOOL_GRAB) {
-		StrokeCache *cache = ss->cache;
-		float u = .9, v = 1.0 - u;
-		int dx = cache->mouse[0] - event->x, dy = cache->mouse[1] - event->y;
-		int radius = 50;
-
-		/* If the mouse is moving within the radius of the last move,
-		   don't update the mouse position. This allows sharp turns. */
-		if(dx*dx + dy*dy < radius*radius)
-			return 0;
-
-		output[0] = event->x * v + cache->mouse[0] * u;
-		output[1] = event->y * v + cache->mouse[1] * u;
-	}
-
-	return 1;
-}
-
-/* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
-int sculpt_space_stroke_enabled(Sculpt *s)
-{
-	Brush *br = paint_brush(&s->paint);
-	return (br->flag & BRUSH_SPACE) && !(br->flag & BRUSH_ANCHORED) && (br->sculpt_tool != SCULPT_TOOL_GRAB);
-}
-
-/* Put the location of the next sculpt stroke dot into the stroke RNA and apply it to the mesh */
-static void sculpt_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, int mouse[2])
-{
-	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	SculptSession *ss = CTX_data_active_object(C)->sculpt;
-	StrokeCache *cache = ss->cache;
-	PointerRNA itemptr;
-	float cur_depth, pressure = 1;
-	float center[3];
-
-	cur_depth = read_cached_depth(&cache->vc, mouse[0], mouse[1]);
-	unproject(ss->cache->mats, center, mouse[0], mouse[1], cur_depth);
-
-	/* Tablet */
-	if(event->custom == EVT_DATA_TABLET) {
-		wmTabletData *wmtab= event->customdata;
-		if(wmtab->Active != EVT_TABLET_NONE)
-			pressure= wmtab->Pressure;
-	}
-				
-	/* Add to stroke */
-	RNA_collection_add(op->ptr, "stroke", &itemptr);
-	RNA_float_set_array(&itemptr, "location", center);
-	RNA_int_set_array(&itemptr, "mouse", mouse);
-	RNA_boolean_set(&itemptr, "flip", event->shift);
-	RNA_float_set(&itemptr, "pressure", pressure);
-	sculpt_update_cache_variants(sd, ss, &itemptr);
-				
-	sculpt_restore_mesh(sd, ss);
-	do_symmetrical_brush_actions(sd, ss);
-}
-
-/* For brushes with stroke spacing enabled, moves mouse in steps
-   towards the final mouse location. */
-static int sculpt_space_stroke(bContext *C, wmOperator *op, wmEvent *event, Sculpt *s, SculptSession *ss, const int final_mouse[2])
-{
-	StrokeCache *cache = ss->cache;
-	Brush *brush = paint_brush(&s->paint);
-	int cnt = 0;
-
-	if(sculpt_space_stroke_enabled(s)) {
-		float vec[2] = {final_mouse[0] - cache->mouse[0], final_mouse[1] - cache->mouse[1]};
-		int mouse[2] = {cache->mouse[0], cache->mouse[1]};
-		float length, scale;
-		int steps = 0, i;
-
-		/* Normalize the vector between the last stroke dot and the goal */
-		length = sqrt(vec[0]*vec[0] + vec[1]*vec[1]);
-
-		if(length > FLT_EPSILON) {
-			scale = brush->spacing / length;
-			vec[0] *= scale;
-			vec[1] *= scale;
-
-			steps = (int)(length / brush->spacing);
-			for(i = 0; i < steps; ++i, ++cnt) {
-				mouse[0] += vec[0];
-				mouse[1] += vec[1];
-				sculpt_brush_stroke_add_step(C, op, event, mouse);
-			}
-		}
-	}
-
-	return cnt;
-}
-
-static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	SculptSession *ss = CTX_data_active_object(C)->sculpt;
-	ARegion *ar = CTX_wm_region(C);
+	ViewContext vc;
 	float cur_depth;
 
-	sculpt_update_mesh_elements(C);
+	view3d_set_viewcontext(C, &vc);
+	cur_depth = read_cached_depth(&vc, event->x, event->y);
+	
+	/* Don't start the stroke until a valid depth is found */
+	if(cur_depth < 1.0 - FLT_EPSILON) {
+		SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
-	if(!ss->cache) {
-		ViewContext vc;
-		view3d_set_viewcontext(C, &vc);
-		cur_depth = read_cached_depth(&vc, event->x, event->y);
+		sculpt_brush_stroke_init_properties(C, op, event, ss);
+		sculptmode_update_all_projverts(ss);
 
-		/* Don't start the stroke until a valid depth is found */
-		if(cur_depth < 1.0 - FLT_EPSILON) {
-			sculpt_brush_stroke_init_properties(C, op, event, ss);
-			sculptmode_update_all_projverts(ss);
-		}
-
-		ED_region_tag_redraw(ar);
+		return 1;
 	}
+	else
+		return 0;
+}
 
-	if(ss->cache) {
-		int mouse[2];
+static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+{
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
-		if(sculpt_smooth_stroke(sd, ss, mouse, event)) {
-			if(sculpt_space_stroke_enabled(sd)) {
-				if(!sculpt_space_stroke(C, op, event, sd, ss, mouse))
-					ED_region_tag_redraw(ar);
-			}
-			else
-				sculpt_brush_stroke_add_step(C, op, event, mouse);
+	sculpt_update_cache_variants(sd, ss, itemptr);
+	sculpt_restore_mesh(sd, ss);
+	do_symmetrical_brush_actions(sd, ss);
 
-			sculpt_flush_update(C);
-			sculpt_post_stroke_free(ss);
-		}
-		else
-			ED_region_tag_redraw(ar);
-	}
+	/* Cleanup */
+	sculpt_flush_update(C);
+	sculpt_post_stroke_free(ss);
+}
+
+static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
+{
+	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
 	/* Finished */
-	if(event->type == LEFTMOUSE && event->val == 0) {
-		if(ss->cache) {
-			request_depth_update(ss->cache->vc.rv3d);
-			sculpt_cache_free(ss->cache);
-			ss->cache = NULL;
-			sculpt_undo_push(C, sd);
-		}
+	if(ss->cache) {
+		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;		
 
-		return OPERATOR_FINISHED;
+		request_depth_update(paint_stroke_view_context(stroke)->rv3d);
+		sculpt_cache_free(ss->cache);
+		ss->cache = NULL;
+		sculpt_undo_push(C, sd);
 	}
+}
 
+static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	sculpt_brush_stroke_init(C);
+
+	op->customdata = paint_stroke_new(C, sculpt_stroke_test_start,
+					  sculpt_stroke_update_step,
+					  sculpt_stroke_done);
+
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+	op->type->modal(C, op, event);
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -1588,20 +1449,14 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
-	view3d_operator_needs_opengl(C);
+	op->customdata = paint_stroke_new(C, sculpt_stroke_test_start, sculpt_stroke_update_step, sculpt_stroke_done);
+
+	sculpt_brush_stroke_init(C);
+
 	sculpt_update_cache_invariants(sd, ss, C, op);
 	sculptmode_update_all_projverts(ss);
-	sculpt_update_tex(sd, ss);
 
-	RNA_BEGIN(op->ptr, itemptr, "stroke") {
-		sculpt_update_cache_variants(sd, ss, &itemptr);
-
-		sculpt_restore_mesh(sd, ss);
-		do_symmetrical_brush_actions(sd, ss);
-
-		sculpt_post_stroke_free(ss);
-	}
-	RNA_END;
+	paint_stroke_exec(C, op);
 
 	sculpt_flush_update(C);
 	sculpt_cache_free(ss->cache);
@@ -1621,7 +1476,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= sculpt_brush_stroke_invoke;
-	ot->modal= sculpt_brush_stroke_modal;
+	ot->modal= paint_stroke_modal;
 	ot->exec= sculpt_brush_stroke_exec;
 	ot->poll= sculpt_poll;
 	
@@ -1641,7 +1496,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "clip_tolerance", 3, NULL, 0.0f, FLT_MAX, "clip_tolerance", "", 0.0f, 1000.0f);
 
 	/* The initial 2D location of the mouse */
-	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
+	RNA_def_float_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
 
 	/* The initial screen depth of the mouse */
 	RNA_def_float(ot->srna, "depth", 0.0f, 0.0f, FLT_MAX, "depth", "", 0.0f, FLT_MAX);
@@ -1708,10 +1563,9 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 			free_sculptsession(&ob->sculpt);
 		ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-		if(!ts->sculpt->cursor)
-			toggle_paint_cursor(C);
-
-		paint_init(&ts->sculpt->paint, "Brush");
+		paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
+		
+		paint_cursor_start(C, sculpt_poll);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 	}

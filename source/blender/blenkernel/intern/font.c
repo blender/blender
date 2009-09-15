@@ -462,7 +462,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	nu2->resolu= cu->resolu;
 	nu2->bezt = NULL;
 	nu2->knotsu = nu2->knotsv = NULL;
-	nu2->flag= 0;
+	nu2->flag= CU_2D;
 	nu2->charidx = charidx+1000;
 	if (mat_nr > 0) nu2->mat_nr= mat_nr-1;
 	nu2->pntsu = 4;
@@ -495,7 +495,6 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	nu2->bp[3].vec[2] = 0;	
 	nu2->bp[3].vec[3] = 1.0;	
 	
-	nu2->type = CU_2D;
 	BLI_addtail(&(cu->nurb), nu2);	
 
 }
@@ -1040,8 +1039,8 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 				/* calc the right loc AND the right rot separately */
 				/* vec, tvec need 4 items */
-				where_on_path(cu->textoncurve, ctime, vec, tvec);
-				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec);
+				where_on_path(cu->textoncurve, ctime, vec, tvec, NULL, NULL);
+				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec, NULL, NULL);
 				
 				VecMulf(vec, sizefac);
 				

@@ -200,6 +200,28 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 static void fluidsimInitChannel(Scene *scene, float **setchannel, int size, float *time, 
 		int *icuIds, float *defaults, Ipo* ipo, int entries) 
 {
+
+	int i, j;
+	char *cstr = NULL;
+	float *channel = NULL;
+	
+	cstr = "fluidsiminit_channelfloat";
+	if(entries>1) cstr = "fluidsiminit_channelvec";
+	channel = MEM_callocN( size* (entries+1)* sizeof(float), cstr );
+	
+	/* defaults  for now */
+	for(j=0; j<entries; j++) {
+		for(i=1; i<=size; i++) {
+			channel[(i-1)*(entries+1) + j] = defaults[j];
+		}	
+	}
+	
+	for(i=1; i<=size; i++) {
+		channel[(i-1)*(entries+1) + entries] = time[i];
+	}
+
+	*setchannel = channel;
+
 #if 0
 	/* goes away completely */
 	int i,j;

@@ -38,11 +38,12 @@
 
 #include "PIL_dynlib.h"
 
-#include "MTC_matrixops.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_kdopbvh.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_key_types.h"
@@ -367,9 +368,9 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 					CLAMP(fac, 0.0f, 1.0f);
 					
 					if(coba->ipotype==3)
-						set_four_ipo(fac, t, KEY_CARDINAL);
+						key_curve_position_weights(fac, t, KEY_CARDINAL);
 					else
-						set_four_ipo(fac, t, KEY_BSPLINE);
+						key_curve_position_weights(fac, t, KEY_BSPLINE);
 
 					out[0]= t[3]*cbd3->r +t[2]*cbd2->r +t[1]*cbd1->r +t[0]*cbd0->r;
 					out[1]= t[3]*cbd3->g +t[2]*cbd2->g +t[1]*cbd1->g +t[0]*cbd0->g;
@@ -417,6 +418,8 @@ void free_texture(Tex *tex)
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
+	if(tex->pd) BKE_free_pointdensity(tex->pd);
+	if(tex->vd) BKE_free_voxeldata(tex->vd);
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
@@ -486,6 +489,16 @@ void default_tex(Tex *tex)
 		tex->env->depth=0;
 	}
 
+	if (tex->pd) {
+		tex->pd->radius = 0.3f;
+		tex->pd->falloff_type = TEX_PD_FALLOFF_STD;
+	}
+	
+	if (tex->vd) {
+		tex->vd->resol[0] = tex->vd->resol[1] = tex->vd->resol[2] = 0;
+		tex->vd->interp_type=TEX_VD_LINEAR;
+		tex->vd->file_format=TEX_VD_SMOKE;
+	}
 	pit = tex->plugin;
 	if (pit) {
 		varstr= pit->varstr;
@@ -737,9 +750,9 @@ void make_local_texture(Tex *tex)
 
 void autotexname(Tex *tex)
 {
-	char texstr[20][12]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
+	char texstr[20][15]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
 		"Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
-		"Voronoi", "DistNoise", "", "", "", "", "", ""};
+		"Voronoi", "DistNoise", "Point Density", "Voxel Data", "", "", "", ""};
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
 	
@@ -886,6 +899,106 @@ void BKE_free_envmap(EnvMap *env)
 	MEM_freeN(env);
 	
 }
+
+/* ------------------------------------------------------------------------- */
+
+PointDensity *BKE_add_pointdensity(void)
+{
+	PointDensity *pd;
+	
+	pd= MEM_callocN(sizeof(PointDensity), "pointdensity");
+	pd->flag = 0;
+	pd->radius = 0.3f;
+	pd->falloff_type = TEX_PD_FALLOFF_STD;
+	pd->falloff_softness = 2.0;
+	pd->source = TEX_PD_PSYS;
+	pd->point_tree = NULL;
+	pd->point_data = NULL;
+	pd->noise_size = 0.5f;
+	pd->noise_depth = 1;
+	pd->noise_fac = 1.0f;
+	pd->noise_influence = TEX_PD_NOISE_STATIC;
+	pd->coba = add_colorband(1);
+	pd->speed_scale = 1.0f;
+	pd->totpoints = 0;
+	pd->coba = add_colorband(1);
+	pd->object = NULL;
+	pd->psys = NULL;
+	return pd;
+} 
+
+PointDensity *BKE_copy_pointdensity(PointDensity *pd)
+{
+	PointDensity *pdn;
+
+	pdn= MEM_dupallocN(pd);
+	pdn->point_tree = NULL;
+	pdn->point_data = NULL;
+	if(pdn->coba) pdn->coba= MEM_dupallocN(pdn->coba);
+	
+	return pdn;
+}
+
+void BKE_free_pointdensitydata(PointDensity *pd)
+{
+	if (pd->point_tree) {
+		BLI_bvhtree_free(pd->point_tree);
+		pd->point_tree = NULL;
+	}
+	if (pd->point_data) {
+		MEM_freeN(pd->point_data);
+		pd->point_data = NULL;
+	}
+	if(pd->coba) MEM_freeN(pd->coba);
+}
+
+void BKE_free_pointdensity(PointDensity *pd)
+{
+	BKE_free_pointdensitydata(pd);
+	MEM_freeN(pd);
+}
+
+
+void BKE_free_voxeldatadata(struct VoxelData *vd)
+{
+	if (vd->dataset) {
+		MEM_freeN(vd->dataset);
+		vd->dataset = NULL;
+	}
+
+}
+ 
+void BKE_free_voxeldata(struct VoxelData *vd)
+{
+	BKE_free_voxeldatadata(vd);
+	MEM_freeN(vd);
+}
+ 
+struct VoxelData *BKE_add_voxeldata(void)
+{
+	VoxelData *vd;
+
+	vd= MEM_callocN(sizeof(struct VoxelData), "voxeldata");
+	vd->dataset = NULL;
+	vd->resol[0] = vd->resol[1] = vd->resol[2] = 1;
+	vd->interp_type= TEX_VD_LINEAR;
+	vd->file_format= TEX_VD_SMOKE;
+	vd->int_multiplier = 1.0;
+	vd->object = NULL;
+	
+	return vd;
+ }
+ 
+struct VoxelData *BKE_copy_voxeldata(struct VoxelData *vd)
+{
+	VoxelData *vdn;
+
+	vdn= MEM_dupallocN(vd);	
+	vdn->dataset = NULL;
+
+	return vdn;
+}
+
 
 /* ------------------------------------------------------------------------- */
 int BKE_texture_dependsOnTime(const struct Tex *texture)

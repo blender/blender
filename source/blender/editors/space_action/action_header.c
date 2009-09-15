@@ -43,6 +43,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_animsys.h"
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -88,9 +89,9 @@ static void act_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	//uiItemS(layout);
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &spaceptr, "show_sliders", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_sliders", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0);
 	
 	if (sact->flag & SACTION_DRAWTIME)
 		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");
@@ -153,7 +154,7 @@ static void act_channelmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_gplayermenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	//uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu);
+	//uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu, NULL, NULL);
 	//uiItemS(layout);
 	//uiItemO(layout, NULL, 0, "NLAEDIT_OT_duplicate");
 }
@@ -167,7 +168,7 @@ static void act_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unus
 
 static void act_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); 
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_CFRA);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_FRAME);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_SECOND);
@@ -176,16 +177,23 @@ static void act_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_CFRA);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_YAXIS);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_XAXIS);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_MARKER);
 }
 
+static void act_edit_keytypesmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_KEYFRAME);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_BREAKDOWN);
+}
+
 static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_FREE);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_AUTO);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_VECT);
@@ -195,7 +203,7 @@ static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused
 
 static void act_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_CONST);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_LIN);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_BEZ);
@@ -203,16 +211,16 @@ static void act_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
 }
 
 static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemMenuF(layout, "Transform", 0, act_edit_transformmenu);
-	uiItemMenuF(layout, "Snap", 0, act_edit_snapmenu);
-	uiItemMenuF(layout, "Mirror", 0, act_edit_mirrormenu);
+	uiItemMenuF(layout, "Transform", 0, act_edit_transformmenu, NULL);
+	uiItemMenuF(layout, "Snap", 0, act_edit_snapmenu, NULL);
+	uiItemMenuF(layout, "Mirror", 0, act_edit_mirrormenu, NULL);
 	
 	uiItemS(layout);
 	
@@ -225,9 +233,10 @@ static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Handle Type", 0, act_edit_handlesmenu);
-	uiItemMenuF(layout, "Interpolation Mode", 0, act_edit_ipomenu);
-	uiItemMenuF(layout, "Extrapolation Mode", 0, act_edit_expomenu);
+	uiItemMenuF(layout, "Keyframe Type", 0, act_edit_keytypesmenu, NULL);
+	uiItemMenuF(layout, "Handle Type", 0, act_edit_handlesmenu, NULL);
+	uiItemMenuF(layout, "Interpolation Mode", 0, act_edit_ipomenu, NULL);
+	uiItemMenuF(layout, "Extrapolation Mode", 0, act_edit_expomenu, NULL);
 	
 	uiItemS(layout);
 	
@@ -272,6 +281,7 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 				/* set action */
 				printf("\tset action \n");
 				adt->action= saction->action;
+				adt->action->id.us++;
 			}
 			
 			ED_area_tag_redraw(CTX_wm_area(C));
@@ -282,7 +292,14 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 			break;
 		case UI_ID_ADD_NEW:
 			printf("actedit addnew \n");
-			/* XXX not implemented */
+			if (saction->pin == 0) {
+				AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+				
+				/* set new action */
+				// XXX need to restore behaviour to copy old actions...
+				printf("\tset new action \n");
+				adt->action= saction->action= add_empty_action("Action");
+			}
 			break;
 		case UI_ID_OPEN:
 			printf("actedit open \n");
@@ -404,17 +421,17 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			if (saction->flag & SACTION_DRAWTIME) {
 				uiDefButC(block, MENU, B_REDR,
 						"Auto-Snap Keyframes %t|No Snap %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
-						xco,yco,70,YIC, &(saction->autosnap), 0, 1, 0, 0, 
+						xco,yco,90,YIC, &(saction->autosnap), 0, 1, 0, 0, 
 						"Auto-snapping mode for keyframes when transforming");
 			}
 			else {
 				uiDefButC(block, MENU, B_REDR, 
 						"Auto-Snap Keyframes %t|No Snap %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
-						xco,yco,70,YIC, &(saction->autosnap), 0, 1, 0, 0, 
+						xco,yco,90,YIC, &(saction->autosnap), 0, 1, 0, 0, 
 						"Auto-snapping mode for keyframes when transforming");
 			}
 			
-			xco += (70 + 8);
+			xco += (90 + 8);
 		}
 		
 		/* COPY PASTE */

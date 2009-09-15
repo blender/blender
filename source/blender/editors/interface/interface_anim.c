@@ -152,6 +152,8 @@ void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
 				flag |= INSERTKEY_NEEDED;
 			if (IS_AUTOKEY_FLAG(AUTOMATKEY))
 				flag |= INSERTKEY_MATRIX;
+			if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+				flag |= INSERTKEY_REPLACE;
 			
 			fcu->flag &= ~FCURVE_SELECTED;
 			insert_keyframe(id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
@@ -207,6 +209,18 @@ void ui_but_anim_remove_driver(bContext *C)
 	WM_operator_name_call(C, "ANIM_OT_remove_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
+void ui_but_anim_add_keyingset(bContext *C)
+{
+	/* this operator calls uiAnimContextProperty above */
+	WM_operator_name_call(C, "ANIM_OT_add_keyingset_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+void ui_but_anim_remove_keyingset(bContext *C)
+{
+	/* this operator calls uiAnimContextProperty above */
+	WM_operator_name_call(C, "ANIM_OT_remove_keyingset_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
 void ui_but_anim_menu(bContext *C, uiBut *but)
 {
 	uiPopupMenu *pup;
@@ -217,7 +231,7 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 		pup= uiPupMenuBegin(C, RNA_property_ui_name(but->rnaprop), 0);
 		layout= uiPupMenuLayout(pup);
 		
-		length= RNA_property_array_length(but->rnaprop);
+		length= RNA_property_array_length(&but->rnapoin, but->rnaprop);
 		
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {
@@ -261,6 +275,20 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 			}
 			else
 				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+		}
+		
+		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+			uiItemS(layout);
+			
+			if(length) {
+				uiItemBooleanO(layout, "Add All to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 1);
+				uiItemBooleanO(layout, "Add Single to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
+			}
+			else {
+				uiItemBooleanO(layout, "Add to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
+			}
 		}
 
 		uiPupMenuEnd(C, pup);

@@ -821,7 +821,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 	DispList *dl;
 	BezTriple *bezt, *prevbezt;
 	BPoint *bp;
-	float *data, *v1, *v2;
+	float *data;
 	int a, len, resolu;
 	
 	nu= nubase->first;
@@ -834,7 +834,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				resolu= nu->resolu;
 			
 			if(!check_valid_nurb_u(nu));
-			else if((nu->type & 7)==CU_BEZIER) {
+			else if(nu->type == CU_BEZIER) {
 				
 				/* count */
 				len= 0;
@@ -886,11 +886,15 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 						data+= 3;
 					}
 					else {
-						v1= prevbezt->vec[1];
-						v2= bezt->vec[0];
-						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], data, resolu, 3);
-						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], data+1, resolu, 3);
-						forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, resolu, 3);
+						int j;
+						for(j=0; j<3; j++) {
+							forward_diff_bezier(	prevbezt->vec[1][j],
+													prevbezt->vec[2][j],
+													bezt->vec[0][j],
+													bezt->vec[1][j],
+													data+j, resolu, 3*sizeof(float));
+						}
+						
 						data+= 3*resolu;
 					}
 					
@@ -902,7 +906,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 					bezt++;
 				}
 			}
-			else if((nu->type & 7)==CU_NURBS) {
+			else if(nu->type == CU_NURBS) {
 				len= (resolu*SEGMENTSU(nu));
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
@@ -917,9 +921,9 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				data= dl->verts;
 				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
-				makeNurbcurve(nu, data, NULL, NULL, resolu);
+				makeNurbcurve(nu, data, NULL, NULL, resolu, 3*sizeof(float));
 			}
-			else if((nu->type & 7)==CU_POLY) {
+			else if(nu->type == CU_POLY) {
 				len= nu->pntsu;
 				dl= MEM_callocN(sizeof(DispList), "makeDispListpoly");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
@@ -1424,7 +1428,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase, int forRende
 				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
-				makeNurbcurve(nu, data, NULL, NULL, nu->resolu);
+				makeNurbcurve(nu, data, NULL, NULL, nu->resolu, 3*sizeof(float));
 			}
 			else {
 				len= (nu->pntsu*nu->resolu) * (nu->pntsv*nu->resolv);
@@ -1539,9 +1543,9 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 						bevp= (BevPoint *)(bl+1);
 						data= dl->verts;
 						while(a--) {
-							data[0]= bevp->x+widfac*bevp->sina;
-							data[1]= bevp->y+widfac*bevp->cosa;
-							data[2]= bevp->z;
+							data[0]= bevp->vec[0]+widfac*bevp->sina;
+							data[1]= bevp->vec[1]+widfac*bevp->cosa;
+							data[2]= bevp->vec[2];
 							bevp++;
 							data+=3;
 						}
@@ -1581,7 +1585,7 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 									fac = calc_taper(scene, cu->taperobj, a, bl->nr);
 								}
 								
-								if (bevp->f1) {
+								if (bevp->split_tag) {
 									dl->bevelSplitFlag[a>>5] |= 1<<(a&0x1F);
 								}
 	
@@ -1595,16 +1599,16 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 										vec[1]= fp1[2];
 										vec[2]= 0.0;
 										
-										Mat3MulVecfl(bevp->mat, vec);
+										QuatMulVecf(bevp->quat, vec);
 										
-										data[0]= bevp->x+ fac*vec[0];
-										data[1]= bevp->y+ fac*vec[1];
-										data[2]= bevp->z+ fac*vec[2];
+										data[0]= bevp->vec[0] + fac*vec[0];
+										data[1]= bevp->vec[1] + fac*vec[1];
+										data[2]= bevp->vec[2] + fac*vec[2];
 									}
 									else {
-										data[0]= bevp->x+ fac*(widfac+fp1[1])*bevp->sina;
-										data[1]= bevp->y+ fac*(widfac+fp1[1])*bevp->cosa;
-										data[2]= bevp->z+ fac*fp1[2];
+										data[0]= bevp->vec[0] + fac*(widfac+fp1[1])*bevp->sina;
+										data[1]= bevp->vec[1] + fac*(widfac+fp1[1])*bevp->cosa;
+										data[2]= bevp->vec[2] + fac*fp1[2];
 									}
 								}
 							}

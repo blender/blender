@@ -76,9 +76,6 @@
 
 #include "object_intern.h"
 
-/* XXX */
-static int pupmenu() {return 0;}
-
 /* -------------- Get Active Constraint Data ---------------------- */
 
 /* if object in posemode, active bone constraints, else object constraints */
@@ -465,6 +462,12 @@ void object_test_constraints (Object *owner)
 /* ---------- Distance-Dependent Constraints ---------- */
 /* StretchTo, Limit Distance */
 
+static int stretchto_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_StretchToConstraint);
+	return (ptr.id.data && ptr.data);
+}
+
 static int stretchto_reset_exec (bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_StretchToConstraint);
@@ -484,6 +487,7 @@ void CONSTRAINT_OT_stretchto_reset (wmOperatorType *ot)
 	ot->description= "Reset original length of bone for Stretch To Constraint.";
 	
 	ot->exec= stretchto_reset_exec;
+	ot->poll= stretchto_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -501,6 +505,12 @@ static int limitdistance_reset_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int limitdistance_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_LimitDistanceConstraint);
+	return (ptr.id.data && ptr.data);
+}
+
 void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
 {
 	/* identifiers */
@@ -509,12 +519,19 @@ void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
 	ot->description= "Reset limiting distance for Limit Distance Constraint.";
 	
 	ot->exec= limitdistance_reset_exec;
+	ot->poll= limitdistance_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ------------- Child-Of Constraint ------------------ */
+
+static int childof_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_ChildOfConstraint);
+	return (ptr.id.data && ptr.data);
+}
 
 /* ChildOf Constraint - set inverse callback */
 static int childof_set_inverse_exec (bContext *C, wmOperator *op)
@@ -582,11 +599,11 @@ void CONSTRAINT_OT_childof_set_inverse (wmOperatorType *ot)
 	ot->description= "Set inverse correction for ChildOf constraint.";
 	
 	ot->exec= childof_set_inverse_exec;
+	ot->poll= childof_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
 
 /* ChildOf Constraint - clear inverse callback */
 static int childof_clear_inverse_exec (bContext *C, wmOperator *op)
@@ -612,6 +629,7 @@ void CONSTRAINT_OT_childof_clear_inverse (wmOperatorType *ot)
 	ot->description= "Clear inverse correction for ChildOf constraint.";
 	
 	ot->exec= childof_clear_inverse_exec;
+	ot->poll= childof_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -684,6 +702,12 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 	}
 }
 
+static int constraint_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
+	return (ptr.id.data && ptr.data);
+}
+
 static int constraint_delete_exec (bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
@@ -711,6 +735,7 @@ void CONSTRAINT_OT_delete (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= constraint_delete_exec;
+	ot->poll= constraint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO; 
@@ -747,6 +772,7 @@ void CONSTRAINT_OT_move_down (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= constraint_move_down_exec;
+	ot->poll= constraint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO; 
@@ -784,6 +810,7 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= constraint_move_up_exec;
+	ot->poll= constraint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO; 
@@ -795,7 +822,6 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 
 static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* free constraints for all selected bones */
@@ -806,7 +832,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* do updates */
-	DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+	DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_CONSTRAINT|NA_REMOVED, ob);
 	
 	return OPERATOR_FINISHED;
@@ -827,7 +853,6 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 
 static int object_constraints_clear_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* do freeing */
@@ -835,7 +860,7 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *op)
 	free_constraints(&ob->constraints);
 	
 	/* do updates */
-	DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+	DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, ob);
 	
 	return OPERATOR_FINISHED;
@@ -1079,7 +1104,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 #ifndef DISABLE_PYTHON
 			/* popup a list of usable scripts */
 			menustr = buildmenu_pyconstraints(NULL, &scriptint);
-			scriptint = pupmenu(menustr);
+			// XXX scriptint = pupmenu(menustr);
 			MEM_freeN(menustr);
 			
 			/* only add constraint if a script was chosen */
@@ -1108,10 +1133,10 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	
 	if ((ob->type==OB_ARMATURE) && (pchan)) {
 		ob->pose->flag |= POSE_RECALC;	/* sort pose channels */
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
 	}
 	else
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, ob);
@@ -1346,7 +1371,6 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 /* remove IK constraints from selected bones */
 static int pose_ik_clear_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* only remove IK Constraints */
@@ -1367,7 +1391,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, ob);
@@ -1389,3 +1413,4 @@ void POSE_OT_ik_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+

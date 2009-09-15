@@ -60,6 +60,7 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BLO_readfile.h"
 
 #include "DNA_space_types.h"
@@ -109,7 +110,6 @@ typedef struct FileList
 {
 	struct direntry *filelist;
 	int *fidx;
-
 	int numfiles;
 	int numfiltered;
 	char dir[FILE_MAX];
@@ -118,6 +118,12 @@ typedef struct FileList
 	short hide_dot;
 	unsigned int filter;
 	short changed;
+
+	struct BlendHandle *libfiledata;
+	short hide_parent;
+
+	void (*read)(struct FileList *);
+
 	ListBase loadimages;
 	ListBase threads;
 } FileList;
@@ -277,12 +283,20 @@ static int compare_extension(const void *a1, const void *a2) {
 
 void filelist_filter(FileList* filelist)
 {
+	/* char dir[FILE_MAX], group[GROUP_MAX]; XXXXX */
 	int num_filtered = 0;
 	int i, j;
 	
 	if (!filelist->filelist)
 		return;
 	
+	/* XXXXX TODO: check if the filter can be handled outside the filelist 
+	if ( ( (filelist->type == FILE_LOADLIB) &&  BIF_filelist_islibrary(filelist, dir, group)) 
+		|| (filelist->type == FILE_MAIN) ) {
+		filelist->filter = 0;
+	}
+	*/
+
 	if (!filelist->filter) {
 		if (filelist->fidx) {
 			MEM_freeN(filelist->fidx);
@@ -438,22 +452,28 @@ void folderlist_free(ListBase* folderlist)
 	folderlist= NULL;
 }
 
+static void filelist_read_main(struct FileList* filelist);
+static void filelist_read_library(struct FileList* filelist);
+static void filelist_read_dir(struct FileList* filelist);
+
 //------------------FILELIST------------------------//
-struct FileList*	filelist_new()
+struct FileList*	filelist_new(short type)
 {
 	FileList* p = MEM_callocN( sizeof(FileList), "filelist" );
+	switch(type) {
+		case FILE_MAIN:
+			p->read = filelist_read_main;
+			break;
+		case FILE_LOADLIB:
+			p->read = filelist_read_library;
+			break;
+		default:
+			p->read = filelist_read_dir;
+
+	}
 	return p;
 }
 
-struct FileList*	filelist_copy(struct FileList* filelist)
-{
-	FileList* p = filelist_new();
-	BLI_strncpy(p->dir, filelist->dir, FILE_MAX);
-	p->filelist = NULL;
-	p->fidx = NULL;
-
-	return p;
-}
 
 void filelist_free(struct FileList* filelist)
 {
@@ -491,6 +511,18 @@ void filelist_free(struct FileList* filelist)
 	filelist->filter = 0;
 	filelist->numfiltered =0;
 	filelist->hide_dot =0;
+}
+
+void filelist_freelib(struct FileList* filelist)
+{
+	if(filelist->libfiledata)	
+		BLO_blendhandle_close(filelist->libfiledata);
+	filelist->libfiledata= 0;
+}
+
+struct BlendHandle *filelist_lib(struct FileList* filelist)
+{
+	return filelist->libfiledata;
 }
 
 int	filelist_numfiles(struct FileList* filelist)
@@ -733,16 +765,16 @@ void filelist_setfilter(struct FileList* filelist, unsigned int filter)
 	filelist->filter = filter;
 }
 
-void filelist_readdir(struct FileList* filelist)
+static void filelist_read_dir(struct FileList* filelist)
 {
 	char wdir[FILE_MAX];
-
 	if (!filelist) return;
+
 	filelist->fidx = 0;
 	filelist->filelist = 0;
 
 	BLI_getwdN(wdir);	 
-	
+
 	BLI_cleanup_dir(G.sce, filelist->dir);
 	BLI_hide_dot_files(filelist->hide_dot);
 	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
@@ -750,10 +782,48 @@ void filelist_readdir(struct FileList* filelist)
 	chdir(wdir);
 	filelist_setfiletypes(filelist, G.have_quicktime);
 	filelist_filter(filelist);
-	
+
 	if (!filelist->threads.first) {
 		BLI_init_threads(&filelist->threads, exec_loadimages, 2);
 	}
+}
+
+static void filelist_read_main(struct FileList* filelist)
+{
+	if (!filelist) return;
+	filelist_from_main(filelist);
+}
+
+static void filelist_read_library(struct FileList* filelist)
+{
+	if (!filelist) return;
+	BLI_cleanup_dir(G.sce, filelist->dir);
+	filelist_from_library(filelist);
+	if(!filelist->libfiledata) {
+		int num;
+		struct direntry *file;
+		filelist_read_dir(filelist);
+		file = filelist->filelist;
+		for(num=0; num<filelist->numfiles; num++, file++) {
+			if(BLO_has_bfile_extension(file->relname)) {
+				char name[FILE_MAXDIR+FILE_MAXFILE];
+			
+				BLI_strncpy(name, filelist->dir, sizeof(name));
+				strcat(name, file->relname);
+				
+				/* prevent current file being used as acceptable dir */
+				if (BLI_streq(G.main->name, name)==0) {
+					file->type &= ~S_IFMT;
+					file->type |= S_IFDIR;
+				}
+			}
+		}
+	}
+}
+
+void filelist_readdir(struct FileList* filelist)
+{
+	filelist->read(filelist);
 }
 
 int filelist_empty(struct FileList* filelist)
@@ -937,3 +1007,272 @@ void filelist_sort(struct FileList* filelist, short sort)
 
 	filelist_filter(filelist);
 }
+
+
+int filelist_islibrary(struct FileList* filelist, char* dir, char* group)
+{
+	return BLO_is_a_library(filelist->dir, dir, group);
+}
+
+static int groupname_to_code(char *group)
+{
+	char buf[32];
+	char *lslash;
+	
+	BLI_strncpy(buf, group, 31);
+	lslash= BLI_last_slash(buf);
+	if (lslash)
+		lslash[0]= '\0';
+
+	return BLO_idcode_from_name(buf);
+}
+
+void filelist_from_library(struct FileList* filelist)
+{
+	LinkNode *l, *names, *previews;
+	struct ImBuf* ima;
+	int ok, i, nnames, idcode;
+	char filename[FILE_MAXDIR+FILE_MAXFILE];
+	char dir[FILE_MAX], group[GROUP_MAX];	
+	
+	/* name test */
+	ok= filelist_islibrary(filelist, dir, group);
+	if (!ok) {
+		/* free */
+		if(filelist->libfiledata) BLO_blendhandle_close(filelist->libfiledata);
+		filelist->libfiledata= 0;
+		return;
+	}
+	
+	BLI_strncpy(filename, G.sce, sizeof(filename));	// G.sce = last file loaded, for UI
+
+	/* there we go */
+	/* for the time being only read filedata when libfiledata==0 */
+	if (filelist->libfiledata==0) {
+		filelist->libfiledata= BLO_blendhandle_from_file(dir);
+		if(filelist->libfiledata==0) return;
+	}
+	
+	idcode= groupname_to_code(group);
+
+		// memory for strings is passed into filelist[i].relname
+		// and free'd in freefilelist
+	previews = NULL;
+	if (idcode) {
+		previews= BLO_blendhandle_get_previews(filelist->libfiledata, idcode);
+		names= BLO_blendhandle_get_datablock_names(filelist->libfiledata, idcode);
+		/* ugh, no rewind, need to reopen */
+		BLO_blendhandle_close(filelist->libfiledata);
+		filelist->libfiledata= BLO_blendhandle_from_file(dir);
+		
+	} else {
+		names= BLO_blendhandle_get_linkable_groups(filelist->libfiledata);
+	}
+	
+	nnames= BLI_linklist_length(names);
+
+	filelist->numfiles= nnames + 1;
+	filelist->filelist= malloc(filelist->numfiles * sizeof(*filelist->filelist));
+	memset(filelist->filelist, 0, filelist->numfiles * sizeof(*filelist->filelist));
+
+	filelist->filelist[0].relname= BLI_strdup("..");
+	filelist->filelist[0].type |= S_IFDIR;
+		
+	for (i=0, l= names; i<nnames; i++, l= l->next) {
+		char *blockname= l->link;
+
+		filelist->filelist[i + 1].relname= BLI_strdup(blockname);
+		if (!idcode)
+			filelist->filelist[i + 1].type |= S_IFDIR;
+	}
+	
+	if(previews) {
+		for (i=0, l= previews; i<nnames; i++, l= l->next) {
+			PreviewImage *img= l->link;
+			
+			if (img) {
+				unsigned int w = img->w[PREVIEW_MIPMAP_LARGE];
+				unsigned int h = img->h[PREVIEW_MIPMAP_LARGE];
+				unsigned int *rect = img->rect[PREVIEW_MIPMAP_LARGE];
+
+				/* first allocate imbuf for copying preview into it */
+				if (w > 0 && h > 0 && rect) {
+					ima = IMB_allocImBuf(w, h, 32, IB_rect, 0);
+					memcpy(ima->rect, rect, w*h*sizeof(unsigned int));
+					filelist->filelist[i + 1].image = ima;
+					filelist->filelist[i + 1].flags = IMAGEFILE;
+				}
+			}
+		}
+	}
+
+	BLI_linklist_free(names, free);
+	if (previews) BLI_linklist_free(previews, (void(*)(void*)) MEM_freeN);
+
+	filelist_sort(filelist, FILE_SORT_ALPHA);
+
+	BLI_strncpy(G.sce, filename, sizeof(filename));	// prevent G.sce to change
+
+	filelist->filter = 0;
+	filelist_filter(filelist);
+}
+
+void filelist_hideparent(struct FileList* filelist, short hide)
+{
+	filelist->hide_parent = hide;
+}
+
+void filelist_from_main(struct FileList *filelist)
+{
+	ID *id;
+	struct direntry *files, *firstlib = NULL;
+	ListBase *lb;
+	int a, fake, idcode, ok, totlib, totbl;
+	
+	// filelist->type = FILE_MAIN; // XXXXX TODO: add modes to filebrowser
+
+	if(filelist->dir[0]=='/') filelist->dir[0]= 0;
+	
+	if(filelist->dir[0]) {
+		idcode= groupname_to_code(filelist->dir);
+		if(idcode==0) filelist->dir[0]= 0;
+	}
+	
+	if( filelist->dir[0]==0) {
+		
+		/* make directories */
+		filelist->numfiles= 23;
+		filelist->filelist= (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
+		
+		for(a=0; a<filelist->numfiles; a++) {
+			memset( &(filelist->filelist[a]), 0 , sizeof(struct direntry));
+			filelist->filelist[a].type |= S_IFDIR;
+		}
+		
+		filelist->filelist[0].relname= BLI_strdup("..");
+		filelist->filelist[2].relname= BLI_strdup("Scene");
+		filelist->filelist[3].relname= BLI_strdup("Object");
+		filelist->filelist[4].relname= BLI_strdup("Mesh");
+		filelist->filelist[5].relname= BLI_strdup("Curve");
+		filelist->filelist[6].relname= BLI_strdup("Metaball");
+		filelist->filelist[7].relname= BLI_strdup("Material");
+		filelist->filelist[8].relname= BLI_strdup("Texture");
+		filelist->filelist[9].relname= BLI_strdup("Image");
+		filelist->filelist[10].relname= BLI_strdup("Ika");
+		filelist->filelist[11].relname= BLI_strdup("Wave");
+		filelist->filelist[12].relname= BLI_strdup("Lattice");
+		filelist->filelist[13].relname= BLI_strdup("Lamp");
+		filelist->filelist[14].relname= BLI_strdup("Camera");
+		filelist->filelist[15].relname= BLI_strdup("Ipo");
+		filelist->filelist[16].relname= BLI_strdup("World");
+		filelist->filelist[17].relname= BLI_strdup("Screen");
+		filelist->filelist[18].relname= BLI_strdup("VFont");
+		filelist->filelist[19].relname= BLI_strdup("Text");
+		filelist->filelist[20].relname= BLI_strdup("Armature");
+		filelist->filelist[21].relname= BLI_strdup("Action");
+		filelist->filelist[22].relname= BLI_strdup("NodeTree");
+		filelist_sort(filelist, FILE_SORT_ALPHA);
+	}
+	else {
+
+		/* make files */
+		idcode= groupname_to_code(filelist->dir);
+		
+		lb= wich_libbase(G.main, idcode );
+		if(lb==0) return;
+		
+		id= lb->first;
+		filelist->numfiles= 0;
+		while(id) {
+			/* XXXXX TODO: the selection of the ipo blocktype might go somewhere else? 
+			if(filelist->has_func && idcode==ID_IP) {
+				if(filelist->ipotype== ((Ipo *)id)->blocktype) filelist->numfiles++;
+			}
+			else */
+			if (!filelist->hide_dot || id->name[2] != '.') {
+				filelist->numfiles++;
+			}
+			
+			id= id->next;
+		}
+		
+		/* XXXXX TODO: if databrowse F4 or append/link filelist->hide_parent has to be set */
+		if (!filelist->hide_parent) filelist->numfiles+= 1;
+		filelist->filelist= (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
+		
+		files = filelist->filelist;
+		
+		if (!filelist->hide_parent) {
+			memset( &(filelist->filelist[0]), 0 , sizeof(struct direntry));
+			filelist->filelist[0].relname= BLI_strdup("..");
+			filelist->filelist[0].type |= S_IFDIR;
+		
+			files++;
+		}
+		
+		id= lb->first;
+		totlib= totbl= 0;
+		
+		while(id) {
+#if 0 
+			// XXXXX TODO: this is deprecated, checks for correct IPO block? 
+			ok= 0;
+			if(filelist->has_func && idcode==ID_IP) {
+				if(filelist->ipotype== ((Ipo *)id)->blocktype) ok= 1;
+			}
+			else ok= 1;
+#endif			
+			ok = 1;
+			if(ok) {
+				if (!filelist->hide_dot || id->name[2] != '.') {
+					memset( files, 0 , sizeof(struct direntry));
+					if(id->lib==NULL)
+						files->relname= BLI_strdup(id->name+2);
+					else {
+						files->relname= MEM_mallocN(FILE_MAXDIR+FILE_MAXFILE+32, "filename for lib");
+						sprintf(files->relname, "%s | %s", id->lib->name, id->name+2);
+					}
+					/* files->type |= S_IFDIR; */
+#if 0				// XXXXX TODO show the selection status of the objects
+					if(!filelist->has_func) { /* F4 DATA BROWSE */
+						if(idcode==ID_OB) {
+							if( ((Object *)id)->flag & SELECT) files->flags |= ACTIVE;
+						}
+						else if(idcode==ID_SCE) {
+							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->flags |= ACTIVE;
+						}					
+					}
+#endif
+					files->nr= totbl+1;
+					files->poin= id;
+					fake= id->flag & LIB_FAKEUSER;
+					if(idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO || idcode == ID_IM) {
+						files->flags |= IMAGEFILE;
+					}
+					if(id->lib && fake) sprintf(files->extra, "LF %d", id->us);
+					else if(id->lib) sprintf(files->extra, "L    %d", id->us);
+					else if(fake) sprintf(files->extra, "F    %d", id->us);
+					else sprintf(files->extra, "      %d", id->us);
+					
+					if(id->lib) {
+						if(totlib==0) firstlib= files;
+						totlib++;
+					}
+					
+					files++;
+				}
+				totbl++;
+			}
+			
+			id= id->next;
+		}
+		
+		/* only qsort of library blocks */
+		if(totlib>1) {
+			qsort(firstlib, totlib, sizeof(struct direntry), compare_name);
+		}
+	}
+	filelist->filter = 0;
+	filelist_filter(filelist);
+}
+

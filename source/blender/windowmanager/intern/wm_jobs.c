@@ -373,6 +373,7 @@ void WM_OT_jobs_timer(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Jobs timer";
 	ot->idname= "WM_OT_jobs_timer";
+	ot->description="Jobs timer operator.";
 	
 	/* api callbacks */
 	ot->invoke= wm_jobs_timer;

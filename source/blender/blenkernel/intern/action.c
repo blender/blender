@@ -410,8 +410,9 @@ bActionGroup *action_groups_find_named (bAction *act, const char name[])
 bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 {
 	bPoseChannel *chan;
-
-	if (pose==NULL) return NULL;
+	
+	if (ELEM(NULL, pose, name) || (name[0] == 0))
+		return NULL;
 	
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
 		if (chan->name[0] == name[0]) {
@@ -837,14 +838,15 @@ short action_has_motion(const bAction *act)
 }
 
 /* Calculate the extents of given action */
-void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)
+void calc_action_range(const bAction *act, float *start, float *end, short incl_modifiers)
 {
 	FCurve *fcu;
 	float min=999999999.0f, max=-999999999.0f;
-	short foundvert=0;
+	short foundvert=0, foundmod=0;
 
 	if (act) {
 		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+			/* if curve has keyframes, consider them first */
 			if (fcu->totvert) {
 				float nmin, nmax;
 				
@@ -857,10 +859,53 @@ void calc_action_range(const bAction *act, float *start, float *end, int incl_hi
 				
 				foundvert= 1;
 			}
+			
+			/* if incl_modifiers is enabled, need to consider modifiers too
+			 *	- only really care about the last modifier
+			 */
+			if ((incl_modifiers) && (fcu->modifiers.last)) {
+				FModifier *fcm= fcu->modifiers.last;
+				
+				/* only use the maximum sensible limits of the modifiers if they are more extreme */
+				switch (fcm->type) {
+					case FMODIFIER_TYPE_LIMITS: /* Limits F-Modifier */
+					{
+						FMod_Limits *fmd= (FMod_Limits *)fcm->data;
+						
+						if (fmd->flag & FCM_LIMIT_XMIN) {
+							min= MIN2(min, fmd->rect.xmin);
+						}
+						if (fmd->flag & FCM_LIMIT_XMAX) {
+							max= MAX2(max, fmd->rect.xmax);
+						}
+					}
+						break;
+						
+					case FMODIFIER_TYPE_CYCLES: /* Cycles F-Modifier */
+					{
+						FMod_Cycles *fmd= (FMod_Cycles *)fcm->data;
+						
+						if (fmd->before_mode != FCM_EXTRAPOLATE_NONE)
+							min= MINAFRAMEF;
+						if (fmd->after_mode != FCM_EXTRAPOLATE_NONE)
+							max= MAXFRAMEF;
+					}
+						break;
+						
+					// TODO: function modifier may need some special limits
+						
+					default: /* all other standard modifiers are on the infinite range... */
+						min= MINAFRAMEF;
+						max= MAXFRAMEF;
+						break;
+				}
+				
+				foundmod= 1;
+			}
 		}
 	}	
 	
-	if (foundvert) {
+	if (foundvert || foundmod) {
 		if(min==max) max+= 1.0f;
 		*start= min;
 		*end= max;

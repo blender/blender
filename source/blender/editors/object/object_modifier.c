@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -39,8 +40,10 @@
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_arithb.h"
 #include "BLI_listbase.h"
 
+#include "BKE_action.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -116,7 +119,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 			DAG_scene_sort(scene);
 	}
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	return 1;
 }
@@ -165,7 +168,7 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	return 1;
 }
@@ -373,7 +376,7 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 
 		MEM_freeN(vertexCos);
 
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
 		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
@@ -403,6 +406,12 @@ int ED_object_modifier_copy(ReportList *reports, Object *ob, ModifierData *md)
 
 /***************************** OPERATORS ****************************/
 
+static int modifier_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+	return (ptr.data != NULL && !((ID*)ptr.id.data)->lib);
+}
+
 /************************ add modifier operator *********************/
 
 static int modifier_add_exec(bContext *C, wmOperator *op)
@@ -419,8 +428,44 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	EnumPropertyItem *item= NULL, *md_item;
+	ModifierTypeInfo *mti;
+	Object *ob;
+	int totitem= 0, a;
+	
+	if(!C || !(ob= CTX_data_active_object(C))) /* needed for docs */
+		return modifier_type_items;
+
+	for(a=0; modifier_type_items[a].identifier; a++) {
+		md_item= &modifier_type_items[a];
+
+		if(md_item->identifier[0]) {
+			mti= modifierType_getInfo(md_item->value);
+
+			if(mti->flags & eModifierTypeFlag_NoUserAdd)
+				continue;
+
+			if(!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
+			   (ob->type==OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh))))
+				continue;
+		}
+
+		RNA_enum_item_add(&item, &totitem, md_item);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	*free= 1;
+
+	return item;
+}
+
 void OBJECT_OT_modifier_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add Modifier";
 	ot->description = "Add a modifier to the active object.";
@@ -429,14 +474,14 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_add_exec;
-	
 	ot->poll= ED_operator_object_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	/* XXX only some types should be here */
-	RNA_def_enum(ot->srna, "type", modifier_type_items, 0, "Type", "");
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", modifier_type_items, eModifierType_Subsurf, "Type", "");
+	RNA_def_enum_funcs(prop, modifier_add_itemf);
 }
 
 /************************ remove modifier operator *********************/
@@ -448,7 +493,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	Object *ob= ptr.id.data;
 	ModifierData *md= ptr.data;
 
-	if(!ob || !md || !ED_object_modifier_remove(op->reports, scene, ob, md))
+	if(!ED_object_modifier_remove(op->reports, scene, ob, md))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
@@ -464,6 +509,7 @@ void OBJECT_OT_modifier_remove(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_remove_exec;
+	ot->poll= modifier_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -473,15 +519,14 @@ void OBJECT_OT_modifier_remove(wmOperatorType *ot)
 
 static int modifier_move_up_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
 	Object *ob= ptr.id.data;
 	ModifierData *md= ptr.data;
 
-	if(!ob || !md || !ED_object_modifier_move_up(op->reports, ob, md))
+	if(!ED_object_modifier_move_up(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -495,6 +540,7 @@ void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_move_up_exec;
+	ot->poll= modifier_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -504,7 +550,6 @@ void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
 
 static int modifier_move_down_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
 	Object *ob= ptr.id.data;
 	ModifierData *md= ptr.data;
@@ -512,7 +557,7 @@ static int modifier_move_down_exec(bContext *C, wmOperator *op)
 	if(!ob || !md || !ED_object_modifier_move_down(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -526,6 +571,7 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_move_down_exec;
+	ot->poll= modifier_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -543,7 +589,7 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md))
 		return OPERATOR_CANCELLED;
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -557,6 +603,7 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_apply_exec;
+	ot->poll= modifier_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -574,7 +621,7 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
 	if(!ob || !md || !ED_object_modifier_convert(op->reports, scene, ob, md))
 		return OPERATOR_CANCELLED;
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -588,6 +635,7 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_convert_exec;
+	ot->poll= modifier_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -597,7 +645,6 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 
 static int modifier_copy_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
 	Object *ob= ptr.id.data;
 	ModifierData *md= ptr.data;
@@ -605,7 +652,7 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
 	if(!ob || !md || !ED_object_modifier_copy(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -619,6 +666,35 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_copy_exec;
+	ot->poll= modifier_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************* multires delete higher levels operator ****************/
+
+static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	MultiresModifierData *mmd= ptr.data;
+
+	if(mmd) {
+		multiresModifier_del_levels(mmd, ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
+{
+	ot->name= "Delete Higher Levels";
+	ot->idname= "OBJECT_OT_multires_higher_levels_delete";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= multires_higher_levels_delete_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -632,17 +708,17 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	Object *ob= ptr.id.data;
 	MultiresModifierData *mmd= ptr.data;
 
-	if(mmd) {
-		multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	}
+	multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
 }
 
 static int multires_subdivide_poll(bContext *C)
 {
-	return NULL != CTX_data_active_object(C) && NULL == CTX_data_edit_object(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	ID *id= ptr.id.data;
+	return (ptr.data && id && !id->lib);
 }
 
 void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
@@ -660,12 +736,14 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 
 /************************ mdef bind operator *********************/
 
-static int modifier_mdef_bind_poll(bContext *C)
+static int meshdeform_poll(bContext *C)
 {
-	return CTX_data_pointer_get_type(C, "modifier", &RNA_MeshDeformModifier).data != NULL;
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MeshDeformModifier);
+	ID *id= ptr.id.data;
+	return (ptr.data && id && !id->lib);
 }
 
-static int modifier_mdef_bind_exec(bContext *C, wmOperator *op)
+static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get(C, "modifier");
@@ -716,175 +794,205 @@ static int modifier_mdef_bind_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_modifier_mdef_bind(wmOperatorType *ot)
+void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mesh Deform Bind";
 	ot->description = "Bind mesh to cage in mesh deform modifier.";
-	ot->idname= "OBJECT_OT_modifier_mdef_bind";
+	ot->idname= "OBJECT_OT_meshdeform_bind";
 	
 	/* api callbacks */
-	ot->poll= modifier_mdef_bind_poll;
-	ot->exec= modifier_mdef_bind_exec;
+	ot->poll= meshdeform_poll;
+	ot->exec= meshdeform_bind_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-#if 0
-static void modifiers_add(void *ob_v, int type)
+/******************** hook operators ************************/
+
+static int hook_poll(bContext *C)
 {
-	Object *ob = ob_v;
-	ModifierTypeInfo *mti = modifierType_getInfo(type);
-	
-	if (mti->flags&eModifierTypeFlag_RequiresOriginalData) {
-		ModifierData *md = ob->modifiers.first;
-
-		while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
-			md = md->next;
-		}
-
-		BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
-	} else {
-		BLI_addtail(&ob->modifiers, modifier_new(type));
-	}
-	ED_undo_push("Add modifier");
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	ID *id= ptr.id.data;
+	return (ptr.data && id && !id->lib);
 }
 
-typedef struct MenuEntry {
-	char *name;
-	int ID;
-} MenuEntry;
-
-static int menuEntry_compare_names(const void *entry1, const void *entry2)
+static int hook_reset_exec(bContext *C, wmOperator *op)
 {
-	return strcmp(((MenuEntry *)entry1)->name, ((MenuEntry *)entry2)->name);
-}
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	Object *ob= ptr.id.data;
+	HookModifierData *hmd= ptr.data;
 
-static uiBlock *modifiers_add_menu(void *ob_v)
-{
-	Object *ob = ob_v;
-	uiBlock *block;
-	int i, yco=0;
-	int numEntries = 0;
-	MenuEntry entries[NUM_MODIFIER_TYPES];
-	
-	block= uiNewBlock(&curarea->uiblocks, "modifier_add_menu",
-	                  UI_EMBOSSP, UI_HELV, curarea->win);
-	uiBlockSetButmFunc(block, modifiers_add, ob);
-
-	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
-		ModifierTypeInfo *mti = modifierType_getInfo(i);
-
-		/* Only allow adding through appropriate other interfaces */
-		if(ELEM(i, eModifierType_ParticleSystem, eModifierType_Surface)) continue;
-
-		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
-		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
-			entries[numEntries].name = mti->name;
-			entries[numEntries].ID = i;
-
-			++numEntries;
-		}
-	}
-
-	qsort(entries, numEntries, sizeof(*entries), menuEntry_compare_names);
-
-
-	for(i = 0; i < numEntries; ++i)
-		uiDefBut(block, BUTM, B_MODIFIER_RECALC, entries[i].name,
-		         0, yco -= 20, 160, 19, NULL, 0, 0, 1, entries[i].ID, "");
-
-	uiTextBoundsBlock(block, 50);
-	uiBlockSetDirection(block, UI_DOWN);
-
-	return block;
-}
-#endif
-
-#if 0
-static void modifiers_clearHookOffset(bContext *C, void *ob_v, void *md_v)
-{
-	Object *ob = ob_v;
-	ModifierData *md = md_v;
-	HookModifierData *hmd = (HookModifierData*) md;
-	
-	if (hmd->object) {
-		Mat4Invert(hmd->object->imat, hmd->object->obmat);
-		Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
-		ED_undo_push(C, "Clear hook offset");
-	}
-}
-
-static void modifiers_cursorHookCenter(bContext *C, void *ob_v, void *md_v)
-{
-	/* XXX 
-	Object *ob = ob_v;
-	ModifierData *md = md_v;
-	HookModifierData *hmd = (HookModifierData*) md;
-
-	if(G.vd) {
-		float *curs = give_cursor();
-		float bmat[3][3], imat[3][3];
-
-		where_is_object(ob);
-	
-		Mat3CpyMat4(bmat, ob->obmat);
-		Mat3Inv(imat, bmat);
-
-		curs= give_cursor();
-		hmd->cent[0]= curs[0]-ob->obmat[3][0];
-		hmd->cent[1]= curs[1]-ob->obmat[3][1];
-		hmd->cent[2]= curs[2]-ob->obmat[3][2];
-		Mat3MulVecfl(imat, hmd->cent);
-
-		ED_undo_push(C, "Hook cursor center");
-	}*/
-}
-
-static void modifiers_selectHook(bContext *C, void *ob_v, void *md_v)
-{
-	/* XXX ModifierData *md = md_v;
-	HookModifierData *hmd = (HookModifierData*) md;
-
-	hook_select(hmd);*/
-}
-
-static void modifiers_reassignHook(bContext *C, void *ob_v, void *md_v)
-{
-	/* XXX ModifierData *md = md_v;
-	HookModifierData *hmd = (HookModifierData*) md;
-	float cent[3];
-	int *indexar, tot, ok;
-	char name[32];
+	if(hmd->object) {
+		bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
 		
-	ok= hook_getIndexArray(&tot, &indexar, name, cent);
-
-	if (!ok) {
-		uiPupMenuError(C, "Requires selected vertices or active Vertex Group");
-	} else {
-		if (hmd->indexar) {
-			MEM_freeN(hmd->indexar);
+		if(hmd->subtarget[0] && pchan) {
+			float imat[4][4], mat[4][4];
+			
+			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
+			Mat4MulMat4(mat, pchan->pose_mat, hmd->object->obmat);
+			
+			Mat4Invert(imat, mat);
+			Mat4MulSerie(hmd->parentinv, imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 		}
+		else {
+			Mat4Invert(hmd->object->imat, hmd->object->obmat);
+			Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		}
+	}
 
-		VECCOPY(hmd->cent, cent);
-		hmd->indexar = indexar;
-		hmd->totindex = tot;
-	}*/
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
 }
 
-void modifiers_explodeFacepa(bContext *C, void *arg1, void *arg2)
+void OBJECT_OT_hook_reset(wmOperatorType *ot)
 {
-	ExplodeModifierData *emd=arg1;
+	ot->name= "Hook Reset";
+	ot->description= "Recalculate and and clear offset transformation.";
+	ot->idname= "OBJECT_OT_hook_reset";
+
+	ot->exec= hook_reset_exec;
+	ot->poll= hook_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int hook_recenter_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	Object *ob= ptr.id.data;
+	HookModifierData *hmd= ptr.data;
+	float bmat[3][3], imat[3][3];
+
+	Mat3CpyMat4(bmat, ob->obmat);
+	Mat3Inv(imat, bmat);
+
+	VECSUB(hmd->cent, scene->cursor, ob->obmat[3]);
+	Mat3MulVecfl(imat, hmd->cent);
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_recenter(wmOperatorType *ot)
+{
+	ot->name= "Hook Recenter";
+	ot->description= "Set hook center to cursor position.";
+	ot->idname= "OBJECT_OT_hook_recenter";
+
+	ot->exec= hook_recenter_exec;
+	ot->poll= hook_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int hook_select_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	Object *ob= ptr.id.data;
+	HookModifierData *hmd= ptr.data;
+
+	object_hook_select(ob, hmd);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_select(wmOperatorType *ot)
+{
+	ot->name= "Hook Select";
+	ot->description= "Selects effected vertices on mesh.";
+	ot->idname= "OBJECT_OT_hook_select";
+
+	ot->exec= hook_select_exec;
+	ot->poll= hook_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int hook_assign_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+	Object *ob= ptr.id.data;
+	HookModifierData *hmd= ptr.data;
+	float cent[3];
+	char name[32];
+	int *indexar, tot;
+		
+	if(!object_hook_index_array(ob, &tot, &indexar, name, cent)) {
+		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(hmd->indexar)
+		MEM_freeN(hmd->indexar);
+
+	VECCOPY(hmd->cent, cent);
+	hmd->indexar= indexar;
+	hmd->totindex= tot;
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hook_assign(wmOperatorType *ot)
+{
+	ot->name= "Hook Assign";
+	ot->description= "Reassigns selected vertices to hook.";
+	ot->idname= "OBJECT_OT_hook_assign";
+
+	ot->exec= hook_assign_exec;
+	ot->poll= hook_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/****************** explode refresh operator *********************/
+
+static int explode_refresh_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_ExplodeModifier);
+	ID *id= ptr.id.data;
+	return (ptr.data && id && !id->lib);
+}
+
+static int explode_refresh_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_ExplodeModifier);
+	Object *ob= ptr.id.data;
+	ExplodeModifierData *emd= ptr.data;
 
 	emd->flag |= eExplodeFlag_CalcFaces;
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
 }
 
-void modifiers_explodeDelVg(bContext *C, void *arg1, void *arg2)
+void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 {
-	ExplodeModifierData *emd=arg1;
-	emd->vgroup = 0;
-}
-#endif
+	ot->name= "Explode Refresh";
+	ot->description= "Refresh data in the Explode modifier.";
+	ot->idname= "OBJECT_OT_explode_refresh";
 
+	ot->exec= explode_refresh_exec;
+	ot->poll= explode_refresh_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 

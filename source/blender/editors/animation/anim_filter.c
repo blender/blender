@@ -885,7 +885,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 		for (sa= sc->areabase.first; sa; sa= sa->next) {
 			/* try to get gp data */
 			// XXX need to put back grease pencil api...
-			gpd= gpencil_data_getactive(sa);
+			gpd= gpencil_data_get_active(sa);
 			if (gpd == NULL) continue;
 			
 			/* add gpd as channel too (if for drawing, and it has layers) */

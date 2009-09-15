@@ -37,6 +37,24 @@
 
 #ifdef RNA_RUNTIME
 
+static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle, int icon_only)
+{
+	int flag= 0;
+
+	flag |= (slider)? UI_ITEM_R_SLIDER: 0;
+	flag |= (expand)? UI_ITEM_R_EXPAND: 0;
+	flag |= (toggle)? UI_ITEM_R_TOGGLE: 0;
+	flag |= (icon_only)? UI_ITEM_R_ICON_ONLY: 0;
+	
+	uiItemR(layout, name, icon, ptr, propname, flag);
+}
+
+static PointerRNA rna_uiItemO(uiLayout *layout, char *name, int icon, char *opname, int properties)
+{
+	int flag= (properties)? UI_ITEM_O_RETURN_PROPS: 0;
+	return uiItemFullO(layout, name, icon, opname, NULL, uiLayoutGetOperatorContext(layout), flag);
+}
+
 #else
 
 #define DEF_ICON(name) {name, #name, 0, #name, ""},
@@ -119,15 +137,16 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "split", "uiLayoutSplit");
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
-	RNA_def_float(func, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
+	RNA_def_float(func, "percentage", 0.0f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
 
 	/* items */
-	func= RNA_def_function(srna, "itemR", "uiItemR");
+	func= RNA_def_function(srna, "itemR", "rna_uiItemR");
 	api_ui_item_common(func);
 	api_ui_item_rna_common(func);
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	RNA_def_boolean(func, "slider", 0, "", "Use slider widget for numeric values.");
 	RNA_def_boolean(func, "toggle", 0, "", "Use toggle widget for boolean values.");
+	RNA_def_boolean(func, "icon_only", 0, "", "Only show the property's icon, with no text");
 
 	func= RNA_def_function(srna, "items_enumR", "uiItemsEnumR");
 	api_ui_item_rna_common(func);
@@ -150,8 +169,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "search_property", "", 0, "", "Identifier of search collection property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	func= RNA_def_function(srna, "itemO", "uiItemO");
+	func= RNA_def_function(srna, "itemO", "rna_uiItemO");
 	api_ui_item_op_common(func);
+	parm= RNA_def_boolean(func, "properties", 0, "Properties", "Return operator properties to fill in manually.");
+	parm= RNA_def_pointer(func, "return_properties", "OperatorProperties", "", "Operator properties to fill in, return when 'properties' is set to true.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "item_enumO", "uiItemEnumO_string");
 	api_ui_item_op_common(func);
@@ -220,11 +243,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	/* templates */
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_boolean(func, "menus", 1, "", "The header has menus, and should show menu expander.");
 
 	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	RNA_def_string(func, "new", "", 0, "", "Operator identifier to create a new ID block.");
+	RNA_def_string(func, "open", "", 0, "", "Operator identifier to open a file for creating a new ID block.");
 	RNA_def_string(func, "unlink", "", 0, "", "Operator identifier to unlink the ID block.");
 
 	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
@@ -243,6 +268,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "parent", "ID", "", "ID datablock.");
+	parm= RNA_def_pointer(func, "slot", "TextureSlot", "", "Texture slot.");
 
 	func= RNA_def_function(srna, "template_curve_mapping", "uiTemplateCurveMapping");
 	parm= RNA_def_pointer(func, "curvemap", "CurveMapping", "", "Curve mapping pointer.");
@@ -288,12 +314,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_header_3D", "uiTemplateHeader3D");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
-	func= RNA_def_function(srna, "view3d_select_metaballmenu", "uiTemplate_view3d_select_metaballmenu");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	func= RNA_def_function(srna, "view3d_select_armaturemenu", "uiTemplate_view3d_select_armaturemenu");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	func= RNA_def_function(srna, "view3d_select_posemenu", "uiTemplate_view3d_select_posemenu");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	func= RNA_def_function(srna, "view3d_select_faceselmenu", "uiTemplate_view3d_select_faceselmenu");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 

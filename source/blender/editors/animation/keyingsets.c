@@ -78,138 +78,173 @@
 #include "anim_intern.h"
 
 /* ************************************************** */
-/* KEYING SETS - EDITING API  */
+/* KEYING SETS - OPERATORS (for use in UI menus) */
 
-/* Operators ------------------------------------------- */
+/* Add to KeyingSet Button Operator ------------------------ */
 
-/* These operators are only provided for scripting/macro usage, not for direct
- * calling from the UI since they wrap some of the data-access API code for these
- * (defined in blenkernel) which have quite a few properties.
- */
-
-/* ----- */
-
-static int keyingset_add_destination_exec (bContext *C, wmOperator *op)
+static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks = NULL;
+	PropertyRNA *prop= NULL;
 	PointerRNA ptr;
-	KeyingSet *ks= NULL;
-	ID *id= NULL;
-	char rna_path[256], group_name[64]; // xxx
-	short groupmode=0, flag=0;
-	int array_index=0;
+	char *path = NULL;
+	short success= 0;
+	int index=0, pflag=0;
+	int all= RNA_boolean_get(op->ptr, "all");
 	
-	/* get settings from operator properties */
-	ptr = RNA_pointer_get(op->ptr, "keyingset");
-	if (ptr.data) 
-		ks= (KeyingSet *)ptr.data;
-	
-	ptr = RNA_pointer_get(op->ptr, "id");
-	if (ptr.data)
-		id= (ID *)ptr.data;
-	
-	groupmode= RNA_enum_get(op->ptr, "grouping_method");
-	RNA_string_get(op->ptr, "group_name", group_name);		
-	
-	RNA_string_get(op->ptr, "rna_path", rna_path);
-	array_index= RNA_int_get(op->ptr, "array_index");
-	
-	if (RNA_boolean_get(op->ptr, "entire_array"))
-		flag |= KSP_FLAG_WHOLE_ARRAY;
-	
-	/* if enough args are provided, call API method */
-	if (ks) {
-		BKE_keyingset_add_destination(ks, id, group_name, rna_path, array_index, flag, groupmode);
-		return OPERATOR_FINISHED;
-	}
-	else {
-		BKE_report(op->reports, RPT_ERROR, "Keying Set could not be added.");
-		return OPERATOR_CANCELLED;
-	}	
-}
-
-void ANIM_OT_keyingset_add_destination (wmOperatorType *ot)
-{
-	// XXX: this is also defined in rna_animation.c
-	static EnumPropertyItem prop_mode_grouping_items[] = {
-		{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
-		{KSP_GROUP_NONE, "NONE", 0, "None", ""},
-		{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-	/* identifiers */
-	ot->name= "Add Keying Set Destination";
-	ot->idname= "ANIM_OT_keyingset_add_destination";
-	
-	/* callbacks */
-	ot->exec= keyingset_add_destination_exec;
-	ot->poll= ED_operator_scene_editable;
-	
-	/* props */
-		/* pointers */ // xxx - do we want to directly expose these?
-	RNA_def_pointer_runtime(ot->srna, "keyingset", &RNA_KeyingSet, "Keying Set", "Keying Set to add destination to.");
-	RNA_def_pointer_runtime(ot->srna, "id", &RNA_ID, "ID", "ID-block for the destination.");
-		/* grouping */
-	RNA_def_enum(ot->srna, "grouping_method", prop_mode_grouping_items, KSP_GROUP_NAMED, "Grouping Method", "Method used to define which Group-name to use.");
-	RNA_def_string(ot->srna, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
-		/* rna-path */
-	RNA_def_string(ot->srna, "rna_path", "", 256, "RNA-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
-	RNA_def_int(ot->srna, "array_index", 0, 0, INT_MAX, "Array Index", "If applicable, the index ", 0, INT_MAX);
-		/* flags */
-	RNA_def_boolean(ot->srna, "entire_array", 1, "Entire Array", "hen an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used.");
-	
-}
- 
-/* ----- */
-
-static int keyingset_add_new_exec (bContext *C, wmOperator *op)
-{
-	Scene *sce= CTX_data_scene(C);
-	KeyingSet *ks= NULL;
-	short flag=0, keyingflag=0;
-	char name[64];
-	
-	/* get settings from operator properties */
-	RNA_string_get(op->ptr, "name", name);
-	
-	if (RNA_boolean_get(op->ptr, "absolute"))
-		flag |= KEYINGSET_ABSOLUTE;
-	if (RNA_boolean_get(op->ptr, "insertkey_needed"))
-		keyingflag |= INSERTKEY_NEEDED;
-	if (RNA_boolean_get(op->ptr, "insertkey_visual"))
-		keyingflag |= INSERTKEY_MATRIX;
+	/* verify the Keying Set to use:
+	 *	- use the active one for now (more control over this can be added later)
+	 *	- add a new one if it doesn't exist 
+	 */
+	if (scene->active_keyingset == 0) {
+		short flag=0, keyingflag=0;
 		
-	/* call the API func, and set the active keyingset index */
-	ks= BKE_keyingset_add(&sce->keyingsets, name, flag, keyingflag);
+		/* validate flags 
+		 *	- absolute KeyingSets should be created by default
+		 */
+		flag |= KEYINGSET_ABSOLUTE;
+		
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
+			keyingflag |= INSERTKEY_MATRIX;
+		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
+			keyingflag |= INSERTKEY_NEEDED;
+			
+		/* call the API func, and set the active keyingset index */
+		ks= BKE_keyingset_add(&scene->keyingsets, "ButtonKeyingSet", flag, keyingflag);
+		
+		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
+	}
+	else
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
 	
-	if (ks) {
-		sce->active_keyingset= BLI_countlist(&sce->keyingsets);
-		return OPERATOR_FINISHED;
+	/* try to add to keyingset using property retrieved from UI */
+	memset(&ptr, 0, sizeof(PointerRNA));
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+	
+	/* check if property is able to be added */
+	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			/* set flags */
+			if (all) 
+				pflag |= KSP_FLAG_WHOLE_ARRAY;
+				
+			/* add path to this setting */
+			BKE_keyingset_add_destination(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
+			success= 1;
+			
+			/* free the temp path created */
+			MEM_freeN(path);
+		}
 	}
-	else {
-		BKE_report(op->reports, RPT_ERROR, "Keying Set could not be added.");
-		return OPERATOR_CANCELLED;
+	
+	if (success) {
+		/* send updates */
+		ED_anim_dag_flush_update(C);	
+		
+		/* for now, only send ND_KEYS for KeyingSets */
+		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
 	}
+	
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_keyingset_add_new (wmOperatorType *ot)
+void ANIM_OT_add_keyingset_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Keying Set";
-	ot->idname= "ANIM_OT_keyingset_add_new";
+	ot->name= "Add to Keying Set";
+	ot->idname= "ANIM_OT_add_keyingset_button";
 	
 	/* callbacks */
-	ot->exec= keyingset_add_new_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->exec= add_keyingset_button_exec; 
+	//op->poll= ???
 	
-	/* props */
-		/* name */
-	RNA_def_string(ot->srna, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
-		/* flags */
-	RNA_def_boolean(ot->srna, "absolute", 1, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
-		/* keying flags */
-	RNA_def_boolean(ot->srna, "insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
-	RNA_def_boolean(ot->srna, "insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Add all elements of the array to a Keying Set.");
 }
+
+/* Remove from KeyingSet Button Operator ------------------------ */
+
+static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks = NULL;
+	PropertyRNA *prop= NULL;
+	PointerRNA ptr;
+	char *path = NULL;
+	short success= 0;
+	int index=0;
+	
+	/* verify the Keying Set to use:
+	 *	- use the active one for now (more control over this can be added later)
+	 *	- return error if it doesn't exist
+	 */
+	if (scene->active_keyingset == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove property from");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* try to add to keyingset using property retrieved from UI */
+	memset(&ptr, 0, sizeof(PointerRNA));
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+
+	if (ptr.data && prop) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			KS_Path *ksp;
+			
+			/* try to find a path matching this description */
+			ksp= BKE_keyingset_find_destination(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
+			
+			if (ksp) {
+				/* just free it... */
+				MEM_freeN(ksp->rna_path);
+				BLI_freelinkN(&ks->paths, ksp);
+				
+				success= 1;
+			}
+			
+			/* free temp path used */
+			MEM_freeN(path);
+		}
+	}
+	
+	
+	if (success) {
+		/* send updates */
+		ED_anim_dag_flush_update(C);	
+		
+		/* for now, only send ND_KEYS for KeyingSets */
+		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	}
+	
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_remove_keyingset_button (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove from Keying Set";
+	ot->idname= "ANIM_OT_remove_keyingset_button";
+	
+	/* callbacks */
+	ot->exec= remove_keyingset_button_exec; 
+	//op->poll= ???
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************************************** */
+/* KEYING SETS - EDITING API  */
 
 /* UI API --------------------------------------------- */
 
@@ -766,24 +801,24 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	
 	/* Keying Sets with Keying Flags ************************* */
 	/* Keying Set - "VisualLoc" ---------- */
-	BI_KS_DEFINE_BEGIN("VisualLoc", 0)
+	BI_KS_DEFINE_BEGIN("VisualLoc", INSERTKEY_MATRIX)
 		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 
 	/* Keying Set - "Rotation" ---------- */
-	BI_KS_DEFINE_BEGIN("VisualRot", 0)
+	BI_KS_DEFINE_BEGIN("VisualRot", INSERTKEY_MATRIX)
 		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
 	/* Keying Set - "VisualLocRot" ---------- */
-	BI_KS_DEFINE_BEGIN("VisualLocRot", 0)
+	BI_KS_DEFINE_BEGIN("VisualLocRot", INSERTKEY_MATRIX)
 		BI_KS_PATHS_BEGIN(2)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END
 };
@@ -1010,6 +1045,7 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
  */
 int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
+	Scene *scene= CTX_data_scene(C);
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
@@ -1022,7 +1058,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 		/* suppliment with info from the context */
 		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) kflag |= INSERTKEY_MATRIX;
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) kflag |= INSERTKEY_NEEDED;
-		// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
+		if (IS_AUTOKEY_MODE(scene, EDITKEYS)) kflag |= INSERTKEY_REPLACE;
 	}
 	else if (mode == MODIFYKEY_MODE_DELETE)
 		kflag= 0;
@@ -1047,7 +1083,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 			 * normal non-array entries get keyframed correctly
 			 */
 			i= ksp->array_index;
-			arraylen= i+1;
+			arraylen= i;
 			
 			/* get length of array if whole array option is enabled */
 			if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
@@ -1056,8 +1092,12 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				
 				RNA_id_pointer_create(ksp->id, &id_ptr);
 				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
-					arraylen= RNA_property_array_length(prop);
+					arraylen= RNA_property_array_length(&ptr, prop);
 			}
+			
+			/* we should do at least one step */
+			if (arraylen == i)
+				arraylen++;
 			
 			/* for each possible index, perform operation 
 			 *	- assume that arraylen is greater than index
@@ -1137,7 +1177,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 						/* if this path is exactly "rotation", and the rotation mode is set to eulers,
 						 * use "euler_rotation" instead so that rotations will be keyed correctly
 						 */
-						if (strcmp(ksp->rna_path, "rotation")==0 && (cks->pchan->rotmode))
+						if (strcmp(ksp->rna_path, "rotation")==0 && (cks->pchan->rotmode > 0))
 							BLI_dynstr_append(pathds, "euler_rotation");
 						else
 							BLI_dynstr_append(pathds, ksp->rna_path);
@@ -1175,7 +1215,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					
 					RNA_id_pointer_create(cks->id, &id_ptr);
 					if (RNA_path_resolve(&id_ptr, path, &ptr, &prop) && prop)
-						arraylen= RNA_property_array_length(prop);
+						arraylen= RNA_property_array_length(&ptr, prop);
 				}
 				
 				/* for each possible index, perform operation 

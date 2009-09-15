@@ -65,22 +65,7 @@
 extern "C" {
 #endif
 
-#ifndef M_PI
-#define M_PI		3.14159265358979323846
-#endif
-#ifndef M_PI_2
-#define M_PI_2		1.57079632679489661923
-#endif
-#ifndef M_SQRT2
-#define M_SQRT2		1.41421356237309504880
-#endif
-#ifndef M_SQRT1_2
-#define M_SQRT1_2	0.70710678118654752440
-#endif
-#ifndef M_1_PI
-#define M_1_PI		0.318309886183790671538
-#endif
-
+#define _USE_MATH_DEFINES
 #define MAXPATHLEN MAX_PATH
 
 #ifndef S_ISREG
@@ -89,6 +74,18 @@ extern "C" {
 #ifndef S_ISDIR
 #define S_ISDIR(x) ((x&S_IFMT) == S_IFDIR)
 #endif
+
+/* defines for using ISO C++ conformant names */
+#define open _open
+#define close _close
+#define write _write
+#define read _read
+#define getcwd _getcwd
+#define chdir _chdir
+#define strdup _strdup
+#define lseek _lseek
+#define getpid _getpid
+#define snprintf _snprintf
 
 #ifndef FREE_WINDOWS
 typedef unsigned int mode_t;

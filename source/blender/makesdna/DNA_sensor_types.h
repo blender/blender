@@ -178,6 +178,9 @@ typedef struct bJoystickSensor {
 
 /* bMouseSensor->type: uses blender event defines */
 
+/* bMouseSensor->flag: only pulse for now */
+#define SENS_MOUSE_FOCUS_PULSE	1
+
 /* propertysensor->type */
 #define SENS_PROP_EQUAL		0
 #define SENS_PROP_NEQUAL	1

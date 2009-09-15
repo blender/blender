@@ -89,6 +89,7 @@ typedef enum PropertySubType {
 	/* strings */
 	PROP_FILEPATH = 1,
 	PROP_DIRPATH = 2,
+	PROP_FILENAME = 3,
 
 	/* numbers */
 	PROP_UNSIGNED = 13,
@@ -111,6 +112,10 @@ typedef enum PropertySubType {
 
 	/* pointers */
 	PROP_NEVER_NULL = 30,
+
+	/* booleans */
+	PROP_LAYER = 40,
+	PROP_LAYER_MEMBER = 41
 } PropertySubType;
 
 typedef enum PropertyFlag {
@@ -152,7 +157,8 @@ typedef enum PropertyFlag {
 	PROP_IDPROPERTY = 1024,
 	PROP_RAW_ACCESS = 8192,
 	PROP_RAW_ARRAY = 16384,
-	PROP_FREE_POINTERS = 32768
+	PROP_FREE_POINTERS = 32768,
+	PROP_DYNAMIC = 131072 /* for dynamic arrays, and retvals of type string */
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -175,11 +181,11 @@ typedef struct CollectionPointerLink {
 } CollectionPointerLink;
 
 typedef enum RawPropertyType {
-	PROP_RAW_CHAR,
+	PROP_RAW_INT, // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.
 	PROP_RAW_SHORT,
-	PROP_RAW_INT,
-	PROP_RAW_FLOAT,
-	PROP_RAW_DOUBLE
+	PROP_RAW_CHAR,
+	PROP_RAW_DOUBLE,
+	PROP_RAW_FLOAT
 } RawPropertyType;
 
 typedef struct RawArray {
@@ -263,7 +269,7 @@ typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_
 typedef int (*StructCallbackFunc)(struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
 typedef void (*StructFreeFunc)(void *data);
 typedef struct StructRNA *(*StructRegisterFunc)(const struct bContext *C, struct ReportList *reports, void *data,
-	StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
+	const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 typedef void (*StructUnregisterFunc)(const struct bContext *C, struct StructRNA *type);
 
 typedef struct StructRNA StructRNA;

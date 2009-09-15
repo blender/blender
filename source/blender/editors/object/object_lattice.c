@@ -31,21 +31,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
-#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
@@ -203,7 +197,7 @@ int de_select_all_exec(bContext *C, wmOperator *op)
 	else
 		setflagsLatt(obedit, 1);
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -212,6 +206,7 @@ void LATTICE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
+    ot->description= "Toggle (de)select all UVW control points.";
 	ot->idname= "LATTICE_OT_select_all_toggle";
 	
 	/* api callbacks */
@@ -234,7 +229,6 @@ int make_regular_poll(bContext *C)
 
 int make_regular_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	Lattice *lt;
 	
@@ -248,8 +242,8 @@ int make_regular_exec(bContext *C, wmOperator *op)
 		resizelattice(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -258,6 +252,7 @@ void LATTICE_OT_make_regular(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Regular";
+    ot->description= "Set UVW control points a uniform distance apart.";
 	ot->idname= "LATTICE_OT_make_regular";
 	
 	/* api callbacks */
@@ -318,7 +313,7 @@ void mouse_lattice(bContext *C, short mval[2], int extend)
 		else
 			bp->f1 ^= SELECT; /* swap */
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
 	}
 }
 

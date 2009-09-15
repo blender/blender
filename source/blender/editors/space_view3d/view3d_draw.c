@@ -78,6 +78,7 @@
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
+#include "ED_gpencil.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -741,7 +742,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (printable) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(10,  ar->winy-20, 0.0f, printable);
+		BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
 	}
 
 	if (v3d->localview) {
@@ -1092,6 +1093,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
+	rcti winrct;
 
 /*for 2.43 release, don't use glext and just define the constant.
   this to avoid possibly breaking platforms before release.*/
@@ -1136,6 +1138,9 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
 	glDisable(GL_DITHER);
+
+	region_scissor_winrct(ar, &winrct);
+	glScissor(winrct.xmin, winrct.ymin, winrct.xmax - winrct.xmin, winrct.ymax - winrct.ymin);
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
 	if(v3d->zbuf) {
@@ -1416,7 +1421,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	
-	glaDefine2DArea(&ar->winrct);
+//	glaDefine2DArea(&ar->winrct);
+	ED_region_pixelspace(ar);
 	
 	glEnable(GL_BLEND);
 	
@@ -1855,7 +1861,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 /* *********************** customdata **************** */
 
 /* goes over all modes and view3d settings */
-static CustomDataMask get_viewedit_datamask(bScreen *screen, Object *ob)
+static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Object *ob)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	ScrArea *sa;
@@ -1875,10 +1881,8 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Object *ob)
 			if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
 				mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 				
-				if((G.fileflags & G_FILE_GAME_MAT) &&
-				   (G.fileflags & G_FILE_GAME_MAT_GLSL)) {
+				if(scene->gm.matmode == GAME_MAT_GLSL)
 					mask |= CD_MASK_ORCO;
-				}
 			}
 		}
 	}
@@ -1909,7 +1913,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	char *grid_unit= NULL;
 	
 	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), obact);
+	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 	
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
@@ -2080,8 +2084,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	/* draw grease-pencil stuff */
-//	if (v3d->flag2 & V3D_DISPGP)
-//		draw_gpencil_3dview(ar, 1);
+	//if (v3d->flag2 & V3D_DISPGP)
+		draw_gpencil_3dview((bContext *)C, 1);
 	
 	BDR_drawSketch(C);
 	
@@ -2097,9 +2101,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(rv3d->persp>1) drawviewborder(scene, ar, v3d);
 	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
 	
-	/* draw grease-pencil stuff */
+	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
 //	if (v3d->flag2 & V3D_DISPGP)
-//		draw_gpencil_3dview(ar, 0);
+		draw_gpencil_3dview((bContext *)C, 0);
 
 	drawcursor(scene, ar, v3d);
 	

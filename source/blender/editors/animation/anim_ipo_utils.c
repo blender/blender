@@ -93,9 +93,8 @@ int geticon_anim_blocktype(short blocktype)
 }
 
 /* Write into "name" buffer, the name of the property (retrieved using RNA from the curve's settings) 
- * WARNING: name buffer we're writing to cannot exceed 128 chars (check action_draw.c for details)
+ * WARNING: name buffer we're writing to cannot exceed 256 chars (check anim_channels_defines.c for details)
  */
-// TODO: have an extra var to indicate if prop was valid?
 void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
 	/* sanity checks */
@@ -148,7 +147,7 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			propname= (char *)RNA_property_ui_name(prop);
 			
 			/* Array Index - only if applicable */
-			if (RNA_property_array_length(prop)) {
+			if (RNA_property_array_length(&ptr, prop)) {
 				char c= RNA_property_array_item_char(prop, fcu->array_index);
 				
 				/* we need to write the index to a temp buffer (in py syntax) */

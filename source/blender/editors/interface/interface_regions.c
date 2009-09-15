@@ -38,6 +38,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_icons.h"
@@ -75,13 +76,14 @@
 
 /*********************** Menu Data Parsing ********************* */
 
-typedef struct {
+typedef struct MenuEntry {
 	char *str;
 	int retval;
 	int icon;
+	int sepr;
 } MenuEntry;
 
-typedef struct {
+typedef struct MenuData {
 	char *instr;
 	char *title;
 	int titleicon;
@@ -111,7 +113,7 @@ static void menudata_set_title(MenuData *md, char *title, int titleicon)
 		md->titleicon= titleicon;
 }
 
-static void menudata_add_item(MenuData *md, char *str, int retval, int icon)
+static void menudata_add_item(MenuData *md, char *str, int retval, int icon, int sepr)
 {
 	if (md->nitems==md->itemssize) {
 		int nsize= md->itemssize?(md->itemssize<<1):1;
@@ -129,6 +131,7 @@ static void menudata_add_item(MenuData *md, char *str, int retval, int icon)
 	md->items[md->nitems].str= str;
 	md->items[md->nitems].retval= retval;
 	md->items[md->nitems].icon= icon;
+	md->items[md->nitems].sepr= sepr;
 	md->nitems++;
 }
 
@@ -142,12 +145,13 @@ void menudata_free(MenuData *md)
 
 	/**
 	 * Parse menu description strings, string is of the
-	 * form "[sss%t|]{(sss[%xNN]|), (%l|)}", ssss%t indicates the
+	 * form "[sss%t|]{(sss[%xNN]|), (%l|), (sss%l|)}", ssss%t indicates the
 	 * menu title, sss or sss%xNN indicates an option, 
 	 * if %xNN is given then NN is the return value if
 	 * that option is selected otherwise the return value
 	 * is the index of the option (starting with 1). %l
-	 * indicates a seperator.
+	 * indicates a seperator, sss%l indicates a label and
+	 * new column.
 	 * 
 	 * @param str String to be parsed.
 	 * @retval new menudata structure, free with menudata_free()
@@ -157,7 +161,7 @@ MenuData *decompose_menu_string(char *str)
 	char *instr= BLI_strdup(str);
 	MenuData *md= menudata_new(instr);
 	char *nitem= NULL, *s= instr;
-	int nicon=0, nretval= 1, nitem_is_title= 0;
+	int nicon=0, nretval= 1, nitem_is_title= 0, nitem_is_sepr= 0;
 	
 	while (1) {
 		char c= *s;
@@ -174,7 +178,10 @@ MenuData *decompose_menu_string(char *str)
 				*s= '\0';
 				s++;
 			} else if (s[1]=='l') {
-				nitem= "%l";
+				nitem_is_sepr= 1;
+				if(!nitem) nitem= "";
+
+				*s= '\0';
 				s++;
 			} else if (s[1]=='i') {
 				nicon= atoi(s+2);
@@ -186,15 +193,18 @@ MenuData *decompose_menu_string(char *str)
 			if (nitem) {
 				*s= '\0';
 
-				if (nitem_is_title) {
+				if(nitem_is_title) {
 					menudata_set_title(md, nitem, nicon);
 					nitem_is_title= 0;
-				} else {
+				}
+				else if(nitem_is_sepr) {
 					/* prevent separator to get a value */
-					if(nitem[0]=='%' && nitem[1]=='l')
-						menudata_add_item(md, nitem, -1, nicon);
-					else
-						menudata_add_item(md, nitem, nretval, nicon);
+					menudata_add_item(md, nitem, -1, nicon, 1);
+					nretval= md->nitems+1;
+					nitem_is_sepr= 0;
+				}
+				else {
+					menudata_add_item(md, nitem, nretval, nicon, 0);
 					nretval= md->nitems+1;
 				} 
 				
@@ -827,6 +837,8 @@ static void ui_searchbox_region_free(ARegion *ar)
 	ar->regiondata= NULL;
 }
 
+static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, uiBlock *block);
+
 ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 {
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
@@ -847,7 +859,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	/* create searchbox data */
 	data= MEM_callocN(sizeof(uiSearchboxData), "uiSearchboxData");
-	
+
 	/* set font, get bb */
 	data->fstyle= style->widget; /* copy struct */
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
@@ -929,10 +941,14 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 			}
 		}
 		if(y1 < 0) {
-			y1 += 36;
-			y2 += 36;
+			int newy1;
+			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->y2 + ofsy, 0, &newy1);
+			newy1 += butregion->winrct.ymin;
+
+			y2= y2-y1 + newy1;
+			y1= newy1;
 		}
-		
+
 		/* widget rect, in region coords */
 		data->bbox.xmin= MENU_SHADOW_SIDE;
 		data->bbox.xmax= x2-x1 + MENU_SHADOW_SIDE;
@@ -1310,24 +1326,21 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 
 /***************************** Menu Button ***************************/
 
-uiBlock *ui_block_func_MENU(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
+static void ui_block_func_MENUSTR(bContext *C, uiLayout *layout, void *arg_str)
 {
-	uiBut *but= arg_but;
-	uiBlock *block;
+	uiBlock *block= uiLayoutGetBlock(layout);
+	uiPopupBlockHandle *handle= block->handle;
+	uiLayout *split, *column=NULL;
 	uiBut *bt;
 	MenuData *md;
-	ListBase lb;
-	float aspect;
-	int width, height, boxh, columns, rows, startx, starty, x1, y1, xmax, a;
-
-	/* create the block */
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
-	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	MenuEntry *entry;
+	char *instr= arg_str;
+	int columns, rows, a, b;
 
 	/* compute menu data */
-	md= decompose_menu_string(but->str);
+	md= decompose_menu_string(instr);
 
-	/* columns and row calculation */
+	/* columns and row estimation */
 	columns= (md->nitems+20)/20;
 	if(columns<1)
 		columns= 1;
@@ -1339,180 +1352,114 @@ uiBlock *ui_block_func_MENU(bContext *C, uiPopupBlockHandle *handle, void *arg_b
 		rows= 1;
 	while(rows*columns<md->nitems)
 		rows++;
-		
-	/* prevent scaling up of pupmenu */
-	aspect= but->block->aspect;
-	if(aspect < 1.0f)
-		aspect = 1.0f;
 
-	/* size and location */
-	if(md->title)
-		width= 1.5*aspect*strlen(md->title)+UI_GetStringWidth(md->title);
-	else
-		width= 0;
-
-	for(a=0; a<md->nitems; a++) {
-		xmax= aspect*UI_GetStringWidth(md->items[a].str);
-		if(md->items[a].icon)
-			xmax += 20*aspect;
-		if(xmax>width)
-			width= xmax;
-	}
-
-	width+= 10;
-	if(width < (but->x2 - but->x1))
-		width = (but->x2 - but->x1);
-	if(width<50)
-		width=50;
-	
-	boxh= MENU_BUTTON_HEIGHT;
-	
-	height= rows*boxh;
-	if(md->title)
-		height+= boxh;
-
-	/* here we go! */
-	startx= but->x1;
-	starty= but->y1;
-	
+	/* create title */
 	if(md->title) {
-		uiBut *bt;
-
-		if (md->titleicon) {
-			bt= uiDefIconTextBut(block, LABEL, 0, md->titleicon, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
-		} else {
-			bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
+		if(md->titleicon) {
+			uiItemL(layout, md->title, md->titleicon);
+		}
+		else {
+			uiItemL(layout, md->title, 0);
+			bt= block->buttons.last;
 			bt->flag= UI_TEXT_LEFT;
 		}
 	}
 
-	for(a=0; a<md->nitems; a++) {
-		
-		x1= startx + width*((int)(md->nitems-a-1)/rows);
-		y1= starty - boxh*(rows - ((md->nitems - a - 1)%rows)) + (rows*boxh);
+	/* inconsistent, but menus with labels do not look good flipped */
+	for(a=0, b=0; a<md->nitems; a++, b++) {
+		entry= &md->items[a];
 
-		if (strcmp(md->items[md->nitems-a-1].str, "%l")==0) {
-			bt= uiDefBut(block, SEPR, B_NOP, "", x1, y1,(short)(width-(rows>1)), (short)(boxh-1), NULL, 0.0, 0.0, 0, 0, "");
+		if(entry->sepr && entry->str[0])
+			block->flag |= UI_BLOCK_NO_FLIP;
+	}
+
+	/* create items */
+	split= uiLayoutSplit(layout, 0);
+
+	for(a=0, b=0; a<md->nitems; a++, b++) {
+		if(block->flag & UI_BLOCK_NO_FLIP)
+			entry= &md->items[a];
+		else
+			entry= &md->items[md->nitems-a-1];
+		
+		/* new column on N rows or on separation label */
+		if((b % rows == 0) || (entry->sepr && entry->str[0])) {
+			column= uiLayoutColumn(split, 0);
+			b= 0;
 		}
-		else if(md->items[md->nitems-a-1].icon) {
-			bt= uiDefIconTextButF(block, BUTM|FLO, B_NOP, md->items[md->nitems-a-1].icon ,md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), &handle->retvalue, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
+
+		if(entry->sepr) {
+			uiItemL(column, entry->str, entry->icon);
+			bt= block->buttons.last;
+			bt->flag= UI_TEXT_LEFT;
+		}
+		else if(entry->icon) {
+			uiDefIconTextButF(block, BUTM|FLO, B_NOP, entry->icon, entry->str, 0, 0,
+				UI_UNIT_X*5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 		}
 		else {
-			bt= uiDefButF(block, BUTM|FLO, B_NOP, md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), &handle->retvalue, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
+			uiDefButF(block, BUTM|FLO, B_NOP, entry->str, 0, 0,
+				UI_UNIT_X*5, UI_UNIT_X, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 		}
 	}
 	
 	menudata_free(md);
-
-	/* the code up here has flipped locations, because of change of preferred order */
-	/* thats why we have to switch list order too, to make arrowkeys work */
-	
-	lb.first= lb.last= NULL;
-	bt= block->buttons.first;
-	while(bt) {
-		uiBut *next= bt->next;
-		BLI_remlink(&block->buttons, bt);
-		BLI_addhead(&lb, bt);
-		bt= next;
-	}
-	block->buttons= lb;
-
-	block->direction= UI_TOP;
-	uiEndBlock(C, block);
-
-	return block;
 }
 
-uiBlock *ui_block_func_ICONROW(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
+void ui_block_func_ICONROW(bContext *C, uiLayout *layout, void *arg_but)
 {
+	uiBlock *block= uiLayoutGetBlock(layout);
+	uiPopupBlockHandle *handle= block->handle;
 	uiBut *but= arg_but;
-	uiBlock *block;
 	int a;
 	
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
-	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	
-	for(a=(int)but->hardmin; a<=(int)but->hardmax; a++) {
-		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->hardmin), 0, (short)(18*a), (short)(but->x2-but->x1-4), 18, &handle->retvalue, (float)a, 0.0, 0, 0, "");
-	}
-
-	block->direction= UI_TOP;	
-
-	uiEndBlock(C, block);
-
-	return block;
+	for(a=(int)but->hardmin; a<=(int)but->hardmax; a++)
+		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->hardmin), 0, 0, UI_UNIT_X*5, UI_UNIT_Y,
+			&handle->retvalue, (float)a, 0.0, 0, 0, "");
 }
 
-uiBlock *ui_block_func_ICONTEXTROW(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
+void ui_block_func_ICONTEXTROW(bContext *C, uiLayout *layout, void *arg_but)
 {
-	uiBut *but= arg_but;
-	uiBlock *block;
+	uiBlock *block= uiLayoutGetBlock(layout);
+	uiPopupBlockHandle *handle= block->handle;
+	uiBut *but= arg_but, *bt;
 	MenuData *md;
-	int width, xmax, ypos, a;
-
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
-	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	MenuEntry *entry;
+	int a;
 
 	md= decompose_menu_string(but->str);
 
-	/* size and location */
-	/* expand menu width to fit labels */
-	if(md->title)
-		width= 2*strlen(md->title)+UI_GetStringWidth(md->title);
-	else
-		width= 0;
-
-	for(a=0; a<md->nitems; a++) {
-		xmax= UI_GetStringWidth(md->items[a].str);
-		if(xmax>width) width= xmax;
+	/* title */
+	if(md->title) {
+		bt= uiDefBut(block, LABEL, 0, md->title, 0, 0, UI_UNIT_X*5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+		bt->flag= UI_TEXT_LEFT;
 	}
-
-	width+= 30;
-	if (width<50) width=50;
-
-	ypos = 1;
 
 	/* loop through the menu options and draw them out with icons & text labels */
 	for(a=0; a<md->nitems; a++) {
+		entry= &md->items[md->nitems-a-1];
 
-		/* add a space if there's a separator (%l) */
-	        if (strcmp(md->items[a].str, "%l")==0) {
-			ypos +=3;
-		}
-		else {
-			uiDefIconTextButF(block, BUTM|FLO, B_NOP, (short)((but->icon)+(md->items[a].retval-but->hardmin)), md->items[a].str, 0, ypos,(short)width, 19, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
-			ypos += 20;
-		}
+		if(entry->sepr)
+			uiItemS(layout);
+		else
+			uiDefIconTextButF(block, BUTM|FLO, B_NOP, (short)((but->icon)+(entry->retval-but->hardmin)), entry->str,
+				0, 0, UI_UNIT_X*5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 	}
-	
-	if(md->title) {
-		uiBut *bt;
 
-		bt= uiDefBut(block, LABEL, 0, md->title, 0, ypos, (short)width, 19, NULL, 0.0, 0.0, 0, 0, "");
-		bt->flag= UI_TEXT_LEFT;
-	}
-	
 	menudata_free(md);
-
-	block->direction= UI_TOP;
-
-	uiBoundsBlock(block, 3);
-	uiEndBlock(C, block);
-
-	return block;
 }
 
+#if 0
 static void ui_warp_pointer(short x, short y)
 {
 	/* XXX 2.50 which function to use for this? */
-#if 0
 	/* OSX has very poor mousewarp support, it sends events;
 	   this causes a menu being pressed immediately ... */
 	#ifndef __APPLE__
 	warp_pointer(x, y);
 	#endif
-#endif
 }
+#endif
 
 /********************* Color Button ****************/
 
@@ -2158,406 +2105,115 @@ void uiBlockColorbandButtons(uiBlock *block, ColorBand *coba, rctf *butr, int ev
 }
 
 
-/* ******************** PUPmenu ****************** */
+/************************ Popup Menu Memory ****************************/
 
-static int pupmenu_set= 0;
-
-void uiPupMenuSetActive(int val)
+static int ui_popup_menu_hash(char *str)
 {
-	pupmenu_set= val;
+	return BLI_ghashutil_strhash(str);
 }
 
-/* value== -1 read, otherwise set */
-static int pupmenu_memory(char *str, int value)
+/* but == NULL read, otherwise set */
+uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but)
 {
 	static char mem[256], first=1;
-	int val=0, nr=0;
+	int hash= block->puphash;
 	
 	if(first) {
-		memset(mem, 0, 256);
+		/* init */
+		memset(mem, -1, sizeof(mem));
 		first= 0;
 	}
-	while(str[nr]) {
-		val+= str[nr];
-		nr++;
-	}
 
-	if(value >= 0) mem[ val & 255 ]= value;
-	else return mem[ val & 255 ];
-	
-	return 0;
+	if(but) {
+		/* set */
+		mem[hash & 255 ]= BLI_findindex(&block->buttons, but);
+		return NULL;
+	}
+	else {
+		/* get */
+		return BLI_findlink(&block->buttons, mem[hash & 255]);
+	}
 }
 
-#define PUP_LABELH	6
-
-typedef struct uiPupMenuInfo {
-	char *instr;
-	int mx, my;
-	int startx, starty;
-	int maxrow;
-} uiPupMenuInfo;
-
-uiBlock *ui_block_func_PUPMENU(bContext *C, uiPopupBlockHandle *handle, void *arg_info)
-{
-	uiBlock *block;
-	uiPupMenuInfo *info;
-	int columns, rows, mousemove[2]= {0, 0}, mousewarp= 0;
-	int width, height, xmax, ymax, maxrow;
-	int a, startx, starty, endx, endy, x1, y1;
-	int lastselected;
-	MenuData *md;
-
-	info= arg_info;
-	maxrow= info->maxrow;
-	height= 0;
-
-	/* block stuff first, need to know the font */
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
-	block->direction= UI_DOWN;
-	
-	md= decompose_menu_string(info->instr);
-
-	rows= md->nitems;
-	if(rows<1)
-		rows= 1;
-	
-	columns= 1;
-
-	/* size and location, title slightly bigger for bold */
-	if(md->title) {
-		width= 2*strlen(md->title)+UI_GetStringWidth(md->title);
-		width /= columns;
-	}
-	else width= 0;
-
-	for(a=0; a<md->nitems; a++) {
-		xmax= UI_GetStringWidth(md->items[a].str);
-		if(xmax>width) width= xmax;
-
-		if(strcmp(md->items[a].str, "%l")==0) height+= PUP_LABELH;
-		else height+= MENU_BUTTON_HEIGHT;
-	}
-
-	width+= 10;
-	if (width<50) width=50;
-	
-	wm_window_get_size(CTX_wm_window(C), &xmax, &ymax);
-
-	/* set first item */
-	lastselected= 0;
-	if(pupmenu_set) {
-		lastselected= pupmenu_set-1;
-		pupmenu_set= 0;
-	}
-	else if(md->nitems>1) {
-		lastselected= pupmenu_memory(info->instr, -1);
-	}
-
-	startx= info->mx-(0.8*(width));
-	starty= info->my-height+MENU_BUTTON_HEIGHT/2;
-	if(lastselected>=0 && lastselected<md->nitems) {
-		for(a=0; a<md->nitems; a++) {
-			if(a==lastselected) break;
-			if( strcmp(md->items[a].str, "%l")==0) starty+= PUP_LABELH;
-			else starty+=MENU_BUTTON_HEIGHT;
-		}
-		
-		//starty= info->my-height+MENU_BUTTON_HEIGHT/2+lastselected*MENU_BUTTON_HEIGHT;
-	}
-	
-	if(startx<10) {
-		startx= 10;
-	}
-	if(starty<10) {
-		mousemove[1]= 10-starty;
-		starty= 10;
-	}
-	
-	endx= startx+width*columns;
-	endy= starty+height;
-
-	if(endx>xmax) {
-		endx= xmax-10;
-		startx= endx-width*columns;
-	}
-	if(endy>ymax-20) {
-		mousemove[1]= ymax-endy-20;
-		endy= ymax-20;
-		starty= endy-height;
-	}
-
-	if(mousemove[0] || mousemove[1]) {
-		ui_warp_pointer(info->mx+mousemove[0], info->my+mousemove[1]);
-		mousemove[0]= info->mx;
-		mousemove[1]= info->my;
-		mousewarp= 1;
-	}
-
-	/* here we go! */
-	if(md->title) {
-		uiBut *bt;
-		char titlestr[256];
-
-		if(md->titleicon) {
-			width+= 20;
-			sprintf(titlestr, " %s", md->title);
-			uiDefIconTextBut(block, LABEL, 0, md->titleicon, titlestr, startx, (short)(starty+height), width, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-		}
-		else {
-			bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+height), columns*width, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-			bt->flag= UI_TEXT_LEFT;
-		}
-		
-		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-	}
-
-	x1= startx + width*((int)a/rows);
-	y1= starty + height - MENU_BUTTON_HEIGHT; // - MENU_SEPR_HEIGHT;
-		
-	for(a=0; a<md->nitems; a++) {
-		char *name= md->items[a].str;
-		int icon = md->items[a].icon;
-
-		if(strcmp(name, "%l")==0) {
-			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, PUP_LABELH, NULL, 0, 0.0, 0, 0, "");
-			y1 -= PUP_LABELH;
-		}
-		else if (icon) {
-			uiDefIconButF(block, BUTM, B_NOP, icon, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
-			y1 -= MENU_BUTTON_HEIGHT;
-		}
-		else {
-			uiDefButF(block, BUTM, B_NOP, name, x1, y1, width, MENU_BUTTON_HEIGHT-1, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
-			y1 -= MENU_BUTTON_HEIGHT;
-		}
-	}
-	
-	uiBoundsBlock(block, 1);
-	uiEndBlock(C, block);
-
-	menudata_free(md);
-
-	/* XXX 2.5 need to store last selected */
-#if 0
-	/* calculate last selected */
-	if(event & ui_return_ok) {
-		lastselected= 0;
-		for(a=0; a<md->nitems; a++) {
-			if(val==md->items[a].retval) lastselected= a;
-		}
-		
-		pupmenu_memory(info->instr, lastselected);
-	}
-#endif
-	
-	/* XXX 2.5 need to warp back */
-#if 0
-	if(mousemove[1] && (event & ui_return_out)==0)
-		ui_warp_pointer(mousemove[0], mousemove[1]);
-	return val;
-#endif
-
-	return block;
-}
-
-uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiPopupBlockHandle *handle, void *arg_info)
-{
-	uiBlock *block;
-	uiPupMenuInfo *info;
-	int columns, rows, mousemove[2]= {0, 0}, mousewarp;
-	int width, height, xmax, ymax, maxrow;
-	int a, startx, starty, endx, endy, x1, y1;
-	float fvalue;
-	MenuData *md;
-
-	info= arg_info;
-	maxrow= info->maxrow;
-	height= 0;
-
-	/* block stuff first, need to know the font */
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
-	block->direction= UI_DOWN;
-	
-	md= decompose_menu_string(info->instr);
-
-	/* columns and row calculation */
-	columns= (md->nitems+maxrow)/maxrow;
-	if (columns<1) columns= 1;
-	
-	if(columns > 8) {
-		maxrow += 5;
-		columns= (md->nitems+maxrow)/maxrow;
-	}
-	
-	rows= (int) md->nitems/columns;
-	if (rows<1) rows= 1;
-	
-	while (rows*columns<(md->nitems+columns) ) rows++;
-
-	/* size and location, title slightly bigger for bold */
-	if(md->title) {
-		width= 2*strlen(md->title)+UI_GetStringWidth(md->title);
-		width /= columns;
-	}
-	else width= 0;
-
-	for(a=0; a<md->nitems; a++) {
-		xmax= UI_GetStringWidth(md->items[a].str);
-		if(xmax>width) width= xmax;
-	}
-
-	width+= 10;
-	if (width<50) width=50;
-	
-	height= rows*MENU_BUTTON_HEIGHT;
-	if (md->title) height+= MENU_BUTTON_HEIGHT;
-	
-	wm_window_get_size(CTX_wm_window(C), &xmax, &ymax);
-
-	/* find active item */
-	fvalue= handle->retvalue;
-	for(a=0; a<md->nitems; a++) {
-		if( md->items[a].retval== (int)fvalue ) break;
-	}
-
-	/* no active item? */
-	if(a==md->nitems) {
-		if(md->title) a= -1;
-		else a= 0;
-	}
-
-	if(a>0)
-		startx = info->mx-width/2 - ((int)(a)/rows)*width;
-	else
-		startx= info->mx-width/2;
-	starty = info->my-height + MENU_BUTTON_HEIGHT/2 + ((a)%rows)*MENU_BUTTON_HEIGHT;
-
-	if (md->title) starty+= MENU_BUTTON_HEIGHT;
-	
-	if(startx<10) {
-		mousemove[0]= 10-startx;
-		startx= 10;
-	}
-	if(starty<10) {
-		mousemove[1]= 10-starty;
-		starty= 10;
-	}
-	
-	endx= startx+width*columns;
-	endy= starty+height;
-
-	if(endx>xmax) {
-		mousemove[0]= xmax-endx-10;
-		endx= xmax-10;
-		startx= endx-width*columns;
-	}
-	if(endy>ymax) {
-		mousemove[1]= ymax-endy-10;
-		endy= ymax-10;
-		starty= endy-height;
-	}
-
-	if(mousemove[0] || mousemove[1]) {
-		ui_warp_pointer(info->mx+mousemove[0], info->my+mousemove[1]);
-		mousemove[0]= info->mx;
-		mousemove[1]= info->my;
-		mousewarp= 1;
-	}
-
-	/* here we go! */
-	if(md->title) {
-		uiBut *bt;
-
-		if(md->titleicon) {
-		}
-		else {
-			bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*MENU_BUTTON_HEIGHT), columns*width, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-			bt->flag= UI_TEXT_LEFT;
-		}
-	}
-
-	for(a=0; a<md->nitems; a++) {
-		char *name= md->items[a].str;
-		int icon = md->items[a].icon;
-
-		x1= startx + width*((int)a/rows);
-		y1= starty - MENU_BUTTON_HEIGHT*(a%rows) + (rows-1)*MENU_BUTTON_HEIGHT; 
-		
-		if(strcmp(name, "%l")==0) {
-			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, PUP_LABELH, NULL, 0, 0.0, 0, 0, "");
-			y1 -= PUP_LABELH;
-		}
-		else if (icon) {
-			uiDefIconButF(block, BUTM, B_NOP, icon, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
-			y1 -= MENU_BUTTON_HEIGHT;
-		}
-		else {
-			uiDefButF(block, BUTM, B_NOP, name, x1, y1, width, MENU_BUTTON_HEIGHT-1, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
-			y1 -= MENU_BUTTON_HEIGHT;
-		}
-	}
-	
-	uiBoundsBlock(block, 1);
-	uiEndBlock(C, block);
-	
-	menudata_free(md);
-	
-	/* XXX 2.5 need to warp back */
-#if 0
-	if((event & UI_RETURN_OUT)==0)
-		ui_warp_pointer(mousemove[0], mousemove[1]);
-#endif
-
-	return block;
-}
-
-/************************** Menu Definitions ***************************/
-
-/* prototype */
-static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle, void *arg_info);
+/******************** Popup Menu with callback or string **********************/
 
 struct uiPopupMenu {
 	uiBlock *block;
 	uiLayout *layout;
+	uiBut *but;
+
+	int mx, my, popup, slideout;
+	int startx, starty, maxrow;
+
+	uiMenuCreateFunc menu_func;
+	void *menu_arg;
 };
 
-typedef struct uiMenuInfo {
-	uiPopupMenu *pup;
-	int mx, my, popup, slideout;
-	int startx, starty;
-} uiMenuInfo;
-
-/************************ Menu Definitions to uiBlocks ***********************/
-
-static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle, void *arg_info)
+static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
 {
 	uiBlock *block;
-	uiMenuInfo *info= arg_info;
-	uiPopupMenu *pup;
+	uiBut *bt;
 	ScrArea *sa;
 	ARegion *ar;
-	
-	pup= info->pup;
+	uiPopupMenu *pup= arg_pup;
+	int offset, direction, minwidth, flip;
+
+	if(pup->menu_func) {
+		pup->block->handle= handle;
+		pup->menu_func(C, pup->layout, pup->menu_arg);
+		pup->block->handle= NULL;
+	}
+
+	if(pup->but) {
+		/* minimum width to enforece */
+		minwidth= pup->but->x2 - pup->but->x1;
+
+		if(pup->but->type == PULLDOWN || pup->but->menu_create_func) {
+			direction= UI_DOWN;
+			flip= 1;
+		}
+		else {
+			direction= UI_TOP;
+			flip= 0;
+		}
+	}
+	else {
+		minwidth= 50;
+		direction= UI_DOWN;
+		flip= 1;
+	}
+
 	block= pup->block;
 	
-	/* block stuff first, need to know the font */
-	uiBlockSetRegion(block, handle->region);
-	block->direction= UI_DOWN;
+	/* in some cases we create the block before the region,
+	   so we set it delayed here if necessary */
+	if(BLI_findindex(&handle->region->uiblocks, block) == -1)
+		uiBlockSetRegion(block, handle->region);
+
+	block->direction= direction;
 
 	uiBlockLayoutResolve(C, block, NULL, NULL);
 
-	if(info->popup) {
+	if(pup->popup) {
 		uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);
-		uiBlockSetDirection(block, UI_DOWN);
+		uiBlockSetDirection(block, direction);
 
-		/* here we set an offset for the mouse position */
-		uiMenuPopupBoundsBlock(block, 1, 0, 1.5*MENU_BUTTON_HEIGHT);
+		/* offset the mouse position, possibly based on earlier selection */
+		offset= 1.5*MENU_BUTTON_HEIGHT;
+
+		if(block->flag & UI_BLOCK_POPUP_MEMORY) {
+			bt= ui_popup_menu_memory(block, NULL);
+
+			if(bt)
+				offset= -bt->y1 - 0.5f*MENU_BUTTON_HEIGHT;
+		}
+
+		block->minbounds= minwidth;
+		uiMenuPopupBoundsBlock(block, 1, 20, offset);
 	}
 	else {
 		/* for a header menu we set the direction automatic */
-		if(!info->slideout) {
+		if(!pup->slideout && flip) {
 			sa= CTX_wm_area(C);
 			ar= CTX_wm_region(C);
 
@@ -2569,59 +2225,77 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 			}
 		}
 
-		uiTextBoundsBlock(block, 50);
+		block->minbounds= minwidth;
+		uiTextBoundsBlock(block, 40);
 	}
 
 	/* if menu slides out of other menu, override direction */
-	if(info->slideout)
+	if(pup->slideout)
 		uiBlockSetDirection(block, UI_RIGHT);
 
 	uiEndBlock(C, block);
-	
-	return block;
+
+	return pup->block;
 }
 
-uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
+uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg, char *str)
 {
+	wmWindow *window= CTX_wm_window(C);
 	uiStyle *style= U.uistyles.first;
 	uiPopupBlockHandle *handle;
 	uiPopupMenu *pup;
-	uiMenuInfo info;
 	
 	pup= MEM_callocN(sizeof(uiPopupMenu), "menu dummy");
-	pup->block= uiBeginBlock(C, NULL, "ui_popup_menu_create", UI_EMBOSSP);
+	pup->block= uiBeginBlock(C, NULL, "ui_button_menu_create", UI_EMBOSSP);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
+	pup->slideout= (but && (but->block->flag & UI_BLOCK_LOOP));
+	pup->but= but;
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
 
-	/* create in advance so we can let buttons point to retval already */
-	pup->block->handle= MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
+	if(!but) {
+		/* no button to start from, means we are a popup */
+		pup->mx= window->eventstate->x;
+		pup->my= window->eventstate->y;
+		pup->popup= 1;
+	}
 
-	menu_func(C, pup->layout, arg);
+	if(str) {
+		/* menu is created from a string */
+		pup->menu_func= ui_block_func_MENUSTR;
+		pup->menu_arg= str;
+	}
+	else {
+		/* menu is created from a callback */
+		pup->menu_func= menu_func;
+		pup->menu_arg= arg;
+	}
 	
-	memset(&info, 0, sizeof(info));
-	info.pup= pup;
-	info.slideout= (but && (but->block->flag & UI_BLOCK_LOOP));
-	
-	handle= ui_popup_block_create(C, butregion, but, NULL, ui_block_func_MENU_ITEM, &info);
+	handle= ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
+
+	if(!but) {
+		handle->popup= 1;
+
+		UI_add_popup_handlers(C, &window->handlers, handle);
+		WM_event_add_mousemove(C);
+	}
 	
 	MEM_freeN(pup);
 
 	return handle;
 }
 
-/*************************** Menu Creating API **************************/
-
-
-/*************************** Popup Menu API **************************/
+/******************** Popup Menu API with begin and end ***********************/
 
 /* only return handler, and set optional title */
 uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 {
 	uiStyle *style= U.uistyles.first;
-	uiPopupMenu *pup= MEM_callocN(sizeof(uiPopupMenu), "menu start");
+	uiPopupMenu *pup= MEM_callocN(sizeof(uiPopupMenu), "popup menu");
 	uiBut *but;
 	
 	pup->block= uiBeginBlock(C, NULL, "uiPupMenuBegin", UI_EMBOSSP);
+	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
+	pup->block->puphash= ui_popup_menu_hash((char*)title);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
 
@@ -2640,8 +2314,6 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 			but= uiDefBut(pup->block, LABEL, 0, (char*)title, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 			but->flag= UI_TEXT_LEFT;
 		}
-		
-		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 	}
 
 	return pup;
@@ -2651,16 +2323,13 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 void uiPupMenuEnd(bContext *C, uiPopupMenu *pup)
 {
 	wmWindow *window= CTX_wm_window(C);
-	uiMenuInfo info;
 	uiPopupBlockHandle *menu;
 	
-	memset(&info, 0, sizeof(info));
-	info.popup= 1;
-	info.mx= window->eventstate->x;
-	info.my= window->eventstate->y;
-	info.pup= pup;
+	pup->popup= 1;
+	pup->mx= window->eventstate->x;
+	pup->my= window->eventstate->y;
 	
-	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_MENU_ITEM, &info);
+	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_POPUP, pup);
 	menu->popup= 1;
 	
 	UI_add_popup_handlers(C, &window->handlers, menu);
@@ -2674,32 +2343,7 @@ uiLayout *uiPupMenuLayout(uiPopupMenu *pup)
 	return pup->layout;
 }
 
-/* ************** standard pupmenus *************** */
-
-/* this one can called with operatortype name and operators */
-static uiPopupBlockHandle *ui_pup_menu(bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *str, ...)
-{
-	wmWindow *window= CTX_wm_window(C);
-	uiPupMenuInfo info;
-	uiPopupBlockHandle *menu;
-
-	memset(&info, 0, sizeof(info));
-	info.mx= window->eventstate->x;
-	info.my= window->eventstate->y;
-	info.maxrow= maxrow;
-	info.instr= str;
-
-	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_PUPMENU, &info);
-	menu->popup= 1;
-
-	UI_add_popup_handlers(C, &window->handlers, menu);
-	WM_event_add_mousemove(C);
-
-	menu->popup_func= func;
-	menu->popup_arg= arg;
-	
-	return menu;
-}
+/*************************** Standard Popup Menus ****************************/
 
 static void operator_name_cb(bContext *C, void *arg, int retval)
 {
@@ -2707,17 +2351,6 @@ static void operator_name_cb(bContext *C, void *arg, int retval)
 
 	if(opname && retval > 0)
 		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
-}
-
-static void vconfirm_opname(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)
-{
-	char *s, buf[512];
-
-	s= buf;
-	if (title) s+= sprintf(s, "%s%%t|", title);
-	vsprintf(s, itemfmt, ap);
-
-	ui_pup_menu(C, 0, operator_name_cb, opname, buf);
 }
 
 static void operator_cb(bContext *C, void *arg, int retval)
@@ -2735,6 +2368,21 @@ static void confirm_cancel_operator(void *opv)
 	WM_operator_free(opv);
 }
 
+static void vconfirm_opname(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)
+{
+	uiPopupBlockHandle *handle;
+	char *s, buf[512];
+
+	s= buf;
+	if (title) s+= sprintf(s, "%s%%t|", title);
+	vsprintf(s, itemfmt, ap);
+
+	handle= ui_popup_menu_create(C, NULL, NULL, NULL, NULL, buf);
+
+	handle->popup_func= operator_name_cb;
+	handle->popup_arg= opname;
+}
+
 static void confirm_operator(bContext *C, wmOperator *op, char *title, char *item)
 {
 	uiPopupBlockHandle *handle;
@@ -2743,10 +2391,12 @@ static void confirm_operator(bContext *C, wmOperator *op, char *title, char *ite
 	s= buf;
 	if (title) s+= sprintf(s, "%s%%t|%s", title, item);
 	
-	handle= ui_pup_menu(C, 0, operator_cb, op, buf);
+	handle= ui_popup_menu_create(C, NULL, NULL, NULL, NULL, buf);
+
+	handle->popup_func= operator_cb;
+	handle->popup_arg= op;
 	handle->cancel_func= confirm_cancel_operator;
 }
-
 
 void uiPupMenuOkee(bContext *C, char *opname, char *str, ...)
 {
@@ -2759,7 +2409,6 @@ void uiPupMenuOkee(bContext *C, char *opname, char *str, ...)
 	vconfirm_opname(C, opname, titlestr, str, ap);
 	va_end(ap);
 }
-
 
 void uiPupMenuSaveOver(bContext *C, wmOperator *op, char *filename)
 {
@@ -2776,7 +2425,7 @@ void uiPupMenuSaveOver(bContext *C, wmOperator *op, char *filename)
 	if(BLI_exists(filename)==0)
 		operator_cb(C, op, 1);
 	else
-		confirm_operator(C, op, "Save over", filename);
+		confirm_operator(C, op, "Save Over", filename);
 }
 
 void uiPupMenuNotice(bContext *C, char *str, ...)
@@ -2826,7 +2475,7 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	}
 
 	str= BLI_dynstr_get_cstring(ds);
-	ui_pup_menu(C, 0, NULL, NULL, str);
+	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
 	MEM_freeN(str);
 
 	BLI_dynstr_free(ds);
@@ -2870,3 +2519,4 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int
 	UI_add_popup_handlers(C, &window->handlers, handle);
 	WM_event_add_mousemove(C);
 }
+

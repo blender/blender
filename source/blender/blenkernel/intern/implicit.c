@@ -1183,7 +1183,8 @@ DO_INLINE void dfdx_spring(float to[3][3],  float dir[3],float length,float L,fl
 	//return  ( (I-outerprod(dir,dir))*Min(1.0f,rest/length) - I) * -k;
 	mul_fvectorT_fvector(to, dir, dir);
 	sub_fmatrix_fmatrix(to, I, to);
-	mul_fmatrix_S(to, (((L/length)> 1.0f) ? (1.0f): (L/length))); 
+
+	mul_fmatrix_S(to, (L/length)); 
 	sub_fmatrix_fmatrix(to, to, I);
 	mul_fmatrix_S(to, -k);
 }
@@ -1218,6 +1219,8 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float nulldfdx[3][3]={ {0,0,0}, {0,0,0}, {0,0,0}};
 	
 	float scaling = 0.0;
+
+	int no_compress = clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
 	
 	VECCOPY(s->f, nullf);
 	cp_fmatrix(s->dfdx, nulldfdx);
@@ -1254,7 +1257,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	// calculate force of structural + shear springs
 	if((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR))
 	{
-		if(length > L) // only on elonglation
+		if(length > L || no_compress)
 		{
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
@@ -1393,6 +1396,84 @@ float calculateVertexWindForce(float wind[3], float vertexnormal[3])
 	return (INPR(wind, vertexnormal));
 }
 
+typedef struct HairGridVert {
+	float velocity[3];
+	float density;
+} HairGridVert;
+/* Smoothing of hair velocities:
+ * adapted from
+		Volumetric Methods for Simulation and Rendering of Hair
+		by Lena Petrovic, Mark Henne and John Anderson
+ *		Pixar Technical Memo #06-08, Pixar Animation Studios
+ */
+static void hair_velocity_smoothing(float smoothfac, lfVector *lF, lfVector *lX, lfVector *lV, int numverts)
+{
+	/* TODO: this is an initial implementation and should be made much better in due time */
+
+	/* 10x10x10 grid gives nice initial results */
+	HairGridVert grid[10][10][10];
+	float gmin[3], gmax[3], density;
+	int	v = 0;
+	int	i = 0;
+	int	j = 0;
+	int	k = 0;
+	lfVector temp;
+
+	INIT_MINMAX(gmin, gmax);
+
+	for(i = 0; i < numverts; i++)
+		DO_MINMAX(lX[i], gmin, gmax);
+
+	/* initialize grid */
+	for(i = 0; i < 10; i++) {
+		for(j = 0; j < 10; j++) {
+			for(k = 0; k < 10; k++) {
+				grid[i][j][k].velocity[0] = 0.0f;
+				grid[i][j][k].velocity[1] = 0.0f;
+				grid[i][j][k].velocity[2] = 0.0f;
+				grid[i][j][k].density = 0.0f;
+			}
+		}
+	}
+
+	/* gather velocities & density */
+	for(v = 0; v < numverts; v++) {
+		i = (int)( (lX[v][0] - gmin[0]) / (gmax[0] - gmin[0]) * 9.99f );
+		j = (int)( (lX[v][1] - gmin[1]) / (gmax[1] - gmin[1]) * 9.99f );
+		k = (int)( (lX[v][2] - gmin[2]) / (gmax[2] - gmin[2]) * 9.99f );
+
+		grid[i][j][k].velocity[0] += lV[v][0];
+		grid[i][j][k].velocity[1] += lV[v][1];
+		grid[i][j][k].velocity[2] += lV[v][2];
+		grid[i][j][k].density += 1.0f;
+	}
+
+	/* divide velocity with density */
+	for(i = 0; i < 10; i++) {
+		for(j = 0; j < 10; j++) {
+			for(k = 0; k < 10; k++) {
+				density = grid[i][j][k].density;
+				if(density > 0.0f) {
+					grid[i][j][k].velocity[0] /= density;
+					grid[i][j][k].velocity[1] /= density;
+					grid[i][j][k].velocity[2] /= density;
+				}
+			}
+		}
+	}
+
+	/* calculate forces */
+	for(v = 0; v < numverts; v++) {
+		i = (int)( (lX[v][0] - gmin[0]) / (gmax[0] - gmin[0]) * 9.99f );
+		j = (int)( (lX[v][1] - gmin[1]) / (gmax[1] - gmin[1]) * 9.99f );
+		k = (int)( (lX[v][2] - gmin[2]) / (gmax[2] - gmin[2]) * 9.99f );
+
+		/* 2.0f is an experimental value that seems to give good results */
+		lF[v][0] += 2.0f * smoothfac * (grid[i][j][k].velocity[0] - lV[v][0]);
+		lF[v][1] += 2.0f * smoothfac * (grid[i][j][k].velocity[1] - lV[v][1]);
+		lF[v][2] += 2.0f * smoothfac * (grid[i][j][k].velocity[2] - lV[v][2]);
+	}
+}
 static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
@@ -1416,6 +1497,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 
 	init_lfvector(lF, gravity, numverts);
 	
+	if(clmd->sim_parms->velocity_smooth > 0.0f)
+		hair_velocity_smoothing(clmd->sim_parms->velocity_smooth, lF, lX, lV, numverts);
+
 	/* multiply lF with mass matrix
 	// force = mass * acceleration (in this case: gravity)
 	*/

@@ -100,7 +100,7 @@ void blf_font_draw(FontBLF *font, char *str)
 	unsigned int c;
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
-	FT_UInt glyph_index, g_prev_index;
+	FT_UInt glyph_index;
 	int pen_x, pen_y;
 	int i, has_kerning, st;
 
@@ -112,17 +112,17 @@ void blf_font_draw(FontBLF *font, char *str)
 	pen_y= 0;
 	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
-	g_prev_index= 0;
 
 	while (str[i]) {
 		c= blf_utf8_next((unsigned char *)str, &i);
 		if (c == 0)
 			break;
 
-		glyph_index= FT_Get_Char_Index(font->face, c);
 		g= blf_glyph_search(font->glyph_cache, c);
-		if (!g)
+		if (!g) {
+			glyph_index= FT_Get_Char_Index(font->face, c);
 			g= blf_glyph_add(font, glyph_index, c);
+		}
 
 		/* if we don't found a glyph, skip it. */
 		if (!g)
@@ -133,9 +133,9 @@ void blf_font_draw(FontBLF *font, char *str)
 			delta.y= 0;
 
 			if (font->flags & BLF_KERNING_DEFAULT)
-				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, ft_kerning_default, &delta);
+				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, ft_kerning_default, &delta);
 			else
-				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
+				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNFITTED, &delta);
 
 			if (st == 0)
 				pen_x += delta.x >> 6;
@@ -146,7 +146,158 @@ void blf_font_draw(FontBLF *font, char *str)
 
 		pen_x += g->advance;
 		g_prev= g;
-		g_prev_index= glyph_index;
+	}
+}
+
+void blf_font_buffer(FontBLF *font, char *str)
+{
+	unsigned char *data, *cbuf;
+	unsigned int c;
+	GlyphBLF *g, *g_prev;
+	FT_Vector delta;
+	FT_UInt glyph_index;
+	float a, *fbuf;
+	int pen_x, pen_y, y, x, yb, diff;
+	int i, has_kerning, st, chx, chy;
+
+	if (!font->glyph_cache)
+		return;
+
+	i= 0;
+	pen_x= (int)font->pos[0];
+	pen_y= (int)font->pos[1];
+	has_kerning= FT_HAS_KERNING(font->face);
+	g_prev= NULL;
+
+	while (str[i]) {
+		c= blf_utf8_next((unsigned char *)str, &i);
+		if (c == 0)
+			break;
+
+		g= blf_glyph_search(font->glyph_cache, c);
+		if (!g) {
+			glyph_index= FT_Get_Char_Index(font->face, c);
+			g= blf_glyph_add(font, glyph_index, c);
+		}
+
+		/* if we don't found a glyph, skip it. */
+		if (!g)
+			continue;
+
+		if (has_kerning && g_prev) {
+			delta.x= 0;
+			delta.y= 0;
+
+			if (font->flags & BLF_KERNING_DEFAULT)
+				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, ft_kerning_default, &delta);
+			else
+				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNFITTED, &delta);
+
+			if (st == 0)
+				pen_x += delta.x >> 6;
+		}
+
+		chx= pen_x + ((int)g->pos_x);
+		diff= g->height - ((int)g->pos_y);
+		if (diff > 0) {
+			if (g->pitch < 0)
+				pen_y += diff;
+			else
+				pen_y -= diff;
+		}
+		else if (diff < 0) {
+			if (g->pitch < 0)
+				pen_y -= diff;
+			else
+				pen_y += diff;
+		}
+
+		if (g->pitch < 0)
+			chy= pen_y - ((int)g->pos_y);
+		else
+			chy= pen_y + ((int)g->pos_y);
+
+		if (font->b_fbuf) {
+			if (chx >= 0 && chx < font->bw && pen_y >= 0 && pen_y < font->bh) {
+				if (g->pitch < 0)
+					yb= 0;
+				else
+					yb= g->height-1;
+
+				for (y= 0; y < g->height; y++) {
+					for (x= 0; x < g->width; x++) {
+						fbuf= font->b_fbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
+						data= g->bitmap + x + (yb * g->pitch);
+						a= data[0]/255.0f;
+
+						if (a == 1.0) {
+							fbuf[0]= font->b_col[0];
+							fbuf[1]= font->b_col[1];
+							fbuf[2]= font->b_col[2];
+						}
+						else {
+							fbuf[0]= (font->b_col[0]*a) + (fbuf[0] * (1-a));
+							fbuf[1]= (font->b_col[1]*a) + (fbuf[1] * (1-a));
+							fbuf[2]= (font->b_col[2]*a) + (fbuf[2] * (1-a));
+						}
+					}
+
+					if (g->pitch < 0)
+						yb++;
+					else
+						yb--;
+				}
+			}
+		}
+
+		if (font->b_cbuf) {
+			if (chx >= 0 && chx < font->bw && pen_y >= 0 && pen_y < font->bh) {
+				if (g->pitch < 0)
+					yb= 0;
+				else
+					yb= g->height-1;
+
+				for (y= 0; y < g->height; y++) {
+					for (x= 0; x < g->width; x++) {
+						cbuf= font->b_cbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
+						data= g->bitmap + x + (yb * g->pitch);
+						a= data[0];
+
+						if (a == 256) {
+							cbuf[0]= font->b_col[0];
+							cbuf[1]= font->b_col[1];
+							cbuf[2]= font->b_col[2];
+						}
+						else {
+							cbuf[0]= (font->b_col[0]*a) + (cbuf[0] * (256-a));
+							cbuf[1]= (font->b_col[1]*a) + (cbuf[1] * (256-a));
+							cbuf[2]= (font->b_col[2]*a) + (cbuf[2] * (256-a));
+						}
+					}
+
+					if (g->pitch < 0)
+						yb++;
+					else
+						yb--;
+				}
+			}
+		}
+
+		if (diff > 0) {
+			if (g->pitch < 0)
+				pen_x -= diff;
+			else
+				pen_y += diff;
+		}
+		else if (diff < 0) {
+			if (g->pitch < 0)
+				pen_x += diff;
+			else
+				pen_y -= diff;
+		}
+
+		pen_x += g->advance;
+		g_prev= g;
 	}
 }
 
@@ -155,7 +306,7 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	unsigned int c;
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
-	FT_UInt glyph_index, g_prev_index;
+	FT_UInt glyph_index;
 	rctf gbox;
 	int pen_x, pen_y;
 	int i, has_kerning, st;
@@ -173,17 +324,17 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	pen_y= 0;
 	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
-	g_prev_index= 0;
 
 	while (str[i]) {
 		c= blf_utf8_next((unsigned char *)str, &i);
 		if (c == 0)
 			break;
 
-		glyph_index= FT_Get_Char_Index(font->face, c);
 		g= blf_glyph_search(font->glyph_cache, c);
-		if (!g)
+		if (!g) {
+			glyph_index= FT_Get_Char_Index(font->face, c);
 			g= blf_glyph_add(font, glyph_index, c);
+		}
 
 		/* if we don't found a glyph, skip it. */
 		if (!g)
@@ -194,9 +345,9 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 			delta.y= 0;
 
 			if (font->flags & BLF_KERNING_DEFAULT)
-				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, ft_kerning_default, &delta);
+				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, ft_kerning_default, &delta);
 			else
-				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
+				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNFITTED, &delta);
 
 			if (st == 0)
 				pen_x += delta.x >> 6;
@@ -219,7 +370,6 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 
 		pen_x += g->advance;
 		g_prev= g;
-		g_prev_index= glyph_index;
 	}
 
 	if (box->xmin > box->xmax) {
@@ -227,6 +377,17 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 		box->ymin= 0.0f;
 		box->xmax= 0.0f;
 		box->ymax= 0.0f;
+	}
+}
+
+void blf_font_width_and_height(FontBLF *font, char *str, float *width, float *height)
+{
+	rctf box;
+
+	if (font->glyph_cache) {
+		blf_font_boundbox(font, str, &box);
+		*width= ((box.xmax - box.xmin) * font->aspect);
+		*height= ((box.ymax - box.ymin) * font->aspect);
 	}
 }
 
@@ -311,6 +472,15 @@ void blf_font_fill(FontBLF *font)
 	font->glyph_cache= NULL;
 	font->blur= 0;
 	font->max_tex_size= -1;
+	font->b_fbuf= NULL;
+	font->b_cbuf= NULL;
+	font->bw= 0;
+	font->bh= 0;
+	font->bch= 0;
+	font->b_col[0]= 0;
+	font->b_col[1]= 0;
+	font->b_col[2]= 0;
+	font->b_col[3]= 0;
 }
 
 FontBLF *blf_font_new(char *name, char *filename)

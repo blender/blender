@@ -46,12 +46,16 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 
+#include "BLO_readfile.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
@@ -91,10 +95,12 @@ wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 	
 	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
 	WM_operator_bl_idname(idname_bl, idname);
-
-	for(ot= global_ops.first; ot; ot= ot->next) {
-		if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
-		   return ot;
+	
+	if (idname_bl[0]) {
+		for(ot= global_ops.first; ot; ot= ot->next) {
+			if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
+			   return ot;
+		}
 	}
 	
 	if(!quiet)
@@ -109,10 +115,12 @@ wmOperatorType *WM_operatortype_exists(const char *idname)
 	
 	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
 	WM_operator_bl_idname(idname_bl, idname);
-
-	for(ot= global_ops.first; ot; ot= ot->next) {
-		if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
-		   return ot;
+	
+	if(idname_bl[0]) {
+		for(ot= global_ops.first; ot; ot= ot->next) {
+			if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
+			   return ot;
+		}
 	}
 	return NULL;
 }
@@ -322,21 +330,25 @@ void WM_operator_py_idname(char *to, const char *from)
 /* some.op -> SOME_OT_op */
 void WM_operator_bl_idname(char *to, const char *from)
 {
-	char *sep= strchr(from, '.');
+	if (from) {
+		char *sep= strchr(from, '.');
 
-	if(sep) {
-		int i, ofs= (sep-from);
+		if(sep) {
+			int i, ofs= (sep-from);
 
-		for(i=0; i<ofs; i++)
-			to[i]= toupper(from[i]);
+			for(i=0; i<ofs; i++)
+				to[i]= toupper(from[i]);
 
-		BLI_strncpy(to+ofs, "_OT_", OP_MAX_TYPENAME);
-		BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
+			BLI_strncpy(to+ofs, "_OT_", OP_MAX_TYPENAME);
+			BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
+		}
+		else {
+			/* should not happen but support just incase */
+			BLI_strncpy(to, from, OP_MAX_TYPENAME);
+		}
 	}
-	else {
-		/* should not happen but support just incase */
-		BLI_strncpy(to, from, OP_MAX_TYPENAME);
-	}
+	else
+		to[0]= 0;
 }
 
 /* print a string representation of the operator, with the args that it runs 
@@ -440,12 +452,23 @@ void WM_operator_properties_free(PointerRNA *ptr)
 /* ************ default op callbacks, exported *********** */
 
 /* invoke callback, uses enum property named "type" */
-/* only weak thing is the fixed property name... */
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	PropertyRNA *prop= RNA_struct_find_property(op->ptr, "type");
+	PropertyRNA *prop;
 	uiPopupMenu *pup;
 	uiLayout *layout;
+
+	prop= RNA_struct_find_property(op->ptr, "type");
+
+	if(!prop) {
+		RNA_STRUCT_BEGIN(op->ptr, findprop) {
+			if(RNA_property_type(findprop) == PROP_ENUM) {
+				prop= findprop;
+				break;
+			}
+		}
+		RNA_STRUCT_END;
+	}
 
 	if(prop==NULL) {
 		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
@@ -456,7 +479,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else {
 		pup= uiPupMenuBegin(C, op->type->name, 0);
 		layout= uiPupMenuLayout(pup);
-		uiItemsEnumO(layout, op->type->idname, "type");
+		uiItemsEnumO(layout, op->type->idname, (char*)RNA_property_identifier(prop));
 		uiPupMenuEnd(C, pup);
 	}
 
@@ -477,10 +500,10 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
-/* op->invoke, opens fileselect if filename property not set, otherwise executes */
+/* op->invoke, opens fileselect if path property not set, otherwise executes */
 int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (RNA_property_is_set(op->ptr, "filename")) {
+	if (RNA_property_is_set(op->ptr, "path")) {
 		return WM_operator_call(C, op);
 	} 
 	else {
@@ -490,9 +513,11 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* default properties for fileselect */
-void WM_operator_properties_filesel(wmOperatorType *ot, int filter)
+void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 {
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "Path to file.");
+	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "FilePath", "Path to file.");
+	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "FileName", "Name of the file.");
+	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
 
 	RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
 	RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
@@ -502,6 +527,10 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter)
 	RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
 	RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
 	RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+
+	RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
+		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
+		FILE_LOADLIB, FILE_SPECIAL);
 }
 
 /* op->poll */
@@ -627,6 +656,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 {
 	ot->name= "Debug Menu";
 	ot->idname= "WM_OT_debug_menu";
+	ot->description= "Open a popup to set the debug level.";
 	
 	ot->invoke= wm_debug_menu_invoke;
 	ot->exec= wm_debug_menu_exec;
@@ -720,6 +750,7 @@ int wm_search_menu_poll(bContext *C)
 {
 	if(CTX_wm_window(C)==NULL) return 0;
 	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_CONSOLE) return 0;  // XXX - so we can use the shortcut in the console
+	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_TEXT) return 0;  // XXX - so we can use the spacebar in the text editor
 	return 1;
 }
 
@@ -740,8 +771,8 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
-	
-	ot->invoke= WM_operator_confirm;
+	ot->description="Duplicate the current Blender window.";
+		
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= WM_operator_winactive;
 }
@@ -750,7 +781,8 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 {
 	ot->name= "Save User Settings";
 	ot->idname= "WM_OT_save_homefile";
-	
+	ot->description="Make the current file the default .blend file.";
+		
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_write_homefile;
 	ot->poll= WM_operator_winactive;
@@ -760,6 +792,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 {
 	ot->name= "Reload Start-Up File";
 	ot->idname= "WM_OT_read_homefile";
+	ot->description="Open the default file (doesn't save the current file).";
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile;
@@ -784,7 +817,7 @@ static int recentfile_exec(bContext *C, wmOperator *op)
 			WM_read_file(C, G.sce, op->reports);
 		}
 		else {
-			struct RecentFile *recent = BLI_findlink(&(G.recent_files), event-2);
+			struct RecentFile *recent = BLI_findlink(&(G.recent_files), event-1);
 			if(recent) {
 				WM_event_add_notifier(C, NC_WINDOW, NULL);
 				WM_read_file(C, recent->filename, op->reports);
@@ -812,24 +845,14 @@ static EnumPropertyItem *open_recentfile_itemf(bContext *C, PointerRNA *ptr, int
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item= NULL;
 	struct RecentFile *recent;
-	int totitem= 0, i, ofs= 0;
-
-	if(G.sce[0]) {
-		tmp.value= 1;
-		tmp.identifier= G.sce;
-		tmp.name= G.sce;
-		RNA_enum_item_add(&item, &totitem, &tmp);
-		ofs = 1;
-	}
+	int totitem= 0, i;
 
 	/* dynamically construct enum */
 	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
-		if(strcmp(recent->filename, G.sce)) {
-			tmp.value= i+ofs+1;
-			tmp.identifier= recent->filename;
-			tmp.name= recent->filename;
-			RNA_enum_item_add(&item, &totitem, &tmp);
-		}
+		tmp.value= i+1;
+		tmp.identifier= recent->filename;
+		tmp.name= BLI_short_filename(recent->filename);
+		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -846,6 +869,7 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 
 	ot->name= "Open Recent File";
 	ot->idname= "WM_OT_open_recentfile";
+	ot->description="Open recent files list.";
 	
 	ot->invoke= wm_recentfile_invoke;
 	ot->exec= recentfile_exec;
@@ -869,10 +893,17 @@ static void untitled(char *name)
 	}
 }
 
+static void load_set_load_ui(wmOperator *op)
+{
+	if(!RNA_property_is_set(op->ptr, "load_ui"))
+		RNA_boolean_set(op->ptr, "load_ui", !(U.flag & USER_FILENOUI));
+}
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RNA_string_set(op->ptr, "filename", G.sce);
+	RNA_string_set(op->ptr, "path", G.sce);
+	load_set_load_ui(op);
+
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -880,14 +911,21 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
-	char filename[FILE_MAX];
-	RNA_string_get(op->ptr, "filename", filename);
+	char path[FILE_MAX];
+
+	RNA_string_get(op->ptr, "path", path);
+	load_set_load_ui(op);
+
+	if(RNA_boolean_get(op->ptr, "load_ui"))
+		G.fileflags &= ~G_FILE_NO_UI;
+	else
+		G.fileflags |= G_FILE_NO_UI;
 	
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-	WM_read_file(C, filename, op->reports);
+	WM_read_file(C, path, op->reports);
 	
 	return 0;
 }
@@ -896,13 +934,173 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
+	ot->description="Open a Blender file.";
 	
 	ot->invoke= wm_open_mainfile_invoke;
 	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
+
+	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
 }
+
+static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (RNA_property_is_set(op->ptr, "path")) {
+		return WM_operator_call(C, op);
+	} 
+	else {
+		/* XXX solve where to get last linked library from */
+		RNA_string_set(op->ptr, "path", G.lib);
+		WM_event_add_fileselect(C, op);
+		return OPERATOR_RUNNING_MODAL;
+	}
+}
+
+static short wm_link_append_flag(wmOperator *op)
+{
+	short flag = 0;
+	if (RNA_boolean_get(op->ptr, "autoselect")) flag |= FILE_AUTOSELECT;
+	if (RNA_boolean_get(op->ptr, "active_layer")) flag |= FILE_ACTIVELAY;
+	if (RNA_boolean_get(op->ptr, "relative_paths")) flag |= FILE_STRINGCODE;
+	if (RNA_boolean_get(op->ptr, "link")) flag |= FILE_LINK;
+	return flag;
+}
+
+#define GROUP_MAX 32
+
+
+static void make_library_local(const char *libname, Main *main)
+{
+	struct Library *lib;
+
+	/* and now find the latest append lib file */
+	lib= main->library.first;
+	while(lib) {
+		if (BLI_streq(libname, lib->filename)) break;
+		lib= lib->id.next;
+	}
+	
+	/* make local */
+	if(lib) {
+		all_local(lib, 1);
+		/* important we unset, otherwise these object wont
+		 * link into other scenes from this blend file */
+		flag_all_listbases_ids(LIB_APPEND_TAG, 0);
+	}
+}
+
+static int wm_link_append_exec(bContext *C, wmOperator *op)
+{
+	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX], group[GROUP_MAX];
+	int idcode;
+	BlendHandle *bh;
+	struct Main *main= CTX_data_main(C);
+	struct Scene *scene= CTX_data_scene(C);
+	struct Main *mainl= 0;
+	
+	struct ScrArea *sa= CTX_wm_area(C);
+	PropertyRNA *prop;
+	int totfiles=0;
+	short flag;
+
+	name[0] = '\0';
+	RNA_string_get(op->ptr, "filename", name);
+	RNA_string_get(op->ptr, "directory", dir);
+
+	if ( BLO_is_a_library(dir, libname, group)==0 ) {
+		BKE_report(op->reports, RPT_ERROR, "Not a library");
+		return OPERATOR_FINISHED;
+	} else if (group[0]==0) {
+		BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
+		return OPERATOR_FINISHED;
+	} else if (BLI_streq(main->name, libname)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot use current file as library");
+		return OPERATOR_FINISHED;
+	}
+
+	/* check if something is indicated for append/link */
+	prop = RNA_struct_find_property(op->ptr, "files");
+	if (prop) {
+		totfiles= RNA_property_collection_length(op->ptr, prop);
+		if (totfiles == 0) {
+			if (name[0] == '\0') {
+				BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
+				return OPERATOR_FINISHED;
+			}
+		}
+	} else if (name[0] == '\0') {
+		BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
+		return OPERATOR_FINISHED;
+	}
+
+	/* now we have or selected, or an indicated file */
+	if (RNA_boolean_get(op->ptr, "autoselect"))
+		scene_deselect_all(scene);
+
+	bh = BLO_blendhandle_from_file(libname);
+	idcode = BLO_idcode_from_name(group);
+	
+	flag = wm_link_append_flag(op);
+
+	if((flag & FILE_LINK)==0) {
+		/* tag everything, all untagged data can be made local */
+		flag_all_listbases_ids(LIB_APPEND_TAG, 1);
+	}
+
+	/* here appending/linking starts */
+	mainl = BLO_library_append_begin(C, &bh, libname);
+	if (totfiles == 0) {
+		BLO_library_append_named_part(C, mainl, &bh, name, idcode, flag);
+	} else {
+		RNA_BEGIN(op->ptr, itemptr, "files") {
+			RNA_string_get(&itemptr, "name", name);
+			BLO_library_append_named_part(C, mainl, &bh, name, idcode, flag);
+		}
+		RNA_END;
+	}
+	BLO_library_append_end(C, mainl, &bh, idcode, flag);
+	
+	/* DISPLISTS? */
+	recalc_all_library_objects(main);
+
+	/* Append, rather than linking */
+	if ((flag & FILE_LINK)==0) {
+		make_library_local(libname, main);
+	}
+
+	/* do we need to do this? */
+	if(scene)
+		DAG_scene_sort(scene);
+
+	BLO_blendhandle_close(bh);
+	BLI_strncpy(G.lib, dir, FILE_MAX);
+
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_link_append(wmOperatorType *ot)
+{
+	ot->name= "Link/Append from Library";
+	ot->idname= "WM_OT_link_append";
+	ot->description= "Link or Append from a Library .blend file";
+	
+	ot->invoke= wm_link_append_invoke;
+	ot->exec= wm_link_append_exec;
+	ot->poll= WM_operator_winactive;
+	
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB);
+	
+	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
+	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects.");
+	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer.");
+	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file.");
+
+	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+}	
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
@@ -932,6 +1130,7 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 {
 	ot->name= "Recover Last Session";
 	ot->idname= "WM_OT_recover_last_session";
+	ot->description="Open the last closed file (\"quit.blend\").";
 	
 	ot->exec= wm_recover_last_session_exec;
 	ot->poll= WM_operator_winactive;
@@ -955,7 +1154,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
-	RNA_string_set(op->ptr, "filename", name);
+	RNA_string_set(op->ptr, "path", name);
 	
 	WM_event_add_fileselect(C, op);
 
@@ -965,20 +1164,20 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 /* function used for WM_OT_save_mainfile too */
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
-	char filename[FILE_MAX];
+	char path[FILE_MAX];
 	int compress;
 
 	save_set_compress(op);
 	compress= RNA_boolean_get(op->ptr, "compress");
 	
-	if(RNA_property_is_set(op->ptr, "filename"))
-		RNA_string_get(op->ptr, "filename", filename);
+	if(RNA_property_is_set(op->ptr, "path"))
+		RNA_string_get(op->ptr, "path", path);
 	else {
-		BLI_strncpy(filename, G.sce, FILE_MAX);
-		untitled(filename);
+		BLI_strncpy(path, G.sce, FILE_MAX);
+		untitled(path);
 	}
 
-	WM_write_file(C, filename, compress, op->reports);
+	WM_write_file(C, path, compress, op->reports);
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
@@ -989,12 +1188,13 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save As Blender File";
 	ot->idname= "WM_OT_save_as_mainfile";
+	ot->description="Save the current file in the desired location.";
 	
 	ot->invoke= wm_save_as_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 }
 
@@ -1008,7 +1208,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
-	RNA_string_set(op->ptr, "filename", name);
+	RNA_string_set(op->ptr, "path", name);
 	uiPupMenuSaveOver(C, op, name);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -1018,12 +1218,13 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save Blender File";
 	ot->idname= "WM_OT_save_mainfile";
+	ot->description="Save the current Blender file.";
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 }
 
@@ -1032,12 +1233,12 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
-    ot->name= "Toggle Fullscreen";
-    ot->idname= "WM_OT_window_fullscreen_toggle";
+	ot->name= "Toggle Fullscreen";
+	ot->idname= "WM_OT_window_fullscreen_toggle";
+	ot->description="Toggle the current window fullscreen.";
 
-    ot->invoke= WM_operator_confirm;
-    ot->exec= wm_window_fullscreen_toggle_op;
-    ot->poll= WM_operator_winactive;
+	ot->exec= wm_window_fullscreen_toggle_op;
+	ot->poll= WM_operator_winactive;
 }
 
 static int wm_exit_blender_op(bContext *C, wmOperator *op)
@@ -1053,6 +1254,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 {
 	ot->name= "Exit Blender";
 	ot->idname= "WM_OT_exit_blender";
+	ot->description= "Quit Blender.";
 
 	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_exit_blender_op;
@@ -1067,7 +1269,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 */
 
 void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C),
-			       void (*draw)(bContext *C, int, int, void *customdata), void *customdata)
+			       wmPaintCursorDraw draw, void *customdata)
 {
 	wmPaintCursor *pc= MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
 	
@@ -1302,6 +1504,7 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 {
 	ot->name= "Circle Gesture";
 	ot->idname= "WM_OT_circle_gesture";
+	ot->description="Enter rotate mode with a circular gesture.";
 	
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
@@ -1515,6 +1718,7 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 	
 	ot->name= "Lasso Gesture";
 	ot->idname= "WM_OT_lasso_gesture";
+	ot->description="Select objects within the lasso as you move the pointer.";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
 	ot->modal= WM_gesture_lasso_modal;
@@ -1840,6 +2044,7 @@ static void WM_OT_ten_timer(wmOperatorType *ot)
 	
 	ot->name= "Ten Timer";
 	ot->idname= "WM_OT_ten_timer";
+	ot->description="Ten Timer operator.";
 	
 	ot->invoke= WM_menu_invoke;
 	ot->exec= ten_timer_exec;
@@ -1875,6 +2080,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_exit_blender);
 	WM_operatortype_append(WM_OT_open_recentfile);
 	WM_operatortype_append(WM_OT_open_mainfile);
+	WM_operatortype_append(WM_OT_link_append);
 	WM_operatortype_append(WM_OT_recover_last_session);
 	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
@@ -1894,19 +2100,29 @@ void wm_window_keymap(wmWindowManager *wm)
 	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_read_homefile", XKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
+	#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_OSKEY, 0);
+	#endif
+	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0); 
+	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
 }
 

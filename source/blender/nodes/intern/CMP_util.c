@@ -1104,9 +1104,23 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 {
 	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		col[0] = bc[0], col[1] = bc[1], col[2] = bc[2];
+		switch(src->type){
+			/* these fallthrough to get all the channels */
+			case CB_RGBA: col[3]=bc[3]; 
+			case CB_VEC3: col[2]=bc[2];
+			case CB_VEC2: col[1]=bc[1];
+			case CB_VAL: col[0]=bc[0];
+		}
 	}
-	else col[0] = col[1] = col[2] = 0.f;
+	else {
+		switch(src->type){
+			/* these fallthrough to get all the channels */
+			case CB_RGBA: col[3]=0.0; 
+			case CB_VEC3: col[2]=0.0; 
+			case CB_VEC2: col[1]=0.0; 
+			case CB_VAL: col[0]=0.0; 
+		}
+	}
 }
 
 // sets pixel (x, y) to color col
@@ -1114,7 +1128,13 @@ void qd_setPixel(CompBuf* src, int x, int y, float* col)
 {
 	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		bc[0] = col[0], bc[1] = col[1], bc[2] = col[2];
+		switch(src->type){
+			/* these fallthrough to get all the channels */
+			case CB_RGBA: bc[3]=col[3]; 
+			case CB_VEC3: bc[2]=col[2];
+			case CB_VEC2: bc[1]=col[1];
+			case CB_VAL: bc[0]=col[0];
+		}
 	}
 }
 

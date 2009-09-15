@@ -396,15 +396,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 					break;
 			}
 			else if(az->type == AZONE_REGION) {
-				float v1[2], v2[2], v3[2], pt[2];
-				
-				v1[0]= az->x1; v1[1]= az->y1;
-				v2[0]= az->x2; v2[1]= az->y2;
-				v3[0]= az->x3; v3[1]= az->y3;
-				pt[0]= x; pt[1]=y;
-
-				if(IsPointInTri2D(v1, v2, v3, pt)) 
-					break;
+				break;
 			}
 		}
 	}
@@ -1261,7 +1253,7 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->modal= area_split_modal;
 	
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
 	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
@@ -1273,7 +1265,9 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 /* ************** scale region edge operator *********************************** */
 
 typedef struct RegionMoveData {
+	AZone *az;
 	ARegion *ar;
+	ScrArea *sa;
 	int bigger, smaller, origval;
 	int origx, origy;
 	char edge;
@@ -1290,7 +1284,9 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		op->customdata= rmd;
 		
+		rmd->az = az;
 		rmd->ar= az->ar;
+		rmd->sa = sad->sa1;
 		rmd->edge= az->edge;
 		rmd->origx= event->x;
 		rmd->origy= event->y;
@@ -1322,8 +1318,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(rmd->edge=='l') delta= -delta;
 				rmd->ar->type->minsizex= rmd->origval + delta;
 				CLAMP(rmd->ar->type->minsizex, 0, 1000);
-				if(rmd->ar->type->minsizex < 10) {
-					rmd->ar->type->minsizex= 10;
+				if(rmd->ar->type->minsizex < 24) {
+					rmd->ar->type->minsizex= rmd->origval;
 					rmd->ar->flag |= RGN_FLAG_HIDDEN;
 				}
 				else
@@ -1334,8 +1330,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(rmd->edge=='b') delta= -delta;
 				rmd->ar->type->minsizey= rmd->origval + delta;
 				CLAMP(rmd->ar->type->minsizey, 0, 1000);
-				if(rmd->ar->type->minsizey < 10) {
-					rmd->ar->type->minsizey= 10;
+				if(rmd->ar->type->minsizey < 24) {
+					rmd->ar->type->minsizey= rmd->origval;
 					rmd->ar->flag |= RGN_FLAG_HIDDEN;
 				}
 				else
@@ -1582,7 +1578,6 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	/* rna */
-	RNA_def_pointer_runtime(ot->srna, "screen", &RNA_Screen, "Screen", "");
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
@@ -2128,7 +2123,7 @@ static void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 //	ot->invoke= WM_operator_confirm;
 	ot->exec= region_foursplit_exec;
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 }
 
 
@@ -2166,7 +2161,7 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	ot->exec= region_flip_exec;
 	
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 }
 
@@ -3299,6 +3294,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	/* Screen General ------------------------------------------------ */
 	keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 	
+	
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
 	
@@ -3327,22 +3323,27 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
+	
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
 	
-	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", F7KEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
+	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", F7KEY, KM_PRESS, 0, 0)->ptr, "path", "test.py");
 	WM_keymap_verify_item(keymap, "SCRIPT_OT_python_run_ui_scripts", F8KEY, KM_PRESS, 0, 0);
 
 	/* files */
-	WM_keymap_add_item(keymap, "FILE_OT_exec", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_execute", RETKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_cancel", ESCKEY, KM_PRESS, 0, 0);
 	
 	/* undo */
-	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);
+	#ifdef __APPLE__
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+	#endif
+	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	
 						  
 	/* render */
 	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
@@ -3351,7 +3352,11 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
 	/* user prefs */
-	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", UKEY, KM_PRESS, KM_ALT, 0);
+	#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_OSKEY, 0);
+	#endif
+	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_CTRL, 0);
+	
 	
 	/* Anim Playback ------------------------------------------------ */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
@@ -3363,7 +3368,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	
 	WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 0);
 	
 	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEUPKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEDOWNKEY, KM_PRESS, KM_CTRL, 0)->ptr, "next", 0);

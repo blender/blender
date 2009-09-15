@@ -27,18 +27,18 @@
 SET(SRC apple/quicktime_import.c apple/quicktime_export.c)
 
 SET(INC 
-  .
-  ../quicktime
-  ../makesdna
-  ../../../intern/guardedalloc
-  ../blenlib
-  ../blenkernel
-  ../avi
-  ../imbuf
-  ../imbuf/intern
-  ../blenloader
-  ../render/extern/include
-  ../include
+	.
+	../quicktime
+	../makesdna
+	../../../intern/guardedalloc
+	../blenlib
+	../blenkernel
+	../avi
+	../imbuf
+	../imbuf/intern
+	../blenloader
+	../render/extern/include
+	../include
 )
 
 SET(INC ${INC} ${QUICKTIME_INC})

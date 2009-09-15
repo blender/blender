@@ -146,9 +146,10 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 			bezt = (BezTriple*)MEM_callocN((onpoints[j])* sizeof(BezTriple),"objfnt_bezt") ;
 			BLI_addtail(&che->nurbsbase, nu);
 
-			nu->type= CU_BEZIER+CU_2D;
+			nu->type= CU_BEZIER;
 			nu->pntsu = onpoints[j];
 			nu->resolu= 8;
+			nu->flag= CU_2D;
 			nu->flagu= CU_CYCLIC;
 			nu->bezt = bezt;
 

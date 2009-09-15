@@ -121,6 +121,7 @@ bConstraintOb *constraints_make_evalob (Scene *scene, Object *ob, void *subdata,
 			if (ob) {
 				cob->ob = ob;
 				cob->type = datatype;
+				cob->rotOrder = EULER_ORDER_DEFAULT; // TODO: when objects have rotation order too, use that
 				Mat4CpyMat4(cob->matrix, ob->obmat);
 			}
 			else
@@ -136,6 +137,15 @@ bConstraintOb *constraints_make_evalob (Scene *scene, Object *ob, void *subdata,
 				cob->ob = ob;
 				cob->pchan = (bPoseChannel *)subdata;
 				cob->type = datatype;
+				
+				if (cob->pchan->rotmode > 0) {
+					/* should be some type of Euler order */
+					cob->rotOrder= cob->pchan->rotmode; 
+				}
+				else {
+					/* Quats, so eulers should just use default order */
+					cob->rotOrder= EULER_ORDER_DEFAULT;
+				}
 				
 				/* matrix in world-space */
 				Mat4MulMat4(cob->matrix, cob->pchan->pose_mat, ob->obmat);
@@ -664,6 +674,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
+// TODO: cope with getting rotation order...
 #define SINGLETARGET_GET_TARS(con, datatar, datasubtarget, ct, list) \
 	{ \
 		ct= MEM_callocN(sizeof(bConstraintTarget), "tempConstraintTarget"); \
@@ -687,6 +698,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
+// TODO: cope with getting rotation order...
 #define SINGLETARGETNS_GET_TARS(con, datatar, ct, list) \
 	{ \
 		ct= MEM_callocN(sizeof(bConstraintTarget), "tempConstraintTarget"); \
@@ -795,11 +807,11 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		
 		/* extract components of both matrices */
 		VECCOPY(loc, ct->matrix[3]);
-		Mat4ToEul(ct->matrix, eul);
+		Mat4ToEulO(ct->matrix, eul, ct->rotOrder);
 		Mat4ToSize(ct->matrix, size);
 		
 		VECCOPY(loco, invmat[3]);
-		Mat4ToEul(invmat, eulo);
+		Mat4ToEulO(invmat, eulo, cob->rotOrder);
 		Mat4ToSize(invmat, sizo);
 		
 		/* disable channels not enabled */
@@ -814,8 +826,8 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		if (!(data->flag & CHILDOF_SIZEZ)) size[2]= sizo[2]= 1.0f;
 		
 		/* make new target mat and offset mat */
-		LocEulSizeToMat4(ct->matrix, loc, eul, size);
-		LocEulSizeToMat4(invmat, loco, eulo, sizo);
+		LocEulOSizeToMat4(ct->matrix, loc, eul, size, ct->rotOrder);
+		LocEulOSizeToMat4(invmat, loco, eulo, sizo, cob->rotOrder);
 		
 		/* multiply target (parent matrix) by offset (parent inverse) to get 
 		 * the effect of the parent that will be exherted on the owner
@@ -1150,7 +1162,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
-		float q[4], vec[4], dir[3], quat[4], x1;
+		float q[4], vec[4], dir[3], quat[4], radius, x1;
 		float totmat[4][4];
 		float curvetime;
 		
@@ -1162,21 +1174,30 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path==NULL || cu->path->data==NULL) 
+		if (cu->path==NULL || cu->path->data==NULL)
 			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 		
 		if (cu->path && cu->path->data) {
-			curvetime= bsystem_time(cob->scene, ct->tar, (float)ctime, 0.0) - data->offset;
-			
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
-				curvetime /= cu->pathlen;
+			if ((data->followflag & FOLLOWPATH_STATIC) == 0) { 
+				/* animated position along curve depending on time */
+				curvetime= bsystem_time(cob->scene, ct->tar, ctime, 0.0) - data->offset;
+				
+				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
+				 * but this will only work if it actually is animated... 
+				 *
+				 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
+				 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+				 */
+				curvetime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
 				CLAMP(curvetime, 0.0, 1.0);
 			}
-#endif // XXX old animation system
+			else {
+				/* fixed position along curve */
+				curvetime= data->offset; // XXX might need a more sensible value
+			}
 			
-			if ( where_on_path(ct->tar, curvetime, vec, dir) ) {
-				if (data->followflag) {
+			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius) ) {
+				if (data->followflag & FOLLOWPATH_FOLLOW) {
 					vectoquat(dir, (short) data->trackflag, (short) data->upflag, quat);
 					
 					Normalize(dir);
@@ -1189,6 +1210,14 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					
 					QuatToMat4(quat, totmat);
 				}
+
+				if (data->followflag & FOLLOWPATH_RADIUS) {
+					float tmat[4][4], rmat[4][4];
+					Mat4Scale(tmat, radius);
+					Mat4MulMat4(rmat, totmat, tmat);
+					Mat4CpyMat4(totmat, rmat);
+				}
+
 				VECCOPY(totmat[3], vec);
 				
 				Mat4MulSerie(ct->matrix, ct->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1206,7 +1235,8 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 	/* only evaluate if there is a target */
 	if (VALID_CONS_TARGET(ct)) {
 		float obmat[4][4];
-		float size[3], obsize[3];
+		float size[3];
+		bFollowPathConstraint *data= con->data;
 		
 		/* get Object local transform (loc/rot/size) to determine transformation from path */
 		//object_to_mat4(ob, obmat);
@@ -1219,13 +1249,17 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		Mat4MulSerie(cob->matrix, ct->matrix, obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 		
 		/* un-apply scaling caused by path */
-		Mat4ToSize(cob->matrix, obsize);
-		if (obsize[0])
-			VecMulf(cob->matrix[0], size[0] / obsize[0]);
-		if (obsize[1])
-			VecMulf(cob->matrix[1], size[1] / obsize[1]);
-		if (obsize[2])
-			VecMulf(cob->matrix[2], size[2] / obsize[2]);
+		if ((data->followflag & FOLLOWPATH_RADIUS)==0) { /* XXX - assume that scale correction means that radius will have some scale error in it - Campbell */
+			float obsize[3];
+
+			Mat4ToSize(cob->matrix, obsize);
+			if (obsize[0])
+				VecMulf(cob->matrix[0], size[0] / obsize[0]);
+			if (obsize[1])
+				VecMulf(cob->matrix[1], size[1] / obsize[1]);
+			if (obsize[2])
+				VecMulf(cob->matrix[2], size[2] / obsize[2]);
+		}
 	}
 }
 
@@ -1304,7 +1338,7 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	VECCOPY(loc, cob->matrix[3]);
 	Mat4ToSize(cob->matrix, size);
 	
-	Mat4ToEul(cob->matrix, eul);
+	Mat4ToEulO(cob->matrix, eul, cob->rotOrder);
 	
 	/* eulers: radians to degrees! */
 	eul[0] = (float)(eul[0] / M_PI * 180);
@@ -1339,7 +1373,7 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	eul[1] = (float)(eul[1] / 180 * M_PI);
 	eul[2] = (float)(eul[2] / 180 * M_PI);
 	
-	LocEulSizeToMat4(cob->matrix, loc, eul, size);
+	LocEulOSizeToMat4(cob->matrix, loc, eul, size, cob->rotOrder);
 }
 
 static bConstraintTypeInfo CTI_ROTLIMIT = {
@@ -1546,14 +1580,14 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		VECCOPY(loc, cob->matrix[3]);
 		Mat4ToSize(cob->matrix, size);
 		
-		Mat4ToEul(ct->matrix, eul);
-		Mat4ToEul(cob->matrix, obeul);
+		Mat4ToEulO(ct->matrix, eul, ct->rotOrder);
+		Mat4ToEulO(cob->matrix, obeul, cob->rotOrder);
 		
 		if ((data->flag & ROTLIKE_X)==0)
 			eul[0] = obeul[0];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				euler_rot(eul, obeul[0], 'x');
+				eulerO_rot(eul, obeul[0], 'x', cob->rotOrder);
 			
 			if (data->flag & ROTLIKE_X_INVERT)
 				eul[0] *= -1;
@@ -1563,7 +1597,7 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			eul[1] = obeul[1];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				euler_rot(eul, obeul[1], 'y');
+				eulerO_rot(eul, obeul[1], 'y', cob->rotOrder);
 			
 			if (data->flag & ROTLIKE_Y_INVERT)
 				eul[1] *= -1;
@@ -1573,14 +1607,14 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			eul[2] = obeul[2];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				euler_rot(eul, obeul[2], 'z');
+				eulerO_rot(eul, obeul[2], 'z', cob->rotOrder);
 			
 			if (data->flag & ROTLIKE_Z_INVERT)
 				eul[2] *= -1;
 		}
 		
 		compatible_eul(eul, obeul);
-		LocEulSizeToMat4(cob->matrix, loc, eul, size);
+		LocEulOSizeToMat4(cob->matrix, loc, eul, size, cob->rotOrder);
 	}
 }
 
@@ -2843,7 +2877,7 @@ static void clampto_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 		 */
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if (cu->path==NULL || cu->path->data==NULL) 
+		if (cu->path==NULL || cu->path->data==NULL)
 			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 	}
 	
@@ -2954,7 +2988,7 @@ static void clampto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			}
 			
 			/* 3. position on curve */
-			if (where_on_path(ct->tar, curvetime, vec, dir) ) {
+			if (where_on_path(ct->tar, curvetime, vec, dir, NULL, NULL) ) {
 				Mat4One(totmat);
 				VECCOPY(totmat[3], vec);
 				
@@ -3036,7 +3070,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 				Mat4ToSize(ct->matrix, dvec);
 				break;
 			case 1: /* rotation (convert to degrees first) */
-				Mat4ToEul(ct->matrix, dvec);
+				Mat4ToEulO(ct->matrix, dvec, cob->rotOrder);
 				for (i=0; i<3; i++)
 					dvec[i] = (float)(dvec[i] / M_PI * 180);
 				break;
@@ -3047,7 +3081,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		/* extract components of owner's matrix */
 		VECCOPY(loc, cob->matrix[3]);
-		Mat4ToEul(cob->matrix, eul);
+		Mat4ToEulO(cob->matrix, eul, cob->rotOrder);
 		Mat4ToSize(cob->matrix, size);	
 		
 		/* determine where in range current transforms lie */
@@ -3102,7 +3136,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		}
 		
 		/* apply to matrix */
-		LocEulSizeToMat4(cob->matrix, loc, eul, size);
+		LocEulOSizeToMat4(cob->matrix, loc, eul, size, cob->rotOrder);
 	}
 }
 

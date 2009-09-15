@@ -28,8 +28,17 @@
 #ifndef ED_NODE_H
 #define ED_NODE_H
 
+struct Material;
+struct Scene;
+struct Tex;
+
 /* drawnode.c */
 void ED_init_node_butfuncs(void);
+
+/* node_edit.c */
+void ED_node_shader_default(struct Material *ma);
+void ED_node_composit_default(struct Scene *sce);
+void ED_node_texture_default(struct Tex *tex);;
 
 #endif /* ED_NODE_H */
 

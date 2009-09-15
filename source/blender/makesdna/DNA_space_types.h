@@ -153,25 +153,25 @@ typedef struct FileSelectParams {
 	char title[24]; /* title, also used for the text of the execute button */
 	char dir[240]; /* directory */
 	char file[80]; /* file */
+	char renamefile[80];
 
-	short flag; /* settings for filter, hiding files and display mode */
+	short type; /* XXXXX for now store type here, should be moved to the operator */
+	short flag; /* settings for filter, hiding dots files,...  */
 	short sort; /* sort order */
 	short display; /* display mode flag */
 	short filter; /* filter when (flags & FILE_FILTER) is true */
 
 	/* XXX - temporary, better move to filelist */
 	short active_bookmark;
-	short pad;
 	int	active_file;
 	int selstate;
 
+	/* short */
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
 	short menu; /* currently selected option in pupmenu */
 	char fp_str[8]; /* string to use for font preview */
-	
 	char *pupmenu; /* allows menu for save options - result stored in menup */
-	
 	/* XXX --- end unused -- */
 } FileSelectParams;
 
@@ -508,6 +508,13 @@ typedef struct SpaceConsole {
 	
 } SpaceConsole;
 
+typedef struct SpaceUserPref {
+	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+
+	int pad;
+} SpaceUserPref;
 
 /* view3d  Now in DNA_view3d_types.h */
 
@@ -713,6 +720,7 @@ enum FileSortTypeE {
 #define SIPO_DRAWTIME			(1<<4)
 #define SIPO_SELCUVERTSONLY		(1<<5)
 #define SIPO_DRAWNAMES			(1<<6)
+#define SIPO_SLIDERS			(1<<7)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {
@@ -861,7 +869,8 @@ enum {
 	SPACE_NODE,
 	SPACE_LOGIC,
 	SPACE_CONSOLE,
-	SPACEICONMAX = SPACE_CONSOLE
+	SPACE_USERPREF,
+	SPACEICONMAX = SPACE_USERPREF
 };
 
 #endif

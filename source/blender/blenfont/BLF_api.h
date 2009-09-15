@@ -70,6 +70,11 @@ void BLF_boundbox(char *str, struct rctf *box);
 float BLF_width(char *str);
 float BLF_height(char *str);
 
+/*
+ * The following function return the width and height of the string, but
+ * just in one call, so avoid extra freetype2 stuff.
+ */
+void BLF_width_and_height(char *str, float *width, float *height);
 
 /*
  * For fixed width fonts only, returns the width of a
@@ -115,6 +120,28 @@ void BLF_shadow(int level, float r, float g, float b, float a);
  * BLF_draw, so it's safe call this whenever you like.
  */
 void BLF_shadow_offset(int x, int y);
+
+/*
+ * Set the buffer, size and number of channels to draw, one thing to take care is call
+ * this function with NULL pointer when we finish, for example:
+ *	BLF_buffer(my_fbuf, my_cbuf, 100, 100, 4);
+ *
+ *	... set color, position and draw ...
+ *
+ *	BLF_buffer(NULL, NULL, 0, 0, 0);
+ */
+void BLF_buffer(float *fbuf, unsigned char *cbuf, unsigned int w, unsigned int h, int nch);
+
+/*
+ * Set the color to be used for text.
+ */
+void BLF_buffer_col(float r, float g, float b, float a);
+
+/*
+ * Draw the string into the buffer, this function draw in both buffer, float and unsigned char _BUT_
+ * it's not necessary set both buffer, NULL is valid here.
+ */
+void BLF_draw_buffer(char *str);
 
 /*
  * Search the path directory to the locale files, this try all

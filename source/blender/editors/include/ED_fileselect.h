@@ -65,6 +65,7 @@ typedef struct FileLayout
 	short height;
 	short flag;
 	short dirty;
+	short textheight;
 	float column_widths[MAX_FILE_COLUMN];
 } FileLayout;
 

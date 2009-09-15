@@ -56,8 +56,8 @@ typedef struct ActKeyColumn {
 	char tree_col;						/* DLRB_BLACK or DLRB_RED */
 	
 		/* keyframe info */
-	char sel;
-	short handle_type;
+	char key_type;						/* eBezTripe_KeyframeType */
+	short sel;
 	float cfra;
 	
 	/* only while drawing - used to determine if long-keyframe needs to be drawn */
@@ -99,7 +99,7 @@ typedef enum eKeyframeShapeDrawOpts {
 } eKeyframeShapeDrawOpts;
 
 /* draw simple diamond-shape keyframe (with OpenGL) */
-void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short mode);
+void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel, short key_type, short mode);
 
 /* ******************************* Methods ****************************** */
 

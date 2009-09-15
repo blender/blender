@@ -29,8 +29,38 @@
 #define ED_GPENCIL_INTERN_H
 
 /* internal exports only */
+
+
+/* ***************************************************** */
+/* Operator Defines */
+
+struct wmOperatorType;
+
+/* drawing ---------- */
+
+void GPENCIL_OT_draw(struct wmOperatorType *ot);
+
+/* Paint Modes for operator*/
+typedef enum eGPencil_PaintModes {
+	GP_PAINTMODE_DRAW = 0,
+	GP_PAINTMODE_ERASER,
+	GP_PAINTMODE_DRAW_STRAIGHT,
+} eGPencil_PaintModes;
+
+/* buttons editing --- */
+
+void GPENCIL_OT_data_add(struct wmOperatorType *ot);
+void GPENCIL_OT_data_unlink(struct wmOperatorType *ot);
+
+void GPENCIL_OT_layer_add(struct wmOperatorType *ot);
+
+void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
+
+void GPENCIL_OT_convert(struct wmOperatorType *ot);
+
+
 /******************************************************* */
-/* FILTERED ACTION DATA - TYPES */
+/* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
 
 /* XXX - TODO: replace this with the modern bAnimListElem... */
 /* This struct defines a structure used for quick access */

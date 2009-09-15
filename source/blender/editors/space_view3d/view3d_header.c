@@ -188,55 +188,6 @@ static void handle_view3d_lock(bContext *C)
 	}
 }
 
-/* XXX; all this context stuff...  should become operator */
-void do_layer_buttons(bContext *C, short event)
-{
-	wmWindow *win= CTX_wm_window(C);
-	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	static int oldlay= 1;
-	short shift, alt, ctrl;
-	
-	shift= win->eventstate->shift;
-	alt= win->eventstate->alt;
-	ctrl= win->eventstate->ctrl;
-	
-	if(v3d==0) return;
-	if(v3d->localview) return;
-	
-	if(event==-1 && ctrl) {
-		v3d->scenelock= !v3d->scenelock;
-		do_view3d_header_buttons(C, NULL, B_SCENELOCK);
-	} else if (event<0) {
-		if(v3d->lay== (1<<20)-1) {
-			if(event==-2 || shift) v3d->lay= oldlay;
-		}
-		else {
-			oldlay= v3d->lay;
-			v3d->lay= (1<<20)-1;
-		}
-		
-		if(v3d->scenelock) handle_view3d_lock(C);
-		
-		/* new layers might need unflushed events events */
-		DAG_scene_update_flags(scene, v3d->lay);	/* tags all that moves and flushes */
-	}
-	else {
-		if(alt) {
-			if(event<11) event+= 10;
-		}
-		if(shift) {
-			if(v3d->lay & (1<<event)) v3d->lay -= (1<<event);
-			else	v3d->lay += (1<<event);
-		}
-		do_view3d_header_buttons(C, NULL, event+B_LAY);
-	}
-	ED_area_tag_redraw(sa);
-	
-	if(v3d->drawtype == OB_SHADED) reshadeall_displist(scene);
-}
-
 static int layers_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -301,6 +252,7 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Layers";
+	ot->description= "Toggle layer(s) visibility.";
 	ot->idname= "VIEW3D_OT_layers";
 	
 	/* api callbacks */
@@ -314,403 +266,6 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "", 0, 20);
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
 }
-
-
-#if 0
-static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
-{
-	Scene *scene= CTX_data_scene(C);
-	Base *base;
-	int i=1;
-	
-	if (event == 1) {
-		/* Set Active Object as Active Camera */
-		/* XXX ugly hack alert */
-//		G.qual |= LR_CTRLKEY;
-//		persptoetsen(PAD0);
-//		G.qual &= ~LR_CTRLKEY;
-	} else {
-
-		for( base = FIRSTBASE; base; base = base->next ) {
-			if (base->object->type == OB_CAMERA) {
-				i++;
-				
-				if (event==i) {
-					/* XXX use api call! */
-					
-					break;
-				}
-			}
-		}
-	}
-	
-}
-
-
-static uiBlock *view3d_view_camerasmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	Base *base;
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	int i=1;
-	char camname[48];
-	
-	block= uiBeginBlock(C, ar, "view3d_view_camerasmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_view_camerasmenu, NULL);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Active Object as Active Camera|Ctrl NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 140, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	for( base = FIRSTBASE; base; base = base->next ) {
-		if (base->object->type == OB_CAMERA) {
-			i++;
-			
-			strcpy(camname, base->object->id.name+2);
-			if (base->object == scene->camera) strcat(camname, " (Active)");
-			
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, camname,	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  i, "");
-		}
-	}
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 50);
-	return block;
-}
-#endif
-
-#if 0
-static void do_view3d_view_cameracontrolsmenu(bContext *C, void *arg, int event)
-{
-	switch(event) {
-	case 0: /* Orbit Left */
-		persptoetsen(PAD4);
-		break;
-	case 1: /* Orbit Right */
-		persptoetsen(PAD6);
-		break;
-	case 2: /* Orbit Up */
-		persptoetsen(PAD8);
-		break;
-	case 3: /* Orbit Down */
-		persptoetsen(PAD2);
-		break;
-	case 4: /* Pan left */
-		/* XXX ugly hack alert */
-//		G.qual |= LR_CTRLKEY;
-		persptoetsen(PAD4);
-//		G.qual &= ~LR_CTRLKEY;
-		break;
-	case 5: /* Pan right */
-		/* XXX ugly hack alert */
-//		G.qual |= LR_CTRLKEY;
-		persptoetsen(PAD6);
-//		G.qual &= ~LR_CTRLKEY;
-		break;
-	case 6: /* Pan up */
-		/* ugly hack alert */
-//		G.qual |= LR_CTRLKEY;
-		persptoetsen(PAD8);
-//		G.qual &= ~LR_CTRLKEY;
-		break;
-	case 7: /* Pan down */
-		/* ugly hack alert */
-//		G.qual |= LR_CTRLKEY;
-		persptoetsen(PAD2);
-//		G.qual &= ~LR_CTRLKEY;
-		break;
-	case 8: /* Zoom In */
-		persptoetsen(PADPLUSKEY);
-		break;
-	case 9: /* Zoom Out */
-		persptoetsen(PADMINUS);
-		break;
-	case 10: /* Reset Zoom */
-		persptoetsen(PADENTER);
-		break;
-	case 11: /* Camera Fly mode */
-		fly();
-		break;
-	}
-}
-
-
-static uiBlock *view3d_view_cameracontrolsmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-/*		static short tog=0; */
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "view3d_view_cameracontrolsmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_view_cameracontrolsmenu, NULL);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera Fly Mode|Shift F",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 140, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Orbit Left|NumPad 4",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Orbit Right|NumPad 6", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Orbit Up|NumPad 8",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Orbit Down|NumPad 2",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 140, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pan Left|Ctrl NumPad 4",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pan Right|Ctrl NumPad 6", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pan Up|Ctrl NumPad 8",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pan Down|Ctrl NumPad 2",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 140, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Zoom|NumPad Enter",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 50);
-	return block;
-}
-
-static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
-{
-	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	Object *obedit = CTX_data_edit_object(C);
-	float *curs;
-	
-	switch(event) {
-
-	case 0: /* Align View to Selected (edit/faceselect mode) */
-	case 1:
-	case 2:
-		if ((obedit) && (obedit->type == OB_MESH)) {
-			editmesh_align_view_to_selected(v3d, event + 1);
-		} 
-		else if (paint_facesel_test(CTX_data_active_object(C))) {
-			Object *obact= OBACT;
-			if (obact && obact->type==OB_MESH) {
-				Mesh *me= obact->data;
-
-				if (me->mtface) {
-// XXX					faceselect_align_view_to_selected(v3d, me, event + 1);
-					ED_area_tag_redraw(sa);
-				}
-			}
-		}
-		break;
-	case 3: /* Center View to Cursor */
-		curs= give_cursor(scene, v3d);
-		v3d->ofs[0]= -curs[0];
-		v3d->ofs[1]= -curs[1];
-		v3d->ofs[2]= -curs[2];
-		ED_area_tag_redraw(sa);
-		break;
-	case 4: /* Align Active Camera to View */
-		/* XXX This ugly hack is a symptom of the nasty persptoetsen function, 
-		 * but at least it works for now.
-		 */
-//		G.qual |= LR_CTRLKEY|LR_ALTKEY;
-		persptoetsen(PAD0);
-//		G.qual &= ~(LR_CTRLKEY|LR_ALTKEY);
-		break;
-	case 5: /* Align View to Selected (object mode) */
-// XXX		mainqenter(PADASTERKEY, 1);
-		break;
-	case 6: /* Center View and Cursor to Origin */
-		WM_operator_name_call(C, "VIEW3D_OT_view_center", WM_OP_EXEC_REGION_WIN, NULL);
-		curs= give_cursor(scene, v3d);
-		curs[0]=curs[1]=curs[2]= 0.0;
-		break;
-	}
-}
-
-static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-/*		static short tog=0; */
-	uiBlock *block;
-	Object *obedit = CTX_data_edit_object(C);
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "view3d_view_alignviewmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_view_alignviewmenu, NULL);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View to Cursor|C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor and View All|Shift C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Active Camera to View|Ctrl Alt NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");	
-
-	if (((obedit) && (obedit->type == OB_MESH)) || (paint_facesel_test(CTX_data_active_object(C)))) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Top)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Front)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Side)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected|NumPad *",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	}
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 50);
-	return block;
-}
-#endif
-
-#if 0
-static uiBlock *view3d_view_spacehandlers(bContext *C, ARegion *ar, void *arg_unused)
-{
-	/* XXX */
-	return NULL;
-}
-
-
-static void do_view3d_viewmenu(bContext *C, void *arg, int event)
-{
-	
-	switch(event) {
-	case 0: /* User */
-		break;
-	case 1: /* Camera */
-		break;
-	case 2: /* Top */
-		break;
-	case 3: /* Front */
-		break;
-	case 4: /* Side */
-		break;
-	case 5: /* Perspective */
-		break;
-	case 6: /* Orthographic */
-		break;
-	case 7: /* Local View */
-		break;
-	case 8: /* Global View */
-		break;
-	case 9: /* View All (Home) */
-		WM_operator_name_call(C, "VIEW3D_OT_view_all", WM_OP_EXEC_REGION_WIN, NULL);
-		break;
-	case 11: /* View Selected */
-		WM_operator_name_call(C, "VIEW3D_OT_view_center", WM_OP_EXEC_REGION_WIN, NULL);
-		break;
-	case 13: /* Play Back Animation */
-		break;
-	case 15: /* Background Image... */
-//		add_blockhandler(sa, VIEW3D_HANDLER_BACKGROUND, UI_PNL_UNSTOW);
-		break;
-	case 16: /* View  Panel */
-//		add_blockhandler(sa, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
-		break;
-	case 17: /* Set Clipping Border */
-		WM_operator_name_call(C, "VIEW3D_OT_clip_border", WM_OP_INVOKE_REGION_WIN, NULL);
-		break;
-	case 18: /* render preview */
-//		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);
-		break;
-	case 19: /* zoom within border */
-//		view3d_border_zoom();
-		break;
-	case 20: /* Transform  Space Panel */
-//		add_blockhandler(sa, VIEW3D_HANDLER_TRANSFORM, UI_PNL_UNSTOW);
-		break;	
-	case 21: /* Grease Pencil */
-//		add_blockhandler(sa, VIEW3D_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
-		break;		
-	case 22: /* View all layers */
-		do_layer_buttons(C, -2);
-		break;
-	}
-}
-#endif
-
-#if 0
-static uiBlock *view3d_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	RegionView3D *rv3d= wm_region_view3d(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "view3d_viewmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_viewmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Orientations...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Render Preview...|Shift P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 16, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Background Image...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Grease Pencil...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 21, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if ((rv3d->viewbut == 0) && !(rv3d->persp == V3D_CAMOB)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "User",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "User",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	if (rv3d->persp == V3D_CAMOB) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Camera|NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Camera|NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	if (rv3d->viewbut == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Top|NumPad 7",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Top|NumPad 7",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	if (rv3d->viewbut == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Front|NumPad 1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Front|NumPad 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	if (rv3d->viewbut == 3) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Side|NumPad 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Side|NumPad 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	
-	uiDefIconTextBlockBut(block, view3d_view_camerasmenu, NULL, ICON_RIGHTARROW_THIN, "Cameras", 0, yco-=20, 120, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if(rv3d->persp==V3D_PERSP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	if(rv3d->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if(v3d->lay== (1<<20)-1) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Previous Layers|Shift ~", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 22, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show All Layers| ~", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 22, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if(v3d->localview) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Local View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Local View|NumPad /", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	if(!v3d->localview) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Global View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Global View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBlockBut(block, view3d_view_cameracontrolsmenu, NULL, ICON_RIGHTARROW_THIN, "View Navigation", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_view_alignviewmenu, NULL, ICON_RIGHTARROW_THIN, "Align View", 0, yco-=20, 120, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if(rv3d->rflag & RV3D_CLIPPING)
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Clipping Border|Alt B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
-	else
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Clipping Border|Alt B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
-	if (rv3d->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Within Border...|Shift B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 19, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
-	if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 99, "");
-	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 99, "");
-
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
-
-#ifndef DISABLE_PYTHON
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBlockBut(block, view3d_view_spacehandlers, NULL, ICON_RIGHTARROW_THIN, "Space Handler Scripts", 0, yco-=20, 120, 19, "");
-#endif
-
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	
-	return block;
-}
-#endif
 
 #if 0
 void do_view3d_select_object_typemenu(bContext *C, void *arg, int event)
@@ -932,82 +487,6 @@ static uiBlock *view3d_select_object_groupedmenu(bContext *C, ARegion *ar, void 
 
 #endif
 
-static void view3d_select_metaballmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-	uiItemS(layout);
-	uiItemO(layout, NULL, 0, "MBALL_OT_select_deselect_all_metaelems");
-	uiItemO(layout, NULL, 0, "MBALL_OT_select_inverse_metaelems");
-	uiItemS(layout);
-	uiItemO(layout, NULL, 0, "MBALL_OT_select_random_metaelems");
-}
-
-/* wrapper for python layouts */
-void uiTemplate_view3d_select_metaballmenu(uiLayout *layout, bContext *C)
-{
-	void *arg_unused = NULL;
-	view3d_select_metaballmenu(C, layout, arg_unused);
-}
-
-static void view3d_select_armaturemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	PointerRNA ptr;
-
-	/* this part of the menu has been moved to python */
-	/*uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Select/Deselect All", 0, "ARMATURE_OT_select_all_toggle");
-	uiItemO(layout, "Inverse", 0, "ARMATURE_OT_select_inverse");
-
-	uiItemS(layout);
-
-	uiItemEnumO(layout, "Parent", 0, "ARMATURE_OT_select_hierarchy", "direction", BONE_SELECT_PARENT);
-	uiItemEnumO(layout, "Child", 0, "ARMATURE_OT_select_hierarchy", "direction", BONE_SELECT_CHILD);
-
-	uiItemS(layout);*/
-
-	WM_operator_properties_create(&ptr, "ARMATURE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_PARENT);
-	uiItemFullO(layout, "Extend Parent", 0, "ARMATURE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-
-	WM_operator_properties_create(&ptr, "ARMATURE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_CHILD);
-	uiItemFullO(layout, "Extend Child", 0, "ARMATURE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-}
-
-/* wrapper for python layouts */
-void uiTemplate_view3d_select_armaturemenu(uiLayout *layout, bContext *C)
-{
-	void *arg_unused = NULL;
-	view3d_select_armaturemenu(C, layout, arg_unused);
-}
-
-static void view3d_select_posemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	PointerRNA ptr;
-
-	WM_operator_properties_create(&ptr, "POSE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_PARENT);
-	uiItemFullO(layout, "Extend Parent", 0, "POSE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-
-	WM_operator_properties_create(&ptr, "POSE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_CHILD);
-	uiItemFullO(layout, "Extend Child", 0, "POSE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-}
-
-/* wrapper for python layouts */
-void uiTemplate_view3d_select_posemenu(uiLayout *layout, bContext *C)
-{
-	void *arg_unused = NULL;
-	view3d_select_posemenu(C, layout, arg_unused);
-}
-
 void do_view3d_select_faceselmenu(bContext *C, void *arg, int event)
 {
 #if 0
@@ -1084,19 +563,6 @@ void uiTemplate_view3d_select_faceselmenu(uiLayout *layout, bContext *C)
 	void *arg_unused = NULL;
 	ARegion *ar= CTX_wm_region(C);
 	view3d_select_faceselmenu(C, ar, arg_unused);
-}
-
-static void view3d_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_grid");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_cursor");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_center");
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_selected");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_grid");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_active");
 }
 
 #if 0
@@ -1540,9 +1006,10 @@ static uiBlock *view3d_object_mirrormenu(bContext *C, ARegion *ar, void *arg_unu
 #endif
 #endif
 
+#if 0
 static void view3d_edit_object_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-#if 0
+#if 0 // XXX not used anymore
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotation to ObData|Ctrl A, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	apply_objects_locrot();
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Visual Transform|Ctrl A, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
@@ -1559,6 +1026,7 @@ static void view3d_edit_object_transformmenu(bContext *C, uiLayout *layout, void
 	uiItemO(layout, NULL, 0, "OBJECT_OT_scale_clear");
 	uiItemO(layout, NULL, 0, "OBJECT_OT_origin_clear");
 }
+#endif 
 
 #if 0
 static void do_view3d_edit_object_makelocalmenu(bContext *C, void *arg, int event)
@@ -1872,683 +1340,6 @@ static void do_view3d_edit_objectmenu(bContext *C, void *arg, int event)
 }
 #endif
 
-#if 0
-/* visible buttons ported to python, check ifedout buttons */
-static void view3d_edit_mesh_verticesmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, "Merge...", 0, "MESH_OT_merge");
-	uiItemO(layout, "Rip", 0, "MESH_OT_rip");
-	uiItemO(layout, "Split", 0, "MESH_OT_split");
-	uiItemO(layout, "Separate", 0, "MESH_OT_separate");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Smooth", 0, "MESH_OT_vertices_smooth");
-	uiItemO(layout, "Remove Doubles", 0, "MESH_OT_remove_doubles");
-
-#if 0
-	uiItemS(layout);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Vertex Parent|Ctrl P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, ""); // add_hook_menu();
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Hook|Ctrl H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, ""); // make_parent();
-#endif
-}
-#endif
-
-#if 0
-/* visible buttons ported to python, check ifedout buttons */
-static void view3d_edit_mesh_edgesmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "MESH_OT_edge_face_add");
-
-#if 0
-	uiItemO(layout, "Bevel", 0, "MESH_OT_bevel"); // bevelmenu(em)
-	uiItemO(layout, "Loop Subdivide...", 0, "MESH_OT_loop_subdivide"); // Ctr R, CutEdgeloop(1);
-	uiItemO(layout, "Knife Subdivide...", 0, "MESH_OT_loop_subdivide"); // Shift K, KnifeSubdivide(KNIFE_PROMPT);
-
-	uiItemS(layout);
-#endif
-
-	uiItemO(layout, "Subdivide", 0, "MESH_OT_subdivide");
-	uiItemFloatO(layout, "Subdivide Smooth", 0, "MESH_OT_subdivide", "smoothness", 1.0f);
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Mark Seam", 0, "MESH_OT_mark_seam");
-	uiItemBooleanO(layout, "Clear Seam", 0, "MESH_OT_mark_seam", "clear", 1);
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Mark Sharp", 0, "MESH_OT_mark_sharp");
-	uiItemBooleanO(layout, "Clear Sharp", 0, "MESH_OT_mark_sharp", "clear", 1);
-
-#if 0
-	uiItemS(layout);
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Adjust Bevel Weight|Ctrl Shift E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Crease SubSurf|Shift E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-#endif
-
-	uiItemS(layout);
-
-	uiItemEnumO(layout, "Rotate Edge CW", 0, "MESH_OT_edge_rotate", "direction", 1);
-	uiItemEnumO(layout, "Rotate Edge CCW", 0, "MESH_OT_edge_rotate", "direction", 2);
-
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Slide Edge |Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Edge Loop|X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");	
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");	
-#endif
-}
-#endif
-
-#if 0
-void do_view3d_edit_mirrormenu(bContext *C, void *arg, int event)
-{
-	float mat[3][3];
-	
-	Mat3One(mat);
-	
-	switch(event) {
-		case 0:
-			initTransform(TFM_MIRROR, CTX_NO_PET);
-			Transform();
-			break;
-		case 1:
-			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-			BIF_setSingleAxisConstraint(mat[0], " on global X axis");
-			Transform();
-			break;
-		case 2:
-			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-			BIF_setSingleAxisConstraint(mat[1], " on global Y axis");
-			Transform();
-			break;
-		case 3:
-			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-			BIF_setSingleAxisConstraint(mat[2], "on global Z axis");
-			Transform();
-			break;
-		case 4:
-			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-			BIF_setLocalAxisConstraint('X', " on local X axis");
-			Transform();
-			break;
-		case 5:
-			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-			BIF_setLocalAxisConstraint('Y', " on local Y axis");
-			Transform();
-			break;
-		case 6:
-			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-			BIF_setLocalAxisConstraint('Z', " on local Z axis");
-			Transform();
-			break;
-	}
-}
-
-static uiBlock *view3d_edit_mirrormenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_mirrormenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_mirrormenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Interactive Mirror|Ctrl M",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|Ctrl M, X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Global|Ctrl M, Y",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Global|Ctrl M, Z",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|Ctrl M, X X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|Ctrl M, Y Y",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|Ctrl M, Z Z",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-#endif
-
-#ifndef DISABLE_PYTHON
-#if 0
-static void do_view3d_edit_mesh_scriptsmenu(bContext *C, void *arg, int event)
-{
-	BPY_menu_do_python(PYMENU_MESH, event);
-}
-
-static uiBlock *view3d_edit_mesh_scriptsmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-//	short yco = 20, menuwidth = 120;
-// XXX	BPyMenu *pym;
-//	int i = 0;
-
-	block= uiBeginBlock(C, ar, "v3d_emesh_pymenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_mesh_scriptsmenu, NULL);
-
-//	for (pym = BPyMenuTable[PYMENU_MESH]; pym; pym = pym->next, i++) {
-//		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
-//	}
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	return block;
-}
-#endif
-#endif /* DISABLE_PYTHON */
-
-#if 0
-static void do_view3d_edit_meshmenu(bContext *C, void *arg, int event)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	
-	switch(event) {
-	
-	case 2: /* transform properties */
-		add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, 0);
-		break;
-	case 4: /* insert keyframe */
-		common_insertkey();
-		break;
-	case 16: /* delete keyframe */
-		common_deletekey();
-		break;
-	}
-}
-#endif
-
-#if 0
-/* visible buttons ported to python, check ifedout buttons */
-static void view3d_edit_meshmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	PointerRNA tsptr;
-	
-	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &tsptr);
-
-	uiItemO(layout, "Undo Editing", 0, "ED_OT_undo");
-	uiItemO(layout, "Redo Editing", 0, "ED_OT_redo");
-
-#if 0
-	uiDefIconTextBlockBut(block, editmode_undohistorymenu, NULL, ICON_RIGHTARROW_THIN, "Undo History", 0, yco-=20, 120, 19, "");
-#endif
-
-	uiItemS(layout);
-	
-#if 0
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
-#endif
-
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
-
-	uiItemS(layout);
-
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-		
-	uiItemS(layout);
-#endif
-
-	uiItemO(layout, NULL, 0, "UV_OT_mapping_menu");
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "MESH_OT_extrude");
-	uiItemO(layout, NULL, 0, "MESH_OT_duplicate");
-	uiItemO(layout, "Delete...", 0, "MESH_OT_delete");
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Vertices", 0, view3d_edit_mesh_verticesmenu);
-	uiItemMenuF(layout, "Edges", 0, view3d_edit_mesh_edgesmenu);
-	uiItemMenuF(layout, "Faces", 0, view3d_edit_mesh_facesmenu);
-	uiItemMenuF(layout, "Normals", 0, view3d_edit_mesh_normalsmenu);
-
-	uiItemS(layout);
-
-	uiItemR(layout, NULL, 0, &tsptr, "automerge_editing", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
-	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Show/Hide", 0, view3d_edit_mesh_showhidemenu);
-
-#if 0
-#ifndef DISABLE_PYTHON
-	uiItemS(layout);
-	uiDefIconTextBlockBut(block, view3d_edit_mesh_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
-#endif
-#endif
-}
-#endif
-
-#if 0
-/* visible buttons ported to python, check ifedout buttons */
-static void view3d_edit_curve_controlpointsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	Object *obedit= CTX_data_edit_object(C);
-
-	if(obedit->type == OB_CURVE) {
-		uiItemEnumO(layout, NULL, 0, "TFM_OT_transform", "mode", TFM_TILT);
-		uiItemO(layout, NULL, 0, "CURVE_OT_tilt_clear");
-		uiItemO(layout, NULL, 0, "CURVE_OT_separate");
-		
-		uiItemS(layout);
-
-		uiItemEnumO(layout, NULL, 0, "CURVE_OT_handle_type_set", "type", 1);
-		uiItemEnumO(layout, NULL, 0, "CURVE_OT_handle_type_set", "type", 3);
-		uiItemEnumO(layout, NULL, 0, "CURVE_OT_handle_type_set", "type", 2);
-
-		uiItemS(layout);
-	}
-
-	// XXX uiItemO(layout, NULL, 0, "OBJECT_OT_make_vertex_parent"); Make VertexParent|Ctrl P
-	// make_parent()
-	// XXX uiItemO(layout, NULL, 0, "OBJECT_OT_add_hook"); Add Hook| Ctrl H
-	// add_hook_menu()
-}
-#endif
-
-#if 0
-/* visible buttons ported to python, check ifedout buttons */
-static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	PointerRNA tsptr;
-	
-	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &tsptr);
-
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");	
-#endif
-
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
-
-	uiItemS(layout);
-	
-	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	// common_insertkey();
-	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-	// common_deletekey();
-
-
-	uiItemO(layout, NULL, 0, "CURVE_OT_extrude");
-	uiItemO(layout, NULL, 0, "CURVE_OT_duplicate");
-	uiItemO(layout, NULL, 0, "CURVE_OT_separate");
-	uiItemO(layout, NULL, 0, "CURVE_OT_make_segment");
-	uiItemO(layout, NULL, 0, "CURVE_OT_cyclic_toggle");
-	uiItemO(layout, NULL, 0, "CURVE_OT_delete"); // Delete...
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Control Points", 0, view3d_edit_curve_controlpointsmenu);
-	uiItemMenuF(layout, "Segments", 0, view3d_edit_curve_segmentsmenu);
-
-	uiItemS(layout);
-
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
-	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Show/Hide Control Points", 0, view3d_edit_curve_showhidemenu);
-}
-#endif
-
-#if 0
-/* visible buttons ported to python, check ifedout buttons */
-static void view3d_edit_latticemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	PointerRNA tsptr;
-	
-	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &tsptr);
-
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");		
-#endif
-
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
-
-	uiItemS(layout);
-
-	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	// common_insertkey();
-	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-	// common_deletekey();
-	
-	uiItemO(layout, NULL, 0, "LATTICE_OT_make_regular");
-
-	uiItemS(layout);
-
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
-	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
-}
-#endif
-
-#if 0
-static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
-{
-	static short numcuts= 2;
-
-	switch(event) {
-	case 0: /* Undo Editing */
-		remake_editArmature();
-		break;
-	
-	case 6: /* Shear */
-		initTransform(TFM_SHEAR, CTX_NONE);
-		Transform();
-		break;
-	case 7: /* Warp */
-		initTransform(TFM_WARP, CTX_NONE);
-		Transform();
-	case 23: /* bone sketching panel */
-		add_blockhandler(curarea, VIEW3D_HANDLER_BONESKETCH, UI_PNL_UNSTOW);
-		break;
-	}
-}
-#endif
-
-#if 0
-/* visible buttons ported to python, check ifedout buttons */
-static void view3d_edit_armaturemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm= obedit->data;
-	
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Bone Sketching|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
-#endif
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
-	uiItemMenuF(layout, "Bone Roll", 0, view3d_edit_armature_rollmenu);
-	
-	if (arm->drawtype == ARM_ENVELOPE)
-		uiItemEnumO(layout, "Scale Envelope Distance", 0, "TFM_OT_transform", "mode", TFM_BONESIZE);
-	else
-		uiItemEnumO(layout, "Scale B-Bone Width", 0, "TFM_OT_transform", "mode", TFM_BONESIZE);
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, "Extrude", 0, "ARMATURE_OT_extrude");
-	if (arm->flag & ARM_MIRROR_EDIT)
-		uiItemBooleanO(layout, "Extrude Forked", 0, "ARMATURE_OT_extrude", "forked", 1);
-	
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_duplicate");
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_merge");
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_fill");
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_delete");
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_separate");
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_subdivide_simple");
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_subdivide_multi");
-	
-	uiItemEnumO(layout, "AutoName Left/Right", 0, "ARMATURE_OT_autoside_names", "axis", 0);
-	uiItemEnumO(layout, "AutoName Front/Back", 0, "ARMATURE_OT_autoside_names", "axis", 1);
-	uiItemEnumO(layout, "AutoName Top/Bottom", 0, "ARMATURE_OT_autoside_names", "axis", 2);
-	
-	uiItemO(layout, "Flip Left/Right Names", 0, "ARMATURE_OT_flip_names");
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_armature_layers");
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_bone_layers");
-	
-	uiItemS(layout);
-	
-	uiItemMenuF(layout, "Parent", 0, view3d_edit_armature_parentmenu);
-	
-	uiItemS(layout);
-	
-	uiItemMenuF(layout, "Bone Settings ", 0, view3d_edit_armature_settingsmenu);
-}
-#endif
-
-static void view3d_pose_armature_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear User Transform|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-		//used: clear_user_transform(scene, ob);
-	//uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiItemO(layout, NULL, 0, "POSE_OT_loc_clear");
-	uiItemO(layout, NULL, 0, "POSE_OT_rot_clear");
-	uiItemO(layout, NULL, 0, "POSE_OT_scale_clear");
-	
-	// ???
-	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Origin|Alt O",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-		//used:clear_object('o');
-}
-
-static void view3d_pose_armature_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, "Show Hidden", 0, "POSE_OT_reveal");
-	
-	uiItemO(layout, "Hide Selected", 0, "POSE_OT_hide");
-	uiItemBooleanO(layout, "Hide Unselected", 0, "POSE_OT_hide", "unselected", 1);
-}
-
-static void view3d_pose_armature_ikmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "POSE_OT_ik_add");
-	uiItemO(layout, NULL, 0, "POSE_OT_ik_clear");
-}
-
-static void view3d_pose_armature_constraintsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "POSE_OT_constraint_add_with_targets");
-	uiItemO(layout, NULL, 0, "POSE_OT_constraints_clear");
-}
-
-static void view3d_pose_armature_groupmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, "Add Selected to Active Group", 0, "POSE_OT_group_assign");
-	//uiItemO(layout, "Add Selected to Group", 0, "POSE_OT_group_assign");
-	
-	uiItemO(layout, "Add New Group", 0, "POSE_OT_group_add");
-	
-	uiItemO(layout, "Remove from All Groups", 0, "POSE_OT_group_unassign");
-	uiItemO(layout, "Remove Active Group", 0, "POSE_OT_group_remove");
-}
-
-static void view3d_pose_armature_motionpathsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "POSE_OT_paths_calculate");
-	uiItemO(layout, NULL, 0, "POSE_OT_paths_clear");
-}
-
-static void view3d_pose_armature_poselibmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "POSELIB_OT_browse_interactive");
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "POSELIB_OT_pose_add");
-	uiItemO(layout, NULL, 0, "POSELIB_OT_pose_rename");
-	uiItemO(layout, NULL, 0, "POSELIB_OT_pose_remove");
-}
-
-static void view3d_pose_armature_settingsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemEnumO(layout, "Toggle a Setting", 0, "POSE_OT_flags_set", "mode", 2);
-	uiItemEnumO(layout, "Enable a Setting", 0, "POSE_OT_flags_set", "mode", 1);
-	uiItemEnumO(layout, "Disable a Setting", 0, "POSE_OT_flags_set", "mode", 0);
-}
-
-#if 0
-static void do_view3d_pose_armaturemenu(bContext *C, void *arg, int event)
-{
-	Object *ob;
-	ob=OBACT;
-	
-	switch(event) {
-	case 5:
-		pose_copy_menu();
-		break;
-	case 15:
-		pose_relax();
-		break;
-	}
-}
-#endif
-
-static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{	
-	Object *ob = CTX_data_active_object(C);
-	bArmature *arm= ob->data;
-	
-#if 0 // XXX to be ported, using uiItemMenuF(layout, "<Name>", 0, view3d_pose_armature_<category>menu);
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
-#endif 
-	if ( (arm) && ((arm->drawtype == ARM_B_BONE) || (arm->drawtype == ARM_ENVELOPE)) )
-		uiItemEnumO(layout, "Scale Envelope Distance", 0, "TFM_OT_transform", "mode", TFM_BONESIZE);
-	uiItemMenuF(layout, "Clear Transform", 0, view3d_pose_armature_transformmenu);
-	
-	uiItemS(layout);
-	
-	// TODO: these operators may get renamed
-	uiItemO(layout, NULL, 0, "ANIM_OT_insert_keyframe_menu");
-	uiItemO(layout, NULL, 0, "ANIM_OT_delete_keyframe_v3d");
-
-	uiItemS(layout);
-	
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Relax Pose|W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
-#endif
-	uiItemO(layout, NULL, 0, "POSE_OT_apply");
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, "Copy Current Pose", 0, "POSE_OT_copy");
-	uiItemO(layout, "Paste Pose", 0, "POSE_OT_paste");
-	uiItemBooleanO(layout, "Paste X-Flipped Pose", 0, "POSE_OT_paste", "flipped", 1);
-	
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Pose Library", 0, view3d_pose_armature_poselibmenu);
-	uiItemMenuF(layout, "Motion Paths", 0, view3d_pose_armature_motionpathsmenu);
-	uiItemMenuF(layout, "Bone Groups", 0, view3d_pose_armature_groupmenu);
-	
-	uiItemS(layout);
-	
-	uiItemMenuF(layout, "Inverse Kinematics", 0, view3d_pose_armature_ikmenu);
-	uiItemMenuF(layout, "Constraints", 0, view3d_pose_armature_constraintsmenu);
-	
-	uiItemS(layout);
-	
-	uiItemEnumO(layout, "AutoName Left/Right", 0, "POSE_OT_autoside_names", "axis", 0);
-	uiItemEnumO(layout, "AutoName Front/Back", 0, "POSE_OT_autoside_names", "axis", 1);
-	uiItemEnumO(layout, "AutoName Top/Bottom", 0, "POSE_OT_autoside_names", "axis", 2);
-	
-	uiItemO(layout, "Flip Left/Right Names", 0, "POSE_OT_flip_names");
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "POSE_OT_armature_layers");
-	uiItemO(layout, NULL, 0, "POSE_OT_bone_layers");
-	
-	uiItemS(layout);
-	
-	uiItemMenuF(layout, "Show/Hide Bones", 0, view3d_pose_armature_showhidemenu);
-	uiItemMenuF(layout, "Bone Settings", 0, view3d_pose_armature_settingsmenu);
-	
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-#endif
-}
-
-
-/* vertex paint menu */
-static void do_view3d_vpaintmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	/* events >= 3 are registered bpython scripts */
-#ifndef DISABLE_PYTHON
-	if (event >= 3) BPY_menu_do_python(PYMENU_VERTEXPAINT, event - 3);
-#endif
-	switch(event) {
-	case 0: /* undo vertex painting */
-		BIF_undo();
-		break;
-	case 1: /* set vertex colors/weight */
-		if(paint_facesel_test(CTX_data_active_object(C)))
-			clear_vpaint_selectedfaces();
-		else /* we know were in vertex paint mode */
-			clear_vpaint();
-		break;
-	case 2:
-		make_vertexcol(1);
-		break;
-	}
-#endif
-}
-
-static uiBlock *view3d_vpaintmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-#ifndef DISABLE_PYTHON
-// XXX	BPyMenu *pym;
-//	int i=0;
-#endif
-	
-	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_vpaintmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Vertex Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Shaded Vertex Colors",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	
-#ifndef DISABLE_PYTHON
-	/* note that we account for the 3 previous entries with i+3:
-	even if the last item isnt displayed, it dosent matter */
-//	for (pym = BPyMenuTable[PYMENU_VERTEXPAINT]; pym; pym = pym->next, i++) {
-//		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
-//			menuwidth, 19, NULL, 0.0, 0.0, 1, i+3,
-//			pym->tooltip?pym->tooltip:pym->filename);
-//	}
-#endif
-
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	return block;
-}
-
 
 /* texture paint menu (placeholder, no items yet??) */
 static void do_view3d_tpaintmenu(bContext *C, void *arg, int event)
@@ -2746,39 +1537,6 @@ static uiBlock *view3d_faceselmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void view3d_particle_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_reveal");
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_hide");
-	uiItemBooleanO(layout, "Hide Unselected", 0, "PARTICLE_OT_hide", "unselected", 1);
-}
-
-static void view3d_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-
-	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Particle Edit Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	// add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
-	// XXX uiItemS(layout);
-	//
-	// XXX uiDefIconTextBut(block, BUTM, 1, (pset->flag & PE_X_MIRROR)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT, "X-Axis Mirror Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	// pset->flag ^= PE_X_MIRROR;
-
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_mirror"); // |Ctrl M
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles"); // |W, 5
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_delete");
-	if(ts->particle.selectmode & SCE_SELECT_POINT)
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide"); // |W, 2
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey"); // |W, 1
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Show/Hide Particles", 0, view3d_particle_showhidemenu);
-}
-
 static char *view3d_modeselect_pup(Scene *scene)
 {
 	Object *ob= OBACT;
@@ -2793,11 +1551,17 @@ static char *view3d_modeselect_pup(Scene *scene)
 	if(ob==NULL) return string;
 	
 	/* if active object is editable */
-	if ( ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE)
+	if ( ((ob->type == OB_MESH)
 		|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
 		|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
 		
 		str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
+	}
+	else if (ob->type == OB_ARMATURE) {
+		if (ob->mode & OB_MODE_POSE)
+			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT|OB_MODE_POSE, ICON_EDITMODE_HLT);
+		else
+			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
 	}
 
 	if (ob->type == OB_MESH) {
@@ -2814,7 +1578,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 		str += sprintf(str, formatstr, "Pose Mode", OB_MODE_POSE, ICON_POSE_HLT);
 	}
 
-	if (ob->particlesystem.first) {
+	if (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody)) {
 		str += sprintf(str, formatstr, "Particle Mode", OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
 	}
 
@@ -2904,6 +1668,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *obedit = CTX_data_edit_object(C);
+	Object *ob = CTX_data_active_object(C);
 	EditMesh *em= NULL;
 	int bit, ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
 	PointerRNA props_ptr;
@@ -2956,6 +1721,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		WM_operator_properties_create(&props_ptr, "OBJECT_OT_mode_set");
 		RNA_enum_set(&props_ptr, "mode", v3d->modeselect);
 		WM_operator_name_call(C, "OBJECT_OT_mode_set", WM_OP_EXEC_REGION_WIN, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
 		break;		
 	case B_AROUND:
 // XXX		handle_view3d_around(); /* copies to other 3d windows */
@@ -2967,7 +1733,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				em->selectmode= SCE_SELECT_VERTEX;
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Vertex");
 		}
 		break;
@@ -2981,7 +1747,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Edge");
 		}
 		break;
@@ -2995,21 +1761,24 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Face");
 		}
 		break;	
 
 	case B_SEL_PATH:
 		ts->particle.selectmode= SCE_SELECT_PATH;
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: Path");
 		break;
 	case B_SEL_POINT:
 		ts->particle.selectmode = SCE_SELECT_POINT;
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: Point");
 		break;
 	case B_SEL_END:
 		ts->particle.selectmode = SCE_SELECT_END;
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: End point");
 		break;	
 	
@@ -3109,11 +1878,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
-	else if (ob && ob->mode & OB_MODE_VERTEX_PAINT) {
-		xmax= GetButStringLength("Paint");
-		uiDefPulldownBut(block, view3d_vpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
-		xco+= xmax;
-	} 
 	else if (ob && ob->mode & OB_MODE_TEXTURE_PAINT) {
 		xmax= GetButStringLength("Paint");
 		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
@@ -3127,15 +1891,11 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		}
 	}
 	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-		xmax= GetButStringLength("Particle");
-		uiDefMenuBut(block, view3d_particlemenu, NULL, "Particle",	xco,yco, xmax-3, 20, "");
-		xco+= xmax;
+		/* ported to python */
 	}
 	else {
 		if (ob && (ob->mode & OB_MODE_POSE)) {
-			xmax= GetButStringLength("Pose");
-			uiDefMenuBut(block, view3d_pose_armaturemenu, NULL, "Pose",	xco,yco, xmax-3, 20, "");
-			xco+= xmax;
+		/* ported to python */
 		}
 	}
 
@@ -3426,7 +2186,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
 		if (ob && (ob->mode & OB_MODE_POSE)) {
-			xco+= XIC;
+			xco+= XIC*2;
 			uiBlockBeginAlign(block);
 			
 			uiDefIconButO(block, BUT, "POSE_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, NULL);
@@ -3442,10 +2202,5 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		}
 	}
-	
-	/* do not do view2d totrect set here, it's now a template */
-	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
 }
 

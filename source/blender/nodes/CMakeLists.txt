@@ -26,32 +26,32 @@
 FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c intern/TEX_nodes/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
-  ../render/extern/include ../../../intern/decimation/extern ../makesrna
-  ../imbuf ../avi ../../../intern/elbeem/extern
-  ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../blenkernel ../../../extern/glew/include ../gpu
-  ${ZLIB_INC}
+	. ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
+	../render/extern/include ../../../intern/decimation/extern ../makesrna
+	../imbuf ../avi ../../../intern/elbeem/extern
+	../../../intern/iksolver/extern ../blenloader
+	../blenkernel ../../../extern/glew/include ../gpu
+	${ZLIB_INC}
 )
 
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
-  SET(INC ${INC} ${FFMPEG_INC})
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	SET(INC ${INC} ${FFMPEG_INC})
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 IF(WITH_PYTHON)
-  SET(INC ${INC} ../python ${PYTHON_INC})
+	SET(INC ${INC} ../python ${PYTHON_INC})
 ELSE(WITH_PYTHON)
-  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_nodes "${SRC}" "${INC}")

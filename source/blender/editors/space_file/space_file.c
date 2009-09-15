@@ -45,6 +45,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_storage_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -119,6 +120,7 @@ static void file_free(SpaceLink *sl)
 	SpaceFile *sfile= (SpaceFile *) sl;
 	
 	if(sfile->files) {
+		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
@@ -153,6 +155,9 @@ static void file_free(SpaceLink *sl)
 /* spacetype; init callback, area size changes, screen set, etc */
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
+	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
+	MEM_freeN(sfile->params);
+	sfile->params = 0;
 	printf("file_init\n");
 }
 
@@ -165,7 +170,8 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	sfilen->op = NULL; /* file window doesn't own operators */
 
-	sfilen->files = filelist_new();
+	if (sfileo->params)
+		sfilen->files = filelist_new(sfileo->params->type);
 	if(sfileo->folders_prev)
 		sfilen->folders_prev = MEM_dupallocN(sfileo->folders_prev);
 
@@ -190,7 +196,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	if (!sfile->folders_prev)
 		sfile->folders_prev = folderlist_new();
 	if (!sfile->files) {
-		sfile->files = filelist_new();
+		sfile->files = filelist_new(params->type);
 		file_change_dir(sfile);
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
@@ -201,7 +207,17 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		filelist_readdir(sfile->files);
 	}
 	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
-
+	
+	if (params->renamefile[0] != '\0') {
+		int idx = filelist_find(sfile->files, params->renamefile);
+		if (idx >= 0) {
+			struct direntry *file= filelist_file(sfile->files, idx);
+			if (file) {
+				file->flags |= EDITING;
+			}
+		}
+		params->renamefile[0] = '\0';
+	}
 	if (sfile->layout) sfile->layout->dirty= 1;
 
 }
@@ -212,14 +228,14 @@ static void file_listener(ScrArea *sa, wmNotifier *wmn)
 
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					if (sfile->files) filelist_free(sfile->files);
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
-				case ND_PARAMS:
+				case ND_SPACE_FILE_PARAMS:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
@@ -249,12 +265,12 @@ static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					ED_region_tag_redraw(ar);
 					break;
-				case ND_PARAMS:
+				case ND_SPACE_FILE_PARAMS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -310,12 +326,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		file_hilight_set(sfile, ar, event->x, event->y);
 	}
 	
-	if (params->display == FILE_IMGDISPLAY) {
-		file_draw_previews(C, ar);
-	} else {
-		file_draw_list(C, ar);
-	}
-	
+	file_draw_list(C, ar);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -335,7 +346,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_select_bookmark);
 	WM_operatortype_append(FILE_OT_loadimages);
 	WM_operatortype_append(FILE_OT_highlight);
-	WM_operatortype_append(FILE_OT_exec);
+	WM_operatortype_append(FILE_OT_execute);
 	WM_operatortype_append(FILE_OT_cancel);
 	WM_operatortype_append(FILE_OT_parent);
 	WM_operatortype_append(FILE_OT_previous);
@@ -475,9 +486,9 @@ static void file_ui_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					ED_region_tag_redraw(ar);
 					break;
 			}

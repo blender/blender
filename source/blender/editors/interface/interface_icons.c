@@ -34,6 +34,7 @@
 #else
 #include <io.h>
 #include <direct.h>
+#include "BLI_winstuff.h"
 #endif   
 #include "MEM_guardedalloc.h"
 

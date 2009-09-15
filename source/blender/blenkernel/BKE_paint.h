@@ -29,11 +29,20 @@
 #define BKE_PAINT_H
 
 struct Brush;
+struct MFace;
+struct MultireModifierData;
+struct MVert;
 struct Object;
 struct Paint;
 struct Scene;
+struct StrokeCache;
 
-void paint_init(struct Paint *p, const char *brush_name);
+extern const char PAINT_CURSOR_SCULPT[3];
+extern const char PAINT_CURSOR_VERTEX_PAINT[3];
+extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
+extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
+
+void paint_init(struct Paint *p, const char col[3]);
 void free_paint(struct Paint *p);
 void copy_paint(struct Paint *orig, struct Paint *new);
 
@@ -47,5 +56,40 @@ void paint_brush_slot_remove(struct Paint *p);
  * Texture paint could be removed since selected faces are not used
  * however hiding faces is useful */
 int paint_facesel_test(struct Object *ob);
+
+/* Session data (mode-specific) */
+
+typedef struct SculptSession {
+	struct ProjVert *projverts;
+
+	/* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
+	struct MultiresModifierData *multires; /* Special handling for multires meshes */
+	struct MVert *mvert;
+	struct MFace *mface;
+	int totvert, totface;
+	float *face_normals;
+	
+	/* Mesh connectivity */
+	struct ListBase *fmap;
+	struct IndexNode *fmap_mem;
+	int fmap_size;
+
+	/* Used temporarily per-stroke */
+	float *vertexcosnos;
+	ListBase damaged_rects;
+	ListBase damaged_verts;
+	
+	/* Used to cache the render of the active texture */
+	unsigned int texcache_side, *texcache, texcache_actual;
+
+	/* Layer brush persistence between strokes */
+ 	float (*mesh_co_orig)[3]; /* Copy of the mesh vertices' locations */
+	float *layer_disps; /* Displacements for each vertex */
+
+	struct SculptStroke *stroke;
+	struct StrokeCache *cache;
+} SculptSession;
+
+void free_sculptsession(SculptSession **);
 
 #endif

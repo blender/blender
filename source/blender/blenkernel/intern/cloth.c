@@ -347,7 +347,7 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
 
 	// don't do anything as long as we're in editmode!
-	if(pid.cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
+	if(pid.cache->edit && ob->mode & OB_MODE_PARTICLE_EDIT)
 		return;
 	
 	BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_AFTER, framenr);
@@ -496,23 +496,32 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	if(!do_init_cloth(ob, clmd, result, framenr))
 		return result;
 
+	if(framenr == startframe) {
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+		do_init_cloth(ob, clmd, result, framenr);
+		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->flag &= ~PTCACHE_REDO_NEEDED;
+		return result;
+	}
+
 	/* try to read from cache */
 	cache_result = BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
 
 	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
-
 		implicit_set_positions(clmd);
 		cloth_to_object (ob, clmd, result);
+
+		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+
+		if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+			BKE_ptcache_write_cache(&pid, framenr);
 
 		return result;
 	}
 	else if(cache_result==PTCACHE_READ_OLD) {
-		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_FREE);
-
 		implicit_set_positions(clmd);
-
 		cache->flag |= PTCACHE_SIMULATION_VALID;
 	}
 	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
@@ -523,38 +532,25 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return result;
 	}
 
-	if(framenr == startframe) {
-		if(cache->flag & PTCACHE_REDO_NEEDED) {
-			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-			do_init_cloth(ob, clmd, result, framenr);
-		}
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
+	/* if on second frame, write cache for first frame */
+	if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
+		BKE_ptcache_write_cache(&pid, startframe);
 
-		/* don't write cache on first frame, but on second frame write
-		 * cache for frame 1 and 2 */
+	clmd->sim_parms->timescale *= framenr - cache->simframe;
+
+	/* do simulation */
+	cache->flag |= PTCACHE_SIMULATION_VALID;
+	cache->simframe= framenr;
+
+	if(!do_step_cloth(ob, clmd, result, framenr)) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+		cache->last_exact= 0;
 	}
-	else {
-		/* if on second frame, write cache for first frame */
-		if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
-			BKE_ptcache_write_cache(&pid, startframe);
+	else
+		BKE_ptcache_write_cache(&pid, framenr);
 
-		clmd->sim_parms->timescale *= framenr - cache->simframe;
-
-		/* do simulation */
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
-
-		if(!do_step_cloth(ob, clmd, result, framenr)) {
-			cache->flag &= ~PTCACHE_SIMULATION_VALID;
-			cache->simframe= 0;
-			cache->last_exact= 0;
-		}
-		else
-			BKE_ptcache_write_cache(&pid, framenr);
-
-		cloth_to_object (ob, clmd, result);
-	}
+	cloth_to_object (ob, clmd, result);
 
 	return result;
 }

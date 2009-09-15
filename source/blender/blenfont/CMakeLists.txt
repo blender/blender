@@ -25,17 +25,17 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  ../../../intern/guardedalloc ../blenlib ../makesdna ../editors/include
-  ../blenkernel ../../../extern/glew/include .
-  ${FREETYPE_INCLUDE_DIRS}
+	../../../intern/guardedalloc ../blenlib ../makesdna ../editors/include
+	../blenkernel ../../../extern/glew/include .
+	${FREETYPE_INCLUDE_DIRS}
 )
 
 IF(WITH_INTERNATIONAL)
-  SET(INC ${INC} ${GETTEXT_INC})
+	SET(INC ${INC} ${GETTEXT_INC})
 ENDIF(WITH_INTERNATIONAL)
 
 IF(WIN32)
-  ADD_DEFINITIONS(-D_WIN32 -DUSE_GETTEXT_DLL)
+	ADD_DEFINITIONS(-D_WIN32 -DUSE_GETTEXT_DLL)
 ENDIF(WIN32)
 
 BLENDERLIB(bf_blenfont "${SRC}" "${INC}")

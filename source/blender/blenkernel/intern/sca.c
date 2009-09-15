@@ -52,30 +52,6 @@
 #include "BKE_blender.h"
 #include "BKE_sca.h"
 
-//#include "wm_event_types.h"
-
-void free_text_controllers(Text *txt)
-{
-	Object *ob;
-	bController *cont;
-	
-	ob= G.main->object.first;
-	while(ob) {
-		cont= ob->controllers.first;
-		while(cont) {
-			if(cont->type==CONT_PYTHON) {
-				bPythonCont *pc;
-				
-				pc= cont->data;
-				if(pc->text==txt) pc->text= NULL;
-			}
-			cont= cont->next;
-		}
-		ob= ob->id.next;
-	}
-}
-
-
 /* ******************* SENSORS ************************ */
 
 void free_sensor(bSensor *sens)
@@ -418,12 +394,10 @@ void init_actuator(bActuator *act)
 	act->data= 0;
 	
 	switch(act->type) {
-#ifdef __NLA
 	case ACT_ACTION:
 	case ACT_SHAPEACTION:
 		act->data= MEM_callocN(sizeof(bActionActuator), "actionact");
 		break;
-#endif
 	case ACT_SOUND:
 		sa = act->data= MEM_callocN(sizeof(bSoundActuator), "soundact");
 		sa->volume = 1.0f;

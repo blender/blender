@@ -64,7 +64,8 @@ typedef struct bConstraint {
 	float		enforce;	/* 	Amount of influence exherted by constraint (0.0-1.0) */
 	float		headtail;	/*	Point along subtarget bone where the actual target is. 0=head (default for all), 1=tail*/
 	int			pad;
-	struct Ipo *ipo;		/* local influence ipo or driver */
+	
+	struct Ipo *ipo;		/* local influence ipo or driver */ // XXX depreceated for 2.5... old animation system hack
 } bConstraint;
 
 
@@ -85,7 +86,7 @@ typedef struct bConstraintTarget {
 	short space;			/* space that target should be evaluated in (overrides bConstraint->tarspace) */
 	short flag;				/* runtime settings (for editor, etc.) */
 	short type;				/* type of target (B_CONSTRAINT_OB_TYPE) */
-	short pad;
+	short rotOrder;			/* rotation order for target (as defined in BLI_arithb.h) */
 } bConstraintTarget;
 
 /* bConstraintTarget -> flag */
@@ -448,6 +449,11 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 #define TRACK_nX	0x03
 #define TRACK_nY	0x04
 #define TRACK_nZ	0x05
+
+/* FollowPath flags */
+#define FOLLOWPATH_FOLLOW	0x01
+#define FOLLOWPATH_STATIC	0x02
+#define FOLLOWPATH_RADIUS	0x04
 
 /* bTrackToConstraint->flags */
 #define TARGET_Z_UP 0x01

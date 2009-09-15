@@ -190,9 +190,9 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 	
 	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, val )) {
-		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	} else {
-		WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 	}
 	return OPERATOR_FINISHED;
 }
@@ -239,12 +239,12 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	file_deselect_all(sfile);
 
 	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, val ))
-		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	else
-		WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	WM_event_add_mousemove(C); /* for directory changes */
-	WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -322,7 +322,7 @@ static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		BLI_cleanup_dir(G.sce, params->dir);
 		file_change_dir(sfile);				
 
-		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -520,9 +520,15 @@ int file_exec(bContext *C, wmOperator *unused)
 		wmOperator *op= sfile->op;
 		
 		sfile->op = NULL;
+		RNA_string_set(op->ptr, "filename", sfile->params->file);
 		BLI_strncpy(name, sfile->params->dir, sizeof(name));
+		RNA_string_set(op->ptr, "directory", name);
 		strcat(name, sfile->params->file);
-		RNA_string_set(op->ptr, "filename", name);
+
+		if ( RNA_boolean_get(op->ptr, "relative_paths") ) {
+			BLI_makestringcode(G.sce, name);
+		}
+		RNA_string_set(op->ptr, "path", name);
 		
 		/* some ops have multiple files to select */
 		{
@@ -566,11 +572,11 @@ int file_exec(bContext *C, wmOperator *unused)
 	return OPERATOR_FINISHED;
 }
 
-void FILE_OT_exec(struct wmOperatorType *ot)
+void FILE_OT_execute(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Execute File Window";
-	ot->idname= "FILE_OT_exec";
+	ot->idname= "FILE_OT_execute";
 	
 	/* api callbacks */
 	ot->exec= file_exec;
@@ -587,7 +593,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 			BLI_parent_dir(sfile->params->dir);
 			BLI_cleanup_dir(G.sce, sfile->params->dir);
 			file_change_dir(sfile);
-			WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 		}
 	}		
 	
@@ -614,7 +620,7 @@ int file_refresh_exec(bContext *C, wmOperator *unused)
 	
 	file_change_dir(sfile);
 
-	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
 
@@ -645,7 +651,7 @@ int file_previous_exec(bContext *C, wmOperator *unused)
 
 		file_change_dir(sfile);
 	}
-	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -676,7 +682,7 @@ int file_next_exec(bContext *C, wmOperator *unused)
 
 		file_change_dir(sfile);
 	}		
-	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -699,13 +705,15 @@ int file_directory_new_exec(bContext *C, wmOperator *unused)
 			BLI_join_dirfile(tmpstr, tmpstr, tmpdir);
 		}
 		BLI_recurdir_fileops(tmpstr);
-		if (!BLI_exists(tmpstr)) {
+		if (BLI_exists(tmpstr)) {
+			BLI_strncpy(sfile->params->renamefile, tmpdir, FILE_MAXFILE);
+		} else {
 			filelist_free(sfile->files);
 			filelist_parent(sfile->files);
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), FILE_MAX);
 		} 
 	}		
-	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -754,7 +762,7 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 		BLI_cleanup_dir(G.sce, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);
 		file_change_dir(sfile);
-		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}		
 	
 
@@ -769,7 +777,7 @@ int file_filename_exec(bContext *C, wmOperator *unused)
 		if (file_select_match(sfile, sfile->params->file))
 		{
 			sfile->params->file[0] = '\0';
-			WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 		}
 	}		
 
@@ -796,7 +804,7 @@ int file_hidedot_exec(bContext *C, wmOperator *unused)
 		sfile->params->flag ^= FILE_HIDE_DOT;
 		filelist_free(sfile->files);
 		sfile->params->active_file = -1;
-		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -872,11 +880,13 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 int file_filenum_exec(bContext *C, wmOperator *op)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
+	ScrArea *sa= CTX_wm_area(C);
 	
 	int inc = RNA_int_get(op->ptr, "increment");
 	if(sfile->params && (inc != 0)) {
 		BLI_newname(sfile->params->file, inc);
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		ED_area_tag_redraw(sa);
+		// WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -916,6 +926,24 @@ int file_rename_exec(bContext *C, wmOperator *op)
 
 }
 
+int file_rename_poll(bContext *C)
+{
+	int poll = ED_operator_file_active(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	if (sfile && sfile->params) {
+		if (sfile->params->active_file < 0) { 
+			poll= 0;
+		} else {
+			char dir[FILE_MAX], group[FILE_MAX];	
+			if (filelist_islibrary(sfile->files, dir, group)) poll= 0;
+		}
+	}
+	else
+		poll= 0;
+	return poll;
+}
+
 void FILE_OT_rename(struct wmOperatorType *ot)
 {
 	/* identifiers */
@@ -924,7 +952,7 @@ void FILE_OT_rename(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= file_rename_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->poll= file_rename_poll; 
 
 }
 
@@ -938,6 +966,8 @@ int file_delete_poll(bContext *C)
 		if (sfile->params->active_file < 0) { 
 			poll= 0;
 		} else {
+			char dir[FILE_MAX], group[FILE_MAX];	
+			if (filelist_islibrary(sfile->files, dir, group)) poll= 0;
 			file = filelist_file(sfile->files, sfile->params->active_file);
 			if (file && S_ISDIR(file->type)) poll= 0;
 		}
@@ -958,7 +988,7 @@ int file_delete_exec(bContext *C, wmOperator *op)
 	file = filelist_file(sfile->files, sfile->params->active_file);
 	BLI_make_file_string(G.sce, str, sfile->params->dir, file->relname);
 	BLI_delete(str, 0, 0);	
-	WM_event_add_notifier(C, NC_FILE | ND_FILELIST, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	
 	return OPERATOR_FINISHED;
 

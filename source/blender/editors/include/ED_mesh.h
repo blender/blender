@@ -157,25 +157,23 @@ void		EM_deselect_by_material(struct EditMesh *em, int index);
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
 
-/* editdeform.c XXX rename functions? */
+/* object_vgroup.c */
 
 #define WEIGHT_REPLACE 1
 #define WEIGHT_ADD 2
 #define WEIGHT_SUBTRACT 3
 
-void		add_defgroup (Object *ob);
-void		create_dverts(struct ID *id);
-float		get_vert_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum);
-void		remove_vert_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum);
-void		remove_verts_defgroup (Object *obedit, int allverts);
-void		vertexgroup_select_by_name(Object *ob, char *name);
-void		add_vert_to_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum, 
-                           float weight, int assignmode);
+struct bDeformGroup		*ED_vgroup_add(struct Object *ob);
+struct bDeformGroup		*ED_vgroup_add_name(struct Object *ob, char *name);
+void					ED_vgroup_select_by_name(struct Object *ob, char *name);
+void					ED_vgroup_data_create(struct ID *id);
 
-struct bDeformGroup		*add_defgroup_name (Object *ob, char *name);
-struct MDeformWeight	*verify_defweight (struct MDeformVert *dv, int defgroup);
-struct MDeformWeight	*get_defweight (struct MDeformVert *dv, int defgroup);
+void		ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
+void		ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
+float		ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 
+struct MDeformWeight	*ED_vgroup_weight_verify(struct MDeformVert *dv, int defgroup);
+struct MDeformWeight	*ED_vgroup_weight_get(struct MDeformVert *dv, int defgroup);
 
 #endif /* ED_MESH_H */
 

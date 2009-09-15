@@ -59,7 +59,7 @@ typedef struct AZone {
 	/* internal */
 	short do_draw;
 	/* for draw */
-	short x1, y1, x2, y2, x3, y3;
+	short x1, y1, x2, y2;
 	/* for clip */
 	rcti rect;	
 } AZone;

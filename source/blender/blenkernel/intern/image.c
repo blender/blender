@@ -38,6 +38,11 @@
 
 #include <time.h>
 
+#ifdef _WIN32
+#define open _open
+#define close _close
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf_types.h"
@@ -72,6 +77,8 @@
 #include "BKE_utildefines.h"
 
 //XXX #include "BIF_editseq.h"
+
+#include "BLF_api.h"
 
 #include "PIL_time.h"
 
@@ -978,7 +985,6 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 			if (do_prefix)		strcpy(stamp_data->file, "File <untitled>");
 			else				strcpy(stamp_data->file, "<untitled>");
 		}
-		stamp_data->note[0] = '\0';
 	} else {
 		stamp_data->file[0] = '\0';
 	}
@@ -1046,8 +1052,8 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	
 	if (scene->r.stamp & R_STAMP_FRAME) {
 		char format[32];
-		if (do_prefix)		sprintf(format, "Frame %%0%di\n", 1 + (int) log10(scene->r.efra));
-		else				sprintf(format, "%%0%di\n", 1 + (int) log10(scene->r.efra));
+		if (do_prefix)		sprintf(format, "Frame %%0%di", 1 + (int) log10(scene->r.efra));
+		else				sprintf(format, "%%0%di", 1 + (int) log10(scene->r.efra));
 		sprintf (stamp_data->frame, format, scene->r.cfra);
 	} else {
 		stamp_data->frame[0] = '\0';
@@ -1083,131 +1089,172 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 }
 
+// XXX - Bad level call.
+extern int datatoc_bmonofont_ttf_size;
+extern char datatoc_bmonofont_ttf[];
+
+// XXX - copied from text_font_begin
+static void stamp_font_begin(int size)
+{
+	static int mono= -1;
+
+	if (mono == -1)
+		mono= BLF_load_mem("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
+
+	BLF_set(mono);
+	BLF_aspect(1.0);
+	BLF_size(size, 72);
+}
+
 void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, int height, int channels)
 {
-#if 0
-// XXX
-// This go back when BLF_draw_buffer is implemented - Diego
 	struct StampData stamp_data;
-	
-	int x=1,y=1;
-	int font_height;
-	int text_width;
-	int text_pad;
-	struct BMF_Font *font;
+	float w, h, pad;
+	int x, y;
 	
 	if (!rect && !rectf)
 		return;
 	
 	stampdata(scene, &stamp_data, 1);
-	
-	switch (scene->r.stamp_font_id) {
-	case 1: /* tiny */
-		font = BMF_GetFont(BMF_kHelveticaBold8);
-		break;
-	case 2: /* small */
-		font = BMF_GetFont(BMF_kHelveticaBold10);
-		break;
-	case 3: /* medium */
-		font = BMF_GetFont(BMF_kScreen12);
-		break;
-	case 0: /* large - default */
-		font = BMF_GetFont(BMF_kScreen15);
-		break;
-	case 4: /* huge */
-		font = BMF_GetFont(BMF_kHelveticaBold14);
-		break;
-	default:
-		font = NULL;
-		break;
-	}
-	
-	font_height = BMF_GetFontHeight(font);
-	/* All texts get halfspace+1 pixel on each side and 1 pix
-	above and below as padding against their backing rectangles */
-	text_pad = BMF_GetStringWidth(font, " ");
-	
-	x = 1; /* Inits for everyone, text position, so 1 for padding, not 0 */
-	y = height - font_height - 1; /* Also inits for everyone, notice padding pixel */
-	
+	stamp_font_begin(12);
+
+	BLF_buffer(rectf, rect, width, height, channels);
+	BLF_buffer_col(scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
+	pad= BLF_width("--");
+
+	x= 0;
+	y= height;
+
 	if (stamp_data.file[0]) {
 		/* Top left corner */
-		text_width = BMF_GetStringWidth(font, stamp_data.file);
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.file, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
-		y -= font_height+2; /* Top and bottom 1 pix padding each */
+		BLF_width_and_height(stamp_data.file, &w, &h);
+		y -= h;
+
+		/* also a little of space to the background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y-3, w+3, y+h+3);
+
+		/* and draw the text. */
+		BLF_position(x, y, 0.0);
+		BLF_draw_buffer(stamp_data.file);
+
+		/* the extra pixel for background. */
+		y -= 4;
 	}
 
 	/* Top left corner, below File */
 	if (stamp_data.note[0]) {
-		text_width = BMF_GetStringWidth(font, stamp_data.note);
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.note, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
-		y -= font_height+2; /* Top and bottom 1 pix padding each */
+		BLF_width_and_height(stamp_data.note, &w, &h);
+		y -= h;
+
+		/* and space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-2, w+3, y+h+2);
+
+		BLF_position(x, y+1, 0.0);
+		BLF_draw_buffer(stamp_data.note);
+
+		/* the extra pixel for background. */
+		y -= 4;
 	}
 	
 	/* Top left corner, below File (or Note) */
 	if (stamp_data.date[0]) {
-		text_width = BMF_GetStringWidth(font, stamp_data.date);
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.date, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
+		BLF_width_and_height(stamp_data.date, &w, &h);
+		y -= h;
+
+		/* and space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+3);
+
+		BLF_position(x, y, 0.0);
+		BLF_draw_buffer(stamp_data.date);
 	}
+
+	x= 0;
+	y= 0;
 
 	/* Bottom left corner, leaving space for timing */
 	if (stamp_data.marker[0]) {
-		x = 1;
-		y = font_height+2+1; /* 2 for padding in TIME|FRAME fields below and 1 for padding in this one */
-		text_width = BMF_GetStringWidth(font, stamp_data.marker);
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.marker, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
+		BLF_width_and_height(stamp_data.marker, &w, &h);
+
+		/* extra space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, w+2, y+h+3);
+
+		/* and pad the text. */
+		BLF_position(x, y+3, 0.0);
+		BLF_draw_buffer(stamp_data.marker);
+
+		/* space width. */
+		x += w + pad;
 	}
 	
 	/* Left bottom corner */
 	if (stamp_data.time[0]) {
-		x = 1;
-		y = 1;
-		text_width = BMF_GetStringWidth(font, stamp_data.time);
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.time, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
-		x += text_width+text_pad+2; /* Both sides have 1 pix additional padding each */
+		BLF_width_and_height(stamp_data.time, &w, &h);
+
+		/* extra space for background */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+3);
+
+		/* and pad the text. */
+		BLF_position(x, y+3, 0.0);
+		BLF_draw_buffer(stamp_data.time);
+
+		/* space width. */
+		x += w + pad;
 	}
 	
 	if (stamp_data.frame[0]) {
-		text_width = BMF_GetStringWidth(font, stamp_data.frame);
-		/* Left bottom corner (after SMPTE if exists) */
-		if (!stamp_data.time[0])	x = 1;
-		y = 1;
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.frame, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
+		BLF_width_and_height(stamp_data.frame, &w, &h);
+
+		/* extra space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+3);
+
+		/* and pad the text. */
+		BLF_position(x, y+3, 0.0);
+
+		BLF_draw_buffer(stamp_data.frame);
+
+		/* space width. */
+		x += w + pad;
 	}
 
 	if (stamp_data.camera[0]) {
-		text_width = BMF_GetStringWidth(font, stamp_data.camera);
-		/* Center of bottom edge */
-		x = (width/2) - (BMF_GetStringWidth(font, stamp_data.camera)/2);
-		y = 1;
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.camera, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
+		BLF_width_and_height(stamp_data.camera, &w, &h);
+
+		/* extra space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+3);
+		BLF_position(x, y+3, 0.0);
+		BLF_draw_buffer(stamp_data.camera);
 	}
 	
 	if (stamp_data.scene[0]) {
-		text_width = BMF_GetStringWidth(font, stamp_data.scene);
-		/* Bottom right corner */
-		x = width - (text_width+1+text_pad);
-		y = 1;
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.scene, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
+		BLF_width_and_height(stamp_data.scene, &w, &h);
+
+		/* Bottom right corner, with an extra space because blenfont is too strict! */
+		x= width - w - 2;
+
+		/* extra space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+3, y+h+3);
+
+		/* and pad the text. */
+		BLF_position(x, y+3, 0.0);
+		BLF_draw_buffer(stamp_data.scene);
 	}
 	
 	if (stamp_data.strip[0]) {
-		text_width = BMF_GetStringWidth(font, stamp_data.strip);
-		/* Top right corner */
-		x = width - (text_width+1+text_pad);
-		y = height - font_height - 1;
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.strip, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
+		BLF_width_and_height(stamp_data.scene, &w, &h);
+
+		/* Top right corner, with an extra space because blenfont is too strict! */
+		x= width - w - pad;
+		y= height - h;
+
+		/* extra space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y-3, x+w+pad, y+h+3);
+
+		BLF_position(x, y, 0.0);
+		BLF_draw_buffer(stamp_data.strip);
 	}
-#endif // 0 XXX	
+
+	/* cleanup the buffer. */
+	BLF_buffer(NULL, NULL, 0, 0, 0);
 }
 
 void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)

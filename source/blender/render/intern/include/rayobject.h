@@ -152,13 +152,6 @@ typedef struct RayObjectAPI
 } RayObjectAPI;
 
 
-
-
-/*
- * Extend min/max coords so that the rayobject is inside them
- */
-void RE_rayobject_merge_bb(RayObject *ob, float *min, float *max);
-
 /*
  * This function differs from RE_rayobject_raycast
  * RE_rayobject_intersect does NOT perform last-hit optimization

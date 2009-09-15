@@ -2246,7 +2246,7 @@ static int bake_check_intersect(Isect *is, int ob, RayFace *face)
 	/* no direction checking for now, doesn't always improve the result
 	 * (INPR(shi->facenor, bs->dir) > 0.0f); */
 
-	return (R.objectinstance[ob].obr->ob != bs->actob);
+	return (R.objectinstance[ob & ~RE_RAY_TRANSFORM_OFFS].obr->ob != bs->actob);
 }
 #endif
 

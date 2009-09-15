@@ -94,14 +94,14 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0);
 	
 	if (snla->flag & SNLA_DRAWTIME)
 		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");
 	else
 		uiItemO(layout, "Show Seconds", 0, "ANIM_OT_time_toggle");
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "show_strip_curves", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_strip_curves", 0);
 	
 	uiItemS(layout);
 	
@@ -151,8 +151,8 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu);
-	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu);
+	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu, NULL);
+	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu, NULL);
 	
 	uiItemS(layout);
 	
