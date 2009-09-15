@@ -302,60 +302,68 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 		if((ob->parent) && (ob->partype == PARBONE))	but_y = 135;
 		else											but_y = 150;
 		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 20, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
-		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 20, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
-		uiBlockEndAlign(block);
+		
 		
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 		
 		uiBlockBeginAlign(block);
 		if(tot==1) {
 			uiDefBut(block, LABEL, 0, "Vertex:",					0, 130, 200, 20, 0, 0, 0, 0, 0, "");
+			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 110, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 90, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 70, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
-			if(totw==1)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	0, 50, 200, 19, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
-			uiBlockEndAlign(block);
-	
-			if(defstr[0]) {
-				uiDefBut(block, LABEL, 1, "Vertex Deform Groups",		0, 40, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
-
+			
+			if(totw==1) {
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 50, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_NOP, "Weight:",					10, 20, 150, 20, tfp->defweightp, 0.0f, 1.0f, 10, 3, "Weight value");
-				uiDefButI(block, MENU, B_REDR, defstr,					160, 20, 140, 20, &tfp->curdef, 0.0, 0.0, 0, 0, "Current Vertex Group");
+				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 25, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
+				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 25, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
 				uiBlockEndAlign(block);
+				if(totweight)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 0, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
+				}
+			else {
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
+				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
+				uiBlockEndAlign(block);
+				if(totweight)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
 			}
-			else if(totweight)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
-
 		}
 		else {
-			uiDefBut(block, LABEL, 0, "Median:",						0, 130, 200, 20, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Median:",					0, 130, 200, 20, 0, 0, 0, 0, 0, "");
+			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 110, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 90, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 70, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
-			if(totw==tot)
+			if(totw==tot) {
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 50, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
-			uiBlockEndAlign(block);
-			if(totweight)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
+				uiBlockEndAlign(block);
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 25, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
+				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 25, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
+				uiBlockEndAlign(block);
+				if(totweight)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 0, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
+				uiBlockEndAlign(block);
+			}
+			else {
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
+				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
+				uiBlockEndAlign(block);
+				if(totweight)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
+				uiBlockEndAlign(block);
+			}
 		}
-		
-		if(ob->type==OB_CURVE && (totw==0)) { /* bez curves have no w */
-			uiBlockBeginAlign(block);
-			uiDefBut(block, BUT,B_SETPT_AUTO,"Auto",	10, 44, 72, 19, 0, 0, 0, 0, 0, "Auto handles (Shift H)");
-			uiDefBut(block, BUT,B_SETPT_VECTOR,"Vector",82, 44, 73, 19, 0, 0, 0, 0, 0, "Vector handles (V)");
-			uiDefBut(block, BUT,B_SETPT_ALIGN,"Align",155, 44, 73, 19, 0, 0, 0, 0, 0, "Align handles (H Toggles)");
-			uiDefBut(block, BUT,B_SETPT_FREE,"Free",	227, 44, 72, 19, 0, 0, 0, 0, 0, "Align handles (H Toggles)");
-			uiBlockEndAlign(block);
-		}
-		
+				
 		if(totedge==1)
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease W:",	0, 45, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease:",	0, 20, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
 		else if(totedge>1)
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease W:",	0, 45, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease:",	0, 20, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
 		
 	}
 	else {	// apply
@@ -503,14 +511,6 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 		if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
 			break;
 	}
-	if (!pchan || !bone) return;
-
-	if((ob->parent) && (ob->partype == PARBONE))
-		but= uiDefBut (block, TEX, B_NOP, "Bone:",				160, 130, 140, 19, bone->name, 1, 31, 0, 0, "");
-	else
-		but= uiDefBut(block, TEX, B_NOP, "Bone:",				160, 140, 140, 19, bone->name, 1, 31, 0, 0, "");
-	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
-	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 	
 	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
 		float quat[4];
@@ -526,29 +526,43 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	tfp->ob_eul[1]*= 180.0/M_PI;
 	tfp->ob_eul[2]*= 180.0/M_PI;
 	
+	uiDefBut(block, LABEL, 0, "Location:",			0, 240, 100, 20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, B_REDR, ICON_UNLOCKED,	10,140,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	30, 140, 120, 19, pchan->loc, -lim, lim, 100, 3, "");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, B_REDR, ICON_UNLOCKED,	10,120,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	30, 120, 120, 19, pchan->loc+1, -lim, lim, 100, 3, "");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,	10,100,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocZ:",	30, 100, 120, 19, pchan->loc+2, -lim, lim, 100, 3, "");
-
-	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	10,70,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotX:",	30, 70, 120, 19, tfp->ob_eul, -1000.0, 1000.0, 100, 3, "");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	10,50,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotY:",	30, 50, 120, 19, tfp->ob_eul+1, -1000.0, 1000.0, 100, 3, "");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	10,30,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotZ:",	30, 30, 120, 19, tfp->ob_eul+2, -1000.0, 1000.0, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "X:",	0, 220, 120, 19, pchan->loc, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "Y:",	0, 200, 120, 19, pchan->loc+1, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "Z:",	0, 180, 120, 19, pchan->loc+2, -lim, lim, 100, 3, "");
+	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED,	160,70,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "ScaleX:",	180, 70, 120, 19, pchan->size, -lim, lim, 10, 3, "");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,	160,50,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "ScaleY:",	180, 50, 120, 19, pchan->size+1, -lim, lim, 10, 3, "");
-	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,	160,30,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "ScaleZ:",	180, 30, 120, 19, pchan->size+2, -lim, lim, 10, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, B_REDR, ICON_UNLOCKED,	125, 220, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Location value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, B_REDR, ICON_UNLOCKED,	125, 200, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Location value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,	125, 180, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Z Location value from being Transformed");
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "Rotation:",			0, 160, 100, 20, 0, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "X:",	0, 140, 120, 19, tfp->ob_eul, -1000.0, 1000.0, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "Y:",	0, 120, 120, 19, tfp->ob_eul+1, -1000.0, 1000.0, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "Z:",	0, 100, 120, 19, tfp->ob_eul+2, -1000.0, 1000.0, 100, 3, "");
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	125, 140, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Rotation value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	125, 120, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Rotation value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	125, 100, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Z Rotation value from being Transformed");
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "Scale:",				0, 80, 100, 20, 0, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "X:",	0, 60, 120, 19, pchan->size, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "Y:",	0, 40, 120, 19, pchan->size+1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "Z:",	0, 20, 120, 19, pchan->size+2, -lim, lim, 10, 3, "");
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED,	125, 60, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects X Scale value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,	125, 40, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects Y Scale value from being Transformed");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,	125, 20, 25, 19, &(pchan->protectflag), 0, 0, 0, 0, "Protects z Scale value from being Transformed");
 	uiBlockEndAlign(block);
 }
 
@@ -585,34 +599,31 @@ static void v3d_editarmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	if (!ebone)
 		return;
 	
-	if((ob->parent) && (ob->partype == PARBONE))
-		but= uiDefBut(block, TEX, B_NOP, "Bone:", 160, 130, 140, 19, ebone->name, 1, 31, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Head:",					0, 210, 100, 20, 0, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "X:",		0, 190, 100, 19, ebone->head, -lim, lim, 10, 3, "X Location of the head end of the bone");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Y:",		0, 170, 100, 19, ebone->head+1, -lim, lim, 10, 3, "Y Location of the head end of the bone");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Z:",		0, 150, 100, 19, ebone->head+2, -lim, lim, 10, 3, "Z Location of the head end of the bone");
+	if (ebone->parent && ebone->flag & BONE_CONNECTED )
+		uiDefButF(block, NUM, B_ARMATUREPANEL1, "Radius:",	0, 130, 100, 19, &ebone->parent->rad_tail, 0, lim, 10, 3, "Head radius. Visualize with the Envelope display option");
 	else
-		but= uiDefBut(block, TEX, B_NOP, "Bone:",			160, 150, 140, 19, ebone->name, 1, 31, 0, 0, "");
-	uiButSetFunc(but, validate_editbonebutton_cb, ebone, NULL);
-
+		uiDefButF(block, NUM, B_ARMATUREPANEL1, "Radius:",	0, 130, 100, 19, &ebone->rad_head, 0, lim, 10, 3, "Head radius. Visualize with the Envelope display option");
+	uiBlockEndAlign(block);
+	
+	uiBlockEndAlign(block);
+	uiDefBut(block, LABEL, 0, "Tail:",					0, 110, 100, 20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadX:",	10, 70, 140, 19, ebone->head, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadY:",	10, 50, 140, 19, ebone->head+1, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadZ:",	10, 30, 140, 19, ebone->head+2, -lim, lim, 10, 3, "");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailX:",	160, 70, 140, 19, ebone->tail, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailY:",	160, 50, 140, 19, ebone->tail+1, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailZ:",	160, 30, 140, 19, ebone->tail+2, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "X:",		0, 90, 100, 19, ebone->tail, -lim, lim, 10, 3, "X Location of the tail end of the bone");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Y:",		0, 70, 100, 19, ebone->tail+1, -lim, lim, 10, 3, "Y Location of the tail end of the bone");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Z:",		0, 50, 100, 19, ebone->tail+2, -lim, lim, 10, 3, "Z Location of the tail end of the bone");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Radius:",	0, 30, 100, 19, &ebone->rad_tail, 0, lim, 10, 3, "Tail radius. Visualize with the Envelope display option");
 	uiBlockEndAlign(block);
 	
 	tfp->ob_eul[0]= 180.0*ebone->roll/M_PI;
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, tfp->ob_eul, -lim, lim, 1000, 3, "");
-
-	uiDefButBitI(block, TOG, BONE_EDITMODE_LOCKED, B_REDR, "Lock", 160, 100, 140, 19, &(ebone->flag), 0, 0, 0, 0, "Prevents bone from being transformed in edit mode");
-	
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	0, 0, 100, 19, tfp->ob_eul, -lim, lim, 1000, 3, "Bone rotation around head-tail axis");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailRadius:",	10, 150, 140, 19, &ebone->rad_tail, 0, lim, 10, 3, "");
-	if (ebone->parent && ebone->flag & BONE_CONNECTED )
-		uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadRadius:",	10, 130, 140, 19, &ebone->parent->rad_tail, 0, lim, 10, 3, "");
-	else
-		uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadRadius:",	10, 130, 140, 19, &ebone->rad_head, 0, lim, 10, 3, "");
-	uiBlockEndAlign(block);
+	
+	
 }
 
 static void v3d_editmetaball_buts(uiBlock *block, Object *ob, float lim)
@@ -1083,19 +1094,8 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
 	}
 	else {
-		//bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 21.0, 0, 0, "");
-		//uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
-
 		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0) {
-		//	uiBlockBeginAlign(block);
-		//	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
-			if((ob->parent) && (ob->partype == PARBONE)) {
-		//		bt= uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
-		//		uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
-			}
-			else {
-				strcpy(ob->parsubstr, "");
-			}
+			strcpy(ob->parsubstr, "");
 			uiBlockEndAlign(block);
 		}
 	}
@@ -1113,14 +1113,18 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	else {
 		BoundBox *bb = NULL;
 		
-		uiDefBut(block, LABEL, 0, "Location:",					10, 170, 100, 20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Location:",										0, 300, 100, 20, 0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);	
+		uiDefButF(block, NUM, B_OBJECTPANEL, "X:",									0, 280, 120, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");		
+		uiDefButF(block, NUM, B_OBJECTPANEL, "Y:",									0, 260, 120, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "Z:",									0, 240, 120, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
+		uiBlockEndAlign(block);
+		
 		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, B_REDR, ICON_UNLOCKED,	10,150,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "X:",		30, 150, 120, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, B_REDR, ICON_UNLOCKED,	10,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "Y:",		30, 130, 120, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,	10,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "Z:",		30, 110, 120, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, B_REDR, ICON_UNLOCKED,		125, 280, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects X Location value from being Transformed");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, B_REDR, ICON_UNLOCKED,		125, 260, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Y Location value from being Transformed");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,		125, 240, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Location value from being Transformed");
+		uiBlockEndAlign(block);
 		
 		tfp->ob_eul[0]= 180.0*ob->rot[0]/M_PI;
 		tfp->ob_eul[1]= 180.0*ob->rot[1]/M_PI;
@@ -1128,40 +1132,53 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		
 		uiBlockBeginAlign(block);
 		if ((ob->parent) && (ob->partype == PARBONE)) {
-			uiDefBut(block, LABEL, 0, "Rotation:",					160, 170, 100, 20, 0, 0, 0, 0, 0, "");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	160,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "X:",	180, 130, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	160,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "Y:",	180, 110, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	160,90,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "Z:",	180, 90, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+			uiDefBut(block, LABEL, 0, "Rotation:",									0, 220, 100, 20, 0, 0, 0, 0, 0, "");
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "X:",							0, 200, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "Y:",							0, 180, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "Z:",							0, 160, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+			uiBlockEndAlign(block);
+			
+			uiBlockBeginAlign(block);
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	125, 200, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects X Rotation from being Transformed");
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	125, 180, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Y Rotation value from being Transformed");
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	125, 160, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Rotation value from being Transformed");
+			uiBlockEndAlign(block);
 
 		}
 		else {
-			uiDefBut(block, LABEL, 0, "Rotation:",					160, 170, 100, 20, 0, 0, 0, 0, 0, "");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	160,150,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "X:",	180, 150, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	160,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "Y:",	180, 130, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
-			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	160,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "Z:",	180, 110, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+			uiDefBut(block, LABEL, 0, "Rotation:",									0, 220, 100, 20, 0, 0, 0, 0, 0, "");
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "X:",							0, 200, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");			
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "Y:",							0, 180, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "Z:",							0, 160, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+			uiBlockEndAlign(block);
+			
+			uiBlockBeginAlign(block);
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	125, 200, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects X Rotation value from being Transformed");
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	125, 180, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Y Rotation value from being Transformed");
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	125, 160, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Rotation value from being Transformed");
+			uiBlockEndAlign(block);
 		}
 
 		tfp->ob_scale[0]= ob->size[0];
 		tfp->ob_scale[1]= ob->size[1];
 		tfp->ob_scale[2]= ob->size[2];
 
-		uiDefBut(block, LABEL, 0, "Scale:",					10, 90, 100, 20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Scale:",											0, 140, 100, 20, 0, 0, 0, 0, 0, "");
+		uiDefButS(block, OPTION, B_REDR, "Link",									60, 140, 50, 19, &(tfp->link_scale), 0, 1, 0, 0, "Scale values vary proportionally in all directions");
 		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED,	10, 70, 20, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "X:",							30, 70, 120, 19, &(tfp->ob_scale[0]), -lim, lim, 10, 3, "");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,	10, 50, 20, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "Y:",							30, 50, 120, 19, &(tfp->ob_scale[1]), -lim, lim, 10, 3, "");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,	10, 30, 20, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "Z:",							30, 30, 120, 19, &(tfp->ob_scale[2]), -lim, lim, 10, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "X:",								0, 120, 120, 19, &(tfp->ob_scale[0]), -lim, lim, 10, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "Y:",								0, 100, 120, 19, &(tfp->ob_scale[1]), -lim, lim, 10, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "Z:",								0, 80, 120, 19, &(tfp->ob_scale[2]), -lim, lim, 10, 3, "");
 		uiBlockEndAlign(block);
 		
-		uiDefButS(block, TOG, B_REDR, "Link Scale",		10, 0, 140, 19, &(tfp->link_scale), 0, 1, 0, 0, "Scale values vary proportionally in all directions");
+		uiBlockBeginAlign(block);
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED,		125, 120, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects X Scale value from being Transformed");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,		125, 100, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Y Scale value from being Transformed");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,		125, 80, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Scale value from being Transformed");
+		
+		
 
 		bb= object_get_boundbox(ob);
 		if (bb) {
@@ -1175,19 +1192,19 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 
 			
 			if ((ob->parent) && (ob->partype == PARBONE)) {
-				uiDefBut(block, LABEL, 0, "Dimensions:",			160, 90, 100, 20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Dimensions:",			0, 60, 100, 20, 0, 0, 0, 0, 0, "");
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "X:",		160, 70, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Y:",		160, 50, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Z:",		160, 30, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "X:",		0, 40, 150, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate X bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Y:",		0, 20, 150, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate Y bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Z:",		0, 0, 150, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate Z bounding box size");
 
 			}
 			else {
-				uiDefBut(block, LABEL, 0, "Dimensions:",			160, 90, 100, 20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Dimensions:",			0, 60, 100, 20, 0, 0, 0, 0, 0, "");
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "X:",		160, 70, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Y:",		160, 50, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Z:",		160, 30, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "X:",		0, 40, 150, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate X bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Y:",		0, 20, 150, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate Y bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Z:",		0, 0, 150, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate Z bounding box size");
 			}
 
 			uiBlockEndAlign(block);

@@ -14,36 +14,32 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Transform:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
-		layout.itemL(text="Object:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Object:")
 		col.itemO("object.duplicate")
 		col.itemO("object.delete")
 		
 		active_object= context.active_object
 		if active_object and active_object.type == 'MESH':
-			layout.itemL(text="Shading:")
-		
+			
 			col = layout.column(align=True)
+			col.itemL(text="Shading:")
 			col.itemO("object.shade_smooth", text="Smooth")
 			col.itemO("object.shade_flat", text="Flat")
 		
-		layout.itemL(text="Keyframes:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Keyframes:")
 		col.itemO("anim.insert_keyframe_menu", text="Insert")
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
 		
-		layout.itemL(text="Repeat:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
@@ -57,43 +53,37 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Transform:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
-		layout.itemL(text="Mesh:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Mesh:")
 		col.itemO("mesh.duplicate")
 		col.itemO("mesh.delete")
 		
-		layout.itemL(text="Modeling:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Modeling:")
 		col.itemO("mesh.extrude")
 		col.itemO("mesh.subdivide")
 		col.itemO("mesh.spin")
 		col.itemO("mesh.screw")
 		
-		layout.itemL(text="Shading:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Shading:")
 		col.itemO("mesh.faces_shade_smooth", text="Smooth")
 		col.itemO("mesh.faces_shade_flat", text="Flat")
 		
-		layout.itemL(text="UV Mapping:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="UV Mapping:")
 		col.itemO("uv.mapping_menu", text="Unwrap")
 		col.itemO("mesh.uvs_rotate")
 		col.itemO("mesh.uvs_mirror")
 		
-		layout.itemL(text="Repeat:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
@@ -107,31 +97,34 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Transform:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
-		
-		layout.itemL(text="Curve:")
 
 		col = layout.column(align=True)
+		col.itemL(text="Curve:")
 		col.itemO("curve.duplicate")
 		col.itemO("curve.delete")
 		col.itemO("curve.cyclic_toggle")
 		col.itemO("curve.switch_direction")
 		col.itemO("curve.spline_type_set")
 		
-		layout.itemL(text="Modeling:")
-
 		col = layout.column(align=True)
+		col.itemL(text="Handles:")
+		col.item_enumO("curve.handle_type_set", "type", 'AUTOMATIC')
+		col.item_enumO("curve.handle_type_set", "type", 'VECTOR')
+		col.item_enumO("curve.handle_type_set", "type", 'ALIGN')
+		col.item_enumO("curve.handle_type_set", "type", 'FREE_ALIGN')
+		
+		col = layout.column(align=True)
+		col.itemL(text="Modeling:")
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
 		
-		layout.itemL(text="Repeat:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
@@ -145,30 +138,26 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Transform:")
-
 		col = layout.column(align=True)
+		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
-		layout.itemL(text="Curve:")
-
 		col = layout.column(align=True)
+		col.itemL(text="Curve:")
 		col.itemO("curve.duplicate")
 		col.itemO("curve.delete")
 		col.itemO("curve.cyclic_toggle")
 		col.itemO("curve.switch_direction")
 		
-		layout.itemL(text="Modeling:")
-
 		col = layout.column(align=True)
+		col.itemL(text="Modeling:")
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
 		
-		layout.itemL(text="Repeat:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
@@ -182,22 +171,21 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Text Edit:")
+		
 		
 		col = layout.column(align=True)
+		col.itemL(text="Text Edit:")
 		col.itemO("font.text_copy", text="Copy")
 		col.itemO("font.text_cut", text="Cut")
 		col.itemO("font.text_paste", text="Paste")
 		
-		layout.itemL(text="Style:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Style:")
 		col.itemO("font.case_set")
 		col.itemO("font.style_toggle")
-		
-		layout.itemL(text="Repeat:")
-		
+	
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
@@ -211,26 +199,26 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Transform:")
+		
 		
 		col = layout.column(align=True)
+		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
-		
-		layout.itemL(text="Bones:")
 
 		col = layout.column(align=True)
+		col.itemL(text="Bones:")
 		col.itemO("armature.bone_primitive_add", text="Add")
 		col.itemO("armature.duplicate", text="Duplicate")
 		col.itemO("armature.delete", text="Delete")
 		
-		layout.itemL(text="Modeling:")
-		layout.itemO("armature.extrude")
-		
-		layout.itemL(text="Repeat:")
+		col = layout.column(align=True)
+		col.itemL(text="Modeling:")
+		col.itemO("armature.extrude")
 		
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
@@ -244,16 +232,14 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Transform:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
-		layout.itemL(text="Repeat:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
@@ -267,16 +253,14 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Transform:")
-
 		col = layout.column(align=True)
+		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
-		layout.itemL(text="Repeat:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
@@ -290,40 +274,36 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Transform:")
+		
 
 		col = layout.column(align=True)
+		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
-		layout.itemL(text="Bones:")
-
 		col = layout.column(align=True)
+		col.itemL(text="Bones:")
 		col.itemO("pose.hide", text="Hide")
 		col.itemO("pose.reveal", text="Reveal")
 		
-		layout.itemL(text="Keyframes:")
-		
 		col = layout.column(align=True)
+		layout.itemL(text="Keyframes:")
 		col.itemO("anim.insert_keyframe_menu", text="Insert")
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
 		
-		layout.itemL(text="Pose:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Pose:")
 		col.itemO("pose.copy", text="Copy")
 		col.itemO("pose.paste", text="Paste")
 		
-		layout.itemL(text="Library:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Library:")
 		col.itemO("poselib.pose_add", text="Add")
 		col.itemO("poselib.pose_remove", text="Remove")
 		
-		layout.itemL(text="Repeat:")
-		
 		col = layout.column(align=True)
+		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")

@@ -1326,14 +1326,14 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 		 
 		 /* fields */
 		 
-		 but= uiDefButBitS(block, TOGBUT, IMA_FIELDS, imagechanged, "Fields",	0, 80, 200, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 but= uiDefButBitS(block, OPTION, IMA_FIELDS, imagechanged, "Fields",	0, 80, 200, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, TOGBUT, IMA_STD_FIELD, B_NOP, "Odd",				0, 55, 200, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		 uiDefButBitS(block, OPTION, IMA_STD_FIELD, B_NOP, "Odd",				0, 55, 200, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
 		
 		 
 		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
-		 uiDefButBitS(block, TOGBUT, IMA_ANTIALI, B_NOP, "Anti",				0, 5, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, TOGBUT, IMA_DO_PREMUL, imagechanged, "Premul",		0, -20, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiDefButBitS(block, OPTION, IMA_ANTIALI, B_NOP, "Anti-Aliasing",		0, 5, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, OPTION, IMA_DO_PREMUL, imagechanged, "Premultiply",		0, -20, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
 		 
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -1356,9 +1356,9 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 			 uiDefButI(block, NUM, imagechanged, "Offset:",						220, 30, 200, 20, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the frame to use in the animation");
 			 uiDefButS(block, NUM, imagechanged, "Fields:",						0, 30, 200, 20, &iuser->fie_ima, 1.0, 200.0, 0, 0, "The number of fields per rendered frame (2 fields is 1 image)");
 			 
-			uiDefButBitS(block, TOG, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	220, 5, 200, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
+			uiDefButBitS(block, OPTION, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	220, 5, 200, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
 
-			 uiDefButS(block, TOG, imagechanged, "Cyclic",						220, -20, 200, 20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
+			 uiDefButS(block, OPTION, imagechanged, "Cyclic",						220, -20, 200, 20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
 			 
 			 uiBlockSetFunc(block, NULL, iuser, NULL);
 		 }
@@ -1372,7 +1372,7 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 			 uiDefButS(block, NUM, imagechanged, "Y:",	220, 35,200,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
 			 uiBlockEndAlign(block);
 			 
-			 uiDefButS(block, TOGBUT, imagechanged, "UV Test grid", 220,10,200,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
+			 uiDefButS(block, OPTION, imagechanged, "UV Test grid", 220,10,200,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
 			 uiBlockSetFunc(block, NULL, NULL, NULL);
 		 }
 	 }

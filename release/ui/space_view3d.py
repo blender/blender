@@ -1136,16 +1136,17 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 		scene = context.scene
 		
 		col = layout.column()
-		col.itemR(view, "camera")
+		col.itemL(text="Camera:")
+		col.itemR(view, "camera", text="")
 		col.itemR(view, "lens")
 		
-		layout.itemL(text="Clip:")
 		col = layout.column(align=True)
+		col.itemL(text="Clip:")
 		col.itemR(view, "clip_start", text="Start")
 		col.itemR(view, "clip_end", text="End")
 		
-		layout.itemL(text="Grid:")
 		col = layout.column(align=True)
+		col.itemL(text="Grid:")
 		col.itemR(view, "grid_lines", text="Lines")
 		col.itemR(view, "grid_spacing", text="Spacing")
 		col.itemR(view, "grid_subdivisions", text="Subdivisions")
@@ -1156,7 +1157,8 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 	__space_type__ = 'VIEW_3D'
 	__region_type__ = 'UI'
 	__label__ = "Display"
-
+	__default_closed__ = True
+	
 	def poll(self, context):
 		view = context.space_data
 		return (view)
@@ -1177,7 +1179,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		
 		layout.itemS()
 		
-		layout.itemO("screen.region_foursplit")
+		layout.itemO("screen.region_foursplit", text="Toggle Quad View")
 		
 		col = layout.column()
 		col.itemR(view, "lock_rotation")
@@ -1272,9 +1274,10 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 			#col.itemR(bg, "image_user")
 			col.itemR(bg, "size")
 			col.itemR(bg, "transparency", slider=True)
-			col.itemL(text="Offset:")
+			
 			
 			col = layout.column(align=True)
+			col.itemL(text="Offset:")
 			col.itemR(bg, "offset_x", text="X")
 			col.itemR(bg, "offset_y", text="Y")
 
