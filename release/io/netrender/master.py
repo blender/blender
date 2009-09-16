@@ -323,8 +323,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 					
 					if render_file:
 						self.server.stats("", "Sending file to render node")
-						f = open(render_file.path, 'rb')
+						f = open(render_file.filepath, 'rb')
 						
+						self.send_head()
 						shutil.copyfileobj(f, self.wfile)
 						
 						f.close()
@@ -444,7 +445,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				render_file = job.files_map.get(job_file, None)
 				
 				if render_file:
-					main_file = job.files[0]
+					main_file = job.files[0][0] # filename of the first file
 					
 					main_path, main_name = os.path.split(main_file)
 					
@@ -462,12 +463,12 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 					f.close()
 					del buf
 					
-					render_file.path = file_path # set the new path
+					render_file.filepath = file_path # set the new path
 					
 					if job.testStart():
-						self.send_head(headers=headers)
+						self.send_head(http.client.OK)
 					else:
-						self.send_head(http.client.ACCEPTED, headers=headers)
+						self.send_head(http.client.ACCEPTED)
 				else: # invalid file
 					self.send_head(http.client.NO_CONTENT)
 			else: # job not found
