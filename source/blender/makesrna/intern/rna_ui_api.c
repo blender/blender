@@ -292,11 +292,18 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "image_user", "ImageUser", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
+	func= RNA_def_function(srna, "template_image", "uiTemplateImage");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	parm= RNA_def_pointer(func, "image_user", "ImageUser", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout.");
+
 	func= RNA_def_function(srna, "template_list", "uiTemplateList");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	parm= RNA_def_pointer(func, "active_data", "AnyType", "", "Data from which to take property for the active element.");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);
@@ -314,11 +321,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func= RNA_def_function(srna, "view3d_select_faceselmenu", "uiTemplate_view3d_select_faceselmenu");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-
-	func= RNA_def_function(srna, "template_texture_image", "uiTemplateTextureImage");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	parm= RNA_def_pointer(func, "texture", "Texture", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

@@ -53,9 +53,6 @@ int ED_space_image_show_paint(struct SpaceImage *sima);
 int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
 int ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit);
 
-void ED_image_uiblock_panel(const struct bContext *C, struct uiBlock *block, struct Image **ima_pp, 
-							struct ImageUser *iuser, short redraw, short imagechanged);
-
 /* image_render.c, export for screen_ops.c, render operator */
 void ED_space_image_output(struct bContext *C);
 

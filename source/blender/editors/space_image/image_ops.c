@@ -628,9 +628,14 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	if(!ima)
 		return OPERATOR_CANCELLED;
+	
+	/* already set later */
+	ima->id.us--;
 
-	BKE_image_signal(ima, &sima->iuser, IMA_SIGNAL_RELOAD);
-	ED_space_image_set(C, sima, scene, obedit, ima);
+	// XXX other users?
+	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
+	if(sima)
+		ED_space_image_set(C, sima, scene, obedit, ima);
 
 	return OPERATOR_FINISHED;
 }
@@ -651,13 +656,12 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Image";
+	ot->name= "Open";
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */
 	ot->exec= open_exec;
 	ot->invoke= open_invoke;
-	ot->poll= ED_operator_image_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1051,8 +1055,12 @@ static int new_exec(bContext *C, wmOperator *op)
 	color[3]= RNA_float_get(op->ptr, "alpha");
 
 	ima = BKE_add_image_size(width, height, name, floatbuf, uvtestgrid, color);
-	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
-	ED_space_image_set(C, sima, scene, obedit, ima);
+	ima->id.us--; /* already set later */
+
+	if(sima) { // XXX other users?
+		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+		ED_space_image_set(C, sima, scene, obedit, ima);
+	}
 	
 	return OPERATOR_FINISHED;
 }
@@ -1066,7 +1074,6 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= new_exec;
 	ot->invoke= WM_operator_props_popup;
-	ot->poll= ED_operator_image_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

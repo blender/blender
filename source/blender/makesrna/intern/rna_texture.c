@@ -1073,6 +1073,11 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
 	/* filtering */
 	prop= RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texfilter");
@@ -1115,6 +1120,11 @@ static void rna_def_texture_environment_map(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Tex");
 
 	rna_def_environment_map_common(srna);
+
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "environment_map", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "env");
@@ -1641,9 +1651,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Contrast", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	/* XXX: would be nicer to have this as a color selector?
-	   but the values can go past [0,1]. */
-	prop= RNA_def_property(srna, "rgb_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "rgb_factor", PROP_FLOAT, PROP_RGB);
 	RNA_def_property_float_sdna(prop, NULL, "rfac");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0, 2);

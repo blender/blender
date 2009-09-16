@@ -37,6 +37,14 @@
 
 #include "WM_types.h"
 
+static EnumPropertyItem image_source_items[]= {
+	{IMA_SRC_FILE, "FILE", 0, "File", "Single image file"},
+	{IMA_SRC_SEQUENCE, "SEQUENCE", 0, "Sequence", "Multiple image files, as a sequence"},
+	{IMA_SRC_MOVIE, "MOVIE", 0, "Movie", "Movie file"},
+	{IMA_SRC_GENERATED, "GENERATED", 0, "Generated", "Generated image"},
+	{IMA_SRC_VIEWER, "VIEWER", 0, "Viewer", "Compositing node viewer"},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "IMB_imbuf_types.h"
@@ -66,6 +74,76 @@ static int rna_Image_dirty_get(PointerRNA *ptr)
 	return 0;
 }
 
+static void rna_Image_source_update(bContext *C, PointerRNA *ptr)
+{
+	Image *ima= ptr->id.data;
+	BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
+}
+
+static void rna_Image_fields_update(bContext *C, PointerRNA *ptr)
+{
+	Image *ima= ptr->id.data;
+	ImBuf *ibuf;
+
+	ibuf= BKE_image_get_ibuf(ima, NULL);
+
+	if(ibuf) {
+		short nr= 0;
+
+		if(!(ima->flag & IMA_FIELDS) && (ibuf->flags & IB_fields)) nr= 1;
+		if((ima->flag & IMA_FIELDS) && !(ibuf->flags & IB_fields)) nr= 1;
+
+		if(nr)
+			BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+	}
+}
+
+static void rna_Image_reload_update(bContext *C, PointerRNA *ptr)
+{
+	Image *ima= ptr->id.data;
+	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+	printf("reload %p\n", ima);
+}
+
+static void rna_Image_generated_update(bContext *C, PointerRNA *ptr)
+{
+	Image *ima= ptr->id.data;
+	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+}
+
+static void rna_ImageUser_update(bContext *C, PointerRNA *ptr)
+{
+    Scene *scene= CTX_data_scene(C);
+	ImageUser *iuser= ptr->data;
+
+	BKE_image_user_calc_imanr(iuser, scene->r.cfra, 0);
+}
+
+static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Image *ima= (Image*)ptr->data;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+	
+	if(C==NULL) /* needed for doc generation */
+		return image_source_items;
+	
+	if(ima->source == IMA_SRC_VIEWER) {
+		RNA_enum_items_add_value(&item, &totitem, image_source_items, IMA_SRC_VIEWER);
+	}
+	else {
+		RNA_enum_items_add_value(&item, &totitem, image_source_items, IMA_SRC_FILE);
+		RNA_enum_items_add_value(&item, &totitem, image_source_items, IMA_SRC_SEQUENCE);
+		RNA_enum_items_add_value(&item, &totitem, image_source_items, IMA_SRC_MOVIE);
+		RNA_enum_items_add_value(&item, &totitem, image_source_items, IMA_SRC_GENERATED);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
 #else
 
 static void rna_def_imageuser(BlenderRNA *brna)
@@ -79,29 +157,35 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "auto_refresh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
 	RNA_def_property_ui_text(prop, "Auto Refresh", "Always refresh image on frame changes.");
+	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	/* animation */
 	prop= RNA_def_property(srna, "cyclic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "cycl", 0);
 	RNA_def_property_ui_text(prop, "Cyclic", "Cycle the images in the movie.");
+	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "frames", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Frames", "Sets the number of images of a movie to use.");
+	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "offset", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Offset", "Offsets the number of the frame to use in the animation.");
+	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
 	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "Sets the global starting frame of the movie.");
+	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "fields_per_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fie_ima");
 	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Fields per Frame", "The number of fields per rendered frame (2 fields is 1 image).");
+	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "multilayer_layer", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "layer");
@@ -121,16 +205,9 @@ static void rna_def_image(BlenderRNA *brna)
 	static const EnumPropertyItem prop_type_items[]= {
 		{IMA_TYPE_IMAGE, "IMAGE", 0, "Image", ""},
 		{IMA_TYPE_MULTILAYER, "MULTILAYER", 0, "Multilayer", ""},
-		{IMA_TYPE_UV_TEST, "UVTEST", 0, "UV Test", ""},
-		{IMA_TYPE_R_RESULT, "RENDERRESULT", 0, "Render Result", ""},
+		{IMA_TYPE_UV_TEST, "UV_TEST", 0, "UV Test", ""},
+		{IMA_TYPE_R_RESULT, "RENDER_RESULT", 0, "Render Result", ""},
 		{IMA_TYPE_COMPOSITE, "COMPOSITING", 0, "Compositing", ""},
-		{0, NULL, 0, NULL, NULL}};
-	static const EnumPropertyItem prop_source_items[]= {
-		{IMA_SRC_FILE, "FILE", 0, "File", "Single image file"},
-		{IMA_SRC_SEQUENCE, "SEQUENCE", 0, "Sequence", "Multiple image files, as a sequence"},
-		{IMA_SRC_MOVIE, "MOVIE", 0, "Movie", "Movie file"},
-		{IMA_SRC_GENERATED, "GENERATED", 0, "Generated", "Generated image"},
-		{IMA_SRC_VIEWER, "VIEWER", 0, "Viewer", "Compositing node viewer"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_generated_type_items[]= {
 		{0, "BLANK", 0, "Blank", "Generate a blank image"},
@@ -147,19 +224,18 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
 	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
 
 	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_source_items);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
+	RNA_def_property_enum_items(prop, image_source_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Image_source_itemf");
 	RNA_def_property_ui_text(prop, "Source", "Where the image comes from.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_source_update");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "How to generate the image.");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
@@ -171,12 +247,12 @@ static void rna_def_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
 	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_fields_update");
 
 	prop= RNA_def_property(srna, "odd_fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_STD_FIELD);
 	RNA_def_property_ui_text(prop, "Odd Fields", "Standard field toggle.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
 
 	prop= RNA_def_property(srna, "antialias", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANTIALI);
@@ -198,19 +274,19 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "gen_type");
 	RNA_def_property_enum_items(prop, prop_generated_type_items);
 	RNA_def_property_ui_text(prop, "Generated Type", "Generated image type.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_generated_update");
 
 	prop= RNA_def_property(srna, "generated_width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gen_x");
 	RNA_def_property_range(prop, 1, 16384);
 	RNA_def_property_ui_text(prop, "Generated Width", "Generated image width.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_generated_update");
 
 	prop= RNA_def_property(srna, "generated_height", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gen_y");
 	RNA_def_property_range(prop, 1, 16384);
 	RNA_def_property_ui_text(prop, "Generated Height", "Generated image height.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_generated_update");
 
 	/* realtime properties */
 	prop= RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);

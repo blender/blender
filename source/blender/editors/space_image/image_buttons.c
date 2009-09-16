@@ -100,8 +100,6 @@
 #define B_FACESEL_PAINT_TEST	11
 #define B_SIMA_RECORD		12
 #define B_SIMA_PLAY			13
-#define B_SIMARANGE			14
-#define B_SIMACURVES		15
 
 #define B_SIMANOTHING		16
 #define B_SIMABRUSHCHANGE	17	
@@ -116,10 +114,8 @@
 #define B_SIMACLONEDELETE	26
 
 /* XXX */
-static int okee() {return 0;}
 static int simaFaceDraw_Check() {return 0;}
 static int simaUVSel_Check() {return 0;}
-static int is_uv_tface_editing_allowed_silent() {return 0;}
 /* XXX */
 
 /* proto */
@@ -135,13 +131,6 @@ static void do_image_panel_events(bContext *C, void *arg, int event)
 	switch(event) {
 		case B_REDR:
 			break;
-		case B_SIMACURVES:
-			curvemapping_do_ibuf(sima->cumap, ED_space_image_buffer(sima));
-			break;
-		case B_SIMARANGE:
-			curvemapping_set_black_white(sima->cumap, NULL, NULL);
-			curvemapping_do_ibuf(sima->cumap, ED_space_image_buffer(sima));
-			break;
 		case B_TRANS_IMAGE:
 			image_editvertex_buts(C, NULL);
 			break;
@@ -149,11 +138,10 @@ static void do_image_panel_events(bContext *C, void *arg, int event)
 			image_editcursor_buts(C, &ar->v2d, NULL);
 			break;
 	}
+
 	/* all events now */
 	WM_event_add_notifier(C, NC_IMAGE, sima->image);
 }
-
-
 
 static void image_info(Image *ima, ImBuf *ibuf, char *str)
 {
@@ -168,12 +156,12 @@ static void image_info(Image *ima, ImBuf *ibuf, char *str)
 	}
 	
 	if(ima->source==IMA_SRC_MOVIE) {
-		ofs= sprintf(str, "Movie ");
+		ofs= sprintf(str, "Movie");
 		if(ima->anim) 
 			ofs+= sprintf(str+ofs, "%d frs", IMB_anim_get_duration(ima->anim));
 	}
 	else
-	 	ofs= sprintf(str, "Image ");
+	 	ofs= sprintf(str, "Image");
 	
 	ofs+= sprintf(str+ofs, ": size %d x %d,", ibuf->x, ibuf->y);
 	
@@ -245,10 +233,6 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 	EditMesh *em;
 	EditFace *efa;
 	MTFace *tf;
-	
-	if(obedit==NULL || obedit->type!=OB_MESH) return;
-	
-	if( is_uv_tface_editing_allowed_silent()==0 ) return;
 	
 	image_transform_but_attr(sima, &imx, &imy, &step, &digits);
 	
@@ -354,8 +338,6 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 	int imx= 256, imy= 256;
 	int step, digits;
 	
-	if( is_uv_tface_editing_allowed_silent()==0 ) return;
-	
 	image_transform_but_attr(sima, &imx, &imy, &step, &digits);
 		
 	if(block) {	// do the buttons
@@ -388,59 +370,6 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 #if 0
 static void image_panel_view_properties(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	ARegion *ar= CTX_wm_region(C);
-	Object *obedit= CTX_data_edit_object(C);
-	uiBlock *block;
-
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-	
-	uiDefButBitI(block, TOG, SI_DRAW_TILE, B_REDR, "Repeat Image",	10,160,140,19, &sima->flag, 0, 0, 0, 0, "Repeat/Tile the image display");
-	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	165,160,145,19, &sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
-	
-	if (sima->image) {
-		uiDefBut(block, LABEL, B_NOP, "Image Display:",		10,140,140,19, 0, 0, 0, 0, 0, "");
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_REDR, "AspX:", 10,120,140,19, &sima->image->aspx, 0.1, 5000.0, 100, 0, "X Display Aspect for this image, does not affect renderingm 0 disables.");
-		uiDefButF(block, NUM, B_REDR, "AspY:", 10,100,140,19, &sima->image->aspy, 0.1, 5000.0, 100, 0, "X Display Aspect for this image, does not affect rendering 0 disables.");
-		uiBlockEndAlign(block);
-	}
-	
-	if (obedit && obedit->type==OB_MESH) {
-		Mesh *me= obedit->data;
-		EditMesh *em= BKE_mesh_get_editmesh(me);
-		
-		if(EM_texFaceCheck(em)) {
-			uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 80,120,19, 0, 0, 0, 0, 0, "");
-			uiBlockBeginAlign(block);
-			uiDefButC(block,  ROW, B_REDR, "Outline",		10,60,58,19, &sima->dt_uv, 0.0, SI_UVDT_OUTLINE, 0, 0, "Outline Wire UV drawtype");
-			uiDefButC(block,  ROW, B_REDR, "Dash",			68, 60,58,19, &sima->dt_uv, 0.0, SI_UVDT_DASH, 0, 0, "Dashed Wire UV drawtype");
-			uiDefButC(block,  ROW, B_REDR, "Black",			126, 60,58,19, &sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "Black Wire UV drawtype");
-			uiDefButC(block,  ROW, B_REDR, "White",			184,60,58,19, &sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "White Wire UV drawtype");
-			
-			uiBlockEndAlign(block);
-			uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,60,60,19,  &sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
-			
-			
-			uiDefButBitI(block, TOG, ME_DRAWFACES, B_REDR, "Faces",		10,30,60,19,  &me->drawflag, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
-			uiDefButBitI(block, TOG, ME_DRAWEDGES, B_REDR, "Edges", 70, 30,60,19, &me->drawflag, 0, 0, 0, 0, "Displays selected edges using hilights in the 3d view and UV editor");
-			
-			uiDefButBitI(block, TOG, SI_DRAWSHADOW, B_REDR, "Final Shadow", 130, 30,110,19, &sima->flag, 0, 0, 0, 0, "Draw the final result from the objects modifiers");
-			uiDefButBitI(block, TOG, SI_DRAW_OTHER, B_REDR, "Other Objs", 230, 30, 80, 19, &sima->flag, 0, 0, 0, 0, "Also draw all 3d view selected mesh objects that use this image");
-			
-			uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &sima->flag, 0, 0, 0, 0, "Difference between UV's and the 3D coords (blue for low distortion, red is high)");
-			if (sima->flag & SI_DRAW_STRETCH) {
-				uiBlockBeginAlign(block);
-				uiDefButC(block,  ROW, B_REDR, "Area",			120,0,60,19, &sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_AREA, 0, 0, "Area distortion between UV's and 3D coords");
-				uiDefButC(block,  ROW, B_REDR, "Angle",		180,0,60,19, &sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_ANGLE, 0, 0, "Angle distortion between UV's and 3D coords");
-				uiBlockEndAlign(block);
-			}
-		}
-
-		BKE_mesh_end_editmesh(me, em);
-	}
-	image_editcursor_buts(C, &ar->v2d, block);
 }
 #endif
 
@@ -565,104 +494,33 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 #endif
 }
 
-static int image_panel_paint_poll(const bContext *C, PanelType *pt)
+static int image_panel_poll(const bContext *C, PanelType *pt)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
+	ImBuf *ibuf= ED_space_image_buffer(sima);
 	
-	return (sima->image && (sima->flag & SI_DRAWTOOL));
+	return (ibuf != NULL);
 }
-
-static void image_panel_paintcolor(const bContext *C, Panel *pa)
-{
-	SpaceImage *sima= CTX_wm_space_image(C);
-	ToolSettings *settings= CTX_data_tool_settings(C);
-	Brush *brush= paint_brush(&settings->imapaint.paint);
-	uiBlock *block;
-	static float hsv[3], old[3];	// used as temp mem for picker
-	static char hexcol[128];
-	
-	if(!sima->image || (sima->flag & SI_DRAWTOOL)==0)
-		return;
-	
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-
-	if(brush)
-		uiBlockPickerButtons(block, brush->rgb, hsv, old, hexcol, 'f', B_REDR);
-}
-
-static void image_panel_paint(const bContext *C, Panel *pa)
-{
-	SpaceImage *sima= CTX_wm_space_image(C);
-	uiBlock *block;
-	
-	if(!sima->image || (sima->flag & SI_DRAWTOOL)==0)
-		return;
-	
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-	
-	brush_buttons(C, block, 1, B_SIMANOTHING, B_SIMABRUSHCHANGE, B_SIMABRUSHBROWSE, B_SIMABRUSHLOCAL, B_SIMABRUSHDELETE, B_KEEPDATA, B_SIMABTEXBROWSE, B_SIMABTEXDELETE);
-}
-
-static void image_panel_curves_reset(bContext *C, void *cumap_v, void *ibuf_v)
-{
-	SpaceImage *sima= CTX_wm_space_image(C);
-	CurveMapping *cumap = cumap_v;
-	int a;
-	
-	for(a=0; a<CM_TOT; a++)
-		curvemap_reset(cumap->cm+a, &cumap->clipr);
-	
-	cumap->black[0]=cumap->black[1]=cumap->black[2]= 0.0f;
-	cumap->white[0]=cumap->white[1]=cumap->white[2]= 1.0f;
-	curvemapping_set_black_white(cumap, NULL, NULL);
-	
-	curvemapping_changed(cumap, 0);
-	curvemapping_do_ibuf(cumap, ibuf_v);
-	
-	WM_event_add_notifier(C, NC_IMAGE, sima->image);
-}
-
 
 static void image_panel_curves(const bContext *C, Panel *pa)
 {
+	bScreen *sc= CTX_wm_screen(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf;
-	uiBlock *block;
-	uiBut *bt;
+	PointerRNA simaptr;
+	int levels;
 	
-	/* and we check for spare */
 	ibuf= ED_space_image_buffer(sima);
 	
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-	
-	if (ibuf) {
-		rctf rect;
-		
+	if(ibuf) {
 		if(sima->cumap==NULL)
 			sima->cumap= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
-		
-		rect.xmin= 110; rect.xmax= 310;
-		rect.ymin= 10; rect.ymax= 200;
-		curvemap_buttons(block, sima->cumap, 'c', B_SIMACURVES, B_REDR, &rect);
-		
-		/* curvemap min/max only works for RGBA */
-		if(ibuf->channels==4) {
-			bt=uiDefBut(block, BUT, B_SIMARANGE, "Reset",	10, 160, 90, 19, NULL, 0.0f, 0.0f, 0, 0, "Reset Black/White point and curves");
-			uiButSetFunc(bt, image_panel_curves_reset, sima->cumap, ibuf);
-		
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_SIMARANGE, "Min R:",	10, 120, 90, 19, sima->cumap->black, -1000.0f, 1000.0f, 10, 2, "Black level");
-			uiDefButF(block, NUM, B_SIMARANGE, "Min G:",	10, 100, 90, 19, sima->cumap->black+1, -1000.0f, 1000.0f, 10, 2, "Black level");
-			uiDefButF(block, NUM, B_SIMARANGE, "Min B:",	10, 80, 90, 19, sima->cumap->black+2, -1000.0f, 1000.0f, 10, 2, "Black level");
-			
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_SIMARANGE, "Max R:",	10, 50, 90, 19, sima->cumap->white, -1000.0f, 1000.0f, 10, 2, "White level");
-			uiDefButF(block, NUM, B_SIMARANGE, "Max G:",	10, 30, 90, 19, sima->cumap->white+1, -1000.0f, 1000.0f, 10, 2, "White level");
-			uiDefButF(block, NUM, B_SIMARANGE, "Max B:",	10, 10, 90, 19, sima->cumap->white+2, -1000.0f, 1000.0f, 10, 2, "White level");
-		}
+
+		/* curvemap black/white levels only works for RGBA */
+		levels= (ibuf->channels==4);
+
+		RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &simaptr);
+		uiTemplateCurveMapping(pa->layout, &simaptr, "curves", 'c', levels);
 	}
 }
 
@@ -799,80 +657,10 @@ static void image_panel_preview(ScrArea *sa, short cntrl)	// IMAGE_HANDLER_PREVI
 	uiBlockSetDrawExtraFunc(block, preview_cb);
 	
 }
-
-static void image_panel_gpencil(short cntrl)	// IMAGE_HANDLER_GREASEPENCIL
-{
-	uiBlock *block;
-	SpaceImage *sima;
-	
-	sima= curarea->spacedata.first;
-
-	block= uiBeginBlock(C, ar, "image_panel_gpencil", UI_EMBOSS);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
-	uiSetPanelHandler(IMAGE_HANDLER_GREASEPENCIL);  // for close and esc
-	if (uiNewPanel(C, ar, block, "Grease Pencil", "SpaceImage", 100, 30, 318, 204)==0) return;
-	
-	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
-	if (sima->flag & SI_DISPGP) {
-		if (sima->gpd == NULL)
-			gpencil_data_setactive(curarea, gpencil_data_addnew());
-	}
-	
-	if (sima->flag & SI_DISPGP) {
-		bGPdata *gpd= sima->gpd;
-		short newheight;
-		
-		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
-		/* so first we make it default height */
-		uiNewPanelHeight(block, 204);
-		
-		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitI(block, TOG, SI_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sima->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Image/UV Editor (draw using Shift-LMB)");
-		
-		/* extend the panel if the contents won't fit */
-		newheight= draw_gpencil_panel(block, gpd, curarea); 
-		uiNewPanelHeight(block, newheight);
-	}
-	else {
-		uiDefButBitI(block, TOG, SI_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sima->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Image/UV Editor");
-		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
-	}
-}
 #endif
 
 
 /* ********************* callbacks for standard image buttons *************** */
-
-/* called from fileselect or button */
-static void load_image_cb(bContext *C, char *str, void *ima_pp_v, void *iuser_v)	
-{
-	Image **ima_pp= (Image **)ima_pp_v;
-	Image *ima= NULL;
-	
-	ima= BKE_add_image_file(str, 0);
-	if(ima) {
-		if(*ima_pp) {
-			(*ima_pp)->id.us--;
-		}
-		*ima_pp= ima;
-		
-		BKE_image_signal(ima, iuser_v, IMA_SIGNAL_RELOAD);
-		WM_event_add_notifier(C, NC_IMAGE, ima);
-		
-		/* button event gets lost when it goes via filewindow */
-//		if(G.buts && G.buts->lockpoin) {
-//			Tex *tex= G.buts->lockpoin;
-//			if(GS(tex->id.name)==ID_TE) {
-//				BIF_preview_changed(ID_TE);
-//				allqueue(REDRAWBUTSSHADING, 0);
-//				allqueue(REDRAWVIEW3D, 0);
-//				allqueue(REDRAWOOPS, 0);
-//			}
-//		}
-	}
-	
-	ED_undo_push(C, "Load image");
-}
 
 static char *layer_menu(RenderResult *rr, short *curlay)
 {
@@ -937,92 +725,6 @@ static void set_frames_cb(bContext *C, void *ima_v, void *iuser_v)
 	}
 }
 
-static void image_src_change_cb(bContext *C, void *ima_v, void *iuser_v)
-{
-	BKE_image_signal(ima_v, iuser_v, IMA_SIGNAL_SRC_CHANGE);
-}
-
-/* buttons have 2 arg callbacks, filewindow has 3 args... so thats why the wrapper below */
-static void image_browse_cb1(bContext *C, void *ima_pp_v, void *iuser_v)
-{
-	Image **ima_pp= (Image **)ima_pp_v;
-	ImageUser *iuser= iuser_v;
-	
-	if(ima_pp) {
-		Image *ima= *ima_pp;
-		
-		if(iuser->menunr== -2) {
-			// XXX activate_databrowse_args(&ima->id, ID_IM, 0, &iuser->menunr, image_browse_cb1, ima_pp, iuser);
-		} 
-		else if (iuser->menunr>0) {
-			Image *newima= (Image*) BLI_findlink(&CTX_data_main(C)->image, iuser->menunr-1);
-			
-			if (newima && newima!=ima) {
-				*ima_pp= newima;
-				id_us_plus(&newima->id);
-				if(ima) ima->id.us--;
-				
-				BKE_image_signal(newima, iuser, IMA_SIGNAL_USER_NEW_IMAGE);
-				
-				ED_undo_push(C, "Browse image");
-			}
-		}
-	}
-}
-
-static void image_browse_cb(bContext *C, void *ima_pp_v, void *iuser_v)
-{
-	image_browse_cb1(C, ima_pp_v, iuser_v);
-}
-
-static void image_reload_cb(bContext *C, void *ima_v, void *iuser_v)
-{
-	if(ima_v) {
-		BKE_image_signal(ima_v, iuser_v, IMA_SIGNAL_RELOAD);
-	}
-}
-
-static void image_field_test(bContext *C, void *ima_v, void *iuser_v)
-{
-	Image *ima= ima_v;
-	
-	if(ima) {
-		ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser_v);
-		if(ibuf) {
-			short nr= 0;
-			if( !(ima->flag & IMA_FIELDS) && (ibuf->flags & IB_fields) ) nr= 1;
-			if( (ima->flag & IMA_FIELDS) && !(ibuf->flags & IB_fields) ) nr= 1;
-			if(nr) {
-				BKE_image_signal(ima, iuser_v, IMA_SIGNAL_FREE);
-			}
-		}
-	}
-}
-
-static void image_unlink_cb(bContext *C, void *ima_pp_v, void *unused)
-{
-	Image **ima_pp= (Image **)ima_pp_v;
-	
-	if(ima_pp && *ima_pp) {
-		Image *ima= *ima_pp;
-		/* (for time being, texturefaces are no users, conflict in design...) */
-		if(ima->id.us>1)
-			ima->id.us--;
-		*ima_pp= NULL;
-	}
-}
-
-static void image_load_fs_cb(bContext *C, void *ima_pp_v, void *iuser_v)
-{
-	ScrArea *sa= CTX_wm_area(C);
-//	Image **ima_pp= (Image **)ima_pp_v;
-	
-	if(sa->spacetype==SPACE_IMAGE)
-		WM_operator_name_call(C, "IMAGE_OT_open", WM_OP_INVOKE_REGION_WIN, NULL);
-	else
-		printf("not supported yet\n");
-}
-
 /* 5 layer button callbacks... */
 static void image_multi_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
@@ -1077,6 +779,7 @@ static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v)
 	}
 }
 
+#if 0
 static void image_pack_cb(bContext *C, void *ima_v, void *iuser_v) 
 {
 	if(ima_v) {
@@ -1106,46 +809,34 @@ static void image_pack_cb(bContext *C, void *ima_v, void *iuser_v)
 		}
 	}
 }
+#endif
 
-static void image_load_cb(bContext *C, void *ima_pp_v, void *iuser_v)
-{
-	if(ima_pp_v) {
-		Image *ima= *((Image **)ima_pp_v);
-		ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser_v);
-		char str[FILE_MAX];
-	
-		/* name in ima has been changed by button! */
-		BLI_strncpy(str, ima->name, FILE_MAX);
-		if(ibuf) BLI_strncpy(ima->name, ibuf->name, FILE_MAX);
-		
-		load_image_cb(C, str, ima_pp_v, iuser_v);
-	}
-}
-
+#if 0
 static void image_freecache_cb(bContext *C, void *ima_v, void *unused) 
 {
 	Scene *scene= CTX_data_scene(C);
 	BKE_image_free_anim_ibufs(ima_v, scene->r.cfra);
 	WM_event_add_notifier(C, NC_IMAGE, ima_v);
 }
+#endif
 
-static void image_generated_change_cb(bContext *C, void *ima_v, void *iuser_v)
-{
-	BKE_image_signal(ima_v, iuser_v, IMA_SIGNAL_FREE);
-}
-
+#if 0
 static void image_user_change(bContext *C, void *iuser_v, void *unused)
 {
 	Scene *scene= CTX_data_scene(C);
 	BKE_image_user_calc_imanr(iuser_v, scene->r.cfra, 0);
 }
+#endif
 
-static void uiblock_layer_pass_buttons(uiBlock *block, RenderResult *rr, ImageUser *iuser, int event, int x, int y, int w)
+static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser, int w)
 {
+	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
 	RenderLayer *rl= NULL;
 	int wmenu1, wmenu2;
 	char *strp;
+
+	uiLayoutRow(layout, 1);
 
 	/* layer menu is 1/3 larger than pass */
 	wmenu1= (3*w)/5;
@@ -1153,235 +844,235 @@ static void uiblock_layer_pass_buttons(uiBlock *block, RenderResult *rr, ImageUs
 	
 	/* menu buts */
 	strp= layer_menu(rr, &iuser->layer);
-	but= uiDefButS(block, MENU, event, strp,					x, y, wmenu1, 20, &iuser->layer, 0,0,0,0, "Select Layer");
+	but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, 20, &iuser->layer, 0,0,0,0, "Select Layer");
 	uiButSetFunc(but, image_multi_cb, rr, iuser);
 	MEM_freeN(strp);
 	
 	rl= BLI_findlink(&rr->layers, iuser->layer - (rr->rectf?1:0)); /* fake compo layer, return NULL is meant to be */
 	strp= pass_menu(rl, &iuser->pass);
-	but= uiDefButS(block, MENU, event, strp,					x+wmenu1, y, wmenu2, 20, &iuser->pass, 0,0,0,0, "Select Pass");
+	but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu2, 20, &iuser->pass, 0,0,0,0, "Select Pass");
 	uiButSetFunc(but, image_multi_cb, rr, iuser);
 	MEM_freeN(strp);	
 }
 
-static void uiblock_layer_pass_arrow_buttons(uiBlock *block, RenderResult *rr, ImageUser *iuser, int imagechanged) 
+static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser) 
 {
+	uiBlock *block= uiLayoutGetBlock(layout);
+	uiLayout *row;
 	uiBut *but;
 	
+	row= uiLayoutRow(layout, 1);
+
 	if(rr==NULL || iuser==NULL)
 		return;
 	if(rr->layers.first==NULL) {
-		uiDefBut(block, LABEL, 0, "No Layers in Render Result,",	10, 107, 300, 20, NULL, 1, 0, 0, 0, "");
+		uiItemL(row, "No Layers in Render Result.", 0);
 		return;
 	}
-	
-	uiBlockBeginAlign(block);
 
 	/* decrease, increase arrows */
-	but= uiDefIconBut(block, BUT, imagechanged, ICON_TRIA_LEFT,	10,107,17,20, NULL, 0, 0, 0, 0, "Previous Layer");
+	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Layer");
 	uiButSetFunc(but, image_multi_declay_cb, rr, iuser);
-	but= uiDefIconBut(block, BUT, imagechanged, ICON_TRIA_RIGHT,	27,107,18,20, NULL, 0, 0, 0, 0, "Next Layer");
+	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Layer");
 	uiButSetFunc(but, image_multi_inclay_cb, rr, iuser);
 
-	uiblock_layer_pass_buttons(block, rr, iuser, imagechanged, 45, 107, 230);
+	uiblock_layer_pass_buttons(row, rr, iuser, 230);
 
 	/* decrease, increase arrows */
-	but= uiDefIconBut(block, BUT, imagechanged, ICON_TRIA_LEFT,	275,107,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
+	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
 	uiButSetFunc(but, image_multi_decpass_cb, rr, iuser);
-	but= uiDefIconBut(block, BUT, imagechanged, ICON_TRIA_RIGHT,	292,107,18,20, NULL, 0, 0, 0, 0, "Next Pass");
+	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Pass");
 	uiButSetFunc(but, image_multi_incpass_cb, rr, iuser);
 
 	uiBlockEndAlign(block);
-			 
 }
 
 // XXX HACK!
-static int packdummy=0;
+// static int packdummy=0;
 
-/* The general Image panel with the loadsa callbacks! */
-void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, ImageUser *iuser, 
-						 short redraw, short imagechanged)
+typedef struct RNAUpdateCb {
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	ImageUser *iuser;
+} RNAUpdateCb;
+
+static void rna_update_cb(bContext *C, void *arg_cb, void *arg_unused)
 {
+	RNAUpdateCb *cb= (RNAUpdateCb*)arg_cb;
+
+	/* ideally this would be done by RNA itself, but there we have
+	   no image user available, so we just update this flag here */
+	cb->iuser->ok= 1;
+
+	/* we call update here on the pointer property, this way the
+	   owner of the image pointer can still define it's own update
+	   and notifier */
+	RNA_property_update(C, &cb->ptr, cb->prop);
+}
+
+void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *userptr, int compact)
+{
+	PropertyRNA *prop;
+	PointerRNA imaptr;
+	RNAUpdateCb *cb;
+	Image *ima;
+	ImageUser *iuser;
+	ImBuf *ibuf;
 	Scene *scene= CTX_data_scene(C);
-	SpaceImage *sima= CTX_wm_space_image(C);
-	Image *ima= *ima_pp;
+	uiLayout *row, *split, *col;
+	uiBlock *block;
 	uiBut *but;
-	char str[128], *strp;
+	char str[128];
+
+	if(!ptr->data)
+		return;
 	
-	/* different stuff when we show viewer */
-	if(ima && ima->source==IMA_SRC_VIEWER) {
-		ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser);
-		
-		image_info(ima, ibuf, str);
-		uiDefBut(block, LABEL, 0, ima->id.name+2,	10, 180, 300, 20, NULL, 1, 0, 0, 0, "");
-		uiDefBut(block, LABEL, 0, str,				10, 160, 300, 20, NULL, 1, 0, 0, 0, "");
-		
-		if(ima->type==IMA_TYPE_COMPOSITE) {
-			iuser= ntree_get_active_iuser(scene->nodetree);
-			if(iuser) {
-				uiBlockBeginAlign(block);
-				uiDefIconTextBut(block, BUT, B_SIMA_RECORD, ICON_REC, "Record",	10,120,100,20, 0, 0, 0, 0, 0, "");
-				uiDefIconTextBut(block, BUT, B_SIMA_PLAY, ICON_PLAY, "Play",	110,120,100,20, 0, 0, 0, 0, 0, "");
-				but= uiDefBut(block, BUT, B_NOP, "Free Cache",	210,120,100,20, 0, 0, 0, 0, 0, "");
-				uiButSetFunc(but, image_freecache_cb, ima, NULL);
-				
-				if(iuser->frames)
-					sprintf(str, "(%d) Frames:", iuser->framenr);
-				else strcpy(str, "Frames:");
-				uiBlockBeginAlign(block);
-				uiDefButI(block, NUM, imagechanged, str,		10, 90,150, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
-				uiDefButI(block, NUM, imagechanged, "StartFr:",	160,90,150,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
-			}
-		}
-		else if(ima->type==IMA_TYPE_R_RESULT) {
-			/* browse layer/passes */
-			uiblock_layer_pass_arrow_buttons(block, RE_GetResult(RE_GetRender(scene->id.name)), iuser, imagechanged);
-		}
+	prop= RNA_struct_find_property(ptr, propname);
+	if(!prop) {
+		printf("uiTemplateImage: property not found: %s\n", propname);
 		return;
 	}
-	
-	/* the main ima source types */
+
+	block= uiLayoutGetBlock(layout);
+
+	imaptr= RNA_property_pointer_get(ptr, prop);
+	ima= imaptr.data;
+	iuser= userptr->data;
+
+	cb= MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
+	cb->ptr= *ptr;
+	cb->prop= prop;
+	cb->iuser= iuser;
+
+	if(!compact)
+		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
+
+	// XXX missing: reload, pack
+
 	if(ima) {
-// XXX		uiSetButLock(ima->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
-		uiBlockBeginAlign(block);
-		uiBlockSetFunc(block, image_src_change_cb, ima, iuser);
-		uiDefButS(block, ROW, imagechanged, "Still",		0, 180, 105, 20, &ima->source, 0.0, IMA_SRC_FILE, 0, 0, "Single Image file");
-		uiDefButS(block, ROW, imagechanged, "Movie",		105, 180, 105, 20, &ima->source, 0.0, IMA_SRC_MOVIE, 0, 0, "Movie file");
-		uiDefButS(block, ROW, imagechanged, "Sequence",		210, 180, 105, 20, &ima->source, 0.0, IMA_SRC_SEQUENCE, 0, 0, "Multiple Image files, as a sequence");
-		uiDefButS(block, ROW, imagechanged, "Generated",	315, 180, 105, 20, &ima->source, 0.0, IMA_SRC_GENERATED, 0, 0, "Generated Image");
-		uiBlockSetFunc(block, NULL, NULL, NULL);
-	}
-	else
-		uiDefBut(block, LABEL, 0, " ",					0, 180, 440, 20, 0, 0, 0, 0, 0, "");	/* for align in panel */
-				 
-	 /* Browse */
-	 IMAnames_to_pupstring(&strp, NULL, NULL, &(CTX_data_main(C)->image), NULL, &iuser->menunr);
-	 
-	 uiBlockBeginAlign(block);
-	 but= uiDefButS(block, MENU, imagechanged, strp,		0,155,40,20, &iuser->menunr, 0, 0, 0, 0, "Selects an existing Image or Movie");
-	 uiButSetFunc(but, image_browse_cb, ima_pp, iuser);
-	 
-	 MEM_freeN(strp);
-	 
-	 /* name + options, or only load */
-	 if(ima) {
-		 int drawpack= (ima->source!=IMA_SRC_SEQUENCE && ima->source!=IMA_SRC_MOVIE && ima->ok);
+		uiBlockSetNFunc(block, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-		 but= uiDefBut(block, TEX, B_IDNAME, "IM:",				40, 155, 220, 20, ima->id.name+2, 0.0, 21.0, 0, 0, "Current Image Datablock name.");
-		 uiButSetFunc(but, test_idbutton_cb, ima->id.name, NULL);
-		 but= uiDefBut(block, BUT, imagechanged, "Reload",		260, 155, 70, 20, NULL, 0, 0, 0, 0, "Reloads Image or Movie");
-		 uiButSetFunc(but, image_reload_cb, ima, iuser);
-		 
-		 but= uiDefIconBut(block, BUT, imagechanged, ICON_X,	330, 155, 40, 20, 0, 0, 0, 0, 0, "Unlink Image block");
-		 uiButSetFunc(but, image_unlink_cb, ima_pp, NULL);
-		 sprintf(str, "%d", ima->id.us);
-		 uiDefBut(block, BUT, B_NOP, str,					370, 155, 40, 20, 0, 0, 0, 0, 0, "Only displays number of users of Image block");
-		 uiBlockEndAlign(block);
-		 
-		 uiBlockBeginAlign(block);
-		 but= uiDefIconBut(block, BUT, imagechanged, ICON_FILESEL,	0, 130, 40, 20, 0, 0, 0, 0, 0, "Open Fileselect to load new Image");
-		 uiButSetFunc(but, image_load_fs_cb, ima_pp, iuser);
-		 but= uiDefBut(block, TEX, imagechanged, "",				40,130, 340+(drawpack?0:20),20, ima->name, 0.0, 239.0, 0, 0, "Image/Movie file name, change to load new");
-		 uiButSetFunc(but, image_load_cb, ima_pp, iuser);
-		 uiBlockEndAlign(block);
-		 
-		 if(drawpack) {
-			 if (ima->packedfile) packdummy = 1;
-			 else packdummy = 0;
-			 but= uiDefIconButBitI(block, TOG, 1, redraw, ICON_PACKAGE, 380, 130, 40, 20, &packdummy, 0, 0, 0, 0, "Toggles Packed status of this Image");
-			 uiButSetFunc(but, image_pack_cb, ima, iuser);
-		 }
-		 
-	 }
-	 else {
-		 but= uiDefBut(block, BUT, imagechanged, "Load",		33, 155, 200,20, NULL, 0, 0, 0, 0, "Load new Image of Movie");
-		 uiButSetFunc(but, image_load_fs_cb, ima_pp, iuser);
-	 }
-	 uiBlockEndAlign(block);
-	 
-	 if(ima) {
-		 ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser);
-		 
-		 /* check for re-render, only buttons */
-		 if(imagechanged==B_IMAGECHANGED) {
-			 if(iuser->flag & IMA_ANIM_REFRESHED) {
-				 iuser->flag &= ~IMA_ANIM_REFRESHED;
-				 WM_event_add_notifier(C, NC_IMAGE, ima);
-			 }
-		 }
-		 
-		 /* multilayer? */
-		 if(ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
-			 uiblock_layer_pass_arrow_buttons(block, ima->rr, iuser, imagechanged);
-		 }
-		 else {
-			 image_info(ima, ibuf, str);
-			 uiDefBut(block, LABEL, 0, str,		10, 112, 300, 20, NULL, 1, 0, 0, 0, "");
-		 }
-		 
-		 /* exception, let's do because we only use this panel 3 times in blender... but not real good code! */
-		 if( (paint_facesel_test(CTX_data_active_object(C))) && sima && &sima->iuser==iuser)
-			 return;
-		 /* left side default per-image options, right half the additional options */
-		 
-		 /* fields */
-		 
-		 but= uiDefButBitS(block, OPTION, IMA_FIELDS, imagechanged, "Fields",	0, 80, 200, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
-		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, OPTION, IMA_STD_FIELD, B_NOP, "Odd",				0, 55, 200, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		if(ima->source == IMA_SRC_VIEWER) {
+			ibuf= BKE_image_get_ibuf(ima, iuser);
+			image_info(ima, ibuf, str);
+
+			uiItemL(layout, ima->id.name+2, 0);
+			uiItemL(layout, str, 0);
+
+			if(ima->type==IMA_TYPE_COMPOSITE) {
+				// XXX not working yet
+#if 0
+				iuser= ntree_get_active_iuser(scene->nodetree);
+				if(iuser) {
+					uiBlockBeginAlign(block);
+					uiDefIconTextBut(block, BUT, B_SIMA_RECORD, ICON_REC, "Record",	10,120,100,20, 0, 0, 0, 0, 0, "");
+					uiDefIconTextBut(block, BUT, B_SIMA_PLAY, ICON_PLAY, "Play",	110,120,100,20, 0, 0, 0, 0, 0, "");
+					but= uiDefBut(block, BUT, B_NOP, "Free Cache",	210,120,100,20, 0, 0, 0, 0, 0, "");
+					uiButSetFunc(but, image_freecache_cb, ima, NULL);
+					
+					if(iuser->frames)
+						sprintf(str, "(%d) Frames:", iuser->framenr);
+					else strcpy(str, "Frames:");
+					uiBlockBeginAlign(block);
+					uiDefButI(block, NUM, imagechanged, str,		10, 90,150, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+					uiDefButI(block, NUM, imagechanged, "StartFr:",	160,90,150,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
+				}
+#endif
+			}
+			else if(ima->type==IMA_TYPE_R_RESULT) {
+				/* browse layer/passes */
+				uiblock_layer_pass_arrow_buttons(layout, RE_GetResult(RE_GetRender(scene->id.name)), iuser);
+			}
+		}
+		else {
+			row= uiLayoutRow(layout, 0);
+			uiItemR(row, NULL, 0, &imaptr, "source", (compact)? 0: UI_ITEM_R_EXPAND);
+
+			if(ima->source != IMA_SRC_GENERATED) {
+				row= uiLayoutRow(layout, 0);
+				uiItemR(row, "", 0, &imaptr, "filename", 0);
+				//uiItemO(row, "Reload", 0, "image.reload");
+			}
+
+			// XXX what was this for?
+#if 0
+			 /* check for re-render, only buttons */
+			if(imagechanged==B_IMAGECHANGED) {
+				if(iuser->flag & IMA_ANIM_REFRESHED) {
+					iuser->flag &= ~IMA_ANIM_REFRESHED;
+					WM_event_add_notifier(C, NC_IMAGE, ima);
+				}
+			}
+#endif
+
+			/* multilayer? */
+			if(ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
+				uiblock_layer_pass_arrow_buttons(layout, ima->rr, iuser);
+			}
+			else if(ima->source != IMA_SRC_GENERATED) {
+				ibuf= BKE_image_get_ibuf(ima, iuser);
+				image_info(ima, ibuf, str);
+				uiItemL(layout, str, 0);
+			}
 		
-		 
-		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
-		 uiDefButBitS(block, OPTION, IMA_ANTIALI, B_NOP, "Anti-Aliasing",		0, 5, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, OPTION, IMA_DO_PREMUL, imagechanged, "Premultiply",		0, -20, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
-		 
-		 
-		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-			 sprintf(str, "(%d) Frames:", iuser->framenr);
-			 
-			 //uiBlockBeginAlign(block);
-			 uiBlockSetFunc(block, image_user_change, iuser, NULL);
-			 			 
-			 if(ima->anim) {
-			 	 uiBlockBeginAlign(block);
-				 uiDefButI(block, NUM, imagechanged, str,						220, 80, 160, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
-				 but= uiDefBut(block, BUT, redraw, "<",							380, 80, 40, 20, 0, 0, 0, 0, 0, "Copies number of frames in movie file to Frames: button");
-				 uiButSetFunc(but, set_frames_cb, ima, iuser);
-				 uiBlockEndAlign(block);
-			 }
-			 else 
-				 uiDefButI(block, NUM, imagechanged, str,						220, 80, 200, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
-			 
-			 uiDefButI(block, NUM, imagechanged, "Start Frame:",				220, 55, 200, 20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
-			 uiDefButI(block, NUM, imagechanged, "Offset:",						220, 30, 200, 20, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the frame to use in the animation");
-			 uiDefButS(block, NUM, imagechanged, "Fields:",						0, 30, 200, 20, &iuser->fie_ima, 1.0, 200.0, 0, 0, "The number of fields per rendered frame (2 fields is 1 image)");
-			 
-			uiDefButBitS(block, OPTION, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	220, 5, 200, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
+			if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				split= uiLayoutSplit(layout, 0);
 
-			 uiDefButS(block, OPTION, imagechanged, "Cyclic",						220, -20, 200, 20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
-			 
-			 uiBlockSetFunc(block, NULL, iuser, NULL);
-		 }
-		 else if(ima->source==IMA_SRC_GENERATED) {
-			 
-			 uiDefBut(block, LABEL, 0, "Size:",					220, 80, 200, 20, 0, 0, 0, 0, 0, "");	
+				col= uiLayoutColumn(split, 0);
+				 
+				sprintf(str, "(%d) Frames:", iuser->framenr);
+				row= uiLayoutRow(col, 1);
+				uiItemR(col, str, 0, userptr, "frames", 0);
+				if(ima->anim) {
+					block= uiLayoutGetBlock(row);
+					but= uiDefBut(block, BUT, 0, "<", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, 0, 0, 0, 0, 0, "Set the number of frames from the movie or sequence.");
+					uiButSetFunc(but, set_frames_cb, ima, iuser);
+				}
 
-			 uiBlockBeginAlign(block);
-			 uiBlockSetFunc(block, image_generated_change_cb, ima, iuser);
-			 uiDefButS(block, NUM, imagechanged, "X:",	220, 55,200,20, &ima->gen_x, 1.0, 5000.0, 0, 0, "Image size x");
-			 uiDefButS(block, NUM, imagechanged, "Y:",	220, 35,200,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
-			 uiBlockEndAlign(block);
-			 
-			 uiDefButS(block, OPTION, imagechanged, "UV Test grid", 220,10,200,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
-			 uiBlockSetFunc(block, NULL, NULL, NULL);
-		 }
-	 }
-	 uiBlockEndAlign(block);
-}	
+				uiItemR(col, "Start", 0, userptr, "start_frame", 0);
+				uiItemR(col, NULL, 0, userptr, "offset", 0);
+
+				col= uiLayoutColumn(split, 0);
+				uiItemR(col, "Fields", 0, userptr, "fields_per_frame", 0);
+				uiItemR(col, NULL, 0, userptr, "auto_refresh", 0);
+				uiItemR(col, NULL, 0, userptr, "cyclic", 0);
+			}
+			else if(ima->source==IMA_SRC_GENERATED) {
+				split= uiLayoutSplit(layout, 0);
+
+				col= uiLayoutColumn(split, 1);
+				uiItemR(col, "X", 0, &imaptr, "generated_width", 0);
+				uiItemR(col, "Y", 0, &imaptr, "generated_height", 0);
+
+				col= uiLayoutColumn(split, 0);
+				uiItemR(col, NULL, 0, &imaptr, "generated_type", UI_ITEM_R_EXPAND);
+			}
+
+			if(ima->source != IMA_SRC_GENERATED) {
+				uiItemS(layout);
+
+				split= uiLayoutSplit(layout, 0);
+
+				col= uiLayoutColumn(split, 0);
+				uiItemR(col, NULL, 0, &imaptr, "fields", 0);
+				row= uiLayoutRow(col, 0);
+				uiItemR(row, "Odd", 0, &imaptr, "odd_fields", 0);
+				uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
+
+				col= uiLayoutColumn(split, 0);
+				uiItemR(col, NULL, 0, &imaptr, "antialias", 0);
+				uiItemR(col, NULL, 0, &imaptr, "premultiply", 0);
+			}
+		}
+
+		uiBlockSetNFunc(block, NULL, NULL, NULL);
+	}
+
+	MEM_freeN(cb);
+}
 
 void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser *iuser)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
 	Scene *scene= CTX_data_scene(C);
 	RenderResult *rr;
 
@@ -1389,55 +1080,46 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 	if(ima && iuser) {
 		rr= BKE_image_get_renderresult(scene, ima);
 
-		if(rr) {
-			uiBlockBeginAlign(block);
-			uiblock_layer_pass_buttons(block, rr, iuser, 0, 0, 0, 160);
-			uiBlockEndAlign(block);
-		}
+		if(rr)
+			uiblock_layer_pass_buttons(layout, rr, iuser, 160);
 	}
 }
 
-static void image_panel_properties(const bContext *C, Panel *pa)
+static int image_panel_uv_poll(const bContext *C, PanelType *pt)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
+	Object *obedit= CTX_data_edit_object(C);
+	return ED_uvedit_test(obedit);
+}
+
+static void image_panel_uv(const bContext *C, Panel *pa)
+{
+	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 
-	/* note, it draws no bottom half in facemode, for vertex buttons */
-	ED_image_uiblock_panel(C, block, &sima->image, &sima->iuser, B_REDR, B_REDR);
 	image_editvertex_buts(C, block);
+	image_editcursor_buts(C, &ar->v2d, block);
 }	
 
 void image_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel properties");
-	strcpy(pt->idname, "IMAGE_PT_properties");
-	strcpy(pt->label, "Image Properties");
-	pt->draw= image_panel_properties;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel paint");
-	strcpy(pt->idname, "IMAGE_PT_paint");
-	strcpy(pt->label, "Paint");
-	pt->draw= image_panel_paint;
-	pt->poll= image_panel_paint_poll;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel paint color");
-	strcpy(pt->idname, "IMAGE_PT_paint_color");
-	strcpy(pt->label, "Paint Color");
-	pt->draw= image_panel_paintcolor;
-	pt->poll= image_panel_paint_poll;
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
+	strcpy(pt->idname, "IMAGE_PT_uv");
+	strcpy(pt->label, "UV");
+	pt->draw= image_panel_uv;
+	pt->poll= image_panel_uv_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel curves");
 	strcpy(pt->idname, "IMAGE_PT_curves");
 	strcpy(pt->label, "Curves");
 	pt->draw= image_panel_curves;
+	pt->poll= image_panel_poll;
+	pt->flag |= PNL_DEFAULT_CLOSED;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel gpencil");

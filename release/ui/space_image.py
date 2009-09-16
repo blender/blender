@@ -277,6 +277,24 @@ class IMAGE_HT_header(bpy.types.Header):
 		if show_uvedit or sima.image_painting:
 			layout.itemR(sima, "update_automatically", text="")
 
+class IMAGE_PT_image_properties(bpy.types.Panel):
+	__space_type__ = 'IMAGE_EDITOR'
+	__region_type__ = 'UI'
+	__label__ = "Image"
+
+	def poll(self, context):
+		sima = context.space_data
+		return (sima.image)
+
+	def draw(self, context):
+		layout = self.layout
+
+		sima = context.space_data
+		ima = sima.image
+		iuser = sima.image_user
+
+		layout.template_image(sima, "image", iuser, compact=True)
+
 class IMAGE_PT_game_properties(bpy.types.Panel):
 	__space_type__ = 'IMAGE_EDITOR'
 	__region_type__ = 'UI'
@@ -368,6 +386,92 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 			#col.itemR(uvedit, "draw_edges")
 			#col.itemR(uvedit, "draw_faces")
 
+class IMAGE_PT_paint(bpy.types.Panel):
+	__space_type__ = 'IMAGE_EDITOR'
+	__region_type__ = 'UI'
+	__label__ = "Paint"
+
+	def poll(self, context):
+		sima = context.space_data
+		return sima.show_paint
+
+	def draw(self, context):
+		layout = self.layout
+		
+		settings = context.tool_settings.image_paint
+		brush = settings.brush
+
+		col = layout.split().column()
+		row = col.row()
+		row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
+			
+		col.template_ID(settings, "brush", new="brush.add")
+                
+		row = layout.row(align=True)
+		row.item_enumR(settings, "tool", 'DRAW')
+		row.item_enumR(settings, "tool", 'SOFTEN')
+		row.item_enumR(settings, "tool", 'CLONE')
+		row.item_enumR(settings, "tool", 'SMEAR')
+			
+		col = layout.column()
+		col.itemR(brush, "color", text="")
+
+		row = col.row(align=True)
+		row.itemR(brush, "size", slider=True)
+		row.itemR(brush, "size_pressure", toggle=True, text="")
+		
+		row = col.row(align=True)
+		row.itemR(brush, "strength", slider=True)
+		row.itemR(brush, "strength_pressure", toggle=True, text="")
+		
+		col.itemR(brush, "blend", text="Blend")
+
+class IMAGE_PT_paint_stroke(bpy.types.Panel):
+	__space_type__ = 'IMAGE_EDITOR'
+	__region_type__ = 'UI'
+	__label__ = "Paint Stroke"
+	__default_closed__ = True
+
+	def poll(self, context):
+		sima = context.space_data
+		return sima.show_paint
+
+	def draw(self, context):
+		layout = self.layout
+		
+		settings = context.tool_settings.image_paint
+		brush = settings.brush
+
+		layout.itemR(brush, "airbrush")
+		col = layout.column()
+		col.active = brush.airbrush
+		col.itemR(brush, "rate", slider=True)
+
+		layout.itemR(brush, "space")
+		row = layout.row(align=True)
+		row.active = brush.space
+		row.itemR(brush, "spacing", text="Distance", slider=True)
+		row.itemR(brush, "spacing_pressure", toggle=True, text="")	
+
+class IMAGE_PT_paint_curve(bpy.types.Panel):
+	__space_type__ = 'IMAGE_EDITOR'
+	__region_type__ = 'UI'
+	__label__ = "Paint Curve"
+	__default_closed__ = True
+
+	def poll(self, context):
+		sima = context.space_data
+		return sima.show_paint
+
+	def draw(self, context):
+		layout = self.layout
+		
+		settings = context.tool_settings.image_paint
+		brush = settings.brush
+
+		layout.template_curve_mapping(brush, "curve")
+		layout.item_menu_enumO("brush.curve_preset", property="shape")
+
 bpy.types.register(IMAGE_MT_view)
 bpy.types.register(IMAGE_MT_select)
 bpy.types.register(IMAGE_MT_image)
@@ -377,5 +481,10 @@ bpy.types.register(IMAGE_MT_uvs_mirror)
 bpy.types.register(IMAGE_MT_uvs_weldalign)
 bpy.types.register(IMAGE_MT_uvs)
 bpy.types.register(IMAGE_HT_header)
+bpy.types.register(IMAGE_PT_image_properties)
+bpy.types.register(IMAGE_PT_paint)
+bpy.types.register(IMAGE_PT_paint_stroke)
+bpy.types.register(IMAGE_PT_paint_curve)
 bpy.types.register(IMAGE_PT_game_properties)
 bpy.types.register(IMAGE_PT_view_properties)
+

@@ -77,7 +77,7 @@ int ED_uvedit_test(Object *obedit)
 	EditMesh *em;
 	int ret;
 
-	if(obedit->type != OB_MESH)
+	if(!obedit || obedit->type != OB_MESH)
 		return 0;
 
 	em = BKE_mesh_get_editmesh(obedit->data);

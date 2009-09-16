@@ -46,19 +46,24 @@ const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 Paint *paint_get_active(Scene *sce)
 {
-	if(sce && sce->basact && sce->basact->object) {
+	if(sce) {
 		ToolSettings *ts = sce->toolsettings;
-
-		switch(sce->basact->object->mode) {
-		case OB_MODE_SCULPT:
-			return &ts->sculpt->paint;
-		case OB_MODE_VERTEX_PAINT:
-			return &ts->vpaint->paint;
-		case OB_MODE_WEIGHT_PAINT:
-			return &ts->wpaint->paint;
-		case OB_MODE_TEXTURE_PAINT:
-			return &ts->imapaint.paint;
+		
+		if(sce->basact && sce->basact->object) {
+			switch(sce->basact->object->mode) {
+			case OB_MODE_SCULPT:
+				return &ts->sculpt->paint;
+			case OB_MODE_VERTEX_PAINT:
+				return &ts->vpaint->paint;
+			case OB_MODE_WEIGHT_PAINT:
+				return &ts->wpaint->paint;
+			case OB_MODE_TEXTURE_PAINT:
+				return &ts->imapaint.paint;
+			}
 		}
+
+		/* default to image paint */
+		return &ts->imapaint.paint;
 	}
 
 	return NULL;

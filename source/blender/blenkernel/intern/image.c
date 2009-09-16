@@ -277,7 +277,7 @@ static Image *image_alloc(const char *name, short source, short type)
 		
 		ima->xrep= ima->yrep= 1;
 		ima->aspx= ima->aspy= 1.0;
-		ima->gen_x= 256; ima->gen_y= 256;
+		ima->gen_x= 1024; ima->gen_y= 1024;
 		ima->gen_type= 1;	/* no defines yet? */
 		
 		ima->source= source;
@@ -1472,9 +1472,11 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			iuser->ok= 1;
 		break;
 	case IMA_SIGNAL_SRC_CHANGE:
-		if(ima->type==IMA_TYPE_MULTILAYER)
-			image_free_buffers(ima);
-		else if(ima->source==IMA_SRC_GENERATED) {
+		if(ima->type == IMA_TYPE_UV_TEST)
+			if(ima->source != IMA_SRC_GENERATED)
+				ima->type= IMA_TYPE_IMAGE;
+
+		if(ima->source==IMA_SRC_GENERATED) {
 			if(ima->gen_x==0 || ima->gen_y==0) {
 				ImBuf *ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
 				if(ibuf) {
@@ -1483,6 +1485,9 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 				}
 			}
 		}
+
+		image_free_buffers(ima);
+
 		ima->ok= 1;
 		if(iuser)
 			iuser->ok= 1;
@@ -2090,8 +2095,8 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 			else if(ima->source == IMA_SRC_GENERATED) {
 				/* generated is: ibuf is allocated dynamically */
 				/* UV testgrid or black or solid etc */
-				if(ima->gen_x==0) ima->gen_x= 256;
-				if(ima->gen_y==0) ima->gen_y= 256;
+				if(ima->gen_x==0) ima->gen_x= 1024;
+				if(ima->gen_y==0) ima->gen_y= 1024;
 				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;

@@ -212,6 +212,15 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 		return dc_rgb_items;
 }
 
+static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+
+	curvemapping_do_ibuf(sima->cumap, ED_space_image_buffer(sima));
+	WM_event_add_notifier(C, NC_IMAGE, sima->image);
+}
+
+
 /* Space Text Editor */
 
 static void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
@@ -809,7 +818,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "curves", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "cumap");
 	RNA_def_property_ui_text(prop, "Curves", "Color curve mapping to use for displaying the image.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_curves_update");
 
 	prop= RNA_def_property(srna, "image_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pin", 0);

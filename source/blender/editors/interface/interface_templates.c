@@ -2125,17 +2125,4 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 }
 
-/************************* Image Template **************************/
-
-#include "ED_image.h"
-
-void uiTemplateTextureImage(uiLayout *layout, bContext *C, Tex *tex)
-{
-	uiBlock *block;
-
-	if(tex) {
-		block= uiLayoutFreeBlock(layout);
-		ED_image_uiblock_panel(C, block, &tex->ima, &tex->iuser, 0, 0);
-	}
-}
 
