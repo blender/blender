@@ -1140,7 +1140,7 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 		if(az->type==AZONE_AREA)
 			WM_cursor_set(win, CURSOR_EDIT);
 		else if(az->type==AZONE_REGION) {
-			if(az->x1==az->x2)
+			if(az->edge == 'l' || az->edge == 'r')
 				WM_cursor_set(win, CURSOR_X_MOVE);
 			else
 				WM_cursor_set(win, CURSOR_Y_MOVE);
