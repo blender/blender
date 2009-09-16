@@ -213,11 +213,18 @@ NetRenderSettings.BoolProperty( attr="server_broadcast",
 				description="broadcast server address on local network",
 				default = True)
 
-NetRenderSettings.StringProperty( attr="path",
-				name="Path",
-				description="Path for temporary files",
-				maxlen = 128,
-				default = "/tmp/")
+if os.name == 'nt':
+	NetRenderSettings.StringProperty( attr="path",
+					name="Path",
+					description="Path for temporary files",
+					maxlen = 128,
+					default = "C:/tmp/")
+else:
+	NetRenderSettings.StringProperty( attr="path",
+					name="Path",
+					description="Path for temporary files",
+					maxlen = 128,
+					default = "/tmp/")
 
 NetRenderSettings.StringProperty( attr="job_name",
 				name="Job name",
