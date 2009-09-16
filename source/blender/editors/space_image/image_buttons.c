@@ -1014,13 +1014,31 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				image_info(ima, ibuf, str);
 				uiItemL(layout, str, 0);
 			}
-		
+			
+			if(ima->source != IMA_SRC_GENERATED) {
+				uiItemS(layout);
+
+				split= uiLayoutSplit(layout, 0);
+
+				col= uiLayoutColumn(split, 0);
+				uiItemR(col, NULL, 0, &imaptr, "fields", 0);
+				row= uiLayoutRow(col, 0);
+				uiItemR(row, NULL, 0, &imaptr, "field_order", UI_ITEM_R_EXPAND);
+				uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
+
+				col= uiLayoutColumn(split, 0);
+				uiItemR(col, NULL, 0, &imaptr, "antialias", 0);
+				uiItemR(col, NULL, 0, &imaptr, "premultiply", 0);
+			}
+
 			if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				uiItemS(layout);
+				
 				split= uiLayoutSplit(layout, 0);
 
 				col= uiLayoutColumn(split, 0);
 				 
-				sprintf(str, "(%d) Frames:", iuser->framenr);
+				sprintf(str, "(%d) Frames", iuser->framenr);
 				row= uiLayoutRow(col, 1);
 				uiItemR(col, str, 0, userptr, "frames", 0);
 				if(ima->anim) {
@@ -1048,22 +1066,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				uiItemR(col, NULL, 0, &imaptr, "generated_type", UI_ITEM_R_EXPAND);
 			}
 
-			if(ima->source != IMA_SRC_GENERATED) {
-				uiItemS(layout);
-
-				split= uiLayoutSplit(layout, 0);
-
-				col= uiLayoutColumn(split, 0);
-				uiItemR(col, NULL, 0, &imaptr, "fields", 0);
-				row= uiLayoutRow(col, 0);
-				uiItemR(row, "Odd", 0, &imaptr, "odd_fields", 0);
-				uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
-
-				col= uiLayoutColumn(split, 0);
-				uiItemR(col, NULL, 0, &imaptr, "antialias", 0);
-				uiItemR(col, NULL, 0, &imaptr, "premultiply", 0);
-			}
-		}
+					}
 
 		uiBlockSetNFunc(block, NULL, NULL, NULL);
 	}

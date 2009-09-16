@@ -217,6 +217,10 @@ static void rna_def_image(BlenderRNA *brna)
 		{0, "UV", 0, "UV Coordinates", "Use UV coordinates for mapping the image"},
 		{IMA_REFLECT, "REFLECTION", 0, "Reflection", "Use reflection mapping for mapping the image"},
 		{0, NULL, 0, NULL, NULL}};
+	static const EnumPropertyItem prop_field_order_items[]= {
+		{0, "EVEN", 0, "Even", "Even Fields first"},
+		{IMA_STD_FIELD, "Odd", 0, "Odd", "Odd Fields first"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Image", "ID");
 	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image.");
@@ -242,17 +246,18 @@ static void rna_def_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
 	RNA_def_property_ui_text(prop, "Packed File", "");
-
+	
+	prop= RNA_def_property(srna, "field_order", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_field_order_items);
+	RNA_def_property_ui_text(prop, "Field Order", "Order of video fields. Select which lines are displayed first.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	
 	/* booleans */
 	prop= RNA_def_property(srna, "fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
 	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image.");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_fields_update");
-
-	prop= RNA_def_property(srna, "odd_fields", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_STD_FIELD);
-	RNA_def_property_ui_text(prop, "Odd Fields", "Standard field toggle.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
 
 	prop= RNA_def_property(srna, "antialias", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANTIALI);
