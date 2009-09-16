@@ -1449,16 +1449,7 @@ static void node_composit_buts_vecblur(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_filter(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	uiBut *bt;
-	
-	/* blend type */
-	bt=uiDefButS(block, MENU, B_NODE_EXEC, "Soften %x0|Sharpen %x1|Laplace %x2|Sobel %x3|Prewitt %x4|Kirsch %x5|Shadow %x6",
-				 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-				 &node->custom1, 0, 0, 0, 0, "");
-	uiButSetFunc(bt, node_but_title_cb, node, bt);
+	uiItemR(layout, "", 0, ptr, "filter_type", 0);
 }
 
 static void node_composit_buts_flip(uiLayout *layout, PointerRNA *ptr)
