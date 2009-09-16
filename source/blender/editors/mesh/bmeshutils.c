@@ -503,7 +503,6 @@ void EDBM_clear_flag_all(BMEditMesh *em, int flag)
 	}
 }
 
-
 void EDBM_set_flag_all(BMEditMesh *em, int flag)
 {
 	BMIter iter;
