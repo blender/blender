@@ -245,6 +245,11 @@ void free_scene(Scene *sce)
 		base= base->next;
 	}
 	/* do not free objects! */
+	
+	if(sce->gpd) {
+		sce->gpd->id.us--;
+		sce->gpd= NULL;
+	}
 
 	BLI_freelistN(&sce->base);
 	seq_free_editing(sce);
@@ -399,11 +404,13 @@ Scene *add_scene(char *name)
 	sce->unit.scale_length = 1.0f;
 
 	pset= &sce->toolsettings->particle;
-	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
+	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER|PE_AUTO_VELOCITY;
 	pset->emitterdist= 0.25f;
 	pset->totrekey= 5;
 	pset->totaddkey= 5;
 	pset->brushtype= PE_BRUSH_NONE;
+	pset->draw_step= 2;
+	pset->fade_frames= 2;
 	for(a=0; a<PE_TOT_BRUSH; a++) {
 		pset->brush[a].strength= 50;
 		pset->brush[a].size= 50;
@@ -853,14 +860,3 @@ float get_render_aosss_error(RenderData *r, float error)
 		return error;
 }
 
-void free_dome_warp_text(struct Text *txt)
-{
-	Scene *scene;
-
-	scene = G.main->scene.first;
-	while(scene) {
-		if (scene->r.dometext == txt)
-			scene->r.dometext = NULL;
-		scene = scene->id.next;
-	}
-}

@@ -13,9 +13,7 @@ class DATA_PT_preview(DataButtonsPanel):
 	__label__ = "Preview"
 
 	def draw(self, context):
-		layout = self.layout
-
-		layout.template_preview(context.lamp)
+		self.layout.template_preview(context.lamp)
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
 	__show_header__ = False
@@ -69,8 +67,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		if lamp.type == 'AREA':
 			col.itemR(lamp, "distance")
 			col.itemR(lamp, "gamma")
-
-			
+	
 		col = split.column()
 		col.itemR(lamp, "negative")
 		col.itemR(lamp, "layer", text="This Layer Only")
@@ -78,7 +75,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		col.itemR(lamp, "diffuse")	
 
 class DATA_PT_sunsky(DataButtonsPanel):
-	__label__ = "Sun/Sky"
+	__label__ = "Sky & Atmosphere"
 	
 	def poll(self, context):
 		lamp = context.lamp
@@ -89,9 +86,8 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		
 		lamp = context.lamp.sky
 
-		row = layout.row()
-		row.itemR(lamp, "sky")
-		row.itemR(lamp, "atmosphere")
+		layout.itemR(lamp, "sky")
+		
 		
 		row = layout.row()
 		row.active = lamp.sky or lamp.atmosphere
@@ -101,38 +97,39 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		
 		col = split.column()
 		col.active = lamp.sky
-		col.itemL(text="Blend Mode:")
-		sub = col.column(align=True)
+		col.itemL(text="Blending:")
+		sub = col.column()
 		sub.itemR(lamp, "sky_blend_type", text="")
 		sub.itemR(lamp, "sky_blend", text="Factor")
 		
 		col.itemL(text="Color Space:")
-		sub = col.column(align=True)
-		sub.itemR(lamp, "sky_color_space", text="")
+		sub = col.column()
+		sub.row().itemR(lamp, "sky_color_space", expand=True)
 		sub.itemR(lamp, "sky_exposure", text="Exposure")
 			
 		col = split.column()
 		col.active = lamp.sky
 		col.itemL(text="Horizon:")
-		sub = col.column(align=True)
+		sub = col.column()
 		sub.itemR(lamp, "horizon_brightness", text="Brightness")
 		sub.itemR(lamp, "spread", text="Spread")
 		
 		col.itemL(text="Sun:")
-		sub = col.column(align=True)
+		sub = col.column()
 		sub.itemR(lamp, "sun_brightness", text="Brightness")
 		sub.itemR(lamp, "sun_size", text="Size")
 		sub.itemR(lamp, "backscattered_light", slider=True,text="Back Light")
 		
 		layout.itemS()
 		
+		layout.itemR(lamp, "atmosphere")
+		
 		split = layout.split()
 		
 		col = split.column()
 		col.active = lamp.atmosphere
-		col.itemL(text="Sun:")
-		col.itemR(lamp, "sun_intensity", text="Intensity")
-		col.itemL(text="Scale Distance:")
+		col.itemL(text="Intensity:")
+		col.itemR(lamp, "sun_intensity", text="Sun")
 		col.itemR(lamp, "atmosphere_distance_factor", text="Distance")
 			
 		col = split.column()
@@ -299,18 +296,12 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 	def poll(self, context):
 		lamp = context.lamp
 
-		if lamp and lamp.type in ('POINT', 'SPOT'):
-			if lamp.falloff_type == 'CUSTOM_CURVE':
-				return True
-
-		return False
+		return (lamp and lamp.type in ('POINT', 'SPOT') and lamp.falloff_type == 'CUSTOM_CURVE')
 
 	def draw(self, context):
-		layout = self.layout
-		
 		lamp = context.lamp
 
-		layout.template_curve_mapping(lamp.falloff_curve)
+		self.layout.template_curve_mapping(lamp.falloff_curve)
 
 bpy.types.register(DATA_PT_context_lamp)
 bpy.types.register(DATA_PT_preview)

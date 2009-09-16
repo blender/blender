@@ -419,6 +419,7 @@ typedef struct VolumeOb
 typedef struct MatInside {
 	struct MatInside *next, *prev;
 	struct Material *ma;
+	struct ObjectInstanceRen *obi;
 } MatInside;
 
 typedef struct VolPrecachePart

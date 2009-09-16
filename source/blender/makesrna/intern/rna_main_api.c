@@ -40,14 +40,14 @@
 
 #include "DNA_mesh_types.h"
 
-Mesh *rna_Main_add_mesh(Main *main, char *name)
+static Mesh *rna_Main_add_mesh(Main *main, char *name)
 {
 	Mesh *me= add_mesh(name);
 	me->id.us--;
 	return me;
 }
 
-void rna_Main_remove_mesh(Main *main, ReportList *reports, Mesh *me)
+static void rna_Main_remove_mesh(Main *main, ReportList *reports, Mesh *me)
 {
 	if(me->id.us == 0)
 		free_libblock(&main->mesh, me);

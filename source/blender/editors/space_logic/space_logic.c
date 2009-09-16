@@ -102,6 +102,13 @@ static SpaceLink *logic_new(const bContext *C)
 	slogic= MEM_callocN(sizeof(SpaceLogic), "initlogic");
 	slogic->spacetype= SPACE_LOGIC;
 	
+	/* default options */
+	slogic->scaflag =	(BUTS_SENS_SEL|BUTS_SENS_ACT|BUTS_SENS_LINK) 	|
+						(BUTS_CONT_SEL|BUTS_CONT_ACT|BUTS_CONT_LINK) 	|
+						(BUTS_ACT_SEL|BUTS_ACT_ACT|BUTS_ACT_LINK)		|
+						(BUTS_SENS_STATE|BUTS_ACT_STATE);
+	
+	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for logic");
 	

@@ -1,7 +1,7 @@
-/* DataToC output of file <splash_jpg> */
+/* DataToC output of file <splash_png> */
 
-int datatoc_splash_jpg_size= 79258;
-char datatoc_splash_jpg[]= {
+int datatoc_splash_png_size= 79258;
+char datatoc_splash_png[]= {
 255,216,255,224,  0, 16, 74, 70, 73, 70,  0,  1,  1,  1,  0, 72,  0, 72,  0,  0,255,225,  0, 22, 69,120,
 105,102,  0,  0, 77, 77,  0, 42,  0,  0,  0,  8,  0,  0,  0,  0,  0,  0,255,219,  0, 67,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,
   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  1,  1,  2,

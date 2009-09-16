@@ -115,7 +115,7 @@ void GPU_free_images(void);
 
 /* smoke drawing functions */
 void GPU_free_smoke(struct SmokeModifierData *smd);
-void GPU_create_smoke(struct SmokeModifierData *smd);
+void GPU_create_smoke(struct SmokeModifierData *smd, int highres);
 
 #ifdef __cplusplus
 }

@@ -88,7 +88,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_anim_api.h"
 #include "ED_previewrender.h"
 #include "ED_view3d.h"
 
@@ -349,8 +348,14 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='p') {
-					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL))
-						assign_material(base->object, mat, base->object->actcol);
+					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL)) {
+						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
+						Material ***matar= give_matarar(base->object);
+						int actcol= MAX2(base->object->actcol > 0, 1) - 1;
+
+						if(matar && actcol < base->object->totcol)
+							(*matar)[actcol]= mat;
+					}
 				}
 			}
 		}
@@ -730,7 +735,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 			
 			/* database can have created render-resol data... */
 			if(rstats->convertdone) 
-				ED_anim_dag_flush_update(C); // <--- only current scene XXX
+				DAG_scene_flush_update(scene, scene->lay, 0);
 			
 			//printf("dbase update\n");
 		}

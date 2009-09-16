@@ -54,7 +54,10 @@ struct FluidsimSettings;
 struct ParticleSystem;
 struct DerivedMesh;
 struct SculptSession;
+struct bGPdata;
 
+
+/* Vertex Groups - Name Info */
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
 	char name[32];
@@ -109,6 +112,8 @@ typedef struct Object {
 	struct bAction *poselib;
 	struct bPose *pose;	
 	void *data;
+	
+	struct bGPdata *gpd;	/* Grease Pencil data */
 	
 	ListBase constraintChannels; // XXX depreceated... old animation system
 	ListBase effect;
@@ -209,7 +214,7 @@ typedef struct Object {
 	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 
-	ListBase constraints;
+	ListBase constraints;		/* object constraints */
 	ListBase nlastrips;			// XXX depreceated... old animation system
 	ListBase hooks;
 	ListBase particlesystem;	/* particle systems */
@@ -510,6 +515,8 @@ extern Object workob;
 #define OB_LOCK_SCALEY	128
 #define OB_LOCK_SCALEZ	256
 #define OB_LOCK_SCALE	448
+#define OB_LOCK_ROTW	512
+#define OB_LOCK_ROT4D	1024
 
 /* ob->mode */
 typedef enum ObjectMode {

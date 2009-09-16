@@ -95,7 +95,7 @@ void ED_operatortypes_armature(void);
 void ED_keymap_armature(struct wmWindowManager *wm);
 
 /* editarmature.c */
-void ED_armature_from_edit(struct Scene *scene, struct Object *obedit);
+void ED_armature_from_edit(struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
 void ED_armature_edit_free(struct Object *ob);
 void ED_armature_edit_remake(struct Object *obedit);
@@ -115,6 +115,8 @@ void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionVi
 void transform_armature_mirror_update(struct Object *obedit);
 void clear_armature(struct Scene *scene, struct Object *ob, char mode);
 void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
+
+void ED_armature_apply_transform(struct Object *ob, float mat[4][4]);
 
 #define ARM_GROUPS_NAME		1
 #define ARM_GROUPS_ENVELOPE	2

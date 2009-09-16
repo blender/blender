@@ -66,6 +66,7 @@ void BRUSH_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Brush";
+    ot->description= "Add brush by mode type.";
 	ot->idname= "BRUSH_OT_add";
 	
 	/* api callbacks */

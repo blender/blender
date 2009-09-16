@@ -57,19 +57,17 @@ static void rna_MetaBall_update_data(bContext *C, PointerRNA *ptr)
 	MetaBall *mb= ptr->id.data;
 	Object *ob;
 
-	for(ob=bmain->object.first; ob; ob= ob->id.next) {
-		if(ob->data == mb) {
+	for(ob=bmain->object.first; ob; ob= ob->id.next)
+		if(ob->data == mb)
 			copy_mball_properties(scene, ob);
-			/* XXX this will loop over all objects again (slow) */
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
-		}
-	}
+
+	DAG_id_flush_update(&mb->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
 }
 
 #else
 
-void rna_def_metaelement(BlenderRNA *brna)
+static void rna_def_metaelement(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -145,7 +143,7 @@ void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 }
 
-void rna_def_metaball(BlenderRNA *brna)
+static void rna_def_metaball(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

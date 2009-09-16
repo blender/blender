@@ -159,14 +159,8 @@ void ED_area_overdraw_flush(bContext *C, ScrArea *sa, ARegion *ar)
 	for(az= sa->actionzones.first; az; az= az->next) {
 		int xs, ys;
 		
-		if(az->type==AZONE_AREA) {
-			xs= (az->x1+az->x2)/2;
-			ys= (az->y1+az->y2)/2;
-		}
-		else {
-			xs= az->x3;
-			ys= az->y3;
-		}
+		xs= (az->x1+az->x2)/2;
+		ys= (az->y1+az->y2)/2;
 
 		/* test if inside */
 		if(BLI_in_rcti(&ar->winrct, xs, ys)) {
@@ -196,25 +190,42 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 	fdrawline(xmin, ymax-2*dy+1, xmax-2*dx+1, ymin);
 }
 
+
 static void region_draw_azone(ScrArea *sa, AZone *az)
 {
+	GLUquadricObj *qobj = gluNewQuadric(); 
+	short midx = az->x1 + (az->x2 - az->x1)/2;
+	short midy = az->y1 + (az->y2 - az->y1)/2;
+	
 	if(az->ar==NULL) return;
 	
-	UI_SetTheme(sa->spacetype, az->ar->type->regionid);
+	/* only display action zone icons when the region is hidden */
+	if (!(az->ar->flag & RGN_FLAG_HIDDEN)) return;
 	
-	UI_ThemeColor(TH_BACK);
-	glBegin(GL_TRIANGLES);
-	glVertex2s(az->x1, az->y1);
-	glVertex2s(az->x2, az->y2);
-	glVertex2s(az->x3, az->y3);
-	glEnd();
+	glPushMatrix(); 	
+	glTranslatef(midx, midy, 0.); 
 	
-	UI_ThemeColorShade(TH_BACK, 50);
-	sdrawline(az->x1, az->y1, az->x3, az->y3);
-	
-	UI_ThemeColorShade(TH_BACK, -50);
-	sdrawline(az->x2, az->y2, az->x3, az->y3);
+	/* outlined circle */
+	glEnable(GL_LINE_SMOOTH);
 
+	glColor4f(1.f, 1.f, 1.f, 0.8f);
+
+	gluQuadricDrawStyle(qobj, GLU_FILL); 
+	gluDisk( qobj, 0.0,  4.25f, 16, 1); 
+
+	glColor4f(0.2f, 0.2f, 0.2f, 0.9f);
+	
+	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
+	gluDisk( qobj, 0.0,  4.25f, 16, 1); 
+	
+	glDisable(GL_LINE_SMOOTH);
+	
+	glPopMatrix();
+	gluDeleteQuadric(qobj);
+	
+	/* + */
+	sdrawline(midx, midy-2, midx, midy+3);
+	sdrawline(midx-2, midy, midx+3, midy);
 }
 
 
@@ -235,10 +246,11 @@ void ED_area_overdraw(bContext *C)
 		AZone *az;
 		for(az= sa->actionzones.first; az; az= az->next) {
 			if(az->do_draw) {
-				if(az->type==AZONE_AREA)
+				if(az->type==AZONE_AREA) {
 					area_draw_azone(az->x1, az->y1, az->x2, az->y2);
-				else if(az->type==AZONE_REGION)
+				} else if(az->type==AZONE_REGION) {
 					region_draw_azone(sa, az);
+				}
 				
 				az->do_draw= 0;
 			}
@@ -449,9 +461,91 @@ static void area_azone_initialize(ScrArea *sa)
 	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
+#define AZONEPAD_EDGE	4
+#define AZONEPAD_ICON	8
+static void region_azone_edge(AZone *az, ARegion *ar)
+{
+	if(az->edge=='t') {
+		az->x1= ar->winrct.xmin;
+		az->y1= ar->winrct.ymax - AZONEPAD_EDGE;
+		az->x2= ar->winrct.xmax;
+		az->y2= ar->winrct.ymax;
+	}
+	else if(az->edge=='b') {
+		az->x1= ar->winrct.xmin;
+		az->y1= ar->winrct.ymin + AZONEPAD_EDGE;
+		az->x2= ar->winrct.xmax;
+		az->y2= ar->winrct.ymin;
+	}
+	else if(az->edge=='l') {
+		az->x1= ar->winrct.xmin;
+		az->y1= ar->winrct.ymin;
+		az->x2= ar->winrct.xmin + AZONEPAD_EDGE;
+		az->y2= ar->winrct.ymax;
+	}
+	else { // if(az->edge=='r') {
+		az->x1= ar->winrct.xmax;
+		az->y1= ar->winrct.ymin;
+		az->x2= ar->winrct.xmax - AZONEPAD_EDGE;
+		az->y2= ar->winrct.ymax;
+	}
+
+	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+}
+
+static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
+{
+	AZone *azt;
+	
+	if(az->edge=='t') {
+		az->x1= ar->winrct.xmax - AZONEPAD_ICON;
+		az->y1= ar->winrct.ymax + AZONEPAD_ICON;
+		az->x2= ar->winrct.xmax - 2*AZONEPAD_ICON;
+		az->y2= ar->winrct.ymax + 2*AZONEPAD_ICON;
+	}
+	else if(az->edge=='b') {
+		az->x1= ar->winrct.xmin + AZONEPAD_ICON;
+		az->y1= ar->winrct.ymin - AZONEPAD_ICON;
+		az->x2= ar->winrct.xmin + 2*AZONEPAD_ICON;
+		az->y2= ar->winrct.ymin - 2*AZONEPAD_ICON;
+	}
+	else if(az->edge=='l') {
+		az->x1= ar->winrct.xmin - 2*AZONEPAD_ICON;
+		az->y1= ar->winrct.ymax - 2*AZONEPAD_ICON;
+		az->x2= ar->winrct.xmin - AZONEPAD_ICON;
+		az->y2= ar->winrct.ymax - AZONEPAD_ICON;
+	}
+	else { // if(az->edge=='r') {
+		az->x1= ar->winrct.xmax + AZONEPAD_ICON;
+		az->y1= ar->winrct.ymax - 2*AZONEPAD_ICON;
+		az->x2= ar->winrct.xmax + 2*AZONEPAD_ICON;
+		az->y2= ar->winrct.ymax - AZONEPAD_ICON;
+	}
+
+	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	
+	/* if more azones on 1 spot, set offset */
+	for(azt= sa->actionzones.first; azt; azt= azt->next) {
+		if(az!=azt) {
+			if( ABS(az->x1-azt->x1) < 2 && ABS(az->y1-azt->y1) < 2) {
+				if(az->edge=='t' || az->edge=='b') {
+					az->x1+= AZONESPOT;
+					az->x2+= AZONESPOT;
+					BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+				}
+				else {
+					az->y1-= AZONESPOT;
+					az->y2-= AZONESPOT;
+					BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+				}
+			}
+		}
+	}
+}
+
 static void region_azone_initialize(ScrArea *sa, ARegion *ar, char edge) 
 {
-	AZone *az, *azt;
+	AZone *az;
 	
 	az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
@@ -459,61 +553,10 @@ static void region_azone_initialize(ScrArea *sa, ARegion *ar, char edge)
 	az->ar= ar;
 	az->edge= edge;
 	
-	if(edge=='t') {
-		az->x1= ar->winrct.xmin+AZONESPOT;
-		az->y1= ar->winrct.ymax;
-		az->x2= ar->winrct.xmin+2*AZONESPOT;
-		az->y2= ar->winrct.ymax;
-		az->x3= (az->x1+az->x2)/2;
-		az->y3= az->y2+AZONESPOT/2;
-		BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y3);
-	}
-	else if(edge=='b') {
-		az->x1= ar->winrct.xmin+AZONESPOT;
-		az->y1= ar->winrct.ymin;
-		az->x2= ar->winrct.xmin+2*AZONESPOT;
-		az->y2= ar->winrct.ymin;
-		az->x3= (az->x1+az->x2)/2;
-		az->y3= az->y2-AZONESPOT/2;
-		BLI_init_rcti(&az->rect, az->x1, az->x2, az->y3, az->y1);
-	}
-	else if(edge=='l') {
-		az->x1= ar->winrct.xmin;
-		az->y1= ar->winrct.ymax-AZONESPOT;
-		az->x2= ar->winrct.xmin;
-		az->y2= ar->winrct.ymax-2*AZONESPOT;
-		az->x3= az->x2-AZONESPOT/2;
-		az->y3= (az->y1+az->y2)/2;
-		BLI_init_rcti(&az->rect, az->x3, az->x1, az->y1, az->y2);
-	}
-	else { // if(edge=='r') {
-		az->x1= ar->winrct.xmax;
-		az->y1= ar->winrct.ymax-AZONESPOT;
-		az->x2= ar->winrct.xmax;
-		az->y2= ar->winrct.ymax-2*AZONESPOT;
-		az->x3= az->x2+AZONESPOT/2;
-		az->y3= (az->y1+az->y2)/2;
-		BLI_init_rcti(&az->rect, az->x1, az->x3, az->y1, az->y2);
-	}
-	
-	/* if more azones on 1 spot, set offset */
-	for(azt= sa->actionzones.first; azt; azt= azt->next) {
-		if(az!=azt) {
-			if( ABS(az->x1-azt->x1) < 2 && ABS(az->y1-azt->y1) < 2) {
-				if(edge=='t' || edge=='b') {
-					az->x1+= AZONESPOT;
-					az->x2+= AZONESPOT;
-					az->x3+= AZONESPOT;
-					BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y3);
-				}
-				else {
-					az->y1-= AZONESPOT;
-					az->y2-= AZONESPOT;
-					az->y3-= AZONESPOT;
-					BLI_init_rcti(&az->rect, az->x1, az->x3, az->y1, az->y2);
-				}
-			}
-		}
+	if (ar->flag & RGN_FLAG_HIDDEN) {
+		region_azone_icon(sa, az, ar);
+	} else {
+		region_azone_edge(az, ar);
 	}
 	
 }
@@ -797,6 +840,10 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 		ListBase *keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
+	if(flag & ED_KEYMAP_GPENCIL) {
+		ListBase *keymap= WM_keymap_listbase(wm, "Grease Pencil", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
 }
 
 
@@ -869,6 +916,19 @@ void ED_region_init(bContext *C, ARegion *ar)
 	
 }
 
+void ED_region_toggle_hidden(bContext *C, ARegion *ar)
+{
+	ScrArea *sa= CTX_wm_area(C);
+
+	ar->flag ^= RGN_FLAG_HIDDEN;
+	ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
+
+	if(ar->flag & RGN_FLAG_HIDDEN)
+		WM_event_remove_handlers(C, &ar->handlers);
+
+	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
+	ED_area_tag_redraw(sa);
+}
 
 /* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
 /* area vertices were set */
@@ -1030,7 +1090,12 @@ void ED_area_prevspace(bContext *C)
 		}
 #endif
 
-		ED_area_newspace(C, sa, sl->next->spacetype);
+		/* workaround for case of double prevspace, render window
+		   with a file browser on top of it */
+		if(sl->next->spacetype == SPACE_FILE && sl->next->next)
+			ED_area_newspace(C, sa, sl->next->next->spacetype);
+		else
+			ED_area_newspace(C, sa, sl->next->spacetype);
 	}
 	else {
 		ED_area_newspace(C, sa, SPACE_INFO);
@@ -1244,6 +1309,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 	/* before setting the view */
 	if(vertical) {
+		/* only allow scrolling in vertical direction */
 		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
 		
@@ -1254,8 +1320,12 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			y= -y;
 	}
 	else {
-		v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
-		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
+		/* for now, allow scrolling in both directions (since layouts are optimised for vertical,
+		 * they often don't fit in horizontal layout)
+		 */
+		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);
+		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
+		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)

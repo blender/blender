@@ -820,7 +820,7 @@ static char *particle_adrcodes_to_paths (int adrcode, int *array_index)
  *		- array_index			- index in property's array (if applicable) to use
  *		- return				- the allocated path...
  */
-char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], int *array_index)
+static char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], int *array_index)
 {
 	DynStr *path= BLI_dynstr_new();
 	char *propname=NULL, *rpath=NULL;

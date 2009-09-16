@@ -100,9 +100,10 @@ def create_blender_liblist(lenv = None, libtype = None):
 		sortlist.sort()
 		for sk in sortlist:
 			v = curlib[sk]
-			target = root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX']
 			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
-				target = '#'+target
+				target = os.path.abspath(os.getcwd() + os.sep + root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
+			else:
+				target = os.path.abspath(root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
 			lst.append(target)
 
 	return lst
@@ -468,7 +469,11 @@ class BlenderEnvironment(SConsEnvironment):
 		
 		print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
 		lenv = self.Clone()
-		res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
+		if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+			res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
+		else:
+			res = lenv.RES(root_build_dir+'lib/'+libname, source)
+
 		
 		SConsEnvironment.Default(self, res)
 		resources.append(res)

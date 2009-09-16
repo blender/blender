@@ -303,6 +303,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		row.itemR(strip, "frame_locked", text="Frame Lock")
 		
 		col = layout.column()
+		col.enabled = not strip.lock	
 		col.itemR(strip, "channel")
 		col.itemR(strip, "start_frame")
 		col.itemR(strip, "length")
@@ -415,23 +416,28 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		if not strip:
 			return False
 		
-		return strip.type in ('MOVIE', 'IMAGE', 'SOUND')
+		return strip.type in ('MOVIE', 'IMAGE')
 	
 	def draw(self, context):
 		layout = self.layout
 		
 		strip = act_strip(context)
 		
-		layout.itemR(strip, "directory", text="")
+		split = layout.split(percentage=0.2)
+		col = split.column()
+		col.itemL(text="Path:")
+		col = split.column()
+		col.itemR(strip, "directory", text="")
 		
 		# Current element for the filename
-		split = layout.split(percentage=0.3)
-		col = split.column()
-		col.itemL(text="File Name:")
-		col = split.column()
+		
 		
 		elem = strip.getStripElem(context.scene.current_frame)
 		if elem:
+			split = layout.split(percentage=0.2)
+			col = split.column()
+			col.itemL(text="File:")
+			col = split.column()
 			col.itemR(elem, "filename", text="") # strip.elements[0] could be a fallback
 		
 		layout.itemR(strip, "use_translation", text="Image Offset:")
@@ -454,6 +460,37 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		col.itemL(text="Trim Duration:")
 		col.itemR(strip, "animation_start_offset", text="Start")
 		col.itemR(strip, "animation_end_offset", text="End")
+
+class SEQUENCER_PT_sound(SequencerButtonsPanel):
+	__label__ = "Sound"
+	
+	def poll(self, context):
+		if context.space_data.display_mode != 'SEQUENCER':
+			return False
+		
+		strip = act_strip(context)
+		if not strip:
+			return False
+		
+		return strip.type in ('SOUND', )
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		strip = act_strip(context)
+		
+		layout.template_ID(strip, "sound", new="sound.open")
+		
+		layout.itemS()
+		layout.itemR(strip.sound, "filename", text="")
+		
+		row = layout.row()
+		if strip.sound.packed_file:
+			row.itemO("sound.unpack", icon='ICON_PACKAGE', text="Unpack")
+		else:
+			row.itemO("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
+		
+		row.itemR(strip.sound, "caching")
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"
@@ -558,6 +595,7 @@ bpy.types.register(SEQUENCER_MT_strip)
 bpy.types.register(SEQUENCER_PT_edit) # sequencer panels
 bpy.types.register(SEQUENCER_PT_effect)
 bpy.types.register(SEQUENCER_PT_input)
+bpy.types.register(SEQUENCER_PT_sound)
 bpy.types.register(SEQUENCER_PT_filter)
 bpy.types.register(SEQUENCER_PT_proxy)
 

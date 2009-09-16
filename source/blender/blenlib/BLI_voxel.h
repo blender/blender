@@ -35,6 +35,7 @@
 /* all input coordinates must be in bounding box 0.0 - 1.0 */
 float voxel_sample_nearest(float *data, int *res, float *co);
 float voxel_sample_trilinear(float *data, int *res, float *co);
-float voxel_sample_tricubic(float *data, int *res, float *co);
+float voxel_sample_triquadratic(float *data, int *res, float *co);
+float voxel_sample_tricubic(float *data, int *res, float *co, int bspline);
 
 #endif /* BLI_VOXEL_H */

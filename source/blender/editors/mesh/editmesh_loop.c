@@ -60,6 +60,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
@@ -201,6 +202,7 @@ static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int prev
 		}
 	}
 }
+
 void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 {
 #if 0
@@ -392,7 +394,7 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 		EM_selectmode_set(em);
 	}	
 	
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	return;
 #endif
 }
@@ -784,7 +786,6 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
 	BMesh *bm = em->bm;
@@ -799,6 +800,10 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	float  *scr, co[4], *percents = NULL;
 	int len=0, isected, flag, i;
 	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
+	
+	/* edit-object needed for matrix, and ar->regiondata for projections to work */
+	if (ELEM3(NULL, obedit, ar, ar->regiondata))
+		return OPERATOR_CANCELLED;
 	
 	if (bm->totvertsel < 2) {
 		error("No edges are selected to operate on");
@@ -863,19 +868,13 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	V_FREE(edges);
 	V_FREE(percents);
 
-	//if (mode==KNIFE_MIDPOINT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, 1, SUBDIV_SELECT_ORIG);
-	//else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, numcuts, SUBDIV_SELECT_ORIG);
-	//else esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD, 1, SUBDIV_SELECT_ORIG);
-	
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)WMEM_freeN);
 
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
-
 
 void MESH_OT_knife_cut(wmOperatorType *ot)
 {

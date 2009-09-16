@@ -1895,7 +1895,7 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "3D Manipulator";
-	ot->description = "";
+	ot->description = "Manipulate selected item by axis.";
 	ot->idname= "VIEW3D_OT_manipulator";
 
 	/* api callbacks */

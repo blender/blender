@@ -751,16 +751,17 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				STR_String *var = reinterpret_cast<STR_String*>(ptr);
 				if (PyUnicode_Check(value)) 
 				{
-					char *val = _PyUnicode_AsString(value);
+					Py_ssize_t val_len;
+					char *val = _PyUnicode_AsStringAndSize(value, &val_len);
 					if (attrdef->m_clamp)
 					{
-						if (strlen(val) < attrdef->m_imin)
+						if (val_len < attrdef->m_imin)
 						{
 							// can't increase the length of the string
 							PyErr_Format(PyExc_ValueError, "string length too short for attribute \"%s\"", attrdef->m_name);
 							goto FREE_AND_ERROR;
 						}
-						else if (strlen(val) > attrdef->m_imax)
+						else if (val_len > attrdef->m_imax)
 						{
 							// trim the string
 							char c = val[attrdef->m_imax];
@@ -769,7 +770,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 							val[attrdef->m_imax] = c;
 							break;
 						}
-					} else if (strlen(val) < attrdef->m_imin || strlen(val) > attrdef->m_imax)
+					} else if (val_len < attrdef->m_imin || val_len > attrdef->m_imax)
 					{
 						PyErr_Format(PyExc_ValueError, "string length out of range for attribute \"%s\"", attrdef->m_name);
 						goto FREE_AND_ERROR;
@@ -906,45 +907,47 @@ void PyObjectPlus::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
 	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
 }
 
-void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* new_way)
+void PyDebugLine()
 {
-	{
-		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
-		
-		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
-		
-		PyObject *getframe, *frame;
-		PyObject *f_lineno, *f_code, *co_filename;
-		
-		getframe = PySys_GetObject((char *)"_getframe"); // borrowed
-		if (getframe) {
-			frame = PyObject_CallObject(getframe, NULL);
-			if (frame) {
-				f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-				f_code= PyObject_GetAttrString(frame, "f_code");
-				if (f_lineno && f_code) {
-					co_filename= PyObject_GetAttrString(f_code, "co_filename");
-					if (co_filename) {
-						
-						printf("\t%s:%d\n", _PyUnicode_AsString(co_filename), (int)PyLong_AsSsize_t(f_lineno));
-						
-						Py_DECREF(f_lineno);
-						Py_DECREF(f_code);
-						Py_DECREF(co_filename);
-						Py_DECREF(frame);
-						return;
-					}
+	// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
+
+	PyObject *getframe, *frame;
+	PyObject *f_lineno, *f_code, *co_filename;
+
+	getframe = PySys_GetObject((char *)"_getframe"); // borrowed
+	if (getframe) {
+		frame = PyObject_CallObject(getframe, NULL);
+		if (frame) {
+			f_lineno= PyObject_GetAttrString(frame, "f_lineno");
+			f_code= PyObject_GetAttrString(frame, "f_code");
+			if (f_lineno && f_code) {
+				co_filename= PyObject_GetAttrString(f_code, "co_filename");
+				if (co_filename) {
+
+					printf("\t%s:%d\n", _PyUnicode_AsString(co_filename), (int)PyLong_AsSsize_t(f_lineno));
+
+					Py_DECREF(f_lineno);
+					Py_DECREF(f_code);
+					Py_DECREF(co_filename);
+					Py_DECREF(frame);
+					return;
 				}
-				
-				Py_XDECREF(f_lineno);
-				Py_XDECREF(f_code);
-				Py_DECREF(frame);
 			}
 			
+			Py_XDECREF(f_lineno);
+			Py_XDECREF(f_code);
+			Py_DECREF(frame);
 		}
-		PyErr_Clear();
-		printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
+
 	}
+	PyErr_Clear();
+	printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
+}
+
+void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* new_way)
+{
+	printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
+	PyDebugLine();
 }
 
 void PyObjectPlus::ClearDeprecationWarning()

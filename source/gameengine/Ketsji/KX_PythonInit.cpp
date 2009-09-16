@@ -32,11 +32,6 @@
 
 // directory header for py function getBlendFileList
 #include <stdlib.h>
-#ifndef WIN32
-  #include <dirent.h>
-#else
-  #include "BLI_winstuff.h"
-#endif
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -80,8 +75,6 @@ extern "C" {
 #include "InputParser.h"
 #include "KX_Scene.h"
 
-#include "NG_NetworkScene.h" //Needed for sendMessage()
-
 #include "BL_Shader.h"
 
 #include "KX_PyMath.h"
@@ -110,6 +103,13 @@ extern "C" {
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
+
+#ifndef WIN32
+  #include <dirent.h>
+#else
+  #include "BLI_winstuff.h"
+#endif
+#include "NG_NetworkScene.h" //Needed for sendMessage()
 
 static void setSandbox(TPythonSecurityLevel level);
 
@@ -448,32 +448,6 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 }
 
 
-static PyObject *gEvalExpression(PyObject*, PyObject* value)
-{
-	char* txt= _PyUnicode_AsString(value);
-	
-	if (txt==NULL) {
-		PyErr_SetString(PyExc_TypeError, "Expression.calc(text): expects a single string argument");
-		return NULL;
-	}
-	
-	CParser parser;
-	CExpression* expr = parser.ProcessText(txt);
-	CValue* val = expr->Calculate();
-	expr->Release();
-	
-	if (val) {	
-		PyObject* pyobj = val->ConvertValueToPython();
-		if (pyobj)
-			return pyobj;
-		else
-			return val->GetProxy();
-	}
-	
-	Py_RETURN_NONE;
-}
-
-
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (const char *)gPyExpandPath_doc},
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (const char *)gPySendMessage_doc},
@@ -500,7 +474,6 @@ static struct PyMethodDef game_methods[] = {
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (const char *)"Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (const char *)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (const char *)"Prints GL Extension Info"},
-	{"EvalExpression", (PyCFunction)gEvalExpression, METH_O, (const char *)"Evaluate a string as a game logic expression"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -2043,6 +2016,3 @@ void resetGamePythonPath()
 {
 	gp_GamePythonPathOrig[0] = '\0';
 }
-
-
-

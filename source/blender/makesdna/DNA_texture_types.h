@@ -448,6 +448,8 @@ typedef struct TexMapping {
 #define MTEX_BLEND_VAL		12
 #define MTEX_BLEND_COLOR	13
 #define MTEX_NUM_BLENDTYPES	14
+#define MTEX_SOFT_LIGHT     15 
+#define MTEX_LIN_LIGHT      16
 
 /* brush_map_mode */
 #define MTEX_MAP_MODE_FIXED    0
@@ -515,7 +517,10 @@ typedef struct TexMapping {
 /* interpolation */
 #define TEX_VD_NEARESTNEIGHBOR		0
 #define TEX_VD_LINEAR				1
-#define TEX_VD_TRICUBIC				2
+#define TEX_VD_QUADRATIC        2
+#define TEX_VD_TRICUBIC_CATROM  3
+#define TEX_VD_TRICUBIC_BSPLINE 4
+#define TEX_VD_TRICUBIC_SLOW    5
 
 /* file format */
 #define TEX_VD_BLENDERVOXEL		0

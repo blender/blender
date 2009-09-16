@@ -532,6 +532,37 @@ void BM_validate_selections(BMesh *em)
 	}
 }
 
+void BM_clear_flag_all(BMesh *bm, int flag)
+{
+	BMIter iter;
+	BMHeader *ele;
+	int i, type;
+
+	if (flag & BM_SELECT)
+		BM_clear_selection_history(bm);
+
+	for (i=0; i<3; i++) {
+		switch (i) {
+			case 0:
+				type = BM_VERTS_OF_MESH;
+				break;
+			case 1:
+				type = BM_EDGES_OF_MESH;
+				break;
+			case 2:
+				type = BM_FACES_OF_MESH;
+				break;
+		}
+		
+		ele = BMIter_New(&iter, bm, type, NULL);
+		for ( ; ele; ele=BMIter_Step(&iter)) {
+			if (flag & BM_SELECT) BM_Select(bm, ele, 0);
+			BM_ClearHFlag(ele, flag);
+		}
+	}
+}
+
+
 /***************** Pinning **************/
 
 #define SETPIN(ele) pin ? BM_SetHFlag(ele, BM_PINNED) : BM_ClearHFlag(ele, BM_PINNED);

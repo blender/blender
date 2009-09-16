@@ -6,7 +6,7 @@ def normpath(path):
 	return os.path.abspath(os.path.normpath(path))
 
 Import ('env')
-cflags = '-Wall'
+cflags = ['-Wall']
 defines = []
 root_build_dir=normpath(env['BF_BUILDDIR'])
 
@@ -62,6 +62,18 @@ if env['WITH_BF_GAMEENGINE']:
 if env['WITH_BF_FFTW3']:
     defs.append('FFTW3=1')
 
+if env['WITH_BF_SDL']:
+    defs.append('WITH_SDL')
+
+if env['WITH_BF_OPENAL']:
+    defs.append('WITH_OPENAL')
+
+if env['WITH_BF_JACK']:
+    defs.append('WITH_JACK')
+
+if env['BF_UNIT_TEST']:
+	defs.append('UNIT_TEST')
+
 makesrna_tool.Append(CPPDEFINES=defs)
 
 makesrna_tool.Append (CPPPATH = Split(incs))
@@ -86,6 +98,10 @@ if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	libdir = '#' + libdir
 
 makesrna_tool.Append (LIBPATH = libdir)
+
+makesrna_tool.Append( CFLAGS = env['CFLAGS'])
+makesrna_tool.Append( CCFLAGS = env['CCFLAGS'])
+makesrna_tool.Append( LINKFLAGS = env['PLATFORM_LINKFLAGS'])
 
 if env['BF_PROFILE']:
 	makesrna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])

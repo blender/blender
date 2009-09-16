@@ -453,7 +453,7 @@ void blf_font_free(FontBLF *font)
 	MEM_freeN(font);
 }
 
-void blf_font_fill(FontBLF *font)
+static void blf_font_fill(FontBLF *font)
 {
 	font->aspect= 1.0f;
 	font->pos[0]= 0.0f;

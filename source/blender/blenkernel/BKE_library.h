@@ -46,6 +46,9 @@ void *copy_libblock(void *rt);
 void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
+int id_make_local(struct ID *id, int test);
+int id_copy(struct ID *id, struct ID **newid, int test);
+int id_unlink(struct ID *id, int test);
 
 int check_for_dupid(struct ListBase *lb, struct ID *id, char *name);
 int new_id(struct ListBase *lb, struct ID *id, const char *name);
@@ -74,6 +77,7 @@ void IPOnames_to_pupstring(char **str, char *title, char *extraops, struct ListB
 
 void flag_listbase_ids(ListBase *lb, short flag, short value);
 void flag_all_listbases_ids(short flag, short value);
+void recalc_all_library_objects(struct Main *main);
 
 void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
 

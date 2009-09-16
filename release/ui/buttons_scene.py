@@ -189,20 +189,27 @@ class SCENE_PT_post_processing(RenderButtonsPanel):
 		col = split.column()
 		col.itemR(rd, "use_compositing")
 		col.itemR(rd, "use_sequencer")
-
+		
 		col = split.column()
-		row = col.row()
-		row.itemR(rd, "fields", text="Fields")
-		sub = row.row()
-		sub.active = rd.fields
-		sub.itemR(rd, "fields_still", text="Still")
-		sub = col.row()
-		sub.active = rd.fields
-		sub.itemR(rd, "field_order", expand=True)
-
+		col.itemR(rd, "dither_intensity", text="Dither", slider=True)
+		
+		layout.itemS()
+				
 		split = layout.split()
-		split.itemL()
-		split.itemR(rd, "dither_intensity", text="Dither", slider=True)
+		
+		col = split.column()
+		col.itemR(rd, "fields", text="Fields")
+		sub = col.column()
+		sub.active = rd.fields
+		sub.row().itemR(rd, "field_order", expand=True)
+		sub.itemR(rd, "fields_still", text="Still")
+		
+		col = split.column()
+		col.itemR(rd, "edge")
+		sub = col.column()
+		sub.active = rd.edge
+		sub.itemR(rd, "edge_threshold", text="Threshold", slider=True)
+		sub.itemR(rd, "edge_color", text="")
 		
 class SCENE_PT_output(RenderButtonsPanel):
 	__label__ = "Output"
@@ -222,8 +229,8 @@ class SCENE_PT_output(RenderButtonsPanel):
 
 		col = split.column()
 		col.itemR(rd, "file_extensions")
-		col.itemR(rd, "placeholders")
-		col.itemR(rd, "no_overwrite")
+		col.itemR(rd, "use_overwrite")
+		col.itemR(rd, "use_placeholder")
 
 		if rd.file_format in ('AVIJPEG', 'JPEG'):
 			split = layout.split()
@@ -323,11 +330,9 @@ class SCENE_PT_antialiasing(RenderButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
-		layout = self.layout
-		
 		rd = context.scene.render_data
 
-		layout.itemR(rd, "antialiasing", text="")
+		self.layout.itemR(rd, "antialiasing", text="")
 
 	def draw(self, context):
 		layout = self.layout
@@ -370,9 +375,9 @@ class SCENE_PT_dimensions(RenderButtonsPanel):
 		sub.itemR(rd, "pixel_aspect_y", text="Y")
 
 		row = col.row()
-		row.itemR(rd, "border", text="Border")
+		row.itemR(rd, "use_border", text="Border")
 		rowsub = row.row()
-		rowsub.active = rd.border
+		rowsub.active = rd.use_border
 		rowsub.itemR(rd, "crop_to_border", text="Crop")
 		
 		col = split.column(align=True)
@@ -391,11 +396,9 @@ class SCENE_PT_stamp(RenderButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
-		layout = self.layout
-		
 		rd = context.scene.render_data
 
-		layout.itemR(rd, "render_stamp", text="")
+		self.layout.itemR(rd, "render_stamp", text="")
 
 	def draw(self, context):
 		layout = self.layout

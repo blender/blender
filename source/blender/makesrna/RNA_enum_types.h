@@ -38,6 +38,7 @@ extern EnumPropertyItem modifier_type_items[];
 extern EnumPropertyItem constraint_type_items[];
 extern EnumPropertyItem boidrule_type_items[];
 
+extern EnumPropertyItem beztriple_keyframe_type_items[];
 extern EnumPropertyItem beztriple_handle_type_items[];
 extern EnumPropertyItem beztriple_interpolation_mode_items[];
 
@@ -52,6 +53,10 @@ extern EnumPropertyItem event_value_items[];
 extern EnumPropertyItem event_type_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
+
+extern EnumPropertyItem unpack_method_items[];
+
+extern EnumPropertyItem object_type_items[];
 
 #endif /* RNA_ENUM_TYPES */
 

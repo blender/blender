@@ -61,6 +61,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
@@ -608,7 +609,7 @@ static const EnumPropertyItem image_file_type_items[] = {
 
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
-	RNA_string_set(op->ptr, "filename", path);
+	RNA_string_set(op->ptr, "path", path);
 	WM_event_add_fileselect(C, op); 
 }
 
@@ -622,7 +623,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	Image *ima= NULL;
 	char str[FILE_MAX];
 
-	RNA_string_get(op->ptr, "filename", str);
+	RNA_string_get(op->ptr, "path", str);
 	ima= BKE_add_image_file(str, scene->r.cfra);
 
 	if(!ima)
@@ -639,7 +640,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceImage *sima= CTX_wm_space_image(C);
 	char *path= (sima->image)? sima->image->name: U.textudir;
 
-	if(RNA_property_is_set(op->ptr, "filename"))
+	if(RNA_property_is_set(op->ptr, "path"))
 		return open_exec(C, op);
 	
 	image_filesel(C, op, path);
@@ -650,7 +651,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open";
+	ot->name= "Open Image";
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */
@@ -662,7 +663,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL);
 }
 
 /******************** replace image operator ********************/
@@ -675,7 +676,7 @@ static int replace_exec(bContext *C, wmOperator *op)
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 	
-	RNA_string_get(op->ptr, "filename", str);
+	RNA_string_get(op->ptr, "path", str);
 	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)-1); /* we cant do much if the str is longer then 240 :/ */
 
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
@@ -692,7 +693,7 @@ static int replace_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 
-	if(RNA_property_is_set(op->ptr, "filename"))
+	if(RNA_property_is_set(op->ptr, "path"))
 		return replace_exec(C, op);
 
 	image_filesel(C, op, path);
@@ -715,7 +716,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL);
 }
 
 /******************** save image as operator ********************/
@@ -800,7 +801,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	sima->imtypenr= RNA_enum_get(op->ptr, "file_type");
-	RNA_string_get(op->ptr, "filename", str);
+	RNA_string_get(op->ptr, "path", str);
 
 	save_image_doit(C, sima, scene, op, str);
 
@@ -814,7 +815,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	Scene *scene= CTX_data_scene(C);
 
-	if(RNA_property_is_set(op->ptr, "filename"))
+	if(RNA_property_is_set(op->ptr, "path"))
 		return save_as_exec(C, op);
 	
 	if(!ima)
@@ -860,7 +861,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL);
 }
 
 /******************** save image operator ********************/
@@ -1165,15 +1166,6 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 }
 
 /********************* unpack operator *********************/
-
-/* XXX move this to some place where it can be reused */
-
-const EnumPropertyItem unpack_method_items[] = {
-	{PF_USE_LOCAL, "USE_LOCAL", 0, "Use Local File", ""},
-	{PF_WRITE_LOCAL, "WRITE_LOCAL", 0, "Write Local File (overwrite existing)", ""},
-	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use Original File", ""},
-	{PF_WRITE_ORIGINAL, "WRITE_ORIGINAL", 0, "Write Original File (overwrite existing)", ""},
-	{0, NULL, 0, NULL, NULL}};
 
 void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, PackedFile *pf)
 {

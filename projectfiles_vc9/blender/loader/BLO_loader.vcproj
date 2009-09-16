@@ -470,123 +470,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-			>
-			<File
-				RelativePath="..\..\..\source\blender\blenloader\intern\readblenentry.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenloader\intern\readfile.c"
-				>
-				<FileConfiguration
-					Name="Blender Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="3D Plugin Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="3D Plugin Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Blender Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="BlenderPlayer Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="BlenderPlayer Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenloader\intern\undofile.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenloader\intern\writefile.c"
-				>
-				<FileConfiguration
-					Name="Blender Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="3D Plugin Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="3D Plugin Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Blender Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="BlenderPlayer Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="BlenderPlayer Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-			</File>
-		</Filter>
-		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
@@ -606,6 +489,123 @@
 				RelativePath="..\..\..\source\blender\blenloader\BLO_undofile.h"
 				>
 			</File>
+			<Filter
+				Name="Source Files"
+				Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+				>
+				<File
+					RelativePath="..\..\..\source\blender\blenloader\intern\readblenentry.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\blenloader\intern\readfile.c"
+					>
+					<FileConfiguration
+						Name="Blender Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="BlenderPlayer Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="BlenderPlayer Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\blenloader\intern\undofile.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\blenloader\intern\writefile.c"
+					>
+					<FileConfiguration
+						Name="Blender Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="BlenderPlayer Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="BlenderPlayer Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

@@ -711,7 +711,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 	}
 }
 
-void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float *pos)
+static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float *pos)
 {
 	Brush *brush= painter->brush;
 	BrushPainterCache *cache= &painter->cache;

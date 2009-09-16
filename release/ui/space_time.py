@@ -141,8 +141,8 @@ class TIME_MT_autokey(bpy.types.Menu):
 		
 		layout.active = tools.enable_auto_key
 		
-		layout.item_enumR(tools, "autokey_mode", "ADD_REPLACE_KEYS")
-		layout.item_enumR(tools, "autokey_mode", "REPLACE_KEYS")
+		layout.item_enumR(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
+		layout.item_enumR(tools, "autokey_mode", 'REPLACE_KEYS')
 
 bpy.types.register(TIME_HT_header)
 bpy.types.register(TIME_MT_view)

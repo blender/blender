@@ -1048,7 +1048,7 @@ short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 
 /* Is the given NLA-strip the first one to occur for the given AnimData block */
 // TODO: make this an api method if necesary, but need to add prefix first
-short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
+static short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
 {
 	NlaTrack *nlt;
 	NlaStrip *ns;

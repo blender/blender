@@ -155,40 +155,37 @@ typedef struct PreviewImage {
 #endif
 
 /* ID from database */
-#define ID_SCE		MAKE_ID2('S', 'C')
-#define ID_LI		MAKE_ID2('L', 'I')
-#define ID_OB		MAKE_ID2('O', 'B')
-#define ID_ME		MAKE_ID2('M', 'E')
-#define ID_CU		MAKE_ID2('C', 'U')
-#define ID_MB		MAKE_ID2('M', 'B')
-#define ID_MA		MAKE_ID2('M', 'A')
-#define ID_TE		MAKE_ID2('T', 'E')
-#define ID_IM		MAKE_ID2('I', 'M')
-#define ID_IK		MAKE_ID2('I', 'K')
-#define ID_WV		MAKE_ID2('W', 'V')
-#define ID_LT		MAKE_ID2('L', 'T')
-#define ID_SE		MAKE_ID2('S', 'E')
-#define ID_LF		MAKE_ID2('L', 'F')
-#define ID_LA		MAKE_ID2('L', 'A')
-#define ID_CA		MAKE_ID2('C', 'A')
-#define ID_IP		MAKE_ID2('I', 'P')
-#define ID_KE		MAKE_ID2('K', 'E')
-#define ID_WO		MAKE_ID2('W', 'O')
-#define ID_SCR		MAKE_ID2('S', 'R')
-#define ID_SCRN		MAKE_ID2('S', 'N')
-#define ID_VF		MAKE_ID2('V', 'F')
-#define ID_TXT		MAKE_ID2('T', 'X')
-#define ID_SO		MAKE_ID2('S', 'O')
-#define ID_GR		MAKE_ID2('G', 'R')
-#define ID_ID		MAKE_ID2('I', 'D')
-#define ID_AR		MAKE_ID2('A', 'R')
-#define ID_AC		MAKE_ID2('A', 'C')
-#define ID_SCRIPT	MAKE_ID2('P', 'Y')
-#define ID_NT		MAKE_ID2('N', 'T')
-#define ID_BR		MAKE_ID2('B', 'R')
-#define ID_PA		MAKE_ID2('P', 'A')
-#define ID_GD		MAKE_ID2('G', 'D')
-#define ID_WM		MAKE_ID2('W', 'M')
+#define ID_SCE		MAKE_ID2('S', 'C') /* Scene */
+#define ID_LI		MAKE_ID2('L', 'I') /* Library */
+#define ID_OB		MAKE_ID2('O', 'B') /* Object */
+#define ID_ME		MAKE_ID2('M', 'E') /* Mesh */
+#define ID_CU		MAKE_ID2('C', 'U') /* Curve */
+#define ID_MB		MAKE_ID2('M', 'B') /* MetaBall */
+#define ID_MA		MAKE_ID2('M', 'A') /* Material */
+#define ID_TE		MAKE_ID2('T', 'E') /* Texture */
+#define ID_IM		MAKE_ID2('I', 'M') /* Image */
+#define ID_WV		MAKE_ID2('W', 'V') /* Wave (unused) */
+#define ID_LT		MAKE_ID2('L', 'T') /* Lattice */
+#define ID_LA		MAKE_ID2('L', 'A') /* Lamp */
+#define ID_CA		MAKE_ID2('C', 'A') /* Camera */
+#define ID_IP		MAKE_ID2('I', 'P') /* Ipo (depreciated, replaced by FCurves) */
+#define ID_KE		MAKE_ID2('K', 'E') /* Key (shape key) */
+#define ID_WO		MAKE_ID2('W', 'O') /* World */
+#define ID_SCR		MAKE_ID2('S', 'R') /* Screen */
+#define ID_SCRN		MAKE_ID2('S', 'N') /* (depreciated?) */
+#define ID_VF		MAKE_ID2('V', 'F') /* VectorFont */
+#define ID_TXT		MAKE_ID2('T', 'X') /* Text */
+#define ID_SO		MAKE_ID2('S', 'O') /* Sound */
+#define ID_GR		MAKE_ID2('G', 'R') /* Group */
+#define ID_ID		MAKE_ID2('I', 'D') /* (internal use only) */
+#define ID_AR		MAKE_ID2('A', 'R') /* Armature */
+#define ID_AC		MAKE_ID2('A', 'C') /* Action */
+#define ID_SCRIPT	MAKE_ID2('P', 'Y') /* Script (depreciated) */
+#define ID_NT		MAKE_ID2('N', 'T') /* NodeTree */
+#define ID_BR		MAKE_ID2('B', 'R') /* Brush */
+#define ID_PA		MAKE_ID2('P', 'A') /* ParticleSettings */
+#define ID_GD		MAKE_ID2('G', 'D') /* GreasePencil */
+#define ID_WM		MAKE_ID2('W', 'M') /* WindowManager */
 
 	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
 #define ID_SEQ		MAKE_ID2('S', 'Q')

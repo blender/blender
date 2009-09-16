@@ -60,6 +60,7 @@ void ED_keymap_metaball(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 	
 	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MBALL_OT_duplicate_metaelems", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "MBALL_OT_select_deselect_all_metaelems", AKEY, KM_PRESS, 0, 0);

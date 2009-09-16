@@ -758,7 +758,7 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 				data->active= a+1;
 			if(cpoin) cpoin[0]= '|';
 		}
-		if(data->items.totitem==1)
+		if(data->items.totitem==1 && but->editstr[0])
 			data->active= 1;
 	}
 

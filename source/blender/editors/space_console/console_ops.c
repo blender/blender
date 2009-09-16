@@ -190,7 +190,7 @@ ConsoleLine *console_history_verify(const bContext *C)
 static void console_line_verify_length(ConsoleLine *ci, int len)
 {
 	/* resize the buffer if needed */
-	if(len > ci->len_alloc) {
+	if(len >= ci->len_alloc) {
 		int new_len= len * 2; /* new length */
 		char *new_line= MEM_callocN(new_len, "console line");
 		memcpy(new_line, ci->line, ci->len);
@@ -232,6 +232,11 @@ static int console_edit_poll(bContext *C)
 		return 0;
 
 	return 1;
+}
+
+static int console_poll(bContext *C)
+{
+	return (CTX_wm_space_console(C) != NULL);
 }
 
 
@@ -695,6 +700,7 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= zoom_exec;
+	ot->poll= console_poll;
 
 	/* flags */
 	/* ot->flag= OPTYPE_REGISTER; */ /* super annoying */

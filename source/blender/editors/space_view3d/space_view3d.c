@@ -190,6 +190,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->lens= 35.0f;
 	v3d->near= 0.01f;
 	v3d->far= 500.0f;
+
+	v3d->twtype= V3D_MANIP_TRANSLATE;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for view3d");
@@ -452,16 +454,24 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
 				case ND_DRAW:
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
 				case ND_KEYS:
-				case ND_PARTICLE:
+				case ND_PARTICLE_SELECT:
+				case ND_PARTICLE_DATA:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_GROUP:
 			/* all group ops for now */
 			ED_region_tag_redraw(ar);
@@ -482,6 +492,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* this could be more fine grained checks if we had
 			 * more context than just the region */
 			ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -527,6 +541,10 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -576,13 +594,24 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
 				case ND_DRAW:
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -871,7 +900,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
 	art->free= view3d_main_area_free;
@@ -883,7 +912,7 @@ void ED_spacetype_view3d(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 220; // XXX
+	art->minsizex= 180; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;
 	art->init= view3d_buttons_area_init;

@@ -78,6 +78,7 @@
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
+#include "ED_gpencil.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -741,7 +742,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (printable) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(10,  ar->winy-20, 0.0f, printable);
+		BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
 	}
 
 	if (v3d->localview) {
@@ -1415,12 +1416,10 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	
-	glaDefine2DArea(&ar->winrct);
+	/* need to use wm push/pop matrix because ED_region_pixelspace
+	   uses the wm functions too, otherwise gets out of sync */
+	wmPushMatrix();
+	ED_region_pixelspace(ar);
 	
 	glEnable(GL_BLEND);
 	
@@ -1431,10 +1430,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	glPixelZoom(1.0, 1.0);
 	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 	
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	wmPopMatrix();
 	
 	glDisable(GL_BLEND);
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2082,8 +2078,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	/* draw grease-pencil stuff */
-//	if (v3d->flag2 & V3D_DISPGP)
-//		draw_gpencil_3dview(ar, 1);
+	//if (v3d->flag2 & V3D_DISPGP)
+		draw_gpencil_3dview((bContext *)C, 1);
 	
 	BDR_drawSketch(C);
 	
@@ -2099,9 +2095,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(rv3d->persp>1) drawviewborder(scene, ar, v3d);
 	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
 	
-	/* draw grease-pencil stuff */
+	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
 //	if (v3d->flag2 & V3D_DISPGP)
-//		draw_gpencil_3dview(ar, 0);
+		draw_gpencil_3dview((bContext *)C, 0);
 
 	drawcursor(scene, ar, v3d);
 	

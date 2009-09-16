@@ -200,7 +200,7 @@ static int buttons_context_path_modifier(ButsContextPath *path)
 	if(buttons_context_path_object(path)) {
 		ob= path->ptr[path->len-1].data;
 
-		if(ob && ELEM4(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF))
+		if(ob && ELEM5(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_LATTICE))
 			return 1;
 	}
 

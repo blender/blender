@@ -17,7 +17,7 @@ class DATA_PT_empty(DataButtonsPanel):
 		
 		ob = context.object
 
-		layout.itemR(ob, "empty_draw_type")
-		layout.itemR(ob, "empty_draw_size")
+		layout.itemR(ob, "empty_draw_type", text="Draw Type")
+		layout.itemR(ob, "empty_draw_size", text="Draw Size")
 		
 bpy.types.register(DATA_PT_empty)

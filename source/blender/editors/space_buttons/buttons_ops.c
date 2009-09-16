@@ -35,6 +35,8 @@
 #include "DNA_group_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
@@ -42,21 +44,27 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
+#include "BKE_bvhutils.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_group.h"
 #include "BKE_font.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 #include "BKE_tessmesh.h"
 
+#include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 
@@ -68,6 +76,7 @@
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
+#include "ED_particle.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -77,133 +86,6 @@
 
 #include "buttons_intern.h"	// own include
 
-
-/********************** group operators *********************/
-
-static int group_add_exec(bContext *C, wmOperator *op)
-{
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Base *base;
-	Group *group;
-	int value= RNA_enum_get(op->ptr, "group");
-
-	if(!ob)
-		return OPERATOR_CANCELLED;
-	
-	base= object_in_scene(ob, scene);
-	if(!base)
-		return OPERATOR_CANCELLED;
-	
-	if(value == -1)
-		group= add_group( "Group" );
-	else
-		group= BLI_findlink(&bmain->group, value);
-
-	if(group) {
-		add_to_group(group, ob);
-		ob->flag |= OB_FROMGROUP;
-		base->flag |= OB_FROMGROUP;
-	}
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	
-	return OPERATOR_FINISHED;
-}
-
-static EnumPropertyItem group_items[]= {
-	{-1, "ADD_NEW", 0, "Add New Group", ""},
-	{0, NULL, 0, NULL, NULL}};
-
-static EnumPropertyItem *group_itemf(bContext *C, PointerRNA *ptr, int *free)
-{	
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	EnumPropertyItem *item= NULL;
-	Main *bmain;
-	Group *group;
-	int a, totitem= 0;
-	
-	if(!C) /* needed for docs */
-		return group_items;
-	
-	RNA_enum_items_add_value(&item, &totitem, group_items, -1);
-
-	bmain= CTX_data_main(C);
-	if(bmain->group.first)
-		RNA_enum_item_add_separator(&item, &totitem);
-
-	for(a=0, group=bmain->group.first; group; group=group->id.next, a++) {
-		tmp.value= a;
-		tmp.identifier= group->id.name+2;
-		tmp.name= group->id.name+2;
-		RNA_enum_item_add(&item, &totitem, &tmp);
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-
-	*free= 1;
-
-	return item;
-}
-
-void OBJECT_OT_group_add(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-
-	/* identifiers */
-	ot->name= "Add Group";
-	ot->idname= "OBJECT_OT_group_add";
-	
-	/* api callbacks */
-	ot->exec= group_add_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* properties */
-	prop= RNA_def_enum(ot->srna, "group", group_items, -1, "Group", "Group to add object to.");
-	RNA_def_enum_funcs(prop, group_itemf);
-}
-
-static int group_remove_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Group *group= CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
-	Base *base;
-
-	if(!ob || !group)
-		return OPERATOR_CANCELLED;
-
-	base= object_in_scene(ob, scene);
-	if(!base)
-		return OPERATOR_CANCELLED;
-
-	rem_from_group(group, ob);
-
-	if(find_group(ob, NULL) == NULL) {
-		ob->flag &= ~OB_FROMGROUP;
-		base->flag &= ~OB_FROMGROUP;
-	}
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_group_remove(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Remove Group";
-	ot->idname= "OBJECT_OT_group_remove";
-	
-	/* api callbacks */
-	ot->exec= group_remove_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
 
 /********************** material slot operators *********************/
 
@@ -225,6 +107,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_add";
+	ot->description="Add a new material slot or duplicate the selected one.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_add_exec;
@@ -251,6 +134,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_remove";
+	ot->description="Remove the selected material slot.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_remove_exec;
@@ -261,7 +145,6 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 
 static int material_slot_assign_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
 	if(!ob)
@@ -300,8 +183,8 @@ static int material_slot_assign_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-    DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-    WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+    DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+    WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -311,6 +194,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Assign Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_assign";
+	ot->description="Assign the material in the selected material slot to the selected vertices.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_assign_exec;
@@ -381,7 +265,7 @@ static int material_slot_de_select(bContext *C, int select)
 		}
 	}
 
-    WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+    WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -396,6 +280,7 @@ void OBJECT_OT_material_slot_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_select";
+	ot->description="Select vertices assigned to the selected material slot.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_select_exec;
@@ -414,6 +299,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Deselect Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_deselect";
+	ot->description="Deselect vertices assigned to the selected material slot.";
 	
 	/* api callbacks */
 	ot->exec= material_slot_deselect_exec;
@@ -461,6 +347,7 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Material";
 	ot->idname= "MATERIAL_OT_new";
+	ot->description="Add a new material.";
 	
 	/* api callbacks */
 	ot->exec= new_material_exec;
@@ -513,6 +400,7 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Texture";
 	ot->idname= "TEXTURE_OT_new";
+	ot->description="Add a new texture.";
 	
 	/* api callbacks */
 	ot->exec= new_texture_exec;
@@ -549,6 +437,7 @@ void WORLD_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New World";
 	ot->idname= "WORLD_OT_new";
+	ot->description= "Add a new world.";
 	
 	/* api callbacks */
 	ot->exec= new_world_exec;
@@ -580,6 +469,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Particle System Slot";
 	ot->idname= "OBJECT_OT_particle_system_add";
+	ot->description="Add a particle system.";
 	
 	/* api callbacks */
 	ot->exec= particle_system_add_exec;
@@ -607,6 +497,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Particle System Slot";
 	ot->idname= "OBJECT_OT_particle_system_remove";
+	ot->description="Remove the selected particle system.";
 	
 	/* api callbacks */
 	ot->exec= particle_system_remove_exec;
@@ -616,6 +507,12 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 }
 
 /********************** new particle settings operator *********************/
+
+static int psys_poll(bContext *C)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	return (ptr.data != NULL);
+}
 
 static int new_particle_settings_exec(bContext *C, wmOperator *op)
 {
@@ -646,7 +543,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *op)
 	psys_check_boid_data(psys);
 
 	DAG_scene_sort(scene);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
@@ -658,9 +555,11 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Particle Settings";
 	ot->idname= "PARTICLE_OT_new";
+	ot->description="Add new particle settings.";
 	
 	/* api callbacks */
 	ot->exec= new_particle_settings_exec;
+	ot->poll= psys_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -692,7 +591,7 @@ static int new_particle_target_exec(bContext *C, wmOperator *op)
 	BLI_addtail(&psys->targets, pt);
 
 	DAG_scene_sort(scene);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
@@ -704,6 +603,7 @@ void PARTICLE_OT_new_target(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Particle Target";
 	ot->idname= "PARTICLE_OT_new_target";
+	ot->description="Add a new particle target.";
 	
 	/* api callbacks */
 	ot->exec= new_particle_target_exec;
@@ -739,7 +639,7 @@ static int remove_particle_target_exec(bContext *C, wmOperator *op)
 		pt->flag |= PTARGET_CURRENT;
 
 	DAG_scene_sort(scene);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
@@ -751,6 +651,7 @@ void PARTICLE_OT_remove_target(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Particle Target";
 	ot->idname= "PARTICLE_OT_remove_target";
+	ot->description="Remove the selected particle target.";
 	
 	/* api callbacks */
 	ot->exec= remove_particle_target_exec;
@@ -763,7 +664,6 @@ void PARTICLE_OT_remove_target(wmOperatorType *ot)
 
 static int target_move_up_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
@@ -778,7 +678,7 @@ static int target_move_up_exec(bContext *C, wmOperator *op)
 			BLI_remlink(&psys->targets, pt);
 			BLI_insertlink(&psys->targets, pt->prev->prev, pt);
 
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 			break;
 		}
@@ -790,9 +690,9 @@ static int target_move_up_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 {
 	ot->name= "Move Up Target";
-	ot->description= "Move particle target up in the list.";
 	ot->idname= "PARTICLE_OT_target_move_up";
-
+	ot->description= "Move particle target up in the list.";
+	
 	ot->exec= target_move_up_exec;
 	
 	/* flags */
@@ -803,7 +703,6 @@ void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 
 static int target_move_down_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
@@ -817,7 +716,7 @@ static int target_move_down_exec(bContext *C, wmOperator *op)
 			BLI_remlink(&psys->targets, pt);
 			BLI_insertlink(&psys->targets, pt->next, pt);
 
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 			break;
 		}
@@ -829,13 +728,232 @@ static int target_move_down_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 {
 	ot->name= "Move Down Target";
-	ot->description= "Move particle target down in the list.";
 	ot->idname= "PARTICLE_OT_target_move_down";
-
+	ot->description= "Move particle target down in the list.";
+	
 	ot->exec= target_move_down_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ connect/disconnect hair operators *********************/
+
+static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
+{
+	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
+	ParticleData *pa = psys->particles;
+	PTCacheEdit *edit = psys->edit;
+	PTCacheEditPoint *point = edit ? edit->points : NULL;
+	PTCacheEditKey *ekey = NULL;
+	HairKey *key;
+	int i, k;
+	float hairmat[4][4];
+
+	if(!ob || !psys || psys->flag & PSYS_GLOBAL_HAIR)
+		return;
+
+	if(!psys->part || psys->part->type != PART_HAIR)
+		return;
+
+	for(i=0; i<psys->totpart; i++,pa++) {
+		if(point) {
+			ekey = point->keys;
+			point++;
+		}
+
+		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+
+		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
+			Mat4MulVecfl(hairmat,key->co);
+			
+			if(ekey) {
+				ekey->flag &= ~PEK_USE_WCO;
+				ekey++;
+			}
+		}
+	}
+
+	psys_free_path_cache(psys, psys->edit);
+
+	psys->flag |= PSYS_GLOBAL_HAIR;
+
+	PE_update_object(scene, ob, 0);
+}
+
+static int disconnect_hair_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= NULL;
+	int all = RNA_boolean_get(op->ptr, "all");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	if(all) {
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			disconnect_hair(scene, ob, psys);
+		}
+	}
+	else {
+		psys = ptr.data;
+		disconnect_hair(scene, ob, psys);
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
+{
+	ot->name= "Disconnect Hair";
+	ot->description= "Disconnect hair from the emitter mesh.";
+	ot->idname= "PARTICLE_OT_disconnect_hair";
+	
+	ot->exec= disconnect_hair_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Disconnect all hair systems from the emitter mesh");
+}
+
+static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
+{
+	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
+	ParticleData *pa = psys->particles;
+	PTCacheEdit *edit = psys->edit;
+	PTCacheEditPoint *point = edit ? edit->points : NULL;
+	PTCacheEditKey *ekey;
+	HairKey *key;
+	BVHTreeFromMesh bvhtree;
+	BVHTreeNearest nearest;
+	MFace *mface;
+	DerivedMesh *dm = NULL;
+	int numverts;
+	int i, k;
+	float hairmat[4][4], imat[4][4];
+	float v[4][3], vec[3];
+
+	if(!psys || !psys->part || psys->part->type != PART_HAIR)
+		return;
+
+	if(psmd->dm->deformedOnly)
+		dm= psmd->dm;
+	else
+		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+
+	numverts = dm->getNumVerts (dm);
+
+	memset( &bvhtree, 0, sizeof(bvhtree) );
+
+	/* convert to global coordinates */
+	for (i=0; i<numverts; i++)
+		Mat4MulVecfl (ob->obmat, CDDM_get_vert(dm, i)->co);
+
+	bvhtree_from_mesh_faces(&bvhtree, dm, 0.0, 2, 6);
+
+	for(i=0; i<psys->totpart; i++,pa++) {
+		key = pa->hair;
+
+		nearest.index = -1;
+		nearest.dist = FLT_MAX;
+
+		BLI_bvhtree_find_nearest(bvhtree.tree, key->co, &nearest, bvhtree.nearest_callback, &bvhtree);
+
+		if(nearest.index == -1) {
+			printf("No nearest point found for hair root!");
+			continue;
+		}
+
+		mface = CDDM_get_tessface(dm,nearest.index);
+
+		VecCopyf(v[0], CDDM_get_vert(dm,mface->v1)->co);
+		VecCopyf(v[1], CDDM_get_vert(dm,mface->v2)->co);
+		VecCopyf(v[2], CDDM_get_vert(dm,mface->v3)->co);
+		if(mface->v4) {
+			VecCopyf(v[3], CDDM_get_vert(dm,mface->v4)->co);
+			MeanValueWeights(v, 4, nearest.co, pa->fuv);
+		}
+		else
+			MeanValueWeights(v, 3, nearest.co, pa->fuv);
+
+		pa->num = nearest.index;
+		pa->num_dmcache = psys_particle_dm_face_lookup(ob,psmd->dm,pa->num,pa->fuv,NULL);
+		
+		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+		Mat4Invert(imat,hairmat);
+
+		VECSUB(vec, nearest.co, key->co);
+
+		if(point) {
+			ekey = point->keys;
+			point++;
+		}
+
+		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
+			VECADD(key->co, key->co, vec);
+			Mat4MulVecfl(imat,key->co);
+
+			if(ekey) {
+				ekey->flag |= PEK_USE_WCO;
+				ekey++;
+			}
+		}
+	}
+
+	free_bvhtree_from_mesh(&bvhtree);
+	if(!psmd->dm->deformedOnly)
+		dm->release(dm);
+
+	psys_free_path_cache(psys, psys->edit);
+
+	psys->flag &= ~PSYS_GLOBAL_HAIR;
+
+	PE_update_object(scene, ob, 0);
+}
+
+static int connect_hair_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= NULL;
+	int all = RNA_boolean_get(op->ptr, "all");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	if(all) {
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			connect_hair(scene, ob, psys);
+		}
+	}
+	else {
+		psys = ptr.data;
+		connect_hair(scene, ob, psys);
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_connect_hair(wmOperatorType *ot)
+{
+	ot->name= "Connect Hair";
+	ot->description= "Connect hair to the emitter mesh.";
+	ot->idname= "PARTICLE_OT_connect_hair";
+	
+	ot->exec= connect_hair_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Connect all hair systems to the emitter mesh");
 }
 
 /********************** render layer operators *********************/
@@ -857,6 +975,7 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Render Layer";
 	ot->idname= "SCENE_OT_render_layer_add";
+	ot->description="Add a render layer.";
 	
 	/* api callbacks */
 	ot->exec= render_layer_add_exec;
@@ -902,6 +1021,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Render Layer";
 	ot->idname= "SCENE_OT_render_layer_remove";
+	ot->description="Remove the selected render layer.";
 	
 	/* api callbacks */
 	ot->exec= render_layer_remove_exec;
@@ -935,6 +1055,7 @@ void BUTTONS_OT_toolbox(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toolbox";
 	ot->idname= "BUTTONS_OT_toolbox";
+	ot->description="Toolbar panel? DOC_BROKEN";
 	
 	/* api callbacks */
 	ot->invoke= toolbox_invoke;
@@ -952,7 +1073,10 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	FileBrowseOp *fbo= op->customdata;
 	char *str;
 	
-	str= RNA_string_get_alloc(op->ptr, "filename", 0, 0);
+	if (RNA_property_is_set(op->ptr, "path")==0 || fbo==NULL)
+		return OPERATOR_CANCELLED;
+	
+	str= RNA_string_get_alloc(op->ptr, "path", 0, 0);
 	RNA_property_string_set(&fbo->ptr, fbo->prop, str);
 	RNA_property_update(C, &fbo->ptr, fbo->prop);
 	MEM_freeN(str);
@@ -1000,6 +1124,7 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "File Browse";
 	ot->idname= "BUTTONS_OT_file_browse";
+	ot->description="Open a file browser.";
 	
 	/* api callbacks */
 	ot->invoke= file_browse_invoke;
@@ -1007,6 +1132,6 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	ot->cancel= file_browse_cancel;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, 0);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL);
 }
 

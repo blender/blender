@@ -381,7 +381,10 @@ class TEXTURE_PT_blend(TextureTypePanel):
 		tex = context.texture
 
 		layout.itemR(tex, "progression")
-		layout.itemR(tex, "flip_axis")
+		sub = layout.row()
+
+		sub.active = (tex.progression in ('LINEAR', 'QUADRATIC', 'EASING', 'RADIAL'))
+		sub.itemR(tex, "flip_axis", expand=True)
 			
 class TEXTURE_PT_stucci(TextureTypePanel):
 	__label__ = "Stucci"
@@ -609,7 +612,7 @@ class TEXTURE_PT_distortednoise(TextureTypePanel):
 		layout.itemR(tex, "noise_basis", text="Basis")
 		
 		flow = layout.column_flow()
-		flow.itemR(tex, "distortion_amount", text="Distortion")
+		flow.itemR(tex, "distortion", text="Distortion")
 		flow.itemR(tex, "noise_size", text="Size")
 		flow.itemR(tex, "nabla")	
 		
@@ -623,6 +626,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		tex = context.texture
 		vd = tex.voxeldata
 
@@ -631,12 +635,13 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
 			layout.itemR(vd, "source_path")
 		if vd.file_format == 'RAW_8BIT':
 			layout.itemR(vd, "resolution")
-		if vd.file_format == 'SMOKE':
+		elif vd.file_format == 'SMOKE':
 			layout.itemR(vd, "domain_object")
 		
 		layout.itemR(vd, "still")
-		if vd.still:
-			layout.itemR(vd, "still_frame_number")
+		row = layout.row()
+		row.active = vd.still
+		row.itemR(vd, "still_frame_number")
 		
 		layout.itemR(vd, "interpolation")
 		layout.itemR(vd, "intensity")
@@ -651,27 +656,89 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		tex = context.texture
 		pd = tex.pointdensity
-
-		layout.itemR(pd, "point_source")
-		layout.itemR(pd, "object")
-		if pd.point_source == 'PARTICLE_SYSTEM':
-			layout.item_pointerR(pd, "particle_system", pd.object, "particle_systems", text="")
-		layout.itemR(pd, "radius")
-		layout.itemR(pd, "falloff")
-		if pd.falloff == 'SOFT':
-			layout.itemR(pd, "falloff_softness")
-		layout.itemR(pd, "color_source")
-		layout.itemR(pd, "turbulence")
-		layout.itemR(pd, "turbulence_size")
-		layout.itemR(pd, "turbulence_depth")
-		layout.itemR(pd, "turbulence_influence")
 		
+		layout.itemR(pd, "point_source", expand=True)
+
+		split = layout.split()
+		
+		col = split.column()
+		if pd.point_source == 'PARTICLE_SYSTEM':
+			col.itemL(text="Object:")
+			col.itemR(pd, "object", text="")
+			
+			sub = col.column()
+			sub.enabled = pd.object
+			if pd.object:
+				sub.itemL(text="System:")
+				sub.item_pointerR(pd, "particle_system", pd.object, "particle_systems", text="")
+			sub.itemL(text="Cache:")
+			sub.itemR(pd, "particle_cache", text="")
+		else:
+			col.itemL(text="Object:")
+			col.itemR(pd, "object", text="")
+			col.itemL(text="Cache:")
+			col.itemR(pd, "vertices_cache", text="")
+		
+		col.itemS()
+		
+		col.itemL(text="Color Source:")	
+		col.itemR(pd, "color_source", text="")
+		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_VELOCITY'):
+			col.itemR(pd, "speed_scale")
+		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_AGE'):
+			layout.template_color_ramp(pd.color_ramp, expand=True)
+
+		col = split.column()
+		col.itemL()
+		col.itemR(pd, "radius")
+		col.itemL(text="Falloff:")
+		col.itemR(pd, "falloff", text="")
+		if pd.falloff == 'SOFT':
+			col.itemR(pd, "falloff_softness")
+
+class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
+	__label__ = "Turbulence"
+	
+	def poll(self, context):
+		tex = context.texture
+		return (tex and tex.type == 'POINT_DENSITY')
+		
+	def draw_header(self, context):
+		layout = self.layout
+		
+		tex = context.texture
+		pd = tex.pointdensity
+		
+		layout.itemR(pd, "turbulence", text="")
+		
+	def draw(self, context):
+		layout = self.layout
+		
+		tex = context.texture
+		pd = tex.pointdensity
+		layout.active = pd.turbulence
+
+		split = layout.split()
+		
+		col = split.column()
+		col.itemL(text="Influence:")
+		col.itemR(pd, "turbulence_influence", text="")
+		col.itemL(text="Noise Basis:")
+		col.itemR(pd, "noise_basis", text="")
+		
+		col = split.column()
+		col.itemL()		
+		col.itemR(pd, "turbulence_size")
+		col.itemR(pd, "turbulence_depth")
+		col.itemR(pd, "turbulence_strength")
 
 bpy.types.register(TEXTURE_PT_context_texture)
 bpy.types.register(TEXTURE_PT_preview)
-bpy.types.register(TEXTURE_PT_clouds)
+
+bpy.types.register(TEXTURE_PT_clouds) # Texture Type Panels
 bpy.types.register(TEXTURE_PT_wood)
 bpy.types.register(TEXTURE_PT_marble)
 bpy.types.register(TEXTURE_PT_magic)
@@ -687,6 +754,8 @@ bpy.types.register(TEXTURE_PT_voronoi)
 bpy.types.register(TEXTURE_PT_distortednoise)
 bpy.types.register(TEXTURE_PT_voxeldata)
 bpy.types.register(TEXTURE_PT_pointdensity)
+bpy.types.register(TEXTURE_PT_pointdensity_turbulence)
+
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)

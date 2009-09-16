@@ -102,13 +102,13 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sculpt.h"
 #include "BKE_softbody.h"
 
 #include "LBM_fluidsim.h"
@@ -285,6 +285,7 @@ void free_object(Object *ob)
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->dup_group) ob->dup_group->id.us--;
+	if(ob->gpd) ob->gpd->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
@@ -481,15 +482,15 @@ void unlink_object(Scene *scene, Object *ob)
 				if(tpsys->part->dup_ob==ob)
 					tpsys->part->dup_ob= NULL;
 
-				if(tpsys->part->flag&PART_STICKY) {
+				if(tpsys->part->phystype==PART_PHYS_BOIDS) {
 					ParticleData *pa;
+					BoidParticle *bpa;
 					int p;
 
 					for(p=0,pa=tpsys->particles; p<tpsys->totpart; p++,pa++) {
-						if(pa->stick_ob==ob) {
-							pa->stick_ob= 0;
-							pa->flag &= ~PARS_STICKY;
-						}
+						bpa = pa->boid;
+						if(bpa->ground == ob)
+							bpa->ground = NULL;
 					}
 				}
 				if(tpsys->part->boids) {
@@ -1082,34 +1083,44 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
 	ParticleData *pa;
-	int a;
+	int p;
 
 	psysn= MEM_dupallocN(psys);
 	psysn->particles= MEM_dupallocN(psys->particles);
 	psysn->child= MEM_dupallocN(psys->child);
-	if(psysn->particles->keys)
-		psysn->particles->keys = MEM_dupallocN(psys->particles->keys);
 
-	for(a=0, pa=psysn->particles; a<psysn->totpart; a++, pa++) {
-		if(pa->hair)
-			pa->hair= MEM_dupallocN(pa->hair);
-		if(a)
-			pa->keys= (pa-1)->keys + (pa-1)->totkey;
+	if(psys->part->type == PART_HAIR) {
+		for(p=0, pa=psysn->particles; p<psysn->totpart; p++, pa++)
+			pa->hair = MEM_dupallocN(pa->hair);
 	}
 
-	if(psys->soft) {
-		psysn->soft= copy_softbody(psys->soft);
-		psysn->soft->particles = psysn;
+	if(psysn->particles->keys || psysn->particles->boid) {
+		ParticleKey *key = psysn->particles->keys;
+		BoidParticle *boid = psysn->particles->boid;
+
+		if(key)
+			key = MEM_dupallocN(key);
+		
+		if(boid)
+			boid = MEM_dupallocN(boid);
+		
+		for(p=0, pa=psysn->particles; p<psysn->totpart; p++, pa++) {
+			if(boid)
+				pa->boid = boid++;
+			if(key) {
+				pa->keys = key;
+				key += pa->totkey;
+			}
+		}
 	}
 
-	if(psys->particles->boid) {
-		psysn->particles->boid = MEM_dupallocN(psys->particles->boid);
-		for(a=1, pa=psysn->particles+1; a<psysn->totpart; a++, pa++)
-			pa->boid = (pa-1)->boid + 1;
+	if(psys->clmd) {
+		ClothModifierData *nclmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
+		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)nclmd);
+		psys->hair_in_dm = psys->hair_out_dm = NULL;
 	}
 
-	if(psys->targets.first)
-		BLI_duplicatelist(&psysn->targets, &psys->targets);
+	BLI_duplicatelist(&psysn->targets, &psys->targets);
 	
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
@@ -1396,7 +1407,7 @@ int object_data_is_libdata(Object *ob)
 /* *************** PROXY **************** */
 
 /* when you make proxy, ensure the exposed layers are extern */
-void armature_set_id_extern(Object *ob)
+static void armature_set_id_extern(Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -1636,7 +1647,7 @@ int enable_cu_speed= 1;
 static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
-	float q[4], vec[4], dir[3], quat[4], x1, ctime;
+	float q[4], vec[4], dir[3], quat[4], radius, x1, ctime;
 	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	Mat4One(mat);
@@ -1684,7 +1695,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	
 	
 	/* vec: 4 items! */
- 	if( where_on_path(par, ctime, vec, dir) ) {
+ 	if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
 
 		if(cu->flag & CU_FOLLOW) {
 			vectoquat(dir, ob->trackflag, ob->upflag, quat);
@@ -1701,6 +1712,13 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 			QuatToMat4(quat, mat);
 		}
 		
+		if(cu->flag & CU_PATH_RADIUS) {
+			float tmat[4][4], rmat[4][4];
+			Mat4Scale(tmat, radius);
+			Mat4MulMat4(rmat, mat, tmat);
+			Mat4CpyMat4(mat, rmat);
+		}
+
 		VECCOPY(mat[3], vec);
 		
 	}
@@ -1798,7 +1816,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		
 		count= 0;
 		while(nu && !found) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {

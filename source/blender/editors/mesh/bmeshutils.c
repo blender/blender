@@ -247,7 +247,7 @@ int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
 	return EDBM_FinishOp(em, &bmop, NULL, 0);
 }
 
-void EDBM_MakeEditBMesh(Scene *scene, Object *ob)
+void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *scene, Object *ob)
 {
 	Mesh *me = ob->data;
 	EditMesh *em;
@@ -263,7 +263,7 @@ void EDBM_MakeEditBMesh(Scene *scene, Object *ob)
 	}
 
 	me->edit_btmesh = BMEdit_Create(bm);
-	me->edit_btmesh->selectmode = scene->toolsettings->selectmode;
+	me->edit_btmesh->selectmode = ts->selectmode;
 }
 
 void EDBM_LoadEditBMesh(Scene *scene, Object *ob)
@@ -399,6 +399,12 @@ void EDBM_select_flush(BMEditMesh *em, int selectmode)
 	BM_SelectMode_Flush(em->bm);
 	em->bm->selectmode = em->selectmode;
 }
+
+/*BMESH_TODO*/
+void EDBM_deselect_flush(BMEditMesh *em)
+{
+}
+
 
 void EDBM_selectmode_flush(BMEditMesh *em)
 {

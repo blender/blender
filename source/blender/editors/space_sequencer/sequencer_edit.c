@@ -1461,7 +1461,8 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Snap strips";
 	ot->idname= "SEQUENCER_OT_snap";
-
+	ot->description="Frame where selected strips will be snapped.";
+	
 	/* api callbacks */
 	ot->invoke= sequencer_snap_invoke;
 	ot->exec= sequencer_snap_exec;
@@ -1471,7 +1472,7 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will snaped", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will be snapped", INT_MIN, INT_MAX);
 }
 
 /* mute operator */
@@ -1514,7 +1515,8 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mute Strips";
 	ot->idname= "SEQUENCER_OT_mute";
-
+	ot->description="Mute selected strips.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_mute_exec;
 
@@ -1567,7 +1569,8 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "UnMute Strips";
 	ot->idname= "SEQUENCER_OT_unmute";
-
+	ot->description="UnMute unselected rather than selected strips.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_unmute_exec;
 
@@ -1606,7 +1609,8 @@ void SEQUENCER_OT_lock(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Lock Strips";
 	ot->idname= "SEQUENCER_OT_lock";
-
+	ot->description="Lock the active strip so that it can't be transformed.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_lock_exec;
 
@@ -1642,7 +1646,8 @@ void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "UnLock Strips";
 	ot->idname= "SEQUENCER_OT_unlock";
-
+	ot->description="Unlock the active strip so that it can't be transformed.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_unlock_exec;
 
@@ -1678,7 +1683,8 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reload Strips";
 	ot->idname= "SEQUENCER_OT_reload";
-
+	ot->description="Reload strips in the sequencer.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_reload_exec;
 
@@ -1709,7 +1715,8 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Refresh Sequencer";
 	ot->idname= "SEQUENCER_OT_refresh_all";
-
+	ot->description="Refresh the sequencer editor.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_refresh_all_exec;
 
@@ -1806,7 +1813,8 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Cut Strips";
 	ot->idname= "SEQUENCER_OT_cut";
-
+	ot->description="Cut the selected strips.";
+	
 	/* api callbacks */
 	ot->invoke= sequencer_cut_invoke;
 	ot->exec= sequencer_cut_exec;
@@ -1817,7 +1825,7 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will be cut", INT_MIN, INT_MAX);
-	RNA_def_enum(ot->srna, "type", prop_cut_types, SEQ_CUT_SOFT, "Type", "the type of cut operation to perform on strips");
+	RNA_def_enum(ot->srna, "type", prop_cut_types, SEQ_CUT_SOFT, "Type", "The type of cut operation to perform on strips");
 	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side that remains selected after cutting");
 }
 
@@ -1856,7 +1864,8 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Duplicate";
 	ot->idname= "SEQUENCER_OT_duplicate";
-
+	ot->description="Duplicate the selected strips.";
+	
 	/* api callbacks */
 	ot->invoke= sequencer_add_duplicate_invoke;
 	ot->exec= sequencer_add_duplicate_exec;
@@ -1938,7 +1947,8 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Erase Strips";
 	ot->idname= "SEQUENCER_OT_delete";
-
+	ot->description="Erase selected strips from the sequencer.";
+	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= sequencer_delete_exec;
@@ -2031,7 +2041,8 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Separate Images";
 	ot->idname= "SEQUENCER_OT_images_separate";
-
+	ot->description="On image sequences strips, it return a strip for each image.";
+	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= sequencer_separate_images_exec;
@@ -2103,7 +2114,8 @@ void SEQUENCER_OT_meta_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Meta Strip";
 	ot->idname= "SEQUENCER_OT_meta_toggle";
-
+	ot->description="Toggle a metastrip (to edit enclosed strips).";
+	
 	/* api callbacks */
 	ot->exec= sequencer_meta_toggle_exec;
 
@@ -2207,7 +2219,8 @@ void SEQUENCER_OT_meta_make(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Make Meta Strip";
 	ot->idname= "SEQUENCER_OT_meta_make";
-
+	ot->description="Group selected strips into a metastrip.";
+	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= sequencer_meta_make_exec;
@@ -2276,7 +2289,8 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "UnMeta Strip";
 	ot->idname= "SEQUENCER_OT_meta_separate";
-
+	ot->description="Put the contents of a metastrip back in the sequencer.";
+	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= sequencer_meta_separate_exec;
@@ -2342,7 +2356,8 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View All";
 	ot->idname= "SEQUENCER_OT_view_all";
-
+	ot->description="View all the strips in the sequencer.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_view_all_exec;
 
@@ -2422,7 +2437,8 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View Selected";
 	ot->idname= "SEQUENCER_OT_view_selected";
-
+	ot->description="Zoom the sequencer on the selected strips.";
+	
 	/* api callbacks */
 	ot->exec= sequencer_view_selected_exec;
 

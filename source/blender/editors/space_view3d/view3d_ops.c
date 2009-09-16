@@ -131,7 +131,7 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SKETCH_OT_draw_preview", MOUSEMOVE, KM_ANY, 0, 0);
 	km = WM_keymap_add_item(keymap, "SKETCH_OT_draw_preview", MOUSEMOVE, KM_ANY, KM_CTRL, 0);
 	RNA_boolean_set(km->ptr, "snap", 1);
-
+	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, 0, 0); /* manipulator always on left mouse, not on action mouse*/
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
@@ -201,7 +201,25 @@ void view3d_keymap(wmWindowManager *wm)
 
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "center", TRUE);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "enumerate", TRUE);
+
+	/* selection key-combinations */
+	km = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_boolean_set(km->ptr, "center", TRUE);
+	RNA_boolean_set(km->ptr, "extend", TRUE);
+	km = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	RNA_boolean_set(km->ptr, "center", TRUE);
+	RNA_boolean_set(km->ptr, "enumerate", TRUE);
+	km = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+	RNA_boolean_set(km->ptr, "extend", TRUE);
+	RNA_boolean_set(km->ptr, "enumerate", TRUE);
+	km = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL|KM_ALT, 0);
+	RNA_boolean_set(km->ptr, "center", TRUE);
+	RNA_boolean_set(km->ptr, "extend", TRUE);
+	RNA_boolean_set(km->ptr, "enumerate", TRUE);
+
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT|KM_CTRL, 0)->ptr, "deselect", 1);

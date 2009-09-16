@@ -32,15 +32,6 @@ SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
 DIRS = glew/src
 
-ifeq ($(WITH_FFMPEG), true)
-ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)
-    DIRS += ffmpeg
-endif
-ifeq ($(NAN_FFMPEG), $(LCGDIR)/gcc/ffmpeg)
-    DIRS += ffmpeg
-endif
-endif
-
 # Cloth requires it
 #ifneq ($(NAN_NO_KETSJI), true)
 DIRS += bullet2

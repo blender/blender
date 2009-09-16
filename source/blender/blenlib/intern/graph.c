@@ -354,7 +354,7 @@ void BLI_ReflagSubgraph(BGraph *graph, int old_subgraph, int new_subgraph)
 
 /*************************************** CYCLE DETECTION ***********************************************/
 
-int detectCycle(BNode *node, BArc *src_arc)
+static int detectCycle(BNode *node, BArc *src_arc)
 {
 	int value = 0;
 	
@@ -520,7 +520,7 @@ void BLI_calcGraphLength(BGraph *graph)
 
 /********************************* SYMMETRY DETECTION **************************************************/
 
-void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit);
+static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit);
 
 void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3])
 {
@@ -935,7 +935,7 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	}
 }
 
-void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit)
+static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit)
 {
 	int i;
 

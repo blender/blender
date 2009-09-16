@@ -146,6 +146,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_DRIVEN		(1<<22)
 #define UI_BUT_INACTIVE		(1<<23)
 #define UI_BUT_LAST_ACTIVE	(1<<24)
+#define UI_BUT_UNDO			(1<<25)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -419,6 +420,8 @@ uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int 
 						short x1, short y1, short x2, short y2, void *idpp, char *tip);
 int uiDefIDPoinButs(uiBlock *block, struct Main *main, struct ID *parid, struct ID *id, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events);
 
+int uiIconFromID(struct ID *id);
+
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
@@ -589,6 +592,7 @@ void UI_exit(void);
 #define UI_ITEM_R_EXPAND		2
 #define UI_ITEM_R_SLIDER		4
 #define UI_ITEM_R_TOGGLE		8
+#define UI_ITEM_R_ICON_ONLY		16
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
@@ -633,7 +637,7 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
-	char *newop, char *unlinkop);
+	char *newop, char *openop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);

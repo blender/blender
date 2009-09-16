@@ -67,6 +67,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
@@ -520,13 +521,13 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 		uiBlockBeginAlign(block);
 		uiDefButF(block, COL, B_VPCOLSLI, "",					0,yco,200,19, brush->rgb, 0, 0, 0, 0, "");
 		uiDefButF(block, NUMSLI, evt_nop, "Opacity ",		0,yco-20,180,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, evt_nop, "P",	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefIconButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButI(block, NUMSLI, evt_nop, "Size ",		0,yco-40,180,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, evt_nop, "P",	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefIconButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButF(block, NUMSLI, evt_nop, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, evt_nop, "P",	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefIconButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButF(block, NUMSLI, evt_nop, "Spacing ",0,yco-80,180,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
-		uiDefButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, evt_nop, "P",	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefIconButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiBlockEndAlign(block);
 		
 		yco -= 110;
@@ -1325,14 +1326,14 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 		 
 		 /* fields */
 		 
-		 but= uiDefButBitS(block, TOGBUT, IMA_FIELDS, imagechanged, "Fields",	0, 80, 200, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 but= uiDefButBitS(block, OPTION, IMA_FIELDS, imagechanged, "Fields",	0, 80, 200, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, TOGBUT, IMA_STD_FIELD, B_NOP, "Odd",				0, 55, 200, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		 uiDefButBitS(block, OPTION, IMA_STD_FIELD, B_NOP, "Odd",				0, 55, 200, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
 		
 		 
 		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
-		 uiDefButBitS(block, TOGBUT, IMA_ANTIALI, B_NOP, "Anti",				0, 5, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, TOGBUT, IMA_DO_PREMUL, imagechanged, "Premul",		0, -20, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiDefButBitS(block, OPTION, IMA_ANTIALI, B_NOP, "Anti-Aliasing",		0, 5, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, OPTION, IMA_DO_PREMUL, imagechanged, "Premultiply",		0, -20, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
 		 
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -1355,9 +1356,9 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 			 uiDefButI(block, NUM, imagechanged, "Offset:",						220, 30, 200, 20, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the frame to use in the animation");
 			 uiDefButS(block, NUM, imagechanged, "Fields:",						0, 30, 200, 20, &iuser->fie_ima, 1.0, 200.0, 0, 0, "The number of fields per rendered frame (2 fields is 1 image)");
 			 
-			uiDefButBitS(block, TOG, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	220, 5, 200, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
+			uiDefButBitS(block, OPTION, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	220, 5, 200, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
 
-			 uiDefButS(block, TOG, imagechanged, "Cyclic",						220, -20, 200, 20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
+			 uiDefButS(block, OPTION, imagechanged, "Cyclic",						220, -20, 200, 20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
 			 
 			 uiBlockSetFunc(block, NULL, iuser, NULL);
 		 }
@@ -1371,7 +1372,7 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 			 uiDefButS(block, NUM, imagechanged, "Y:",	220, 35,200,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
 			 uiBlockEndAlign(block);
 			 
-			 uiDefButS(block, TOGBUT, imagechanged, "UV Test grid", 220,10,200,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
+			 uiDefButS(block, OPTION, imagechanged, "UV Test grid", 220,10,200,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
 			 uiBlockSetFunc(block, NULL, NULL, NULL);
 		 }
 	 }
@@ -1438,6 +1439,12 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->label, "Curves");
 	pt->draw= image_panel_curves;
 	BLI_addtail(&art->paneltypes, pt);
+	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel gpencil");
+	strcpy(pt->idname, "IMAGE_PT_gpencil");
+	strcpy(pt->label, "Grease Pencil");
+	pt->draw= gpencil_panel_standard;
+	BLI_addtail(&art->paneltypes, pt);
 }
 
 static int image_properties(bContext *C, wmOperator *op)
@@ -1445,13 +1452,9 @@ static int image_properties(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= image_has_buttons_region(sa);
 	
-	if(ar) {
-		ar->flag ^= RGN_FLAG_HIDDEN;
-		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
-		
-		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-		ED_area_tag_redraw(sa);
-	}
+	if(ar)
+		ED_region_toggle_hidden(C, ar);
+
 	return OPERATOR_FINISHED;
 }
 

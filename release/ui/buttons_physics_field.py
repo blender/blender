@@ -8,7 +8,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		rd = context.scene.render_data
-		return (context.object != None) and (not rd.use_game_engine)
+		return (context.object) and (not rd.use_game_engine)
 		
 class PHYSICS_PT_field(PhysicButtonsPanel):
 	__label__ = "Force Fields"
@@ -184,18 +184,16 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 			#row.itemR(md, "render", text="")
 			#row.itemR(md, "realtime", text="")
 			
-			coll = md.settings
+			settings = md.settings
 			
 		else:
 			# add modifier
 			split.item_enumO("object.modifier_add", "type", 'COLLISION', text="Add")
 			split.itemL()
 			
-			coll = None
+			settings = None
 		
-		if coll:
-			settings = context.object.collision
-
+		if settings:
 			layout.active = settings.enabled
 		
 			split = layout.split()

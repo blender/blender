@@ -122,14 +122,14 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 			spoint->dtstrandco *= 0.5f;
 	}
 	else {
-		set_four_ipo(t, data, type);
+		key_curve_position_weights(t, data, type);
 		spoint->co[0]= data[0]*p[0][0] + data[1]*p[1][0] + data[2]*p[2][0] + data[3]*p[3][0];
 		spoint->co[1]= data[0]*p[0][1] + data[1]*p[1][1] + data[2]*p[2][1] + data[3]*p[3][1];
 		spoint->co[2]= data[0]*p[0][2] + data[1]*p[1][2] + data[2]*p[2][2] + data[3]*p[3][2];
 		spoint->strandco= (1.0f-t)*sseg->v[1]->strandco + t*sseg->v[2]->strandco;
 	}
 
-	set_afgeleide_four_ipo(t, data, type);
+	key_curve_tangent_weights(t, data, type);
 	spoint->dtco[0]= data[0]*p[0][0] + data[1]*p[1][0] + data[2]*p[2][0] + data[3]*p[3][0];
 	spoint->dtco[1]= data[0]*p[0][1] + data[1]*p[1][1] + data[2]*p[2][1] + data[3]*p[3][1];
 	spoint->dtco[2]= data[0]*p[0][2] + data[1]*p[1][2] + data[2]*p[2][2] + data[3]*p[3][2];

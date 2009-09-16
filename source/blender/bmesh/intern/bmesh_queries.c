@@ -4,7 +4,8 @@
 #include "bmesh_private.h"
 
 #include "BLI_arithb.h"
-#include "MTC_vectorops.h"
+
+#include "BKE_utildefines.h"
 
 /*
  * BM_QUERIES.C
@@ -479,7 +480,7 @@ float BM_Face_Angle(BMesh *bm, BMEdge *e)
 	if(radlen == 2){
 		l1 = e->loop;
 		l2 = e->loop->radial.next->data;
-		edge_angle_cos = MTC_dot3Float(l1->f->no, l2->f->no);
+		edge_angle_cos = INPR(l1->f->no, l2->f->no);
 	}
 	return edge_angle_cos;
 

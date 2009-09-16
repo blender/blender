@@ -42,9 +42,9 @@
 #endif
 
 /* local */
-float noise3_perlin(float vec[3]);
-float turbulence_perlin(float *point, float lofreq, float hifreq);
-float turbulencep(float noisesize, float x, float y, float z, int nr);
+static float noise3_perlin(float vec[3]);
+static float turbulence_perlin(float *point, float lofreq, float hifreq);
+static float turbulencep(float noisesize, float x, float y, float z, int nr);
 
 #define HASHVEC(x,y,z) hashvectf+3*hash[ (hash[ (hash[(z) & 255]+(y)) & 255]+(x)) & 255]
 
@@ -915,7 +915,7 @@ float g[512+2][3]= {
         r1 = r0 - 1.;
 
 
-float noise3_perlin(float vec[3])
+static float noise3_perlin(float vec[3])
 {
 	int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
 	float rx0, rx1, ry0, ry1, rz0, rz1, *q, sx, sy, sz, a, b, c, d, t, u, v;
@@ -976,7 +976,7 @@ float noise3_perlin(float vec[3])
 	return 1.5 * lerp(sz, c, d); /* interpolate in z */
 }
 
-float turbulence_perlin(float *point, float lofreq, float hifreq)
+static float turbulence_perlin(float *point, float lofreq, float hifreq)
 {
 	float freq, t, p[3];
 
@@ -1029,7 +1029,7 @@ float BLI_hnoisep(float noisesize, float x, float y, float z)
 	return noise3_perlin(vec);
 }
 
-float turbulencep(float noisesize, float x, float y, float z, int nr)
+static float turbulencep(float noisesize, float x, float y, float z, int nr)
 {
 	float vec[3];
 

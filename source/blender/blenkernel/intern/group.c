@@ -142,6 +142,16 @@ Group *add_group(char *name)
 	return group;
 }
 
+Group *copy_group(Group *group)
+{
+	Group *groupn;
+
+	groupn= MEM_dupallocN(group);
+	BLI_duplicatelist(&groupn->gobject, &group->gobject);
+
+	return groupn;
+}
+
 /* external */
 void add_to_group(Group *group, Object *ob)
 {

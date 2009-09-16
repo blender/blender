@@ -89,6 +89,7 @@ typedef enum PropertySubType {
 	/* strings */
 	PROP_FILEPATH = 1,
 	PROP_DIRPATH = 2,
+	PROP_FILENAME = 3,
 
 	/* numbers */
 	PROP_UNSIGNED = 13,
@@ -111,6 +112,10 @@ typedef enum PropertySubType {
 
 	/* pointers */
 	PROP_NEVER_NULL = 30,
+
+	/* booleans */
+	PROP_LAYER = 40,
+	PROP_LAYER_MEMBER = 41
 } PropertySubType;
 
 typedef enum PropertyFlag {
@@ -176,11 +181,11 @@ typedef struct CollectionPointerLink {
 } CollectionPointerLink;
 
 typedef enum RawPropertyType {
-	PROP_RAW_CHAR,
+	PROP_RAW_INT, // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.
 	PROP_RAW_SHORT,
-	PROP_RAW_INT,
-	PROP_RAW_FLOAT,
-	PROP_RAW_DOUBLE
+	PROP_RAW_CHAR,
+	PROP_RAW_DOUBLE,
+	PROP_RAW_FLOAT
 } RawPropertyType;
 
 typedef struct RawArray {

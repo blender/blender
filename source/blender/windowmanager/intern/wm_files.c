@@ -37,8 +37,8 @@
 #define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
 #endif
 #include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
-#include "BLI_winstuff.h"
 #include <process.h> /* getpid */
+#include "BLI_winstuff.h"
 #else
 #include <unistd.h> /* getpid */
 #endif
@@ -96,6 +96,7 @@
 #include "wm.h"
 #include "wm_window.h"
 
+static void writeBlog(void);
 
 /* To be able to read files without windows closing, opening, moving 
    we try to prepare for worst case:
@@ -256,7 +257,10 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 		if(retval==2) wm_init_userdef();	// in case a userdef is read from regular .blend
 		
-		if (retval!=0) G.relbase_valid = 1;
+		if (retval!=0) {
+			G.relbase_valid = 1;
+			writeBlog();
+		}
 
 // XXX		undo_editmode_clear();
 		BKE_reset_undo();
@@ -277,7 +281,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 
 /* called on startup,  (context entirely filled with NULLs) */
-/* or called for 'Erase All' */
+/* or called for 'New File' */
 /* op can be NULL */
 int WM_read_homefile(bContext *C, wmOperator *op)
 {
@@ -384,7 +388,7 @@ void WM_read_autosavefile(bContext *C)
 
 void read_Blog(void)
 {
-	char name[FILE_MAX], filename[FILE_MAX];
+	char name[FILE_MAX];
 	LinkNode *l, *lines;
 	struct RecentFile *recent;
 	char *line;
@@ -416,58 +420,6 @@ void read_Blog(void)
 	
 	BLI_free_file_lines(lines);
 
-#ifdef WIN32
-	/* Add the drive names to the listing */
-	{
-		__int64 tmp;
-		char folder[MAX_PATH];
-		char tmps[4];
-		int i;
-			
-		tmp= GetLogicalDrives();
-		
-		for (i=2; i < 26; i++) {
-			if ((tmp>>i) & 1) {
-				tmps[0]='a'+i;
-				tmps[1]=':';
-				tmps[2]='\\';
-				tmps[3]=0;
-				
-// XX				fsmenu_insert_entry(tmps, 0, 0);
-			}
-		}
-
-		/* Adding Desktop and My Documents */
-// XXX		fsmenu_append_separator();
-
-		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
-// XXX		fsmenu_insert_entry(folder, 0, 0);
-		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
-// XXX		fsmenu_insert_entry(folder, 0, 0);
-
-// XXX		fsmenu_append_separator();
-	}
-#endif
-
-	BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
-	lines= BLI_read_file_as_lines(name);
-
-	for (l= lines; l; l= l->next) {
-		char *line= l->link;
-			
-		if (!BLI_streq(line, "")) {
-// XXX			fsmenu_insert_entry(line, 0, 1);
-		}
-	}
-
-// XXX	fsmenu_append_separator();
-	
-	/* add last saved file */
-	BLI_split_dirfile(G.sce, name, filename); /* G.sce shouldn't be relative */
-	
-// XXX	fsmenu_insert_entry(name, 0, 0);
-	
-	BLI_free_file_lines(lines);
 }
 
 static void writeBlog(void)

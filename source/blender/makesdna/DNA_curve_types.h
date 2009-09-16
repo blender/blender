@@ -52,9 +52,18 @@ struct EditFont;
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
+typedef struct PathPoint {
+	float vec[4]; /* grr, cant get rid of tilt yet */
+	float quat[4];
+	float radius;
+} PathPoint;
+
+/* These two Lines with # tell makesdna this struct can be excluded. */
+#
+#
 typedef struct Path {
 	int len;
-	float *data;
+	struct PathPoint *data;
 	float totdist;
 } Path;
 
@@ -63,37 +72,42 @@ typedef struct Path {
 #
 typedef struct BevList {
 	struct BevList *next, *prev;
-	int nr, flag;
-	short poly, gat;
+	int nr, dupe_nr;
+	short poly, hole;
 } BevList;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
 typedef struct BevPoint {
-	float x, y, z, alfa, radius, sina, cosa, mat[3][3];
-	short f1, f2;
+	float vec[3], alfa, radius;
+	float sina, cosa;				/* 2D Only */
+	float dir[3], tan[3], quat[4];	/* 3D Only */
+	short split_tag, dupe_tag;
 } BevPoint;
 
-/* Keyframes on IPO curves and Points on Bezier Curves/Paths are generally BezTriples */
+/* Keyframes on F-Curves (allows code reuse of Bezier eval code) and 
+ * Points on Bezier Curves/Paths are generally BezTriples 
+ */
 /* note: alfa location in struct is abused by Key system */
 /* vec in BezTriple looks like this:
 	vec[0][0]=x location of handle 1
 	vec[0][1]=y location of handle 1
-	vec[0][2]=z location of handle 1 (not used for IpoCurve Points(2d))
+	vec[0][2]=z location of handle 1 (not used for FCurve Points(2d))
 	vec[1][0]=x location of control point
 	vec[1][1]=y location of control point
 	vec[1][2]=z location of control point
 	vec[2][0]=x location of handle 2
 	vec[2][1]=y location of handle 2
-	vec[2][2]=z location of handle 2 (not used for IpoCurve Points(2d))
+	vec[2][2]=z location of handle 2 (not used for FCurve Points(2d))
 */
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */
 	short ipo;					/* ipo: interpolation mode for segment from this BezTriple to the next */
 	char h1, h2; 				/* h1, h2: the handle type of the two handles */
-	char f1, f2, f3, hide;		/* f1, f2, f3: used for selection status,  hide: used to indicate whether BezTriple is hidden */
+	char f1, f2, f3;			/* f1, f2, f3: used for selection status */
+	char hide;					/* hide: used to indicate whether BezTriple is hidden (3D), type of keyframe (eBezTriple_KeyframeTypes) */
 } BezTriple;
 
 /* note; alfa location in struct is abused by Key system */
@@ -142,7 +156,7 @@ typedef struct Curve {
 	
 	struct BoundBox *bb;
 	
-	ListBase nurb;		/* actual data */
+	ListBase nurb;		/* actual data, called splines in rna */
 	ListBase disp;
 	
 	ListBase *editnurb;	/* edited data, not in file, use pointer so we can check for it */
@@ -160,7 +174,10 @@ typedef struct Curve {
 	float size[3];
 	float rot[3];
 
-	int texflag;
+	int texflag; /* keep an int because of give_obdata_texspace() */
+
+	short drawflag, twist_mode,  pad[2];
+	float twist_smooth, pad2;
 
 	short pathlen, totcol;
 	short flag, bevresol;
@@ -169,7 +186,7 @@ typedef struct Curve {
 	/* default */
 	short resolu, resolv;
 	short resolu_ren, resolv_ren;
-	
+
 	/* edit, index in nurb list */
 	int actnu;
 	/* edit, last selected bpoint */
@@ -208,6 +225,10 @@ typedef struct Curve {
 /* texflag */
 #define CU_AUTOSPACE	1
 
+/* drawflag */
+#define CU_HIDE_HANDLES	(1 << 0)
+#define CU_HIDE_NORMALS	(1 << 1)
+
 /* flag */
 #define CU_3D			1
 #define CU_FRONT		2
@@ -221,6 +242,14 @@ typedef struct Curve {
 #define CU_FAST			512 /* Font: no filling inside editmode */
 #define CU_RETOPO               1024
 #define CU_DS_EXPAND	2048
+#define CU_PATH_RADIUS	4096 /* make use of the path radius if this is enabled (default for new curves) */
+
+/* twist mode */
+#define CU_TWIST_Z_UP			0
+// #define CU_TWIST_Y_UP			1 // not used yet
+// #define CU_TWIST_X_UP			2
+#define CU_TWIST_MINIMUM		3
+#define CU_TWIST_TANGENT		4
 
 /* spacemode */
 #define CU_LEFT			0
@@ -231,6 +260,7 @@ typedef struct Curve {
 
 /* flag (nurb) */
 #define CU_SMOOTH		1
+#define CU_2D			8 /* moved from type since 2.4x */
 
 /* type (nurb) */
 #define CU_POLY			0
@@ -238,9 +268,7 @@ typedef struct Curve {
 #define CU_BSPLINE		2
 #define CU_CARDINAL		3
 #define CU_NURBS		4
-#define CU_TYPE			7
-
-#define CU_2D			8
+#define CU_TYPE			(CU_POLY|CU_BEZIER|CU_BSPLINE|CU_CARDINAL|CU_NURBS)
 
 		/* only for adding */
 #define CU_PRIMITIVE	0xF00
@@ -278,6 +306,16 @@ typedef enum eBezTriple_Interpolation {
 	BEZT_IPO_LIN,		/* linear interpolation */
 	BEZT_IPO_BEZ,		/* bezier interpolation */
 } eBezTriple_Interpolation;
+
+/* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
+typedef enum eBezTriple_KeyframeType {
+	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
+	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
+} eBezTriple_KeyframeType;
+
+/* checks if the given BezTriple is selected */
+#define BEZSELECTED(bezt) (((bezt)->f2 & SELECT) || ((bezt)->f1 & SELECT) || ((bezt)->f3 & SELECT))
+#define BEZSELECTED_HIDDENHANDLES(cu, bezt)   (((cu)->drawflag & CU_HIDE_HANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 
 /* *************** CHARINFO **************** */
 

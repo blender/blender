@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.mesh != None)
+		return (context.mesh)
 
 class DATA_PT_context_mesh(DataButtonsPanel):
 	__show_header__ = False
@@ -102,7 +102,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		kb = ob.active_shape_key
 
 		row = layout.row()
-		row.template_list(key, "keys", ob, "active_shape_key_index")
+		row.template_list(key, "keys", ob, "active_shape_key_index", rows=2)
 
 		col = row.column()
 

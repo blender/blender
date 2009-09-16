@@ -338,7 +338,18 @@ void ED_operatortypes_mesh(void)
 	
 	WM_operatortype_append(MESH_OT_bm_test);
 
+	WM_operatortype_append(MESH_OT_edgering_select);
+	WM_operatortype_append(MESH_OT_loopcut);
+
 	/* macros */
+
+	/*combining operators with invoke and exec portions doesn't work yet.
+	
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut", "Loopcut", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MESH_OT_edgering_select");
+	WM_operatortype_macro_define(ot, "MESH_OT_subdivide");
+	*/
+
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TFM_OT_translate");
@@ -356,7 +367,7 @@ void ED_operatortypes_mesh(void)
 
 	RNA_enum_set(otm->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 	RNA_boolean_set_array(otm->ptr, "constraint_axis", constraint_axis);*/
-	
+
 }
 
 /* note mesh keymap also for other space? */
@@ -365,19 +376,20 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
 	wmKeymapItem *kmi;
 	
+	WM_keymap_add_item(keymap, "MESH_OT_loopcut", ACTIONMOUSE, KM_PRESS, KM_CTRL, RKEY);
+
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */
 	WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
 	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
-	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "ring", 1);
-	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT|KM_CTRL, 0);
+
+	kmi= WM_keymap_add_item(keymap, "MESH_OT_edgering_select", SELECTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "MESH_OT_edgering_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
-	RNA_boolean_set(kmi->ptr, "ring", 1);
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_shortest_path", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-	
+
 	WM_keymap_add_item(keymap, "MESH_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_non_manifold", MKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0);
@@ -459,7 +471,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_fgon_make", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_fgon_clear", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, XKEY);
 
 	/* menus */
 	WM_keymap_add_item(keymap, "MESH_OT_vertex_specials", VKEY, KM_PRESS, KM_CTRL, 0);

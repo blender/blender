@@ -41,6 +41,54 @@ struct SpaceLink;
 struct Object;
 
 /* ************************************************ */
+/* Visualisation */
+
+/* Motion Paths ------------------------------------ */
+/* (used for Pose Channels and Objects) */
+
+/* Data point for motion path */
+typedef struct bMotionPathVert {
+	float co[3];				/* coordinates of point in 3D-space */
+	int flag;					/* quick settings */
+} bMotionPathVert;
+
+/* Motion Path data cache - for elements providing transforms (i.e. Objects or PoseChannels) */
+typedef struct bMotionPath {
+	bMotionPathVert *points;	/* path samples */
+	int	length;					/* the number of cached verts */
+	
+	int start_frame;			/* for drawing paths, the start frame number */
+	int	end_frame;				/* for drawing paths, the end frame number */
+	
+	int flag;					/* extra settings */
+} bMotionPath;
+
+
+
+/* Animation Visualisation Settings - for Objects or Armatures (not PoseChannels) */
+typedef struct bAnimVizSettings {
+	int pad;
+	int pathflag;				/* eMotionPath_Settings */
+	
+	int pathsf, pathef;			/* start and end frames of path-calculation range */
+	int	pathbc, pathac;			/* number of frames before/after current frame of path-calculation */
+} bAnimVizSettings;
+
+/* bMotionPathSettings->flag */
+typedef enum eMotionPath_Settings {
+		/* show frames on path */
+	MOTIONPATH_FLAG_FNUMS		= (1<<0),
+		/* show keyframes on path */
+	MOTIONPATH_FLAG_KFRAS		= (1<<1),
+		/* for bones - calculate head-points for curves instead of tips */
+	MOTIONPATH_FLAG_HEADS		= (1<<2),
+		/* show path around current frame */
+	MOTIONPATH_FLAG_ACFRA		= (1<<3),
+		/* show keyframe/frame numbers */
+	MOTIONPATH_FLAG_KFNOS		= (1<<4)
+} eMotionPath_Settings;
+
+/* ************************************************ */
 /* Poses */
 
 /* PoseChannel ------------------------------------ */
@@ -151,8 +199,18 @@ typedef enum ePchan_IkFlag {
 typedef enum ePchan_RotMode {
 		/* quaternion rotations (default, and for older Blender versions) */
 	PCHAN_ROT_QUAT	= 0,
-		/* euler rotations (xyz only) */
-	PCHAN_ROT_EUL,
+		/* euler rotations - keep in sync with enum in BLI_arithb.h */
+	PCHAN_ROT_XYZ = 1,		/* Blender 'default' (classic) - must be as 1 to sync with PoseChannel rotmode */
+	PCHAN_ROT_XZY,
+	PCHAN_ROT_YXZ,
+	PCHAN_ROT_YZX,
+	PCHAN_ROT_ZXY,
+	PCHAN_ROT_ZYX,
+	/* NOTE: space is reserved here for 18 other possible 
+	 * euler rotation orders not implemented 
+	 */
+		/* axis angle rotations */
+	PCHAN_ROT_AXISANGLE = -1
 } ePchan_RotMode;
 
 /* Pose ------------------------------------ */
@@ -438,5 +496,3 @@ typedef enum ACHAN_FLAG {
 
 
 #endif
-
-

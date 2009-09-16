@@ -43,6 +43,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -57,25 +58,16 @@
 /* ***************** depsgraph calls and anim updates ************* */
 /* ***************** only these can be called from editors ******** */
 
-/* generic update flush, reads from context Screen (layers) and scene */
-/* this is for compliancy, later it can do all windows etc */
 void ED_anim_dag_flush_update(const bContext *C)
 {
-	Scene *scene= CTX_data_scene(C);
-	bScreen *screen= CTX_wm_screen(C);
-	
-	DAG_scene_flush_update(scene, ED_screen_view3d_layers(screen), 0);
+	DAG_ids_flush_update(0);
 }
 
 /* flushes changes from object to all relations in scene */
 void ED_anim_object_flush_update(const bContext *C, Object *ob)
 {
-	Scene *scene= CTX_data_scene(C);
-	bScreen *screen= CTX_wm_screen(C);
-	
-	DAG_object_update_flags(scene, ob, ED_screen_view3d_layers(screen));
+	DAG_id_update_flags(&ob->id);
 }
-
 
 /* **************************** pose <-> action syncing ******************************** */
 /* Summary of what needs to be synced between poses and actions:

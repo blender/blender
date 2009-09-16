@@ -42,7 +42,7 @@
 #include "BLI_jitter.h"
 #include "BLI_threads.h"
 
-#include "MTC_matrixops.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_lamp_types.h"

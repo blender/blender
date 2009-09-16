@@ -430,13 +430,13 @@ static void *vol_precache_part(void *data)
 	const float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
 
 	for (z= pa->minz; z < pa->maxz; z++) {
-		co[2] = pa->bbmin[2] + (pa->voxel[2] * z);
+		co[2] = pa->bbmin[2] + (pa->voxel[2] * (z + 0.5f));
 		
 		for (y= pa->miny; y < pa->maxy; y++) {
-			co[1] = pa->bbmin[1] + (pa->voxel[1] * y);
+			co[1] = pa->bbmin[1] + (pa->voxel[1] * (y + 0.5f));
 			
 			for (x=pa->minx; x < pa->maxx; x++) {
-				co[0] = pa->bbmin[0] + (pa->voxel[0] * x);
+				co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
 				
 				// don't bother if the point is not inside the volume mesh
 				if (!point_inside_obi(tree, obi, co)) {
@@ -499,8 +499,7 @@ static void precache_init_parts(Render *re, RayTree *tree, ShadeInput *shi, Obje
 	res = vp->res;
 	
 	VecSubf(voxel, bbmax, bbmin);
-	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
-		return;
+	
 	voxel[0] /= res[0];
 	voxel[1] /= res[1];
 	voxel[2] /= res[2];
@@ -564,7 +563,7 @@ static VolPrecachePart *precache_get_new_part(Render *re)
 	return nextpa;
 }
 
-static void precache_resolution(VolumePrecache *vp, float *bbmin, float *bbmax, int res)
+static int precache_resolution(VolumePrecache *vp, float *bbmin, float *bbmax, int res)
 {
 	float dim[3], div;
 	
@@ -574,10 +573,15 @@ static void precache_resolution(VolumePrecache *vp, float *bbmin, float *bbmax, 
 	dim[0] /= div;
 	dim[1] /= div;
 	dim[2] /= div;
-			   
+	
 	vp->res[0] = dim[0] * (float)res;
 	vp->res[1] = dim[1] * (float)res;
 	vp->res[2] = dim[2] * (float)res;
+	
+	if ((vp->res[0] < 1) || (vp->res[1] < 1) || (vp->res[2] < 1))
+		return 0;
+	
+	return 1;
 }
 
 /* Precache a volume into a 3D voxel grid.
@@ -608,7 +612,12 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	if (!tree) return;
 
 	vp = MEM_callocN(sizeof(VolumePrecache), "volume light cache");
-	precache_resolution(vp, bbmin, bbmax, ma->vol.precache_resolution);
+	
+	if (!precache_resolution(vp, bbmin, bbmax, ma->vol.precache_resolution)) {
+		MEM_freeN(vp);
+		vp = NULL;
+		return;
+	}
 
 	vp->data_r = MEM_callocN(sizeof(float)*vp->res[0]*vp->res[1]*vp->res[2], "volume light cache data red channel");
 	vp->data_g = MEM_callocN(sizeof(float)*vp->res[0]*vp->res[1]*vp->res[2], "volume light cache data green channel");
@@ -675,7 +684,7 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	}
 }
 
-int using_lightcache(Material *ma)
+static int using_lightcache(Material *ma)
 {
 	return (((ma->vol.shadeflag & MA_VOL_PRECACHESHADING) && (ma->vol.shade_type == MA_VOL_SHADE_SINGLE))
 		|| (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE)));
@@ -708,10 +717,10 @@ void free_volume_precache(Render *re)
 	
 	for(obi= re->instancetable.first; obi; obi= obi->next) {
 		if (obi->volume_precache != NULL) {
-			MEM_freeN(obi->volume_precache);
 			MEM_freeN(obi->volume_precache->data_r);
 			MEM_freeN(obi->volume_precache->data_g);
 			MEM_freeN(obi->volume_precache->data_b);
+			MEM_freeN(obi->volume_precache);
 			obi->volume_precache = NULL;
 		}
 	}

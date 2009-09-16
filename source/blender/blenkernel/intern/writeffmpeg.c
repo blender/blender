@@ -613,7 +613,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 }
 /* essential functions -- start, append, end */
 
-void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
+static void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 {
 	/* Handle to the output file */
 	AVFormatContext* of;

@@ -61,7 +61,10 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk)
 	BLI_freenode *lasttail = NULL, *curnode = NULL;
 	int i,j, maxchunks;
 	char *addr;
-
+	
+	if (esize < sizeof(void*))
+		esize = sizeof(void*);
+	
 	if (esize < sizeof(void*))
 		esize = sizeof(void*);
 

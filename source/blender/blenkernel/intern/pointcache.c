@@ -67,23 +67,13 @@
 
 
 /* needed for directory lookup */
+/* untitled blend's need getpid for a unique name */
 #ifndef WIN32
   #include <dirent.h>
-#else
-  #include "BLI_winstuff.h"
-#endif
-
-/* untitled blend's need getpid for a unique name */
-#ifdef WIN32
-#include <process.h>
-#else
 #include <unistd.h>
-#endif
-
-#ifdef _WIN32
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
+#else
+#include <process.h>
+  #include "BLI_winstuff.h"
 #endif
 
 static void ptcache_data_to(void **data, int type, int index, void *to);
@@ -181,6 +171,7 @@ static int ptcache_write_particle(int index, void *psys_v, void **data)
 {
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa = psys->particles + index;
+	BoidParticle *boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
 	float times[3] = {pa->time, pa->dietime, pa->lifetime};
 
 	if(data[BPHYS_DATA_INDEX]) {
@@ -198,8 +189,8 @@ static int ptcache_write_particle(int index, void *psys_v, void **data)
 	ptcache_data_from(data, BPHYS_DATA_SIZE, &pa->size);
 	ptcache_data_from(data, BPHYS_DATA_TIMES, times);
 
-	if(pa->boid)
-		ptcache_data_from(data, BPHYS_DATA_TIMES, &pa->boid);
+	if(boid)
+		ptcache_data_from(data, BPHYS_DATA_BOIDS, &boid->data);
 
 	return 1;
 }
@@ -215,6 +206,7 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 {
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa = psys->particles + index;
+	BoidParticle *boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
 
 	if(cfra > pa->state.time)
 		memcpy(&pa->prev_state, &pa->state, sizeof(ParticleKey));
@@ -238,8 +230,8 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 		pa->lifetime = times[2];
 	}
 
-	if(pa->boid)
-		ptcache_data_to(data, BPHYS_DATA_BOIDS, 0, &pa->boid);
+	if(boid)
+		ptcache_data_to(data, BPHYS_DATA_BOIDS, 0, &boid->data);
 
 	/* determine velocity from previous location */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
@@ -390,8 +382,6 @@ static int ptcache_totpoint_cloth(void *cloth_v)
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 {
-	ParticleSystemModifierData *psmd;
-
 	memset(pid, 0, sizeof(PTCacheID));
 
 	pid->ob= ob;
@@ -414,12 +404,7 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 	pid->data_types= (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY);
 	pid->info_types= 0;
 
-	if(sb->particles) {
-		psmd= psys_get_modifier(ob, sb->particles);
-		// pid->stack_index= modifiers_indexInObject(ob, (ModifierData*)psmd);  XXX TODO - get other index DG
-	}
-	else 
-		pid->stack_index = pid->cache->index;
+	pid->stack_index = pid->cache->index;
 }
 
 void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *psys)
@@ -433,6 +418,9 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	pid->cache= psys->pointcache;
 	pid->cache_ptr= &psys->pointcache;
 	pid->ptcaches= &psys->ptcaches;
+
+	if(psys->part->type != PART_HAIR)
+		pid->flag |= PTCACHE_VEL_PER_SEC;
 
 	pid->write_elem= ptcache_write_particle;
 	pid->write_stream = NULL;
@@ -472,6 +460,19 @@ static int ptcache_totpoint_smoke(void *smoke_v)
 	
 	if(sds->fluid) {
 		return sds->res[0]*sds->res[1]*sds->res[2];
+	}
+	else
+		return 0;
+}
+
+/* Smoke functions */
+static int ptcache_totpoint_smoke_turbulence(void *smoke_v)
+{
+	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
+	SmokeDomainSettings *sds = smd->domain;
+	
+	if(sds->wt) {
+		return sds->res_wt[0]*sds->res_wt[1]*sds->res_wt[2];
 	}
 	else
 		return 0;
@@ -527,7 +528,7 @@ static int ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned i
 }
 
 static int ptcache_write_smoke(PTCacheFile *pf, void *smoke_v)
-{
+{	
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
 	
@@ -541,7 +542,7 @@ static int ptcache_write_smoke(PTCacheFile *pf, void *smoke_v)
 
 		smoke_export(sds->fluid, &dt, &dx, &dens, &densold, &heat, &heatold, &vx, &vy, &vz, &vxold, &vyold, &vzold, &obstacles);
 
-		ptcache_compress_write(pf, (unsigned char *)sds->view3d, in_len*4, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)sds->shadow, in_len, out, mode);
 		ptcache_compress_write(pf, (unsigned char *)dens, in_len, out, mode);
 		ptcache_compress_write(pf, (unsigned char *)densold, in_len, out, mode);	
 		ptcache_compress_write(pf, (unsigned char *)heat, in_len, out, mode);
@@ -560,36 +561,36 @@ static int ptcache_write_smoke(PTCacheFile *pf, void *smoke_v)
 		
 		return 1;
 	}
-
 	return 0;
 }
 
-/*
 static int ptcache_write_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
 	
 	if(sds->wt) {
-		unsigned int res_big[3];
-		size_t res = sds->res[0]*sds->res[1]*sds->res[2];
+		int res_big_array[3];
+		int res_big;
+		int res = sds->res[0]*sds->res[1]*sds->res[2];
 		float *dens, *densold, *tcu, *tcv, *tcw;
 		unsigned int in_len = sizeof(float)*(unsigned int)res;
-		unsigned int in_len_big = sizeof(float) * (unsigned int)res_big;
+		unsigned int in_len_big;
 		unsigned char *out;
 		int mode;
 
-		smoke_turbulence_get_res(sds->wt, res_big);
-		mode = res_big[0]*res_big[1]*res_big[2] >= 1000000 ? 2 : 1;
+		smoke_turbulence_get_res(sds->wt, res_big_array);
+		res_big = res_big_array[0]*res_big_array[1]*res_big_array[2];
+		mode =  res_big >= 1000000 ? 2 : 1;
+		in_len_big = sizeof(float) * (unsigned int)res_big;
 
 		smoke_turbulence_export(sds->wt, &dens, &densold, &tcu, &tcv, &tcw);
 
 		out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len_big), "pointcache_lzo_buffer");
-
 		ptcache_compress_write(pf, (unsigned char *)dens, in_len_big, out, mode);
 		ptcache_compress_write(pf, (unsigned char *)densold, in_len_big, out, mode);	
-
 		MEM_freeN(out);
+
 		out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
 		ptcache_compress_write(pf, (unsigned char *)tcu, in_len, out, mode);
 		ptcache_compress_write(pf, (unsigned char *)tcv, in_len, out, mode);
@@ -600,7 +601,6 @@ static int ptcache_write_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 	}
 	return 0;
 }
-*/
 
 // forward decleration
 static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, int size);
@@ -655,7 +655,7 @@ static void ptcache_read_smoke(PTCacheFile *pf, void *smoke_v)
 		
 		smoke_export(sds->fluid, &dt, &dx, &dens, &densold, &heat, &heatold, &vx, &vy, &vz, &vxold, &vyold, &vzold, &obstacles);
 
-		ptcache_compress_read(pf, (unsigned char *)sds->view3d, out_len*4);
+		ptcache_compress_read(pf, (unsigned char *)sds->shadow, out_len);
 		ptcache_compress_read(pf, (unsigned char*)dens, out_len);
 		ptcache_compress_read(pf, (unsigned char*)densold, out_len);
 		ptcache_compress_read(pf, (unsigned char*)heat, out_len);
@@ -672,26 +672,32 @@ static void ptcache_read_smoke(PTCacheFile *pf, void *smoke_v)
 	}
 }
 
-/*
 static void ptcache_read_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
 	
 	if(sds->fluid) {
-		unsigned int res[3];
+		int res = sds->res[0]*sds->res[1]*sds->res[2];
+		int res_big, res_big_array[3];
 		float *dens, *densold, *tcu, *tcv, *tcw;
 		unsigned int out_len = sizeof(float)*(unsigned int)res;
+		unsigned int out_len_big;
 
-		smoke_turbulence_get_res(sds->wt, res);
+		smoke_turbulence_get_res(sds->wt, res_big_array);
+		res_big = res_big_array[0]*res_big_array[1]*res_big_array[2];
+		out_len_big = sizeof(float) * (unsigned int)res_big;
 
 		smoke_turbulence_export(sds->wt, &dens, &densold, &tcu, &tcv, &tcw);
 
-		ptcache_compress_read(pf, (unsigned char*)dens, out_len);
-		
+		ptcache_compress_read(pf, (unsigned char*)dens, out_len_big);
+		ptcache_compress_read(pf, (unsigned char*)densold, out_len_big);
+
+		ptcache_compress_read(pf, (unsigned char*)tcu, out_len);
+		ptcache_compress_read(pf, (unsigned char*)tcv, out_len);
+		ptcache_compress_read(pf, (unsigned char*)tcw, out_len);		
 	}
 }
-*/
 
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd)
 {
@@ -722,7 +728,7 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	pid->write_header= ptcache_write_basic_header;
 	pid->read_header= ptcache_read_basic_header;
 
-	pid->data_types= (1<<BPHYS_DATA_LOCATION); // bogus values tot make pointcache happy
+	pid->data_types= (1<<BPHYS_DATA_LOCATION); // bogus values to make pointcache happy
 	pid->info_types= 0;
 }
 
@@ -742,13 +748,13 @@ void BKE_ptcache_id_from_smoke_turbulence(PTCacheID *pid, struct Object *ob, str
 	pid->cache_ptr= &sds->point_cache[1];
 	pid->ptcaches= &sds->ptcaches[1];
 
-	pid->totpoint= pid->totwrite= ptcache_totpoint_smoke;
+	pid->totpoint= pid->totwrite= ptcache_totpoint_smoke_turbulence;
 
 	pid->write_elem= NULL;
 	pid->read_elem= NULL;
 
-	pid->read_stream = ptcache_read_smoke;
-	pid->write_stream = ptcache_write_smoke;
+	pid->read_stream = ptcache_read_smoke_turbulence;
+	pid->write_stream = ptcache_write_smoke_turbulence;
 	
 	pid->interpolate_elem= NULL;
 
@@ -800,13 +806,9 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-		BKE_ptcache_id_from_particles(pid, ob, psys);
-		BLI_addtail(lb, pid);
-
-		if(psys->soft) {
+		if(psys->part) {
 			pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-			BKE_ptcache_id_from_softbody(pid, ob, psys->soft);
+			BKE_ptcache_id_from_particles(pid, ob, psys);
 			BLI_addtail(lb, pid);
 		}
 	}
@@ -823,6 +825,10 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 			{
 				pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
 				BKE_ptcache_id_from_smoke(pid, ob, (SmokeModifierData*)md);
+				BLI_addtail(lb, pid);
+
+				pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
+				BKE_ptcache_id_from_smoke_turbulence(pid, ob, (SmokeModifierData*)md);
 				BLI_addtail(lb, pid);
 			}
 		}
@@ -1087,7 +1093,7 @@ static void ptcache_file_init_pointers(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_BOIDS] =		data_types & (1<<BPHYS_DATA_BOIDS) ?		&pf->data.boids	: NULL;
 }
 
-static void ptcache_mem_init_pointers(PTCacheMem *pm)
+void BKE_ptcache_mem_init_pointers(PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
 	int i;
@@ -1096,7 +1102,7 @@ static void ptcache_mem_init_pointers(PTCacheMem *pm)
 		pm->cur[i] = data_types & (1<<i) ? pm->data[i] : NULL;
 }
 
-static void ptcache_mem_incr_pointers(PTCacheMem *pm)
+void BKE_ptcache_mem_incr_pointers(PTCacheMem *pm)
 {
 	int i;
 
@@ -1249,12 +1255,12 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 		return 0;
 
 	if(pm) {
-		ptcache_mem_init_pointers(pm);
+		BKE_ptcache_mem_init_pointers(pm);
 		totpoint = pm->totpoint;
 		index = pm->data_types & (1<<BPHYS_DATA_INDEX) ? pm->cur[BPHYS_DATA_INDEX] : &i;
 	}
 	if(pm2) {
-		ptcache_mem_init_pointers(pm2);
+		BKE_ptcache_mem_init_pointers(pm2);
 		totpoint2 = pm2->totpoint;
 		index2 = pm2->data_types & (1<<BPHYS_DATA_INDEX) ? pm2->cur[BPHYS_DATA_INDEX] : &i;
 	}
@@ -1336,7 +1342,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			}
 
 			if(pm) {
-				ptcache_mem_incr_pointers(pm);
+				BKE_ptcache_mem_incr_pointers(pm);
 				index = pm->data_types & (1<<BPHYS_DATA_INDEX) ? pm->cur[BPHYS_DATA_INDEX] : &i;
 			}
 		}
@@ -1387,7 +1393,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			}
 
 			if(pm2) {
-				ptcache_mem_incr_pointers(pm2);
+				BKE_ptcache_mem_incr_pointers(pm2);
 				index2 = pm2->data_types & (1<<BPHYS_DATA_INDEX) ? pm2->cur[BPHYS_DATA_INDEX] : &i;
 			}
 		}
@@ -1559,11 +1565,11 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 			pm->data_types = cfra ? pid->data_types : pid->info_types;
 
 			ptcache_alloc_data(pm);
-			ptcache_mem_init_pointers(pm);
+			BKE_ptcache_mem_init_pointers(pm);
 
 			for(i=0; i<totpoint; i++) {
 				if(pid->write_elem && pid->write_elem(i, pid->calldata, pm->cur))
-					ptcache_mem_incr_pointers(pm);
+					BKE_ptcache_mem_incr_pointers(pm);
 			}
 			//ptcache_make_index_array(pm, pid->totpoint(pid->calldata));
 
@@ -1663,6 +1669,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 		else {
 			PTCacheMem *pm= pid->cache->mem_cache.first;
 			PTCacheMem *link= NULL;
+
+			pm= pid->cache->mem_cache.first;
 
 			if(mode == PTCACHE_CLEAR_ALL) {
 				pid->cache->last_exact = 0;
@@ -1808,9 +1816,10 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 	else if(mode == PTCACHE_RESET_OUTDATED) {
 		reset = 1;
 
-		if(cache->flag & PTCACHE_OUTDATED)
-			if(!(cache->flag & PTCACHE_BAKED))
-				clear= 1;
+		if(cache->flag & PTCACHE_OUTDATED && !(cache->flag & PTCACHE_BAKED)) {
+			clear= 1;
+			cache->flag &= ~PTCACHE_OUTDATED;
+		}
 	}
 
 	if(reset) {
@@ -1826,6 +1835,8 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 			psys_reset(pid->calldata, PSYS_RESET_DEPSGRAPH);
 		else if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
 			smokeModifier_reset(pid->calldata);
+		else if(pid->type == PTCACHE_TYPE_SMOKE_HIGHRES)
+			smokeModifier_reset_turbulence(pid->calldata);
 	}
 	if(clear)
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
@@ -1851,10 +1862,10 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		/* Baked softbody hair has to be checked first, because we don't want to reset */
-		/* particles or softbody in that case -jahka */
-		if(psys->soft) {
-			BKE_ptcache_id_from_softbody(&pid, ob, psys->soft);
+		/* Baked cloth hair has to be checked first, because we don't want to reset */
+		/* particles or cloth in that case -jahka */
+		if(psys->clmd) {
+			BKE_ptcache_id_from_cloth(&pid, ob, psys->clmd);
 			if(mode == PSYS_RESET_ALL || !(psys->part->type == PART_HAIR && (pid.cache->flag & PTCACHE_BAKED))) 
 				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 			else
@@ -1863,7 +1874,7 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 		else if(psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
 			skip = 1;
 
-		if(skip == 0) {
+		if(skip == 0 && psys->part) {
 			BKE_ptcache_id_from_particles(&pid, ob, psys);
 			reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 		}
@@ -1879,6 +1890,9 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 			{
 				BKE_ptcache_id_from_smoke(&pid, ob, (SmokeModifierData*)md);
+				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
+
+				BKE_ptcache_id_from_smoke_turbulence(&pid, ob, (SmokeModifierData*)md);
 				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 			}
 		}
@@ -1941,7 +1955,7 @@ void BKE_ptcache_set_continue_physics(Scene *scene, int enable)
 		if(CONTINUE_PHYSICS == 0) {
 			for(ob=G.main->object.first; ob; ob=ob->id.next)
 				if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
-					DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+					DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 }
@@ -1968,9 +1982,9 @@ PointCache *BKE_ptcache_add(ListBase *ptcaches)
 	return cache;
 }
 
-void BKE_ptache_free_mem(PointCache *cache)
+void BKE_ptcache_free_mem(ListBase *mem_cache)
 {
-	PTCacheMem *pm = cache->mem_cache.first;
+	PTCacheMem *pm = mem_cache->first;
 
 	if(pm) {
 		for(; pm; pm=pm->next) {
@@ -1979,22 +1993,25 @@ void BKE_ptache_free_mem(PointCache *cache)
 				MEM_freeN(pm->index_array);
 		}
 
-		BLI_freelistN(&cache->mem_cache);
+		BLI_freelistN(mem_cache);
 	}
 }
 void BKE_ptcache_free(PointCache *cache)
 {
-	BKE_ptache_free_mem(cache);
+	BKE_ptcache_free_mem(&cache->mem_cache);
+	if(cache->edit && cache->free_edit)
+		cache->free_edit(cache->edit);
 	MEM_freeN(cache);
 }
 void BKE_ptcache_free_list(ListBase *ptcaches)
 {
 	PointCache *cache = ptcaches->first;
 
-	for(; cache; cache=cache->next)
-		BKE_ptache_free_mem(cache);
-
-	BLI_freelistN(ptcaches);
+	while(cache) {
+		BLI_remlink(ptcaches, cache);
+		BKE_ptcache_free(cache);
+		cache = ptcaches->first;
+	}
 }
 
 static PointCache *ptcache_copy(PointCache *cache)
@@ -2102,6 +2119,25 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		if((cache->flag & PTCACHE_BAKED)==0) {
 			if(pid->type==PTCACHE_TYPE_PARTICLES)
 				psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+			else if(pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
+				/* get all pids from the object and search for smoke low res */
+				ListBase pidlist2;
+				PTCacheID *pid2;
+				BKE_ptcache_ids_from_object(&pidlist2, pid->ob);
+				for(pid2=pidlist2.first; pid2; pid2=pid2->next) {
+					if(pid2->type == PTCACHE_TYPE_SMOKE_DOMAIN) 
+					{
+						if(pid2->cache && !(pid2->cache->flag & PTCACHE_BAKED)) {
+							if(bake || pid2->cache->flag & PTCACHE_REDO_NEEDED)
+								BKE_ptcache_id_clear(pid2, PTCACHE_CLEAR_ALL, 0);
+							if(bake) {
+								pid2->cache->flag |= PTCACHE_BAKING;
+								pid2->cache->flag &= ~PTCACHE_BAKED;
+							}
+						}
+					}
+				}
+			}
 
 			if(bake || cache->flag & PTCACHE_REDO_NEEDED)
 				BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
@@ -2258,7 +2294,7 @@ void BKE_ptcache_disk_to_mem(PTCacheID *pid)
 			pm->frame = cfra;
 
 			ptcache_alloc_data(pm);
-			ptcache_mem_init_pointers(pm);
+			BKE_ptcache_mem_init_pointers(pm);
 			ptcache_file_init_pointers(pf);
 
 			for(i=0; i<pm->totpoint; i++) {
@@ -2274,7 +2310,7 @@ void BKE_ptcache_disk_to_mem(PTCacheID *pid)
 					return;
 				}
 				ptcache_copy_data(pf->cur, pm->cur);
-				ptcache_mem_incr_pointers(pm);
+				BKE_ptcache_mem_incr_pointers(pm);
 			}
 
 			//ptcache_make_index_array(pm, pid->totpoint(pid->calldata));
@@ -2305,7 +2341,7 @@ void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 			pf->totpoint = pm->totpoint;
 			pf->type = pid->type;
 
-			ptcache_mem_init_pointers(pm);
+			BKE_ptcache_mem_init_pointers(pm);
 			ptcache_file_init_pointers(pf);
 
 			if(!ptcache_file_write_header_begin(pf) || !pid->write_header(pf)) {
@@ -2325,7 +2361,7 @@ void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 					ptcache_file_close(pf);
 					return;
 				}
-				ptcache_mem_incr_pointers(pm);
+				BKE_ptcache_mem_incr_pointers(pm);
 			}
 
 			ptcache_file_close(pf);

@@ -119,6 +119,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
+		// TODO: need some way to select active animdata too...
 		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			AnimData *adt= ale->adt;
@@ -210,7 +211,7 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	/* Active Action Properties ------------------------------------- */
 	/* action */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, NULL, 0, &adt_ptr, "action", 0);
+		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", NULL /*"ACT_OT_new"*/, NULL, NULL /*"ACT_OT_unlink"*/); // XXX: need to make these operators
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);
@@ -457,13 +458,9 @@ static int nla_properties(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= nla_has_buttons_region(sa);
 	
-	if(ar) {
-		ar->flag ^= RGN_FLAG_HIDDEN;
-		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
-		
-		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-		ED_area_tag_redraw(sa);
-	}
+	if(ar)
+		ED_region_toggle_hidden(C, ar);
+
 	return OPERATOR_FINISHED;
 }
 

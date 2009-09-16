@@ -204,6 +204,32 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	return dadt;
 }
 
+/* Make Local -------------------------------------------- */
+
+static void make_local_strips(ListBase *strips)
+{
+	NlaStrip *strip;
+
+	for(strip=strips->first; strip; strip=strip->next) {
+		if(strip->act) make_local_action(strip->act);
+		if(strip->remap && strip->remap->target) make_local_action(strip->remap->target);
+
+		make_local_strips(&strip->strips);
+	}
+}
+
+void BKE_animdata_make_local(AnimData *adt)
+{
+	NlaTrack *nlt;
+
+	if(adt->action) make_local_action(adt->action);
+	if(adt->tmpact) make_local_action(adt->tmpact);
+	if(adt->remap && adt->remap->target) make_local_action(adt->remap->target);
+
+	for(nlt=adt->nla_tracks.first; nlt; nlt=nlt->next) 
+		make_local_strips(&nlt->strips);
+}
+
 /* *********************************** */ 
 /* KeyingSet API */
 
@@ -239,7 +265,7 @@ KS_Path *BKE_keyingset_find_destination (KeyingSet *ks, ID *id, const char group
 		if ((ksp->rna_path==0) || strcmp(rna_path, ksp->rna_path))
 			eq_path= 0;
 			
-		/* index */
+		/* index - need to compare whole-array setting too... */
 		if (ksp->array_index != array_index)
 			eq_index= 0;
 			
@@ -412,7 +438,7 @@ void BKE_keyingsets_free (ListBase *list)
  *	- path: original path string (as stored in F-Curve data)
  *	- dst: destination string to write data to
  */
-short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
+static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
 	//if (remap) {
@@ -1424,7 +1450,6 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-// FIXME?: we currently go over entire 'main' database...
 void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
@@ -1448,8 +1473,11 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
 	 * which should ultimately be empty, since it is not possible for now to have any animation 
 	 * without some actions, and drivers wouldn't get affected by any state changes
+	 *
+	 * however, if there are some curves, we will need to make sure that their 'ctime' property gets
+	 * set correctly, so this optimisation must be skipped in that case...
 	 */
-	if (main->action.first == NULL) {
+	if ((main->action.first == NULL) && (main->curve.first == NULL)) {
 		if (G.f & G_DEBUG)
 			printf("\tNo Actions, so no animation needs to be evaluated...\n");
 			
@@ -1483,6 +1511,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 		 * value of the curve gets set in case there's no animation for that
 		 *	- it needs to be set before animation is evaluated just so that 
 		 *	  animation can successfully override...
+		 *	- it shouldn't get set when calculating drivers...
 		 */
 	for (id= main->curve.first; id; id= id->next) {
 		AnimData *adt= BKE_animdata_from_id(id);

@@ -36,7 +36,6 @@ extern "C" {
 
 struct bScreen;
 struct direntry;
-struct FileList;
 struct LinkNode;
 struct Main;
 struct MemFile;
@@ -45,6 +44,7 @@ struct Scene;
 struct SpaceFile;
 struct SpaceImaSel;
 struct UserDef;
+struct bContext;
 
 typedef struct BlendHandle	BlendHandle;
 
@@ -197,12 +197,23 @@ BLO_blendhandle_close(
 	
 	/***/
 
-char *BLO_gethome(void);
+#define GROUP_MAX 32
+
 int BLO_has_bfile_extension(char *str);
 
-void BLO_library_append(BlendHandle **libfiledata, struct direntry* filelist, int totfile, 
-						 char *dir, char* file, short flag, int idcode, struct Main *mainvar, struct Scene *scene, struct ReportList *reports);
+/* return ok when a blenderfile, in dir is the filename,
+ * in group the type of libdata
+ */
+int BLO_is_a_library(char *path, char *dir, char *group);
+
+struct Main* BLO_library_append_begin(const struct bContext *C, BlendHandle** bh, char *dir);
+void BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, char *name, int idcode, short flag);
+void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag);
+
+/* deprecated */
+#if 0
 void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Main *mainvar, struct Scene *scene, struct ReportList *reports);
+#endif
 
 BlendFileData* blo_read_blendafterruntime(int file, char *name, int actualsize, struct ReportList *reports);
 

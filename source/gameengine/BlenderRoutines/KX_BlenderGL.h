@@ -47,8 +47,8 @@ void	BL_HideMouse();
 void	BL_NormalMouse();
 void	BL_WaitMouse();
 
-void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height);
-void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int height);
+void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height);
+void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int width, int height);
 
 
 

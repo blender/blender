@@ -1994,7 +1994,7 @@ static int tree_element_active_defgroup(bContext *C, Scene *scene, TreeElement *
 	ob= (Object *)tselem->id;
 	if(set) {
 		ob->actdef= te->index+1;
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 	}
 	else {
@@ -2120,10 +2120,8 @@ static int tree_element_active_psys(bContext *C, Scene *scene, TreeElement *te, 
 {
 	if(set) {
 		Object *ob= (Object *)tselem->id;
-		ParticleSystem *psys= te->directdata;
 		
-		PE_change_act_psys(scene, ob, psys);
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 		
 // XXX		extern_set_butspace(F7KEY, 0);
 	}
@@ -4684,7 +4682,7 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	object_handle_update(scene, ob);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -5289,6 +5287,9 @@ void draw_outliner(const bContext *C)
 		if ((soops->flag & SO_HIDE_RESTRICTCOLS)==0)
 			sizex += OL_TOGW*3;
 	}
+	
+	/* tweak to display last line (when list bigger than window) */
+	sizey += V2D_SCROLL_HEIGHT;
 	
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, sizex, sizey);

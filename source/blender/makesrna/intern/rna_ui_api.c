@@ -37,14 +37,15 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle)
+static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle, int icon_only)
 {
 	int flag= 0;
 
 	flag |= (slider)? UI_ITEM_R_SLIDER: 0;
 	flag |= (expand)? UI_ITEM_R_EXPAND: 0;
 	flag |= (toggle)? UI_ITEM_R_TOGGLE: 0;
-
+	flag |= (icon_only)? UI_ITEM_R_ICON_ONLY: 0;
+	
 	uiItemR(layout, name, icon, ptr, propname, flag);
 }
 
@@ -145,6 +146,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	RNA_def_boolean(func, "slider", 0, "", "Use slider widget for numeric values.");
 	RNA_def_boolean(func, "toggle", 0, "", "Use toggle widget for boolean values.");
+	RNA_def_boolean(func, "icon_only", 0, "", "Only show the property's icon, with no text");
 
 	func= RNA_def_function(srna, "items_enumR", "uiItemsEnumR");
 	api_ui_item_rna_common(func);
@@ -247,6 +249,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	RNA_def_string(func, "new", "", 0, "", "Operator identifier to create a new ID block.");
+	RNA_def_string(func, "open", "", 0, "", "Operator identifier to open a file for creating a new ID block.");
 	RNA_def_string(func, "unlink", "", 0, "", "Operator identifier to unlink the ID block.");
 
 	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");

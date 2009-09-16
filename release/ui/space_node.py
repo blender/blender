@@ -6,6 +6,7 @@ class NODE_HT_header(bpy.types.Header):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		snode = context.space_data
 
 		row = layout.row(align=True)
@@ -73,11 +74,10 @@ class NODE_MT_select(bpy.types.Menu):
 
 		layout.itemO("node.select_border")
 
-		# XXX
-		# layout.itemS()
-		# layout.itemO("node.select_all")
-		# layout.itemO("node.select_linked_from")
-		# layout.itemO("node.select_linked_to")
+		layout.itemS()
+		layout.itemO("node.select_all")
+		layout.itemO("node.select_linked_from")
+		layout.itemO("node.select_linked_to")
 
 class NODE_MT_node(bpy.types.Menu):
 	__space_type__ = 'NODE_EDITOR'
@@ -98,11 +98,10 @@ class NODE_MT_node(bpy.types.Menu):
 		# XXX
 		# layout.itemS()
 		# layout.itemO("node.make_link")
-		# layout.itemS()
-		# layout.itemO("node.edit_group")
-		# layout.itemO("node.ungroup")
-		# layout.itemO("node.group")
-		# layout.itemO("node.make_link")
+		layout.itemS()
+		layout.itemO("node.group_edit")
+		layout.itemO("node.group_ungroup")
+		layout.itemO("node.group_make")
 
 		layout.itemS()
 
@@ -113,9 +112,7 @@ class NODE_MT_node(bpy.types.Menu):
 		# layout.itemS()
 		# layout.itemO("node.show_cyclic_dependencies")
 
-
 bpy.types.register(NODE_HT_header)
 bpy.types.register(NODE_MT_view)
 bpy.types.register(NODE_MT_select)
 bpy.types.register(NODE_MT_node)
-

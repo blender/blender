@@ -87,7 +87,7 @@ AUD_SDLMixerReader::AUD_SDLMixerReader(AUD_IReader* reader,
 							 specs.rate) == -1)
 			AUD_THROW(AUD_ERROR_SDL);
 	}
-	catch(AUD_Exception e)
+	catch(AUD_Exception)
 	{
 		delete m_reader; AUD_DELETE("reader")
 		throw;

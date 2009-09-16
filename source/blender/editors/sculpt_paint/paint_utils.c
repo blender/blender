@@ -214,6 +214,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	ot->name= "Preset";
+    ot->description= "Set brush shape.";
 	ot->idname= "BRUSH_OT_curve_preset";
 
 	ot->exec= brush_curve_preset_exec;

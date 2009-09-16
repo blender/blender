@@ -223,6 +223,8 @@ static void rna_def_text(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TextMarker");
 	RNA_def_property_ui_text(prop, "Markers", "Text markers highlighting part of the text.");
+
+	RNA_api_text(srna);
 }
 
 void RNA_def_text(BlenderRNA *brna)

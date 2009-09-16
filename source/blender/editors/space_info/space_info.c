@@ -167,8 +167,9 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data==ND_RENDER_RESULT)
 				ED_region_tag_redraw(ar);
 			break;
-		case NC_INFO:
-			ED_region_tag_redraw(ar);
+		case NC_SPACE:	
+			if(wmn->data == ND_SPACE_INFO)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 	

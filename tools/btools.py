@@ -77,6 +77,7 @@ def validate_arguments(args, bc):
 			'BF_OPENGL_LINKFLAGS',
 			'CFLAGS', 'CCFLAGS', 'CXXFLAGS', 'CPPFLAGS',
 			'REL_CFLAGS', 'REL_CCFLAGS', 'REL_CXXFLAGS',
+			'BGE_CXXFLAGS',
 			'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
 			'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
 			'C_WARN', 'CC_WARN', 'CXX_WARN',
@@ -90,7 +91,7 @@ def validate_arguments(args, bc):
 			'BF_BSC', 'BF_CONFIG',
 			'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
 			'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-			'BF_DOCDIR']
+			'BF_DOCDIR', 'BF_UNIT_TEST']
 
 	okdict = {}
 
@@ -334,6 +335,7 @@ def read_opts(cfg, args):
 		('CFLAGS', 'C only flags', ''),
 		('CCFLAGS', 'Generic C and C++ flags', ''),
 		('CXXFLAGS', 'C++ only flags', ''),
+		('BGE_CXXFLAGS', 'C++ only flags for BGE', ''),
 		('CPPFLAGS', 'Defines', ''),
 		('REL_CFLAGS', 'C only release flags', ''),
 		('REL_CCFLAGS', 'Generic C and C++ release flags', ''),
@@ -385,7 +387,9 @@ def read_opts(cfg, args):
 		
 		('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
-		('BF_MSVS', 'Generate MSVS project files and solution', False)
+		('BF_MSVS', 'Generate MSVS project files and solution', False),
+
+		(BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False))
 
 	) # end of opts.AddOptions()
 

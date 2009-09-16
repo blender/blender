@@ -253,6 +253,7 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Layers";
+	ot->description= "Toggle layer(s) visibility.";
 	ot->idname= "VIEW3D_OT_layers";
 	
 	/* api callbacks */
@@ -1551,11 +1552,17 @@ static char *view3d_modeselect_pup(Scene *scene)
 	if(ob==NULL) return string;
 	
 	/* if active object is editable */
-	if ( ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE)
+	if ( ((ob->type == OB_MESH)
 		|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
 		|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
 		
 		str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
+	}
+	else if (ob->type == OB_ARMATURE) {
+		if (ob->mode & OB_MODE_POSE)
+			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT|OB_MODE_POSE, ICON_EDITMODE_HLT);
+		else
+			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
 	}
 
 	if (ob->type == OB_MESH) {
@@ -1572,7 +1579,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 		str += sprintf(str, formatstr, "Pose Mode", OB_MODE_POSE, ICON_POSE_HLT);
 	}
 
-	if (ob->particlesystem.first) {
+	if (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody)) {
 		str += sprintf(str, formatstr, "Particle Mode", OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
 	}
 
@@ -1662,6 +1669,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *obedit = CTX_data_edit_object(C);
+	Object *ob = CTX_data_active_object(C);
 	BMEditMesh *em= NULL;
 	int bit, ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
 	PointerRNA props_ptr;
@@ -1714,6 +1722,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		WM_operator_properties_create(&props_ptr, "OBJECT_OT_mode_set");
 		RNA_enum_set(&props_ptr, "mode", v3d->modeselect);
 		WM_operator_name_call(C, "OBJECT_OT_mode_set", WM_OP_EXEC_REGION_WIN, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
 		break;		
 	case B_AROUND:
 // XXX		handle_view3d_around(); /* copies to other 3d windows */
@@ -1725,7 +1734,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				em->selectmode= SCE_SELECT_VERTEX;
 			ts->selectmode= em->selectmode;
 			EDBM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Vertex");
 		}
 		break;
@@ -1739,7 +1748,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 			ts->selectmode= em->selectmode;
 			EDBM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Edge");
 		}
 		break;
@@ -1753,21 +1762,24 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 			ts->selectmode= em->selectmode;
 			EDBM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Face");
 		}
 		break;	
 
 	case B_SEL_PATH:
 		ts->particle.selectmode= SCE_SELECT_PATH;
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: Path");
 		break;
 	case B_SEL_POINT:
 		ts->particle.selectmode = SCE_SELECT_POINT;
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: Point");
 		break;
 	case B_SEL_END:
 		ts->particle.selectmode = SCE_SELECT_END;
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: End point");
 		break;	
 	
@@ -2170,7 +2182,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
 		if (ob && (ob->mode & OB_MODE_POSE)) {
-			xco+= XIC;
+			xco+= XIC*2;
 			uiBlockBeginAlign(block);
 			
 			uiDefIconButO(block, BUT, "POSE_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, NULL);

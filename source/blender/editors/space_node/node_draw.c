@@ -601,7 +601,7 @@ static void do_node_internal_buttons(bContext *C, void *node_v, int event)
 				//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 			}
 			else {
-				node= snode_get_editgroup(snode);
+				node= node_tree_get_editgroup(snode->nodetree);
 				if(node)
 					NodeTagIDChanged(snode->nodetree, node->id);
 			}

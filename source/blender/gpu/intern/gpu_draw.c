@@ -64,6 +64,8 @@
 #include "GPU_material.h"
 #include "GPU_draw.h"
 
+#include "smoke_API.h"
+
 /* These are some obscure rendering functions shared between the
  * game engine and the blender, in this module to avoid duplicaten
  * and abstract them away from the rest a bit */
@@ -754,13 +756,21 @@ void GPU_free_smoke(SmokeModifierData *smd)
 		if(smd->domain->tex)
 	 		GPU_texture_free(smd->domain->tex);
 		smd->domain->tex = NULL;
+
+		if(smd->domain->tex_shadow)
+	 		GPU_texture_free(smd->domain->tex_shadow);
+		smd->domain->tex_shadow = NULL;
 	}
 }
 
-void GPU_create_smoke(SmokeModifierData *smd)
+void GPU_create_smoke(SmokeModifierData *smd, int highres)
 {
-	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && !smd->domain->tex)
-		smd->domain->tex = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->view3d);
+	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && !smd->domain->tex && !highres)
+		smd->domain->tex = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smoke_get_density(smd->domain->fluid));
+	else if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && !smd->domain->tex && highres)
+		smd->domain->tex = GPU_texture_create_3D(smd->domain->res_wt[0], smd->domain->res_wt[1], smd->domain->res_wt[2], smoke_turbulence_get_density(smd->domain->wt));
+
+	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
 }
 
 void GPU_free_image(Image *ima)

@@ -27,6 +27,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	# the mt.type enum is (ab)used for a lookup on function names
 	# ...to avoid lengthy if statements
 	# so each type must have a function here.
+
 	def ARMATURE(self, layout, ob, md):
 		layout.itemR(md, "object")
 		
@@ -241,10 +242,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
 		layout.itemS()
 		
-		layout.itemO("object.meshdeform_bind", text="Bind")
-		row = layout.row()
-		row.itemR(md, "precision")
-		row.itemR(md, "dynamic")
+		if md.is_bound:
+			layout.itemO("object.meshdeform_bind", text="Unbind")
+		else:
+			layout.itemO("object.meshdeform_bind", text="Bind")
+			row = layout.row()
+			row.itemR(md, "precision")
+			row.itemR(md, "dynamic")
 		
 	def MIRROR(self, layout, ob, md):
 		layout.itemR(md, "merge_limit")
@@ -268,7 +272,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 	def MULTIRES(self, layout, ob, md):
 		layout.itemR(md, "subdivision_type")
-		layout.itemO("object.multires_subdivide", text="Subdivide")
+		
+		row = layout.row()
+		row.itemO("object.multires_subdivide", text="Subdivide")
+		row.itemO("object.multires_higher_levels_delete", text="Delete Higher")
+
 		layout.itemR(md, "level")
 	
 	def PARTICLE_INSTANCE(self, layout, ob, md):

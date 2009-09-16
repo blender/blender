@@ -59,6 +59,9 @@ struct SurfaceModifierData;
 struct BVHTreeRay;
 struct BVHTreeRayHit; 
 
+#define PARTICLE_P				ParticleData *pa; int p
+#define LOOP_PARTICLES	for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++)
+
 typedef struct ParticleEffectorCache {
 	struct ParticleEffectorCache *next, *prev;
 	struct Object *ob;
@@ -109,45 +112,9 @@ typedef struct ParticleCacheKey{
 	float vel[3];
 	float rot[4];
 	float col[3];
+	float time;
 	int steps;
 } ParticleCacheKey;
-
-typedef struct ParticleEditKey{
-	float *co;
-	float *vel;
-	float *rot;
-	float *time;
-
-	float world_co[3];
-	float length;
-	short flag;
-} ParticleEditKey;
-
-typedef struct ParticleUndo {
-	struct ParticleUndo *next, *prev;
-	struct ParticleEditKey **keys;
-	struct KDTree *emitter_field;
-	struct ParticleData *particles;
-	float *emitter_cosnos;
-	int totpart, totkeys;
-	char name[64];
-} ParticleUndo;
-
-typedef struct ParticleEdit {
-	ListBase undo;
-	struct ParticleUndo *curundo;
-
-	ParticleEditKey **keys;
-	int totkeys;
-
-	int *mirror_cache;
-
-	struct KDTree *emitter_field;
-	float *emitter_cosnos;
-
-	char sel_col[3];
-	char nosel_col[3];
-} ParticleEdit;
 
 typedef struct ParticleThreadContext {
 	/* shared */
@@ -240,9 +207,10 @@ int psys_check_enabled(struct Object *ob, struct ParticleSystem *psys);
 void psys_free_boid_rules(struct ListBase *list);
 void psys_free_settings(struct ParticleSettings *part);
 void free_child_path_cache(struct ParticleSystem *psys);
-void psys_free_path_cache(struct ParticleSystem *psys);
-void free_hair(struct ParticleSystem *psys, int softbody);
+void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
+void free_hair(struct Object *ob, struct ParticleSystem *psys, int dynamics);
 void free_keyed_keys(struct ParticleSystem *psys);
+void psys_free_particles(struct ParticleSystem *psys);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);
 void psys_free_children(struct ParticleSystem *psys);
 
@@ -271,9 +239,9 @@ void psys_reset(struct ParticleSystem *psys, int mode);
 
 void psys_find_parents(struct Object *ob, struct ParticleSystemModifierData *psmd, struct ParticleSystem *psys);
 
-void psys_cache_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
+void psys_cache_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra);
+void psys_cache_edit_paths(struct Scene *scene, struct Object *ob, struct PTCacheEdit *edit, float cfra);
 void psys_cache_child_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
-void psys_update_world_cos(struct Object *ob, struct ParticleSystem *psys);
 int do_guide(struct Scene *scene, struct ParticleKey *state, int pa_num, float time, struct ListBase *lb);
 float psys_get_size(struct Object *ob, struct Material *ma, struct ParticleSystemModifierData *psmd, struct IpoCurve *icu_size, struct ParticleSystem *psys, struct ParticleSettings *part, struct ParticleData *pa, float *vg_size);
 float psys_get_timestep(struct ParticleSettings *part);
@@ -358,12 +326,6 @@ void reset_particle(struct Scene *scene, struct ParticleData *pa, struct Particl
 #define PSYS_EC_DEFLECT		2
 #define PSYS_EC_PARTICLE	4
 #define PSYS_EC_REACTOR		8
-
-/* ParticleEditKey->flag */
-#define PEK_SELECT		1
-#define PEK_TO_SELECT	2
-#define PEK_TAG			4
-#define PEK_HIDE		8
 
 /* index_dmcache */
 #define DMCACHE_NOTFOUND	-1

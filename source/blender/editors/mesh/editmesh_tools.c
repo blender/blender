@@ -101,8 +101,6 @@ static void waitcursor(int val) {}
 static int pupmenu() {return 0;}
 static int qtest() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
-static int snap_sel_to_curs() {return 0;}
-static int snap_to_center() {return 0;}
 
 /* XXX */
 
@@ -647,7 +645,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 			* This shouldn't be necessary, derived queries should be
 			* automatically building this data if invalid. Or something.
 			*/
-//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+//		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 		object_handle_update(scene, obedit);
 
 		/* individual faces? */
@@ -683,8 +681,8 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	RNA_enum_set(op->ptr, "proportional", 0);
 	RNA_boolean_set(op->ptr, "mirror", 0);
@@ -708,8 +706,8 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 
 	extrude_mesh(scene, obedit, em, op);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -739,7 +737,6 @@ void MESH_OT_extrude(wmOperatorType *ot)
 
 static int split_mesh(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
@@ -753,8 +750,8 @@ static int split_mesh(bContext *C, wmOperator *op)
 
 	WM_cursor_wait(0);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -779,7 +776,6 @@ void MESH_OT_split(wmOperatorType *ot)
 //needs changes ported over to new extrude code too
 static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
@@ -815,8 +811,8 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 
 	EM_fgon_flags(em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -846,7 +842,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float degr, int dupli )
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	EditVert *eve,*nextve;
 	float nor[3]= {0.0f, 0.0f, 0.0f};
@@ -868,7 +864,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 
 	phi= degr*M_PI/360.0;
 	phi/= steps;
-	if(scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
+	if(ts->editbutflag & B_CLOCKWISE) phi= -phi;
 
 	RNA_float_get_array(op->ptr, "axis", n);
 	Normalize(n);
@@ -884,7 +880,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 	Mat3MulMat3(bmat,imat,tmat);
 
 	if(dupli==0)
-		if(scene->toolsettings->editbutflag & B_KEEPORIG)
+		if(ts->editbutflag & B_KEEPORIG)
 			adduplicateflag(em, 1);
 
 	for(a=0; a<steps; a++) {
@@ -918,7 +914,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 
 		EM_fgon_flags(em);
 
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	}
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -927,7 +923,6 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 
 static int spin_mesh_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	int ok;
 
@@ -937,8 +932,8 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -982,7 +977,6 @@ void MESH_OT_spin(wmOperatorType *ot)
 
 static int screw_mesh_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	EditVert *eve,*v1=0,*v2=0;
@@ -1038,8 +1032,8 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 	}
 
 	if(spin_mesh(C, op, dvec, turns*steps, 360.0f*turns, 0)) {
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
@@ -2512,7 +2506,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 		}
 	}
 
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	// Now for each face in the mesh we need to figure out How many edges were cut
 	// and which filling method to use for that face
 	for(ef = em->faces.first;ef;ef = ef->next) {
@@ -3299,184 +3293,8 @@ void edge_flip(EditMesh *em)
 static const EnumPropertyItem axis_items[]= {
 	{AXIS_X, "X", 0, "X", ""},
 	{AXIS_Y, "Y", 0, "Y", ""},
-	{0, NULL, 0, NULL, NULL}};
-
-#if 0
-static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
-{
-	EditVert **verts[2];
-	EditFace *face[2], *efa, *newFace[2];
-	EditEdge **edges[2], **hiddenedges, *srchedge;
-	int facecount, p1, p2, p3, p4, fac1, fac2, i, j;
-	int numhidden, numshared, p[2][4];
-
-	/* check to make sure that the edge is only part of 2 faces */
-	facecount = 0;
-	for(efa = em->faces.first;efa;efa = efa->next) {
-		if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || efa->e4 == eed)) {
-			if(facecount >= 2) {
-				/* more than two faces with this edge */
-				return;
-			}
-			else {
-				face[facecount] = efa;
-				facecount++;
-			}
-		}
-	}
-
-	if(facecount < 2)
-		return;
-
-	/* how many edges does each face have */
- 	if(face[0]->e4) fac1= 4;
-	else fac1= 3;
-
-	if(face[1]->e4) fac2= 4;
-	else fac2= 3;
-
-	/* make a handy array for verts and edges */
-	verts[0]= &face[0]->v1;
-	edges[0]= &face[0]->e1;
-	verts[1]= &face[1]->v1;
-	edges[1]= &face[1]->e1;
-
-	/* we don't want to rotate edges between faces that share more than one edge */
-	numshared= 0;
-	for(i=0; i<fac1; i++)
-		for(j=0; j<fac2; j++)
-			if (edges[0][i] == edges[1][j])
-				numshared++;
-
-	if(numshared > 1)
-		return;
-
-	/* we want to construct an array of vertex indicis in both faces, starting at
-	   the last vertex of the edge being rotated.
-	   - first we find the two vertices that lie on the rotating edge
-	   - then we make sure they are ordered according to the face vertex order
-	   - and then we construct the array */
-	p1= p2= p3= p4= 0;
-
-	for(i=0; i<4; i++) {
-		if(eed->v1 == verts[0][i]) p1 = i;
-		if(eed->v2 == verts[0][i]) p2 = i;
-		if(eed->v1 == verts[1][i]) p3 = i;
-		if(eed->v2 == verts[1][i]) p4 = i;
-	}
-
-	if((p1+1)%fac1 == p2)
-		SWAP(int, p1, p2);
-	if((p3+1)%fac2 == p4)
-		SWAP(int, p3, p4);
-
-	for (i = 0; i < 4; i++) {
-		p[0][i]= (p1 + i)%fac1;
-		p[1][i]= (p3 + i)%fac2;
-	}
-
-	/* create an Array of the Edges who have h set prior to rotate */
-	numhidden = 0;
-	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next)
-		if(srchedge->h && ((srchedge->v1->f & SELECT) || (srchedge->v2->f & SELECT)))
-			numhidden++;
-
-	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1, "RotateEdgeHiddenVerts");
-	if(!hiddenedges) {
-        BKE_report(op->reports, RPT_ERROR, "Memory allocation failed");
-        return;
-    }
-
-    numhidden = 0;
-	for(srchedge=em->edges.first; srchedge; srchedge=srchedge->next)
-		if(srchedge->h && (srchedge->v1->f & SELECT || srchedge->v2->f & SELECT))
-			hiddenedges[numhidden++] = srchedge;
-
-	/* create the 2 new faces */
-	if(fac1 == 3 && fac2 == 3) {
-		/* no need of reverse setup */
-
-		newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
-		newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
-	}
-	else if(fac1 == 4 && fac2 == 3) {
-		if(dir == DIRECTION_CW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
-		} else if (dir == DIRECTION_CCW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], 4+p[1][1], p[0][0], p[0][1]);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], 4+p[0][2], p[1][0], p[1][1], -1);
-
-			verts[0][p[0][2]]->f |= SELECT;
-			verts[1][p[1][1]]->f |= SELECT;
-		}
-	}
-	else if(fac1 == 3 && fac2 == 4) {
-		if(dir == DIRECTION_CW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
-		} else if (dir == DIRECTION_CCW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][0], p[0][1], 4+p[1][2], -1);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], 4+p[0][2]);
-
-			verts[0][p[0][1]]->f |= SELECT;
-			verts[1][p[1][2]]->f |= SELECT;
-		}
-
-	}
-	else if(fac1 == 4 && fac2 == 4) {
-		if(dir == DIRECTION_CW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
-		} else if (dir == DIRECTION_CCW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], p[0][3], 4+p[1][1], 4+p[1][2]);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][2], p[1][3], 4+p[0][1], 4+p[0][2]);
-
-			verts[0][p[0][2]]->f |= SELECT;
-			verts[1][p[1][2]]->f |= SELECT;
-		}
-	}
-	else
-		return; /* This should never happen */
-
-	if(dir == DIRECTION_CW || (fac1 == 3 && fac2 == 3)) {
-		verts[0][p[0][1]]->f |= SELECT;
-		verts[1][p[1][1]]->f |= SELECT;
-	}
-
-	/* copy old edge's flags to new center edge*/
-	for(srchedge=em->edges.first;srchedge;srchedge=srchedge->next) {
-		if((srchedge->v1->f & SELECT) && (srchedge->v2->f & SELECT)) {
-			srchedge->f = eed->f;
-			srchedge->h = eed->h;
-			srchedge->dir = eed->dir;
-			srchedge->seam = eed->seam;
-			srchedge->crease = eed->crease;
-			srchedge->bweight = eed->bweight;
-		}
-	}
-
-	/* resetting hidden flag */
-	for(numhidden--; numhidden>=0; numhidden--)
-		hiddenedges[numhidden]->h= 1;
-
-	/* check for orhphan edges */
-	for(srchedge=em->edges.first; srchedge; srchedge=srchedge->next)
-		srchedge->f1= -1;
-
-	/* cleanup */
-	MEM_freeN(hiddenedges);
-
-	/* get rid of the old edge and faces*/
-	remedge(em, eed);
-	free_editedge(em, eed);
-	BLI_remlink(&em->faces, face[0]);
-	free_editface(em, face[0]);
-	BLI_remlink(&em->faces, face[1]);
-	free_editface(em, face[1]);
-}
-
-#endif
+	{0, NULL, 0, NULL, NULL},
+};
 
 /******************* BEVEL CODE STARTS HERE ********************/
 
@@ -4304,7 +4122,7 @@ useless:
 		} else {
 			draw = 0;
 		}
-//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+//		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	}
 
 
@@ -4324,7 +4142,7 @@ useless:
 
 	if(!immediate)
 		EM_automerge(0);
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 //	scrarea_queue_winredraw(curarea);
 
 	//BLI_ghash_free(edgesgh, freeGHash, NULL);
@@ -4464,7 +4282,6 @@ static void mesh_rip_setface(EditMesh *em, EditFace *sefa)
 static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 #if 0 //BMESH_TODO
-	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= ar->regiondata;
 	Object *obedit= CTX_data_edit_object(C);
@@ -4660,8 +4477,8 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -4732,7 +4549,7 @@ void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 		}
 	}
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	return;
 }
 
@@ -4778,7 +4595,7 @@ void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock
 				}
 			}
 			sprintf(str,"Blending at %d%c  MMB to Copy at 100%c",(int)(perc*100),'%','%');
-//			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+//			DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 //			headerprint(str);
 //			force_draw(0);
 
@@ -5552,7 +5369,7 @@ int select_vertex_path_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	BKE_mesh_end_editmesh(obedit->data, em);
 
 	return OPERATOR_FINISHED;
@@ -5619,7 +5436,7 @@ static int region_to_loop(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -5672,8 +5489,8 @@ static int validate_loop(EditMesh *em, Collection *edgecollection)
 	return(1);
 }
 
-static int loop_bisect(EditMesh *em, Collection *edgecollection){
-
+static int loop_bisect(EditMesh *em, Collection *edgecollection)
+{
 	EditFace *efa, *sf1, *sf2;
 	EditEdge *eed, *sed;
 	CollectedEdge *curredge;
@@ -5794,7 +5611,7 @@ static int loop_to_region(bContext *C, wmOperator *op)
 	freecollections(&allcollections);
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -5812,6 +5629,8 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+/********************** Fill Operators *************************/
 
 /* note; the EM_selectmode_set() calls here illustrate how badly constructed it all is... from before the
 edge/face flags, with very mixed results.... */
@@ -6059,7 +5878,6 @@ static void fill_mesh(EditMesh *em)
 
 static int fill_mesh_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
@@ -6067,8 +5885,8 @@ static int fill_mesh_exec(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 
@@ -6090,7 +5908,6 @@ void MESH_OT_fill(wmOperatorType *ot)
 
 static int beauty_fill_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
@@ -6098,8 +5915,8 @@ static int beauty_fill_exec(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -6122,7 +5939,6 @@ void MESH_OT_beauty_fill(wmOperatorType *ot)
 
 static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 
@@ -6130,8 +5946,8 @@ static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf", BM_SELECT))
 		return OPERATOR_CANCELLED;
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -6152,14 +5968,13 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 
 static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	join_triangles(em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -6181,14 +5996,13 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 
 static int edge_flip_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	edge_flip(em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
@@ -6207,4 +6021,3 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-

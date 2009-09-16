@@ -92,10 +92,14 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 		layout = self.layout
 		
 		ob = context.object
-			
-		row = layout.row()
-		row.itemR(ob, "max_draw_type", text="Type")
-		row.itemR(ob, "draw_bounds_type", text="Bounds")
+		
+		split = layout.split()
+		col = split.column()
+		col.itemR(ob, "max_draw_type", text="Type")
+		col = split.column()
+		row = col.row()
+		row.itemR(ob, "draw_bounds", text="Bounds")
+		row.itemR(ob, "draw_bounds_type", text="")
 
 		flow = layout.column_flow()
 		flow.itemR(ob, "draw_name", text="Name")

@@ -3,7 +3,20 @@ from bpy.__ops__ import add		as op_add
 from bpy.__ops__ import remove		as op_remove
 from bpy.__ops__ import dir		as op_dir
 from bpy.__ops__ import call		as op_call
+from bpy.__ops__ import as_string	as op_as_string
 from bpy.__ops__ import get_rna	as op_get_rna
+
+# Keep in sync with WM_types.h
+context_dict = {
+	'INVOKE_DEFAULT':0,
+	'INVOKE_REGION_WIN':1,
+	'INVOKE_AREA':2,
+	'INVOKE_SCREEN':3,
+	'EXEC_DEFAULT':4,
+	'EXEC_REGION_WIN':5,
+	'EXEC_AREA':6,
+	'EXEC_SCREEN':7,
+}
 
 class bpy_ops(object):
 	'''
@@ -94,10 +107,22 @@ class bpy_ops_submodule_op(object):
 		# submod.foo -> SUBMOD_OT_foo
 		return self.module.upper() + '_OT_' + self.func
 	
-	def __call__(self, **kw):
+	def __call__(self, *args, **kw):
 		
 		# Get the operator from blender
-		return op_call(self.idname(), kw)
+		if len(args) > 1:
+			raise ValueError("only one argument for the execution context is supported ")
+		
+		if args:
+			try:
+				context = context_dict[args[0]]
+			except:
+				raise ValueError("Expected a single context argument in: " + str(list(context_dict.keys())))
+			
+			return op_call(self.idname(), kw, context)
+		
+		else:
+			return op_call(self.idname(), kw)
 	
 	def get_rna(self):
 		'''
@@ -106,7 +131,10 @@ class bpy_ops_submodule_op(object):
 		return op_get_rna(self.idname())
 			
 	
-	def __repr__(self):
+	def __repr__(self): # useful display, repr(op)
+		return op_as_string(self.idname())
+	
+	def __str__(self): # used for print(...)
 		return "<function bpy.ops.%s.%s at 0x%x'>" % (self.module, self.func, id(self))
 
 import bpy

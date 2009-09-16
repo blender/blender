@@ -63,6 +63,14 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 
+#ifdef _WIN32
+#define open _open
+#define close _close
+#define read _read
+#define write _write
+#endif
+
+
 int seekPackedFile(PackedFile *pf, int offset, int whence)
 {
 	int oldseek = -1, seek = 0;
@@ -228,7 +236,7 @@ void packAll(Main *bmain, ReportList *reports)
 // attempt to create a function that generates an unique filename
 // this will work when all funtions in fileops.c understand relative filenames...
 
-char *find_new_name(char *name)
+static char *find_new_name(char *name)
 {
 	char tempname[FILE_MAXDIR + FILE_MAXFILE];
 	char *newname;

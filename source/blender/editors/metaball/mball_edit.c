@@ -212,8 +212,8 @@ static int select_deselect_all_metaelems_exec(bContext *C, wmOperator *op)
 			else ml->flag |= SELECT;
 			ml= ml->next;
 		}
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-		//DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
+		//DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;
@@ -223,6 +223,7 @@ void MBALL_OT_select_deselect_all_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect All";
+    ot->description= "(de)select all metaelements.";
 	ot->idname= "MBALL_OT_select_deselect_all_metaelems";
 
 	/* callback functions */
@@ -251,7 +252,7 @@ static int select_inverse_metaelems_exec(bContext *C, wmOperator *op)
 				ml->flag |= SELECT;
 			ml= ml->next;
 		}
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -261,6 +262,7 @@ void MBALL_OT_select_inverse_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Inverse";
+    ot->description= "Select inverse of (un)selected metaelements.";
 	ot->idname= "MBALL_OT_select_inverse_metaelems";
 
 	/* callback functions */
@@ -296,7 +298,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 		ml= ml->next;
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
 	
 	return OPERATOR_FINISHED;
 }
@@ -306,6 +308,7 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Random...";
+    ot->description= "Randomly select metaelements.";
 	ot->idname= "MBALL_OT_select_random_metaelems";
 	
 	/* callback functions */
@@ -325,7 +328,6 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 /* Duplicate selected MetaElements */
 static int duplicate_metaelems_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb = (MetaBall*)obedit->data;
 	MetaElem *ml, *newml;
@@ -341,8 +343,8 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *op)
 			}
 			ml= ml->prev;
 		}
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;
@@ -365,6 +367,7 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate";
+    ot->description= "Delete selected metaelement(s).";
 	ot->idname= "MBALL_OT_duplicate_metaelems";
 
 	/* callback functions */
@@ -384,7 +387,6 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 /* Delete all selected MetaElems (not MetaBall) */
 static int delete_metaelems_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb= (MetaBall*)obedit->data;
 	MetaElem *ml, *next;
@@ -400,8 +402,8 @@ static int delete_metaelems_exec(bContext *C, wmOperator *op)
 			}
 			ml= next;
 		}
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;
@@ -411,6 +413,7 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
+    ot->description= "Delete selected metaelement(s).";
 	ot->idname= "MBALL_OT_delete_metaelems";
 
 	/* callback functions */
@@ -426,7 +429,6 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 /* Hide selected MetaElems */
 static int hide_metaelems_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb= (MetaBall*)obedit->data;
 	MetaElem *ml;
@@ -450,8 +452,8 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 				ml= ml->next;
 			}
 		}
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;
@@ -461,6 +463,7 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide";
+    ot->description= "Hide (un)selected metaelement(s).";
 	ot->idname= "MBALL_OT_hide_metaelems";
 
 	/* callback functions */
@@ -479,7 +482,6 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 /* Unhide all edited MetaElems */
 static int reveal_metaelems_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb= (MetaBall*)obedit->data;
 	MetaElem *ml;
@@ -491,8 +493,8 @@ static int reveal_metaelems_exec(bContext *C, wmOperator *op)
 			ml->flag &= ~MB_HIDE;
 			ml= ml->next;
 		}
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -502,6 +504,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reveal";
+    ot->description= "Reveal all hidden metaelements.";
 	ot->idname= "MBALL_OT_reveal_metaelems";
 	
 	/* callback functions */
@@ -584,7 +587,7 @@ void mouse_mball(bContext *C, short mval[2], int extend)
 			}
 			mb->lastelem= act;
 			
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
 		}
 	}
 }

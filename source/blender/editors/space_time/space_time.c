@@ -260,6 +260,11 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_TIME)
+				ED_region_tag_redraw(ar);
+			break;
+
 		case NC_ANIMATION:
 			ED_region_tag_redraw(ar);
 			break;
@@ -293,6 +298,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data==ND_ANIMPLAY)
 				ED_region_tag_redraw(ar);
 			break;
+
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_FRAME:
@@ -300,6 +306,11 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 				break;
 			}
+
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_TIME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 

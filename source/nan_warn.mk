@@ -52,16 +52,15 @@ else
       #
       # Irix warning info
       #
-	  # 1001		# the source file does not end w/ a newline
-      # 1110		# unreachable statement
-      # 1201		# trailing comma in enums is nonstandard
-      # 1209		# constant controlling expressions
-      # 1355		# extra semicolon is ignored
-      # 1424		# unreferenced template paramaters
-      # 1681		# virtual function override
-      # 3201		# unreferenced formal paramaters
+      # 1001 # the source file does not end w/ a newline
+      # 1110 # unreachable statement
+      # 1201 # trailing comma in enums is nonstandard
+      # 1209 # constant controlling expressions
+      # 1355 # extra semicolon is ignored
+      # 1424 # unreferenced template paramaters
+      # 1681 # virtual function override
+      # 3201 # unreferenced formal paramaters
       #
-		
       LEVEL_1_C_WARNINGS = -fullwarn -woff 1001,1110,1201,1209,1355,1424,1681,3201
     endif
   endif
@@ -79,7 +78,7 @@ else
   ifeq ($(CCC),CC)
     ifeq ($(OS),irix)
       # MIPSpro Compilers
-	  #  see warning descriptions above
+      #  see warning descriptions above
       LEVEL_1_CPP_WARNINGS = -woff 1001,1110,1201,1209,1355,1424,1681,3201
     endif
   endif
@@ -111,7 +110,7 @@ else
   ifeq ($(CC),cc)
     ifeq ($(OS),irix)
       # MIPSpro Compilers
-	  #  see warning descriptions above
+      #  see warning descriptions above
       LEVEL_2_C_WARNINGS = -fullwarn -woff 1001,1209,1424,3201
     endif
     ifeq ($(OS),solaris)
@@ -148,7 +147,7 @@ else
   ifeq ($(CCC),CC)
     ifeq ($(OS),irix)
       # MIPSpro Compilers
-	  #  see warning descriptions above
+      #  see warning descriptions above
       LEVEL_2_CPP_WARNINGS = -fullwarn -woff 1209,1424,3201
     endif
   endif

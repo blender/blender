@@ -32,14 +32,11 @@
 #include <config.h>
 #endif
 
-/* This little block needed for linking to Blender... */
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
 
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
 /* end of blender include block */
+
 
 #include "Value.h"
 #include "VectorValue.h"
@@ -47,11 +44,14 @@
 #include "StringValue.h"
 #include "FloatValue.h"
 #include "KX_GameObject.h"
-//#include "ListValue.h"
 #include "IntValue.h"
 #include "SCA_TimeEventManager.h"
 #include "SCA_IScene.h"
 
+/* This little block needed for linking to Blender... */
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
 
 void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventManager* timemgr,SCA_IScene* scene, bool isInActiveLayer)
 {

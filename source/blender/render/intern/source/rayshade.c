@@ -1267,15 +1267,20 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 			}
 			
 			if(shi->combinedflag & SCE_PASS_REFLECT) {
+				/* values in shr->spec can be greater then 1.0.
+				 * In this case the mircol uses a zero blending factor, so ignoring it is ok.
+				 * Fixes bug #18837 - when the spec is higher then 1.0,
+				 * diff can become a negative color - Campbell  */
 				
-				f= fr*(1.0f-shr->spec[0]);	f1= 1.0f-i;
-				diff[0]= f*mircol[0] + f1*diff[0];
+				f1= 1.0f-i;
 				
-				f= fg*(1.0f-shr->spec[1]);	f1= 1.0f-i;
-				diff[1]= f*mircol[1] + f1*diff[1];
+				diff[0] *= f1;
+				diff[1] *= f1;
+				diff[2] *= f1;
 				
-				f= fb*(1.0f-shr->spec[2]);	f1= 1.0f-i;
-				diff[2]= f*mircol[2] + f1*diff[2];
+				if(shr->spec[0]<1.0f)	diff[0] += mircol[0] * (fr*(1.0f-shr->spec[0]));
+				if(shr->spec[1]<1.0f)	diff[1] += mircol[1] * (fg*(1.0f-shr->spec[1]));
+				if(shr->spec[2]<1.0f)	diff[2] += mircol[2] * (fb*(1.0f-shr->spec[2]));
 			}
 		}
 	}

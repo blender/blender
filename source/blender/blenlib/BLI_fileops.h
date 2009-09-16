@@ -36,8 +36,6 @@
 #ifndef BLI_FILEOPS_H
 #define BLI_FILEOPS_H
 
-
-
 void  BLI_recurdir_fileops(char *dirname);
 int BLI_link(char *file, char *to);
 int BLI_is_writable(char *filename);
@@ -56,6 +54,7 @@ char *BLI_last_slash(const char *string);
 int	  BLI_add_slash(char *string);
 void  BLI_del_slash(char *string);
 char *first_slash(char *string);
+const char *BLI_short_filename(const char *string);
 
 /* only for the sane unix world: direct calls to system functions :( */
 #ifndef WIN32

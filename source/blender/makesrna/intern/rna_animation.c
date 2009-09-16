@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contributor(s): Blender Foundation (2008), Roland Hess
+ * Contributor(s): Blender Foundation (2009), Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -93,7 +93,7 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 #else
 
 
-void rna_def_keyingset_path(BlenderRNA *brna)
+static void rna_def_keyingset_path(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -132,7 +132,7 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Entire Array", "When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used.");
 }
 
-void rna_def_keyingset(BlenderRNA *brna)
+static void rna_def_keyingset(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -157,7 +157,6 @@ void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_BUILTIN);
 	RNA_def_property_ui_text(prop, "Built-In", "Keying Set is a built-in to Blender.");
 	
-		/* TODO: for now, this is editable, but do we really want this to happen? */
 	prop= RNA_def_property(srna, "absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_ABSOLUTE);
 	RNA_def_property_ui_text(prop, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");

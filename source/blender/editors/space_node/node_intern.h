@@ -58,6 +58,9 @@ void node_keymap(wmWindowManager *wm);
 /* node_select.c */
 void NODE_OT_select(struct wmOperatorType *ot);
 void NODE_OT_select_extend(struct wmOperatorType *ot);
+void NODE_OT_select_all(wmOperatorType *ot);
+void NODE_OT_select_linked_to(wmOperatorType *ot);
+void NODE_OT_select_linked_from(wmOperatorType *ot);
 void NODE_OT_visibility_toggle(struct wmOperatorType *ot);
 void NODE_OT_view_all(struct wmOperatorType *ot);
 void NODE_OT_select_border(struct wmOperatorType *ot);
@@ -76,9 +79,9 @@ void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
-void node_deselectall(SpaceNode *snode, int swap);
+void node_deselectall(SpaceNode *snode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
-bNode *snode_get_editgroup(SpaceNode *snode);
+bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
@@ -86,6 +89,9 @@ void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
 void NODE_OT_resize(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
+void NODE_OT_group_make(struct wmOperatorType *ot);
+void NODE_OT_group_ungroup(struct wmOperatorType *ot);
+void NODE_OT_group_edit(struct wmOperatorType *ot);
 
 // XXXXXX
 

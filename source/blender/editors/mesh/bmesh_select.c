@@ -39,8 +39,6 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 
 #include "MEM_guardedalloc.h"
 
-#include "MTC_matrixops.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -364,7 +362,6 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, int x, int y
 static unsigned int findnearestvert__backbufIndextest(void *handle, unsigned int index)
 {
 	BMEditMesh *em= (BMEditMesh *)handle;
-	BMIter iter;
 	BMVert *eve = BMIter_AtIndex(em->bm, BM_VERTS_OF_MESH, NULL, index-1);
 
 	if(eve && BM_TestHFlag(eve, BM_SELECT)) return 0;
@@ -548,7 +545,8 @@ static void findnearestface__doClosest(void *userData, BMFace *efa, int x, int y
 		}
 	}
 }
-static BMFace *EDBM_findnearestface(ViewContext *vc, int *dist)
+
+BMFace *EDBM_findnearestface(ViewContext *vc, int *dist)
 {
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
@@ -669,7 +667,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	/* get the type from RNA */
 	int type = RNA_enum_get(op->ptr, "type");
 
-	float thresh = scene->toolsettings->select_thresh;
+	float thresh = CTX_data_tool_settings(C)->select_thresh;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
 	EDBM_InitOpf(em, &bmop, op, "similarfaces faces=%hf type=%d thresh=%f", BM_SELECT, type, thresh);
@@ -688,8 +686,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* dependencies graph and notification stuff */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -721,7 +719,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	/* get the type from RNA */
 	int type = RNA_enum_get(op->ptr, "type");
 
-	float thresh = scene->toolsettings->select_thresh;
+	float thresh = CTX_data_tool_settings(C)->select_thresh;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
 	EDBM_InitOpf(em, &bmop, op, "similaredges edges=%he type=%d thresh=%f", BM_SELECT, type, thresh);
@@ -741,8 +739,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* dependencies graph and notification stuff */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -773,7 +771,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	/* get the type from RNA */
 	int type = RNA_enum_get(op->ptr, "type");
-	float thresh = scene->toolsettings->select_thresh;
+	float thresh = CTX_data_tool_settings(C)->select_thresh;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
 	EDBM_InitOpf(em, &bmop, op, "similarverts verts=%hv type=%d thresh=%f", BM_SELECT, type, thresh);
@@ -794,8 +792,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	EDBM_selectmode_flush(em);
 
 	/* dependencies graph and notification stuff */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1091,7 +1089,7 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	MEM_freeN(edarray);
 //	if (EM_texFaceCheck())
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 
 	EM_EndBMEditMesh(obedit->data, em);
 #endif
@@ -1161,7 +1159,7 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 		EDBM_selectmode_flush(em);
 //			if (EM_texFaceCheck())
 		
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit);
 	}
 }
 
@@ -1245,7 +1243,7 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 			EDBM_store_selection(em, eed);
 	
 		/* force drawmode for mesh */
-		switch (vc.scene->toolsettings->edge_mode) {
+		switch (CTX_data_tool_settings(C)->edge_mode) {
 			
 			case EDGE_MODE_TAG_SEAM:
 				me->drawflag |= ME_DRAWSEAMS;
@@ -1261,9 +1259,8 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 				break;
 		}
 		
-		DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
-	
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
+		DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 	}
 #endif
 }
@@ -1362,7 +1359,7 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit);
 }
 
 static void EDBM_strip_selections(BMEditMesh *em)
@@ -1541,7 +1538,7 @@ static int select_inverse_mesh_exec(bContext *C, wmOperator *op)
 	
 	EDBM_select_swap(em);
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;	
 }
@@ -1592,12 +1589,12 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 
 	/*if(limit) {
 		int retval= select_linked_limited_invoke(&vc, 0, sel);
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 		return retval;
 	}*/
 	
 	if( unified_findnearest(&vc, &eve, &eed, &efa)==0 ) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	
 		return OPERATOR_CANCELLED;
 	}
@@ -1620,7 +1617,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	BMW_End(&walker);
 	EDBM_select_flush(em, SCE_SELECT_VERTEX);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	return OPERATOR_FINISHED;	
 }
 
@@ -1675,7 +1672,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	EDBM_select_flush(em, SCE_SELECT_VERTEX);
 
 	V_FREE(verts);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;	
 }
@@ -1717,7 +1714,7 @@ static int select_more(bContext *C, wmOperator *op)
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
 		return OPERATOR_CANCELLED;
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	return OPERATOR_FINISHED;
 }
 
@@ -1754,7 +1751,7 @@ static int select_less(bContext *C, wmOperator *op)
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
 		return OPERATOR_CANCELLED;
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	return OPERATOR_FINISHED;
 }
 

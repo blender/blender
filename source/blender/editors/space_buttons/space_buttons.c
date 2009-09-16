@@ -204,6 +204,8 @@ void buttons_operatortypes(void)
 	WM_operatortype_append(PARTICLE_OT_remove_target);
 	WM_operatortype_append(PARTICLE_OT_target_move_up);
 	WM_operatortype_append(PARTICLE_OT_target_move_down);
+	WM_operatortype_append(PARTICLE_OT_connect_hair);
+	WM_operatortype_append(PARTICLE_OT_disconnect_hair);
 
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
@@ -317,6 +319,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
+			/* lazy general redraw tag here, in case more than 1 propertie window is opened 
+			Not all RNA props have a ND_sub notifier(yet) */
+			ED_area_tag_redraw(sa);
 			switch(wmn->data) {
 				case ND_FRAME:
 				case ND_MODE:
@@ -331,11 +336,14 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_OBJECT:
+			ED_area_tag_redraw(sa);
+			/* lazy general redraw tag here, in case more than 1 propertie window is opened 
+			Not all RNA props have a ND_ notifier(yet) */
 			switch(wmn->data) {
 				case ND_TRANSFORM:
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
-				case ND_GEOM_SELECT:
+				case ND_MODIFIER:
 				case ND_CONSTRAINT:
 					ED_area_tag_redraw(sa);
 					break;
@@ -346,9 +354,15 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_SELECT:
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			break;
 		case NC_MATERIAL:
 			ED_area_tag_redraw(sa);
-			
 			switch(wmn->data) {
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
@@ -358,14 +372,15 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}					
 			break;
 		case NC_WORLD:
-			ED_area_tag_redraw(sa);
-			sbuts->preview= 1;
 		case NC_LAMP:
-			ED_area_tag_redraw(sa);
-			sbuts->preview= 1;
 		case NC_TEXTURE:
 			ED_area_tag_redraw(sa);
 			sbuts->preview= 1;
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_PROPERTIES)
+				ED_area_tag_redraw(sa);
+			break;
 	}
 
 	if(wmn->data == ND_KEYS)

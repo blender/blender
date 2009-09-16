@@ -27,6 +27,8 @@ void BM_Select(struct BMesh *bm, void *element, int select);
   chuck it.*/
 int BM_Selected(BMesh *bm, void *element);
 
+void BM_clear_flag_all(BMesh *bm, int flag);
+
 /*individual element select functions, BM_Select is a shortcut for these
   that automatically detects which one to use*/
 void BM_Select_Vert(struct BMesh *bm, struct BMVert *v, int select);

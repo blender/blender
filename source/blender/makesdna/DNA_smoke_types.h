@@ -38,9 +38,8 @@
 #define MOD_SMOKE_NOISEWAVE (1<<0)
 #define MOD_SMOKE_NOISEFFT (1<<1)
 #define MOD_SMOKE_NOISECURL (1<<2)
-
 /* viewsettings */
-#define MOD_SMOKE_SHOWHIGHRES (1<<0) /* show high resolution */
+#define MOD_SMOKE_VIEW_SHOWBIG (1<<0)
 
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -48,35 +47,34 @@ typedef struct SmokeDomainSettings {
 	struct Group *fluid_group;
 	struct Group *eff_group; // effector group for e.g. wind force
 	struct Group *coll_group; // collision objects group
+	struct WTURBULENCE *wt; // WTURBULENCE object, if active
 	struct GPUTexture *tex;
-	float *view3d; /* voxel data for display */
-	unsigned int v3dnum; /* number of frame in view3d buffer */
+	struct GPUTexture *tex_wt;
+	struct GPUTexture *tex_shadow;
+	float *shadow;
 	float p0[3]; /* start point of BB */
 	float p1[3]; /* end point of BB */
 	float dx; /* edge length of one cell */
-	float firstframe;
-	float lastframe;
+	float omega; /* smoke color - from 0 to 1 */
 	float temp; /* fluid temperature */
 	float tempAmb; /* ambient temperature */
 	float alpha;
 	float beta;
 	int res[3]; /* domain resolution */
+	int amplify; /* wavelet amplification */
 	int maxres; /* longest axis on the BB gets this resolution assigned */
 	int flags; /* show up-res or low res, etc */
+	int pad; 
 	int viewsettings;
+	short noise; /* noise type: wave, curl, anisotropic */
 	short diss_percent; 
-	short pad;
 	int diss_speed;/* in frames */
-	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */
-	struct ListBase ptcaches[2];
-	struct WTURBULENCE *wt; // WTURBULENCE object, if active
-	int pad3;
 	float strength;
 	int res_wt[3];
-	int maxres_wt;
-	short noise; /* noise type: wave, curl, anisotropic */
-	short pad2;
-	int amplify;
+	float dx_wt;
+	int v3dnum;
+	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */
+	struct ListBase ptcaches[2];
 } SmokeDomainSettings;
 
 

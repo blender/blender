@@ -80,6 +80,7 @@ typedef enum ReportType {
 enum ReportListFlags {
 	RPT_PRINT = 1,
 	RPT_STORE = 2,
+	RPT_FREE = 4,
 };
 typedef struct Report {
 	struct Report *next, *prev;
@@ -285,6 +286,7 @@ typedef struct wmOperator {
 	
 	ListBase macro;				/* list of operators, can be a tree */
 	struct wmOperator *opm;		/* current running macro, not saved */
+	short flag, pad[3];
 	
 } wmOperator;
 
@@ -294,6 +296,8 @@ typedef struct wmOperator {
 #define OPERATOR_FINISHED		4
 /* add this flag if the event should pass through */
 #define OPERATOR_PASS_THROUGH	8
+
+/* wmOperator flag */
 
 
 /* ************** wmEvent ************************ */

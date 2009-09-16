@@ -967,11 +967,24 @@ void BM_esubdivideflag(Object *obedit, BMesh *bm, int flag, float smooth,
 		BMHeader *ele;
 		int i;
 		
-		ele = BMO_IterNew(&iter,bm,&op, "outinner", BM_EDGE|BM_VERT);
+		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
+		for (; ele; ele=BMO_IterStep(&iter)) {
+			BM_Select(bm, ele, 1);
+		}
+	} else if (seltype == SUBDIV_SELECT_LOOPCUT) {
+		BMOIter iter;
+		BMHeader *ele;
+		int i;
+		
+		/*deselect input*/
+		BM_clear_flag_all(bm, BM_SELECT);
+
+		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
 		for (; ele; ele=BMO_IterStep(&iter)) {
 			BM_Select(bm, ele, 1);
 		}
 	}
+
 	BMO_Finish_Op(bm, &op);
 }
 

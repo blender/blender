@@ -82,7 +82,7 @@ struct UvMapVert;
 
 void EDBM_RecalcNormals(struct BMEditMesh *em);
 
-void EDBM_MakeEditBMesh(struct Scene *scene, struct Object *ob);
+void EDBM_MakeEditBMesh(struct ToolSettings *ts, struct Scene *scene, struct Object *ob);
 void EDBM_FreeEditBMesh(struct BMEditMesh *tm);
 void EDBM_LoadEditBMesh(struct Scene *scene, struct Object *ob);
 
@@ -98,10 +98,13 @@ struct BMFace *EDBM_get_actFace(struct BMEditMesh *em, int sloppy);
   edges select/deselect faces and vertices, and in face select mode faces select/deselect
   edges and vertices.*/
 void EDBM_selectmode_flush(struct BMEditMesh *em);
+
 int EDBM_get_actSelection(struct BMEditMesh *em, struct BMEditSelection *ese);
+
 /*exactly the same as EDBM_selectmode_flush, but you pass in the selectmode
   instead of using the current one*/
 void EDBM_select_flush(struct BMEditMesh *em, int selectmode);
+void EDBM_deselect_flush(struct BMEditMesh *em);
 
 void EDBM_selectmode_set(struct BMEditMesh *em);
 void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
@@ -216,25 +219,36 @@ void		EM_reveal_mesh(struct EditMesh *em);
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
 
-/* editdeform.c XXX rename functions? */
+/* object_vgroup.c */
 
 #define WEIGHT_REPLACE 1
 #define WEIGHT_ADD 2
 #define WEIGHT_SUBTRACT 3
 
-void		add_defgroup (Object *ob);
-void		create_dverts(struct ID *id);
-float		get_vert_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum);
-void		remove_vert_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum);
-void		remove_verts_defgroup (Object *obedit, int allverts);
-void		vertexgroup_select_by_name(Object *ob, char *name);
-void		add_vert_to_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum, 
-                           float weight, int assignmode);
+struct bDeformGroup		*ED_vgroup_add(struct Object *ob);
+struct bDeformGroup		*ED_vgroup_add_name(struct Object *ob, char *name);
+void					ED_vgroup_select_by_name(struct Object *ob, char *name);
+void					ED_vgroup_data_create(struct ID *id);
 
-struct bDeformGroup		*add_defgroup_name (Object *ob, char *name);
-struct MDeformWeight	*verify_defweight (struct MDeformVert *dv, int defgroup);
-struct MDeformWeight	*get_defweight (struct MDeformVert *dv, int defgroup);
+void		ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
+void		ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
+float		ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 
+struct MDeformWeight	*ED_vgroup_weight_verify(struct MDeformVert *dv, int defgroup);
+struct MDeformWeight	*ED_vgroup_weight_get(struct MDeformVert *dv, int defgroup);
+
+/**
+ * findnearestvert
+ * 
+ * dist (in/out): minimal distance to the nearest and at the end, actual distance
+ * sel: selection bias
+ * 		if SELECT, selected vertice are given a 5 pixel bias to make them farter than unselect verts
+ * 		if 0, unselected vertice are given the bias
+ * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
+ */
+
+struct BMVert *EDBM_findnearestvert(struct ViewContext *vc, int *dist, short sel, short strict);
+struct BMEdge *EDBM_findnearestedge(struct ViewContext *vc, int *dist);
+struct BMFace *EDBM_findnearestface(struct ViewContext *vc, int *dist);
 
 #endif /* ED_MESH_H */
-

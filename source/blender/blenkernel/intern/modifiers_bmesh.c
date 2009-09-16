@@ -67,9 +67,6 @@
 
 #include "BLI_editVert.h"
 
-#include "MTC_matrixops.h"
-#include "MTC_vectorops.h"
-
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bmesh.h"
@@ -230,8 +227,136 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	return em;
 }
 
-float vertarray_size(MVert *mvert, int numVerts, int axis);
+static float vertarray_size(MVert *mvert, int numVerts, int axis)
+{
+	int i;
+	float min_co, max_co;
 
+	/* if there are no vertices, width is 0 */
+	if(numVerts == 0) return 0;
+
+	/* find the minimum and maximum coordinates on the desired axis */
+	min_co = max_co = mvert->co[axis];
+	++mvert;
+	for(i = 1; i < numVerts; ++i, ++mvert) {
+		if(mvert->co[axis] < min_co) min_co = mvert->co[axis];
+		if(mvert->co[axis] > max_co) max_co = mvert->co[axis];
+	}
+
+	return max_co - min_co;
+}
+
+/* finds the best possible flipped name. For renaming; check for unique names afterwards */
+/* if strip_number: removes number extensions */
+static void vertgroup_flip_name (char *name, int strip_number)
+{
+	int     len;
+	char    prefix[128]={""};   /* The part before the facing */
+	char    suffix[128]={""};   /* The part after the facing */
+	char    replace[128]={""};  /* The replacement string */
+	char    number[128]={""};   /* The number extension string */
+	char    *index=NULL;
+
+	len= strlen(name);
+	if(len<3) return; // we don't do names like .R or .L
+
+	/* We first check the case with a .### extension, let's find the last period */
+	if(isdigit(name[len-1])) {
+		index= strrchr(name, '.'); // last occurrance
+		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
+			if(strip_number==0) 
+				strcpy(number, index);
+			*index= 0;
+			len= strlen(name);
+		}
+	}
+
+	strcpy (prefix, name);
+
+#define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
+
+	/* first case; separator . - _ with extensions r R l L  */
+	if( IS_SEPARATOR(name[len-2]) ) {
+		switch(name[len-1]) {
+			case 'l':
+				prefix[len-1]= 0;
+				strcpy(replace, "r");
+				break;
+			case 'r':
+				prefix[len-1]= 0;
+				strcpy(replace, "l");
+				break;
+			case 'L':
+				prefix[len-1]= 0;
+				strcpy(replace, "R");
+				break;
+			case 'R':
+				prefix[len-1]= 0;
+				strcpy(replace, "L");
+				break;
+		}
+	}
+	/* case; beginning with r R l L , with separator after it */
+	else if( IS_SEPARATOR(name[1]) ) {
+		switch(name[0]) {
+			case 'l':
+				strcpy(replace, "r");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'r':
+				strcpy(replace, "l");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'L':
+				strcpy(replace, "R");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'R':
+				strcpy(replace, "L");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+		}
+	}
+	else if(len > 5) {
+		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
+		index = BLI_strcasestr(prefix, "right");
+		if (index==prefix || index==prefix+len-5) {
+			if(index[0]=='r') 
+				strcpy (replace, "left");
+			else {
+				if(index[1]=='I') 
+					strcpy (replace, "LEFT");
+				else
+					strcpy (replace, "Left");
+			}
+			*index= 0;
+			strcpy (suffix, index+5);
+		}
+		else {
+			index = BLI_strcasestr(prefix, "left");
+			if (index==prefix || index==prefix+len-4) {
+				if(index[0]=='l') 
+					strcpy (replace, "right");
+				else {
+					if(index[1]=='E') 
+						strcpy (replace, "RIGHT");
+					else
+						strcpy (replace, "Right");
+				}
+				*index= 0;
+				strcpy (suffix, index+4);
+			}
+		}
+	}
+
+#undef IS_SEPARATOR
+
+	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
+}
 
 typedef struct IndexMapEntry {
 	/* the new vert index that this old vert index maps to */
@@ -296,7 +421,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->end_cap && amd->end_cap != ob)
 		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
 
-	MTC_Mat4One(offset);
+	Mat4One(offset);
 
 	src_mvert = cddm->getVertArray(dm);
 	maxVerts = cddm->getNumVerts(dm);
@@ -314,14 +439,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		float result_mat[4][4];
 
 		if(ob)
-			MTC_Mat4Invert(obinv, ob->obmat);
+			Mat4Invert(obinv, ob->obmat);
 		else
-			MTC_Mat4One(obinv);
+			Mat4One(obinv);
 
-		MTC_Mat4MulSerie(result_mat, offset,
+		Mat4MulSerie(result_mat, offset,
 				 obinv, amd->offset_ob->obmat,
                                  NULL, NULL, NULL, NULL, NULL);
-		MTC_Mat4CpyMat4(offset, result_mat);
+		Mat4CpyMat4(offset, result_mat);
 	}
 
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
@@ -347,7 +472,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->fit_type == MOD_ARR_FITLENGTH
 		  || amd->fit_type == MOD_ARR_FITCURVE)
 	{
-		float dist = sqrt(MTC_dot3Float(offset[3], offset[3]));
+		float dist = sqrt(INPR(offset[3], offset[3]));
 
 		if(dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
@@ -379,11 +504,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	}
 
 	/* calculate the offset matrix of the final copy (for merging) */ 
-	MTC_Mat4One(final_offset);
+	Mat4One(final_offset);
 
 	for(j=0; j < count - 1; j++) {
-		MTC_Mat4MulMat4(tmp_mat, final_offset, offset);
-		MTC_Mat4CpyMat4(final_offset, tmp_mat);
+		Mat4MulMat4(tmp_mat, final_offset, offset);
+		Mat4CpyMat4(final_offset, tmp_mat);
 	}
 
 	BMO_Init_Op(&weldop, "weldverts");

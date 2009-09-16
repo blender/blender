@@ -213,6 +213,11 @@ extern StructRNA RNA_GameSoftBodySettings;
 extern StructRNA RNA_GameStringProperty;
 extern StructRNA RNA_GameTimerProperty;
 extern StructRNA RNA_GlowSequence;
+extern StructRNA RNA_GreasePencil;
+extern StructRNA RNA_GPencilLayer;
+extern StructRNA RNA_GPencilFrame;
+extern StructRNA RNA_GPencilStroke;
+extern StructRNA RNA_GPencilStrokePoint;
 extern StructRNA RNA_Group;
 extern StructRNA RNA_Header;
 extern StructRNA RNA_HemiLamp;
@@ -581,9 +586,10 @@ PropertyUnit RNA_property_unit(PropertyRNA *prop);
 int RNA_property_flag(PropertyRNA *prop);
 
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop);
-int RNA_property_dynamic_array_set_length(PointerRNA *ptr, PropertyRNA *prop, int length);
+int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_multi_array_length(PointerRNA *ptr, PropertyRNA *prop, int dimension);
+int RNA_property_array_dimension(PointerRNA *ptr, PropertyRNA *prop, int length[]);
 char RNA_property_array_item_char(PropertyRNA *prop, int index);
-unsigned short RNA_property_array_dimension(PropertyRNA *prop, unsigned short dim_size[]);
 
 int RNA_property_string_maxlength(PropertyRNA *prop);
 

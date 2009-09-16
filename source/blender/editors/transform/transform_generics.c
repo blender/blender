@@ -285,7 +285,7 @@ static void animedit_refresh_id_tags (Scene *scene, ID *id)
 			case ID_OB:
 			{
 				Object *ob= (Object *)id;
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 			}
 				break;
 		}
@@ -623,7 +623,7 @@ void recalcData(TransInfo *t)
 			Curve *cu= t->obedit->data;
 			Nurb *nu= cu->editnurb->first;
 
-			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 
 			if (t->state == TRANS_CANCEL) {
 				while(nu) {
@@ -643,7 +643,7 @@ void recalcData(TransInfo *t)
 		}
 		else if(t->obedit->type==OB_LATTICE) {
 			Lattice *la= t->obedit->data;
-			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 
 			if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
 		}
@@ -655,7 +655,7 @@ void recalcData(TransInfo *t)
 				if(sima->flag & SI_LIVE_UNWRAP)
 					ED_uvedit_live_unwrap_re_solve();
 
-				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);
+				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
 			} else {
 				BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
 				/* mirror modifier clipping? */
@@ -670,7 +670,7 @@ void recalcData(TransInfo *t)
 				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 					editbmesh_apply_to_mirror(t);
 
-				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 
 				EDBM_RecalcNormals(em);
 				BMEdit_RecalcTesselation(em);
@@ -755,7 +755,7 @@ void recalcData(TransInfo *t)
 
 		}
 		else
-			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 	}
 	else if( (t->flag & T_POSE) && t->poseobj) {
 		Object *ob= t->poseobj;
@@ -775,7 +775,7 @@ void recalcData(TransInfo *t)
 
 		/* old optimize trick... this enforces to bypass the depgraph */
 		if (!(arm->flag & ARM_DELAYDEFORM)) {
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		}
 		else
 			where_is_pose(scene, ob);
@@ -1325,7 +1325,7 @@ void calculateCenter(TransInfo *t)
 	/* voor panning from cameraview */
 	if(t->flag & T_OBJECT)
 	{
-		if(t->spacetype==SPACE_VIEW3D)
+		if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;

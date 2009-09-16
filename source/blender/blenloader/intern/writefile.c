@@ -72,22 +72,22 @@ Any case: direct data is ALWAYS after the lib block
 #include <config.h>
 #endif
 
+#include <math.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "zlib.h"
 
 #ifndef WIN32
 #include <unistd.h>
 #else
 #include "winsock2.h"
-#include "BLI_winstuff.h"
 #include <io.h>
 #include <process.h> // for getpid
+#include "BLI_winstuff.h"
 #endif
-
-#include <math.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -653,15 +653,20 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 			}
 
 			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
-				writestruct(wd, DATA, "BoidData", psys->totpart, psys->particles->boid);
+				writestruct(wd, DATA, "BoidParticle", psys->totpart, psys->particles->boid);
 		}
 		pt = psys->targets.first;
 		for(; pt; pt=pt->next)
 			writestruct(wd, DATA, "ParticleTarget", 1, pt);
 
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
-		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
-		if(psys->soft) write_pointcaches(wd, &psys->soft->ptcaches);
+
+		if(psys->clmd) {
+			writestruct(wd, DATA, "ClothModifierData", 1, psys->clmd);
+			writestruct(wd, DATA, "ClothSimSettings", 1, psys->clmd->sim_parms);
+			writestruct(wd, DATA, "ClothCollSettings", 1, psys->clmd->coll_parms);
+		}
+		
 		write_pointcaches(wd, &psys->ptcaches);
 	}
 }
@@ -1208,7 +1213,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
-			if(ob->soft) writestruct(wd, DATA, "PointCache", 1, ob->soft->pointcache);
+			if(ob->soft) write_pointcaches(wd, &ob->soft->ptcaches);
 			writestruct(wd, DATA, "BulletSoftBody", 1, ob->bsoft);
 			
 			write_particlesystems(wd, &ob->particlesystem);
@@ -1358,7 +1363,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 				}
 				nu= cu->nurb.first;
 				while(nu) {
-					if( (nu->type & 7)==CU_BEZIER)
+					if(nu->type == CU_BEZIER)
 						writestruct(wd, DATA, "BezTriple", nu->pntsu, nu->bezt);
 					else {
 						writestruct(wd, DATA, "BPoint", nu->pntsu*nu->pntsv, nu->bp);

@@ -872,12 +872,17 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->sss_points= &points;
 	re->sss_mat= mat;
 	re->i.partsdone= 0;
-	re->result= NULL;
 
-	RE_TileProcessor(re, 0, !(re->r.mode & R_PREVIEWBUTS));
-	RE_FreeRenderResult(re->result);
+	if(!(re->r.scemode & R_PREVIEWBUTS))
+		re->result= NULL;
 
-	re->result= rr;
+	RE_TileProcessor(re, 0, 1);
+	
+	if(!(re->r.scemode & R_PREVIEWBUTS)) {
+		RE_FreeRenderResult(re->result);
+		re->result= rr;
+	}
+
 	re->i.partsdone= partsdone;
 	re->sss_mat= NULL;
 	re->sss_points= NULL;

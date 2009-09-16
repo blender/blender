@@ -65,7 +65,6 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
-#include "BKE_sculpt.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_colortools.h"

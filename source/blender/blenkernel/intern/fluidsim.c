@@ -80,6 +80,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		if(!fss)
 			return;
 		
+		fss->fmd = fluidmd;
 		fss->type = OB_FLUIDSIM_ENABLE;
 		fss->show_advancedoptions = 0;
 

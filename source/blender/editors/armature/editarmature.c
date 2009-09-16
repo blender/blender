@@ -239,7 +239,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 }
 
 /* put EditMode back in Object */
-void ED_armature_from_edit(Scene *scene, Object *obedit)
+void ED_armature_from_edit(Object *obedit)
 {
 	bArmature *arm= obedit->data;
 	EditBone *eBone, *neBone;
@@ -340,24 +340,22 @@ void ED_armature_from_edit(Scene *scene, Object *obedit)
 			armature_rebuild_pose(obt, arm);
 	}
 	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 }
 
-
-
-void apply_rot_armature (Scene *scene, Object *ob, float mat[3][3])
+void ED_armature_apply_transform(Object *ob, float mat[4][4])
 {
 	EditBone *ebone;
 	bArmature *arm= ob->data;
-	float scale = Mat3ToScalef(mat);	/* store the scale of the matrix here to use on envelopes */
+	float scale = Mat4ToScalef(mat);	/* store the scale of the matrix here to use on envelopes */
 	
 	/* Put the armature into editmode */
 	ED_armature_to_edit(ob);
 
 	/* Do the rotations */
 	for (ebone = arm->edbo->first; ebone; ebone=ebone->next){
-		Mat3MulVecfl(mat, ebone->head);
-		Mat3MulVecfl(mat, ebone->tail);
+		Mat4MulVecfl(mat, ebone->head);
+		Mat4MulVecfl(mat, ebone->tail);
 		
 		ebone->rad_head	*= scale;
 		ebone->rad_tail	*= scale;
@@ -365,7 +363,7 @@ void apply_rot_armature (Scene *scene, Object *ob, float mat[3][3])
 	}
 	
 	/* Turn the list into an armature */
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	ED_armature_edit_free(ob);
 }
 
@@ -411,7 +409,7 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 	}
 	
 	/* Turn the list into an armature */
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	
 	/* Adjust object location for new centerpoint */
 	if(centermode && obedit==NULL) {
@@ -557,7 +555,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* convert editbones back to bones */
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	
 	/* flush positions of posebones */
 	where_is_pose(scene, ob);
@@ -791,7 +789,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	
 	DAG_scene_sort(scene);	// because we removed object(s)
 
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	ED_armature_edit_free(ob);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
@@ -994,7 +992,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 	}
 	
 	/* exit editmode (recalculates pchans too) */
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	ED_armature_edit_free(ob);
 }
 
@@ -1037,7 +1035,7 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	oldob->mode &= ~OB_MODE_POSE;
 	//oldbase->flag &= ~OB_POSEMODE;
 	
-	ED_armature_from_edit(scene, obedit);
+	ED_armature_from_edit(obedit);
 	ED_armature_edit_free(obedit);
 	
 	/* 2) duplicate base */
@@ -1054,8 +1052,8 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	/* 4) fix links before depsgraph flushes */ // err... or after?
 	separated_armature_fix_links(oldob, newob);
 	
-	DAG_object_flush_update(scene, oldob, OB_RECALC_DATA);	/* this is the original one */
-	DAG_object_flush_update(scene, newob, OB_RECALC_DATA);	/* this is the separated one */
+	DAG_id_flush_update(&oldob->id, OB_RECALC_DATA);	/* this is the original one */
+	DAG_id_flush_update(&newob->id, OB_RECALC_DATA);	/* this is the separated one */
 	
 	
 	/* 5) restore original conditions */
@@ -1890,7 +1888,7 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 			if(nearBone->flag & BONE_SELECTED) nearBone->flag |= BONE_ACTIVE;
 		}
 		
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
+		WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, vc.obedit);
 	}
 }
 
@@ -4334,8 +4332,8 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		/* in weightpaint we select the associated vertex group too */
 		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone->flag & BONE_ACTIVE) {
-				vertexgroup_select_by_name(OBACT, nearBone->name);
-				DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+				ED_vgroup_select_by_name(OBACT, nearBone->name);
+				DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 			}
 		}
 		
@@ -4445,7 +4443,7 @@ static int bone_skinnable(Object *ob, Bone *bone, void *datap)
     return 0;
 }
 
-static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) 
+static int ED_vgroup_add_unique_bone(Object *ob, Bone *bone, void *data) 
 {
     /* This group creates a vertex group to ob that has the
       * same name as bone (provided the bone is skinnable). 
@@ -4453,7 +4451,7 @@ static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data)
       */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (!get_named_vertexgroup(ob,bone->name)) {
-			add_defgroup_name(ob, bone->name);
+			ED_vgroup_add_name(ob, bone->name);
 			return 1;
 		}
     }
@@ -4497,7 +4495,7 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 				segments = 1;
 			
 			if (!(defgroup = get_named_vertexgroup(ob, bone->name)))
-				defgroup = add_defgroup_name(ob, bone->name);
+				defgroup = ED_vgroup_add_name(ob, bone->name);
 			
 			if (data->list != NULL) {
 				hgroup = (bDeformGroup ***) &data->list;
@@ -4548,17 +4546,17 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 			
 			/* add the vert to the deform group if weight!=0.0 */
 			if (distance!=0.0)
-				add_vert_to_defgroup (ob, dgroup, i, distance, WEIGHT_REPLACE);
+				ED_vgroup_vert_add (ob, dgroup, i, distance, WEIGHT_REPLACE);
 			else
-				remove_vert_defgroup (ob, dgroup, i);
+				ED_vgroup_vert_remove (ob, dgroup, i);
 			
 			/* do same for mirror */
 			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
 				if (distance!=0.0)
-					add_vert_to_defgroup (ob, dgroupflip[j], iflip, distance,
+					ED_vgroup_vert_add (ob, dgroupflip[j], iflip, distance,
 						WEIGHT_REPLACE);
 				else
-					remove_vert_defgroup (ob, dgroupflip[j], iflip);
+					ED_vgroup_vert_remove (ob, dgroupflip[j], iflip);
 			}
 		}
 	}
@@ -4748,10 +4746,10 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups cooresponding to the bone.
 		 */
-		bone_looper(ob, arm->bonebase.first, NULL, add_defgroup_unique_bone);
+		bone_looper(ob, arm->bonebase.first, NULL, ED_vgroup_add_unique_bone);
 
 		if (ob->type == OB_MESH)
-			create_dverts(ob->data);
+			ED_vgroup_data_create(ob->data);
 	}
 	else if(mode == ARM_GROUPS_ENVELOPE || mode == ARM_GROUPS_AUTO) {
 		/* Traverse the bone list, trying to create vertex groups 
@@ -4765,7 +4763,6 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 
 static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* only clear those channels that are not locked */
@@ -4782,7 +4779,7 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -4807,7 +4804,6 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 
 static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* only clear those channels that are not locked */
@@ -4824,7 +4820,7 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -4849,45 +4845,71 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 
 static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
-		if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ)) {
-			float eul[3], oldeul[3], quat1[4];
-			
-			if (pchan->rotmode == PCHAN_ROT_QUAT) {
-				QUATCOPY(quat1, pchan->quat);
-				QuatToEul(pchan->quat, oldeul);
+		if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
+			/* check if convert to eulers for locking... */
+			if (pchan->protectflag & OB_LOCK_ROT4D) {
+				/* perform clamping on a component by component basis */
+				if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
+					pchan->quat[0]= (pchan->rotmode == PCHAN_ROT_AXISANGLE) ? 0.0f : 1.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+					pchan->quat[1]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+					pchan->quat[2]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+					pchan->quat[3]= 0.0f;
 			}
 			else {
-				VECCOPY(oldeul, pchan->eul);
-			}
-			eul[0]= eul[1]= eul[2]= 0.0f;
-			
-			if (pchan->protectflag & OB_LOCK_ROTX)
-				eul[0]= oldeul[0];
-			if (pchan->protectflag & OB_LOCK_ROTY)
-				eul[1]= oldeul[1];
-			if (pchan->protectflag & OB_LOCK_ROTZ)
-				eul[2]= oldeul[2];
-			
-			if (pchan->rotmode == PCHAN_ROT_QUAT) {
-				EulToQuat(eul, pchan->quat);
-				/* quaternions flip w sign to accumulate rotations correctly */
-				if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
-					QuatMulf(pchan->quat, -1.0f);
+				/* perform clamping using euler form (3-components) */
+				float eul[3], oldeul[3], quat1[4];
+				
+				if (pchan->rotmode == PCHAN_ROT_QUAT) {
+					QUATCOPY(quat1, pchan->quat);
+					QuatToEul(pchan->quat, oldeul);
 				}
-			}
-			else {
-				VECCOPY(pchan->eul, eul);
+				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+					AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], oldeul, EULER_ORDER_DEFAULT);
+				}
+				else {
+					VECCOPY(oldeul, pchan->eul);
+				}
+				
+				eul[0]= eul[1]= eul[2]= 0.0f;
+				
+				if (pchan->protectflag & OB_LOCK_ROTX)
+					eul[0]= oldeul[0];
+				if (pchan->protectflag & OB_LOCK_ROTY)
+					eul[1]= oldeul[1];
+				if (pchan->protectflag & OB_LOCK_ROTZ)
+					eul[2]= oldeul[2];
+				
+				if (pchan->rotmode == PCHAN_ROT_QUAT) {
+					EulToQuat(eul, pchan->quat);
+					/* quaternions flip w sign to accumulate rotations correctly */
+					if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
+						QuatMulf(pchan->quat, -1.0f);
+					}
+				}
+				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+					AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], oldeul, EULER_ORDER_DEFAULT);
+				}
+				else {
+					VECCOPY(pchan->eul, eul);
+				}
 			}
 		}						
 		else { 
 			if (pchan->rotmode == PCHAN_ROT_QUAT) {
 				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]= 0.0f; 
 				pchan->quat[0]= 1.0f;
+			}
+			else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+				/* by default, make rotation of 0 radians around y-axis (roll) */
+				pchan->quat[0]=pchan->quat[1]=pchan->quat[3]= 0.0f;
+				pchan->quat[2]= 1.0f;
 			}
 			else {
 				pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
@@ -4899,7 +4921,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -5337,7 +5359,6 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 
 static int armature_flip_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -5357,7 +5378,7 @@ static int armature_flip_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -5383,11 +5404,10 @@ void ARMATURE_OT_flip_names (wmOperatorType *ot)
 
 static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm;
 	char newname[32];
-	short axis= RNA_enum_get(op->ptr, "axis");
+	short axis= RNA_enum_get(op->ptr, "type");
 	
 	/* paranoia checks */
 	if (ELEM(NULL, ob, ob->pose)) 
@@ -5404,7 +5424,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -5434,7 +5454,7 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis tag names with.");
+	RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
 }
 
 
@@ -5664,7 +5684,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	
 	if (obedit != NULL)
 	{
-		ED_armature_from_edit(scene, obedit);
+		ED_armature_from_edit(obedit);
 		ED_armature_edit_free(obedit);
 	}
 	

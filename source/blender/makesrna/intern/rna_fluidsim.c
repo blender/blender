@@ -72,10 +72,17 @@ static StructRNA* rna_FluidSettings_refine(struct PointerRNA *ptr)
 	}
 }
 
+static void rna_fluid_update(bContext *C, PointerRNA *ptr)
+{
+	Object *ob= ptr->id.data;
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+}
+
 static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
 {
 	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= (Object*)ptr->id.data;
 	FluidsimModifierData *fluidmd;
 	ParticleSystemModifierData *psmd;
@@ -124,8 +131,7 @@ static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
 		}
 	}
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	rna_fluid_update(C, ptr);
 }
 
 static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *value)
@@ -145,6 +151,14 @@ static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *ptr)
 	return 32;
 }
 
+static char *rna_FluidSettings_path(PointerRNA *ptr)
+{
+	FluidsimSettings *fss = (FluidsimSettings*)ptr->data;
+	ModifierData *md= (ModifierData *)fss->fmd;
+
+	return BLI_sprintfN("modifiers[%s].settings", md->name);
+}
+
 #else
 
 static void rna_def_fluidsim_slip(StructRNA *srna)
@@ -162,7 +176,7 @@ static void rna_def_fluidsim_slip(StructRNA *srna)
 	RNA_def_property_enum_items(prop, slip_items);
 	RNA_def_property_ui_text(prop, "Slip Type", "");
 
-	prop= RNA_def_property(srna, "partial_slip_amount", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "partial_slip_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "partSlipValue");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Partial Slip Amount", "Amount of mixing between no- and free-slip, 0 is no slip and 1 is free slip.");
@@ -216,7 +230,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "guiDisplayMode");
 	RNA_def_property_enum_items(prop, quality_items);
 	RNA_def_property_ui_text(prop, "Viewport Display Mode", "How to display the mesh in the viewport.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_fluid_update");
 
 	prop= RNA_def_property(srna, "render_display_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "renderDisplayMode");
@@ -231,7 +245,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 240);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
 	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store baked fluid simulation files in.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_fluid_update");
 
 	prop= RNA_def_property(srna, "memory_estimate", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -431,7 +445,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 240);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
 	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store and load particles from.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_fluid_update");
 }
 
 static void rna_def_fluidsim_control(BlenderRNA *brna)
@@ -503,6 +517,7 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "FluidSettings", NULL);
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
 	RNA_def_struct_refine_func(srna, "rna_FluidSettings_refine");
+	RNA_def_struct_path_func(srna, "rna_FluidSettings_path");
 	RNA_def_struct_ui_text(srna, "Fluid Simulation Settings", "Fluid simulation settings for an object taking part in the simulation.");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

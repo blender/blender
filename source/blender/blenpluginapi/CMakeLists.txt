@@ -27,12 +27,12 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . .. ../../../intern/guardedalloc ../blenlib ../imbuf ../makesdna
+	. .. ../../../intern/guardedalloc ../blenlib ../imbuf ../makesdna
 )
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	SET(INC ${INC} ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 BLENDERLIB(bf_blenpluginapi "${SRC}" "${INC}")
