@@ -329,8 +329,8 @@ bNodeType cmp_node_view_levels= {
 	/* execfunc    */	node_composit_exec_view_levels,
 	/* butfunc     */	NULL,
 	/* initfunc    */	node_composit_init_view_levels,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
 	/* id          */	NULL
 	
 };
