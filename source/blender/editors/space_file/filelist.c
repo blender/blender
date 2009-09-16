@@ -592,10 +592,12 @@ void filelist_loadimage_timer(struct FileList* filelist)
 		}
 		if (limg->done) {
 			FileImage *oimg = limg;
-			BLI_remlink(&filelist->loadimages, oimg);
 			BLI_remove_thread(&filelist->threads, oimg);
+			/* brecht: keep failed images in the list, otherwise
+			   it keeps trying to load them over and over?
+			BLI_remlink(&filelist->loadimages, oimg);
+			MEM_freeN(oimg);*/
 			limg = oimg->next;
-			MEM_freeN(oimg);
 			refresh = 1;
 		} else {
 			limg= limg->next;
