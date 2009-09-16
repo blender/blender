@@ -81,6 +81,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "RNA_access.h"
+
 #include "CMP_node.h"
 #include "SHD_node.h"
 
@@ -90,6 +92,50 @@
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
+
+void ED_node_changed_update(bContext *C, bNode *node)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+
+	if(!snode)
+		return;
+
+	if(snode->treetype==NTREE_SHADER) {
+		WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, snode->id);
+	}
+	else if(snode->treetype==NTREE_COMPOSIT) {
+		NodeTagChanged(snode->edittree, node);
+		/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
+			
+		/* not the best implementation of the world... but we need it to work now :) */
+		if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
+			/* add event for this window (after render curarea can be changed) */
+			//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+			
+			//composite_node_render(snode, node);
+			//snode_handle_recalc(snode);
+			
+			/* add another event, a render can go fullscreen and open new window */
+			//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+		}
+		else {
+			node= node_tree_get_editgroup(snode->nodetree);
+			if(node)
+				NodeTagIDChanged(snode->nodetree, node->id);
+		}
+		WM_event_add_notifier(C, NC_SCENE|ND_NODES, CTX_data_scene(C));
+	}			
+	else if(snode->treetype==NTREE_TEXTURE) {
+		WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
+	}
+
+}
+
+static void do_node_internal_buttons(bContext *C, void *node_v, int event)
+{
+	if(event==B_NODE_EXEC)
+		ED_node_changed_update(C, node_v);
+}
 
 
 static void node_scaling_widget(int color_id, float aspect, float xmin, float ymin, float xmax, float ymax)
@@ -110,10 +156,14 @@ static void node_scaling_widget(int color_id, float aspect, float xmin, float ym
 }
 
 /* based on settings in node, sets drawing rect info. each redraw! */
-static void node_update(bNode *node)
+static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 {
+	uiLayout *layout;
+	PointerRNA ptr;
 	bNodeSocket *nsock;
 	float dy= node->locy;
+	int buty;
+	char str[32];
 	
 	/* header */
 	dy-= NODE_DY;
@@ -121,7 +171,7 @@ static void node_update(bNode *node)
 	/* little bit space in top */
 	if(node->outputs.first)
 		dy-= NODE_DYS/2;
-	
+
 	/* output sockets */
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next) {
 		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
@@ -130,9 +180,9 @@ static void node_update(bNode *node)
 			dy-= NODE_DY;
 		}
 	}
-	
-	node->prvr.xmin= node->butr.xmin= node->locx + NODE_DYS;
-	node->prvr.xmax= node->butr.xmax= node->locx + node->width- NODE_DYS;
+
+	node->prvr.xmin= node->locx + NODE_DYS;
+	node->prvr.xmax= node->locx + node->width- NODE_DYS;
 	
 	/* preview rect? */
 	if(node->flag & NODE_PREVIEW) {
@@ -176,16 +226,35 @@ static void node_update(bNode *node)
 
 	/* XXX ugly hack, typeinfo for group is generated */
 	if(node->type == NODE_GROUP)
-		; // XXX node->typeinfo->butfunc= node_buts_group;
+		; // XXX node->typeinfo->uifunc= node_buts_group;
+
+	/* ui block */
+	sprintf(str, "node buttons %p", node);
+	node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
+	uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 	
 	/* buttons rect? */
-	if((node->flag & NODE_OPTIONS) && node->typeinfo->butfunc) {
+	if((node->flag & NODE_OPTIONS) && node->typeinfo->uifunc) {
 		dy-= NODE_DYS/2;
-		node->butr.ymax= dy;
-		node->butr.ymin= dy - (float)node->typeinfo->butfunc(NULL, NULL, node, NULL);
-		dy= node->butr.ymin - NODE_DYS/2;
+
+		/* set this for uifunc() that don't use layout engine yet */
+		node->butr.xmin= 0;
+		node->butr.xmax= node->width - 2*NODE_DYS;
+		node->butr.ymin= 0;
+		node->butr.ymax= 0;
+
+		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
+
+		layout= uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+			node->locx+NODE_DYS, dy, node->butr.xmax, 20, U.uistyles.first);
+
+		node->typeinfo->uifunc(layout, &ptr);
+		uiBlockEndAlign(node->block);
+		uiBlockLayoutResolve(node->block, NULL, &buty);
+
+		dy= buty - NODE_DYS/2;
 	}
-	
+
 	/* input sockets */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
 		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
@@ -198,7 +267,7 @@ static void node_update(bNode *node)
 	/* little bit space in end */
 	if(node->inputs.first || (node->flag & (NODE_OPTIONS|NODE_PREVIEW))==0 )
 		dy-= NODE_DYS/2;
-	
+
 	node->totr.xmin= node->locx;
 	node->totr.xmax= node->locx + node->width;
 	node->totr.ymax= node->locy;
@@ -206,11 +275,12 @@ static void node_update(bNode *node)
 }
 
 /* based on settings in node, sets drawing rect info. each redraw! */
-static void node_update_hidden(bNode *node)
+static void node_update_hidden(const bContext *C, bNode *node)
 {
 	bNodeSocket *nsock;
 	float rad, drad, hiddenrad= HIDDEN_RAD;
 	int totin=0, totout=0, tot;
+	char str[32];
 	
 	/* calculate minimal radius */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next)
@@ -251,6 +321,11 @@ static void node_update_hidden(bNode *node)
 			rad+= drad;
 		}
 	}
+
+	/* ui block */
+	sprintf(str, "node buttons %p", node);
+	node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
+	uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 }
 
 static int node_get_colorid(bNode *node)
@@ -275,7 +350,7 @@ static int node_get_colorid(bNode *node)
 /* based on settings in node, sets drawing rect info. each redraw! */
 /* note: this assumes only 1 group at a time is drawn (linked data) */
 /* in node->totr the entire boundbox for the group is stored */
-static void node_update_group(bNode *gnode)
+static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 {
 	bNodeTree *ngroup= (bNodeTree *)gnode->id;
 	bNode *node;
@@ -288,9 +363,9 @@ static void node_update_group(bNode *gnode)
 		node->locx+= gnode->locx;
 		node->locy+= gnode->locy;
 		if(node->flag & NODE_HIDDEN)
-			node_update_hidden(node);
+			node_update_hidden(C, node);
 		else
-			node_update(node);
+			node_update(C, ntree, node);
 		node->locx-= gnode->locx;
 		node->locy-= gnode->locy;
 	}
@@ -575,61 +650,15 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	
 }
 
-static void do_node_internal_buttons(bContext *C, void *node_v, int event)
-{
-	SpaceNode *snode= CTX_wm_space_node(C);
-	
-	if(event==B_NODE_EXEC) {
-		if(snode->treetype==NTREE_SHADER) {
-			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, snode->id);
-		}
-		else if(snode->treetype==NTREE_COMPOSIT) {
-			bNode *node= node_v;
-			
-			NodeTagChanged(snode->edittree, node);
-			/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
-				
-			/* not the best implementation of the world... but we need it to work now :) */
-			if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
-				/* add event for this window (after render curarea can be changed) */
-				//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-				
-				//composite_node_render(snode, node);
-				//snode_handle_recalc(snode);
-				
-				/* add another event, a render can go fullscreen and open new window */
-				//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-			}
-			else {
-				node= node_tree_get_editgroup(snode->nodetree);
-				if(node)
-					NodeTagIDChanged(snode->nodetree, node->id);
-			}
-			WM_event_add_notifier(C, NC_SCENE|ND_NODES, CTX_data_scene(C));
-		}			
-		else if(snode->treetype==NTREE_TEXTURE) {
-			WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
-		}
-	}
-	
-}
-
 static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *sock;
-	uiBlock *block;
 	uiBut *bt;
 	rctf *rct= &node->totr;
 	float /*slen,*/ iconofs;
 	int /*ofs,*/ color_id= node_get_colorid(node);
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
-	char str[32];
-	
-	/* make unique block name, also used for handling blocks in editnode.c */
-	sprintf(str, "node buttons %p", node);
-	block= uiBeginBlock(C, ar, str, UI_EMBOSS);
-	uiBlockSetHandleFunc(block, do_node_internal_buttons, node);
 	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
@@ -715,7 +744,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		BLI_strncpy(showname, node->name, 128);
 	
-	uiDefBut(block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
+	uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
 			 (int)(iconofs - rct->xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
 
 	/* body */
@@ -743,7 +772,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 	
 	/* hurmf... another candidate for callback, have to see how this works first */
-	if(node->id && block && snode->treetype==NTREE_SHADER)
+	if(node->id && node->block && snode->treetype==NTREE_SHADER)
 		nodeShaderSynchronizeID(node, 0);
 	
 	/* socket inputs, buttons */
@@ -751,38 +780,38 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
-			if(block && sock->link==NULL) {
+			if(node->block && sock->link==NULL) {
 				float *butpoin= sock->ns.vec;
 				
 				if(sock->type==SOCK_VALUE) {
-					bt= uiDefButF(block, NUM, B_NODE_EXEC, sock->name, 
+					bt= uiDefButF(node->block, NUM, B_NODE_EXEC, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
 						  butpoin, sock->ns.min, sock->ns.max, 10, 2, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 				}
 				else if(sock->type==SOCK_VECTOR) {
-					uiDefBlockBut(block, socket_vector_menu, sock, sock->name, 
+					uiDefBlockBut(node->block, socket_vector_menu, sock, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)sock->locy-9, (short)node->width-NODE_DY, 17, 
 						  "");
 				}
-				else if(block && sock->type==SOCK_RGBA) {
+				else if(node->block && sock->type==SOCK_RGBA) {
 					short labelw= (short)node->width-NODE_DY-40, width;
 					
 					if(labelw>0) width= 40; else width= (short)node->width-NODE_DY;
 					
-					bt= uiDefButF(block, COL, B_NODE_EXEC, "", 
+					bt= uiDefButF(node->block, COL, B_NODE_EXEC, "", 
 						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, width, 15, 
 						   butpoin, 0, 0, 0, 0, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 					
-					if(labelw>0) uiDefBut(block, LABEL, 0, sock->name, 
+					if(labelw>0) uiDefBut(node->block, LABEL, 0, sock->name, 
 										   (short)(sock->locx+NODE_DYS) + 40, (short)sock->locy-8, labelw, 15, 
 										   NULL, 0, 0, 0, 0, "");
 				}
 			}
 			else {
 				
-				uiDefBut(block, LABEL, 0, sock->name, (short)(sock->locx+3.0f), (short)(sock->locy-9.0f), 
+				uiDefBut(node->block, LABEL, 0, sock->name, (short)(sock->locx+3.0f), (short)(sock->locy-9.0f), 
 						 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
 			}
 		}
@@ -803,7 +832,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 				slen= snode->aspect*UI_GetStringWidth(sock->name+ofs);
 			}
 			
-			uiDefBut(block, LABEL, 0, sock->name+ofs, (short)(sock->locx-15.0f-slen), (short)(sock->locy-9.0f), 
+			uiDefBut(node->block, LABEL, 0, sock->name+ofs, (short)(sock->locx-15.0f-slen), (short)(sock->locy-9.0f), 
 					 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
 		}
 	}
@@ -813,33 +842,19 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if(node->preview && node->preview->rect)
 			node_draw_preview(node->preview, &node->prvr);
 		
-	/* buttons */
-	if(node->flag & NODE_OPTIONS) {
-		if(block) {
-			if(node->typeinfo->butfunc) {
-				node->typeinfo->butfunc(block, snode->nodetree, node, &node->butr);
-			}
-		}
-	}
-	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
+	uiEndBlock(C, node->block);
+	uiDrawBlock(C, node->block);
+	node->block= NULL;
 }
 
 static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, bNode *node)
 {
-	uiBlock *block;
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
 	float dx, centy= 0.5f*(rct->ymax+rct->ymin);
 	float hiddenrad= 0.5f*(rct->ymax-rct->ymin);
 	int color_id= node_get_colorid(node);
-	char str[32], showname[128];	/* 128 is used below */
-	
-	/* make unique block name, also used for handling blocks in editnode.c */
-	sprintf(str, "node buttons %p", node);
-	block= uiBeginBlock(C, ar, str, UI_EMBOSS);
-	uiBlockSetHandleFunc(block, do_node_internal_buttons, node);
+	char showname[128];	/* 128 is used below */
 	
 	/* shadow */
 	uiSetRoundBox(15);
@@ -884,7 +899,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		else
 			BLI_strncpy(showname, node->name, 128);
 
-		uiDefBut(block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 
+		uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 
 				 (int)(rct->xmax - rct->xmin-18.0f -12.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
 	}	
 
@@ -910,9 +925,9 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 	}
 	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
-
+	uiEndBlock(C, node->block);
+	uiDrawBlock(C, node->block);
+	node->block= NULL;
 }
 
 static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree)
@@ -1081,11 +1096,11 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 		/* for now, we set drawing coordinates on each redraw */
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
 			if(node->flag & NODE_GROUP_EDIT)
-				node_update_group(node);
+				node_update_group(C, snode->nodetree, node);
 			else if(node->flag & NODE_HIDDEN)
-				node_update_hidden(node);
+				node_update_hidden(C, node);
 			else
-				node_update(node);
+				node_update(C, snode->nodetree, node);
 		}
 
 		node_draw_nodetree(C, ar, snode, snode->nodetree);

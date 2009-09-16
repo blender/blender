@@ -40,6 +40,7 @@ struct bNodeLink;
 struct bNodeType;
 struct bNodeGroup;
 struct AnimData;
+struct uiBlock;
 
 #define NODE_MAXSTR 32
 
@@ -131,6 +132,7 @@ typedef struct bNode {
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */
 	bNodePreview *preview;	/* optional preview image */
+	struct uiBlock *block;	/* runtime during drawing */
 	
 	struct bNodeType *typeinfo;	/* lookup of callbacks and defaults */
 	
