@@ -130,8 +130,10 @@ undo position
 static void txt_pop_first(Text *text);
 static void txt_pop_last(Text *text);
 static void txt_undo_add_op(Text *text, int op);
-static void txt_undo_add_block(Text *text, int op, char *buf);
+static void txt_undo_add_block(Text *text, int op, const char *buf);
 static void txt_delete_line(Text *text, TextLine *line);
+static void txt_delete_sel (Text *text);
+static void txt_make_dirty (Text *text);
 
 /***/
 
@@ -537,6 +539,30 @@ void unlink_text(Main *bmain, Text *text)
 	text->id.us= 0;
 }
 
+void clear_text(Text *text) /* called directly from rna */
+{
+	int oldstate;
+
+	oldstate = txt_get_undostate(  );
+	txt_set_undostate( 1 );
+	txt_sel_all( text );
+	txt_delete_sel(text);
+	txt_set_undostate( oldstate );
+
+	txt_make_dirty(text);
+}
+
+void write_text(Text *text, char *str) /* called directly from rna */
+{
+	int oldstate;
+
+	oldstate = txt_get_undostate(  );
+	txt_insert_buf( text, str );
+	txt_move_eof( text, 0 );
+	txt_set_undostate( oldstate );
+
+	txt_make_dirty(text);
+}
 
 /*****************************/
 /* Editing utility functions */
@@ -1315,7 +1341,7 @@ char *txt_sel_to_buf (Text *text)
 	return buf;
 }
 
-void txt_insert_buf(Text *text, char *in_buffer)
+void txt_insert_buf(Text *text, const char *in_buffer)
 {
 	int i=0, l=0, j, u, len;
 	TextLine *add;
@@ -1544,7 +1570,7 @@ static void txt_undo_add_op(Text *text, int op)
 	text->undo_buf[text->undo_pos+1]= 0;
 }
 
-static void txt_undo_add_block(Text *text, int op, char *buf)
+static void txt_undo_add_block(Text *text, int op, const char *buf)
 {
 	int length;
 	

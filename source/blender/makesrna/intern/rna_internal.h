@@ -205,6 +205,7 @@ void RNA_api_main(struct StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
 void RNA_api_scene(struct StructRNA *srna);
+void RNA_api_text(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
 

@@ -118,6 +118,58 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	Py_RETURN_NONE;
 }
 
+static PyObject *pyop_as_string( PyObject * self, PyObject * args)
+{
+	wmOperatorType *ot;
+	PointerRNA ptr;
+
+	char		*opname;
+	PyObject	*kw= NULL; /* optional args */
+	int all_args = 1;
+	int error_val= 0;
+
+	char *buf;
+	PyObject *pybuf;
+
+	bContext *C = BPy_GetContext();
+
+	if (!PyArg_ParseTuple(args, "s|O!i:bpy.__ops__.as_string", &opname, &PyDict_Type, &kw, &all_args))
+		return NULL;
+
+	ot= WM_operatortype_find(opname, TRUE);
+
+	if (ot == NULL) {
+		PyErr_Format( PyExc_SystemError, "bpy.__ops__.as_string: operator \"%s\"could not be found", opname);
+		return NULL;
+	}
+
+	/* WM_operator_properties_create(&ptr, opname); */
+	/* Save another lookup */
+	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+
+	if(kw && PyDict_Size(kw))
+		error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
+
+	if (error_val==0)
+		buf= WM_operator_pystring(C, ot, &ptr, all_args);
+
+	WM_operator_properties_free(&ptr);
+
+	if (error_val==-1) {
+		return NULL;
+	}
+
+	if(buf) {
+		pybuf= PyUnicode_FromString(buf);
+		MEM_freeN(buf);
+	}
+	else {
+		pybuf= PyUnicode_FromString("");
+	}
+
+	return pybuf;
+}
+
 static PyObject *pyop_dir(PyObject *self)
 {
 	PyObject *list = PyList_New(0), *name;
@@ -162,6 +214,7 @@ static PyObject *pyop_getrna(PyObject *self, PyObject *value)
 PyObject *BPY_operator_module( void )
 {
 	static PyMethodDef pyop_call_meth =		{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL};
+	static PyMethodDef pyop_as_string_meth ={"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL};
 	static PyMethodDef pyop_dir_meth =		{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL};
 	static PyMethodDef pyop_getrna_meth =	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL};
 	static PyMethodDef pyop_add_meth =		{"add", (PyCFunction) PYOP_wrap_add, METH_O, NULL};
@@ -171,6 +224,7 @@ PyObject *BPY_operator_module( void )
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy.__ops__", submodule);
 
 	PyModule_AddObject( submodule, "call",	PyCFunction_New(&pyop_call_meth,	NULL) );
+	PyModule_AddObject( submodule, "as_string",PyCFunction_New(&pyop_as_string_meth,NULL) );
 	PyModule_AddObject( submodule, "dir",		PyCFunction_New(&pyop_dir_meth,		NULL) );
 	PyModule_AddObject( submodule, "get_rna",	PyCFunction_New(&pyop_getrna_meth,	NULL) );
 	PyModule_AddObject( submodule, "add",		PyCFunction_New(&pyop_add_meth,		NULL) );

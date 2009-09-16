@@ -3,6 +3,7 @@ from bpy.__ops__ import add		as op_add
 from bpy.__ops__ import remove		as op_remove
 from bpy.__ops__ import dir		as op_dir
 from bpy.__ops__ import call		as op_call
+from bpy.__ops__ import as_string	as op_as_string
 from bpy.__ops__ import get_rna	as op_get_rna
 
 # Keep in sync with WM_types.h
@@ -130,7 +131,10 @@ class bpy_ops_submodule_op(object):
 		return op_get_rna(self.idname())
 			
 	
-	def __repr__(self):
+	def __repr__(self): # useful display, repr(op)
+		return op_as_string(self.idname())
+	
+	def __str__(self): # used for print(...)
 		return "<function bpy.ops.%s.%s at 0x%x'>" % (self.module, self.func, id(self))
 
 import bpy

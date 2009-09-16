@@ -188,6 +188,9 @@ class INFO_MT_help(bpy.types.Menu):
 		layout.itemO("help.blender_eshop")
 		layout.itemO("help.developer_community")
 		layout.itemO("help.user_community")
+		layout.itemS()
+		layout.itemO("help.operator_cheat_sheet")
+		
 
 bpy.types.register(INFO_HT_header)
 bpy.types.register(INFO_MT_file)
@@ -246,10 +249,37 @@ class HELP_OT_user_community(HelpOperator):
 	__label__ = "User Community"
 	__URL__ = 'http://www.blender.org/community/user-community/'
 
+class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
+	__idname__ = "help.operator_cheat_sheet"
+	__label__ = "Operator Cheet Sheet (new textblock)"
+	def execute(self, context):
+		op_strings = []
+		tot = 0
+		for op_module_name in dir(bpy.ops):
+			op_module = getattr(bpy.ops, op_module_name)
+			for op_submodule_name in dir(op_module):
+				op = getattr(op_module, op_submodule_name)
+				text = repr(op)
+				if text.startswith('bpy.ops.'):
+					op_strings.append(text)
+					tot += 1
+			
+			op_strings.append('')
+		
+		bpy.ops.text.new() # XXX - assumes new text is always at the end!
+		textblock = bpy.data.texts[-1]
+		textblock.write('# %d Operators\n\n' % tot)
+		textblock.write('\n'.join(op_strings))
+		textblock.name = "OperatorList.txt"
+		print("See OperatorList.txt textblock")
+		return ('FINISHED',)
+
+
 bpy.ops.add(HELP_OT_manual)
 bpy.ops.add(HELP_OT_release_logs)
 bpy.ops.add(HELP_OT_blender_website)
 bpy.ops.add(HELP_OT_blender_eshop)
 bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
+bpy.ops.add(HELP_OT_operator_cheat_sheet)
 

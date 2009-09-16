@@ -48,6 +48,8 @@ int	            reopen_text		(struct Text *text);
 struct Text*	add_text		(char *file, const char *relpath); 
 struct Text*	copy_text		(struct Text *ta);
 void			unlink_text		(struct Main *bmain, struct Text *text);
+void			clear_text(struct Text *text);
+void			write_text(struct Text *text, char *str);
 
 char*	txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
@@ -74,7 +76,7 @@ void	txt_delete_selected	(struct Text *text);
 void	txt_sel_all			(struct Text *text);
 void	txt_sel_line		(struct Text *text);
 char*	txt_sel_to_buf		(struct Text *text);
-void	txt_insert_buf		(struct Text *text, char *in_buffer);
+void	txt_insert_buf		(struct Text *text, const char *in_buffer);
 void	txt_print_undo		(struct Text *text);
 void	txt_undo_add_toop	(struct Text *text, int op, unsigned int froml, unsigned short fromc, unsigned int tol, unsigned short toc);
 void	txt_do_undo			(struct Text *text);
