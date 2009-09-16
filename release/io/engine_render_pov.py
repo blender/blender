@@ -275,7 +275,7 @@ def write_pov(filename, scene=None, info_callback = None):
 		for ob in sel:
 			ob_num+= 1
 			
-			if ob.type in ('LAMP', 'CAMERA', 'EMPTY'):
+			if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META'):
 				continue
 			
 			me = ob.data
