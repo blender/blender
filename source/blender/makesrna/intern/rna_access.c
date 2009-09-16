@@ -1409,10 +1409,17 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value)
 {
-	PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	if(pprop->set)
-		pprop->set(ptr, ptr_value);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		/* not supported */
+	}
+	else {
+		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+
+		if(pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL))
+			pprop->set(ptr, ptr_value);
+	}
 }
 
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)

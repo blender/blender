@@ -1871,10 +1871,10 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	/* access to particle settings is redirected through functions */
 	/* to allow proper id-buttons functionality */
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
 	//RNA_def_property_pointer_sdna(prop, NULL, "part");
 	RNA_def_property_struct_type(prop, "ParticleSettings");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
 	RNA_def_property_pointer_funcs(prop, "rna_particle_settings_get", "rna_particle_settings_set", NULL);
 	RNA_def_property_ui_text(prop, "Settings", "Particle system settings.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1904,9 +1904,10 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hair Dynamics", "Enable hair dynamics using cloth simulation.");
 	RNA_def_property_update(prop, 0, "rna_Particle_hair_dynamics");
 
-	prop= RNA_def_property(srna, "cloth", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "cloth", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clmd");
 	RNA_def_property_struct_type(prop, "ClothModifier");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cloth", "Cloth dynamics for hair");
 
@@ -2082,7 +2083,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* pointcache */
-	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "pointcache");
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");

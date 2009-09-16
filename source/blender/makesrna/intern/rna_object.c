@@ -1224,7 +1224,8 @@ static void rna_def_object(BlenderRNA *brna)
 
 	/* game engine */
 
-	prop= RNA_def_property(srna, "game", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "game", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "GameObjectSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_game_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Game Settings", "Game engine related settings for the object.");

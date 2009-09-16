@@ -1419,7 +1419,6 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_ACCELERATION: return "PROP_ACCELERATION";
 		case PROP_XYZ: return "PROP_XYZ";
 		case PROP_RGB: return "PROP_RGB";
-		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		default: {

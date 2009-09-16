@@ -667,6 +667,7 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "ramp_col");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Diffuse Ramp", "Color ramp used to affect diffuse shading.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "use_specular_ramp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAMP_SPEC);
@@ -678,6 +679,7 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "ramp_spec");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Specular Ramp", "Color ramp used to affect specular shading.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
 	
 	prop= RNA_def_property(srna, "diffuse_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_col");
@@ -1615,37 +1617,44 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
 	/* nested structs */
-	prop= RNA_def_property(srna, "raytrace_mirror", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "raytrace_mirror", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialRaytraceMirror");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_mirror_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Raytrace Mirror", "Raytraced reflection settings for the material.");
 
-	prop= RNA_def_property(srna, "raytrace_transparency", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "raytrace_transparency", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialRaytraceTransparency");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_transp_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Raytrace Transparency", "Raytraced reflection settings for the material.");
 
-	prop= RNA_def_property(srna, "volume", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "volume", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "vol");
 	RNA_def_property_struct_type(prop, "MaterialVolume");
 	RNA_def_property_ui_text(prop, "Volume", "Volume settings for the material.");
 
-	prop= RNA_def_property(srna, "halo", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "halo", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialHalo");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_halo_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Halo", "Halo settings for the material.");
 
-	prop= RNA_def_property(srna, "subsurface_scattering", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "subsurface_scattering", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialSubsurfaceScattering");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_sss_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Subsurface Scattering", "Subsurface scattering settings for the material.");
 
-	prop= RNA_def_property(srna, "strand", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "strand", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialStrand");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_strand_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Strand", "Strand settings for the material.");
 	
-	prop= RNA_def_property(srna, "physics", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "physics", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialPhysics");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_physics_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Physics", "Game physics settings.");

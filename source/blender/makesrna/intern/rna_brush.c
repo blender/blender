@@ -219,7 +219,8 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FIXED_TEX);
 	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");*/
 
-	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve.");
 
 	/* texture */

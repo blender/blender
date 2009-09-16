@@ -428,7 +428,8 @@ static void rna_def_bone_group(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 		// TODO: editing the colors for this should result in changes to the color type...
-	prop= RNA_def_property(srna, "colors", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "colors", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "ThemeBoneColorSet");
 	RNA_def_property_pointer_sdna(prop, NULL, "cs"); /* NOTE: the DNA data is not really a pointer, but this code works :) */
 	RNA_def_property_ui_text(prop, "Colors", "Copy of the colors associated with the group's color set.");
@@ -486,7 +487,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 	
 	/* Relationships to other bones */
-	prop= RNA_def_property(srna, "bone", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "bone", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone", "Bone associated with this Pose Channel.");

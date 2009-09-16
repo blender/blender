@@ -628,17 +628,18 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		case PROP_POINTER:
 		{
 			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
+			int flag = RNA_property_flag(prop);
 
 			if(!BPy_StructRNA_Check(value) && value != Py_None) {
-				PointerRNA tmp;
-				RNA_pointer_create(NULL, ptype, NULL, &tmp);
-				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(tmp.type));
+				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptype));
+				return -1;
+			} else if((flag & PROP_NEVER_NULL) && value == Py_None) {
+				PyErr_Format(PyExc_TypeError, "property can't be assigned a None value");
 				return -1;
 			} else {
 				BPy_StructRNA *param= (BPy_StructRNA*)value;
 				int raise_error= FALSE;
 				if(data) {
-					int flag = RNA_property_flag(prop);
 
 					if(flag & PROP_RNAPTR) {
 						if(value == Py_None)

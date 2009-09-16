@@ -110,9 +110,6 @@ typedef enum PropertySubType {
 	PROP_XYZ = 28,
 	PROP_RGB = 29,
 
-	/* pointers */
-	PROP_NEVER_NULL = 30,
-
 	/* booleans */
 	PROP_LAYER = 40,
 	PROP_LAYER_MEMBER = 41
@@ -149,6 +146,7 @@ typedef enum PropertyFlag {
 
 	/* pointers */
 	PROP_ID_REFCOUNT = 64,
+	PROP_NEVER_NULL = 262144,
 
 	/* internal flags */
 	PROP_BUILTIN = 128,

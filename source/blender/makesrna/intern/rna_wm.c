@@ -278,7 +278,8 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
 	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
@@ -404,7 +405,8 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Window", "Open window.");
 	RNA_def_struct_sdna(srna, "wmWindow");
 
-	prop= RNA_def_property(srna, "screen", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "screen", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Screen");
 	RNA_def_property_ui_text(prop, "Screen", "Active screen showing in the window.");
 	RNA_def_property_flag(prop, PROP_EDITABLE);

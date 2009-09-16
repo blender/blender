@@ -99,7 +99,7 @@ static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
 
 	switch(la->type) {
 		case LA_LOCAL:
-			return &RNA_LocalLamp;
+			return &RNA_PointLamp;
 		case LA_SUN:
 			return &RNA_SunLamp;
 		case LA_SPOT:
@@ -477,13 +477,14 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 }
 
-static void rna_def_local_lamp(BlenderRNA *brna)
+static void rna_def_point_lamp(BlenderRNA *brna)
 {
 	StructRNA *srna;
 
-	srna= RNA_def_struct(brna, "LocalLamp", "Lamp");
+	srna= RNA_def_struct(brna, "PointLamp", "Lamp");
 	RNA_def_struct_sdna(srna, "Lamp");
-	RNA_def_struct_ui_text(srna, "Local Lamp", "Omnidirectional point lamp.");
+	RNA_def_struct_ui_text(srna, "Point Lamp", "Omnidirectional point lamp.");
+	RNA_def_struct_ui_icon(srna, ICON_LAMP_POINT);
 
 	rna_def_lamp_falloff(srna);
 	rna_def_lamp_shadow(srna, 0, 0);
@@ -502,6 +503,7 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "AreaLamp", "Lamp");
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_ui_text(srna, "Area Lamp", "Directional area lamp.");
+	RNA_def_struct_ui_icon(srna, ICON_LAMP_AREA);
 
 	rna_def_lamp_shadow(srna, 0, 1);
 
@@ -571,6 +573,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SpotLamp", "Lamp");
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_ui_text(srna, "Spot Lamp", "Directional cone lamp.");
+	RNA_def_struct_ui_icon(srna, ICON_LAMP_SPOT);
 
 	rna_def_lamp_falloff(srna);
 	rna_def_lamp_shadow(srna, 1, 0);
@@ -683,11 +686,13 @@ static void rna_def_sun_lamp(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SunLamp", "Lamp");
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_ui_text(srna, "Sun Lamp", "Constant direction parallel ray lamp.");
+	RNA_def_struct_ui_icon(srna, ICON_LAMP_SUN);
 
 	rna_def_lamp_shadow(srna, 0, 0);
 
 	/* sky */
-	prop= RNA_def_property(srna, "sky", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "sky", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "LampSkySettings");
 	RNA_def_property_pointer_funcs(prop, "rna_Lamp_sky_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Sky Settings", "Sky related settings for sun lamps.");
@@ -702,12 +707,13 @@ static void rna_def_hemi_lamp(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "HemiLamp", "Lamp");
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_ui_text(srna, "Hemi Lamp", "180 degree constant lamp.");
+	RNA_def_struct_ui_icon(srna, ICON_LAMP_HEMI);
 }
 
 void RNA_def_lamp(BlenderRNA *brna)
 {
 	rna_def_lamp(brna);
-	rna_def_local_lamp(brna);
+	rna_def_point_lamp(brna);
 	rna_def_area_lamp(brna);
 	rna_def_spot_lamp(brna);
 	rna_def_sun_lamp(brna);

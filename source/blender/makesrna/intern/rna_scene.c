@@ -2032,19 +2032,22 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
 	
 	/* Tool Settings */
-	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "toolsettings");
 	RNA_def_property_struct_type(prop, "ToolSettings");
 	RNA_def_property_ui_text(prop, "Tool Settings", "");
 
 	/* Unit Settings */
-	prop= RNA_def_property(srna, "unit_settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "unit_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "unit");
 	RNA_def_property_struct_type(prop, "UnitSettings");
 	RNA_def_property_ui_text(prop, "Unit Settings", "Unit editing settings");
 	
 	/* Render Data */
-	prop= RNA_def_property(srna, "render_data", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "render_data", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "r");
 	RNA_def_property_struct_type(prop, "SceneRenderData");
 	RNA_def_property_ui_text(prop, "Render Data", "");
@@ -2056,7 +2059,8 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Timeline Markers", "Markers used in all timelines for the current scene.");
 
 	/* Game Settings */
-	prop= RNA_def_property(srna, "game_data", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "game_data", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "gm");
 	RNA_def_property_struct_type(prop, "SceneGameData");
 	RNA_def_property_ui_text(prop, "Game Data", "");

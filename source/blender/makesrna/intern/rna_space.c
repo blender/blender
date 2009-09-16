@@ -491,7 +491,8 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -779,7 +780,8 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
-	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
@@ -808,7 +810,8 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* uv */
-	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SpaceUVEditor");
 	RNA_def_property_pointer_funcs(prop, "rna_SpaceImageEditor_uvedit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "UV Editor", "UV editor settings.");

@@ -461,17 +461,20 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	/* nested structs */
-	prop= RNA_def_property(srna, "ambient_occlusion", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "ambient_occlusion", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldAmbientOcclusion");
 	RNA_def_property_pointer_funcs(prop, "rna_World_ambient_occlusion_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Ambient Occlusion", "World ambient occlusion settings.");
 
-	prop= RNA_def_property(srna, "mist", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "mist", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldMistSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_World_mist_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Mist", "World mist settings.");
 
-	prop= RNA_def_property(srna, "stars", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "stars", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldStarsSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Stars", "World stars settings.");

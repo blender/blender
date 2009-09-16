@@ -134,7 +134,7 @@ PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 
 	if(!DefRNA.preprocess) {
 		/* we should never get here */
-		fprintf(stderr, "rna_find_property_def: only at preprocess time.\n");
+		fprintf(stderr, "rna_find_struct_property_def: only at preprocess time.\n");
 		return NULL;
 	}
 
@@ -155,6 +155,7 @@ PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 	return NULL;
 }
 
+#if 0
 static PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
 {
 	PropertyDefRNA *dprop;
@@ -175,6 +176,7 @@ static PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
 
 	return NULL;
 }
+#endif
 
 FunctionDefRNA *rna_find_function_def(FunctionRNA *func)
 {
