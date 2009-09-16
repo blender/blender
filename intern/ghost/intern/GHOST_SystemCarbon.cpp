@@ -788,21 +788,21 @@ OSStatus GHOST_SystemCarbon::handleTabletEvent(EventRef event)
 					switch(tabletProximityRecord.pointerType)
 					{
 						case 1: /* stylus */
-							ct.Active = 1;
+							ct.Active = GHOST_kTabletModeStylus;
 							break;
 						case 2: /* puck, not supported so far */
-							ct.Active = 0;
+							ct.Active = GHOST_kTabletModeNone;
 							break;
 						case 3: /* eraser */
-							ct.Active = 2;
+							ct.Active = GHOST_kTabletModeEraser;
 							break;
 						default:
-							ct.Active = 0;
+							ct.Active = GHOST_kTabletModeNone;
 							break;
 					}
 				} else {
 					// pointer is leaving - return to mouse
-					ct.Active = 0;
+					ct.Active = GHOST_kTabletModeNone;
 				}
 			}
 		}
