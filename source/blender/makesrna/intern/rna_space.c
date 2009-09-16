@@ -38,8 +38,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_paint.h"
-
+#include "WM_api.h"
 #include "WM_types.h"
 
 EnumPropertyItem space_type_items[] = {
@@ -80,11 +79,15 @@ static EnumPropertyItem dc_all_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_Z, DC_LC
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_paint.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
@@ -227,13 +230,6 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 	st->top= 0;
 }
 
-static void rna_SpaceFileBrowser_params_set(PointerRNA *ptr, PointerRNA value)
-{
-	SpaceFile *sfile= (SpaceFile*)(ptr->data);
-
-	sfile->params= value.data;
-}
-
 /* Space Properties */
 
 static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
@@ -311,10 +307,34 @@ static void rna_View3D_display_background_image_set(PointerRNA *ptr, int value)
 }
 
 /* Space Time */
+
 static void rna_SpaceTime_redraw_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceTime *st= (SpaceTime*)ptr->data;
 	ED_screen_animation_timer_update(C, st->redraws);
+}
+
+/* Space Dopesheet */
+
+static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceAction *saction= (SpaceAction*)(ptr->data);
+	saction->action= value.data;
+}
+
+static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceAction *saction= (SpaceAction*)(ptr->data);
+	Object *obact= CTX_data_active_object(C);
+
+	/* we must set this action to be the one used by active object (if not pinned) */
+	if(obact && saction->pin == 0) {
+		AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+		
+		/* set action */
+		adt->action= saction->action;
+		id_us_plus(&adt->action->id);
+	}
 }
 
 #else
@@ -1039,6 +1059,13 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SpaceDopeSheetEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceAction");
 	RNA_def_struct_ui_text(srna, "Space DopeSheet Editor", "DopeSheet space data.");
+
+	/* data */
+	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceDopeSheetEditor_action_set", NULL);
+	RNA_def_property_ui_text(prop, "Action", "Action displayed and edited in this space.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, "rna_SpaceDopeSheetEditor_action_update");
 	
 	/* mode */
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -1425,7 +1452,6 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "params", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "params");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceFileBrowser_params_set", NULL);
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser.");
 }
 

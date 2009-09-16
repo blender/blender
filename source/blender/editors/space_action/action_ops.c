@@ -83,6 +83,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACT_OT_insert_keyframe);
 	WM_operatortype_append(ACT_OT_copy);
 	WM_operatortype_append(ACT_OT_paste);
+	WM_operatortype_append(ACT_OT_new);
 	
 	WM_operatortype_append(ACT_OT_previewrange_set);
 	WM_operatortype_append(ACT_OT_view_all);

@@ -260,61 +260,6 @@ static void do_action_buttons(bContext *C, void *arg, int event)
 	}
 }
 
-static void saction_idpoin_handle(bContext *C, ID *id, int event)
-{
-	SpaceAction *saction= CTX_wm_space_action(C);
-	Object *obact= CTX_data_active_object(C);
-	
-	printf("actedit do id: \n");
-	
-	switch (event) {
-		case UI_ID_BROWSE:
-			printf("browse \n");
-		case UI_ID_DELETE:
-			printf("browse or delete \n");
-			saction->action= (bAction*)id;
-			
-			/* we must set this action to be the one used by active object (if not pinned) */
-			if (saction->pin == 0) {
-				AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
-				
-				/* set action */
-				printf("\tset action \n");
-				adt->action= saction->action;
-				adt->action->id.us++;
-			}
-			
-			ED_area_tag_redraw(CTX_wm_area(C));
-			ED_undo_push(C, "Assign Action");
-			break;
-		case UI_ID_RENAME:
-			printf("actedit rename \n");
-			break;
-		case UI_ID_ADD_NEW:
-			printf("actedit addnew \n");
-			if (saction->pin == 0) {
-				AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
-				
-				/* set new action */
-				// XXX need to restore behaviour to copy old actions...
-				printf("\tset new action \n");
-				adt->action= saction->action= add_empty_action("Action");
-			}
-			break;
-		case UI_ID_OPEN:
-			printf("actedit open \n");
-			/* XXX not implemented */
-			break;
-		case UI_ID_ALONE:
-			printf("actedit alone \n");
-			/* XXX not implemented */
-			break;
-		case UI_ID_PIN:
-			printf("actedit pin \n");
-			break;
-	}
-}
-
 void action_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
@@ -409,9 +354,15 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			xco += 30;
 		}
 		else if (saction->mode == SACTCONT_ACTION) {
-			/* NAME ETC  */
-			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)saction->action, ID_AC, &saction->pin, xco, yco,
-				saction_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE|UI_ID_FAKE_USER|UI_ID_ALONE|UI_ID_PIN);
+			uiLayout *layout;
+			bScreen *sc= CTX_wm_screen(C);
+			PointerRNA ptr;
+
+			RNA_pointer_create(&sc->id, &RNA_SpaceDopeSheetEditor, saction, &ptr);
+			
+			layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, 20+3, 20, 1, U.uistyles.first);
+			uiTemplateID(layout, (bContext*)C, &ptr, "action", "ACT_OT_new", NULL, NULL);
+			uiBlockLayoutResolve(C, block, &xco, NULL);
 			
 			xco += 8;
 		}
