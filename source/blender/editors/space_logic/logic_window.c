@@ -965,6 +965,107 @@ static void verify_logicbutton_func(bContext *C, void *data1, void *data2)
 	}
 }
 
+static void test_scriptpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	id= CTX_data_main(C)->text.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+static void test_actionpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	id= CTX_data_main(C)->action.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			id_us_plus(id);
+			*idpp= id;
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+
+static void test_obpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	id= CTX_data_main(C)->object.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+static void test_meshpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->mesh.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+static void test_matpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->mat.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+static void test_scenepoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->scene.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
 
 /**
  * Draws a toggle for pulse mode, a frequency field and a toggle to invert

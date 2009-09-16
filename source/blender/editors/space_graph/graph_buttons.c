@@ -46,15 +46,16 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_global.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -248,6 +249,22 @@ static int graph_panel_drivers_poll(const bContext *C, PanelType *pt)
 		return 0;
 
 	return graph_panel_context(C, NULL, NULL);
+}
+
+static void test_obpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	id= CTX_data_main(C)->object.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */

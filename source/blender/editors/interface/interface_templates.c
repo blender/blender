@@ -762,6 +762,22 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 	}
 }
 
+static void test_obpoin_but(bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	id= CTX_data_main(C)->object.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
 /* draw panel showing settings for a constraint */
 static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 {
@@ -956,11 +972,11 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 							/* subtarget */
 							if (is_armature_target(ct->tar)) {
 								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco+120, yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-								uiButSetCompleteFunc(but, autocomplete_bone, (void *)ct->tar);
+								//uiButSetCompleteFunc(but, autocomplete_bone, (void *)ct->tar);
 							}
 							else if (is_geom_target(ct->tar)) {
 								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco+120, yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-								uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ct->tar);
+								//uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ct->tar);
 							}
 							else {
 								strcpy(ct->subtarget, "");
@@ -1762,9 +1778,6 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 	int groups, cols, layers;
 	int group, col, layer, row;
 	
-	if (!ptr->data)
-		return;
-	
 	prop= RNA_struct_find_property(ptr, propname);
 	if (!prop) {
 		printf("uiTemplateLayer: layers property not found: %s\n", propname);
@@ -2036,7 +2049,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 
 /************************* Operator Search Template **************************/
 
-static void operator_call_cb(struct bContext *C, void *arg1, void *arg2)
+static void operator_call_cb(bContext *C, void *arg1, void *arg2)
 {
 	wmOperatorType *ot= arg2;
 	
@@ -2044,7 +2057,7 @@ static void operator_call_cb(struct bContext *C, void *arg1, void *arg2)
 		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
 }
 
-static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+static void operator_search_cb(const bContext *C, void *arg, char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = WM_operatortype_first();
 	

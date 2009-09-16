@@ -259,58 +259,6 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-#if 0
-/* add handlers, stuff you only do once or on area/region changes */
-static void buttons_context_area_init(wmWindowManager *wm, ARegion *ar)
-{
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
-}
-
-#define CONTEXTY	30
-
-static void buttons_context_area_draw(const bContext *C, ARegion *ar)
-{
-	SpaceButs *sbuts= CTX_wm_space_buts(C);
-	uiStyle *style= U.uistyles.first;
-	uiBlock *block;
-	uiLayout *layout;
-	View2D *v2d= &ar->v2d;
-	float col[3];
-	int x, y, w, h;
-
-	buttons_context_compute(C, sbuts);
-
-	w= v2d->cur.xmax - v2d->cur.xmin;
-	h= v2d->cur.ymax - v2d->cur.ymin;
-	UI_view2d_view_ortho(C, v2d);
-
-	/* create UI */
-	block= uiBeginBlock(C, ar, "buttons_context", UI_EMBOSS);
-	layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_PANEL,
-		style->panelspace, h - (h-UI_UNIT_Y)/2, w, 20, style);
-
-	buttons_context_draw(C, layout);
-
-	uiBlockLayoutResolve(C, block, &x, &y);
-	uiEndBlock(C, block);
-
-	/* draw */
-	UI_SetTheme(SPACE_BUTS, RGN_TYPE_WINDOW); /* XXX */
-
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	UI_view2d_totRect_set(v2d, x, -y);
-	UI_view2d_view_ortho(C, v2d);
-
-	uiDrawBlock(C, block);
-
-	/* restore view matrix */
-	UI_view2d_view_restore(C);
-}
-#endif
-
 /* reused! */
 static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 {
@@ -424,19 +372,6 @@ void ED_spacetype_buttons(void)
 	art->draw= buttons_header_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 
-#if 0
-	/* regions: context */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
-	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizey= CONTEXTY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
-	art->init= buttons_context_area_init;
-	art->draw= buttons_context_area_draw;;
-	art->listener= buttons_area_listener;
-	
-	BLI_addhead(&st->regiontypes, art);
-#endif
-	
 	BKE_spacetype_register(st);
 }
 

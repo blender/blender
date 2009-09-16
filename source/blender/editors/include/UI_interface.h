@@ -418,7 +418,6 @@ typedef void (*uiIDPoinFunc)(struct bContext *C, struct ID *id, int event);
 
 uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
 						short x1, short y1, short x2, short y2, void *idpp, char *tip);
-int uiDefIDPoinButs(uiBlock *block, struct Main *main, struct ID *parid, struct ID *id, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events);
 
 int uiIconFromID(struct ID *id);
 
@@ -530,29 +529,6 @@ void uiEndPanel(uiBlock *block, int width, int height);
 void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_area_handlers(struct ListBase *handlers);
 void UI_add_popup_handlers(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *menu);
-
-/* Legacy code
- * Callbacks and utils to get 2.48 work */
-
-void test_idbutton_cb(struct bContext *C, void *namev, void *arg2);
-void test_scriptpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_actionpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_obpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_meshobpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_meshpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_matpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_scenepoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_grouppoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_texpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_imapoin_but(struct bContext *C, char *name, struct ID **idpp);
-void autocomplete_bone(struct bContext *C, char *str, void *arg_v);
-void autocomplete_vgroup(struct bContext *C, char *str, void *arg_v);
-
-struct rctf;
-void curvemap_buttons(uiBlock *block, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
-void curvemap_layout(uiLayout *layout, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
-void colorband_buttons(uiBlock *block, struct ColorBand *coba, struct rctf *rect, int small);
-
 
 /* Module
  *
