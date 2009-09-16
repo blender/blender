@@ -264,7 +264,7 @@ class USERPREF_PT_system(bpy.types.Panel):
 		
 		sub2 = sub1.column()
 		sub2.active = system.use_weight_color_range
-		sub2.template_color_ramp(system.weight_color_range, expand=True)
+		sub2.template_color_ramp(system, "weight_color_range", expand=True)
 		sub1.itemS()
 		sub1.itemS()
 		

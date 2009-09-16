@@ -2192,7 +2192,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	block->direction= direction;
 
-	uiBlockLayoutResolve(C, block, NULL, NULL);
+	uiBlockLayoutResolve(block, NULL, NULL);
 
 	if(pup->popup) {
 		uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);

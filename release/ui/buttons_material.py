@@ -28,7 +28,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 		# this manages materials for all engine types
 		
 		engine = context.scene.render_data.engine
-		return (context.object) and (engine in self.COMPAT_ENGINES)
+		return (context.material or context.object) and (engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
@@ -282,7 +282,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 			
 		if mat.use_diffuse_ramp:
 			layout.itemS()
-			layout.template_color_ramp(mat.diffuse_ramp, expand=True)
+			layout.template_color_ramp(mat, "diffuse_ramp", expand=True)
 			layout.itemS()
 			row = layout.row()
 			split = row.split(percentage=0.3)
@@ -334,7 +334,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		
 		if mat.use_specular_ramp:
 			layout.itemS()
-			layout.template_color_ramp(mat.specular_ramp, expand=True)
+			layout.template_color_ramp(mat, "specular_ramp", expand=True)
 			layout.itemS()
 			row = layout.row()
 			split = row.split(percentage=0.3)

@@ -481,6 +481,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 {
 	uiLayout *sub;
 	uiBut *but;
+	PropertyType type;
 	PropertySubType subtype;
 	int labelw;
 
@@ -496,6 +497,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		w= w-labelw;
 	}
 
+	type= RNA_property_type(prop);
 	subtype= RNA_property_subtype(prop);
 
 	if(subtype == PROP_FILEPATH || subtype == PROP_DIRPATH) {
@@ -505,8 +507,10 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
 		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
 	}
+	else if(subtype == PROP_DIRECTION)
+		uiDefButR(block, BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
 	else
-		but= uiDefAutoButR(block, ptr, prop, index, (!icon_only)? "": NULL, icon, x, y, w, h);
+		but= uiDefAutoButR(block, ptr, prop, index, (type == PROP_ENUM && !icon_only)? NULL: "", icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
 	return but;
@@ -840,9 +844,6 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	char namestr[UI_MAX_NAME_STR];
 	int len, w, h, slider, toggle, expand, icon_only;
 
-	if(!ptr->data || !prop)
-		return;
-
 	uiBlockSetCurLayout(block, layout);
 
 	/* retrieve info */
@@ -913,12 +914,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 
 void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int flag)
 {
-	PropertyRNA *prop;
-
-	if(!ptr->data || !propname)
-		return;
-
-	prop= RNA_struct_find_property(ptr, propname);
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop) {
 		ui_item_disabled(layout, propname);
@@ -931,12 +927,7 @@ void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *prop
 
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value)
 {
-	PropertyRNA *prop;
-
-	if(!ptr->data || !propname)
-		return;
-
-	prop= RNA_struct_find_property(ptr, propname);
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop || RNA_property_type(prop) != PROP_ENUM) {
 		ui_item_disabled(layout, propname);
@@ -949,14 +940,9 @@ void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr,
 
 void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value)
 {
-	PropertyRNA *prop;
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	EnumPropertyItem *item;
 	int ivalue, a, free;
-
-	if(!ptr->data || !propname)
-		return;
-
-	prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop || RNA_property_type(prop) != PROP_ENUM) {
 		ui_item_disabled(layout, propname);
@@ -1123,9 +1109,6 @@ void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *p
 	int w, h;
 	
 	/* validate arguments */
-	if(!ptr->data || !searchptr->data)
-		return;
-
 	prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop) {
@@ -2227,18 +2210,13 @@ static void ui_item_layout(uiItem *item)
 	}
 }
 
-static void ui_layout_items(const bContext *C, uiBlock *block, uiLayout *layout)
-{
-	ui_item_estimate(&layout->item);
-	ui_item_layout(&layout->item);
-}
-
-static void ui_layout_end(const bContext *C, uiBlock *block, uiLayout *layout, int *x, int *y)
+static void ui_layout_end(uiBlock *block, uiLayout *layout, int *x, int *y)
 {
 	if(layout->root->handlefunc)
 		uiBlockSetButmFunc(block, layout->root->handlefunc, layout->root->argv);
 
-	ui_layout_items(C, block, layout);
+	ui_item_estimate(&layout->item);
+	ui_item_layout(&layout->item);
 
 	if(x) *x= layout->x;
 	if(y) *y= layout->y;
@@ -2346,7 +2324,7 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv)
 	layout->root->argv= argv;
 }
 
-void uiBlockLayoutResolve(const bContext *C, uiBlock *block, int *x, int *y)
+void uiBlockLayoutResolve(uiBlock *block, int *x, int *y)
 {
 	uiLayoutRoot *root;
 
@@ -2357,7 +2335,7 @@ void uiBlockLayoutResolve(const bContext *C, uiBlock *block, int *x, int *y)
 
 	for(root=block->layouts.first; root; root=root->next) {
 		/* NULL in advance so we don't interfere when adding button */
-		ui_layout_end(C, block, root->layout, x, y);
+		ui_layout_end(block, root->layout, x, y);
 		ui_layout_free(root->layout);
 	}
 

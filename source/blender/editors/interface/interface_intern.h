@@ -263,6 +263,9 @@ struct uiBlock {
 	void *func_arg1;
 	void *func_arg2;
 
+	uiButHandleNFunc funcN;
+	void *func_argN;
+
 	uiMenuHandleFunc butm_func;
 	void *butm_func_arg;
 

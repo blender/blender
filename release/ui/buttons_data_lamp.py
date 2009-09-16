@@ -301,7 +301,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 	def draw(self, context):
 		lamp = context.lamp
 
-		self.layout.template_curve_mapping(lamp.falloff_curve)
+		self.layout.template_curve_mapping(lamp, "falloff_curve")
 
 bpy.types.register(DATA_PT_context_lamp)
 bpy.types.register(DATA_PT_preview)

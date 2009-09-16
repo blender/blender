@@ -96,7 +96,7 @@ class TEXTURE_PT_colors(TextureButtonsPanel):
 
 		layout.itemR(tex, "use_color_ramp", text="Ramp")
 		if tex.use_color_ramp:
-			layout.template_color_ramp(tex.color_ramp, expand=True)
+			layout.template_color_ramp(tex, "color_ramp", expand=True)
 
 		split = layout.split()
 		
@@ -410,10 +410,10 @@ class TEXTURE_PT_image(TextureTypePanel):
 	
 	def draw(self, context):
 		layout = self.layout
-		
+
 		tex = context.texture
 
-		layout.template_texture_image(tex)
+		layout.template_image(tex, "image", tex.image_user)
 
 class TEXTURE_PT_image_sampling(TextureTypePanel):
 	__label__ = "Image Sampling"
@@ -689,7 +689,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_VELOCITY'):
 			col.itemR(pd, "speed_scale")
 		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_AGE'):
-			layout.template_color_ramp(pd.color_ramp, expand=True)
+			layout.template_color_ramp(pd, "color_ramp", expand=True)
 
 		col = split.column()
 		col.itemL()

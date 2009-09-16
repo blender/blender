@@ -240,7 +240,8 @@ class SCENE_PT_output(RenderButtonsPanel):
 			split = layout.split()
 			
 			col = split.column()
-			col.itemR(rd, "exr_codec")
+			col.itemL(text="Codec:")
+			col.itemR(rd, "exr_codec", text="")
 
 			subsplit = split.split()
 			col = subsplit.column()

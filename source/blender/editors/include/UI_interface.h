@@ -487,6 +487,7 @@ int		uiSearchBoxhHeight(void);
 void	uiBlockSetHandleFunc(uiBlock *block,	uiBlockHandleFunc func, void *arg);
 void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
 void	uiBlockSetFunc		(uiBlock *block,	uiButHandleFunc func, void *arg1, void *arg2);
+void	uiBlockSetNFunc		(uiBlock *block,	uiButHandleFunc func, void *argN, void *arg2);
 
 void	uiButSetRenameFunc	(uiBut *but,		uiButHandleRenameFunc func, void *arg1);
 void	uiButSetFunc		(uiBut *but,		uiButHandleFunc func, void *arg1, void *arg2);
@@ -596,7 +597,7 @@ void UI_exit(void);
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
-void uiBlockLayoutResolve(const struct bContext *C, uiBlock *block, int *x, int *y);
+void uiBlockLayoutResolve(uiBlock *block, int *x, int *y);
 
 uiBlock *uiLayoutGetBlock(uiLayout *layout);
 
@@ -641,10 +642,11 @@ void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, 
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
-void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
-void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type, int compact);
+void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
+void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
+void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);

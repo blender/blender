@@ -362,7 +362,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			
 			layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, 20+3, 20, 1, U.uistyles.first);
 			uiTemplateID(layout, (bContext*)C, &ptr, "action", "ACT_OT_new", NULL, NULL);
-			uiBlockLayoutResolve(C, block, &xco, NULL);
+			uiBlockLayoutResolve(block, &xco, NULL);
 			
 			xco += 8;
 		}

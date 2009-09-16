@@ -1254,7 +1254,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 				pt->draw_header(C, panel);
 
-				uiBlockLayoutResolve(C, block, &xco, &yco);
+				uiBlockLayoutResolve(block, &xco, &yco);
 				panel->labelofs= xco - triangle;
 				panel->layout= NULL;
 			}
@@ -1265,7 +1265,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 				pt->draw(C, panel);
 
-				uiBlockLayoutResolve(C, block, &xco, &yco);
+				uiBlockLayoutResolve(block, &xco, &yco);
 				panel->layout= NULL;
 
 				yco -= 2*style->panelspace;
@@ -1411,7 +1411,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 				maxco= xco;
 		}
 
-		uiBlockLayoutResolve(C, block, &xco, &yco);
+		uiBlockLayoutResolve(block, &xco, &yco);
 		
 		/* for view2d */
 		if(xco > maxco)

@@ -422,7 +422,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			row.itemR(brush, "strength", slider=True)
 			row.itemR(brush, "strength_pressure", toggle=True, text="")
 			
-			col.itemR(brush, "blend")
+			col.itemR(brush, "blend", text="Blend")
 		
 		# Weight Paint Mode #
 	
@@ -508,7 +508,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
 		settings = self.paint_settings(context)
 		brush = settings.brush
 
-		layout.template_curve_mapping(brush.curve)
+		layout.template_curve_mapping(brush, "curve")
 		layout.item_menu_enumO("brush.curve_preset", property="shape")
 		
 class VIEW3D_PT_sculpt_options(PaintPanel):
