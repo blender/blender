@@ -2116,7 +2116,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				wmTabletData *wmtab= event->customdata;
 
 				/* de-sensitise based on tablet pressure */
-				if (ELEM(wmtab->Active, DEV_STYLUS, DEV_ERASER))
+				if (wmtab->Active != EVT_TABLET_NONE)
 				 	fac *= wmtab->Pressure;
 			}
 			

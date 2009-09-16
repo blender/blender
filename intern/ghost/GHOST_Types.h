@@ -64,8 +64,14 @@ typedef enum
  * the pen's angle in 3D space vertically downwards on to the XY plane
  * --Matt
  */
+typedef enum {
+	GHOST_kTabletModeNone = 0,
+	GHOST_kTabletModeStylus,
+	GHOST_kTabletModeEraser
+} GHOST_TTabletMode;
+
 typedef struct GHOST_TabletData {
-	char Active; /* 0=None, 1=Stylus, 2=Eraser */
+	GHOST_TTabletMode Active; /* 0=None, 1=Stylus, 2=Eraser */
 	float Pressure;	/* range 0.0 (not touching) to 1.0 (full pressure) */
 	float Xtilt;	/* range 0.0 (upright) to 1.0 (tilted fully against the tablet surface) */
 	float Ytilt;	/* as above */

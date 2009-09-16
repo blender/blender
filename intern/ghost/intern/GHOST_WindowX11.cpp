@@ -425,7 +425,7 @@ void GHOST_WindowX11::initXInputDevices()
 			XDeviceInfo* device_info = XListInputDevices(m_display, &device_count);
 			m_xtablet.StylusDevice = 0;
 			m_xtablet.EraserDevice = 0;
-			m_xtablet.CommonData.Active= 0;
+			m_xtablet.CommonData.Active= GHOST_kTabletModeNone;
 
 			/* Install our error handler to override Xlib's termination behavior */
 			old_handler = XSetErrorHandler(ApplicationErrorHandler) ;

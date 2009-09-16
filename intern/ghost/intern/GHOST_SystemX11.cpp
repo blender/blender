@@ -684,12 +684,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			{
 				XProximityNotifyEvent* data = (XProximityNotifyEvent*)xe;
 				if(data->deviceid == window->GetXTablet().StylusID)
-					window->GetXTablet().CommonData.Active= 1;
+					window->GetXTablet().CommonData.Active= GHOST_kTabletModeStylus;
 				else if(data->deviceid == window->GetXTablet().EraserID)
-					window->GetXTablet().CommonData.Active= 2;
+					window->GetXTablet().CommonData.Active= GHOST_kTabletModeEraser;
 			}
 			else if(xe->type == window->GetXTablet().ProxOutEvent)
-				window->GetXTablet().CommonData.Active= 0;
+				window->GetXTablet().CommonData.Active= GHOST_kTabletModeNone;
 
 			break;
 		}

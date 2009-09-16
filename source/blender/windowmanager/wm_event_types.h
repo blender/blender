@@ -40,7 +40,7 @@
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
 
-/* tablet active */
+/* tablet active, matches GHOST_TTabletMode */
 #define EVT_TABLET_NONE		0
 #define EVT_TABLET_STYLUS	1
 #define EVT_TABLET_ERASER	2

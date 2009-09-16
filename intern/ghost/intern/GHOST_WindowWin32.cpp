@@ -244,7 +244,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 				m_tablet = fpWTOpen( m_hWnd, &lc, TRUE );
 				if (m_tablet) {
 					m_tabletData = new GHOST_TabletData();
-					m_tabletData->Active = 0;
+					m_tabletData->Active = GHOST_kTabletModeNone;
 				}
 			}
 		}
@@ -704,7 +704,7 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
 				}
 			}
 
-			m_tabletData->Active = 0;
+			m_tabletData->Active = GHOST_kTabletModeNone;
 		}
 	}
 }

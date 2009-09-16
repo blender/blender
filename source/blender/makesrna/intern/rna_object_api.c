@@ -40,6 +40,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_object.h"
+#include "BKE_mball.h"
 #include "BKE_main.h"
 
 #include "DNA_mesh_types.h"
@@ -101,7 +102,7 @@ static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, Scene *scene
  	}
  	case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
-		ob = find_basis_mball( ob );
+		ob = find_basis_mball(scene, ob);
 		/* todo, re-generatre for render-res */
 		// metaball_polygonize(scene, ob)
 		me = add_mesh("Mesh");

@@ -1498,10 +1498,10 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 	const GHOST_TabletData *td= GHOST_GetTabletData(win->ghostwin);
 	
 	/* if there's tablet data from an active tablet device then add it */
-	if ((td != NULL) && td->Active) {
+	if ((td != NULL) && td->Active != GHOST_kTabletModeNone) {
 		struct wmTabletData *wmtab= MEM_mallocN(sizeof(wmTabletData), "customdata tablet");
 		
-		wmtab->Active = td->Active;
+		wmtab->Active = (int)td->Active;
 		wmtab->Pressure = td->Pressure;
 		wmtab->Xtilt = td->Xtilt;
 		wmtab->Ytilt = td->Ytilt;
