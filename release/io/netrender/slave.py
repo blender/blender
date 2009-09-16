@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, platform
 import http, http.client, http.server, urllib
 import subprocess, time
 
@@ -10,10 +10,10 @@ MAX_TIMEOUT = 10
 INCREMENT_TIMEOUT = 1
 
 def slave_Info():
-	sysname, nodename, release, version, machine = os.uname()
+	sysname, nodename, release, version, machine, processor = platform.uname()
 	slave = netrender.model.RenderSlave()
 	slave.name = nodename
-	slave.stats = sysname + " " + release + " " + machine
+	slave.stats = sysname + " " + release + " " + machine + " " + processor
 	return slave
 
 def testCancel(conn, job_id):
