@@ -67,9 +67,12 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col = layout.column(align=True)
 		col.itemL(text="Modeling:")
 		col.itemO("mesh.extrude")
+		col.itemO("mesh.extrude_repeat", text="Extrude Repeat")
 		col.itemO("mesh.subdivide")
 		col.itemO("mesh.spin")
 		col.itemO("mesh.screw")
+		col.itemO("mesh.merge")
+		col.itemO("mesh.rip_move")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Shading:")
@@ -288,7 +291,7 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col.itemO("pose.reveal", text="Reveal")
 		
 		col = layout.column(align=True)
-		layout.itemL(text="Keyframes:")
+		col.itemL(text="Keyframes:")
 		col.itemO("anim.insert_keyframe_menu", text="Insert")
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
 		
