@@ -33,6 +33,7 @@
 #include "DNA_color_types.h"
 #include "DNA_listBase.h"
 #include "DNA_material_types.h"
+#include "DNA_lamp_types.h""
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
@@ -507,6 +508,64 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 	MEM_freeN(params);
 
 	return x;
+}
+
+/* currently only object-data types */
+int uiIconFromID(ID *id)
+{
+	if (id==NULL)
+		return 0;
+
+	switch(GS(id->name)) {
+		case ID_OB:
+		{
+			Object *ob= (Object *)id;
+
+			switch(ob->type) {
+				case OB_EMPTY:
+					return ICON_EMPTY_DATA;
+				case OB_CURVE:
+					return ICON_CURVE_DATA;
+				case OB_SURF:
+					return ICON_SURFACE_DATA;
+				case OB_FONT:
+					return ICON_FONT_DATA;
+			}
+
+			return uiIconFromID(ob->data);
+		}
+		case ID_ME:
+			return ICON_MESH_DATA;
+		case ID_AR:
+			return ICON_ARMATURE_DATA;
+		case ID_MB:
+			return ICON_META_DATA;
+		case ID_CA:
+			return ICON_CAMERA_DATA;
+		case ID_LT:
+			return ICON_LATTICE_DATA;
+		case ID_CU:
+			return ICON_CURVE_DATA;
+		case ID_LA:
+		{
+			Lamp *la= (Lamp *)id;
+			switch(la->type) {
+			case LA_LOCAL:
+				return ICON_LAMP_POINT;
+			case LA_SUN:
+				return ICON_LAMP_SUN;
+			case LA_SPOT:
+				return ICON_LAMP_SPOT;
+			case LA_HEMI:
+				return ICON_LAMP_HEMI;
+			case LA_AREA:
+				return ICON_LAMP_AREA;
+			}
+			return ICON_LAMP_DATA;
+		}
+	}
+
+	return 0;
 }
 
 /* ****************************** default button callbacks ******************* */
