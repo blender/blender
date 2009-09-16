@@ -4715,7 +4715,7 @@ int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float 
 		
 		VecSubf(c, v3t, v1);
 		VecSubf(a, v2, v1);
-		VecSubf(b, v4t, v3);
+		VecSubf(b, v4t, v3t);
 
 		Crossf(ab, a, b);
 		Crossf(cb, c, b);
