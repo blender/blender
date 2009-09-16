@@ -93,6 +93,7 @@ typedef struct tringselOpData {
 	EditEdge *eed;
 
 	int extend;
+	int do_cut;
 } tringselOpData;
 
 /* modal loop selection drawing callback */
@@ -258,8 +259,14 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
 
-	if (lcd->eed);
+	if (lcd->eed) {
 		edgering_sel(lcd, 0, 1);
+		if (lcd->do_cut) {
+			EditMesh *em = BKE_mesh_get_editmesh(lcd->ob->data);
+			esubdivideflag(lcd->ob, em, SELECT, 0.0f, 
+			               0.0f, 0, 1, SUBDIV_SELECT_LOOPCUT);
+		}
+	}
 }
 
 /* called when modal loop selection is done... */
@@ -281,7 +288,7 @@ static void ringsel_exit (bContext *C, wmOperator *op)
 }
 
 /* called when modal loop selection gets set up... */
-static int ringsel_init (bContext *C, wmOperator *op)
+static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 {
 	tringselOpData *lcd;
 	
@@ -293,7 +300,8 @@ static int ringsel_init (bContext *C, wmOperator *op)
 	lcd->draw_handle= ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST);
 	lcd->ob = CTX_data_edit_object(C);
 	lcd->em= BKE_mesh_get_editmesh((Mesh *)lcd->ob->data);
-	lcd->extend = RNA_boolean_get(op->ptr, "extend");
+	lcd->extend = do_cut ? 0 : RNA_boolean_get(op->ptr, "extend");
+	lcd->do_cut = do_cut;
 	em_setup_viewcontext(C, &lcd->vc);
 
 	ED_region_tag_redraw(lcd->ar);
@@ -317,7 +325,36 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 	view3d_operator_needs_opengl(C);
 
-	if (!ringsel_init(C, op))
+	if (!ringsel_init(C, op, 0))
+		return OPERATOR_CANCELLED;
+	
+	/* add a modal handler for this operator - handles loop selection */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+	lcd = op->customdata;
+	lcd->vc.mval[0] = evt->mval[0];
+	lcd->vc.mval[1] = evt->mval[1];
+	
+	edge = findnearestedge(&lcd->vc, &dist);
+	if (edge != lcd->eed) {
+		lcd->eed = edge;
+		ringsel_find_edge(lcd, C, lcd->ar);
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+
+static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	tringselOpData *lcd;
+	EditEdge *edge;
+	int dist = 75;
+
+	view3d_operator_needs_opengl(C);
+
+	if (!ringsel_init(C, op, 1))
 		return OPERATOR_CANCELLED;
 	
 	/* add a modal handler for this operator - handles loop selection */
@@ -379,13 +416,12 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-// naming is whatever this should use...
 void MESH_OT_edgering_select (wmOperatorType *ot)
 {
 	/* description */
-	ot->name= "Loop Cut";
+	ot->name= "Edge Ring Select";
 	ot->idname= "MESH_OT_edgering_select";
-	ot->description= "Add a new loop between existing loops.";
+	ot->description= "Select an edge ring";
 	
 	/* callbacks */
 	ot->invoke= ringsel_invoke;
@@ -397,4 +433,21 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+}
+
+void MESH_OT_loopcut (wmOperatorType *ot)
+{
+	/* description */
+	ot->name= "Loop Cut";
+	ot->idname= "MESH_OT_loopcut";
+	ot->description= "Add a new loop between existing loops.";
+	
+	/* callbacks */
+	ot->invoke= ringcut_invoke;
+	ot->modal= ringsel_modal;
+	ot->cancel= ringsel_cancel;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }

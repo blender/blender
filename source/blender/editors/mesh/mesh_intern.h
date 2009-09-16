@@ -243,6 +243,7 @@ void MESH_OT_sticky_add(struct wmOperatorType *ot);
 void MESH_OT_sticky_remove(struct wmOperatorType *ot);
 
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
+void MESH_OT_loopcut(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

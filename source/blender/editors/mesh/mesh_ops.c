@@ -321,8 +321,17 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_specials);
 	
 	WM_operatortype_append(MESH_OT_edgering_select);
+	WM_operatortype_append(MESH_OT_loopcut);
 
 	/* macros */
+
+	/*combining operators with invoke and exec portions doesn't work yet.
+	
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut", "Loopcut", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MESH_OT_edgering_select");
+	WM_operatortype_macro_define(ot, "MESH_OT_subdivide");
+	*/
+
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TFM_OT_translate");
@@ -335,12 +344,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	WM_operatortype_macro_define(ot, "TFM_OT_translate");
 
-	/*combining operators with invoke and exec portions doesn't work yet.
-	
-	ot= WM_operatortype_append_macro("MESH_OT_loopcut", "Loopcut", OPTYPE_UNDO|OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "MESH_OT_edgering_select");
-	WM_operatortype_macro_define(ot, "MESH_OT_subdivide");
-	*/
 }
 
 /* note mesh keymap also for other space? */
@@ -349,7 +352,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
 	wmKeymapItem *kmi;
 	
-	//WM_keymap_add_item(keymap, "MESH_OT_loopcut", RKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_loopcut", ACTIONMOUSE, KM_PRESS, KM_CTRL, RKEY);
 
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */
