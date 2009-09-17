@@ -165,6 +165,17 @@ static int vlr_check_intersect_solid(Isect *is, ObjectInstanceRen* obi, VlakRen 
 		return 0;
 }
 
+static int rayface_check_cullface(RayFace *face, Isect *is)
+{
+	float nor[3];
+	
+	/* don't intersect if the ray faces along the face normal */
+	if(face->quad) CalcNormFloat4(face->v1, face->v2, face->v3, face->v4, nor);
+	else CalcNormFloat(face->v1, face->v2, face->v3, nor);
+
+	return (INPR(nor, is->vec) < 0);
+}
+
 /* ray - triangle or quad intersection */
 /* this function shall only modify Isect if it detects an hit */
 static int intersect_rayface(RayFace *face, Isect *is)
@@ -186,6 +197,11 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	if(is->skip & RE_SKIP_VLR_NON_SOLID_MATERIAL)
 	{
 		if(vlr_check_intersect_solid(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face) == 0)
+			return 0;
+	}
+	if(is->skip & RE_SKIP_CULLFACE)
+	{
+		if(rayface_check_cullface(face, is) == 0)
 			return 0;
 	}
 
@@ -319,25 +335,31 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	return 0;
 }
 
-void RE_rayface_from_vlak(RayFace *face, ObjectInstanceRen *obi, VlakRen *vlr)
+RayObject* RE_rayface_from_vlak(RayFace *rayface, ObjectInstanceRen *obi, VlakRen *vlr)
 {
-	VECCOPY(face->v1, vlr->v1->co);
-	VECCOPY(face->v2, vlr->v2->co);
-	VECCOPY(face->v3, vlr->v3->co);
-	if(vlr->v4)
+	return RE_rayface_from_coords(rayface, obi, vlr, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4 ? vlr->v4->co : 0 );
+}
+
+RayObject* RE_rayface_from_coords(RayFace *rayface, void *ob, void *face, float *v1, float *v2, float *v3, float *v4)
+{
+	rayface->ob = ob;
+	rayface->face = face;
+
+	VECCOPY(rayface->v1, v1);
+	VECCOPY(rayface->v2, v2);
+	VECCOPY(rayface->v3, v3);
+	if(v4)
 	{
-		VECCOPY(face->v4, vlr->v4->co);
-		face->quad = 1;
+		VECCOPY(rayface->v4, v4);
+		rayface->quad = 1;
 	}
 	else
 	{
-		face->quad = 0;
+		rayface->quad = 0;
 	}
 
-	face->ob   = obi;
-	face->face = vlr;
+	return RE_rayobject_unalignRayFace(rayface);
 }
-
 
 int RE_rayobject_raycast(RayObject *r, Isect *isec)
 {

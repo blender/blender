@@ -79,6 +79,28 @@ RayObject* RE_rayobject_svbvh_create(int size);		/* raytrace/rayobject_svbvh.c *
 RayObject* RE_rayobject_bih_create(int size);		/* rayobject_bih.c */
 
 
+/*
+ * This ray object represents a triangle or a quad face.
+ * All data needed to realize intersection is "localy" available.
+ */
+typedef struct RayFace
+{
+	float v1[4], v2[4], v3[4], v4[3];
+	int quad;
+	void *ob;
+	void *face;
+	
+} RayFace;
+
+#define RE_rayface_isQuad(a) ((a)->quad)
+struct VlakRen;
+struct ObjectInstanceRen;
+
+RayObject* RE_rayface_from_vlak(RayFace *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
+RayObject* RE_rayface_from_coords(RayFace *rayface, void *ob, void *face, float *co1, float *co2, float *co3, float *co4);
+
+
+
 typedef struct LCTSHint LCTSHint;
 struct LCTSHint
 {

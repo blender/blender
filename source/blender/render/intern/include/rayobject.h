@@ -103,25 +103,6 @@ typedef struct RayVlak
  */
 
 /*
- * This ray object represents a triangle or a quad face.
- * All data needed to realize intersection is "localy" available.
- */
-typedef struct RayFace
-{
-	float v1[4], v2[4], v3[4], v4[3];
-	int quad;
-	void *ob;
-	void *face;
-	
-} RayFace;
-
-#define RE_rayface_isQuad(a) ((a)->quad)
-/* Loads a VlakRen on a RayFace */
-void RE_rayface_from_vlak(RayFace *face, ObjectInstanceRen *obi, VlakRen *vlr);
-
-
-
-/*
  * This rayobject represents a generic object. With it's own callbacks for raytrace operations.
  * It's suitable to implement things like LOD.
  */

@@ -30,7 +30,6 @@
 
 #include <math.h>
 #include <string.h>
-#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -107,7 +106,8 @@ struct LaplacianSystem {
 		float *mindist;		/* minimum distance to a bone for all vertices */
 		
 		RayObject *raytree;	/* ray tracing acceleration structure */
-		MFace **vface;		/* a face that the vertex belongs to */
+		RayFace   *faces;	/* faces to add to the ray tracing struture */
+		MFace     **vface;	/* a face that the vertex belongs to */
 	} heat;
 
 #ifdef RIGID_DEFORM
@@ -398,14 +398,25 @@ float laplacian_system_get_solution(int v)
 static void heat_ray_tree_create(LaplacianSystem *sys)
 {
 	Mesh *me = sys->heat.mesh;
-	MFace *mface;
 	int a;
 
-	assert(0); //TODO
-	//sys->heat.raytree = RE_rayobject_mesh_create(me, me);
-
+	sys->heat.raytree = RE_rayobject_vbvh_create(me->totface);
+	sys->heat.faces = MEM_callocN(sizeof(RayFace)*me->totface, "Heat RayFaces");
 	sys->heat.vface = MEM_callocN(sizeof(MFace*)*me->totvert, "HeatVFaces");
-	for(a=0, mface=me->mface; a<me->totface; a++, mface++) {
+
+	for(a=0; a<me->totface; a++) {
+	
+		MFace *mface = me->mface+a;
+		RayFace *rayface = sys->heat.faces+a;
+
+		RayObject *obj = RE_rayface_from_coords(
+							rayface, me, mface,
+							sys->heat.verts[mface->v1], sys->heat.verts[mface->v2],
+							sys->heat.verts[mface->v3], mface->v4 ? sys->heat.verts[mface->v4] : 0
+						);
+		RE_rayobject_add(sys->heat.raytree, obj); 
+		
+		//Setup inverse pointers to use on isect.orig
 		sys->heat.vface[mface->v1]= mface;
 		sys->heat.vface[mface->v2]= mface;
 		sys->heat.vface[mface->v3]= mface;
@@ -420,7 +431,6 @@ static int heat_ray_bone_visible(LaplacianSystem *sys, int vertex, int bone)
 	float end[3];
 	int visible;
 
-	assert( 0 );
 	mface= sys->heat.vface[vertex];
 	if(!mface)
 		return 1;
@@ -429,23 +439,18 @@ static int heat_ray_bone_visible(LaplacianSystem *sys, int vertex, int bone)
 	memset(&isec, 0, sizeof(isec));
 	isec.mode= RE_RAY_SHADOW;
 	isec.lay= -1;
+	isec.orig.ob = sys->heat.mesh;
 	isec.orig.face = mface;
 	isec.skip = RE_SKIP_CULLFACE;
+	
 
 	VECCOPY(isec.start, sys->heat.verts[vertex]);
 	PclosestVL3Dfl(end, isec.start, sys->heat.root[bone], sys->heat.tip[bone]);
 
 	VECSUB(isec.vec, end, isec.start);
-	isec.labda = 1.0f;
+	isec.labda = 1.0f - 1e-5;
+	VECADDFAC( isec.start, isec.start, isec.vec, 1e-5);
 
-#if 0
-	TODO
-	/* add an extra offset to the start position to avoid self intersection */
-	VECCOPY(dir, isec.vec);
-	Normalize(dir);
-	VecMulf(dir, 1e-5);
-	VecAddf(isec.start, isec.start, dir);
-#endif	
 	visible= !RE_rayobject_raycast(sys->heat.raytree, &isec);
 
 	return visible;
@@ -712,6 +717,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 
 	RE_rayobject_free(sys->heat.raytree);
 	MEM_freeN(sys->heat.vface);
+	MEM_freeN(sys->heat.faces);
 
 	MEM_freeN(sys->heat.mindist);
 	MEM_freeN(sys->heat.H);
