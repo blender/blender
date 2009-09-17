@@ -2974,13 +2974,6 @@ static void view3d_particle_text_draw(View3D *v3d, ARegion *ar)
 	if(pstrings.first) 
 		BLI_freelistN(&pstrings);
 }
-typedef struct ParticleDrawData {
-	float *vdata, *vd;
-	float *ndata, *nd;
-	float *cdata, *cd;
-	float *vedata, *ved;
-	float *ma_r, *ma_g, *ma_b;
-} ParticleDrawData;
 static void draw_particle(ParticleKey *state, int draw_as, short draw, float pixsize, float imat[4][4], float *draw_line, ParticleBillboardData *bb, ParticleDrawData *pdd)
 {
 	float vec[3], vec2[3];
@@ -3145,7 +3138,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	ParticleData *pars, *pa;
 	ParticleKey state, *states=0;
 	ParticleBillboardData bb;
-	ParticleDrawData pdd;
+	ParticleSimulationData sim = {scene, ob, psys, NULL};
+	ParticleDrawData *pdd = psys->pdd;
 	Material *ma;
 	float vel[3], imat[4][4];
 	float timestep, pixsize=1.0, pa_size, r_tilt, r_length;
@@ -3176,9 +3170,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	if(part->draw_as==PART_DRAW_NOT) return;
 
 /* 2. */
+	sim.psmd = psmd = psys_get_modifier(ob,psys);
+
 	if(part->phystype==PART_PHYS_KEYED){
 		if(psys->flag&PSYS_KEYED){
-			psys_count_keyed_targets(ob,psys);
+			psys_count_keyed_targets(&sim);
 			if(psys->totkeyed==0)
 				return;
 		}
@@ -3196,8 +3192,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		totchild=0;
 	else
 		totchild=psys->totchild*part->disp/100;
-	
-	memset(&pdd, 0, sizeof(ParticleDrawData));
 
 	ma= give_current_material(ob,part->omat);
 
@@ -3212,18 +3206,16 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		ma_g = ma->g;
 		ma_b = ma->b;
 
-		pdd.ma_r = &ma_r;
-		pdd.ma_g = &ma_g;
-		pdd.ma_b = &ma_b;
+		pdd->ma_r = &ma_r;
+		pdd->ma_g = &ma_g;
+		pdd->ma_b = &ma_b;
 
 		create_cdata = 1;
 	}
 	else
 		cpack(0);
 
-	psmd= psys_get_modifier(ob,psys);
-
-	timestep= psys_get_timestep(part);
+	timestep= psys_get_timestep(&sim);
 
 	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
 		float mat[4][4];
@@ -3317,54 +3309,65 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 /* 4. */
 	if(draw_as && draw_as!=PART_DRAW_PATH) {
 		int tot_vec_size = (totpart + totchild) * 3 * sizeof(float);
-		
+
+		if(!pdd)
+			pdd = psys->pdd = MEM_callocN(sizeof(ParticleDrawData), "ParticlDrawData");
+
 		if(part->draw_as == PART_DRAW_REND && part->trail_count > 1) {
 			tot_vec_size *= part->trail_count;
 			psys_make_temp_pointcache(ob, psys);
 		}
+
+		if(pdd->tot_vec_size != tot_vec_size)
+			psys_free_pdd(psys);
 
 		if(draw_as!=PART_DRAW_CIRC) {
 			switch(draw_as) {
 				case PART_DRAW_AXIS:
 				case PART_DRAW_CROSS:
 					if(draw_as != PART_DRAW_CROSS || create_cdata)
-						pdd.cdata = MEM_callocN(tot_vec_size * 6, "particle_cdata");
-					pdd.vdata = MEM_callocN(tot_vec_size * 6, "particle_vdata");
+						if(!pdd->cdata) pdd->cdata = MEM_callocN(tot_vec_size * 6, "particle_cdata");
+					if(!pdd->vdata) pdd->vdata = MEM_callocN(tot_vec_size * 6, "particle_vdata");
 					break;
 				case PART_DRAW_LINE:
 					if(create_cdata)
-						pdd.cdata = MEM_callocN(tot_vec_size * 2, "particle_cdata");
-					pdd.vdata = MEM_callocN(tot_vec_size * 2, "particle_vdata");
+						if(!pdd->cdata) pdd->cdata = MEM_callocN(tot_vec_size * 2, "particle_cdata");
+					if(!pdd->vdata) pdd->vdata = MEM_callocN(tot_vec_size * 2, "particle_vdata");
 					break;
 				case PART_DRAW_BB:
 					if(create_cdata)
-						pdd.cdata = MEM_callocN(tot_vec_size * 4, "particle_cdata");
-					pdd.vdata = MEM_callocN(tot_vec_size * 4, "particle_vdata");
-					pdd.ndata = MEM_callocN(tot_vec_size * 4, "particle_vdata");
+						if(!pdd->cdata) pdd->cdata = MEM_callocN(tot_vec_size * 4, "particle_cdata");
+					if(!pdd->vdata) pdd->vdata = MEM_callocN(tot_vec_size * 4, "particle_vdata");
+					if(!pdd->ndata) pdd->ndata = MEM_callocN(tot_vec_size * 4, "particle_vdata");
 					break;
 				default:
 					if(create_cdata)
-						pdd.cdata=MEM_callocN(tot_vec_size, "particle_cdata");
-					pdd.vdata=MEM_callocN(tot_vec_size, "particle_vdata");
+						if(!pdd->cdata) pdd->cdata=MEM_callocN(tot_vec_size, "particle_cdata");
+					if(!pdd->vdata) pdd->vdata=MEM_callocN(tot_vec_size, "particle_vdata");
 			}
 		}
 
 		if(part->draw & PART_DRAW_VEL && draw_as != PART_DRAW_LINE) {
-			pdd.vedata = MEM_callocN(tot_vec_size * 2, "particle_vedata");
+			if(!pdd->vedata) pdd->vedata = MEM_callocN(tot_vec_size * 2, "particle_vedata");
 			need_v = 1;
 		}
 
-		pdd.vd= pdd.vdata;
-		pdd.ved= pdd.vedata;
-		pdd.cd= pdd.cdata;
-		pdd.nd= pdd.ndata;
+		pdd->vd= pdd->vdata;
+		pdd->ved= pdd->vedata;
+		pdd->cd= pdd->cdata;
+		pdd->nd= pdd->ndata;
+		pdd->tot_vec_size= tot_vec_size;
 
-		psys->lattice= psys_get_lattice(scene, ob, psys);
+		psys->lattice= psys_get_lattice(&sim);
 	}
 
 	if(draw_as){
 /* 5. */
-		for(a=0,pa=pars; a<totpart+totchild; a++, pa++){
+		if((pdd->flag & PARTICLE_DRAW_DATA_UPDATED)
+			&& (pdd->vedata || part->draw & (PART_DRAW_SIZE|PART_DRAW_NUM|PART_DRAW_HEALTH))==0) {
+			totpoint = pdd->totpoint; /* draw data is up to date */
+		}
+		else for(a=0,pa=pars; a<totpart+totchild; a++, pa++){
 			/* setup per particle individual stuff */
 			if(a<totpart){
 				if(totchild && (part->draw&PART_DRAW_PARENT)==0) continue;
@@ -3374,9 +3377,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				pa_birthtime=pa->time;
 				pa_dietime = pa->dietime;
 				pa_size=pa->size;
-				if(part->phystype==PART_PHYS_BOIDS) {
+				if(part->phystype==PART_PHYS_BOIDS)
 					pa_health = pa->boid->data.health;
-				}
 				else
 					pa_health = -1.0;
 
@@ -3411,10 +3413,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				}
 #endif // XXX old animation system
 
-				BLI_srandom(psys->seed+a);
-
-				r_tilt = 2.0f*(BLI_frand() - 0.5f);
-				r_length = BLI_frand();
+				r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
+				r_length = PSYS_FRAND(a + 22);
 			}
 			else{
 				ChildParticle *cpa= &psys->child[a-totpart];
@@ -3445,8 +3445,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 				pa_health = -1.0;
 
-				r_tilt = 2.0f * cpa->rand[2];
-				r_length = cpa->rand[1];
+				r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
+				r_length = PSYS_FRAND(a + 22);
 			}
 
 			if(draw_as!=PART_DRAW_PATH){
@@ -3468,7 +3468,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 							continue;
 
 						state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : -(pa_birthtime + ct * (pa_dietime - pa_birthtime));
-						psys_get_particle_on_path(scene,ob,psys,a,&state,need_v);
+						psys_get_particle_on_path(&sim,a,&state,need_v);
 						
 						if(psys->parent)
 							Mat4MulVecfl(psys->parent->obmat, state.co);
@@ -3480,7 +3480,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 							bb.time = ct;
 						}
 
-						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, &pdd);
+						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, psys->pdd);
 
 						totpoint++;
 						drawn = 1;
@@ -3489,7 +3489,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				else
 				{
 					state.time=cfra;
-					if(psys_get_particle_state(scene,ob,psys,a,&state,0)){
+					if(psys_get_particle_state(&sim,a,&state,0)){
 						if(psys->parent)
 							Mat4MulVecfl(psys->parent->obmat, state.co);
 
@@ -3500,7 +3500,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 							bb.time = pa_time;
 						}
 
-						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, &pdd);
+						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, pdd);
 
 						totpoint++;
 						drawn = 1;
@@ -3510,13 +3510,13 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				if(drawn) {
 					/* additional things to draw for each particle	*/
 					/* (velocity, size and number)					*/
-					if(pdd.vedata){
-						VECCOPY(pdd.ved,state.co);
-						pdd.ved+=3;
+					if(pdd->vedata){
+						VECCOPY(pdd->ved,state.co);
+						pdd->ved+=3;
 						VECCOPY(vel,state.vel);
 						VecMulf(vel,timestep);
-						VECADD(pdd.ved,state.co,vel);
-						pdd.ved+=3;
+						VECADD(pdd->ved,state.co,vel);
+						pdd->ved+=3;
 
 						totve++;
 					}
@@ -3628,17 +3628,17 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			glDisableClientState(GL_COLOR_ARRAY);
 
 			/* setup created data arrays */
-			if(pdd.vdata){
+			if(pdd->vdata){
 				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(3, GL_FLOAT, 0, pdd.vdata);
+				glVertexPointer(3, GL_FLOAT, 0, pdd->vdata);
 			}
 			else
 				glDisableClientState(GL_VERTEX_ARRAY);
 
 			/* billboards are drawn this way */
-			if(pdd.ndata && ob_dt>OB_WIRE){
+			if(pdd->ndata && ob_dt>OB_WIRE){
 				glEnableClientState(GL_NORMAL_ARRAY);
-				glNormalPointer(GL_FLOAT, 0, pdd.ndata);
+				glNormalPointer(GL_FLOAT, 0, pdd->ndata);
 				glEnable(GL_LIGHTING);
 			}
 			else{
@@ -3646,9 +3646,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				glDisable(GL_LIGHTING);
 			}
 
-			if(pdd.cdata){
+			if(pdd->cdata){
 				glEnableClientState(GL_COLOR_ARRAY);
-				glColorPointer(3, GL_FLOAT, 0, pdd.cdata);
+				glColorPointer(3, GL_FLOAT, 0, pdd->cdata);
 			}
 
 			/* draw created data arrays */
@@ -3670,14 +3670,17 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					glDrawArrays(GL_POINTS, 0, totpoint);
 					break;
 			}
+
+			pdd->flag |= PARTICLE_DRAW_DATA_UPDATED;
+			pdd->totpoint = totpoint;
 		}
 
-		if(pdd.vedata){
+		if(pdd->vedata){
 			glDisableClientState(GL_COLOR_ARRAY);
 			cpack(0xC0C0C0);
 			
 			glEnableClientState(GL_VERTEX_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, pdd.vedata);
+			glVertexPointer(3, GL_FLOAT, 0, pdd->vedata);
 			
 			glDrawArrays(GL_LINES, 0, 2*totve);
 		}
@@ -3694,14 +3697,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(states)
 		MEM_freeN(states);
-	if(pdd.vdata)
-		MEM_freeN(pdd.vdata);
-	if(pdd.vedata)
-		MEM_freeN(pdd.vedata);
-	if(pdd.cdata)
-		MEM_freeN(pdd.cdata);
-	if(pdd.ndata)
-		MEM_freeN(pdd.ndata);
 
 	psys->flag &= ~PSYS_DRAWING;
 
@@ -3728,10 +3723,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	float *pathcol = NULL, *pcol;
 
 
-	if(edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED) {
+	if(edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED)
 		PE_update_object(scene, ob, 0);
-		edit->psys->flag &= ~PSYS_HAIR_UPDATED;
-	}
 
 	/* create path and child path cache if it doesn't exist already */
 	if(edit->pathcache==0)

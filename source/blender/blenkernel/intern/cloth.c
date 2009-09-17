@@ -1160,25 +1160,66 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		BLI_linklist_prepend ( &cloth->springs, spring );
 	}
 	
-	// bending springs
-	search2 = cloth->springs;
-	for ( i = struct_springs; i < struct_springs+shear_springs; i++ )
-	{
-		if ( !search2 )
-			break;
+	if(numfaces) {
+		// bending springs
+		search2 = cloth->springs;
+		for ( i = struct_springs; i < struct_springs+shear_springs; i++ )
+		{
+			if ( !search2 )
+				break;
 
-		tspring2 = search2->link;
-		search = edgelist[tspring2->kl];
-		while ( search )
+			tspring2 = search2->link;
+			search = edgelist[tspring2->kl];
+			while ( search )
+			{
+				tspring = search->link;
+				index2 = ( ( tspring->ij==tspring2->kl ) ? ( tspring->kl ) : ( tspring->ij ) );
+				
+				// check for existing spring
+				// check also if startpoint is equal to endpoint
+				if ( !BLI_edgehash_haskey ( edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2) )
+				&& ( index2!=tspring2->ij ) )
+				{
+					spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+					
+					if(!spring)
+					{
+						cloth_free_errorsprings(cloth, edgehash, edgelist);
+						return 0;
+					}
+
+					spring->ij = MIN2(tspring2->ij, index2);
+					spring->kl = MAX2(tspring2->ij, index2);
+					VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
+					spring->restlen =  sqrt ( INPR ( temp, temp ) );
+					spring->type = CLOTH_SPRING_TYPE_BENDING;
+					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0;
+					BLI_edgehash_insert ( edgehash, spring->ij, spring->kl, NULL );
+					bend_springs++;
+
+					BLI_linklist_prepend ( &cloth->springs, spring );
+				}
+				search = search->next;
+			}
+			search2 = search2->next;
+		}
+	}
+	else if(struct_springs > 2) {
+		/* bending springs for hair strands */
+		/* The current algorightm only goes through the edges in order of the mesh edges list	*/
+		/* and makes springs between the outer vert of edges sharing a vertice. This works just */
+		/* fine for hair, but not for user generated string meshes. This could/should be later	*/
+		/* extended to work with non-ordered edges so that it can be used for general "rope		*/
+		/* dynamics" without the need for the vertices or edges to be ordered through the length*/
+		/* of the strands. -jahka */
+		search = cloth->springs;
+		search2 = search->next;
+		while(search && search2)
 		{
 			tspring = search->link;
-			index2 = ( ( tspring->ij==tspring2->kl ) ? ( tspring->kl ) : ( tspring->ij ) );
-			
-			// check for existing spring
-			// check also if startpoint is equal to endpoint
-			if ( !BLI_edgehash_haskey ( edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2) )
-			&& ( index2!=tspring2->ij ) )
-			{
+			tspring2 = search2->link;
+
+			if(tspring->ij == tspring2->kl) {
 				spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 				
 				if(!spring)
@@ -1187,20 +1228,20 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 					return 0;
 				}
 
-				spring->ij = MIN2(tspring2->ij, index2);
-				spring->kl = MAX2(tspring2->ij, index2);
+				spring->ij = tspring2->ij;
+				spring->kl = tspring->kl;
 				VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 				spring->restlen =  sqrt ( INPR ( temp, temp ) );
 				spring->type = CLOTH_SPRING_TYPE_BENDING;
 				spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0;
-				BLI_edgehash_insert ( edgehash, spring->ij, spring->kl, NULL );
 				bend_springs++;
 
 				BLI_linklist_prepend ( &cloth->springs, spring );
 			}
+			
 			search = search->next;
+			search2 = search2->next;
 		}
-		search2 = search2->next;
 	}
 	
 	/* insert other near springs in edgehash AFTER bending springs are calculated (for selfcolls) */

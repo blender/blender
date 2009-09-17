@@ -255,6 +255,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
 		sub = col.column(align=True)
 		sub.itemR(cloth, "pin_stiffness", text="Stiffness")
 		sub.itemR(cloth, "mass")
+		sub.itemR(cloth, "bending_stiffness", text="Bending")
 		col.itemL(text="Damping:")
 		sub = col.column(align=True)
 		sub.itemR(cloth, "spring_damping", text="Spring")

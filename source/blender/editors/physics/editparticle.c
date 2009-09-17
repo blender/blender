@@ -1184,6 +1184,9 @@ void PE_update_object(Scene *scene, Object *ob, int useflag)
 		point->flag &= ~PEP_EDIT_RECALC;
 	}
 
+	if(edit->psys)
+		edit->psys->flag &= ~PSYS_HAIR_UPDATED;
+
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 
@@ -1761,6 +1764,7 @@ static void rekey_particle(PEData *data, int pa_index)
 {
 	PTCacheEdit *edit= data->edit;
 	ParticleSystem *psys= edit->psys;
+	ParticleSimulationData sim = {data->scene, data->ob, edit->psys, NULL};
 	ParticleData *pa= psys->particles + pa_index;
 	PTCacheEditPoint *point = edit->points + pa_index;
 	ParticleKey state;
@@ -1785,7 +1789,7 @@ static void rekey_particle(PEData *data, int pa_index)
 	/* interpolate new keys from old ones */
 	for(k=1,key++; k<data->totrekey-1; k++,key++) {
 		state.time= (float)k / (float)(data->totrekey-1);
-		psys_get_particle_on_path(data->scene, data->ob, psys, pa_index, &state, 0);
+		psys_get_particle_on_path(&sim, pa_index, &state, 0);
 		VECCOPY(key->co, state.co);
 		key->time= sta + k * dval;
 	}
@@ -1853,6 +1857,7 @@ static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float
 {
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	ParticleSystem *psys;
+	ParticleSimulationData sim = {scene, ob, edit ? edit->psys : NULL, NULL};
 	ParticleData *pa;
 	ParticleKey state;
 	HairKey *new_keys, *key;
@@ -1872,7 +1877,7 @@ static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float
 	/* interpolate new keys from old ones (roots stay the same) */
 	for(k=1, key++; k < pa->totkey; k++, key++) {
 		state.time= path_time * (float)k / (float)(pa->totkey-1);
-		psys_get_particle_on_path(scene, ob, psys, pa_index, &state, 0);
+		psys_get_particle_on_path(&sim, pa_index, &state, 0);
 		VECCOPY(key->co, state.co);
 	}
 
@@ -2044,6 +2049,7 @@ static void subdivide_particle(PEData *data, int pa_index)
 {
 	PTCacheEdit *edit= data->edit;
 	ParticleSystem *psys= edit->psys;
+	ParticleSimulationData sim = {data->scene, data->ob, edit->psys, NULL};
 	ParticleData *pa= psys->particles + pa_index;
 	PTCacheEditPoint *point = edit->points + pa_index;
 	ParticleKey state;
@@ -2083,7 +2089,7 @@ static void subdivide_particle(PEData *data, int pa_index)
 		if(ekey->flag & PEK_SELECT && (ekey+1)->flag & PEK_SELECT) {
 			nkey->time= (key->time + (key+1)->time)*0.5f;
 			state.time= (endtime != 0.0f)? nkey->time/endtime: 0.0f;
-			psys_get_particle_on_path(data->scene, data->ob, psys, pa_index, &state, 0);
+			psys_get_particle_on_path(&sim, pa_index, &state, 0);
 			VECCOPY(nkey->co, state.co);
 
 			nekey->co= nkey->co;
@@ -2875,12 +2881,13 @@ static void brush_add(PEData *data, short number)
 	ParticleSystem *psys= edit->psys;
 	ParticleData *add_pars= MEM_callocN(number*sizeof(ParticleData),"ParticleData add");
 	ParticleSystemModifierData *psmd= psys_get_modifier(ob,psys);
+	ParticleSimulationData sim = {scene, ob, psys, psmd};
 	ParticleEditSettings *pset= PE_settings(scene);
 	int i, k, n= 0, totpart= psys->totpart;
 	short mco[2];
 	short dmx= 0, dmy= 0;
 	float co1[3], co2[3], min_d, imat[4][4];
-	float framestep, timestep= psys_get_timestep(psys->part);
+	float framestep, timestep= psys_get_timestep(&sim);
 	short size= pset->brush[PE_BRUSH_ADD].size;
 	short size2= size*size;
 	DerivedMesh *dm=0;
@@ -2975,8 +2982,8 @@ static void brush_add(PEData *data, short number)
 			}
 			
 			pa->size= 1.0f;
-			initialize_particle(pa,i,ob,psys,psmd);
-			reset_particle(scene, pa,psys,psmd,ob,0.0,1.0,0,0,0);
+			initialize_particle(&sim, pa,i);
+			reset_particle(&sim, pa, 0.0, 1.0);
 			point->flag |= PEP_EDIT_RECALC;
 			if(pset->flag & PE_X_MIRROR)
 				point->flag |= PEP_TAG; /* signal for duplicate */
@@ -3013,18 +3020,18 @@ static void brush_add(PEData *data, short number)
 					hkey->time= pa->time + k * framestep;
 
 					key[0].time= hkey->time/ 100.0f;
-					psys_get_particle_on_path(scene, ob, psys, ptn[0].index, key, 0);
+					psys_get_particle_on_path(&sim, ptn[0].index, key, 0);
 					VecMulf(key[0].co, weight[0]);
 					
 					if(maxw>1) {
 						key[1].time= key[0].time;
-						psys_get_particle_on_path(scene, ob, psys, ptn[1].index, key + 1, 0);
+						psys_get_particle_on_path(&sim, ptn[1].index, key + 1, 0);
 						VecMulf(key[1].co, weight[1]);
 						VECADD(key[0].co, key[0].co, key[1].co);
 
 						if(maxw>2) {						
 							key[2].time= key[0].time;
-							psys_get_particle_on_path(scene, ob, psys, ptn[2].index, key + 2, 0);
+							psys_get_particle_on_path(&sim, ptn[2].index, key + 2, 0);
 							VecMulf(key[2].co, weight[2]);
 							VECADD(key[0].co, key[0].co, key[2].co);
 						}

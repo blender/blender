@@ -3163,6 +3163,8 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->pathcachebufs.first = psys->pathcachebufs.last = 0;
 		psys->childcachebufs.first = psys->childcachebufs.last = 0;
 		psys->reactevents.first = psys->reactevents.last = 0;
+		psys->frand = NULL;
+		psys->pdd = NULL;
 
 		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache);
 

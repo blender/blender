@@ -6601,6 +6601,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 {
 	DerivedMesh *dm = derivedData, *result;
 	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+	ParticleSimulationData sim;
 	ParticleSystem * psys=0;
 	ParticleData *pa=0, *pars=0;
 	MFace *mface, *orig_mface;
@@ -6635,6 +6636,11 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	if(totpart==0)
 		return derivedData;
 
+	sim.scene = md->scene;
+	sim.ob = pimd->ob;
+	sim.psys = psys;
+	sim.psmd = psys_get_modifier(pimd->ob, psys);
+
 	if(pimd->flag & eParticleInstanceFlag_UseSize) {
 		int p;
 		float *si;
@@ -6662,7 +6668,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	maxvert=totvert*totpart;
 	maxface=totface*totpart;
 
-	psys->lattice=psys_get_lattice(md->scene, ob, psys);
+	psys->lattice=psys_get_lattice(&sim);
 
 	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED){
 
@@ -6712,7 +6718,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 				mv->co[axis] = 0.0;
 			}
 
-			psys_get_particle_on_path(md->scene, pimd->ob, psys,first_particle + i/totvert, &state,1);
+			psys_get_particle_on_path(&sim, first_particle + i/totvert, &state,1);
 
 			Normalize(state.vel);
 			
@@ -6734,7 +6740,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 		}
 		else{
 			state.time=-1.0;
-			psys_get_particle_state(md->scene, pimd->ob, psys, first_particle + i/totvert, &state,1);
+			psys_get_particle_state(&sim, first_particle + i/totvert, &state,1);
 		}	
 
 		QuatMulVecf(state.rot,mv->co);
@@ -7416,6 +7422,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	DerivedMesh *explode, *dm=to_explode;
 	MFace *mf=0;
 	ParticleSettings *part=psmd->psys->part;
+	ParticleSimulationData sim = {scene, ob, psmd->psys, psmd};
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state;
 	EdgeHash *vertpahash;
@@ -7431,7 +7438,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	totvert= dm->getNumVerts(dm);
 	totpart= psmd->psys->totpart;
 
-	timestep= psys_get_timestep(part);
+	timestep= psys_get_timestep(&sim);
 
 	//if(part->flag & PART_GLOB_TIME)
 		cfra=bsystem_time(scene, 0,(float)scene->r.cfra,0.0);
@@ -7474,7 +7481,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	/* getting back to object space */
 	Mat4Invert(imat,ob->obmat);
 
-	psmd->psys->lattice = psys_get_lattice(scene, ob, psmd->psys);
+	psmd->psys->lattice = psys_get_lattice(&sim);
 
 	/* duplicate & displace vertices */
 	ehi= BLI_edgehashIterator_new(vertpahash);
@@ -7502,7 +7509,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
-			psys_get_particle_state(scene, ob, psmd->psys, i, &state,1);
+			psys_get_particle_state(&sim, i, &state, 1);
 
 			vertco=CDDM_get_vert(explode,v)->co;
 			
@@ -7591,7 +7598,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 {
 	DerivedMesh *dm = derivedData;
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
-	ParticleSystemModifierData *psmd=explodeModifier_findPrecedingParticlesystem(ob,md);;
+	ParticleSystemModifierData *psmd=explodeModifier_findPrecedingParticlesystem(ob,md);
 
 	if(psmd){
 		ParticleSystem * psys=psmd->psys;

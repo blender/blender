@@ -312,9 +312,10 @@ static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 	if(value > settings->end)
 		value = settings->end;
 
-	if(settings->type==PART_REACTOR && value < 1.0)
-		value = 1.0;
-	else if (value < MINAFRAMEF)
+	//if(settings->type==PART_REACTOR && value < 1.0)
+	//	value = 1.0;
+	//else 
+	if (value < MINAFRAMEF)
 		value = MINAFRAMEF;
 
 	settings->sta = value;
@@ -522,9 +523,9 @@ static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, i
 		return item;
 	}
 	
-	if(part->type==PART_REACTOR)
-		return part_reactor_from_items;
-	else
+	//if(part->type==PART_REACTOR)
+	//	return part_reactor_from_items;
+	//else
 		return part_from_items;
 }
 
@@ -767,7 +768,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem type_items[] = {
 		{PART_EMITTER, "EMITTER", 0, "Emitter", ""},
-		{PART_REACTOR, "REACTOR", 0, "Reactor", ""},
+		//{PART_REACTOR, "REACTOR", 0, "Reactor", ""},
 		{PART_HAIR, "HAIR", 0, "Hair", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
@@ -986,10 +987,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Children", "Apply effectors to children.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "child_seams", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_SEAMS);
-	RNA_def_property_ui_text(prop, "Use seams", "Use seams to determine parents");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+	//prop= RNA_def_property(srna, "child_seams", PROP_BOOLEAN, PROP_NONE);
+	//RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_SEAMS);
+	//RNA_def_property_ui_text(prop, "Use seams", "Use seams to determine parents");
+	//RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* TODO: used somewhere? */
 	prop= RNA_def_property(srna, "child_render", PROP_BOOLEAN, PROP_NONE);

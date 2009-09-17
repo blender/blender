@@ -560,6 +560,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		for(; psys; psys=psys->next) {
 			BoidRule *rule = NULL;
 			BoidState *state = NULL;
+			ParticleSimulationData sim = {scene, ob, psys, NULL};
 			ParticleSettings *part= psys->part;
 
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
@@ -592,8 +593,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				}
 			}
 
-			psys_end_effectors(psys);
-			psys_init_effectors(scene, ob, psys->part->eff_group, psys);
+			psys_update_effectors(&sim, 0.0, 0);
 
 			for(nec= psys->effectors.first; nec; nec= nec->next) {
 				Object *ob1= nec->ob;
