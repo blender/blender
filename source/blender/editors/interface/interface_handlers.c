@@ -246,7 +246,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	if(but->func || but->funcN || block->handle_func || but->rename_func || (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
-		if(ELEM(but, but->func_arg1, but->func_arg2)) {
+		if(but->func && ELEM(but, but->func_arg1, but->func_arg2)) {
 			/* exception, this will crash due to removed button otherwise */
 			but->func(C, but->func_arg1, but->func_arg2);
 		}
