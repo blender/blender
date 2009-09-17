@@ -1409,7 +1409,7 @@ static void node_composit_buts_tonemap(uiLayout *layout, PointerRNA *ptr)
 /* qdn: lens distortion node */
 static void node_composit_buts_lensdist(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row, *col;
+	uiLayout *col;
 	
 	bNode *node= ptr->data;
 	NodeLensDist *nld = node->storage;
@@ -1456,17 +1456,17 @@ static void node_composit_buts_flip(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_crop(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row, *col;
+	uiLayout *col;
 	
 	col= uiLayoutColumn(layout, 1);
 	
 	uiItemR(col, NULL, 0, ptr, "crop_size", 0);
 	
 	col= uiLayoutColumn(layout, 1);
-	uiItemR(row, "Left", 0, ptr, "x1", 0);
-	uiItemR(row, "Right", 0, ptr, "x2", 0);
-	uiItemR(row, "Up", 0, ptr, "y1", 0);
-	uiItemR(row, "Down", 0, ptr, "y2", 0);
+	uiItemR(col, "Left", 0, ptr, "x1", 0);
+	uiItemR(col, "Right", 0, ptr, "x2", 0);
+	uiItemR(col, "Up", 0, ptr, "y1", 0);
+	uiItemR(col, "Down", 0, ptr, "y2", 0);
 }
 
 static void node_composit_buts_splitviewer(uiLayout *layout, PointerRNA *ptr)
