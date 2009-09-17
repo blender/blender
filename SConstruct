@@ -264,6 +264,7 @@ if 'blendernogame' in B.targets:
 if 'blenderlite' in B.targets:
 	target_env_defs = {}
 	target_env_defs['WITH_BF_GAMEENGINE'] = False
+	target_env_defs['WITH_BF_PLAYER'] = False
 	target_env_defs['WITH_BF_OPENAL'] = False
 	target_env_defs['WITH_BF_OPENEXR'] = False
 	target_env_defs['WITH_BF_ICONV'] = False
