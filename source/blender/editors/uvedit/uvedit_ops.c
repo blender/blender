@@ -3072,7 +3072,10 @@ void ED_operatortypes_uvedit(void)
 
 void ED_keymap_uvedit(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
+	wmKeyMap *keymap;
+	
+	keymap= WM_keymap_find(wm, "UVEdit", 0, 0);
+	keymap->poll= ED_operator_uvedit;
 	
 	/* pick selection */
 	WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);

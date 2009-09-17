@@ -41,8 +41,9 @@ struct Object;
 struct uiLayout;
 struct EnumPropertyItem;
 struct wmOperatorType;
+struct wmKeyMap;
 
-void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *keymap, int spaceid);
+void transform_keymap_for_space(struct wmWindowManager *wm, struct wmKeyMap *keymap, int spaceid);
 void transform_operatortypes(void);
 
 /* ******************** Macros & Prototypes *********************** */

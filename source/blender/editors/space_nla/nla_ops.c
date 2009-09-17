@@ -167,7 +167,7 @@ void nla_operatortypes(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void nla_keymap_channels (wmWindowManager *wm, ListBase *keymap)
+static void nla_keymap_channels (wmWindowManager *wm, wmKeyMap *keymap)
 {
 	/* NLA-specific (different to standard channels keymap) -------------------------- */
 	/* selection */
@@ -210,7 +210,7 @@ static void nla_keymap_channels (wmWindowManager *wm, ListBase *keymap)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, KM_CTRL, 0)->ptr, "all", 1);
 }
 
-static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
+static void nla_keymap_main (wmWindowManager *wm, wmKeyMap *keymap)
 {
 	wmKeymapItem *kmi;
 	
@@ -284,10 +284,10 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 
 void nla_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	/* keymap for all regions */
-	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm, "NLA Generic", SPACE_NLA, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	/* channels */
@@ -297,11 +297,11 @@ void nla_keymap(wmWindowManager *wm)
 	 *
 	 * However, those operations which involve clicking on channels and/or the placement of them in the view are implemented here instead
 	 */
-	keymap= WM_keymap_listbase(wm, "NLA Channels", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm, "NLA Channels", SPACE_NLA, 0);
 	nla_keymap_channels(wm, keymap);
 	
 	/* data */
-	keymap= WM_keymap_listbase(wm, "NLA Data", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm, "NLA Data", SPACE_NLA, 0);
 	nla_keymap_main(wm, keymap);
 }
 

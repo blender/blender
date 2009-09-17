@@ -105,7 +105,7 @@ void sequencer_operatortypes(void)
 
 void sequencer_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Sequencer", SPACE_SEQ, 0);
 	wmKeymapItem *kmi;
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);

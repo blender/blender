@@ -406,7 +406,7 @@ void ED_operatortypes_anim(void)
 
 void ED_keymap_anim(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Animation", 0, 0);
 	
 	/* frame management */
 		/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons */

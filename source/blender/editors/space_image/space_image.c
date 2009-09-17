@@ -204,7 +204,7 @@ void image_operatortypes(void)
 
 void image_keymap(struct wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Image Generic", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
@@ -212,7 +212,7 @@ void image_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
-	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm, "Image", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
@@ -398,23 +398,22 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 /* add handlers, stuff you only do once or on area/region changes */
 static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	// image space manages own v2d
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* image paint polls for mode */
-	keymap= WM_keymap_listbase(wm, "ImagePaint", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm, "ImagePaint", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	/* XXX need context here?
-	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);*/
+	keymap= WM_keymap_find(wm, "UVEdit", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* own keymaps */
-	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm, "Image", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -457,29 +456,11 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);*/
 }
 
-static void image_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
-{
-	ListBase *keymap;
-	
-	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
-
-	if(stype==NS_EDITMODE_MESH)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-}
-
 static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		case NC_SCENE:
-			switch(wmn->data) {
-				case ND_MODE:
-					image_modal_keymaps(wmn->wm, ar, wmn->subtype);
-					break;
-			}
-			break;
+		/* nothing yet */
 	}
 }
 
@@ -488,11 +469,11 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 

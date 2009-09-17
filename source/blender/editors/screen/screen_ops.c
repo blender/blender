@@ -3291,10 +3291,10 @@ static void keymap_modal_set(wmWindowManager *wm)
 /* called in spacetypes.c */
 void ED_keymap_screen(wmWindowManager *wm)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	/* Screen General ------------------------------------------------ */
-	keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
+	keymap= WM_keymap_find(wm, "Screen", 0, 0);
 	
 	
 	/* standard timers */
@@ -3361,7 +3361,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	
 	
 	/* Anim Playback ------------------------------------------------ */
-	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
+	keymap= WM_keymap_find(wm, "Frames", 0, 0);
 	
 	/* frame offsets */
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);

@@ -141,7 +141,7 @@ void graphedit_operatortypes(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
+static void graphedit_keymap_keyframes (wmWindowManager *wm, wmKeyMap *keymap)
 {
 	wmKeymapItem *kmi;
 	
@@ -232,10 +232,10 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 
 void graphedit_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	/* keymap for all regions */
-	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_properties", NKEY, KM_PRESS, 0, 0);
 
 	/* channels */
@@ -245,7 +245,7 @@ void graphedit_keymap(wmWindowManager *wm)
 	 */
 	
 	/* keyframes */
-	keymap= WM_keymap_listbase(wm, "GraphEdit Keys", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm, "GraphEdit Keys", SPACE_IPO, 0);
 	graphedit_keymap_keyframes(wm, keymap);
 }
 

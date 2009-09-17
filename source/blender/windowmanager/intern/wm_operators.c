@@ -2098,7 +2098,7 @@ void wm_operatortype_init(void)
 /* default keymap for windows and screens, only call once per WM */
 void wm_window_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Window", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Window", 0, 0);
 	
 	/* items to make WM work */
 	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);

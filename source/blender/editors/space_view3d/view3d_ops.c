@@ -103,14 +103,16 @@ void view3d_operatortypes(void)
 
 void view3d_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	wmKeyMap *keymap;
 	wmKeymapItem *km;
+	
+	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_toolbar", TKEY, KM_PRESS, 0, 0);
 	
 	/* only for region 3D window */
-	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm, "View3D", SPACE_VIEW3D, 0);
 	
 	/* paint poll checks mode */
 	WM_keymap_verify_item(keymap, "PAINT_OT_vertex_paint", LEFTMOUSE, KM_PRESS, 0, 0);

@@ -147,12 +147,12 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Console", SPACE_CONSOLE, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm, "Console", SPACE_CONSOLE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -231,7 +231,7 @@ void console_operatortypes(void)
 
 void console_keymap(struct wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Console", SPACE_CONSOLE, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Console", SPACE_CONSOLE, 0);
 	
 	#ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);

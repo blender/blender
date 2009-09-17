@@ -138,11 +138,11 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_listbase(wm, "Buttons Generic", SPACE_BUTS, 0);
+	keymap= WM_keymap_find(wm, "Buttons Generic", SPACE_BUTS, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -216,7 +216,7 @@ void buttons_operatortypes(void)
 
 void buttons_keymap(struct wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Buttons Generic", SPACE_BUTS, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Buttons Generic", SPACE_BUTS, 0);
 	
 	WM_keymap_add_item(keymap, "BUTTONS_OT_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
 }

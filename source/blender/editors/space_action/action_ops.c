@@ -91,7 +91,7 @@ void action_operatortypes(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
+static void action_keymap_keyframes (wmWindowManager *wm, wmKeyMap *keymap)
 {
 	wmKeymapItem *kmi;
 	
@@ -166,7 +166,7 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 
 void action_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	/* channels */
 	/* Channels are not directly handled by the Action Editor module, but are inherited from the Animation module. 
@@ -175,7 +175,7 @@ void action_keymap(wmWindowManager *wm)
 	 */
 	
 	/* keyframes */
-	keymap= WM_keymap_listbase(wm, "Action_Keys", SPACE_ACTION, 0);
+	keymap= WM_keymap_find(wm, "Action_Keys", SPACE_ACTION, 0);
 	action_keymap_keyframes(wm, keymap);
 }
 

@@ -69,7 +69,7 @@ void node_operatortypes(void)
 
 void node_keymap(struct wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Node", SPACE_NODE, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Node", SPACE_NODE, 0);
 	
 	/* mouse select in nodes used to be both keys, it's UI elements... */
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);

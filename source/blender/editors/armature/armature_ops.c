@@ -202,11 +202,12 @@ void ED_operatortypes_armature(void)
 
 void ED_keymap_armature(wmWindowManager *wm)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	wmKeymapItem *kmi;
 	
 	/* Armature ------------------------ */
-	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
+	keymap= WM_keymap_find(wm, "Armature", 0, 0);
+	keymap->poll= ED_operator_editarmature;
 	
 	/* only set in editmode armature, by space_view3d listener */
 //	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
@@ -280,7 +281,8 @@ void ED_keymap_armature(wmWindowManager *wm)
 
 	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
-	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
+	keymap= WM_keymap_find(wm, "Pose", 0, 0);
+	keymap->poll= ED_operator_posemode;
 	
 	WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);

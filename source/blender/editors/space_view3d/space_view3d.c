@@ -275,101 +275,60 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	return (SpaceLink *)v3dn;
 }
 
-static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
-{
-	RegionView3D *rv3d= ar->regiondata;
-	ListBase *keymap;
-	
-	/* copy last mode, then we can re-init the region maps */
-	rv3d->lastmode= stype;
-	
-	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
-	if(ELEM(stype, 0, NS_MODE_OBJECT))
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
-	if(stype==NS_EDITMODE_MESH)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
-	if(stype==NS_EDITMODE_CURVE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
-	if(stype==NS_EDITMODE_ARMATURE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-		
-	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
-	if(stype==NS_MODE_POSE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	keymap= WM_keymap_listbase(wm, "Metaball", 0, 0);
-	if(stype==NS_EDITMODE_MBALL)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
-	if(stype==NS_EDITMODE_LATTICE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	/* armature sketching needs to take over mouse */
-	keymap= WM_keymap_listbase(wm, "Armature_Sketch", 0, 0);
-	if(stype==NS_EDITMODE_ARMATURE)
-		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	keymap= WM_keymap_listbase(wm, "Particle", 0, 0);
-	if(stype==NS_MODE_PARTICLE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	/* editfont keymap swallows all... */
-	keymap= WM_keymap_listbase(wm, "Font", 0, 0);
-	if(stype==NS_EDITMODE_TEXT)
-		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-}
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	RegionView3D *rv3d= ar->regiondata;
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
+
+	keymap= WM_keymap_find(wm, "View3D", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* object ops. */
-	keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
+	keymap= WM_keymap_find(wm, "Object Non-modal", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* pose is not modal, operator poll checks for this */
-	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
+	keymap= WM_keymap_find(wm, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	/* modal ops keymaps */
-	view3d_modal_keymaps(wm, ar, rv3d->lastmode);
 	/* operator poll checks for modes */
-	keymap= WM_keymap_listbase(wm, "ImagePaint", 0, 0);
+	keymap= WM_keymap_find(wm, "ImagePaint", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm, "Object Mode", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_find(wm, "EditMesh", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_find(wm, "Curve", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_find(wm, "Armature", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm, "Pose", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm, "Metaball", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_find(wm, "Lattice", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	/* armature sketching needs to take over mouse */
+	keymap= WM_keymap_find(wm, "Armature_Sketch", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm, "Particle", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	/* editfont keymap swallows all... */
+	keymap= WM_keymap_find(wm, "Font", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -444,7 +403,6 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_MODE:
-					view3d_modal_keymaps(wmn->wm, ar, wmn->subtype);
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -516,7 +474,7 @@ static void view3d_main_area_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
@@ -552,11 +510,11 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -618,15 +576,13 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
-
-
 
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {

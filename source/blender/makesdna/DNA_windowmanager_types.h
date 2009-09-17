@@ -265,6 +265,9 @@ typedef struct wmKeyMap {
 	short pad;
 	
 	void *items;		/* struct EnumPropertyItem for now */
+
+	/* verify if the keymap is enabled in the current context */
+	int (*poll)(struct bContext *);
 } wmKeyMap;
 
 

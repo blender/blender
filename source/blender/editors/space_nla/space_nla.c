@@ -208,15 +208,15 @@ static SpaceLink *nla_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
 	// TODO: cannot use generic copy, need special NLA version
-	keymap= WM_keymap_listbase(wm, "NLA Channels", SPACE_NLA, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm, "NLA Channels", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -254,14 +254,14 @@ static void nla_channel_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "NLA Data", SPACE_NLA, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm, "NLA Data", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -354,11 +354,11 @@ static void nla_header_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

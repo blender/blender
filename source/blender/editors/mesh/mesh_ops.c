@@ -349,8 +349,11 @@ void ED_operatortypes_mesh(void)
 /* note mesh keymap also for other space? */
 void ED_keymap_mesh(wmWindowManager *wm)
 {	
-	ListBase *keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
+	wmKeyMap *keymap;
 	wmKeymapItem *kmi;
+	
+	keymap= WM_keymap_find(wm, "EditMesh", 0, 0);
+	keymap->poll= ED_operator_editmesh;
 	
 	WM_keymap_add_item(keymap, "MESH_OT_loopcut", ACTIONMOUSE, KM_PRESS, KM_CTRL, RKEY);
 

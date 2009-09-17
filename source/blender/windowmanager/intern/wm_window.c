@@ -331,7 +331,7 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 /* called in wm_check, also inits stuff after file read */
 void wm_window_add_ghostwindows(wmWindowManager *wm)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	wmWindow *win;
 	
 	/* no commandline prefsize? then we set this */
@@ -367,10 +367,10 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		   win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 		
 		/* add keymap handlers (1 handler for all keys in map!) */
-		keymap= WM_keymap_listbase(wm, "Window", 0, 0);
+		keymap= WM_keymap_find(wm, "Window", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
 		
-		keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
+		keymap= WM_keymap_find(wm, "Screen", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
 		
 		wm_window_title(wm, win);

@@ -3973,7 +3973,10 @@ void ED_operatortypes_particle(void)
 
 void ED_keymap_particle(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Particle", 0, 0);
+	wmKeyMap *keymap;
+	
+	keymap= WM_keymap_find(wm, "Particle", 0, 0);
+	keymap->poll= PE_poll;
 	
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);

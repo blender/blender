@@ -1572,7 +1572,7 @@ void ED_operatortypes_animchannels(void)
 
 void ED_keymap_animchannels(wmWindowManager *wm)
 {
-	ListBase *keymap = WM_keymap_listbase(wm, "Animation_Channels", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(wm, "Animation_Channels", 0, 0);
 	
 	/* selection */
 		/* click-select */

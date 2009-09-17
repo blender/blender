@@ -1014,16 +1014,19 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				action= WM_HANDLER_BREAK;
 
 			if(handler->keymap) {
+				wmKeyMap *keymap= handler->keymap;
 				wmKeymapItem *kmi;
 				
-				for(kmi= handler->keymap->first; kmi; kmi= kmi->next) {
-					if(wm_eventmatch(event, kmi)) {
-						
-						event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
-						
-						action= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
-						if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */
-							break;
+				if(!keymap->poll || keymap->poll(C)) {
+					for(kmi= keymap->keymap.first; kmi; kmi= kmi->next) {
+						if(wm_eventmatch(event, kmi)) {
+							
+							event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
+							
+							action= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
+							if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */
+								break;
+						}
 					}
 				}
 			}
@@ -1304,9 +1307,14 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOp
 	return handler;
 }
 
-wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap)
+wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 {
 	wmEventHandler *handler;
+
+	if(!keymap) {
+		printf("WM_event_add_keymap_handler called with NULL keymap\n");
+		return NULL;
+	}
 
 	/* only allow same keymap once */
 	for(handler= handlers->first; handler; handler= handler->next)
@@ -1321,7 +1329,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap
 }
 
 /* priorities not implemented yet, for time being just insert in begin of list */
-wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, ListBase *keymap, int priority)
+wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int priority)
 {
 	wmEventHandler *handler;
 	
@@ -1334,7 +1342,7 @@ wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, ListBas
 	return handler;
 }
 
-wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *keymap, rcti *bblocal, rcti *bbwin)
+wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, wmKeyMap *keymap, rcti *bblocal, rcti *bbwin)
 {
 	wmEventHandler *handler= WM_event_add_keymap_handler(handlers, keymap);
 	
@@ -1345,7 +1353,7 @@ wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *key
 	return handler;
 }
 
-void WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap)
+void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 {
 	wmEventHandler *handler;
 	
