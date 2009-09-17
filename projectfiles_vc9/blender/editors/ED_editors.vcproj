@@ -379,7 +379,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\datafiles\splash.jpg.c"
+				RelativePath="..\..\..\source\blender\editors\datafiles\splash.png.c"
 				>
 			</File>
 		</Filter>
