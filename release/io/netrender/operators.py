@@ -339,14 +339,15 @@ class netclientscan(bpy.types.Operator):
 		s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 		s.settimeout(30)
 
-		s.bind(('', netsettings.server_port))
+		s.bind(('', 8000))
 		
 		try:
-			buf, address = s.recvfrom(128)
+			buf, address = s.recvfrom(64)
 			
 			print("received:", buf)
 			
 			netsettings.server_address = address[0]
+			netsettings.server_port = int(str(buf, encoding='utf8'))
 		except socket.timeout:
 			print("no server info")
 		

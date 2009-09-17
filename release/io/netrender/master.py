@@ -632,5 +632,5 @@ def runMaster(address, broadcast, path, update_stats, test_break):
 			if broadcast:
 				if time.time() - start_time >= 10: # need constant here
 					print("broadcasting address")
-					s.sendto(bytes("%s:%i" % address, encoding='utf8'), 0, ('<broadcast>',address[1]))
+					s.sendto(bytes("%i" % address[1], encoding='utf8'), 0, ('<broadcast>', 8000))
 					start_time = time.time()

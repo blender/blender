@@ -9,6 +9,22 @@ CANCEL_POLL_SPEED = 2
 MAX_TIMEOUT = 10
 INCREMENT_TIMEOUT = 1
 
+if platform.system() == 'Windows' and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
+	import ctypes
+	def SetErrorMode():
+		val = ctypes.windll.kernel32.SetErrorMode(0x0002)
+		ctypes.windll.kernel32.SetErrorMode(val | 0x0002)
+		return val
+	
+	def RestoreErrorMode(val):
+		ctypes.windll.kernel32.SetErrorMode(val)
+else:
+	def SetErrorMode():
+		return 0
+		
+	def RestoreErrorMode(val):
+		pass
+
 def slave_Info():
 	sysname, nodename, release, version, machine, processor = platform.uname()
 	slave = netrender.model.RenderSlave()
@@ -100,10 +116,14 @@ def render_slave(engine, scene):
 				for frame in job.frames:
 					print("frame", frame.number)
 					frame_args += ["-f", str(frame.number)]
-					
+				
+				
+				
 				start_t = time.time()
 				
-				process = subprocess.Popen([sys.argv[0], "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)	
+				val = SetErrorMode()
+				process = subprocess.Popen([sys.argv[0], "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+				RestoreErrorMode(val)
 				
 				headers = {"job-id":job.id, "slave-id":slave_id}
 				
