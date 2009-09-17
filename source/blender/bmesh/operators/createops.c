@@ -8,6 +8,7 @@
 #include "BLI_ghash.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_array.h"
 
 #include "bmesh.h"
 #include "bmesh_operators_private.h"
@@ -132,7 +133,7 @@ EPath *edge_find_shortest_path(BMesh *bm, BMEdge *edge, EdgeData *edata, PathBas
 	GHash *gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	BMVert *v1, *v2;
 	BMVert **verts = NULL;
-	V_DECLARE(verts);
+	BLI_array_declare(verts);
 	Heap *heap = BLI_heap_new();
 	EPath *path = NULL, *path2;
 	EPathNode *node;
@@ -151,9 +152,9 @@ EPath *edge_find_shortest_path(BMesh *bm, BMEdge *edge, EdgeData *edata, PathBas
 		if (v1 == edge->v2) {
 			/*make sure this path loop doesn't already exist*/
 			i = 0;
-			V_RESET(verts);
+			BLI_array_empty(verts);
 			for (i=0, node = path->nodes.first; node; node=node->next, i++) {
-				V_GROW(verts);
+				BLI_array_growone(verts);
 				verts[i] = node->v;
 			}
 
@@ -184,7 +185,7 @@ EPath *edge_find_shortest_path(BMesh *bm, BMEdge *edge, EdgeData *edata, PathBas
 			path = NULL;
 	}
 
-	V_FREE(verts);
+	BLI_array_free(verts);
 	BLI_heap_free(heap, NULL);
 	BLI_ghash_free(gh, NULL, NULL);
 
@@ -202,7 +203,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	EdgeData *edata;
 	BMEdge **edges = NULL;
 	PathBase *pathbase = edge_pathbase_new();
-	V_DECLARE(edges);
+	BLI_array_declare(edges);
 	int i;
 
 	if (!bm->totvert || !bm->totedge)
@@ -241,7 +242,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		if (!path)
 			continue;
 		
-		V_RESET(edges);
+		BLI_array_empty(edges);
 		i = 0;
 		for (node=path->nodes.first; node; node=node->next) {
 			if (!node->next)
@@ -254,11 +255,11 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				break;
 			
 			edata[BMINDEX_GET(e)].ftag++;
-			V_GROW(edges);
+			BLI_array_growone(edges);
 			edges[i++] = e;
 		}
 		
-		V_GROW(edges);
+		BLI_array_growone(edges);
 		edges[i++] = edge;
 
 		f = BM_Make_Ngon(bm, edge->v1, edge->v2, edges, i, 1);
@@ -270,7 +271,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 	BMO_Flag_To_Slot(bm, op, "faceout", FACE_NEW, BM_FACE);
 
-	V_FREE(edges);
+	BLI_array_free(edges);
 	edge_pathbase_free(pathbase);
 	MEM_freeN(edata);
 }
@@ -336,9 +337,9 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMEdge *e, *e2;
 	BMEdge **edges1 = NULL, **edges2 = NULL, **edges;
-	V_DECLARE(edges1);
-	V_DECLARE(edges2);
-	V_DECLARE(edges);
+	BLI_array_declare(edges1);
+	BLI_array_declare(edges2);
+	BLI_array_declare(edges);
 	int ok = 1;
 	int i, count;
 
@@ -386,7 +387,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		i = 0;
 		while (e) {
 			BMO_SetFlag(bm, e, EDGE_VIS);
-			V_GROW(edges);
+			BLI_array_growone(edges);
 			edges[i] = e;
 
 			e = edge_next(bm, e);
@@ -395,22 +396,22 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 
 		if (!count) {
 			edges1 = edges;
-			V_SETCOUNT(edges1, V_COUNT(edges));
+			BLI_array_set_length(edges1, BLI_array_count(edges));
 		} else {
 			edges2 = edges;
-			V_SETCOUNT(edges2, V_COUNT(edges));
+			BLI_array_set_length(edges2, BLI_array_count(edges));
 		}
 
-		V_RESET(edges);
+		BLI_array_empty(edges);
 		count++;
 	}
 
 #define EDGECON(e1, e2) (e1->v1 == e2->v1 || e1->v2 == e2->v2 || e1->v1 == e2->v2)
 
-	if (edges1 && V_COUNT(edges1) > 2 && EDGECON(edges1[0], edges1[V_COUNT(edges1)-1])) {
-		if (edges2 && V_COUNT(edges2) > 2 && EDGECON(edges2[0], edges2[V_COUNT(edges2)-1])) {
-			V_FREE(edges1);
-			V_FREE(edges2);
+	if (edges1 && BLI_array_count(edges1) > 2 && EDGECON(edges1[0], edges1[BLI_array_count(edges1)-1])) {
+		if (edges2 && BLI_array_count(edges2) > 2 && EDGECON(edges2[0], edges2[BLI_array_count(edges2)-1])) {
+			BLI_array_free(edges1);
+			BLI_array_free(edges2);
 			return;
 		} else {
 			edges1 = edges2;
@@ -418,7 +419,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (edges2 && V_COUNT(edges2) > 2 && EDGECON(edges2[0], edges2[V_COUNT(edges2)-1])) {
+	if (edges2 && BLI_array_count(edges2) > 2 && EDGECON(edges2[0], edges2[BLI_array_count(edges2)-1])) {
 		edges2 = NULL;
 	}
 
@@ -426,7 +427,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	if (edges1 && edges2) {
 		BMVert *v1, *v2, *v3, *v4;
 
-		if (V_COUNT(edges1)==1) {
+		if (BLI_array_count(edges1)==1) {
 			v1 = edges1[0]->v1;
 			v2 = edges1[0]->v2;
 		} else {
@@ -434,13 +435,13 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 				v1 = edges1[0]->v2;
 			else v1 = edges1[0]->v1;
 
-			i = V_COUNT(edges1)-1;
+			i = BLI_array_count(edges1)-1;
 			if (BM_Vert_In_Edge(edges1[i-1], edges1[i]->v1))
 				v2 = edges1[i]->v2;
 			else v2 = edges1[i]->v1;
 		}
 
-		if (V_COUNT(edges2)==1) {
+		if (BLI_array_count(edges2)==1) {
 			v3 = edges2[0]->v1;
 			v4 = edges2[0]->v2;
 		} else {
@@ -448,7 +449,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 				v3 = edges2[0]->v2;
 			else v3 = edges2[0]->v1;
 
-			i = V_COUNT(edges2)-1;
+			i = BLI_array_count(edges2)-1;
 			if (BM_Vert_In_Edge(edges2[i-1], edges2[i]->v1))
 				v4 = edges2[i]->v2;
 			else v4 = edges2[i]->v1;
@@ -468,12 +469,12 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	} else if (edges1) {
 		BMVert *v1, *v2;
 		
-		if (V_COUNT(edges1) > 1) {
+		if (BLI_array_count(edges1) > 1) {
 			if (BM_Vert_In_Edge(edges1[1], edges1[0]->v1))
 				v1 = edges1[0]->v2;
 			else v1 = edges1[0]->v1;
 
-			i = V_COUNT(edges1)-1;
+			i = BLI_array_count(edges1)-1;
 			if (BM_Vert_In_Edge(edges1[i-1], edges1[i]->v1))
 				v2 = edges1[i]->v2;
 			else v2 = edges1[i]->v1;
@@ -485,8 +486,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 	
 	BMO_Flag_To_Slot(bm, op, "edgeout", ELE_NEW, BM_EDGE);
 
-	V_FREE(edges1);
-	V_FREE(edges2);
+	BLI_array_free(edges1);
+	BLI_array_free(edges2);
 
 #undef EDGECON
 }

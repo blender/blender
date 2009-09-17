@@ -47,6 +47,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_editVert.h"
+#include "BLI_array.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -129,7 +130,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	BMVert *v[2][2];
 	BMWalker walker;
 	float (*edges)[2][3] = NULL;
-	V_DYNDECLARE(edges);
+	BLI_array_declare(edges);
 	float co[2][3];
 	int looking=1, i, j=0, tot=0;
 	
@@ -210,7 +211,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 				co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
 				co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
 				
-				V_GROW(edges);
+				BLI_array_growone(edges);
 				VECCOPY(edges[tot][0], co[0]);
 				VECCOPY(edges[tot][1], co[1]);
 				tot++;
@@ -219,9 +220,6 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		lasteed = eed;
 	}
 	
-	BM_Select(em->bm, startedge, 1);
-	BM_Select(em->bm, lasteed, 1);
-
 	if (BM_Edge_Share_Faces(lasteed, startedge)) {
 		v[0][0] = startedge->v1;
 		v[0][1] = startedge->v2;
@@ -236,7 +234,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 			co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
 			co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
 			
-			V_GROW(edges);
+			BLI_array_growone(edges);
 			VECCOPY(edges[tot][0], co[0]);
 			VECCOPY(edges[tot][1], co[1]);
 			tot++;

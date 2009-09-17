@@ -6,6 +6,7 @@
 #include "mesh_intern.h"
 #include "bmesh_private.h"
 #include "BLI_arithb.h"
+#include "BLI_array.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,8 +53,8 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	BMIter liter, liter2, liter3;
 	BMLoop *l, *l2, *l3;
 	BMFace *f, *f2, *nf = NULL;
-	V_DECLARE(region);
-	V_DECLARE(regions);
+	BLI_array_declare(region);
+	BLI_array_declare(regions);
 	BMLoop ***regions = NULL;
 	BMLoop **region = NULL;
 	BMWalker regwalker;
@@ -66,7 +67,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	for (; f; f=BMO_IterStep(&oiter)) {
 		if (!BMO_TestFlag(bm, f, FACE_MARK)) continue;
 
-		V_RESET(region);
+		BLI_array_empty(region);
 		region = NULL; /*forces different allocation*/
 
 		/*yay, walk!*/
@@ -78,14 +79,14 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 				l3 = BMIter_New(&liter3, bm, BM_LOOPS_OF_LOOP, l2);
 				for (; l3; l3=BMIter_Step(&liter3)) {
 					if (!BMO_TestFlag(bm, l3->f, FACE_MARK)) {
-						V_GROW(region);
-						region[V_COUNT(region)-1] = l2;
+						BLI_array_growone(region);
+						region[BLI_array_count(region)-1] = l2;
 						break;
 					}
 				}
 				if (bmesh_radial_nextloop(l2) == l2) {
-					V_GROW(region);
-					region[V_COUNT(region)-1] = l2;
+					BLI_array_growone(region);
+					region[BLI_array_count(region)-1] = l2;
 				}
 			}
 		}				
@@ -106,20 +107,20 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 			goto cleanup;
 		}
 		
-		V_GROW(region);
-		V_GROW(regions);
-		regions[V_COUNT(regions)-1] = region;
-		region[V_COUNT(region)-1] = NULL;
+		BLI_array_growone(region);
+		BLI_array_growone(regions);
+		regions[BLI_array_count(regions)-1] = region;
+		region[BLI_array_count(region)-1] = NULL;
 	}
 	
-	for (i=0; i<V_COUNT(regions); i++) {
+	for (i=0; i<BLI_array_count(regions); i++) {
 		BMEdge **edges = NULL;
-		V_DECLARE(edges);
+		BLI_array_declare(edges);
 
 		region = regions[i];
 		for (j=0; region[j]; j++) {
-			V_GROW(edges);
-			edges[V_COUNT(edges)-1] = region[j]->e;
+			BLI_array_growone(edges);
+			edges[BLI_array_count(edges)-1] = region[j]->e;
 		}
 		
 		if (!region[0]) {
@@ -133,7 +134,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		else
 			f= BM_Make_Ngon(bm, region[0]->e->v2, region[0]->e->v1,  edges, j, 1);
 		
-		V_FREE(edges);
+		BLI_array_free(edges);
 
 		if (!f) {
 			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, 
@@ -181,11 +182,11 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 
 cleanup:
 	/*free/cleanup*/
-	for (i=0; i<V_COUNT(regions); i++) {
-		if (regions[i]) V_FREE(regions[i]);
+	for (i=0; i<BLI_array_count(regions); i++) {
+		if (regions[i]) BLI_array_free(regions[i]);
 	}
 
-	V_FREE(regions);
+	BLI_array_free(regions);
 }
 
 /*almost identical to dissolve edge, except it cleans up vertices*/
@@ -195,7 +196,7 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	BMOIter oiter;
 	BMIter iter;
 	BMVert *v, **verts = NULL;
-	V_DECLARE(verts);
+	BLI_array_declare(verts);
 	BMEdge *e;
 	BMFace *f;
 	int i;
@@ -215,17 +216,17 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 		if (BMO_TestFlag(bm, v, VERT_MARK) && 
 			BM_Vert_EdgeCount(v) == 2) 
 		{
-			V_GROW(verts);
-			verts[V_COUNT(verts)-1] = v;
+			BLI_array_growone(verts);
+			verts[BLI_array_count(verts)-1] = v;
 		}
 	}
 
 	/*clean up extreneous 2-valence vertices*/
-	for (i=0; i<V_COUNT(verts); i++) {
+	for (i=0; i<BLI_array_count(verts); i++) {
 		BM_Collapse_Vert(bm, verts[i]->edge, verts[i], 1.0);
 	}
 	
-	V_FREE(verts);
+	BLI_array_free(verts);
 
 	//BMO_InitOpf(bm, &fop, "dissolvefaces faces=%ff", FACE_MARK);
 	//BMO_Exec_Op(bm, &fop);

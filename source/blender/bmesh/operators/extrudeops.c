@@ -6,6 +6,7 @@
 #include "BLI_memarena.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_array.h"
 
 #include "bmesh.h"
 #include "bmesh_operators_private.h"
@@ -27,15 +28,15 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l, *l2, *l3, *l4;
 	BMEdge **edges = NULL, *e, *laste;
 	BMVert *v, *lastv, *firstv;
-	V_DECLARE(edges);
+	BLI_array_declare(edges);
 	int i;
 
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
-		V_RESET(edges);
+		BLI_array_empty(edges);
 		i = 0;
 		firstv = lastv = NULL;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			V_GROW(edges);
+			BLI_array_growone(edges);
 
 			v = BM_Make_Vert(bm, l->v->co, NULL);
 			BM_Copy_Attributes(bm, bm, l->v, v);
@@ -50,7 +51,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 			if (!firstv) firstv = v;
 		}
 
-		V_GROW(edges);
+		BLI_array_growone(edges);
 		e = BM_Make_Edge(bm, v, firstv, laste, 0);
 		edges[i++] = e;
 

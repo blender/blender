@@ -4,6 +4,7 @@
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
+#include "BLI_array.h"
 
 #include "BKE_utildefines.h"
 
@@ -852,6 +853,16 @@ static void clear_flag_layer(BMesh *bm)
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
 		memset(f->head.flags+bm->totflags-1, 0, sizeof(BMFlagLayer));
 	}
+}
+
+void *BMO_FirstElem(BMOperator *op, char *slotname)
+{
+	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	
+	if (slot->slottype != BMOP_OPSLOT_ELEMENT_BUF)
+		return NULL;
+
+	return slot->data.buf ? *(void**)slot->data.buf : NULL;
 }
 
 void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op, 

@@ -49,6 +49,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_array.h"
 
 #include "BKE_context.h"
 #include "BKE_displist.h"

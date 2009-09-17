@@ -46,6 +46,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_array.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -1638,10 +1639,10 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	MLoopUV *luv;
 	NearestHit hit;
 	int a, i, select = 1, selectmode, sticky, sync, *hitv=NULL, nvert;
-	V_DECLARE(hitv);
+	BLI_array_declare(hitv);
 	int flush = 0, hitlen=0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	float limit[2], **hituv = NULL;
-	V_DECLARE(hituv);
+	BLI_array_declare(hituv);
 	float penalty[2];
 
 	uvedit_pixel_to_float(sima, limit, 0.05f);
@@ -1685,8 +1686,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 
 		/* mark 1 vertex as being hit */
 		for(i=0; i<hit.efa->len; i++) {
-			V_GROW(hitv);
-			V_GROW(hituv);
+			BLI_array_growone(hitv);
+			BLI_array_growone(hituv);
 			hitv[i]= 0xFFFFFFFF;
 		}
 
@@ -1704,8 +1705,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 
 		/* mark 2 edge vertices as being hit */
 		for(i=0; i<hit.efa->len; i++) {
-			V_GROW(hitv);
-			V_GROW(hituv);
+			BLI_array_growone(hitv);
+			BLI_array_growone(hituv);
 			hitv[i]= 0xFFFFFFFF;
 		}
 
@@ -1733,8 +1734,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, hit.efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-			V_GROW(hitv);
-			V_GROW(hituv);
+			BLI_array_growone(hitv);
+			BLI_array_growone(hituv);
 			hituv[i]= luv->uv;
 			hitv[i] = BMINDEX_GET(l->v);
 			i++;

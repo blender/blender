@@ -66,6 +66,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_editVert.h"
+#include "BLI_array.h"
 
 #include "BKE_main.h"
 #include "BKE_anim.h"
@@ -119,8 +120,8 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	BMEdge *e, **etable, **edges=NULL;
 	BMFace *f;
 	BMIter liter;
-	V_DECLARE(verts);
-	V_DECLARE(edges);
+	BLI_array_declare(verts);
+	BLI_array_declare(edges);
 	int numTex, numCol;
 	int i, j, k, totvert, totedge, totface;
 	
@@ -180,13 +181,13 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	for (; !dfiter->done; dfiter->step(dfiter)) {
 		BMLoop *l;
 
-		V_RESET(verts);
-		V_RESET(edges);
+		BLI_array_empty(verts);
+		BLI_array_empty(edges);
 
 		dliter = dfiter->getLoopsIter(dfiter);
 		for (j=0; !dliter->done; dliter->step(dliter), j++) {
-			V_GROW(verts);
-			V_GROW(edges);
+			BLI_array_growone(verts);
+			BLI_array_growone(edges);
 
 			verts[j] = vtable[dliter->vindex];
 			edges[j] = etable[dliter->eindex];
@@ -218,8 +219,8 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	MEM_freeN(vtable);
 	MEM_freeN(etable);
 	
-	V_FREE(verts);
-	V_FREE(edges);
+	BLI_array_free(verts);
+	BLI_array_free(edges);
 
 	if (!em) em = BMEdit_Create(bm);
 	else BMEdit_RecalcTesselation(em);

@@ -58,6 +58,7 @@
 #include "BLI_editVert.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
+#include "BLI_array.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
@@ -1782,7 +1783,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	ColorBand *coba= stored_cb;	/* warning, not a local var */
 	unsigned char *wtcol;
 	unsigned char(*wlcol)[4] = NULL;
-	V_DECLARE(wlcol);
+	BLI_array_declare(wlcol);
 	int i, totface=dm->getNumTessFaces(dm), totpoly=dm->getNumFaces, totloop;
 	int *origIndex = dm->getVertDataArray(dm, CD_ORIGINDEX);
 	
@@ -1806,7 +1807,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	for (; !dfiter->done; dfiter->step(dfiter)) {
 		dliter = dfiter->getLoopsIter(dfiter);
 		for (; !dliter->done; dliter->step(dliter), totloop++) {
-			V_GROW(wlcol);
+			BLI_array_growone(wlcol);
 			calc_weightpaint_vert_color(ob, coba, dliter->vindex, &wlcol[totloop]);			 
 		}
 	}

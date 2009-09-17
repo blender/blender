@@ -53,6 +53,7 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_array.h"
 
 #include "BKE_context.h"
 #include "BKE_displist.h"
@@ -1644,7 +1645,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	V_DECLARE(verts);
+	BLI_array_declare(verts);
 	BMVert **verts = NULL;
 	BMIter iter;
 	BMVert *v;
@@ -1655,7 +1656,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	tot = 0;
 		BM_ITER_SELECT(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
 		if (BM_TestHFlag(v, BM_SELECT)) {
-			V_GROW(verts);
+			BLI_array_growone(verts);
 			verts[tot++] = v;
 		}
 	}
@@ -1671,7 +1672,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	BMW_End(&walker);
 	EDBM_select_flush(em, SCE_SELECT_VERTEX);
 
-	V_FREE(verts);
+	BLI_array_free(verts);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;	

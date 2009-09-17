@@ -5,6 +5,7 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 #include "BLI_arithb.h"
+#include "BLI_array.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,21 +18,21 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMFace *face, **newfaces = NULL;
-	V_DECLARE(newfaces);
+	BLI_array_declare(newfaces);
 	float (*projectverts)[3] = NULL;
-	V_DECLARE(projectverts);
+	BLI_array_declare(projectverts);
 	int i, lastlen=0, count = 0;
 	
 	face = BMO_IterNew(&siter, bm, op, "faces", BM_FACE);
 	for (; face; face=BMO_IterStep(&siter)) {
 		if (lastlen < face->len) {
-			V_RESET(projectverts);
-			V_RESET(newfaces);
+			BLI_array_empty(projectverts);
+			BLI_array_empty(newfaces);
 			for (lastlen=0; lastlen<face->len; lastlen++) {
-				V_GROW(projectverts);
-				V_GROW(projectverts);
-				V_GROW(projectverts);
-				V_GROW(newfaces);
+				BLI_array_growone(projectverts);
+				BLI_array_growone(projectverts);
+				BLI_array_growone(projectverts);
+				BLI_array_growone(newfaces);
 			}
 		}
 		
@@ -50,6 +51,6 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_To_Slot(bm, op, "edgeout", EDGE_NEW, BM_EDGE);
 	BMO_Flag_To_Slot(bm, op, "faceout", FACE_NEW, BM_FACE);
 	
-	V_FREE(projectverts);
-	V_FREE(newfaces);
+	BLI_array_free(projectverts);
+	BLI_array_free(newfaces);
 }

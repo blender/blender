@@ -48,6 +48,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_array.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -166,8 +167,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	MTexPoly *tf;
 	MLoopUV *luv;
 	Image *ima= sima->image;
-	V_DECLARE(tf_uv);
-	V_DECLARE(tf_uvorig);
+	BLI_array_declare(tf_uv);
+	BLI_array_declare(tf_uvorig);
 	float aspx, aspy, col[4], (*tf_uv)[2] = NULL, (*tf_uvorig)[2] = NULL;
 	int i;
 
@@ -181,14 +182,14 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 				tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 				
-				V_RESET(tf_uv);
-				V_RESET(tf_uvorig);
+				BLI_array_empty(tf_uv);
+				BLI_array_empty(tf_uvorig);
 				
 				i = 0;
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv= CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					V_GROW(tf_uv);
-					V_GROW(tf_uvorig);
+					BLI_array_growone(tf_uv);
+					BLI_array_growone(tf_uvorig);
 
 					tf_uvorig[i][0] = luv->uv[0];
 					tf_uvorig[i][1] = luv->uv[1];
@@ -232,14 +233,14 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 					if(BMINDEX_GET(efa)) {
 						area = BM_face_area(efa) / totarea;
 
-						V_RESET(tf_uv);
-						V_RESET(tf_uvorig);
+						BLI_array_empty(tf_uv);
+						BLI_array_empty(tf_uvorig);
 
 						i = 0;
 						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 							luv= CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-							V_GROW(tf_uv);
-							V_GROW(tf_uvorig);
+							BLI_array_growone(tf_uv);
+							BLI_array_growone(tf_uvorig);
 
 							tf_uvorig[i][0] = luv->uv[0];
 							tf_uvorig[i][1] = luv->uv[1];

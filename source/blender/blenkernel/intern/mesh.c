@@ -72,6 +72,7 @@
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
 #include "BLI_cellalloc.h"
+#include "BLI_array.h"
 
 #include "bmesh.h"
 
@@ -1476,10 +1477,10 @@ int mesh_recalcTesselation(CustomData *fdata,
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;
 	MFace *mf = NULL, *mface;
-	V_DECLARE(mf);
+	BLI_array_declare(mf);
 	EditVert *v, *lastv, *firstv;
 	EditFace *f;
-	V_DECLARE(origIndex);
+	BLI_array_declare(origIndex);
 	int i, j, k, lindex[3], *origIndex = NULL, *polyorigIndex;
 	int numTex, numCol;
 
@@ -1516,8 +1517,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 		
 		BLI_edgefill(0, 0);
 		for (f=fillfacebase.first; f; f=f->next) {
-			V_GROW(mf);
-			V_GROW(origIndex);
+			BLI_array_growone(mf);
+			BLI_array_growone(origIndex);
 
 			/*these are loop indices, they'll be transformed
 			  into vert indices later.*/

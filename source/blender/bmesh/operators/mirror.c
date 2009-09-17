@@ -20,6 +20,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
+#include "BLI_array.h"
 
 #include "bmesh.h"
 
@@ -37,9 +38,9 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 	BMOIter siter;
 	BMIter iter;
 	BMVert *v, *v2, **vmap = NULL;
-	V_DECLARE(vmap);
+	BLI_array_declare(vmap);
 	BMEdge *e, **emap = NULL;
-	V_DECLARE(emap);
+	BLI_array_declare(emap);
 	float mtx[4][4];
 	float imtx[4][4];
 	float scale[3] = {1.0f, 1.0f, 1.0f};
@@ -63,7 +64,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 	i = 0;
 	v2 = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	BMO_ITER(v, &siter, bm, &dupeop, "newout", BM_VERT) {
-		V_GROW(vmap);
+		BLI_array_growone(vmap);
 		vmap[i] = v;
 
 		BMINDEX_SET(v2, i);
@@ -116,7 +117,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 
 	BMO_Flag_To_Slot(bm, op, "newout", ELE_NEW, BM_ALL);
 
-	V_FREE(vmap);
-	V_FREE(emap);
+	BLI_array_free(vmap);
+	BLI_array_free(emap);
 }
 

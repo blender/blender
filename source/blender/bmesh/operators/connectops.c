@@ -6,6 +6,7 @@
 #include "mesh_intern.h"
 #include "bmesh_private.h"
 #include "BLI_arithb.h"
+#include "BLI_array.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -19,17 +20,17 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	BMIter iter, liter;
 	BMFace *f, *nf;
 	BMLoop **loops = NULL, *lastl = NULL;
-	V_DECLARE(loops);
+	BLI_array_declare(loops);
 	BMLoop *l, *nl;
 	BMVert *v1, *v2, **verts = NULL;
-	V_DECLARE(verts);
+	BLI_array_declare(verts);
 	int i;
 	
 	BMO_Flag_Buffer(bm, op, "verts", VERT_INPUT, BM_VERT);
 
 	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)){
-		V_RESET(loops);
-		V_RESET(verts);
+		BLI_array_empty(loops);
+		BLI_array_empty(verts);
 		
 		if (BMO_TestFlag(bm, f, FACE_NEW)) continue;
 
@@ -46,40 +47,40 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 				if (lastl != l->head.prev && lastl != 
 				    l->head.next)
 				{
-					V_GROW(loops);
-					loops[V_COUNT(loops)-1] = lastl;
+					BLI_array_growone(loops);
+					loops[BLI_array_count(loops)-1] = lastl;
 
-					V_GROW(loops);
-					loops[V_COUNT(loops)-1] = l;
+					BLI_array_growone(loops);
+					loops[BLI_array_count(loops)-1] = l;
 
 				}
 				lastl = l;
 			}
 		}
 
-		if (V_COUNT(loops) == 0) continue;
+		if (BLI_array_count(loops) == 0) continue;
 		
-		if (V_COUNT(loops) > 2) {
-			V_GROW(loops);
-			loops[V_COUNT(loops)-1] = loops[V_COUNT(loops)-2];
+		if (BLI_array_count(loops) > 2) {
+			BLI_array_growone(loops);
+			loops[BLI_array_count(loops)-1] = loops[BLI_array_count(loops)-2];
 
-			V_GROW(loops);
-			loops[V_COUNT(loops)-1] = loops[0];
+			BLI_array_growone(loops);
+			loops[BLI_array_count(loops)-1] = loops[0];
 		}
 
-		BM_LegalSplits(bm, f, loops, V_COUNT(loops)/2);
+		BM_LegalSplits(bm, f, loops, BLI_array_count(loops)/2);
 		
-		for (i=0; i<V_COUNT(loops)/2; i++) {
+		for (i=0; i<BLI_array_count(loops)/2; i++) {
 			if (loops[i*2]==NULL) continue;
 
-			V_GROW(verts);
-			verts[V_COUNT(verts)-1] = loops[i*2]->v;
+			BLI_array_growone(verts);
+			verts[BLI_array_count(verts)-1] = loops[i*2]->v;
 		
-			V_GROW(verts);
-			verts[V_COUNT(verts)-1] = loops[i*2+1]->v;
+			BLI_array_growone(verts);
+			verts[BLI_array_count(verts)-1] = loops[i*2+1]->v;
 		}
 
-		for (i=0; i<V_COUNT(verts)/2; i++) {
+		for (i=0; i<BLI_array_count(verts)/2; i++) {
 			nf = BM_Split_Face(bm, f, verts[i*2],
 				           verts[i*2+1], &nl, NULL);
 			f = nf;
@@ -87,7 +88,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 			if (!nl || !nf) {
 				BMO_RaiseError(bm, op,
 					BMERR_CONNECTVERT_FAILED, NULL);
-				V_FREE(loops);
+				BLI_array_free(loops);
 				return;;;
 			}
 			BMO_SetFlag(bm, nf, FACE_NEW);
@@ -97,8 +98,8 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 
 	BMO_Flag_To_Slot(bm, op, "edgeout", EDGE_OUT, BM_EDGE);
 
-	V_FREE(loops);
-	V_FREE(verts);
+	BLI_array_free(loops);
+	BLI_array_free(verts);
 }
 
 int BM_ConnectVerts(EditMesh *em, int flag) 

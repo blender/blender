@@ -792,12 +792,12 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	BMVert *bv;
 	BMIter iter;
-	BMEdge **edges = NULL, *be;
+	BMEdge *be;
 	BMOperator bmop;
 	CutCurve curve[MAX_CUTS];
 	struct GHash *gh;
 	float isect=0.0;
-	float  *scr, co[4], *percents = NULL;
+	float  *scr, co[4];
 	int len=0, isected, flag, i;
 	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
 	
@@ -865,9 +865,6 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	BMO_Exec_Op(bm, &bmop);
 	BMO_Finish_Op(bm, &bmop);
 	
-	V_FREE(edges);
-	V_FREE(percents);
-
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)WMEM_freeN);
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);

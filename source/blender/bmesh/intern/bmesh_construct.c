@@ -31,8 +31,11 @@
  */
 
 #include "MEM_guardedalloc.h"
+
 #include "BKE_customdata.h" 
 #include "BKE_utildefines.h"
+
+#include "BLI_array.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
@@ -418,14 +421,14 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 {
 	BMesh *bm;
 	BMVert *v, *v2, **vtable = NULL;
-	V_DECLARE(vtable);
+	BLI_array_declare(vtable);
 	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
-	V_DECLARE(edges);
-	V_DECLARE(etable);
+	BLI_array_declare(edges);
+	BLI_array_declare(etable);
 	BMLoop *l, *l2, **loops = NULL;
-	V_DECLARE(loops);
+	BLI_array_declare(loops);
 	BMFace *f, *f2, **ftable = NULL;
-	V_DECLARE(ftable);
+	BLI_array_declare(ftable);
 	BMEditSelection *ese;
 	BMIter iter, liter;
 	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
@@ -452,10 +455,10 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	for (i=0; v; v=BMIter_Step(&iter), i++) {
 		v2 = BM_Make_Vert(bm, v->co, NULL);
 		BM_Copy_Attributes(bmold, bm, v, v2);
-		V_GROW(vtable);
+		BLI_array_growone(vtable);
 		VECCOPY(v2->no, v->no);
 
-		vtable[V_COUNT(vtable)-1] = v2;
+		vtable[BLI_array_count(vtable)-1] = v2;
 
 		BMINDEX_SET(v, i);
 		BMINDEX_SET(v2, i);
@@ -467,8 +470,8 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 			          vtable[BMINDEX_GET(e->v2)], e, 0);
 
 		BM_Copy_Attributes(bmold, bm, e, e2);
-		V_GROW(etable);
-		etable[V_COUNT(etable)-1] = e2;
+		BLI_array_growone(etable);
+		etable[BLI_array_count(etable)-1] = e2;
 
 		BMINDEX_SET(e, i);
 		BMINDEX_SET(e2, i);
@@ -476,12 +479,12 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	
 	f = BMIter_New(&iter, bmold, BM_FACES_OF_MESH, NULL);
 	for (i=0; f; f=BMIter_Step(&iter), i++) {
-		V_RESET(loops);
-		V_RESET(edges);
+		BLI_array_empty(loops);
+		BLI_array_empty(edges);
 		l = BMIter_New(&liter, bmold, BM_LOOPS_OF_FACE, f);
 		for (j=0; j<f->len; j++, l = BMIter_Step(&liter)) {
-			V_GROW(loops);
-			V_GROW(edges);
+			BLI_array_growone(loops);
+			BLI_array_growone(edges);
 			loops[j] = l;
 			edges[j] = etable[BMINDEX_GET(l->e)];
 		}
@@ -490,14 +493,14 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		v2 = vtable[BMINDEX_GET(loops[1]->v)];
 
 		if (!bmesh_verts_in_edge(v, v2, edges[0])) {
-			v = vtable[BMINDEX_GET(loops[V_COUNT(loops)-1]->v)];
+			v = vtable[BMINDEX_GET(loops[BLI_array_count(loops)-1]->v)];
 			v2 = vtable[BMINDEX_GET(loops[0]->v)];
 		}
 
 		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, 0);
 		
 		BMINDEX_SET(f, i);
-		V_GROW(ftable);
+		BLI_array_growone(ftable);
 		ftable[i] = f2;
 
 		BM_Copy_Attributes(bmold, bm, f, f2);
@@ -526,12 +529,12 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		BM_store_selection(bm, ele);
 	}
 
-	V_FREE(etable);
-	V_FREE(vtable);
-	V_FREE(ftable);
+	BLI_array_free(etable);
+	BLI_array_free(vtable);
+	BLI_array_free(ftable);
 
-	V_FREE(loops);
-	V_FREE(edges);
+	BLI_array_free(loops);
+	BLI_array_free(edges);
 
 	return bm;
 }

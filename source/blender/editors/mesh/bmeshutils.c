@@ -58,6 +58,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_heap.h"
+#include "BLI_array.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"

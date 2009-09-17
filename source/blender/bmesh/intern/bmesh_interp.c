@@ -38,6 +38,8 @@
 #include "BKE_customdata.h" 
 #include "BKE_utildefines.h"
 
+#include "BLI_array.h"
+
 #include "bmesh.h"
 #include "bmesh_private.h"
 

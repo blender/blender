@@ -60,6 +60,7 @@
 #include "BLI_memarena.h"
 #include "BLI_scanfill.h"
 #include "BLI_ghash.h"
+#include "BLI_array.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
@@ -124,7 +125,7 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 {
 	BMesh *bm = tm->bm;
 	BMLoop **looptris = NULL;
-	V_DYNDECLARE(looptris);
+	BLI_array_declare(looptris);
 	BMIter iter, liter;
 	BMFace *f;
 	BMLoop *l;
@@ -144,9 +145,9 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 		/*don't consider two-edged faces*/
 		if (f->len < 3) continue;
 		
-		//V_GROW(looptris);
-		//V_GROW(looptris);
-		//V_GROW(looptris);
+		//BLI_array_growone(looptris);
+		//BLI_array_growone(looptris);
+		//BLI_array_growone(looptris);
 
 		looptris[i*3] = f->loopbase;
 		looptris[i*3+1] = f->loopbase->head.next;
@@ -154,9 +155,9 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 		i++;
 
 		if (f->len > 3) {
-			//V_GROW(looptris);
-			//V_GROW(looptris);
-			//V_GROW(looptris);
+			//BLI_array_growone(looptris);
+			//BLI_array_growone(looptris);
+			//BLI_array_growone(looptris);
 
 			looptris[i*3] = f->loopbase;
 			looptris[i*3+1] = f->loopbase->head.next->next;
@@ -205,9 +206,9 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 		for (efa = fillfacebase.first; efa; efa=efa->next) {
 			BMLoop *l1, *l2, *l3;
 
-			V_GROW(looptris);
-			V_GROW(looptris);
-			V_GROW(looptris);
+			BLI_array_growone(looptris);
+			BLI_array_growone(looptris);
+			BLI_array_growone(looptris);
 			
 			looptris[i*3] = l1 = efa->v1->tmp.p;
 			looptris[i*3+1] = l2 = efa->v2->tmp.p;

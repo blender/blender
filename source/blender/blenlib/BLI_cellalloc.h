@@ -27,14 +27,20 @@
  */
 
 /*
-	Simple, fast memory allocator that uses many BLI_mempools for allocation.
-	use for allocations < 1024 bytes that simply cannot be rewritten to use
-	mempools directly or memarenas.
+	I wrote this as a hack so vgroups won't be quite so slow.  I really
+	should replace it with something else, but I need to spend some time
+	thinking as to what the proper solution would be (other then totally
+	rewriting vgroups, of course).
 
-	Should really become part of guardedalloc, but I'm not sure how to
-	get it linking with blenlib on all build systems. - joeedh
+	this is just a simple allocator that spawns mempools for unique size
+	requests.  hardly ideal, I know.  *something* like this may be
+	unavoidable, but it should certainly be possible to make it
+	non-global and internal to the vgroup code.
+
+	-joeedh sep. 17 2009
 */
 
+//BMESH_TODO: kill this library before merging with trunk
 void *BLI_cellalloc_malloc(long size, char *tag);
 void *BLI_cellalloc_calloc(long size, char *tag);
 void BLI_cellalloc_free(void *mem);

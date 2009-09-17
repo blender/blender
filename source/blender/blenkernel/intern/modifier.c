@@ -52,6 +52,7 @@
 #include "BLI_memarena.h"
 #include "BLI_cellalloc.h"
 #include "BLI_mempool.h"
+#include "BLI_array.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -2276,13 +2277,13 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 {
 	DerivedMesh *cddm = CDDM_copy(dm, 0);
 	MEdge *medge;
-	V_DECLARE(medge);
+	BLI_array_declare(medge);
 	MLoop *mloop, *ml, *prevl;
 	MPoly *mpoly, *mp;
 	MVert *mvert;
-	V_DECLARE(mvert);
+	BLI_array_declare(mvert);
 	EdgeData *etags, *e, *enext;
-	V_DECLARE(etags);
+	BLI_array_declare(etags);
 	VertUser *vu, *vu2;
 	MemBase *membase;
 	CustomData edata, vdata;
@@ -2296,12 +2297,12 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 	membase = new_membase();
 
 	etags = MEM_callocN(sizeof(EdgeData)*cddm->numEdgeData, "edgedata tag thingies");
-	V_SETCOUNT(etags, cddm->numEdgeData);
+	BLI_array_set_length(etags, cddm->numEdgeData);
 
 	mvert = cddm->getVertArray(cddm);
-	V_SETCOUNT(mvert, cddm->numVertData);
+	BLI_array_set_length(mvert, cddm->numVertData);
 	medge = cddm->getEdgeArray(cddm);
-	V_SETCOUNT(medge, cddm->numEdgeData);
+	BLI_array_set_length(medge, cddm->numEdgeData);
 	mloop = CustomData_get_layer(&cddm->loopData, CD_MLOOP);
 	mpoly = CustomData_get_layer(&cddm->polyData, CD_MPOLY);
 
@@ -2411,7 +2412,7 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 			e = etags + ml->e;
 			if (e->v1user && !e->v1user->done) {
 				e->v1user->done = 1;
-				V_GROW(mvert);
+				BLI_array_growone(mvert);
 
 				mvert[curv] = mvert[e->v1user->ov];
 				e->v1user->v = curv;
@@ -2421,7 +2422,7 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 
 			if (e->v2user && !e->v2user->done) {
 				e->v2user->done = 1;
-				V_GROW(mvert);
+				BLI_array_growone(mvert);
 
 				mvert[curv] = mvert[e->v2user->ov];
 				e->v2user->v = curv;
@@ -2438,8 +2439,8 @@ DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 			/*ok, now we have to deal with edges. . .*/
 			if (etags[ml->e].tag) {
 				if (etags[ml->e].used) {
-					V_GROW(medge);
-					V_GROW(etags);
+					BLI_array_growone(medge);
+					BLI_array_growone(etags);
 					medge[cure] = medge[ml->e];
 					
 					ml->e = cure;

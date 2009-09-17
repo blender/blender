@@ -53,6 +53,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 #include "BLI_scanfill.h"
+#include "BLI_array.h"
 
 #include "PIL_time.h"
 
@@ -1040,7 +1041,7 @@ static int reset_exec(bContext *C, wmOperator *op)
 	BMIter iter, liter;
 	MTexPoly *tf;
 	MLoopUV *luv;
-	V_DECLARE(uvs);
+	BLI_array_declare(uvs);
 	float **uvs = NULL;
 	int i;
 
@@ -1053,11 +1054,11 @@ static int reset_exec(bContext *C, wmOperator *op)
 		if (!BM_TestHFlag(efa, BM_SELECT))
 			continue;
 		
-		V_RESET(uvs);
+		BLI_array_empty(uvs);
 		i = 0;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			V_GROW(uvs);
+			BLI_array_growone(uvs);
 
 			uvs[i++] = luv->uv;
 		}
@@ -1101,7 +1102,7 @@ static int reset_exec(bContext *C, wmOperator *op)
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	
-	V_FREE(uvs);
+	BLI_array_free(uvs);
 
 	return OPERATOR_FINISHED;
 }
@@ -1139,7 +1140,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *tf)
 	BMLoop *l;
 	BMIter liter;
 	MLoopUV *luv;
-	V_DECLARE(uvs);
+	BLI_array_declare(uvs);
 	float **uvs = NULL;
 	float dx;
 	int i, mi;
@@ -1147,7 +1148,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *tf)
 	i = 0;
 	BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 		luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-		V_GROW(uvs);
+		BLI_array_growone(uvs);
 
 		uvs[i] = luv->uv;
 		i++;
@@ -1165,7 +1166,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *tf)
 		} 
 	} 
 
-	V_FREE(uvs);
+	BLI_array_free(uvs);
 }
 
 static int sphere_project_exec(bContext *C, wmOperator *op)

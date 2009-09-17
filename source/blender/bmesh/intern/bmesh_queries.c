@@ -4,6 +4,7 @@
 #include "bmesh_private.h"
 
 #include "BLI_arithb.h"
+#include "BLI_array.h"
 
 #include "BKE_utildefines.h"
 

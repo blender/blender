@@ -8,6 +8,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BLI_mempool.h"
+#include "BLI_array.h"
 
 #include "bmesh_private.h"
 #include "bmesh_walkers.h"

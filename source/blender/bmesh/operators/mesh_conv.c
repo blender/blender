@@ -20,6 +20,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 #include "BLI_scanfill.h"
+#include "BLI_array.h"
 
 #include "ED_mesh.h"
 
@@ -43,7 +44,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	MPoly *mpoly;
 	BMVert *v, **vt=NULL;
 	BMEdge *e, **fedges=NULL, **et = NULL;
-	V_DECLARE(fedges);
+	BLI_array_declare(fedges);
 	BMFace *f;
 	int i, j, li, allocsize[4] = {512, 512, 2048, 512};
 
@@ -119,13 +120,13 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		BMIter iter;
 		BMLoop *l;
 
-		V_RESET(fedges);
+		BLI_array_empty(fedges);
 		for (j=0; j<mpoly->totloop; j++) {
 			ml = &me->mloop[mpoly->loopstart+j];
 			v = vt[ml->v];
 			e = et[ml->e];
 
-			V_GROW(fedges);
+			BLI_array_growone(fedges);
 
 			fedges[j] = e;
 		}
@@ -166,7 +167,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
 	}
 
-	V_FREE(fedges);
+	BLI_array_free(fedges);
 
 	MEM_freeN(vt);
 	MEM_freeN(et);

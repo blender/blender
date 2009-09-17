@@ -7,6 +7,7 @@
 #include "BLI_linklist.h"
 #include "BLI_ghash.h"
 #include "BLI_arithb.h"
+#include "BLI_array.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -375,7 +376,7 @@ BMVert  *BM_Split_Edge_Multi(BMesh *bm, BMEdge *e, int numcuts)
 int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err) 
 {
 	BMIter iter;
-	V_DECLARE(verts);
+	BLI_array_declare(verts);
 	BMVert **verts = NULL;
 	BMLoop *l;
 	int ret = 1, i, j;
@@ -386,8 +387,8 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 	}
 
 	for (l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, face);l;l=BMIter_Step(&iter)) {
-		V_GROW(verts);
-		verts[V_COUNT(verts)-1] = l->v;
+		BLI_array_growone(verts);
+		verts[BLI_array_count(verts)-1] = l->v;
 		
 		if (l->e->v1 == l->e->v2) {
 			fprintf(err, "Found bmesh edge with identical verts!\n");
@@ -397,8 +398,8 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 		}
 	}
 
-	for (i=0; i<V_COUNT(verts); i++) {
-		for (j=0; j<V_COUNT(verts); j++) {
+	for (i=0; i<BLI_array_count(verts); i++) {
+		for (j=0; j<BLI_array_count(verts); j++) {
 			if (j == i) continue;
 			if (verts[i] == verts[j]) {
 				fprintf(err, "Found duplicate verts in bmesh face!\n");
@@ -409,7 +410,7 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 		}
 	}
 	
-	V_FREE(verts);
+	BLI_array_free(verts);
 	return ret;
 }
 

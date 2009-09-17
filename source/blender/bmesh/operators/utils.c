@@ -18,6 +18,7 @@
 #include "ED_mesh.h"
 
 #include "BLI_arithb.h"
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 
@@ -251,7 +252,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	BMIter liter, liter2;
 	BMOIter siter;
 	BMFace *f, *startf, **fstack = NULL;
-	V_DECLARE(fstack);
+	BLI_array_declare(fstack);
 	BMLoop *l, *l2;
 	float maxx, cent[3];
 	int i, maxi;
@@ -290,7 +291,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	  stack (if we use simple function recursion, we'd end up overloading
 	  the stack on large meshes).*/
 
-	V_GROW(fstack);
+	BLI_array_growone(fstack);
 	fstack[0] = startf;
 	BMO_SetFlag(bm, startf, FACE_VIS);
 
@@ -313,7 +314,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 						BM_flip_normal(bm, l2->f);
 
 					if (i == maxi) {
-						V_GROW(fstack);
+						BLI_array_growone(fstack);
 						maxi++;
 					}
 
@@ -323,7 +324,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	V_FREE(fstack);
+	BLI_array_free(fstack);
 
 	/*check if we have faces yet to do.  if so, recurse.*/
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
@@ -340,7 +341,7 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMVert *v;
 	BMEdge *e;
-	V_DECLARE(cos);
+	BLI_array_declare(cos);
 	float (*cos)[3] = NULL;
 	float *co, *co2, clipdist = BMO_Get_Float(op, "clipdist");
 	int i, j, clipx, clipy, clipz;
@@ -351,7 +352,7 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 
 	i = 0;
 	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
-		V_GROW(cos);
+		BLI_array_growone(cos);
 		co = cos[i];
 		
 		j  = 0;
@@ -391,7 +392,7 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 		i++;
 	}
 
-	V_FREE(cos);
+	BLI_array_free(cos);
 }
 
 /*
@@ -1044,7 +1045,7 @@ void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
 	BMOIter fs_iter;	/* selected faces iterator */
 	BMFace *fs;		/* current face */
 	BMIter l_iter;		/* iteration loop */
-	V_DECLARE(uvs);
+	BLI_array_declare(uvs);
 	float (*uvs)[2] = NULL;
 	int max_vert_count = 0;
 
@@ -1055,12 +1056,12 @@ void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
 			int num_verts = fs->len;
 			int i = 0;
 
-			V_RESET(uvs);
+			BLI_array_empty(uvs);
 			BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
 
 				/* current loop uv is the previous loop uv */
-				V_GROW(uvs);
+				BLI_array_growone(uvs);
 				uvs[i][0] = luv->uv[0];
 				uvs[i][1] = luv->uv[1];
 				i++;
@@ -1078,5 +1079,5 @@ void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	V_FREE(uvs);
+	BLI_array_free(uvs);
 }

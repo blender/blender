@@ -17,6 +17,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
+#include "BLI_array.h"
+#include "BLI_array.h"
 
 #include "bmesh.h"
 

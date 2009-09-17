@@ -140,6 +140,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_array.h"
 
 //#include "editmesh.h"
 //
@@ -2174,7 +2175,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	int count=0, countsel=0, a, totleft, *selstate = NULL;
-	V_DECLARE(selstate);
+	BLI_array_declare(selstate);
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
 
@@ -2228,7 +2229,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	   verts*/
 	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
-		V_GROW(selstate);
+		BLI_array_growone(selstate);
 
 		if(!BM_TestHFlag(eve, BM_HIDDEN)) {	
 			if(BMINDEX_GET(eve)) {
@@ -2384,7 +2385,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if(defmats)
 		MEM_freeN(defmats);
 
-	V_FREE(selstate);
+	BLI_array_free(selstate);
 }
 
 /* *** NODE EDITOR *** */

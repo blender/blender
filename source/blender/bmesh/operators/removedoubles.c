@@ -10,6 +10,7 @@
 #include "BLI_arithb.h"
 #include "BLI_ghash.h"
 #include "BLI_blenlib.h"
+#include "BLI_array.h"
 
 #include "bmesh.h"
 #include "mesh_intern.h"
@@ -85,9 +86,9 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	BMIter iter, liter;
 	BMVert *v, *v2;
 	BMEdge *e, *e2, **edges = NULL;
-	V_DECLARE(edges);
+	BLI_array_declare(edges);
 	BMLoop *l, *l2, **loops = NULL;
-	V_DECLARE(loops);
+	BLI_array_declare(loops);
 	BMFace *f, *f2;
 	int a, b;
 
@@ -136,8 +137,8 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		V_RESET(edges);
-		V_RESET(loops);
+		BLI_array_empty(edges);
+		BLI_array_empty(loops);
 		a = 0;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			v = l->v;
@@ -156,8 +157,8 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 				if (b != a)
 					continue;
 
-				V_GROW(edges);
-				V_GROW(loops);
+				BLI_array_growone(edges);
+				BLI_array_growone(loops);
 
 				edges[a] = e2;
 				loops[a] = l;
@@ -166,7 +167,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 		
-		if (V_COUNT(loops) < 3)
+		if (BLI_array_count(loops) < 3)
 			continue;
 
 		v = loops[0]->v;
@@ -193,8 +194,8 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 
 	BMO_CallOpf(bm, "del geom=%fvef context=%i", ELE_DEL, DEL_ONLYTAGGED);
 
-	V_FREE(edges);
-	V_FREE(loops);
+	BLI_array_free(edges);
+	BLI_array_free(loops);
 }
 
 static int vergaverco(const void *e1, const void *e2)
@@ -331,7 +332,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 	BMWalker walker;
 	BMIter iter;
 	BMEdge *e, **edges = NULL;
-	V_DECLARE(edges);
+	BLI_array_declare(edges);
 	float min[3], max[3];
 	int i, tot;
 	
@@ -346,11 +347,11 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 			continue;
 
 		e = BMW_Begin(&walker, e->v1);
-		V_RESET(edges);
+		BLI_array_empty(edges);
 
 		INIT_MINMAX(min, max);
 		for (tot=0; e; tot++, e=BMW_Step(&walker)) {
-			V_GROW(edges);
+			BLI_array_growone(edges);
 			edges[tot] = e;
 
 			DO_MINMAX(e->v1->co, min, max);
@@ -376,7 +377,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 	BMO_Finish_Op(bm, &weldop);
 
 	BMW_End(&walker);
-	V_FREE(edges);
+	BLI_array_free(edges);
 }
 
 /*uv collapse function*/
@@ -387,7 +388,7 @@ void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	BMLoop *l, *l2;
 	BMWalker walker;
 	void **blocks = NULL;
-	V_DECLARE(blocks);
+	BLI_array_declare(blocks);
 	CDBlockBytes min, max;
 	int i, tot, type = bm->ldata.layers[layer].type;
 
@@ -400,13 +401,13 @@ void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (BMO_TestFlag(bm, l->e, EDGE_MARK)) {
 				/*walk*/
-				V_RESET(blocks);
+				BLI_array_empty(blocks);
 				tot = 0;
 				l2 = BMW_Begin(&walker, l);
 
 				CustomData_data_initminmax(type, &min, &max);
 				for (tot=0; l2; tot++, l2=BMW_Step(&walker)) {
-					V_GROW(blocks);
+					BLI_array_growone(blocks);
 					blocks[tot] = CustomData_bmesh_get_layer_n(&bm->ldata, l2->head.data, layer);
 					CustomData_data_dominmax(type, blocks[tot], &min, &max);
 				}
@@ -426,7 +427,7 @@ void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	}
 
 	BMW_End(&walker);
-	V_FREE(blocks);
+	BLI_array_free(blocks);
 }
 
 void bmesh_collapsecon_exec(BMesh *bm, BMOperator *op)
@@ -445,7 +446,7 @@ void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 	BMOIter oiter;
 	BMVert *v, *v2;
 	BMVert **verts=NULL;
-	V_DECLARE(verts);
+	BLI_array_declare(verts);
 	float dist, distsqr;
 	int i, j, len;
 
@@ -456,14 +457,14 @@ void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 	
 	i = 0;
 	BMO_ITER(v, &oiter, bm, op, "verts", BM_VERT) {
-		V_GROW(verts);
+		BLI_array_growone(verts);
 		verts[i++] = v;
 	}
 
 	/*sort by vertex coordinates added together*/
-	qsort(verts, V_COUNT(verts), sizeof(void*), vergaverco);
+	qsort(verts, BLI_array_count(verts), sizeof(void*), vergaverco);
 	
-	len = V_COUNT(verts);
+	len = BLI_array_count(verts);
 	for (i=0; i<len; i++) {
 		v = verts[i];
 		if (BMO_TestFlag(bm, v, VERT_TESTED)) continue;
@@ -490,7 +491,7 @@ void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	V_FREE(verts);
+	BLI_array_free(verts);
 
 	BMO_Exec_Op(bm, &weldop);
 	BMO_Finish_Op(bm, &weldop);
@@ -502,7 +503,7 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 	BMOIter oiter;
 	BMVert *v, *v2;
 	BMVert **verts=NULL;
-	V_DECLARE(verts);
+	BLI_array_declare(verts);
 	float dist, distsqr;
 	int i, j, len, keepvert;
 
@@ -511,18 +512,18 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 
 	i = 0;
 	BMO_ITER(v, &oiter, bm, op, "verts", BM_VERT) {
-		V_GROW(verts);
+		BLI_array_growone(verts);
 		verts[i++] = v;
 	}
 
 	keepvert = BMO_IterNew(&oiter, bm, op, "keepverts", BM_VERT) != NULL;
 
 	/*sort by vertex coordinates added together*/
-	qsort(verts, V_COUNT(verts), sizeof(void*), vergaverco);
+	qsort(verts, BLI_array_count(verts), sizeof(void*), vergaverco);
 	
 	BMO_Flag_Buffer(bm, op, "keepverts", VERT_KEEP, BM_VERT);
 
-	len = V_COUNT(verts);
+	len = BLI_array_count(verts);
 	for (i=0; i<len; i++) {
 		v = verts[i];
 		if (BMO_TestFlag(bm, v, VERT_DOUBLE)) continue;
@@ -546,5 +547,5 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	V_FREE(verts);
+	BLI_array_free(verts);
 }

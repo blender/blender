@@ -60,6 +60,7 @@
 #include "BLI_memarena.h"
 #include "BLI_edgehash.h"
 #include "PIL_time.h"
+#include "BLI_array.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -583,7 +584,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 	int edgeBase, faceBase;
 	int i, j, k, S, x, y, index;
 	int *vertIdx = NULL;
-	V_DECLARE(vertIdx);
+	BLI_array_declare(vertIdx);
 	CCVertIterator *vi;
 	CCEdgeIterator *ei;
 	CCFaceIterator *fi;
@@ -595,7 +596,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 	MEdge *med;
 	float *w = NULL;
 	WeightTable wtable;
-	V_DECLARE(w);
+	BLI_array_declare(w);
 	MFace *mf;
 	int *origIndex;
 
@@ -658,11 +659,11 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 		int x, y, S, numVerts = CCS_getFaceNumVerts(f);
 		FaceVertWeight *weight = 0;//get_ss_weights(&wtable, gridFaces-1, numVerts);
 
-		V_RESET(vertIdx);
+		BLI_array_empty(vertIdx);
 
 		for(S = 0; S < numVerts; S++) {
 			CCVert *v = CCS_getFaceVert(ss, f, S);
-			V_GROW(vertIdx);
+			BLI_array_growone(vertIdx);
 
 			vertIdx[S] = GET_INT_FROM_POINTER(CCS_getVertVertHandle(v));
 		}
@@ -676,9 +677,9 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 		++origIndex;
 		i++;
 
-		V_RESET(w);
+		BLI_array_empty(w);
 		for (x=0; x<numVerts; x++) {
-			V_GROW(w);
+			BLI_array_growone(w);
 		}
 
 		for(S = 0; S < numVerts; S++) {
@@ -705,9 +706,9 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 			}
 		}
 		
-		V_RESET(w);
+		BLI_array_empty(w);
 		for (x=0; x<numVerts; x++) {
-			V_GROW(w);
+			BLI_array_growone(w);
 		}
 
 		for(S = 0; S < numVerts; S++) {
@@ -934,7 +935,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 
 	free_ss_weights(&wtable);
 
-	V_FREE(vertIdx);
+	BLI_array_free(vertIdx);
 
 	if(useSubsurfUv) {
 		CustomData *fdata = &result->faceData;
@@ -949,7 +950,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 	CDDM_calc_normals(result);
 	CDDM_tessfaces_to_faces(result);
 	
-	V_FREE(w);
+	BLI_array_free(w);
 	return result;
 #endif
 }
@@ -959,7 +960,7 @@ static void ss_sync_from_derivedmesh(CSubSurf *ss, DerivedMesh *dm,
 {
 	float creaseFactor = (float) CCS_getSubdivisionLevels(ss);
 	CCVertHDL *fVerts = NULL;
-	V_DECLARE(fVerts);
+	BLI_array_declare(fVerts);
 	int totvert = dm->getNumVerts(dm);
 	int totedge = dm->getNumEdges(dm);
 	int totface = dm->getNumTessFaces(dm);
@@ -1009,14 +1010,14 @@ static void ss_sync_from_derivedmesh(CSubSurf *ss, DerivedMesh *dm,
 	fiter = dm->newFaceIter(dm);
 	for (i=0; !fiter->done; fiter->step(fiter), i++) {
 		CCFace *f;
-		V_RESET(fVerts);
+		BLI_array_empty(fVerts);
 
 		index = (int*) fiter->getCDData(fiter, CD_ORIGINDEX, -1);
 		liter = fiter->getLoopsIter(fiter);
 
 		for (; !liter->done; liter->step(liter)) {
-			V_GROW(fVerts);
-			fVerts[V_COUNT(fVerts)-1] = SET_INT_IN_POINTER(liter->vindex);
+			BLI_array_growone(fVerts);
+			fVerts[BLI_array_count(fVerts)-1] = SET_INT_IN_POINTER(liter->vindex);
 		}
 
 		/* this is very bad, means mesh is internally inconsistent.
@@ -1043,7 +1044,7 @@ static void ss_sync_from_derivedmesh(CSubSurf *ss, DerivedMesh *dm,
 
 	CCS_processSync(ss);
 
-	V_FREE(fVerts);
+	BLI_array_free(fVerts);
 }
 
 /***/
@@ -2629,8 +2630,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	int *edgeFlags;
 	char *faceFlags, *polyFlags;
 	int *loopidx = NULL, *vertidx = NULL;
-	V_DECLARE(loopidx);
-	V_DECLARE(vertidx);
+	BLI_array_declare(loopidx);
+	BLI_array_declare(vertidx);
 	int loopindex, loopindex2;
 	int edgeSize;
 	int gridSize;
@@ -2800,17 +2801,17 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 		/* set the face base vert */
 		*((int*)CCS_getFaceUserData(ss, f)) = vertNum;
 
-		V_RESET(loopidx);		
+		BLI_array_empty(loopidx);		
 		for (s=0; s<numVerts; s++) {
-			V_GROW(loopidx);
+			BLI_array_growone(loopidx);
 			loopidx[s] = loopindex++;
 		}
 		
-		V_RESET(vertidx);
+		BLI_array_empty(vertidx);
 		for(s = 0; s < numVerts; s++) {
 			CCVert *v = CCS_getFaceVert(ss, f, s);
 			
-			V_GROW(vertidx);
+			BLI_array_growone(vertidx);
 			vertidx[s] = GET_INT_FROM_POINTER(CCS_getVertVertHandle(v));
 		}
 		
@@ -2978,8 +2979,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	cgdm->dm.numLoopData = loopindex2;
 	cgdm->dm.numPolyData = faceNum;
 
-	V_FREE(vertidx);
-	V_FREE(loopidx);
+	BLI_array_free(vertidx);
+	BLI_array_free(loopidx);
 	free_ss_weights(&wtable);
 
 	cgdm->ehash = BLI_edgehash_new();
@@ -3005,7 +3006,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 		*((int*)CCS_getFaceUserData(ss, f)) = vertNum;
 		for(S = 0; S < numVerts; S++) {
 			CCVert *v = CCS_getFaceVert(ss, f, S);
-			V_GROW(vertIdx);
+			BLI_array_growone(vertIdx);
 
 			vertIdx[S] = GET_INT_FROM_POINTER(CCS_getVertVertHandle(v));
 		}
@@ -3177,7 +3178,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	MEM_freeN(qweight);
 	MEM_freeN(tweight);
 
-	V_FREE(vertIdx);
+	BLI_array_free(vertIdx);
 #endif
 	return cgdm;
 }

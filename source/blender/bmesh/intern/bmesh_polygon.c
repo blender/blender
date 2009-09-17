@@ -6,6 +6,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_array.h"
 
 #include "MEM_guardedalloc.h"
 

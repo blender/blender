@@ -5,6 +5,7 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
+#include "BLI_array.h"
 
 #include "DNA_object_types.h"
 
@@ -236,7 +237,7 @@ v3---------v2
 v4---v0---v1
 
 */
-static void q_1edge_split(BMesh *bm, BMFace *face,
+static void quad_1edge_split(BMesh *bm, BMFace *face,
 			  BMVert **verts, subdparams *params) {
 	BMFace *nf;
 	int i, add, numcuts = params->numcuts;
@@ -265,9 +266,9 @@ static void q_1edge_split(BMesh *bm, BMFace *face,
 	}
 }
 
-subdpattern q_1edge = {
+subdpattern quad_1edge = {
 	{1, 0, 0, 0},
-	q_1edge_split,
+	quad_1edge_split,
 	4,
 };
 
@@ -281,7 +282,7 @@ v6--------v5
 v7-v0--v1-v2
 
 */
-static void q_2edge_split_tess(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_2edge_split_path(BMesh *bm, BMFace *face, BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
@@ -294,9 +295,9 @@ static void q_2edge_split_tess(BMesh *bm, BMFace *face, BMVert **verts,
 	connect_smallest_face(bm, verts[numcuts*2+3], verts[numcuts*2+1], &nf);
 }
 
-subdpattern q_2edge_path = {
+subdpattern quad_2edge_path = {
 	{1, 1, 0, 0},
-	q_2edge_split_tess,
+	quad_2edge_split_path,
 	4,
 };
 
@@ -309,7 +310,7 @@ v6--------v5
 v7-v0--v1-v2
 
 */
-static void q_2edge_split_innervert(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_2edge_split_innervert(BMesh *bm, BMFace *face, BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
@@ -331,9 +332,9 @@ static void q_2edge_split_innervert(BMesh *bm, BMFace *face, BMVert **verts,
 	connect_smallest_face(bm, lastv, verts[numcuts*2+2], &nf);	
 }
 
-subdpattern q_2edge_innervert = {
+subdpattern quad_2edge_innervert = {
 	{1, 1, 0, 0},
-	q_2edge_split_innervert,
+	quad_2edge_split_innervert,
 	4,
 };
 
@@ -346,7 +347,7 @@ v6--------v5
 v7-v0--v1-v2
 
 */
-static void q_2edge_split_fan(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_2edge_split_fan(BMesh *bm, BMFace *face, BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
@@ -363,9 +364,9 @@ static void q_2edge_split_fan(BMesh *bm, BMFace *face, BMVert **verts,
 	}
 }
 
-subdpattern q_2edge_fan = {
+subdpattern quad_2edge_fan = {
 	{1, 1, 0, 0},
-	q_2edge_split_fan,
+	quad_2edge_split_fan,
 	4,
 };
 
@@ -379,7 +380,7 @@ v8--v7--v6-v5
 v9-v0--v1-v2
 
 */
-static void q_3edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_3edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
@@ -403,9 +404,9 @@ static void q_3edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 	}
 }
 
-subdpattern q_3edge = {
+subdpattern quad_3edge = {
 	{1, 1, 1, 0},
-	q_3edge_split,
+	quad_3edge_split,
 	4,
 };
 
@@ -420,7 +421,7 @@ first line |          |   last line
 
 	   it goes from bottom up
 */
-static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_4edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
@@ -494,7 +495,7 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 v4--v0--v1--v2
     s    s
 */
-static void t_1edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
+static void tri_1edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
@@ -505,9 +506,9 @@ static void t_1edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 	}
 }
 
-subdpattern t_1edge = {
+subdpattern tri_1edge = {
 	{1, 0, 0},
-	t_1edge_split,
+	tri_1edge_split,
 	3,
 };
 
@@ -520,7 +521,7 @@ sv7/---v---\ v3 s
  v8--v0--v1--v2
     s    s
 */
-static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
+static void tri_3edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
@@ -601,16 +602,16 @@ cleanup:
 	MEM_freeN(lines);
 }
 
-subdpattern t_3edge = {
+subdpattern tri_3edge = {
 	{1, 1, 1},
-	t_3edge_split,
+	tri_3edge_subdivide,
 	3,
 };
 
 
-subdpattern q_4edge = {
+subdpattern quad_4edge = {
 	{1, 1, 1, 1},
-	q_4edge_split,
+	quad_4edge_subdivide,
 	4,
 };
 
@@ -619,7 +620,7 @@ subdpattern *patterns[] = {
 	NULL, //quad corner vert pattern is inserted here
 	NULL, //tri single edge pattern is inserted here
 	NULL,
-	&q_3edge,
+	&quad_3edge,
 	NULL,
 };
 
@@ -634,19 +635,19 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *einput;
 	BMEdge *edge, **edges = NULL;
-	V_DECLARE(edges);
+	BLI_array_declare(edges);
 	BMFace *face;
 	BMLoop *nl;
 	BMVert **verts = NULL;
-	V_DECLARE(verts);
+	BLI_array_declare(verts);
 	BMIter fiter, liter;
 	subdpattern *pat;
 	subdparams params;
 	subd_facedata *facedata = NULL;
-	V_DECLARE(facedata);
+	BLI_array_declare(facedata);
 	BMLoop *l, **splits = NULL, **loops = NULL;
-	V_DECLARE(splits);
-	V_DECLARE(loops);
+	BLI_array_declare(splits);
+	BLI_array_declare(loops);
 	float smooth, fractal;
 	int beauty, cornertype, singleedge, gridfill;
 	int i, j, matched, a, b, numcuts, totesel;
@@ -665,27 +666,27 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	//straight cut is patterns[1] == NULL
 	switch (cornertype) {
 		case SUBD_PATH:
-			patterns[1] = &q_2edge_path;
+			patterns[1] = &quad_2edge_path;
 			break;
 		case SUBD_INNERVERT:
-			patterns[1] = &q_2edge_innervert;
+			patterns[1] = &quad_2edge_innervert;
 			break;
 		case SUBD_FAN:
-			patterns[1] = &q_2edge_fan;
+			patterns[1] = &quad_2edge_fan;
 			break;
 	}
 	
 	if (singleedge) {
-		patterns[0] = &q_1edge;
-		patterns[2] = &t_1edge;
+		patterns[0] = &quad_1edge;
+		patterns[2] = &tri_1edge;
 	} else {
 		patterns[0] = NULL;
 		patterns[2] = NULL;
 	}
 
 	if (gridfill) {
-		patterns[3] = &q_4edge;
-		patterns[5] = &t_3edge;
+		patterns[3] = &quad_4edge;
+		patterns[5] = &tri_3edge;
 	} else {
 		patterns[3] = NULL;
 		patterns[5] = NULL;
@@ -714,16 +715,16 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 		/*figure out which pattern to use*/
 
-		V_RESET(edges);
-		V_RESET(verts);
+		BLI_array_empty(edges);
+		BLI_array_empty(verts);
 		matched = 0;
 
 		i = 0;
 		totesel = 0;
 		for (nl=BMIter_New(&liter, bmesh, BM_LOOPS_OF_FACE, face);
 		     nl; nl=BMIter_Step(&liter)) {
-			V_GROW(edges);
-			V_GROW(verts);
+			BLI_array_growone(edges);
+			BLI_array_growone(verts);
 			edges[i] = nl->e;
 			verts[i] = nl->v;
 
@@ -767,8 +768,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 					}
 				}
 				if (matched) {
-					V_GROW(facedata);
-					b = V_COUNT(facedata)-1;
+					BLI_array_growone(facedata);
+					b = BLI_array_count(facedata)-1;
 					facedata[b].pat = pat;
 					facedata[b].start = verts[i];
 					BMO_SetFlag(bmesh, face, SUBD_SPLIT);
@@ -777,7 +778,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			}
 			if (!matched) {
 				/*if no match, append null element to array.*/
-				V_GROW(facedata);
+				BLI_array_growone(facedata);
 			}
 
 			/*obvously don't test for other patterns matching*/
@@ -802,8 +803,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 					if (matched) break;
 				}
 				if (matched) {
-					V_GROW(facedata);
-					j = V_COUNT(facedata) - 1;
+					BLI_array_growone(facedata);
+					j = BLI_array_count(facedata) - 1;
 
 					BMO_SetFlag(bmesh, face, SUBD_SPLIT);
 
@@ -816,8 +817,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		}
 		
 		if (!matched && totesel) {
-			V_GROW(facedata);
-			j = V_COUNT(facedata) - 1;
+			BLI_array_growone(facedata);
+			j = BLI_array_count(facedata) - 1;
 			
 			BMO_SetFlag(bmesh, face, SUBD_SPLIT);
 			facedata[j].totedgesel = totesel;
@@ -833,14 +834,14 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		//BM_Split_Edge_Multi(bmesh, edge, numcuts);
 	}
 
-	//if (facedata) V_FREE(facedata);
+	//if (facedata) BLI_array_free(facedata);
 	//return;
 
 	i = 0;
 	for (face=BMIter_New(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
 	     face; face=BMIter_Step(&fiter)) {
 		/*figure out which pattern to use*/
-		V_RESET(verts);
+		BLI_array_empty(verts);
 		if (BMO_TestFlag(bmesh, face, SUBD_SPLIT) == 0)
 			continue;
 
@@ -849,16 +850,16 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			BMFace *nf;
 			int vlen;
 			
-			V_RESET(loops);
-			V_RESET(splits);
+			BLI_array_empty(loops);
+			BLI_array_empty(splits);
 
 			/*for case of two edges, connecting them shouldn't be too hard*/
 			BM_ITER(l, &liter, bmesh, BM_LOOPS_OF_FACE, face) {
-				V_GROW(loops);
-				loops[V_COUNT(loops)-1] = l;
+				BLI_array_growone(loops);
+				loops[BLI_array_count(loops)-1] = l;
 			}
 			
-			vlen = V_COUNT(loops);
+			vlen = BLI_array_count(loops);
 
 			/*find the boundary of one of the split edges*/
 			for (a=1; a<vlen; a++) {
@@ -882,19 +883,19 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			b += numcuts - 1;
 
 			for (j=0; j<numcuts; j++) {
-				V_GROW(splits);
-				splits[V_COUNT(splits)-1] = loops[a];
+				BLI_array_growone(splits);
+				splits[BLI_array_count(splits)-1] = loops[a];
 				
-				V_GROW(splits);
-				splits[V_COUNT(splits)-1] = loops[b];
+				BLI_array_growone(splits);
+				splits[BLI_array_count(splits)-1] = loops[b];
 
 				b = (b-1) % vlen;
 				a = (a+1) % vlen;
 			}
 			
-			//BM_LegalSplits(bmesh, face, splits, V_COUNT(splits)/2);
+			//BM_LegalSplits(bmesh, face, splits, BLI_array_count(splits)/2);
 
-			for (j=0; j<V_COUNT(splits)/2; j++) {
+			for (j=0; j<BLI_array_count(splits)/2; j++) {
 				if (splits[j*2]) {
 					BMFace *nf;
 
@@ -920,7 +921,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		}
 
 		for (j=0; j<face->len; j++) {
-			V_GROW(verts);
+			BLI_array_growone(verts);
 		}
 		
 		j = 0;
@@ -935,11 +936,11 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		i++;
 	}
 
-	if (facedata) V_FREE(facedata);
-	if (edges) V_FREE(edges);
-	if (verts) V_FREE(verts);
-	V_FREE(splits);
-	V_FREE(loops);
+	if (facedata) BLI_array_free(facedata);
+	if (edges) BLI_array_free(edges);
+	if (verts) BLI_array_free(verts);
+	BLI_array_free(splits);
+	BLI_array_free(loops);
 
 	BMO_Flag_To_Slot(bmesh, op, "outinner",
 		         ELE_INNER, BM_ALL);
