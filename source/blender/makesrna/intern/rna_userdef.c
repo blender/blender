@@ -109,11 +109,6 @@ static PointerRNA rna_UserDef_edit_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesEdit, ptr->data);
 }
 
-static PointerRNA rna_UserDef_language_get(PointerRNA *ptr)
-{
-	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesLanguage, ptr->data);
-}
-
 static PointerRNA rna_UserDef_filepaths_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesFilePaths, ptr->data);
@@ -2120,11 +2115,83 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{USER_DRAW_OVERLAP, "OVERLAP", 0, "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
 		{USER_DRAW_FULL, "FULL", 0, "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
 		{0, NULL, 0, NULL, NULL}};
+		
+		/* hardcoded here, could become dynamic somehow */
+	static EnumPropertyItem language_items[] = {
+		{0, "ENGLISH", 0, "English", ""},
+		{1, "JAPANESE", 0, "Japanese", ""},
+		{2, "DUTCH", 0, "Dutch", ""},
+		{3, "ITALIAN", 0, "Italian", ""},
+		{4, "GERMAN", 0, "German", ""},
+		{5, "FINNISH", 0, "Finnish", ""},
+		{6, "SWEDISH", 0, "Swedish", ""},
+		{7, "FRENCH", 0, "French", ""},
+		{8, "SPANISH", 0, "Spanish", ""},
+		{9, "CATALAN", 0, "Catalan", ""},
+		{10, "CZECH", 0, "Czech", ""},
+		{11, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese", ""},
+		{12, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese", ""},
+		{13, "RUSSIAN", 0, "Russian", ""},
+		{14, "CROATIAN", 0, "Croatian", ""},
+		{15, "SERBIAN", 0, "Serbian", ""},
+		{16, "UKRAINIAN", 0, "Ukrainian", ""},
+		{17, "POLISH", 0, "Polish", ""},
+		{18, "ROMANIAN", 0, "Romanian", ""},
+		{19, "ARABIC", 0, "Arabic", ""},
+		{20, "BULGARIAN", 0, "Bulgarian", ""},
+		{21, "GREEK", 0, "Greek", ""},
+		{22, "KOREAN", 0, "Korean", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
 	RNA_def_struct_ui_text(srna, "System & OpenGL", "Graphics driver and operating system settings.");
+
+	/* Language */
+	
+	prop= RNA_def_property(srna, "international_fonts", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_DOTRANSLATE);
+	RNA_def_property_ui_text(prop, "International Fonts", "Use international fonts.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "dpi");
+	RNA_def_property_range(prop, 48, 128);
+	RNA_def_property_ui_text(prop, "DPI", "Font size and resolution for display.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "scrollback", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "scrollback");
+	RNA_def_property_range(prop, 32, 32768);
+	RNA_def_property_ui_text(prop, "Scrollback", "Maximum number of lines to store for the console buffer.");
+
+	/* Language Selection */
+
+	prop= RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, language_items);
+	RNA_def_property_ui_text(prop, "Language", "Language use for translation.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "translate_tooltips", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_TOOLTIPS);
+	RNA_def_property_ui_text(prop, "Translate Tooltips", "Translate Tooltips.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "translate_buttons", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_BUTTONS);
+	RNA_def_property_ui_text(prop, "Translate Buttons", "Translate button labels.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "translate_toolbox", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_MENUS);
+	RNA_def_property_ui_text(prop, "Translate Toolbox", "Translate toolbox menu.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "use_textured_fonts", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_USETEXTUREFONT);
+	RNA_def_property_ui_text(prop, "Textured Fonts", "Use textures for drawing international fonts.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* System & OpenGL */
 
@@ -2173,14 +2240,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "game_sound", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_SOUND);
 	RNA_def_property_ui_text(prop, "Game Sound", "Enables sounds to be played in games.");
-
-	prop= RNA_def_property(srna, "filter_file_extensions", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_FILTERFILEEXTS);
-	RNA_def_property_ui_text(prop, "Filter File Extensions", "Display only files with extensions in the image select window.");
-
-	prop= RNA_def_property(srna, "hide_dot_files_datablocks", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_DOT);
-	RNA_def_property_ui_text(prop, "Hide Dot Files/Datablocks", "Hide files/datablocks that start with a dot(.*)");
 
 	prop= RNA_def_property(srna, "clip_alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "glalphaclip");
@@ -2261,7 +2320,15 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
 	RNA_def_struct_ui_text(srna, "File Paths", "Default paths for external files.");
-
+	
+	prop= RNA_def_property(srna, "hide_dot_files_datablocks", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_DOT);
+	RNA_def_property_ui_text(prop, "Hide Dot Files/Datablocks", "Hide files/datablocks that start with a dot(.*)");
+	
+	prop= RNA_def_property(srna, "filter_file_extensions", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_FILTERFILEEXTS);
+	RNA_def_property_ui_text(prop, "Filter File Extensions", "Display only files with extensions in the image select window.");
+	
 	prop= RNA_def_property(srna, "use_relative_paths", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELPATHS);
 	RNA_def_property_ui_text(prop, "Relative Paths", "Default relative path option for the file selector.");
@@ -2340,10 +2407,9 @@ void RNA_def_userdef(BlenderRNA *brna)
 	static EnumPropertyItem user_pref_sections[] = {
 		{0, "VIEW_CONTROLS", 0, "View", ""},
 		{1, "EDIT_METHODS", 0, "Editing", ""},
-		{2, "LANGUAGE_COLORS", 0, "Language", ""},
+		{2, "FILE_PATHS", 0, "File", ""},
 		{3, "SYSTEM_OPENGL", 0, "System", ""},
-		{4, "FILE_PATHS", 0, "File", ""},
-		{5, "THEMES", 0, "Themes", ""},
+//		{4, "THEMES", 0, "Themes", ""}, // Leave this out until we figure out a way to manage themes in the prefs.
 		{0, NULL, 0, NULL, NULL}};
 
 	rna_def_userdef_dothemes(brna);
@@ -2381,12 +2447,6 @@ void RNA_def_userdef(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Edit Methods", "Settings for interacting with Blender data.");
 	
-	prop= RNA_def_property(srna, "language", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "UserPreferencesLanguage");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_language_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Language & Font", "User interface translation settings.");
-	
 	prop= RNA_def_property(srna, "filepaths", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesFilePaths");
@@ -2401,7 +2461,6 @@ void RNA_def_userdef(BlenderRNA *brna)
 	
 	rna_def_userdef_view(brna);
 	rna_def_userdef_edit(brna);
-	rna_def_userdef_language(brna);
 	rna_def_userdef_filepaths(brna);
 	rna_def_userdef_system(brna);
 	

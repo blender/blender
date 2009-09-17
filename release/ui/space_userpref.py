@@ -1,4 +1,4 @@
-
+ 
 import bpy
 
 class USERPREF_HT_header(bpy.types.Header):
@@ -195,7 +195,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub1 = sub.column()
 		sub1.itemL(text="Keyframing:")
 		sub1.itemR(edit, "use_visual_keying")
-		sub1.itemR(edit, "new_interpolation_type")
+		sub1.itemR(edit, "new_interpolation_type", text="New F-Curves")
 		sub1.itemS()
 		sub1.itemR(edit, "auto_keying_enable", text="Auto Keyframing")
 		sub2 = sub1.column()
@@ -203,13 +203,16 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub2.row().itemR(edit, "auto_keying_mode", expand=True)
 		sub2.itemR(edit, "auto_keyframe_insert_available", text="Only Insert Available")
 		sub2.itemR(edit, "auto_keyframe_insert_needed", text="Only Insert Needed")
+		
 		sub1.itemS()
 		sub1.itemS()
 		sub1.itemS()
+		
 		sub1.itemL(text="Undo:")
 		sub1.itemR(edit, "global_undo")
 		sub1.itemR(edit, "undo_steps", text="Steps")
 		sub1.itemR(edit, "undo_memory_limit", text="Memory Limit")
+		
 		sub1.itemS()
 		sub1.itemS()
 		sub1.itemS()
@@ -218,7 +221,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub = col.split(percentage=0.85)
 		
 		sub1 = sub.column()
-		sub1.itemL(text="Duplicate:")
+		sub1.itemL(text="Duplicate Data:")
 		sub1.itemR(edit, "duplicate_mesh", text="Mesh")
 		sub1.itemR(edit, "duplicate_surface", text="Surface")
 		sub1.itemR(edit, "duplicate_curve", text="Curve")
@@ -246,63 +249,64 @@ class USERPREF_PT_system(bpy.types.Panel):
 		
 		userpref = context.user_preferences
 		system = userpref.system
-		lan = userpref.language
 		
 		split = layout.split()
 		
 		col = split.column()
-		sub = col.split(percentage=0.85)
+		sub = col.split(percentage=0.9)
 		
 		sub1 = sub.column()
-		sub1.itemR(system, "emulate_numpad")	
-		sub1.itemS()
-		sub1.itemS()
-		
-		#Weight Colors
-		sub1.itemL(text="Weight Colors:")
-		sub1.itemR(system, "use_weight_color_range", text="Use Custom Range")
-		
-		sub2 = sub1.column()
-		sub2.active = system.use_weight_color_range
-		sub2.template_color_ramp(system, "weight_color_range", expand=True)
-		sub1.itemS()
-		sub1.itemS()
-		
-		#sequencer
-		sub1.itemL(text="Sequencer:")
-		sub1.itemR(system, "prefetch_frames")
-		sub1.itemR(system, "memory_cache_limit")
-		
-		col = split.column()	
-		sub = col.split(percentage=0.85)
-		
-		sub1 = sub .column()
-		#System
-		sub1.itemL(text="System:")
-		sub1.itemR(lan, "dpi")
-		sub1.itemR(system, "auto_run_python_scripts")
+		sub1.itemL(text="General:")
+		sub1.itemR(system, "dpi")
 		sub1.itemR(system, "frame_server_port")
-		sub1.itemR(system, "filter_file_extensions")
-		sub1.itemR(system, "hide_dot_files_datablocks")
-		sub1.itemR(lan, "scrollback", text="Console Scrollback")
+		sub1.itemR(system, "scrollback", text="Console Scrollback")
+		sub1.itemR(system, "emulate_numpad")
+		sub1.itemR(system, "auto_run_python_scripts")
+		
 		sub1.itemS()
 		sub1.itemS()
+		sub1.itemS()
+		
 		sub1.itemL(text="Sound:")
-		sub1.itemR(system, "audio_device")
+		sub1.row().itemR(system, "audio_device", expand=True)
 		sub2 = sub1.column()
 		sub2.active = system.audio_device != 'AUDIO_DEVICE_NULL'
 		sub2.itemR(system, "enable_all_codecs")
 		sub2.itemR(system, "game_sound")
-		sub2.itemR(system, "audio_channels")
-		sub2.itemR(system, "audio_mixing_buffer")
-		sub2.itemR(system, "audio_sample_rate")
-		sub2.itemR(system, "audio_sample_format")
+		sub2.itemR(system, "audio_channels", text="Channels")
+		sub2.itemR(system, "audio_mixing_buffer", text="Mixing Buffer")
+		sub2.itemR(system, "audio_sample_rate", text="Sample Rate")
+		sub2.itemR(system, "audio_sample_format", text="Sample Format")
+		
+		col = split.column()	
+		sub = col.split(percentage=0.9)
+		
+		sub1 = sub .column()
+		sub1.itemL(text="Weight Colors:")
+		sub1.itemR(system, "use_weight_color_range", text="Use Custom Range")
+		sub2 = sub1.column()
+		sub2.active = system.use_weight_color_range
+		sub2.template_color_ramp(system, "weight_color_range", expand=True)
+		
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		
+		sub1.itemR(system, "language")
+		sub1.itemL(text="Translate:")
+		sub1.itemR(system, "translate_tooltips", text="Tooltips")
+		sub1.itemR(system, "translate_buttons", text="Labels")
+		sub1.itemR(system, "translate_toolbox", text="Toolbox")
+		
+		sub1.itemS()
+		
+		sub1.itemR(system, "use_textured_fonts")
 		
 		col = split.column()
-		sub = col.split(percentage=0.85)
+		sub = col.split(percentage=0.9)
 		
 		sub1 = sub.column()
-		#OpenGL
+
 		sub1.itemL(text="OpenGL:")
 		sub1.itemR(system, "clip_alpha", slider=True)
 		sub1.itemR(system, "use_mipmaps")
@@ -311,7 +315,15 @@ class USERPREF_PT_system(bpy.types.Panel):
 		sub1.itemL(text="Textures:")
 		sub1.itemR(system, "gl_texture_limit", text="Limit Size")
 		sub1.itemR(system, "texture_time_out", text="Time Out")
-		sub1.itemR(system, "texture_collection_rate", text="Collection Rate")		
+		sub1.itemR(system, "texture_collection_rate", text="Collection Rate")
+		
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		
+		sub1.itemL(text="Sequencer:")
+		sub1.itemR(system, "prefetch_frames")
+		sub1.itemR(system, "memory_cache_limit")
 		
 class USERPREF_PT_filepaths(bpy.types.Panel):
 	__space_type__ = 'USER_PREFERENCES'
@@ -328,7 +340,7 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		userpref = context.user_preferences
 		paths = userpref.filepaths
 		
-		split = layout.split()
+		split = layout.split(percentage=0.6)
 		
 		col = split.column()
 		col.itemL(text="File Paths:")
@@ -366,6 +378,8 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub2.itemR(paths, "use_relative_paths")
 		sub2.itemR(paths, "compress_file")
 		sub2.itemR(paths, "load_ui")
+		sub2.itemR(paths, "filter_file_extensions")
+		sub2.itemR(paths, "hide_dot_files_datablocks")
 		sub2.itemS()
 		sub2.itemS()
 		sub2.itemL(text="Auto Save:")
@@ -377,36 +391,6 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub3.enabled = paths.auto_save_temporary_files
 		sub3.itemR(paths, "auto_save_time", text="Timer (mins)")
 
-class USERPREF_PT_language(bpy.types.Panel):
-	__space_type__ = 'USER_PREFERENCES'
-	__label__ = "Language"
-	__show_header__ = False
-
-	def poll(self, context):
-		userpref = context.user_preferences
-		return (userpref.active_section == 'LANGUAGE_COLORS')
-
-	def draw(self, context):
-		layout = self.layout
-		
-		userpref = context.user_preferences
-		lan = userpref.language
-		
-		split = layout.split()
-		col = split.column()
-		
-		col.itemR(lan, "language")
-		col.itemL(text="Translate:")
-		col.itemR(lan, "translate_tooltips", text="Tooltips")
-		col.itemR(lan, "translate_buttons", text="Labels")
-		col.itemR(lan, "translate_toolbox", text="Toolbox")
-		col.itemS()
-		col.itemS()
-		col.itemR(lan, "use_textured_fonts")
-		
-		col = split.column()
-		
-
 bpy.types.register(USERPREF_HT_header)
 bpy.types.register(USERPREF_MT_view)
 bpy.types.register(USERPREF_PT_tabs)
@@ -414,5 +398,4 @@ bpy.types.register(USERPREF_PT_view)
 bpy.types.register(USERPREF_PT_edit)
 bpy.types.register(USERPREF_PT_system)
 bpy.types.register(USERPREF_PT_filepaths)
-bpy.types.register(USERPREF_PT_language)
 
