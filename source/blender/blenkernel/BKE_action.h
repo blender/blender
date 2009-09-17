@@ -51,7 +51,7 @@ struct ID;
 extern "C" {
 #endif
 
-/* Action API ----------------- */
+/* Action Lib Stuff ----------------- */
 
 /* Allocate a new bAction with the given name */
 struct bAction *add_empty_action(const char name[]);
@@ -65,6 +65,31 @@ void free_action(struct bAction *act);
 // XXX is this needed?
 void make_local_action(struct bAction *act);
 
+
+/* Action API ----------------- */
+
+/* types of transforms applied to the given item 
+ * 	- these are the return falgs for action_get_item_transforms()
+ */
+typedef enum eAction_TransformFlags {
+		/* location */
+	ACT_TRANS_LOC	= (1<<0),
+		/* rotation */
+	ACT_TRANS_ROT	= (1<<1),
+		/* scaling */
+	ACT_TRANS_SCALE	= (1<<2),
+		
+		/* all flags */
+	ACT_TRANS_ALL	= (ACT_TRANS_LOC|ACT_TRANS_ROT|ACT_TRANS_SCALE),
+} eAction_TransformFlags;
+
+/* Return flags indicating which transforms the given object/posechannel has 
+ *	- if 'curves' is provided, a list of links to these curves are also returned
+ *	  whose nodes WILL NEED FREEING
+ */
+short action_get_item_transforms(struct bAction *act, struct Object *ob, struct bPoseChannel *pchan, ListBase *curves);
+
+
 /* Some kind of bounding box operation on the action */
 void calc_action_range(const struct bAction *act, float *start, float *end, short incl_modifiers);
 
@@ -72,6 +97,9 @@ void calc_action_range(const struct bAction *act, float *start, float *end, shor
 short action_has_motion(const struct bAction *act);
 
 /* Action Groups API ----------------- */
+
+/* Get the active action-group for an Action */
+struct bActionGroup *get_active_actiongroup(struct bAction *act);
 
 /* Make the given Action Group the active one */
 void set_active_action_group(struct bAction *act, struct bActionGroup *agrp, short select);

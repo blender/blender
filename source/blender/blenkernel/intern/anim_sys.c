@@ -1485,7 +1485,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	}
 	
 	/* nodes */
-	// TODO...
+	EVAL_ANIM_IDS(main->nodetree.first, ADT_RECALC_ANIM);
 	
 	/* textures */
 	EVAL_ANIM_IDS(main->tex.first, ADT_RECALC_ANIM);

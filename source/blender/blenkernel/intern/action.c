@@ -212,9 +212,10 @@ bAction *copy_action (bAction *src)
 	return dst;
 }
 
+/* *************** Action Groups *************** */
 
 /* Get the active action-group for an Action */
-static bActionGroup *get_active_actiongroup (bAction *act)
+bActionGroup *get_active_actiongroup (bAction *act)
 {
 	bActionGroup *agrp= NULL;
 	
@@ -404,7 +405,7 @@ bActionGroup *action_groups_find_named (bAction *act, const char name[])
 	return NULL;
 }
 
-/* ************************ Pose channels *************** */
+/* *************** Pose channels *************** */
 
 /* usually used within a loop, so we got a N^2 slowdown */
 bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
@@ -818,7 +819,7 @@ void pose_remove_group (Object *ob)
 	}
 }
 
-/* ************** time ****************** */
+/* ************** F-Curve Utilities for Actions ****************** */
 
 /* Check if the given action has any keyframes */
 short action_has_motion(const bAction *act)
@@ -915,6 +916,99 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 		*end= 1.0f;
 	}
 }
+
+
+/* Return flags indicating which transforms the given object/posechannel has 
+ *	- if 'curves' is provided, a list of links to these curves are also returned
+ */
+short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan, ListBase *curves)
+{
+	PointerRNA ptr;
+	FCurve *fcu;
+	char *basePath=NULL;
+	short flags=0;
+	
+	/* build PointerRNA from provided data to obtain the paths to use */
+	if (pchan)
+		RNA_pointer_create((ID *)ob, &RNA_PoseChannel, pchan, &ptr);
+	else if (ob)
+		RNA_id_pointer_create((ID *)ob, &ptr);
+	else	
+		return 0;
+		
+	/* get the basic path to the properties of interest */
+	basePath= RNA_path_from_ID_to_struct(&ptr);
+	if (basePath == NULL)
+		return 0;
+		
+	/* search F-Curves for the given properties 
+	 *	- we cannot use the groups, since they may not be grouped in that way...
+	 */
+	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+		char *bPtr=NULL, *pPtr=NULL;
+		
+		/* if enough flags have been found, we can stop checking unless we're also getting the curves */
+		if ((flags == ACT_TRANS_ALL) && (curves == NULL))
+			break;
+			
+		/* just in case... */
+		if (fcu->rna_path == NULL)
+			continue;
+		
+		/* step 1: check for matching base path */
+		bPtr= strstr(fcu->rna_path, basePath);
+		
+		if (bPtr) {
+			/* step 2: check for some property with transforms 
+			 *	- to speed things up, only check for the ones not yet found 
+			 * 	  unless we're getting the curves too
+			 *	- if we're getting the curves, the BLI_genericNodeN() creates a LinkData
+			 *	  node wrapping the F-Curve, which then gets added to the list
+			 *	- once a match has been found, the curve cannot possibly be any other one
+			 */
+			if ((curves) || (flags & ACT_TRANS_LOC) == 0) {
+				pPtr= strstr(fcu->rna_path, "location");
+				if ((pPtr) && (pPtr >= bPtr)) {
+					flags |= ACT_TRANS_LOC;
+					
+					if (curves) 
+						BLI_addtail(curves, BLI_genericNodeN(fcu));
+					continue;
+				}
+			}
+			
+			if ((curves) || (flags & ACT_TRANS_SCALE) == 0) {
+				pPtr= strstr(fcu->rna_path, "scale");
+				if ((pPtr) && (pPtr >= bPtr)) {
+					flags |= ACT_TRANS_SCALE;
+					
+					if (curves) 
+						BLI_addtail(curves, BLI_genericNodeN(fcu));
+					continue;
+				}
+			}
+			
+			if ((curves) || (flags & ACT_TRANS_ROT) == 0) {
+				pPtr= strstr(fcu->rna_path, "rotation");
+				if ((pPtr) && (pPtr >= bPtr)) {
+					flags |= ACT_TRANS_ROT;
+					
+					if (curves) 
+						BLI_addtail(curves, BLI_genericNodeN(fcu));
+					continue;
+				}
+			}
+		}
+	}
+	
+	/* free basePath */
+	MEM_freeN(basePath);
+	
+	/* return flags found */
+	return flags;
+}
+
+/* ************** Pose Management Tools ****************** */
 
 /* Copy the data from the action-pose (src) into the pose */
 /* both args are assumed to be valid */

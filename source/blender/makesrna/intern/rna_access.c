@@ -2387,12 +2387,11 @@ char *RNA_path_back(const char *path)
 	return result;
 }
 
-char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 {
-	char *ptrpath=NULL, *path;
-	const char *propname;
+	char *ptrpath=NULL;
 
-	if(!ptr->id.data || !ptr->data || !prop)
+	if(!ptr->id.data || !ptr->data)
 		return NULL;
 	
 	if(!RNA_struct_is_ID(ptr->type)) {
@@ -2418,6 +2417,20 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		else
 			return NULL;
 	}
+	
+	return ptrpath;
+}
+
+char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+{
+	const char *propname;
+	char *ptrpath, *path;
+
+	if(!ptr->id.data || !ptr->data || !prop)
+		return NULL;
+	
+	/* path from ID to the struct holding this property */
+	ptrpath= RNA_path_from_ID_to_struct(ptr);
 
 	propname= RNA_property_identifier(prop);
 
