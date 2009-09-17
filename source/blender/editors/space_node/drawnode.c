@@ -1409,27 +1409,19 @@ static void node_composit_buts_tonemap(uiLayout *layout, PointerRNA *ptr)
 /* qdn: lens distortion node */
 static void node_composit_buts_lensdist(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiLayout *row, *col;
+	
 	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
 	NodeLensDist *nld = node->storage;
-	short dy = butr->ymin + 19, dx = butr->xmax - butr->xmin; 
-	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG, B_NODE_EXEC, "Projector",
-			  butr->xmin, dy, dx, 19,
-			  &nld->proj, 0, 0, 0, 0,
-			  "Enable/disable projector mode, effect is applied in horizontal direction only");
+
+	col= uiLayoutColumn(layout, 1);
+	
+	uiItemR(col, NULL, 0, ptr, "projector", UI_ITEM_R_TOGGLE);
 	if (!nld->proj) {
-		uiDefButS(block, TOG, B_NODE_EXEC, "Jitter",
-				  butr->xmin, dy-19, dx/2, 19,
-				  &nld->jit, 0, 0, 0, 0,
-				  "Enable/disable jittering, faster, but also noisier");
-		uiDefButS(block, TOG, B_NODE_EXEC, "Fit",
-				  butr->xmin+dx/2, dy-19, dx/2, 19,
-				  &nld->fit, 0, 0, 0, 0,
-				  "For positive distortion factor only, scale image such that black areas are not visible");
+		row= uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "jitter", UI_ITEM_R_TOGGLE);
+		uiItemR(row, NULL, 0, ptr, "fit", UI_ITEM_R_TOGGLE);
 	}
-	uiBlockEndAlign(block);
 }
 
 
@@ -1454,59 +1446,24 @@ static void node_composit_buts_filter(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_flip(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	uiBut *bt;
-	
-	/* flip x\y */
-	bt=uiDefButS(block, MENU, B_NODE_EXEC, "Flip X %x0|Flip Y %x1|Flip X & Y %x2",
-				 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-				 &node->custom1, 0, 0, 0, 0, "");
-	uiButSetFunc(bt, node_but_title_cb, node, bt);
+	uiItemR(layout, "", 0, ptr, "axis", 0);
 }
 
 static void node_composit_buts_crop(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeTwoXYs *ntxy= node->storage;
-	char elementheight = 19;
-	short dx= (butr->xmax-butr->xmin)/2;
-	short dy= butr->ymax - elementheight;
-	short xymin= 0, xymax= 10000;
-
-	uiBlockBeginAlign(block);
-
-	/* crop image size toggle */
-	uiDefButS(block, TOG, B_NODE_EXEC, "Crop Image Size",
-			  butr->xmin, dy, dx*2, elementheight, 
-			  &node->custom1, 0, 0, 0, 0, "Crop the size of the input image.");
-
-	dy-=elementheight;
-
-	/* x1 */
-	uiDefButS(block, NUM, B_NODE_EXEC, "X1:",
-				 butr->xmin, dy, dx, elementheight,
-				 &ntxy->x1, xymin, xymax, 0, 0, "");
-	/* y1 */
-	uiDefButS(block, NUM, B_NODE_EXEC, "Y1:",
-				 butr->xmin+dx, dy, dx, elementheight,
-				 &ntxy->y1, xymin, xymax, 0, 0, "");
-
-	dy-=elementheight;
-
-	/* x2 */
-	uiDefButS(block, NUM, B_NODE_EXEC, "X2:",
-				 butr->xmin, dy, dx, elementheight,
-				 &ntxy->x2, xymin, xymax, 0, 0, "");
-	/* y2 */
-	uiDefButS(block, NUM, B_NODE_EXEC, "Y2:",
-				 butr->xmin+dx, dy, dx, elementheight,
-				 &ntxy->y2, xymin, xymax, 0, 0, "");
-
-	uiBlockEndAlign(block);
+	uiLayout *row, *col;
+	
+	col= uiLayoutColumn(layout, 1);
+	
+	uiItemR(col, NULL, 0, ptr, "crop_size", UI_ITEM_R_TOGGLE);
+	
+	row= uiLayoutRow(col, 0);
+	uiItemR(row, NULL, 0, ptr, "x1", 0);
+	uiItemR(row, NULL, 0, ptr, "y1", 0);
+	
+	row= uiLayoutRow(col, 0);
+	uiItemR(row, NULL, 0, ptr, "x2", 0);
+	uiItemR(row, NULL, 0, ptr, "y2", 0);
 }
 
 static void node_composit_buts_splitviewer(uiLayout *layout, PointerRNA *ptr)
@@ -1791,13 +1748,7 @@ static void node_composit_buts_luma_matte(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_map_uv(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-
-	uiDefButS(block, NUM, B_NODE_EXEC, "Alpha:",
-			  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-			  &node->custom1, 0, 100, 0, 0, "Conversion percentage of UV differences to Alpha");
+	uiItemR(layout, NULL, 0, ptr, "alpha", 0);
 }
 
 static void node_composit_buts_id_mask(uiLayout *layout, PointerRNA *ptr)

@@ -1089,8 +1089,7 @@ static void def_cmp_id_mask(StructRNA *srna)
 static void def_cmp_map_uv(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
-	/* TODO: percentage */
+
 	prop = RNA_def_property(srna, "alpha", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "custom1");
 	RNA_def_property_range(prop, 0, 100);
@@ -1509,8 +1508,6 @@ static void def_cmp_lensdist(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "proj", 1);
 	RNA_def_property_ui_text(prop, "Projector", "Enable/disable projector mode. Effect is applied in horizontal direction only.");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
-	
-	/* TODO: if proj mode is off { */
 	
 	prop = RNA_def_property(srna, "jitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "jit", 1);
