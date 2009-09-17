@@ -3911,7 +3911,6 @@ static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ParticleEditSettings *pset=PE_settings(scene);
-	PTCacheEdit *edit = PE_get_current(scene, CTX_data_active_object(C));
 	uiPopupMenu *pup;
 	uiLayout *layout;
 

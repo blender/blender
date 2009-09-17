@@ -122,7 +122,6 @@ static int get_current_display_percentage(ParticleSystem *psys)
 
 void psys_reset(ParticleSystem *psys, int mode)
 {
-	ParticleSettings *part= psys->part;
 	PARTICLE_P;
 
 	if(ELEM(mode, PSYS_RESET_ALL, PSYS_RESET_DEPSGRAPH)) {

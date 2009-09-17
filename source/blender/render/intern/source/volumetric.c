@@ -422,7 +422,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	float hitco[3], *atten_co;
 	float p;
 	float scatter_fac;
-	float shade_stepsize = vol_get_stepsize(shi, STEPSIZE_SHADE);
 	
 	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
@@ -683,7 +682,6 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	float hitco[3];
 	float tr[3] = {1.0,1.0,1.0};
 	Isect is;
-	float shade_stepsize = vol_get_stepsize(shi, STEPSIZE_SHADE);
 	float *startco, *endco;
 	float density=0.f;
 

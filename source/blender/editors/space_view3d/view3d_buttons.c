@@ -476,6 +476,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 	}
 }
 
+#if 0
 /* assumes armature active */
 static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
 {
@@ -494,10 +495,10 @@ static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
 		ED_armature_bone_rename(ob->data, oldname, newname); // editarmature.c
 	}
 }
+#endif
 
 static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float lim)
 {
-	uiBut *but;
 	bArmature *arm;
 	bPoseChannel *pchan;
 	Bone *bone= NULL;
@@ -586,7 +587,6 @@ static void v3d_editarmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 {
 	bArmature *arm= ob->data;
 	EditBone *ebone;
-	uiBut *but;
 	TransformProperties *tfp= v3d->properties_storage;
 	
 	ebone= arm->edbo->first;

@@ -1026,6 +1026,7 @@ static void berekeny (float f1, float f2, float f3, float f4, float *o, int b)
 	}
 }
 
+#if 0
 static void berekenx (float *f, float *o, int b)
 {
 	float t, c0, c1, c2, c3;
@@ -1041,6 +1042,7 @@ static void berekenx (float *f, float *o, int b)
 		o[a]= c0 + t*c1 + t*t*c2 + t*t*t*c3;
 	}
 }
+#endif
 
 
 /* -------------------------- */

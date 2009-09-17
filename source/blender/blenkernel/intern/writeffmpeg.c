@@ -148,7 +148,7 @@ static int write_audio_frame(void)
 #else
 	pkt.pts = c->coded_frame->pts;
 #endif
-	fprintf(stderr, "Audio Frame PTS: %lld\n", pkt.pts);
+	fprintf(stderr, "Audio Frame PTS: %d\n", (int)pkt.pts);
 
 	pkt.stream_index = audio_stream->index;
 	pkt.flags |= PKT_FLAG_KEY;
@@ -265,7 +265,7 @@ static void write_video_frame(RenderData *rd, AVFrame* frame)
 #else
 			packet.pts = c->coded_frame->pts;
 #endif
-			fprintf(stderr, "Video Frame PTS: %lld\n", packet.pts);
+			fprintf(stderr, "Video Frame PTS: %d\n", (int)packet.pts);
 		} else {
 			fprintf(stderr, "Video Frame PTS: not set\n");
 		}

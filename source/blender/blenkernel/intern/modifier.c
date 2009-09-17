@@ -8503,6 +8503,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = smoothModifier_initData;
 		mti->copyData = smoothModifier_copyData;
 		mti->requiredDataMask = smoothModifier_requiredDataMask;
+		mti->isDisabled = smoothModifier_isDisabled;
 		mti->deformVerts = smoothModifier_deformVerts;
 		mti->deformVertsEM = smoothModifier_deformVertsEM;
 
@@ -8513,6 +8514,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = castModifier_initData;
 		mti->copyData = castModifier_copyData;
 		mti->requiredDataMask = castModifier_requiredDataMask;
+		mti->isDisabled = castModifier_isDisabled;
 		mti->foreachObjectLink = castModifier_foreachObjectLink;
 		mti->updateDepgraph = castModifier_updateDepgraph;
 		mti->deformVerts = castModifier_deformVerts;
@@ -9135,19 +9137,6 @@ int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 	for (md=ob->modifiers.first; (md && md_seek!=md); md=md->next, i++);
 	if (!md) return -1; /* modifier isnt in the object */
 	return i;
-}
-
-static int modifiers_usesPointCache(Object *ob)
-{
-	ModifierData *md = ob->modifiers.first;
-
-	for (; md; md=md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		if (mti->flags & eModifierTypeFlag_UsesPointCache) {
-			return 1;
-		}
-	}
-	return 0;
 }
 
 void modifier_freeTemporaryData(ModifierData *md)

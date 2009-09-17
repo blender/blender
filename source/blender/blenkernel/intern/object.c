@@ -2562,7 +2562,7 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 static int pc_cmp(void *a, void *b)
 {
 	LinkData *ad = a, *bd = b;
-	if((int)ad->data > (int)bd->data)
+	if(GET_INT_FROM_POINTER(ad->data) > GET_INT_FROM_POINTER(bd->data))
 		return 1;
 	else return 0;
 }
@@ -2576,14 +2576,14 @@ int object_insert_ptcache(Object *ob)
 
 	for(link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
 	{
-		int index =(int)link->data;
+		int index = GET_INT_FROM_POINTER(link->data);
 
 		if(i < index)
 			break;
 	}
 
 	link = MEM_callocN(sizeof(LinkData), "PCLink");
-	link->data = (void *)i;
+	link->data = SET_INT_IN_POINTER(i);
 	BLI_addtail(&ob->pc_ids, link);
 
 	return i;

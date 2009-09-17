@@ -482,11 +482,10 @@ int removedoublesflag(EditMesh *em, short flag, short automerge, float limit)		/
 static int removedoublesflag_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	char msg[100];
+	/*char msg[100];
 
-	int cnt = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));
+	int cnt = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));*/
 
 	/*XXX this messes up last operator panel
 	if(cnt)

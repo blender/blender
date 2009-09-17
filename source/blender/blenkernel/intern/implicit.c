@@ -496,6 +496,7 @@ DO_INLINE void mulsub_fmatrix_fvector(float to[3], float matrix[3][3], float fro
 // SPARSE SYMMETRIC big matrix with 3x3 matrix entries
 ///////////////////////////
 /* printf a big matrix on console: for debug output */
+#if 0
 static void print_bfmatrix(fmatrix3x3 *m3)
 {
 	unsigned int i = 0;
@@ -505,6 +506,8 @@ static void print_bfmatrix(fmatrix3x3 *m3)
 		print_fmatrix(m3[i].m);
 	}
 }
+#endif
+
 /* create big matrix */
 DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 {
@@ -1417,7 +1420,6 @@ static void hair_velocity_smoothing(float smoothfac, lfVector *lF, lfVector *lX,
 	int	i = 0;
 	int	j = 0;
 	int	k = 0;
-	lfVector temp;
 
 	INIT_MINMAX(gmin, gmax);
 

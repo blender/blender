@@ -129,7 +129,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	float (*edges)[2][3] = NULL;
 	V_DYNDECLARE(edges);
 	float co[2][3];
-	int looking=1, i, j=0, tot=0;
+	int looking=1, i, tot=0;
 	
 	if (!startedge)
 		return;
@@ -318,7 +318,6 @@ static int ringsel_cancel (bContext *C, wmOperator *op)
 
 static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	tringselOpData *lcd;
 	EditEdge *edge;
 	int dist = 75;
@@ -347,7 +346,6 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	tringselOpData *lcd;
 	EditEdge *edge;
 	int dist = 75;

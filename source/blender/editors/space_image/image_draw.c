@@ -541,7 +541,7 @@ void draw_image_grease_pencil(bContext *C, short onlyv2d)
 	}
 	else {
 		/* assume that UI_view2d_restore(C) has been called... */
-		SpaceImage *sima= (SpaceImage *)CTX_wm_space_data(C);
+		//SpaceImage *sima= (SpaceImage *)CTX_wm_space_data(C);
 		
 		/* draw grease-pencil ('screen' strokes) */
 		//if (sima->flag & SI_DISPGP)

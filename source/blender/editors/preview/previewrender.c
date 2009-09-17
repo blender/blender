@@ -635,7 +635,6 @@ void BIF_view3d_previewrender_clear(ScrArea *sa)
 /* afterqueue call */
 void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 {
-	bContext *C= NULL;
 	View3D *v3d= sa->spacedata.first;
 	RegionView3D *rv3d= NULL; // XXX
 	Render *re;

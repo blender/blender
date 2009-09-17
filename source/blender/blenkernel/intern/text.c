@@ -596,17 +596,15 @@ static TextLine *txt_new_line(char *str)
 	return tmp;
 }
 
-static TextLine *txt_new_linen(char *str, int n)
+static TextLine *txt_new_linen(const char *str, int n)
 {
 	TextLine *tmp;
 
-	if(!str) str= "";
-	
 	tmp= (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= MEM_mallocN(n+1, "textline_string");
 	tmp->format= NULL;
 	
-	BLI_strncpy(tmp->line, str, n+1);
+	BLI_strncpy(tmp->line, (str)? str: "", n+1);
 	
 	tmp->len= strlen(tmp->line);
 	tmp->next= tmp->prev= NULL;

@@ -81,7 +81,6 @@
 
 #include "RE_render_ext.h"
 
-static void key_from_object(Object *ob, ParticleKey *key);
 static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index,
 				float *fuv, float *orco, ParticleTexture *ptex,	int event);
 static void get_child_modifier_parameters(ParticleSettings *part, ParticleThreadContext *ctx,
@@ -3039,6 +3038,7 @@ void psys_key_to_object(Object *ob, ParticleKey *key, float imat[][4]){
 	VECSUB(key->vel,key->vel,key->co);
 	QuatMul(key->rot,q,key->rot);
 }
+#if 0
 static void key_from_object(Object *ob, ParticleKey *key){
 	float q[4];
 
@@ -3051,6 +3051,7 @@ static void key_from_object(Object *ob, ParticleKey *key){
 	VECSUB(key->vel,key->vel,key->co);
 	QuatMul(key->rot,q,key->rot);
 }
+#endif
 
 static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat[][4])
 {

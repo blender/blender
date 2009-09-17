@@ -323,6 +323,7 @@ static void rna_Pose_active_bone_group_index_range(PointerRNA *ptr, int *min, in
 	*max= MAX2(0, *max);
 }
 
+#if 0
 static void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int index)
 {
 	bPose *pose= (bPose*)ptr->data;
@@ -373,6 +374,7 @@ static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *r
 	
 	BLI_strncpy(result, "", maxlen);
 }
+#endif
 
 #else
 
