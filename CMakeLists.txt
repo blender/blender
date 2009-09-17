@@ -68,6 +68,7 @@ OPTION(WITH_OPENJPEG		"Enable OpenJpeg Support (http://www.openjpeg.org/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
 OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
+OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -139,6 +140,19 @@ IF(UNIX AND NOT APPLE)
     SET(SDL_INC ${SDL_INCLUDE_DIR})
     SET(SDL_LIB ${SDL_LIBRARY})
   ENDIF(WITH_SDL)
+
+  IF(WITH_OPENCOLLADA)
+    SET(OPENCOLLADA /usr/local/opencollada)
+    SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA})
+    SET(OPENCOLLADA_LIB OpenCollada)
+    SET(PCRE /usr)
+    SET(PCRE_LIBPATH ${PCRE}/lib)
+    SET(PCRE_LIB pcre)
+    SET(EXPAT /usr)
+    SET(EXPAT_LIBPATH ${EXPAT}/lib)
+    SET(EXPAT_LIB expat)
+
+  ENDIF(WITH_OPENCOLLADA)
 
   FIND_PATH(OPENEXR_INC
     ImfXdr.h
