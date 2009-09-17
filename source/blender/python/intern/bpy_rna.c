@@ -1994,8 +1994,10 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 
 	/* Check if we gave args that dont exist in the function
 	 * printing the error is slow but it should only happen when developing.
-	 * the if below is quick, checking if it passed less keyword args then we gave */
-	if(kw && (PyDict_Size(kw) > kw_tot)) {
+	 * the if below is quick, checking if it passed less keyword args then we gave.
+	 * (Dont overwrite the error if we have one, otherwise can skip important messages and confuse with args)
+	 */
+	if(err == 0 && kw && (PyDict_Size(kw) > kw_tot)) {
 		PyObject *key, *value;
 		Py_ssize_t pos = 0;
 

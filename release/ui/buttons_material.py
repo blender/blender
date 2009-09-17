@@ -65,8 +65,9 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 		elif mat:
 			split.template_ID(space, "pin_id")
 			split.itemS()
-
-		layout.itemR(mat, "type", expand=True)
+		
+		if mat:
+			layout.itemR(mat, "type", expand=True)
 	
 class MATERIAL_PT_shading(MaterialButtonsPanel):
 	__label__ = "Shading"

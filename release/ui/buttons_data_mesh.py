@@ -102,7 +102,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		kb = ob.active_shape_key
 
 		row = layout.row()
-		row.template_list(key, "keys", ob, "active_shape_key_index", rows=2)
+		if key: # XXX - looks crappy
+			row.template_list(key, "keys", ob, "active_shape_key_index", rows=2)
 
 		col = row.column()
 
