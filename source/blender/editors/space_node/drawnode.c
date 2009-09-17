@@ -1414,14 +1414,15 @@ static void node_composit_buts_lensdist(uiLayout *layout, PointerRNA *ptr)
 	bNode *node= ptr->data;
 	NodeLensDist *nld = node->storage;
 
-	col= uiLayoutColumn(layout, 1);
+	col= uiLayoutColumn(layout, 0);
 	
-	uiItemR(col, NULL, 0, ptr, "projector", UI_ITEM_R_TOGGLE);
+	uiItemR(col, NULL, 0, ptr, "projector", 0);
 	if (!nld->proj) {
-		row= uiLayoutRow(col, 0);
-		uiItemR(row, NULL, 0, ptr, "jitter", UI_ITEM_R_TOGGLE);
-		uiItemR(row, NULL, 0, ptr, "fit", UI_ITEM_R_TOGGLE);
+		col = uiLayoutColumn(col, 0);
+		uiItemR(col, NULL, 0, ptr, "jitter", 0);
+		uiItemR(col, NULL, 0, ptr, "fit", 0);
 	}
+//	uiLayoutSetActive(col, RNA_boolean_get(&imaptr, "projector"));
 }
 
 
@@ -1431,9 +1432,13 @@ static void node_composit_buts_vecblur(uiLayout *layout, PointerRNA *ptr)
 	
 	col= uiLayoutColumn(layout, 1);
 	uiItemR(col, NULL, 0, ptr, "samples", 0);
-	uiItemR(col, NULL, 0, ptr, "min_speed", 0);
-	uiItemR(col, NULL, 0, ptr, "max_speed", 0);
 	uiItemR(col, "Blur", 0, ptr, "factor", 0);
+	
+	col= uiLayoutColumn(layout, 1);
+	uiItemL(col, "Speed:", 0);
+	uiItemR(col, "Min", 0, ptr, "min_speed", 0);
+	uiItemR(col, "Max", 0, ptr, "max_speed", 0);
+	
 
 	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, NULL, 0, ptr, "curved", 0);
@@ -1455,15 +1460,13 @@ static void node_composit_buts_crop(uiLayout *layout, PointerRNA *ptr)
 	
 	col= uiLayoutColumn(layout, 1);
 	
-	uiItemR(col, NULL, 0, ptr, "crop_size", UI_ITEM_R_TOGGLE);
+	uiItemR(col, NULL, 0, ptr, "crop_size", 0);
 	
-	row= uiLayoutRow(col, 0);
-	uiItemR(row, NULL, 0, ptr, "x1", 0);
-	uiItemR(row, NULL, 0, ptr, "y1", 0);
-	
-	row= uiLayoutRow(col, 0);
-	uiItemR(row, NULL, 0, ptr, "x2", 0);
-	uiItemR(row, NULL, 0, ptr, "y2", 0);
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(row, "Left", 0, ptr, "x1", 0);
+	uiItemR(row, "Right", 0, ptr, "x2", 0);
+	uiItemR(row, "Up", 0, ptr, "y1", 0);
+	uiItemR(row, "Down", 0, ptr, "y2", 0);
 }
 
 static void node_composit_buts_splitviewer(uiLayout *layout, PointerRNA *ptr)

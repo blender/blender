@@ -211,7 +211,7 @@ static void rna_def_image(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_generated_type_items[]= {
 		{0, "BLANK", 0, "Blank", "Generate a blank image"},
-		{1, "UVTESTGRID", 0, "UV Test Grid", "Generated grid to test UV mappings"},
+		{1, "UVGRID", 0, "UV Grid", "Generated grid to test UV mappings"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_mapping_items[]= {
 		{0, "UV", 0, "UV Coordinates", "Use UV coordinates for mapping the image"},

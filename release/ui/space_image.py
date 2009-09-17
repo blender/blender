@@ -314,13 +314,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 		split = layout.split()
 
 		col = split.column()
-		col.itemR(ima, "clamp_x")
-		col.itemR(ima, "clamp_y")
-		col.itemR(ima, "mapping", expand=True)
-		col.itemR(ima, "tiles")
-
-		col = split.column()
-
+		
 		sub = col.column(align=True)
 		sub.itemR(ima, "animated")
 
@@ -329,11 +323,21 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 		subsub.itemR(ima, "animation_start", text="Start")
 		subsub.itemR(ima, "animation_end", text="End")
 		subsub.itemR(ima, "animation_speed", text="Speed")
-
-		sub = col.row(align=True)
+		
+		col.itemR(ima, "tiles")
+		sub = col.column(align=True)
 		sub.active = ima.tiles or ima.animated
 		sub.itemR(ima, "tiles_x", text="X")
 		sub.itemR(ima, "tiles_y", text="Y")
+	
+		col = split.column()
+		col.itemL(text="Clamp:")
+		col.itemR(ima, "clamp_x", text="X")
+		col.itemR(ima, "clamp_y", text="Y")
+		col.itemS()
+		col.itemR(ima, "mapping", expand=True)
+
+		
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
 	__space_type__ = 'IMAGE_EDITOR'
@@ -368,7 +372,9 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 			col.itemR(uvedit, "normalized_coordinates", text="Normalized")
 
 		if show_uvedit:
+			
 			col = layout.column()
+			col.itemL(text="UVs:")
 			row = col.row()
 			row.itemR(uvedit, "edge_draw_type", expand=True)
 			
