@@ -1066,11 +1066,10 @@ static void def_cmp_splitviewer(StructRNA *srna)
 	RNA_def_property_enum_items(prop, axis_items);
 	RNA_def_property_ui_text(prop, "Axis", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
-	
-	/* TODO: percentage */
-	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_PERCENTAGE);
-	RNA_def_property_float_sdna(prop, NULL, "custom1");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+
+	prop = RNA_def_property(srna, "factor", PROP_INT, PROP_PERCENTAGE);
+	RNA_def_property_int_sdna(prop, NULL, "custom1");
+	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Factor", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
@@ -1255,7 +1254,7 @@ static void def_cmp_dblur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "iter");
-	RNA_def_property_range(prop, 1, 128);
+	RNA_def_property_range(prop, 1, 32);
 	RNA_def_property_ui_text(prop, "Iterations", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 	
@@ -1356,12 +1355,12 @@ static void def_cmp_glare(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	/*static EnumPropertyItem quality_items[] = {
+	static EnumPropertyItem quality_items[] = {
 		{0, "HIGH",   0, "High",   ""},
 		{1, "MEDIUM", 0, "Medium", ""},
 		{2, "LOW",    0, "Low",    ""},
 		{0, NULL, 0, NULL, NULL}
-	};*/
+	};
 	
 	RNA_def_struct_sdna_from(srna, "NodeGlare", "storage");
 	
@@ -1373,7 +1372,7 @@ static void def_cmp_glare(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "quality", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "quality");
-	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_enum_items(prop, quality_items);
 	RNA_def_property_ui_text(prop, "Quality", "If not set to high quality, the effect will be applied to a low-res copy of the source image");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 	
@@ -1386,7 +1385,7 @@ static void def_cmp_glare(StructRNA *srna)
 	prop = RNA_def_property(srna, "color_modulation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colmod");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Color Modulation", "");
+	RNA_def_property_ui_text(prop, "Color Modulation", "Amount of Color Modulation, modulates colors of streaks and ghosts for a spectral dispersion effect");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "mix", PROP_FLOAT, PROP_NONE);
@@ -1451,8 +1450,6 @@ static void def_cmp_tonemap(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Tonemap Type", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 	
-	/* TODO: if type==0 { */
-	
 	prop = RNA_def_property(srna, "key", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "key");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -1470,8 +1467,6 @@ static void def_cmp_tonemap(StructRNA *srna)
 	RNA_def_property_range(prop, 0.001f, 3.0f);
 	RNA_def_property_ui_text(prop, "Gamma", "If not used, set to 1");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
-	
-	/* TODO: } else { */
 	
 	prop = RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "f");

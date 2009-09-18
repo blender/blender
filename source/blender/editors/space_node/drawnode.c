@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): David Millan Escriva, Juho Vepsäläinen, Bob Holcomb
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen, Bob Holcomb, Thomas Dinges
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1163,268 +1163,139 @@ static void node_composit_buts_blur(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_dblur(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeDBlurData *ndbd = node->storage;
-	short dy = butr->ymin + 171;
-	short dx = butr->xmax - butr->xmin;
-	short halfdx= (short)dx/2;
-
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_NODE_EXEC, "Iterations:",
-			butr->xmin, dy, dx, 19,
-			&ndbd->iter, 1, 32, 10, 0, "Amount of iterations");
-	uiDefButC(block, TOG, B_NODE_EXEC, "Wrap",
-			butr->xmin, dy-= 19, dx, 19, 
-			&ndbd->wrap, 0, 0, 0, 0, "Wrap blur");
-	uiBlockEndAlign(block);
-
-	dy-= 9;
-
-	uiDefBut(block, LABEL, B_NOP, "Center", butr->xmin, dy-= 19, dx, 19, NULL, 0.0f, 0.0f, 0, 0, "");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NODE_EXEC, "X:",
-			butr->xmin, dy-= 19, halfdx, 19,
-			&ndbd->center_x, 0.0f, 1.0f, 10, 0, "X center in percents");
-	uiDefButF(block, NUM, B_NODE_EXEC, "Y:",
-			butr->xmin+halfdx, dy, halfdx, 19,
-			&ndbd->center_y, 0.0f, 1.0f, 10, 0, "Y center in percents");
-	uiBlockEndAlign(block);
-
-	dy-= 9;
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NODE_EXEC, "Distance:",
-			butr->xmin, dy-= 19, dx, 19,
-			&ndbd->distance, -1.0f, 1.0f, 10, 0, "Amount of which the image moves");
-	uiDefButF(block, NUM, B_NODE_EXEC, "Angle:",
-			butr->xmin, dy-= 19, dx, 19,
-			&ndbd->angle, 0.0f, 360.0f, 1000, 0, "Angle in which the image will be moved");
-	uiBlockEndAlign(block);
-
-	dy-= 9;
-
-	uiDefButF(block, NUM, B_NODE_EXEC, "Spin:",
-			butr->xmin, dy-= 19, dx, 19,
-			&ndbd->spin, -360.0f, 360.0f, 1000, 0, "Angle that is used to spin the image");
-
-	dy-= 9;
-
-	uiDefButF(block, NUM, B_NODE_EXEC, "Zoom:",
-			butr->xmin, dy-= 19, dx, 19,
-			&ndbd->zoom, 0.0f, 100.0f, 100, 0, "Amount of which the image is zoomed");
+	uiLayout *row, *col;
+	
+	uiItemR(layout, NULL, 0, ptr, "iterations", 0);
+	uiItemR(layout, NULL, 0, ptr, "wrap", 0);
+	
+	col= uiLayoutColumn(layout, 1);
+	uiItemL(col, "Center:", 0);
+	
+	row= uiLayoutRow(col, 1);
+	uiItemR(row, "X:", 0, ptr, "center_x", 0);
+	uiItemR(row, "Y", 0, ptr, "center_y", 0);
+	
+	uiItemS(layout);
+	
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "distance", 0);
+	uiItemR(col, NULL, 0, ptr, "angle", 0);
+	
+	uiItemS(layout);
+	
+	uiItemR(layout, NULL, 0, ptr, "spin", 0);
+	uiItemR(layout, NULL, 0, ptr, "zoom", 0);
 }
 
 static void node_composit_buts_bilateralblur(uiLayout *layout, PointerRNA *ptr)
-{
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeBilateralBlurData *nbbd= node->storage;
-	short dy= butr->ymin+38;
-	short dx= (butr->xmax-butr->xmin);
+{	
+	uiLayout *col;
 	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_NODE_EXEC, "Iterations:",
-			 butr->xmin, dy, dx, 19, 
-			 &nbbd->iter, 1, 128, 0, 0, "Amount of iterations");
-	dy-=19;
-	uiDefButF(block, NUM, B_NODE_EXEC, "Color Sigma:",
-			  butr->xmin, dy, dx, 19, 
-			  &nbbd->sigma_color,0.01, 3, 10, 0, "Sigma value used to modify color");
-	dy-=19;
-	uiDefButF(block, NUM, B_NODE_EXEC, "Space Sigma:",
-			  butr->xmin, dy, dx, 19, 
-			  &nbbd->sigma_space ,0.01, 30, 10, 0, "Sigma value used to modify space");
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "iterations", 0);
+	uiItemR(col, NULL, 0, ptr, "sigma_color", 0);
+	uiItemR(col, NULL, 0, ptr, "sigma_space", 0);
 }
 
 /* qdn: defocus node */
 static void node_composit_buts_defocus(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeDefocus *nqd = node->storage;
-	short dy = butr->ymin + 209;
-	short dx = butr->xmax - butr->xmin; 
-	char* mstr1 = "Bokeh Type%t|Octagon %x8|Heptagon %x7|Hexagon %x6|Pentagon %x5|Square %x4|Triangle %x3|Disk %x0";
+	uiLayout *sub, *col;
+	
+	col= uiLayoutColumn(layout, 1);
+	uiItemL(col, "Bokeh Type:", 0);
+	uiItemR(col, "", 0, ptr, "bokeh", 0);
+	uiItemR(col, NULL, 0, ptr, "angle", 0);
 
-	uiDefBut(block, LABEL, B_NOP, "Bokeh Type", butr->xmin, dy, dx, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButC(block, MENU, B_NODE_EXEC, mstr1,
-			  butr->xmin, dy-19, dx, 19,
-			  &nqd->bktype, 0, 0, 0, 0, "Bokeh type");
-	if (nqd->bktype) { /* for some reason rotating a disk doesn't seem to work... ;) */
-		uiDefButC(block, NUM, B_NODE_EXEC, "Rotate:",
-				  butr->xmin, dy-38, dx, 19,
-				  &nqd->rotation, 0, 90, 0, 0, "Bokeh shape rotation offset in degrees");
-	}
-	uiDefButC(block, TOG, B_NODE_EXEC, "Gamma Correct",
-			  butr->xmin, dy-57, dx, 19,
-			  &nqd->gamco, 0, 0, 0, 0, "Enable gamma correction before and after main process");
-	if (nqd->no_zbuf==0) {
-		// only needed for zbuffer input
-		uiDefButF(block, NUM, B_NODE_EXEC, "fStop:",
-				  butr->xmin, dy-76, dx, 19,
-				  &nqd->fstop, 0.5, 128, 10, 0, "Amount of focal blur, 128=infinity=perfect focus, half the value doubles the blur radius");
-	}
-	uiDefButF(block, NUM, B_NODE_EXEC, "Maxblur:",
-			  butr->xmin, dy-95, dx, 19,
-			  &nqd->maxblur, 0, 10000, 1000, 0, "blur limit, maximum CoC radius, 0=no limit");
-	uiDefButF(block, NUM, B_NODE_EXEC, "BThreshold:",
-			  butr->xmin, dy-114, dx, 19,
-			  &nqd->bthresh, 0, 100, 100, 0, "CoC radius threshold, prevents background bleed on in-focus midground, 0=off");
-	uiDefButC(block, TOG, B_NODE_EXEC, "Preview",
-			  butr->xmin, dy-142, dx, 19,
-			  &nqd->preview, 0, 0, 0, 0, "Enable sampling mode, useful for preview when using low samplecounts");
-	if (nqd->preview) {
-		/* only visible when sampling mode enabled */
-		uiDefButS(block, NUM, B_NODE_EXEC, "Samples:",
-				  butr->xmin, dy-161, dx, 19,
-				  &nqd->samples, 16, 256, 0, 0, "Number of samples (16=grainy, higher=less noise)");
-	}
-	uiDefButS(block, TOG, B_NODE_EXEC, "No zbuffer",
-			  butr->xmin, dy-190, dx, 19,
-			  &nqd->no_zbuf, 0, 0, 0, 0, "Enable when using an image as input instead of actual zbuffer (auto enabled if node not image based, eg. time node)");
-	if (nqd->no_zbuf) {
-		uiDefButF(block, NUM, B_NODE_EXEC, "Zscale:",
-				butr->xmin, dy-209, dx, 19,
-				&nqd->scale, 0, 1000, 100, 0, "Scales the Z input when not using a zbuffer, controls maximum blur designated by the color white or input value 1");
-	}
+	uiItemR(layout, NULL, 0, ptr, "gamma_correction", 0);
+
+	col = uiLayoutColumn(layout, 0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer")==0);
+	uiItemR(col, NULL, 0, ptr, "f_stop", 0);
+
+	uiItemR(layout, NULL, 0, ptr, "max_blur", 0);
+	uiItemR(layout, NULL, 0, ptr, "threshold", 0);
+	
+	// Preview
+	col = uiLayoutColumn(layout, 0);
+	uiItemR(col, NULL, 0, ptr, "preview", 0);
+	sub = uiLayoutColumn(col, 0);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "preview"));
+	uiItemR(sub, NULL, 0, ptr, "samples", 0);
+	
+	// Z-Buffer
+	col = uiLayoutColumn(layout, 0);
+	uiItemR(col, NULL, 0, ptr, "use_zbuffer", 0);
+	sub = uiLayoutColumn(col, 0);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer"));
+	uiItemR(sub, NULL, 0, ptr, "z_scale", 0);
 }
-
 
 /* qdn: glare node */
 static void node_composit_buts_glare(uiLayout *layout, PointerRNA *ptr)
-{
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeGlare *ndg = node->storage;
-	short dy = butr->ymin + 152, dx = butr->xmax - butr->xmin; 
-	char* mn1 = "Type%t|Ghosts%x3|Streaks%x2|Fog Glow%x1|Simple Star%x0";
-	char* mn2 = "Quality/Speed%t|High/Slow%x0|Medium/Medium%x1|Low/Fast%x2";
-	uiDefButC(block, MENU, B_NODE_EXEC, mn1,
-			  butr->xmin, dy, dx, 19,
-			  &ndg->type, 0, 0, 0, 0, "Glow/Flare/Bloom type");
-	uiDefButC(block, MENU, B_NODE_EXEC, mn2,
-			  butr->xmin, dy-19, dx, 19,
-			  &ndg->quality, 0, 0, 0, 0,
-			  "Quality speed trade off, if not set to high quality, effect will be applied to low-res copy of source image");
-	if (ndg->type != 1) {
-		uiDefButC(block, NUM, B_NODE_EXEC, "Iterations:",
-				  butr->xmin, dy-38, dx, 19,
-				  &ndg->iter, 2, 5, 1, 0,
-				  "higher values will generate longer/more streaks/ghosts");
-		if (ndg->type != 0)
-			uiDefButF(block, NUM, B_NODE_EXEC, "ColMod:",
-					  butr->xmin, dy-57, dx, 19,
-					  &ndg->colmod, 0, 1, 10, 0,
-					  "Amount of Color Modulation, modulates colors of streaks and ghosts for a spectral dispersion effect");
+{	
+	uiItemR(layout, "", 0, ptr, "glare_type", 0);
+	uiItemR(layout, "", 0, ptr, "quality", 0);
+
+	if (RNA_enum_get(ptr, "glare_type")!= 1) {
+		uiItemR(layout, NULL, 0, ptr, "iterations", 0);
+	
+		if (RNA_enum_get(ptr, "glare_type")!= 0) 
+			uiItemR(layout, NULL, 0, ptr, "color_modulation", 0);
 	}
-	uiDefButF(block, NUM, B_NODE_EXEC, "Mix:",
-			  butr->xmin, dy-76, dx, 19,
-			  &ndg->mix, -1, 1, 10, 0,
-			  "Mix balance, -1 is original image only, 0 is exact 50/50 mix, 1 is processed image only");
-	uiDefButF(block, NUM, B_NODE_EXEC, "Threshold:",
-			  butr->xmin, dy-95, dx, 19,
-			  &ndg->threshold, 0, 1000, 10, 0,
-			  "Brightness threshold, the glarefilter will be applied only to pixels brighter than this value");
-	if ((ndg->type == 2) || (ndg->type == 0))
-	{
-		if (ndg->type == 2) {
-			uiDefButC(block, NUM, B_NODE_EXEC, "streaks:",
-					  butr->xmin, dy-114, dx, 19,
-					  &ndg->angle, 2, 16, 1000, 0,
-					  "Total number of streaks");
-			uiDefButC(block, NUM, B_NODE_EXEC, "AngOfs:",
-					  butr->xmin, dy-133, dx, 19,
-					  &ndg->angle_ofs, 0, 180, 1000, 0,
-					  "Streak angle rotation offset in degrees");
-		}
-		uiDefButF(block, NUM, B_NODE_EXEC, "Fade:",
-				  butr->xmin, dy-152, dx, 19,
-				  &ndg->fade, 0.75, 1, 5, 0,
-				  "Streak fade out factor");
+	
+	uiItemR(layout, NULL, 0, ptr, "mix", 0);		
+	uiItemR(layout, NULL, 0, ptr, "threshold", 0);
+
+	if (RNA_enum_get(ptr, "glare_type")== 2) {
+		uiItemR(layout, NULL, 0, ptr, "streaks", 0);		
+		uiItemR(layout, NULL, 0, ptr, "angle_offset", 0);
 	}
-	if (ndg->type == 0)
-		uiDefButC(block, TOG, B_NODE_EXEC, "Rot45",
-				  butr->xmin, dy-114, dx, 19,
-				  &ndg->angle, 0, 0, 0, 0,
-				  "simple star filter, add 45 degree rotation offset");
-	if ((ndg->type == 1) || (ndg->type > 3))	// PBGH and fog glow
-		uiDefButC(block, NUM, B_NODE_EXEC, "Size:",
-				  butr->xmin, dy-114, dx, 19,
-				  &ndg->size, 6, 9, 1000, 0,
-				  "glow/glare size (not actual size, relative to initial size of bright area of pixels)");
+	if (RNA_enum_get(ptr, "glare_type")== 0 || RNA_enum_get(ptr, "glare_type")== 2) {
+		uiItemR(layout, NULL, 0, ptr, "fade", 0);
+		
+		if (RNA_enum_get(ptr, "glare_type")== 0) 
+			uiItemR(layout, NULL, 0, ptr, "rotate_45", 0);
+	}
+	if (RNA_enum_get(ptr, "glare_type")== 1) {
+		uiItemR(layout, NULL, 0, ptr, "size", 0);
+	}
 }
 
 /* qdn: tonemap node */
 static void node_composit_buts_tonemap(uiLayout *layout, PointerRNA *ptr)
-{
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeTonemap *ntm = node->storage;
-	short dy = butr->ymin + 76, dx = butr->xmax - butr->xmin; 
-	char* mn = "Type%t|R/D Photoreceptor%x1|Rh Simple%x0";
-	
-	uiBlockBeginAlign(block);
-	uiDefButI(block, MENU, B_NODE_EXEC, mn,
-			  butr->xmin, dy, dx, 19,
-			  &ntm->type, 0, 0, 0, 0,
-			  "Tone mapping type");
-	if (ntm->type == 0) {
-		uiDefButF(block, NUM, B_NODE_EXEC, "Key:",
-				  butr->xmin, dy-19, dx, 19,
-				  &ntm->key, 0, 1, 5, 0,
-				  "The value the average luminance is mapped to");
-		uiDefButF(block, NUM, B_NODE_EXEC, "Offset:",
-				  butr->xmin, dy-38, dx, 19,
-				  &ntm->offset, 0.001, 10, 5, 0,
-				  "Tonemap offset, normally always 1, but can be used as an extra control to alter the brightness curve");
-		uiDefButF(block, NUM, B_NODE_EXEC, "Gamma:",
-				  butr->xmin, dy-57, dx, 19,
-				  &ntm->gamma, 0.001, 3, 5, 0,
-				  "Gamma factor, if not used, set to 1");
+{	
+	uiLayout *col;
+
+	col = uiLayoutColumn(layout, 1);
+	uiItemR(col, "", 0, ptr, "tonemap_type", 0);
+	if (RNA_enum_get(ptr, "tonemap_type")== 0) {
+		uiItemR(col, NULL, 0, ptr, "key", 0);
+		uiItemR(col, NULL, 0, ptr, "offset", 0);
+		uiItemR(col, NULL, 0, ptr, "gamma", 0);
 	}
 	else {
-		uiDefButF(block, NUM, B_NODE_EXEC, "Intensity:",
-				  butr->xmin, dy-19, dx, 19,
-				  &ntm->f, -8, 8, 10, 0, "if less than zero, darkens image, otherwise makes it brighter");
-		uiDefButF(block, NUM, B_NODE_EXEC, "Contrast:",
-				  butr->xmin, dy-38, dx, 19,
-				  &ntm->m, 0, 1, 5, 0, "Set to 0 to use estimate from input image");
-		uiDefButF(block, NUM, B_NODE_EXEC, "Adaptation:",
-				  butr->xmin, dy-57, dx, 19,
-				  &ntm->a, 0, 1, 5, 0, "if 0, global, if 1, based on pixel intensity");
-		uiDefButF(block, NUM, B_NODE_EXEC, "ColCorrect:",
-				  butr->xmin, dy-76, dx, 19,
-				  &ntm->c, 0, 1, 5, 0, "color correction, if 0, same for all channels, if 1, each independent");
+		uiItemR(col, NULL, 0, ptr, "intensity", 0);
+		uiItemR(col, NULL, 0, ptr, "contrast", 0);
+		uiItemR(col, NULL, 0, ptr, "adaptation", 0);
+		uiItemR(col, NULL, 0, ptr, "correction", 0);
 	}
-	uiBlockEndAlign(block);
 }
 
 /* qdn: lens distortion node */
 static void node_composit_buts_lensdist(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *col;
-	
-	bNode *node= ptr->data;
-	NodeLensDist *nld = node->storage;
 
 	col= uiLayoutColumn(layout, 0);
-	
 	uiItemR(col, NULL, 0, ptr, "projector", 0);
-	if (!nld->proj) {
-		col = uiLayoutColumn(col, 0);
-		uiItemR(col, NULL, 0, ptr, "jitter", 0);
-		uiItemR(col, NULL, 0, ptr, "fit", 0);
-	}
-//	uiLayoutSetActive(col, RNA_boolean_get(&imaptr, "projector"));
-}
 
+	col = uiLayoutColumn(col, 0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "projector")==0);
+	uiItemR(col, NULL, 0, ptr, "jitter", 0);
+	uiItemR(col, NULL, 0, ptr, "fit", 0);
+
+}
 
 static void node_composit_buts_vecblur(uiLayout *layout, PointerRNA *ptr)
 {
@@ -1438,10 +1309,8 @@ static void node_composit_buts_vecblur(uiLayout *layout, PointerRNA *ptr)
 	uiItemL(col, "Speed:", 0);
 	uiItemR(col, "Min", 0, ptr, "min_speed", 0);
 	uiItemR(col, "Max", 0, ptr, "max_speed", 0);
-	
 
-	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, NULL, 0, ptr, "curved", 0);
+	uiItemR(layout, NULL, 0, ptr, "curved", 0);
 }
 
 static void node_composit_buts_filter(uiLayout *layout, PointerRNA *ptr)
@@ -1458,9 +1327,7 @@ static void node_composit_buts_crop(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *col;
 	
-	col= uiLayoutColumn(layout, 1);
-	
-	uiItemR(col, NULL, 0, ptr, "crop_size", 0);
+	uiItemR(layout, NULL, 0, ptr, "crop_size", 0);
 	
 	col= uiLayoutColumn(layout, 1);
 	uiItemR(col, "Left", 0, ptr, "x1", 0);
@@ -1471,21 +1338,12 @@ static void node_composit_buts_crop(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_splitviewer(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-
-	uiBlockBeginAlign(block);
+	uiLayout *row, *col;
 	
-	uiDefButS(block, ROW, B_NODE_EXEC, "X",
-			  butr->xmin, butr->ymin+19, (butr->xmax-butr->xmin)/2, 20, 
-			  &node->custom2, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, ROW, B_NODE_EXEC, "Y",
-			  butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin+19, (butr->xmax-butr->xmin)/2, 20, 
-			  &node->custom2, 0.0, 1.0, 0, 0, "");
-			  
-	uiDefButS(block, NUMSLI, B_NODE_EXEC, "Split %: ",
-			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &node->custom1, 0, 100, 10, 0, "");
+	col= uiLayoutColumn(layout, 1);
+	row= uiLayoutRow(col, 0);
+	uiItemR(row, NULL, 0, ptr, "axis", UI_ITEM_R_EXPAND);
+	uiItemR(col, NULL, 0, ptr, "factor", 0);
 }
 
 static void node_composit_buts_map_value(uiLayout *layout, PointerRNA *ptr)
