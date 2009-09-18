@@ -414,6 +414,100 @@ static int ApplicationErrorHandler(Display *display, XErrorEvent *theEvent) {
 	return 0 ;
 }
 
+/* These C functions are copied from Wine 1.1.13's wintab.c */
+#define BOOL int
+#define TRUE 1
+#define FALSE 0
+
+static bool match_token(const char *haystack, const char *needle)
+{
+	const char *p, *q;
+	for (p = haystack; *p; )
+	{
+		while (*p && isspace(*p))
+			p++;
+		if (! *p)
+			break;
+
+		for (q = needle; *q && *p && tolower(*p) == tolower(*q); q++)
+			p++;
+		if (! *q && (isspace(*p) || !*p))
+			return TRUE;
+
+		while (*p && ! isspace(*p))
+			p++;
+	}
+	return FALSE;
+}
+
+/*	Determining if an X device is a Tablet style device is an imperfect science.
+**  We rely on common conventions around device names as well as the type reported
+**  by Wacom tablets.  This code will likely need to be expanded for alternate tablet types
+**
+**	Wintab refers to any device that interacts with the tablet as a cursor,
+**  (stylus, eraser, tablet mouse, airbrush, etc)
+**  this is not to be confused with wacom x11 configuration "cursor" device.
+**  Wacoms x11 config "cursor" refers to its device slot (which we mirror with
+**  our gSysCursors) for puck like devices (tablet mice essentially).
+*/
+
+static BOOL is_tablet_cursor(const char *name, const char *type)
+{
+	int i;
+	static const char *tablet_cursor_whitelist[] = {
+		"wacom",
+		"wizardpen",
+		"acecad",
+		"tablet",
+		"cursor",
+		"stylus",
+		"eraser",
+		"pad",
+		NULL
+	};
+
+	for (i=0; tablet_cursor_whitelist[i] != NULL; i++) {
+		if (name && match_token(name, tablet_cursor_whitelist[i]))
+			return TRUE;
+		if (type && match_token(type, tablet_cursor_whitelist[i]))
+			return TRUE;
+	}
+	return FALSE;
+}
+
+static BOOL is_stylus(const char *name, const char *type)
+{
+	int i;
+	static const char* tablet_stylus_whitelist[] = {
+		"stylus",
+		"wizardpen",
+		"acecad",
+		NULL
+	};
+
+	for (i=0; tablet_stylus_whitelist[i] != NULL; i++) {
+		if (name && match_token(name, tablet_stylus_whitelist[i]))
+			return TRUE;
+		if (type && match_token(type, tablet_stylus_whitelist[i]))
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+static BOOL is_eraser(const char *name, const char *type)
+{
+	if (name && match_token(name, "eraser"))
+		return TRUE;
+	if (type && match_token(type, "eraser"))
+		return TRUE;
+	return FALSE;
+}
+#undef BOOL
+#undef TRUE
+#undef FALSE
+/* end code copied from wine */
+
 void GHOST_WindowX11::initXInputDevices()
 {
 	static XErrorHandler old_handler = (XErrorHandler) 0 ;
@@ -423,28 +517,21 @@ void GHOST_WindowX11::initXInputDevices()
 		if(version->present) {
 			int device_count;
 			XDeviceInfo* device_info = XListInputDevices(m_display, &device_count);
-			m_xtablet.StylusDevice = 0;
-			m_xtablet.EraserDevice = 0;
+			m_xtablet.StylusDevice = NULL;
+			m_xtablet.EraserDevice = NULL;
 			m_xtablet.CommonData.Active= GHOST_kTabletModeNone;
 
 			/* Install our error handler to override Xlib's termination behavior */
 			old_handler = XSetErrorHandler(ApplicationErrorHandler) ;
 
 			for(int i=0; i<device_count; ++i) {
-				std::string type = "";
+				char *device_type = device_info[i].type ? XGetAtomName(m_display, device_info[i].type) : NULL;
 				
-				if(device_info[i].type) {
-					const char *orig = XGetAtomName(m_display, device_info[i].type);
-					// Make a copy so we can convert to lower case
-					if(orig) {
-						type = orig;
-						XFree((void*)orig);
-						std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-					}
-				}
+//				printf("Tablet type:'%s', name:'%s', index:%d\n", device_type, device_info[i].name, i);
 
 
-				if(type.find("stylus") != std::string::npos) {
+				if(m_xtablet.StylusDevice==NULL && is_stylus(device_info[i].name, device_type)) {
+//					printf("\tfound stylus\n");
 					m_xtablet.StylusID= device_info[i].id;
 					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
 
@@ -453,6 +540,7 @@ void GHOST_WindowX11::initXInputDevices()
 						XAnyClassPtr ici = device_info[i].inputclassinfo;
 						for(int j=0; j<m_xtablet.StylusDevice->num_classes; ++j) {
 							if(ici->c_class==ValuatorClass) {
+//								printf("\t\tfound ValuatorClass\n");
 								XValuatorInfo* xvi = (XValuatorInfo*)ici;
 								m_xtablet.PressureLevels = xvi->axes[2].max_value;
 							
@@ -469,10 +557,15 @@ void GHOST_WindowX11::initXInputDevices()
  						m_xtablet.StylusID= 0;
 					}
 				}
-				if(type.find("eraser") != std::string::npos) {
+				else if(m_xtablet.EraserDevice==NULL && is_eraser(device_info[i].name, device_type)) {
+//					printf("\tfound eraser\n");
 					m_xtablet.EraserID= device_info[i].id;
 					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
 					if (m_xtablet.EraserDevice == NULL) m_xtablet.EraserID= 0;
+				}
+
+				if(device_type) {
+					XFree((void*)device_type);
 				}
 			}
 
@@ -1124,6 +1217,13 @@ GHOST_WindowX11::
 	if (m_custom_cursor) {
 		XFreeCursor(m_display, m_custom_cursor);
 	}
+	
+	/* close tablet devices */
+	if(m_xtablet.StylusDevice)
+		XCloseDevice(m_display, m_xtablet.StylusDevice);
+	
+	if(m_xtablet.EraserDevice)
+		XCloseDevice(m_display, m_xtablet.EraserDevice);
 	
 	if (m_context) {
 		if (m_context == s_firstContext) {
