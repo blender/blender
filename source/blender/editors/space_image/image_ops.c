@@ -643,7 +643,7 @@ static int open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
-	char *path= (sima->image)? sima->image->name: U.textudir;
+	char *path= (sima && sima->image)? sima->image->name: U.textudir;
 
 	if(RNA_property_is_set(op->ptr, "path"))
 		return open_exec(C, op);
