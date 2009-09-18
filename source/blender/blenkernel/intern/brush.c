@@ -441,7 +441,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
 					VECCOPY(dstf, brush->rgb);
-					dstf[3]= brush_curve_strength(brush, dist, maxsize);
+					dstf[3]= brush->alpha*brush_curve_strength(brush, dist, maxsize);
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, dstf);
@@ -454,7 +454,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dstf[0] = rgba[0]*brush->rgb[0];
 					dstf[1] = rgba[1]*brush->rgb[1];
 					dstf[2] = rgba[2]*brush->rgb[2];
-					dstf[3] = rgba[3]*brush_curve_strength(brush, dist, maxsize);
+					dstf[3] = rgba[3]*brush->alpha*brush_curve_strength(brush, dist, maxsize);
 				}
 			}
 		}
@@ -477,7 +477,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dst[0]= crgb[0];
 					dst[1]= crgb[1];
 					dst[2]= crgb[2];
-					dst[3]= FTOCHAR(brush_curve_strength(brush, dist, maxsize));
+					dst[3]= FTOCHAR(brush->alpha*brush_curve_strength(brush, dist, maxsize));
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, rgba);
@@ -493,7 +493,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dst[0] = FTOCHAR(rgba[0]*brush->rgb[0]);
 					dst[1] = FTOCHAR(rgba[1]*brush->rgb[1]);
 					dst[2] = FTOCHAR(rgba[2]*brush->rgb[2]);
-					dst[3] = FTOCHAR(rgba[3]*brush_curve_strength(brush, dist, maxsize));
+					dst[3] = FTOCHAR(rgba[3]*brush->alpha*brush_curve_strength(brush, dist, maxsize));
 				}
 			}
 		}
