@@ -379,7 +379,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
 		# Sculpt Mode #
 
-		elif context.sculpt_object and settings.brush:
+		elif context.sculpt_object and brush:
 			col = layout.column()
 			col.itemS()
 			col.itemR(brush, "sculpt_tool", expand=True)
@@ -412,7 +412,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				
 		# Texture Paint Mode #
 		
-		elif context.texture_paint_object:
+		elif context.texture_paint_object and brush:
 			col = layout.column(align=True)
 			col.item_enumR(settings, "tool", 'DRAW')
 			col.item_enumR(settings, "tool", 'SOFTEN')
@@ -438,7 +438,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		
 		# Weight Paint Mode #
 	
-		elif context.weight_paint_object:
+		elif context.weight_paint_object and brush:
 			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
 			
 			col = layout.column()
@@ -456,7 +456,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		
 		# Vertex Paint Mode #
 		
-		elif context.vertex_paint_object:
+		elif context.vertex_paint_object and brush:
 			col = layout.column()
 			col.itemR(brush, "color", text="")
 			

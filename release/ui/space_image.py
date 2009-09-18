@@ -419,22 +419,23 @@ class IMAGE_PT_paint(bpy.types.Panel):
 		row.item_enumR(settings, "tool", 'CLONE')
 		row.item_enumR(settings, "tool", 'SMEAR')
 			
-		col = layout.column()
-		col.itemR(brush, "color", text="")
+		if brush:
+			col = layout.column()
+			col.itemR(brush, "color", text="")
 
-		row = col.row(align=True)
-		row.itemR(brush, "size", slider=True)
-		row.itemR(brush, "use_size_pressure", toggle=True, text="")
-		
-		row = col.row(align=True)
-		row.itemR(brush, "strength", slider=True)
-		row.itemR(brush, "use_strength_pressure", toggle=True, text="")
+			row = col.row(align=True)
+			row.itemR(brush, "size", slider=True)
+			row.itemR(brush, "use_size_pressure", toggle=True, text="")
+			
+			row = col.row(align=True)
+			row.itemR(brush, "strength", slider=True)
+			row.itemR(brush, "use_strength_pressure", toggle=True, text="")
 
-		row = col.row(align=True)
-		row.itemR(brush, "jitter", slider=True)
-		row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
+			row = col.row(align=True)
+			row.itemR(brush, "jitter", slider=True)
+			row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
 
-		col.itemR(brush, "blend", text="Blend")
+			col.itemR(brush, "blend", text="Blend")
 
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
 	__space_type__ = 'IMAGE_EDITOR'
@@ -444,7 +445,8 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
 
 	def poll(self, context):
 		sima = context.space_data
-		return sima.show_paint
+		settings = context.tool_settings.image_paint
+		return sima.show_paint and settings.brush
 
 	def draw(self, context):
 		layout = self.layout
@@ -471,7 +473,8 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
 
 	def poll(self, context):
 		sima = context.space_data
-		return sima.show_paint
+		settings = context.tool_settings.image_paint
+		return sima.show_paint and settings.brush
 
 	def draw(self, context):
 		layout = self.layout
