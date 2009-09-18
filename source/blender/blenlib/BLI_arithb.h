@@ -401,7 +401,7 @@ float VecAngle2(float *v1, float *v2);
 float VecAngle3(float *v1, float *v2, float *v3);
 float NormalizedVecAngle2(float *v1, float *v2);
 
-float VecAngle3_2D(float *v1, float *v2, float *v3);
+float Vec2Angle3(float *v1, float *v2, float *v3);
 float NormalizedVecAngle2_2D(float *v1, float *v2);
 	
 void NormalShortToFloat(float *out, short *in);
@@ -453,6 +453,8 @@ void i_window(
 #define BLI_CS_SMPTE	0
 #define BLI_CS_REC709	1
 #define BLI_CS_CIE		2
+
+#define RAD2DEG(_rad) ((_rad)*(180.0/M_PI))
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b);

@@ -761,7 +761,7 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 				float angle;
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						angle= VecAngle2(base_efa->n, efa->n);
+						angle= RAD2DEG(VecAngle2(base_efa->n, efa->n));
 						if (angle/180.0<=thresh) {
 							EM_select_face(efa, 1);
 							selcount++;
@@ -776,7 +776,7 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 				base_dot= Inpf(base_efa->cent, base_efa->n);
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						angle= VecAngle2(base_efa->n, efa->n);
+						angle= RAD2DEG(VecAngle2(base_efa->n, efa->n));
 						if (angle/180.0<=thresh) {
 							dot=Inpf(efa->cent, base_efa->n);
 							if (fabs(base_dot-dot) <= thresh) {
@@ -916,7 +916,7 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 					else if (eed->f2==0) /* first access, assign the face */
 						eed->tmp.f= efa;
 					else if (eed->f2==1) /* second, we assign the angle*/
-						eed->tmp.fp= VecAngle2(eed->tmp.f->n, efa->n)/180;
+						eed->tmp.fp= RAD2DEG(VecAngle2(eed->tmp.f->n, efa->n))/180;
 					eed->f2++; /* f2==0 no face assigned. f2==1 one face found. f2==2 angle calculated.*/
 				}
 				j++;
@@ -946,7 +946,7 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 				for(eed= em->edges.first; eed; eed= eed->next) {
 					if (!(eed->f & SELECT) && !eed->h) {
 						VecSubf(dir, eed->v1->co, eed->v2->co);
-						angle= VecAngle2(base_dir, dir);
+						angle= RAD2DEG(VecAngle2(base_dir, dir));
 						
 						if (angle>90) /* use the smallest angle between the edges */
 							angle= fabs(angle-180.0f);
@@ -1137,7 +1137,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 				float angle;
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if (!(eve->f & SELECT) && !eve->h) {
-						angle= VecAngle2(base_eve->no, eve->no);
+						angle= RAD2DEG(VecAngle2(base_eve->no, eve->no));
 						if (angle/180.0<=thresh) {
 							eve->f |= SELECT;
 							selcount++;

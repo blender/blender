@@ -1814,7 +1814,7 @@ int sk_detectTrimGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		VecSubf(s1, gest->segments->points[1].p, gest->segments->points[0].p);
 		VecSubf(s2, gest->segments->points[2].p, gest->segments->points[1].p);
 
-		angle = VecAngle2(s1, s2);
+		angle = RAD2DEG(VecAngle2(s1, s2));
 
 		if (angle > 60 && angle < 120)
 		{
@@ -1932,7 +1932,7 @@ int sk_detectDeleteGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		VecSubf(s1, gest->segments->points[1].p, gest->segments->points[0].p);
 		VecSubf(s2, gest->segments->points[2].p, gest->segments->points[1].p);
 
-		angle = VecAngle2(s1, s2);
+		angle = RAD2DEG(VecAngle2(s1, s2));
 
 		if (angle > 120)
 		{
@@ -2064,7 +2064,7 @@ int sk_detectReverseGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 					VecSubf(end_v, sk_lastStrokePoint(gest->stk)->p, isect->p);
 				}
 
-				angle = VecAngle2(start_v, end_v);
+				angle = RAD2DEG(VecAngle2(start_v, end_v));
 
 				if (angle > 120)
 				{

@@ -1991,29 +1991,29 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				
 			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
-				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
+				sprintf(val,"%.3f", RAD2DEG(VecAngle3(v4, v1, v2)));
 				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8f);
 				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
-				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
+				sprintf(val,"%.3f", RAD2DEG(VecAngle3(v1, v2, v3)));
 				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8f);
 				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
 				if(efa->v4) 
-					sprintf(val,"%.3f", VecAngle3(v2, v3, v4));
+					sprintf(val,"%.3f", RAD2DEG(VecAngle3(v2, v3, v4)));
 				else
-					sprintf(val,"%.3f", VecAngle3(v2, v3, v1));
+					sprintf(val,"%.3f", RAD2DEG(VecAngle3(v2, v3, v1)));
 				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8f);
 				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
-					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
+					sprintf(val,"%.3f", RAD2DEG(VecAngle3(v3, v4, v1)));
 					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8f);
 					view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 				}

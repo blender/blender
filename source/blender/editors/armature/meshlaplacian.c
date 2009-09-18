@@ -176,9 +176,9 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 	t2= cotan_weight(v2, v3, v1);
 	t3= cotan_weight(v3, v1, v2);
 
-	if(VecAngle3(v2, v1, v3) > 90) obtuse= 1;
-	else if(VecAngle3(v1, v2, v3) > 90) obtuse= 2;
-	else if(VecAngle3(v1, v3, v2) > 90) obtuse= 3;
+	if(RAD2DEG(VecAngle3(v2, v1, v3)) > 90) obtuse= 1;
+	else if(RAD2DEG(VecAngle3(v1, v2, v3)) > 90) obtuse= 2;
+	else if(RAD2DEG(VecAngle3(v1, v3, v2)) > 90) obtuse= 3;
 
 	if (obtuse > 0) {
 		area= AreaT3Dfl(v1, v2, v3);

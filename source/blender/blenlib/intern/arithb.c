@@ -3548,10 +3548,10 @@ float VecAngle3(float *v1, float *v2, float *v3)
 	Normalize(vec1);
 	Normalize(vec2);
 
-	return NormalizedVecAngle2(vec1, vec2) * (float)(180.0/M_PI);
+	return NormalizedVecAngle2(vec1, vec2);
 }
 
-float VecAngle3_2D(float *v1, float *v2, float *v3)
+float Vec2Angle3(float *v1, float *v2, float *v3)
 {
 	float vec1[2], vec2[2];
 
@@ -3564,7 +3564,7 @@ float VecAngle3_2D(float *v1, float *v2, float *v3)
 	Normalize2(vec1);
 	Normalize2(vec2);
 
-	return NormalizedVecAngle2_2D(vec1, vec2) * (float)(180.0/M_PI);
+	return NormalizedVecAngle2_2D(vec1, vec2);
 }
 
 /* Return the shortest angle in degrees between the 2 vectors */
@@ -3577,7 +3577,7 @@ float VecAngle2(float *v1, float *v2)
 	Normalize(vec1);
 	Normalize(vec2);
 
-	return NormalizedVecAngle2(vec1, vec2)* (float)(180.0/M_PI);
+	return NormalizedVecAngle2(vec1, vec2);
 }
 
 float NormalizedVecAngle2(float *v1, float *v2)

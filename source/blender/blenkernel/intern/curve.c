@@ -1616,7 +1616,7 @@ static void bevel_list_flip_tangents(BevList *bl)
 
 	nr= bl->nr;
 	while(nr--) {
-		if(VecAngle2(bevp0->tan, bevp1->tan) > 90)
+		if(RAD2DEG(VecAngle2(bevp0->tan, bevp1->tan)) > 90)
 			VecNegf(bevp1->tan);
 
 		bevp0= bevp1;

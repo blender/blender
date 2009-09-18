@@ -3121,13 +3121,13 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 	CalcNormFloat(v1->co, v3->co, v4->co, noA2);
 
 	if(noA1[0] == noA2[0] && noA1[1] == noA2[1] && noA1[2] == noA2[2]) normalADiff = 0.0;
-	else normalADiff = VecAngle2(noA1, noA2);
+	else normalADiff = RAD2DEG(VecAngle2(noA1, noA2));
 		//if(!normalADiff) normalADiff = 179;
 	CalcNormFloat(v2->co, v3->co, v4->co, noB1);
 	CalcNormFloat(v4->co, v1->co, v2->co, noB2);
 
 	if(noB1[0] == noB2[0] && noB1[1] == noB2[1] && noB1[2] == noB2[2]) normalBDiff = 0.0;
-	else normalBDiff = VecAngle2(noB1, noB2);
+	else normalBDiff = RAD2DEG(VecAngle2(noB1, noB2));
 		//if(!normalBDiff) normalBDiff = 179;
 
 	measure += (normalADiff/360) + (normalBDiff/360);
@@ -3142,10 +3142,10 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 	diff = 0.0;
 
 	diff = (
-		fabs(VecAngle2(edgeVec1, edgeVec2) - 90) +
-		fabs(VecAngle2(edgeVec2, edgeVec3) - 90) +
-		fabs(VecAngle2(edgeVec3, edgeVec4) - 90) +
-		fabs(VecAngle2(edgeVec4, edgeVec1) - 90)) / 360;
+		fabs(RAD2DEG(VecAngle2(edgeVec1, edgeVec2)) - 90) +
+		fabs(RAD2DEG(VecAngle2(edgeVec2, edgeVec3)) - 90) +
+		fabs(RAD2DEG(VecAngle2(edgeVec3, edgeVec4)) - 90) +
+		fabs(RAD2DEG(VecAngle2(edgeVec4, edgeVec1)) - 90)) / 360;
 	if(!diff) return 0.0;
 
 	measure +=  diff;
