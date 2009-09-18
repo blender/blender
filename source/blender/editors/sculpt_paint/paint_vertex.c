@@ -1136,7 +1136,11 @@ static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->vpaint->paint);
-	return brush_radial_control_exec(op, brush, 1);
+	int ret = brush_radial_control_exec(op, brush, 1);
+	
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+	
+	return ret;
 }
 
 static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1161,7 +1165,11 @@ static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->wpaint->paint);
-	return brush_radial_control_exec(op, brush, 1);
+	int ret = brush_radial_control_exec(op, brush, 1);
+	
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+	
+	return ret;
 }
 
 void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)

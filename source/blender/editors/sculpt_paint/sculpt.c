@@ -1091,8 +1091,11 @@ static int sculpt_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->sculpt->paint);
+	int ret = brush_radial_control_exec(op, brush, 1);
 
-	return brush_radial_control_exec(op, brush, 1);
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+
+	return ret;
 }
 
 static void SCULPT_OT_radial_control(wmOperatorType *ot)
