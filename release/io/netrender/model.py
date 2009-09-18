@@ -4,6 +4,28 @@ import subprocess, shutil, time, hashlib
 
 from netrender.utils import *
 
+class LogFile:
+	def __init__(self, job_id = 0, frames = []):
+		self.job_id = job_id
+		self.frames = frames
+	
+	def serialize(self):
+		return 	{
+							"job_id": self.job_id,
+							"frames": self.frames
+						}
+	
+	@staticmethod
+	def materialize(data):
+		if not data:
+			return None
+		
+		logfile = LogFile()
+		logfile.job_id = data["job_id"]
+		logfile.frames = data["frames"]
+		
+		return logfile
+
 class RenderSlave:
 	_slave_map = {}
 	

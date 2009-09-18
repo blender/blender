@@ -117,8 +117,14 @@ def render_slave(engine, scene):
 					print("frame", frame.number)
 					frame_args += ["-f", str(frame.number)]
 				
+				# announce log to master
+				logfile = netrender.model.LogFile(job.id, [frame.number for frame in job.frames])
+				conn.request("POST", "log", bytes(repr(logfile.serialize()), encoding='utf8'), headers={"slave-id":slave_id})
+				response = conn.getresponse()
 				
+				first_frame = job.frames[0].number
 				
+				# start render
 				start_t = time.time()
 				
 				val = SetErrorMode()
@@ -136,13 +142,14 @@ def render_slave(engine, scene):
 					cancelled = engine.test_break()
 					if current_t - run_t > CANCEL_POLL_SPEED:
 						
-						# update logs. Eventually, it should support one log file for many frames
-						for frame in job.frames:
-							headers["job-frame"] = str(frame.number)
+						# update logs if needed
+						if stdout:
+							# (only need to update on one frame, they are linked
+							headers["job-frame"] = str(first_frame)
 							conn.request("PUT", "log", stdout, headers=headers)
 							response = conn.getresponse()
-						
-						stdout = bytes()
+							
+							stdout = bytes()
 						
 						run_t = current_t
 						if testCancel(conn, job.id):
@@ -164,10 +171,10 @@ def render_slave(engine, scene):
 				
 				# flush the rest of the logs
 				if stdout:
-					for frame in job.frames:
-						headers["job-frame"] = str(frame.number)
-						conn.request("PUT", "log", stdout, headers=headers)
-						response = conn.getresponse()
+					# (only need to update on one frame, they are linked
+					headers["job-frame"] = str(first_frame)
+					conn.request("PUT", "log", stdout, headers=headers)
+					response = conn.getresponse()
 				
 				headers = {"job-id":job.id, "slave-id":slave_id, "job-time":str(avg_t)}
 				

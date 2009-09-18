@@ -82,6 +82,15 @@ class MRenderJob(netrender.model.RenderJob):
 		self.credits += (time.time() - self.last_dispatched) / 60
 		self.last_dispatched = time.time()
 	
+	def addLog(self, frames):
+		log_name = "_".join(("%04d" % f for f in frames)) + ".log"
+		log_path = self.save_path + log_name
+		
+		for number in frames:
+			frame = self[number]
+			if frame:
+				frame.log_path = log_path
+	
 	def addFrame(self, frame_number):
 		frame = MRenderFrame(frame_number)
 		self.frames.append(frame)
@@ -117,6 +126,7 @@ class MRenderFrame(netrender.model.RenderFrame):
 		self.slave = None
 		self.time = 0
 		self.status = QUEUED
+		self.log_path = None
 		
 	def reset(self, all):
 		if all or self.status == ERROR:
@@ -222,11 +232,11 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				frame = job[job_frame]
 				
 				if frame:
-					if frame.status in (QUEUED, DISPATCHED):
+					if not frame.log_path or frame.status in (QUEUED, DISPATCHED):
 						self.send_head(http.client.PROCESSING)
 					else:
 						self.server.stats("", "Sending log back to client")
-						f = open(job.save_path + "%04d" % job_frame + ".log", 'rb')
+						f = open(frame.log_path, 'rb')
 						
 						self.send_head()
 						
@@ -420,7 +430,27 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			slave_id = self.server.addSlave(slave_info.name, self.client_address, slave_info.stats)
 			
 			self.send_head(headers = {"slave-id": slave_id})
-	
+		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+		elif self.path == "log":
+			slave_id = self.headers['slave-id']
+			
+			slave = self.server.updateSlave(slave_id)
+			
+			if slave: # only if slave id is valid
+				length = int(self.headers['content-length'])
+				
+				log_info = netrender.model.LogFile.materialize(eval(str(self.rfile.read(length), encoding='utf8')))
+				
+				job = self.server.getJobByID(log_info.job_id)
+				
+				if job:
+					job.addLog(log_info.frames)
+					self.send_head(http.client.OK)
+				else:
+					# no such job id
+					self.send_head(http.client.NO_CONTENT)
+			else: # invalid slave id
+				self.send_head(http.client.NO_CONTENT)	
 	# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 	# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -526,19 +556,24 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			job = self.server.getJobByID(job_id)
 			
 			if job:
-				length = int(self.headers['content-length'])
 				job_frame = int(self.headers['job-frame'])
 				
-				buf = self.rfile.read(length)
-				f = open(job.save_path + "%04d" % job_frame + ".log", 'ab')
-				f.write(buf)
-				f.close()
+				frame = job[job_frame]
+				
+				if frame and frame.log_path:
+					length = int(self.headers['content-length'])
+					buf = self.rfile.read(length)
+					f = open(frame.log_path, 'ab')
+					f.write(buf)
+					f.close()
+						
+					del buf
 					
-				del buf
-				
-				self.server.updateSlave(self.headers['slave-id'])
-				
-				self.send_head()
+					self.server.updateSlave(self.headers['slave-id'])
+					
+					self.send_head()
+				else: # frame not found
+					self.send_head(http.client.NO_CONTENT)
 			else: # job not found
 				self.send_head(http.client.NO_CONTENT)
 
