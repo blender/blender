@@ -1569,9 +1569,9 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 		
 		paint_cursor_start(C, sculpt_poll);
-
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
 }
