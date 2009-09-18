@@ -1474,7 +1474,7 @@ static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int 
 static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys, int timeoffset)
 {
 	Object *ob= obr->ob;
-	Object *tob=0;
+//	Object *tob=0;
 	Material *ma=0;
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *tpsys=0;

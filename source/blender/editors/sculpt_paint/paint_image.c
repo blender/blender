@@ -625,19 +625,6 @@ static void BarycentricWeightsPersp2f(float pt[2], float v1[4], float v2[4], flo
        w[0] = w[1] = w[2] = 1.0f/3.0f;
 }
 
-static void VecWeightf(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
-{
-	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
-	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
-	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2];
-}
-
-static void Vec2Weightf(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3])
-{
-	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
-	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
-}
-
 static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
 {
 	BarycentricWeights2f(pt, v1, v2, v3, w);
@@ -746,10 +733,10 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 	tf = ps->dm_mtface + face_index;
 	
 	if (side == 0) {
-		Vec2Weightf(uv, tf->uv[0], tf->uv[1], tf->uv[2], w);
+		Vec2Lerp3f(uv, tf->uv[0], tf->uv[1], tf->uv[2], w);
 	}
 	else { /* QUAD */
-		Vec2Weightf(uv, tf->uv[0], tf->uv[2], tf->uv[3], w);
+		Vec2Lerp3f(uv, tf->uv[0], tf->uv[2], tf->uv[3], w);
 	}
 	
 	ibuf = tf->tpage->ibufs.first; /* we must have got the imbuf before getting here */
@@ -870,8 +857,8 @@ static int project_paint_occlude_ptv_clip(
 	}
 
 	/* Test if we're in the clipped area, */
-	if (side)	VecWeightf(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
-	else		VecWeightf(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
+	if (side)	VecLerp3f(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
+	else		VecLerp3f(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 	
 	Mat4MulVecfl(ps->ob->obmat, wco);
 	if(!view3d_test_clipping(ps->rv3d, wco)) {
@@ -1146,19 +1133,6 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
 	return 1;
 }
 
-/* TODO - move to arithb.c */
-/* Converts an angle to a length that can be used for maintaining an even margin around UV's */
-static float angleToLength(float angle)
-{
-	// already accounted for
-	if (angle < 0.000001f) {
-		return 1.0f;
-	}
-	else {
-		return fabsf(1.0f / cosf(angle * (M_PI/180.0f)));
-	}
-}
-
 /* Calculate outset UV's, this is not the same as simply scaling the UVs,
  * since the outset coords are a margin that keep an even distance from the original UV's,
  * note that the image aspect is taken into account */
@@ -1204,15 +1178,15 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	}
 	
 	if (is_quad) {
-		a1 = angleToLength(NormalizedVecAngle2_2D(dir4, dir1));
-		a2 = angleToLength(NormalizedVecAngle2_2D(dir1, dir2));
-		a3 = angleToLength(NormalizedVecAngle2_2D(dir2, dir3));
-		a4 = angleToLength(NormalizedVecAngle2_2D(dir3, dir4));
+		a1 = AngleToLength(NormalizedVecAngle2_2D(dir4, dir1));
+		a2 = AngleToLength(NormalizedVecAngle2_2D(dir1, dir2));
+		a3 = AngleToLength(NormalizedVecAngle2_2D(dir2, dir3));
+		a4 = AngleToLength(NormalizedVecAngle2_2D(dir3, dir4));
 	}
 	else {
-		a1 = angleToLength(NormalizedVecAngle2_2D(dir3, dir1));
-		a2 = angleToLength(NormalizedVecAngle2_2D(dir1, dir2));
-		a3 = angleToLength(NormalizedVecAngle2_2D(dir2, dir3));
+		a1 = AngleToLength(NormalizedVecAngle2_2D(dir3, dir1));
+		a2 = AngleToLength(NormalizedVecAngle2_2D(dir1, dir2));
+		a3 = AngleToLength(NormalizedVecAngle2_2D(dir2, dir3));
 	}
 	
 	if (is_quad) {
@@ -1329,7 +1303,7 @@ static void screen_px_from_ortho(
 		float w[3])
 {
 	BarycentricWeights2f(uv, uv1co, uv2co, uv3co, w);
-	VecWeightf(pixelScreenCo, v1co, v2co, v3co, w);
+	VecLerp3f(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
 /* same as screen_px_from_ortho except we need to take into account
@@ -1363,7 +1337,7 @@ static void screen_px_from_persp(
 	}
 	/* done re-weighting */
 	
-	VecWeightf(pixelScreenCo, v1co, v2co, v3co, w);
+	VecLerp3f(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
 static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const float w[3], int side, unsigned char rgba_ub[4], float rgba_f[4])
@@ -1381,7 +1355,7 @@ static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const 
 		uvCo3 =  (float *)tf_other->uv[2];
 	}
 	
-	Vec2Weightf(uv_other, uvCo1, uvCo2, uvCo3, w);
+	Vec2Lerp3f(uv_other, uvCo1, uvCo2, uvCo3, w);
 	
 	/* use */
 	uvco_to_wrapped_pxco(uv_other, ibuf_other->x, ibuf_other->y, &x, &y);
@@ -1916,22 +1890,22 @@ static void rect_to_uvspace_ortho(
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
 	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
-	Vec2Weightf(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
+	Vec2Lerp3f(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
 	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
-	Vec2Weightf(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
+	Vec2Lerp3f(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
 	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
-	Vec2Weightf(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
+	Vec2Lerp3f(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
 	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
-	Vec2Weightf(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
+	Vec2Lerp3f(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
 /* same as above but use BarycentricWeightsPersp2f */
@@ -1950,22 +1924,22 @@ static void rect_to_uvspace_persp(
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
 	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
-	Vec2Weightf(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
+	Vec2Lerp3f(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
 	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
-	Vec2Weightf(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
+	Vec2Lerp3f(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
 	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
-	Vec2Weightf(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
+	Vec2Lerp3f(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
 	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
-	Vec2Weightf(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
+	Vec2Lerp3f(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
 /* This works as we need it to but we can save a few steps and not use it */
@@ -2209,13 +2183,13 @@ static void project_bucket_clip_face(
 		if (is_ortho) {
 			for(i=0; i<(*tot); i++) {
 				BarycentricWeights2f(isectVCosSS[i], v1coSS, v2coSS, v3coSS, w);
-				Vec2Weightf(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
+				Vec2Lerp3f(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
 		else {
 			for(i=0; i<(*tot); i++) {
 				BarycentricWeightsPersp2f(isectVCosSS[i], v1coSS, v2coSS, v3coSS, w);
-				Vec2Weightf(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
+				Vec2Lerp3f(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
 	}
@@ -2470,7 +2444,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						
 						/* a pitty we need to get the worldspace pixel location here */
 						if(ps->rv3d->rflag & RV3D_CLIPPING) {
-							VecWeightf(wco, ps->dm_mvert[ (*(&mf->v1 + i1)) ].co, ps->dm_mvert[ (*(&mf->v1 + i2)) ].co, ps->dm_mvert[ (*(&mf->v1 + i3)) ].co, w);
+							VecLerp3f(wco, ps->dm_mvert[ (*(&mf->v1 + i1)) ].co, ps->dm_mvert[ (*(&mf->v1 + i2)) ].co, ps->dm_mvert[ (*(&mf->v1 + i3)) ].co, w);
 							Mat4MulVecfl(ps->ob->obmat, wco);
 							if(view3d_test_clipping(ps->rv3d, wco)) {
 								continue; /* Watch out that no code below this needs to run */
@@ -2686,8 +2660,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											
 											/* a pitty we need to get the worldspace pixel location here */
 											if(ps->rv3d->rflag & RV3D_CLIPPING) {
-												if (side)	VecWeightf(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
-												else		VecWeightf(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
+												if (side)	VecLerp3f(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
+												else		VecLerp3f(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 												
 												Mat4MulVecfl(ps->ob->obmat, wco);
 												if(view3d_test_clipping(ps->rv3d, wco)) {

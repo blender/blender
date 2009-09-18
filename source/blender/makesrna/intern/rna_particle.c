@@ -507,7 +507,7 @@ EnumPropertyItem reactor_from_items[] = {
 
 static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	ParticleSettings *part = ptr->id.data;
+	/* ParticleSettings *part = ptr->id.data; */
 
 	if(C==NULL) {
 		EnumPropertyItem *item= NULL;

@@ -614,7 +614,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 	Object *ob= ctx->sim.ob;
 	DerivedMesh *dm= ctx->dm;
 	ParticleData *tpa;
-	ParticleSettings *part= ctx->sim.psys->part;
+/*	ParticleSettings *part= ctx->sim.psys->part; */
 	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3], ornor1[3];
 	float cur_d, min_d, randu, randv;
 	int from= ctx->from;
@@ -2451,7 +2451,7 @@ void psys_end_effectors(ParticleSystem *psys)
 }
 
 /* precalcs effectors and returns 1 if there were any collision object 
-/* so collision checks can be avoided as quickly as possible */
+ * so collision checks can be avoided as quickly as possible */
 static int precalc_effectors(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
@@ -3561,7 +3561,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 static void hair_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
-	ParticleSettings *part = psys->part;
+/*	ParticleSettings *part = psys->part; */
 	PARTICLE_P;
 	float disp = (float)get_current_display_percentage(psys)/100.0f;
 
@@ -3649,7 +3649,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	ParticleSettings *part=psys->part;
 	KDTree *tree=0;
 	IpoCurve *icu_esize= NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
-	Material *ma=give_current_material(sim->ob, part->omat);
+/*	Material *ma=give_current_material(sim->ob, part->omat); */
 	BoidBrainData bbd;
 	PARTICLE_P;
 	float timestep;
@@ -3851,7 +3851,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	IpoCurve *icu_esize = NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
-	Material *ma = give_current_material(sim->ob,part->omat);
+/*	Material *ma = give_current_material(sim->ob,part->omat); */
 	PARTICLE_P;
 	float disp, birthtime, dietime, *vg_size= NULL; // XXX ipotime=cfra
 

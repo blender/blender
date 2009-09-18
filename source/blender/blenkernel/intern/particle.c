@@ -2193,7 +2193,7 @@ static void get_strand_normal(Material *ma, float *surfnor, float surfdist, floa
 static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, int editupdate)
 {
 	ParticleThreadContext *ctx= threads[0].ctx;
-	Object *ob= ctx->sim.ob;
+/*	Object *ob= ctx->sim.ob; */
 	ParticleSystem *psys= ctx->sim.psys;
 	ParticleSettings *part = psys->part;
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
@@ -3868,7 +3868,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	ParticleData *pa = NULL;
 	ChildParticle *cpa = NULL;
 	float cfra;
-	int totpart = psys->totpart, between = 0;
+	int totpart = psys->totpart;
 
 	/* negative time means "use current time" */
 	cfra = state->time > 0 ? state->time : bsystem_time(sim->scene, 0, (float)sim->scene->r.cfra, 0.0);

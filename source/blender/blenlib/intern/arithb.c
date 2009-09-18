@@ -2187,21 +2187,38 @@ void VecMulVecf(float *v, float *v1, float *v2)
 	v[2] = v1[2] * v2[2];
 }
 
-void VecLerpf(float *target, float *a, float *b, float t)
+void VecLerpf(float *target, const float *a, const float *b, const float t)
 {
-	float s = 1.0f-t;
+	const float s = 1.0f-t;
 
 	target[0]= s*a[0] + t*b[0];
 	target[1]= s*a[1] + t*b[1];
 	target[2]= s*a[2] + t*b[2];
 }
 
-void Vec2Lerpf(float *target, float *a, float *b, float t)
+void Vec2Lerpf(float *target, const float *a, const float *b, const float t)
 {
-	float s = 1.0f-t;
+	const float s = 1.0f-t;
 
 	target[0]= s*a[0] + t*b[0];
 	target[1]= s*a[1] + t*b[1];
+}
+
+/* weight 3 vectors, (VecWeightf in 2.4x)
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void VecLerp3f(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
+	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2];
+}
+
+/* weight 3 2D vectors, (Vec2Weightf in 2.4x)
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void Vec2Lerp3f(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
 }
 
 void VecMidf(float *v, float *v1, float *v2)
@@ -4822,6 +4839,15 @@ static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 	return(Inpf(u,h)/Inpf(u,u));
 }
 #endif
+
+/* useful to calculate an even width shell, by taking the angle between 2 planes.
+ * The return value is a scale on the offset.
+ * no angle between planes is 1.0, as the angle between the 2 planes approches 180d
+ * the distance gets very hight, 180d would be inf, but this case isnt valid */
+float AngleToLength(const float angle)
+{
+	return (angle < SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle * (M_PI/180.0f)));
+}
 
 /* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
 void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv)
