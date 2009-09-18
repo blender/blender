@@ -599,7 +599,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
 # ********** default tools for texturepaint ****************
 
 class VIEW3D_PT_tools_projectpaint(View3DPanel):
-	__context__ = "projectpaint"
+	__context__ = "texturepaint"
 	__label__ = "Project Paint"
 
 	def poll(self, context): 	 
