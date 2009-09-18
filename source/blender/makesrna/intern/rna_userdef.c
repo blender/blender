@@ -1563,6 +1563,16 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zooms in and out based on vertical mouse movement."},
 		{USER_ZOOM_SCALE, "SCALE", 0, "Scale", "Zooms in and out like scaling the view, mouse movements relative to center."},
 		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem select_mouse_items[] = {
+		{USER_LMOUSESELECT, "LEFT", 0, "Left", "Use left Mouse Button for selection."},
+		{0, "RIGHT", 0, "Right", "Use Right Mouse Button for selection."},
+		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem middle_mouse_mouse_items[] = {
+		{0, "PAN", 0, "Pan", "Use the middle mouse button for panning the viewport."},
+		{USER_VIEWMOVE, "ROTATE", 0, "Rotate", "Use the middle mouse button for rotation the viewport."},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem view_rotation_items[] = {
 		{0, "TURNTABLE", 0, "Turntable", "Use turntable style rotation in the viewport."},
@@ -1678,15 +1688,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotate Around Selection", "Use selection as the orbiting center.");
 
 	/* select with */
-	prop= RNA_def_property(srna, "left_mouse_button_select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_LMOUSESELECT);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_userdef_lmb_select_set");
-	RNA_def_property_ui_text(prop, "Left Mouse Button Select", "Use left Mouse Button for selection.");
 	
-	prop= RNA_def_property(srna, "right_mouse_button_select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_LMOUSESELECT);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_userdef_rmb_select_set");
-	RNA_def_property_ui_text(prop, "Right Mouse Button Select", "Use Right Mouse Button for selection.");
+	prop= RNA_def_property(srna, "select_mouse", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, select_mouse_items);
+	RNA_def_property_ui_text(prop, "Select Mouse", "The mouse button used for selection.");
 	
 	prop= RNA_def_property(srna, "emulate_3_button_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);
@@ -1715,13 +1721,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* middle mouse button */
-	prop= RNA_def_property(srna, "middle_mouse_rotate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_VIEWMOVE);
-	RNA_def_property_ui_text(prop, "Middle Mouse Rotate", "Use the middle mouse button for rotation the viewport.");
-
-	prop= RNA_def_property(srna, "middle_mouse_pan", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_VIEWMOVE);
-	RNA_def_property_ui_text(prop, "Middle Mouse Pan", "Use the middle mouse button for panning the viewport.");
+	
+	prop= RNA_def_property(srna, "middle_mouse", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, middle_mouse_mouse_items);
+	RNA_def_property_ui_text(prop, "Middle Mouse", "Use the middle mouse button to pan or zoom the view.");
 
 	prop= RNA_def_property(srna, "wheel_invert_zoom", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_WHEELZOOMDIR);
