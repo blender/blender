@@ -450,7 +450,7 @@ static bool match_token(const char *haystack, const char *needle)
 **  Wacoms x11 config "cursor" refers to its device slot (which we mirror with
 **  our gSysCursors) for puck like devices (tablet mice essentially).
 */
-
+#if 0 // unused
 static BOOL is_tablet_cursor(const char *name, const char *type)
 {
 	int i;
@@ -474,7 +474,7 @@ static BOOL is_tablet_cursor(const char *name, const char *type)
 	}
 	return FALSE;
 }
-
+#endif
 static BOOL is_stylus(const char *name, const char *type)
 {
 	int i;
