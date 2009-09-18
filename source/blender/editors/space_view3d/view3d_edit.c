@@ -1850,8 +1850,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	// XXX notifier for scene */
 	ED_area_tag_redraw(CTX_wm_area(C));
 
-	/* prevent other mouse ops to fail */
-	return OPERATOR_PASS_THROUGH;
+	return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)

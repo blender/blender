@@ -163,7 +163,7 @@ typedef struct wmWindow {
 	
 	ListBase queue;				/* all events (ghost level events were handled) */
 	ListBase handlers;			/* window+screen handlers, handled last */
-	ListBase modalhandlers;		/* modal handlers, overriding all queues */
+	ListBase modalhandlers;		/* priority handlers, handled first */
 	
 	ListBase subwindows;	/* opengl stuff for sub windows, see notes in wm_subwindow.c */
 	ListBase gesture;		/* gesture stuff */

@@ -404,7 +404,7 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* image paint polls for mode */
-	keymap= WM_keymap_find(wm, "ImagePaint", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm, "Image Paint", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	keymap= WM_keymap_find(wm, "UVEdit", 0, 0);

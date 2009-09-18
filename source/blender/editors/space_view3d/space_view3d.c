@@ -279,14 +279,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
-	
-	/* own keymap */
-	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "View3D", SPACE_VIEW3D, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
 	/* object ops. */
 	keymap= WM_keymap_find(wm, "Object Non-modal", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -295,11 +288,19 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_find(wm, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	/* operator poll checks for modes */
-	keymap= WM_keymap_find(wm, "ImagePaint", 0, 0);
+	keymap= WM_keymap_find(wm, "Object Mode", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "Object Mode", 0, 0);
+	keymap= WM_keymap_find(wm, "Image Paint", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm, "Vertex Paint", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm, "Weight Paint", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm, "Sculpt", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	keymap= WM_keymap_find(wm, "EditMesh", 0, 0);
@@ -329,6 +330,13 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	/* editfont keymap swallows all... */
 	keymap= WM_keymap_find(wm, "Font", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	/* own keymap, last so modes can override it */
+	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm, "View3D", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 

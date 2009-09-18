@@ -1165,7 +1165,7 @@ void wm_event_do_handlers(bContext *C)
 			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
 			wm_window_make_drawable(C, win);
 			
-			/* first we do modal handlers */
+			/* first we do priority handlers, modal + some limited keymaps */
 			action= wm_handlers_do(C, event, &win->modalhandlers);
 			
 			/* fileread case */

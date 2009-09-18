@@ -5240,6 +5240,11 @@ static int texture_paint_poll(bContext *C)
 	return 0;
 }
 
+int image_texture_paint_poll(bContext *C)
+{
+	return (texture_paint_poll(C) || image_paint_poll(C));
+}
+
 void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
 {
 	WM_OT_radial_control_partial(ot);

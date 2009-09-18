@@ -33,10 +33,10 @@ struct wmWindowManager;
 
 /* sculpt.c */
 void ED_operatortypes_sculpt(void);
-void ED_keymap_sculpt(struct wmWindowManager *wm);
 
 /* paint_ops.c */
 void ED_operatortypes_paint(void);
+void ED_keymap_paint(struct wmWindowManager *wm);
 
 /* paint_image.c */
 void undo_imagepaint_step(int step);

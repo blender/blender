@@ -57,7 +57,10 @@ int paint_poll(bContext *C);
 void paint_cursor_start(struct bContext *C, int (*poll)(struct bContext *C));
 
 /* paint_vertex.c */
-int vertex_paint_mode_poll(bContext *C);
+int weight_paint_poll(struct bContext *C);
+int vertex_paint_poll(struct bContext *C);
+int vertex_paint_mode_poll(struct bContext *C);
+
 void clear_vpaint(Scene *scene, int selected);
 
 void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
@@ -69,6 +72,8 @@ void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
 /* paint_image.c */
+int image_texture_paint_poll(struct bContext *C);
+
 void PAINT_OT_image_paint(struct wmOperatorType *ot);
 void PAINT_OT_image_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_grab_clone(struct wmOperatorType *ot);

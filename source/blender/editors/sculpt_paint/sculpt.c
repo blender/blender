@@ -1039,7 +1039,7 @@ static int sculpt_mode_poll(bContext *C)
 	return ob && ob->mode & OB_MODE_SCULPT;
 }
 
-static int sculpt_poll(bContext *C)
+int sculpt_poll(bContext *C)
 {
 	return sculpt_mode_poll(C) && paint_poll(C);
 }

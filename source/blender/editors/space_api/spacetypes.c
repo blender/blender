@@ -129,6 +129,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ED_keymap_armature(wm);
 	ED_keymap_particle(wm);
 	ED_keymap_metaball(wm);
+	ED_keymap_paint(wm);
 	ED_marker_keymap(wm);
 
 	UI_view2d_keymap(wm);
