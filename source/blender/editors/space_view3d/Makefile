@@ -53,6 +53,9 @@ CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I../../blenfont
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_SMOKE)/include
-# own include 
+ifneq ($(NAN_NO_KETSJI),true)
+    CPPFLAGS += -I../../../kernel/gen_system
+endif
 
+# own include 
 CPPFLAGS += -I../include 
