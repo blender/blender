@@ -412,7 +412,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
 		row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
 			
 		col.template_ID(settings, "brush", new="brush.add")
-                
+
 		row = layout.row(align=True)
 		row.item_enumR(settings, "tool", 'DRAW')
 		row.item_enumR(settings, "tool", 'SOFTEN')
@@ -424,12 +424,16 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
 		row = col.row(align=True)
 		row.itemR(brush, "size", slider=True)
-		row.itemR(brush, "size_pressure", toggle=True, text="")
+		row.itemR(brush, "use_size_pressure", toggle=True, text="")
 		
 		row = col.row(align=True)
 		row.itemR(brush, "strength", slider=True)
-		row.itemR(brush, "strength_pressure", toggle=True, text="")
-		
+		row.itemR(brush, "use_strength_pressure", toggle=True, text="")
+
+		row = col.row(align=True)
+		row.itemR(brush, "jitter", slider=True)
+		row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
+
 		col.itemR(brush, "blend", text="Blend")
 
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
@@ -448,16 +452,16 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
 		settings = context.tool_settings.image_paint
 		brush = settings.brush
 
-		layout.itemR(brush, "airbrush")
+		layout.itemR(brush, "use_airbrush")
 		col = layout.column()
-		col.active = brush.airbrush
+		col.active = brush.use_airbrush
 		col.itemR(brush, "rate", slider=True)
 
-		layout.itemR(brush, "space")
+		layout.itemR(brush, "use_space")
 		row = layout.row(align=True)
-		row.active = brush.space
+		row.active = brush.use_space
 		row.itemR(brush, "spacing", text="Distance", slider=True)
-		row.itemR(brush, "spacing_pressure", toggle=True, text="")	
+		row.itemR(brush, "use_spacing_pressure", toggle=True, text="")	
 
 class IMAGE_PT_paint_curve(bpy.types.Panel):
 	__space_type__ = 'IMAGE_EDITOR'

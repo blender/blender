@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contributor(s): Blender Foundation (2008), Juho Vepsäläinen
+ * Contributor(s): Blender Foundation (2008), Juho Vepsï¿½lï¿½inen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -133,11 +133,11 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 200);
 	RNA_def_property_ui_text(prop, "Size", "Diameter of the brush.");
 	
-	prop= RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "innerradius");
+	prop= RNA_def_property(srna, "jitter", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "jitter");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Falloff", "Falloff radius of the brush.");
-	
+	RNA_def_property_ui_text(prop, "Jitter", "Jitter the position of the brush while painting.");
+
 	prop= RNA_def_property(srna, "spacing", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spacing");
 	RNA_def_property_range(prop, 1.0f, 100.0f);
@@ -166,51 +166,51 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Strength", "The amount of pressure on the brush.");
 
 	/* flag */
-	prop= RNA_def_property(srna, "airbrush", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_airbrush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_AIRBRUSH);
 	RNA_def_property_ui_text(prop, "Airbrush", "Keep applying paint effect while holding mouse (spray).");
 	
-	prop= RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_wrap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_TORUS);
 	RNA_def_property_ui_text(prop, "Wrap", "Enable torus wrapping while painting.");
 	
-	prop= RNA_def_property(srna, "strength_pressure", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_strength_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength.");
 	
-	prop= RNA_def_property(srna, "size_pressure", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_size_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size.");
 	
-	prop= RNA_def_property(srna, "falloff_pressure", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAD_PRESSURE);
+	prop= RNA_def_property(srna, "use_jitter_pressure", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_JITTER_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
-	RNA_def_property_ui_text(prop, "Falloff Pressure", "Enable tablet pressure sensitivity for falloff.");
-	
-	prop= RNA_def_property(srna, "spacing_pressure", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Jitter Pressure", "Enable tablet pressure sensitivity for jitter.");
+
+	prop= RNA_def_property(srna, "use_spacing_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACING_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Spacing Pressure", "Enable tablet pressure sensitivity for spacing.");
 
-	prop= RNA_def_property(srna, "rake", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_rake", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAKE);
 	RNA_def_property_ui_text(prop, "Rake", "Rotate the brush texture to match the stroke direction.");
 
-	prop= RNA_def_property(srna, "anchored", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_anchor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ANCHORED);
 	RNA_def_property_ui_text(prop, "Anchored", "Keep the brush anchored to the initial location.");
 
-	prop= RNA_def_property(srna, "space", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_space", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE);
 	RNA_def_property_ui_text(prop, "Space", "Limit brush application to the distance specified by spacing.");
 
-	prop= RNA_def_property(srna, "smooth_stroke", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_smooth_stroke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SMOOTH_STROKE);
 	RNA_def_property_ui_text(prop, "Smooth Stroke", "Brush lags behind mouse and follows a smoother path.");
 
-	prop= RNA_def_property(srna, "persistent", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_persistent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_PERSISTENT);
 	RNA_def_property_ui_text(prop, "Persistent", "Sculpts on a persistent layer of the mesh.");
 	

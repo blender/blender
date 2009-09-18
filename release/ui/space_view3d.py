@@ -539,16 +539,16 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
 		layout.itemS()
 		
 		if brush.sculpt_tool != 'GRAB':
-			layout.itemR(brush, "airbrush")
+			layout.itemR(brush, "use_airbrush")
 			
 			if brush.sculpt_tool != 'LAYER':
-				layout.itemR(brush, "anchored")
+				layout.itemR(brush, "use_anchor")
 			
 			if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
 				layout.itemR(brush, "flip_direction")
 
 			if brush.sculpt_tool == 'LAYER':
-				layout.itemR(brush, "persistent")
+				layout.itemR(brush, "use_persistent")
 				layout.itemO("sculpt.set_persistent_base")
 
 # ********** Particle menu **********	

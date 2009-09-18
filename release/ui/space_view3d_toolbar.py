@@ -387,13 +387,18 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, text="")
+			row.itemR(brush, "use_size_pressure", toggle=True, text="")
 			
 			if brush.sculpt_tool != 'GRAB':
 				row = col.row(align=True)
 				row.itemR(brush, "strength", slider=True)
-				row.itemR(brush, "strength_pressure", text="")
-			
+				row.itemR(brush, "use_strength_pressure", text="")
+				
+				''' # XXX - TODO
+				row = col.row(align=True)
+				row.itemR(brush, "jitter", slider=True)
+				row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
+				'''
 				col = layout.column()
 
 				if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
@@ -419,11 +424,15 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, text="")
+			row.itemR(brush, "use_size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, text="")
+			row.itemR(brush, "use_strength_pressure", toggle=True, text="")
+			
+			row = col.row(align=True)
+			row.itemR(brush, "jitter", slider=True)
+			row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
 			
 			col.itemR(brush, "blend", text="Blend")
 		
@@ -435,11 +444,15 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			col = layout.column()
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, text="")
+			row.itemR(brush, "use_size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, text="")
+			row.itemR(brush, "use_strength_pressure", toggle=True, text="")
+			
+			row = col.row(align=True)
+			row.itemR(brush, "jitter", slider=True)
+			row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
 		
 		# Vertex Paint Mode #
 		
@@ -449,11 +462,17 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, text="")
+			row.itemR(brush, "use_size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, text="")
+			row.itemR(brush, "use_strength_pressure", toggle=True, text="")
+			
+			''' # XXX - TODO
+			row = col.row(align=True)
+			row.itemR(brush, "jitter", slider=True)
+			row.itemR(brush, "use_jitter_pressure", toggle=True, text="")
+			'''
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 	__label__ = "Stroke"
@@ -475,27 +494,27 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 
 		if context.sculpt_object:
 			if brush.sculpt_tool != 'LAYER':
-				layout.itemR(brush, "anchored")
-			layout.itemR(brush, "rake")
+				layout.itemR(brush, "use_anchor")
+			layout.itemR(brush, "use_rake")
 
-		layout.itemR(brush, "airbrush")
+		layout.itemR(brush, "use_airbrush")
 		col = layout.column()
-		col.active = brush.airbrush
+		col.active = brush.use_airbrush
 		col.itemR(brush, "rate", slider=True)
 
 		if not texture_paint:
-			layout.itemR(brush, "smooth_stroke")
+			layout.itemR(brush, "use_smooth_stroke")
 			col = layout.column()
-			col.active = brush.smooth_stroke
+			col.active = brush.use_smooth_stroke
 			col.itemR(brush, "smooth_stroke_radius", text="Radius", slider=True)
 			col.itemR(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
-		layout.itemR(brush, "space")
+		layout.itemR(brush, "use_space")
 		row = layout.row(align=True)
-		row.active = brush.space
+		row.active = brush.use_space
 		row.itemR(brush, "spacing", text="Distance", slider=True)
 		if texture_paint:
-			row.itemR(brush, "spacing_pressure", toggle=True, text="")	
+			row.itemR(brush, "use_spacing_pressure", toggle=True, text="")	
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"

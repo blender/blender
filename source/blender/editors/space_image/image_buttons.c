@@ -453,8 +453,8 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 		uiDefIconButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButI(block, NUMSLI, evt_nop, "Size ",		0,yco-40,180,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
 		uiDefIconButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-		uiDefButF(block, NUMSLI, evt_nop, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-		uiDefIconButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+//		uiDefButF(block, NUMSLI, evt_nop, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
+//		uiDefIconButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButF(block, NUMSLI, evt_nop, "Spacing ",0,yco-80,180,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
 		uiDefIconButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, evt_nop, ICON_STYLUS_PRESSURE,	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiBlockEndAlign(block);

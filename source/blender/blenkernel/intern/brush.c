@@ -44,6 +44,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_rand.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -78,7 +79,7 @@ Brush *add_brush(const char *name)
 	brush->smooth_stroke_radius= 75;
 	brush->smooth_stroke_factor= 0.9;
 	brush->rate= 0.1f;
-	brush->innerradius= 0.5f;
+	brush->jitter= 0.0f;
 	brush->clone.alpha= 0.5;
 	brush->sculpt_tool = SCULPT_TOOL_DRAW;
 
@@ -513,7 +514,7 @@ typedef struct BrushPainterCache {
 
 	int lastsize;
 	float lastalpha;
-	float lastinnerradius;
+	float lastjitter;
 
 	ImBuf *ibuf;
 	ImBuf *texibuf;
@@ -538,7 +539,7 @@ struct BrushPainter {
 
 	float startsize;
 	float startalpha;
-	float startinnerradius;
+	float startjitter;
 	float startspacing;
 
 	BrushPainterCache cache;
@@ -554,7 +555,7 @@ BrushPainter *brush_painter_new(Brush *brush)
 
 	painter->startsize = brush->size;
 	painter->startalpha = brush->alpha;
-	painter->startinnerradius = brush->innerradius;
+	painter->startjitter = brush->jitter;
 	painter->startspacing = brush->spacing;
 
 	return painter;
@@ -588,7 +589,7 @@ void brush_painter_free(BrushPainter *painter)
 
 	brush->size = painter->startsize;
 	brush->alpha = painter->startalpha;
-	brush->innerradius = painter->startinnerradius;
+	brush->jitter = painter->startjitter;
 	brush->spacing = painter->startspacing;
 
 	if (painter->cache.ibuf) IMB_freeImBuf(painter->cache.ibuf);
@@ -744,7 +745,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 	short flt;
 
 	if ((brush->size != cache->lastsize) || (brush->alpha != cache->lastalpha)
-	    || (brush->innerradius != cache->lastinnerradius)) {
+	    || (brush->jitter != cache->lastjitter)) {
 		if (cache->ibuf) {
 			IMB_freeImBuf(cache->ibuf);
 			cache->ibuf= NULL;
@@ -769,7 +770,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 
 		cache->lastsize= brush->size;
 		cache->lastalpha= brush->alpha;
-		cache->lastinnerradius= brush->innerradius;
+		cache->lastjitter= brush->jitter;
 	}
 	else if ((brush->flag & BRUSH_FIXED_TEX) && mtex && mtex->tex) {
 		int dx = (int)painter->lastpaintpos[0] - (int)pos[0];
@@ -791,10 +792,21 @@ static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pres
 		brush->alpha = MAX2(0.0, painter->startalpha*pressure);
 	if (brush->flag & BRUSH_SIZE_PRESSURE)
 		brush->size = MAX2(1.0, painter->startsize*pressure);
-	if (brush->flag & BRUSH_RAD_PRESSURE)
-		brush->innerradius = MAX2(0.0, painter->startinnerradius*pressure);
+	if (brush->flag & BRUSH_JITTER_PRESSURE)
+		brush->jitter = MAX2(0.0, painter->startjitter*pressure);
 	if (brush->flag & BRUSH_SPACING_PRESSURE)
 		brush->spacing = MAX2(1.0, painter->startspacing*(1.5f-pressure));
+}
+
+static void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
+{
+	if(brush->jitter){
+		jitterpos[0] = pos[0] + ((BLI_frand()-0.5f) * brush->size * brush->jitter * 2);
+		jitterpos[1] = pos[1] + ((BLI_frand()-0.5f) * brush->size * brush->jitter * 2);
+	}
+	else {
+		VECCOPY2D(jitterpos, pos);
+	}
 }
 
 int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user)
@@ -802,9 +814,12 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 	Brush *brush= painter->brush;
 	int totpaintops= 0;
 
-	if (pressure == 0.0f)
-		pressure = 1.0f;	/* zero pressure == not using tablet */
-
+	if (pressure == 0.0f) {
+		if(painter->lastpressure) // XXX - hack, operator misses
+			pressure= painter->lastpressure;
+		else
+			pressure = 1.0f;	/* zero pressure == not using tablet */
+	}
 	if (painter->firsttouch) {
 		/* paint exactly once on first touch */
 		painter->startpaintpos[0]= pos[0];
@@ -855,7 +870,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 	}
 #endif
 	else {
-		float startdistance, spacing, step, paintpos[2], dmousepos[2];
+		float startdistance, spacing, step, paintpos[2], dmousepos[2], finalpos[2];
 		float t, len, press;
 
 		/* compute brush spacing adapted to brush size, spacing may depend
@@ -880,11 +895,13 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 			brush_apply_pressure(painter, brush, press);
 			spacing= MAX2(1.0f, brush->size)*brush->spacing*0.01f;
 
+			brush_jitter_pos(brush, paintpos, finalpos);
+
 			if (painter->cache.enabled)
-				brush_painter_refresh_cache(painter, paintpos);
+				brush_painter_refresh_cache(painter, finalpos);
 
 			totpaintops +=
-				func(user, painter->cache.ibuf, painter->lastpaintpos, paintpos);
+				func(user, painter->cache.ibuf, painter->lastpaintpos, finalpos);
 
 			painter->lastpaintpos[0]= paintpos[0];
 			painter->lastpaintpos[1]= paintpos[1];
@@ -907,10 +924,14 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 
 			while (painter->accumtime >= brush->rate) {
 				brush_apply_pressure(painter, brush, pressure);
+
+				brush_jitter_pos(brush, pos, finalpos);
+
 				if (painter->cache.enabled)
-					brush_painter_refresh_cache(painter, paintpos);
+					brush_painter_refresh_cache(painter, finalpos);
+
 				totpaintops +=
-					func(user, painter->cache.ibuf, painter->lastmousepos, pos);
+					func(user, painter->cache.ibuf, painter->lastmousepos, finalpos);
 				painter->accumtime -= brush->rate;
 			}
 
@@ -924,7 +945,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 
 	brush->alpha = painter->startalpha;
 	brush->size = painter->startsize;
-	brush->innerradius = painter->startinnerradius;
+	brush->jitter = painter->startjitter;
 	brush->spacing = painter->startspacing;
 
 	return totpaintops;

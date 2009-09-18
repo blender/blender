@@ -4443,6 +4443,7 @@ typedef struct PaintOperation {
 
 	int first;
 	int prevmouse[2];
+	float prev_pressure; /* need this since we dont get tablet events for pressure change */
 	int brush_size_orig;
 	double starttime;
 
@@ -4722,8 +4723,8 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		if(wmtab->Active == EVT_TABLET_ERASER)
 			pop->s.blend= IMB_BLEND_ERASE_ALPHA;
 	}
-	else
-		pressure= 1.0f;
+	else /* otherwise airbrush becomes 1.0 pressure instantly */
+		pressure= pop->prev_pressure ? pop->prev_pressure : 1.0f;
 
 	if(pop->first) {
 		pop->prevmouse[0]= mouse[0];
@@ -4732,8 +4733,7 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* special exception here for too high pressure values on first touch in
 		   windows for some tablets, then we just skip first touch ..  */
-		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
-			BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && tablet && (pressure >= 0.99f))
+		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|BRUSH_SPACING_PRESSURE)) && tablet && (pressure >= 0.99f))
 			return;
 	}
 
@@ -4748,6 +4748,8 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* apply */
 	paint_apply(C, op, &itemptr);
+
+	pop->prev_pressure= pressure;
 }
 
 static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
