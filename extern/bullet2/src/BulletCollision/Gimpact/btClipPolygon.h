@@ -27,9 +27,6 @@ subject to the following restrictions:
 #include "LinearMath/btTransform.h"
 #include "LinearMath/btGeometryUtil.h"
 
-/*! \addtogroup GEOMETRIC_OPERATIONS
-*/
-//! @{
 
 SIMD_FORCE_INLINE btScalar bt_distance_point_plane(const btVector4 & plane,const btVector3 &point)
 {
@@ -181,6 +178,5 @@ SIMD_FORCE_INLINE int bt_plane_clip_triangle(
 
 
 
-//! @}
 
 #endif // GIM_TRI_COLLISION_H_INCLUDED

@@ -46,8 +46,8 @@
 #include "BL_SkinMeshObject.h"
 #include "BL_DeformableGameObject.h"
 
-BL_SkinMeshObject::BL_SkinMeshObject(Mesh* mesh, int lightlayer)
- : RAS_MeshObject (mesh, lightlayer)
+BL_SkinMeshObject::BL_SkinMeshObject(Mesh* mesh)
+ : RAS_MeshObject (mesh)
 { 
 	m_bDeformed = true;
 
@@ -87,7 +87,7 @@ void BL_SkinMeshObject::UpdateBuckets(void* clientobj,double* oglmatrix,bool use
 			continue;
 
 		RAS_MeshSlot *slot = *it->m_slots[clientobj];
-		slot->m_pDeformer = ((BL_DeformableGameObject*)clientobj)->GetDeformer();
+		slot->SetDeformer(((BL_DeformableGameObject*)clientobj)->GetDeformer());
 	}
 
 	RAS_MeshObject::UpdateBuckets(clientobj, oglmatrix, useObjectColor, rgbavec, visible, culled);

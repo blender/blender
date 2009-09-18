@@ -29,11 +29,14 @@
  * $Id$
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
 #include <stddef.h>
 #include <sys/types.h>
 #include "mmap_win.h"
+#define open _open
+#define read _read
+#define close _close
 #endif
 
 #include "BLI_blenlib.h"
@@ -54,6 +57,10 @@
 #include "IMB_radiance_hdr.h"
 #include "IMB_dpxcineon.h"
 #include "BKE_global.h"
+
+#ifdef WITH_OPENJPEG
+#include "IMB_jp2.h"
+#endif
 
 #ifdef WITH_OPENEXR
 #include "openexr/openexr_api.h"
@@ -136,7 +143,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		ibuf = imb_bmp_decode((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);
 
-		ibuf = imb_loadtarga((uchar *)mem, flags);
+		ibuf = imb_loadtarga((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);
 
 		ibuf = imb_loaddpx((uchar *)mem, size, flags);
@@ -158,11 +165,16 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		if (ibuf) return (ibuf);
 #endif
 
+#ifdef WITH_OPENJPEG
+		ibuf = imb_jp2_decode((uchar *)mem, size, flags);
+		if (ibuf) return (ibuf);
+#endif
+
 #ifdef WITH_DDS
 		ibuf = imb_load_dds((uchar *)mem, size, flags);
 		if (ibuf) return (ibuf);
 #endif
-		
+	
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined (__APPLE__)
 		if(G.have_quicktime) {
@@ -217,7 +229,7 @@ struct ImBuf *IMB_loadiffmem(int *mem, int flags) {
 		}
 	}
 
-	ibuf = imb_loadtarga((uchar *) mem,flags);
+	ibuf = imb_loadtarga((uchar *) mem,maxlen,flags);
 	if (ibuf) return(ibuf);
 
 	if (IB_verbose) fprintf(stderr,"Unknown fileformat\n");
@@ -232,26 +244,6 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 
 	size = BLI_filesize(file);
 
-#if defined(AMIGA) || defined(__BeOS)
-	mem= (int *)malloc(size);
-	if (mem==0) {
-		printf("Out of mem\n");
-		return (0);
-	}
-
-	if (read(file, mem, size)!=size){
-		printf("Read Error\n");
-		free(mem);
-		return (0);
-	}
-
-	ibuf = IMB_ibImageFromMemory(mem, size, flags);
-	free(mem);
-
-	/* for jpeg read */
-	lseek(file, 0L, SEEK_SET);
-
-#else
 	mem= (int *)mmap(0,size,PROT_READ,MAP_SHARED,file,0);
 	if (mem==(int *)-1){
 		printf("Couldn't get mapping\n");
@@ -263,7 +255,6 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 	if (munmap( (void *) mem, size)){
 		printf("Couldn't unmap file.\n");
 	}
-#endif
 	return(ibuf);
 }
 

@@ -65,8 +65,8 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			newx = cbuf->x * (rd->size / 100.0f);
 			newy = cbuf->y * (rd->size / 100.0f);
 		} else {	/* CMP_SCALE_ABSOLUTE */
-			newx= (int)in[1]->vec[0];
-			newy= (int)in[2]->vec[0];
+			newx= MAX2((int)in[1]->vec[0], 1);
+			newy= MAX2((int)in[2]->vec[0], 1);
 		}
 		newx= MIN2(newx, CMP_SCALE_MAX);
 		newy= MIN2(newy, CMP_SCALE_MAX);

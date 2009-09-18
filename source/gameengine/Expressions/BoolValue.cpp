@@ -26,6 +26,8 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+const STR_String CBoolValue::sTrueString  = "TRUE";
+const STR_String CBoolValue::sFalseString = "FALSE";
 
 CBoolValue::CBoolValue()
 /*
@@ -45,7 +47,7 @@ CBoolValue::CBoolValue(bool inBool)
 
 
 
-CBoolValue::CBoolValue(bool innie,STR_String name,AllocationTYPE alloctype)
+CBoolValue::CBoolValue(bool innie,const char *name,AllocationTYPE alloctype)
 {
 	m_bool = innie;
 	SetName(name);
@@ -181,18 +183,15 @@ ret: the bool stored in the object
 
 
 
-float CBoolValue::GetNumber()
+double CBoolValue::GetNumber()
 {
-	return (float)m_bool;
+	return (double)m_bool;
 }
 
 
 
 const STR_String& CBoolValue::GetText()
 {
-	static STR_String sTrueString  = STR_String("TRUE");
-	static STR_String sFalseString = STR_String("FALSE");
-	
 	return m_bool ? sTrueString : sFalseString;
 }
 
@@ -201,7 +200,7 @@ const STR_String& CBoolValue::GetText()
 CValue* CBoolValue::GetReplica()
 {
 	CBoolValue* replica = new CBoolValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	
 	return replica;
 }
@@ -210,5 +209,5 @@ CValue* CBoolValue::GetReplica()
 
 PyObject* CBoolValue::ConvertValueToPython()
 {
-	return PyInt_FromLong(m_bool != 0);
+	return PyBool_FromLong(m_bool != 0);
 }

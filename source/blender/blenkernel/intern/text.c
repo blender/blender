@@ -37,15 +37,22 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_controller_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
-#include "BKE_bad_level_calls.h"
-#include "BKE_utildefines.h"
-#include "BKE_text.h"
-#include "BKE_library.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
+#include "BKE_text.h"
+#include "BKE_utildefines.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -66,9 +73,6 @@ A text should relate to a file as follows -
 (Text *)->flags has the following bits
 	TXT_ISDIRTY - should always be set if the file in mem. differs from
 					the file on disk, or if there is no file on disk.
-	TXT_ISTMP - should always be set if the (Text *)->name file has not
-					been written before, and attempts to save should result
-					in "Save over?"
 	TXT_ISMEM - should always be set if the Text has not been mapped to
 					a file, in which case (Text *)->name may be NULL or garbage.			
 	TXT_ISEXT - should always be set if the Text is not to be written into
@@ -126,12 +130,13 @@ undo position
 static void txt_pop_first(Text *text);
 static void txt_pop_last(Text *text);
 static void txt_undo_add_op(Text *text, int op);
-static void txt_undo_add_block(Text *text, int op, char *buf);
+static void txt_undo_add_block(Text *text, int op, const char *buf);
 static void txt_delete_line(Text *text, TextLine *line);
+static void txt_delete_sel (Text *text);
+static void txt_make_dirty (Text *text);
 
 /***/
 
-static char *txt_cut_buffer= NULL;
 static unsigned char undoing;
 
 /* allow to switch off undoing externally */
@@ -180,7 +185,7 @@ Text *add_empty_text(char *name)
 	ta->undo_buf= MEM_mallocN(ta->undo_len, "undo buf");
 		
 	ta->nlines=1;
-	ta->flags= TXT_ISDIRTY | TXT_ISTMP | TXT_ISMEM;
+	ta->flags= TXT_ISDIRTY | TXT_ISMEM;
 
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
@@ -258,8 +263,6 @@ int reopen_text(Text *text)
 	text->undo_len= TXT_INIT_UNDO;
 	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
 	
-	text->flags= TXT_ISTMP; 
-	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
 	fseek(fp, 0L, SEEK_SET);	
@@ -323,7 +326,7 @@ int reopen_text(Text *text)
 	return 1;
 }
 
-Text *add_text(char *file) 
+Text *add_text(char *file, const char *relpath) 
 {
 	FILE *fp;
 	int i, llen, len, res;
@@ -335,8 +338,8 @@ Text *add_text(char *file)
 	struct stat st;
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
-	if (G.scene) /* can be NULL (bg mode) */
-		BLI_convertstringcode(str, G.sce);
+	if (relpath) /* can be NULL (bg mode) */
+		BLI_convertstringcode(str, relpath);
 	BLI_split_dirfile_basic(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
@@ -348,9 +351,6 @@ Text *add_text(char *file)
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
 	ta->curl= ta->sell= NULL;
-
-/* 	ta->flags= TXT_ISTMP | TXT_ISEXT; */
-	ta->flags= TXT_ISTMP;
 	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
@@ -431,7 +431,7 @@ Text *copy_text(Text *ta)
 	tan->name= MEM_mallocN(strlen(ta->name)+1, "text_name");
 	strcpy(tan->name, ta->name);
 	
-	tan->flags = ta->flags | TXT_ISDIRTY | TXT_ISTMP;
+	tan->flags = ta->flags | TXT_ISDIRTY;
 	
 	tan->lines.first= tan->lines.last= NULL;
 	tan->markers.first= tan->markers.last= NULL;
@@ -459,6 +459,109 @@ Text *copy_text(Text *ta)
 	tan->curc= tan->selc= 0;
 
 	return tan;
+}
+
+void unlink_text(Main *bmain, Text *text)
+{
+	bScreen *scr;
+	ScrArea *area;
+	SpaceLink *sl;
+	Scene *scene;
+	Object *ob;
+	bController *cont;
+	bConstraint *con;
+	short update;
+
+	/* dome */
+	for(scene=bmain->scene.first; scene; scene=scene->id.next)
+		if(scene->r.dometext == text)
+			scene->r.dometext = NULL;
+	
+	for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		/* game controllers */
+		for(cont=ob->controllers.first; cont; cont=cont->next) {
+			if(cont->type==CONT_PYTHON) {
+				bPythonCont *pc;
+				
+				pc= cont->data;
+				if(pc->text==text) pc->text= NULL;
+			}
+		}
+
+		/* pyconstraints */
+		update = 0;
+
+		if(ob->type==OB_ARMATURE && ob->pose) {
+			bPoseChannel *pchan;
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				for(con = pchan->constraints.first; con; con=con->next) {
+					if(con->type==CONSTRAINT_TYPE_PYTHON) {
+						bPythonConstraint *data = con->data;
+						if (data->text==text) data->text = NULL;
+						update = 1;
+						
+					}
+				}
+			}
+		}
+
+		for(con = ob->constraints.first; con; con=con->next) {
+			if(con->type==CONSTRAINT_TYPE_PYTHON) {
+				bPythonConstraint *data = con->data;
+				if (data->text==text) data->text = NULL;
+				update = 1;
+			}
+		}
+		
+		if(update)
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	}
+
+	/* pynodes */
+	// XXX nodeDynamicUnlinkText(&text->id);
+	
+	/* text space */
+	for(scr= bmain->screen.first; scr; scr= scr->id.next) {
+		for(area= scr->areabase.first; area; area= area->next) {
+			for(sl= area->spacedata.first; sl; sl= sl->next) {
+				if(sl->spacetype==SPACE_TEXT) {
+					SpaceText *st= (SpaceText*) sl;
+					
+					if(st->text==text) {
+						st->text= NULL;
+						st->top= 0;
+					}
+				}
+			}
+		}
+	}
+
+	text->id.us= 0;
+}
+
+void clear_text(Text *text) /* called directly from rna */
+{
+	int oldstate;
+
+	oldstate = txt_get_undostate(  );
+	txt_set_undostate( 1 );
+	txt_sel_all( text );
+	txt_delete_sel(text);
+	txt_set_undostate( oldstate );
+
+	txt_make_dirty(text);
+}
+
+void write_text(Text *text, char *str) /* called directly from rna */
+{
+	int oldstate;
+
+	oldstate = txt_get_undostate(  );
+	txt_insert_buf( text, str );
+	txt_move_eof( text, 0 );
+	txt_set_undostate( oldstate );
+
+	txt_make_dirty(text);
 }
 
 /*****************************/
@@ -493,17 +596,15 @@ static TextLine *txt_new_line(char *str)
 	return tmp;
 }
 
-static TextLine *txt_new_linen(char *str, int n)
+static TextLine *txt_new_linen(const char *str, int n)
 {
 	TextLine *tmp;
 
-	if(!str) str= "";
-	
 	tmp= (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= MEM_mallocN(n+1, "textline_string");
 	tmp->format= NULL;
 	
-	BLI_strncpy(tmp->line, str, n+1);
+	BLI_strncpy(tmp->line, (str)? str: "", n+1);
 	
 	tmp->len= strlen(tmp->line);
 	tmp->next= tmp->prev= NULL;
@@ -1057,11 +1158,6 @@ void txt_sel_line (Text *text)
 /* Cut and paste functions */
 /***************************/
 
-void txt_print_cutbuffer (void) 
-{
-	printf ("Cut buffer\n--\n%s\n--\n", txt_cut_buffer);	
-}
-
 char *txt_to_buf (Text *text)
 {
 	int length;
@@ -1166,15 +1262,6 @@ int txt_find_string(Text *text, char *findstr, int wrap)
 		return 0;
 }
 
-void txt_cut_sel (Text *text)
-{
-	if (!G.background) /* Python uses txt_cut_sel, which it should not, working around for now  */
-		txt_copy_clipboard(text);
-	
-	txt_delete_sel(text);
-	txt_make_dirty(text);
-}
-
 char *txt_sel_to_buf (Text *text)
 {
 	char *buf;
@@ -1252,86 +1339,7 @@ char *txt_sel_to_buf (Text *text)
 	return buf;
 }
 
-void txt_copy_sel (Text *text)
-{
-	int length=0;
-	TextLine *tmp, *linef, *linel;
-	int charf, charl;
-	
-	if (!text) return;
-	if (!text->curl) return;
-	if (!text->sell) return;
-
-	if (!txt_has_sel(text)) return;
-	
-	if (txt_cut_buffer) MEM_freeN(txt_cut_buffer);
-	txt_cut_buffer= NULL;
-	
-	if (text->curl==text->sell) {
-		linef= linel= text->curl;
-		
-		if (text->curc < text->selc) {
-			charf= text->curc;
-			charl= text->selc;
-		} else{
-			charf= text->selc;
-			charl= text->curc;
-		}
-	} else if (txt_get_span(text->curl, text->sell)<0) {
-		linef= text->sell;
-		linel= text->curl;
-
-		charf= text->selc;		
-		charl= text->curc;
-	} else {
-		linef= text->curl;
-		linel= text->sell;
-		
-		charf= text->curc;
-		charl= text->selc;
-	}
-
-	if (linef == linel) {
-		length= charl-charf;
-
-		txt_cut_buffer= MEM_mallocN(length+1, "cut buffera");
-		
-		BLI_strncpy(txt_cut_buffer, linef->line + charf, length+1);
-	} else {
-		length+= linef->len - charf;
-		length+= charl;
-		length++; /* For the '\n' */
-		
-		tmp= linef->next;
-		while (tmp && tmp!= linel) {
-			length+= tmp->len+1;
-			tmp= tmp->next;
-		}
-		
-		txt_cut_buffer= MEM_mallocN(length+1, "cut bufferb");
-		
-		strncpy(txt_cut_buffer, linef->line+ charf, linef->len-charf);
-		length= linef->len-charf;
-		
-		txt_cut_buffer[length++]='\n';
-		
-		tmp= linef->next;
-		while (tmp && tmp!=linel) {
-			strncpy(txt_cut_buffer+length, tmp->line, tmp->len);
-			length+= tmp->len;
-			
-			txt_cut_buffer[length++]='\n';			
-			
-			tmp= tmp->next;
-		}
-		strncpy(txt_cut_buffer+length, linel->line, charl);
-		length+= charl;
-		
-		txt_cut_buffer[length]=0;
-	}
-}
-
-void txt_insert_buf(Text *text, char *in_buffer)
+void txt_insert_buf(Text *text, const char *in_buffer)
 {
 	int i=0, l=0, j, u, len;
 	TextLine *add;
@@ -1381,37 +1389,31 @@ void txt_insert_buf(Text *text, char *in_buffer)
 	undoing= u;
 }
 
-void txt_free_cut_buffer(void) 
-{
-	if (txt_cut_buffer) MEM_freeN(txt_cut_buffer);
-}
-
-void txt_paste(Text *text)
-{
-	txt_insert_buf(text, txt_cut_buffer);
-}
-
 /******************/
 /* Undo functions */
 /******************/
 
-#define MAX_UNDO_TEST(x) \
-	while (text->undo_pos+x >= text->undo_len) { \
-		if(text->undo_len*2 > TXT_MAX_UNDO) { \
-			error("Undo limit reached, buffer cleared\n"); \
-			MEM_freeN(text->undo_buf); \
-			text->undo_len= TXT_INIT_UNDO; \
-			text->undo_buf= MEM_mallocN(text->undo_len, "undo buf"); \
-			text->undo_pos=-1; \
-			return; \
-		} else { \
-			void *tmp= text->undo_buf; \
-			text->undo_buf= MEM_callocN(text->undo_len*2, "undo buf"); \
-			memcpy(text->undo_buf, tmp, text->undo_len); \
-			text->undo_len*=2; \
-			MEM_freeN(tmp); \
-		} \
+static int max_undo_test(Text *text, int x)
+{
+	while (text->undo_pos+x >= text->undo_len) {
+		if(text->undo_len*2 > TXT_MAX_UNDO) {
+			/* XXX error("Undo limit reached, buffer cleared\n"); */
+			MEM_freeN(text->undo_buf);
+			text->undo_len= TXT_INIT_UNDO;
+			text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
+			text->undo_pos=-1;
+			return 0;
+		} else {
+			void *tmp= text->undo_buf;
+			text->undo_buf= MEM_callocN(text->undo_len*2, "undo buf");
+			memcpy(text->undo_buf, tmp, text->undo_len);
+			text->undo_len*=2;
+			MEM_freeN(tmp);
+		}
 	}
+
+	return 1;
+}
 
 static void dump_buffer(Text *text) 
 {
@@ -1558,20 +1560,22 @@ void txt_print_undo(Text *text)
 
 static void txt_undo_add_op(Text *text, int op)
 {
-	MAX_UNDO_TEST(2);
+	if(!max_undo_test(text, 2))
+		return;
 	
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
 	text->undo_buf[text->undo_pos+1]= 0;
 }
 
-static void txt_undo_add_block(Text *text, int op, char *buf)
+static void txt_undo_add_block(Text *text, int op, const char *buf)
 {
 	int length;
 	
 	length= strlen(buf);
 	
-	MAX_UNDO_TEST(length+11);
+	if(!max_undo_test(text, length+11))
+		return;
 
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
@@ -1605,7 +1609,8 @@ static void txt_undo_add_block(Text *text, int op, char *buf)
 
 void txt_undo_add_toop(Text *text, int op, unsigned int froml, unsigned short fromc, unsigned int tol, unsigned short toc)
 {
-	MAX_UNDO_TEST(15);
+	if(!max_undo_test(text, 15))
+		return;
 
 	if (froml==tol && fromc==toc) return;
 
@@ -1648,7 +1653,8 @@ void txt_undo_add_toop(Text *text, int op, unsigned int froml, unsigned short fr
 
 static void txt_undo_add_charop(Text *text, int op, char c)
 {
-	MAX_UNDO_TEST(4);
+	if(!max_undo_test(text, 4))
+		return;
 
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
@@ -1869,7 +1875,7 @@ void txt_do_undo(Text *text)
 			text->undo_pos--;
 			break;
 		default:
-			error("Undo buffer error - resetting");
+			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
 			
 			break;
@@ -2082,7 +2088,7 @@ void txt_do_redo(Text *text)
 			}
 			break;
 		default:
-			error("Undo buffer error - resetting");
+			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
 
 			break;
@@ -2393,6 +2399,12 @@ int txt_add_char (Text *text, char add)
 
 	if(!undoing) txt_undo_add_charop(text, UNDO_INSERT, add);
 	return 1;
+}
+
+void txt_delete_selected(Text *text)
+{
+	txt_delete_sel(text);
+	txt_make_dirty(text);
 }
 
 int txt_replace_char (Text *text, char add)

@@ -132,7 +132,6 @@ modified for Blender/Mathutils by Campell Barton
 ######################################################################
 # Public interface
 ######################################################################
-from Blender.Mathutils import DotVecs
 def convexHull(point_list_2d):
 	"""Calculate the convex hull of a set of vectors
 	The vectors can be 3 or 4d but only the Xand Y are used.
@@ -197,7 +196,7 @@ def plane2mat(plane, normalize= False):
 	
 	up= cent - ((plane[0]+plane[1])/2.0)
 	right= cent - ((plane[1]+plane[2])/2.0)
-	z= CrossVecs(up, right)
+	z= up.cross(right)
 	
 	if normalize:
 		up.normalize()
@@ -225,15 +224,5 @@ from math import pi, sin, cos, sqrt
 
 def angleToLength(angle):
 	# Alredy accounted for
-	if angle < 0.000001:
-		return 1.0
-	
-	angle = 2*pi*angle/360
-	x,y = cos(angle), sin(angle)
-	# print "YX", x,y
-	# 0 d is hoz to the right.
-	# 90d is vert upward.
-	fac=1/x
-	x=x*fac
-	y=y*fac
-	return sqrt((x*x)+(y*y))
+	if angle < 0.000001:	return 1.0
+	else:					return abs(1.0 / cos(pi*angle/180));

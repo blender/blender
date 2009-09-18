@@ -19,8 +19,9 @@ subject to the following restrictions:
 #include "btCollisionShape.h"
 
 
-btEmptyShape::btEmptyShape()
+btEmptyShape::btEmptyShape() : btConcaveShape ()
 {
+	m_shapeType = EMPTY_SHAPE_PROXYTYPE;
 }
 
 

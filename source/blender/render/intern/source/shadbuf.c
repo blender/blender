@@ -26,7 +26,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "MTC_matrixops.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_group_types.h"
@@ -403,7 +403,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	wsize= shb->pixsize*(shb->size/2.0);
 	
 	i_window(-wsize, wsize, -wsize, wsize, shb->d, shb->clipend, shb->winmat);
-	MTC_Mat4MulMat4(shb->persmat, shb->viewmat, shb->winmat);
+	Mat4MulMat4(shb->persmat, shb->viewmat, shb->winmat);
 
 	if(ELEM(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY)) {
 		/* jitter, weights - not threadsafe! */
@@ -425,7 +425,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 			/* create Z tiles (for compression): this system is 24 bits!!! */
 			compress_shadowbuf(shb, rectz, lar->mode & LA_SQUARE);
 
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 		}
 		
@@ -457,13 +457,13 @@ static void *do_shadow_thread(void *re_v)
 			lar->thread_ready= 1;
 			BLI_unlock_thread(LOCK_CUSTOM1);
 		}
-	} while(lar && !re->test_break());
+	} while(lar && !re->test_break(re->tbh));
 
 	return NULL;
 }
 
 static volatile int g_break= 0;
-static int thread_break(void)
+static int thread_break(void *unused)
 {
 	return g_break;
 }
@@ -473,7 +473,7 @@ void threaded_makeshadowbufs(Render *re)
 	ListBase threads;
 	LampRen *lar;
 	int a, totthread= 0;
-	int (*test_break)(void);
+	int (*test_break)(void *);
 
 	/* count number of threads to use */
 	if(G.rendering) {
@@ -488,7 +488,7 @@ void threaded_makeshadowbufs(Render *re)
 
 	if(totthread <= 1) {
 		for(lar=re->lampren.first; lar; lar= lar->next) {
-			if(re->test_break()) break;
+			if(re->test_break(re->tbh)) break;
 			if(lar->shb) {
 				/* if type is irregular, this only sets the perspective matrix and autoclips */
 				makeshadowbuf(re, lar);
@@ -512,7 +512,7 @@ void threaded_makeshadowbufs(Render *re)
 
 		/* keep rendering as long as there are shadow buffers not ready */
 		do {
-			if((g_break=test_break()))
+			if((g_break=test_break(re->tbh)))
 				break;
 
 			PIL_sleep_ms(50);
@@ -673,7 +673,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	VECCOPY(co, rco);
 	co[3]= 1.0f;
 
-	MTC_Mat4MulVec4fl(shb->persmat, co);	/* rational hom co */
+	Mat4MulVec4fl(shb->persmat, co);	/* rational hom co */
 
 	xs1= siz*(1.0f+co[0]/co[3]);
 	ys1= siz*(1.0f+co[1]/co[3]);
@@ -714,7 +714,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	co[1]= rco[1]+dxco[1];
 	co[2]= rco[2]+dxco[2];
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->persmat,co);     /* rational hom co */
+	Mat4MulVec4fl(shb->persmat,co);     /* rational hom co */
 	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
 	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
 	
@@ -722,7 +722,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	co[1]= rco[1]+dyco[1];
 	co[2]= rco[2]+dyco[2];
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->persmat,co);     /* rational hom co */
+	Mat4MulVec4fl(shb->persmat,co);     /* rational hom co */
 	dy[0]= xs1- siz*(1.0+co[0]/co[3]);
 	dy[1]= ys1- siz*(1.0+co[1]/co[3]);
 	
@@ -858,7 +858,7 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[1]= p1[1];
 	co[2]= p1[2]/lar->sh_zfac;
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
+	Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
 	xf1= siz*(1.0+co[0]/co[3]);
 	yf1= siz*(1.0+co[1]/co[3]);
 	zf1= (co[2]/co[3]);
@@ -868,7 +868,7 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[1]= p2[1];
 	co[2]= p2[2]/lar->sh_zfac;
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
+	Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
 	xf2= siz*(1.0+co[0]/co[3]);
 	yf2= siz*(1.0+co[1]/co[3]);
 	zf2= (co[2]/co[3]);
@@ -1557,7 +1557,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 				ma= vlr->mat;
 				ok= 1;
 				if((ma->mode & MA_SHADBUF)==0) ok= 0;
-				if(ma->mode & MA_WIRE) ok= 0;
+				if(ma->material_type == MA_TYPE_WIRE) ok= 0;
 				zspanstrand.shad_alpha= zspan.shad_alpha= ma->shad_alpha;
 			}
 			
@@ -1589,7 +1589,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 						c4= testclip(hoco[3]); 
 					
 					/* ***** NO WIRE YET */			
-					if(ma->mode & MA_WIRE)  {
+					if(ma->material_type == MA_TYPE_WIRE) {
 						if(vlr->v4)
 							zbufclipwire(&zspan, i, a+1, vlr->ec, hoco[0], hoco[1], hoco[2], hoco[3], c1, c2, c3, c4);
 						else
@@ -1659,7 +1659,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 	}
 	
 	/* move 3d vector to lampbuf */
-	MTC_Mat4MulVec4fl(shb->persmat, hoco);	/* rational hom co */
+	Mat4MulVec4fl(shb->persmat, hoco);	/* rational hom co */
 	
 	/* clip We can test for -1.0/1.0 because of the properties of the
 	 * coordinate transformations. */

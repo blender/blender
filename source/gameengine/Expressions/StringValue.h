@@ -26,26 +26,33 @@ class CStringValue : public CPropValue
 public:
 	/// Construction / destruction
 	CStringValue();
-	CStringValue (STR_String txt, STR_String name , AllocationTYPE alloctype = CValue::HEAPVALUE);
+	CStringValue (const char *txt, const char *name , AllocationTYPE alloctype = CValue::HEAPVALUE);
 
 	virtual ~CStringValue() {
 	};
 	/// CValue implementation
 	virtual bool		IsEqual(const STR_String & other);
 	virtual const STR_String &	GetText();
-	virtual float		GetNumber();
+	virtual double		GetNumber();
 	
 	virtual	CValue*		Calc(VALUE_OPERATOR op, CValue *val);
 	virtual	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	virtual void		SetValue(CValue* newval) { 	m_strString = newval->GetText(); SetModified(true);	};
 	virtual CValue*		GetReplica();
 	virtual PyObject*	ConvertValueToPython() {
-		return PyString_FromString(m_strString.Ptr());
+		return PyUnicode_FromString(m_strString.Ptr());
 	}
 
 private:
 	// data member
 	STR_String				m_strString;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CStringValue"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

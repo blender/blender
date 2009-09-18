@@ -105,6 +105,7 @@ protected:
 public:
 	btGImpactShapeInterface()
 	{
+		m_shapeType=GIMPACT_SHAPE_PROXYTYPE;
 		m_localAABB.invalidate();
 		m_needs_update = true;
 		localScaling.setValue(1.f,1.f,1.f);
@@ -880,6 +881,8 @@ Set of btGImpactMeshShapePart parts
 */
 class btGImpactMeshShape : public btGImpactShapeInterface
 {
+	btStridingMeshInterface* m_meshInterface;
+
 protected:
 	btAlignedObjectArray<btGImpactMeshShapePart*> m_mesh_parts;
 	void buildMeshParts(btStridingMeshInterface * meshInterface)
@@ -906,6 +909,7 @@ protected:
 public:
 	btGImpactMeshShape(btStridingMeshInterface * meshInterface)
 	{
+		m_meshInterface = meshInterface;
 		buildMeshParts(meshInterface);
 	}
 
@@ -921,6 +925,15 @@ public:
 	}
 
 
+	btStridingMeshInterface* getMeshInterface()
+	{
+		return m_meshInterface;
+	}
+
+	const btStridingMeshInterface* getMeshInterface() const
+	{
+		return m_meshInterface;
+	}
 
 	int getMeshPartCount() const
 	{
@@ -1032,12 +1045,12 @@ public:
 	}
 
 	//! call when reading child shapes
-	virtual void lockChildShapes()
+	virtual void lockChildShapes() const
 	{
 		btAssert(0);
 	}
 
-	virtual void unlockChildShapes()
+	virtual void unlockChildShapes() const
 	{
 		btAssert(0);
 	}

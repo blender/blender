@@ -1,6 +1,6 @@
 /*  BKE_action.h   May 2001
  *  
- *  Blender kernel action functionality
+ *  Blender kernel action and pose functionality
  *
  *	Reevan McKay
  *
@@ -26,6 +26,7 @@
  * All rights reserved.
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
+ *				 Full recode, Joshua Leung, 2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -35,15 +36,14 @@
 
 #include "DNA_listBase.h"
 
-/**
- * The following structures are defined in DNA_action_types.h
- */
-
+/* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
 struct bAction;
-struct bActionChannel;
+struct bActionGroup;
+struct FCurve;
 struct bPose;
 struct bPoseChannel;
 struct Object;
+struct Scene;
 struct ID;
 
 /* Kernel prototypes */
@@ -51,6 +51,70 @@ struct ID;
 extern "C" {
 #endif
 
+/* Action Lib Stuff ----------------- */
+
+/* Allocate a new bAction with the given name */
+struct bAction *add_empty_action(const char name[]);
+
+/* Allocate a copy of the given Action and all its data */	
+struct bAction *copy_action(struct bAction *src);
+
+/* Deallocate all of the Action's data, but not the Action itself */
+void free_action(struct bAction *act);
+
+// XXX is this needed?
+void make_local_action(struct bAction *act);
+
+
+/* Action API ----------------- */
+
+/* types of transforms applied to the given item 
+ * 	- these are the return falgs for action_get_item_transforms()
+ */
+typedef enum eAction_TransformFlags {
+		/* location */
+	ACT_TRANS_LOC	= (1<<0),
+		/* rotation */
+	ACT_TRANS_ROT	= (1<<1),
+		/* scaling */
+	ACT_TRANS_SCALE	= (1<<2),
+		
+		/* all flags */
+	ACT_TRANS_ALL	= (ACT_TRANS_LOC|ACT_TRANS_ROT|ACT_TRANS_SCALE),
+} eAction_TransformFlags;
+
+/* Return flags indicating which transforms the given object/posechannel has 
+ *	- if 'curves' is provided, a list of links to these curves are also returned
+ *	  whose nodes WILL NEED FREEING
+ */
+short action_get_item_transforms(struct bAction *act, struct Object *ob, struct bPoseChannel *pchan, ListBase *curves);
+
+
+/* Some kind of bounding box operation on the action */
+void calc_action_range(const struct bAction *act, float *start, float *end, short incl_modifiers);
+
+/* Does action have any motion data at all? */
+short action_has_motion(const struct bAction *act);
+
+/* Action Groups API ----------------- */
+
+/* Get the active action-group for an Action */
+struct bActionGroup *get_active_actiongroup(struct bAction *act);
+
+/* Make the given Action Group the active one */
+void set_active_action_group(struct bAction *act, struct bActionGroup *agrp, short select);
+
+/* Add given channel into (active) group  */
+void action_groups_add_channel(struct bAction *act, struct bActionGroup *agrp, struct FCurve *fcurve);
+
+/* Remove the given channel from all groups */
+void action_groups_remove_channel(struct bAction *act, struct FCurve *fcu);
+
+/* Find a group with the given name */
+struct bActionGroup *action_groups_find_named(struct bAction *act, const char name[]);
+
+
+/* Pose API ----------------- */	
 	
 /**
  * Removes and deallocates all channels from a pose.
@@ -67,101 +131,61 @@ void free_pose(struct bPose *pose);
  * Allocate a new pose on the heap, and copy the src pose and it's channels
  * into the new pose. *dst is set to the newly allocated structure, and assumed to be NULL.
  */ 
-void copy_pose(struct bPose **dst, struct bPose *src,
-			   int copyconstraints);
+void copy_pose(struct bPose **dst, struct bPose *src, int copyconstraints);
 
-/**
- * Deallocate the action's channels including constraint channels.
- * does not free the action structure.
- */
-void free_action(struct bAction * id);
-
-void make_local_action(struct bAction *act);
-
-/* only for armatures, doing pose actions only too */
-void do_all_pose_actions(struct Object *);
-/* only for objects, doing only 1 channel */
-void do_all_object_actions(struct Object *);
-/* only for Mesh, Curve, Surface, Lattice, doing only Shape channel */
-void do_all_shape_actions(struct Object *);
 
 
 /**
  * Return a pointer to the pose channel of the given name
  * from this pose.
  */
-struct  bPoseChannel *get_pose_channel(const struct bPose *pose,
-									   const char *name);
+struct bPoseChannel *get_pose_channel(const struct bPose *pose, const char *name);
+
+/**
+ * Return a pointer to the active pose channel from this Object.
+ * (Note: Object, not bPose is used here, as we need layer info from Armature)
+ */
+struct bPoseChannel *get_active_posechannel(struct Object *ob);
 
 /** 
  * Looks to see if the channel with the given name
  * already exists in this pose - if not a new one is
  * allocated and initialized.
  */
-struct bPoseChannel *verify_pose_channel(struct bPose* pose, 
-										 const char* name);
+struct bPoseChannel *verify_pose_channel(struct bPose* pose, const char* name);
+
+
 
 /* sets constraint flags */
 void update_pose_constraint_flags(struct bPose *pose);
 
 /* clears BONE_UNKEYED flags for frame changing */
+// XXX to be depreceated for a more general solution in animsys...
 void framechange_poses_clear_unkeyed(void);
 
-/**
- * Allocate a new bAction on the heap and copy 
- * the contents of src into it. If src is NULL NULL is returned.
- */
+/* Bone Groups API --------------------- */	
 
-struct bAction *copy_action(struct bAction *src);
+/* Adds a new bone-group */
+void pose_add_group(struct Object *ob);
 
-/**
- * Some kind of bounding box operation on the action.
- */
-void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
+/* Remove the active bone-group */
+void pose_remove_group(struct Object *ob);
 
-/**
- * Set the pose channels from the given action.
- */
-void extract_pose_from_action(struct bPose *pose, struct bAction *act, float ctime);
+/* Assorted Evaluation ----------------- */	
 
-/**
- * Get the effects of the given action using a workob 
- */
-void what_does_obaction(struct Object *ob, struct bAction *act, float cframe);
-
-/**
- * Iterate through the action channels of the action
- * and return the channel with the given name.
- * Returns NULL if no channel.
- */
-struct bActionChannel *get_action_channel(struct bAction *act,  const char *name);
-/**
- * Iterate through the action channels of the action
- * and return the channel with the given name.
- * Returns and adds new channel if no channel.
- */
-struct bActionChannel *verify_action_channel(struct bAction *act, const char *name);
-
-  /* baking */
-struct bAction *bake_obIPO_to_action(struct Object *ob);
-
-/* exported for game engine */
-void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);
-void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
+/* Used for the Action Constraint */
+void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
 
 /* for proxy */
 void copy_pose_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void rest_pose(struct bPose *pose);
 
-/* map global time (frame nr) to strip converted time, doesn't clip */
-float get_action_frame(struct Object *ob, float cframe);
-/* map strip time to global time (frame nr)  */
-float get_action_frame_inv(struct Object *ob, float cframe);
-/* builds a list of NlaIpoChannel with ipo values to write in datablock */
-void extract_ipochannels_from_action(ListBase *lb, struct ID *id, struct bAction *act, const char *name, float ctime);
-/* write values returned by extract_ipochannels_from_action, returns the number of value written */
-int execute_ipochannels(ListBase *lb);
+/* Game Engine ------------------------- */
+
+/* exported for game engine */
+void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight/*, short mode*/); /* was blend_poses */
+void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* functions used by the game engine */
 void game_copy_pose(struct bPose **dst, struct bPose *src);

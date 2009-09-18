@@ -48,26 +48,20 @@ class SCA_RandomSensor : public SCA_ISensor
 public:
 	SCA_RandomSensor(class SCA_EventManager* rndmgr,
 					SCA_IObject* gameobj,
-					int startseed,
-  					PyTypeObject* T=&Type);
+					int startseed);
 	virtual ~SCA_RandomSensor();
 	virtual CValue* GetReplica();
-	virtual bool Evaluate(CValue* event);
+	virtual void ProcessReplica();
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	/* 1. setSeed                                                            */
-	KX_PYMETHOD_DOC(SCA_RandomSensor,SetSeed);
-	/* 2. getSeed                                                            */
-	KX_PYMETHOD_DOC(SCA_RandomSensor,GetSeed);
-	/* 3. getSeed                                                            */
-	KX_PYMETHOD_DOC(SCA_RandomSensor,GetLastDraw);
+	
+	static PyObject*	pyattr_get_seed(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_seed(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 };
 

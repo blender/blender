@@ -609,7 +609,7 @@ int BL_Texture::GetPow2(int n)
 
 void BL_Texture::SplitEnvMap(EnvMap *map)
 {
-	if (!map || !map->ima || map->ima && !map->ima->ok) return;
+	if (!map || !map->ima || (map->ima && !map->ima->ok)) return;
 	ImBuf *ibuf= BKE_image_get_ibuf(map->ima, NULL);
 	if (ibuf)
 		my_envmap_split_ima(map, ibuf);

@@ -19,12 +19,13 @@ subject to the following restrictions:
 
 
 
-
+struct KX_ClientObjectInfo;
 class PHY_Shape;
 
 struct	PHY__Vector3
 {
 	float	m_vec[4];
+
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
@@ -34,9 +35,39 @@ struct	PHY__Vector3
 		return &m_vec[0];
 	}	
 };
+
+struct	PHY__Vector4
+{
+	float	m_vec[4];
+	PHY__Vector4() {}
+	void setValue(const float *value)
+	{
+		m_vec[0] = *value++;
+		m_vec[1] = *value++;
+		m_vec[2] = *value++;
+		m_vec[3] = *value++;
+	}
+	void setValue(const double *value)
+	{
+		m_vec[0] = (float)(*value++);
+		m_vec[1] = (float)(*value++);
+		m_vec[2] = (float)(*value++);
+		m_vec[3] = (float)(*value++);
+	}
+
+	operator const float* () const 
+	{ 
+		return &m_vec[0];
+	}	
+	operator float* () 
+	{ 
+		return &m_vec[0];
+	}	
+};
+
 //typedef 	float	PHY__Vector3[4];
 
-typedef enum
+enum
 {
 	PHY_FH_RESPONSE,
 	PHY_SENSOR_RESPONSE,	/* Touch Sensors */
@@ -59,7 +90,7 @@ typedef enum
 										   void *client_object1,
 										   void *client_object2,
 										   const PHY_CollData *coll_data);
-		
+	typedef void (*PHY_CullingCallback)(KX_ClientObjectInfo* info, void* param);
 
 
 /// PHY_PhysicsType enumerates all possible Physics Entities.
@@ -95,7 +126,8 @@ typedef enum PHY_ShapeType {
 	PHY_SHAPE_CONE,
 	PHY_SHAPE_MESH,
 	PHY_SHAPE_POLYTOPE,
-	PHY_SHAPE_COMPOUND
+	PHY_SHAPE_COMPOUND,
+	PHY_SHAPE_PROXY
 } PHY_ShapeType;
 
 

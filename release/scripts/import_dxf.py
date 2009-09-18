@@ -1,21 +1,22 @@
 #!BPY
 
 """
-Name: 'Autodesk DXF (.dxf)'
-Blender: 246
+Name: 'Autodesk DXF (.dxf .dwg)'
+Blender: 249
 Group: 'Import'
-Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
+Tooltip: 'Import for DWG/DXF geometry data.'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2008.08.03 by migius'
+__version__ = '1.12 - 2009.06.16 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
 __bpydoc__ = """\
-This script imports objects from DXF (2d/3d) into Blender.
+This script imports objects from DWG/DXF (2d/3d) into Blender.
 
 This script imports 2d and 3d geometery from DXF files.
-Supported DXF format versions: from (r2.5) r12 up to 2008.
+It supports DWG format too, with help of an external converter.
+Supported DXF format versions: from (r2.5) r12 up to r2008.
 Enhanced features are:
 - configurable object filtering and geometry manipulation,
 - configurable material pre-processing,
@@ -32,7 +33,7 @@ MINSERT (=array of blocks),
 CIRCLE,
 ARC,
 3DFACE,
-2d-POLYLINE (=plane, incl. arc, variable-width, curve, spline),
+2d-POLYLINE (=in plane, incl. arc, variable-width, curve, spline),
 3d-POLYLINE (=non-plane),
 3d-POLYMESH,
 3d-POLYFACE,
@@ -43,8 +44,8 @@ Supported DXF>r12 objects:
 ELLIPSE,
 LWPOLYLINE (LightWeight Polyline),
 SPLINE,
-(wip v1.13) MLINE,
-(wip v1.13) MTEXT
+(todo v1.13) MLINE,
+(todo v1.13) MTEXT
 
 Unsupported objects:
 DXF r12: DIMENSION.
@@ -57,7 +58,7 @@ Supported layout modes:
 "model space" is default,
 "paper space" as option (= "layout views")
 
-Supported scene definition objescts produced with AVE_RENDER:
+Supported scene definition objects produced with AVE_RENDER:
 scene: selection of lights assigned to the camera,
 lights: DIRECT, OVERHEAD, SH_SPOT,
 (wip v1.13 import of AVE_RENDER material definitions)
@@ -73,7 +74,7 @@ thickness,
 width,
 color,
 layer,
-(wip v1.13: XDATA, grouped status)
+(todo v1.13: XDATA, grouped status)
 It is recommended to use DXF-object properties for assign Blender materials.
 
 Notes:
@@ -88,7 +89,7 @@ in creating new objects in scene database - probably a database management probl
 
 """
 History:
- v1.0 - 2007/2008 by migius
+ v1.0 - 2007/2008/2009 by migius
  planned tasks:
  -- (to see more, search for "--todo--" in script code)
  -- command-line-mode/batch-mode
@@ -99,7 +100,7 @@ History:
  -- better support for long dxf-layer-names 
  -- add configuration file.ini handles multiple material setups
  -- added f_layerFilter
- -- to-check: obj/mat/group/_mapping-idea from ideasman42:
+ -- to-check: obj/mat/group/_mapping-idea from ideasman42
  -- curves: added "fill/non-fill" option for closed curves: CIRCLEs,ELLIPSEs,POLYLINEs
  -- "normalize Z" option to correct non-planar figures
  -- LINEs need "width" in 3d-space incl vGroups
@@ -107,10 +108,26 @@ History:
  -- add better support for color_index BYLAYER=256, BYBLOCK=0 
  -- bug: "oneMesh" produces irregularly errors
  -- bug: Registry recall from hd_cache ?? only win32 bug??
- -- support DXF-definitions of scene, lights and cameras
+ -- support DXF-definitions of autoshade: scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
 
-
+ v1.12 - 2009.06.16 by migius
+ d7 fix for ignored BLOCKs (e.g. *X) which are members of other BLOCKs
+ v1.12 - 2009.05.27 by migius
+ d6 bugfix negative scaled INSERTs - isLeftHand(Matrix) check
+ v1.12 - 2009.05.26 by migius
+ d5 changed to the new 2.49 method Vector.cross()
+ d5 bugfix WORLDY(1,1,0) to (0,1,0)
+ v1.12 - 2009.04.11 by migius
+ d4 added DWG support, Stani Michiels idea for binding an extern DXF-DWG-converter 
+ v1.12 - 2009.03.14 by migius
+ d3 removed all set()functions (problem with osx/python<2.4 reported by Blinkozo)
+ d3 code-cleaning
+ v1.12 - 2009.01.14 by migius
+ d2 temp patch for noname BLOCKS (*X,*U,*D)
+ v1.12 - 2008.11.16 by migius
+ d1 remove try_finally: cause not supported in python <2.5
+ d1 add Bezier curves bevel radius support (default 1.0)
  v1.12 - 2008.08.03 by migius
  c2 warningfix: relocating of globals: layersmap, oblist 
  c2 modif UI: buttons newScene+targetLayer moved to start panel
@@ -146,7 +163,7 @@ History:
  a4 added to analyzeTool: report about VIEWs, VPORTs, unused/xref BLOCKs
  a4 bugfix: individual support for 2D/3DPOLYLINE/POLYMESH
  a4 added to UI: (*wip)BLOCK-(F): name filtering for BLOCKs
- a4 added to UI: BLOCK-(n): filter anoname/hatch BLOCKs *X...
+ a4 added to UI: BLOCK-(n): filter noname/hatch BLOCKs *X...
  a2 g_scale_as is no more GUI_A-variable
  a2 bugfix "material": negative sign color_index
  a2 added support for BLOCKs defined with origin !=(0,0,0)
@@ -297,21 +314,31 @@ History:
 # --------------------------------------------------------------------------
 
 import Blender
-from Blender import *
+from Blender import Mathutils, BezTriple, Draw, Registry, sys,\
+Text3d, Window, Mesh, Material, Group, Curve
 #from Blender.Mathutils import Vector, Matrix
-import bpy
+#import bpy #not used yet
 #import BPyMessages
 
 from dxfReader import readDXF
 #from dxfReader import get_name, get_layer
 from dxfReader import Object as dxfObject
 from dxfColorMap import color_map
+from math import log10, sqrt, radians, degrees, atan, cos, sin
 
-from math import *
+# osx-patch by Blinkozo
+#todo: avoid additional modules, prefer Blender-build-in test routines
+#import platform
+#if platform.python_version() < '2.4':
+#    from sets import Set as set
+#from sys import version_info
+#ver = '%s.%s' % version_info[0:2]
+# end osx-patch
 
-try:
-	import os
-	if os.name:# != 'mac':
+import subprocess
+import os
+if os.name != 'mac':
+	try:
 		import psyco
 		psyco.log(Blender.Get('tempdir')+"/blender.log-psyco")
 		#psyco.log()
@@ -319,18 +346,15 @@ try:
 		psyco.profile(0.05, memory=100)
 		psyco.profile(0.2)
 		#print 'psyco imported'
-except ImportError:
-	#print 'psyco not imported'
-	pass
-
-#try: Curve.orderU
+	except ImportError:
+		print 'psyco not imported'
 
 print '\n\n\n'
-print 'DXF-Importer v%s *** start ***' %(__version__)   #---------------------
+print 'DXF/DWG-Importer v%s *** start ***' %(__version__)   #---------------------
 
 SCENE = None
 WORLDX = Mathutils.Vector((1,0,0))
-WORLDY = Mathutils.Vector((1,1,0))
+WORLDY = Mathutils.Vector((0,1,0))
 WORLDZ = Mathutils.Vector((0,0,1))
 
 G_SCALE = 1.0	   #(0.0001-1000) global scaling factor for all dxf data
@@ -346,7 +370,7 @@ THIN_RESOLUTION = 8   #(4-64) thin_cylinder arc_resolution - number of segments
 MIN_THICK = MIN_DIST * 10.0  #minimal thickness by forced thickness
 MIN_WIDTH = MIN_DIST * 10.0  #minimal width by forced width
 TRIM_LIMIT = 3.0	 #limit for triming of polylines-wide-segments (values:0.0 - 5.0)
-ELEVATION = 0.0 #standard elevation = coordinate Z
+ELEVATION = 0.0 #standard elevation = coordinate Z value
 
 BYBLOCK = 0
 BYLAYER = 256
@@ -355,7 +379,7 @@ GROUP_BYLAYER = 0   #(0/1) all entities from same layer import into one blender-
 LAYER_DEF_NAME = 'AAAA' #default layer name
 LAYER_DEF_COLOR = 4 #default layer color
 E_M = 0
-LAB = "*) parts under construction"
+LAB = ". wip   .. todo" #"*) parts under construction"
 M_OBJ = 0
 
 FILENAME_MAX = 180	#max length of path+file_name string  (FILE_MAXDIR + FILE_MAXFILE)
@@ -369,6 +393,42 @@ AUTO = BezTriple.HandleTypes.AUTO
 FREE = BezTriple.HandleTypes.FREE
 VECT = BezTriple.HandleTypes.VECT
 ALIGN = BezTriple.HandleTypes.ALIGN
+
+UI_MODE = True #activates UI-popup-print, if not multiple files imported
+
+#---- migration to 2.49-------------------------------------------------
+if 'cross' in dir(Mathutils.Vector()):
+	#Draw.PupMenu('DXF exporter: Abort%t|This script version works for Blender up 2.49 only!')
+	def	M_CrossVecs(v1,v2):
+		return v1.cross(v2) #for up2.49
+	def M_DotVecs(v1,v2):
+		return v1.dot(v2) #for up2.49
+else:
+	def	M_CrossVecs(v1,v2):
+		return Mathutils.CrossVecs(v1,v2) #for pre2.49
+	def M_DotVecs(v1,v2):
+		return Mathutils.DotVecs(v1,v2) #for pre2.49
+	
+	
+#-------- DWG support ------------------------------------------
+extCONV_OK = True
+extCONV = 'DConvertCon.exe'
+extCONV_PATH = os.path.join(Blender.Get('scriptsdir'),extCONV)
+if not os.path.isfile(extCONV_PATH):
+	extCONV_OK = False
+	extCONV_TEXT = 'DWG-Importer cant find external DWG-converter (%s) in Blender script directory.|\
+More details in online Help.' %extCONV
+else:
+	if not os.sys.platform.startswith('win'):
+		# check if Wine installed:   
+		if subprocess.Popen(('which', 'winepath'), stdout=subprocess.PIPE).stdout.read().strip():
+			extCONV_PATH    = 'wine %s'%extCONV_PATH
+		else: 
+			extCONV_OK = False
+			extCONV_TEXT = 'The external DWG-converter (%s) needs Wine installed on your system.|\
+More details in online Help.' %extCONV
+#print 'extCONV_PATH = ', extCONV_PATH
+
 
 
 class View:  #-----------------------------------------------------------------
@@ -738,7 +798,7 @@ class Solid:  #-----------------------------------------------------------------
 
 		if settings.var['vGroup_on'] and not M_OBJ:
 			# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-			replace = Blender.Mesh.AssignModes.ADD  #or .AssignModes.ADD/REPLACE
+			replace = Mesh.AssignModes.ADD  #or .AssignModes.ADD/REPLACE
 			if vg_left: me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
 			if vg_right:me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', vg_right, 1.0, replace)
 			if vg_top:  me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
@@ -817,6 +877,7 @@ class Line:  #-----------------------------------------------------------------
 			curve.append(BezTriple.New(points[1]))
 			for point in curve:
 				point.handleTypes = [VECT, VECT]
+				point.radius = 1.0
 			curve.flagU = 0 # 0 sets the curve not cyclic=open
 			c.setResolu(settings.var['curve_res'])
 			c.update() #important for handles calculation
@@ -882,7 +943,7 @@ class Line:  #-----------------------------------------------------------------
 				ob.link(me) # link mesh to that object
 				vG_name = 'color_%s' %self.color_index
 				if edges: faces = edges
-				replace = Blender.Mesh.AssignModes.ADD  #or .AssignModes.REPLACE or ADD
+				replace = Mesh.AssignModes.ADD  #or .AssignModes.REPLACE or ADD
 				try:
 					me.assignVertsToGroup(vG_name,  faces[0], 1.0, replace)
 					#print 'deb: existed vGroup:', vG_name #---------------------
@@ -946,7 +1007,7 @@ class Point:  #-----------------------------------------------------------------
 		if thic < settings.var['dist_min']: thic = settings.var['dist_min']
 
 		if points_as in [1,3,4,5]:
-			if True: # points_as in [1,5]: # as 'empty'
+			if points_as in [1,5]: # as 'empty'
 				c = 'Empty'
 			elif points_as == 3: # as 'thin sphere'
 				res = settings.var['thin_res']
@@ -1272,66 +1333,6 @@ class Polyline:  #--------------------------------------------------------------
 		pline = Curve.New(obname)   # create new curve data
 		#pline.setResolu(24) #--todo-----						
 
-		if False: #old self.spline:  # NURBSplines-----OK-----
-			#print 'deb:polyline2dCurve.draw self.spline!' #---------------
-			weight1 = 0.5
-			weight2 = 1.0
-			if self.curvQuadrati:
-				# Bezier-curve form simulated in NURBS-curve
-				# generate middlepoints except start/end-segments ---
-				#print 'deb:polyline2dCurve.draw extraQBspline!' #---------------
-				temp_points = []
-				point = d_points[0].loc
-				point.append(weight1)
-				temp_points.append(point)
-				for i in xrange(1,len(d_points)-2):
-					point1 = d_points[i].loc
-					point2 = d_points[i+1].loc
-					mpoint = list((Mathutils.Vector(point1) + Mathutils.Vector(point2)) * 0.5)
-					mpoint.append(weight2)
-					point1.append(weight1)
-					temp_points.append(point1)
-					temp_points.append(mpoint)
-				point2.append(weight1)
-				temp_points.append(point2)
-				point = d_points[-1].loc
-				point.append(weight1)
-				temp_points.append(point)
-				d_points = temp_points
-			else:
-				temp_points = []
-				for d in d_points:
-					d = d.loc
-					d.append(weight1)
-					temp_points.append(d)
-				d_points = temp_points
-
-			if not self.closed:
-				# generate extended startpoint and endpoint------
-				point1 = Mathutils.Vector(d_points[0][:3])
-				point2 = Mathutils.Vector(d_points[1][:3])
-				startpoint = list(point1 - point2 + point1)
-				startpoint.append(weight1)
-				point1 = Mathutils.Vector(d_points[-1][:3])
-				point2 = Mathutils.Vector(d_points[-2][:3])
-				endpoint = list(point1 - point2 + point1)
-				endpoint.append(weight1)
-				temp_points = []
-				temp_points.append(startpoint)
-				temp_points.extend(d_points)
-				d_points = temp_points
-				d_points.append(endpoint)
-
-			point = d_points[0]
-			curve = pline.appendNurb(point)
-			curve.setType(4) #NURBS curve
-			for point in d_points[1:]:
-				curve.append(point)
-			if self.closed:
-				curve.flagU = 1 # Set curve cyclic=close
-			else:
-				curve.flagU = 0 # Set curve not cyclic=open
-
 		if self.spline:  # NURBSplines-----OK-----
 			#print 'deb:polyline2dCurve.draw self.spline!' #---------------
 			nurbs_points = []
@@ -1341,9 +1342,11 @@ class Polyline:  #--------------------------------------------------------------
 				nurbs_points.append(pkt)
 			firstpoint = nurbs_points[0]
 			curve = pline.appendNurb(firstpoint)
-			curve.setType(4) # set curvetype NURBS
+			curve.setType(4) # set curve_type NURBS
+			print 'deb: dir(curve):', dir(curve[-1]) #----------------
 			for point in nurbs_points[1:]:
 				curve.append(point)
+				#TODO: what is the trick for bevel radius? curve[-1].radius = 1.0
 			if self.closed:
 				curve.flagU = 1+0 # Set curve cyclic=close and uni
 			else:
@@ -1351,20 +1354,6 @@ class Polyline:  #--------------------------------------------------------------
 			try: curve.orderU = 5 # works only with >2.46svn080625
 			except AttributeError: pass
 			#print 'deb: dir(curve):', dir(curve) #----------------
-
-		elif  False: #orig self.curved:  #--Bezier-curves---OK-------
-			#print 'deb:polyline2dCurve.draw self.curved!' #---------------
-			curve = pline.appendNurb(BezTriple.New(d_points[0]))
-			for p in d_points[1:]:
-				curve.append(BezTriple.New(p))
-			for point in curve:
-				point.handleTypes = [AUTO, AUTO]
-			if self.closed:
-				curve.flagU = 1 # Set curve cyclic=close
-			else:
-				curve.flagU = 0 # Set curve not cyclic=open
-				curve[0].handleTypes = [FREE, ALIGN]   #remi--todo-----
-				curve[-1].handleTypes = [ALIGN, FREE]   #remi--todo-----
 
 		elif  self.curved:  #--SPLINE as Bezier-curves---wip------
 			#print 'deb:polyline2dCurve.draw self.curved!' #---------------
@@ -1380,6 +1369,7 @@ class Polyline:  #--------------------------------------------------------------
 				curve.append(BezTriple.New(p))
 			for point in curve:
 				point.handleTypes = [AUTO, AUTO]
+				point.radius = 1.0
 			#curve.setType(1) #Bezier curve
 			if self.closed:
 				curve.flagU = 5 #1 # Set curve cyclic=close
@@ -1392,6 +1382,7 @@ class Polyline:  #--------------------------------------------------------------
 					p0h1 = [p0h1[i]+begtangent[i] for i in range(3)]
 					curve.__setitem__(0,BezTriple.New(p0h1+p0+p0h2))
 				curve[0].handleTypes = [FREE, ALIGN]   #remi--todo-----
+				curve[0].radius = 1.0
 				if endtangent:
 					#print 'deb:polyline2dCurve.draw curve[-1].vec:', curve[-1].vec #-----
 					#print 'deb:polyline2dCurve.draw endtangent:', endtangent #-----
@@ -1401,6 +1392,7 @@ class Polyline:  #--------------------------------------------------------------
 					curve.__setitem__(-1,BezTriple.New(p0h1+p0+p0h2))
 					#print 'deb:polyline2dCurve.draw curve[-1].vec:', curve[-1].vec #-----
 				curve[-1].handleTypes = [ALIGN, FREE]   #remi--todo-----
+				curve[-1].radius = 1.0
 
 
 
@@ -1414,61 +1406,48 @@ class Polyline:  #--------------------------------------------------------------
 			for i in xrange(len(d_points)):
 				point1 = d_points[i]
 				#point2 = d_points[i+1]
-				if False: #-----outdated!- standard calculation ----------------------------------
-					if point1.bulge and (i < len(d_points)-2 or self.closed):
-						verts, center = calcBulge(point1, point2, arc_res, triples=False)
-						if i == 0: curve = pline.appendNurb(BezTriple.New(verts[0]))
-						else: curve.append(BezTriple.New(verts[0]))
-						curve[-1].handleTypes = [VECT, VECT]  #--todo--calculation of bezier-tangents
-						for p in verts[1:]:
-							curve.append(BezTriple.New(p))
-							curve[-1].handleTypes = [AUTO, AUTO]
+				#----- optimised Bezier-Handles calculation --------------------------------
+				#print 'deb:drawPlineCurve: i:', i #---------
+				if point1.bulge and not (i == len(d_points)-1 and point1.bulge and not self.closed):
+					if i == len(d_points)-1: point2 = d_points[0]
+					else: point2 = d_points[i+1]
+
+
+					# calculate additional points for bulge
+					VectorTriples = calcBulge(point1, point2, arc_res, triples=True)
+
+					if prevHandleType == FREE:
+						#print 'deb:drawPlineCurve: VectorTriples[0]:', VectorTriples[0] #---------
+						VectorTriples[0][:3] = prevHandleVect
+						#print 'deb:drawPlineCurve: VectorTriples[0]:', VectorTriples[0] #---------
+
+					if i == 0: curve = pline.appendNurb(BezTriple.New(VectorTriples[0]))
+					else: curve.append(BezTriple.New(VectorTriples[0]))
+					curve[-1].handleTypes = [prevHandleType, FREE]
+					curve[-1].radius = 1.0
+
+					for p in VectorTriples[1:-1]:
+						curve.append(BezTriple.New(p))
+						curve[-1].handleTypes = [FREE, FREE]
+						curve[-1].radius = 1.0
+
+					prevHandleVect = VectorTriples[-1][:3]
+					prevHandleType = FREE
+					#print 'deb:drawPlineCurve: prevHandleVect:', prevHandleVect #---------
+				else:
+					#print 'deb:drawPlineCurve: else' #----------
+					if prevHandleType == FREE:
+						VectorTriples = prevHandleVect + list(point1) + list(point1)
+						#print 'deb:drawPlineCurve: VectorTriples:', VectorTriples #---------
+						curve.append(BezTriple.New(VectorTriples))
+						curve[-1].handleTypes = [FREE, VECT]
+						prevHandleType = VECT
+						curve[-1].radius = 1.0
 					else:
 						if i == 0: curve = pline.appendNurb(BezTriple.New(point1.loc))
 						else: curve.append(BezTriple.New(point1.loc))
-						curve[-1].handleTypes = [VECT, VECT]   #--todo--calculation of bezier-tangents
-
-				elif True:   #----- optimised Bezier-Handles calculation --------------------------------
-					#print 'deb:drawPlineCurve: i:', i #---------
-					if point1.bulge and not (i == len(d_points)-1 and point1.bulge and not self.closed):
-						if i == len(d_points)-1: point2 = d_points[0]
-						else: point2 = d_points[i+1]
-
-
-						# calculate additional points for bulge
-						VectorTriples = calcBulge(point1, point2, arc_res, triples=True)
-
-						if prevHandleType == FREE:
-							#print 'deb:drawPlineCurve: VectorTriples[0]:', VectorTriples[0] #---------
-							VectorTriples[0][:3] = prevHandleVect
-							#print 'deb:drawPlineCurve: VectorTriples[0]:', VectorTriples[0] #---------
-
-						if i == 0: curve = pline.appendNurb(BezTriple.New(VectorTriples[0]))
-						else: curve.append(BezTriple.New(VectorTriples[0]))
-						curve[-1].handleTypes = [prevHandleType, FREE]
-
-						for p in VectorTriples[1:-1]:
-							curve.append(BezTriple.New(p))
-							curve[-1].handleTypes = [FREE, FREE]
-
-						prevHandleVect = VectorTriples[-1][:3]
-						prevHandleType = FREE
-						#print 'deb:drawPlineCurve: prevHandleVect:', prevHandleVect #---------
-					else:
-						#print 'deb:drawPlineCurve: else' #----------
-						if prevHandleType == FREE:
-							VectorTriples = prevHandleVect + list(point1) + list(point1)
-							#print 'deb:drawPlineCurve: VectorTriples:', VectorTriples #---------
-							curve.append(BezTriple.New(VectorTriples))
-							curve[-1].handleTypes = [FREE, VECT]
-							prevHandleType = VECT
-						else:
-							if i == 0: curve = pline.appendNurb(BezTriple.New(point1.loc))
-							else: curve.append(BezTriple.New(point1.loc))
-							curve[-1].handleTypes = [VECT, VECT]
-							
-
-
+						curve[-1].handleTypes = [VECT, VECT]
+						curve[-1].radius = 1.0
 					#print 'deb:drawPlineCurve: curve[-1].vec[0]', curve[-1].vec[0] #----------
 
 			if self.closed:
@@ -1486,10 +1465,12 @@ class Polyline:  #--------------------------------------------------------------
 					curve.__setitem__(0,BezTriple.New(p0h1+p0+p0h2))
 
 					curve[0].handleTypes = [FREE,prevHandleType2]
+					curve[0].radius = 1.0
 					#print 'deb:drawPlineCurve:closed curve[0].vec:', curve[0].vec #----------
 					#print 'deb:drawPlineCurve:closed curve[0].handleTypes:', curve[0].handleTypes #----------
 				else: 
 					curve[0].handleTypes[0] = VECT
+					curve[0].radius = 1.0
 			else: 
 				curve.flagU = 0 # Set curve not cyclic=open
 
@@ -1564,23 +1545,6 @@ class Polyline:  #--------------------------------------------------------------
 
 		d_points = self.doubles_out(settings, d_points)
 		#print 'deb:drawPolyCurve d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
-
-		"""# routine to sort out of "double.vertices" ------------------------------------
-		minimal_dist =  settings.var['dist_min'] * 0.1
-		temp_points = []
-		for i in xrange(len(d_points)-1):
-			point = d_points[i]
-			point2 = d_points[i+1]
-			#print 'deb:double.vertex p1,p2', point, point2 #------------------------
-			delta = Mathutils.Vector(point2.loc) - Mathutils.Vector(point.loc)
-			if delta.length > minimal_dist:
-				 temp_points.append(point)
-			#else: print 'deb:drawPoly2d double.vertex sort out!' #------------------------
-		temp_points.append(d_points[-1])  #------ incl. last vertex -------------
-		#if self.closed: temp_points.append(d_points[1])  #------ loop start vertex -------------
-		d_points = temp_points   #-----vertex.list without "double.vertices"
-		#print 'deb:drawPoly2d d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
-		"""
 
 		#print 'deb:drawPoly2d len of d_pointsList ====== ', len(d_points) #------------------------
 		if len(d_points) < 2:  #if too few vertex, then return
@@ -1777,29 +1741,6 @@ class Polyline:  #--------------------------------------------------------------
 							# clean corner intersection
 							pointsLc.append(cornerpointL)
 							pointsRc.append(cornerpointR)
-						elif False: # the standard no-intersection
-							# --todo-- not optimal, because produces X-face
-							pointsLc.extend((pointsLe[i],pointsLs[i+1]))
-							pointsRc.extend((pointsRe[i],pointsRs[i+1]))
-						elif False: # --todo-- the optimised non-intersection
-							if (cornerpointL - vecL1).length < (cornerpointR - vecR1).length:
-								left_angle = True
-							else:
-								left_angle = False
-							limit_dist = settings.var['dist_min']
-							if left_angle:  # if left turning angle
-								#print 'deb:drawPoly2d it is left turning angle' #-------------
-								# to avoid triangelface/doubleVertex
-								delta1 = (cornerpointL - vecL1).normalize() * limit_dist
-								delta4 = (cornerpointL - vecL4).normalize() * limit_dist
-								pointsLc.extend((cornerpointL - delta1, cornerpointL - delta4))
-								pointsRc.extend((pointsRe[i],pointsRs[i+1]))
-							else:  # if right turning angle
-								#print 'deb:drawPoly2d right turning angle' #-------------
-								delta1 = (cornerpointR - vecR1).normalize() * limit_dist
-								delta4 = (cornerpointR - vecR4).normalize() * limit_dist
-								pointsRc.extend((cornerpointR - delta1, cornerpointR - delta4))
-								pointsLc.extend((pointsLe[i],pointsLs[i+1]))
 						else:
 							pointsLc.extend((pointsLe[i],points[i+1],pointsLs[i+1]))
 							pointsRc.extend((pointsRe[i],points[i+1],pointsRs[i+1]))
@@ -1836,14 +1777,10 @@ class Polyline:  #--------------------------------------------------------------
 					vecR3, vecR4 = pointsRs[i+1], pointsRe[i+1]
 					if bulg_points[i] != None:
 						#compute left- and right-cornerpoints
-						if True:
-							cornerpointL = Mathutils.LineIntersect(vecL1, vecL2, vecL3, vecL4)
-							cornerpointR = Mathutils.LineIntersect(vecR1, vecR2, vecR3, vecR4)
-							pointsLc.append(cornerpointL[0])
-							pointsRc.append(cornerpointR[0])
-						else:
-							pointVec = Mathutils.Vector(point[i])
-
+						cornerpointL = Mathutils.LineIntersect(vecL1, vecL2, vecL3, vecL4)
+						cornerpointR = Mathutils.LineIntersect(vecR1, vecR2, vecR3, vecR4)
+						pointsLc.append(cornerpointL[0])
+						pointsRc.append(cornerpointR[0])
 					else: # IF non-bulg
 						pointsLc.extend((pointsLe[i],points[i+1],pointsLs[i+1]))
 						pointsRc.extend((pointsRe[i],points[i+1],pointsRs[i+1]))
@@ -1899,27 +1836,26 @@ class Polyline:  #--------------------------------------------------------------
 				# which may be linked to more than one object.
 				if settings.var['vGroup_on'] and not M_OBJ:
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-					replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
+					replace = Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 					vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
 					for v in f_left: vg_left.extend(v)
 					for v in f_right: vg_right.extend(v)
 					for v in f_top: vg_top.extend(v)
 					for v in f_bottom: vg_bottom.extend(v)
-					me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  list(set(vg_left)), 1.0, replace)
-					me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', list(set(vg_right)), 1.0, replace)
-					me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-					me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+					me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
+					me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', vg_right, 1.0, replace)
+					me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
+					me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',vg_bottom, 1.0, replace)
 					if not self.closed:
 						me.addVertGroup('side.start'); me.assignVertsToGroup('side.start', f_start[0], 1.0, replace)
 						me.addVertGroup('side.end')  ; me.assignVertsToGroup('side.end',   f_end[0],   1.0, replace)
 
 				if settings.var['meshSmooth_on']:  # left and right side become smooth ----------------------
 					#if self.spline or self.curved:
-					if True:
-						smooth_len = len(f_left) + len(f_right)
-						for i in xrange(smooth_len):
-							me.faces[i].smooth = True
-						#me.Modes(AUTOSMOOTH)
+					smooth_len = len(f_left) + len(f_right)
+					for i in xrange(smooth_len):
+						me.faces[i].smooth = True
+					#me.Modes(AUTOSMOOTH)
 
 			# 2.level:IF width, but no-thickness  ---------------------
 			else:
@@ -1958,10 +1894,9 @@ class Polyline:  #--------------------------------------------------------------
 
 			if settings.var['meshSmooth_on']:  # left and right side become smooth ----------------------
 				#if self.spline or self.curved:
-				if True:
-					for i in xrange(len(faces)):
-						me.faces[i].smooth = True
-					#me.Modes(AUTOSMOOTH)
+				for i in xrange(len(faces)):
+					me.faces[i].smooth = True
+				#me.Modes(AUTOSMOOTH)
 
 		# 1.level:IF no-width and no-thickness  ---------------------
 		else:
@@ -2177,9 +2112,10 @@ DXF: X value; APP: 3D point, Y and Z values of control points (in WCS) (one entr
 		self.ctrlpk_len = getit(obj, 73, 0) # Number of control points
 		self.fit_pk_len = getit(obj, 74, 0) # Number of fit points (if any)
 
+		#TODO: import SPLINE as Bezier curve directly, possible?
 		#print 'deb:Spline self.fit_pk_len=', self.fit_pk_len #------------------------
 		#self.fit_pk_len = 0 # temp for debug
-		if self.fit_pk_len and 'spline_as'==5:
+		if self.fit_pk_len and settings.var['splines_as']==5:
 			self.spline = False
 			self.curved = True
 		else:
@@ -2317,7 +2253,6 @@ class LWpolyline(Polyline):  #--------------------------------------------------
 		self.pltype = 'poly2d'   # LW-polyline is a 2D-polyline
 		self.spline = False
 		self.curved = False
-
 
 		#print 'deb:LWpolyline.obj.data:\n', obj.data #------------------------
 		#print 'deb:LWpolyline.ENDinit:----------------' #------------------------
@@ -2664,36 +2599,17 @@ class Circle:  #----------------------------------------------------------------
 			cyl_rad = 0.5 * settings.var['width_min']
 
 		if settings.var['lines_as'] == 5:  # draw CIRCLE as curve -------------
-			if True:  # universal version
-				arc_res = settings.var['curve_arc']
-				#arc_res = 3
-				start, end = 0.0, 360.0
-				VectorTriples = calcArc(None, radius, start, end, arc_res, True)
-				c = Curve.New(obname) # create new curve data
-				curve = c.appendNurb(BezTriple.New(VectorTriples[0]))
-				for p in VectorTriples[1:-1]:
-					curve.append(BezTriple.New(p))
-				for point in curve:
-					point.handleTypes = [FREE, FREE]
-			else:	# standard version
-				c = Curve.New(obname)   # create new curve data
-				p1 = (0, -radius, 0)
-				p2 = (radius, 0, 0)
-				p3 = (0, radius, 0)
-				p4 = (-radius, 0, 0)
-	
-				p1 = BezTriple.New(p1)
-				p2 = BezTriple.New(p2)
-				p3 = BezTriple.New(p3)
-				p4 = BezTriple.New(p4)
-	
-				curve = c.appendNurb(p1)
-				curve.append(p2)
-				curve.append(p3)
-				curve.append(p4)
-				for point in curve:
-					point.handleTypes = [AUTO, AUTO]
-
+			arc_res = settings.var['curve_arc']
+			#arc_res = 3
+			start, end = 0.0, 360.0
+			VectorTriples = calcArc(None, radius, start, end, arc_res, True)
+			c = Curve.New(obname) # create new curve data
+			curve = c.appendNurb(BezTriple.New(VectorTriples[0]))
+			for p in VectorTriples[1:-1]:
+				curve.append(BezTriple.New(p))
+			for point in curve:
+				point.handleTypes = [FREE, FREE]
+				point.radius = 1.0
 			curve.flagU = 1	 # 1 sets the curve cyclic=closed
 			if settings.var['fill_on']:
 				c.setFlag(6) # 2+4 set top and button caps
@@ -2713,24 +2629,6 @@ class Circle:  #----------------------------------------------------------------
 			transform(self.extrusion, 0, ob)
 			if thic != 0.0:
 				ob.SizeZ *= abs(thic)
-			return ob
-
-		elif False: # create a new mesh_object with buildin_circle_primitive
-			verts_num = settings.var['arc_res'] * sqrt(radius / settings.var['arc_rad'])
-			if verts_num > 100: verts_num = 100 # Blender accepts only values [3:500]
-			if verts_num < 4: verts_num = 4 # Blender accepts only values [3:500]
-			if thic != 0:
-				loc2 = thic * 0.5   #-----blenderAPI draw Cylinder with 2*thickness
-				self.loc[2] += loc2  #---new location for the basis of cylinder
-				#print 'deb:circleDraw:self.loc2:', self.loc  #-----------------------
-				c = Mesh.Primitives.Cylinder(int(verts_num), radius*2, abs(thic))
-			else:
-				c = Mesh.Primitives.Circle(int(verts_num), radius*2)
-
-			#c.update()
-			ob = SCENE.objects.new(c, obname) # create a new circle_mesh_object
-			ob.loc = tuple(self.loc)
-			transform(self.extrusion, 0, ob)
 			return ob
 
 		else:  # draw CIRCLE as mesh -----------------------------------------------
@@ -2785,15 +2683,16 @@ class Circle:  #----------------------------------------------------------------
 				# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 				if settings.var['vGroup_on'] and not M_OBJ:
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-					replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
+					replace = Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 					vg_band, vg_top, vg_bottom = [], [], []
 					for v in f_band: vg_band.extend(v)
-					me.addVertGroup('side.band')  ; me.assignVertsToGroup('side.band',  list(set(vg_band)), 1.0, replace)
+					me.addVertGroup('side.band')  ; me.assignVertsToGroup('side.band',  vg_band, 1.0, replace)
+
 					if settings.var['fill_on']:
 						for v in f_top: vg_top.extend(v)
 						for v in f_bottom: vg_bottom.extend(v)
-						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
+						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',vg_bottom, 1.0, replace)
 
 			else: # if thic == 0
 				if settings.var['fill_on']:
@@ -2893,6 +2792,7 @@ class Arc:  #-----------------------------------------------------------------
 				curve.append(BezTriple.New(p))
 			for point in curve:
 				point.handleTypes = [FREE, FREE]
+				point.radius = 1.0
 			curve.flagU = 0 # 0 sets the curve not cyclic=open
 			arc.setResolu(settings.var['curve_res'])
 
@@ -2963,16 +2863,16 @@ class Arc:  #-----------------------------------------------------------------
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 					if settings.var['vGroup_on'] and not M_OBJ:
 						# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-						replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
+						replace = Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 						vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
 						for v in f_left: vg_left.extend(v)
 						for v in f_right: vg_right.extend(v)
 						for v in f_top: vg_top.extend(v)
 						for v in f_bottom: vg_bottom.extend(v)
-						me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  list(set(vg_left)), 1.0, replace)
-						me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', list(set(vg_right)), 1.0, replace)
-						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+						me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
+						me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', vg_right, 1.0, replace)
+						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
+						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',vg_bottom, 1.0, replace)
 						me.addVertGroup('side.start'); me.assignVertsToGroup('side.start', f_start[0], 1.0, replace)
 						me.addVertGroup('side.end')  ; me.assignVertsToGroup('side.end',   f_end[0],   1.0, replace)
 					
@@ -3224,8 +3124,6 @@ class Insert:  #----------------------------------------------------------------
 
 				if a_data.key == 'SCENE': # define set of lights as blender group
 					scene_lights = 1
-				elif False: # define set of lights as blender group
-					scene_lights = 1
 				return
 		elif name == 'ave_global':
 			if settings.var['lights_on']:  #if lights support activated
@@ -3386,35 +3284,12 @@ class Ellipse:  #---------------------------------------------------------------
 		obname = obname[:MAX_NAMELENGTH]
 
 		center = self.loc
-		if True:
-			start = degrees(self.start_angle)
-			end = degrees(self.end_angle)
-			if abs(end - 360.0) < 0.00001: end = 360.0
-			ellipse_closed = False
-			if end - start == 360.0: ellipse_closed = True
+		start = degrees(self.start_angle)
+		end = degrees(self.end_angle)
+		if abs(end - 360.0) < 0.00001: end = 360.0
+		ellipse_closed = False
+		if end - start == 360.0: ellipse_closed = True
 	
-		else: # bug in AutoCAD_2002 dxf-exporter into r12 for ELLIPSE->POLYLINE_ARC
-			#print 'deb:calcEllipse---------:\n start=%s\n   end=%s' %(self.start_angle, self.end_angle)  #---------
-			if self.start_angle > pi+pi: self.start_angle %= pi+pi
-			if self.end_angle > pi+pi: self.end_angle %= pi+pi
-			if abs(self.end_angle - pi - pi) < 0.00001: self.end_angle = pi + pi
-			ellipse_closed = False
-			if abs(self.end_angle - self.start_angle) == pi + pi: ellipse_closed = True
-			test = self.start_angle % pi
-			if  test < 0.001 or pi - test < 0.001: start = self.start_angle
-			else:
-				start = atan(tan(self.start_angle) * self.ratio)
-				if start < 0.0: start += pi
-				if self.start_angle > pi: start += pi
-			test = self.end_angle % pi
-			if test < 0.001 or pi - test < 0.001: end = self.end_angle
-			else:
-				end = atan(tan(self.end_angle) * self.ratio)
-				if end < 0.0: end += pi
-				if self.end_angle > pi: end += pi
-			start = degrees(start)
-			end = degrees(end)
-
 		# rotation = Angle between major and WORLDX
 		# doesnt work, couse produces always positive value: rotation = Mathutils.AngleBetweenVecs(major, WORLDX)
 		if self.major[0] == 0:
@@ -3449,6 +3324,7 @@ class Ellipse:  #---------------------------------------------------------------
 					curve.append(BezTriple.New(p))
 				for point in curve:
 					point.handleTypes = [FREE, FREE]
+					point.radius = 1.0
 				curve.flagU = 1 # 0 sets the curve not cyclic=open
 				if settings.var['fill_on']:
 					arc.setFlag(6) # 2+4 set top and button caps
@@ -3459,6 +3335,7 @@ class Ellipse:  #---------------------------------------------------------------
 					curve.append(BezTriple.New(p))
 				for point in curve:
 					point.handleTypes = [FREE, FREE]
+					point.radius = 1.0
 				curve.flagU = 0 # 0 sets the curve not cyclic=open
 
 			arc.setResolu(settings.var['curve_res'])
@@ -3487,8 +3364,6 @@ class Ellipse:  #---------------------------------------------------------------
 
 			verts = calcArc(None, radius, start, end, arc_res, False)
 			#verts = [list(point) for point in verts]
-			if False: #--todo--: if ellipse_closed:
-				verts = verts[:-1] #list without last point/edge (cause closed curve)
 			len1 = len(verts)
 			#print 'deb:len1:', len1  #-----------------------
 			if width != 0:
@@ -3532,16 +3407,16 @@ class Ellipse:  #---------------------------------------------------------------
 							me.faces[i].smooth = True
 					if settings.var['vGroup_on'] and not M_OBJ:
 						# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-						replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
+						replace = Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 						vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
 						for v in f_left: vg_left.extend(v)
 						for v in f_right: vg_right.extend(v)
 						for v in f_top: vg_top.extend(v)
 						for v in f_bottom: vg_bottom.extend(v)
-						me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  list(set(vg_left)), 1.0, replace)
-						me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', list(set(vg_right)), 1.0, replace)
-						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+						me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
+						me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', vg_right, 1.0, replace)
+						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
+						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',vg_bottom, 1.0, replace)
 						me.addVertGroup('side.start'); me.assignVertsToGroup('side.start', f_start[0], 1.0, replace)
 						me.addVertGroup('side.end')  ; me.assignVertsToGroup('side.end',   f_end[0],   1.0, replace)
 					
@@ -3685,7 +3560,7 @@ class Face:  #-----------------------------------------------------------------
 			ob.link(me) # link mesh to that object
 			vG_name = 'color_%s' %self.color_index
 			if edges: faces = edges
-			replace = Blender.Mesh.AssignModes.ADD  #or .AssignModes.REPLACE or ADD
+			replace = Mesh.AssignModes.ADD  #or .AssignModes.REPLACE or ADD
 			try:
 				me.assignVertsToGroup(vG_name,  faces[0], 1.0, replace)
 				#print 'deb: existed vGroup:', vG_name #---------------------
@@ -4190,10 +4065,8 @@ class Settings:  #--------------------------------------------------------------
 		"""Wraps the built-in print command in a optimization check.
 		"""
 		if self.var['optimization'] <= self.MID:
-			if newline:
-				print text
-			else:
-				print text,
+			if newline: print text
+			else: print text,
 
 
 	def redraw(self):
@@ -4235,9 +4108,9 @@ def	analyzeDXF(dxfFile): #---------------------------------------
 	"""
 	Window.WaitCursor(True)   # Let the user know we are thinking
 	print 'reading DXF file: %s.' % dxfFile
-	time1 = Blender.sys.time()  #time marker1
+	time1 = sys.time()  #time marker1
 	drawing = readDXF(dxfFile, objectify)
-	print 'finish reading in %.4f sec.' % (Blender.sys.time()-time1)
+	print 'finish reading in %.4f sec.' % (sys.time()-time1)
 
 	# First sort out all the section_items
 	sections = dict([(item.name, item) for item in drawing.data])
@@ -4353,8 +4226,9 @@ def	analyzeDXF(dxfFile): #---------------------------------------
 
 		for item2 in drawing.entities.data:
 			if type(item2) != list and item2.type == 'insert':
-				if not layersmap or (layersmap and not layersmap[item2.layer][1]): #if insert_layer is not frozen
-					blocksmap[item2.name][0] = True # marked as world used BLOCK
+				if item2.name in blocksmap.keys():
+					if not layersmap or (layersmap and not layersmap[item2.layer][1]): #if insert_layer is not frozen
+						blocksmap[item2.name][0] = True # marked as world used BLOCK
 
 		key_list = blocksmap.keys()
 		key_list.reverse()
@@ -4397,8 +4271,7 @@ def	analyzeDXF(dxfFile): #---------------------------------------
 		Draw.PupMenu('DXF importer: report saved in INF-file:%t|' + '\'%s\'' %infFile)
 	except:
 		Draw.PupMenu('DXF importer: ERROR by writing report in INF-file:%t|' + '\'%s\'' %infFile)
-	finally:
-		f.close()
+	#finally: f.close()
 
 
 
@@ -4417,7 +4290,8 @@ def main(dxfFile):  #---------------#############################-----------
 	global cur_COUNTER  #counter for progress_bar
 	cur_COUNTER = 0
 
-	try:
+	#try:
+	if 1:
 		#print "Getting settings..."
 		global GUI_A, GUI_B, g_scale_as
 		if not GUI_A['g_scale_on'].val:
@@ -4449,10 +4323,45 @@ def main(dxfFile):  #---------------#############################-----------
 		if dxfFile.lower().endswith('.dxf') and sys.exists(dxfFile):
 			Window.WaitCursor(True)   # Let the user know we are thinking
 			print 'reading file: %s.' % dxfFile
-			time1 = Blender.sys.time()  #time marker1
+			time1 = sys.time()  #time marker1
 			drawing = readDXF(dxfFile, objectify)
-			print 'reading finished in %.4f sec.' % (Blender.sys.time()-time1)
+			print 'reading finished in %.4f sec.' % (sys.time()-time1)
 			Window.WaitCursor(False)
+		elif dxfFile.lower().endswith('.dwg') and sys.exists(dxfFile):
+			if not extCONV_OK:
+				Draw.PupMenu(extCONV_TEXT)
+				Window.WaitCursor(False)
+				if editmode: Window.EditMode(1) # and put things back how we fond them
+				return None
+			else:
+				Window.WaitCursor(True)   # Let the user know we are thinking
+				#todo: issue: in DConvertCon.exe the output filename is fixed to dwg_name.dxf
+				
+				if 0: # works only for Windows
+					dwgTemp = 'temp_01.dwg'
+					dxfTemp = 'temp_01.dxf'
+					os.system('copy %s %s' %(dxfFile,dwgTemp))
+				else:
+					dwgTemp = dxfFile
+					dxfTemp = dxfFile[:-3]+'dxf'
+				#print 'temp. converting: %s\n              to: %s' %(dxfFile, dxfTemp)
+				#os.system('%s %s  -acad11 -dxf' %(extCONV_PATH, dxfFile))
+				os.system('%s %s  -dxf' %(extCONV_PATH, dwgTemp))
+				#os.system('%s %s  -dxf' %(extCONV_PATH, dxfFile_temp))
+				if sys.exists(dxfTemp):
+					print 'reading file: %s.' % dxfTemp
+					time1 = sys.time()  #time marker1
+					drawing = readDXF(dxfTemp, objectify)
+					#os.remove(dwgTemp)
+					os.remove(dxfTemp) # clean up
+					print 'reading finished in %.4f sec.' % (sys.time()-time1)
+					Window.WaitCursor(False)
+				else:
+					if UI_MODE: Draw.PupMenu('DWG importer:  nothing imported!%t|No valid DXF-representation found!')
+					print 'DWG importer:  nothing imported. No valid DXF-representation found.'
+					Window.WaitCursor(False)
+					if editmode: Window.EditMode(1) # and put things back how we fond them
+					return None
 		else:
 			if UI_MODE: Draw.PupMenu('DXF importer:  Alert!%t| no valid DXF-file selected!')
 			print "DXF importer: Alert! - no valid DXF-file selected."
@@ -4462,7 +4371,7 @@ def main(dxfFile):  #---------------#############################-----------
 
 		# Draw all the know entity types in the current scene
 		oblist = []  # a list of all created AND linked objects for final f_globalScale
-		time2 = Blender.sys.time()  #time marker2
+		time2 = sys.time()  #time marker2
 
 		Window.WaitCursor(True)   # Let the user know we are thinking
 		settings.write("\n\nDrawing entities...")
@@ -4489,7 +4398,7 @@ def main(dxfFile):  #---------------#############################-----------
 		#SCENE.objects.selected = SCENE.objects   #select all objects in current scene		  
 		Blender.Redraw()
 
-		time_text = Blender.sys.time() - time2
+		time_text = sys.time() - time2
 		Window.WaitCursor(False)
 		if settings.var['paper_space_on']: space = 'from paper space'
 		else: space = 'from model space'
@@ -4500,7 +4409,7 @@ def main(dxfFile):  #---------------#############################-----------
 		#settings.write(message)
 		if UI_MODE: Draw.PupMenu('DXF importer:	Done!|finished in %.4f sec.' % time_text)
 
-	finally:
+	#finally:
 		# restore state even if things didn't work
 		#print 'deb:drawEntities finally!' #-----------------------
 		Window.WaitCursor(False)
@@ -4526,11 +4435,11 @@ def getOCS(az):  #--------------------------------------------------------------
 
 	cap = 0.015625 # square polar cap value (1/64.0)
 	if abs(az.x) < cap and abs(az.y) < cap:
-		ax = Mathutils.CrossVecs(WORLDY, az)
+		ax = M_CrossVecs(WORLDY,az)
 	else:
-		ax = Mathutils.CrossVecs(WORLDZ, az)
+		ax = M_CrossVecs(WORLDZ,az)
 	ax = ax.normalize()
-	ay = Mathutils.CrossVecs(az, ax)
+	ay = M_CrossVecs(az, ax)
 	ay = ay.normalize()
 	return ax, ay, az
 
@@ -4613,7 +4522,7 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 					item2str = [item2.name, item2.layer]
 					childList.append(item2str)
 			try: usedblocks[item.name] = [used, childList]
-			except KeyError: print 'Cannot map "%s" - "%s" as Block!' %(item.name, item)
+			except KeyError: print 'Cannot find "%s" Block!' %(item.name)
 	#print 'deb:getBlocksmap: usedblocks=' , usedblocks #-------------
 	#print 'deb:getBlocksmap:  layersmap=' , layersmap #-------------
 
@@ -4621,7 +4530,7 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 		if type(item) != list and item.type == 'insert':
 			if not layersmap or (not layersmap[item.layer].frozen or layFrozen_on): #if insert_layer is not frozen
 				try: usedblocks[item.name][0] = True 
-				except: pass
+				except KeyError: print 'Cannot find "%s" Block!' %(item.name)
 				
 	key_list = usedblocks.keys()
 	key_list.reverse()
@@ -4629,7 +4538,8 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 		if usedblocks[key][0]: #if parent used, then set used also all child blocks
 			for child in usedblocks[key][1]:
 				if not layersmap or (layersmap and not layersmap[child[1]].frozen): #if insert_layer is not frozen
-					usedblocks[child[0]][0] = True # marked as used BLOCK
+					try: usedblocks[child[0]][0] = True # marked as used BLOCK
+					except KeyError: print 'Cannot find "%s" Block!' %(child[0])
 
 	usedblocks = [i for i in usedblocks.keys() if usedblocks[i][0]]
 	#print 'deb:getBlocksmap: usedblocks=' , usedblocks #-------------
@@ -4738,7 +4648,7 @@ def drawer(_type, entities, settings, block_def):  #----------------------------
 		activObjectLayer = ''
 		activObjectName = ''
 
-		message = "Drawing dxf\'%ss\'..." %_type
+		message = "Drawing dxf \'%ss\'..." %_type
 		cur_COUNTER += len_temp - len(entities)
 		settings.write(message, False)
 		settings.progress(cur_COUNTER, message)
@@ -4764,10 +4674,12 @@ def drawer(_type, entities, settings, block_def):  #----------------------------
 				group = getGroup('l:%s' % layernamesmap[entity.layer])
 
 			if _type == 'insert':   #---- INSERT and MINSERT=array --------------------
-				if not settings.var['block_nn'] and entity.name.startswith('*X'):   #---- support for noname BLOCKs
-					#print 'deb:drawer entity.name:', entity.name #------------
-					continue
-				elif settings.var['blockFilter_on'] and not settings.accepted_block(entity.name):
+				if not settings.var['block_nn']:  #----turn off support for noname BLOCKs
+					prefix = entity.name[:2]
+					if prefix in ('*X', '*U', '*D'):
+						#print 'deb:drawer entity.name:', entity.name #------------
+						continue
+				if settings.var['blockFilter_on'] and not settings.accepted_block(entity.name):
 					continue
 
 				#print 'deb:insert entity.loc:', entity.loc #----------------
@@ -5190,6 +5102,7 @@ def drawCurveCircle(circle):  #--- no more used --------------------------------
 	curve.append(p4)
 	for point in curve:
 		point.handleTypes = [AUTO, AUTO]
+		point.radius = 1.0
 	curve.flagU = 1 # Set curve cyclic
 	c.update()
 
@@ -5231,6 +5144,7 @@ def drawCurveArc(self):  #---- only for ELLIPSE --------------------------------
 	curve.append(p4)
 	for point in curve:
 		point.handleTypes = [AUTO, AUTO]
+		point.radius = 1.0
 	curve.flagU = 1 # Set curve cyclic
 	a.update()
 
@@ -5241,7 +5155,7 @@ def drawCurveArc(self):  #---- only for ELLIPSE --------------------------------
 
 
 # GUI STUFF -----#################################################-----------------
-from Blender.BGL import *
+from Blender.BGL import glColor3f, glRecti, glClear, glRasterPos2d
 
 EVENT_NONE = 1
 EVENT_START = 2
@@ -5269,17 +5183,17 @@ GUI_B = {}  # GUI-buttons dictionary for drawingTypes
 
 # settings default, initialize ------------------------
 
-points_as_menu  = "convert to: %t|empty %x1|mesh.vertex %x2|thin sphere %x3|thin box %x4|*curve.vertex %x5"
-lines_as_menu   = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
-mlines_as_menu  = "convert to: %t|*edge %x1|*mesh %x2|*thin cylinder %x3|*thin box %x|*curve %x5"
-plines_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
-splines_as_menu = "convert to: %t|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
-plines3_as_menu = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
-plmesh_as_menu  = "convert to: %t|*edge %x1|mesh %x2|NURBS-surface %x6"
-solids_as_menu  = "convert to: %t|*edge %x1|mesh %x2"
-blocks_as_menu  = "convert to: %t|dupliGroup %x1|*real.Group %x2|*exploded %x3"
-texts_as_menu   = "convert to: %t|text %x1|*mesh %x2|*curve %x5"
-material_from_menu= "material from: %t|*LINESTYLE %x7|COLOR %x1|LAYER %x2|*LAYER+COLOR %x3|*BLOCK %x4|*XDATA %x5|*INI-File %x6"
+points_as_menu  = "convert to: %t|empty %x1|mesh.vertex %x2|thin sphere %x3|thin box %x4|..curve.vertex %x5"
+lines_as_menu   = "convert to: %t|..edge %x1|mesh %x2|..thin cylinder %x3|thin box %x4|Bezier-curve %x5|..NURBS-curve %x6"
+mlines_as_menu  = "convert to: %t|..edge %x1|..mesh %x2|..thin cylinder %x3|..thin box %x|..curve %x5"
+plines_as_menu  = "convert to: %t|..edge %x1|mesh %x2|..thin cylinder %x3|..thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+splines_as_menu = "convert to: %t|mesh %x2|..thin cylinder %x3|..thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+plines3_as_menu = "convert to: %t|..edge %x1|mesh %x2|..thin cylinder %x3|..thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+plmesh_as_menu  = "convert to: %t|..edge %x1|mesh %x2|..NURBS-surface %x6"
+solids_as_menu  = "convert to: %t|..edge %x1|mesh %x2"
+blocks_as_menu  = "convert to: %t|dupliGroup %x1|..real.Group %x2|..exploded %x3"
+texts_as_menu   = "convert to: %t|text %x1|..mesh %x2|..curve %x5"
+material_from_menu= "material from: %t|..LINESTYLE %x7|COLOR %x1|LAYER %x2|..LAYER+COLOR %x3|..BLOCK %x4|..XDATA %x5|..INI-File %x6"
 g_scale_list	= ''.join((
 	'scale factor: %t',
 	'|user def. %x12',
@@ -5456,11 +5370,9 @@ def saveConfig():  #--todo-----------------------------------------------
 		else:
 			#if BPyMessages.Warning_SaveOver(iniFile): #<- remi find it too abstarct
 			if sys.exists(iniFile):
-				try:
-					f = file(iniFile, 'r')
-					try: header_str = f.readline()
-					finally: f.close()
-				except: pass
+				f = file(iniFile, 'r')
+				header_str = f.readline()
+				f.close()
 				if header_str.startswith(INIFILE_HEADER[0:13]):
 					if Draw.PupMenu('  OK ? %t|SAVE OVER: ' + '\'%s\'' %iniFile) == 1:
 						save_ok = True
@@ -5480,10 +5392,9 @@ def saveConfig():  #--todo-----------------------------------------------
 				output_str = '{\n'.join(output_str.split('{'))
 				try:
 					f = file(iniFile, 'w')
-					try:
-						f.write(INIFILE_HEADER + '\n# this is a comment line\n')
-						f.write(output_str)
-					finally: f.close()
+					f.write(INIFILE_HEADER + '\n# this is a comment line\n')
+					f.write(output_str)
+					f.close()
 					#Draw.PupMenu('DXF importer: INI-file: Done!%t|config-data saved in ' + '\'%s\'' %iniFile)
 				except:
 					Draw.PupMenu('DXF importer: INI-file: Error!%t|failure by writing to ' + '\'%s\'|no config-data saved!' %iniFile)
@@ -5508,25 +5419,22 @@ def loadConfig():  #remi--todo-----------------------------------------------
 	update_RegistryKey('iniFileName', iniFile)
 	#print 'deb:loadConfig iniFile: ', iniFile #----------------------
 	if iniFile.lower().endswith(INIFILE_EXTENSION) and sys.exists(iniFile):
-		try:
-			f = file(iniFile, 'r')
-			try:
-				header_str = f.readline()
-				if header_str.startswith(INIFILE_HEADER):
-					data_str = f.read()
-					f.close()
-					#print 'deb:loadConfig data_str from %s: \n' %iniFile , data_str #-----------------
-					data = eval(data_str)
-					for k, v in data[0].iteritems():
-						try: GUI_A[k].val = v
-						except:	GUI_A[k] = Draw.Create(v)
-					for k, v in data[1].iteritems():
-						try: GUI_B[k].val = v
-						except:	GUI_B[k] = Draw.Create(v)
-				else:
-					Draw.PupMenu('DXF importer: INI-file:  Alert!%t|no valid header in INI-file: ' + '\'%s\'' %iniFile)
-			finally: f.close()
-		except: pass
+		f = file(iniFile, 'r')
+		header_str = f.readline()
+		if header_str.startswith(INIFILE_HEADER):
+			data_str = f.read()
+			f.close()
+			#print 'deb:loadConfig data_str from %s: \n' %iniFile , data_str #-----------------
+			data = eval(data_str)
+			for k, v in data[0].iteritems():
+				try: GUI_A[k].val = v
+				except:	GUI_A[k] = Draw.Create(v)
+			for k, v in data[1].iteritems():
+				try: GUI_B[k].val = v
+				except:	GUI_B[k] = Draw.Create(v)
+		else:
+			f.close()
+			Draw.PupMenu('DXF importer: INI-file:  Alert!%t|no valid header in INI-file: ' + '\'%s\'' %iniFile)
 	else:
 		Draw.PupMenu('DXF importer: INI-file:  Alert!%t|no valid INI-file selected!')
 		print "DXF importer: Alert!: no valid INI-file selected."
@@ -5746,7 +5654,7 @@ def draw_UI():  #---------------------------------------------------------------
 
 	y += 30
 	colorbox(x, y+20, x+menu_w+menu_margin*2, menu_margin)
-	Draw.Label("DXF-Importer  v" + __version__, but0c, y, menu_w, 20)
+	Draw.Label("DXF/DWG-Importer v" + __version__, but0c, y, menu_w, 20)
 
 	if config_UI.val:
 		b0, b0_ = but0c, but_0c + butt_margin
@@ -5771,7 +5679,7 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['mline'] = Draw.Toggle('*MLINE', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['mline'].val, "(*wip)support dxf-MLINE on/off")
+		GUI_B['mline'] = Draw.Toggle('..MLINE', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['mline'].val, "(*todo)support dxf-MLINE on/off")
 		if GUI_B['mline'].val:
 			GUI_A['mlines_as'] = Draw.Menu(mlines_as_menu, EVENT_NONE, but1c, y, but_1c, 20, GUI_A['mlines_as'].val, "select target Blender-object")
 		Draw.EndAlign()
@@ -5822,7 +5730,7 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 20
 		GUI_B['text'] = Draw.Toggle('TEXT', EVENT_NONE, b0, y, b0_, 20, GUI_B['text'].val, "support dxf-TEXT on/off")
-		GUI_B['mtext'] = Draw.Toggle('*MTEXT', EVENT_NONE, b1, y, b1_, 20, GUI_B['mtext'].val, "(*wip)support dxf-MTEXT on/off")
+		GUI_B['mtext'] = Draw.Toggle('..MTEXT', EVENT_NONE, b1, y, b1_, 20, GUI_B['mtext'].val, "(*todo)support dxf-MTEXT on/off")
 #		GUI_A['texts_as'] = Draw.Menu(texts_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['texts_as'].val, "select target Blender-object")
 
 		y -= 20
@@ -5841,8 +5749,8 @@ def draw_UI():  #---------------------------------------------------------------
 		
 		Draw.BeginAlign()
 		GUI_A['views_on'] = Draw.Toggle('views', EVENT_NONE, b0, y, b0_-25, 20, GUI_A['views_on'].val, "imports VIEWs and VIEWPORTs as cameras on/off")
-		GUI_A['cams_on'] = Draw.Toggle('*cams', EVENT_NONE, b1-25, y, b1_-25, 20, GUI_A['cams_on'].val, "(*wip) support ASHADE cameras on/off")
-		GUI_A['lights_on'] = Draw.Toggle('*lights', EVENT_NONE, b1+25, y, b1_-25, 20, GUI_A['lights_on'].val, "(*wip) support AVE_RENDER lights on/off")
+		GUI_A['cams_on'] = Draw.Toggle('..cams', EVENT_NONE, b1-25, y, b1_-25, 20, GUI_A['cams_on'].val, "(*todo) support ASHADE cameras on/off")
+		GUI_A['lights_on'] = Draw.Toggle('..lights', EVENT_NONE, b1+25, y, b1_-25, 20, GUI_A['lights_on'].val, "(*todo) support AVE_RENDER lights on/off")
 		Draw.EndAlign()
 
 
@@ -5858,10 +5766,10 @@ def draw_UI():  #---------------------------------------------------------------
 		Draw.BeginAlign()
 		GUI_A['paper_space_on'] = Draw.Toggle('paper', EVENT_NONE, b0+but_*0, y, but_, 20, GUI_A['paper_space_on'].val, "import only from Paper-Space on/off")
 		GUI_A['layFrozen_on'] = Draw.Toggle ('frozen', EVENT_NONE, b0+but_*1, y, but_, 20, GUI_A['layFrozen_on'].val, "import also from frozen LAYERs on/off")
-		GUI_A['layerFilter_on'] = Draw.Toggle('layer', EVENT_NONE, b0+but_*2, y, but_, 20, GUI_A['layerFilter_on'].val, "(*wip) LAYER filtering on/off")
-		GUI_A['colorFilter_on'] = Draw.Toggle('color', EVENT_NONE, b0+but_*3, y, but_, 20, GUI_A['colorFilter_on'].val, "(*wip) COLOR filtering on/off")
-		GUI_A['groupFilter_on'] = Draw.Toggle('group', EVENT_NONE, b0+but_*4, y, but_, 20, GUI_A['groupFilter_on'].val, "(*wip) GROUP filtering on/off")
-		GUI_A['blockFilter_on'] = Draw.Toggle('block', EVENT_NONE, b0+but_*5, y, but_, 20, GUI_A['blockFilter_on'].val, "(*wip) BLOCK filtering on/off")
+		GUI_A['layerFilter_on'] = Draw.Toggle('..layer', EVENT_NONE, b0+but_*2, y, but_, 20, GUI_A['layerFilter_on'].val, "(*todo) LAYER filtering on/off")
+		GUI_A['colorFilter_on'] = Draw.Toggle('..color', EVENT_NONE, b0+but_*3, y, but_, 20, GUI_A['colorFilter_on'].val, "(*todo) COLOR filtering on/off")
+		GUI_A['groupFilter_on'] = Draw.Toggle('..group', EVENT_NONE, b0+but_*4, y, but_, 20, GUI_A['groupFilter_on'].val, "(*todo) GROUP filtering on/off")
+		GUI_A['blockFilter_on'] = Draw.Toggle('..block', EVENT_NONE, b0+but_*5, y, but_, 20, GUI_A['blockFilter_on'].val, "(*todo) BLOCK filtering on/off")
 		#GUI_A['dummy_on'] = Draw.Toggle('-', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['dummy_on'].val, "dummy on/off")
 		Draw.EndAlign()
 
@@ -5962,7 +5870,7 @@ def draw_UI():  #---------------------------------------------------------------
 		y -= 10
 		y -= 20
 		Draw.BeginAlign()
-		GUI_A['Z_force_on'] = Draw.Toggle('*elevation', EVENT_REDRAW, b0, y, b0_, 20, GUI_A['Z_force_on'].val, "*set objects Z-coordinates to elevation on/off")
+		GUI_A['Z_force_on'] = Draw.Toggle('.elevation', EVENT_REDRAW, b0, y, b0_, 20, GUI_A['Z_force_on'].val, ".set objects Z-coordinates to elevation on/off")
 		if GUI_A['Z_force_on'].val:
 			GUI_A['Z_elev'] = Draw.Number('', EVENT_NONE, b1, y, b1_, 20, GUI_A['Z_elev'].val, -1000, 1000, "set default elevation(Z-coordinate)")
 		Draw.EndAlign()
@@ -6022,9 +5930,9 @@ def draw_UI():  #---------------------------------------------------------------
 
 	#y -= 10
 	Draw.BeginAlign()
-	Draw.PushButton('DXFfile >', EVENT_CHOOSE_DXF, but0c, y, but_0c, 20, 'Select DXF-file from project directory')
-	dxfFileName = Draw.String(' :', EVENT_NONE, but1c, y, but_1c+but_2c+but_3c-20, 20, dxfFileName.val, FILENAME_MAX, "type the name of DXF-file or type *.dxf for multi-import")
-	Draw.PushButton('*.*', EVENT_DXF_DIR, but3c+but_3c-20, y, 20, 20, 'import all dxf files from this directory')
+	Draw.PushButton('DXFfile >', EVENT_CHOOSE_DXF, but0c, y, but_0c, 20, 'Select DXF/DWG-file for import')
+	dxfFileName = Draw.String(' :', EVENT_NONE, but1c, y, but_1c+but_2c+but_3c-20, 20, dxfFileName.val, FILENAME_MAX, "type the name of DXF/DWG-file or type *.dxf/*.dwg for multiple files")
+	Draw.PushButton('*.*', EVENT_DXF_DIR, but3c+but_3c-20, y, 20, 20, 'set filter for import all files from this directory')
 	Draw.EndAlign()
 
 	y -= 30
@@ -6071,8 +5979,9 @@ def colorbox(x,y,xright,bottom):
 
 def dxf_callback(input_filename):
 	global dxfFileName
-	dxfFileName.val=input_filename
-#	dirname == Blender.sys.dirname(Blender.Get('filename'))
+	if input_filename.lower()[-3:] in ('dwg','dxf'):
+		dxfFileName.val=input_filename
+#	dirname == sys.dirname(Blender.Get('filename'))
 #	update_RegistryKey('DirName', dirname)
 #	update_RegistryKey('dxfFileName', input_filename)
 	
@@ -6082,17 +5991,17 @@ def ini_callback(input_filename):
 
 def event(evt, val):
 	if evt in (Draw.QKEY, Draw.ESCKEY) and not val:
-		Blender.Draw.Exit()
+		Draw.Exit()
 
 def bevent(evt):
 #   global EVENT_NONE,EVENT_LOAD_DXF,EVENT_LOAD_INI,EVENT_SAVE_INI,EVENT_EXIT
 	global config_UI, user_preset
-	global GUI_A
+	global GUI_A, UI_MODE
 
 	######### Manages GUI events
 	if (evt==EVENT_EXIT):
-		Blender.Draw.Exit()
-		print 'DXF-Importer  *** exit ***'   #---------------------
+		Draw.Exit()
+		print 'DXF/DWG-Importer  *** exit ***'   #---------------------
 	elif (evt==EVENT_CHOOSE_INI):
 		Window.FileSelector(ini_callback, "INI-file Selection", '*.ini')
 	elif (evt==EVENT_REDRAW):
@@ -6149,13 +6058,14 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Import/DXF-3D')
 		Draw.Redraw()
 	elif (evt==EVENT_DXF_DIR):
 		dxfFile = dxfFileName.val
+		dxfFileExt = '*'+dxfFile.lower()[-4:]  #can be .dxf or .dwg
 		dxfPathName = ''
 		if '/' in dxfFile:
 			dxfPathName = '/'.join(dxfFile.split('/')[:-1]) + '/'
 		elif '\\' in dxfFile:
 			dxfPathName = '\\'.join(dxfFile.split('\\')[:-1]) + '\\'
-		dxfFileName.val = dxfPathName + '*.dxf'
-#		dirname == Blender.sys.dirname(Blender.Get('filename'))
+		dxfFileName.val = dxfPathName + dxfFileExt 
+#		dirname == sys.dirname(Blender.Get('filename'))
 #		update_RegistryKey('DirName', dirname)
 #		update_RegistryKey('dxfFileName', dxfFileName.val)
 		GUI_A['newScene_on'].val = 1
@@ -6163,45 +6073,55 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Import/DXF-3D')
 	elif (evt==EVENT_CHOOSE_DXF):
 		filename = '' # '*.dxf'
 		if dxfFileName.val:	filename = dxfFileName.val
-		Window.FileSelector(dxf_callback, "DXF-file Selection", filename)
+		Window.FileSelector(dxf_callback, "DXF/DWG-file Selection", filename)
 	elif (evt==EVENT_START):
 		dxfFile = dxfFileName.val
 		#print 'deb: dxfFile file: ', dxfFile #----------------------
 		if E_M: dxfFileName.val, dxfFile = e_mode(dxfFile) #evaluation mode
 		update_RegistryKey('dxfFileName', dxfFileName.val)
 		if dxfFile.lower().endswith('*.dxf'):
-			if Draw.PupMenu('DXF importer:  OK?|will import all DXF-files from:|%s' % dxfFile) == 1:
-				global UI_MODE
+			if Draw.PupMenu('DXF importer will import all DXF-files from:|%s|OK?' % dxfFile) != -1:
 				UI_MODE = False
-				multi_import(dxfFile[:-5])  # cut last 5 characters '*.dxf'
+				multi_import(dxfFile)
+				UI_MODE = True
 				Draw.Redraw()
-				#Draw.Exit()
-			else:
+
+		elif dxfFile.lower().endswith('*.dwg'):
+			if not extCONV_OK: Draw.PupMenu(extCONV_TEXT)
+			elif Draw.PupMenu('DWG importer will import all DWG-files from:|%s|OK?' % dxfFile) != -1:
+			#elif Draw.PupMenu('DWG importer will import all DWG-files from:|%s|Caution! overwrites existing DXF-files!| OK?' % dxfFile) != -1:
+				UI_MODE = False
+				multi_import(dxfFile)
+				UI_MODE = True
 				Draw.Redraw()
-		elif dxfFile.lower().endswith('.dxf') and sys.exists(dxfFile):
-			print '\nStandard Mode: active'
-			if GUI_A['newScene_on'].val:
-				_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
-				_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
-				_dxf_file = _dxf_file[:MAX_NAMELENGTH]  #? [-MAX_NAMELENGTH:])
-				global SCENE
-				SCENE = Blender.Scene.New(_dxf_file)
-				SCENE.makeCurrent()
-				Blender.Redraw()
-				#or so? Blender.Scene.makeCurrent(_dxf_file)
-				#sce = bpy.data.scenes.new(_dxf_file)
-				#bpy.data.scenes.active = sce
+				
+		elif sys.exists(dxfFile) and dxfFile.lower()[-4:] in ('.dxf','.dwg'):
+			if dxfFile.lower().endswith('.dwg') and (not extCONV_OK):
+				Draw.PupMenu(extCONV_TEXT)
 			else:
-				SCENE = Blender.Scene.GetCurrent()
-				SCENE.objects.selected = [] # deselect all
-			main(dxfFile)
-			#SCENE.objects.selected = SCENE.objects		 
-			#Window.RedrawAll()
-			#Blender.Redraw()
-			#Draw.Redraw()
+				#print '\nStandard Mode: active'
+				if GUI_A['newScene_on'].val:
+					_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
+					_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
+					_dxf_file = _dxf_file[:MAX_NAMELENGTH]  #? [-MAX_NAMELENGTH:])
+					global SCENE
+					SCENE = Blender.Scene.New(_dxf_file)
+					SCENE.makeCurrent()
+					Blender.Redraw()
+					#or so? Blender.Scene.makeCurrent(_dxf_file)
+					#sce = bpy.data.scenes.new(_dxf_file)
+					#bpy.data.scenes.active = sce
+				else:
+					SCENE = Blender.Scene.GetCurrent()
+					SCENE.objects.selected = [] # deselect all
+				main(dxfFile)
+				#SCENE.objects.selected = SCENE.objects		 
+				#Window.RedrawAll()
+				#Blender.Redraw()
+				#Draw.Redraw()
 		else:
-			Draw.PupMenu('DXF importer:  Alert!%t|no valid DXF-file selected!')
-			print "DXF importer: error, no valid DXF-file selected! try again"
+			Draw.PupMenu('DXF importer: nothing imported!%t|no valid DXF-file selected!')
+			print "DXF importer: nothing imported, no valid DXF-file selected! try again"
 			Draw.Redraw()
 
 
@@ -6212,20 +6132,25 @@ def multi_import(DIR):
 	
 	"""
 	global SCENE
-	batchTIME = Blender.sys.time()
+	batchTIME = sys.time()
 	#if #DIR == "": DIR = os.path.curdir
-	if DIR == "": DIR = Blender.sys.dirname(Blender.Get('filename'))
-	print 'Multifiles Import from %s' %DIR
+	if DIR == "":
+		DIR = sys.dirname(Blender.Get('filename'))
+		EXT = '.dxf'
+	else:
+		EXT = DIR[-4:]  # get last 4 characters '.dxf'
+		DIR = DIR[:-5]  # cut last 5 characters '*.dxf'
+	print 'importing multiple %s files from %s' %(EXT,DIR)
 	files = \
-		[sys.join(DIR, f) for f in os.listdir(DIR) if f.lower().endswith('.dxf')] 
+		[sys.join(DIR, f) for f in os.listdir(DIR) if f.lower().endswith(EXT)] 
 	if not files:
-		print '...None DXF-files found. Abort!'
+		print '...None %s-files found. Abort!' %EXT
 		return
 	
 	i = 0
 	for dxfFile in files:
 		i += 1
-		print '\nDXF-file', i, 'of', len(files) #,'\nImporting', dxfFile
+		print '\n%s-file' %EXT, i, 'of', len(files) #,'\nImporting', dxfFile
 		if GUI_A['newScene_on'].val:
 			_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
 			_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
@@ -6241,21 +6166,20 @@ def multi_import(DIR):
 		main(dxfFile)
 		#Blender.Redraw()
 
-	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - batchTIME)
+	print 'TOTAL TIME: %.6f' % (sys.time() - batchTIME)
 	print '\a\r', # beep when done
+	Draw.PupMenu('DXF importer:	Done!|finished in %.4f sec.' % (sys.time() - batchTIME))
 
-
-
-UI_MODE = True
 
 if __name__ == "__main__":
+	#Draw.PupMenu('DXF importer: Abort%t|This script version works for Blender up 2.49 only!')
 	UI_MODE = True
 	# recall last used DXF-file and INI-file names
 	dxffilename = check_RegistryKey('dxfFileName')
 	#print 'deb:start dxffilename:', dxffilename #----------------
 	if dxffilename: dxfFileName.val = dxffilename
 	else:
-		dirname = Blender.sys.dirname(Blender.Get('filename'))
+		dirname = sys.dirname(Blender.Get('filename'))
 		#print 'deb:start dirname:', dirname #----------------
 		dxfFileName.val = sys.join(dirname, '')
 	inifilename = check_RegistryKey('iniFileName')
@@ -6268,7 +6192,7 @@ if __name__ == "__main__":
 if 1:
 	# DEBUG ONLY
 	UI_MODE = False
-	TIME= Blender.sys.time()
+	TIME= sys.time()
 	#DIR = '/dxf_r12_testfiles/'
 	DIR = '/metavr/'
 	import os
@@ -6297,5 +6221,5 @@ if 1:
 			dxfFileName.val = _dxf
 			main(_dxf)
 
-	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
+	print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
 """

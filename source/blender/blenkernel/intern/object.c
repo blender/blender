@@ -39,13 +39,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -58,7 +59,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -68,6 +69,15 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
+
+#include "BKE_utildefines.h"
+
+#include "BKE_main.h"
+#include "BKE_global.h"
+
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_bullet.h"
@@ -75,25 +85,15 @@
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_nla.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
-
-#include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
-
-#include "BKE_main.h"
-#include "BKE_global.h"
-
+#include "BKE_animsys.h"
 #include "BKE_anim.h"
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -101,6 +101,7 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
@@ -117,25 +118,22 @@
 
 #include "GPU_material.h"
 
-#include "blendef.h"
-
 /* Local function protos */
-static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
+static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
 
 float originmat[3][3];	/* after where_is_object(), can be used in other functions (bad!) */
-Object workob;
 
-void clear_workob(void)
+void clear_workob(Object *workob)
 {
-	memset(&workob, 0, sizeof(Object));
+	memset(workob, 0, sizeof(Object));
 	
-	workob.size[0]= workob.size[1]= workob.size[2]= 1.0;
+	workob->size[0]= workob->size[1]= workob->size[2]= 1.0;
 	
 }
 
-void copy_baseflags()
+void copy_baseflags(struct Scene *scene)
 {
-	Base *base= G.scene->base.first;
+	Base *base= scene->base.first;
 	
 	while(base) {
 		base->object->flag= base->flag;
@@ -143,9 +141,9 @@ void copy_baseflags()
 	}
 }
 
-void copy_objectflags()
+void copy_objectflags(struct Scene *scene)
 {
-	Base *base= G.scene->base.first;
+	Base *base= scene->base.first;
 	
 	while(base) {
 		base->flag= base->object->flag;
@@ -153,9 +151,9 @@ void copy_objectflags()
 	}
 }
 
-void update_base_layer(Object *ob)
+void update_base_layer(struct Scene *scene, Object *ob)
 {
-	Base *base= G.scene->base.first;
+	Base *base= scene->base.first;
 
 	while (base) {
 		if (base->object == ob) base->lay= ob->lay;
@@ -225,6 +223,34 @@ void object_free_display(Object *ob)
 	freedisplist(&ob->disp);
 }
 
+void free_sculptsession(SculptSession **ssp)
+{
+	if(ssp && *ssp) {
+		SculptSession *ss = *ssp;
+		if(ss->projverts)
+			MEM_freeN(ss->projverts);
+
+		if(ss->fmap)
+			MEM_freeN(ss->fmap);
+
+		if(ss->fmap_mem)
+			MEM_freeN(ss->fmap_mem);
+
+		if(ss->texcache)
+			MEM_freeN(ss->texcache);
+
+		if(ss->layer_disps)
+			MEM_freeN(ss->layer_disps);
+
+		if(ss->mesh_co_orig)
+			MEM_freeN(ss->mesh_co_orig);
+
+		MEM_freeN(ss);
+
+		*ssp = NULL;
+	}
+}
+
 /* do not free object itself */
 void free_object(Object *ob)
 {
@@ -248,15 +274,17 @@ void free_object(Object *ob)
 		if(ob->mat[a]) ob->mat[a]->id.us--;
 	}
 	if(ob->mat) MEM_freeN(ob->mat);
+	if(ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat= 0;
+	ob->matbits= 0;
 	if(ob->bb) MEM_freeN(ob->bb); 
 	ob->bb= 0;
 	if(ob->path) free_path(ob->path); 
 	ob->path= 0;
-	if(ob->ipo) ob->ipo->id.us--;
-	if(ob->action) ob->action->id.us--;
+	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->dup_group) ob->dup_group->id.us--;
+	if(ob->gpd) ob->gpd->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
@@ -269,12 +297,6 @@ void free_object(Object *ob)
 	free_actuators(&ob->actuators);
 	
 	free_constraints(&ob->constraints);
-	free_constraint_channels(&ob->constraintChannels);
-	free_nlastrips(&ob->nlastrips);
-
-#ifndef DISABLE_PYTHON	
-	BPY_free_scriptlink(&ob->scriptlink);
-#endif
 	
 	if(ob->pd){
 		if(ob->pd->tex)
@@ -284,6 +306,10 @@ void free_object(Object *ob)
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
+
+	free_sculptsession(&ob->sculpt);
+
+	if(ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -295,7 +321,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 		ob->recalc |= OB_RECALC;
 	}
 }
-void unlink_object(Object *ob)
+void unlink_object(Scene *scene, Object *ob)
 {
 	Object *obt;
 	Material *mat;
@@ -304,11 +330,10 @@ void unlink_object(Object *ob)
 	Scene *sce;
 	Curve *cu;
 	Tex *tex;
-	Ipo *ipo;
 	Group *group;
 	Camera *camera;
 	bConstraint *con;
-	bActionStrip *strip;
+	//bActionStrip *strip; // XXX animsys 
 	ModifierData *md;
 	int a;
 	
@@ -418,6 +443,7 @@ void unlink_object(Object *ob)
 		}
 		
 		/* strips */
+#if 0 // XXX old animation system
 		for(strip= obt->nlastrips.first; strip; strip= strip->next) {
 			if(strip->object==ob)
 				strip->object= NULL;
@@ -429,22 +455,22 @@ void unlink_object(Object *ob)
 						amod->ob= NULL;
 			}
 		}
+#endif // XXX old animation system
 
 		/* particle systems */
 		if(obt->particlesystem.first) {
 			ParticleSystem *tpsys= obt->particlesystem.first;
 			for(; tpsys; tpsys=tpsys->next) {
-				if(tpsys->keyed_ob==ob) {
-					ParticleSystem *psys= BLI_findlink(&ob->particlesystem,tpsys->keyed_psys-1);
+				BoidState *state = NULL;
+				BoidRule *rule = NULL;
 
-					if(psys && psys->keyed_ob) {
-						tpsys->keyed_ob= psys->keyed_ob;
-						tpsys->keyed_psys= psys->keyed_psys;
+				ParticleTarget *pt = tpsys->targets.first;
+				for(; pt; pt=pt->next) {
+					if(pt->ob==ob) {
+						pt->ob = NULL;
+						obt->recalc |= OB_RECALC_DATA;
+						break;
 					}
-					else
-						tpsys->keyed_ob= NULL;
-
-					obt->recalc |= OB_RECALC_DATA;
 				}
 
 				if(tpsys->target_ob==ob) {
@@ -455,14 +481,30 @@ void unlink_object(Object *ob)
 				if(tpsys->part->dup_ob==ob)
 					tpsys->part->dup_ob= NULL;
 
-				if(tpsys->part->flag&PART_STICKY) {
+				if(tpsys->part->phystype==PART_PHYS_BOIDS) {
 					ParticleData *pa;
+					BoidParticle *bpa;
 					int p;
 
 					for(p=0,pa=tpsys->particles; p<tpsys->totpart; p++,pa++) {
-						if(pa->stick_ob==ob) {
-							pa->stick_ob= 0;
-							pa->flag &= ~PARS_STICKY;
+						bpa = pa->boid;
+						if(bpa->ground == ob)
+							bpa->ground = NULL;
+					}
+				}
+				if(tpsys->part->boids) {
+					for(state = tpsys->part->boids->states.first; state; state=state->next) {
+						for(rule = state->rules.first; rule; rule=rule->next) {
+							if(rule->type==eBoidRuleType_Avoid) {
+								BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid*)rule;
+								if(gabr->ob==ob)
+									gabr->ob= NULL;
+							}
+							else if(rule->type==eBoidRuleType_FollowLeader) {
+								BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader*)rule;
+								if(flbr->ob==ob)
+									flbr->ob= NULL;
+							}
 						}
 					}
 				}
@@ -497,9 +539,9 @@ void unlink_object(Object *ob)
 		tex= tex->id.next;
 	}
 	
-	/* mballs */
-	if(ob->type==OB_MBALL) {
-		obt= find_basis_mball(ob);
+	/* mballs (scene==NULL when called from library.c) */
+	if(scene && ob->type==OB_MBALL) {
+		obt= find_basis_mball(scene, ob);
 		if(obt) freedisplist(&obt->disp);
 	}
 	
@@ -521,9 +563,12 @@ void unlink_object(Object *ob)
 	while(sce) {
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
+			if(sce->toolsettings->skgen_template==ob) sce->toolsettings->skgen_template = NULL;
 		}
 		sce= sce->id.next;
 	}
+	
+#if 0 // XXX old animation system
 	/* ipos */
 	ipo= G.main->ipo.first;
 	while(ipo) {
@@ -536,6 +581,7 @@ void unlink_object(Object *ob)
 		}
 		ipo= ipo->id.next;
 	}
+#endif // XXX old animation system
 	
 	/* screens */
 	sc= G.main->screen.first;
@@ -550,26 +596,16 @@ void unlink_object(Object *ob)
 
 					if(v3d->camera==ob) {
 						v3d->camera= NULL;
-						if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
+						// XXX if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
 					}
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
 						v3d->localvd->camera= NULL;
-						if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
+						// XXX if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
 					}
 				}
-				else if(sl->spacetype==SPACE_IPO) {
-					SpaceIpo *sipo= (SpaceIpo *)sl;
-					if(sipo->from == (ID *)ob) sipo->from= NULL;
-				}
-				else if(sl->spacetype==SPACE_OOPS) {
+				else if(sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					Oops *oops;
 
-					oops= so->oops.first;
-					while(oops) {
-						if(oops->id==(ID *)ob) oops->id= NULL;
-						oops= oops->next;
-					}
 					if(so->treestore) {
 						TreeStoreElem *tselem= so->treestore->data;
 						int a;
@@ -577,7 +613,6 @@ void unlink_object(Object *ob)
 							if(tselem->id==(ID *)ob) tselem->id= NULL;
 						}
 					}
-					so->lockpoin= NULL;
 				}
 			}
 
@@ -640,10 +675,8 @@ Camera *copy_camera(Camera *cam)
 	Camera *camn;
 	
 	camn= copy_libblock(cam);
-	id_us_plus((ID *)camn->ipo);
-#ifndef DISABLE_PYTHON
-	BPY_copy_scriptlink(&camn->scriptlink);
-#endif	
+	camn->adt= BKE_copy_animdata(cam->adt);
+	
 	return camn;
 }
 
@@ -706,7 +739,7 @@ float dof_camera(Object *ob)
 {
 	Camera *cam = (Camera *)ob->data; 
 	if (ob->type != OB_CAMERA)
-		return 0.0;
+		return 0.0f;
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
 		 * return VecLenf(ob->obmat[3], cam->dof_ob->obmat[3]); */
@@ -716,7 +749,7 @@ float dof_camera(Object *ob)
 		Mat4Ortho(obmat);
 		Mat4Invert(ob->imat, obmat);
 		Mat4MulMat4(mat, cam->dof_ob->obmat, ob->imat);
-		return fabs(mat[3][2]);
+		return (float)fabs(mat[3][2]);
 	}
 	return cam->YF_dofdist;
 }
@@ -727,40 +760,40 @@ void *add_lamp(char *name)
 	
 	la=  alloc_libblock(&G.main->lamp, ID_LA, name);
 	
-	la->r= la->g= la->b= la->k= 1.0;
-	la->haint= la->energy= 1.0;
-	la->dist= 20.0;
-	la->spotsize= 45.0;
-	la->spotblend= 0.15;
-	la->att2= 1.0;
+	la->r= la->g= la->b= la->k= 1.0f;
+	la->haint= la->energy= 1.0f;
+	la->dist= 25.0f;
+	la->spotsize= 45.0f;
+	la->spotblend= 0.15f;
+	la->att2= 1.0f;
 	la->mode= LA_SHAD_BUF;
 	la->bufsize= 512;
-	la->clipsta= 0.5;
-	la->clipend= 40.0;
-	la->shadspotsize= 45.0;
+	la->clipsta= 0.5f;
+	la->clipend= 40.0f;
+	la->shadspotsize= 45.0f;
 	la->samp= 3;
-	la->bias= 1.0;
-	la->soft= 3.0;
+	la->bias= 1.0f;
+	la->soft= 3.0f;
 	la->ray_samp= la->ray_sampy= la->ray_sampz= 1; 
-	la->area_size=la->area_sizey=la->area_sizez= 1.0; 
+	la->area_size=la->area_sizey=la->area_sizez= 1.0f; 
 	la->buffers= 1;
 	la->buftype= LA_SHADBUF_HALFWAY;
 	la->ray_samp_method = LA_SAMP_HALTON;
-	la->adapt_thresh = 0.001;
+	la->adapt_thresh = 0.001f;
 	la->preview=NULL;
-	la->falloff_type = LA_FALLOFF_INVLINEAR;
+	la->falloff_type = LA_FALLOFF_INVSQUARE;
 	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
 	la->sun_effect_type = 0;
 	la->horizon_brightness = 1.0;
 	la->spread = 1.0;
 	la->sun_brightness = 1.0;
 	la->sun_size = 1.0;
-	la->backscattered_light = 1.0;
-	la->atm_turbidity = 2.0;
-	la->atm_inscattering_factor = 1.0;
-	la->atm_extinction_factor = 1.0;
-	la->atm_distance_factor = 1.0;
-	la->sun_intensity = 1.0;
+	la->backscattered_light = 1.0f;
+	la->atm_turbidity = 2.0f;
+	la->atm_inscattering_factor = 1.0f;
+	la->atm_extinction_factor = 1.0f;
+	la->atm_distance_factor = 1.0f;
+	la->sun_intensity = 1.0f;
 	la->skyblendtype= MA_RAMP_ADD;
 	la->skyblendfac= 1.0f;
 	la->sky_colorspace= BLI_CS_CIE;
@@ -787,12 +820,12 @@ Lamp *copy_lamp(Lamp *la)
 	
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 	
+#if 0 // XXX old animation system
 	id_us_plus((ID *)lan->ipo);
+#endif // XXX old animation system
 
 	if (la->preview) lan->preview = BKE_previewimg_copy(la->preview);
-#ifndef DISABLE_PYTHON
-	BPY_copy_scriptlink(&la->scriptlink);
-#endif
+	
 	return lan;
 }
 
@@ -850,9 +883,7 @@ void make_local_lamp(Lamp *la)
 
 void free_camera(Camera *ca)
 {
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&ca->scriptlink);
-#endif
+	BKE_free_animdata((ID *)ca);
 }
 
 void free_lamp(Lamp *la)
@@ -860,17 +891,13 @@ void free_lamp(Lamp *la)
 	MTex *mtex;
 	int a;
 
-	/* scriptlinks */
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&la->scriptlink);
-#endif
-
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= la->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);
 	}
-	la->ipo= 0;
+	
+	BKE_free_animdata((ID *)la);
 
 	curvemapping_free(la->curfalloff);
 	
@@ -890,13 +917,13 @@ void *add_wave()
 static void *add_obdata_from_type(int type)
 {
 	switch (type) {
-	case OB_MESH: G.totmesh++; return add_mesh("Mesh");
-	case OB_CURVE: G.totcurve++; return add_curve("Curve", OB_CURVE);
-	case OB_SURF: G.totcurve++; return add_curve("Surf", OB_SURF);
+	case OB_MESH: return add_mesh("Mesh");
+	case OB_CURVE: return add_curve("Curve", OB_CURVE);
+	case OB_SURF: return add_curve("Surf", OB_SURF);
 	case OB_FONT: return add_curve("Text", OB_FONT);
 	case OB_MBALL: return add_mball("Meta");
 	case OB_CAMERA: return add_camera("Camera");
-	case OB_LAMP: G.totlamp++; return add_lamp("Lamp");
+	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
 	case OB_WAVE: return add_wave();
 	case OB_ARMATURE: return add_armature("Armature");
@@ -933,7 +960,6 @@ Object *add_only_object(int type, char *name)
 	Object *ob;
 
 	ob= alloc_libblock(&G.main->object, ID_OB, name);
-	G.totobj++;
 
 	/* default object vars */
 	ob->type= type;
@@ -955,7 +981,6 @@ Object *add_only_object(int type, char *name)
 	Mat4One(ob->parentinv);
 	Mat4One(ob->obmat);
 	ob->dt= OB_SHADED;
-	if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
 	ob->empty_drawtype= OB_ARROWS;
 	ob->empty_drawsize= 1.0;
 
@@ -967,8 +992,12 @@ Object *add_only_object(int type, char *name)
 		ob->trackflag= OB_POSY;
 		ob->upflag= OB_POSZ;
 	}
+	
+#if 0 // XXX old animation system
 	ob->ipoflag = OB_OFFS_OB+OB_OFFS_PARENT;
 	ob->ipowin= ID_OB;	/* the ipowin shown */
+#endif // XXX old animation system
+	
 	ob->dupon= 1; ob->dupoff= 0;
 	ob->dupsta= 1; ob->dupend= 100;
 	ob->dupfacesca = 1.0;
@@ -983,17 +1012,21 @@ Object *add_only_object(int type, char *name)
 	ob->anisotropicFriction[2] = 1.0f;
 	ob->gameflag= OB_PROP|OB_COLLISION;
 	ob->margin = 0.0;
+	/* ob->pad3 == Contact Processing Threshold */
+	ob->m_contactProcessingThreshold = 1.;
 	
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
 
+	ob->pc_ids.first = ob->pc_ids.last = NULL;
+
 	return ob;
 }
 
-/* general add: to G.scene, with layer from area and default name */
+/* general add: to scene, with layer from area and default name */
 /* creates minimum required data, but without vertices etc. */
-Object *add_object(int type)
+Object *add_object(struct Scene *scene, int type)
 {
 	Object *ob;
 	Base *base;
@@ -1004,45 +1037,13 @@ Object *add_object(int type)
 
 	ob->data= add_obdata_from_type(type);
 
-	ob->lay= G.scene->lay;
+	ob->lay= scene->lay;
 
-	base= scene_add_base(G.scene, ob);
-	scene_select_base(G.scene, base);
+	base= scene_add_base(scene, ob);
+	scene_select_base(scene, base);
 	ob->recalc |= OB_RECALC;
 
 	return ob;
-}
-
-void base_init_from_view3d(Base *base, View3D *v3d)
-{
-	Object *ob= base->object;
-	
-	if (!v3d) {
-		/* no 3d view, this wont happen often */
-		base->lay = 1;
-		VECCOPY(ob->loc, G.scene->cursor);
-		
-		/* return now because v3d->viewquat isnt available */
-		return;
-	} else if (v3d->localview) {
-		base->lay= ob->lay= v3d->layact + v3d->lay;
-		VECCOPY(ob->loc, v3d->cursor);
-	} else {
-		base->lay= ob->lay= v3d->layact;
-		VECCOPY(ob->loc, G.scene->cursor);
-	}
-
-	if (U.flag & USER_ADD_VIEWALIGNED) {
-		v3d->viewquat[0]= -v3d->viewquat[0];
-
-		/* Quats arnt used yet */
-		/*if (ob->transflag & OB_QUAT) {
-			QUATCOPY(ob->quat, v3d->viewquat);
-		} else {*/
-			QuatToEul(v3d->viewquat, ob->rot);
-		/*}*/
-		v3d->viewquat[0]= -v3d->viewquat[0];
-	}
 }
 
 SoftBody *copy_softbody(SoftBody *sb)
@@ -1061,7 +1062,7 @@ SoftBody *copy_softbody(SoftBody *sb)
 	
 	sbn->scratch= NULL;
 
-	sbn->pointcache= BKE_ptcache_copy(sb->pointcache);
+	sbn->pointcache= BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches);
 
 	return sbn;
 }
@@ -1081,23 +1082,44 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
 	ParticleData *pa;
-	int a;
+	int p;
 
 	psysn= MEM_dupallocN(psys);
 	psysn->particles= MEM_dupallocN(psys->particles);
 	psysn->child= MEM_dupallocN(psys->child);
 
-	for(a=0, pa=psysn->particles; a<psysn->totpart; a++, pa++) {
-		if(pa->hair)
-			pa->hair= MEM_dupallocN(pa->hair);
-		if(pa->keys)
-			pa->keys= MEM_dupallocN(pa->keys);
+	if(psys->part->type == PART_HAIR) {
+		for(p=0, pa=psysn->particles; p<psysn->totpart; p++, pa++)
+			pa->hair = MEM_dupallocN(pa->hair);
 	}
 
-	if(psys->soft) {
-		psysn->soft= copy_softbody(psys->soft);
-		psysn->soft->particles = psysn;
+	if(psysn->particles->keys || psysn->particles->boid) {
+		ParticleKey *key = psysn->particles->keys;
+		BoidParticle *boid = psysn->particles->boid;
+
+		if(key)
+			key = MEM_dupallocN(key);
+		
+		if(boid)
+			boid = MEM_dupallocN(boid);
+		
+		for(p=0, pa=psysn->particles; p<psysn->totpart; p++, pa++) {
+			if(boid)
+				pa->boid = boid++;
+			if(key) {
+				pa->keys = key;
+				key += pa->totkey;
+			}
+		}
 	}
+
+	if(psys->clmd) {
+		ClothModifierData *nclmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
+		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)nclmd);
+		psys->hair_in_dm = psys->hair_out_dm = NULL;
+	}
+
+	BLI_duplicatelist(&psysn->targets, &psys->targets);
 	
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
@@ -1109,7 +1131,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->reactevents.first = psysn->reactevents.last = NULL;
 	psysn->renderdata = NULL;
 	
-	psysn->pointcache= BKE_ptcache_copy(psys->pointcache);
+	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
 
 	id_us_plus((ID *)psysn->part);
 
@@ -1163,13 +1185,21 @@ static void copy_object_pose(Object *obn, Object *ob)
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
-			if(con->ipo) {
+#if 0 // XXX old animation system
+			/* note that we can't change lib linked ipo blocks. for making
+			 * proxies this still works correct however because the object
+			 * is changed to object->proxy_from when evaluating the driver. */
+			if(con->ipo && !con->ipo->id.lib) {
 				IpoCurve *icu;
+				
+				con->ipo= copy_ipo(con->ipo);
+				
 				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
 					if(icu->driver && icu->driver->ob==ob)
 						icu->driver->ob= obn;
 				}
 			}
+#endif // XXX old animation system
 			
 			if (cti && cti->get_constraint_targets) {
 				cti->get_constraint_targets(con, &targets);
@@ -1196,6 +1226,7 @@ Object *copy_object(Object *ob)
 	
 	if(ob->totcol) {
 		obn->mat= MEM_dupallocN(ob->mat);
+		obn->matbits= MEM_dupallocN(ob->matbits);
 	}
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);
@@ -1209,9 +1240,7 @@ Object *copy_object(Object *ob)
 		modifier_copyData(md, nmd);
 		BLI_addtail(&obn->modifiers, nmd);
 	}
-#ifndef DISABLE_PYTHON	
-	BPY_copy_scriptlink(&ob->scriptlink);
-#endif
+
 	obn->prop.first = obn->prop.last = NULL;
 	copy_properties(&obn->prop, &ob->prop);
 	
@@ -1226,16 +1255,15 @@ Object *copy_object(Object *ob)
 			armature_rebuild_pose(obn, obn->data);
 	}
 	copy_defgroups(&obn->defbase, &ob->defbase);
-	copy_nlastrips(&obn->nlastrips, &ob->nlastrips);
-	copy_constraints (&obn->constraints, &ob->constraints);
+	copy_constraints(&obn->constraints, &ob->constraints);
 
-	clone_constraint_channels (&obn->constraintChannels, &ob->constraintChannels);
+	obn->mode = 0;
+	obn->sculpt = NULL;
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
-	id_us_plus((ID *)obn->ipo);
-	id_us_plus((ID *)obn->action);
 	id_us_plus((ID *)obn->dup_group);
+	// FIXME: add this for animdata too...
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
@@ -1254,32 +1282,33 @@ Object *copy_object(Object *ob)
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;
 
-#ifdef WITH_VERSE
-	obn->vnode = NULL;
-#endif
-
 	obn->gpulamp.first = obn->gpulamp.last = NULL;
-
+	obn->pc_ids.first = obn->pc_ids.last = NULL;
+	
 	return obn;
 }
 
 void expand_local_object(Object *ob)
 {
-	bActionStrip *strip;
+	//bActionStrip *strip;
 	ParticleSystem *psys;
 	int a;
-	
+
+#if 0 // XXX old animation system
 	id_lib_extern((ID *)ob->action);
 	id_lib_extern((ID *)ob->ipo);
+#endif // XXX old animation system
 	id_lib_extern((ID *)ob->data);
 	id_lib_extern((ID *)ob->dup_group);
 	
 	for(a=0; a<ob->totcol; a++) {
 		id_lib_extern((ID *)ob->mat[a]);
 	}
+#if 0 // XXX old animation system
 	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		id_lib_extern((ID *)strip->act);
 	}
+#endif // XXX old animation system
 	for(psys=ob->particlesystem.first; psys; psys=psys->next)
 		id_lib_extern((ID *)psys->part);
 }
@@ -1351,10 +1380,33 @@ void make_local_object(Object *ob)
 	expand_local_object(ob);
 }
 
+/*
+ * Returns true if the Object is a from an external blend file (libdata)
+ */
+int object_is_libdata(Object *ob)
+{
+	if (!ob) return 0;
+	if (ob->proxy) return 0;
+	if (ob->id.lib) return 1;
+	return 0;
+}
+
+/* Returns true if the Object data is a from an external blend file (libdata) */
+int object_data_is_libdata(Object *ob)
+{
+	if(!ob) return 0;
+	if(ob->proxy) return 0;
+	if(ob->id.lib) return 1;
+	if(!ob->data) return 0;
+	if(((ID *)ob->data)->lib) return 1;
+
+	return 0;
+}
+
 /* *************** PROXY **************** */
 
 /* when you make proxy, ensure the exposed layers are extern */
-void armature_set_id_extern(Object *ob)
+static void armature_set_id_extern(Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -1401,9 +1453,32 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	ob->parent= target->parent;	/* libdata */
 	Mat4CpyMat4(ob->parentinv, target->parentinv);
-	ob->ipo= target->ipo;		/* libdata */
 	
-	/* skip constraints, constraintchannels, nla? */
+	/* copy animdata stuff - drivers only for now... */
+	if ((target->adt) && (target->adt->drivers.first)) {
+		FCurve *fcu;
+		
+		/* add new animdata block */
+		ob->adt= BKE_id_add_animdata(&ob->id);
+		
+		/* make a copy of all the drivers (for now), then correct any links that need fixing */
+		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
+		
+		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
+			
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+				if ((Object *)dtar->id == target)
+					dtar->id= (ID *)ob;
+				else
+					id_lib_extern((ID *)dtar->id);
+			}
+		}
+	}
+	
+	/* skip constraints? */
+	// FIXME: this is considered by many as a bug
 	
 	/* set object type and link to data */
 	ob->type= target->type;
@@ -1413,8 +1488,10 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	/* copy material and index information */
 	ob->actcol= ob->totcol= 0;
 	if(ob->mat) MEM_freeN(ob->mat);
+	if(ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat = NULL;
-	if ((target->totcol) && (target->mat) && OB_SUPPORT_MATERIAL(ob)) {
+	ob->matbits= NULL;
+	if ((target->totcol) && (target->mat) && ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) { //XXX OB_SUPPORT_MATERIAL
 		int i;
 		ob->colbits = target->colbits;
 		
@@ -1422,6 +1499,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		ob->totcol= target->totcol;
 		
 		ob->mat = MEM_dupallocN(target->mat);
+		ob->matbits = MEM_dupallocN(target->matbits);
 		for(i=0; i<target->totcol; i++) {
 			/* dont need to run test_object_materials since we know this object is new and not used elsewhere */
 			id_us_plus((ID *)ob->mat[i]); 
@@ -1436,6 +1514,9 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		armature_set_id_extern(ob);
 	}
+	
+	/* copy drawtype info */
+	ob->dt= target->dt;
 }
 
 
@@ -1462,8 +1543,9 @@ void disable_speed_curve(int val)
 	no_speed_curve= val;
 }
 
+// XXX THIS CRUFT NEEDS SERIOUS RECODING ASAP!
 /* ob can be NULL */
-float bsystem_time(Object *ob, float cfra, float ofs)
+float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 {
 	/* returns float ( see frame_to_float in ipo.c) */
 	
@@ -1471,8 +1553,9 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 	cfra+= bluroffs+fieldoffs;
 
 	/* global time */
-	cfra*= G.scene->r.framelen;	
+	cfra*= scene->r.framelen;	
 	
+#if 0 // XXX old animation system
 	if (ob) {
 		if (no_speed_curve==0 && ob->ipo)
 			cfra= calc_ipo_time(ob->ipo, cfra);
@@ -1481,6 +1564,7 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) 
 			cfra-= give_timeoffset(ob);
 	}
+#endif // XXX old animation system
 	
 	cfra-= ofs;
 
@@ -1559,17 +1643,17 @@ void object_to_mat4(Object *ob, float mat[][4])
 
 int enable_cu_speed= 1;
 
-static void ob_parcurve(Object *ob, Object *par, float mat[][4])
+static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
-	float q[4], vec[4], dir[3], quat[4], x1, ctime;
+	float q[4], vec[4], dir[3], quat[4], radius, x1, ctime;
 	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	Mat4One(mat);
 	
 	cu= par->data;
 	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
-		makeDispListCurveTypes(par, 0);
+		makeDispListCurveTypes(scene, par, 0);
 	if(cu->path==NULL) return;
 	
 	/* exception, timeoffset is regarded as distance offset */
@@ -1584,15 +1668,17 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	}
 	/* catch exceptions: curve paths used as a duplicator */
 	else if(enable_cu_speed) {
-		ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
-		
-		if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
-			ctime /= cu->pathlen;
-			CLAMP(ctime, 0.0, 1.0);
-		}
+		/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
+		 * but this will only work if it actually is animated... 
+		 *
+		 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
+		 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+		 */
+		ctime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
+		CLAMP(ctime, 0.0, 1.0);
 	}
 	else {
-		ctime= G.scene->r.cfra - give_timeoffset(ob);
+		ctime= scene->r.cfra - give_timeoffset(ob);
 		ctime /= cu->pathlen;
 		
 		CLAMP(ctime, 0.0, 1.0);
@@ -1608,7 +1694,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	
 	
 	/* vec: 4 items! */
- 	if( where_on_path(par, ctime, vec, dir) ) {
+ 	if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
 
 		if(cu->flag & CU_FOLLOW) {
 			vectoquat(dir, ob->trackflag, ob->upflag, quat);
@@ -1625,6 +1711,13 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 			QuatToMat4(quat, mat);
 		}
 		
+		if(cu->flag & CU_PATH_RADIUS) {
+			float tmat[4][4], rmat[4][4];
+			Mat4Scale(tmat, radius);
+			Mat4MulMat4(rmat, mat, tmat);
+			Mat4CpyMat4(mat, rmat);
+		}
+
 		VECCOPY(mat[3], vec);
 		
 	}
@@ -1633,11 +1726,9 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 static void ob_parbone(Object *ob, Object *par, float mat[][4])
 {	
 	bPoseChannel *pchan;
-	bArmature *arm;
 	float vec[3];
 	
-	arm=get_armature(par);
-	if (!arm) {
+	if (par->type!=OB_ARMATURE) {
 		Mat4One(mat);
 		return;
 	}
@@ -1661,13 +1752,16 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 
 static void give_parvert(Object *par, int nr, float *vec)
 {
+	EditMesh *em;
 	int a, count;
 	
 	vec[0]=vec[1]=vec[2]= 0.0f;
 	
 	if(par->type==OB_MESH) {
-		if(G.obedit && (par->data==G.obedit->data)) {
-			EditMesh *em = G.editMesh;
+		Mesh *me= par->data;
+		em = BKE_mesh_get_editmesh(me);
+
+		if(em) {
 			EditVert *eve;
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
@@ -1676,6 +1770,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 					break;
 				}
 			}
+			BKE_mesh_end_editmesh(me, em);
 		}
 		else {
 			DerivedMesh *dm = par->derivedFinal;
@@ -1705,7 +1800,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 			}
 		}
 	}
-	else if ELEM(par->type, OB_CURVE, OB_SURF) {
+	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
 		Nurb *nu;
 		Curve *cu;
 		BPoint *bp;
@@ -1713,12 +1808,14 @@ static void give_parvert(Object *par, int nr, float *vec)
 		int found= 0;
 		
 		cu= par->data;
-		nu= cu->nurb.first;
-		if(par==G.obedit) nu= editNurb.first;
+		if(cu->editnurb)
+			nu= cu->editnurb->first;
+		else
+			nu= cu->nurb.first;
 		
 		count= 0;
 		while(nu && !found) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -1754,7 +1851,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		DispList *dl = find_displist(&par->disp, DL_VERTS);
 		float *co = dl?dl->verts:NULL;
 		
-		if(par==G.obedit) latt= editLatt;
+		if(latt->editlatt) latt= latt->editlatt;
 		
 		a= latt->pntsu*latt->pntsv*latt->pntsw;
 		count= 0;
@@ -1781,7 +1878,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	/* in local ob space */
 	Mat4One(mat);
 	
-	if ELEM4(par->type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE) {
+	if (ELEM4(par->type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE)) {
 		
 		give_parvert(par, ob->par1, v1);
 		give_parvert(par, ob->par2, v2);
@@ -1802,36 +1899,17 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	}
 }
 
+// XXX what the hell is this?
 static int no_parent_ipo=0;
 void set_no_parent_ipo(int val)
 {
 	no_parent_ipo= val;
 }
 
-static int during_script_flag=0;
-void disable_where_script(short on)
-{
-	during_script_flag= on;
-}
-
-int during_script(void) {
-	return during_script_flag;
-}
-
-static int during_scriptlink_flag=0;
-void disable_where_scriptlink(short on)
-{
-	during_scriptlink_flag= on;
-}
-
-int during_scriptlink(void) {
-	return during_scriptlink_flag;
-}
-
-void where_is_object_time(Object *ob, float ctime)
+void where_is_object_time(Scene *scene, Object *ob, float ctime)
 {
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
-	float stime, fac1, fac2, vec[3];
+	float stime=ctime, fac1, fac2, vec[3];
 	int a;
 	int pop; 
 	
@@ -1841,8 +1919,9 @@ void where_is_object_time(Object *ob, float ctime)
 	
 	if(ob==NULL) return;
 	
+#if 0 // XXX old animation system
 	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
-	stime= bsystem_time(ob, ctime, 0.0);
+	stime= bsystem_time(scene, ob, ctime, 0.0);
 	if(stime != ob->ctime) {
 		
 		ob->ctime= stime;
@@ -1852,7 +1931,7 @@ void where_is_object_time(Object *ob, float ctime)
 			execute_ipo((ID *)ob, ob->ipo);
 		}
 		else 
-			do_all_object_actions(ob);
+			do_all_object_actions(scene, ob);
 		
 		/* do constraint ipos ..., note it needs stime (0 = all ipos) */
 		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 0);
@@ -1863,36 +1942,39 @@ void where_is_object_time(Object *ob, float ctime)
 		/* do constraint ipos ..., note it needs stime (1 = only drivers ipos) */
 		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 1);
 	}
+#endif // XXX old animation system
+
+	/* execute drivers only, as animation has already been done */
+	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
 	
 	if(ob->parent) {
 		Object *par= ob->parent;
 		
+		// XXX depreceated - animsys
 		if(ob->ipoflag & OB_OFFS_PARENT) ctime-= give_timeoffset(ob);
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
 		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
 		pop= 0;
 		if(no_parent_ipo==0 && stime != par->ctime) {
-		
 			// only for ipo systems? 
 			pushdata(par, sizeof(Object));
 			pop= 1;
 			
 			if(par->proxy_from);	// was a copied matrix, no where_is! bad...
-			else where_is_object_time(par, ctime);
+			else where_is_object_time(scene, par, ctime);
 		}
 		
-		solve_parenting(ob, par, ob->obmat, slowmat, 0);
-
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
+		
 		if(pop) {
 			poplast(par);
 		}
 		
 		if(ob->partype & PARSLOW) {
 			// include framerate
-
-			fac1= (1.0f/(1.0f+ fabs(give_timeoffset(ob))));
-			if(fac1>=1.0) return;
+			fac1= ( 1.0f / (1.0f + (float)fabs(give_timeoffset(ob))) );
+			if(fac1 >= 1.0f) return;
 			fac2= 1.0f-fac1;
 			
 			fp1= ob->obmat[0];
@@ -1901,7 +1983,6 @@ void where_is_object_time(Object *ob, float ctime)
 				fp1[0]= fac1*fp1[0] + fac2*fp2[0];
 			}
 		}
-	
 	}
 	else {
 		object_to_mat4(ob, ob->obmat);
@@ -1909,27 +1990,21 @@ void where_is_object_time(Object *ob, float ctime)
 
 	/* Handle tracking */
 	if(ob->track) {
-		if( ctime != ob->track->ctime) where_is_object_time(ob->track, ctime);
+		if( ctime != ob->track->ctime) where_is_object_time(scene, ob->track, ctime);
 		solve_tracking (ob, ob->track->obmat);
-		
 	}
 
 	/* solve constraints */
 	if (ob->constraints.first) {
 		bConstraintOb *cob;
 		
-		cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 		
 		/* constraints need ctime, not stime. Some call where_is_object_time and bsystem_time */
 		solve_constraints (&ob->constraints, cob, ctime);
 		
 		constraints_clear_evalob(cob);
 	}
-#ifndef DISABLE_PYTHON
-	if(ob->scriptlink.totscript && !during_script()) {
-		if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_REDRAW);
-	}
-#endif
 	
 	/* set negative scale flag in object */
 	Crossf(vec, ob->obmat[0], ob->obmat[1]);
@@ -1937,25 +2012,24 @@ void where_is_object_time(Object *ob, float ctime)
 	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
-static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
+static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
 {
 	float totmat[4][4];
 	float tmat[4][4];
 	float locmat[4][4];
 	float vec[3];
 	int ok;
-
+	
 	object_to_mat4(ob, locmat);
 	
 	if(ob->partype & PARSLOW) Mat4CpyMat4(slowmat, obmat);
-	
 
 	switch(ob->partype & PARTYPE) {
 	case PAROBJECT:
 		ok= 0;
 		if(par->type==OB_CURVE) {
 			if( ((Curve *)par->data)->flag & CU_PATH ) {
-				ob_parcurve(ob, par, tmat);
+				ob_parcurve(scene, ob, par, tmat);
 				ok= 1;
 			}
 		}
@@ -2044,19 +2118,19 @@ void solve_tracking (Object *ob, float targetmat[][4])
 
 }
 
-void where_is_object(Object *ob)
+void where_is_object(struct Scene *scene, Object *ob)
 {
-	where_is_object_time(ob, (float)G.scene->r.cfra);
+	where_is_object_time(scene, ob, (float)scene->r.cfra);
 }
 
 
-void where_is_object_simul(Object *ob)
+void where_is_object_simul(Scene *scene, Object *ob)
 /* was written for the old game engine (until 2.04) */
 /* It seems that this function is only called
 for a lamp that is the child of another object */
 {
 	Object *par;
-	Ipo *ipo;
+	//Ipo *ipo;
 	float *fp1, *fp2;
 	float slowmat[4][4];
 	float fac1, fac2;
@@ -2065,13 +2139,14 @@ for a lamp that is the child of another object */
 	/* NO TIMEOFFS */
 	
 	/* no ipo! (because of dloc and realtime-ipos) */
-	ipo= ob->ipo;
-	ob->ipo= NULL;
+		// XXX old animation system
+	//ipo= ob->ipo;
+	//ob->ipo= NULL;
 
 	if(ob->parent) {
 		par= ob->parent;
 		
-		solve_parenting(ob, par, ob->obmat, slowmat, 1);
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, 1);
 
 		if(ob->partype & PARSLOW) {
 
@@ -2096,45 +2171,47 @@ for a lamp that is the child of another object */
 	if (ob->constraints.first) {
 		bConstraintOb *cob;
 		
-		cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		solve_constraints (&ob->constraints, cob, G.scene->r.cfra);
+		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+		solve_constraints(&ob->constraints, cob, (float)scene->r.cfra);
 		constraints_clear_evalob(cob);
 	}
 	
 	/*  WATCH IT!!! */
-	ob->ipo= ipo;
+		// XXX old animation system
+	//ob->ipo= ipo;
 }
 
 /* for calculation of the inverse parent transform, only used for editor */
-void what_does_parent(Object *ob)
+void what_does_parent(Scene *scene, Object *ob, Object *workob)
 {
-	clear_workob();
-	Mat4One(workob.obmat);
-	Mat4One(workob.parentinv);
-	Mat4One(workob.constinv);
-	workob.parent= ob->parent;
-	workob.track= ob->track;
-
-	workob.trackflag= ob->trackflag;
-	workob.upflag= ob->upflag;
+	clear_workob(workob);
 	
-	workob.partype= ob->partype;
-	workob.par1= ob->par1;
-	workob.par2= ob->par2;
-	workob.par3= ob->par3;
+	Mat4One(workob->obmat);
+	Mat4One(workob->parentinv);
+	Mat4One(workob->constinv);
+	workob->parent= ob->parent;
+	workob->track= ob->track;
 
-	workob.constraints.first = ob->constraints.first;
-	workob.constraints.last = ob->constraints.last;
+	workob->trackflag= ob->trackflag;
+	workob->upflag= ob->upflag;
+	
+	workob->partype= ob->partype;
+	workob->par1= ob->par1;
+	workob->par2= ob->par2;
+	workob->par3= ob->par3;
 
-	strcpy(workob.parsubstr, ob->parsubstr); 
+	workob->constraints.first = ob->constraints.first;
+	workob->constraints.last = ob->constraints.last;
 
-	where_is_object(&workob);
+	strcpy(workob->parsubstr, ob->parsubstr); 
+
+	where_is_object(scene, workob);
 }
 
 BoundBox *unit_boundbox()
 {
 	BoundBox *bb;
-	float min[3] = {-1,-1,-1}, max[3] = {-1,-1,-1};
+	float min[3] = {-1.0f,-1.0f,-1.0f}, max[3] = {-1.0f,-1.0f,-1.0f};
 
 	bb= MEM_callocN(sizeof(BoundBox), "bb");
 	boundbox_set_from_min_max(bb, min, max);
@@ -2161,7 +2238,7 @@ BoundBox *object_get_boundbox(Object *ob)
 	if(ob->type==OB_MESH) {
 		bb = mesh_get_bb(ob);
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
+	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		bb= ( (Curve *)ob->data )->bb;
 	}
 	else if(ob->type==OB_MBALL) {
@@ -2247,7 +2324,7 @@ void minmax_object(Object *ob, float *min, float *max)
 }
 
 /* TODO - use dupli objects bounding boxes */
-void minmax_object_duplis(Object *ob, float *min, float *max)
+void minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
 {
 	if ((ob->transflag & OB_DUPLI)==0) {
 		return;
@@ -2255,7 +2332,7 @@ void minmax_object_duplis(Object *ob, float *min, float *max)
 		ListBase *lb;
 		DupliObject *dob;
 		
-		lb= object_duplilist(G.scene, ob);
+		lb= object_duplilist(scene, ob);
 		for(dob= lb->first; dob; dob= dob->next) {
 			if(dob->no_draw);
 			else {
@@ -2275,13 +2352,16 @@ void minmax_object_duplis(Object *ob, float *min, float *max)
 
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
-void object_handle_update(Object *ob)
+void object_handle_update(Scene *scene, Object *ob)
 {
 	if(ob->recalc & OB_RECALC) {
 		
-		if(ob->recalc & OB_RECALC_OB) {
-
-			// printf("recalcob %s\n", ob->id.name+2);
+		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
+		   which is only in where_is_object now */
+		if(ob->recalc & OB_RECALC) {
+			
+			if (G.f & G_DEBUG)
+				printf("recalcob %s\n", ob->id.name+2);
 			
 			/* handle proxy copy for target */
 			if(ob->id.lib && ob->proxy_from) {
@@ -2295,41 +2375,45 @@ void object_handle_update(Object *ob)
 					Mat4CpyMat4(ob->obmat, ob->proxy_from->obmat);
 			}
 			else
-				where_is_object(ob);
-#ifndef DISABLE_PYTHON
-			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBJECTUPDATE);
-#endif
+				where_is_object(scene, ob);
 		}
 		
 		if(ob->recalc & OB_RECALC_DATA) {
 			
-			// printf("recalcdata %s\n", ob->id.name+2);
+			if (G.f & G_DEBUG)
+				printf("recalcdata %s\n", ob->id.name+2);
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				makeDerivedMesh(ob, get_viewedit_datamask());
+				EditMesh *em = BKE_mesh_get_editmesh(ob->data);
+
+					// here was vieweditdatamask? XXX
+				if(ob==scene->obedit) {
+					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
+					BKE_mesh_end_editmesh(ob->data, em);
+				} else
+					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
 			}
 			else if(ob->type==OB_MBALL) {
-				makeDispListMBall(ob);
+				makeDispListMBall(scene, ob);
 			} 
 			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-				makeDispListCurveTypes(ob, 0);
+				makeDispListCurveTypes(scene, ob, 0);
+			}
+			else if(ELEM(ob->type, OB_CAMERA, OB_LAMP)) {
+				ID *data_id= (ID *)ob->data;
+				AnimData *adt= BKE_animdata_from_id(data_id);
+				float ctime= (float)scene->r.cfra; // XXX this is bad...
+				
+				/* evaluate drivers */
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 			}
 			else if(ob->type==OB_LATTICE) {
-				lattice_calc_modifiers(ob);
-			}
-			else if(ob->type==OB_CAMERA) {
-				Camera *cam = (Camera *)ob->data;
-				calc_ipo(cam->ipo, frame_to_float(G.scene->r.cfra));
-				execute_ipo(&cam->id, cam->ipo);
-			}
-			else if(ob->type==OB_LAMP) {
-				Lamp *la = (Lamp *)ob->data;
-				calc_ipo(la->ipo, frame_to_float(G.scene->r.cfra));
-				execute_ipo(&la->id, la->ipo);
+				lattice_calc_modifiers(scene, ob);
 			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this happens for reading old files and to match library armatures with poses */
+				// XXX this won't screw up the pose set already...
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
 				
@@ -2338,19 +2422,25 @@ void object_handle_update(Object *ob)
 					// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
 				}
 				else {
-					do_all_pose_actions(ob);
-					where_is_pose(ob);
+					where_is_pose(scene, ob);
 				}
 			}
 
 			if(ob->particlesystem.first) {
 				ParticleSystem *tpsys, *psys;
 				DerivedMesh *dm;
+				ob->transflag &= ~OB_DUPLIPARTS;
 				
 				psys= ob->particlesystem.first;
 				while(psys) {
 					if(psys_check_enabled(ob, psys)) {
-						particle_system_update(ob, psys);
+						/* check use of dupli objects here */
+						if(psys->part && psys->part->draw_as == PART_DRAW_REND &&
+							((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob)
+							|| (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
+							ob->transflag |= OB_DUPLIPARTS;
+
+						particle_system_update(scene, ob, psys);
 						psys= psys->next;
 					}
 					else if(psys->flag & PSYS_DELETE) {
@@ -2367,16 +2457,13 @@ void object_handle_update(Object *ob)
 					/* this is to make sure we get render level duplis in groups:
 					 * the derivedmesh must be created before init_render_mesh,
 					 * since object_duplilist does dupliparticles before that */
-					dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+					dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 					dm->release(dm);
 
 					for(psys=ob->particlesystem.first; psys; psys=psys->next)
 						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
-#ifndef DISABLE_PYTHON
-			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBDATAUPDATE);
-#endif
 		}
 
 		/* the no-group proxy case, we call update */
@@ -2384,7 +2471,7 @@ void object_handle_update(Object *ob)
 			/* set pointer in library proxy target, for copying, but restore it */
 			ob->proxy->proxy_from= ob;
 			// printf("call update, lib ob %s proxy %s\n", ob->proxy->id.name, ob->id.name);
-			object_handle_update(ob->proxy);
+			object_handle_update(scene, ob->proxy);
 		}
 	
 		ob->recalc &= ~OB_RECALC;
@@ -2471,3 +2558,61 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 	
 	return result;
 }
+
+static int pc_cmp(void *a, void *b)
+{
+	LinkData *ad = a, *bd = b;
+	if(GET_INT_FROM_POINTER(ad->data) > GET_INT_FROM_POINTER(bd->data))
+		return 1;
+	else return 0;
+}
+
+int object_insert_ptcache(Object *ob) 
+{
+	LinkData *link = NULL;
+	int i = 0;
+
+	BLI_sortlist(&ob->pc_ids, pc_cmp);
+
+	for(link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
+	{
+		int index = GET_INT_FROM_POINTER(link->data);
+
+		if(i < index)
+			break;
+	}
+
+	link = MEM_callocN(sizeof(LinkData), "PCLink");
+	link->data = SET_INT_IN_POINTER(i);
+	BLI_addtail(&ob->pc_ids, link);
+
+	return i;
+}
+
+#if 0
+static int pc_findindex(ListBase *listbase, int index)
+{
+	LinkData *link= NULL;
+	int number= 0;
+	
+	if (listbase == NULL) return -1;
+	
+	link= listbase->first;
+	while (link) {
+		if ((int)link->data == index)
+			return number;
+		
+		number++;
+		link= link->next;
+	}
+	
+	return -1;
+}
+
+void object_delete_ptcache(Object *ob, int index) 
+{
+	int list_index = pc_findindex(&ob->pc_ids, index);
+	LinkData *link = BLI_findlink(&ob->pc_ids, list_index);
+	BLI_freelinkN(&ob->pc_ids, link);
+}
+#endif

@@ -17,23 +17,25 @@ subject to the following restrictions:
 
 
 btMinkowskiSumShape::btMinkowskiSumShape(const btConvexShape* shapeA,const btConvexShape* shapeB)
-:m_shapeA(shapeA),
+: btConvexInternalShape (),
+m_shapeA(shapeA),
 m_shapeB(shapeB)
 {
+	m_shapeType = MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE;
 	m_transA.setIdentity();
 	m_transB.setIdentity();
 }
 
 btVector3 btMinkowskiSumShape::localGetSupportingVertexWithoutMargin(const btVector3& vec)const
 {
-	btVector3 supVertexA = m_transA(m_shapeA->localGetSupportingVertexWithoutMargin(-vec*m_transA.getBasis()));
-	btVector3 supVertexB = m_transB(m_shapeB->localGetSupportingVertexWithoutMargin(vec*m_transB.getBasis()));
+	btVector3 supVertexA = m_transA(m_shapeA->localGetSupportingVertexWithoutMargin(vec*m_transA.getBasis()));
+	btVector3 supVertexB = m_transB(m_shapeB->localGetSupportingVertexWithoutMargin(-vec*m_transB.getBasis()));
 	return  supVertexA - supVertexB;
 }
 
 void	btMinkowskiSumShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
 {
-	//todo: could make recursive use of batching. probably this shape is not used frequently.
+	///@todo: could make recursive use of batching. probably this shape is not used frequently.
 	for (int i=0;i<numVectors;i++)
 	{
 		supportVerticesOut[i] = localGetSupportingVertexWithoutMargin(vectors[i]);

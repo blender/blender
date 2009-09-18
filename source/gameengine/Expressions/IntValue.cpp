@@ -42,10 +42,10 @@ effect: constructs a new CIntValue
 
 
 
-CIntValue::CIntValue(int innie)
+CIntValue::CIntValue(cInt innie)
 /*
 pre:
-effect: constructs a new CIntValue containing int innie
+effect: constructs a new CIntValue containing cInt innie
 */
 {
 	m_int = innie;
@@ -54,7 +54,7 @@ effect: constructs a new CIntValue containing int innie
 
 
 
-CIntValue::CIntValue(int innie,STR_String name,AllocationTYPE alloctype)
+CIntValue::CIntValue(cInt innie,const char *name,AllocationTYPE alloctype)
 {
 	m_int = innie;
 	SetName(name);
@@ -125,6 +125,9 @@ this object
 	case VALUE_INT_TYPE:
 		{
 			switch (op) {
+			case VALUE_MOD_OPERATOR:
+				ret = new CIntValue (((CIntValue *) val)->GetInt() % m_int);
+				break;
 			case VALUE_ADD_OPERATOR:
 				ret = new CIntValue (((CIntValue *) val)->GetInt() + m_int);
 				break;
@@ -181,6 +184,9 @@ this object
 	case VALUE_FLOAT_TYPE:
 		{
 			switch (op) {
+			case VALUE_MOD_OPERATOR:
+				ret = new CFloatValue(fmod(((CFloatValue *) val)->GetFloat(), m_int));
+				break;
 			case VALUE_ADD_OPERATOR:
 				ret = new CFloatValue (((CFloatValue *) val)->GetFloat() + m_int);
 				break;
@@ -274,10 +280,10 @@ this object
 
 
 
-int CIntValue::GetInt()
+cInt CIntValue::GetInt()
 /*
 pre:
-ret: the int stored in the object
+ret: the cInt stored in the object
 */
 {
 	return m_int;
@@ -285,7 +291,7 @@ ret: the int stored in the object
 
 
 
-float CIntValue::GetNumber()
+double CIntValue::GetNumber()
 {
 	return (float) m_int;
 }
@@ -296,7 +302,7 @@ const STR_String & CIntValue::GetText()
 {
 	if (!m_pstrRep)
 		m_pstrRep=new STR_String();
-	m_pstrRep->Format("%d",m_int);
+	m_pstrRep->Format("%lld",m_int);
 	
 	return *m_pstrRep;
 }
@@ -305,7 +311,7 @@ const STR_String & CIntValue::GetText()
 
 CValue* CIntValue::GetReplica() { 
 	CIntValue* replica = new CIntValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->m_pstrRep = NULL;
 	
 	return replica;
@@ -315,7 +321,7 @@ CValue* CIntValue::GetReplica() {
 
 void CIntValue::SetValue(CValue* newval)
 { 	
-	m_int = (int)newval->GetNumber(); 
+	m_int = (cInt)newval->GetNumber(); 
 	SetModified(true);
 }
 
@@ -323,5 +329,8 @@ void CIntValue::SetValue(CValue* newval)
 
 PyObject* CIntValue::ConvertValueToPython()
 {
-	return PyInt_FromLong(m_int);
+	if((m_int > INT_MIN) && (m_int < INT_MAX))
+		return PyLong_FromSsize_t(m_int);
+	else
+		return PyLong_FromLongLong(m_int);
 }

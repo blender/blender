@@ -38,8 +38,8 @@
 KX_ConstraintWrapper::KX_ConstraintWrapper(
 						PHY_ConstraintType ctype,
 						int constraintId,
-						PHY_IPhysicsEnvironment* physenv,PyTypeObject *T) :
-		PyObjectPlus(T),
+						PHY_IPhysicsEnvironment* physenv) :
+		PyObjectPlus(),
 		m_constraintId(constraintId),
 		m_constraintType(ctype),
 		m_physenv(physenv)
@@ -48,87 +48,70 @@ KX_ConstraintWrapper::KX_ConstraintWrapper(
 KX_ConstraintWrapper::~KX_ConstraintWrapper()
 {
 }
-//python integration methods
-PyObject* KX_ConstraintWrapper::PyTestMethod(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+
+PyObject* KX_ConstraintWrapper::PyGetConstraintId()
 {
+	return PyLong_FromSsize_t(m_constraintId);
+}
+
+
+PyObject* KX_ConstraintWrapper::PyGetParam(PyObject* args, PyObject* kwds)
+{
+	int dof;
+	float value;
 	
+	if (!PyArg_ParseTuple(args,"i:getParam",&dof))
+		return NULL;
+	
+	value = m_physenv->getConstraintParam(m_constraintId,dof);
+	return PyFloat_FromDouble(value);
+	
+}
+
+PyObject* KX_ConstraintWrapper::PySetParam(PyObject* args, PyObject* kwds)
+{
+	int dof;
+	float minLimit,maxLimit;
+	
+	if (!PyArg_ParseTuple(args,"iff:setParam",&dof,&minLimit,&maxLimit))
+		return NULL;
+	
+	m_physenv->setConstraintParam(m_constraintId,dof,minLimit,maxLimit);
 	Py_RETURN_NONE;
 }
-
-PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
-{
-	return PyInt_FromLong(m_constraintId);
-}
-
-
 
 
 //python specific stuff
 PyTypeObject KX_ConstraintWrapper::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-		0,
-		"KX_ConstraintWrapper",
-		sizeof(KX_ConstraintWrapper),
-		0,
-		PyDestructor,
-		0,
-		__getattr,
-		__setattr,
-		0, //&MyPyCompare,
-		__repr,
-		0, //&cvalue_as_number,
-		0,
-		0,
-		0,
-		0
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"KX_ConstraintWrapper",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&PyObjectPlus::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-PyParentObject KX_ConstraintWrapper::Parents[] = {
-	&KX_ConstraintWrapper::Type,
-	NULL
-};
-
-PyObject*	KX_ConstraintWrapper::_getattr(const STR_String& attr)
-{
-	//here you can search for existing data members (like mass,friction etc.)
-	_getattr_up(PyObjectPlus);
-}
-
-int	KX_ConstraintWrapper::_setattr(const STR_String& attr,PyObject* pyobj)
-{
-	
-	PyTypeObject* type = pyobj->ob_type;
-	int result = 1;
-
-	if (type == &PyList_Type)
-	{
-		result = 0;
-	}
-	if (type == &PyFloat_Type)
-	{
-		result = 0;
-
-	}
-	if (type == &PyInt_Type)
-	{
-		result = 0;
-	}
-	if (type == &PyString_Type)
-	{
-		result = 0;
-	}
-	if (result)
-		result = PyObjectPlus::_setattr(attr,pyobj);
-	return result;
-};
-
 
 PyMethodDef KX_ConstraintWrapper::Methods[] = {
-	{"testMethod",(PyCFunction) KX_ConstraintWrapper::sPyTestMethod, METH_VARARGS},
-	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_VARARGS},
+	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_NOARGS},
+	{"setParam",(PyCFunction) KX_ConstraintWrapper::sPySetParam, METH_VARARGS},
+	{"getParam",(PyCFunction) KX_ConstraintWrapper::sPyGetParam, METH_VARARGS},
 	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef KX_ConstraintWrapper::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("constraintId"),
+	{ NULL }	//Sentinel
 };

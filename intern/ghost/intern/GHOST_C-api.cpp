@@ -48,11 +48,6 @@
 #include "GHOST_IEventConsumer.h"
 #include "intern/GHOST_CallbackEventConsumer.h"
 
-#ifdef WIN32
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
-
-
 GHOST_SystemHandle GHOST_CreateSystem(void)
 {
 	GHOST_ISystem::createSystem();
@@ -358,6 +353,14 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 	return system->setCursorPosition(x, y);
 }
 
+
+GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
+								   int grab)
+{
+	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+	
+	return window->setCursorGrab(grab?true:false);
+}
 
 
 GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
@@ -815,15 +818,15 @@ GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 	return result;
 }
 
-GHOST_TUns8* GHOST_getClipboard(int flag)
+GHOST_TUns8* GHOST_getClipboard(int selection)
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system->getClipboard(flag);
+	return system->getClipboard(selection);
 }
 
-void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag)
+void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection)
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	system->putClipboard(buffer, flag);
+	system->putClipboard(buffer, selection);
 }
 

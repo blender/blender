@@ -36,11 +36,6 @@ public:
 	virtual ~btStaticPlaneShape();
 
 
-	virtual int	getShapeType() const
-	{
-		return STATIC_PLANE_PROXYTYPE;
-	}
-
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const;

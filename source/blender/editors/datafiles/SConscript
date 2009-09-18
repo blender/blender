@@ -1,0 +1,9 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs += ' #/intern/guardedalloc'
+
+env.BlenderLib ( 'bf_editor_datafiles', sources, Split(incs), [], libtype=['core'], priority=[135] )

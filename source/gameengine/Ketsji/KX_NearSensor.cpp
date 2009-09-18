@@ -36,33 +36,30 @@
 #include "KX_Scene.h" // needed to create a replica
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
-
+#include "PHY_IMotionState.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 KX_GameObject* gameobj,
-							 double margin,
-							 double resetmargin,
+							 float margin,
+							 float resetmargin,
 							 bool bFindMaterial,
 							 const STR_String& touchedpropname,
-							 class KX_Scene* scene,
- 							 PHY_IPhysicsController*	ctrl,
-							 PyTypeObject* T)
+ 							 PHY_IPhysicsController* ctrl)
 			 :KX_TouchSensor(eventmgr,
 							 gameobj,
 							 bFindMaterial,
-							 touchedpropname,
-							 /* scene, */
-							 T),
+							 false,
+							 touchedpropname),
 			 m_Margin(margin),
 			 m_ResetMargin(resetmargin)
 
 {
 
 	gameobj->getClientInfo()->m_sensors.remove(this);
-	m_client_info = new KX_ClientObjectInfo(gameobj, KX_ClientObjectInfo::NEAR);
+	m_client_info = new KX_ClientObjectInfo(gameobj, KX_ClientObjectInfo::SENSOR);
 	m_client_info->m_sensors.push_back(this);
 	
 	//DT_ShapeHandle shape = (DT_ShapeHandle) vshape;
@@ -81,82 +78,50 @@ void KX_NearSensor::SynchronizeTransform()
 	// not linked to the parent object, must synchronize it.
 	if (m_physCtrl)
 	{
+		PHY_IMotionState* motionState = m_physCtrl->GetMotionState();
 		KX_GameObject* parent = ((KX_GameObject*)GetParent());
-		MT_Vector3 pos = parent->NodeGetWorldPosition();
-		MT_Quaternion orn = parent->NodeGetWorldOrientation().getRotation();
-		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
-		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
-		m_physCtrl->calcXform();
-	}
-}
-
-void KX_NearSensor::RegisterSumo(KX_TouchEventManager *touchman)
-{
-	if (m_physCtrl)
-	{
-		touchman->GetPhysicsEnvironment()->addSensor(m_physCtrl);
-	}
-}
-
-void KX_NearSensor::UnregisterSumo(KX_TouchEventManager* touchman)
-{
-	if (m_physCtrl)
-	{
-		touchman->GetPhysicsEnvironment()->removeSensor(m_physCtrl);
+		const MT_Point3& pos = parent->NodeGetWorldPosition();
+		float ori[12];
+		parent->NodeGetWorldOrientation().getValue(ori);
+		motionState->setWorldPosition(pos[0], pos[1], pos[2]);
+		motionState->setWorldOrientation(ori);
+		m_physCtrl->WriteMotionStateToDynamics(true);
 	}
 }
 
 CValue* KX_NearSensor::GetReplica()
 {
 	KX_NearSensor* replica = new KX_NearSensor(*this);
-	replica->m_colliders = new CListValue();
-	replica->Init();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-	
-	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::NEAR);
-	
-	if (replica->m_physCtrl)
-	{
-		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
-		if (replica->m_physCtrl)
-		{
-			//static_cast<KX_TouchEventManager*>(m_eventmgr)->GetPhysicsEnvironment()->addSensor(replica->m_physCtrl);
-			replica->m_physCtrl->SetMargin(m_Margin);
-			replica->m_physCtrl->setNewClientInfo(replica->m_client_info);
-		}
-		
-	}
-	//static_cast<KX_TouchEventManager*>(m_eventmgr)->RegisterSensor(this);
-	//todo: make sure replication works fine
-	//>m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
-	//replica->m_sumoObj->setMargin(m_Margin);
-	//replica->m_sumoObj->setClientObject(replica->m_client_info);
-	
-	((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
-	replica->SynchronizeTransform();
-	
+	replica->ProcessReplica();
 	return replica;
 }
 
-
+void KX_NearSensor::ProcessReplica()
+{
+	KX_TouchSensor::ProcessReplica();
+	
+	m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::SENSOR);
+	
+	if (m_physCtrl)
+	{
+		m_physCtrl = m_physCtrl->GetReplica();
+		if (m_physCtrl)
+		{
+			//static_cast<KX_TouchEventManager*>(m_eventmgr)->GetPhysicsEnvironment()->addSensor(replica->m_physCtrl);
+			m_physCtrl->SetMargin(m_Margin);
+			m_physCtrl->setNewClientInfo(m_client_info);
+		}
+		
+	}
+}
 
 void KX_NearSensor::ReParent(SCA_IObject* parent)
 {
+	SCA_ISensor::ReParent(parent);
 	m_client_info->m_gameobject = static_cast<KX_GameObject*>(parent); 
 	m_client_info->m_sensors.push_back(this);
-	
-
-/*	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
-	client_info->m_gameobject = gameobj;
-	client_info->m_auxilary_info = NULL;
-	
-	client_info->m_sensors.push_back(this);
-	SCA_ISensor::ReParent(parent);
-*/
-	((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
+	//Synchronize here with the actual parent.
 	SynchronizeTransform();
-	SCA_ISensor::ReParent(parent);
 }
 
 
@@ -177,8 +142,24 @@ KX_NearSensor::~KX_NearSensor()
 		delete m_client_info;
 }
 
+void KX_NearSensor::SetPhysCtrlRadius()
+{
+	if (m_bTriggered)
+	{
+		if (m_physCtrl)
+		{
+			m_physCtrl->SetRadius(m_ResetMargin);
+		}
+	} else
+	{
+		if (m_physCtrl)
+		{
+			m_physCtrl->SetRadius(m_Margin);
+		}
+	}
+}
 
-bool KX_NearSensor::Evaluate(CValue* event)
+bool KX_NearSensor::Evaluate()
 {
 	bool result = false;
 //	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
@@ -186,20 +167,9 @@ bool KX_NearSensor::Evaluate(CValue* event)
 	if (m_bTriggered != m_bLastTriggered)
 	{
 		m_bLastTriggered = m_bTriggered;
-		if (m_bTriggered)
-		{
-			if (m_physCtrl)
-			{
-				m_physCtrl->SetRadius(m_ResetMargin);
-			}
-		} else
-		{
-			if (m_physCtrl)
-			{
-				m_physCtrl->SetRadius(m_Margin);
-			}
-
-		}
+		
+		SetPhysCtrlRadius();
+		
 		result = true;
 	}
 
@@ -240,7 +210,7 @@ bool	KX_NearSensor::BroadPhaseFilterCollision(void*obj1,void*obj2)
 bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData * coll_data)
 {
 //	KX_TouchEventManager* toucheventmgr = static_cast<KX_TouchEventManager*>(m_eventmgr);
-	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
+//	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
 	
 	// need the mapping from PHY_IPhysicsController to gameobjects now
 	
@@ -272,56 +242,49 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 		//}
 	}
 	
-	return DT_CONTINUE;
+	return false; // was DT_CONTINUE; but this was defined in Sumo as false
 }
 
 
+/* ------------------------------------------------------------------------- */
+/* Python Functions															 */
+/* ------------------------------------------------------------------------- */
 
-// python embedding
+//No methods
+
+/* ------------------------------------------------------------------------- */
+/* Python Integration Hooks                                                  */
+/* ------------------------------------------------------------------------- */
+
 PyTypeObject KX_NearSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"KX_NearSensor",
-	sizeof(KX_NearSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-
-
-PyParentObject KX_NearSensor::Parents[] = {
-	&KX_NearSensor::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&KX_TouchSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
 
 PyMethodDef KX_NearSensor::Methods[] = {
-	{"setProperty", (PyCFunction) KX_NearSensor::sPySetProperty,      METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"getProperty", (PyCFunction) KX_NearSensor::sPyGetProperty,      METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
-	{"getHitObject",(PyCFunction) KX_NearSensor::sPyGetHitObject,     METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
-	{"getHitObjectList", (PyCFunction) KX_NearSensor::sPyGetHitObjectList, METH_VARARGS, (PY_METHODCHAR)GetHitObjectList_doc},
+	//No methods
 	{NULL,NULL} //Sentinel
 };
 
-
-PyObject*
-KX_NearSensor::_getattr(const STR_String& attr)
-{
-  _getattr_up(KX_TouchSensor);
-}
-
+PyAttributeDef KX_NearSensor::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_RW_CHECK("distance", 0, 100, KX_NearSensor, m_Margin, CheckResetDistance),
+	KX_PYATTRIBUTE_FLOAT_RW_CHECK("resetDistance", 0, 100, KX_NearSensor, m_ResetMargin, CheckResetDistance),
+	{NULL} //Sentinel
+};

@@ -32,7 +32,6 @@
 #define DNA_MATERIAL_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_listBase.h"
 
 #ifndef MAX_MTEX
@@ -40,18 +39,47 @@
 #endif
 
 struct MTex;
-struct Ipo;
-struct Material;
 struct ColorBand;
 struct Group;
 struct bNodeTree;
+struct AnimData;
+struct Ipo;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 
+typedef struct VolumeSettings {
+	float density;
+	float emission;
+	float absorption;
+	float scattering;
+
+	float emission_col[3];
+	float absorption_col[3];
+	float density_scale;
+	float depth_cutoff;
+
+	short phasefunc_type;
+	short vpad[3];
+	float phasefunc_g;
+	
+	float stepsize;
+	float shade_stepsize;
+	
+	short stepsize_type;
+	short shadeflag;
+	short shade_type;
+	short precache_resolution;
+	
+	float ms_diff;
+	float ms_intensity;
+	int ms_steps;
+} VolumeSettings;
+
 typedef struct Material {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
-	short colormodel, flag;	
+	short material_type, flag;	
 	/* note, keep this below synced with render_types.h */
 	float r, g, b;
 	float specr, specg, specb;
@@ -62,6 +90,8 @@ typedef struct Material {
 	float translucency;
 	/* end synced with render_types.h */
 	
+	struct VolumeSettings vol;
+
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
 	float filter;		/* filter added, for raytrace transparency and transmissivity */
@@ -92,12 +122,14 @@ typedef struct Material {
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, pad4, ml_flag;	/* ml_flag is for disable base material */
+	short pr_back, pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
 	short diff_shader, spec_shader;
 	float roughness, refrac;
-	float param[4];		/* size, smooth, size, smooth, for toonshader */
+	/* XXX param[4] needs review and improvement (shader system as whole anyway)
+	   This is nasty reused variable for different goals and not easy to RNAify nicely. -jesterKing */
+	float param[4];		/* size, smooth, size, smooth, for toonshader, 0 (fac) and 1 (fresnel) also for fresnel shader */
 	float rms;
 	float darkness;
 	short texco, mapto;
@@ -112,7 +144,7 @@ typedef struct Material {
 
 	struct MTex *mtex[18];		/* MAX_MTEX */
 	struct bNodeTree *nodetree;	
-	struct Ipo *ipo;
+	struct Ipo *ipo;		// XXX depreceated... old animation system
 	struct Group *group;	/* light group */
 	struct PreviewImage * preview;
 
@@ -131,38 +163,38 @@ typedef struct Material {
 	/* yafray: absorption color, dispersion parameters and material preset menu */
 	float YF_ar, YF_ag, YF_ab, YF_dscale, YF_dpwr;
 	int YF_dsmp, YF_preset, YF_djit;
-	
-	ScriptLink scriptlink;
 
 	ListBase gpumaterial;		/* runtime */
 } Material;
 
 /* **************** MATERIAL ********************* */
 
-	/* maximum number of materials per material array
-	 * (on object, mesh, lamp, etc.)
-	 */
-#define MAXMAT			16
+/* maximum number of materials per material array.
+ * (on object, mesh, lamp, etc.). limited by
+ * short mat_nr in verts, faces. */
+#define MAXMAT			32767
 
-/* colormodel */
-#define MA_RGB			0
-#define MA_CMYK			1
-#define MA_YUV			2
-#define MA_HSV			3
+/* material_type */
+#define MA_TYPE_SURFACE	0
+#define MA_TYPE_HALO	1
+#define MA_TYPE_VOLUME	2
+#define MA_TYPE_WIRE	3
 
 /* flag */
 		/* for render */
 #define MA_IS_USED		1
+		/* for dopesheet */
+#define MA_DS_EXPAND	2
 
 /* mode (is int) */
 #define MA_TRACEBLE		1
 #define MA_SHADOW		2
 #define MA_SHLESS		4
-#define MA_WIRE			8
+#define MA_WIRE			8			/* deprecated */
 #define MA_VERTEXCOL	16
 #define MA_HALO_SOFT	16
-#define MA_HALO			32
-#define MA_ZTRA			64
+#define MA_HALO			32			/* deprecated */
+#define MA_ZTRANSP		64
 #define MA_VERTEXCOLP	128
 #define MA_ZINV			256
 #define MA_HALO_RINGS	256
@@ -178,7 +210,7 @@ typedef struct Material {
 #define MA_NOMIST		0x4000
 #define MA_HALO_SHADE	0x4000
 #define MA_HALO_FLARE	0x8000
-#define MA_RADIO		0x10000
+#define MA_TRANSP		0x10000
 #define MA_RAYTRANSP	0x20000
 #define MA_RAYMIRROR	0x40000
 #define MA_SHADOW_TRA	0x80000
@@ -222,7 +254,7 @@ typedef struct Material {
 #define MA_SPEC_WARDISO		4
 
 /* dynamode */
-#define MA_DRAW_DYNABUTS    1
+#define MA_DRAW_DYNABUTS    1		/* deprecated */
 #define MA_FH_NOR	        2
 
 /* ramps */
@@ -247,6 +279,8 @@ typedef struct Material {
 #define MA_RAMP_SAT			13
 #define MA_RAMP_VAL			14
 #define MA_RAMP_COLOR		15
+#define MA_RAMP_SOFT        16 
+#define MA_RAMP_LINEAR      17 
 
 /* texco */
 #define TEXCO_ORCO		1
@@ -284,6 +318,14 @@ typedef struct Material {
 #define MAP_DISPLACE	4096
 #define MAP_WARP		8192
 #define MAP_LAYER		16384
+
+/* volume mapto - reuse definitions for now - a bit naughty! */
+#define MAP_DENSITY			128
+#define MAP_EMISSION		64
+#define MAP_EMISSION_COL	1
+#define MAP_ABSORPTION		512
+#define MAP_ABSORPTION_COL	8
+#define MAP_SCATTERING		16
 
 /* mapto for halo */
 //#define MAP_HA_COL		1
@@ -327,6 +369,30 @@ typedef struct Material {
 
 /* sss_flag */
 #define MA_DIFF_SSS		1
+
+/* vol_stepsize_type */
+#define MA_VOL_STEP_RANDOMIZED	0
+#define MA_VOL_STEP_CONSTANT	1
+#define MA_VOL_STEP_ADAPTIVE	2
+
+/* vol_shadeflag */
+#define MA_VOL_SHADED		1
+#define MA_VOL_RECVSHADOW	4
+#define MA_VOL_PRECACHESHADING	8
+
+/* vol_shading_type */
+#define MA_VOL_SHADE_NONE					0
+#define MA_VOL_SHADE_SINGLE					1
+#define MA_VOL_SHADE_MULTIPLE				2
+#define MA_VOL_SHADE_SINGLEPLUSMULTIPLE		3
+
+/* vol_phasefunc_type */
+#define MA_VOL_PH_ISOTROPIC		0
+#define MA_VOL_PH_MIEHAZY		1
+#define MA_VOL_PH_MIEMURKY		2
+#define MA_VOL_PH_RAYLEIGH		3
+#define MA_VOL_PH_HG			4
+#define MA_VOL_PH_SCHLICK		5
 
 #endif
 

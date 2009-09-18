@@ -43,6 +43,7 @@
 #endif
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"	
 #include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
@@ -53,14 +54,15 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_scriptlink_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_action.h"			
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"		
-#include "BKE_bad_level_calls.h"
+#include "BKE_colortools.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
@@ -74,13 +76,14 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
-#include "BKE_sculpt.h"
+#include "BKE_sequence.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_previewrender.h"
-#include "BIF_editseq.h"
+//XXX #include "BIF_previewrender.h"
+//XXX #include "BIF_editseq.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -89,14 +92,12 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "nla.h"
+//XXX #include "nla.h"
 
 #ifdef WIN32
 #else
 #include <sys/time.h>
 #endif
-
-#include "FRS_freestyle_config.h"
 
 void free_avicodecdata(AviCodecData *acd)
 {
@@ -125,13 +126,118 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 	}
 }
 
-/* copy_scene moved to src/header_info.c... should be back */
+Scene *copy_scene(Main *bmain, Scene *sce, int type)
+{
+	Scene *scen;
+	ToolSettings *ts;
+	Base *base, *obase;
+	
+	if(type == SCE_COPY_EMPTY) {
+		ListBase lb;
+		scen= add_scene(sce->id.name+2);
+		
+		lb= scen->r.layers;
+		scen->r= sce->r;
+		scen->r.layers= lb;
+	}
+	else {
+		scen= copy_libblock(sce);
+		BLI_duplicatelist(&(scen->base), &(sce->base));
+		
+		clear_id_newpoins();
+		
+		id_us_plus((ID *)scen->world);
+		id_us_plus((ID *)scen->set);
+		id_us_plus((ID *)scen->ima);
+		id_us_plus((ID *)scen->gm.dome.warptext);
+
+		scen->ed= NULL;
+		scen->theDag= NULL;
+		scen->obedit= NULL;
+		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
+		scen->stats= NULL;
+
+		ts= scen->toolsettings;
+		if(ts) {
+			if(ts->vpaint) {
+				ts->vpaint= MEM_dupallocN(ts->vpaint);
+				ts->vpaint->paintcursor= NULL;
+				ts->vpaint->vpaint_prev= NULL;
+				ts->vpaint->wpaint_prev= NULL;
+				copy_paint(&ts->vpaint->paint, &ts->vpaint->paint);
+			}
+			if(ts->wpaint) {
+				ts->wpaint= MEM_dupallocN(ts->wpaint);
+				ts->wpaint->paintcursor= NULL;
+				ts->wpaint->vpaint_prev= NULL;
+				ts->wpaint->wpaint_prev= NULL;
+				copy_paint(&ts->wpaint->paint, &ts->wpaint->paint);
+			}
+			if(ts->sculpt) {
+				ts->sculpt= MEM_dupallocN(ts->sculpt);
+				copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
+			}
+
+			copy_paint(&ts->imapaint.paint, &ts->imapaint.paint);
+			ts->imapaint.paintcursor= NULL;
+
+			ts->particle.paintcursor= NULL;
+		}
+		
+		BLI_duplicatelist(&(scen->markers), &(sce->markers));
+		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
+		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
+		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
+		
+		scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+		
+		obase= sce->base.first;
+		base= scen->base.first;
+		while(base) {
+			id_us_plus(&base->object->id);
+			if(obase==sce->basact) scen->basact= base;
+	
+			obase= obase->next;
+			base= base->next;
+		}
+	}
+	
+	/* make a private copy of the avicodecdata */
+	if(sce->r.avicodecdata) {
+		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
+		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
+		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
+	}
+	
+	/* make a private copy of the qtcodecdata */
+	if(sce->r.qtcodecdata) {
+		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
+		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
+	}
+	
+	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
+	 * are done outside of blenkernel with ED_objects_single_users! */
+
+    /*  camera */
+	if(type == SCE_COPY_LINK_DATA || type == SCE_COPY_FULL) {
+	    ID_NEW(scen->camera);
+	}
+
+	/* world */
+	if(type == SCE_COPY_FULL) {
+        if(scen->world) {
+            id_us_plus((ID *)scen->world);
+            scen->world= copy_world(scen->world);
+        }
+	}
+
+	return scen;
+}
 
 /* do not free scene itself */
 void free_scene(Scene *sce)
 {
 	Base *base;
-	SceneRenderLayer *srl;
 
 	base= sce->base.first;
 	while(base) {
@@ -139,15 +245,17 @@ void free_scene(Scene *sce)
 		base= base->next;
 	}
 	/* do not free objects! */
+	
+	if(sce->gpd) {
+		sce->gpd->id.us--;
+		sce->gpd= NULL;
+	}
 
 	BLI_freelistN(&sce->base);
-	free_editing(sce->ed);
-	if(sce->radio) MEM_freeN(sce->radio);
-	sce->radio= 0;
-	
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&sce->scriptlink);
-#endif
+	seq_free_editing(sce);
+
+	BKE_free_animdata((ID *)sce);
+	BKE_keyingsets_free(&sce->keyingsets);
 	
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);
@@ -165,15 +273,25 @@ void free_scene(Scene *sce)
 		sce->r.ffcodecdata.properties = NULL;
 	}
 	
-	for(srl= sce->r.layers.first; srl; srl= srl->next) {
-		BLI_freelistN( &srl->freestyleConfig.modules);
-	}
-	
 	BLI_freelistN(&sce->markers);
 	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	
-	if(sce->toolsettings){
+	if(sce->toolsettings) {
+		if(sce->toolsettings->vpaint) {
+			free_paint(&sce->toolsettings->vpaint->paint);
+			MEM_freeN(sce->toolsettings->vpaint);
+		}
+		if(sce->toolsettings->wpaint) {
+			free_paint(&sce->toolsettings->wpaint->paint);
+			MEM_freeN(sce->toolsettings->wpaint);
+		}
+		if(sce->toolsettings->sculpt) {
+			free_paint(&sce->toolsettings->sculpt->paint);
+			MEM_freeN(sce->toolsettings->sculpt);
+		}
+		free_paint(&sce->toolsettings->imapaint.paint);
+
 		MEM_freeN(sce->toolsettings);
 		sce->toolsettings = NULL;	
 	}
@@ -188,7 +306,8 @@ void free_scene(Scene *sce)
 		MEM_freeN(sce->nodetree);
 	}
 
-	sculptdata_free(sce);
+	if(sce->stats)
+		MEM_freeN(sce->stats);
 }
 
 Scene *add_scene(char *name)
@@ -199,21 +318,18 @@ Scene *add_scene(char *name)
 
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
-	sce->selectmode= SCE_SELECT_VERTEX;
-	sce->editbutsize= 0.1;
-	sce->autokey_mode= U.autokey_mode;
-
-	sce->r.mode= R_GAMMA;
+	
+	sce->r.mode= R_GAMMA|R_OSA|R_SHADOW|R_SSS|R_ENVMAP|R_RAYTRACE;
 	sce->r.cfra= 1;
 	sce->r.sfra= 1;
 	sce->r.efra= 250;
-	sce->r.xsch= 320;
-	sce->r.ysch= 256;
+	sce->r.xsch= 1920;
+	sce->r.ysch= 1080;
 	sce->r.xasp= 1;
 	sce->r.yasp= 1;
-	sce->r.xparts= 4;
-	sce->r.yparts= 4;
-	sce->r.size= 100;
+	sce->r.xparts= 8;
+	sce->r.yparts= 8;
+	sce->r.size= 25;
 	sce->r.planes= 24;
 	sce->r.quality= 90;
 	sce->r.framapto= 100;
@@ -222,21 +338,18 @@ Scene *add_scene(char *name)
 	sce->r.frs_sec= 25;
 	sce->r.frs_sec_base= 1;
 	sce->r.ocres = 128;
+	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
-	sce->r.bake_filter= 2;
+	sce->r.bake_filter= 8;
 	sce->r.bake_osa= 5;
 	sce->r.bake_flag= R_BAKE_CLEAR;
 	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
-	
-	sce->r.xplay= 640;
-	sce->r.yplay= 480;
-	sce->r.freqplay= 60;
-	sce->r.depth= 32;
+
+	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
+	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA;
 	
 	sce->r.threads= 1;
-	
-	sce->r.stereomode = 1;  // no stereo
 
 	sce->r.simplify_subsurf= 6;
 	sce->r.simplify_particles= 1.0f;
@@ -266,6 +379,10 @@ Scene *add_scene(char *name)
 	sce->toolsettings->select_thresh= 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
 
+	sce->toolsettings->selectmode= SCE_SELECT_VERTEX;
+	sce->toolsettings->normalsize= 0.1;
+	sce->toolsettings->autokey_mode= U.autokey_mode;
+
 	sce->toolsettings->skgen_resolution = 100;
 	sce->toolsettings->skgen_threshold_internal 	= 0.01f;
 	sce->toolsettings->skgen_threshold_external 	= 0.01f;
@@ -281,12 +398,19 @@ Scene *add_scene(char *name)
 	sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
 	sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
 
+	sce->toolsettings->proportional_size = 1.0f;
+
+
+	sce->unit.scale_length = 1.0f;
+
 	pset= &sce->toolsettings->particle;
-	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
+	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER|PE_AUTO_VELOCITY;
 	pset->emitterdist= 0.25f;
 	pset->totrekey= 5;
 	pset->totaddkey= 5;
 	pset->brushtype= PE_BRUSH_NONE;
+	pset->draw_step= 2;
+	pset->fade_frames= 2;
 	for(a=0; a<PE_TOT_BRUSH; a++) {
 		pset->brush[a].strength= 50;
 		pset->brush[a].size= 50;
@@ -295,7 +419,7 @@ Scene *add_scene(char *name)
 	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
 	sce->jumpframe = 10;
-	sce->audio.mixrate = 44100;
+	sce->r.audio.mixrate = 44100;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
@@ -303,11 +427,35 @@ Scene *add_scene(char *name)
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
 
-	sculptdata_init(sce);
-
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	
+	/* game data */
+	sce->gm.stereoflag = STEREO_NOSTEREO;
+	sce->gm.stereomode = STEREO_ANAGLYPH;
+	sce->gm.dome.angle = 180;
+	sce->gm.dome.mode = DOME_FISHEYE;
+	sce->gm.dome.res = 4;
+	sce->gm.dome.resbuf = 1.0f;
+	sce->gm.dome.tilt = 0;
+
+	sce->gm.xplay= 800;
+	sce->gm.yplay= 600;
+	sce->gm.freqplay= 60;
+	sce->gm.depth= 32;
+
+	sce->gm.gravity= 9.8f;
+	sce->gm.physicsEngine= WOPHY_BULLET;
+	sce->gm.mode = 32; //XXX ugly harcoding, still not sure we should drop mode. 32 == 1 << 5 == use_occlusion_culling 
+	sce->gm.occlusionRes = 128;
+	sce->gm.ticrate = 60;
+	sce->gm.maxlogicstep = 5;
+	sce->gm.physubstep = 1;
+	sce->gm.maxphystep = 5;
+
+	sce->gm.flag = GAME_DISPLAY_LISTS;
+	sce->gm.matmode = GAME_MAT_MULTITEX;
+
 	return sce;
 }
 
@@ -323,21 +471,17 @@ Base *object_in_scene(Object *ob, Scene *sce)
 	return NULL;
 }
 
-void set_scene_bg(Scene *sce)
+void set_scene_bg(Scene *scene)
 {
+	Scene *sce;
 	Base *base;
 	Object *ob;
 	Group *group;
 	GroupObject *go;
 	int flag;
 	
-	// Note: this here is defined in editseq.c (BIF_editseq.h), NOT in blenkernel! 
-	clear_last_seq();
-	
-	G.scene= sce;
-	
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
-	scene_check_setscene(G.scene);
+	scene_check_setscene(scene);
 	
 	/* deselect objects (for dataselect) */
 	for(ob= G.main->object.first; ob; ob= ob->id.next)
@@ -353,15 +497,15 @@ void set_scene_bg(Scene *sce)
 	}
 
 	/* sort baselist */
-	DAG_scene_sort(sce);
+	DAG_scene_sort(scene);
 	
 	/* ensure dags are built for sets */
-	for(sce= sce->set; sce; sce= sce->set)
+	for(sce= scene->set; sce; sce= sce->set)
 		if(sce->theDag==NULL)
 			DAG_scene_sort(sce);
 
 	/* copy layers and flags from bases to objects */
-	for(base= G.scene->base.first; base; base= base->next) {
+	for(base= scene->base.first; base; base= base->next) {
 		ob= base->object;
 		ob->lay= base->lay;
 		
@@ -371,15 +515,12 @@ void set_scene_bg(Scene *sce)
 		base->flag |= flag;
 		
 		/* not too nice... for recovering objects with lost data */
-		if(ob->pose==NULL) base->flag &= ~OB_POSEMODE;
+		//if(ob->pose==NULL) base->flag &= ~OB_POSEMODE;
 		ob->flag= base->flag;
 		
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 	}
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
-	
-	/* do we need FRAMECHANGED in set_scene? */
-//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
 }
 
 /* called from creator.c */
@@ -394,41 +535,74 @@ void set_scene_name(char *name)
 		}
 	}
 	
-	error("Can't find scene: %s", name);
+	//XXX error("Can't find scene: %s", name);
+}
+
+void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
+{
+	Scene *sce1;
+	bScreen *sc;
+
+	/* check all sets */
+	for(sce1= bmain->scene.first; sce1; sce1= sce1->id.next)
+		if(sce1->set == sce)
+			sce1->set= NULL;
+	
+	/* check all sequences */
+	clear_scene_in_allseqs(sce);
+
+	/* check render layer nodes in other scenes */
+	clear_scene_in_nodes(bmain, sce);
+	
+	/* al screens */
+	for(sc= bmain->screen.first; sc; sc= sc->id.next)
+		if(sc->scene == sce)
+			sc->scene= newsce;
+
+	free_libblock(&bmain->scene, sce);
 }
 
 /* used by metaballs
  * doesnt return the original duplicated object, only dupli's
  */
-int next_object(int val, Base **base, Object **ob)
+int next_object(Scene *scene, int val, Base **base, Object **ob)
 {
 	static ListBase *duplilist= NULL;
 	static DupliObject *dupob;
-	static int fase;
+	static int fase= F_START, in_next_object= 0;
 	int run_again=1;
 	
 	/* init */
 	if(val==0) {
 		fase= F_START;
 		dupob= NULL;
+		
+		/* XXX particle systems with metas+dupligroups call this recursively */
+		/* see bug #18725 */
+		if(in_next_object) {
+			printf("ERROR: MetaBall generation called recursively, not supported\n");
+			
+			return F_ERROR;
+		}
 	}
 	else {
-
+		in_next_object= 1;
+		
 		/* run_again is set when a duplilist has been ended */
 		while(run_again) {
 			run_again= 0;
 
 			/* the first base */
 			if(fase==F_START) {
-				*base= G.scene->base.first;
+				*base= scene->base.first;
 				if(*base) {
 					*ob= (*base)->object;
 					fase= F_SCENE;
 				}
 				else {
 				    /* exception: empty scene */
-					if(G.scene->set && G.scene->set->base.first) {
-						*base= G.scene->set->base.first;
+					if(scene->set && scene->set->base.first) {
+						*base= scene->set->base.first;
 						*ob= (*base)->object;
 						fase= F_SET;
 					}
@@ -441,8 +615,8 @@ int next_object(int val, Base **base, Object **ob)
 					else {
 						if(fase==F_SCENE) {
 							/* scene is finished, now do the set */
-							if(G.scene->set && G.scene->set->base.first) {
-								*base= G.scene->set->base.first;
+							if(scene->set && scene->set->base.first) {
+								*base= scene->set->base.first;
 								*ob= (*base)->object;
 								fase= F_SET;
 							}
@@ -459,7 +633,7 @@ int next_object(int val, Base **base, Object **ob)
 						this enters eternal loop because of 
 						makeDispListMBall getting called inside of group_duplilist */
 						if((*base)->object->dup_group == NULL) {
-							duplilist= object_duplilist(G.scene, (*base)->object);
+							duplilist= object_duplilist(scene, (*base)->object);
 							
 							dupob= duplilist->first;
 
@@ -494,6 +668,9 @@ int next_object(int val, Base **base, Object **ob)
 			}
 		}
 	}
+	
+	/* reset recursion test */
+	in_next_object= 0;
 	
 	return fase;
 }
@@ -566,41 +743,66 @@ int scene_check_setscene(Scene *sce)
 	return 1;
 }
 
+/* This (evil) function is needed to cope with two legacy Blender rendering features
+* mblur (motion blur that renders 'subframes' and blurs them together), and fields 
+* rendering. Thus, the use of ugly globals from object.c
+*/
+// BAD... EVIL... JUJU...!!!!
+// XXX moved here temporarily
+float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in object.c */
+{
+	extern float bluroffs;	/* bad stuff borrowed from object.c */
+	extern float fieldoffs;
+	float ctime;
+	
+	ctime= (float)cfra;
+	ctime+= bluroffs+fieldoffs;
+	ctime*= scene->r.framelen;
+	
+	return ctime;
+}
+
 static void scene_update(Scene *sce, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
+	float ctime = frame_to_float(sce, sce->r.cfra); 
 	
 	if(sce->theDag==NULL)
 		DAG_scene_sort(sce);
 	
 	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
 	
+	/* All 'standard' (i.e. without any dependencies) animation is handled here,
+		* with an 'local' to 'macro' order of evaluation. This should ensure that
+		* settings stored nestled within a hierarchy (i.e. settings in a Texture block
+	    * can be overridden by settings from Scene, which owns the Texture through a hierarchy 
+	    * such as Scene->World->MTex/Texture) can still get correctly overridden.
+		*/
+	BKE_animsys_evaluate_all_animation(G.main, ctime);
+	
 	for(base= sce->base.first; base; base= base->next) {
 		ob= base->object;
 		
-		object_handle_update(ob);   // bke_object.h
+		object_handle_update(sce, ob);   // bke_object.h
 		
 		/* only update layer when an ipo */
-		if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
-			base->lay= ob->lay;
-		}
+			// XXX old animation system
+		//if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
+		//	base->lay= ob->lay;
+		//}
 	}
 }
+
 
 /* applies changes right away, does all sets too */
 void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
 	Scene *scene= sce;
 	
-	/* clears all BONE_UNKEYED flags for every pose's pchans */
-	framechange_poses_clear_unkeyed();
+	/* clear animation overrides */
+	// XXX TODO...
 	
-	/* object ipos are calculated in where_is_object */
-	do_all_data_ipos();
-#ifndef DISABLE_PYTHON
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
-#endif
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
 		scene_update(sce, lay);
@@ -622,132 +824,6 @@ void scene_add_render_layer(Scene *sce)
 	srl->lay= (1<<20) -1;
 	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
-	FRS_add_freestyle_config( srl );
-	
-}
-
-/* Initialize 'permanent' sculpt data that is saved with file kept after
-   switching out of sculptmode. */
-void sculptdata_init(Scene *sce)
-{
-	SculptData *sd;
-
-	if(!sce)
-		return;
-
-	sd= &sce->sculptdata;
-
-	if(sd->cumap) {
-		curvemapping_free(sd->cumap);
-		sd->cumap = NULL;
-	}
-
-	memset(sd, 0, sizeof(SculptData));
-
-	sd->drawbrush.size = sd->smoothbrush.size = sd->pinchbrush.size =
-		sd->inflatebrush.size = sd->grabbrush.size =
-		sd->layerbrush.size = sd->flattenbrush.size = 50;
-	sd->drawbrush.strength = sd->smoothbrush.strength =
-		sd->pinchbrush.strength = sd->inflatebrush.strength =
-		sd->grabbrush.strength = sd->layerbrush.strength =
-		sd->flattenbrush.strength = 25;
-	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
-	sd->drawbrush.flag = sd->smoothbrush.flag =
-		sd->pinchbrush.flag = sd->inflatebrush.flag =
-		sd->layerbrush.flag = sd->flattenbrush.flag = 0;
-	sd->drawbrush.view= 0;
-	sd->brush_type= DRAW_BRUSH;
-	sd->texact= -1;
-	sd->texfade= 1;
-	sd->averaging= 1;
-	sd->texsep= 0;
-	sd->texrept= SCULPTREPT_DRAG;
-	sd->flags= SCULPT_DRAW_BRUSH;
-	sd->tablet_size=3;
-	sd->tablet_strength=10;
-	sd->rake=0;
-	sculpt_reset_curve(sd);
-}
-
-void sculptdata_free(Scene *sce)
-{
-	SculptData *sd= &sce->sculptdata;
-	int a;
-
-	sculptsession_free(sce);
-
-	for(a=0; a<MAX_MTEX; a++) {
-		MTex *mtex= sd->mtex[a];
-		if(mtex) {
-			if(mtex->tex) mtex->tex->id.us--;
-			MEM_freeN(mtex);
-		}
-	}
-
-	curvemapping_free(sd->cumap);
-	sd->cumap = NULL;
-}
-
-void sculpt_vertexusers_free(SculptSession *ss)
-{
-	if(ss && ss->vertex_users){
-		MEM_freeN(ss->vertex_users);
-		MEM_freeN(ss->vertex_users_mem);
-		ss->vertex_users= NULL;
-		ss->vertex_users_mem= NULL;
-		ss->vertex_users_size= 0;
-	}
-}
-
-void sculptsession_free(Scene *sce)
-{
-	SculptSession *ss= sce->sculptdata.session;
-	if(ss) {
-		if(ss->projverts)
-			MEM_freeN(ss->projverts);
-		if(ss->mats)
-			MEM_freeN(ss->mats);
-
-		if(ss->radialcontrol)
-			MEM_freeN(ss->radialcontrol);
-
-		sculpt_vertexusers_free(ss);
-		if(ss->texcache)
-			MEM_freeN(ss->texcache);
-		MEM_freeN(ss);
-		sce->sculptdata.session= NULL;
-	}
-}
-
-/*  Default curve approximates 0.5 * (cos(pi * x) + 1), with 0 <= x <= 1 */
-void sculpt_reset_curve(SculptData *sd)
-{
-	CurveMap *cm = NULL;
-
-	if(!sd->cumap)
-		sd->cumap = curvemapping_add(1, 0, 0, 1, 1);
-
-	cm = sd->cumap->cm;
-
-	if(cm->curve)
-		MEM_freeN(cm->curve);
-	cm->curve= MEM_callocN(6*sizeof(CurveMapPoint), "curve points");
-	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
-	cm->totpoint= 6;
-	cm->curve[0].x= 0;
-	cm->curve[0].y= 1;
-	cm->curve[1].x= 0.1;
-	cm->curve[1].y= 0.97553;
-	cm->curve[2].x= 0.3;
-	cm->curve[2].y= 0.79389;
-	cm->curve[3].x= 0.9;
-	cm->curve[3].y= 0.02447;
-	cm->curve[4].x= 0.7;
-	cm->curve[4].y= 0.20611;
-	cm->curve[5].x= 1;
-	cm->curve[5].y= 0;
-
-	curvemapping_changed(sd->cumap, 0);
 }
 
 /* render simplification */

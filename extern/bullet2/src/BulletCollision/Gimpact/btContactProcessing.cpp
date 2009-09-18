@@ -103,12 +103,12 @@ void btContactArray::merge_contacts(
 
 	push_back(contacts[keycontacts[0].m_value]);
 
-	BT_CONTACT * pcontact = &(*this)[0];
+	GIM_CONTACT * pcontact = &(*this)[0];
 
 	for( i=1;i<keycontacts.size();i++)
 	{
 	    key = keycontacts[i].m_key;
-		const BT_CONTACT * scontact = &contacts[keycontacts[i].m_value];
+		const GIM_CONTACT * scontact = &contacts[keycontacts[i].m_value];
 
 		if(last_key ==  key)//same points
 		{
@@ -158,7 +158,7 @@ void btContactArray::merge_contacts_unique(const btContactArray & contacts)
 		return;
 	}
 
-	BT_CONTACT average_contact = contacts[0];
+	GIM_CONTACT average_contact = contacts[0];
 
 	for (int i=1;i<contacts.size() ;i++ )
 	{

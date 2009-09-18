@@ -16,17 +16,30 @@ subject to the following restrictions:
 #include "CcdPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
+
+#include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
+
 #include "PHY_IMotionState.h"
 #include "CcdPhysicsEnvironment.h"
 #include "RAS_MeshObject.h"
+#include "KX_GameObject.h"
+
 #include "BulletSoftBody/btSoftBody.h"
 #include "BulletSoftBody//btSoftBodyInternals.h"
 #include "BulletSoftBody/btSoftBodyHelpers.h"
 #include "LinearMath/btConvexHull.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
+#include "BulletCollision/Gimpact/btGImpactShape.h"
 
 
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+
+extern "C"{
+#include "BKE_cdderivedmesh.h"
+}
 
 class BP_Proxy;
 
@@ -74,23 +87,26 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	
 
 ///???
-#ifdef WIN32
+/*#ifdef WIN32
 	if (GetRigidBody() && !GetRigidBody()->isStaticObject())
 		GetRigidBody()->setLinearVelocity(startVel);
-#endif
+#endif*/
 
 }
 
-btTransform	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)
+btTransform&	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)
 {
-	btTransform trans;
-	float tmp[3];
-	motionState->getWorldPosition(tmp[0],tmp[1],tmp[2]);
-	trans.setOrigin(btVector3(tmp[0],tmp[1],tmp[2]));
+	static btTransform trans;
+	btVector3 tmp;
+	motionState->getWorldPosition(tmp.m_floats[0], tmp.m_floats[1], tmp.m_floats[2]);
+	trans.setOrigin(tmp);
 
-	btQuaternion orn;
-	motionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
-	trans.setRotation(orn);
+	float ori[12];
+	motionState->getWorldOrientation(ori);
+	trans.getBasis().setFromOpenGLSubMatrix(ori);
+	//btQuaternion orn;
+	//motionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
+	//trans.setRotation(orn);
 	return trans;
 
 }
@@ -107,18 +123,18 @@ public:
 
 	}
 
-	virtual void	getWorldTransform(btTransform& worldTrans ) const
+	void	getWorldTransform(btTransform& worldTrans ) const
 	{
-		float pos[3];
-		float quatOrn[4];
+		btVector3 pos;
+		float ori[12];
 
-		m_blenderMotionState->getWorldPosition(pos[0],pos[1],pos[2]);
-		m_blenderMotionState->getWorldOrientation(quatOrn[0],quatOrn[1],quatOrn[2],quatOrn[3]);
-		worldTrans.setOrigin(btVector3(pos[0],pos[1],pos[2]));
-		worldTrans.setBasis(btMatrix3x3(btQuaternion(quatOrn[0],quatOrn[1],quatOrn[2],quatOrn[3])));
+		m_blenderMotionState->getWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
+		m_blenderMotionState->getWorldOrientation(ori);
+		worldTrans.setOrigin(pos);
+		worldTrans.getBasis().setFromOpenGLSubMatrix(ori);
 	}
 
-	virtual void	setWorldTransform(const btTransform& worldTrans)
+	void	setWorldTransform(const btTransform& worldTrans)
 	{
 		m_blenderMotionState->setWorldPosition(worldTrans.getOrigin().getX(),worldTrans.getOrigin().getY(),worldTrans.getOrigin().getZ());
 		btQuaternion rotQuat = worldTrans.getRotation();
@@ -171,12 +187,12 @@ void CcdPhysicsController::CreateRigidbody()
 		rbci.m_restitution = m_cci.m_restitution;
 
 		
-		int nodecount = 0;
+
 		
-		int numtriangles = 1;
+		
 		
 		btVector3 p(0,0,0);// = getOrigin();
-		btScalar h = 1.f;
+
 		
 		btSoftRigidDynamicsWorld* softDynaWorld = (btSoftRigidDynamicsWorld*)m_cci.m_physicsEnv->getDynamicsWorld();
 
@@ -282,7 +298,11 @@ void CcdPhysicsController::CreateRigidbody()
 			}
 
 		}
-
+		if (m_cci.m_margin > 0.f)
+		{
+			psb->getCollisionShape()->setMargin(m_cci.m_margin);
+			psb->updateBounds();
+		}
 	
 		
 		m_object = psb;
@@ -482,10 +502,12 @@ void CcdPhysicsController::CreateRigidbody()
 	//convert collision flags!
 	//special case: a near/radar sensor controller should not be defined static or it will
 	//generate loads of static-static collision messages on the console
-	if ((m_cci.m_collisionFilterGroup & CcdConstructionInfo::SensorFilter) != 0)
+	if (m_cci.m_bSensor)
 	{
 		// reset the flags that have been set so far
 		GetCollisionObject()->setCollisionFlags(0);
+		// sensor must never go to sleep: they need to detect continously
+		GetCollisionObject()->setActivationState(DISABLE_DEACTIVATION);
 	}
 	GetCollisionObject()->setCollisionFlags(m_object->getCollisionFlags() | m_cci.m_collisionFlags);
 	btRigidBody* body = GetRigidBody();
@@ -499,6 +521,8 @@ void CcdPhysicsController::CreateRigidbody()
 		{
 			body->setAngularFactor(0.f);
 		}
+		body->setContactProcessingThreshold(m_cci.m_contactProcessingThreshold);
+
 	}
 	if (m_object && m_cci.m_do_anisotropic)
 	{
@@ -507,7 +531,7 @@ void CcdPhysicsController::CreateRigidbody()
 		
 }
 
-static void DeleteBulletShape(btCollisionShape* shape)
+static void DeleteBulletShape(btCollisionShape* shape, bool free)
 {
 	if (shape->getShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
 	{
@@ -517,7 +541,66 @@ static void DeleteBulletShape(btCollisionShape* shape)
 		if (meshInterface)
 			delete meshInterface;
 	}
-	delete shape;
+	if(free) {
+		delete shape;
+	}
+}
+
+bool CcdPhysicsController::DeleteControllerShape( )
+{
+	if (m_collisionShape)
+	{
+		// collision shape is always unique to the controller, can delete it here
+		if (m_collisionShape->isCompound())
+		{
+			// bullet does not delete the child shape, must do it here
+			btCompoundShape* compoundShape = (btCompoundShape*)m_collisionShape;
+			int numChild = compoundShape->getNumChildShapes();
+			for (int i=numChild-1 ; i >= 0; i--)
+			{
+				btCollisionShape* childShape = compoundShape->getChildShape(i);
+				DeleteBulletShape(childShape, true);
+			}
+		}
+		DeleteBulletShape(m_collisionShape, true);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool CcdPhysicsController::ReplaceControllerShape(btCollisionShape *newShape)
+{
+	
+	/* Note, deleting the previous collision shape must be done alredy */
+	/* if (m_collisionShape) DeleteControllerShape(); */
+
+	m_object->setCollisionShape(newShape);
+	m_collisionShape= newShape;
+	m_cci.m_collisionShape= newShape;
+	
+	
+	/* Copied from CcdPhysicsEnvironment::addCcdPhysicsController() */
+	
+	/* without this, an object can rest on the old physics mesh
+	 * and not move to account for the physics mesh, even with 'nosleep' */ 
+	btSoftRigidDynamicsWorld* dw= GetPhysicsEnvironment()->getDynamicsWorld();
+	btCollisionObjectArray &obarr= dw->getCollisionObjectArray();
+	btCollisionObject *ob;
+	btBroadphaseProxy* proxy;
+
+	for(int i= 0; i < obarr.size(); i++) {
+		ob= obarr[i];
+		if (ob->getCollisionShape() == newShape); {
+			proxy = obarr[i]->getBroadphaseHandle();
+			
+			if(proxy)
+				dw->getPairCache()->cleanProxyFromPairs(proxy,dw->getDispatcher());
+		}
+	}
+	
+	return true;
 }
 
 CcdPhysicsController::~CcdPhysicsController()
@@ -532,22 +615,8 @@ CcdPhysicsController::~CcdPhysicsController()
 		delete m_bulletMotionState;
 	delete m_object;
 
-	if (m_collisionShape)
-	{
-		// collision shape is always unique to the controller, can delete it here
-		if (m_collisionShape->isCompound())
-		{
-			// bullet does not delete the child shape, must do it here
-			btCompoundShape* compoundShape = (btCompoundShape*)m_collisionShape;
-			int numChild = compoundShape->getNumChildShapes();
-			for (int i=numChild-1 ; i >= 0; i--)
-			{
-				btCollisionShape* childShape = compoundShape->getChildShape(i);
-				DeleteBulletShape(childShape);
-			}
-		}
-		DeleteBulletShape(m_collisionShape);
-	}
+	DeleteControllerShape();
+
 	if (m_shapeInfo)
 	{
 		m_shapeInfo->Release();
@@ -565,10 +634,22 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 	btSoftBody* sb = GetSoftBody();
 	if (sb)
 	{
-		btVector3 aabbMin,aabbMax;
-		sb->getAabb(aabbMin,aabbMax);
-		btVector3 worldPos  = (aabbMax+aabbMin)*0.5f;
-		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		if (sb->m_pose.m_bframe) 
+		{
+			btVector3 worldPos = sb->m_pose.m_com;
+			btQuaternion worldquat;
+			btMatrix3x3	trs = sb->m_pose.m_rot*sb->m_pose.m_scl;
+			trs.getRotation(worldquat);
+			m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+			m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
+		}
+		else 
+		{
+			btVector3 aabbMin,aabbMax;
+			sb->getAabb(aabbMin,aabbMax);
+			btVector3 worldPos  = (aabbMax+aabbMin)*0.5f;
+			m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		}
 		m_MotionState->calculateWorldTransformations();
 		return true;
 	}
@@ -577,13 +658,26 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 
 	if (body && !body->isStaticObject())
 	{
-
-		const btVector3& worldPos = body->getCenterOfMassPosition();
-		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		
-		const btQuaternion& worldquat = body->getOrientation();
-		m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
-
+		if ((m_cci.m_clamp_vel_max>0.0) || (m_cci.m_clamp_vel_min>0.0))
+		{
+			const btVector3& linvel = body->getLinearVelocity();
+			float len= linvel.length();
+			
+			if((m_cci.m_clamp_vel_max>0.0) && (len > m_cci.m_clamp_vel_max))
+					body->setLinearVelocity(linvel * (m_cci.m_clamp_vel_max / len));
+			
+			else if ((m_cci.m_clamp_vel_min>0.0) && btFuzzyZero(len)==0 && (len < m_cci.m_clamp_vel_min))
+				body->setLinearVelocity(linvel * (m_cci.m_clamp_vel_min / len));
+		}
+		
+		const btTransform& xform = body->getCenterOfMassTransform();
+		const btMatrix3x3& worldOri = xform.getBasis();
+		const btVector3& worldPos = xform.getOrigin();
+		float ori[12];
+		worldOri.getOpenGLSubMatrix(ori);
+		m_MotionState->setWorldOrientation(ori);
+		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		m_MotionState->calculateWorldTransformations();
 
 		float scale[3];
@@ -620,8 +714,10 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		
 void		CcdPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
 {
-
+	btTransform& xform = CcdPhysicsController::GetTransformFromMotionState(m_MotionState);
+	SetCenterOfMassTransform(xform);
 }
+
 void		CcdPhysicsController::WriteDynamicsToMotionState()
 {
 }
@@ -638,12 +734,12 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 	if (m_shapeInfo)
 	{
 		m_shapeInfo->AddRef();
-		m_collisionShape = m_shapeInfo->CreateBulletShape();
+		m_collisionShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin);
 
 		if (m_collisionShape)
 		{
 			// new shape has no scaling, apply initial scaling
-			m_collisionShape->setMargin(m_cci.m_margin);
+			//m_collisionShape->setMargin(m_cci.m_margin);
 			m_collisionShape->setLocalScaling(m_cci.m_scaling);
 			
 			if (m_cci.m_mass)
@@ -651,19 +747,29 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		}
 	}
 
+	// load some characterists that are not 
+	btRigidBody* oldbody = GetRigidBody();
 	m_object = 0;
 	CreateRigidbody();
-
 	btRigidBody* body = GetRigidBody();
-
 	if (body)
 	{
 		if (m_cci.m_mass)
 		{
 			body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 		}
-	}			
-	m_cci.m_physicsEnv->addCcdPhysicsController(this);
+
+		if (oldbody)
+		{
+			body->setLinearFactor(oldbody->getLinearFactor());
+			body->setAngularFactor(oldbody->getAngularFactor());
+			if (oldbody->getActivationState() == DISABLE_DEACTIVATION)
+				body->setActivationState(DISABLE_DEACTIVATION);
+		}
+	}	
+	// sensor object are added when needed
+	if (!m_cci.m_bSensor)
+		m_cci.m_physicsEnv->addCcdPhysicsController(this);
 
 
 /*	SM_Object* dynaparent=0;
@@ -740,10 +846,13 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 		m_object->activate(true);
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 
-		btRigidBody* body = GetRigidBody();
+		// btRigidBody* body = GetRigidBody(); // not used anymore
 
 		btVector3 dloc(dlocX,dlocY,dlocZ);
 		btTransform xform = m_object->getWorldTransform();
@@ -766,7 +875,10 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 		m_object->activate(true);
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 
 		btMatrix3x3 drotmat(	rotval[0],rotval[4],rotval[8],
@@ -789,10 +901,9 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 
 void CcdPhysicsController::GetWorldOrientation(btMatrix3x3& mat)
 {
-	float orn[4];
-	m_MotionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
-	btQuaternion quat(orn[0],orn[1],orn[2],orn[3]);
-	mat.setRotation(quat);
+	float ori[12];
+	m_MotionState->getWorldOrientation(ori);
+	mat.setFromOpenGLSubMatrix(ori);
 }
 
 void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
@@ -810,7 +921,10 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 		m_object->activate(true);
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 		// not required
 		//m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
@@ -831,7 +945,7 @@ void CcdPhysicsController::setWorldOrientation(const btMatrix3x3& orn)
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject())
+		if (m_object->isStaticObject() && !m_cci.m_bSensor)
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
@@ -862,7 +976,10 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 		m_object->activate(true);
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 		// not required, this function is only used to update the physic controller
 		//m_MotionState->setWorldPosition(posX,posY,posZ);
@@ -874,9 +991,19 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 		// not required
 		//m_bulletMotionState->setWorldTransform(xform);
 	}
-
-
 }
+
+void CcdPhysicsController::forceWorldTransform(const btMatrix3x3& mat, const btVector3& pos)
+{
+	if (m_object)
+	{
+		btTransform& xform = m_object->getWorldTransform();
+		xform.setBasis(mat);
+		xform.setOrigin(pos);
+	}
+}
+
+
 void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
 {
 }
@@ -899,6 +1026,7 @@ void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 
 		if (m_object && m_object->getCollisionShape())
 		{
+			m_object->activate(true); // without this, sleeping objects scale wont be applied in bullet if python changes the scale - Campbell.
 			m_object->getCollisionShape()->setLocalScaling(m_cci.m_scaling);
 			
 			//printf("no inertia recalc for fixed objects with mass=0\n");
@@ -926,14 +1054,31 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 		m_object->activate();
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
 		if (local)
 		{
 			torque	= xform.getBasis()*torque;
 		}
 		if (body)
-			body->applyTorque(torque);
+		{
+			if 	(m_cci.m_bRigid)
+			{
+				body->applyTorque(torque);
+			}
+			else
+			{
+				//workaround for incompatibility between 'DYNAMIC' game object, and angular factor
+				//a DYNAMIC object has some inconsistency: it has no angular effect due to collisions, but still has torque
+				const btVector3& angFac = body->getAngularFactor();
+				btVector3 tmpFac(1,1,1);
+				body->setAngularFactor(tmpFac);
+				body->applyTorque(torque);
+				body->setAngularFactor(angFac);
+			} 
+		} 
 	}
 }
 
@@ -947,27 +1092,26 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 		m_object->activate();
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
-
+		btTransform xform = m_object->getWorldTransform();
+		
+		if (local)
+		{	
+			force	= xform.getBasis()*force;
+		}
+		btRigidBody* body = GetRigidBody();
+		if (body)
+			body->applyCentralForce(force);
+		btSoftBody* soft = GetSoftBody();
+		if (soft)
 		{
-			btTransform xform = m_object->getWorldTransform();
-			
-			if (local)
-			{	
-				force	= xform.getBasis()*force;
-			}
-			btRigidBody* body = GetRigidBody();
-			if (body)
-				body->applyCentralForce(force);
-			btSoftBody* soft = GetSoftBody();
-			if (soft)
-			{
-				// the force is applied on each node, must reduce it in the same extend
-				if (soft->m_nodes.size() > 0)
-					force /= soft->m_nodes.size();
-				soft->addForce(force);
-			}
+			// the force is applied on each node, must reduce it in the same extend
+			if (soft->m_nodes.size() > 0)
+				force /= soft->m_nodes.size();
+			soft->addForce(force);
 		}
 	}
 }
@@ -979,19 +1123,18 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 		m_object->activate(true);
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-		} else
-		{
-			btTransform xform = m_object->getWorldTransform();
-			if (local)
-			{
-				angvel	= xform.getBasis()*angvel;
-			}
-			btRigidBody* body = GetRigidBody();
-			if (body)
-				body->setAngularVelocity(angvel);
-
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
+		btTransform xform = m_object->getWorldTransform();
+		if (local)
+		{
+			angvel	= xform.getBasis()*angvel;
+		}
+		btRigidBody* body = GetRigidBody();
+		if (body)
+			body->setAngularVelocity(angvel);
 	}
 
 }
@@ -1004,7 +1147,8 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 		m_object->activate(true);
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 			return;
 		}
 		
@@ -1038,7 +1182,9 @@ void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attac
 		m_object->activate();
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
 		
 		btVector3 pos(attachX,attachY,attachZ);
@@ -1165,7 +1311,7 @@ PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
 	if (m_shapeInfo)
 	{
 		// This situation does not normally happen
-		cinfo.m_collisionShape = m_shapeInfo->CreateBulletShape();
+		cinfo.m_collisionShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin);
 	} 
 	else if (m_collisionShape)
 	{
@@ -1232,15 +1378,25 @@ void	DefaultMotionState::getWorldScaling(float& scaleX,float& scaleY,float& scal
 
 void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
 {
-	quatIma0 = m_worldTransform.getRotation().x();
-	quatIma1 = m_worldTransform.getRotation().y();
-	quatIma2 = m_worldTransform.getRotation().z();
-	quatReal = m_worldTransform.getRotation()[3];
+	btQuaternion quat = m_worldTransform.getRotation();
+	quatIma0 = quat.x();
+	quatIma1 = quat.y();
+	quatIma2 = quat.z();
+	quatReal = quat[3];
 }
 		
+void	DefaultMotionState::getWorldOrientation(float* ori)
+{
+	m_worldTransform.getBasis().getOpenGLSubMatrix(ori);
+}
+
+void	DefaultMotionState::setWorldOrientation(const float* ori)
+{
+	m_worldTransform.getBasis().setFromOpenGLSubMatrix(ori);
+}
 void	DefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
 {
-	btPoint3 pos(posX,posY,posZ);
+	btVector3 pos(posX,posY,posZ);
 	m_worldTransform.setOrigin( pos );
 }
 
@@ -1258,9 +1414,9 @@ void	DefaultMotionState::calculateWorldTransformations()
 // Shape constructor
 std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> CcdShapeConstructionInfo::m_meshShapeMap;
 
-CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mesh, bool polytope)
+CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact)
 {
-	if (polytope)
+	if (polytope || dm || gimpact)
 		// not yet supported
 		return NULL;
 
@@ -1270,127 +1426,241 @@ CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mes
 	return NULL;
 }
 
-bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bool useGimpact)
+bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm, bool polytope,bool useGimpact)
 {
+	int numpolys, numverts;
+
 	m_useGimpact = useGimpact;
 
 	// assume no shape information
 	// no support for dynamic change of shape yet
-	assert(m_meshObject == NULL);
+	assert(IsUnused());
 	m_shapeType = PHY_SHAPE_NONE;
-	m_vertexArray.clear();
-	m_polygonIndexArray.clear();
 	m_meshObject = NULL;
+	bool free_dm = false;
 
-	if (!meshobj)
-		return false;
-
-	// Mesh has no polygons!
-	int numpolys = meshobj->NumPolygons();
-	if (!numpolys)
-	{
+	// No mesh object or mesh has no polys
+	if (!meshobj || meshobj->HasColliderPolygon()==false) {
+		m_vertexArray.clear();
+		m_polygonIndexArray.clear();
+		m_triFaceArray.clear();
 		return false;
 	}
 
-	// check that we have at least one colliding polygon
-	int numvalidpolys = 0;
-
-	for (int p=0; p<numpolys; p++)
-	{
-		RAS_Polygon* poly = meshobj->GetPolygon(p);
-
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
-		{
-			numvalidpolys++;
-			break;
-		}
+	if (!dm) {
+		free_dm = true;
+		dm = CDDM_from_mesh(meshobj->GetMesh(), NULL);
 	}
 
-	// No collision polygons
-	if (numvalidpolys < 1)
-		return false;
+	MVert *mvert = dm->getVertArray(dm);
+	MFace *mface = dm->getFaceArray(dm);
+	numpolys = dm->getNumFaces(dm);
+	numverts = dm->getNumVerts(dm);
+	int* index = (int*)dm->getFaceDataArray(dm, CD_ORIGINDEX);
 
 	m_shapeType = (polytope) ? PHY_SHAPE_POLYTOPE : PHY_SHAPE_MESH;
 
-	numvalidpolys = 0;
+	/* Convert blender geometry into bullet mesh, need these vars for mapping */
+	vector<bool> vert_tag_array(numverts, false);
+	unsigned int tot_bt_verts= 0;
 
-	for (int p2=0; p2<numpolys; p2++)
+	if (polytope)
 	{
-		RAS_Polygon* poly = meshobj->GetPolygon(p2);
+		// Tag verts we're using
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			MFace* mf = &mface[p2];
+			RAS_Polygon* poly = meshobj->GetPolygon(index[p2]);
 
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
-		{   
-			//Bullet can raycast any shape, so
-			if (polytope)
+			// only add polygons that have the collision flag set
+			if (poly->IsCollider())
 			{
-				for (int i=0;i<poly->VertexCount();i++)
-				{
-					const float* vtx = poly->GetVertex(i)->getXYZ();
-					btPoint3 point(vtx[0],vtx[1],vtx[2]);
-					//avoid duplicates (could better directly use vertex offsets, rather than a vertex compare)
-					bool found = false;
-					for (int j=0;j<m_vertexArray.size();j++)
-					{
-						if (m_vertexArray[j]==point)
-						{
-							found = true;
-							break;
-						}
-					}
-					if (!found)
-						m_vertexArray.push_back(point);
+				if (vert_tag_array[mf->v1]==false) {vert_tag_array[mf->v1]= true;tot_bt_verts++;}
+				if (vert_tag_array[mf->v2]==false) {vert_tag_array[mf->v2]= true;tot_bt_verts++;}
+				if (vert_tag_array[mf->v3]==false) {vert_tag_array[mf->v3]= true;tot_bt_verts++;}
+				if (mf->v4 && vert_tag_array[mf->v4]==false) {vert_tag_array[mf->v4]= true;tot_bt_verts++;}
+			}
+		}
 
-					numvalidpolys++;
-				}
-			} else
+		m_vertexArray.resize(tot_bt_verts*3);
+
+		btScalar *bt= &m_vertexArray[0];
+
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			MFace* mf = &mface[p2];
+			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
+
+			// only add polygons that have the collisionflag set
+			if (poly->IsCollider())
 			{
+				if (vert_tag_array[mf->v1]==true)
 				{
-					const float* vtx = poly->GetVertex(2)->getXYZ();
-					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-
-					vtx = poly->GetVertex(1)->getXYZ();
-					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-
-					vtx = poly->GetVertex(0)->getXYZ();
-					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
-
-					m_vertexArray.push_back(vertex0);
-					m_vertexArray.push_back(vertex1);
-					m_vertexArray.push_back(vertex2);
-					m_polygonIndexArray.push_back(p2);
-					numvalidpolys++;
+					const float* vtx = mvert[mf->v1].co;
+					vert_tag_array[mf->v1]= false;
+					*bt++ = vtx[0];
+					*bt++ = vtx[1];
+					*bt++ = vtx[2];
 				}
-				if (poly->VertexCount() == 4)
+				if (vert_tag_array[mf->v2]==true)
 				{
-					const float* vtx = poly->GetVertex(3)->getXYZ();
-					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-
-					vtx = poly->GetVertex(2)->getXYZ();
-					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-
-					vtx = poly->GetVertex(0)->getXYZ();
-					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
-
-					m_vertexArray.push_back(vertex0);
-					m_vertexArray.push_back(vertex1);
-					m_vertexArray.push_back(vertex2);
-					m_polygonIndexArray.push_back(p2);
-					numvalidpolys++;
+					const float* vtx = mvert[mf->v2].co;
+					vert_tag_array[mf->v2]= false;
+					*bt++ = vtx[0];
+					*bt++ = vtx[1];
+					*bt++ = vtx[2];
 				}
-			}		
+				if (vert_tag_array[mf->v3]==true)
+				{
+					const float* vtx = mvert[mf->v3].co;
+					vert_tag_array[mf->v3]= false;
+					*bt++ = vtx[0];
+					*bt++ = vtx[1];
+					*bt++ = vtx[2];
+				}
+				if (mf->v4 && vert_tag_array[mf->v4]==true)
+				{
+					const float* vtx = mvert[mf->v4].co;
+					vert_tag_array[mf->v4]= false;
+					*bt++ = vtx[0];
+					*bt++ = vtx[1];
+					*bt++ = vtx[2];
+				}
+			}
 		}
 	}
+	else {
+		unsigned int tot_bt_tris= 0;
+		vector<int> vert_remap_array(numverts, 0);
+		
+		// Tag verts we're using
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			MFace* mf = &mface[p2];
+			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
 
-	if (!numvalidpolys)
+			// only add polygons that have the collision flag set
+			if (poly->IsCollider())
+			{
+				if (vert_tag_array[mf->v1]==false)
+					{vert_tag_array[mf->v1]= true;vert_remap_array[mf->v1]= tot_bt_verts;tot_bt_verts++;}
+				if (vert_tag_array[mf->v2]==false)
+					{vert_tag_array[mf->v2]= true;vert_remap_array[mf->v2]= tot_bt_verts;tot_bt_verts++;}
+				if (vert_tag_array[mf->v3]==false)
+					{vert_tag_array[mf->v3]= true;vert_remap_array[mf->v3]= tot_bt_verts;tot_bt_verts++;}
+				if (mf->v4 && vert_tag_array[mf->v4]==false)
+					{vert_tag_array[mf->v4]= true;vert_remap_array[mf->v4]= tot_bt_verts;tot_bt_verts++;}
+				tot_bt_tris += (mf->v4 ? 2:1); /* a quad or a tri */
+			}
+		}
+
+		m_vertexArray.resize(tot_bt_verts*3);
+		m_polygonIndexArray.resize(tot_bt_tris);
+		m_triFaceArray.resize(tot_bt_tris*3);
+
+		btScalar *bt= &m_vertexArray[0];
+		int *poly_index_pt= &m_polygonIndexArray[0];
+		int *tri_pt= &m_triFaceArray[0];
+
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			MFace* mf = &mface[p2];
+			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
+
+			// only add polygons that have the collisionflag set
+			if (poly->IsCollider())
+			{
+				MVert *v1= &mvert[mf->v1];
+				MVert *v2= &mvert[mf->v2];
+				MVert *v3= &mvert[mf->v3];
+
+				// the face indicies
+				tri_pt[0]= vert_remap_array[mf->v1];
+				tri_pt[1]= vert_remap_array[mf->v2];
+				tri_pt[2]= vert_remap_array[mf->v3];
+				tri_pt= tri_pt+3;
+
+				// m_polygonIndexArray
+				*poly_index_pt= index[p2];
+				poly_index_pt++;
+
+				// the vertex location
+				if (vert_tag_array[mf->v1]==true) { /* *** v1 *** */
+					vert_tag_array[mf->v1]= false;
+					*bt++ = v1->co[0];
+					*bt++ = v1->co[1];
+					*bt++ = v1->co[2];
+				}
+				if (vert_tag_array[mf->v2]==true) { /* *** v2 *** */
+					vert_tag_array[mf->v2]= false;
+					*bt++ = v2->co[0];
+					*bt++ = v2->co[1];
+					*bt++ = v2->co[2];
+				}
+				if (vert_tag_array[mf->v3]==true) { /* *** v3 *** */
+					vert_tag_array[mf->v3]= false;
+					*bt++ = v3->co[0];	
+					*bt++ = v3->co[1];
+					*bt++ = v3->co[2];
+				}
+
+				if (mf->v4)
+				{
+					MVert *v4= &mvert[mf->v4];
+
+					tri_pt[0]= vert_remap_array[mf->v1];
+					tri_pt[1]= vert_remap_array[mf->v3];
+					tri_pt[2]= vert_remap_array[mf->v4];
+					tri_pt= tri_pt+3;
+
+					// m_polygonIndexArray
+					*poly_index_pt= index[p2];
+					poly_index_pt++;
+
+					// the vertex location
+					if (vert_tag_array[mf->v4]==true) { /* *** v4 *** */
+						vert_tag_array[mf->v4]= false;
+						*bt++ = v4->co[0];
+						*bt++ = v4->co[1];	
+						*bt++ = v4->co[2];
+					}
+				}
+			}
+		}
+
+
+		/* If this ever gets confusing, print out an OBJ file for debugging */
+#if 0
+		printf("# vert count %d\n", m_vertexArray.size());
+		for(i=0; i<m_vertexArray.size(); i+=1) {
+			printf("v %.6f %.6f %.6f\n", m_vertexArray[i].x(), m_vertexArray[i].y(), m_vertexArray[i].z());
+		}
+
+		printf("# face count %d\n", m_triFaceArray.size());
+		for(i=0; i<m_triFaceArray.size(); i+=3) {
+			printf("f %d %d %d\n", m_triFaceArray[i]+1, m_triFaceArray[i+1]+1, m_triFaceArray[i+2]+1);
+		}
+#endif
+
+	}
+
+#if 0
+	if (validpolys==false)
 	{
 		// should not happen
 		m_shapeType = PHY_SHAPE_NONE;
 		return false;
 	}
+#endif
+	
 	m_meshObject = meshobj;
-	if (!polytope)
+	if (free_dm) {
+		dm->release(dm);
+		dm = NULL;
+	}
+
+	// sharing only on static mesh at present, if you change that, you must also change in FindMesh
+	if (!polytope && !dm && !useGimpact)
 	{
 		// triangle shape can be shared, store the mesh object in the map
 		m_meshShapeMap.insert(std::pair<RAS_MeshObject*,CcdShapeConstructionInfo*>(meshobj,this));
@@ -1398,37 +1668,356 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 	return true;
 }
 
-btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
+#include <cstdio>
+
+/* Updates the arrays used by CreateBulletShape(),
+ * take care that recalcLocalAabb() runs after CreateBulletShape is called.
+ * */
+bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RAS_MeshObject* meshobj)
+{
+	int numpolys;
+	int numverts;
+
+	unsigned int tot_bt_tris= 0;
+	unsigned int tot_bt_verts= 0;
+
+	int i, j;
+	int v_orig;
+
+	/* Use for looping over verts in a face as a try or 2 tris */
+	const int quad_verts[7]=	{0,1,2,		 0,2,3,		-1};
+	const int tri_verts[4]=	{0,1,2,		-1};
+	const int *fv_pt;
+
+	if(gameobj==NULL && meshobj==NULL)
+		return false;
+	
+	if(m_shapeType != PHY_SHAPE_MESH)
+		return false;
+
+	RAS_Deformer *deformer= gameobj ? gameobj->GetDeformer():NULL;
+	
+	/* get the mesh from the object if not defined */
+	if(meshobj==NULL) {
+		
+		/* modifier mesh */
+		if(deformer && deformer->GetFinalMesh())
+			meshobj= deformer->GetRasMesh();
+		
+		/* game object first mesh */
+		if(meshobj==NULL) {
+			if(gameobj->GetMeshCount() > 0) {
+				meshobj= gameobj->GetMesh(0);
+			}
+		}
+	}
+	
+	if(deformer && deformer->GetFinalMesh() && deformer->GetRasMesh() == meshobj)
+	{	/*
+		 * Derived Mesh Update
+		 *
+		 * */
+
+		DerivedMesh* dm= gameobj->GetDeformer()->GetFinalMesh();
+
+		MVert *mvert = dm->getVertArray(dm);
+		MFace *mface = dm->getFaceArray(dm);
+		numpolys = dm->getNumFaces(dm);
+		numverts = dm->getNumVerts(dm);
+		int* index = (int*)dm->getFaceDataArray(dm, CD_ORIGINDEX);
+
+		MFace *mf;
+		MVert *mv;
+
+		int flen;
+
+		if(CustomData_has_layer(&dm->faceData, CD_MTFACE))
+		{
+			MTFace *tface = (MTFace *)dm->getFaceDataArray(dm, CD_MTFACE);
+			MTFace *tf;
+
+			vector<bool> vert_tag_array(numverts, false);
+			vector<int> vert_remap_array(numverts, 0);
+
+			for(mf= mface, tf= tface, i=0; i < numpolys; mf++, tf++, i++) {
+				if(tf->mode & TF_DYNAMIC)
+				{
+					if(mf->v4) {
+						tot_bt_tris+= 2;
+						flen= 4;
+					} else {
+						tot_bt_tris++;
+						flen= 3;
+					}
+
+					for(j=0; j<flen; j++)
+					{
+						v_orig = (*(&mf->v1 + j));
+
+						if(vert_tag_array[v_orig]==false)
+						{
+							vert_tag_array[v_orig]= true;
+							vert_remap_array[v_orig]= tot_bt_verts;
+							tot_bt_verts++;
+						}
+					}
+				}
+			}
+
+			m_vertexArray.resize(tot_bt_verts*3);
+			btScalar *bt= &m_vertexArray[0];
+
+			m_triFaceArray.resize(tot_bt_tris*3);
+			int *tri_pt= &m_triFaceArray[0];
+
+			m_polygonIndexArray.resize(tot_bt_tris);
+			int *poly_index_pt= &m_polygonIndexArray[0];
+
+
+			for(mf= mface, tf= tface, i=0; i < numpolys; mf++, tf++, i++)
+			{
+				if(tf->mode & TF_DYNAMIC)
+				{
+					if(mf->v4) {
+						fv_pt= quad_verts;
+						*poly_index_pt++ = *poly_index_pt++ = index[i];
+						flen= 4;
+					} else {
+						fv_pt= tri_verts;
+						*poly_index_pt++ = index[i];
+						flen= 3;
+					}
+
+					for(; *fv_pt > -1; fv_pt++)
+					{
+						v_orig = (*(&mf->v1 + (*fv_pt)));
+
+						if(vert_tag_array[v_orig])
+						{
+							mv= mvert + v_orig;
+							*bt++ = mv->co[0];
+							*bt++ = mv->co[1];
+							*bt++ = mv->co[2];
+
+							vert_tag_array[v_orig]= false;
+						}
+						*tri_pt++ = vert_remap_array[v_orig];
+					}
+				}
+			}
+		}
+		else {
+			/* no need for a vertex mapping. simple/fast */
+
+			tot_bt_verts= numverts;
+
+			for(mf= mface, i=0; i < numpolys; mf++, i++) {
+				tot_bt_tris += (mf->v4 ? 2:1);
+			}
+
+			m_vertexArray.resize(tot_bt_verts*3);
+			btScalar *bt= &m_vertexArray[0];
+
+			m_triFaceArray.resize(tot_bt_tris*3);
+			int *tri_pt= &m_triFaceArray[0];
+
+			m_polygonIndexArray.resize(tot_bt_tris);
+			int *poly_index_pt= &m_polygonIndexArray[0];
+
+			for(mv= mvert, i=0; i < numverts; mv++, i++) {
+				*bt++ = mv->co[0]; *bt++ = mv->co[1]; *bt++ = mv->co[2];
+			}
+
+			for(mf= mface, i=0; i < numpolys; mf++, i++) {
+				if(mf->v4) {
+					fv_pt= quad_verts;
+					*poly_index_pt++ = *poly_index_pt++ = index[i];
+				}
+				else {
+					fv_pt= tri_verts;
+					*poly_index_pt++ = index[i];
+				}
+
+				for(; *fv_pt > -1; fv_pt++)
+					*tri_pt++ = (*(&mf->v1 + (*fv_pt)));
+			}
+		}
+	}
+	else {	/*
+			 * RAS Mesh Update
+			 *
+			 * */
+		
+		/* Note!, gameobj can be NULL here */
+
+		/* transverts are only used for deformed RAS_Meshes, the RAS_TexVert data
+		 * is too hard to get at, see below for details */
+		float (*transverts)[3]= NULL;
+		int transverts_tot= 0; /* with deformed meshes - should always be greater then the max orginal index, or we get crashes */
+
+		if(deformer) {
+			/* map locations from the deformed array
+			 *
+			 * Could call deformer->Update(); but rely on redraw updating.
+			 * */
+			transverts= deformer->GetTransVerts(&transverts_tot);
+		}
+
+		// Tag verts we're using
+		numpolys= meshobj->NumPolygons();
+		numverts= meshobj->m_sharedvertex_map.size();
+		const float *xyz;
+
+
+		vector<bool> vert_tag_array(numverts, false);
+		vector<int> vert_remap_array(numverts, 0);
+
+		for(int p=0; p<numpolys; p++)
+		{
+			RAS_Polygon* poly= meshobj->GetPolygon(p);
+			if (poly->IsCollider())
+			{
+				for(i=0; i < poly->VertexCount(); i++)
+				{
+					v_orig= poly->GetVertex(i)->getOrigIndex();
+					if(vert_tag_array[v_orig]==false)
+					{
+						vert_tag_array[v_orig]= true;
+						vert_remap_array[v_orig]= tot_bt_verts;
+						tot_bt_verts++;
+					}
+				}
+				tot_bt_tris += (poly->VertexCount()==4 ? 2:1);
+			}
+		}
+
+		m_vertexArray.resize(tot_bt_verts*3);
+		btScalar *bt= &m_vertexArray[0];
+
+		m_triFaceArray.resize(tot_bt_tris*3);
+		int *tri_pt= &m_triFaceArray[0];
+
+		/* cant be used for anything useful in this case, since we dont rely on the original mesh
+		 * will just be an array like pythons range(tot_bt_tris) */
+		m_polygonIndexArray.resize(tot_bt_tris);
+
+
+		for(int p=0; p<numpolys; p++)
+		{
+			RAS_Polygon* poly= meshobj->GetPolygon(p);
+
+			if (poly->IsCollider())
+			{
+				/* quad or tri loop */
+				fv_pt= (poly->VertexCount()==3 ? tri_verts:quad_verts);
+
+				for(; *fv_pt > -1; fv_pt++)
+				{
+					v_orig= poly->GetVertex(*fv_pt)->getOrigIndex();
+
+					if(vert_tag_array[v_orig])
+					{
+						if(transverts) {
+							/* deformed mesh, using RAS_TexVert locations would be too troublesome
+							 * because they are use the gameob as a hash in the material slot */
+							*bt++ = transverts[v_orig][0];
+							*bt++ = transverts[v_orig][1];
+							*bt++ = transverts[v_orig][2];
+						}
+						else {
+							/* static mesh python may have modified */
+							xyz= meshobj->GetVertexLocation( v_orig );
+							*bt++ = xyz[0];
+							*bt++ = xyz[1];
+							*bt++ = xyz[2];
+						}
+
+						vert_tag_array[v_orig]= false;
+					}
+
+					*tri_pt++ = vert_remap_array[v_orig];
+				}
+			}
+
+			m_polygonIndexArray[p]= p; /* dumb counting */
+		}
+	}
+	
+#if 0
+	/* needs #include <cstdio> */
+	printf("# vert count %d\n", m_vertexArray.size());
+	for(int i=0; i<m_vertexArray.size(); i+=3) {
+		printf("v %.6f %.6f %.6f\n", m_vertexArray[i], m_vertexArray[i+1], m_vertexArray[i+2]);
+	}
+
+	printf("# face count %d\n", m_triFaceArray.size());
+	for(int i=0; i<m_triFaceArray.size(); i+=3) {
+		printf("f %d %d %d\n", m_triFaceArray[i]+1, m_triFaceArray[i+1]+1, m_triFaceArray[i+2]+1);
+	}
+#endif
+
+	/* force recreation of the m_unscaledShape.
+	 * If this has multiple users we cant delete */
+	if(m_unscaledShape) {
+		// dont free now so it can re-allocate under the same location and not break pointers.
+		// DeleteBulletShape(m_unscaledShape); 
+		m_forceReInstance= true;
+	}
+
+	m_meshObject= meshobj;
+	
+	return true;
+}
+
+
+
+bool CcdShapeConstructionInfo::SetProxy(CcdShapeConstructionInfo* shapeInfo)
+{
+	if (shapeInfo == NULL)
+		return false;
+	// no support for dynamic change
+	assert(IsUnused());
+	m_shapeType = PHY_SHAPE_PROXY;
+	m_shapeProxy = shapeInfo;
+	return true;
+}
+
+btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 {
 	btCollisionShape* collisionShape = 0;
-	btTriangleMeshShape* concaveShape = 0;
-	btTriangleMesh* collisionMeshData = 0;
-	btCompoundShape* compoundShape = 0;
-	CcdShapeConstructionInfo* nextShapeInfo;
+	btCompoundShape* compoundShape = 0;	
+
+	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
+		return m_shapeProxy->CreateBulletShape(margin);
 
 	switch (m_shapeType) 
 	{
-	case PHY_SHAPE_NONE:
+	default:
 		break;
 
 	case PHY_SHAPE_BOX:
 		collisionShape = new btBoxShape(m_halfExtend);
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_SPHERE:
 		collisionShape = new btSphereShape(m_radius);
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_CYLINDER:
 		collisionShape = new btCylinderShapeZ(m_halfExtend);
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_CONE:
 		collisionShape = new btConeShapeZ(m_radius, m_height);
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_POLYTOPE:
-		collisionShape = new btConvexHullShape(&m_vertexArray.begin()->getX(), m_vertexArray.size());
+		collisionShape = new btConvexHullShape(&m_vertexArray[0], m_vertexArray.size()/3, 3*sizeof(btScalar));
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_MESH:
@@ -1440,37 +2029,74 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
 		// and btScaledBvhTriangleMeshShape otherwise.
 		if (m_useGimpact)
-		{
-				collisionMeshData = new btTriangleMesh();
+		{				
+				btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(
+						m_polygonIndexArray.size(),
+						&m_triFaceArray[0],
+						3*sizeof(int),
+						m_vertexArray.size()/3,
+						&m_vertexArray[0],
+						3*sizeof(btScalar)
+				);
 				
-
-				// m_vertexArray is necessarily a multiple of 3
-				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
-				{
-					collisionMeshData->addTriangle(*it++,*it++,*it++);
-				}
-				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(collisionMeshData);
-
+				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(indexVertexArrays);
+				gimpactShape->setMargin(margin);
 				collisionShape = gimpactShape;
 				gimpactShape->updateBound();
 
 		} else
 		{
-			if (!m_unscaledShape)
+			if (!m_unscaledShape || m_forceReInstance)
 			{
-				collisionMeshData = new btTriangleMesh(true,false);
-				collisionMeshData->m_weldingThreshold = m_weldingThreshold;
+			
+				btTriangleIndexVertexArray* indexVertexArrays = 0;
 
-				// m_vertexArray is necessarily a multiple of 3
-				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+				///enable welding, only for the objects that need it (such as soft bodies)
+				if (0.f != m_weldingThreshold1)
 				{
-					collisionMeshData->addTriangle(*it++,*it++,*it++);
+					btTriangleMesh* collisionMeshData = new btTriangleMesh(true,false);
+					collisionMeshData->m_weldingThreshold = m_weldingThreshold1;
+					bool removeDuplicateVertices=true;
+					// m_vertexArray not in multiple of 3 anymore, use m_triFaceArray
+					for(unsigned int i=0; i<m_triFaceArray.size(); i+=3) {
+						btScalar *bt = &m_vertexArray[3*m_triFaceArray[i]];
+						btVector3 v1(bt[0], bt[1], bt[2]);
+						bt = &m_vertexArray[3*m_triFaceArray[i+1]];
+						btVector3 v2(bt[0], bt[1], bt[2]);
+						bt = &m_vertexArray[3*m_triFaceArray[i+2]];
+						btVector3 v3(bt[0], bt[1], bt[2]);
+						collisionMeshData->addTriangle(v1, v2, v3, removeDuplicateVertices);
+					}
+					indexVertexArrays = collisionMeshData;
+
+				} else
+				{
+					indexVertexArrays = new btTriangleIndexVertexArray(
+							m_polygonIndexArray.size(),
+							&m_triFaceArray[0],
+							3*sizeof(int),
+							m_vertexArray.size()/3,
+							&m_vertexArray[0],
+							3*sizeof(btScalar));
 				}
+				
 				// this shape will be shared and not deleted until shapeInfo is deleted
-				m_unscaledShape = new btBvhTriangleMeshShape( collisionMeshData, true );
+				
+				// for UpdateMesh, reuse the last memory location so instancing wont crash.
+				if(m_unscaledShape) {
+					DeleteBulletShape(m_unscaledShape, false);
+					m_unscaledShape->~btBvhTriangleMeshShape();
+	
+					m_unscaledShape = new(m_unscaledShape) btBvhTriangleMeshShape( indexVertexArrays, true );
+				} else {
+					m_unscaledShape = new btBvhTriangleMeshShape( indexVertexArrays, true );
+				}
+				
+				m_forceReInstance= false;
 				m_unscaledShape->recalcLocalAabb();
 			}
 			collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));
+			collisionShape->setMargin(margin);
 		}
 		break;
 
@@ -1482,7 +2108,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 				 sit != m_shapeArray.end();
 				 sit++)
 			{
-				collisionShape = (*sit)->CreateBulletShape();
+				collisionShape = (*sit)->CreateBulletShape(margin);
 				if (collisionShape)
 				{
 					collisionShape->setLocalScaling((*sit)->m_childScale);
@@ -1511,7 +2137,7 @@ CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 	m_shapeArray.clear();
 	if (m_unscaledShape)
 	{
-		DeleteBulletShape(m_unscaledShape);
+		DeleteBulletShape(m_unscaledShape, true);
 	}
 	m_vertexArray.clear();
 	if (m_shapeType == PHY_SHAPE_MESH && m_meshObject != NULL) 
@@ -1521,6 +2147,10 @@ CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 		{
 			m_meshShapeMap.erase(mit);
 		}
+	}
+	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
+	{
+		m_shapeProxy->Release();
 	}
 }
 

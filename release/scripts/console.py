@@ -708,20 +708,23 @@ def draw_gui():
 	# Fixed margin. use a margin since 0 margin can be hard to seewhen close to a crt's edge.
 	margin = 4
 	
+	# Convenience
+	FNT_NAME, FNT_HEIGHT = __FONT_SIZES__[__FONT_SIZE__]
+	
 	# Draw cursor location colour
 	if __CONSOLE_LINE_OFFSET__ == 0:
-		cmd2curWidth = Draw.GetStringWidth(cmdBuffer[-1].cmd[:cursor], __FONT_SIZES__[__FONT_SIZE__][0])
+		cmd2curWidth = Draw.GetStringWidth(cmdBuffer[-1].cmd[:cursor], FNT_NAME)
 		BGL.glColor3f(0.8, 0.2, 0.2)
 		if cmd2curWidth == 0:
-			BGL.glRecti(margin,2,margin+2, __FONT_SIZES__[__FONT_SIZE__][1]+2)
+			BGL.glRecti(margin,2,margin+2, FNT_HEIGHT+2)
 		else:
-			BGL.glRecti(margin + cmd2curWidth-2,2, margin+cmd2curWidth, __FONT_SIZES__[__FONT_SIZE__][1]+2)
+			BGL.glRecti(margin + cmd2curWidth-2,2, margin+cmd2curWidth, FNT_HEIGHT+2)
 	
 	BGL.glColor3f(1,1,1)
 	# Draw the set of cammands to the buffer
 	consoleLineIdx = __CONSOLE_LINE_OFFSET__ + 1
 	wrapLineIndex = 0
-	while consoleLineIdx < len(cmdBuffer) and  __CONSOLE_RECT__[3] > (consoleLineIdx - __CONSOLE_LINE_OFFSET__) * __FONT_SIZES__[__FONT_SIZE__][1]:
+	while consoleLineIdx < len(cmdBuffer) and  __CONSOLE_RECT__[3] > (consoleLineIdx - __CONSOLE_LINE_OFFSET__) * FNT_HEIGHT:
 		if cmdBuffer[-consoleLineIdx].type == 0:
 			BGL.glColor3f(1, 1, 1)
 		elif cmdBuffer[-consoleLineIdx].type == 1:
@@ -734,53 +737,41 @@ def draw_gui():
 			BGL.glColor3f(1, 1, 0)
 		
 		if consoleLineIdx == 1: # user input
-			BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * (consoleLineIdx-__CONSOLE_LINE_OFFSET__)) - 8)
-			Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])		
-		else:
-			BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * ((consoleLineIdx-__CONSOLE_LINE_OFFSET__)+wrapLineIndex)) - 8)
-			Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])
-
-		# Wrapping is totally slow, can even hang blender - dont do it!
-		'''
-		if consoleLineIdx == 1: # NEVER WRAP THE USER INPUT
-			BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * (consoleLineIdx-__CONSOLE_LINE_OFFSET__)) - 8)
-			# BUG, LARGE TEXT DOSENT DISPLAY
-			Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])
-			
-		
-		else: # WRAP?
-			# LINE WRAP
-			if Draw.GetStringWidth(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0]) >  __CONSOLE_RECT__[2]:
+			BGL.glRasterPos2i(margin, (FNT_HEIGHT * (consoleLineIdx-__CONSOLE_LINE_OFFSET__)) - 8)
+			Draw.Text(cmdBuffer[-consoleLineIdx].cmd, FNT_NAME)		
+		else: # WRAP
+			lwid = Draw.GetStringWidth(cmdBuffer[-consoleLineIdx].cmd, FNT_NAME)
+			if margin + lwid >  __CONSOLE_RECT__[2]:
 				wrapLineList = []
-				copyCmd = [cmdBuffer[-consoleLineIdx].cmd, '']
-				while copyCmd != ['','']:
-					while margin + Draw.GetStringWidth(copyCmd[0], __FONT_SIZES__[__FONT_SIZE__][0]) > __CONSOLE_RECT__[2]:
-						#print copyCmd
-						copyCmd[1] = '%s%s'% (copyCmd[0][-1], copyCmd[1]) # Add the char on the end
-						copyCmd[0] = copyCmd[0][:-1]# remove last chat
-					
-					# Now we have copyCmd[0] at a good length we can print it.					
-					if copyCmd[0] != '':
-						wrapLineList.append(copyCmd[0])
-					
-					copyCmd[0]=''
-					copyCmd = [copyCmd[1], copyCmd[0]]
-				
+				wtext = cmdBuffer[-consoleLineIdx].cmd
+				wlimit = len(wtext)
+				chunksz = int(( __CONSOLE_RECT__[2] - margin ) / (lwid / len(wtext)))
+				lstart = 0
+				fsize = FNT_NAME
+				while lstart < wlimit:
+					lend = min(lstart+chunksz,wlimit)
+					ttext = wtext[lstart:lend]
+					while lend < wlimit and Draw.GetStringWidth(ttext, fsize) + margin < __CONSOLE_RECT__[2]:
+						lend += 1
+						ttext = wtext[lstart:lend]
+					while lend > lstart+1 and Draw.GetStringWidth(ttext, fsize) + margin > __CONSOLE_RECT__[2]:
+						lend -= 1
+						ttext = wtext[lstart:lend]
+					wrapLineList.append(ttext)
+					lstart = lend 
 				# Now we have a list of lines, draw them (OpenGLs reverse ordering requires this odd change)
 				wrapLineList.reverse()
 				for wline in wrapLineList:
-					BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1]*((consoleLineIdx-__CONSOLE_LINE_OFFSET__) + wrapLineIndex)) - 8)
-					Draw.Text(wline, __FONT_SIZES__[__FONT_SIZE__][0])
+					BGL.glRasterPos2i(margin, (FNT_HEIGHT*((consoleLineIdx-__CONSOLE_LINE_OFFSET__) + wrapLineIndex)) - 8)
+					Draw.Text(wline, FNT_NAME)
 					wrapLineIndex += 1
-				wrapLineIndex-=1 # otherwise we get a silly extra line.
+				wrapLineIndex-=1 # otherwise we get a silly extra line.	
 				
 			else: # no wrapping.
 				
-				BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * ((consoleLineIdx-__CONSOLE_LINE_OFFSET__)+wrapLineIndex)) - 8)
-				Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])
-		'''
+				BGL.glRasterPos2i(margin, (FNT_HEIGHT * ((consoleLineIdx-__CONSOLE_LINE_OFFSET__)+wrapLineIndex)) - 8)
+				Draw.Text(cmdBuffer[-consoleLineIdx].cmd, FNT_NAME)
 		consoleLineIdx += 1
-			
 
 # This recieves the event index, call a function from here depending on the event.
 def handle_button_event(evt):

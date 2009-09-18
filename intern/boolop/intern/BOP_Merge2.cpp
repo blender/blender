@@ -1,6 +1,6 @@
 /**
  *
- * $Id: BOP_Merge22.cpp 14444 2008-04-16 22:40:48Z hos $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -294,8 +294,8 @@ void BOP_Merge2::cleanup( void )
 	BOP_Vertexs v = m_mesh->getVertexs();
 	for( BOP_IT_Vertexs it = v.begin(); it != v.end(); ++it ) {
 		if( (*it)->getTAG() != BROKEN) {
-			BOP_Indexs edges = (*it)->getEdges();
-			for(BOP_IT_Indexs i = edges.begin();i!=edges.end();i++)
+			BOP_Indexs iedges = (*it)->getEdges();
+			for(BOP_IT_Indexs i = iedges.begin();i!=iedges.end();i++)
 				if( m_mesh->getEdge((*i))->getUsed( ) == false) (*it)->removeEdge( *i );
 			if( (*it)->getEdges().size() == 0 ) (*it)->setTAG(BROKEN);
 		}
@@ -432,8 +432,8 @@ bool BOP_Merge2::mergeFaces(BOP_Indexs &mergeVertices)
 					vert->setTAG(BROKEN);
 					for(BOP_IT_Indexs it = edges.begin(); it != edges.end(); 
 							++it ) {
-						BOP_Edge *edge = m_mesh->getEdge(*it);
-						edge->setUsed(false);
+						BOP_Edge *tedge = m_mesh->getEdge(*it);
+						tedge->setUsed(false);
 					}
 					didMerge = true;
 				}	

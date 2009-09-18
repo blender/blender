@@ -1,7 +1,7 @@
 /**
  * Set or remove an objects parent
  *
- * $Id: SCA_ParentActuator.cpp 13932 2008-03-01 19:05:41Z ben2610 $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -48,10 +48,13 @@
 
 KX_ParentActuator::KX_ParentActuator(SCA_IObject *gameobj, 
 									 int mode,
-									 SCA_IObject *ob,
-									 PyTypeObject* T)
-	: SCA_IActuator(gameobj, T),
+									 bool addToCompound,
+									 bool ghost,
+									 SCA_IObject *ob)
+	: SCA_IActuator(gameobj),
 	  m_mode(mode),
+	  m_addToCompound(addToCompound),
+	  m_ghost(ghost),
 	  m_ob(ob)
 {
 	if (m_ob)
@@ -73,8 +76,6 @@ CValue* KX_ParentActuator::GetReplica()
 	KX_ParentActuator* replica = new KX_ParentActuator(*this);
 	// replication just copy the m_base pointer => common random generator
 	replica->ProcessReplica();
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 
@@ -119,11 +120,11 @@ bool KX_ParentActuator::Update()
 		return false; // do nothing on negative events
 
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
-	KX_Scene *scene = PHY_GetActiveScene();
+	KX_Scene *scene = KX_GetActiveScene();
 	switch (m_mode) {
 		case KX_PARENT_SET:
 			if (m_ob)
-				obj->SetParent(scene, (KX_GameObject*)m_ob);
+				obj->SetParent(scene, (KX_GameObject*)m_ob, m_addToCompound, m_ghost);
 			break;
 		case KX_PARENT_REMOVE:
 			obj->RemoveParent(scene);
@@ -139,83 +140,65 @@ bool KX_ParentActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ParentActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"KX_ParentActuator",
-	sizeof(KX_ParentActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-PyParentObject KX_ParentActuator::Parents[] = {
-	&KX_ParentActuator::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_ParentActuator::Methods[] = {
-	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
-	{"getObject",         (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_ParentActuator::_getattr(const STR_String& attr) {
-	_getattr_up(SCA_IActuator);
-}
+PyAttributeDef KX_ParentActuator::Attributes[] = {
+	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_ParentActuator, pyattr_get_object, pyattr_set_object),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_PARENT_NODEF+1, KX_PARENT_MAX-1, true, KX_ParentActuator, m_mode),
+	KX_PYATTRIBUTE_BOOL_RW("compound", KX_ParentActuator, m_addToCompound),
+	KX_PYATTRIBUTE_BOOL_RW("ghost", KX_ParentActuator, m_ghost),
+	{ NULL }	//Sentinel
+};
 
-/* 1. setObject                                                            */
-const char KX_ParentActuator::SetObject_doc[] = 
-"setObject(object)\n"
-"\t- object: KX_GameObject, string or None\n"
-"\tSet the object to set as parent.\n";
-PyObject* KX_ParentActuator::PySetObject(PyObject* self, PyObject* value) {
-	KX_GameObject *gameobj;
-	
-	if (!ConvertPythonToGameObject(value, &gameobj, true))
-		return NULL; // ConvertPythonToGameObject sets the error
-	
-	if (m_ob != NULL)
-		m_ob->UnregisterActuator(this);	
-
-	m_ob = (SCA_IObject*)gameobj;
-	if (m_ob)
-		m_ob->RegisterActuator(this);
-	
-	Py_RETURN_NONE;
-}
-
-/* 2. getObject                                                            */
-
-/* get obj  ---------------------------------------------------------- */
-const char KX_ParentActuator::GetObject_doc[] = 
-"getObject(name_only = 1)\n"
-"name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
-"\tReturns the object that is set to.\n";
-PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args)
+PyObject* KX_ParentActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
-	int ret_name_only = 1;
-	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
-		return NULL;
-	
-	if (!m_ob)
+	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
+	if (!actuator->m_ob)	
 		Py_RETURN_NONE;
-	
-	if (ret_name_only)
-		return PyString_FromString(m_ob->GetName());
 	else
-		return m_ob->AddRef();
+		return actuator->m_ob->GetProxy();
+}
+
+int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
+	KX_GameObject *gameobj;
+		
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_ParentActuator"))
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
+		
+	if (actuator->m_ob != NULL)
+		actuator->m_ob->UnregisterActuator(actuator);	
+
+	actuator->m_ob = (SCA_IObject*) gameobj;
+		
+	if (actuator->m_ob)
+		actuator->m_ob->RegisterActuator(actuator);
+		
+	return PY_SET_ATTR_SUCCESS;
 }
 
 /* eof */

@@ -15,6 +15,10 @@
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 struct MTFace;
 class KX_Scene;
 
@@ -23,12 +27,11 @@ class KX_BlenderMaterial :  public PyObjectPlus, public RAS_IPolyMaterial
 	Py_Header;
 public:
 	// --------------------------------
-	KX_BlenderMaterial(
+	KX_BlenderMaterial();
+	void Initialize(
 		class KX_Scene*	scene,
 		BL_Material*	mat,
-		bool			skin,
-		int				lightlayer,
-		PyTypeObject*	T=&Type
+		bool			skin
 	);
 
 	virtual ~KX_BlenderMaterial();
@@ -67,7 +70,12 @@ public:
 
 	MTFace* GetMTFace(void) const;
 	unsigned int* GetMCol(void) const;
-
+	BL_Texture * getTex (unsigned int idx) { 
+		return (idx < MAXTEX) ? mTextures + idx : NULL; 
+	}
+	Image * getImage (unsigned int idx) { 
+		return (idx < MAXTEX && mMaterial) ? mMaterial->img[idx] : NULL; 
+	}
 	// for ipos
 	void UpdateIPO(
 		MT_Vector4 rgba, MT_Vector3 specrgb,
@@ -76,8 +84,7 @@ public:
 	);
 	
 	// --------------------------------
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+	virtual PyObject* py_repr(void) { return PyUnicode_FromString(mMaterial->matname.ReadPtr()); }
 
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getShader );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getMaterialIndex );
@@ -88,7 +95,7 @@ public:
 
 	// --------------------------------
 	// pre calculate to avoid pops/lag at startup
-	virtual void OnConstruction( );
+	virtual void OnConstruction(int layer);
 
 	static void	EndFrame();
 
@@ -103,12 +110,16 @@ private:
 	bool			mModified;
 	bool			mConstructed;			// if false, don't clean on exit
 
-	void SetBlenderGLSLShader();
+	void SetBlenderGLSLShader(int layer);
 
 	void ActivatGLMaterials( RAS_IRasterizer* rasty )const;
 	void ActivateTexGen( RAS_IRasterizer *ras ) const;
 
 	bool UsesLighting(RAS_IRasterizer *rasty) const;
+	void GetMaterialRGBAColor(unsigned char *rgba) const;
+	Material* GetBlenderMaterial() const;
+	Scene* GetBlenderScene() const;
+	void ReleaseMaterial();
 
 	// message centers
 	void	setTexData( bool enable,RAS_IRasterizer *ras);

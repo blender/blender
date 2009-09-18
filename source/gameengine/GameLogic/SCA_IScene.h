@@ -33,6 +33,10 @@
 
 #include "STR_String.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 struct SCA_DebugProp
 {
 	class CValue*	m_obj;
@@ -52,14 +56,21 @@ public:
 												int lifespan=0)=0;
 	virtual void	RemoveObject(class CValue* gameobj)=0;
 	virtual void	DelayedRemoveObject(class CValue* gameobj)=0;
-	virtual void	DelayedReleaseObject(class CValue* gameobj)=0;
+	//virtual void	DelayedReleaseObject(class CValue* gameobj)=0;
 	
 	virtual void	ReplaceMesh(class CValue* gameobj,
-								void* meshobj)=0;
+								void* meshobj, bool use_gfx, bool use_phys)=0;
 	std::vector<SCA_DebugProp*>& GetDebugProperties();
 	void			AddDebugProperty(class CValue* debugprop,
 									 const STR_String &name);
 	void			RemoveAllDebugProperties();
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_IScene"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_ISCENE_H

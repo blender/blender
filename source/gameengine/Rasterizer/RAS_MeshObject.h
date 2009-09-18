@@ -45,6 +45,7 @@
 #include "GEN_HashedPtr.h"
 
 struct Mesh;
+class RAS_Deformer;
 
 /* RAS_MeshObject is a mesh used for rendering. It stores polygons,
  * but the actual vertices and index arrays are stored in material
@@ -54,7 +55,6 @@ class RAS_MeshObject
 {
 private:
 	unsigned int				m_debugcolor;
-	int							m_lightlayer;
 
 	bool						m_bModified;
 	bool						m_bMeshModified;
@@ -76,7 +76,7 @@ protected:
 
 public:
 	// for now, meshes need to be in a certain layer (to avoid sorting on lights in realtime)
-	RAS_MeshObject(Mesh* mesh, int lightlayer);
+	RAS_MeshObject(Mesh* mesh);
 	virtual ~RAS_MeshObject();
 
 
@@ -89,15 +89,16 @@ public:
 
 	RAS_MeshMaterial* 	GetMeshMaterial(unsigned int matid);
 	RAS_MeshMaterial*	GetMeshMaterial(RAS_IPolyMaterial *mat);
+	int					GetMaterialId(RAS_IPolyMaterial *mat);
 
 	list<RAS_MeshMaterial>::iterator GetFirstMaterial();
 	list<RAS_MeshMaterial>::iterator GetLastMaterial();
 
-	unsigned int		GetLightLayer();
+	//unsigned int		GetLightLayer();
 
 	/* name */
-	void				SetName(STR_String name);
-	const STR_String&	GetName();
+	void				SetName(const char *name);
+	STR_String&			GetName();
 
 	/* modification state */
 	bool				MeshModified();
@@ -124,12 +125,13 @@ public:
 	/* vertex and polygon acces */
 	int					NumVertices(RAS_IPolyMaterial* mat);
 	RAS_TexVert*		GetVertex(unsigned int matid, unsigned int index);
+	const float*		GetVertexLocation(unsigned int orig_index);
 
 	int					NumPolygons();
 	RAS_Polygon*		GetPolygon(int num) const;
 	
 	/* buckets */
-	virtual void		AddMeshUser(void *clientobj);
+	virtual void		AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* deformer);
 	virtual void		UpdateBuckets(
 							void* clientobj,
 							double* oglmatrix,
@@ -139,6 +141,13 @@ public:
 							bool culled);
 
 	void				RemoveFromBuckets(void *clientobj);
+	void				EndConversion() {
+#if 0
+		m_sharedvertex_map.clear(); // SharedVertex
+		vector<vector<SharedVertex> >	shared_null(0);
+		shared_null.swap( m_sharedvertex_map ); /* really free the memory */
+#endif
+	}
 
 	/* colors */
 	void				DebugColor(unsigned int abgr);
@@ -147,6 +156,16 @@ public:
 	/* polygon sorting by Z for alpha */
 	void				SortPolygons(RAS_MeshSlot& ms, const MT_Transform &transform);
 
+
+	bool				HasColliderPolygon() {
+		int numpolys= NumPolygons();
+		for (int p=0; p<numpolys; p++)
+			if (m_Polygons[p]->IsCollider())
+				return true;
+		
+		return false;
+	}
+
 	/* for construction to find shared vertices */
 	struct SharedVertex {
 		RAS_DisplayArray *m_darray;
@@ -154,6 +173,13 @@ public:
 	};
 
 	vector<vector<SharedVertex> >	m_sharedvertex_map;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MeshObject"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_MESHOBJECT

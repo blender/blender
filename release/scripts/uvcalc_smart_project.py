@@ -43,7 +43,7 @@ selected faces, or all faces.
 
 
 from Blender import Object, Draw, Window, sys, Mesh, Geometry
-from Blender.Mathutils import CrossVecs, Matrix, Vector, RotationMatrix, DotVecs
+from Blender.Mathutils import Matrix, Vector, RotationMatrix
 import bpy
 from math import cos
 
@@ -96,7 +96,7 @@ def pointInTri2D(v, v1, v2, v3):
 		side1 = v2 - v1
 		side2 = v3 - v1
 		
-		nor = CrossVecs(side1, side2)
+		nor = side1.cross(side2)
 		
 		l1 = [side1[0], side1[1], side1[2]]
 		l2 = [side2[0], side2[1], side2[2]]
@@ -804,11 +804,11 @@ def VectoMat(vec):
 	a3 = vec.__copy__().normalize()
 	
 	up = Vector(0,0,1)
-	if abs(DotVecs(a3, up)) == 1.0:
+	if abs(a3.dot(up)) == 1.0:
 		up = Vector(0,1,0)
 	
-	a1 = CrossVecs(a3, up).normalize()
-	a2 = CrossVecs(a3, a1)
+	a1 = a3.cross(up).normalize()
+	a2 = a3.cross(a1)
 	return Matrix([a1[0], a1[1], a1[2]], [a2[0], a2[1], a2[2]], [a3[0], a3[1], a3[2]])
 
 
@@ -870,7 +870,7 @@ def main():
 	'UV Layout',\
 	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
 	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
-	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from adjacent islands.'),\
+	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.5, 'Margin to reduce bleed from adjacent islands.'),\
 	'Fill in empty areas',\
 	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
 	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
@@ -1001,7 +1001,7 @@ def main():
 			for fIdx in xrange(len(tempMeshFaces)-1, -1, -1):
 				# Use half the angle limit so we dont overweight faces towards this
 				# normal and hog all the faces.
-				if DotVecs(newProjectVec, tempMeshFaces[fIdx].no) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
+				if newProjectVec.dot(tempMeshFaces[fIdx].no) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
 					newProjectMeshFaces.append(tempMeshFaces.pop(fIdx))
 			
 			# Add the average of all these faces normals as a projectionVec
@@ -1027,7 +1027,7 @@ def main():
 				
 				# Get the closest vec angle we are to.
 				for p in projectVecs:
-					temp_angle_diff= DotVecs(p, tempMeshFaces[fIdx].no)
+					temp_angle_diff= p.dot(tempMeshFaces[fIdx].no)
 					
 					if angleDifference < temp_angle_diff:
 						angleDifference= temp_angle_diff
@@ -1066,14 +1066,14 @@ def main():
 			i = len(projectVecs)
 			
 			# Initialize first
-			bestAng = DotVecs(fvec, projectVecs[0])
+			bestAng = fvec.dot(projectVecs[0])
 			bestAngIdx = 0
 			
 			# Cycle through the remaining, first alredy done
 			while i-1:
 				i-=1
 				
-				newAng = DotVecs(fvec, projectVecs[i])
+				newAng = fvec.dot(projectVecs[i])
 				if newAng > bestAng: # Reverse logic for dotvecs
 					bestAng = newAng
 					bestAngIdx = i

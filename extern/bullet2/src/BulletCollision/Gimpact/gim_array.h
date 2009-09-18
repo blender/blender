@@ -34,11 +34,6 @@ email: projectileman@yahoo.com
 
 #include "gim_memory.h"
 
-/*! \addtogroup CONTAINERS
-\brief
-Abstract class for template containers
-*/
-//! @{
 
 #define GIM_ARRAY_GROW_INCREMENT 2
 #define GIM_ARRAY_GROW_FACTOR 2
@@ -321,11 +316,10 @@ public:
 	{
 	    resizeData(m_size);
 	}
-//!@}
+
 };
 
 
-//! @}
 
 
 

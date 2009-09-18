@@ -29,19 +29,18 @@
 #ifndef PHY_IPHYSICSCONTROLLER_H
 #define PHY_IPHYSICSCONTROLLER_H
 
-#include "PHY_DynamicTypes.h"
+#include "PHY_IController.h"
 
-
+class PHY_IMotionState;
 
 /**
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 	It contains the IMotionState and IDeformableMesh Interfaces.
 */
-class PHY_IPhysicsController	
+class PHY_IPhysicsController : public PHY_IController
 {
 
 	public:
-		
 		virtual ~PHY_IPhysicsController();
 		/**
 			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
@@ -53,6 +52,7 @@ class PHY_IPhysicsController
 		
 		virtual void		WriteMotionStateToDynamics(bool nondynaonly)=0;
 		virtual	void		WriteDynamicsToMotionState()=0;
+		virtual class PHY_IMotionState* GetMotionState() = 0;
 		// controller replication
 		virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)=0;
 
@@ -82,9 +82,7 @@ class PHY_IPhysicsController
 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
 		virtual	void		setRigidBody(bool rigid)=0;
-		// clientinfo for raycasts for example
-		virtual	void*				getNewClientInfo()=0;
-		virtual	void				setNewClientInfo(void* clientinfo)=0;
+
 		virtual PHY_IPhysicsController*	GetReplica() {return 0;}
 
 		virtual void	calcXform() =0;
@@ -92,8 +90,19 @@ class PHY_IPhysicsController
 		virtual float GetMargin() const=0;
 		virtual float GetRadius() const=0;
 		virtual void  SetRadius(float margin) = 0;
+
+		virtual float GetLinVelocityMin() const=0;
+		virtual void  SetLinVelocityMin(float val) = 0;
+		virtual float GetLinVelocityMax() const=0;
+		virtual void  SetLinVelocityMax(float val) = 0;
+		
 		PHY__Vector3	GetWorldPosition(PHY__Vector3& localpos);
 
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IPhysicsController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //PHY_IPHYSICSCONTROLLER_H

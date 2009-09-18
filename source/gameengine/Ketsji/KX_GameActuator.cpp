@@ -49,9 +49,8 @@ KX_GameActuator::KX_GameActuator(SCA_IObject *gameobj,
 								   const STR_String& filename,
 								   const STR_String& loadinganimationname,
 								   KX_Scene* scene,
-								   KX_KetsjiEngine* ketsjiengine,
-								   PyTypeObject* T)
-								   : SCA_IActuator(gameobj, T)
+								   KX_KetsjiEngine* ketsjiengine)
+								   : SCA_IActuator(gameobj)
 {
 	m_mode = mode;
 	m_filename = filename;
@@ -73,8 +72,6 @@ CValue* KX_GameActuator::GetReplica()
 {
 	KX_GameActuator* replica = new KX_GameActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	
 	return replica;
 }
@@ -132,7 +129,7 @@ bool KX_GameActuator::Update()
 			{
 				char mashal_path[512];
 				char *marshal_buffer = NULL;
-				int marshal_length;
+				unsigned int marshal_length;
 				FILE *fp = NULL;
 				
 				pathGamePythonConfig(mashal_path);
@@ -151,6 +148,8 @@ bool KX_GameActuator::Update()
 				} else {
 					printf("Warning: could not create marshal buffer\n");
 				}
+				if (marshal_buffer)
+					delete [] marshal_buffer;
 			}
 			break;
 		}
@@ -208,77 +207,34 @@ bool KX_GameActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_GameActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-		0,
-		"KX_GameActuator",
-		sizeof(KX_GameActuator),
-		0,
-		PyDestructor,
-		0,
-		__getattr,
-		__setattr,
-		0, //&MyPyCompare,
-		__repr,
-		0, //&cvalue_as_number,
-		0,
-		0,
-		0,
-		0
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"KX_GameActuator",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
-
-PyParentObject KX_GameActuator::Parents[] =
-{
-	&KX_GameActuator::Type,
-		&SCA_IActuator::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
-};
-
-
 
 PyMethodDef KX_GameActuator::Methods[] =
 {
-	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, (PY_METHODCHAR)GetFile_doc},
-	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, (PY_METHODCHAR)SetFile_doc},
 	{NULL,NULL} //Sentinel
 };
 
-/* getFile */
-const char KX_GameActuator::GetFile_doc[] = 
-"getFile()\n"
-"get the name of the file to start.\n";
-PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* kwds)
-{	
-	return PyString_FromString(m_filename);
-}
-
-/* setFile */
-const char KX_GameActuator::SetFile_doc[] =
-"setFile(name)\n"
-"set the name of the file to start.\n";
-PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	char* new_file;
-	
-	if (!PyArg_ParseTuple(args, "s", &new_file))
-	{
-		return NULL;
-	}
-	
-	m_filename = STR_String(new_file);
-
-	Py_Return;
-
-}
-	
-
-
-PyObject* KX_GameActuator::_getattr(const STR_String& attr)
-{
-	_getattr_up(SCA_IActuator);
-}
-
-
+PyAttributeDef KX_GameActuator::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW("fileName",0,100,false,KX_GameActuator,m_filename),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_GAME_NODEF+1, KX_GAME_MAX-1, true, KX_GameActuator, m_mode),
+	{ NULL }	//Sentinel
+};

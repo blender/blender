@@ -33,7 +33,8 @@
 */ 
 
 #include "BKE_customdata.h"
-
+#include "BKE_utildefines.h" // CLAMP
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_mempool.h"
@@ -44,6 +45,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <math.h>
 #include <string.h>
 
 /* number of layers to add when growing a CustomData object */
@@ -378,6 +380,156 @@ static void layerDefault_origspace_face(void *data, int count)
 	for(i = 0; i < count; i++)
 		osf[i] = default_osf;
 }
+
+/* Adapted from sculptmode.c */
+static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float v)
+{
+	int x, y, x2, y2;
+	const int st_max = st - 1;
+	float urat, vrat, uopp;
+	float d[4][3], d2[2][3];
+
+	if(u < 0)
+		u = 0;
+	else if(u >= st)
+		u = st_max;
+	if(v < 0)
+		v = 0;
+	else if(v >= st)
+		v = st_max;
+
+	x = floor(u);
+	y = floor(v);
+	x2 = x + 1;
+	y2 = y + 1;
+
+	if(x2 >= st) x2 = st_max;
+	if(y2 >= st) y2 = st_max;
+	
+	urat = u - x;
+	vrat = v - y;
+	uopp = 1 - urat;
+
+	VecCopyf(d[0], disps[y * st + x]);
+	VecCopyf(d[1], disps[y * st + x2]);
+	VecCopyf(d[2], disps[y2 * st + x]);
+	VecCopyf(d[3], disps[y2 * st + x2]);
+	VecMulf(d[0], uopp);
+	VecMulf(d[1], urat);
+	VecMulf(d[2], uopp);
+	VecMulf(d[3], urat);
+
+	VecAddf(d2[0], d[0], d[1]);
+	VecAddf(d2[1], d[2], d[3]);
+	VecMulf(d2[0], 1 - vrat);
+	VecMulf(d2[1], vrat);
+
+	VecAddf(out, d2[0], d2[1]);
+}
+
+static void layerSwap_mdisps(void *data, int *ci)
+{
+	MDisps *s = data;
+	float (*d)[3] = NULL;
+	int x, y, st;
+
+	if(!(ci[0] == 2 && ci[1] == 3 && ci[2] == 0 && ci[3] == 1)) return;
+
+	d = MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
+	st = sqrt(s->totdisp);
+
+	for(y = 0; y < st; ++y) {
+		for(x = 0; x < st; ++x) {
+			VecCopyf(d[(st - y - 1) * st + (st - x - 1)], s->disps[y * st + x]);
+		}
+	}
+	
+	if(s->disps)
+		MEM_freeN(s->disps);
+	s->disps = d;
+}
+
+static void layerInterp_mdisps(void **sources, float *weights, float *sub_weights,
+			       int count, void *dest)
+{
+	MDisps *d = dest;
+	MDisps *s = NULL;
+	int st, stl;
+	int i, x, y;
+	float crn[4][2];
+	float (*sw)[4] = NULL;
+
+	/* Initialize the destination */
+	for(i = 0; i < d->totdisp; ++i) {
+		float z[3] = {0,0,0};
+		VecCopyf(d->disps[i], z);
+	}
+
+	/* For now, some restrictions on the input */
+	if(count != 1 || !sub_weights) return;
+
+	st = sqrt(d->totdisp);
+	stl = st - 1;
+
+	sw = (void*)sub_weights;
+	for(i = 0; i < 4; ++i) {
+		crn[i][0] = 0 * sw[i][0] + stl * sw[i][1] + stl * sw[i][2] + 0 * sw[i][3];
+		crn[i][1] = 0 * sw[i][0] + 0 * sw[i][1] + stl * sw[i][2] + stl * sw[i][3];
+	}
+
+	s = sources[0];
+	for(y = 0; y < st; ++y) {
+		for(x = 0; x < st; ++x) {
+			/* One suspects this code could be cleaner. */
+			float xl = (float)x / (st - 1);
+			float yl = (float)y / (st - 1);
+			float mid1[2] = {crn[0][0] * (1 - xl) + crn[1][0] * xl,
+					 crn[0][1] * (1 - xl) + crn[1][1] * xl};
+			float mid2[2] = {crn[3][0] * (1 - xl) + crn[2][0] * xl,
+					 crn[3][1] * (1 - xl) + crn[2][1] * xl};
+			float mid3[2] = {mid1[0] * (1 - yl) + mid2[0] * yl,
+					 mid1[1] * (1 - yl) + mid2[1] * yl};
+
+			float srcdisp[3];
+
+			mdisps_bilinear(srcdisp, s->disps, st, mid3[0], mid3[1]);
+			VecCopyf(d->disps[y * st + x], srcdisp);
+		}
+	}
+}
+
+static void layerCopy_mdisps(const void *source, void *dest, int count)
+{
+	int i;
+	const MDisps *s = source;
+	MDisps *d = dest;
+
+	for(i = 0; i < count; ++i) {
+		if(s[i].disps) {
+			d[i].disps = MEM_dupallocN(s[i].disps);
+			d[i].totdisp = s[i].totdisp;
+		}
+		else {
+			d[i].disps = NULL;
+			d[i].totdisp = 0;
+		}
+		
+	}
+}
+
+static void layerFree_mdisps(void *data, int count, int size)
+{
+	int i;
+	MDisps *d = data;
+
+	for(i = 0; i < count; ++i) {
+		if(d[i].disps)
+			MEM_freeN(d[i].disps);
+		d[i].disps = NULL;
+		d[i].totdisp = 0;
+	}
+}
+
 /* --------- */
 
 static void layerDefault_mloopcol(void *data, int count)
@@ -421,6 +573,14 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 			col.b += src->b * weight;
 		}
 	}
+	
+	/* Subdivide smooth or fractal can cause problems without clamping
+	 * although weights should also not cause this situation */
+	CLAMP(col.a, 0.0f, 255.0f);
+	CLAMP(col.r, 0.0f, 255.0f);
+	CLAMP(col.g, 0.0f, 255.0f);
+	CLAMP(col.b, 0.0f, 255.0f);
+	
 	mc->a = (int)col.a;
 	mc->r = (int)col.r;
 	mc->g = (int)col.g;
@@ -496,6 +656,14 @@ static void layerInterp_mcol(void **sources, float *weights,
 	}
 
 	for(j = 0; j < 4; ++j) {
+		
+		/* Subdivide smooth or fractal can cause problems without clamping
+		 * although weights should also not cause this situation */
+		CLAMP(col[j].a, 0.0f, 255.0f);
+		CLAMP(col[j].r, 0.0f, 255.0f);
+		CLAMP(col[j].g, 0.0f, 255.0f);
+		CLAMP(col[j].b, 0.0f, 255.0f);
+		
 		mc[j].a = (int)col[j].a;
 		mc[j].r = (int)col[j].r;
 		mc[j].g = (int)col[j].g;
@@ -553,27 +721,32 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL},
 	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, layerDefault_mloopcol},
-	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
+	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
+	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL},
+	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
+	 layerSwap_mcol, layerDefault_mcol},
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
 	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
-	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent"};
+	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
+	"CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol"};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
 const CustomDataMask CD_MASK_MESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
-	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
+	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS;
 const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
-	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
+	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS;
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
-	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT;
+	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | CD_MASK_WEIGHT_MCOL;
 const CustomDataMask CD_MASK_BMESH = 
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
 const CustomDataMask CD_MASK_FACECORNERS =
@@ -606,7 +779,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 {
 	const LayerTypeInfo *typeInfo;
 	CustomDataLayer *layer, *newlayer;
-	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0;
+	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0;
 
 	for(i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
@@ -618,13 +791,15 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			number = 0;
 			lastactive = layer->active;
 			lastrender = layer->active_rnd;
+			lastclone = layer->active_clone;
+			lastmask = layer->active_mask;
 			lasttype = type;
 		}
 		else
 			number++;
 
 		if(layer->flag & CD_FLAG_NOCOPY) continue;
-		else if(!(mask & (1 << type))) continue;
+		else if(!((int)mask & (int)(1 << (int)type))) continue;
 		else if(number < CustomData_number_of_layers(dest, type)) continue;
 
 		if((alloctype == CD_ASSIGN) && (layer->flag & CD_FLAG_NOFREE))
@@ -637,6 +812,8 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 		if(newlayer) {
 			newlayer->active = lastactive;
 			newlayer->active_rnd = lastrender;
+			newlayer->active_clone = lastclone;
+			newlayer->active_mask = lastmask;
 		}
 	}
 }
@@ -736,6 +913,28 @@ int CustomData_get_render_layer_index(const CustomData *data, int type)
 	return -1;
 }
 
+int CustomData_get_clone_layer_index(const CustomData *data, int type)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			return i + data->layers[i].active_clone;
+
+	return -1;
+}
+
+int CustomData_get_mask_layer_index(const CustomData *data, int type)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			return i + data->layers[i].active_mask;
+
+	return -1;
+}
+
 int CustomData_get_active_layer(const CustomData *data, int type)
 {
 	int i;
@@ -758,6 +957,27 @@ int CustomData_get_render_layer(const CustomData *data, int type)
 	return -1;
 }
 
+int CustomData_get_clone_layer(const CustomData *data, int type)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			return data->layers[i].active_clone;
+
+	return -1;
+}
+
+int CustomData_get_mask_layer(const CustomData *data, int type)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			return data->layers[i].active_mask;
+
+	return -1;
+}
 
 void CustomData_set_layer_active(CustomData *data, int type, int n)
 {
@@ -775,6 +995,24 @@ void CustomData_set_layer_render(CustomData *data, int type, int n)
 	for(i=0; i < data->totlayer; ++i)
 		if(data->layers[i].type == type)
 			data->layers[i].active_rnd = n;
+}
+
+void CustomData_set_layer_clone(CustomData *data, int type, int n)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			data->layers[i].active_clone = n;
+}
+
+void CustomData_set_layer_mask(CustomData *data, int type, int n)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			data->layers[i].active_mask = n;
 }
 
 /* for using with an index from CustomData_get_active_layer_index and CustomData_get_render_layer_index */
@@ -796,6 +1034,23 @@ void CustomData_set_layer_render_index(CustomData *data, int type, int n)
 			data->layers[i].active_rnd = n-i;
 }
 
+void CustomData_set_layer_clone_index(CustomData *data, int type, int n)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			data->layers[i].active_clone = n-i;
+}
+
+void CustomData_set_layer_mask_index(CustomData *data, int type, int n)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			data->layers[i].active_mask = n-i;
+}
 
 void CustomData_set_layer_flag(struct CustomData *data, int type, int flag)
 {
@@ -882,9 +1137,13 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	if(index > 0 && data->layers[index-1].type == type) {
 		data->layers[index].active = data->layers[index-1].active;
 		data->layers[index].active_rnd = data->layers[index-1].active_rnd;
+		data->layers[index].active_clone = data->layers[index-1].active_clone;
+		data->layers[index].active_mask = data->layers[index-1].active_mask;
 	} else {
 		data->layers[index].active = 0;
 		data->layers[index].active_rnd = 0;
+		data->layers[index].active_clone = 0;
+		data->layers[index].active_mask = 0;
 	}
 	
 	customData_update_offsets(data);
@@ -944,6 +1203,8 @@ int CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 			for (; i < data->totlayer && data->layers[i].type == type; i++) {
 				data->layers[i].active--;
 				data->layers[i].active_rnd--;
+				data->layers[i].active_clone--;
+				data->layers[i].active_mask--;
 			}
 	}
 
@@ -1056,7 +1317,7 @@ void CustomData_set_only_copy(const struct CustomData *data,
 	int i;
 
 	for(i = 0; i < data->totlayer; ++i)
-		if(!(mask & (1 << data->layers[i].type)))
+		if(!((int)mask & (int)(1 << (int)data->layers[i].type)))
 			data->layers[i].flag |= CD_FLAG_NOCOPY;
 }
 

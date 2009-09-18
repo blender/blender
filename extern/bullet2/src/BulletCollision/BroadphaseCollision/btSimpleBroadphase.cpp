@@ -55,6 +55,7 @@ btSimpleBroadphase::btSimpleBroadphase(int maxProxies, btOverlappingPairCache* o
 	m_maxHandles = maxProxies;
 	m_numHandles = 0;
 	m_firstFreeHandle = 0;
+	m_LastHandleIndex = -1;
 	
 
 	{
@@ -88,7 +89,7 @@ btBroadphaseProxy*	btSimpleBroadphase::createProxy(  const btVector3& aabbMin,  
 		btAssert(0);
 		return 0; //should never happen, but don't let the game crash ;-)
 	}
-	assert(aabbMin[0]<= aabbMax[0] && aabbMin[1]<= aabbMax[1] && aabbMin[2]<= aabbMax[2]);
+	btAssert(aabbMin[0]<= aabbMax[0] && aabbMin[1]<= aabbMax[1] && aabbMin[2]<= aabbMax[2]);
 
 	int newHandleIndex = allocHandle();
 	btSimpleBroadphaseProxy* proxy = new (&m_pHandles[newHandleIndex])btSimpleBroadphaseProxy(aabbMin,aabbMax,shapeType,userPtr,collisionFilterGroup,collisionFilterMask,multiSapProxy);
@@ -137,14 +138,32 @@ void	btSimpleBroadphase::destroyProxy(btBroadphaseProxy* proxyOrg,btDispatcher* 
 		
 }
 
+void	btSimpleBroadphase::getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const
+{
+	const btSimpleBroadphaseProxy* sbp = getSimpleProxyFromProxy(proxy);
+	aabbMin = sbp->m_aabbMin;
+	aabbMax = sbp->m_aabbMax;
+}
+
 void	btSimpleBroadphase::setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax, btDispatcher* /*dispatcher*/)
 {
 	btSimpleBroadphaseProxy* sbp = getSimpleProxyFromProxy(proxy);
-	sbp->m_min = aabbMin;
-	sbp->m_max = aabbMax;
+	sbp->m_aabbMin = aabbMin;
+	sbp->m_aabbMax = aabbMax;
 }
 
-
+void	btSimpleBroadphase::rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback, const btVector3& aabbMin,const btVector3& aabbMax)
+{
+	for (int i=0; i <= m_LastHandleIndex; i++)
+	{
+		btSimpleBroadphaseProxy* proxy = &m_pHandles[i];
+		if(!proxy->m_clientObject)
+		{
+			continue;
+		}
+		rayCallback.process(proxy);
+	}
+}
 
 
 
@@ -154,9 +173,9 @@ void	btSimpleBroadphase::setAabb(btBroadphaseProxy* proxy,const btVector3& aabbM
 
 bool	btSimpleBroadphase::aabbOverlap(btSimpleBroadphaseProxy* proxy0,btSimpleBroadphaseProxy* proxy1)
 {
-	return proxy0->m_min[0] <= proxy1->m_max[0] && proxy1->m_min[0] <= proxy0->m_max[0] && 
-		   proxy0->m_min[1] <= proxy1->m_max[1] && proxy1->m_min[1] <= proxy0->m_max[1] &&
-		   proxy0->m_min[2] <= proxy1->m_max[2] && proxy1->m_min[2] <= proxy0->m_max[2];
+	return proxy0->m_aabbMin[0] <= proxy1->m_aabbMax[0] && proxy1->m_aabbMin[0] <= proxy0->m_aabbMax[0] && 
+		   proxy0->m_aabbMin[1] <= proxy1->m_aabbMax[1] && proxy1->m_aabbMin[1] <= proxy0->m_aabbMax[1] &&
+		   proxy0->m_aabbMin[2] <= proxy1->m_aabbMax[2] && proxy1->m_aabbMin[2] <= proxy0->m_aabbMax[2];
 
 }
 
@@ -176,18 +195,25 @@ void	btSimpleBroadphase::calculateOverlappingPairs(btDispatcher* dispatcher)
 {
 	//first check for new overlapping pairs
 	int i,j;
-
 	if (m_numHandles >= 0)
 	{
-
-		for (i=0;i<m_numHandles;i++)
+		int new_largest_index = -1;
+		for (i=0; i <= m_LastHandleIndex; i++)
 		{
 			btSimpleBroadphaseProxy* proxy0 = &m_pHandles[i];
-
-			for (j=i+1;j<m_numHandles;j++)
+			if(!proxy0->m_clientObject)
+			{
+				continue;
+			}
+			new_largest_index = i;
+			for (j=i+1; j <= m_LastHandleIndex; j++)
 			{
 				btSimpleBroadphaseProxy* proxy1 = &m_pHandles[j];
 				btAssert(proxy0 != proxy1);
+				if(!proxy1->m_clientObject)
+				{
+					continue;
+				}
 
 				btSimpleBroadphaseProxy* p0 = getSimpleProxyFromProxy(proxy0);
 				btSimpleBroadphaseProxy* p1 = getSimpleProxyFromProxy(proxy1);
@@ -210,6 +236,8 @@ void	btSimpleBroadphase::calculateOverlappingPairs(btDispatcher* dispatcher)
 				}
 			}
 		}
+
+		m_LastHandleIndex = new_largest_index;
 
 		if (m_ownsPairCache && m_pairCache->hasDeferredRemoval())
 		{
@@ -296,5 +324,7 @@ bool btSimpleBroadphase::testAabbOverlap(btBroadphaseProxy* proxy0,btBroadphaseP
 	return aabbOverlap(p0,p1);
 }
 
-
-
+void	btSimpleBroadphase::resetPool(btDispatcher* dispatcher)
+{
+	//not yet
+}

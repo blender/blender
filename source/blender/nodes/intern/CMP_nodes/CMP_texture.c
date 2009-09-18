@@ -91,19 +91,13 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 	
 	if(node->id) {
 		RenderData *rd= data;
-		RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name)); /* G.scene is WEAK! */
 		short sizex, sizey;
 		
 		/* first make the preview image */
 		CompBuf *prevbuf= alloc_compbuf(140, 140, CB_RGBA, 1); /* alloc */
 		
-		if (rr) {
-			sizex = rr->rectx;
-			sizey = rr->recty;
-		} else {
-			sizex = rd->xsch;
-			sizey = rd->ysch;
-		}
+		sizex = rd->xsch;
+		sizey = rd->ysch;
 		
 		prevbuf->rect_procedural= texture_procedural;
 		prevbuf->node= node;

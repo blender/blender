@@ -1,10 +1,10 @@
 #dxfLibrary.py : provides functions for generating DXF files
 # --------------------------------------------------------------------------
-__version__ = "v1.27beta - 2008.10.05"
-__author__  = "Stani Michiels(Stani), Remigiusz Fiedler(migius)"
+__version__ = "v1.33 - 2009.06.16"
+__author__ = "Stani Michiels(Stani), Remigiusz Fiedler(migius)"
 __license__ = "GPL"
-__url__	 = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
-__bpydoc__ ="""The script exports geometry data to DXF format r12 version.
+__url__ = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
+__bpydoc__ ="""The library to export geometry data to DXF format r12 version.
 
 Copyright %s
 Version %s
@@ -12,33 +12,51 @@ License %s
 Homepage %s
 
 See the homepage for documentation.
-url:
+Dedicated thread on BlenderArtists: http://blenderartists.org/forum/showthread.php?t=136439
 
 IDEAs:
 -
-		
+
 TODO:
--
+- add support for DXFr14 (needs extended file header)
+- add support for SPLINEs (possible first in DXFr14 version)
+- add user preset for floating point precision (3-16?)
 
 History
+v1.33 - 2009.06.16 by migius
+ - modif _point(): converts all coords to floats
+ - modif LineType class: implement elements
+ - added VPORT class, incl. defaults
+ - fix Insert class
+v1.32 - 2009.06.06 by migius
+ - modif Style class: changed defaults to widthFactor=1.0, obliqueAngle=0.0
+ - modif Text class: alignment parameter reactivated
+v1.31 - 2009.06.02 by migius
+ - modif _Entity class: added paperspace,elevation
+v1.30 - 2009.05.28 by migius
+ - bugfix 3dPOLYLINE/POLYFACE: VERTEX needs x,y,z coordinates, index starts with 1 not 0
+v1.29 - 2008.12.28 by Yorik
+ - modif POLYLINE to support bulge segments
+v1.28 - 2008.12.13 by Steeve/BlenderArtists
+ - bugfix for EXTMIN/EXTMAX to suit Cycas-CAD
 v1.27 - 2008.10.07 by migius
-- beautifying output code: keys whitespace prefix
-- refactoring DXF-strings format: NewLine moved to the end of
+ - beautifying output code: keys whitespace prefix
+ - refactoring DXF-strings format: NewLine moved to the end of
 v1.26 - 2008.10.05 by migius
-- modif POLYLINE to support POLYFACE
+ - modif POLYLINE to support POLYFACE
 v1.25 - 2008.09.28 by migius
-- modif FACE class for r12
+ - modif FACE class for r12
 v1.24 - 2008.09.27 by migius
-- modif POLYLINE class for r12
-- changing output format from r9 to r12(AC1009)
+ - modif POLYLINE class for r12
+ - changing output format from r9 to r12(AC1009)
 v1.1 (20/6/2005) by www.stani.be/python/sdxf
-- Python library to generate dxf drawings
+ - Python library to generate dxf drawings
 ______________________________________________________________
 """ % (__author__,__version__,__license__,__url__)
 
 # --------------------------------------------------------------------------
 # DXF Library: copyright (C) 2005 by Stani Michiels (AKA Stani)
-#                            2008 modif by Remigiusz Fiedler (AKA migius)
+#                       2008/2009 modif by Remigiusz Fiedler (AKA migius)
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -76,12 +94,11 @@ _HEADER_POINTS=['insbase','extmin','extmax']
 def _point(x,index=0):
 	"""Convert tuple to a dxf point"""
 	#print 'deb: _point=', x #-------------
-	return '\n'.join([' %s\n%s'%((i+1)*10+index,x[i]) for i in range(len(x))])
+	return '\n'.join([' %s\n%s'%((i+1)*10+index,float(x[i])) for i in range(len(x))])
 
 def _points(plist):
 	"""Convert a list of tuples to dxf points"""
 	out = '\n'.join([_point(plist[i],i)for i in range(len(plist))])
-	#print 'deb: points=\n', out #-------------------
 	return out
 
 #---base classes----------------------------------------
@@ -100,17 +117,21 @@ class _Call:
 #-------------------------------------------------------
 class _Entity(_Call):
 	"""Base class for _common group codes for entities."""
-	def __init__(self,color=None,extrusion=None,layer='0',
+	def __init__(self,paperspace=None,color=None,layer='0',
 				 lineType=None,lineTypeScale=None,lineWeight=None,
-				 thickness=None,parent=None):
+				 extrusion=None,elevation=None,thickness=None,
+				 parent=None):
 		"""None values will be omitted."""
+		self.paperspace	  = paperspace
 		self.color		  = color
-		self.extrusion	  = extrusion
 		self.layer		  = layer
 		self.lineType	   = lineType
 		self.lineTypeScale  = lineTypeScale
 		self.lineWeight	 = lineWeight
+		self.extrusion	  = extrusion
+		self.elevation	  = elevation
 		self.thickness	  = thickness
+		#self.visible	  = visible
 		self.parent		 = parent
 
 	def _common(self):
@@ -118,13 +139,16 @@ class _Entity(_Call):
 		if self.parent:parent=self.parent
 		else:parent=self
 		result =''
+		if parent.paperspace==1: result+='  67\n1\n'
 		if parent.layer!=None: result+='  8\n%s\n'%parent.layer
 		if parent.color!=None: result+=' 62\n%s\n'%parent.color
-		if parent.extrusion!=None: result+='%s\n'%_point(parent.extrusion,200)
 		if parent.lineType!=None: result+='  6\n%s\n'%parent.lineType
-		#TODO: if parent.lineWeight!=None: result+='370\n%s\n'%parent.lineWeight
+		# TODO: if parent.lineWeight!=None: result+='370\n%s\n'%parent.lineWeight
+		# TODO: if parent.visible!=None: result+='60\n%s\n'%parent.visible
 		if parent.lineTypeScale!=None: result+=' 48\n%s\n'%parent.lineTypeScale
+		if parent.elevation!=None: result+=' 38\n%s\n'%parent.elevation
 		if parent.thickness!=None: result+=' 39\n%s\n'%parent.thickness
+		if parent.extrusion!=None: result+='%s\n'%_point(parent.extrusion,200)
 		return result
 
 #--------------------------
@@ -154,56 +178,56 @@ BYBLOCK=0
 BYLAYER=256
 
 #---block-type flags (bit coded values, may be combined):
-ANONYMOUS			   =1  # This is an anonymous block generated by hatching, associative dimensioning, other internal operations, or an application
+ANONYMOUS =1  # This is an anonymous block generated by hatching, associative dimensioning, other internal operations, or an application
 NON_CONSTANT_ATTRIBUTES =2  # This block has non-constant attribute definitions (this bit is not set if the block has any attribute definitions that are constant, or has no attribute definitions at all)
-XREF					=4  # This block is an external reference (xref)
-XREF_OVERLAY			=8  # This block is an xref overlay
-EXTERNAL				=16 # This block is externally dependent
-RESOLVED				=32 # This is a resolved external reference, or dependent of an external reference (ignored on input)
-REFERENCED			  =64 # This definition is a referenced external reference (ignored on input)
+XREF =4  # This block is an external reference (xref)
+XREF_OVERLAY =8  # This block is an xref overlay
+EXTERNAL =16 # This block is externally dependent
+RESOLVED =32 # This is a resolved external reference, or dependent of an external reference (ignored on input)
+REFERENCED =64 # This definition is a referenced external reference (ignored on input)
 
 #---mtext flags
 #attachment point
-TOP_LEFT		= 1
-TOP_CENTER	  = 2
-TOP_RIGHT	   = 3
-MIDDLE_LEFT	 = 4
-MIDDLE_CENTER   = 5
+TOP_LEFT = 1
+TOP_CENTER = 2
+TOP_RIGHT = 3
+MIDDLE_LEFT = 4
+MIDDLE_CENTER = 5
 MIDDLE_RIGHT	= 6
-BOTTOM_LEFT	 = 7
-BOTTOM_CENTER   = 8
-BOTTOM_RIGHT	= 9
+BOTTOM_LEFT = 7
+BOTTOM_CENTER = 8
+BOTTOM_RIGHT = 9
 #drawing direction
-LEFT_RIGHT	  = 1
-TOP_BOTTOM	  = 3
-BY_STYLE		= 5 #the flow direction is inherited from the associated text style
+LEFT_RIGHT = 1
+TOP_BOTTOM = 3
+BY_STYLE = 5 #the flow direction is inherited from the associated text style
 #line spacing style (optional):
-AT_LEAST		= 1 #taller characters will override
-EXACT		   = 2 #taller characters will not override
+AT_LEAST = 1 #taller characters will override
+EXACT = 2 #taller characters will not override
 
 #---polyline flags
-CLOSED					  =1	  # This is a closed polyline (or a polygon mesh closed in the M direction)
-CURVE_FIT				   =2	  # Curve-fit vertices have been added
-SPLINE_FIT				  =4	  # Spline-fit vertices have been added
-POLYLINE_3D				 =8	  # This is a 3D polyline
-POLYGON_MESH				=16	 # This is a 3D polygon mesh
-CLOSED_N					=32	 # The polygon mesh is closed in the N direction
-POLYFACE_MESH			   =64	 # The polyline is a polyface mesh
-CONTINOUS_LINETYPE_PATTERN  =128	# The linetype pattern is generated continuously around the vertices of this polyline
+CLOSED =1	  # This is a closed polyline (or a polygon mesh closed in the M direction)
+CURVE_FIT =2	  # Curve-fit vertices have been added
+SPLINE_FIT =4	  # Spline-fit vertices have been added
+POLYLINE_3D =8	  # This is a 3D polyline
+POLYGON_MESH =16	 # This is a 3D polygon mesh
+CLOSED_N =32	 # The polygon mesh is closed in the N direction
+POLYFACE_MESH =64	 # The polyline is a polyface mesh
+CONTINOUS_LINETYPE_PATTERN =128	# The linetype pattern is generated continuously around the vertices of this polyline
 
 #---text flags
 #horizontal
-LEFT		= 0
-CENTER	  = 1
-RIGHT	   = 2
-ALIGNED	 = 3 #if vertical alignment = 0
-MIDDLE	  = 4 #if vertical alignment = 0
-FIT		 = 5 #if vertical alignment = 0
+LEFT = 0
+CENTER = 1
+RIGHT = 2
+ALIGNED = 3 #if vertical alignment = 0
+MIDDLE = 4 #if vertical alignment = 0
+FIT = 5 #if vertical alignment = 0
 #vertical
-BASELINE	= 0
-BOTTOM	  = 1
-MIDDLE	  = 2
-TOP		 = 3
+BASELINE = 0
+BOTTOM	= 1
+MIDDLE = 2
+TOP = 3
 
 ####3) Classes
 #---entitities -----------------------------------------------
@@ -239,7 +263,7 @@ class Face(_Entity):
 	"""3dface"""
 	def __init__(self,points,**common):
 		_Entity.__init__(self,**common)
-		if len(points)<4: #fix for r12 format
+		while len(points)<4: #fix for r12 format
 			points.append(points[-1])
 		self.points=points
 		
@@ -269,7 +293,7 @@ class Insert(_Entity):
 		self.rotation=rotation
 
 	def __str__(self):
-		result='  0\nINSERT\n  2\n%s\n%s\n%s\n'%\
+		result='  0\nINSERT\n  2\n%s\n%s%s\n'%\
 				(self.name,self._common(),_point(self.point))
 		if self.xscale!=None:result+=' 41\n%s\n'%self.xscale
 		if self.yscale!=None:result+=' 42\n%s\n'%self.yscale
@@ -295,51 +319,80 @@ class Line(_Entity):
 #-----------------------------------------------
 class PolyLine(_Entity):
 	def __init__(self,points,org_point=[0,0,0],flag=0,width=None,**common):
+		#width = number, or width = list [width_start=None, width_end=None]
+		#for 2d-polyline: points = [ [x, y, z, width_start=None, width_end=None, bulge=0 or None], ...]
+		#for 3d-polyline: points = [ [x, y, z], ...]
+		#for polyface: points = [points_list, faces_list]
 		_Entity.__init__(self,**common)
 		self.points=points
 		self.org_point=org_point
 		self.flag=flag
-		if self.flag==64:
+		self.polyface = False
+		self.polyline2d = False
+		self.faces = [] # dummy value
+		self.width= None # dummy value
+		if self.flag & POLYFACE_MESH:
+			self.polyface=True
 			self.points=points[0]
 			self.faces=points[1]
 			self.p_count=len(self.points)
 			self.f_count=len(self.faces)
-		self.width=width
+		elif not self.flag & POLYLINE_3D:
+			self.polyline2d = True
+			if width:
+				if type(width)!='list':
+					width=[width,width]
+				self.width=width
 
 	def __str__(self):
 		result= '  0\nPOLYLINE\n%s 70\n%s\n' %(self._common(),self.flag)
-		#print 'deb: self._common()', self._common() #----------
 		result+=' 66\n1\n'
 		result+='%s\n' %_point(self.org_point)
-		if self.flag==64:
+		if self.polyface:
 			result+=' 71\n%s\n' %self.p_count
 			result+=' 72\n%s\n' %self.f_count
+		elif self.polyline2d:
+			if self.width!=None: result+=' 40\n%s\n 41\n%s\n' %(self.width[0],self.width[1])
 		for point in self.points:
 			result+='  0\nVERTEX\n'
 			result+='  8\n%s\n' %self.layer
-			result+='%s\n' %_point(point)
-			if self.flag==64: result+=' 70\n192\n'
-			if self.width: result+=' 40\n%s\n 41\n%s\n' %(self.width,self.width)
-		if self.flag==64:
-			for face in self.faces:
-				result+='  0\nVERTEX\n'
-				result+='  8\n%s\n' %self.layer
-				result+='%s\n' %_point(self.org_point)
-				result+=' 70\n128\n'
-				result+=' 71\n%s\n' %face[0]
-				result+=' 72\n%s\n' %face[1]
-				result+=' 73\n%s\n' %face[2]
-				if len(face)==4: result+=' 74\n%s\n' %face[3]
+			if self.polyface:
+				result+='%s\n' %_point(point[0:3])
+				result+=' 70\n192\n'
+			elif self.polyline2d:
+				result+='%s\n' %_point(point[0:2])
+				if len(point)>4:
+					width1, width2 = point[3], point[4]
+					if width1!=None: result+=' 40\n%s\n' %width1
+					if width2!=None: result+=' 41\n%s\n' %width2
+				if len(point)==6:
+					bulge = point[5]
+					if bulge: result+=' 42\n%s\n' %bulge
+			else:
+				result+='%s\n' %_point(point[0:3])
+		for face in self.faces:
+			result+='  0\nVERTEX\n'
+			result+='  8\n%s\n' %self.layer
+			result+='%s\n' %_point(self.org_point)
+			result+=' 70\n128\n'
+			result+=' 71\n%s\n' %face[0]
+			result+=' 72\n%s\n' %face[1]
+			result+=' 73\n%s\n' %face[2]
+			if len(face)==4: result+=' 74\n%s\n' %face[3]
 		result+='  0\nSEQEND\n'
 		result+='  8\n%s\n' %self.layer
 		return result
 
 #-----------------------------------------------
 class Point(_Entity):
-	"""Colored solid fill."""
+	"""Point."""
 	def __init__(self,points=None,**common):
 		_Entity.__init__(self,**common)
 		self.points=points
+	def __str__(self): # TODO:
+		return '  0\nPOINT\n%s%s\n' %(self._common(),
+			 _points(self.points)
+			)
 
 #-----------------------------------------------
 class Solid(_Entity):
@@ -380,7 +433,7 @@ class Text(_Entity):
 		if self.style: result+='  7\n%s\n'%self.style
 		if self.flag: result+=' 71\n%s\n'%self.flag
 		if self.justifyhor: result+=' 72\n%s\n'%self.justifyhor
-		#TODO: if self.alignment: result+='%s\n'%_point(self.alignment,1)
+		if self.alignment: result+='%s\n'%_point(self.alignment,1)
 		if self.justifyver: result+=' 73\n%s\n'%self.justifyver
 		return result
 
@@ -468,7 +521,7 @@ class Block(_Collection):
 		self.name=name
 		self.flag=0
 		self.base=base
-	def __str__(self):
+	def __str__(self): # TODO:
 		e=''.join([str(x)for x in self.entities])
 		return '  0\nBLOCK\n  8\n%s\n  2\n%s\n 70\n%s\n%s\n  3\n%s\n%s  0\nENDBLK\n'%\
 			   (self.layer,self.name.upper(),self.flag,_point(self.base),self.name.upper(),e)
@@ -488,20 +541,27 @@ class Layer(_Call):
 #-----------------------------------------------
 class LineType(_Call):
 	"""Custom linetype"""
-	def __init__(self,name='continuous',description='Solid line',elements=[],flag=64):
-		# TODO: Implement lineType elements
+	def __init__(self,name='CONTINUOUS',description='Solid line',elements=[0.0],flag=0):
 		self.name=name
 		self.description=description
 		self.elements=copy.copy(elements)
 		self.flag=flag
 	def __str__(self):
-		return '  0\nLTYPE\n  2\n%s\n 70\n%s\n  3\n%s\n 72\n65\n 73\n%s\n 40\n0.0\n'%\
-			(self.name.upper(),self.flag,self.description,len(self.elements))
+		result = '  0\nLTYPE\n  2\n%s\n 70\n%s\n  3\n%s\n 72\n65\n'%\
+			(self.name.upper(),self.flag,self.description)
+		if self.elements:
+			elements = ' 73\n%s\n' %(len(self.elements)-1)
+			elements += ' 40\n%s\n' %(self.elements[0])
+			for e in self.elements[1:]:
+				elements += ' 49\n%s\n' %e
+			result += elements
+		return result
+		 
 
 #-----------------------------------------------
 class Style(_Call):
 	"""Text style"""
-	def __init__(self,name='standard',flag=0,height=0,widthFactor=40,obliqueAngle=50,
+	def __init__(self,name='standard',flag=0,height=0,widthFactor=1.0,obliqueAngle=0.0,
 				 mirror=0,lastHeight=1,font='arial.ttf',bigFont=''):
 		self.name=name
 		self.flag=flag
@@ -519,27 +579,137 @@ class Style(_Call):
 				self.font.upper(),self.bigFont.upper())
 
 #-----------------------------------------------
-class View(_Call):
-	def __init__(self,name,flag=0,width=1,height=1,center=(0.5,0.5),
-				 direction=(0,0,1),target=(0,0,0),lens=50,
-				 frontClipping=0,backClipping=0,twist=0,mode=0):
+class VPort(_Call):
+	def __init__(self,name,flag=0,
+				leftBottom=(0.0,0.0),
+				rightTop=(1.0,1.0),
+				center=(0.5,0.5),
+				snap_base=(0.0,0.0),
+				snap_spacing=(0.1,0.1),
+				grid_spacing=(0.1,0.1),
+				direction=(0.0,0.0,1.0),
+				target=(0.0,0.0,0.0),
+				height=1.0,
+				ratio=1.0,
+				lens=50,
+				frontClipping=0,
+				backClipping=0,
+				snap_rotation=0,
+				twist=0,
+				mode=0,
+				circle_zoom=100,
+				fast_zoom=1,
+				ucsicon=1,
+				snap_on=0,
+				grid_on=0,
+				snap_style=0,
+				snap_isopair=0
+				):
 		self.name=name
 		self.flag=flag
-		self.width=width
-		self.height=height
+		self.leftBottom=leftBottom
+		self.rightTop=rightTop
+		self.center=center
+		self.snap_base=snap_base
+		self.snap_spacing=snap_spacing
+		self.grid_spacing=grid_spacing
+		self.direction=direction
+		self.target=target
+		self.height=float(height)
+		self.ratio=float(ratio)
+		self.lens=float(lens)
+		self.frontClipping=float(frontClipping)
+		self.backClipping=float(backClipping)
+		self.snap_rotation=float(snap_rotation)
+		self.twist=float(twist)
+		self.mode=mode
+		self.circle_zoom=circle_zoom
+		self.fast_zoom=fast_zoom
+		self.ucsicon=ucsicon
+		self.snap_on=snap_on
+		self.grid_on=grid_on
+		self.snap_style=snap_style
+		self.snap_isopair=snap_isopair
+	def __str__(self):
+		output = ['  0', 'VPORT',
+			'  2', self.name,
+			' 70', self.flag,
+			_point(self.leftBottom),
+			_point(self.rightTop,1),
+			_point(self.center,2), # View center point (in DCS)
+			_point(self.snap_base,3),
+			_point(self.snap_spacing,4),
+			_point(self.grid_spacing,5),
+			_point(self.direction,6), #view direction from target (in WCS)
+			_point(self.target,7),
+			' 40', self.height,
+			' 41', self.ratio,
+			' 42', self.lens,
+			' 43', self.frontClipping,
+			' 44', self.backClipping,
+			' 50', self.snap_rotation,
+			' 51', self.twist,
+			' 71', self.mode,
+			' 72', self.circle_zoom,
+			' 73', self.fast_zoom,
+			' 74', self.ucsicon,
+			' 75', self.snap_on,
+			' 76', self.grid_on,
+			' 77', self.snap_style,
+			' 78', self.snap_isopair
+			]
+
+		output_str = ''
+		for s in output:
+			output_str += '%s\n' %s
+		return output_str
+
+
+
+#-----------------------------------------------
+class View(_Call):
+	def __init__(self,name,flag=0,
+			width=1,
+			height=1,
+			center=(0.5,0.5),
+			direction=(0,0,1),
+			target=(0,0,0),
+			lens=50,
+			frontClipping=0,
+			backClipping=0,
+			twist=0,mode=0
+			):
+		self.name=name
+		self.flag=flag
+		self.width=float(width)
+		self.height=float(height)
 		self.center=center
 		self.direction=direction
 		self.target=target
-		self.lens=lens
-		self.frontClipping=frontClipping
-		self.backClipping=backClipping
-		self.twist=twist
+		self.lens=float(lens)
+		self.frontClipping=float(frontClipping)
+		self.backClipping=float(backClipping)
+		self.twist=float(twist)
 		self.mode=mode
 	def __str__(self):
-		return '  0\nVIEW\n  2\n%s\n 70\n%s\n 40\n%s\n%s\n 41\n%s\n%s\n%s\n 42\n%s\n 43\n%s\n 44\n%s\n 50\n%s\n 71\n%s\n'%\
-			   (self.name,self.flag,self.height,_point(self.center),self.width,
-				_point(self.direction,1),_point(self.target,2),self.lens,
-				self.frontClipping,self.backClipping,self.twist,self.mode)
+		output = ['  0', 'VIEW',
+			'  2', self.name,
+			' 70', self.flag,
+			' 40', self.height,
+			_point(self.center),
+			' 41', self.width,
+			_point(self.direction,1),
+			_point(self.target,2),
+			' 42', self.lens,
+			' 43', self.frontClipping,
+			' 44', self.backClipping,
+			' 50', self.twist,
+			' 71', self.mode
+			]
+		output_str = ''
+		for s in output:
+			output_str += '%s\n' %s
+		return output_str
 
 #-----------------------------------------------
 def ViewByWindow(name,leftBottom=(0,0),rightTop=(1,1),**options):
@@ -552,11 +722,12 @@ def ViewByWindow(name,leftBottom=(0,0),rightTop=(1,1),**options):
 #-----------------------------------------------
 class Drawing(_Collection):
 	"""Dxf drawing. Use append or any other list methods to add objects."""
-	def __init__(self,insbase=(0.0,0.0,0.0),extmin=(0.0,0.0),extmax=(0.0,0.0),
+	def __init__(self,insbase=(0.0,0.0,0.0),extmin=(0.0,0.0,0.0),extmax=(0.0,0.0,0.0),
 				 layers=[Layer()],linetypes=[LineType()],styles=[Style()],blocks=[],
-				 views=[],entities=None,fileName='test.dxf'):
+				 views=[],vports=[],entities=None,fileName='test.dxf'):
 		# TODO: replace list with None,arial
-		if not entities:entities=[]
+		if not entities:
+			entities=[]
 		_Collection.__init__(self,entities)
 		self.insbase=insbase
 		self.extmin=extmin
@@ -565,6 +736,7 @@ class Drawing(_Collection):
 		self.linetypes=copy.copy(linetypes)
 		self.styles=copy.copy(styles)
 		self.views=copy.copy(views)
+		self.vports=copy.copy(vports)
 		self.blocks=copy.copy(blocks)
 		self.fileName=fileName
 		#private
@@ -608,7 +780,8 @@ class Drawing(_Collection):
 		header=[self.acadver]+[self._point(attr,getattr(self,attr))+'\n' for attr in _HEADER_POINTS]
 		header=self._section('header',header)
 
-		tables=[self._table('ltype',[str(x) for x in self.linetypes]),
+		tables=[self._table('vport',[str(x) for x in self.vports]),
+				self._table('ltype',[str(x) for x in self.linetypes]),
 				self._table('layer',[str(x) for x in self.layers]),
 				self._table('style',[str(x) for x in self.styles]),
 				self._table('view',[str(x) for x in self.views]),
@@ -680,9 +853,9 @@ def test():
 	#Drawing
 	d=Drawing()
 	#tables
-	d.blocks.append(b)					  #table blocks
-	d.styles.append(Style())				#table styles
-	d.views.append(View('Normal'))		  #table view
+	d.blocks.append(b)  #table blocks
+	d.styles.append(Style())  #table styles
+	d.views.append(View('Normal'))  #table view
 	d.views.append(ViewByWindow('Window',leftBottom=(1,0),rightTop=(2,1)))  #idem
 
 	#entities
@@ -692,17 +865,16 @@ def test():
 	d.append(Line(points=[(0,0,0),(1,1,1)]))
 	d.append(Mtext('Click on Ads\nmultiple lines with mtext',point=(1,1,1),color=5,rotation=90))
 	d.append(Text('Please donate!',point=(3,0,1)))
-	d.append(Rectangle(point=(2,2,2),width=4,height=3,color=6,solid=Solid(color=2)))
+	#d.append(Rectangle(point=(2,2,2),width=4,height=3,color=6,solid=Solid(color=2)))
 	d.append(Solid(points=[(4,4,0),(5,4,0),(7,8,0),(9,9,0)],color=3))
-	d.append(PolyLine(points=[(1,1,1),(2,1,1),(2,2,1),(1,2,1)],closed=1,color=1))
+	#d.append(PolyLine(points=[(1,1,1),(2,1,1),(2,2,1),(1,2,1)],flag=1,color=1))
 
 	#d.saveas('c:\\test.dxf')
 	d.saveas('test.dxf')
-
 
 #-----------------------------------------------------
 if __name__=='__main__':
 	if not copy:
 		Draw.PupMenu('Error%t|This script requires a full python install')
-	main()
+	else: test()
 	

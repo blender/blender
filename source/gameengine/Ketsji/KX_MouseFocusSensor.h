@@ -49,28 +49,27 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	
  public:
 	
-	KX_MouseFocusSensor(class SCA_MouseManager* keybdmgr,
+	KX_MouseFocusSensor(class SCA_MouseManager* eventmgr,
 						int startx,
 						int starty,
 						short int mousemode,
 						int focusmode,
-						RAS_ICanvas* canvas,
+						bool bTouchPulse,
 						KX_Scene* kxscene,
 						KX_KetsjiEngine* kxengine,
-						SCA_IObject* gameobj,
-						PyTypeObject* T=&Type );
+						SCA_IObject* gameobj);
 
 	virtual ~KX_MouseFocusSensor() { ; };
 	virtual CValue* GetReplica() {
 		CValue* replica = new KX_MouseFocusSensor(*this);
 		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
+		replica->ProcessReplica();
 		return replica;
 	};
 	/**
 	 * @attention Overrides default evaluate. 
 	 */
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual void Init();
 
 	virtual bool IsPositiveTrigger() {
@@ -82,23 +81,26 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
 	bool NeedRayCast(KX_ClientObjectInfo* client) { return true; }
 	
-
+	const MT_Point3& RaySource() const;
+	const MT_Point3& RayTarget() const;
+	const MT_Point3& HitPosition() const;
+	const MT_Vector3& HitNormal() const;
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	virtual PyObject*  _getattr(const STR_String& attr);
 
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRayTarget);
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRaySource);
-	
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetHitObject);
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetHitPosition);
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetHitNormal);
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRayDirection);
-
+	/* attributes */
+	static PyObject*	pyattr_get_ray_source(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_ray_target(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_ray_direction(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hit_object(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hit_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hit_normal(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+		
 	/* --------------------------------------------------------------------- */
 	SCA_IObject*	m_hitObject;
+	void*			m_hitObject_Last; /* only use for comparison, never access */
 
  private:
 	/**
@@ -112,13 +114,22 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	bool m_mouse_over_in_previous_frame;
 
 	/**
+	 * Flags whether changes in hit object should trigger a pulse
+	 */
+	bool m_bTouchPulse;
+	
+	/**
 	 * Flags whether the previous test evaluated positive.
 	 */
 	bool m_positive_event;
 
+ 	/**
+	 * Tests whether the object is in mouse focus for this camera
+	 */
+	bool ParentObjectHasFocusCamera(KX_Camera *cam);
 	
 	/**
-	 * Tests whether the object is in mouse focus in this frame.
+	 * Tests whether the object is in mouse focus in this scene.
 	 */
 	bool ParentObjectHasFocus(void);
 
@@ -141,12 +152,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * (in game world coordinates) the face normal of the vertex where
 	 * the object was hit.  */
 	MT_Vector3		 m_hitNormal;
-
-
-	/**
-	 * The active canvas. The size of this canvas determines a part of
-	 * the start position of the picking ray.  */
-	RAS_ICanvas* m_gp_canvas;
 
 	/**
 	 * The KX scene that holds the camera. The camera position

@@ -4,29 +4,32 @@ Import ('env')
 sources = 'creator.c'
 
 incs = '#/intern/guardedalloc ../blender/blenlib ../blender/blenkernel'
-incs += ' ../blender/include ../blender/blenloader ../blender/imbuf'
-incs += ' ../blender/renderconverter ../blender/render/extern/include'
-incs += ' ../blender/python ../blender/makesdna ../kernel/gen_messaging'
-incs += ' ../blender/freestyle'
+incs += ' ../blender/editors/include ../blender/blenloader ../blender/imbuf'
+incs += ' ../blender/renderconverter ../blender/render/extern/include ../blender/windowmanager'
+incs += ' ../blender/makesdna ../blender/makesrna ../kernel/gen_messaging'
 incs += ' ../kernel/gen_system #/extern/glew/include ../blender/gpu'
 incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []
 if env['WITH_BF_QUICKTIME']:
-    incs += ' ' + env['BF_QUICKTIME_INC']
-    defs.append('WITH_QUICKTIME')
+	incs += ' ' + env['BF_QUICKTIME_INC']
+	defs.append('WITH_QUICKTIME')
 
 if env['WITH_BF_BINRELOC']:
-    incs += ' ../../extern/binreloc/include'
-    defs.append('WITH_BINRELOC')
+	incs += ' ../../extern/binreloc/include'
+	defs.append('WITH_BINRELOC')
 
 if env['WITH_BF_OPENEXR']:
-    defs.append('WITH_OPENEXR')
+	defs.append('WITH_OPENEXR')
 
 if not env['WITH_BF_SDL']:
 	defs.append('DISABLE_SDL')
 
-if not env['WITH_BF_PYTHON']:
+if env['WITH_BF_PYTHON']:
+	incs += ' ../blender/python'
+	if env['BF_DEBUG']:
+		defs.append('_DEBUG')
+else:
 	defs.append('DISABLE_PYTHON')
 
-env.BlenderLib ( libname = 'blender_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 1 )
+env.BlenderLib ( libname = 'bf_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 0 )

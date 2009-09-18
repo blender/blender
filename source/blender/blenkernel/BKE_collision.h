@@ -1,7 +1,7 @@
 /**
  * BKE_cloth.h
  *
- * $Id: BKE_cloth.h,v 1.1 2007/08/01 02:07:27 daniel Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -50,6 +50,7 @@
 #include "BLI_kdopbvh.h"
 
 struct Object;
+struct Scene;
 struct Cloth;
 struct MFace;
 struct DerivedMesh;
@@ -138,7 +139,7 @@ void interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3],
 /////////////////////////////////////////////////
 // used in effect.c
 /////////////////////////////////////////////////
-CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj);
+CollisionModifierData **get_collisionobjects(struct Scene *scene, Object *self, int *numcollobj);
 
 /////////////////////////////////////////////////
 

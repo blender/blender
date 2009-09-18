@@ -41,7 +41,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
@@ -49,6 +48,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
@@ -60,6 +60,7 @@
 #include "BLI_edgehash.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
@@ -472,7 +473,7 @@ static void calc_ss_weights(int gridFaces,
 
 static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
                                  int drawInteriorEdges, int useSubsurfUv,
-                                 DerivedMesh *dm)
+                                 DerivedMesh *dm, MultiresSubsurf *ms)
 {
 	DerivedMesh *result;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
@@ -525,14 +526,21 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	}
 	ccgFaceIterator_free(fi);
 
-	if(dm) {
-		result = CDDM_from_template(dm, ccgSubSurf_getNumFinalVerts(ss),
-		                            ccgSubSurf_getNumFinalEdges(ss),
-		                            ccgSubSurf_getNumFinalFaces(ss));
-	} else {
-		result = CDDM_new(ccgSubSurf_getNumFinalVerts(ss),
-		                  ccgSubSurf_getNumFinalEdges(ss),
-		                  ccgSubSurf_getNumFinalFaces(ss));
+	if(ms) {
+		result = MultiresDM_new(ms, dm, ccgSubSurf_getNumFinalVerts(ss),
+					ccgSubSurf_getNumFinalEdges(ss),
+					ccgSubSurf_getNumFinalFaces(ss));
+	}
+	else {
+		if(dm) {
+			result = CDDM_from_template(dm, ccgSubSurf_getNumFinalVerts(ss),
+						    ccgSubSurf_getNumFinalEdges(ss),
+						    ccgSubSurf_getNumFinalFaces(ss));
+		} else {
+			result = CDDM_new(ccgSubSurf_getNumFinalVerts(ss),
+					  ccgSubSurf_getNumFinalEdges(ss),
+					  ccgSubSurf_getNumFinalFaces(ss));
+		}
 	}
 
 	// load verts
@@ -558,11 +566,12 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 		++mvert;
 		++origIndex;
 		i++;
-		
+
 		for(S = 0; S < numVerts; S++) {
 			int prevS = (S - 1 + numVerts) % numVerts;
 			int nextS = (S + 1) % numVerts;
 			int otherS = (numVerts == 4) ? (S + 2) % numVerts : 3;
+
 			for(x = 1; x < gridFaces; x++) {
 				float w[4];
 				w[prevS]  = weight[x][0][0];
@@ -572,6 +581,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 				DM_interp_vert_data(dm, result, vertIdx, w, numVerts, i);
 				VecCopyf(mvert->co,
 				         ccgSubSurf_getFaceGridEdgeData(ss, f, S, x));
+
 				*origIndex = ORIGINDEX_NONE;
 				++mvert;
 				++origIndex;
@@ -583,6 +593,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 			int prevS = (S - 1 + numVerts) % numVerts;
 			int nextS = (S + 1) % numVerts;
 			int otherS = (numVerts == 4) ? (S + 2) % numVerts : 3;
+
 			for(y = 1; y < gridFaces; y++) {
 				for(x = 1; x < gridFaces; x++) {
 					float w[4];
@@ -881,8 +892,8 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 			static int hasGivenError = 0;
 
 			if(!hasGivenError) {
-				error("Unrecoverable error in SubSurf calculation,"
-				      " mesh is inconsistent.");
+				//XXX error("Unrecoverable error in SubSurf calculation,"
+				//      " mesh is inconsistent.");
 
 				hasGivenError = 1;
 			}
@@ -2566,9 +2577,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 /***/
 
-struct DerivedMesh *subsurf_make_derived_from_derived(
+struct DerivedMesh *subsurf_make_derived_from_derived_with_multires(
                         struct DerivedMesh *dm,
                         struct SubsurfModifierData *smd,
+			struct MultiresSubsurf *ms,
                         int useRenderParams, float (*vertCos)[3],
                         int isFinalCalc, int editMode)
 {
@@ -2591,7 +2603,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		CCGSubSurf *ss;
 		int levels;
 		
-		levels= get_render_subsurf_level(&G.scene->r, smd->renderLevels);
+		levels= smd->renderLevels; // XXX get_render_subsurf_level(&scene->r, smd->renderLevels);
 		if(levels == 0)
 			return dm;
 		
@@ -2600,7 +2612,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
 		result = ss_to_cdderivedmesh(ss, 0, drawInteriorEdges,
-		                             useSubsurfUv, dm);
+		                             useSubsurfUv, dm, ms);
 
 		ccgSubSurf_free(ss);
 		
@@ -2631,7 +2643,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 
 
 			return ss_to_cdderivedmesh(ss, 0, drawInteriorEdges,
-		                               useSubsurfUv, dm);
+						   useSubsurfUv, dm, ms);
 
 			/*return (DerivedMesh *)getCCGDerivedMesh(smd->mCache,
 		                                        drawInteriorEdges,
@@ -2651,13 +2663,22 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	                                            useSubsurfUv, dm);*/
 
 			result = ss_to_cdderivedmesh(ss, 0, drawInteriorEdges,
-			                             useSubsurfUv, dm);
+			                             useSubsurfUv, dm, ms);
 
 			ccgSubSurf_free(ss);
 
 			return result;
 		}
 	}
+}
+
+struct DerivedMesh *subsurf_make_derived_from_derived(
+                        struct DerivedMesh *dm,
+                        struct SubsurfModifierData *smd,
+                        int useRenderParams, float (*vertCos)[3],
+                        int isFinalCalc, int editMode)
+{
+	return subsurf_make_derived_from_derived_with_multires(dm, smd, NULL, useRenderParams, vertCos, isFinalCalc, editMode);
 }
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 

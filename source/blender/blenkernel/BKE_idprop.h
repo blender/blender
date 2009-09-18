@@ -30,16 +30,6 @@
 
 #include "DNA_ID.h"
 
-/*
-these two are included for their (new :P )function
-pointers.
-*/
-#include "BLO_readfile.h"
-#include "BLO_writefile.h"
-
-struct WriteData;
-struct FileData;
-
 struct IDProperty;
 struct ID;
 
@@ -59,7 +49,22 @@ typedef union {
 	} matrix_or_vector;
 } IDPropertyTemplate;
 
-/* ----------- Array Type ----------- */
+/* ----------- Property Array Type ---------- */
+
+/*note: as a start to move away from the stupid IDP_New function, this type
+  has it's own allocation function.*/
+IDProperty *IDP_NewIDPArray(const char *name);
+IDProperty *IDP_CopyIDPArray(IDProperty *array);
+
+void IDP_FreeIDPArray(IDProperty *prop);
+
+/* shallow copies item */
+void IDP_SetIndexArray(struct IDProperty *prop, int index, struct IDProperty *item);
+struct IDProperty *IDP_GetIndexArray(struct IDProperty *prop, int index);
+struct IDProperty *IDP_AppendArray(struct IDProperty *prop, struct IDProperty *item);
+void IDP_ResizeIDPArray(struct IDProperty *prop, int len);
+
+/* ----------- Numeric Array Type ----------- */
 /*this function works for strings too!*/
 void IDP_ResizeArray(struct IDProperty *prop, int newlen);
 void IDP_FreeArray(struct IDProperty *prop);
@@ -137,6 +142,8 @@ void IDP_FreeIterBeforeEnd(void *vself);
 struct IDProperty *IDP_GetProperties(struct ID *id, int create_if_needed);
 struct IDProperty *IDP_CopyProperty(struct IDProperty *prop);
 
+int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2);
+
 /*
 Allocate a new ID.
 
@@ -162,7 +169,7 @@ Note that you MUST either attach the id property to an id property group with
 IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
 a memory leak.
 */
-struct IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name);
+struct IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name);
 \
 /*NOTE: this will free all child properties of list arrays and groups!
   Also, note that this does NOT unlink anything!  Plus it doesn't free
@@ -172,9 +179,11 @@ void IDP_FreeProperty(struct IDProperty *prop);
 /*Unlinks any struct IDProperty<->ID linkage that might be going on.*/
 void IDP_UnlinkProperty(struct IDProperty *prop);
 
-#define IDP_Int(prop) (prop->data.val)
-#define IDP_Float(prop) (*(float*)&prop->data.val)
-#define IDP_String(prop) ((char*)prop->data.pointer)
-#define IDP_Array(prop) (prop->data.pointer)
+#define IDP_Int(prop) ((prop)->data.val)
+#define IDP_Float(prop) (*(float*)&(prop)->data.val)
+#define IDP_String(prop) ((char*)(prop)->data.pointer)
+#define IDP_Array(prop) ((prop)->data.pointer)
+#define IDP_IDPArray(prop) ((IDProperty*)(prop)->data.pointer)
+#define IDP_Double(prop) (*(double*)&(prop)->data.val)
 
 #endif /* _BKE_IDPROP_H */

@@ -95,6 +95,6 @@ void SYS_SingletonSystem::SYS_WriteCommandLineString(const char *paramname, cons
 	m_string_commandlineparms.insert(paramname, value);
 }
 
-SYS_SingletonSystem::SYS_SingletonSystem() : m_soundfilecache(NULL)
+SYS_SingletonSystem::SYS_SingletonSystem()
 {
 }

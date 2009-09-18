@@ -20,6 +20,7 @@ subject to the following restrictions:
 #include <vector>
 #include <set>
 class CcdPhysicsController;
+class CcdGraphicController;
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
 
@@ -40,6 +41,7 @@ class btDispatcher;
 class WrapperVehicle;
 class btPersistentManifold;
 class btBroadphaseInterface;
+struct btDbvtBroadphase;
 class btOverlappingPairCache;
 class btIDebugDraw;
 class PHY_IVehicle;
@@ -58,7 +60,10 @@ protected:
 	btIDebugDraw*	m_debugDrawer;
 	
 	class btDefaultCollisionConfiguration* m_collisionConfiguration;
-	class btBroadphaseInterface*			m_broadphase;
+    class btBroadphaseInterface*		m_broadphase;	// broadphase for dynamic world
+	// for culling only
+	btOverlappingPairCache*				m_cullingCache;
+	struct btDbvtBroadphase*			m_cullingTree;	// broadphase for culling
 
 	//solver iterations
 	int	m_numIterations;
@@ -77,7 +82,7 @@ protected:
 	void	processFhSprings(double curTime,float timeStep);
 
 	public:
-		CcdPhysicsEnvironment(btDispatcher* dispatcher=0, btOverlappingPairCache* pairCache=0);
+		CcdPhysicsEnvironment(bool useDbvtCulling, btDispatcher* dispatcher=0, btOverlappingPairCache* pairCache=0);
 
 		virtual		~CcdPhysicsEnvironment();
 
@@ -109,7 +114,9 @@ protected:
 		virtual	void		beginFrame();
 		virtual void		endFrame() {};
 		/// Perform an integration step of duration 'timeStep'.
-		virtual	bool		proceedDeltaTime(double curTime,float timeStep);
+		virtual	bool		proceedDeltaTime(double curTime,float timeStep,float interval);
+		
+		virtual void		debugDrawWorld();
 //		virtual bool		proceedDeltaTimeOneStep(float timeStep);
 
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};
@@ -142,7 +149,10 @@ protected:
 			const btVector3& angularMaxLimits,int flags
 			);
 
+		
 		virtual void	setConstraintParam(int constraintId,int param,float value,float value1);
+		
+		virtual float	getConstraintParam(int constraintId,int param);
 
 	    virtual void		removeConstraint(int	constraintid);
 
@@ -165,14 +175,15 @@ protected:
 		btTypedConstraint*	getConstraintById(int constraintId);
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
+		virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes, int occlusionRes);
 
 
 		//Methods for gamelogic collision/physics callbacks
 		virtual void addSensor(PHY_IPhysicsController* ctrl);
 		virtual void removeSensor(PHY_IPhysicsController* ctrl);
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
-		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
-		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl);
+		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl);
+		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl);
 		//These two methods are used *solely* to create controllers for Near/Radar sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
@@ -196,7 +207,14 @@ protected:
 
 		void	enableCcdPhysicsController(CcdPhysicsController* ctrl);
 
+		void	refreshCcdPhysicsController(CcdPhysicsController* ctrl);
+
+		void	addCcdGraphicController(CcdGraphicController* ctrl);
+
+		void	removeCcdGraphicController(CcdGraphicController* ctrl);
+
 		btBroadphaseInterface*	getBroadphase();
+		btDbvtBroadphase*	getCullingTree() { return m_cullingTree; }
 
 		btDispatcher*	getDispatcher();
 		
@@ -257,7 +275,11 @@ protected:
 		bool	m_scalingPropagated;
 
 		
-
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CcdPhysicsEnvironment"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //CCDPHYSICSENVIRONMENT

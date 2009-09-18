@@ -34,6 +34,7 @@
 struct Curve;
 struct ListBase;
 struct Object;
+struct Scene;
 struct Nurb;
 struct ListBase;
 struct BezTriple;
@@ -46,8 +47,13 @@ struct BevList;
 #define SEGMENTSU(nu)	    ( ((nu)->flagu & CU_CYCLIC) ? (nu)->pntsu : (nu)->pntsu-1 )
 #define SEGMENTSV(nu)	    ( ((nu)->flagv & CU_CYCLIC) ? (nu)->pntsv : (nu)->pntsv-1 )
 
+#define CU_DO_TILT(cu, nu) (((nu->flag & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1)
+#define CU_DO_RADIUS(cu, nu) ((CU_DO_TILT(cu, nu) || cu->bevobj || cu->ext1!=0.0 || cu->ext2!=0.0) ? 1:0)
+
+
 void unlink_curve( struct Curve *cu);
 void free_curve( struct Curve *cu);
+void BKE_free_editfont(struct Curve *cu);
 struct Curve *add_curve(char *name, int type);
 struct Curve *copy_curve( struct Curve *cu);
 void make_local_curve( struct Curve *cu);
@@ -63,14 +69,14 @@ void duplicateNurblist( struct ListBase *lb1,  struct ListBase *lb2);
 void test2DNurb( struct Nurb *nu);
 void minmaxNurb( struct Nurb *nu, float *min, float *max);
 
-void makeknots( struct Nurb *nu, short uv, short type);
+void makeknots( struct Nurb *nu, short uv);
 
 void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride);
-void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu);
+void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu, int stride);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
-float *make_orco_curve( struct Object *ob);
+float *make_orco_curve(struct Scene *scene, struct Object *ob);
 float *make_orco_surf( struct Object *ob);
-void makebevelcurve( struct Object *ob,  struct ListBase *disp);
+void makebevelcurve(struct Scene *scene, struct Object *ob,  struct ListBase *disp);
 
 void makeBevelList( struct Object *ob);
 
@@ -78,8 +84,8 @@ void calchandleNurb( struct BezTriple *bezt, struct BezTriple *prev,  struct Bez
 void calchandlesNurb( struct Nurb *nu);
 void testhandlesNurb( struct Nurb *nu);
 void autocalchandlesNurb( struct Nurb *nu, int flag);
-void autocalchandlesNurb_all(int flag);
-void sethandlesNurb(short code);
+void autocalchandlesNurb_all(ListBase *editnurb, int flag);
+void sethandlesNurb(ListBase *editnurb, short code);
 
 void switchdirectionNurb( struct Nurb *nu);
 

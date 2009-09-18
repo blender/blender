@@ -27,9 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* also defined in BKE_utildefines, repeated here to avoid dependency */
-#define FILE_MAX			240
+#include <stdio.h>
 
+#include "BKE_global.h"
+#include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
 
@@ -38,8 +39,15 @@
 #include "IMB_thumbs.h"
 #include "IMB_imginfo.h"
 
-
 #include "md5.h"
+
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
 
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
@@ -47,21 +55,12 @@
 #define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
 #endif
 #include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
-#include "BLI_winstuff.h"
 #include <process.h> /* getpid */
 #include <direct.h> /* chdir */
+#include "BLI_winstuff.h"
 #else
 #include <unistd.h>
 #endif
-
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
 
 #define URI_MAX FILE_MAX*3 + 8
 
@@ -231,6 +230,16 @@ static int thumbpath_from_uri(const char* uri, char* path, ThumbSize size)
 	return rv;
 }
 
+void IMB_thumb_makedirs()
+{
+	char tpath[FILE_MAX];
+	if (get_thumb_dir(tpath, THB_NORMAL)) {
+		BLI_recurdir_fileops(tpath);
+	}
+	if (get_thumb_dir(tpath, THB_FAIL)) {
+		BLI_recurdir_fileops(tpath);
+	}
+}
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
 ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, ThumbSource source)

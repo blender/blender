@@ -38,7 +38,6 @@
 class KX_KetsjiEngine;
 class KX_ISceneConverter;
 class NG_LoopBackNetworkDeviceInterface;
-class SND_IAudioDevice;
 class RAS_IRasterizer;
 class GHOST_IEvent;
 class GHOST_ISystem;
@@ -58,7 +57,7 @@ public:
 	GPG_Application(GHOST_ISystem* system);
 	~GPG_Application(void);
 
-			bool SetGameEngineData(struct Main* maggie, struct Scene* scene);
+			bool SetGameEngineData(struct Main* maggie, struct Scene* scene, int argc, char** argv);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
@@ -142,8 +141,6 @@ protected:
 	KX_ISceneConverter* m_sceneconverter;
 	/** Network interface. */
 	NG_LoopBackNetworkDeviceInterface* m_networkdevice;
-	/** Sound device. */
-	SND_IAudioDevice* m_audiodevice;
 
 	bool m_blendermat;
 	bool m_blenderglslmat;
@@ -154,5 +151,9 @@ protected:
 	 */
 	char* m_pyGlobalDictString;
 	int m_pyGlobalDictString_Length;
+	
+	/* argc and argv need to be passed on to python */
+	int		m_argc;
+	char**	m_argv;
 };
 

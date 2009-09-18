@@ -24,7 +24,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): José I. Romero (cleanup and fixes)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -39,7 +39,6 @@
 class SCA_MouseSensor : public SCA_ISensor
 {
 	Py_Header;
-	class SCA_MouseManager*	m_pMouseMgr;
 	
 	/**
 	 * Use SCA_IInputDevice values to encode the mouse mode for now.
@@ -58,7 +57,7 @@ class SCA_MouseSensor : public SCA_ISensor
 	SCA_IInputDevice::KX_EnumInputs m_hotkey;
 	
 	/**
-	 * valid x coordinate
+	 * valid x coordinate, MUST be followed by y coordinate
 	 */
 	short m_x;
 
@@ -87,15 +86,16 @@ class SCA_MouseSensor : public SCA_ISensor
 
 	bool isValid(KX_MOUSESENSORMODE);
 	
+	static int UpdateHotkey(void *self, const PyAttributeDef*);
+	
 	SCA_MouseSensor(class SCA_MouseManager* keybdmgr,
 					int startx,int starty,
 				   short int mousemode,
-				   SCA_IObject* gameobj,
-				   PyTypeObject* T=&Type );
+				   SCA_IObject* gameobj);
 
 	virtual ~SCA_MouseSensor();
 	virtual CValue* GetReplica();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual void Init();
 	virtual bool IsPositiveTrigger();
 	short int GetModeKey();
@@ -106,13 +106,9 @@ class SCA_MouseSensor : public SCA_ISensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	/* read x-coordinate */
-	KX_PYMETHOD_DOC(SCA_MouseSensor,GetXPosition);
-	/* read y-coordinate */
-	KX_PYMETHOD_DOC(SCA_MouseSensor,GetYPosition);
+	
+	// get button status
+	KX_PYMETHOD_DOC_O(SCA_MouseSensor,getButtonStatus);
 
 };
 

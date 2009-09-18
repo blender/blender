@@ -39,22 +39,19 @@
 typedef struct bProperty {
 	struct bProperty *next, *prev;
 	char name[32];
-	short type, otype;		/* otype is for buttons, when a property type changes */
+	short type, flag;
 	int data;				/* data should be 4 bytes to store int,float stuff */
-	int old;				/* old is for simul */
-	short flag, pad;
-	void *poin;
-	void *oldpoin;			/* oldpoin is for simul */
+	void *poin;				/* references data unless its a string which is malloc'd */
 	
 } bProperty;
 
-/* property->type */
-#define PROP_BOOL		0
-#define PROP_INT		1
-#define PROP_FLOAT		2
-#define PROP_STRING		3
-#define PROP_VECTOR		4
-#define PROP_TIME		5
+/* property->type XXX Game Property, not RNA */
+#define GPROP_BOOL		0
+#define GPROP_INT		1
+#define GPROP_FLOAT		2
+#define GPROP_STRING	3
+#define GPROP_VECTOR	4
+#define GPROP_TIME		5
 
 /* property->flag */
 #define PROP_DEBUG		1

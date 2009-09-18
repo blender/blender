@@ -28,6 +28,11 @@ int getNumTexChannels( Material *mat )
 
 BL_Material::BL_Material()
 {
+	Initialize();
+}
+
+void BL_Material::Initialize()
+{
 	rgb[0] = 0;
 	rgb[1] = 0;
 	rgb[2] = 0;
@@ -52,7 +57,7 @@ BL_Material::BL_Material()
 	mode = 0;
 	material = 0;
 	tface = 0;
-	material_index = 0;
+	materialindex = 0;
 	amb=0.5f;
 	num_enabled = 0;
 	num_users = 1;

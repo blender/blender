@@ -1,10 +1,5 @@
-LCGDIR = '../lib/windows'
+LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
-
-WITH_BF_VERSE = False
-BF_VERSE_INCLUDE = "#extern/verse/dist"
-
-WITH_BF_YAFRAY = True
 
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '2.5'
@@ -27,6 +22,11 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
+BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include'
@@ -37,9 +37,6 @@ BF_PTHREADS = LIBDIR + '/pthreads'
 BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadGC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
-
-WITH_BF_FMOD = False
-BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
@@ -80,26 +77,16 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = True
-BF_FTGL = LIBDIR + '/ftgl'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
-
 WITH_BF_GAMEENGINE = False
-
-WITH_BF_ODE = True
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
+BF_WINTAB = LIBDIR + '/wintab'
+BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
 # enable freetype2 support for text objects
 BF_FREETYPE = LIBDIR + '/gcc/freetype'
@@ -144,7 +131,11 @@ CC_WARN = [ '-Wall' ]
 LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS= ''
+BF_DEBUG_CCFLAGS= []
+
+BF_PROFILE = False
+BF_PROFILE_CCFLAGS = ['-pg','-g']
+BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_BUILDDIR = '../build/linuxcross'
 BF_INSTALLDIR='../install/linuxcross'

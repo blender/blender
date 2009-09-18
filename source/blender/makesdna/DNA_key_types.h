@@ -34,6 +34,7 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
+struct AnimData;
 struct Ipo;
 
 typedef struct KeyBlock {
@@ -56,6 +57,7 @@ typedef struct KeyBlock {
 
 typedef struct Key {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	KeyBlock *refkey;
 	char elemstr[32];
@@ -63,7 +65,7 @@ typedef struct Key {
 	float curval;
 	
 	ListBase block;
-	struct Ipo *ipo;
+	struct Ipo *ipo;		// XXX depreceated... old animation system
 	
 	ID *from;
 
@@ -85,7 +87,8 @@ typedef struct Key {
 #define KEY_BSPLINE     2
 
 /* keyblock->flag */
-#define KEYBLOCK_MUTE	1
+#define KEYBLOCK_MUTE		1
+#define KEYBLOCK_DS_EXPAND	2
 
 #endif
 

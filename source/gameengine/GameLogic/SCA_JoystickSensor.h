@@ -30,18 +30,18 @@
 #define __JOYSENSOR_H
 
 #include "SCA_ISensor.h"
+#include "./Joystick/SCA_JoystickDefines.h"
 
 class SCA_JoystickSensor :public SCA_ISensor
 {
 	Py_Header;
-	class SCA_JoystickManager*	m_pJoystickMgr;
 	
 	/**
-	 * Axis 1-or-2
+	 * Axis 1-JOYAXIS_MAX, MUST be followed by m_axisf
 	 */
 	int 	m_axis;
 	/**
-	 * Axis flag to find direction
+	 * Axis flag to find direction, MUST be an int
 	 */
 	int 	m_axisf;
 	/**
@@ -53,11 +53,11 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 */
 	int 	m_buttonf;
 	/**
-	 * The actual hat
+	 * The actual hat 1-JOYHAT_MAX. MUST be followed by m_hatf
 	 */
 	int 	m_hat;
 	/**
-	 * Flag to find direction 1-12
+	 * Flag to find direction 1-12, MUST be an int
 	 */
 	int 	m_hatf;
 	/**
@@ -93,6 +93,7 @@ class SCA_JoystickSensor :public SCA_ISensor
 		KX_JOYSENSORMODE_AXIS,
 		KX_JOYSENSORMODE_BUTTON,
 		KX_JOYSENSORMODE_HAT,
+		KX_JOYSENSORMODE_AXIS_SINGLE,
 		KX_JOYSENSORMODE_MAX
 	};
 	bool isValid(KX_JOYSENSORMODE);
@@ -104,12 +105,11 @@ public:
 					   short int joymode,
 					   int axis, int axisf,int prec,
 					   int button,
-					   int hat, int hatf, bool allevents,
-					   PyTypeObject* T=&Type );
+					   int hat, int hatf, bool allevents);
 	virtual ~SCA_JoystickSensor();
 	virtual CValue* GetReplica();
 	
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 	
@@ -121,29 +121,39 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
-
 	/* Joystick Index */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetIndex);
-	KX_PYMETHOD_DOC_O(SCA_JoystickSensor,SetIndex);
-	/* Axes*/
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetAxis);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetAxis);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetAxisValue);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetThreshold);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetThreshold);
-	/* Buttons */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButton);
-	KX_PYMETHOD_DOC_O(SCA_JoystickSensor,SetButton);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonValue);
-	/* Hats */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetHat);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetHat);
-	/* number of */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfAxes);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfButtons);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfHats);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
+	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonActiveList);
+	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,GetButtonStatus);
+
+	static PyObject*	pyattr_get_axis_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_axis_single(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hat_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hat_single(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_num_axis(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_num_buttons(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_num_hats(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_connected(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+
+	/* attribute check */
+	static int CheckAxis(void *self, const PyAttributeDef*)
+	{
+		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
+		if (sensor->m_axis < 1)
+			sensor->m_axis = 1;
+		else if (sensor->m_axis > JOYAXIS_MAX)
+			sensor->m_axis = JOYAXIS_MAX;
+		return 0;
+	}
+	static int CheckHat(void *self, const PyAttributeDef*)
+	{
+		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
+		if (sensor->m_hat < 1)
+			sensor->m_hat = 1;
+		else if (sensor->m_hat > JOYHAT_MAX)
+			sensor->m_hat = JOYHAT_MAX;
+		return 0;
+	}
 	
 };
 

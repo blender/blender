@@ -32,6 +32,7 @@
 #define BKE_EXOTIC_H
 
 struct Mesh;
+struct Scene;
 
 void mcol_to_rgba(unsigned int col, float *r, float *g, float *b, float *a);
 unsigned int *mcol_to_vcol(struct Mesh *me); // used in py_main.c
@@ -42,12 +43,11 @@ unsigned int *mcol_to_vcol(struct Mesh *me); // used in py_main.c
  * @retval 1 The file was read succesfully.
  * @attention Used in filesel.c
  */
-int BKE_read_exotic(char *name);
+int BKE_read_exotic(struct Scene *scene, char *name);
 
-void write_dxf(char *str);
-void write_vrml(char *str);
-void write_videoscape(char *str);
-void write_stl(char *str);
+void write_dxf(struct Scene *scene, char *str);
+void write_vrml(struct Scene *scene, char *str);
+void write_stl(struct Scene *scene, char *str);
 
 #endif
 

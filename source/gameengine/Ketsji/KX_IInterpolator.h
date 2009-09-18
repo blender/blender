@@ -31,11 +31,22 @@
 
 #include <vector>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class KX_IInterpolator {	
 public:
 	virtual ~KX_IInterpolator() {}
 	
 	virtual void Execute(float currentTime) const = 0; 
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_IInterpolator"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 typedef std::vector<KX_IInterpolator *> T_InterpolatorList;

@@ -38,7 +38,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h"
 #include "BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.h"
 #include "BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h"
-#include "BulletCollision/NarrowPhaseCollision/btGjkEpa.h"
+#include "BulletCollision/NarrowPhaseCollision/btGjkEpa2.h"
 #include "BulletCollision/CollisionShapes/btMinkowskiSumShape.h"
 #include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
 #include "BulletCollision/NarrowPhaseCollision/btSimplexSolverInterface.h"
@@ -110,16 +110,16 @@ void           plDeleteDynamicsWorld(plDynamicsWorldHandle world)
 void	plStepSimulation(plDynamicsWorldHandle world,	plReal	timeStep)
 {
 	btDynamicsWorld* dynamicsWorld = reinterpret_cast< btDynamicsWorld* >(world);
-	assert(dynamicsWorld);
+	btAssert(dynamicsWorld);
 	dynamicsWorld->stepSimulation(timeStep);
 }
 
 void plAddRigidBody(plDynamicsWorldHandle world, plRigidBodyHandle object)
 {
 	btDynamicsWorld* dynamicsWorld = reinterpret_cast< btDynamicsWorld* >(world);
-	assert(dynamicsWorld);
+	btAssert(dynamicsWorld);
 	btRigidBody* body = reinterpret_cast< btRigidBody* >(object);
-	assert(body);
+	btAssert(body);
 
 	dynamicsWorld->addRigidBody(body);
 }
@@ -127,9 +127,9 @@ void plAddRigidBody(plDynamicsWorldHandle world, plRigidBodyHandle object)
 void plRemoveRigidBody(plDynamicsWorldHandle world, plRigidBodyHandle object)
 {
 	btDynamicsWorld* dynamicsWorld = reinterpret_cast< btDynamicsWorld* >(world);
-	assert(dynamicsWorld);
+	btAssert(dynamicsWorld);
 	btRigidBody* body = reinterpret_cast< btRigidBody* >(object);
-	assert(body);
+	btAssert(body);
 
 	dynamicsWorld->removeRigidBody(body);
 }
@@ -142,7 +142,7 @@ plRigidBodyHandle plCreateRigidBody(	void* user_data,  float mass, plCollisionSh
 	trans.setIdentity();
 	btVector3 localInertia(0,0,0);
 	btCollisionShape* shape = reinterpret_cast<btCollisionShape*>( cshape);
-	assert(shape);
+	btAssert(shape);
 	if (mass)
 	{
 		shape->calculateLocalInertia(mass,localInertia);
@@ -158,7 +158,7 @@ plRigidBodyHandle plCreateRigidBody(	void* user_data,  float mass, plCollisionSh
 void plDeleteRigidBody(plRigidBodyHandle cbody)
 {
 	btRigidBody* body = reinterpret_cast< btRigidBody* >(cbody);
-	assert(body);
+	btAssert(body);
 	btAlignedFree( body);
 }
 
@@ -255,20 +255,20 @@ void		plAddVertex(plCollisionShapeHandle cshape, plReal x,plReal y,plReal z)
 	(void)colShape;
 	btAssert(colShape->getShapeType()==CONVEX_HULL_SHAPE_PROXYTYPE);
 	btConvexHullShape* convexHullShape = reinterpret_cast<btConvexHullShape*>( cshape);
-	convexHullShape->addPoint(btPoint3(x,y,z));
+	convexHullShape->addPoint(btVector3(x,y,z));
 
 }
 
 void plDeleteShape(plCollisionShapeHandle cshape)
 {
 	btCollisionShape* shape = reinterpret_cast<btCollisionShape*>( cshape);
-	assert(shape);
+	btAssert(shape);
 	btAlignedFree(shape);
 }
 void plSetScaling(plCollisionShapeHandle cshape, plVector3 cscaling)
 {
 	btCollisionShape* shape = reinterpret_cast<btCollisionShape*>( cshape);
-	assert(shape);
+	btAssert(shape);
 	btVector3 scaling(cscaling[0],cscaling[1],cscaling[2]);
 	shape->setLocalScaling(scaling);	
 }

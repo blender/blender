@@ -111,6 +111,13 @@ public:
 		}
 	};
 	
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_Tree"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 
@@ -148,6 +155,12 @@ public:
 	
 	SG_Tree* MakeTree();
 	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_TreeFactory"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif /* __SG_BBOX_H__ */

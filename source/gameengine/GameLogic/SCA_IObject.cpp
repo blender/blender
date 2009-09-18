@@ -39,13 +39,16 @@
 #endif
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
+SG_QList SCA_IObject::m_activeBookmarkedControllers;
 
-SCA_IObject::SCA_IObject(PyTypeObject* T): m_initState(0), m_state(0), CValue(T)
+SCA_IObject::SCA_IObject():
+	CValue(),
+	m_initState(0),
+	m_state(0),
+	m_firstState(NULL)
 {
 	m_suspended = false;
 }
-	
-
 
 SCA_IObject::~SCA_IObject()
 {
@@ -59,7 +62,9 @@ SCA_IObject::~SCA_IObject()
 	SCA_ControllerList::iterator itc; 
 	for (itc = m_controllers.begin(); !(itc == m_controllers.end()); ++itc)
 	{
-		((CValue*)(*itc))->Release();
+		//Use Delete for controller to ensure proper cleaning (expression controller)
+		(*itc)->Delete();
+		//((CValue*)(*itc))->Release();
 	}
 	SCA_ActuatorList::iterator ita;
 	for (ita = m_registeredActuators.begin(); !(ita==m_registeredActuators.end()); ++ita)
@@ -68,7 +73,7 @@ SCA_IObject::~SCA_IObject()
 	}
 	for (ita = m_actuators.begin(); !(ita==m_actuators.end()); ++ita)
 	{
-		((CValue*)(*ita))->Release();
+		(*ita)->Delete();
 	}
 
 	//T_InterpolatorList::iterator i;
@@ -76,29 +81,6 @@ SCA_IObject::~SCA_IObject()
 	//	delete *i;
 	//}
 }
-
-
-
-SCA_ControllerList& SCA_IObject::GetControllers()
-{
-	return m_controllers;
-}
-
-
-
-SCA_SensorList& SCA_IObject::GetSensors()
-{
-	return m_sensors;
-}
-
-
-
-SCA_ActuatorList& SCA_IObject::GetActuators()
-{
-	return m_actuators;
-}
-
-
 
 void SCA_IObject::AddSensor(SCA_ISensor* act)
 {
@@ -131,7 +113,7 @@ void SCA_IObject::RegisterActuator(SCA_IActuator* act)
 void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
 {
 	SCA_ActuatorList::iterator ita;
-	for (ita = m_registeredActuators.begin(); ita != m_registeredActuators.end(); ita++)
+	for (ita = m_registeredActuators.begin(); ita != m_registeredActuators.end(); ++ita)
 	{
 		if ((*ita) == act) {
 			(*ita) = m_registeredActuators.back();
@@ -140,20 +122,6 @@ void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
 		}
 	}
 }
-
-void SCA_IObject::SetIgnoreActivityCulling(bool b)
-{
-	m_ignore_activity_culling = b;
-}
-
-
-
-bool SCA_IObject::GetIgnoreActivityCulling()
-{
-	return m_ignore_activity_culling;
-}
-
-
 
 void SCA_IObject::ReParentLogic()
 {
@@ -206,7 +174,7 @@ SCA_ISensor* SCA_IObject::FindSensor(const STR_String& sensorname)
 {
 	SCA_ISensor* foundsensor = NULL;
 
-	for (SCA_SensorList::iterator its = m_sensors.begin();!(its==m_sensors.end());its++)
+	for (SCA_SensorList::iterator its = m_sensors.begin();!(its==m_sensors.end());++its)
 	{
 		if ((*its)->GetName() == sensorname)
 		{
@@ -223,7 +191,7 @@ SCA_IController* SCA_IObject::FindController(const STR_String& controllername)
 {
 	SCA_IController* foundcontroller = NULL;
 
-	for (SCA_ControllerList::iterator itc = m_controllers.begin();!(itc==m_controllers.end());itc++)
+	for (SCA_ControllerList::iterator itc = m_controllers.begin();!(itc==m_controllers.end());++itc)
 	{
 		if ((*itc)->GetName() == controllername)
 		{
@@ -240,7 +208,7 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 {
 	SCA_IActuator* foundactuator = NULL;
 
-	for (SCA_ActuatorList::iterator ita = m_actuators.begin();!(ita==m_actuators.end());ita++)
+	for (SCA_ActuatorList::iterator ita = m_actuators.begin();!(ita==m_actuators.end());++ita)
 	{
 		if ((*ita)->GetName() == actuatorname)
 		{
@@ -253,59 +221,6 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 }
 
 
-
-void SCA_IObject::SetCurrentTime(float currentTime) {
-	//T_InterpolatorList::iterator i;
-	//for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
-	//	(*i)->Execute(currentTime);
-	//}
-}
-	
-
-#if 0
-const MT_Point3& SCA_IObject::ConvertPythonPylist(PyObject* pylist)
-{
-	bool error = false;
-	m_sDummy = MT_Vector3(0,0,0);
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		int numelem = listval->GetCount();
-		if ( numelem <= 3)
-		{
-			int index;
-			for (index = 0;index<numelem;index++)
-			{
-				m_sDummy[index] = listval->GetValue(index)->GetNumber();
-			}
-		}	else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		
-		// assert the list is long enough...
-		int numitems = PyList_Size(pylist);
-		if (numitems <= 3)
-		{
-			int index;
-			for (index=0;index<numitems;index++)
-			{
-				m_sDummy[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
-			}
-		}
-		else
-		{
-			error = true;
-		}
-
-	}
-	return m_sDummy;
-}
-#endif
-
 void SCA_IObject::Suspend()
 {
 	if ((!m_ignore_activity_culling) 
@@ -315,7 +230,7 @@ void SCA_IObject::Suspend()
 		SCA_SensorList::iterator i = m_sensors.begin();
 		while (i != m_sensors.end()) {
 			(*i)->Suspend();
-			i++;
+			++i;
 		}
 	}
 }
@@ -330,7 +245,7 @@ void SCA_IObject::Resume(void)
 		SCA_SensorList::iterator i = m_sensors.begin();
 		while (i != m_sensors.end()) {
 			(*i)->Resume();
-			i++;
+			++i;
 		}
 	}
 }
@@ -350,7 +265,7 @@ void SCA_IObject::SetState(unsigned int state)
 	if (tmpstate != m_state)
 	{
 		// update the status of the controllers
-		for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+		for (contit = m_controllers.begin(); contit != m_controllers.end(); ++contit)
 		{
 			(*contit)->ApplyState(tmpstate);
 		}
@@ -358,7 +273,7 @@ void SCA_IObject::SetState(unsigned int state)
 	m_state = state;
 	if (m_state != tmpstate)
 	{
-		for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+		for (contit = m_controllers.begin(); contit != m_controllers.end(); ++contit)
 		{
 			(*contit)->ApplyState(m_state);
 		}
@@ -373,33 +288,26 @@ void SCA_IObject::SetState(unsigned int state)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_IObject::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SCA_IObject",
-	sizeof(SCA_IObject),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-
-
-PyParentObject SCA_IObject::Parents[] = {
-	&SCA_IObject::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
 
 PyMethodDef SCA_IObject::Methods[] = {
 	//{"setOrientation", (PyCFunction) SCA_IObject::sPySetOrientation, METH_VARARGS},
@@ -407,9 +315,6 @@ PyMethodDef SCA_IObject::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-
-
-PyObject* SCA_IObject::_getattr(const STR_String& attr) {
-	_getattr_up(CValue);
-}
-
+PyAttributeDef SCA_IObject::Attributes[] = {
+	{ NULL }	//Sentinel
+};

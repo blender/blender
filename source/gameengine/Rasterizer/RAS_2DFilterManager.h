@@ -30,6 +30,10 @@
 
 #define MAX_RENDER_PASS	100
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class RAS_2DFilterManager
 {
 private:
@@ -38,12 +42,15 @@ private:
 	void		AnalyseShader(int passindex, vector<STR_String>& propNames);
 	void			StartShaderProgram(int passindex);
 	void			EndShaderProgram();
+	void			PrintShaderErrors(unsigned int shader, const char *task, const char *code);
 
 	void SetupTextures(bool depth, bool luminance);
 	void FreeTextures();
 
 	void UpdateOffsetMatrix(RAS_ICanvas* canvas);
-
+	void UpdateCanvasTextureCoord(unsigned int * viewport);
+ 
+	float			canvascoord[4];
 	float			textureoffsets[18];
 	float			view[4];
 	/* texname[0] contains render to texture, texname[1] contains depth texture,  texname[2] contains luminance texture*/
@@ -58,6 +65,8 @@ private:
 	short			texflag[MAX_RENDER_PASS];
 
 	bool			isshadersupported;
+	bool			errorprinted;
+	bool			need_tex_update;
 
 	unsigned int	m_filters[MAX_RENDER_PASS];
 	short		m_enabled[MAX_RENDER_PASS];
@@ -92,5 +101,12 @@ public:
 	void RenderFilters(RAS_ICanvas* canvas);
 
 	void EnableFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFILTER_MODE mode, int pass, STR_String& text);
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_2DFilterManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 #endif

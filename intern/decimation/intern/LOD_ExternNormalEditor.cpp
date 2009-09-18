@@ -41,8 +41,8 @@ LOD_ExternNormalEditor(
 	LOD_Decimation_InfoPtr extern_info,
 	LOD_ManMesh2 &mesh
 ) :
-	m_extern_info (extern_info),
-	m_mesh(mesh)
+	m_mesh(mesh),
+	m_extern_info (extern_info)
 {
 }
 

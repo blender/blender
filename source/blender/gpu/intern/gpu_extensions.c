@@ -312,7 +312,79 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	return tex;
 }
 
-GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time)
+
+GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
+{
+	GPUTexture *tex;
+	GLenum type, format, internalformat;
+	void *pixels = NULL;
+	float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+	tex->w = w;
+	tex->h = h;
+	tex->depth = depth;
+	tex->number = -1;
+	tex->refcount = 1;
+	tex->target = GL_TEXTURE_3D;
+
+	glGenTextures(1, &tex->bindcode);
+
+	if (!tex->bindcode) {
+		fprintf(stderr, "GPUTexture: texture create failed: %d\n",
+			(int)glGetError());
+		GPU_texture_free(tex);
+		return NULL;
+	}
+
+	if (!GLEW_ARB_texture_non_power_of_two) {
+		tex->w = larger_pow2(tex->w);
+		tex->h = larger_pow2(tex->h);
+		tex->depth = larger_pow2(tex->depth);
+	}
+
+	tex->number = 0;
+	glBindTexture(tex->target, tex->bindcode);
+
+	GPU_print_error("3D glBindTexture");
+
+	type = GL_FLOAT; // GL_UNSIGNED_BYTE
+	format = GL_RED;
+	internalformat = GL_INTENSITY;
+
+	//if (fpixels)
+	//	pixels = GPU_texture_convert_pixels(w*h*depth, fpixels);
+
+	glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, 0);
+
+	GPU_print_error("3D glTexImage3D");
+
+	if (fpixels) {
+		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
+		GPU_print_error("3D glTexSubImage3D");
+	}
+
+
+	glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, vfBorderColor);
+	GPU_print_error("3D GL_TEXTURE_BORDER_COLOR");
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GPU_print_error("3D GL_LINEAR");
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+	GPU_print_error("3D GL_CLAMP_TO_BORDER");
+
+	if (pixels)
+		MEM_freeN(pixels);
+
+	if (tex)
+		GPU_texture_unbind(tex);
+
+	return tex;
+}
+
+GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time, int mipmap)
 {
 	GPUTexture *tex;
 	GLint w, h, border, lastbindcode, bindcode;
@@ -320,7 +392,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time)
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastbindcode);
 
 	GPU_update_image_time(ima, time);
-	bindcode = GPU_verify_image(ima, 0, 0, 0);
+	bindcode = GPU_verify_image(ima, 0, 0, 0, mipmap);
 
 	if(ima->gputexture) {
 		ima->gputexture->bindcode = bindcode;
@@ -746,7 +818,9 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, /*GPU
 	glGetObjectParameterivARB(shader->object, GL_OBJECT_LINK_STATUS_ARB, &status);
 	if (!status) {
 		glGetInfoLogARB(shader->object, sizeof(log), &length, log);
-		shader_print_errors("linking", log, fragcode);
+		if (fragcode) shader_print_errors("linking", log, fragcode);
+		else if (vertexcode) shader_print_errors("linking", log, vertexcode);
+		else if (libcode) shader_print_errors("linking", log, libcode);
 
 		GPU_shader_free(shader);
 		return NULL;

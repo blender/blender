@@ -32,6 +32,7 @@
 #include "RAS_TexVert.h"
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
+#include "SG_QList.h"
 
 #include "MT_Transform.h"
 #include "RAS_IPolygonMaterial.h"
@@ -69,6 +70,7 @@ class RAS_DisplayArray;
 class RAS_MeshSlot;
 class RAS_MeshMaterial;
 class RAS_MaterialBucket;
+struct DerivedMesh;
 
 /* An array with data used for OpenGL drawing */
 
@@ -77,8 +79,11 @@ class RAS_DisplayArray
 public:
 	vector<RAS_TexVert> m_vertex;
 	vector<unsigned short> m_index;
+	/* LINE currently isnt used */
 	enum { LINE = 2, TRIANGLE = 3, QUAD = 4 } m_type;
 	//RAS_MeshSlot *m_origSlot;
+	
+	/* Number of RAS_MeshSlot using this array */
 	int m_users;
 
 	enum { BUCKET_MAX_INDEX = 65535 };
@@ -86,9 +91,13 @@ public:
 };
 
 /* Entry of a RAS_MeshObject into RAS_MaterialBucket */
+typedef std::vector<RAS_DisplayArray*>	RAS_DisplayArrayList;
 
-class RAS_MeshSlot
+// The QList is used to link the mesh slots to the object
+// The DList is used to link the visible mesh slots to the material bucket
+class RAS_MeshSlot : public SG_QList
 {
+	friend class RAS_ListRasterizer;
 private:
 	//  indices into display arrays
 	int							m_startarray;
@@ -97,7 +106,7 @@ private:
 	int							m_endindex;
 	int							m_startvertex;
 	int							m_endvertex;
-	vector<RAS_DisplayArray*>	m_displayArrays;
+	RAS_DisplayArrayList		m_displayArrays;
 
 	// for construction only
 	RAS_DisplayArray*			m_currentArray;
@@ -108,6 +117,7 @@ public:
 	RAS_MeshObject*			m_mesh;
 	void*					m_clientObj;
 	RAS_Deformer*			m_pDeformer;
+	DerivedMesh*			m_pDerivedMesh;
 	double*					m_OpenGLMatrix;
 	// visibility
 	bool					m_bVisible;
@@ -146,6 +156,7 @@ public:
 	/* used during construction */
 	void SetDisplayArray(int numverts);
 	RAS_DisplayArray *CurrentDisplayArray();
+	void SetDeformer(RAS_Deformer* deformer);
 
 	void AddPolygon(int numverts);
 	int AddVertex(const RAS_TexVert& tv);
@@ -155,7 +166,19 @@ public:
 	bool Split(bool force=false);
 	bool Join(RAS_MeshSlot *target, MT_Scalar distance);
 	bool Equals(RAS_MeshSlot *target);
+#ifdef USE_SPLIT
 	bool IsCulled();
+#else
+	bool IsCulled() { return m_bCulled; }
+#endif
+	void SetCulled(bool culled) { m_bCulled = culled; }
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MeshSlot"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /* Used by RAS_MeshObject, to point to it's slots in a bucket */
@@ -165,8 +188,14 @@ class RAS_MeshMaterial
 public:
 	RAS_MeshSlot *m_baseslot;
 	class RAS_MaterialBucket *m_bucket;
-
 	GEN_Map<GEN_HashedPtr,RAS_MeshSlot*> m_slots;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MeshMaterial"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /* Contains a list of display arrays with the same material,
@@ -202,11 +231,30 @@ public:
 	class RAS_MeshSlot* CopyMesh(class RAS_MeshSlot *ms);
 	void				RemoveMesh(class RAS_MeshSlot* ms);
 	void				Optimize(MT_Scalar distance);
+	void				ActivateMesh(RAS_MeshSlot* slot)
+	{
+		m_activeMeshSlotsHead.AddBack(slot);
+	}
+	SG_DList&			GetActiveMeshSlots()
+	{
+		return m_activeMeshSlotsHead;
+	}
+	RAS_MeshSlot*		GetNextActiveMeshSlot()
+	{
+		return (RAS_MeshSlot*)m_activeMeshSlotsHead.Remove();
+	}
 
 private:
-	list<RAS_MeshSlot>			m_meshSlots;
+	list<RAS_MeshSlot>			m_meshSlots;			// all the mesh slots
 	RAS_IPolyMaterial*			m_material;
+	SG_DList					m_activeMeshSlotsHead;	// only those which must be rendered
 	
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MaterialBucket"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_MATERIAL_BUCKET

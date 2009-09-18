@@ -3,7 +3,7 @@
  *
  *	BMesh modeler structure and functions.
  *
- * $Id: BKE_bmesh.h,v 1.00 2007/01/17 17:42:01 Briggs Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -44,7 +44,7 @@
 #include "DNA_image_types.h"
 #include "BLI_editVert.h"
 #include "BKE_DerivedMesh.h"
-#include "transform.h"
+//XXX #include "transform.h"
 
 /*forward declerations*/
 struct BME_Vert;
@@ -247,7 +247,7 @@ struct BME_Mesh *BME_bevel(struct BME_Mesh *bm, float value, int res, int option
 
 /*CONVERSION FUNCTIONS*/
 struct BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em);
-struct EditMesh *BME_bmesh_to_editmesh(struct BME_Mesh *bm, BME_TransData_Head *td);
+void   BME_bmesh_to_editmesh(struct BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em);
 struct BME_Mesh *BME_derivedmesh_to_bmesh(struct DerivedMesh *dm);
 struct DerivedMesh *BME_bmesh_to_derivedmesh(struct BME_Mesh *bm, struct DerivedMesh *dm);
 #endif

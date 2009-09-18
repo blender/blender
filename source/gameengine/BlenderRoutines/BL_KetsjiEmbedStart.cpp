@@ -61,62 +61,81 @@
 #include "RAS_ListRasterizer.h"
 
 #include "NG_LoopBackNetworkDeviceInterface.h"
-#include "SND_DeviceManager.h"
 
 #include "SYS_System.h"
 
-	/***/
+#include "GPU_extensions.h"
+#include "Value.h"
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+	/***/
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_windowmanager_types.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
-#include "BIF_screen.h"
-#include "BIF_scrarea.h"
+#include "BKE_report.h"
 
-#include "BKE_main.h"	
+#include "BKE_utildefines.h"
+//XXX #include "BIF_screen.h"
+//XXX #include "BIF_scrarea.h"
+
+#include "BKE_main.h"
 #include "BLI_blenlib.h"
 #include "BLO_readfile.h"
 #include "DNA_scene_types.h"
 	/***/
 
-#include "GPU_extensions.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "BSE_headerbuttons.h"
-void update_for_newframe();
+//XXX #include "BSE_headerbuttons.h"
+#include "BKE_context.h"
+#include "../../blender/windowmanager/WM_types.h"
+#include "../../blender/windowmanager/wm_window.h"
+#include "../../blender/windowmanager/wm_event_system.h"
 #ifdef __cplusplus
 }
 #endif
 
-static BlendFileData *load_game_data(char *filename) {
-	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_file(filename, &error);
+
+static BlendFileData *load_game_data(char *filename)
+{
+	ReportList reports;
+	BlendFileData *bfd;
+	
+	BKE_reports_init(&reports, RPT_STORE);
+	bfd= BLO_read_from_file(filename, &reports);
+
 	if (!bfd) {
-		printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
+		printf("Loading %s failed: ", filename);
+		BKE_reports_print(&reports, RPT_ERROR);
 	}
+
+	BKE_reports_clear(&reports);
+
 	return bfd;
 }
 
-extern "C" void StartKetsjiShell(struct ScrArea *area,
-								 char* scenename,
-								 struct Main* maggie1,
-								 struct SpaceIpo *sipo,
-								 int always_use_expand_framing)
+extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_use_expand_framing)
 {
-	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
+	/* context values */
+	struct wmWindow *win= CTX_wm_window(C);
+	struct Scene *scene= CTX_data_scene(C);
+	struct Main* maggie1= CTX_data_main(C);
 	
+	
+	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 	Main* blenderdata = maggie1;
 
-	char* startscenename = scenename;
+	char* startscenename = scene->id.name+2;
 	char pathname[FILE_MAXDIR+FILE_MAXFILE], oldsce[FILE_MAXDIR+FILE_MAXFILE];
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
 
 	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
 	BLI_strncpy(oldsce, G.sce, sizeof(oldsce));
+	resetGamePythonPath(); // need this so running a second time wont use an old blendfiles path
 	setGamePythonPath(G.sce);
 
 	// Acquire Python's GIL (global interpreter lock)
@@ -129,7 +148,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 	do
 	{
-		View3D *v3d= (View3D*) area->spacedata.first;
+		View3D *v3d= CTX_wm_view3d(C);
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 		// get some preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();
@@ -139,20 +159,21 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
-
+		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
+		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
 		
 		if(displaylists) {
-			if (GLEW_VERSION_1_1)
+			if (GLEW_VERSION_1_1 && !novertexarrays)
 				rasterizer = new RAS_ListRasterizer(canvas, true, true);
 			else
 				rasterizer = new RAS_ListRasterizer(canvas);
 		}
-		else if (GLEW_VERSION_1_1)
+		else if (GLEW_VERSION_1_1 && !novertexarrays)
 			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
@@ -164,19 +185,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		// create a networkdevice
 		NG_NetworkDeviceInterface* networkdevice = new
 			NG_LoopBackNetworkDeviceInterface();
-		
+
 		//
-		SYS_SystemHandle hSystem = SYS_GetSystem();
-		bool noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
-
-		if (noaudio)/*(noaudio) intrr: disable game engine audio (openal) */
-			SND_DeviceManager::SetDeviceType(snd_e_dummydevice);
-
-		// get an audiodevice
-		SND_DeviceManager::Subscribe();
-		SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
-		audiodevice->UseCD();
-		
 		// create a ketsji/blendersystem (only needed for timing and stuff)
 		KX_BlenderSystem* kxsystem = new KX_BlenderSystem();
 		
@@ -191,40 +201,40 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		ketsjiengine->SetRenderTools(rendertools);
 		ketsjiengine->SetRasterizer(rasterizer);
 		ketsjiengine->SetNetworkDevice(networkdevice);
-		ketsjiengine->SetAudioDevice(audiodevice);
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 
+		CValue::SetDeprecationWarnings(nodepwarnings);
+
 
 		//lock frame and camera enabled - storing global values
-		int tmp_lay= G.scene->lay;
-		Object *tmp_camera = G.scene->camera;
+		int tmp_lay= scene->lay;
+		Object *tmp_camera = scene->camera;
 
-		if (G.vd->scenelock==0){
-			G.scene->lay= v3d->lay;
-			G.scene->camera= v3d->camera;
+		if (v3d->scenelock==0){
+			scene->lay= v3d->lay;
+			scene->camera= v3d->camera;
 		}
 
-	
 		// some blender stuff
 		MT_CmMatrix4x4 projmat;
 		MT_CmMatrix4x4 viewmat;
 		float camzoom;
 		int i;
-		
+
 		for (i = 0; i < 16; i++)
 		{
-			float *viewmat_linear= (float*) v3d->viewmat;
+			float *viewmat_linear= (float*) rv3d->viewmat;
 			viewmat.setElem(i, viewmat_linear[i]);
 		}
 		for (i = 0; i < 16; i++)
 		{
-			float *projmat_linear = (float*) area->winmat;
+			float *projmat_linear= (float*) rv3d->winmat;
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
-		if(v3d->persp==V3D_CAMOB) {
-			camzoom = (1.41421 + (v3d->camzoom / 50.0));
+		if(rv3d->persp==V3D_CAMOB) {
+			camzoom = (1.41421 + (rv3d->camzoom / 50.0));
 			camzoom *= camzoom;
 		}
 		else
@@ -276,6 +286,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				if(blenderdata) {
 					BLI_strncpy(G.sce, blenderdata->name, sizeof(G.sce));
 					BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
+					setGamePythonPath(G.sce);
 				}
 			}
 			// else forget it, we can't find it
@@ -305,26 +316,28 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		{
 			int startFrame = blscene->r.cfra;
 			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
+			
+			// Quad buffered needs a special window.
+			if(blscene->gm.stereoflag == STEREO_ENABLED){
+				if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+			}
 		}
-
-
-		// Quad buffered needs a special window.
-		if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
-			if (v3d->persp != V3D_CAMOB)
+			if (rv3d->persp != V3D_CAMOB)
 			{
 				ketsjiengine->EnableCameraOverride(startscenename);
-				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == V3D_ORTHO));
+				ketsjiengine->SetCameraOverrideUseOrtho((rv3d->persp == V3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
 				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
+				ketsjiengine->SetCameraOverrideLens(v3d->lens);
 			}
 			
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			sceneconverter->addInitFromFrame=false;
 			if (always_use_expand_framing)
@@ -337,23 +350,22 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 			if(GPU_extensions_minimum_support())
 				useglslmat = true;
-			else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+			else if(blscene->gm.matmode == GAME_MAT_GLSL)
 				usemat = false;
 
-            if(usemat && (G.fileflags & G_FILE_GAME_MAT))
+            if(usemat && (blscene->gm.matmode != GAME_MAT_TEXFACE))
 				sceneconverter->SetMaterials(true);
-			if(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
+			if(useglslmat && (blscene->gm.matmode == GAME_MAT_GLSL))
 				sceneconverter->SetGLSLMaterials(true);
 					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
-				audiodevice,
 				startscenename,
 				blscene);
 			
 			// some python things
-			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
+			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
@@ -364,15 +376,22 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			initGeometry();
+			initBGL();
+#ifdef WITH_FFMPEG
+			initVideoTexture();
+#endif
+
+			//initialize Dome Settings
+			if(blscene->gm.stereoflag == STEREO_DOME)
+				ketsjiengine->InitDome(blscene->gm.dome.res, blscene->gm.dome.mode, blscene->gm.dome.angle, blscene->gm.dome.resbuf, blscene->gm.dome.tilt, blscene->gm.dome.warptext);
 
 			if (sceneconverter)
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
-					startscenename,
 					startscene,
 					dictionaryobject,
-					keyboarddevice,
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
@@ -397,7 +416,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 					exitrequested = ketsjiengine->GetExitCode();
 					
 					// kick the engine
-					bool render = ketsjiengine->NextFrame();
+					bool render = ketsjiengine->NextFrame(); // XXX 2.5 Bug, This is never true! FIXME-  Campbell
 					
 					if (render)
 					{
@@ -405,26 +424,37 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 						ketsjiengine->Render();
 					}
 					
+					wm_window_process_events_nosleep(C);
+					
 					// test for the ESC key
-					while (qtest())
+					//XXX while (qtest())
+					while(wmEvent *event= (wmEvent *)win->queue.first)
 					{
-						short val; 
-						unsigned short event = extern_qread(&val);
+						short val = 0;
+						//unsigned short event = 0; //XXX extern_qread(&val);
 						
-						if (keyboarddevice->ConvertBlenderEvent(event,val))
+						if (keyboarddevice->ConvertBlenderEvent(event->type,event->val))
 							exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
 						
 							/* Coordinate conversion... where
 							* should this really be?
 						*/
-						if (event==MOUSEX) {
-							val = val - scrarea_get_win_x(area);
-						} else if (event==MOUSEY) {
-							val = scrarea_get_win_height(area) - (val - scrarea_get_win_y(area)) - 1;
+						if (event->type==MOUSEMOVE) {
+							/* Note nice! XXX 2.5 event hack */
+							val = event->x - ar->winrct.xmin;
+							mousedevice->ConvertBlenderEvent(MOUSEX, val);
+							
+							val = ar->winy - (event->y - ar->winrct.ymin) - 1;
+							mousedevice->ConvertBlenderEvent(MOUSEY, val);
+						}
+						else {
+							mousedevice->ConvertBlenderEvent(event->type,event->val);
 						}
 						
-						mousedevice->ConvertBlenderEvent(event,val);
+						BLI_remlink(&win->queue, event);
+						wm_event_free(event);
 					}
+					
 				}
 				printf("\nBlender Game Engine Finished\n\n");
 				exitstring = ketsjiengine->GetExitString();
@@ -466,17 +496,15 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			gameLogic_keys = NULL;
 		}
 		//lock frame and camera enabled - restoring global values
-		if (G.vd->scenelock==0){
-			G.scene->lay= tmp_lay;
-			G.scene->camera= tmp_camera;
+		if (v3d->scenelock==0){
+			scene->lay= tmp_lay;
+			scene->camera= tmp_camera;
 		}
 
 		// set the cursor back to normal
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
 		
 		// clean up some stuff
-		audiodevice->StopCD();
-		
 		if (ketsjiengine)
 		{
 			delete ketsjiengine;
@@ -516,11 +544,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		{
 			delete canvas;
 			canvas = NULL;
-		}
-		SND_DeviceManager::Unsubscribe();
+                }
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
-
+	
+	Py_DECREF(pyGlobalDict);
+	
 	if (bfd) BLO_blendfiledata_free(bfd);
 
 	BLI_strncpy(G.sce, oldsce, sizeof(G.sce));
@@ -529,10 +558,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	PyGILState_Release(gilstate);
 }
 
-extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
+extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
+								 struct ARegion *ar,
 								 char* scenename,
 								 struct Main* maggie,
-								 struct SpaceIpo *sipo,
 								 int always_use_expand_framing)
 {
     int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
@@ -556,16 +585,18 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 
 		// get some preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();
+		/*
 		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
 		bool usefixed = (SYS_GetCommandLineInt(syshandle, "fixedtime", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
+		*/
 		bool game2ipo = true;//(SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool usemat = false;
 
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
 		//canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -588,11 +619,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		// create a networkdevice
 		NG_NetworkDeviceInterface* networkdevice = new
 			NG_LoopBackNetworkDeviceInterface();
-
-		// get an audiodevice
-		SND_DeviceManager::Subscribe();
-		SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
-		audiodevice->UseCD();
 
 		// create a ketsji/blendersystem (only needed for timing and stuff)
 		KX_BlenderSystem* kxsystem = new KX_BlenderSystem();
@@ -618,18 +644,20 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			cframe=blscene->r.cfra;
 			startFrame = blscene->r.sfra;
 			blscene->r.cfra=startFrame;
-			update_for_newframe();
+			// update_for_newframe(); // XXX scene_update_for_newframe wont cut it!
 			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
 		}
 
 		// Quad buffered needs a special window.
-		if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
+		if(blscene->gm.stereoflag == STEREO_ENABLED){
+			if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+		}
 
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			sceneconverter->addInitFromFrame=true;
 			
@@ -642,12 +670,11 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
-				audiodevice,
 				startscenename,
 				blscene);
 
 			// some python things
-			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
+			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
@@ -655,15 +682,18 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			initGeometry();
+			initBGL();
+#ifdef WITH_FFMPEG
+			initVideoTexture();
+#endif
 
 			if (sceneconverter)
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
-					startscenename,
 					startscene,
 					dictionaryobject,
-					keyboarddevice,
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
@@ -687,7 +717,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 					// kick the engine
 					ketsjiengine->NextFrame();
 				    blscene->r.cfra=blscene->r.cfra+1;
-				    update_for_newframe();
+				    // update_for_newframe(); // XXX scene_update_for_newframe wont cut it
 					
 				}
 				exitstring = ketsjiengine->GetExitString();
@@ -703,7 +733,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
 
 		// clean up some stuff
-		audiodevice->StopCD();
 		if (ketsjiengine)
 		{
 			delete ketsjiengine;
@@ -729,7 +758,16 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			delete mousedevice;
 			mousedevice = NULL;
 		}
-		SND_DeviceManager::Unsubscribe();
+		if (rasterizer)
+		{
+			delete rasterizer;
+			rasterizer = NULL;
+		}
+		if (rendertools)
+		{
+			delete rendertools;
+			rendertools = NULL;
+                }
 
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 

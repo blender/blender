@@ -31,7 +31,10 @@
 
 #include "SCA_IObject.h"
 
-class KX_MeshProxy	: public SCA_IObject
+/* utility conversion function */
+bool ConvertPythonToMesh(PyObject * value, class RAS_MeshObject **object, bool py_none_ok, const char *error_prefix);
+
+class KX_MeshProxy	: public CValue
 {
 	Py_Header;
 
@@ -46,24 +49,27 @@ public:
 	virtual CValue*		Calc(VALUE_OPERATOR op, CValue *val) ;
 	virtual CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	virtual const STR_String &	GetText();
-	virtual float		GetNumber();
-	virtual STR_String	GetName();
-	virtual void		SetName(STR_String name);								// Set the name of the value
-	virtual void		ReplicaSetName(STR_String name);
+	virtual double		GetNumber();
+	virtual RAS_MeshObject* GetMesh() { return m_meshobj; }
+	virtual STR_String&	GetName();
+	virtual void		SetName(const char *name);								// Set the name of the value
 	virtual CValue*		GetReplica();
 
 // stuff for python integration
-	virtual PyObject*  _getattr(const STR_String& attr);
-	KX_PYMETHOD(KX_MeshProxy,GetNumMaterials);
+
+	KX_PYMETHOD(KX_MeshProxy,GetNumMaterials);	// Deprecated
 	KX_PYMETHOD(KX_MeshProxy,GetMaterialName);
 	KX_PYMETHOD(KX_MeshProxy,GetTextureName);
-	KX_PYMETHOD_NOARGS(KX_MeshProxy,GetNumPolygons);
+	KX_PYMETHOD_NOARGS(KX_MeshProxy,GetNumPolygons); // Deprecated
 	
 	// both take materialid (int)
 	KX_PYMETHOD(KX_MeshProxy,GetVertexArrayLength);
 	KX_PYMETHOD(KX_MeshProxy,GetVertex);
 	KX_PYMETHOD(KX_MeshProxy,GetPolygon);
-	KX_PYMETHOD_DOC(KX_MeshProxy, reinstancePhysicsMesh);
+	
+	static PyObject*	pyattr_get_materials(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject * pyattr_get_numMaterials(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	static PyObject * pyattr_get_numPolygons(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 };
 
 #endif //__KX_MESHPROXY

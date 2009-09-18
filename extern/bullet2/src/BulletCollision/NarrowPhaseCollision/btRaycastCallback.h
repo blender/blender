@@ -29,9 +29,20 @@ public:
 	btVector3 m_from;
 	btVector3 m_to;
 
+   //@BP Mod - allow backface filtering and unflipped normals
+   enum EFlags
+   {
+      kF_None                 = 0,
+      kF_FilterBackfaces      = 1 << 0,
+      kF_KeepUnflippedNormal  = 1 << 1,   // Prevents returned face normal getting flipped when a ray hits a back-facing triangle
+
+      kF_Terminator        = 0xFFFFFFFF
+   };
+   unsigned int m_flags;
+
 	btScalar	m_hitFraction;
 
-	btTriangleRaycastCallback(const btVector3& from,const btVector3& to);
+	btTriangleRaycastCallback(const btVector3& from,const btVector3& to, unsigned int flags=0);
 	
 	virtual void processTriangle(btVector3* triangle, int partId, int triangleIndex);
 

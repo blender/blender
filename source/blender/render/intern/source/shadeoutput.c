@@ -30,7 +30,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "MTC_matrixops.h"
+
 #include "BLI_arithb.h"
 
 #include "BKE_colortools.h"
@@ -58,15 +58,17 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static ListBase *get_lights(ShadeInput *shi)
+ListBase *get_lights(ShadeInput *shi)
 {
 	
+	if(R.r.scemode & R_PREVIEWBUTS)
+		return &R.lights;
 	if(shi->light_override)
 		return &shi->light_override->gobject;
-	else if(shi->mat && shi->mat->group)
+	if(shi->mat && shi->mat->group)
 		return &shi->mat->group->gobject;
-	else
-		return &R.lights;
+	
+	return &R.lights;
 }
 
 #if 0
@@ -166,7 +168,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		p1[0]= shi->co[0]-lar->co[0];
 		p1[1]= shi->co[1]-lar->co[1];
 		p1[2]= -lar->co[2];
-		MTC_Mat3MulVecfl(lar->imat, p1);
+		Mat3MulVecfl(lar->imat, p1);
 		VECCOPY(npos, p1);	// npos is double!
 		
 		/* pre-scale */
@@ -178,7 +180,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	
 	/* rotate view */
 	VECCOPY(nray, shi->view);
-	MTC_Mat3MulVecd(lar->imat, nray);
+	Mat3MulVecd(lar->imat, nray);
 	
 	if(R.wrld.mode & WO_MIST) {
 		/* patchy... */
@@ -1005,6 +1007,7 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
 }
 
 /* pure AO, check for raytrace and world should have been done */
+/* preprocess, textures were not done, don't use shi->amb for that reason */
 void ambient_occlusion(ShadeInput *shi)
 {
 	if((R.wrld.ao_gather_method == WO_AOGATHER_APPROX) && shi->mat->amb!=0.0f)
@@ -1020,8 +1023,8 @@ void ambient_occlusion(ShadeInput *shi)
 void ambient_occlusion_to_diffuse(ShadeInput *shi, float *diff)
 {
 	if((R.r.mode & R_RAYTRACE) || R.wrld.ao_gather_method == WO_AOGATHER_APPROX) {
-		if(shi->mat->amb!=0.0f) {
-			float f= R.wrld.aoenergy*shi->mat->amb;
+		if(shi->amb!=0.0f) {
+			float f= R.wrld.aoenergy*shi->amb;
 
 			if (R.wrld.aomix==WO_AOADDSUB) {
 				diff[0] = 2.0f*shi->ao[0]-1.0f;
@@ -1140,7 +1143,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 							
 							/* rotate view to lampspace */
 							VECCOPY(lvrot, lv);
-							MTC_Mat3MulVecfl(lar->imat, lvrot);
+							Mat3MulVecfl(lar->imat, lvrot);
 							
 							x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
 							/* 1.0f/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
@@ -1710,7 +1713,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 			
 		/* note: shi->mode! */
-		if(shi->mode & (MA_ZTRA|MA_RAYTRANSP)) {
+		if(shi->mode & MA_TRANSP) {
 			if(shi->spectra!=0.0f) {
 				float t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
 				t *= shi->spectra;
@@ -1727,11 +1730,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shr->combined[1]+= shi->ambg;
 		shr->combined[2]+= shi->ambb;
 
+		/* removed
 		if(shi->combinedflag & SCE_PASS_RADIO) {
 			shr->combined[0]+= shi->r*shi->amb*shi->rad[0];
 			shr->combined[1]+= shi->g*shi->amb*shi->rad[1];
 			shr->combined[2]+= shi->b*shi->amb*shi->rad[2];
-		}
+		}*/
 		
 		/* add AO in combined? */
 		if(R.wrld.mode & WO_AMB_OCC) {

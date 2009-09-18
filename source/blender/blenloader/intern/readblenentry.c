@@ -32,6 +32,8 @@
 #include <config.h>
 #endif
 
+#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -43,6 +45,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 
+#include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -52,18 +55,21 @@
 #include "BKE_utildefines.h" // for ENDB
 
 #include "BKE_main.h"
-#include "BKE_global.h"
 #include "BKE_library.h" // for free_main
+#include "BKE_report.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 
 #include "readfile.h"
-#include "genfile.h"
 
 #include "BLO_readblenfile.h"
 
 #include "BLO_sys_types.h" // needed for intptr_t
+
+#ifdef _WIN32
+#include "BLI_winstuff.h"
+#endif
 
 	/**
 	 * IDType stuff, I plan to move this
@@ -86,13 +92,13 @@ static IDType idtypes[]= {
 	{ ID_BR,		"Brush",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_CA,		"Camera",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_CU,		"Curve",	IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_GD,		"GPencil",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_GR,		"Group",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_ID,		"ID",		0}, 
 	{ ID_IM,		"Image",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_IP,		"Ipo",		IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_KE,		"Key",		0}, 
 	{ ID_LA,		"Lamp",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_LF,		"Life",		0}, 
 	{ ID_LI,		"Library",	0}, 
 	{ ID_LT,		"Lattice",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_MA,		"Material", IDTYPE_FLAGS_ISLINKABLE}, 
@@ -103,7 +109,6 @@ static IDType idtypes[]= {
 	{ ID_SCE,		"Scene",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_SCR,		"Screen",	0}, 
 	{ ID_SEQ,		"Sequence",	0}, 
-	{ ID_SE,		"Sector",	0}, 
 	{ ID_SO,		"Sound",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_TE,		"Texture",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_TXT,		"Text",		IDTYPE_FLAGS_ISLINKABLE}, 
@@ -166,9 +171,11 @@ int BLO_idcode_from_name(char *name)
 	 
 BlendHandle *BLO_blendhandle_from_file(char *file) 
 {
-	BlendReadError err;
+	BlendHandle *bh;
 
-	return (BlendHandle*) blo_openblenderfile(file, &err);
+	bh= (BlendHandle*)blo_openblenderfile(file, NULL);
+
+	return bh;
 }
 
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp) 
@@ -195,7 +202,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 			buf[2]= buf[2]?buf[2]:' ';
 			buf[3]= buf[3]?buf[3]:' ';
 			
-			fprintf(fp, "['%.4s', '%s', %d, %ld ], \n", buf, name, bhead->nr, (intptr_t)bhead->len+sizeof(BHead));
+			fprintf(fp, "['%.4s', '%s', %d, %ld ], \n", buf, name, bhead->nr, (long int)bhead->len+sizeof(BHead));
 		}
 	}
 	fprintf(fp, "]\n");
@@ -239,7 +246,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 			}
 		} else if (bhead->code==DATA) {
 			if (looking) {
-				if (bhead->SDNAnr == dna_findstruct_nr(fd->filesdna, "PreviewImage") ) {
+				if (bhead->SDNAnr == DNA_struct_find_nr(fd->filesdna, "PreviewImage") ) {
 					prv = (PreviewImage*) (bhead+1);
 					npreviews = 0;				
 					memcpy(new_prv, prv, sizeof(PreviewImage));
@@ -318,78 +325,72 @@ void BLO_blendhandle_close(BlendHandle *bh) {
 
 	/**********/
 
-BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r) 
+BlendFileData *BLO_read_from_file(char *file, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
-	fd = blo_openblenderfile(file, error_r);
+	fd = blo_openblenderfile(file, reports);
 	if (fd) {
-		bfd= blo_read_file_internal(fd, error_r);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strncpy(bfd->main->name, file, sizeof(bfd->main->name)-1);
-		}
+		fd->reports= reports;
+		bfd= blo_read_file_internal(fd, file);
 		blo_freefiledata(fd);			
 	}
 
 	return bfd;	
 }
 
-BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *error_r) 
+BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
-	fd = blo_openblendermemory(mem, memsize,  error_r);
+	fd = blo_openblendermemory(mem, memsize,  reports);
 	if (fd) {
-		bfd= blo_read_file_internal(fd, error_r);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strcpy(bfd->main->name, "");
-		}
+		fd->reports= reports;
+		bfd= blo_read_file_internal(fd, "");
 		blo_freefiledata(fd);			
 	}
 
 	return bfd;	
 }
 
-BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, BlendReadError *error_r) 
+BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFile *memfile, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 	ListBase mainlist;
 	
-	fd = blo_openblendermemfile(memfile, error_r);
+	fd = blo_openblendermemfile(memfile, reports);
 	if (fd) {
+		fd->reports= reports;
 		strcpy(fd->filename, filename);
 		
-		/* separate libraries from G.main */
-		blo_split_main(&mainlist, G.main);
+		/* clear ob->proxy_from pointers in old main */
+		blo_clear_proxy_pointers_from_lib(fd, oldmain);
+
+		/* separate libraries from old main */
+		blo_split_main(&mainlist, oldmain);
 		/* add the library pointers in oldmap lookup */
 		blo_add_library_pointer_map(&mainlist, fd);
 		
-		/* makes lookup of existing images in G.main */
-		blo_make_image_pointer_map(fd);
+		/* makes lookup of existing images in old main */
+		blo_make_image_pointer_map(fd, oldmain);
 		
-		bfd= blo_read_file_internal(fd, error_r);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strcpy(bfd->main->name, "");
-		}
+		bfd= blo_read_file_internal(fd, "");
 		
 		/* ensures relinked images are not freed */
-		blo_end_image_pointer_map(fd);
+		blo_end_image_pointer_map(fd, oldmain);
 		
-		/* move libraries from G.main to new main */
+		/* move libraries from old main to new main */
 		if(bfd && mainlist.first!=mainlist.last) {
 			
 			/* Library structs themselves */
-			bfd->main->library= G.main->library;
-			G.main->library.first= G.main->library.last= NULL;
+			bfd->main->library= oldmain->library;
+			oldmain->library.first= oldmain->library.last= NULL;
 			
 			/* add the Library mainlist to the new main */
-			BLI_remlink(&mainlist, G.main);
+			BLI_remlink(&mainlist, oldmain);
 			BLI_addhead(&mainlist, bfd->main);
 		}
 		blo_join_main(&mainlist);
@@ -413,43 +414,3 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
 	MEM_freeN(bfd);
 }
 
-char *BLO_bre_as_string(BlendReadError error) 
-{
-	switch (error) {
-	case BRE_NONE:
-		return "No error";
-	
-	case BRE_UNABLE_TO_OPEN:
-		return "Unable to open";
-	case BRE_UNABLE_TO_READ:
-		return "Unable to read";
-		
-	case BRE_OUT_OF_MEMORY:
-		return "Out of memory";
-	case BRE_INTERNAL_ERROR:
-		return "<internal error>";
-
-	case BRE_NOT_A_BLEND:
-		return "File is not a Blender file";
-	case BRE_NOT_A_PUBFILE:
-		return "File is not a compressed, locked or signed Blender file";
-	case BRE_INCOMPLETE:
-		return "File incomplete";
-	case BRE_CORRUPT:
-		return "File corrupt";
-
-	case BRE_TOO_NEW:
-		return "File needs newer Blender version, please upgrade";
-	case BRE_NOT_ALLOWED:
-		return "File is locked";
-						
-	case BRE_NO_SCREEN:
-		return "File has no screen";
-	case BRE_NO_SCENE:
-		return "File has no scene";
-		
-	default:
-	case BRE_INVALID:
-		return "<invalid read error>";
-	}
-}

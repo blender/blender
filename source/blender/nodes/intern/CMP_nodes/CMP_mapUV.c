@@ -65,18 +65,48 @@ static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float thr
 		for(x=0; x<sx; x++, out+=4, uv+=3, uvnext+=3, uvprev+=3) {
 			if(x>0 && x<sx-1 && y>0 && y<sy-1) {
 				if(uv[2]!=0.0f) {
+					float uv_l, uv_r;
 					
 					/* adaptive sampling, red (U) channel */
-					dx= 0.5f*(fabs(uv[0]-uv[-3]) + fabs(uv[0]-uv[3]));
 					
-					dx+= 0.25f*(fabs(uv[0]-uvprev[-3]) + fabs(uv[0]-uvnext[-3]));
-					dx+= 0.25f*(fabs(uv[0]-uvprev[+3]) + fabs(uv[0]-uvnext[+3]));
+					/* prevent alpha zero UVs to be used */
+					uv_l= uv[-1]!=0.0f? fabs(uv[0]-uv[-3]) : 0.0f;
+					uv_r= uv[ 5]!=0.0f? fabs(uv[0]-uv[ 3]) : 0.0f;
+					
+					//dx= 0.5f*(fabs(uv[0]-uv[-3]) + fabs(uv[0]-uv[3]));
+					dx= 0.5f*(uv_l + uv_r);
+					
+					uv_l= uvprev[-1]!=0.0f? fabs(uv[0]-uvprev[-3]) : 0.0f;
+					uv_r= uvnext[-1]!=0.0f? fabs(uv[0]-uvnext[-3]) : 0.0f;
+					
+					//dx+= 0.25f*(fabs(uv[0]-uvprev[-3]) + fabs(uv[0]-uvnext[-3]));
+					dx+= 0.25f*(uv_l + uv_r);
+						
+					uv_l= uvprev[ 5]!=0.0f? fabs(uv[0]-uvprev[+3]) : 0.0f;
+					uv_r= uvnext[ 5]!=0.0f? fabs(uv[0]-uvnext[+3]) : 0.0f;
+					
+					//dx+= 0.25f*(fabs(uv[0]-uvprev[+3]) + fabs(uv[0]-uvnext[+3]));
+					dx+= 0.25f*(uv_l + uv_r);
 					
 					/* adaptive sampling, green (V) channel */
-					dy= 0.5f*(fabs(uv[1]-uv[-row+1]) + fabs(uv[1]-uv[row+1]));
-							 
-					dy+= 0.25f*(fabs(uv[1]-uvprev[+1-3]) + fabs(uv[1]-uvnext[+1-3]));
-					dy+= 0.25f*(fabs(uv[1]-uvprev[+1+3]) + fabs(uv[1]-uvnext[+1+3]));
+					
+					uv_l= uv[-row+2]!=0.0f? fabs(uv[1]-uv[-row+1]) : 0.0f;
+					uv_r= uv[ row+2]!=0.0f? fabs(uv[1]-uv[ row+1]) : 0.0f;
+					
+					//dy= 0.5f*(fabs(uv[1]-uv[-row+1]) + fabs(uv[1]-uv[row+1]));
+					dy= 0.5f*(uv_l + uv_r);
+					
+					uv_l= uvprev[-1]!=0.0f? fabs(uv[1]-uvprev[+1-3]) : 0.0f;
+					uv_r= uvnext[-1]!=0.0f? fabs(uv[1]-uvnext[+1-3]) : 0.0f;
+					
+					//dy+= 0.25f*(fabs(uv[1]-uvprev[+1-3]) + fabs(uv[1]-uvnext[+1-3]));
+					dy+= 0.25f*(uv_l + uv_r);
+					
+					uv_l= uvprev[ 5]!=0.0f? fabs(uv[1]-uvprev[+1+3]) : 0.0f;
+					uv_r= uvnext[ 5]!=0.0f? fabs(uv[1]-uvnext[+1+3]) : 0.0f;
+					
+					//dy+= 0.25f*(fabs(uv[1]-uvprev[+1+3]) + fabs(uv[1]-uvnext[+1+3]));
+					dy+= 0.25f*(uv_l + uv_r);
 					
 					/* UV to alpha threshold */
 					alpha= 1.0f - threshold*(dx+dy);

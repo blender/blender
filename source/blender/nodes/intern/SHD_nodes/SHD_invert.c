@@ -1,5 +1,5 @@
 /**
- * $Id: SHD_math.c,v 1.4 2007/04/04 13:58:12 jesterking Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -39,7 +39,7 @@ class SCA_XNORController : public SCA_IController
 	Py_Header;
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
-	SCA_XNORController(SCA_IObject* gameobj,PyTypeObject* T=&Type);
+	SCA_XNORController(SCA_IObject* gameobj);
 	virtual ~SCA_XNORController();
 	virtual CValue* GetReplica();
 	virtual void Trigger(SCA_LogicManager* logicmgr);
@@ -47,8 +47,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* _getattr(const STR_String& attr);
 
 };
 

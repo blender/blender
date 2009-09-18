@@ -39,8 +39,8 @@
 
 KX_PhysicsObjectWrapper::KX_PhysicsObjectWrapper(
 						PHY_IPhysicsController* ctrl,
-						PHY_IPhysicsEnvironment* physenv,PyTypeObject *T) :
-					PyObjectPlus(T),
+						PHY_IPhysicsEnvironment* physenv) :
+					PyObjectPlus(),
 					m_ctrl(ctrl),
 					m_physenv(physenv)
 {
@@ -51,12 +51,10 @@ KX_PhysicsObjectWrapper::~KX_PhysicsObjectWrapper()
 }
 
 
-PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* args)
 {
 	float x,y,z;
-	if (PyArg_ParseTuple(args,"fff",&x,&y,&z))
+	if (PyArg_ParseTuple(args,"fff:setPosition",&x,&y,&z))
 	{
 		m_ctrl->setPosition(x,y,z);
 	}
@@ -67,13 +65,11 @@ PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* self,
 }
 
 
-PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* args)
 {
 	float x,y,z;
 	int local;
-	if (PyArg_ParseTuple(args,"fffi",&x,&y,&z,&local))
+	if (PyArg_ParseTuple(args,"fffi:setLinearVelocity",&x,&y,&z,&local))
 	{
 		m_ctrl->SetLinearVelocity(x,y,z,local != 0);
 	}
@@ -83,13 +79,11 @@ PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* args)
 {
 	float x,y,z;
 	int local;
-	if (PyArg_ParseTuple(args,"fffi",&x,&y,&z,&local))
+	if (PyArg_ParseTuple(args,"fffi:setAngularVelocity",&x,&y,&z,&local))
 	{
 		m_ctrl->SetAngularVelocity(x,y,z,local != 0);
 	}
@@ -99,12 +93,10 @@ PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* args)
 {
 	int active;
-	if (PyArg_ParseTuple(args,"i",&active))
+	if (PyArg_ParseTuple(args,"i:setActive",&active))
 	{
 		m_ctrl->SetActive(active!=0);
 	}
@@ -115,59 +107,32 @@ PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self,
 }
 
 
-
+PyAttributeDef KX_PhysicsObjectWrapper::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 //python specific stuff
 PyTypeObject KX_PhysicsObjectWrapper::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-		0,
-		"KX_PhysicsObjectWrapper",
-		sizeof(KX_PhysicsObjectWrapper),
-		0,
-		PyDestructor,
-		0,
-		__getattr,
-		__setattr,
-		0, //&MyPyCompare,
-		__repr,
-		0, //&cvalue_as_number,
-		0,
-		0,
-		0,
-		0
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"KX_PhysicsObjectWrapper",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&PyObjectPlus::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-PyParentObject KX_PhysicsObjectWrapper::Parents[] = {
-	&KX_PhysicsObjectWrapper::Type,
-	NULL
-};
-
-PyObject*	KX_PhysicsObjectWrapper::_getattr(const STR_String& attr)
-{
-	_getattr_up(PyObjectPlus);
-}
-
-
-int	KX_PhysicsObjectWrapper::_setattr(const STR_String& attr,PyObject* pyobj)
-{
-	PyTypeObject* type = pyobj->ob_type;
-	int result = 1;
-
-
-	if (type == &PyInt_Type)
-	{
-		result = 0;
-	}
-	if (type == &PyString_Type)
-	{
-		result = 0;
-	}
-	if (result)
-		result = PyObjectPlus::_setattr(attr,pyobj);
-		
-	return result;
-};
-
 
 PyMethodDef KX_PhysicsObjectWrapper::Methods[] = {
 	{"setPosition",(PyCFunction) KX_PhysicsObjectWrapper::sPySetPosition, METH_VARARGS},

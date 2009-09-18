@@ -1,0 +1,29 @@
+#!/usr/bin/python
+import sys
+
+Import ('env')
+
+sources = env.Glob('*.cpp')
+
+incs = '. #source/gameengine/Ketsji #source/gameengine/Expressions'
+incs += ' #source/gameengine/GameLogic #source/gameengine/SceneGraph #source/gameengine/Rasterizer'
+incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
+incs += ' #source/gameengine/BlenderRoutines'
+incs += ' #source/blender/editors/include #source/blender/blenlib #source/blender/blenkernel'
+incs += ' #source/blender/makesdna #source/blender/imbuf #source/blender/python'
+incs += ' #source/blender/gpu #source/kernel/gen_system #intern/string #intern/moto/include'
+incs += ' #intern/guardedalloc #extern/glew/include'
+
+defs = [] 
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+	if env['BF_DEBUG']:
+		defs.append('_DEBUG')
+
+incs += ' ' + env['BF_PYTHON_INC']
+#incs += ' ' + env['BF_OPENGL_INC']
+
+if env['WITH_BF_FFMPEG']:
+    defs.append('WITH_FFMPEG')
+    incs += ' ' + env['BF_FFMPEG_INC'] + ' ' + env['BF_PTHREADS_INC']
+
+env.BlenderLib ( 'bf_videotex', sources, Split(incs), defs, libtype=['core','player'], priority=[300,205], cxx_compileflags=env['BGE_CXXFLAGS'])

@@ -39,6 +39,9 @@ typedef enum ModifierType {
 	eModifierType_Fluidsim,
 	eModifierType_Mask,
 	eModifierType_SimpleDeform,
+	eModifierType_Multires,
+	eModifierType_Surface,
+	eModifierType_Smoke,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -57,7 +60,10 @@ typedef struct ModifierData {
 
 	int type, mode;
 	char name[32];
-
+	
+	/* XXX for timing info set by caller... solve later? (ton) */
+	struct Scene *scene;
+	
 	char *error;
 } ModifierData;
 
@@ -232,6 +238,22 @@ typedef struct BMeshModifierData {
 	int type;
 } BMeshModifierData;
 
+
+/* Smoke modifier flags */
+#define MOD_SMOKE_TYPE_DOMAIN (1 << 0)
+#define MOD_SMOKE_TYPE_FLOW (1 << 1)
+#define MOD_SMOKE_TYPE_COLL (1 << 2)
+
+typedef struct SmokeModifierData {
+	ModifierData modifier;
+
+	struct SmokeDomainSettings *domain;
+	struct SmokeFlowSettings *flow; /* inflow, outflow, smoke objects */
+	struct SmokeCollSettings *coll; /* collision objects */
+	float time;
+	int type;  /* domain, inflow, outflow, ... */
+} SmokeModifierData;
+
 typedef struct DisplaceModifierData {
 	ModifierData modifier;
 
@@ -267,7 +289,7 @@ typedef struct UVProjectModifierData {
 	ModifierData modifier;
 
 	/* the objects which do the projecting */
-	struct Object *projectors[10];
+	struct Object *projectors[10]; /* MOD_UVPROJECT_MAX */
 	struct Image *image;      /* the image to project */
 	int flags;
 	int num_projectors;
@@ -375,6 +397,8 @@ typedef struct HookModifierData {
 	ModifierData modifier;
 
 	struct Object *object;
+	char subtarget[32];		/* optional name of bone target */
+	
 	float parentinv[4][4];	/* matrix making current transform unmodified */
 	float cent[3];			/* visualization of hook */
 	float falloff;			/* if not zero, falloff is distance where influence zero */
@@ -390,12 +414,14 @@ typedef struct SoftbodyModifierData {
 } SoftbodyModifierData;
 
 typedef struct ClothModifierData {
-   ModifierData		modifier;
+	ModifierData		modifier;
 
-   struct Cloth *clothObject; /* The internal data structure for cloth. */
-   struct ClothSimSettings *sim_parms; /* definition is in DNA_cloth_types.h */
-   struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
-   struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+	struct Scene *scene;			/* the context, time etc is here */
+	struct Cloth *clothObject;		/* The internal data structure for cloth. */
+	struct ClothSimSettings *sim_parms; /* definition is in DNA_cloth_types.h */
+	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+	struct ListBase ptcaches;
 } ClothModifierData;
 
 typedef struct CollisionModifierData {
@@ -418,6 +444,19 @@ typedef struct CollisionModifierData {
 	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
 
+typedef struct SurfaceModifierData {
+	ModifierData	modifier;
+
+	struct MVert *x; /* old position */
+	struct MVert *v; /* velocity */
+
+	struct DerivedMesh *dm;
+
+	struct BVHTreeFromMesh *bvhtree; /* bounding volume hierarchy of the mesh faces */
+
+	int cfra, numverts;
+} SurfaceModifierData;
+
 typedef enum {
 	eBooleanModifierOp_Intersect,
 	eBooleanModifierOp_Union,
@@ -430,8 +469,8 @@ typedef struct BooleanModifierData {
 	int operation, pad;
 } BooleanModifierData;
 
-#define MOD_MDEF_INVERT_VGROUP (1<<0)
-#define MOD_MDEF_DYNAMIC_BIND  (1<<1)
+#define MOD_MDEF_INVERT_VGROUP	(1<<0)
+#define MOD_MDEF_DYNAMIC_BIND	(1<<1)
 
 typedef struct MDefInfluence {
 	int vertex;
@@ -489,12 +528,15 @@ typedef enum {
 	eParticleInstanceFlag_Unborn =		(1<<3),
 	eParticleInstanceFlag_Alive =		(1<<4),
 	eParticleInstanceFlag_Dead =		(1<<5),
+	eParticleInstanceFlag_KeepShape =	(1<<6),
+	eParticleInstanceFlag_UseSize =		(1<<7),
 } ParticleInstanceModifierFlag;
 
 typedef struct ParticleInstanceModifierData {
 	ModifierData modifier;
 	struct Object *ob;
-	short psys, flag, rt[2];
+	short psys, flag, axis, rt;
+	float position, random_position;
 } ParticleInstanceModifierData;
 
 typedef enum {
@@ -512,6 +554,17 @@ typedef struct ExplodeModifierData {
 	short flag, vgroup;
 	float protect;
 } ExplodeModifierData;
+
+typedef struct MultiresModifierData {
+	ModifierData modifier;
+
+	struct MVert *undo_verts; /* Store DerivedMesh vertices for multires undo */
+	int undo_verts_tot; /* Length of undo_verts array */
+	char undo_signal; /* If true, signals to replace verts with undo verts */
+
+	char lvl, totlvl;
+	char simple;
+} MultiresModifierData;
 
 typedef struct FluidsimModifierData {
 	ModifierData modifier;
@@ -588,5 +641,7 @@ typedef struct SimpleDeformModifierData {
 /* indicates whether simple deform should use the local
    coordinates or global coordinates of origin */
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
+
+#define MOD_UVPROJECT_MAX				10
 
 #endif

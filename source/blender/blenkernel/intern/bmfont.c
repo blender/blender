@@ -178,7 +178,7 @@ void detectBitmapFont(ImBuf *ibuf)
 {
 	unsigned char * rect;
 	unsigned short version;
-	long i;
+	int i;
 	
 	if (ibuf != NULL) {
 	        // bitmap must have an x size that is a power of two

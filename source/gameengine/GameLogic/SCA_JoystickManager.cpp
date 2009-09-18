@@ -59,20 +59,21 @@ SCA_JoystickManager::~SCA_JoystickManager()
 
 void SCA_JoystickManager::NextFrame(double curtime,double deltatime)
 {
-	if (m_sensors.size()==0) {
+	if (m_sensors.Empty()) {
 		return;
 	}
 	else {
-		set<SCA_ISensor*>::iterator it;
+		;
 #ifndef	DISABLE_SDL
 		SCA_Joystick::HandleEvents(); /* Handle all SDL Joystick events */
 #endif
-		for (it = m_sensors.begin(); it != m_sensors.end(); it++)
+		SG_DList::iterator<SCA_JoystickSensor> it(m_sensors);
+		for (it.begin();!it.end();++it)
 		{
-			SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*)(*it);
+			SCA_JoystickSensor* joysensor = *it;
 			if(!joysensor->IsSuspended())
 			{
-				joysensor->Activate(m_logicmgr, NULL);
+				joysensor->Activate(m_logicmgr);
 			}
 		}
 	}

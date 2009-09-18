@@ -38,7 +38,7 @@ email: projectileman@yahoo.com
 #define MIN_EDGE_EDGE_DIS 0.00001f
 
 
-class _GIM_TRIANGLE_CALCULATION_CACHE
+class GIM_TRIANGLE_CALCULATION_CACHE
 {
 public:
 	GREAL margin;	
@@ -489,7 +489,7 @@ public:
 };
 
 
-/*class _GIM_TRIANGLE_CALCULATION_CACHE
+/*class GIM_TRIANGLE_CALCULATION_CACHE
 {
 public:
 	GREAL margin;
@@ -627,7 +627,7 @@ bool GIM_TRIANGLE::collide_triangle_hard_test(
 		const GIM_TRIANGLE & other,
 		GIM_TRIANGLE_CONTACT_DATA & contact_data) const
 {
-	_GIM_TRIANGLE_CALCULATION_CACHE calc_cache;	
+	GIM_TRIANGLE_CALCULATION_CACHE calc_cache;	
 	return calc_cache.triangle_collision(
 					m_vertices[0],m_vertices[1],m_vertices[2],m_margin,
 					other.m_vertices[0],other.m_vertices[1],other.m_vertices[2],other.m_margin,

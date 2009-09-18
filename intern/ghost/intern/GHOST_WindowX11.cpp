@@ -42,6 +42,9 @@
 #include <cstring>
 #include <cstdio>
 
+#include <algorithm>
+#include <string>
+
 // For obscure full screen mode stuuf
 // lifted verbatim from blut.
 
@@ -53,6 +56,16 @@ typedef struct {
 } MotifWmHints;
 
 #define MWM_HINTS_DECORATIONS         (1L << 1)
+
+/*
+ * A Client can't change the window property, that is
+ * the work of the window manager. In case, we send
+ * a ClientMessage to the RootWindow with the property
+ * and the Action (WM-spec define this):
+ */
+#define _NET_WM_STATE_REMOVE 0
+#define _NET_WM_STATE_ADD 1
+#define _NET_WM_STATE_TOGGLE 2
 
 /*
 import bpy
@@ -177,6 +190,8 @@ GHOST_WindowX11(
 		printf("%s:%d: X11 glxChooseVisual() failed for OpenGL, verify working openGL system!\n", __FILE__, __LINE__);
 		return;
 	}
+	
+	memset(&m_xtablet, 0, sizeof(m_xtablet));
 
 	// Create a bunch of attributes needed to create an X window.
 
@@ -258,52 +273,28 @@ GHOST_WindowX11(
 		
 	}	
 	
-	
-	// Are we in fullscreen mode - then include
-	// some obscure blut code to remove decorations.
-
-	if (state == GHOST_kWindowStateFullScreen) {
-
-		MotifWmHints hints;
-		Atom atom;
-					
-		atom = XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
-		
-		if (atom == None) {
-			GHOST_PRINT("Could not intern X atom for _MOTIF_WM_HINTS.\n");
-		} else {
-			hints.flags = MWM_HINTS_DECORATIONS;
-			hints.decorations = 0;  /* Absolutely no decorations. */
-			// other hints.decorations make no sense
-			// you can't select individual decorations
-
-			XChangeProperty(m_display, m_window,
-				atom, atom, 32,
-				PropModeReplace, (unsigned char *) &hints, 4);
-		}
-	} else if (state == GHOST_kWindowStateMaximized) {
-		// With this, xprop should report the following just after launch
-		// _NET_WM_STATE(ATOM) = _NET_WM_STATE_MAXIMIZED_VERT, _NET_WM_STATE_MAXIMIZED_HORZ
-		// After demaximization the right side is empty, though (maybe not the most correct then?)
-		Atom state, atomh, atomv;
-
-		state = XInternAtom(m_display, "_NET_WM_STATE", False);
-		atomh = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-		atomv = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-		if (state == None ) {
-			GHOST_PRINT("Atom _NET_WM_STATE requested but not avaliable nor created.\n");
-		} else {
-			XChangeProperty(m_display, m_window,
-				state, XA_ATOM, 32,
-				PropModeAppend, (unsigned char *) &atomh, 1);
-			XChangeProperty(m_display, m_window,
-				state, XA_ATOM, 32,
-				PropModeAppend, (unsigned char *) &atomv, 1);
-		}
- 	}
+	/*
+	 * One of the problem with WM-spec is that can't set a property
+	 * to a window that isn't mapped. That is why we can't "just
+	 * call setState" here.
+	 *
+	 * To fix this, we first need know that the window is really
+	 * map waiting for the MapNotify event.
+	 *
+	 * So, m_post_init indicate that we need wait for the MapNotify
+	 * event and then set the Window state to the m_post_state.
+	 */
+	if ((state != GHOST_kWindowStateNormal) && (state != GHOST_kWindowStateMinimized)) {
+		m_post_init = True;
+		m_post_state = state;
+	}
+	else {
+		m_post_init = False;
+		m_post_state = GHOST_kWindowStateNormal;
+	}
 	
 	// Create some hints for the window manager on how
-	// we want this window treated.	
+	// we want this window treated.
 
 	XSizeHints * xsizehints = XAllocSizeHints();
 	xsizehints->flags = USPosition | USSize;
@@ -386,7 +377,8 @@ GHOST_WindowX11(
 	XDestroyImage( mask_image );
 	
 	xwmhints->initial_state = NormalState;
-	xwmhints->flags         = IconPixmapHint|IconMaskHint|StateHint;
+	xwmhints->input= True;
+	xwmhints->flags= InputHint|IconPixmapHint|IconMaskHint|StateHint;
 	XSetWMHints(display, m_window, xwmhints );
 	XFree(xwmhints);
 	// done setting the icon
@@ -422,6 +414,100 @@ static int ApplicationErrorHandler(Display *display, XErrorEvent *theEvent) {
 	return 0 ;
 }
 
+/* These C functions are copied from Wine 1.1.13's wintab.c */
+#define BOOL int
+#define TRUE 1
+#define FALSE 0
+
+static bool match_token(const char *haystack, const char *needle)
+{
+	const char *p, *q;
+	for (p = haystack; *p; )
+	{
+		while (*p && isspace(*p))
+			p++;
+		if (! *p)
+			break;
+
+		for (q = needle; *q && *p && tolower(*p) == tolower(*q); q++)
+			p++;
+		if (! *q && (isspace(*p) || !*p))
+			return TRUE;
+
+		while (*p && ! isspace(*p))
+			p++;
+	}
+	return FALSE;
+}
+
+/*	Determining if an X device is a Tablet style device is an imperfect science.
+**  We rely on common conventions around device names as well as the type reported
+**  by Wacom tablets.  This code will likely need to be expanded for alternate tablet types
+**
+**	Wintab refers to any device that interacts with the tablet as a cursor,
+**  (stylus, eraser, tablet mouse, airbrush, etc)
+**  this is not to be confused with wacom x11 configuration "cursor" device.
+**  Wacoms x11 config "cursor" refers to its device slot (which we mirror with
+**  our gSysCursors) for puck like devices (tablet mice essentially).
+*/
+#if 0 // unused
+static BOOL is_tablet_cursor(const char *name, const char *type)
+{
+	int i;
+	static const char *tablet_cursor_whitelist[] = {
+		"wacom",
+		"wizardpen",
+		"acecad",
+		"tablet",
+		"cursor",
+		"stylus",
+		"eraser",
+		"pad",
+		NULL
+	};
+
+	for (i=0; tablet_cursor_whitelist[i] != NULL; i++) {
+		if (name && match_token(name, tablet_cursor_whitelist[i]))
+			return TRUE;
+		if (type && match_token(type, tablet_cursor_whitelist[i]))
+			return TRUE;
+	}
+	return FALSE;
+}
+#endif
+static BOOL is_stylus(const char *name, const char *type)
+{
+	int i;
+	static const char* tablet_stylus_whitelist[] = {
+		"stylus",
+		"wizardpen",
+		"acecad",
+		NULL
+	};
+
+	for (i=0; tablet_stylus_whitelist[i] != NULL; i++) {
+		if (name && match_token(name, tablet_stylus_whitelist[i]))
+			return TRUE;
+		if (type && match_token(type, tablet_stylus_whitelist[i]))
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+static BOOL is_eraser(const char *name, const char *type)
+{
+	if (name && match_token(name, "eraser"))
+		return TRUE;
+	if (type && match_token(type, "eraser"))
+		return TRUE;
+	return FALSE;
+}
+#undef BOOL
+#undef TRUE
+#undef FALSE
+/* end code copied from wine */
+
 void GHOST_WindowX11::initXInputDevices()
 {
 	static XErrorHandler old_handler = (XErrorHandler) 0 ;
@@ -431,15 +517,21 @@ void GHOST_WindowX11::initXInputDevices()
 		if(version->present) {
 			int device_count;
 			XDeviceInfo* device_info = XListInputDevices(m_display, &device_count);
-			m_xtablet.StylusDevice = 0;
-			m_xtablet.EraserDevice = 0;
-			m_xtablet.CommonData.Active= 0;
+			m_xtablet.StylusDevice = NULL;
+			m_xtablet.EraserDevice = NULL;
+			m_xtablet.CommonData.Active= GHOST_kTabletModeNone;
 
 			/* Install our error handler to override Xlib's termination behavior */
 			old_handler = XSetErrorHandler(ApplicationErrorHandler) ;
 
 			for(int i=0; i<device_count; ++i) {
-				if(!strcasecmp(device_info[i].name, "stylus")) {
+				char *device_type = device_info[i].type ? XGetAtomName(m_display, device_info[i].type) : NULL;
+				
+//				printf("Tablet type:'%s', name:'%s', index:%d\n", device_type, device_info[i].name, i);
+
+
+				if(m_xtablet.StylusDevice==NULL && is_stylus(device_info[i].name, device_type)) {
+//					printf("\tfound stylus\n");
 					m_xtablet.StylusID= device_info[i].id;
 					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
 
@@ -448,6 +540,7 @@ void GHOST_WindowX11::initXInputDevices()
 						XAnyClassPtr ici = device_info[i].inputclassinfo;
 						for(int j=0; j<m_xtablet.StylusDevice->num_classes; ++j) {
 							if(ici->c_class==ValuatorClass) {
+//								printf("\t\tfound ValuatorClass\n");
 								XValuatorInfo* xvi = (XValuatorInfo*)ici;
 								m_xtablet.PressureLevels = xvi->axes[2].max_value;
 							
@@ -464,10 +557,15 @@ void GHOST_WindowX11::initXInputDevices()
  						m_xtablet.StylusID= 0;
 					}
 				}
-				if(!strcasecmp(device_info[i].name, "eraser")) {
+				else if(m_xtablet.EraserDevice==NULL && is_eraser(device_info[i].name, device_type)) {
+//					printf("\tfound eraser\n");
 					m_xtablet.EraserID= device_info[i].id;
 					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
 					if (m_xtablet.EraserDevice == NULL) m_xtablet.EraserID= 0;
+				}
+
+				if(device_type) {
+					XFree((void*)device_type);
 				}
 			}
 
@@ -509,7 +607,7 @@ GHOST_WindowX11::
 getXWindow(
 ){
 	return m_window;
-}	
+}
 
 	bool 
 GHOST_WindowX11::
@@ -523,7 +621,17 @@ GHOST_WindowX11::
 setTitle(
 	const STR_String& title
 ){
+	Atom name = XInternAtom(m_display, "_NET_WM_NAME", 0);
+	Atom utf8str = XInternAtom(m_display, "UTF8_STRING", 0);
+	XChangeProperty(m_display, m_window,
+	                name, utf8str, 8, PropModeReplace,
+	                (const unsigned char*) title.ReadPtr(),
+	                strlen(title.ReadPtr()));
+
+// This should convert to valid x11 string
+//  and getTitle would need matching change
 	XStoreName(m_display,m_window,title);
+
 	XFlush(m_display);
 }
 
@@ -620,7 +728,7 @@ screenToClient(
 	GHOST_TInt32& outX,
 	GHOST_TInt32& outY
 ) const {
-	// not sure about this one!
+	// This is correct!
 
 	int ax,ay;
 	Window temp;
@@ -664,28 +772,298 @@ clientToScreen(
 	outY = ay;
 }
 
+void GHOST_WindowX11::icccmSetState(int state)
+{
+	XEvent xev;
 
-	GHOST_TWindowState 
-GHOST_WindowX11::
-getState(
-) const {
-	//FIXME 
-	return GHOST_kWindowStateNormal;
+	if (state != IconicState)
+		return;
+
+	xev.xclient.type = ClientMessage;
+	xev.xclient.serial = 0;
+	xev.xclient.send_event = True;
+	xev.xclient.display = m_display;
+	xev.xclient.window = m_window;
+	xev.xclient.format = 32;
+	xev.xclient.message_type = m_system->m_wm_change_state;
+	xev.xclient.data.l[0] = state;
+	XSendEvent (m_display, RootWindow(m_display, DefaultScreen(m_display)),
+		False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
 }
 
-	GHOST_TSuccess 
-GHOST_WindowX11::
-setState(
-	GHOST_TWindowState state
-){
-	//TODO
+int GHOST_WindowX11::icccmGetState(void) const
+{
+	unsigned char *prop_ret;
+	unsigned long bytes_after, num_ret;
+	Atom type_ret;
+	int format_ret, st;
 
-        if (state == (int)getState()) {
-		return GHOST_kSuccess;
-	} else {
-		return GHOST_kFailure;
+	prop_ret = NULL;
+	st = XGetWindowProperty(m_display, m_window, m_system->m_wm_state, 0,
+			0x7fffffff, False, m_system->m_wm_state, &type_ret,
+			&format_ret, &num_ret, &bytes_after, &prop_ret);
+
+	if ((st == Success) && (prop_ret) && (num_ret == 2))
+		st = prop_ret[0];
+	else
+		st = NormalState;
+
+	if (prop_ret)
+		XFree(prop_ret);
+	return (st);
+}
+
+void GHOST_WindowX11::netwmMaximized(bool set)
+{
+	XEvent xev;
+
+	xev.xclient.type = ClientMessage;
+	xev.xclient.serial = 0;
+	xev.xclient.send_event = True;
+	xev.xclient.window = m_window;
+	xev.xclient.message_type = m_system->m_net_state;
+	xev.xclient.format = 32;
+
+	if (set == True)
+		xev.xclient.data.l[0] = _NET_WM_STATE_ADD;
+	else
+		xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
+
+	xev.xclient.data.l[1] = m_system->m_net_max_horz;
+	xev.xclient.data.l[2] = m_system->m_net_max_vert;
+	xev.xclient.data.l[3] = 0;
+	xev.xclient.data.l[4] = 0;
+	XSendEvent(m_display, RootWindow(m_display, DefaultScreen(m_display)),
+		False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+}
+
+bool GHOST_WindowX11::netwmIsMaximized(void) const
+{
+	unsigned char *prop_ret;
+	unsigned long bytes_after, num_ret, i;
+	Atom type_ret;
+	bool st;
+	int format_ret, ret, count;
+
+	prop_ret = NULL;
+	st = False;
+	ret = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
+			0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
+			&num_ret, &bytes_after, &prop_ret);
+	if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
+		count = 0;
+		for (i = 0; i < num_ret; i++) {
+			if (((unsigned long *) prop_ret)[i] == m_system->m_net_max_horz)
+				count++;
+			if (((unsigned long *) prop_ret)[i] == m_system->m_net_max_vert)
+				count++;
+			if (count == 2) {
+				st = True;
+				break;
+			}
+		}
 	}
 
+	if (prop_ret)
+		XFree(prop_ret);
+	return (st);
+}
+
+void GHOST_WindowX11::netwmFullScreen(bool set)
+{
+	XEvent xev;
+
+	xev.xclient.type = ClientMessage;
+	xev.xclient.serial = 0;
+	xev.xclient.send_event = True;
+	xev.xclient.window = m_window;
+	xev.xclient.message_type = m_system->m_net_state;
+	xev.xclient.format = 32;
+
+	if (set == True)
+		xev.xclient.data.l[0] = _NET_WM_STATE_ADD;
+	else
+		xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
+
+	xev.xclient.data.l[1] = m_system->m_net_fullscreen;
+	xev.xclient.data.l[2] = 0;
+	xev.xclient.data.l[3] = 0;
+	xev.xclient.data.l[4] = 0;
+	XSendEvent(m_display, RootWindow(m_display, DefaultScreen(m_display)),
+		False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+}
+
+bool GHOST_WindowX11::netwmIsFullScreen(void) const
+{
+	unsigned char *prop_ret;
+	unsigned long bytes_after, num_ret, i;
+	Atom type_ret;
+	bool st;
+	int format_ret, ret;
+
+	prop_ret = NULL;
+	st = False;
+	ret = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
+			0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
+			&num_ret, &bytes_after, &prop_ret);
+	if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
+		for (i = 0; i < num_ret; i++) {
+			if (((unsigned long *) prop_ret)[i] == m_system->m_net_fullscreen) {
+				st = True;
+				break;
+			}
+		}
+	}
+
+	if (prop_ret)
+		XFree(prop_ret);
+	return (st);
+}
+
+void GHOST_WindowX11::motifFullScreen(bool set)
+{
+	MotifWmHints hints;
+
+	hints.flags = MWM_HINTS_DECORATIONS;
+	if (set == True)
+		hints.decorations = 0;
+	else
+		hints.decorations = 1;
+
+	XChangeProperty(m_display, m_window, m_system->m_motif,
+			m_system->m_motif, 32, PropModeReplace,
+			(unsigned char *) &hints, 4);
+}
+
+bool GHOST_WindowX11::motifIsFullScreen(void) const
+{
+	unsigned char *prop_ret;
+	unsigned long bytes_after, num_ret;
+	MotifWmHints *hints;
+	Atom type_ret;
+	bool state;
+	int format_ret, st;
+
+	prop_ret = NULL;
+	state = False;
+	st = XGetWindowProperty(m_display, m_window, m_system->m_motif, 0,
+				0x7fffffff, False, m_system->m_motif,
+				&type_ret, &format_ret, &num_ret,
+				&bytes_after, &prop_ret);
+	if ((st == Success) && (prop_ret)) {
+		hints = (MotifWmHints *) prop_ret;
+		if (hints->flags & MWM_HINTS_DECORATIONS) {
+			if (!hints->decorations)
+				state = True;
+		}
+	}
+
+	if (prop_ret)
+		XFree(prop_ret);
+	return (state);
+}
+
+GHOST_TWindowState GHOST_WindowX11::getState() const
+{
+	GHOST_TWindowState state_ret;
+	int state;
+
+	state_ret = GHOST_kWindowStateNormal;
+	state = icccmGetState();
+	/*
+	 * In the Iconic and Withdrawn state, the window
+	 * is unmaped, so only need return a Minimized state.
+	 */
+	if ((state == IconicState) || (state == WithdrawnState))
+		state_ret = GHOST_kWindowStateMinimized;
+	else if (netwmIsMaximized() == True)
+		state_ret = GHOST_kWindowStateMaximized;
+	else if (netwmIsFullScreen() == True)
+		state_ret = GHOST_kWindowStateFullScreen;
+	else if (motifIsFullScreen() == True)
+		state_ret = GHOST_kWindowStateFullScreen;
+	return (state_ret);
+}
+
+GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
+{
+	GHOST_TWindowState cur_state;
+	bool is_max, is_full, is_motif_full;
+
+	cur_state = getState();
+        if (state == (int)cur_state)
+		return GHOST_kSuccess;
+
+	if (cur_state != GHOST_kWindowStateMinimized) {
+		/*
+		 * The window don't have this property's
+		 * if it's not mapped.
+		 */
+		is_max = netwmIsMaximized();
+		is_full = netwmIsFullScreen();
+	}
+	else {
+		is_max = False;
+		is_full = False;
+	}
+
+	is_motif_full = motifIsFullScreen();
+
+	if (state == GHOST_kWindowStateNormal) {
+		if (is_max == True)
+			netwmMaximized(False);
+		if (is_full == True)
+			netwmFullScreen(False);
+		if (is_motif_full == True)
+			motifFullScreen(False);
+		icccmSetState(NormalState);
+		return (GHOST_kSuccess);
+	}
+
+	if (state == GHOST_kWindowStateFullScreen) {
+		/*
+		 * We can't change to full screen if the window
+		 * isn't mapped.
+		 */
+		if (cur_state == GHOST_kWindowStateMinimized)
+			return (GHOST_kFailure);
+
+		if (is_max == True)
+			netwmMaximized(False);
+		if (is_full == False)
+			netwmFullScreen(True);
+		if (is_motif_full == False)
+			motifFullScreen(True);
+		return (GHOST_kSuccess);
+	}
+
+	if (state == GHOST_kWindowStateMaximized) {
+		/*
+		 * We can't change to Maximized if the window
+		 * isn't mapped.
+		 */
+		if (cur_state == GHOST_kWindowStateMinimized)
+			return (GHOST_kFailure);
+
+		if (is_full == True)
+			netwmFullScreen(False);
+		if (is_motif_full == True)
+			motifFullScreen(False);
+		if (is_max == False)
+			netwmMaximized(True);
+		return (GHOST_kSuccess);
+	}
+
+	if (state == GHOST_kWindowStateMinimized) {
+		/*
+		 * The window manager need save the current state of
+		 * the window (maximized, full screen, etc).
+		 */
+		icccmSetState(IconicState);
+		return (GHOST_kSuccess);
+	}
+
+	return (GHOST_kFailure);
 }
 
 #include <iostream>
@@ -839,6 +1217,13 @@ GHOST_WindowX11::
 	if (m_custom_cursor) {
 		XFreeCursor(m_display, m_custom_cursor);
 	}
+	
+	/* close tablet devices */
+	if(m_xtablet.StylusDevice)
+		XCloseDevice(m_display, m_xtablet.StylusDevice);
+	
+	if(m_xtablet.EraserDevice)
+		XCloseDevice(m_display, m_xtablet.EraserDevice);
 	
 	if (m_context) {
 		if (m_context == s_firstContext) {
@@ -1014,6 +1399,21 @@ setWindowCursorVisibility(
 
 	GHOST_TSuccess
 GHOST_WindowX11::
+setWindowCursorGrab(
+	bool grab
+){
+	if(grab)
+		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+	else
+		XUngrabPointer(m_display, CurrentTime);
+
+	XFlush(m_display);
+	
+	return GHOST_kSuccess;
+}
+
+	GHOST_TSuccess
+GHOST_WindowX11::
 setWindowCursorShape(
 	GHOST_TStandardCursor shape
 ){
@@ -1051,13 +1451,12 @@ setWindowCustomCursorShape(
 	int fg_color, 
 	int bg_color
 ){
+	Colormap colormap= DefaultColormap(m_display, DefaultScreen(m_display));
 	Pixmap bitmap_pix, mask_pix;
 	XColor fg, bg;
 	
-	if(XAllocNamedColor(m_display, DefaultColormap(m_display, DefaultScreen(m_display)),
-		"White", &fg, &fg) == 0) return GHOST_kFailure;
-	if(XAllocNamedColor(m_display, DefaultColormap(m_display, DefaultScreen(m_display)),
-		"Black", &bg, &bg) == 0) return GHOST_kFailure;
+	if(XAllocNamedColor(m_display, colormap, "White", &fg, &fg) == 0) return GHOST_kFailure;
+	if(XAllocNamedColor(m_display, colormap, "Black", &bg, &bg) == 0) return GHOST_kFailure;
 
 	if (m_custom_cursor) {
 		XFreeCursor(m_display, m_custom_cursor);
@@ -1072,6 +1471,9 @@ setWindowCustomCursorShape(
 	
 	XFreePixmap(m_display, bitmap_pix);
 	XFreePixmap(m_display, mask_pix);
+
+    XFreeColors(m_display, colormap, &fg.pixel, 1, 0L);
+    XFreeColors(m_display, colormap, &bg.pixel, 1, 0L);
 
 	return GHOST_kSuccess;
 }

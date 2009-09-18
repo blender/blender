@@ -175,11 +175,12 @@ void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax)
 	IK_QSegment *qseg = (IK_QSegment*)seg;
 
 	if (axis >= IK_TRANS_X) {
-		if(!qseg->Translational())
+		if(!qseg->Translational()) {
 			if(qseg->Composite() && qseg->Composite()->Translational())
 				qseg = qseg->Composite();
 			else
 				return;
+		}
 
 		if(axis == IK_TRANS_X) axis = IK_X;
 		else if(axis == IK_TRANS_Y) axis = IK_Y;
@@ -201,11 +202,12 @@ void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 	MT_Scalar weight = 1.0-stiffness;
 
 	if (axis >= IK_TRANS_X) {
-		if(!qseg->Translational())
+		if(!qseg->Translational()) {
 			if(qseg->Composite() && qseg->Composite()->Translational())
 				qseg = qseg->Composite();
 			else
 				return;
+		}
 
 		if(axis == IK_TRANS_X) axis = IK_X;
 		else if(axis == IK_TRANS_Y) axis = IK_Y;

@@ -32,11 +32,9 @@
 #ifndef BKE_CUSTOMDATA_H
 #define BKE_CUSTOMDATA_H
 
-#include "BLO_sys_types.h" // for intptr_t support
-
 struct CustomData;
 struct CustomDataLayer;
-typedef intptr_t CustomDataMask;
+typedef unsigned int CustomDataMask;
 
 extern const CustomDataMask CD_MASK_BAREMESH;
 extern const CustomDataMask CD_MASK_MESH;
@@ -198,8 +196,12 @@ int CustomData_get_layer_index(const struct CustomData *data, int type);
 int CustomData_get_named_layer_index(const struct CustomData *data, int type, char *name);
 int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 int CustomData_get_render_layer_index(const struct CustomData *data, int type);
+int CustomData_get_clone_layer_index(const struct CustomData *data, int type);
+int CustomData_get_mask_layer_index(const struct CustomData *data, int type);
 int CustomData_get_active_layer(const struct CustomData *data, int type);
 int CustomData_get_render_layer(const struct CustomData *data, int type);
+int CustomData_get_clone_layer(const struct CustomData *data, int type);
+int CustomData_get_mask_layer(const struct CustomData *data, int type);
 
 /* copies the data from source to the data element at index in the first
  * layer of type
@@ -227,10 +229,14 @@ void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, voi
 /* sets the nth layer of type as active */
 void CustomData_set_layer_active(struct CustomData *data, int type, int n);
 void CustomData_set_layer_render(struct CustomData *data, int type, int n);
+void CustomData_set_layer_clone(struct CustomData *data, int type, int n);
+void CustomData_set_layer_mask(struct CustomData *data, int type, int n);
 
 /* same as above but works with an index from CustomData_get_layer_index */
 void CustomData_set_layer_active_index(struct CustomData *data, int type, int n);
 void CustomData_set_layer_render_index(struct CustomData *data, int type, int n);
+void CustomData_set_layer_clone_index(struct CustomData *data, int type, int n);
+void CustomData_set_layer_mask_index(struct CustomData *data, int type, int n);
 
 /* adds flag to the layer flags */
 void CustomData_set_layer_flag(struct CustomData *data, int type, int flag);

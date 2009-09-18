@@ -24,9 +24,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -58,7 +56,6 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_multires.h"
 #include "BKE_subsurf.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
@@ -69,15 +66,21 @@
 /* -- */
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
-
-#ifdef WITH_VERSE
-#include "BKE_verse.h"
-#endif
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
+
+
+EditMesh *BKE_mesh_get_editmesh(Mesh *me)
+{
+	return me->edit_mesh;
+}
+
+void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
+{
+}
+
 
 void mesh_update_customdata_pointers(Mesh *me)
 {
@@ -143,8 +146,7 @@ void free_mesh(Mesh *me)
 	
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->mselect) MEM_freeN(me->mselect);
-
-	if(me->mr) multires_free(me->mr);
+	if(me->edit_mesh) MEM_freeN(me->edit_mesh);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
@@ -194,11 +196,8 @@ Mesh *add_mesh(char *name)
 	me->texflag= AUTOSPACE;
 	me->flag= ME_TWOSIDED;
 	me->bb= unit_boundbox();
-
-#ifdef WITH_VERSE
-	me->vnode = NULL;
-#endif
-
+	me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
+	
 	return me;
 }
 
@@ -232,19 +231,12 @@ Mesh *copy_mesh(Mesh *me)
 		}
 	}
 	
-	if(me->mr)
-		men->mr= multires_copy(me->mr);
-
 	men->mselect= NULL;
 
 	men->bb= MEM_dupallocN(men->bb);
 	
 	men->key= copy_key(me->key);
 	if(men->key) men->key->from= (ID *)men;
-
-#ifdef WITH_VERSE
-	men->vnode = NULL;
-#endif	
 
 	return men;
 }
@@ -803,6 +795,8 @@ void nurbs_to_mesh(Object *ob)
 
 	dl= cu->disp.first;
 	while(dl) {
+		int smooth= dl->rt & CU_SMOOTH ? 1 : 0;
+		
 		if(dl->type==DL_SEGM) {
 			startvert= vertcount;
 			a= dl->parts*dl->nr;
@@ -819,6 +813,7 @@ void nurbs_to_mesh(Object *ob)
 				for(b=1; b<dl->nr; b++) {
 					mface->v1= startvert+ofs+b-1;
 					mface->v2= startvert+ofs+b;
+					if(smooth) mface->flag |= ME_SMOOTH;
 					mface++;
 				}
 			}
@@ -843,6 +838,7 @@ void nurbs_to_mesh(Object *ob)
 						mface->v1= startvert+ofs+b;
 						if(b==dl->nr-1) mface->v2= startvert+ofs;
 						else mface->v2= startvert+ofs+b+1;
+						if(smooth) mface->flag |= ME_SMOOTH;
 						mface++;
 					}
 				}
@@ -868,6 +864,7 @@ void nurbs_to_mesh(Object *ob)
 				mface->v4= 0;
 				test_index_face(mface, NULL, 0, 3);
 				
+				if(smooth) mface->flag |= ME_SMOOTH;
 				mface++;
 				index+= 3;
 			}
@@ -915,6 +912,8 @@ void nurbs_to_mesh(Object *ob)
 					mface->v4= p2;
 					mface->mat_nr= (unsigned char)dl->col;
 					test_index_face(mface, NULL, 0, 4);
+					
+					if(smooth) mface->flag |= ME_SMOOTH;
 					mface++;
 
 					p4= p3; 
@@ -952,7 +951,8 @@ void nurbs_to_mesh(Object *ob)
 
 }
 
-void mesh_delete_material_index(Mesh *me, int index) {
+void mesh_delete_material_index(Mesh *me, int index)
+{
 	int i;
 
 	for (i=0; i<me->totface; i++) {
@@ -962,7 +962,8 @@ void mesh_delete_material_index(Mesh *me, int index) {
 	}
 }
 
-void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) {
+void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) 
+{
 	Mesh *me = meshOb->data;
 	int i;
 
@@ -976,7 +977,7 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) {
 		}
 	}
 
-	DAG_object_flush_update(G.scene, meshOb, OB_RECALC_DATA);
+// XXX do this in caller	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
 void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
@@ -1025,38 +1026,14 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 
 float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 {
-#ifdef WITH_VERSE
-	if(me->vnode) {
-		struct VLayer *vlayer;
-		struct VerseVert *vvert;
-		unsigned int i, numVerts;
-		float (*cos)[3];
-
-		vlayer = find_verse_layer_type((VGeomData*)((VNode*)me->vnode)->data, VERTEX_LAYER);
-
-		vvert = vlayer->dl.lb.first;
-		numVerts = vlayer->dl.da.count;
-		cos = MEM_mallocN(sizeof(*cos)*numVerts, "verse_vertexcos");
-
-		for(i=0; i<numVerts && vvert; vvert = vvert->next, i++) {
-			VECCOPY(cos[i], vvert->co);
-		}
-
-		return cos;
-	}
-	else {
-#endif
-		int i, numVerts = me->totvert;
-		float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
-        
-		if (numVerts_r) *numVerts_r = numVerts;
-		for (i=0; i<numVerts; i++)
-			VECCOPY(cos[i], me->mvert[i].co);
-        
-		return cos;
-#ifdef WITH_VERSE
-	}
-#endif
+	int i, numVerts = me->totvert;
+	float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
+	
+	if (numVerts_r) *numVerts_r = numVerts;
+	for (i=0; i<numVerts; i++)
+		VECCOPY(cos[i], me->mvert[i].co);
+	
+	return cos;
 }
 
 float (*mesh_getRefKeyCos(Mesh *me, int *numVerts_r))[3]
@@ -1191,6 +1168,48 @@ void free_uv_vert_map(UvVertMap *vmap)
 	}
 }
 
+/* Generates a map where the key is the vertex and the value is a list
+   of faces that use that vertex as a corner. The lists are allocated
+   from one memory pool. */
+void create_vert_face_map(ListBase **map, IndexNode **mem, const MFace *mface, const int totvert, const int totface)
+{
+	int i,j;
+	IndexNode *node = NULL;
+	
+	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert face map");
+	(*mem) = MEM_callocN(sizeof(IndexNode) * totface*4, "vert face map mem");
+	node = *mem;
+	
+	/* Find the users */
+	for(i = 0; i < totface; ++i){
+		for(j = 0; j < (mface[i].v4?4:3); ++j, ++node) {
+			node->index = i;
+			BLI_addtail(&(*map)[((unsigned int*)(&mface[i]))[j]], node);
+		}
+	}
+}
+
+/* Generates a map where the key is the vertex and the value is a list
+   of edges that use that vertex as an endpoint. The lists are allocated
+   from one memory pool. */
+void create_vert_edge_map(ListBase **map, IndexNode **mem, const MEdge *medge, const int totvert, const int totedge)
+{
+	int i, j;
+	IndexNode *node = NULL;
+ 
+	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert edge map");
+	(*mem) = MEM_callocN(sizeof(IndexNode) * totedge * 2, "vert edge map mem");
+	node = *mem;
+       
+	/* Find the users */
+	for(i = 0; i < totedge; ++i){
+		for(j = 0; j < 2; ++j, ++node) {
+			node->index = i;
+			BLI_addtail(&(*map)[((unsigned int*)(&medge[i].v1))[j]], node);
+		}
+	}
+}
+
 /* Partial Mesh Visibility */
 PartialVisibility *mesh_pmv_copy(PartialVisibility *pmv)
 {
@@ -1246,7 +1265,7 @@ void mesh_pmv_revert(Object *ob, Mesh *me)
 		MEM_freeN(me->pv->vert_map);
 		me->pv->vert_map= NULL;
 
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+// XXX do this in caller		DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	}
 }
 

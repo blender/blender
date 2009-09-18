@@ -29,20 +29,75 @@
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_IRasterizer.h"
 
+#include "DNA_image_types.h"
+#include "DNA_meshdata_types.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+void  RAS_IPolyMaterial::Initialize( 
+				const STR_String& texname,
+				const STR_String& matname,
+				int materialindex,
+				int tile,
+				int tilexrep,
+				int tileyrep,
+				int mode,
+				int transp,
+				bool alpha,
+				bool zsort)
+{
+	m_texturename = texname;
+	m_materialname = matname;
+	m_materialindex = materialindex;
+	m_tile = tile;
+	m_tilexrep = tilexrep;
+	m_tileyrep = tileyrep;
+	m_drawingmode = mode;
+	m_transp = transp;
+	m_alpha = alpha;
+	m_zsort = zsort;
+	m_polymatid = m_newpolymatid++;
+	m_flag = 0;
+	m_multimode = 0;
+	m_shininess = 35.0;
+	m_specular.setValue(0.5,0.5,0.5);
+	m_specularity = 1.0;
+	m_diffuse.setValue(0.5,0.5,0.5);
+}
+
+RAS_IPolyMaterial::RAS_IPolyMaterial() 
+		: m_texturename("__Dummy_Texture_Name__"),
+		m_materialname("__Dummy_Material_Name__"),
+		m_tile(0),
+		m_tilexrep(0),
+		m_tileyrep(0),
+		m_drawingmode (0),
+		m_transp(0),
+		m_alpha(false),
+		m_zsort(false),
+		m_materialindex(0),
+		m_polymatid(0),
+		m_flag(0),
+		m_multimode(0)
+{
+	m_shininess = 35.0;
+	m_specular = MT_Vector3(0.5,0.5,0.5);
+	m_specularity = 1.0;
+	m_diffuse = MT_Vector3(0.5,0.5,0.5);
+}
+
 RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 const STR_String& matname,
+									 int materialindex,
 									 int tile,
 									 int tilexrep,
 									 int tileyrep,
 									 int mode,
 									 int transp,
 									 bool alpha,
-									 bool zsort,
-									 int lightlayer)
+									 bool zsort)
 		: m_texturename(texname),
 		m_materialname(matname),
 		m_tile(tile),
@@ -52,7 +107,7 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_transp(transp),
 		m_alpha(alpha),
 		m_zsort(zsort),
-		m_lightlayer(lightlayer),
+		m_materialindex(materialindex),
 		m_polymatid(m_newpolymatid++),
 		m_flag(0),
 		m_multimode(0)
@@ -95,17 +150,21 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 	}
 }
 
+
+void RAS_IPolyMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
+{
+	*rgba++ = 0xFF;
+	*rgba++ = 0xFF;
+	*rgba++ = 0xFF;
+	*rgba++ = 0xFF;
+}
+
 bool RAS_IPolyMaterial::Less(const RAS_IPolyMaterial& rhs) const
 {
 	if (Equals(rhs))
 		return false;
 		
 	return m_polymatid < rhs.m_polymatid;
-}
-
-int RAS_IPolyMaterial::GetLightLayer() const
-{
-	return m_lightlayer;
 }
 
 bool RAS_IPolyMaterial::IsAlpha() const
@@ -143,7 +202,26 @@ const STR_String& RAS_IPolyMaterial::GetTextureName() const
 	return m_texturename;
 }
 
-const unsigned int	RAS_IPolyMaterial::GetFlag() const
+int RAS_IPolyMaterial::GetMaterialIndex() const
+{
+	return m_materialindex;
+}
+
+Material *RAS_IPolyMaterial::GetBlenderMaterial() const
+{
+	return NULL;
+}
+
+Scene* RAS_IPolyMaterial::GetBlenderScene() const
+{
+	return NULL;
+}
+
+void RAS_IPolyMaterial::ReleaseMaterial()
+{
+}
+
+unsigned int	RAS_IPolyMaterial::GetFlag() const
 {
 	return m_flag;
 }

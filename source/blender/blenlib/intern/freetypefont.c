@@ -30,8 +30,6 @@
  * Code that uses exotic character maps is present but commented out.
  */
 
-#ifdef WITH_FREETYPE2
-
 #ifdef WIN32
 #pragma warning (disable:4244)
 #endif
@@ -49,9 +47,10 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"  
 
-#include "BIF_toolbox.h"
+//XXX #include "BIF_toolbox.h"
 
 #include "BKE_global.h"
+#include "BKE_font.h"
 #include "BKE_utildefines.h"
 
 #include "DNA_vfont_types.h"
@@ -66,7 +65,7 @@ static FT_Library	library;
 static FT_Error		err;
 
 
-void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
+static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 {
 	// Blender
 	struct Nurb *nu;
@@ -147,9 +146,10 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 			bezt = (BezTriple*)MEM_callocN((onpoints[j])* sizeof(BezTriple),"objfnt_bezt") ;
 			BLI_addtail(&che->nurbsbase, nu);
 
-			nu->type= CU_BEZIER+CU_2D;
+			nu->type= CU_BEZIER;
 			nu->pntsu = onpoints[j];
 			nu->resolu= 8;
+			nu->flag= CU_2D;
 			nu->flagu= CU_CYCLIC;
 			nu->bezt = bezt;
 
@@ -178,6 +178,7 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 						bezt->vec[2][1] = (dy +	(2 * ftoutline.points[l+1].y)* scale) / 3.0;
 
 						bezt->h1= bezt->h2= HD_ALIGN;
+						bezt->radius= 1.0f;
 						bezt++;
 					}
 				}
@@ -264,6 +265,7 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 					{
 						bezt->h1= bezt->h2= HD_ALIGN;
 					}
+					bezt->radius= 1.0f;
 					bezt++;
 				}
 			}
@@ -273,20 +275,14 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 	}
 }
 
-int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
+static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 {
 	// Freetype2
 	FT_Face face;
 	struct TmpFont *tf;
 	
 	// Find the correct FreeType font
-	tf= G.ttfdata.first;
-	while(tf)
-	{
-		if(tf->vfont == vfont)
-			break;
-		tf= tf->next;		
-	}
+	tf= vfont_find_tmpfont(vfont);
 	
 	// What, no font found. Something strange here
 	if(!tf) return FALSE;
@@ -299,9 +295,12 @@ int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 			tf->pf->size,
 			0,
 			&face);			
+		if (err) return FALSE;
 	}
-	else
-		err= TRUE;
+	else {
+		err = TRUE;
+		return FALSE;
+	}
 		
 	// Read the char
 	freetypechar_to_vchar(face, charcode, vfont->data);
@@ -430,7 +429,7 @@ static int check_freetypefont(PackedFile * pf)
 							&face );
 	if(err) {
 		success = 0;
-	    error("This is not a valid font");
+	    //XXX error("This is not a valid font");
 	}
 	else {
 /*
@@ -459,7 +458,7 @@ static int check_freetypefont(PackedFile * pf)
 			if (glyph->format == ft_glyph_format_outline ) {
 				success = 1;
 			} else {
-				error("Selected Font has no outline data");
+				//XXX error("Selected Font has no outline data");
 				success = 0;
 			}
 		}
@@ -477,7 +476,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	//init Freetype	
 	err = FT_Init_FreeType( &library);
 	if(err) {
-		error("Failed to load the Freetype font library");
+		//XXX error("Failed to load the Freetype font library");
 		return 0;
 	}
 
@@ -502,7 +501,7 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 	// Init Freetype
 	err = FT_Init_FreeType(&library);
 	if(err) {
-		error("Failed to load the Freetype font library");
+		//XXX error("Failed to load the Freetype font library");
 		return 0;
 	}
 
@@ -516,10 +515,6 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 	// Ahh everything ok
 	return TRUE;
 }
-
-#endif // WITH_FREETYPE2
-
-
 
 #if 0
 

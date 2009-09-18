@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
+
 #include <math.h>
 #include <stdlib.h>
 
@@ -54,10 +56,11 @@
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
 
+#include "PIL_time.h"
+
 #include "BKE_action.h"
 #include "BKE_anim.h"		/* needed for where_on_path */
 #include "BKE_armature.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_collision.h"
 #include "BKE_constraint.h"
@@ -80,19 +83,35 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "PIL_time.h"
 #include "RE_render_ext.h"
 
 /* fluid sim particle import */
 #ifndef DISABLE_ELBEEM
 #include "DNA_object_fluidsim.h"
 #include "LBM_fluidsim.h"
-#include "elbeem.h"
 #include <zlib.h>
 #include <string.h>
 #endif // DISABLE_ELBEEM
 
+//XXX #include "BIF_screen.h"
+
+PartDeflect *object_add_collision_fields(void)
+{
+	PartDeflect *pd;
+
+	pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
+
+	pd->pdef_sbdamp = 0.1f;
+	pd->pdef_sbift  = 0.2f;
+	pd->pdef_sboft  = 0.02f;
+	pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
+	pd->f_strength = 1.0f;
+
+	return pd;
+}
+
 /* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
+
 typedef struct VeNoCo {
 	float co[3], no[3];
 } VeNoCo;
@@ -138,7 +157,7 @@ void free_effects(ListBase *lb)
 
 /* -------------------------- Effectors ------------------ */
 
-static void add_to_effectorcache(ListBase *lb, Object *ob, Object *obsrc)
+static void add_to_effectorcache(ListBase *lb, Scene *scene, Object *ob, Object *obsrc)
 {
 	pEffectorCache *ec;
 	PartDeflect *pd= ob->pd;
@@ -148,7 +167,7 @@ static void add_to_effectorcache(ListBase *lb, Object *ob, Object *obsrc)
 			Curve *cu= ob->data;
 			if(cu->flag & CU_PATH) {
 				if(cu->path==NULL || cu->path->data==NULL)
-					makeDispListCurveTypes(ob, 0);
+					makeDispListCurveTypes(scene, ob, 0);
 				if(cu->path && cu->path->data) {
 					ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
 					ec->ob= ob;
@@ -161,8 +180,7 @@ static void add_to_effectorcache(ListBase *lb, Object *ob, Object *obsrc)
 		
 		if(pd->forcefield == PFIELD_WIND)
 		{
-			pd->rng = rng_new(1);
-			rng_srandom(pd->rng, (unsigned int)(ceil(PIL_check_seconds_timer()))); // use better seed
+			pd->rng = rng_new(pd->seed);
 		}
 	
 		ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
@@ -172,7 +190,7 @@ static void add_to_effectorcache(ListBase *lb, Object *ob, Object *obsrc)
 }
 
 /* returns ListBase handle with objects taking part in the effecting */
-ListBase *pdInitEffectors(Object *obsrc, Group *group)
+ListBase *pdInitEffectors(Scene *scene, Object *obsrc, Group *group)
 {
 	static ListBase listb={NULL, NULL};
 	pEffectorCache *ec;
@@ -184,14 +202,14 @@ ListBase *pdInitEffectors(Object *obsrc, Group *group)
 		
 		for(go= group->gobject.first; go; go= go->next) {
 			if( (go->ob->lay & layer) && go->ob->pd && go->ob!=obsrc) {
-				add_to_effectorcache(&listb, go->ob, obsrc);
+				add_to_effectorcache(&listb, scene, go->ob, obsrc);
 			}
 		}
 	}
 	else {
-		for(base = G.scene->base.first; base; base= base->next) {
+		for(base = scene->base.first; base; base= base->next) {
 			if( (base->lay & layer) && base->object->pd && base->object!=obsrc) {
-				add_to_effectorcache(&listb, base->object, obsrc);
+				add_to_effectorcache(&listb, scene, base->object, obsrc);
 			}
 		}
 	}
@@ -238,20 +256,20 @@ static void eff_tri_ray_hit(void *userdata, int index, const BVHTreeRay *ray, BV
 }
 
 // get visibility of a wind ray
-static float eff_calc_visibility(Object *ob, float *co, float *dir)
+static float eff_calc_visibility(Scene *scene, Object *ob, float *co, float *dir)
 {
 	CollisionModifierData **collobjs = NULL;
 	int numcollobj = 0, i;
 	float norm[3], len = 0.0;
 	float visibility = 1.0;
 	
-	collobjs = get_collisionobjects(ob, &numcollobj);
+	collobjs = get_collisionobjects(scene, ob, &numcollobj);
 	
 	if(!collobjs)
 		return 0;
 	
 	VECCOPY(norm, dir);
-	VecMulf(norm, -1.0);
+	VecNegf(norm);
 	len = Normalize(norm);
 	
 	// check all collision objects
@@ -286,36 +304,34 @@ static float eff_calc_visibility(Object *ob, float *co, float *dir)
 // noise function for wind e.g.
 static float wind_func(struct RNG *rng, float strength)
 {
-	int random = (rng_getInt(rng)+1) % 65535; // max 2357
+	int random = (rng_getInt(rng)+1) % 128; // max 2357
 	float force = rng_getFloat(rng) + 1.0f;
 	float ret;
 	float sign = 0;
 	
-	sign = (random > 32000.0) ? 1.0: -1.0; // dividing by 2 is not giving equal sign distribution
+	sign = ((float)random > 64.0) ? 1.0: -1.0; // dividing by 2 is not giving equal sign distribution
 	
-	ret = sign*((float)random / force)*strength/65535.0f;
+	ret = sign*((float)random / force)*strength/128.0f;
 	
 	return ret;
 }
 
-
+/* maxdist: zero effect from this distance outwards (if usemax) */
+/* mindist: full effect up to this distance (if usemin) */
+/* power: falloff with formula 1/r^power */
 static float falloff_func(float fac, int usemin, float mindist, int usemax, float maxdist, float power)
 {
-	if(!usemin)
-		mindist= 0.0f;
+	/* first quick checks */
+	if(usemax && fac > maxdist)
+		return 0.0f;
 
-	if(fac < mindist) {
+	if(usemin && fac < mindist)
 		return 1.0f;
-	}
-	else if(usemax) {
-		if(fac>maxdist || (maxdist-mindist)<=0.0f)
-			return 0.0f;
 
-		fac= (fac-mindist)/(maxdist-mindist);
-		return 1.0f - (float)pow((double)fac, (double)power);
-	}
-	else
-		return pow((double)1.0f+fac-mindist, (double)-power);
+	if(!usemin)
+		mindist = 0.0;
+
+	return pow((double)1.0+fac-mindist, (double)-power);
 }
 
 static float falloff_func_dist(PartDeflect *pd, float fac)
@@ -372,7 +388,7 @@ float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 	return falloff;
 }
 
-void do_physical_effector(Object *ob, float *opco, short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor, float charge, float pa_size)
+void do_physical_effector(Scene *scene, Object *ob, float *opco, short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor, float charge, float pa_size)
 {
 	float mag_vec[3]={0,0,0};
 	float temp[3], temp2[3];
@@ -380,7 +396,7 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 	float noise = 0, visibility;
 	
 	// calculate visibility
-	visibility = eff_calc_visibility(ob, opco, vec_to_part);
+	visibility = eff_calc_visibility(scene, ob, opco, vec_to_part);
 	if(visibility <= 0.0)
 		return;
 	falloff *= visibility;
@@ -442,14 +458,11 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 			else
 				VecCopyf(mag_vec,vec_to_part);
 
-			Normalize(mag_vec);
-
 			VecMulf(mag_vec,force_val*falloff);
 			VecSubf(field,field,mag_vec);
 
 			VecCopyf(mag_vec,velocity);
-			/* 1.9 is an experimental value to get critical damping at damp=1.0 */
-			VecMulf(mag_vec,damp*1.9f*(float)sqrt(force_val));
+			VecMulf(mag_vec,damp*2.0f*(float)sqrt(force_val));
 			VecSubf(field,field,mag_vec);
 			break;
 		case PFIELD_CHARGE:
@@ -492,11 +505,15 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 			VecAddf(field,field,mag_vec);
 			break;
 		}
+		case PFIELD_BOID:
+			/* Boid field is handled completely in boids code. */
+			break;
 	}
 }
 
 /*  -------- pdDoEffectors() --------
     generic force/speed system, now used for particles and softbodies
+    scene       = scene where it runs in, for time and stuff
 	lb			= listbase with objects that take part in effecting
 	opco		= global coord, as input
     force		= force accumulator
@@ -508,7 +525,7 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 	guide		= old speed of particle
 
 */
-void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags)
+void pdDoEffectors(Scene *scene, ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags)
 {
 /*
 	Modifies the force on a particle according to its
@@ -539,7 +556,7 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		pd= ob->pd;
 			
 		/* Get IPO force strength and fall off values here */
-		where_is_object_time(ob,cur_time);
+		where_is_object_time(scene, ob, cur_time);
 			
 		/* use center of object for distance calculus */
 		VecSubf(vec_to_part, opco, ob->obmat[3]);
@@ -552,9 +569,9 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		else {
 			float field[3]={0,0,0}, tmp[3];
 			VECCOPY(field, force);
-			do_physical_effector(ob, opco, pd->forcefield,pd->f_strength,distance,
-								falloff,pd->f_dist,pd->f_damp,ob->obmat[2],vec_to_part,
-								speed,force,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise, 0.0f, 0.0f);
+			do_physical_effector(scene, ob, opco, pd->forcefield,pd->f_strength,distance,
+								falloff, pd->f_dist, pd->f_damp, ob->obmat[2], vec_to_part,
+								speed,force, pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise, 0.0f, 0.0f);
 			
 			// for softbody backward compatibility
 			if(flags & PE_WIND_AS_SPEED){

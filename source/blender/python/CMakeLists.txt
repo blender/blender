@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -24,36 +23,31 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC api2_2x/*.c)
-SET(SRC ${SRC}
-  BPY_interface.c
-  BPY_menus.c
-)
+FILE(GLOB SRC intern/*.c)
+FILE(GLOB GENSRC generic/*.c)
 
 SET(INC 
-  api2_2x ../blenkernel ../blenlib ../blenloader
-  ../render/extern/include ../radiosity/extern/include
-  ../makesdna ../../../intern/guardedalloc ../../../intern/bmfont ../imbuf ../include
-  ${PYTHON_INC} ../../../extern/glew/include ../gpu
-  ../freestyle ../freestyle/intern/python
+	. ../../../intern/guardedalloc ../blenlib ../makesdna ../makesrna
+	../blenkernel ../editors/include ../windowmanager ${PYTHON_INC}
+	../../../extern/glew/include
 )
 
-IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
-
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
+IF(WITH_QUICKTIME)
+	SET(INC ${INC} ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
+ENDIF(WITH_QUICKTIME)
+
 IF(WITH_FFMPEG)
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	SET(INC ${INC} ${FFMPEG_INC})
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
-IF(BF_BUILDINFO)
-  ADD_DEFINITIONS(-DNAN_BUILDINFO)
-ENDIF(BF_BUILDINFO)
+ADD_DEFINITIONS(-DWITH_CCGSUBSURF)
 
-BLENDERLIB_NOLIST(blender_python "${SRC}" "${INC}")
-#env.BlenderLib ( libname='blender_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype=['core','game2'], priority = [60,115] )
+BLENDERLIB(bf_python "${SRC}" "${INC}")
+BLENDERLIB(bf_gen_python "${GENSRC}" "${INC}")
+

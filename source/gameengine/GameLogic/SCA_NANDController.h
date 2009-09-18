@@ -39,7 +39,7 @@ class SCA_NANDController : public SCA_IController
 	Py_Header;
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
-	SCA_NANDController(SCA_IObject* gameobj,PyTypeObject* T=&Type);
+	SCA_NANDController(SCA_IObject* gameobj);
 	virtual ~SCA_NANDController();
 	virtual CValue* GetReplica();
 	virtual void Trigger(SCA_LogicManager* logicmgr);
@@ -47,9 +47,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* _getattr(const STR_String& attr);
-
 };
 
 #endif //__KX_NANDCONTROLLER

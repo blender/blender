@@ -47,8 +47,7 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
  public:
 	KX_SCA_EndObjectActuator(
 		SCA_IObject* gameobj,
-		SCA_IScene* scene,
-		PyTypeObject* T=&Type
+		SCA_IScene* scene
 	);
 
 	~KX_SCA_EndObjectActuator();
@@ -63,11 +62,6 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject*  
-	_getattr(
-		const STR_String& attr
-	);
 	
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 

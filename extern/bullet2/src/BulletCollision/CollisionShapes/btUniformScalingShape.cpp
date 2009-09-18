@@ -16,9 +16,10 @@ subject to the following restrictions:
 #include "btUniformScalingShape.h"
 
 btUniformScalingShape::btUniformScalingShape(	btConvexShape* convexChildShape,btScalar uniformScalingFactor):
-m_childConvexShape(convexChildShape),
+btConvexShape (), m_childConvexShape(convexChildShape),
 m_uniformScalingFactor(uniformScalingFactor)
 {
+	m_shapeType = UNIFORM_SCALING_SHAPE_PROXYTYPE;
 }
 	
 btUniformScalingShape::~btUniformScalingShape()

@@ -39,6 +39,7 @@
 #include "KX_BlenderMaterial.h"
 #include "KX_RayCast.h"
 #include "KX_IPhysicsController.h"
+#include "KX_Light.h"
 
 #include "PHY_IPhysicsEnvironment.h"
 
@@ -66,7 +67,8 @@ void KX_BlenderRenderTools::BeginFrame(RAS_IRasterizer* rasty)
 {
 	m_clientobject = NULL;
 	m_lastlightlayer = -1;
-	m_lastlighting = false;
+	m_lastauxinfo = NULL;
+	m_lastlighting = true; /* force disable in DisableOpenGLLights() */
 	DisableOpenGLLights();
 }
 
@@ -80,33 +82,35 @@ void KX_BlenderRenderTools::EndFrame(RAS_IRasterizer* rasty)
  * has a maximum of 8 lights (simultaneous), so 20 * 8 lights are possible in
  * a scene. */
 
-void KX_BlenderRenderTools::ProcessLighting(int layer, const MT_Transform& viewmat)
+void KX_BlenderRenderTools::ProcessLighting(RAS_IRasterizer *rasty, bool uselights, const MT_Transform& viewmat)
 {
-	if(m_lastlightlayer == layer)
+	bool enable = false;
+	int layer= -1;
+
+	/* find the layer */
+	if(uselights) {
+		if(m_clientobject)
+			layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
+	}
+
+	/* avoid state switching */
+	if(m_lastlightlayer == layer && m_lastauxinfo == m_auxilaryClientInfo)
 		return;
 
 	m_lastlightlayer = layer;
+	m_lastauxinfo = m_auxilaryClientInfo;
 
-	bool enable = false;
-
-	if (layer >= 0)
-	{
-		if (m_clientobject)
-		{
-			if (layer == RAS_LIGHT_OBJECT_LAYER)
-				layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
-
-			enable = applyLights(layer, viewmat);
-		}
-	}
+	/* enable/disable lights as needed */
+	if(layer >= 0)
+		enable = applyLights(layer, viewmat);
 
 	if(enable)
-		EnableOpenGLLights();
+		EnableOpenGLLights(rasty);
 	else
 		DisableOpenGLLights();
 }
 
-void KX_BlenderRenderTools::EnableOpenGLLights()
+void KX_BlenderRenderTools::EnableOpenGLLights(RAS_IRasterizer *rasty)
 {
 	if(m_lastlighting == true)
 		return;
@@ -115,7 +119,8 @@ void KX_BlenderRenderTools::EnableOpenGLLights()
 	glEnable(GL_COLOR_MATERIAL);
 
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (rasty->GetCameraOrtho())? GL_FALSE: GL_TRUE);
 	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 	
@@ -256,6 +261,12 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 				// couldn't find something to cast the shadow on...
 				glMultMatrixd(oglmatrix);
 			}
+			else
+			{ // we found the "ground", but the cast matrix doesn't take
+			  // scaling in consideration, so we must apply the object scale
+				MT_Vector3  size = gameobj->GetSGNode()->GetLocalScale();
+				glScalef(size[0], size[1], size[2]);
+			}
 		} else
 		{
 
@@ -273,12 +284,10 @@ void KX_BlenderRenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 										 int width,
 										 int height)
 {
-	STR_String tmpstr(text);
-
 	if(mode == RAS_IRenderTools::RAS_TEXT_PADDED)
-		BL_print_gamedebug_line_padded(tmpstr.Ptr(), xco, yco, width, height);
+		BL_print_gamedebug_line_padded(text, xco, yco, width, height);
 	else
-		BL_print_gamedebug_line(tmpstr.Ptr(), xco, yco, width, height);
+		BL_print_gamedebug_line(text, xco, yco, width, height);
 }
 
 /* Render Text renders text into a (series of) polygon, using a texture font,
@@ -289,7 +298,7 @@ void KX_BlenderRenderTools::RenderText(
 	RAS_IPolyMaterial* polymat,
 	float v1[3], float v2[3], float v3[3], float v4[3], int glattrib)
 {
-	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
+	const STR_String& mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
 	const unsigned int flag = polymat->GetFlag();
 	struct MTFace* tface = 0;
@@ -323,17 +332,13 @@ void KX_BlenderRenderTools::PopMatrix()
 int KX_BlenderRenderTools::applyLights(int objectlayer, const MT_Transform& viewmat)
 {
 	// taken from blender source, incompatibility between Blender Object / GameObject	
+	KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
 	float glviewmat[16];
 	unsigned int count;
-	float vec[4];
+	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
 
-	vec[3]= 1.0;
-	
 	for(count=0; count<m_numgllights; count++)
 		glDisable((GLenum)(GL_LIGHT0+count));
-	
-	//std::vector<struct	RAS_LightObject*> m_lights;
-	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
 
 	viewmat.getValue(glviewmat);
 	
@@ -342,76 +347,14 @@ int KX_BlenderRenderTools::applyLights(int objectlayer, const MT_Transform& view
 	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
 	{
 		RAS_LightObject* lightdata = (*lit);
-		if (lightdata->m_layer & objectlayer)
-		{
-			vec[0] = (*(lightdata->m_worldmatrix))(0,3);
-			vec[1] = (*(lightdata->m_worldmatrix))(1,3);
-			vec[2] = (*(lightdata->m_worldmatrix))(2,3);
-			vec[3] = 1;
+		KX_LightObject *kxlight = (KX_LightObject*)lightdata->m_light;
 
-			if(lightdata->m_type==RAS_LightObject::LIGHT_SUN) {
-				
-				vec[0] = (*(lightdata->m_worldmatrix))(0,2);
-				vec[1] = (*(lightdata->m_worldmatrix))(1,2);
-				vec[2] = (*(lightdata->m_worldmatrix))(2,2);
-				//vec[0]= base->object->obmat[2][0];
-				//vec[1]= base->object->obmat[2][1];
-				//vec[2]= base->object->obmat[2][2];
-				vec[3]= 0.0;
-				glLightfv((GLenum)(GL_LIGHT0+count), GL_POSITION, vec); 
-			}
-			else {
-				//vec[3]= 1.0;
-				glLightfv((GLenum)(GL_LIGHT0+count), GL_POSITION, vec); 
-				glLightf((GLenum)(GL_LIGHT0+count), GL_CONSTANT_ATTENUATION, 1.0);
-				glLightf((GLenum)(GL_LIGHT0+count), GL_LINEAR_ATTENUATION, lightdata->m_att1/lightdata->m_distance);
-				// without this next line it looks backward compatible.
-				//attennuation still is acceptable 
-				glLightf((GLenum)(GL_LIGHT0+count), GL_QUADRATIC_ATTENUATION, lightdata->m_att2/(lightdata->m_distance*lightdata->m_distance)); 
-				
-				if(lightdata->m_type==RAS_LightObject::LIGHT_SPOT) {
-					vec[0] = -(*(lightdata->m_worldmatrix))(0,2);
-					vec[1] = -(*(lightdata->m_worldmatrix))(1,2);
-					vec[2] = -(*(lightdata->m_worldmatrix))(2,2);
-					//vec[0]= -base->object->obmat[2][0];
-					//vec[1]= -base->object->obmat[2][1];
-					//vec[2]= -base->object->obmat[2][2];
-					glLightfv((GLenum)(GL_LIGHT0+count), GL_SPOT_DIRECTION, vec);
-					glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_CUTOFF, lightdata->m_spotsize/2.0);
-					glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_EXPONENT, 128.0*lightdata->m_spotblend);
-				}
-				else glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_CUTOFF, 180.0);
-			}
-			
-			if (lightdata->m_nodiffuse)
-			{
-				vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
-			} else {
-				vec[0]= lightdata->m_energy*lightdata->m_red;
-				vec[1]= lightdata->m_energy*lightdata->m_green;
-				vec[2]= lightdata->m_energy*lightdata->m_blue;
-				vec[3]= 1.0;
-			}
-			glLightfv((GLenum)(GL_LIGHT0+count), GL_DIFFUSE, vec);
-			if (lightdata->m_nospecular)
-			{
-				vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
-			} else if (lightdata->m_nodiffuse) {
-				vec[0]= lightdata->m_energy*lightdata->m_red;
-				vec[1]= lightdata->m_energy*lightdata->m_green;
-				vec[2]= lightdata->m_energy*lightdata->m_blue;
-				vec[3]= 1.0;
-			}
-			glLightfv((GLenum)(GL_LIGHT0+count), GL_SPECULAR, vec);
-			glEnable((GLenum)(GL_LIGHT0+count));
-
+		if(kxlight->ApplyLight(kxscene, objectlayer, count))
 			count++;
-		}
 	}
 	glPopMatrix();
 
 	return count;
-
 }
 
 void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
@@ -446,4 +389,3 @@ void KX_BlenderRenderTools::Render2DFilters(RAS_ICanvas* canvas)
 {
 	m_filtermanager.RenderFilters(canvas);
 }
-

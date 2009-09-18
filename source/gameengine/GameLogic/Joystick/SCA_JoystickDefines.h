@@ -39,5 +39,13 @@
 #endif
 
 #define JOYINDEX_MAX			8
+#define JOYAXIS_MAX				16
+#define JOYBUT_MAX				18
+#define JOYHAT_MAX				4
+
+#define JOYAXIS_RIGHT		0
+#define JOYAXIS_UP			1
+#define JOYAXIS_DOWN		3
+#define JOYAXIS_LEFT		2
 
 #endif

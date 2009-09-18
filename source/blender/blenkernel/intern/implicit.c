@@ -43,7 +43,7 @@
 #include <windows.h>
 static LARGE_INTEGER _itstart, _itend;
 static LARGE_INTEGER ifreq;
-void itstart(void)
+static void itstart(void)
 {
 	static int first = 1;
 	if(first) {
@@ -52,7 +52,7 @@ void itstart(void)
 	}
 	QueryPerformanceCounter(&_itstart);
 }
-void itend(void)
+static void itend(void)
 {
 	QueryPerformanceCounter(&_itend);
 }
@@ -74,7 +74,7 @@ double itval()
 {
 	gettimeofday(&_itstart, &itz);
 }
-void itend(void)
+static void itend(void)
 {
 	gettimeofday(&_itend,&itz);
 }
@@ -155,7 +155,7 @@ DO_INLINE void mul_fvectorT_fvectorS(float to[3][3], float vectorA[3], float vec
 
 
 /* printf vector[3] on console: for debug output */
-void print_fvector(float m3[3])
+static void print_fvector(float m3[3])
 {
 	printf("%f\n%f\n%f\n\n",m3[0],m3[1],m3[2]);
 }
@@ -297,7 +297,7 @@ DO_INLINE void sub_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], f
 // 3x3 matrix
 ///////////////////////////
 /* printf 3x3 matrix on console: for debug output */
-void print_fmatrix(float m3[3][3])
+static void print_fmatrix(float m3[3][3])
 {
 	printf("%f\t%f\t%f\n",m3[0][0],m3[0][1],m3[0][2]);
 	printf("%f\t%f\t%f\n",m3[1][0],m3[1][1],m3[1][2]);
@@ -496,7 +496,8 @@ DO_INLINE void mulsub_fmatrix_fvector(float to[3], float matrix[3][3], float fro
 // SPARSE SYMMETRIC big matrix with 3x3 matrix entries
 ///////////////////////////
 /* printf a big matrix on console: for debug output */
-void print_bfmatrix(fmatrix3x3 *m3)
+#if 0
+static void print_bfmatrix(fmatrix3x3 *m3)
 {
 	unsigned int i = 0;
 
@@ -505,6 +506,8 @@ void print_bfmatrix(fmatrix3x3 *m3)
 		print_fmatrix(m3[i].m);
 	}
 }
+#endif
+
 /* create big matrix */
 DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 {
@@ -887,7 +890,7 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 	}
 }
 
-int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
+static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
 	// Solves for unknown X in equation AX=B
 	unsigned int conjgrad_loopcount=0, conjgrad_looplimit=100;
@@ -970,7 +973,7 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 }
 /*
 // version 1.3
-int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
+static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
 	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
 	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
@@ -1038,7 +1041,7 @@ int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fma
 }
 */
 // version 1.4
-int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *bigI)
+static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *bigI)
 {
 	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
 	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0, tol = 0;
@@ -1183,7 +1186,8 @@ DO_INLINE void dfdx_spring(float to[3][3],  float dir[3],float length,float L,fl
 	//return  ( (I-outerprod(dir,dir))*Min(1.0f,rest/length) - I) * -k;
 	mul_fvectorT_fvector(to, dir, dir);
 	sub_fmatrix_fmatrix(to, I, to);
-	mul_fmatrix_S(to, (((L/length)> 1.0f) ? (1.0f): (L/length))); 
+
+	mul_fmatrix_S(to, (L/length)); 
 	sub_fmatrix_fmatrix(to, to, I);
 	mul_fmatrix_S(to, -k);
 }
@@ -1218,6 +1222,8 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float nulldfdx[3][3]={ {0,0,0}, {0,0,0}, {0,0,0}};
 	
 	float scaling = 0.0;
+
+	int no_compress = clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
 	
 	VECCOPY(s->f, nullf);
 	cp_fmatrix(s->dfdx, nulldfdx);
@@ -1254,7 +1260,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	// calculate force of structural + shear springs
 	if((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR))
 	{
-		if(length > L) // only on elonglation
+		if(length > L || no_compress)
 		{
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
@@ -1388,12 +1394,89 @@ static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
 	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
 }
 
-float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
+static float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
 	return (INPR(wind, vertexnormal));
 }
 
-void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
+typedef struct HairGridVert {
+	float velocity[3];
+	float density;
+} HairGridVert;
+/* Smoothing of hair velocities:
+ * adapted from
+		Volumetric Methods for Simulation and Rendering of Hair
+		by Lena Petrovic, Mark Henne and John Anderson
+ *		Pixar Technical Memo #06-08, Pixar Animation Studios
+ */
+static void hair_velocity_smoothing(float smoothfac, lfVector *lF, lfVector *lX, lfVector *lV, int numverts)
+{
+	/* TODO: this is an initial implementation and should be made much better in due time */
+
+	/* 10x10x10 grid gives nice initial results */
+	HairGridVert grid[10][10][10];
+	float gmin[3], gmax[3], density;
+	int	v = 0;
+	int	i = 0;
+	int	j = 0;
+	int	k = 0;
+
+	INIT_MINMAX(gmin, gmax);
+
+	for(i = 0; i < numverts; i++)
+		DO_MINMAX(lX[i], gmin, gmax);
+
+	/* initialize grid */
+	for(i = 0; i < 10; i++) {
+		for(j = 0; j < 10; j++) {
+			for(k = 0; k < 10; k++) {
+				grid[i][j][k].velocity[0] = 0.0f;
+				grid[i][j][k].velocity[1] = 0.0f;
+				grid[i][j][k].velocity[2] = 0.0f;
+				grid[i][j][k].density = 0.0f;
+			}
+		}
+	}
+
+	/* gather velocities & density */
+	for(v = 0; v < numverts; v++) {
+		i = (int)( (lX[v][0] - gmin[0]) / (gmax[0] - gmin[0]) * 9.99f );
+		j = (int)( (lX[v][1] - gmin[1]) / (gmax[1] - gmin[1]) * 9.99f );
+		k = (int)( (lX[v][2] - gmin[2]) / (gmax[2] - gmin[2]) * 9.99f );
+
+		grid[i][j][k].velocity[0] += lV[v][0];
+		grid[i][j][k].velocity[1] += lV[v][1];
+		grid[i][j][k].velocity[2] += lV[v][2];
+		grid[i][j][k].density += 1.0f;
+	}
+
+	/* divide velocity with density */
+	for(i = 0; i < 10; i++) {
+		for(j = 0; j < 10; j++) {
+			for(k = 0; k < 10; k++) {
+				density = grid[i][j][k].density;
+				if(density > 0.0f) {
+					grid[i][j][k].velocity[0] /= density;
+					grid[i][j][k].velocity[1] /= density;
+					grid[i][j][k].velocity[2] /= density;
+				}
+			}
+		}
+	}
+
+	/* calculate forces */
+	for(v = 0; v < numverts; v++) {
+		i = (int)( (lX[v][0] - gmin[0]) / (gmax[0] - gmin[0]) * 9.99f );
+		j = (int)( (lX[v][1] - gmin[1]) / (gmax[1] - gmin[1]) * 9.99f );
+		k = (int)( (lX[v][2] - gmin[2]) / (gmax[2] - gmin[2]) * 9.99f );
+
+		/* 2.0f is an experimental value that seems to give good results */
+		lF[v][0] += 2.0f * smoothfac * (grid[i][j][k].velocity[0] - lV[v][0]);
+		lF[v][1] += 2.0f * smoothfac * (grid[i][j][k].velocity[1] - lV[v][1]);
+		lF[v][2] += 2.0f * smoothfac * (grid[i][j][k].velocity[2] - lV[v][2]);
+	}
+}
+static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
@@ -1416,6 +1499,9 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 
 	init_lfvector(lF, gravity, numverts);
 	
+	if(clmd->sim_parms->velocity_smooth > 0.0f)
+		hair_velocity_smoothing(clmd->sim_parms->velocity_smooth, lF, lX, lV, numverts);
+
 	/* multiply lF with mass matrix
 	// force = mass * acceleration (in this case: gravity)
 	*/
@@ -1442,7 +1528,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 		{
 			float speed[3] = {0.0f, 0.0f,0.0f};
 			
-			pdDoEffectors(effectors, lX[i], winvec[i], speed, (float)G.scene->r.cfra, 0.0f, 0);
+			pdDoEffectors(clmd->scene, effectors, lX[i], winvec[i], speed, frame, 0.0f, 0);
 		}
 		
 		for(i = 0; i < cloth->numfaces; i++)
@@ -1511,7 +1597,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	// printf("\n");
 }
 
-void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *M, fmatrix3x3 *bigI)
+static void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *M, fmatrix3x3 *bigI)
 {
 	unsigned int numverts = dFdV[0].vcount;
 
@@ -1570,8 +1656,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	while(step < tf)
 	{	
 		// calculate forces
-		effectors= pdInitEffectors(ob,NULL);
-		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
+		effectors= pdInitEffectors(clmd->scene, ob, NULL);
+		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
 		if(effectors) pdEndEffectors(effectors);
 		
 		// calculate new velocity
@@ -1600,6 +1686,10 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		
 		if(clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
+			float temp = clmd->sim_parms->stepsPerFrame;
+			/* not too nice hack, but collisions need this correction -jahka */
+			clmd->sim_parms->stepsPerFrame /= clmd->sim_parms->timescale;
+
 			// collisions 
 			// itstart();
 			
@@ -1614,7 +1704,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			
 			// call collision function
 			// TODO: check if "step" or "step+dt" is correct - dg
-			result = cloth_bvh_objcollision(ob, clmd, step, dt);
+			result = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
 			
 			// correct velocity again, just to be sure we had to change it due to adaptive collisions
 			for(i = 0; i < numverts; i++)
@@ -1637,6 +1727,9 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				}
 			}
 			
+			/* restore original stepsPerFrame */
+			clmd->sim_parms->stepsPerFrame = temp;
+			
 			// X = Xnew;
 			cp_lfvector(id->X, id->Xnew, numverts);
 			
@@ -1648,13 +1741,12 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				cp_lfvector(id->V, id->Vnew, numverts);
 				
 				// calculate 
-				effectors= pdInitEffectors(ob,NULL);
-				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
+				effectors= pdInitEffectors(clmd->scene, ob, NULL);
+				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
 				if(effectors) pdEndEffectors(effectors);
 				
 				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
 			}
-			
 		}
 		else
 		{

@@ -70,10 +70,10 @@ private:
 	class RAS_IRenderTools*				m_rendertools;
 	class KX_ISceneConverter*			m_sceneconverter;
 	class NG_NetworkDeviceInterface*		m_networkdevice;
-	class SND_IAudioDevice*				m_audiodevice;
 	PyObject*					m_pythondictionary;
 	class SCA_IInputDevice*				m_keyboarddevice;
 	class SCA_IInputDevice*				m_mousedevice;
+	class KX_Dome*						m_dome; // dome stereo mode
 
 	/** Lists of scenes scheduled to be removed at the end of the frame. */
 	std::set<STR_String> m_removingScenes;
@@ -102,6 +102,8 @@ private:
 	double				m_previousClockTime;//previous clock time
 	double				m_remainingTime;
 
+	static int				m_maxLogicFrame;	/* maximum number of consecutive logic frame */
+	static int				m_maxPhysicsFrame;	/* maximum number of consecutive physics frame */
 	static double			m_ticrate;
 	static double			m_anim_framerate; /* for animation playback only - ipo and action */
 
@@ -126,6 +128,7 @@ private:
 	MT_CmMatrix4x4	m_overrideCamViewMat;
 	float			m_overrideCamNear;
 	float			m_overrideCamFar;
+	float			m_overrideCamLens;
 
 	bool m_stereo;
 	int m_curreye;
@@ -184,19 +187,17 @@ private:
 	void					RenderDebugProperties();
 	void					RenderShadowBuffers(KX_Scene *scene);
 	void					SetBackGround(KX_WorldInfo* worldinfo);
-	void					SetWorldSettings(KX_WorldInfo* worldinfo);
 	void					DoSound(KX_Scene* scene);
 
 public:
-
 	KX_KetsjiEngine(class KX_ISystem* system);
 	virtual ~KX_KetsjiEngine();
 
 	// set the devices and stuff. the client must take care of creating these
+	void			SetWorldSettings(KX_WorldInfo* worldinfo);
 	void			SetKeyboardDevice(SCA_IInputDevice* keyboarddevice);
 	void			SetMouseDevice(SCA_IInputDevice* mousedevice);
 	void			SetNetworkDevice(NG_NetworkDeviceInterface* networkdevice);
-	void			SetAudioDevice(SND_IAudioDevice* audiodevice);
 	void			SetCanvas(RAS_ICanvas* canvas);
 	void			SetRenderTools(RAS_IRenderTools* rendertools);
 	void			SetRasterizer(RAS_IRasterizer* rasterizer);
@@ -205,6 +206,14 @@ public:
 	void			SetGame2IpoMode(bool game2ipo,int startFrame);
 
 	RAS_IRasterizer*		GetRasterizer(){return m_rasterizer;};
+	RAS_ICanvas*		    GetCanvas(){return m_canvas;};
+	RAS_IRenderTools*	    GetRenderTools(){return m_rendertools;};
+
+	/// Dome functions
+	void			InitDome(short res, short mode, short angle, float resbuf, short tilt, struct Text* text); 
+	void			EndDome();
+	void			RenderDome();
+	bool			m_usedome;
 
 	///returns true if an update happened to indicate -> Render
 	bool			NextFrame();
@@ -232,6 +241,8 @@ public:
 	void			GetSceneViewport(KX_Scene* scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport);
 
 	void SetDrawType(int drawingtype);
+	int  GetDrawType(){return m_drawingmode;};
+
 	void SetCameraZoom(float camzoom);
 	
 	void EnableCameraOverride(const STR_String& forscene);
@@ -240,6 +251,7 @@ public:
 	void SetCameraOverrideProjectionMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideClipping(float near, float far);
+	void SetCameraOverrideLens(float lens);
 	
 	/**
 	 * Sets display of all frames.
@@ -254,6 +266,12 @@ public:
 	bool GetUseFixedTime(void) const;
 
 	/**
+	 * Returns current render frame clock time
+	 */
+	double GetClockTime(void) const;
+
+	double GetRealTime(void) const;
+	/**
 	 * Returns the difference between the local time of the scene (when it
 	 * was running and not suspended) and the "curtime"
 	 */
@@ -267,6 +285,22 @@ public:
 	 * Sets the number of logic updates per second.
 	 */
 	static void SetTicRate(double ticrate);
+	/**
+	 * Gets the maximum number of logic frame before render frame
+	 */
+	static int GetMaxLogicFrame();
+	/**
+	 * Sets the maximum number of logic frame before render frame
+	 */
+	static void SetMaxLogicFrame(int frame);
+	/**
+	 * Gets the maximum number of physics frame before render frame
+	 */
+	static int GetMaxPhysicsFrame();
+	/**
+	 * Sets the maximum number of physics frame before render frame
+	 */
+	static void SetMaxPhysicsFrame(int frame);
 
 	/**
 	 * Gets the framerate for playing animations. (actions and ipos)
@@ -361,6 +395,13 @@ protected:
 	bool			BeginFrame();
 	void			ClearFrame();
 	void			EndFrame();
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_KetsjiEngine"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_KETSJI_ENGINE

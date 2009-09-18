@@ -16,28 +16,22 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): Campbell barton
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
+#include <stdlib.h> /* for qsort */
 
-#include "BKE_utildefines.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_boxpack2d.h"
  
-/* BoxPacker ported from Python by Campbell Barton
+/* BoxPacker for backing 2D rectangles into a square
  * 
  * The defined Below are for internal use only */
 
 /* free vert flags */
-#define eul 0.0000001
+#define eul 0.0000001f
 #define BLF 1
 #define TRF 2
 #define TLF 4
@@ -78,6 +72,9 @@
 		BOXBOTTOM(b1)+eul>=BOXTOP(b2) ||\
 		BOXRIGHT(b1)-eul<=BOXLEFT(b2) ||\
 		BOXTOP(b1)-eul<=BOXBOTTOM(b2) ))
+
+#define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
+#define MAX2(x,y)               ( (x)>(y) ? (x) : (y) )
 
 /* #define BOXDEBUG(b)\
  * 		printf("\tBox Debug i %i, w:%.3f h:%.3f x:%.3f y:%.3f\n",\
@@ -141,11 +138,11 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	int box_index, verts_pack_len, i, j, k, isect;
 	int quad_flags[4]= {BLF,TRF,TLF,BRF}; /* use for looping */
 	boxPack *box, *box_test; /*current box and another for intersection tests*/
-	int *vertex_pack_indicies; /*an array of indicies used for sorting verts*/
+	int *vertex_pack_indicies; /*an array of indices used for sorting verts*/
 	
 	if (!len) {
-		*tot_width =  0.0;
-		*tot_height = 0.0;
+		*tot_width =  0.0f;
+		*tot_height = 0.0f;
 		return;
 	}
 	
@@ -153,8 +150,8 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	qsort(boxarray, len, sizeof(boxPack), box_areasort);
 	
 	/* add verts to the boxes, these are only used internally  */
-	vert = vertarray = MEM_mallocN( len*4*sizeof(boxVert), "boxPack verts");
-	vertex_pack_indicies = MEM_mallocN( len*3*sizeof(int), "boxPack indicies");
+	vert = vertarray = MEM_mallocN( len*4*sizeof(boxVert), "boxPack Verts");
+	vertex_pack_indicies = MEM_mallocN( len*3*sizeof(int), "boxPack Indices");
 	
 	for (box=boxarray, box_index=0, i=0; box_index < len; box_index++, box++) {
 		 		
@@ -194,11 +191,11 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	
 	
 	/* Pack the First box!
-	 * then enter the main boxpacking loop */
+	 * then enter the main box-packing loop */
 	
 	box = boxarray; /* get the first box  */
 	/* First time, no boxes packed */
-	box->v[BL]->free = 0; /* Cant use any if these */
+	box->v[BL]->free = 0; /* Can't use any if these */
 	box->v[BR]->free &= ~(BLF|BRF);
 	box->v[TL]->free &= ~(BLF|TLF);
 	
@@ -206,9 +203,9 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	*tot_height = box->h; 
 	
 	/* This sets all the vertex locations */
-	SET_BOXLEFT(box, 0.0);
-	SET_BOXBOTTOM(box, 0.0);
-	box->x = box->y = 0.0;
+	SET_BOXLEFT(box, 0.0f);
+	SET_BOXBOTTOM(box, 0.0f);
+	box->x = box->y = 0.0f;
 	
 	for (i=0; i<3; i++)
 		vertex_pack_indicies[i] = box->v[i+1]->index; 
@@ -219,7 +216,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	/* Main boxpacking loop */
 	for (box_index=1; box_index < len; box_index++, box++) {
 		
-		/* Sort the verts, these constants are used in sorting  */
+		/* These static floatds are used for sorting */
 		box_width = box->w;
 		box_height = box->h;
 		
@@ -234,7 +231,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 			/* printf("\ttesting vert %i %i %i %f %f\n", i,
 			 * 		vert->free, verts_pack_len, vert->x, vert->y); */
 			
-			/* This vert has a free quaderent
+			/* This vert has a free quadrant
 			 * Test if we can place the box here
 			 * vert->free & quad_flags[j] - Checks 
 			 * */
@@ -266,7 +263,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 					isect = 0;
 					
 					if (/* Constrain boxes to positive X/Y values */
-						BOXLEFT(box)<0.0 || BOXBOTTOM(box) < 0.0 ||
+						BOXLEFT(box)<0.0f || BOXBOTTOM(box) < 0.0f ||
 						/* check for last intersected */
 						(	vert->isect_cache[j] &&
 							BOXINTERSECT(box, vert->isect_cache[j])	)
@@ -274,13 +271,13 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 						/* Here we check that the last intersected
 						 * box will intersect with this one using
 						 * isect_cache that can store a pointer to a
-						 * box for each quaderent
+						 * box for each quadrant
 						 * big speedup */
 						isect = 1;
 					} else {
-						/* do a full saech for colliding box
-						 * this is realy slow, some spacialy divided
-						 * datastructure would be better */
+						/* do a full search for colliding box
+						 * this is really slow, some spacialy divided
+						 * data-structure would be better */
 						for (box_test=boxarray; box_test != box; box_test++) {
 							if BOXINTERSECT(box, box_test) {
 								/* Store the last intersecting here as cache
@@ -321,7 +318,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 						}
 						
 						/* Mask free flags for verts that are
-						 * on the bottom or side so we dont get
+						 * on the bottom or side so we don't get
 						 * boxes outside the given rectangle ares
 						 * 
 						 * We can do an else/if here because only the first 
@@ -392,7 +389,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 								verts_pack_len++;
 							}
 						}
-						/* The Box verts are only used interially
+						/* The Box verts are only used internally
 						 * Update the box x and y since thats what external
 						 * functions will see */
 						box->x = BOXLEFT(box);
@@ -403,8 +400,8 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		}
 	}
 
-	/* free all the verts, not realy needed because they shouldebt be
-	 * touched anymore but accessing the pointers woud crash blender */
+	/* free all the verts, not really needed because they shouldn't be
+	 * touched anymore but accessing the pointers would crash blender */
 	for (box_index=0; box_index < len; box_index++) {
 		box = boxarray+box_index; 
 		box->v[0] = box->v[1] = box->v[2] = box->v[3] = NULL; 

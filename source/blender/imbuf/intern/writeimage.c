@@ -29,9 +29,7 @@
  * $Id$
  */
 
-#ifdef WIN32
-#include <io.h>
-#endif
+#include <stdio.h>
 
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
@@ -55,6 +53,9 @@
 #include "IMB_bmp.h"
 #include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
+#ifdef WITH_OPENJPEG
+#include "IMB_jp2.h"
+#endif
 #ifdef WITH_OPENEXR
 #include "openexr/openexr_api.h"
 #endif
@@ -66,6 +67,10 @@
 #include "IMB_bitplanes.h"
 #include "IMB_divers.h"
 
+#ifdef WIN32
+#include <io.h>
+#include "BLI_winstuff.h"
+#endif
 /* added facility to copy with saving non-float rects */
 
 short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
@@ -129,6 +134,11 @@ short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 	if (IS_dpx(ibuf)) {
 		return imb_save_dpx(ibuf, name, flags);
 	}
+#ifdef WITH_OPENJPEG
+	if (IS_jp2(ibuf)) {
+		return imb_savejp2(ibuf, name, flags);
+	}
+#endif	
 	file = open(name, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if (file < 0) return (FALSE);
 

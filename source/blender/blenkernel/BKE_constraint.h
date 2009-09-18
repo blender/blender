@@ -34,13 +34,14 @@ struct bConstraint;
 struct bConstraintTarget;
 struct ListBase;
 struct Object;
-struct bConstraintChannel;
+struct Scene;
 struct bPoseChannel;
 
 /* ---------------------------------------------------------------------------- */
 
 /* special struct for use in constraint evaluation */
 typedef struct bConstraintOb {
+	struct Scene *scene;		/* for system time, part of deglobalization, code nicer later with local time (ton) */
 	struct Object *ob;			/* if pchan, then armature that it comes from, otherwise constraint owner */
 	struct bPoseChannel *pchan;	/* pose channel that owns the constraints being evaluated */
 	
@@ -48,6 +49,7 @@ typedef struct bConstraintOb {
 	float startmat[4][4];		/* original matrix (before constraint solving) */
 	
 	short type;					/* type of owner  */
+	short rotOrder;				/* rotation order for constraint owner (as defined in eEulerRotationOrders in BLI_arithb.h) */
 } bConstraintOb;
 
 /* ---------------------------------------------------------------------------- */
@@ -77,7 +79,7 @@ typedef struct bConstraintTypeInfo {
 	void (*relink_data)(struct bConstraint *con);
 		/* copy any special data that is allocated separately (optional) */
 	void (*copy_data)(struct bConstraint *con, struct bConstraint *src);
-		/* set settings for data that will be used for bConstraint.data (memory already allocated) */
+		/* set settings for data that will be used for bConstraint.data (memory already allocated using MEM_callocN) */
 	void (*new_data)(void *cdata);
 	
 	/* target handling function pointers */
@@ -109,26 +111,19 @@ bConstraintTypeInfo *get_constraint_typeinfo(int type);
 /* Constraint function prototypes */
 void unique_constraint_name(struct bConstraint *con, struct ListBase *list);
 
-void free_constraints(struct ListBase *conlist);
+void free_constraints(struct ListBase *list);
 void copy_constraints(struct ListBase *dst, struct ListBase *src);
 void relink_constraints(struct ListBase *list);
 void free_constraint_data(struct bConstraint *con);
+
+struct bConstraint *constraints_get_active(struct ListBase *list);
 
 /* Constraints + Proxies function prototypes */
 void extract_proxylocal_constraints(struct ListBase *dst, struct ListBase *src);
 short proxylocked_constraints_owner(struct Object *ob, struct bPoseChannel *pchan);
 
-/* Constraint Channel function prototypes */
-struct bConstraintChannel *get_constraint_channel(struct ListBase *list, const char *name);
-struct bConstraintChannel *verify_constraint_channel(struct ListBase *list, const char *name);
-void do_constraint_channels(struct ListBase *conbase, struct ListBase *chanbase, float ctime, short onlydrivers);
-void copy_constraint_channels(struct ListBase *dst, struct ListBase *src);
-void clone_constraint_channels(struct ListBase *dst, struct ListBase *src);
-void free_constraint_channels(struct ListBase *chanbase);
-
-
 /* Constraint Evaluation function prototypes */
-struct bConstraintOb *constraints_make_evalob(struct Object *ob, void *subdata, short datatype);
+struct bConstraintOb *constraints_make_evalob(struct Scene *scene, struct Object *ob, void *subdata, short datatype);
 void constraints_clear_evalob(struct bConstraintOb *cob);
 
 void constraint_mat_convertspace(struct Object *ob, struct bPoseChannel *pchan, float mat[][4], short from, short to);

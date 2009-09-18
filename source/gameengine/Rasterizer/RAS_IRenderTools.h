@@ -36,6 +36,10 @@
 #include <vector>
 #include <algorithm>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class		RAS_IPolyMaterial;
 struct		RAS_LightObject;
 
@@ -57,10 +61,6 @@ public:
 		RAS_TEXT_NORMAL,
 		RAS_TEXT_PADDED,
 		RAS_TEXT_MAX
-	};
-	enum RAS_LIGHT_MODE {
-		RAS_LIGHT_NONE = -1,
-		RAS_LIGHT_OBJECT_LAYER = 0
 	};
 
 	RAS_IRenderTools(
@@ -134,7 +134,8 @@ public:
 	virtual 
 		void		
 	ProcessLighting(
-		int layer,
+		RAS_IRasterizer *rasty,
+		bool uselights,
 		const MT_Transform& trans
 	)=0;
 
@@ -183,6 +184,13 @@ public:
 	virtual
 		void
 		Render2DFilters(RAS_ICanvas* canvas)=0;
+		
+		
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_IRenderTools"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_IRENDERTOOLS

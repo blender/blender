@@ -15,11 +15,10 @@ subject to the following restrictions:
 
 #include "btScaledBvhTriangleMeshShape.h"
 
-btScaledBvhTriangleMeshShape::btScaledBvhTriangleMeshShape(btBvhTriangleMeshShape* childShape,btVector3 localScaling)
-:m_bvhTriMeshShape(childShape),
-m_localScaling(localScaling)
+btScaledBvhTriangleMeshShape::btScaledBvhTriangleMeshShape(btBvhTriangleMeshShape* childShape,const btVector3& localScaling)
+:m_localScaling(localScaling),m_bvhTriMeshShape(childShape)
 {
-
+	m_shapeType = SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE;
 }
 
 btScaledBvhTriangleMeshShape::~btScaledBvhTriangleMeshShape()
@@ -35,7 +34,7 @@ class btScaledTriangleCallback : public btTriangleCallback
 
 public:
 
-	btScaledTriangleCallback(btTriangleCallback* originalCallback,btVector3 localScaling)
+	btScaledTriangleCallback(btTriangleCallback* originalCallback,const btVector3& localScaling)
 		:m_originalCallback(originalCallback),
 		m_localScaling(localScaling)
 	{
@@ -94,7 +93,7 @@ void	btScaledBvhTriangleMeshShape::getAabb(const btTransform& trans,btVector3& a
 	
 	btMatrix3x3 abs_b = trans.getBasis().absolute();  
 
-	btPoint3 center = trans(localCenter);
+	btVector3 center = trans(localCenter);
 
 	btVector3 extent = btVector3(abs_b[0].dot(localHalfExtents),
 		   abs_b[1].dot(localHalfExtents),

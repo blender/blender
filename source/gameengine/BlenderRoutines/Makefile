@@ -35,26 +35,24 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += -I$(NAN_SUMO)/include -I$(NAN_SOLID)/include
-CPPFLAGS += -I$(NAN_SOLID)
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
-CPPFLAGS += -I$(NAN_BMFONT)/include
-CPPFLAGS += -I$(NAN_FUZZICS)/include
-CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 # because of kernel dependency on makesdna
 CPPFLAGS += -I../../blender/makesdna
-CPPFLAGS += -I../../blender/include
+CPPFLAGS += -I../../blender/editors/include
 # because of kernel dependency on imbuf
+CPPFLAGS += -I../../blender/windowmanager
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel
 CPPFLAGS += -I../../blender/render/extern/include
 CPPFLAGS += -I../../blender/blenloader
-CPPFLAGS += -I../../blender/blenkernel
+CPPFLAGS += -I../../blender/blenfont
 CPPFLAGS += -I../../blender/gpu
+CPPFLAGS += -I../../blender/makesrna
 CPPFLAGS += -I../Converter
 CPPFLAGS += -I../Expressions
 CPPFLAGS += -I../GameLogic
@@ -66,7 +64,6 @@ CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../Network
 CPPFLAGS += -I../Network/LoopBackNetwork
 CPPFLAGS += -I../Physics/common
-CPPFLAGS += -I../Physics/Sumo
 CPPFLAGS += -I.
 
 ifeq ($(OS),windows)
@@ -75,3 +72,6 @@ endif
 
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
+ifeq ($(WITH_FFMPEG), true)
+   CPPFLAGS += -DWITH_FFMPEG
+endif

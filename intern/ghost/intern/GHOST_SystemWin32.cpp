@@ -38,9 +38,8 @@
 #include <config.h>
 #endif
 
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-
 #include "GHOST_SystemWin32.h"
+//#include <stdio.h> //for printf()
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
@@ -202,11 +201,12 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 			::Sleep(1);
 #else
 			GHOST_TUns64 next = timerMgr->nextFireTime();
+			GHOST_TInt64 maxSleep = next - getMilliSeconds();
 			
 			if (next == GHOST_kFireTimeNever) {
 				::WaitMessage();
-			} else {
-				::SetTimer(NULL, 0, next - getMilliSeconds(), NULL);
+			} else if(maxSleep >= 0.0) {
+				::SetTimer(NULL, 0, maxSleep, NULL);
 				::WaitMessage();
 				::KillTimer(NULL, 0);
 			}
@@ -232,7 +232,7 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 GHOST_TSuccess GHOST_SystemWin32::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
 	POINT point;
-	bool success = ::GetCursorPos(&point) == TRUE;
+	::GetCursorPos(&point);
 	x = point.x;
 	y = point.y;
 	return GHOST_kSuccess;
@@ -537,7 +537,7 @@ GHOST_Event* GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	GHOST_Event* event = 0;
-	LRESULT lResult;
+	LRESULT lResult = 0;
 	GHOST_SystemWin32* system = ((GHOST_SystemWin32*)getSystem());
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized")
 
@@ -747,6 +747,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * the message is sent asynchronously, so the window is activated immediately. 
 					 */
 					event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
+					/* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
+					will not be dispatched to OUR active window if we minimize one of OUR windows. */
+					lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
 					break;
 				case WM_PAINT:
 					/* An application sends the WM_PAINT message when the system or another application 
@@ -766,10 +769,23 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * message without calling DefWindowProc.
 					 */
 					event = processWindowEvent(GHOST_kEventWindowSize, window);
+					break;
 				case WM_CAPTURECHANGED:
 					window->lostMouseCapture();
 					break;
-
+				case WM_MOVING:
+					/* The WM_MOVING message is sent to a window that the user is moving. By processing 
+					 * this message, an application can monitor the size and position of the drag rectangle
+					 * and, if needed, change its size or position.
+					 */
+				case WM_MOVE:
+					/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
+					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
+					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
+					 * message without calling DefWindowProc. 
+					 */
+					event = processWindowEvent(GHOST_kEventWindowMove, window);
+					break;
 				////////////////////////////////////////////////////////////////////////
 				// Window events, ignored
 				////////////////////////////////////////////////////////////////////////
@@ -781,12 +797,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
 					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
 					 * message without calling DefWindowProc.
-					 */
-				case WM_MOVE:
-					/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
-					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
-					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
-					 * message without calling DefWindowProc. 
 					 */
 				case WM_ERASEBKGND:
 					/* An application sends the WM_ERASEBKGND message when the window background must be 
@@ -822,11 +832,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 */
 				case WM_SETFOCUS:
 					/* The WM_SETFOCUS message is sent to a window after it has gained the keyboard focus. */
-				case WM_MOVING:
-					/* The WM_MOVING message is sent to a window that the user is moving. By processing 
-					 * this message, an application can monitor the size and position of the drag rectangle
-					 * and, if needed, change its size or position.
-					 */
 				case WM_ENTERSIZEMOVE:
 					/* The WM_ENTERSIZEMOVE message is sent one time to a window after it enters the moving 
 					 * or sizing modal loop. The window enters the moving or sizing modal loop when the user 
@@ -904,7 +909,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 	if (event) {
 		system->pushEvent(event);
-		lResult = 0;
 	}
 	else {
 		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
@@ -912,7 +916,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	return lResult;
 }
 
-GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const 
+GHOST_TUns8* GHOST_SystemWin32::getClipboard(bool selection) const 
 {
 	char *buffer;
 	char *temp_buff;
@@ -942,9 +946,10 @@ GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const
 	}
 }
 
-void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, int flag) const
+void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
-	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if(selection) {return;} // for copying the selection, used on X11
+
 	if (OpenClipboard(NULL)) {
 		HLOCAL clipbuffer;
 		char *data;

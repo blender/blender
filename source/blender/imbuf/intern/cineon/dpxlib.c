@@ -240,7 +240,7 @@ dpxGetRowBytes(DpxFile* dpx, unsigned short* row, int y) {
 	/* read enough longwords */
 	readLongs = pixelsToLongs(numPixels - dpx->pixelBufferUsed);
 	if (logimage_fread(dpx->lineBuffer, 4, readLongs, dpx) != readLongs) {
-		if (verbose) d_printf("Couldn't read line %d length %d\n", y, readLongs * 4);
+		if (verbose) d_printf("Couldn't read line %d length %d\n", y, (int)readLongs * 4);
 		return 1;
 	}
 	++dpx->fileYPos;
@@ -352,7 +352,7 @@ dpxSetRowBytes(DpxFile* dpx, const unsigned short* row, int y) {
 
 	/* write them */
 	if (fwrite(dpx->lineBuffer, 4, writeLongs, dpx->file) != writeLongs) {
-		if (verbose) d_printf("Couldn't write line %d length %d\n", y, writeLongs * 4);
+		if (verbose) d_printf("Couldn't write line %d length %d\n", y, (int)writeLongs * 4);
 		return 1;
 	}
 	++dpx->fileYPos;
@@ -462,7 +462,7 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 	dpx->pixelBuffer = malloc((dpx->lineBufferLength * 3 + 2) * sizeof(unsigned short));
 	if (dpx->pixelBuffer == 0) {
 		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(dpx->width * dpx->depth + 2 + 2) * sizeof(unsigned short));
+				(dpx->width * dpx->depth + 2 + 2) * (int)sizeof(unsigned short));
 		dpxClose(dpx);
 		return 0;
 	}
@@ -477,18 +477,48 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 
 	logImageGetByteConversionDefaults(&dpx->params);
 	/* The SMPTE define this code:
+	 *  0 - User-defined
+	 *  1 - Printing density
 	 *  2 - Linear
 	 *  3 - Logarithmic
+	 *  4 - Unspecified video
+	 *  5 - SMPTE 240M
+	 *  6 - CCIR 709-1
+	 *  7 - CCIR 601-2 system B or G
+	 *  8 - CCIR 601-2 system M
+	 *  9 - NTSC composite video
+	 *  10 - PAL composite video
+	 *  11 - Z linear
+	 *  12 - homogeneous
 	 *
 	 * Note that transfer_characteristics is U8, don't need
 	 * check the byte order.
 	 */
+	
 	switch (header.imageInfo.channel[0].transfer_characteristics) {
-		case 2:
+		case 1:
+		case 2: /* linear */
 			dpx->params.doLogarithm= 0;
 			break;
+		
 		case 3:
 			dpx->params.doLogarithm= 1;
+			break;
+		
+		/* TODO - Unsupported, but for now just load them,
+		 * colors may look wrong, but can solve color conversion later
+		 */
+		case 4: 
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+			if (verbose) d_printf("Un-supported Transfer Characteristics: %d using linear color conversion\n", header.imageInfo.channel[0].transfer_characteristics);
+			dpx->params.doLogarithm= 0;
 			break;
 		default:
 			if (verbose) d_printf("Un-supported Transfer Characteristics: %d\n", header.imageInfo.channel[0].transfer_characteristics);
@@ -574,7 +604,7 @@ dpxCreate(const char* filename, int width, int height, int depth) {
 	dpx->pixelBuffer = malloc((dpx->lineBufferLength * 3 + 2) * sizeof(unsigned short));
 	if (dpx->pixelBuffer == 0) {
 		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(dpx->width * dpx->depth + 2 + 2) * sizeof(unsigned short));
+				(dpx->width * dpx->depth + 2 + 2) * (int)sizeof(unsigned short));
 		dpxClose(dpx);
 		return 0;
 	}

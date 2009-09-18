@@ -155,7 +155,7 @@ usrObjectNamePrefix= ""
 # if that armature had bones (spine, neck, arm) and the bone prefix was "a."
 #  the bones and IPO curves will be (a.spine, a.neck, a.arm)
 
-R2D = 18/3.1415  # radian to grad
+R2D = 18/3.141592653589793  # radian to grad
 BLENDER_VERSION = Blender.Get('version')
 
 # Gets the current scene, there can be many scenes in 1 blend file. 

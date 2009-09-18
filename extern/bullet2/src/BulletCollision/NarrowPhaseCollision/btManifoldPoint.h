@@ -32,6 +32,8 @@ class btManifoldPoint
 				:m_userPersistentData(0),
 				m_appliedImpulse(0.f),
 				m_lateralFrictionInitialized(false),
+				m_appliedImpulseLateral1(0.f),
+				m_appliedImpulseLateral2(0.f),
 				m_lifeTime(0)
 			{
 			}
@@ -110,6 +112,12 @@ class btManifoldPoint
 				m_distance1 = dist;
 			}
 			
+			///this returns the most recent applied impulse, to satisfy contact constraints by the constraint solver
+			btScalar	getAppliedImpulse() const
+			{
+				return m_appliedImpulse;
+			}
+
 			
 
 	};

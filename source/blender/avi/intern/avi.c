@@ -214,6 +214,7 @@ int AVI_is_avi (char *name) {
 	AviMovie movie;
 	AviMainHeader header;
 	AviBitmapInfoHeader bheader;
+	int movie_tracks = 0;
 	
 	DEBUG("opening movie\n");
 
@@ -303,6 +304,7 @@ int AVI_is_avi (char *name) {
 				fclose(movie.fp);
 				return 0;
 			}
+			movie_tracks++;
 		}
 		
 		movie.streams[temp].sh.Flags = GET_FCC (movie.fp);
@@ -394,7 +396,10 @@ int AVI_is_avi (char *name) {
 	
 	MEM_freeN(movie.streams);
 	fclose(movie.fp);
-	return 1;
+
+	/* at least one video track is needed */
+	return (movie_tracks != 0); 
+				       
 }
 
 AviError AVI_open_movie (char *name, AviMovie *movie) {

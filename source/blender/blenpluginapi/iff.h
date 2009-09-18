@@ -45,6 +45,8 @@
 #define IB_zbuf			(1 << 13)
 #define IB_rgba			(1 << 14)
 
+#define JP2             (1 << 18)
+
 #define AMI             (1 << 31)
 #define PNG             (1 << 30)
 #define Anim            (1 << 29)
@@ -113,6 +115,7 @@
 #define IS_tim(x)		(x->ftype & TIM)
 #define IS_tiff(x)		(x->ftype & TIFF)
 #define IS_openexr(x)           (x->ftype & OPENEXR)
+#define IS_jp2(x)           (x->ftype & JP2)
 
 
 #define IMAGIC 	0732

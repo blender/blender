@@ -41,7 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 
-#include "MTC_matrixops.h"
+
 
 #include "DNA_camera_types.h"
 #include "DNA_group_types.h"
@@ -453,15 +453,18 @@ void RE_SetCamera(Render *re, Object *camera)
 		cam= camera->data;
 		
 		if(cam->type==CAM_ORTHO) re->r.mode |= R_ORTHO;
+		if(cam->flag & CAM_PANORAMA) re->r.mode |= R_PANORAMA;
 		
 		/* solve this too... all time depending stuff is in convertblender.c?
 		 * Need to update the camera early because it's used for projection matrices
 		 * and other stuff BEFORE the animation update loop is done 
 		 * */
+#if 0 // XXX old animation system
 		if(cam->ipo) {
-			calc_ipo(cam->ipo, frame_to_float(re->r.cfra));
+			calc_ipo(cam->ipo, frame_to_float(re->scene, re->r.cfra));
 			execute_ipo(&cam->id, cam->ipo);
 		}
+#endif // XXX old animation system
 		lens= cam->lens;
 		shiftx=cam->shiftx;
 		shifty=cam->shifty;
@@ -599,7 +602,7 @@ void initparts(Render *re)
 	yparts= re->r.yparts;
 	
 	/* mininum part size, but for exr tile saving it was checked already */
-	if(!(re->r.scemode & R_EXR_TILE_FILE)) {
+	if(!(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE))) {
 		if(re->r.mode & R_PANORAMA) {
 			if(ceil(re->rectx/(float)xparts) < 8) 
 				xparts= 1 + re->rectx/8;

@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # bsp main makefile.
@@ -38,16 +40,13 @@ DIRS = intern
 
 include nan_subdirs.mk
 
-install: all debug
+install:  $(ALL_OR_DEBUG)
 	@[ -d $(NAN_BOOLOP) ] || mkdir $(NAN_BOOLOP)
 	@[ -d $(NAN_BOOLOP)/include ] || mkdir $(NAN_BOOLOP)/include
-	@[ -d $(NAN_BOOLOP)/lib ] || mkdir $(NAN_BOOLOP)/lib
-	@[ -d $(NAN_BOOLOP)/lib/debug ] || mkdir $(NAN_BOOLOP)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libboolop.a $(NAN_BOOLOP)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libboolop.a $(NAN_BOOLOP)/lib/debug/
+	@[ -d $(NAN_BOOLOP)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_BOOLOP)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libboolop.a $(NAN_BOOLOP)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_BOOLOP)/lib/libboolop.a
-	ranlib $(NAN_BOOLOP)/lib/debug/libboolop.a
+	ranlib $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 endif
 	@../tools/cpifdiff.sh extern/*.h $(NAN_BOOLOP)/include/
 

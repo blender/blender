@@ -158,40 +158,42 @@ typedef btAlignedObjectArray<btBvhSubtreeInfo>		BvhSubtreeInfoArray;
 ///It is recommended to use quantization for better performance and lower memory requirements.
 ATTRIBUTE_ALIGNED16(class) btQuantizedBvh
 {
-protected:
-
-	NodeArray			m_leafNodes;
-	NodeArray			m_contiguousNodes;
-
-	QuantizedNodeArray	m_quantizedLeafNodes;
-	
-	QuantizedNodeArray	m_quantizedContiguousNodes;
-	
-	int					m_curNodeIndex;
-
-
-	//quantization data
-	bool				m_useQuantization;
-	btVector3			m_bvhAabbMin;
-	btVector3			m_bvhAabbMax;
-	btVector3			m_bvhQuantization;
 public:
-	BT_DECLARE_ALIGNED_ALLOCATOR();
-
 	enum btTraversalMode
 	{
 		TRAVERSAL_STACKLESS = 0,
 		TRAVERSAL_STACKLESS_CACHE_FRIENDLY,
 		TRAVERSAL_RECURSIVE
 	};
+
 protected:
 
-	btTraversalMode	m_traversalMode;
+
+	btVector3			m_bvhAabbMin;
+	btVector3			m_bvhAabbMax;
+	btVector3			m_bvhQuantization;
+
+	int					m_bulletVersion;	//for serialization versioning. It could also be used to detect endianess.
+
+	int					m_curNodeIndex;
+	//quantization data
+	bool				m_useQuantization;
+
+
+
+	NodeArray			m_leafNodes;
+	NodeArray			m_contiguousNodes;
+	QuantizedNodeArray	m_quantizedLeafNodes;
+	QuantizedNodeArray	m_quantizedContiguousNodes;
 	
+	btTraversalMode	m_traversalMode;
 	BvhSubtreeInfoArray		m_SubtreeHeaders;
 
 	//This is only used for serialization so we don't have to add serialization directly to btAlignedObjectArray
 	int m_subtreeHeaderCount;
+
+	
+
 
 
 	///two versions, one for quantized and normal nodes. This allows code-reuse while maintaining readability (no template/macro!)
@@ -296,6 +298,7 @@ protected:
 
 	void	walkStacklessQuantizedTreeAgainstRay(btNodeOverlapCallback* nodeCallback, const btVector3& raySource, const btVector3& rayTarget, const btVector3& aabbMin, const btVector3& aabbMax, int startNodeIndex,int endNodeIndex) const;
 	void	walkStacklessQuantizedTree(btNodeOverlapCallback* nodeCallback,unsigned short int* quantizedQueryAabbMin,unsigned short int* quantizedQueryAabbMax,int startNodeIndex,int endNodeIndex) const;
+	void	walkStacklessTreeAgainstRay(btNodeOverlapCallback* nodeCallback, const btVector3& raySource, const btVector3& rayTarget, const btVector3& aabbMin, const btVector3& aabbMax, int startNodeIndex,int endNodeIndex) const;
 
 	///tree traversal designed for small-memory processors like PS3 SPU
 	void	walkStacklessQuantizedTreeCacheFriendly(btNodeOverlapCallback* nodeCallback,unsigned short int* quantizedQueryAabbMin,unsigned short int* quantizedQueryAabbMax) const;
@@ -307,30 +310,14 @@ protected:
 	void	walkRecursiveQuantizedTreeAgainstQuantizedTree(const btQuantizedBvhNode* treeNodeA,const btQuantizedBvhNode* treeNodeB,btNodeOverlapCallback* nodeCallback) const;
 	
 
-#define USE_BANCHLESS 1
-#ifdef USE_BANCHLESS
-	//This block replaces the block below and uses no branches, and replaces the 8 bit return with a 32 bit return for improved performance (~3x on XBox 360)
-	SIMD_FORCE_INLINE unsigned testQuantizedAabbAgainstQuantizedAabb(unsigned short int* aabbMin1,unsigned short int* aabbMax1,const unsigned short int* aabbMin2,const unsigned short int* aabbMax2) const
-	{		
-		return static_cast<unsigned int>(btSelect((unsigned)((aabbMin1[0] <= aabbMax2[0]) & (aabbMax1[0] >= aabbMin2[0])
-			& (aabbMin1[2] <= aabbMax2[2]) & (aabbMax1[2] >= aabbMin2[2])
-			& (aabbMin1[1] <= aabbMax2[1]) & (aabbMax1[1] >= aabbMin2[1])),
-			1, 0));
-	}
-#else
-	SIMD_FORCE_INLINE bool testQuantizedAabbAgainstQuantizedAabb(unsigned short int* aabbMin1,unsigned short int* aabbMax1,const unsigned short int* aabbMin2,const unsigned short int* aabbMax2) const
-	{
-		bool overlap = true;
-		overlap = (aabbMin1[0] > aabbMax2[0] || aabbMax1[0] < aabbMin2[0]) ? false : overlap;
-		overlap = (aabbMin1[2] > aabbMax2[2] || aabbMax1[2] < aabbMin2[2]) ? false : overlap;
-		overlap = (aabbMin1[1] > aabbMax2[1] || aabbMax1[1] < aabbMin2[1]) ? false : overlap;
-		return overlap;
-	}
-#endif //USE_BANCHLESS
+
 
 	void	updateSubtreeHeaders(int leftChildNodexIndex,int rightChildNodexIndex);
 
 public:
+	
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	btQuantizedBvh();
 
 	virtual ~btQuantizedBvh();
@@ -363,7 +350,7 @@ public:
 		btVector3 v = (point - m_bvhAabbMin) * m_bvhQuantization;
 		///Make sure rounding is done in a way that unQuantize(quantizeWithClamp(...)) is conservative
 		///end-points always set the first bit, so that they are sorted properly (so that neighbouring AABBs overlap properly)
-		///todo: double-check this
+		///@todo: double-check this
 		if (isMax)
 		{
 			out[0] = (unsigned short) (((unsigned short)(v.getX()+btScalar(1.)) | 1));

@@ -29,7 +29,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "MTC_matrixops.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -39,6 +39,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_utildefines.h"
 #include "BKE_node.h"
 
@@ -51,6 +52,7 @@
 #include "shading.h"
 #include "strand.h"
 #include "texture.h"
+#include "volumetric.h"
 #include "zbuf.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -84,11 +86,45 @@ extern struct Render R;
 
 	*/
 
+/* initialise material variables in shadeinput, 
+ * doing inverse gamma correction where applicable */
+void shade_input_init_material(ShadeInput *shi)
+{
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		color_manage_linearize(&shi->r, &shi->mat->r);
+		color_manage_linearize(&shi->specr, &shi->mat->specr);
+		color_manage_linearize(&shi->mirr, &shi->mat->mirr);
+		
+		/* material ambr / ambg / ambb is overwritten from world
+		color_manage_linearize(shi->ambr, shi->mat->ambr);
+		*/
+		
+		/* note, keep this synced with render_types.h */
+		memcpy(&shi->amb, &shi->mat->amb, 11*sizeof(float));
+		shi->har= shi->mat->har;
+	} else {
+		/* note, keep this synced with render_types.h */
+		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
+		shi->har= shi->mat->har;
+	}
+
+}
+
+static void shadeinput_colors_linearize(ShadeInput *shi)
+{
+	color_manage_linearize(&shi->r, &shi->r);
+	color_manage_linearize(&shi->specr, &shi->specr);
+	color_manage_linearize(&shi->mirr, &shi->mirr);
+}
 
 /* also used as callback for nodes */
 /* delivers a fully filled in ShadeResult, for all passes */
 void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 {
+	/* because node materials don't have access to rendering context,
+	 * inverse gamma correction must happen here. evil. */
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT && shi->nodes == 1)
+		shadeinput_colors_linearize(shi);
 	
 	shade_lamp_loop(shi, shr);	/* clears shr */
 	
@@ -96,9 +132,7 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		ShadeResult shr_t;
 		float fac= shi->translucency;
 		
-		/* gotta copy it again */
-		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-		shi->har= shi->mat->har;
+		shade_input_init_material(shi);
 
 		VECCOPY(shi->vn, shi->vno);
 		VECMUL(shi->vn, -1.0f);
@@ -123,16 +157,21 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 	/* depth >= 1 when ray-shading */
 	if(shi->depth==0) {
 		if(R.r.mode & R_RAYTRACE) {
-			if(shi->ray_mirror!=0.0f || ((shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
+			if(shi->ray_mirror!=0.0f || ((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
 				/* ray trace works on combined, but gives pass info */
 				ray_trace(shi, shr);
 			}
 		}
 		/* disable adding of sky for raytransp */
-		if(shi->mat->mode & MA_RAYTRANSP) 
+		if((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP))
 			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
 	}	
+	
+	if(R.r.mode & R_RAYTRACE) {
+		if (R.render_volumes_inside.first)
+			shade_volume_inside(shi, shr);
+	}
 }
 
 
@@ -148,17 +187,20 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	else {
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
-		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-		shi->har= shi->mat->har;
+		shade_input_init_material(shi);
 		
-		shade_material_loop(shi, shr);
+		if (shi->mat->material_type == MA_TYPE_VOLUME) {
+			if(R.r.mode & R_RAYTRACE)
+				shade_volume_outside(shi, shr);
+		} else { /* MA_TYPE_SURFACE, MA_TYPE_WIRE */
+			shade_material_loop(shi, shr);
+		}
 	}
 	
 	/* copy additional passes */
 	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL|SCE_PASS_RADIO)) {
 		QUATCOPY(shr->winspeed, shi->winspeed);
 		VECCOPY(shr->nor, shi->vn);
-		VECCOPY(shr->rad, shi->rad);
 	}
 	
 	/* MIST */
@@ -178,13 +220,13 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	/* add mist and premul color */
 	if(shr->alpha!=1.0f || alpha!=1.0f) {
 		float fac= alpha*(shr->alpha);
-		
 		shr->combined[3]= fac;
-		shr->combined[0]*= fac;
-		shr->combined[1]*= fac;
-		shr->combined[2]*= fac;
+		
+		if (shi->mat->material_type!= MA_TYPE_VOLUME)
+			VecMulf(shr->combined, fac);
 	}
-	else shr->combined[3]= 1.0f;
+	else
+		shr->combined[3]= 1.0f;
 	
 	/* add z */
 	shr->z= -shi->co[2];
@@ -354,7 +396,7 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 		Normalize(shi->vn);
 
 		if(INPR(shi->vn, shi->view) < 0.0f)
-			VecMulf(shi->vn, -1.0f);
+			VecNegf(shi->vn);
 	}
 
 	VECCOPY(shi->vno, shi->vn);
@@ -416,13 +458,13 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			Mat4MulVecfl(R.viewinv, shi->gl);
 			
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
-				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				Mat3MulVecfl(R.imat, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				Mat3MulVecfl(R.imat, shi->dyco);
 			}
 		}
 
@@ -527,10 +569,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			shi->orn[2]= -shi->vn[2];
 		}
 
-		if(mode & MA_RADIO) {
-			/* not supported */
-		}
-
 		if(texco & TEXCO_REFL) {
 			/* mirror reflection color textures (and envmap) */
 			calc_R_ref(shi);    /* wrong location for normal maps! XXXXXXXXXXXXXX */
@@ -548,8 +586,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			}
 		}
 	}
-
-	shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
 
 	/* this only avalailable for scanline renders */
 	if(shi->depth==0) {
@@ -571,6 +607,13 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			/* not supported */
 		}
 	}
+	
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
+			color_manage_linearize(shi->vcol, shi->vcol);
+		}
+	}
+	
 }
 
 /* from scanline pixel coordinates to 3d coordinates, requires set_triangle */
@@ -579,7 +622,7 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 	/* returns not normalized, so is in viewplane coords */
 	calc_view_vector(view, x, y);
 	
-	if(shi->mat->mode & MA_WIRE) {
+	if(shi->mat->material_type == MA_TYPE_WIRE) {
 		/* wire cannot use normal for calculating shi->co, so
 		 * we reconstruct the coordinate less accurate */
 		if(R.r.mode & R_ORTHO)
@@ -666,6 +709,10 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 			}
 		}
 	}
+	
+	/* set camera coords - for scanline, it's always 0.0,0.0,0.0 (render is in camera space)
+	 * however for raytrace it can be different - the position of the last intersection */
+	shi->camera_co[0] = shi->camera_co[1] = shi->camera_co[2] = 0.0f;
 	
 	/* cannot normalize earlier, code above needs it at viewplane level */
 	Normalize(view);
@@ -974,12 +1021,15 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			Mat4MulVecfl(R.viewinv, shi->gl);
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
-				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
+				//Mat3MulVecfl(R.imat, shi->dxco);
+				Mat4Mul3Vecfl(R.viewinv, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				//Mat3MulVecfl(R.imat, shi->dyco);
+				Mat4Mul3Vecfl(R.viewinv, shi->dyco);
 			}
 		}
 		
@@ -1082,6 +1132,8 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					if(tface && tface->tpage)
 						render_realtime_texture(shi, tface->tpage);
 				}
+
+
 			}
 
 			shi->dupliuv[0]= -1.0f + 2.0f*obi->dupliuv[0];
@@ -1111,24 +1163,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->orn[2]= -shi->vn[2];
 		}
 		
-		if(mode & MA_RADIO) {
-			float *r1, *r2, *r3;
-			
-			r1= RE_vertren_get_rad(obr, v1, 0);
-			r2= RE_vertren_get_rad(obr, v2, 0);
-			r3= RE_vertren_get_rad(obr, v3, 0);
-			
-			if(r1 && r2 && r3) {
-				shi->rad[0]= (l*r3[0] - u*r1[0] - v*r2[0]);
-				shi->rad[1]= (l*r3[1] - u*r1[1] - v*r2[1]);
-				shi->rad[2]= (l*r3[2] - u*r1[2] - v*r2[2]);
-			}
-			else
-				shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
-		}
-		else
-			shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
-		
 		if(texco & TEXCO_REFL) {
 			/* mirror reflection color textures (and envmap) */
 			calc_R_ref(shi);	/* wrong location for normal maps! XXXXXXXXXXXXXX */
@@ -1156,8 +1190,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			}
 		}
 	}
-	else
-		shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
 	
 	/* this only avalailable for scanline renders */
 	if(shi->depth==0) {
@@ -1240,6 +1272,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	} /* else {
 	 Note! For raytracing winco is not set, important because thus means all shader input's need to have their variables set to zero else in-initialized values are used
 	*/
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
+			color_manage_linearize(shi->vcol, shi->vcol);
+		}
+	}
+	
 }
 
 /* ****************** ShadeSample ************************************** */

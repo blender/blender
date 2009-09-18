@@ -35,138 +35,35 @@ double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
-PyObject* cvalue_add(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_ADD_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_sub(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_SUB_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_mul(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_MUL_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_div(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_DIV_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_neg(PyObject*v)
-{
-	return  ((CValue*)v)->Calc(VALUE_NEG_OPERATOR,(CValue*)v);
-}
-PyObject* cvalue_pos(PyObject*v)
-{
-	return  ((CValue*)v)->Calc(VALUE_POS_OPERATOR,(CValue*)v);
-}
-
-
-int MyPyCompare (PyObject* v,PyObject* w)
-{
-	CValue* eqval =  ((CValue*)v)->Calc(VALUE_EQL_OPERATOR,(CValue*)w);
-	STR_String txt = eqval->GetText();
-	eqval->Release();
-	if (txt=="TRUE")
-		return 0;
-	CValue* lessval =  ((CValue*)v)->Calc(VALUE_LES_OPERATOR,(CValue*)w);
-	txt = lessval->GetText();
-	lessval->Release();
-	if (txt=="TRUE")
-		return -1;
-
-	return 1;
-}
-
-
-int cvalue_coerce(PyObject** pv,PyObject** pw)
-{
-	if (PyInt_Check(*pw)) {
-		double db  = (double)PyInt_AsLong(*pw);
-		*pw = new CIntValue((int) db);
-		Py_INCREF(*pv);
-		return 0;
-	}
-	else if (PyLong_Check(*pw)) {
-		double db = PyLong_AsDouble(*pw);
-		*pw = new CFloatValue(db);
-		Py_INCREF(*pv);
-		return 0;
-	}
-	else if (PyFloat_Check(*pw)) {
-		double db = PyFloat_AsDouble(*pw);
-		*pw = new CFloatValue(db);
-		Py_INCREF(*pv);
-		return 0;
-	} else if (PyString_Check(*pw)) {
-		const STR_String str = PyString_AsString(*pw);
-		*pw = new CStringValue(str,"");
-		Py_INCREF(*pv);
-		return 0;
-	}
-	return 1; /* Can't do it */
-
-}
-static PyNumberMethods cvalue_as_number = {
-	(binaryfunc)cvalue_add, /*nb_add*/
-	(binaryfunc)cvalue_sub, /*nb_subtract*/
-	(binaryfunc)cvalue_mul, /*nb_multiply*/
-	(binaryfunc)cvalue_div, /*nb_divide*/
-	0,//(binaryfunc)cvalue_remainder,	/*nb_remainder*/
-	0,//(binaryfunc)cvalue_divmod,	/*nb_divmod*/
-	0,//0,//0,//0,//(ternaryfunc)cvalue_pow, /*nb_power*/
-	(unaryfunc)cvalue_neg, /*nb_negative*/
-	0,//(unaryfunc)cvalue_pos, /*nb_positive*/
-	0,//(unaryfunc)cvalue_abs, /*nb_absolute*/
-	0,//(inquiry)cvalue_nonzero, /*nb_nonzero*/
-	0,		/*nb_invert*/
-	0,		/*nb_lshift*/
-	0,		/*nb_rshift*/
-	0,		/*nb_and*/
-	0,		/*nb_xor*/
-	0,		/*nb_or*/
-	(coercion)cvalue_coerce, /*nb_coerce*/
-	0,//(unaryfunc)cvalue_int, /*nb_int*/
-	0,//(unaryfunc)cvalue_long, /*nb_long*/
-	0,//(unaryfunc)cvalue_float, /*nb_float*/
-	0,		/*nb_oct*/
-	0,		/*nb_hex*/
-};
-
-
 PyTypeObject CValue::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"CValue",
-	sizeof(CValue),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	&MyPyCompare,
-	__repr,
-	&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-PyParentObject CValue::Parents[] = {
-	&CValue::Type,
-		NULL
+	0,
+	py_base_repr,
+	0,
+	0,0,0,0,0,
+	NULL,
+	NULL,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&PyObjectPlus::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef CValue::Methods[] = {
-//  	{ "printHello", (PyCFunction) CValue::sPyPrintHello, METH_VARARGS},
-	{ "getName", (PyCFunction) CValue::sPyGetName, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
-
-PyObject* CValue::PyGetName(PyObject* self)
-{
-	return PyString_FromString(this->GetName());
-}
 
 /*#define CVALUE_DEBUG*/
 #ifdef CVALUE_DEBUG
@@ -191,8 +88,8 @@ std::vector<SmartCValueRef> gRefList;
 //int gRefCountValue;
 #endif
 
-CValue::CValue(PyTypeObject *T)
-		: PyObjectPlus(T),
+CValue::CValue()
+		: PyObjectPlus(),
 #else
 CValue::CValue()
 : 
@@ -256,6 +153,9 @@ STR_String CValue::op2str (VALUE_OPERATOR op)
 	
 	STR_String opmsg;
 	switch (op) {
+	case VALUE_MOD_OPERATOR:
+		opmsg = " % ";
+		break;
 	case VALUE_ADD_OPERATOR:
 		opmsg = " + ";
 		break;
@@ -312,73 +212,90 @@ STR_String CValue::op2str (VALUE_OPERATOR op)
 //
 void CValue::SetProperty(const STR_String & name,CValue* ioProperty)
 {
-	// Check if somebody is setting an empty property
 	if (ioProperty==NULL)
-	{
+	{	// Check if somebody is setting an empty property
 		trace("Warning:trying to set empty property!");
 		return;
 	}
 
-	// Make sure we have a property array
-	if (m_pNamedPropertyArray == NULL)
+	if (m_pNamedPropertyArray)
+	{	// Try to replace property (if so -> exit as soon as we replaced it)
+		CValue* oldval = (*m_pNamedPropertyArray)[name];
+		if (oldval)
+			oldval->Release();
+	}
+	else { // Make sure we have a property array
 		m_pNamedPropertyArray = new std::map<STR_String,CValue *>;
-
-	// Try to replace property (if so -> exit as soon as we replaced it)
-	CValue* oldval = (*m_pNamedPropertyArray)[name];
-	if (oldval)
-	{
-		oldval->Release();
 	}
 	
 	// Add property at end of array
 	(*m_pNamedPropertyArray)[name] = ioProperty->AddRef();//->Add(ioProperty);
 }
 
+void CValue::SetProperty(const char* name,CValue* ioProperty)
+{
+	if (ioProperty==NULL)
+	{	// Check if somebody is setting an empty property
+		trace("Warning:trying to set empty property!");
+		return;
+	}
 
+	if (m_pNamedPropertyArray)
+	{	// Try to replace property (if so -> exit as soon as we replaced it)
+		CValue* oldval = (*m_pNamedPropertyArray)[name];
+		if (oldval)
+			oldval->Release();
+	}
+	else { // Make sure we have a property array
+		m_pNamedPropertyArray = new std::map<STR_String,CValue *>;
+	}
+	
+	// Add property at end of array
+	(*m_pNamedPropertyArray)[name] = ioProperty->AddRef();//->Add(ioProperty);
+}
 
 //
 // Get pointer to a property with name <inName>, returns NULL if there is no property named <inName>
 //
 CValue* CValue::GetProperty(const STR_String & inName)
 {
-	// Check properties, as soon as we found it -> Return a pointer to the property
-	CValue* result = NULL;
-	if (m_pNamedPropertyArray)
-	{
-		std::map<STR_String,CValue*>::iterator it = (*m_pNamedPropertyArray).find(inName);
-		if (!( it==m_pNamedPropertyArray->end()))
-		{
-			result = (*it).second;
-		}
-
+	if (m_pNamedPropertyArray) {
+		std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->find(inName);
+		if (it != m_pNamedPropertyArray->end())
+			return (*it).second;
 	}
-		//for (int i=0; i<m_pValuePropertyArray->size(); i++)
-		//	if ((*m_pValuePropertyArray)[i]->GetName() == inName)
-		//		return (*m_pValuePropertyArray)[i];
-	
-	// Did not find property with name <inName>, return NULL property pointer
-	return result;
+	return NULL;
 }
 
-
+CValue* CValue::GetProperty(const char *inName)
+{
+	if (m_pNamedPropertyArray) {
+		std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->find(inName);
+		if (it != m_pNamedPropertyArray->end())
+			return (*it).second;
+	}
+	return NULL;
+}
 
 //
 // Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
 //
-STR_String CValue::GetPropertyText(const STR_String & inName,const STR_String& deftext)
+const STR_String& CValue::GetPropertyText(const STR_String & inName)
 {
+	const static STR_String sEmpty("");
+
 	CValue *property = GetProperty(inName);
 	if (property)
 		return property->GetText();
 	else
-		return deftext;//String::sEmpty;
+		return sEmpty;
 }
 
 float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
 {
 	CValue *property = GetProperty(inName);
 	if (property)
-		return property->GetNumber();
+		return property->GetNumber(); 
 	else
 		return defnumber;
 }
@@ -388,26 +305,20 @@ float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
 //
 // Remove the property named <inName>, returns true if the property was succesfully removed, false if property was not found or could not be removed
 //
-bool CValue::RemoveProperty(const STR_String & inName)
+bool CValue::RemoveProperty(const char *inName)
 {
 	// Check if there are properties at all which can be removed
-	if (m_pNamedPropertyArray) {	
-		CValue* val = GetProperty(inName);
-		if (NULL != val) 
+	if (m_pNamedPropertyArray)
+	{
+		std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->find(inName);
+		if (it != m_pNamedPropertyArray->end())
 		{
-			val->Release();
-			m_pNamedPropertyArray->erase(inName);
+			((*it).second)->Release();
+			m_pNamedPropertyArray->erase(it);
 			return true;
 		}
-	} 
+	}
 	
-	char err[128];
-	if (m_pNamedPropertyArray)
-		sprintf(err, "attribute \"%s\" dosnt exist", inName.ReadPtr());
-	else
-		sprintf(err, "attribute \"%s\" dosnt exist (no property array)", inName.ReadPtr());
-	
-	PyErr_SetString(PyExc_AttributeError, err);
 	return false;
 }
 
@@ -418,8 +329,10 @@ vector<STR_String> CValue::GetPropertyNames()
 {
 	vector<STR_String> result;
 	if(!m_pNamedPropertyArray) return result;
-	for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-	!(it == m_pNamedPropertyArray->end());it++)
+	result.reserve(m_pNamedPropertyArray->size());
+	
+	std::map<STR_String,CValue*>::iterator it;
+	for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 	{
 		result.push_back((*it).first);
 	}
@@ -436,8 +349,8 @@ void CValue::ClearProperties()
 		return;
 
 	// Remove all properties
-	for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-	!(it == m_pNamedPropertyArray->end());it++)
+	std::map<STR_String,CValue*>::iterator it;
+	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
 	{
 		CValue* tmpval = (*it).second;
 		//STR_String name = (*it).first;
@@ -456,9 +369,11 @@ void CValue::ClearProperties()
 //
 void CValue::SetPropertiesModified(bool inModified)
 {
-	int numprops = GetPropertyCount();
-	for (int i=0; i<numprops; i++)
-		GetProperty(i)->SetModified(inModified);
+	if(!m_pNamedPropertyArray) return;
+	std::map<STR_String,CValue*>::iterator it;
+	
+	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
+		((*it).second)->SetModified(inModified);
 }
 
 
@@ -468,11 +383,13 @@ void CValue::SetPropertiesModified(bool inModified)
 //
 bool CValue::IsAnyPropertyModified()
 {
-	int numprops = GetPropertyCount();
-	for (int i=0;i<numprops;i++)
-		if (GetProperty(i)->IsModified())
+	if(!m_pNamedPropertyArray) return false;
+	std::map<STR_String,CValue*>::iterator it;
+	
+	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
+		if (((*it).second)->IsModified())
 			return true;
-
+	
 	return false;
 }
 
@@ -481,7 +398,6 @@ bool CValue::IsAnyPropertyModified()
 //
 // Get property number <inIndex>
 //
-
 CValue* CValue::GetProperty(int inIndex)
 {
 
@@ -490,8 +406,8 @@ CValue* CValue::GetProperty(int inIndex)
 
 	if (m_pNamedPropertyArray)
 	{
-		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-		!(it == m_pNamedPropertyArray->end());it++)
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
 			if (count++==inIndex)
 			{
@@ -518,27 +434,6 @@ int CValue::GetPropertyCount()
 }
 
 
-
-
-
-void CValue::CloneProperties(CValue *replica)
-{
-	
-	if (m_pNamedPropertyArray)
-	{
-		replica->m_pNamedPropertyArray=NULL;
-		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-		!(it == m_pNamedPropertyArray->end());it++)
-		{
-			CValue *val = (*it).second->GetReplica();
-			replica->SetProperty((*it).first,val);
-			val->Release();
-		}
-	}
-
-	
-}
-
 double*		CValue::GetVector3(bool bGetTransformedVec)
 {
 	assertd(false); // don;t get vector from me
@@ -549,49 +444,12 @@ double*		CValue::GetVector3(bool bGetTransformedVec)
 /*---------------------------------------------------------------------------------------------------------------------
 	Reference Counting
 ---------------------------------------------------------------------------------------------------------------------*/
-//
-// Add a reference to this value
-//
-CValue *CValue::AddRef()
-{
-	// Increase global reference count, used to see at the end of the program
-	// if all CValue-derived classes have been dereferenced to 0
-	//debug(gRefCountValue++);
-#ifdef _DEBUG
-	//gRefCountValue++;
-#endif
-	m_refcount++; 
-	return this;
-}
 
 
 
 //
 // Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
 //
-int	CValue::Release()
-{
-	// Decrease global reference count, used to see at the end of the program
-	// if all CValue-derived classes have been dereferenced to 0
-	//debug(gRefCountValue--);
-#ifdef _DEBUG
-	//gRefCountValue--;
-#endif
-	// Decrease local reference count, if it reaches 0 the object should be freed
-	if (--m_refcount > 0)
-	{
-		// Reference count normal, return new reference count
-		return m_refcount;
-	}
-	else
-	{
-		// Reference count reached 0, delete ourselves and return 0
-//		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
-		delete this;
-		return 0;
-	}
-
-}
 
 
 
@@ -612,25 +470,31 @@ void CValue::DisableRefCount()
 
 
 
-void CValue::AddDataToReplica(CValue *replica)
+void CValue::ProcessReplica() /* was AddDataToReplica in 2.48 */
 {
-	replica->m_refcount = 1;
-
-	//register with Python
-	_Py_NewReference(replica);
-
+	m_refcount = 1;
+	
 #ifdef _DEBUG
 	//gRefCountValue++;
 #endif
-	replica->m_ValFlags.RefCountDisabled = false;
+	PyObjectPlus::ProcessReplica();
 
-	replica->ReplicaSetName(GetName());
+	m_ValFlags.RefCountDisabled = false;
 
-	//copy all props
-	CloneProperties(replica);
+	/* copy all props */
+	if (m_pNamedPropertyArray)
+	{
+		std::map<STR_String,CValue*> *pOldArray = m_pNamedPropertyArray;
+		m_pNamedPropertyArray=NULL;
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= pOldArray->begin(); (it != pOldArray->end()); it++)
+		{
+			CValue *val = (*it).second->GetReplica();
+			SetProperty((*it).first,val);
+			val->Release();
+		}
+	}
 }
-
-
 
 CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 {
@@ -665,47 +529,22 @@ CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
-
-static PyMethodDef	CValueMethods[] = 
-{
-	//{ "new", CValue::PyMake , METH_VARARGS},
-	{ NULL,NULL}	// Sentinel
+PyAttributeDef CValue::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("name",	CValue, pyattr_get_name),
+	{ NULL }	//Sentinel
 };
 
-
-PyObject*	CValue::_getattr(const STR_String& attr)
-{
-	CValue* resultattr = FindIdentifier(attr);
-	STR_String text;
-	if (resultattr)
-	{
-		if (resultattr->IsError())
-		{
-			resultattr->Release();
-		} else
-		{
-			// to avoid some compare problems, return a real pythonthing
-			PyObject* pyconvert = resultattr->ConvertValueToPython();
-			if (pyconvert)
-			{
-				resultattr->Release();
-				return pyconvert;
-			} else
-			{
-				// also check if it's already in pythoninterpreter!
-				return resultattr;
-			}
-			
-		}
-	}
-	_getattr_up(PyObjectPlus);
+PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef) {
+	CValue * self = static_cast<CValue *> (self_v);
+	return PyUnicode_FromString(self->GetName());
 }
 
-CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
+CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 {
 
 	CValue* vallie = NULL;
-
+	/* refcounting is broking here! - this crashes anyway, just store a python list for KX_GameObject */
+#if 0
 	if (PyList_Check(pyobj))
 	{
 		CListValue* listval = new CListValue();
@@ -716,7 +555,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 		for (i=0;i<numitems;i++)
 		{
 			PyObject* listitem = PyList_GetItem(pyobj,i); /* borrowed ref */
-			CValue* listitemval = ConvertPythonToValue(listitem);
+			CValue* listitemval = ConvertPythonToValue(listitem, error_prefix);
 			if (listitemval)
 			{
 				listval->Add(listitemval);
@@ -736,60 +575,30 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 		}
 
 	} else
+#endif
 	if (PyFloat_Check(pyobj))
 	{
 		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
 	} else
-	if (PyInt_Check(pyobj))
+	if (PyLong_Check(pyobj))
 	{
-		vallie = new CIntValue( (int)PyInt_AS_LONG(pyobj) );
+		vallie = new CIntValue( (cInt)PyLong_AsLongLong(pyobj) );
 	} else
-	if (PyString_Check(pyobj))
+	if (PyUnicode_Check(pyobj))
 	{
-		vallie = new CStringValue(PyString_AsString(pyobj),"");
+		vallie = new CStringValue(_PyUnicode_AsString(pyobj),"");
 	} else
-	if (pyobj->ob_type==&CValue::Type || pyobj->ob_type==&CListValue::Type)
+	if (PyObject_TypeCheck(pyobj, &CValue::Type)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
 	{
-		vallie = ((CValue*) pyobj)->AddRef();
+		vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
 	} else
 	{
 		/* return an error value from the caller */
-		PyErr_SetString(PyExc_TypeError, "This python value could not be assigned to a game engine property");
+		PyErr_Format(PyExc_TypeError, "%scould convert python value to a game engine property", error_prefix);
 	}
 	return vallie;
 
 }
-
-int	CValue::_delattr(const STR_String& attr)
-{
-	if (!RemoveProperty(attr)) /* sets error */
-		return 1;
-	return 0;
-}
-
-int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
-{
-	CValue* vallie = ConvertPythonToValue(pyobj);
-	if (vallie)
-	{
-		CValue* oldprop = GetProperty(attr);
-		
-		if (oldprop)
-		{
-			oldprop->SetValue(vallie);
-		} else
-		{
-			SetProperty(attr,vallie);
-		}
-		vallie->Release();
-	} else
-	{
-		return 1; /* ConvertPythonToValue sets the error message */
-	}
-	
-	//PyObjectPlus::_setattr(attr,value);
-	return 0;
-};
 
 PyObject*	CValue::ConvertKeysToPython( void )
 {
@@ -798,34 +607,16 @@ PyObject*	CValue::ConvertKeysToPython( void )
 	
 	if (m_pNamedPropertyArray)
 	{
-		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-		!(it == m_pNamedPropertyArray->end());it++)
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
-			pystr = PyString_FromString( (*it).first );
+			pystr = PyUnicode_FromString( (*it).first );
 			PyList_Append(pylist, pystr);
 			Py_DECREF( pystr );
 		}
 	}
 	return pylist;
 }
-
-/*
-PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
-{
-
-	//if (!PyArg_ParseTuple(args,"s",&name)) return NULL;
-	Py_RETURN_NONE;//new CValue();
-}
-*/
-
-extern "C" {
-	void initCValue(void)
-	{
-		Py_InitModule("CValue",CValueMethods);
-	}
-}
-
-
 
 #endif //NO_EXP_PYTHON_EMBEDDING
 
@@ -847,6 +638,3 @@ void CValue::SetValue(CValue* newval)
 	// no one should get here
 	assertd(newval->GetNumber() == 10121969);	
 }
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-

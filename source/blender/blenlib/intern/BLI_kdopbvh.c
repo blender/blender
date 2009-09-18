@@ -329,7 +329,7 @@ static void sort(BVHNode **a0, int begin, int end, int axis)
 		bvh_insertionsort(a, begin, end, axis);
 	}
 }
-void sort_along_axis(BVHTree *tree, int start, int end, int axis)
+static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 {
 	sort(tree->nodes, start, end, axis);
 }
@@ -337,7 +337,7 @@ void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 //after a call to this function you can expect one of:
 //      every node to left of a[n] are smaller or equal to it
 //      every node to the right of a[n] are greater or equal to it
-int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){
+static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){
 	int begin = _begin, end = _end, cut;
 	while(end-begin > 3)
 	{
@@ -478,6 +478,7 @@ static void node_join(BVHTree *tree, BVHNode *node)
 /*
  * Debug and information functions
  */
+#if 0
 static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
 {
 	int i;
@@ -509,6 +510,7 @@ static void bvhtree_info(BVHTree *tree)
 
 //	bvhtree_print_tree(tree, tree->nodes[tree->totleaf], 0);
 }
+#endif
 
 #if 0
 
@@ -1171,7 +1173,7 @@ static float squared_dist(const float *a, const float *b)
 }
 
 //Determines the nearest point of the given node BV. Returns the squared distance to that point.
-static float calc_nearest_point(BVHNearestData *data, BVHNode *node, float *nearest)
+static float calc_nearest_point(const float *proj, BVHNode *node, float *nearest)
 {
 	int i;
 	const float *bv = node->bv;
@@ -1179,12 +1181,12 @@ static float calc_nearest_point(BVHNearestData *data, BVHNode *node, float *near
 	//nearest on AABB hull
 	for(i=0; i != 3; i++, bv += 2)
 	{
-		if(bv[0] > data->proj[i])
+		if(bv[0] > proj[i])
 			nearest[i] = bv[0];
-		else if(bv[1] < data->proj[i])
+		else if(bv[1] < proj[i])
 			nearest[i] = bv[1];
 		else
-			nearest[i] = data->proj[i];
+			nearest[i] = proj[i]; 
 	}
 
 /*
@@ -1206,7 +1208,7 @@ static float calc_nearest_point(BVHNearestData *data, BVHNode *node, float *near
 		}
 	}
 */
-	return squared_dist(data->co, nearest);
+	return squared_dist(proj, nearest);
 }
 
 
@@ -1229,7 +1231,7 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 		else
 		{
 			data->nearest.index	= node->index;
-			data->nearest.dist	= calc_nearest_point(data, node, data->nearest.co);
+			data->nearest.dist	= calc_nearest_point(data->proj, node, data->nearest.co);
 		}
 	}
 	else
@@ -1243,7 +1245,7 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 
 			for(i=0; i != node->totnode; i++)
 			{
-				if( calc_nearest_point(data, node->children[i], nearest) >= data->nearest.dist) continue;
+				if( calc_nearest_point(data->proj, node->children[i], nearest) >= data->nearest.dist) continue;
 				dfs_find_nearest_dfs(data, node->children[i]);
 			}
 		}
@@ -1251,7 +1253,7 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 		{
 			for(i=node->totnode-1; i >= 0 ; i--)
 			{
-				if( calc_nearest_point(data, node->children[i], nearest) >= data->nearest.dist) continue;
+				if( calc_nearest_point(data->proj, node->children[i], nearest) >= data->nearest.dist) continue;
 				dfs_find_nearest_dfs(data, node->children[i]);
 			}
 		}
@@ -1261,12 +1263,13 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
 {
 	float nearest[3], sdist;
-	sdist = calc_nearest_point(data, node, nearest);
+	sdist = calc_nearest_point(data->proj, node, nearest);
 	if(sdist >= data->nearest.dist) return;
 	dfs_find_nearest_dfs(data, node);
 }
 
 
+#if 0
 static void NodeDistance_push_heap(NodeDistance *heap, int heap_size)
 PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
 
@@ -1298,7 +1301,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	}
 
 	current.node = node;
-	current.dist = calc_nearest_point(data, node, nearest);
+	current.dist = calc_nearest_point(data->proj, node, nearest);
 
 	while(current.dist < data->nearest.dist)
 	{
@@ -1326,7 +1329,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 				}
 
 				heap[heap_size].node = current.node->children[i];
-				heap[heap_size].dist = calc_nearest_point(data, current.node->children[i], nearest);
+				heap[heap_size].dist = calc_nearest_point(data->proj, current.node->children[i], nearest);
 
 				if(heap[heap_size].dist >= data->nearest.dist) continue;
 				heap_size++;
@@ -1350,6 +1353,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	if(heap != default_heap)
 		free(heap);
 }
+#endif
 
 
 int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
@@ -1402,10 +1406,9 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nea
  */
 
 //Determines the distance that the ray must travel to hit the bounding volume of the given node
-static float ray_nearest_hit(BVHRayCastData *data, BVHNode *node)
+static float ray_nearest_hit(BVHRayCastData *data, float *bv)
 {
 	int i;
-	const float *bv = node->bv;
 
 	float low = 0, upper = data->hit.dist;
 
@@ -1446,7 +1449,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 
 	//ray-bv is really fast.. and simple tests revealed its worth to test it
 	//before calling the ray-primitive functions
-	float dist = ray_nearest_hit(data, node);
+	float dist = ray_nearest_hit(data, node->bv);
 	if(dist >= data->hit.dist) return;
 
 	if(node->totnode == 0)
@@ -1463,7 +1466,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	else
 	{
 		//pick loop direction to dive into the tree (based on ray direction and split axis)
-		if(data->ray_dot_axis[ node->main_axis ] > 0.0f)
+		if(data->ray_dot_axis[ (int)node->main_axis ] > 0.0f)
 		{
 			for(i=0; i != node->totnode; i++)
 			{
@@ -1524,3 +1527,121 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 	return data.hit.index;
 }
 
+float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, float *pos)
+{
+	BVHRayCastData data;
+	float dist = 0.0;
+
+	data.hit.dist = FLT_MAX;
+	
+	// get light direction
+	data.ray.direction[0] = light_end[0] - light_start[0];
+	data.ray.direction[1] = light_end[1] - light_start[1];
+	data.ray.direction[2] = light_end[2] - light_start[2];
+	
+	data.ray.radius = 0.0;
+	
+	data.ray.origin[0] = light_start[0];
+	data.ray.origin[1] = light_start[1];
+	data.ray.origin[2] = light_start[2];
+	
+	Normalize(data.ray.direction);
+	VECCOPY(data.ray_dot_axis, data.ray.direction);
+	
+	dist = ray_nearest_hit(&data, bv);
+	
+	if(dist > 0.0)
+	{
+		VECADDFAC(pos, light_start, data.ray.direction, dist);
+	}
+	return dist;
+	
+}
+
+/*
+ * Range Query - as request by broken :P
+ *
+ * Allocs and fills an array with the indexs of node that are on the given spherical range (center, radius) 
+ * Returns the size of the array.
+ */
+typedef struct RangeQueryData
+{
+	BVHTree *tree;
+	const float *center;
+	float radius;			//squared radius
+
+	int hits;
+
+	BVHTree_RangeQuery callback;
+	void *userdata;
+
+
+} RangeQueryData;
+
+
+static void dfs_range_query(RangeQueryData *data, BVHNode *node)
+{
+	if(node->totnode == 0)
+	{
+
+		//Calculate the node min-coords (if the node was a point then this is the point coordinates)
+		float co[3];
+		co[0] = node->bv[0];
+		co[1] = node->bv[2];
+		co[2] = node->bv[4];
+
+	}
+	else
+	{
+		int i;
+		for(i=0; i != node->totnode; i++)
+		{
+			float nearest[3];
+			float dist = calc_nearest_point(data->center, node->children[i], nearest);
+			if(dist < data->radius)
+			{
+				//Its a leaf.. call the callback
+				if(node->children[i]->totnode == 0)
+				{
+					data->hits++;
+					data->callback( data->userdata, node->children[i]->index, dist );
+				}
+				else
+					dfs_range_query( data, node->children[i] );
+			}
+		}
+	}
+}
+
+int BLI_bvhtree_range_query(BVHTree *tree, const float *co, float radius, BVHTree_RangeQuery callback, void *userdata)
+{
+	BVHNode * root = tree->nodes[tree->totleaf];
+
+	RangeQueryData data;
+	data.tree = tree;
+	data.center = co;
+	data.radius = radius*radius;
+	data.hits = 0;
+
+	data.callback = callback;
+	data.userdata = userdata;
+
+	if(root != NULL)
+	{
+		float nearest[3];
+		float dist = calc_nearest_point(data.center, root, nearest);
+		if(dist < data.radius)
+		{
+			//Its a leaf.. call the callback
+			if(root->totnode == 0)
+			{
+				data.hits++;
+				data.callback( data.userdata, root->index, dist );
+			}
+			else
+				dfs_range_query( &data, root );
+		}
+	}
+
+	return data.hits;
+}

@@ -62,9 +62,9 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 				}
 			}
 			
-			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype);
+			BKE_makepicstring((Scene *)node->id, string, nif->name, rd->cfra, nif->imtype);
 			
-			if(0 == BKE_write_ibuf(ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
+			if(0 == BKE_write_ibuf((Scene *)node->id, ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
 				printf("Cannot save Node File Output to %s\n", string);
 			else
 				printf("Saved: %s\n", string);
@@ -81,15 +81,19 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 
 static void node_composit_init_output_file(bNode *node)
 {
-   NodeImageFile *nif= MEM_callocN(sizeof(NodeImageFile), "node image file");
-   node->storage= nif;
-   BLI_strncpy(nif->name, G.scene->r.pic, sizeof(nif->name));
-   nif->imtype= G.scene->r.imtype;
-   nif->subimtype= G.scene->r.subimtype;
-   nif->quality= G.scene->r.quality;
-   nif->sfra= G.scene->r.sfra;
-   nif->efra= G.scene->r.efra;
-};
+	Scene *scene= (Scene *)node->id;
+	NodeImageFile *nif= MEM_callocN(sizeof(NodeImageFile), "node image file");
+	node->storage= nif;
+
+	if(scene) {
+		BLI_strncpy(nif->name, scene->r.pic, sizeof(nif->name));
+		nif->imtype= scene->r.imtype;
+		nif->subimtype= scene->r.subimtype;
+		nif->quality= scene->r.quality;
+		nif->sfra= scene->r.sfra;
+		nif->efra= scene->r.efra;
+	}
+}
 
 bNodeType cmp_node_output_file= {
 	/* *next,*prev */	NULL, NULL,

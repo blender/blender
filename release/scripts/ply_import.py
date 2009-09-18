@@ -149,6 +149,7 @@ def read(filename):
 		      'uint8': 'B',
 		      'int16': 'h',
 		      'uint16': 'H',
+		      'ushort': 'H',
 		      'int': 'i',
 		      'int32': 'i',
 		      'uint': 'I',
@@ -156,17 +157,21 @@ def read(filename):
 		      'float': 'f',
 		      'float32': 'f',
 		      'float64': 'd',
+		      'double': 'd',
 		      'string': 's'}
 	obj_spec = object_spec()
 
 	try:
-		file = open(filename, 'rb')
+		file = open(filename, 'rU') # Only for parsing the header, not binary data
 		signature = file.readline()
-		if (signature != 'ply\n'):
+		
+		if not signature.startswith('ply'):
 			print 'Signature line was invalid'
 			return None
+		
 		while 1:
 			tokens = re.split(r'[ \n]+', file.readline())
+			
 			if (len(tokens) == 0):
 				continue
 			if (tokens[0] == 'end_header'):
@@ -197,14 +202,22 @@ def read(filename):
 					obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
 				else:
 					obj_spec.specs[-1].properties.append(property_spec(tokens[2], None, type_specs[tokens[1]]))
+		
+		if format != 'ascii':
+			file.close() # was ascii, now binary
+			file = open(filename, 'rb')
+			
+			# skip the header...
+			while not file.readline().startswith('end_header'):
+				pass
+		
 		obj = obj_spec.load(format_specs[format], file)
-
+		
 	except IOError, (errno, strerror):
 		try:	file.close()
 		except:	pass
 		
 		return None
-
 	try:	file.close()
 	except:	pass
 	

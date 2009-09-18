@@ -34,6 +34,10 @@
 #include "MT_Point2.h"
 #include "MT_Transform.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 static MT_Point3 g_pt3;
 static MT_Point2 g_pt2;
 
@@ -110,11 +114,12 @@ public:
 		return (unsigned char *) &m_rgba;
 	}
 
-	const unsigned int getOrigIndex() const {
+	unsigned int getOrigIndex() const {
 		return m_origindex;
 	}
 
 	void				SetXYZ(const MT_Point3& xyz);
+	void				SetXYZ(const float *xyz);
 	void				SetUV(const MT_Point2& uv);
 	void				SetUV2(const MT_Point2& uv);
 
@@ -133,6 +138,12 @@ public:
 	// compare two vertices, to test if they can be shared, used for
 	// splitting up based on uv's, colors, etc
 	bool				closeTo(const RAS_TexVert* other);
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_TexVert"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_TEXVERT

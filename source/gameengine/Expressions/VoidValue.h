@@ -47,7 +47,7 @@ public:
 
 	/// Value -> String or number
 	virtual const STR_String &	GetText();												// Get string description of void value (unimplemented)
-	virtual float		GetNumber()												{ return -1; }
+	virtual double		GetNumber()												{ return -1; }
 
 	/// Value calculation
 	virtual CValue*		Calc(VALUE_OPERATOR op, CValue *val);
@@ -59,6 +59,13 @@ public:
 	/// Data members
 	bool				m_bDeleteOnDestruct;
 	void*				m_pAnything;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CVoidValue"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined _VOIDVALUE_H

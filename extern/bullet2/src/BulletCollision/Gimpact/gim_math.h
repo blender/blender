@@ -35,13 +35,6 @@ email: projectileman@yahoo.com
 #include "LinearMath/btScalar.h"
 
 
-/*! \defgroup BASIC_TYPES
-Basic types and constants
-Conventions:
-Types starting with G
-Constants starting with G_
-*/
-//! @{
 
 #define GREAL btScalar
 #define GREAL2 double
@@ -52,15 +45,7 @@ Constants starting with G_
 #define GINT64 long long
 #define GUINT64 unsigned long long
 
-//! @}
 
-/*! \defgroup BASIC_CONSTANTS
-Basic constants
-Conventions:
-Types starting with G
-Constants starting with G_
-*/
-//! @{
 
 #define G_PI 3.14159265358979f
 #define G_HALF_PI 1.5707963f
@@ -73,14 +58,9 @@ Constants starting with G_
 #define G_REAL_INFINITY FLT_MAX
 #define	G_SIGN_BITMASK			0x80000000
 #define G_EPSILON SIMD_EPSILON
-//! @}
 
 
-/*! \defgroup SCALAR_TYPES
-\brief
-Precision type constants
-*/
-//! @{
+
 enum GIM_SCALAR_TYPES
 {
 	G_STYPE_REAL =0,
@@ -92,12 +72,8 @@ enum GIM_SCALAR_TYPES
 	G_STYPE_INT64,
 	G_STYPE_UINT64
 };
-//! @}
 
-/*! \defgroup MATH_FUNCTIONS
-mathematical functions
-*/
-//! @{
+
 
 #define G_DEGTORAD(X) ((X)*3.1415926f/180.0f)
 #define G_RADTODEG(X) ((X)*180.0f/3.1415926f)
@@ -131,7 +107,7 @@ mathematical functions
 ///returns a clamped number
 #define GIM_CLAMP(number,minval,maxval) (number<minval?minval:(number>maxval?maxval:number))
 
-#define GIM_GREATER(x, y)	fabsf(x) > (y)
+#define GIM_GREATER(x, y)	btFabs(x) > (y)
 
 ///Swap numbers
 #define GIM_SWAP_NUMBERS(a,b){ \
@@ -176,6 +152,6 @@ inline GREAL gim_sqrt(GREAL f)
     return r;
 }
 
-//! @}
+
 
 #endif // GIM_MATH_H_INCLUDED

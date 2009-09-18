@@ -42,20 +42,18 @@
 #include "BLI_jitter.h"
 #include "BLI_threads.h"
 
-#include "MTC_matrixops.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_utildefines.h"
-
-#include "radio_types.h"
-#include "radio.h"  /* needs RG, some root data for radiosity */
 
 #include "RE_render_ext.h"
 
@@ -2154,9 +2152,9 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 				if(obi->lay & lay) {
 					if(vlr->mat!=ma) {
 						ma= vlr->mat;
-						nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
+						nofill= (ma->mode & MA_ONLYCAST) || ((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP));
 						env= (ma->mode & MA_ENV);
-						wire= (ma->mode & MA_WIRE);
+						wire= (ma->material_type == MA_TYPE_WIRE);
 						
 						for(zsample=0; zsample<samples; zsample++) {
 							if(ma->mode & MA_ZINV || (zmaskpass && neg_zmask))
@@ -2271,140 +2269,6 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	}
 }
 
-typedef struct {
-	float *vert;
-	float hoco[4];
-	int clip;
-} VertBucket;
-
-/* warning, not threaded! */
-static int hashlist_projectvert(float *v1, float winmat[][4], float *hoco)
-{
-	static VertBucket bucket[256], *buck;
-	
-	/* init static bucket */
-	if(v1==NULL) {
-		memset(bucket, 0, 256*sizeof(VertBucket));
-		return 0;
-	}
-	
-	buck= &bucket[ (((intptr_t)v1)/16) & 255 ];
-	if(buck->vert==v1) {
-		QUATCOPY(hoco, buck->hoco);
-		return buck->clip;
-	}
-	
-	projectvert(v1, winmat, hoco);
-	buck->clip = testclip(hoco);
-	buck->vert= v1;
-	QUATCOPY(buck->hoco, hoco);
-	return buck->clip;
-}
-
-/* used for booth radio 'tool' as during render */
-void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Render *re)
-{
-	ZSpan zspan;
-	float hoco[4][4], winmat[4][4];
-	int a, zvlnr;
-	int c1, c2, c3, c4= 0;
-
-	if(rg_totelem==0) return;
-
-	hashlist_projectvert(NULL, winmat, NULL);
-	
-	/* needed for projectvert */
-	MTC_Mat4MulMat4(winmat, vw->viewmat, vw->winmat);
-
-	/* 1.0f for clipping in clippyra()... bad stuff actually */
-	zbuf_alloc_span(&zspan, vw->rectx, vw->recty, 1.0f);
-	zspan.zmulx=  ((float)vw->rectx)/2.0;
-	zspan.zmuly=  ((float)vw->recty)/2.0;
-	zspan.zofsx= -0.5f;
-	zspan.zofsy= -0.5f;
-	
-	/* the buffers */
-	zspan.rectz= (int *)vw->rectz;
-	zspan.rectp= (int *)vw->rect;
-	zspan.recto= MEM_callocN(sizeof(int)*vw->rectx*vw->recty, "radiorecto");
-	fillrect(zspan.rectz, vw->rectx, vw->recty, 0x7FFFFFFF);
-	fillrect(zspan.rectp, vw->rectx, vw->recty, 0xFFFFFF);
-	
-	/* filling methods */
-	zspan.zbuffunc= zbuffillGL4;
-	
-	if(rg_elem) {	/* radio tool */
-		RNode **re, *rn;
-
-		re= rg_elem;
-		re+= (rg_totelem-1);
-		for(a= rg_totelem-1; a>=0; a--, re--) {
-			rn= *re;
-			if( (rn->f & RAD_SHOOT)==0 ) {    /* no shootelement */
-				
-				if( rn->f & RAD_TWOSIDED) zvlnr= a;
-				else if( rn->f & RAD_BACKFACE) zvlnr= 0xFFFFFF;	
-				else zvlnr= a;
-				
-				c1= hashlist_projectvert(rn->v1, winmat, hoco[0]);
-				c2= hashlist_projectvert(rn->v2, winmat, hoco[1]);
-				c3= hashlist_projectvert(rn->v3, winmat, hoco[2]);
-				
-				if(rn->v4) {
-					c4= hashlist_projectvert(rn->v4, winmat, hoco[3]);
-				}
-	
-				if(rn->v4)
-					zbufclip4(&zspan, 0, zvlnr, hoco[0], hoco[1], hoco[2], hoco[3], c1, c2, c3, c4);
-				else
-					zbufclip(&zspan, 0, zvlnr, hoco[0], hoco[1], hoco[2], c1, c2, c3);
-			}
-		}
-	}
-	else {	/* radio render */
-		ObjectRen *obr;
-		VlakRen *vlr=NULL;
-		RadFace **radface, *rf;
-		int totface=0;
-		
-		/* note: radio render doesn't support duplis */
-		for(obr=re->objecttable.first; obr; obr=obr->next) {
-			hashlist_projectvert(NULL, NULL, NULL); /* clear hashlist */
-
-			for(a=0; a<obr->totvlak; a++) {
-				if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
-			
-				if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
-					rf= *radface;
-					if( (rf->flag & RAD_SHOOT)==0 ) {    /* no shootelement */
-						
-						if( rf->flag & RAD_TWOSIDED) zvlnr= totface;
-						else if( rf->flag & RAD_BACKFACE) zvlnr= 0xFFFFFF;	/* receives no energy, but is zbuffered */
-						else zvlnr= totface;
-						
-						c1= hashlist_projectvert(vlr->v1->co, winmat, hoco[0]);
-						c2= hashlist_projectvert(vlr->v2->co, winmat, hoco[1]);
-						c3= hashlist_projectvert(vlr->v3->co, winmat, hoco[2]);
-						
-						if(vlr->v4) {
-							c4= hashlist_projectvert(vlr->v4->co, winmat, hoco[3]);
-						}
-			
-						if(vlr->v4)
-							zbufclip4(&zspan, 0, zvlnr, hoco[0], hoco[1], hoco[2], hoco[3], c1, c2, c3, c4);
-						else
-							zbufclip(&zspan, 0, zvlnr, hoco[0], hoco[1], hoco[2], c1, c2, c3);
-					}
-					totface++;
-				}
-			}
-		}
-	}
-
-	MEM_freeN(zspan.recto);
-	zbuf_free_span(&zspan);
-}
-
 void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int size, float jitx, float jity)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
@@ -2477,7 +2341,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 				c2= zbuf_shadow_project(cache, vlr->v2->index, obwinmat, vlr->v2->co, ho2);
 				c3= zbuf_shadow_project(cache, vlr->v3->index, obwinmat, vlr->v3->co, ho3);
 
-				if((ma->mode & MA_WIRE) || (vlr->flag & R_STRAND)) {
+				if((ma->material_type == MA_TYPE_WIRE) || (vlr->flag & R_STRAND)) {
 					if(vlr->v4) {
 						c4= zbuf_shadow_project(cache, vlr->v4->index, obwinmat, vlr->v4->co, ho4);
 						zbufclipwire(&zspan, 0, a+1, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
@@ -2495,7 +2359,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 				}
 			}
 
-			if((a & 255)==255 && re->test_break()) 
+			if((a & 255)==255 && re->test_break(re->tbh)) 
 				break;
 		}
 
@@ -2544,13 +2408,13 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 						}
 					}
 
-					if((a & 255)==255 && re->test_break()) 
+					if((a & 255)==255 && re->test_break(re->tbh)) 
 						break;
 				}
 			}
 		}
 
-		if(re->test_break()) 
+		if(re->test_break(re->tbh)) 
 			break;
 	}
 	
@@ -2707,7 +2571,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 						ma= vlr->mat;
 						nofill= ma->mode & MA_ONLYCAST;
 						env= (ma->mode & MA_ENV);
-						wire= (ma->mode & MA_WIRE);
+						wire= (ma->material_type == MA_TYPE_WIRE);
 					}
 				}
 				else {
@@ -3442,7 +3306,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 			
 			if(vlr->mat!=ma) {
 				ma= vlr->mat;
-				dofill= (ma->mode & MA_ZTRA) && !(ma->mode & MA_ONLYCAST);
+				dofill= ((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP)) && !(ma->mode & MA_ONLYCAST);
 			}
 			
 			if(dofill) {
@@ -3493,7 +3357,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 							zspan= &zspans[zsample];
 							zspan->polygon_offset= polygon_offset;
 				
-							if(ma->mode & (MA_WIRE)) {
+							if(ma->material_type == MA_TYPE_WIRE) {
 								if(v4)
 									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
 								else
@@ -3512,13 +3376,13 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 						}
 					}
 					if((v & 255)==255) 
-						if(R.test_break()) 
+						if(R.test_break(R.tbh)) 
 							break; 
 				}
 			}
 		}
 
-		if(R.test_break()) break;
+		if(R.test_break(R.tbh)) break;
 	}
 	
 	for(zsample=0; zsample<samples; zsample++) {
@@ -3616,7 +3480,7 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 				col= shr->refl;
 				break;
 			case SCE_PASS_RADIO:
-				col= shr->rad;
+				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
@@ -3718,7 +3582,7 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 				col= shr->refr;
 				break;
 			case SCE_PASS_RADIO:
-				col= shr->rad;
+				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -3953,8 +3817,8 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 					if(addpassflag & SCE_PASS_REFRACT)
 						addvecmul(samp_shr->refr, shr->refr, fac);
 					
-					if(addpassflag & SCE_PASS_RADIO)
-						addvecmul(samp_shr->rad, shr->rad, fac);
+					/* removed if(addpassflag & SCE_PASS_RADIO)
+						addvecmul(samp_shr->rad, shr->rad, fac);*/
 					
 					if(addpassflag & SCE_PASS_MIST)
 						samp_shr->mist= samp_shr->mist+fac*shr->mist;
@@ -4013,7 +3877,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	unsigned short *ztramask= NULL, filled;
 
 	/* looks nicer for calling code */
-	if(R.test_break())
+	if(R.test_break(R.tbh))
 		return NULL;
 	
 	if(R.osa>16) { /* MAX_OSA */
@@ -4096,7 +3960,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 		apstrand= aprectstrand;
 		od= offs;
 		
-		if(R.test_break())
+		if(R.test_break(R.tbh))
 			break;
 		
 		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, ap++, apstrand++, pass+=4, od++) {

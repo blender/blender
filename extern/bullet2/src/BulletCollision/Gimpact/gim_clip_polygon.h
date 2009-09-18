@@ -33,9 +33,6 @@ email: projectileman@yahoo.com
 -----------------------------------------------------------------------------
 */
 
-/*! \addtogroup GEOMETRIC_OPERATIONS
-*/
-//! @{
 
 //! This function calcs the distance from a 3D plane
 class DISTANCE_PLANE_3D_FUNC
@@ -209,6 +206,5 @@ SIMD_FORCE_INLINE GUINT PLANE_CLIP_TRIANGLE3D(
 }
 
 
-//! @}
 
 #endif // GIM_TRI_COLLISION_H_INCLUDED

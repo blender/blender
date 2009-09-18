@@ -30,6 +30,8 @@ http://gimpact.sf.net
 class btRigidBody;
 
 
+
+
 //! Rotation Limit structure for generic joints
 class btRotationalLimitMotor
 {
@@ -52,6 +54,7 @@ public:
     //! temp_variables
     //!@{
     btScalar m_currentLimitError;//!  How much is violated this limit
+    btScalar m_currentPosition;     //!  current value of angle 
     int m_currentLimit;//!< 0=free, 1=at lo limit, 2=at hi limit
     btScalar m_accumulatedImpulse;
     //!@}
@@ -92,7 +95,7 @@ public:
 	//! Is limited
     bool isLimited()
     {
-    	if(m_loLimit>=m_hiLimit) return false;
+    	if(m_loLimit > m_hiLimit) return false;
     	return true;
     }
 
@@ -110,8 +113,7 @@ public:
 	int testLimitValue(btScalar test_value);
 
 	//! apply the correction impulses for two bodies
-    btScalar solveAngularLimits(btScalar timeStep,btVector3& axis, btScalar jacDiagABInv,btRigidBody * body0, btRigidBody * body1);
-
+    btScalar solveAngularLimits(btScalar timeStep,btVector3& axis, btScalar jacDiagABInv,btRigidBody * body0, btSolverBody& bodyA,btRigidBody * body1,btSolverBody& bodyB);
 
 };
 
@@ -129,6 +131,12 @@ public:
     btScalar	m_damping;//!< Damping for linear limit
     btScalar	m_restitution;//! Bounce parameter for linear limit
     //!@}
+	bool		m_enableMotor[3];
+    btVector3	m_targetVelocity;//!< target motor velocity
+    btVector3	m_maxMotorForce;//!< max force on motor
+    btVector3	m_currentLimitError;//!  How much is violated this limit
+    btVector3	m_currentLinearDiff;//!  Current relative offset of constraint frames
+    int			m_currentLimit[3];//!< 0=free, 1=at lower limit, 2=at upper limit
 
     btTranslationalLimitMotor()
     {
@@ -139,6 +147,12 @@ public:
     	m_limitSoftness = 0.7f;
     	m_damping = btScalar(1.0f);
     	m_restitution = btScalar(0.5f);
+		for(int i=0; i < 3; i++) 
+		{
+			m_enableMotor[i] = false;
+			m_targetVelocity[i] = btScalar(0.f);
+			m_maxMotorForce[i] = btScalar(0.f);
+		}
     }
 
     btTranslationalLimitMotor(const btTranslationalLimitMotor & other )
@@ -150,6 +164,12 @@ public:
     	m_limitSoftness = other.m_limitSoftness ;
     	m_damping = other.m_damping;
     	m_restitution = other.m_restitution;
+		for(int i=0; i < 3; i++) 
+		{
+			m_enableMotor[i] = other.m_enableMotor[i];
+			m_targetVelocity[i] = other.m_targetVelocity[i];
+			m_maxMotorForce[i] = other.m_maxMotorForce[i];
+		}
     }
 
     //! Test limit
@@ -163,13 +183,19 @@ public:
     {
        return (m_upperLimit[limitIndex] >= m_lowerLimit[limitIndex]);
     }
+    inline bool needApplyForce(int limitIndex)
+    {
+    	if(m_currentLimit[limitIndex] == 0 && m_enableMotor[limitIndex] == false) return false;
+    	return true;
+    }
+	int testLimitValue(int limitIndex, btScalar test_value);
 
 
     btScalar solveLinearAxis(
     	btScalar timeStep,
         btScalar jacDiagABInv,
-        btRigidBody& body1,const btVector3 &pointInA,
-        btRigidBody& body2,const btVector3 &pointInB,
+        btRigidBody& body1,btSolverBody& bodyA,const btVector3 &pointInA,
+        btRigidBody& body2,btSolverBody& bodyB,const btVector3 &pointInB,
         int limit_index,
         const btVector3 & axis_normal_on_a,
 		const btVector3 & anchorPos);
@@ -247,6 +273,7 @@ protected:
     btTransform m_calculatedTransformB;
     btVector3 m_calculatedAxisAngleDiff;
     btVector3 m_calculatedAxis[3];
+    btVector3 m_calculatedLinearDiff;
     
 	btVector3 m_AnchorPos; // point betwen pivots of bodies A and B to solve linear axes
 
@@ -262,6 +289,9 @@ protected:
     }
 
 
+	int setAngularLimits(btConstraintInfo2 *info, int row_offset);
+
+	int setLinearLimits(btConstraintInfo2 *info);
 
     void buildLinearJacobian(
         btJacobianEntry & jacLinear,const btVector3 & normalWorld,
@@ -269,6 +299,8 @@ protected:
 
     void buildAngularJacobian(btJacobianEntry & jacAngular,const btVector3 & jointAxisW);
 
+	// tests linear limits
+	void calculateLinearInfo();
 
 	//! calcs the euler angles between the two bodies.
     void calculateAngleInfo();
@@ -276,6 +308,10 @@ protected:
 
 
 public:
+
+	///for backwards compatibility during the transition to 'getInfo/getInfo2'
+	bool		m_useSolveConstraintObsolete;
+
     btGeneric6DofConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
 
     btGeneric6DofConstraint();
@@ -330,7 +366,11 @@ public:
 	//! performs Jacobian calculation, and also calculates angle differences and axis
     virtual void	buildJacobian();
 
-    virtual	void	solveConstraint(btScalar	timeStep);
+	virtual void getInfo1 (btConstraintInfo1* info);
+
+	virtual void getInfo2 (btConstraintInfo2* info);
+
+    virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
 
     void	updateRHS(btScalar	timeStep);
 
@@ -342,14 +382,21 @@ public:
 
     //! Get the relative Euler angle
     /*!
-	\pre btGeneric6DofConstraint.buildJacobian must be called previously.
+	\pre btGeneric6DofConstraint::calculateTransforms() must be called previously.
 	*/
     btScalar getAngle(int axis_index) const;
+
+	//! Get the relative position of the constraint pivot
+    /*!
+	\pre btGeneric6DofConstraint::calculateTransforms() must be called previously.
+	*/
+	btScalar getRelativePivotPosition(int axis_index) const;
+
 
 	//! Test angular limit.
 	/*!
 	Calculates angular correction and returns true if limit needs to be corrected.
-	\pre btGeneric6DofConstraint.buildJacobian must be called previously.
+	\pre btGeneric6DofConstraint::calculateTransforms() must be called previously.
 	*/
     bool testAngularLimitMotor(int axis_index);
 
@@ -432,6 +479,41 @@ public:
 
 	virtual void calcAnchorPos(void); // overridable
 
+	int get_limit_motor_info2(	btRotationalLimitMotor * limot,
+								btRigidBody * body0, btRigidBody * body1,
+								btConstraintInfo2 *info, int row, btVector3& ax1, int rotational);
+
+
 };
+
+
+/// Generic 6 DOF constraint that allows to set spring motors to any translational and rotational DOF
+
+/// DOF index used in enableSpring() and setStiffness() means:
+/// 0 : translation X
+/// 1 : translation Y
+/// 2 : translation Z
+/// 3 : rotation X (3rd Euler rotational around new position of X axis, range [-PI+epsilon, PI-epsilon] )
+/// 4 : rotation Y (2nd Euler rotational around new position of Y axis, range [-PI/2+epsilon, PI/2-epsilon] )
+/// 5 : rotation Z (1st Euler rotational around Z axis, range [-PI+epsilon, PI-epsilon] )
+
+class btGeneric6DofSpringConstraint : public btGeneric6DofConstraint
+{
+protected:
+	bool		m_springEnabled[6];
+	btScalar	m_equilibriumPoint[6];
+	btScalar	m_springStiffness[6];
+	btScalar	m_springDamping[6]; // between 0 and 1 (1 == no damping)
+	void internalUpdateSprings(btConstraintInfo2* info);
+public: 
+    btGeneric6DofSpringConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
+	void enableSpring(int index, bool onOff);
+	void setStiffness(int index, btScalar stiffness);
+	void setDamping(int index, btScalar damping);
+	void setEquilibriumPoint(); // set the current constraint position/orientation as an equilibrium point for all DOF
+	void setEquilibriumPoint(int index);  // set the current constraint position/orientation as an equilibrium point for given DOF
+	virtual void getInfo2 (btConstraintInfo2* info);
+};
+
 
 #endif //GENERIC_6DOF_CONSTRAINT_H

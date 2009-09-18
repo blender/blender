@@ -3,7 +3,7 @@
  *
  *	BMesh mesh level functions.
  *
- * $Id: BME_eulers.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -50,11 +50,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
-#include "BIF_editmesh.h"
-#include "editmesh.h"
+//XXX #include "BIF_editmesh.h"
+//XXX #include "editmesh.h"
 #include "bmesh_private.h"
 
-#include "BSE_edit.h"
+//XXX #include "BSE_edit.h"
+
+/* XXX IMPORTANT: editmesh stuff doesn't belong in kernel! (ton) */
 
 /*merge these functions*/
 static void BME_DMcorners_to_loops(BME_Mesh *bm, CustomData *facedata, int index, BME_Poly *f, int numCol, int numTex){
@@ -302,7 +304,7 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 		e->flag = eed->f & SELECT;
 		if(eed->sharp) e->flag |= ME_SHARP;
 		if(eed->seam) e->flag |= ME_SEAM;
-		if(eed->h & EM_FGON) e->flag |= ME_FGON;
+		//XXX if(eed->h & EM_FGON) e->flag |= ME_FGON;
 		if(eed->h & 1) e->flag |= ME_HIDE;
 		eed->tmp.e = (EditEdge*)e;
 		CustomData_bmesh_copy_data(&em->edata, &bm->edata, eed->data, &e->data);
@@ -343,26 +345,22 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	BME_model_end(bm);
 	return bm;
 }
-/* adds the geometry in the bmesh to G.editMesh (does not free G.editMesh)
+/* adds the geometry in the bmesh to editMesh (does not free editMesh)
  * if td != NULL, the transdata will be mapped to the EditVert's co */
-EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
+void BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em) {
 	BME_Vert *v1;
 	BME_Edge *e;
 	BME_Poly *f;
 	
 	BME_TransData *vtd;
 
-	EditMesh *em;
 	EditVert *eve1, *eve2, *eve3, *eve4, **evlist;
 	EditEdge *eed;
 	EditFace *efa;
 
 	int totvert, len, i, numTex, numCol;
 
-	em = G.editMesh;
-
-	if (em == NULL) return NULL;
-
+	if (em == NULL) return;
 
 	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -378,7 +376,7 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 	evlist= (EditVert **)MEM_mallocN(totvert*sizeof(void *),"evlist");
 	for (i=0,v1=bm->verts.first;v1;v1=v1->next,i++) {
 		v1->tflag1 = i;
-		eve1 = addvertlist(v1->co,NULL);
+		eve1 = NULL; //XXX addvertlist(v1->co,NULL);
 		if (td && (vtd = BME_get_transdata(td,v1))) {
 			vtd->loc = eve1->co;
 		}
@@ -392,17 +390,17 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 	
 	/* make edges */
 	for (e=bm->edges.first;e;e=e->next) {
-		if(!(findedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1]))){
-			eed= addedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1], NULL);
+		if(0) { //XXX if(!(findedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1]))){
+			eed= NULL; //XXX addedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1], NULL);
 			eed->crease = e->crease;
 			eed->bweight = e->bweight;
 			if(e->flag & ME_SEAM) eed->seam = 1;
 			if(e->flag & ME_SHARP) eed->sharp = 1;
 			if(e->flag & SELECT) eed->f |= SELECT;
-			if(e->flag & ME_FGON) eed->h= EM_FGON; // 2 different defines!
+			//XXX if(e->flag & ME_FGON) eed->h= EM_FGON; // 2 different defines!
 			if(e->flag & ME_HIDE) eed->h |= 1;
-			if(G.scene->selectmode==SCE_SELECT_EDGE) 
-				EM_select_edge(eed, eed->f & SELECT);
+			if(em->selectmode==SCE_SELECT_EDGE) 
+				; //XXX EM_select_edge(eed, eed->f & SELECT);
 		
 			CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
 		}
@@ -422,15 +420,16 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 				eve4= NULL;
 			}
 
-			efa = addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
+			efa = NULL; //XXX addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
 			efa->mat_nr = (unsigned char)f->mat_nr;
 			efa->flag= f->flag & ~ME_HIDE;
 			if(f->flag & ME_FACE_SEL) {
 				efa->f |= SELECT;
 			}
 			if(f->flag & ME_HIDE) efa->h= 1;
-			if((G.f & G_FACESELECT) && (efa->f & SELECT))
-				EM_select_face(efa, 1); /* flush down */
+			// XXX flag depricated
+			// if((G.f & G_FACESELECT) && (efa->f & SELECT))
+				//XXX EM_select_face(efa, 1); /* flush down */
 			CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
 			BME_loops_to_corners(bm, &em->fdata, efa->data, f,numCol,numTex);
 		}
@@ -438,9 +437,6 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 
 	MEM_freeN(evlist);
 
-	countall();
-
-	return em;
 }
 
 /* Adds the geometry found in dm to bm

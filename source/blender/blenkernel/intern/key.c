@@ -35,8 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -44,12 +44,11 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -60,7 +59,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -69,6 +67,11 @@
 #define KEY_BPOINT		1
 #define KEY_BEZTRIPLE	2
 
+	// old defines from DNA_ipo_types.h for data-type
+#define IPO_FLOAT		4
+#define IPO_BEZTRIPLE	100
+#define IPO_BPOINT		101
+
 int slurph_opt= 1;
 
 
@@ -76,8 +79,7 @@ void free_key(Key *key)
 {
 	KeyBlock *kb;
 	
-	if(key->ipo) key->ipo->id.us--;
-	
+	BKE_free_animdata((ID *)key);
 	
 	while( (kb= key->block.first) ) {
 		
@@ -112,6 +114,7 @@ Key *add_key(ID *id)	/* common function */
 	key->type= KEY_NORMAL;
 	key->from= id;
 	
+	// XXX the code here uses some defines which will soon be depreceated...
 	if( GS(id->name)==ID_ME) {
 		el= key->elemstr;
 		
@@ -152,9 +155,11 @@ Key *copy_key(Key *key)
 	
 	keyn= copy_libblock(key);
 	
+#if 0 // XXX old animation system
 	keyn->ipo= copy_ipo(key->ipo);
-
-	duplicatelist(&keyn->block, &key->block);
+#endif // XXX old animation system
+	
+	BLI_duplicatelist(&keyn->block, &key->block);
 	
 	kb= key->block.first;
 	kbn= keyn->block.first;
@@ -181,11 +186,13 @@ void make_local_key(Key *key)
 	
 	key->id.lib= 0;
 	new_id(0, (ID *)key, 0);
+
+#if 0 // XXX old animation system
 	make_local_ipo(key->ipo);
+#endif // XXX old animation system
 }
 
-/*
- * Sort shape keys and Ipo curves after a change.  This assumes that at most
+/* Sort shape keys and Ipo curves after a change.  This assumes that at most
  * one key was moved, which is a valid assumption for the places it's
  * currently being called.
  */
@@ -193,30 +200,30 @@ void make_local_key(Key *key)
 void sort_keys(Key *key)
 {
 	KeyBlock *kb;
-	short i, adrcode;
-	IpoCurve *icu = NULL;
+	//short i, adrcode;
+	//IpoCurve *icu = NULL;
 	KeyBlock *kb2;
 
 	/* locate the key which is out of position */ 
-	for( kb= key->block.first; kb; kb= kb->next )
-		if( kb->next && kb->pos > kb->next->pos )
+	for (kb= key->block.first; kb; kb= kb->next)
+		if ((kb->next) && (kb->pos > kb->next->pos))
 			break;
 
 	/* if we find a key, move it */
-	if( kb ) {
+	if (kb) {
 		kb = kb->next; /* next key is the out-of-order one */
 		BLI_remlink(&key->block, kb);
-
+		
 		/* find the right location and insert before */
-		for( kb2=key->block.first; kb2; kb2= kb2->next ) {
-			if( kb2->pos > kb->pos ) {
+		for (kb2=key->block.first; kb2; kb2= kb2->next) {
+			if (kb2->pos > kb->pos) {
 				BLI_insertlink(&key->block, kb2->prev, kb);
 				break;
 			}
 		}
-
+		
 		/* if more than one Ipo curve, see if this key had a curve */
-
+#if 0 // XXX old animation system
 		if(key->ipo && key->ipo->curve.first != key->ipo->curve.last ) {
 			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
 				/* if we find the curve, remove it and reinsert in the 
@@ -234,13 +241,13 @@ void sort_keys(Key *key)
 				}
 			}
 		}
-
+		
 		/* kb points at the moved key, icu at the moved ipo (if it exists).
 		 * go back now and renumber adrcodes */
 
 		/* first new code */
 		adrcode = kb2->adrcode;
-		for( i = kb->adrcode - adrcode; i >= 0; --i, ++adrcode ) {
+		for (i = kb->adrcode - adrcode; i >= 0; i--, adrcode++) {
 			/* if the next ipo curve matches the current key, renumber it */
 			if(icu && icu->adrcode == kb->adrcode ) {
 				icu->adrcode = adrcode;
@@ -250,6 +257,7 @@ void sort_keys(Key *key)
 			kb->adrcode = adrcode;
 			kb = kb->next;
 		}
+#endif // XXX old animation system
 	}
 
 	/* new rule; first key is refkey, this to match drawing channels... */
@@ -258,66 +266,91 @@ void sort_keys(Key *key)
 
 /**************** do the key ****************/
 
-
-void set_four_ipo(float d, float *data, int type)
+void key_curve_position_weights(float t, float *data, int type)
 {
-	float d2, d3, fc;
+	float t2, t3, fc;
 	
 	if(type==KEY_LINEAR) {
-		data[0]= 0.0f;
-		data[1]= 1.0f-d;
-		data[2]= d;
-		data[3]= 0.0f;
+		data[0]=		  0.0f;
+		data[1]= -t		+ 1.0f;
+		data[2]= t;
+		data[3]= 		  0.0f;
 	}
-	else {
-		d2= d*d;
-		d3= d2*d;
+	else if(type==KEY_CARDINAL) {
+		t2= t*t;
+		t3= t2*t;
+		fc= 0.71f;
 		
-		if(type==KEY_CARDINAL) {
+		data[0]= -fc*t3			+ 2.0f*fc*t2		- fc*t;
+		data[1]= (2.0f-fc)*t3	+ (fc-3.0f)*t2					+ 1.0f;
+		data[2]= (fc-2.0f)*t3	+ (3.0f-2.0f*fc)*t2	+ fc*t;
+		data[3]= fc*t3			- fc*t2;
+	}
+	else if(type==KEY_BSPLINE) {
+		t2= t*t;
+		t3= t2*t;
 
-			fc= 0.71f;
-			
-			data[0]= -fc*d3		+2.0f*fc*d2		-fc*d;
-			data[1]= (2.0f-fc)*d3	+(fc-3.0f)*d2				+1.0f;
-			data[2]= (fc-2.0f)*d3	+(3.0f-2.0f*fc)*d2 +fc*d;
-			data[3]= fc*d3			-fc*d2;
-		}
-		else if(type==KEY_BSPLINE) {
-
-			data[0]= -0.16666666f*d3	+0.5f*d2	-0.5f*d	+0.16666666f;
-			data[1]= 0.5f*d3		-d2				+0.6666666f;
-			data[2]= -0.5f*d3		+0.5f*d2	+0.5f*d	+0.16666666f;
-			data[3]= 0.16666666f*d3			;
-		}
+		data[0]= -0.16666666f*t3	+ 0.5f*t2	- 0.5f*t	+ 0.16666666f;
+		data[1]= 0.5f*t3			- t2					+ 0.6666666f;
+		data[2]= -0.5f*t3			+ 0.5f*t2	+ 0.5f*t	+ 0.16666666f;
+		data[3]= 0.16666666f*t3;
 	}
 }
 
-void set_afgeleide_four_ipo(float d, float *data, int type)
+/* first derivative */
+void key_curve_tangent_weights(float t, float *data, int type)
 {
-	float d2, fc;
+	float t2, fc;
 	
 	if(type==KEY_LINEAR) {
-
+		data[0]= 0.0f;
+		data[1]= -1.0f;
+		data[2]= 1.0f;
+		data[3]= 0.0f;
 	}
-	else {
-		d2= d*d;
+	else if(type==KEY_CARDINAL) {
+		t2= t*t;
+		fc= 0.71f;
 		
-		if(type==KEY_CARDINAL) {
+		data[0]= -3.0f*fc*t2		+4.0f*fc*t				- fc;
+		data[1]= 3.0f*(2.0f-fc)*t2	+2.0f*(fc-3.0f)*t;
+		data[2]= 3.0f*(fc-2.0f)*t2	+2.0f*(3.0f-2.0f*fc)*t	+ fc;
+		data[3]= 3.0f*fc*t2			-2.0f*fc*t;
+	}
+	else if(type==KEY_BSPLINE) {
+		t2= t*t;
 
-			fc= 0.71f;
-			
-			data[0]= -3.0f*fc*d2		+4.0f*fc*d		-fc;
-			data[1]= 3.0f*(2.0f-fc)*d2	+2.0f*(fc-3.0f)*d;
-			data[2]= 3.0f*(fc-2.0f)*d2	+2.0f*(3.0f-2.0f*fc)*d +fc;
-			data[3]= 3.0f*fc*d2			-2.0f*fc*d;
-		}
-		else if(type==KEY_BSPLINE) {
+		data[0]= -0.5f*t2	+ t			- 0.5f;
+		data[1]= 1.5f*t2	- 2.0f*t;
+		data[2]= -1.5f*t2	+ t			+ 0.5f;
+		data[3]= 0.5f*t2;
+	}
+}
 
-			data[0]= -0.16666666f*3.0f*d2	+d	-0.5f;
-			data[1]= 1.5f*d2		-2.0f*d;
-			data[2]= -1.5f*d2		+d	+0.5f;
-			data[3]= 0.16666666f*3.0f*d2			;
-		}
+/* second derivative */
+void key_curve_normal_weights(float t, float *data, int type)
+{
+	float fc;
+	
+	if(type==KEY_LINEAR) {
+		data[0]= 0.0f;
+		data[1]= 0.0f;
+		data[2]= 0.0f;
+		data[3]= 0.0f;
+	}
+	else if(type==KEY_CARDINAL) {
+		fc= 0.71f;
+		
+		data[0]= -6.0f*fc*t			+ 4.0f*fc;
+		data[1]= 6.0f*(2.0f-fc)*t	+ 2.0f*(fc-3.0f);
+		data[2]= 6.0f*(fc-2.0f)*t	+ 2.0f*(3.0f-2.0f*fc);
+		data[3]= 6.0f*fc*t			- 2.0f*fc;
+	}
+	else if(type==KEY_BSPLINE) {
+		data[0]= -1.0f*t	+ 1.0f;
+		data[1]= 3.0f*t		- 2.0f;
+		data[2]= -3.0f*t	+ 1.0f;
+		data[3]= 1.0f*t;
 	}
 }
 
@@ -428,10 +461,10 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 
 	/* interpolation */
 	
-	set_four_ipo(d, t, k[1]->type);
+	key_curve_position_weights(d, t, k[1]->type);
 
 	if(k[1]->type != k[2]->type) {
-		set_four_ipo(d, fval, k[2]->type);
+		key_curve_position_weights(d, fval, k[2]->type);
 		
 		temp= 1.0f-d;
 		t[0]= temp*t[0]+ d*fval[0];
@@ -638,6 +671,8 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 	
 	if(key->from==NULL) return;
 	
+	if (G.f & G_DEBUG) printf("do_rel_key() \n");
+	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
 		ofs[1]= 0;
@@ -673,10 +708,14 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 		if(kb!=key->refkey) {
 			float icuval= kb->curval;
 			
+			if (G.f & G_DEBUG) printf("\tdo rel key %s : %s = %f \n", key->id.name+2, kb->name, icuval);
+			
 			/* only with value, and no difference allowed */
 			if(!(kb->flag & KEYBLOCK_MUTE) && icuval!=0.0f && kb->totelem==tot) {
 				KeyBlock *refb;
 				float weight, *weights= kb->weights;
+				
+				if (G.f & G_DEBUG) printf("\t\tnot skipped \n");
 				
 				poin= basispoin;
 				from= kb->data;
@@ -748,6 +787,8 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 
 	if(key->from==0) return;
 
+	if (G.f & G_DEBUG) printf("do_key() \n");
+	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
 		ofs[1]= 0;
@@ -995,7 +1036,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	return NULL;
 }
 
-static int do_mesh_key(Object *ob, Mesh *me)
+static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 {
 	KeyBlock *k[4];
 	float cfra, ctime, t[4], delta, loc[3], size[3];
@@ -1008,7 +1049,11 @@ static int do_mesh_key(Object *ob, Mesh *me)
 	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
 	me->key->from= (ID *)me;
 	
+	if (G.f & G_DEBUG) printf("do mesh key ob:%s me:%s ke:%s \n", ob->id.name+2, me->id.name+2, me->key->id.name+2);
+	
 	if(me->key->slurph && me->key->type!=KEY_RELATIVE ) {
+		if (G.f & G_DEBUG) printf("\tslurph key\n");
+		
 		delta= me->key->slurph;
 		delta/= me->totvert;
 		
@@ -1019,15 +1064,20 @@ static int do_mesh_key(Object *ob, Mesh *me)
 			/* in do_key and cp_key the case a>tot is handled */
 		}
 		
-		cfra= G.scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<me->totvert; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(0, cfra, 0.0);
+			ctime= bsystem_time(scene, 0, cfra, 0.0); // xxx  ugly cruft!
+#if 0 // XXX old animation system
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
 			}
+#endif // XXX old animation system
+			// XXX for now... since speed curve cannot be directly ported yet
+			ctime /= 100.0f;
+			CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
 		
 			flag= setkeys(ctime, &me->key->block, k, t, 0);
 			if(flag==0) {
@@ -1043,9 +1093,10 @@ static int do_mesh_key(Object *ob, Mesh *me)
 		else boundbox_mesh(me, loc, size);
 	}
 	else {
-		
 		if(me->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
+			
+			if (G.f & G_DEBUG) printf("\tdo relative \n");
 			
 			for(kb= me->key->block.first; kb; kb= kb->next)
 				kb->weights= get_weights_array(ob, kb->vgroup);
@@ -1058,13 +1109,20 @@ static int do_mesh_key(Object *ob, Mesh *me)
 			}
 		}
 		else {
-			ctime= bsystem_time(ob, G.scene->r.cfra, 0.0);
-
+			if (G.f & G_DEBUG) printf("\tdo absolute \n");
+			
+			ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0f); // xxx old cruft
+			
+#if 0 // XXX old animation system
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
 			}
-
+#endif // XXX old animation system
+			// XXX for now... since speed curve cannot be directly ported yet
+			ctime /= 100.0f;
+			CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
+			
 			flag= setkeys(ctime, &me->key->block, k, t, 0);
 			if(flag==0) {
 				do_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, k, t, 0);
@@ -1151,7 +1209,7 @@ static void do_rel_cu_key(Curve *cu, float ctime)
 	}
 }
 
-static int do_curve_key(Curve *cu)
+static int do_curve_key(Scene *scene, Curve *cu)
 {
 	KeyBlock *k[4];
 	float cfra, ctime, t[4], delta;
@@ -1174,15 +1232,16 @@ static int do_curve_key(Curve *cu)
 			/* in do_key and cp_key the case a>tot has been handled */
 		}
 		
-		cfra= G.scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<tot; a+=step, cfra+= delta) {
-			
-			ctime= bsystem_time(0, cfra, 0.0);
+			ctime= bsystem_time(scene, 0, cfra, 0.0f); // XXX old cruft
+#if 0 // XXX old animation system
 			if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
 			}
+#endif // XXX old animation system
 		
 			flag= setkeys(ctime, &cu->key->block, k, t, 0);
 			if(flag==0) {
@@ -1200,16 +1259,18 @@ static int do_curve_key(Curve *cu)
 	}
 	else {
 		
-		ctime= bsystem_time(NULL, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(scene, NULL, (float)scene->r.cfra, 0.0);
 		
 		if(cu->key->type==KEY_RELATIVE) {
 			do_rel_cu_key(cu, ctime);
 		}
 		else {
+#if 0 // XXX old animation system
 			if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
 			}
+#endif // XXX old animation system
 			
 			flag= setkeys(ctime, &cu->key->block, k, t, 0);
 			
@@ -1223,7 +1284,7 @@ static int do_curve_key(Curve *cu)
 	return 1;
 }
 
-static int do_latt_key(Object *ob, Lattice *lt)
+static int do_latt_key(Scene *scene, Object *ob, Lattice *lt)
 {
 	KeyBlock *k[4];
 	float delta, cfra, ctime, t[4];
@@ -1238,15 +1299,17 @@ static int do_latt_key(Object *ob, Lattice *lt)
 		delta= lt->key->slurph;
 		delta/= (float)tot;
 		
-		cfra= G.scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<tot; a++, cfra+= delta) {
 			
-			ctime= bsystem_time(0, cfra, 0.0);
+			ctime= bsystem_time(scene, 0, cfra, 0.0); // XXX old cruft
+#if 0 // XXX old animation system
 			if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
 			}
+#endif // XXX old animation system
 		
 			flag= setkeys(ctime, &lt->key->block, k, t, 0);
 			if(flag==0) {
@@ -1259,7 +1322,7 @@ static int do_latt_key(Object *ob, Lattice *lt)
 		}		
 	}
 	else {
-		ctime= bsystem_time(NULL, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(scene, NULL, (float)scene->r.cfra, 0.0);
 	
 		if(lt->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
@@ -1275,10 +1338,12 @@ static int do_latt_key(Object *ob, Lattice *lt)
 			}
 		}
 		else {
+#if 0 // XXX old animation system
 			if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
 			}
+#endif // XXX old animation system
 			
 			flag= setkeys(ctime, &lt->key->block, k, t, 0);
 			if(flag==0) {
@@ -1296,7 +1361,7 @@ static int do_latt_key(Object *ob, Lattice *lt)
 }
 
 /* returns 1 when key applied */
-int do_ob_key(Object *ob)
+int do_ob_key(Scene *scene, Object *ob)
 {
 	Key *key= ob_get_key(ob);
 	
@@ -1305,7 +1370,9 @@ int do_ob_key(Object *ob)
 		
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
-
+		
+		if (G.f & G_DEBUG) printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
+		
 		if(kb && (kb->flag & KEYBLOCK_MUTE))
 			kb= key->refkey;
 
@@ -1340,17 +1407,17 @@ int do_ob_key(Object *ob)
 		return 1;
 	}
 	else {
-		if(ob->ipoflag & OB_ACTION_KEY)
-			do_all_object_actions(ob);
-		else {
-			calc_ipo(key->ipo, bsystem_time(ob, G.scene->r.cfra, 0.0));
-			execute_ipo((ID *)key, key->ipo);
-		}
+		/* do shapekey local drivers */
+		float ctime= (float)scene->r.cfra; // XXX this needs to be checked
 		
-		if(ob->type==OB_MESH) return do_mesh_key(ob, ob->data);
-		else if(ob->type==OB_CURVE) return do_curve_key( ob->data);
-		else if(ob->type==OB_SURF) return do_curve_key( ob->data);
-		else if(ob->type==OB_LATTICE) return do_latt_key(ob, ob->data);
+		if (G.f & G_DEBUG) 
+			printf("ob %s - do shapekey (%s) drivers \n", ob->id.name+2, key->id.name+2);
+		BKE_animsys_evaluate_animdata(&key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
+		
+		if(ob->type==OB_MESH) return do_mesh_key(scene, ob, ob->data);
+		else if(ob->type==OB_CURVE) return do_curve_key(scene, ob->data);
+		else if(ob->type==OB_SURF) return do_curve_key(scene, ob->data);
+		else if(ob->type==OB_LATTICE) return do_latt_key(scene, ob, ob->data);
 	}
 	
 	return 0;
@@ -1401,6 +1468,21 @@ KeyBlock *key_get_keyblock(Key *key, int index)
 			kb= kb->next;
 			
 			if (index==i)
+				return kb;
+		}
+	}
+	
+	return NULL;
+}
+
+/* get the appropriate KeyBlock given a name to search for */
+KeyBlock *key_get_named_keyblock(Key *key, const char name[])
+{
+	KeyBlock *kb;
+	
+	if (key && name) {
+		for (kb= key->block.first; kb; kb= kb->next) {
+			if (strcmp(name, kb->name)==0)
 				return kb;
 		}
 	}

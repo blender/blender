@@ -29,6 +29,13 @@
  * $Id$
  */
 
+#ifdef _WIN32
+#include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#endif
+
 #include "BLI_blenlib.h"
 
 #include "DNA_userdef_types.h"
@@ -61,9 +68,15 @@
 #include "quicktime_import.h"
 #endif
 
+#ifdef WITH_OPENJPEG
+#include "IMB_jp2.h"
+#endif
+
 #ifdef WITH_FFMPEG
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavdevice/avdevice.h>
+#include <libavutil/log.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -131,7 +144,11 @@ static int IMB_ispic_name(char *name)
 /*
 				if (imb_is_a_bmp(buf)) return(BMP);
 */
-
+				
+#ifdef WITH_OPENJPEG
+				if (imb_is_a_jp2(buf)) return(JP2);
+#endif
+				
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined(__APPLE__)
 				if(G.have_quicktime) {
@@ -182,6 +199,9 @@ int IMB_ispic(char *filename)
 #ifdef WITH_BF_OPENEXR
 				||	BLI_testextensie(filename, ".exr")
 #endif
+#ifdef WITH_BF_OPENJPEG
+				||	BLI_testextensie(filename, ".jp2")
+#endif
 				||	BLI_testextensie(filename, ".sgi")) {
 				return IMB_ispic_name(filename);
 			} else {
@@ -201,6 +221,9 @@ int IMB_ispic(char *filename)
 #endif
 #ifdef WITH_BF_OPENEXR
 				||	BLI_testextensie(filename, ".exr")
+#endif
+#ifdef WITH_BF_OPENJPEG
+				||	BLI_testextensie(filename, ".jp2")
 #endif
 				||	BLI_testextensie(filename, ".iff")
 				||	BLI_testextensie(filename, ".lbm")
@@ -229,6 +252,19 @@ static int isqtime (char *name) {
 #endif
 
 #ifdef WITH_FFMPEG
+
+void silence_log_ffmpeg(int quiet)
+{
+	if (quiet)
+	{
+		av_log_set_level(AV_LOG_QUIET);
+	}
+	else
+	{
+		av_log_set_level(AV_LOG_INFO);
+	}
+}
+
 extern void do_init_ffmpeg();
 void do_init_ffmpeg()
 {
@@ -236,6 +272,12 @@ void do_init_ffmpeg()
 	if (!ffmpeg_init) {
 		ffmpeg_init = 1;
 		av_register_all();
+		avdevice_register_all();
+		
+		if ((G.f & G_DEBUG) == 0)
+		{
+			silence_log_ffmpeg(1);
+		}
 	}
 }
 
@@ -254,7 +296,8 @@ static AVCodecContext* get_codec_from_stream(AVStream* stream)
 
 static int isffmpeg (char *filename) {
 	AVFormatContext *pFormatCtx;
-	int            i, videoStream;
+	unsigned int i;
+	int videoStream;
 	AVCodec *pCodec;
 	AVCodecContext *pCodecCtx;
 
@@ -358,8 +401,6 @@ int imb_get_anim_type(char * name) {
 	if (ib_stat(name,&st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
 
-	if (isavi(name)) return (ANIM_AVI);
-
 	if (ismovie(name)) return (ANIM_MOVIE);
 #	ifdef WITH_QUICKTIME
 	if (isqtime(name)) return (ANIM_QTIME);
@@ -367,6 +408,7 @@ int imb_get_anim_type(char * name) {
 #	ifdef WITH_FFMPEG
 	if (isffmpeg(name)) return (ANIM_FFMPEG);
 #	endif
+	if (isavi(name)) return (ANIM_AVI);
 #endif
 #ifdef WITH_REDCODE
 	if (isredcode(name)) return (ANIM_REDCODE);

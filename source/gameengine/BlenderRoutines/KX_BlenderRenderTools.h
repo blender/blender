@@ -37,6 +37,10 @@
 
 #include "RAS_IRenderTools.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 struct KX_ClientObjectInfo;
 class KX_RayCast;
 
@@ -51,6 +55,7 @@ class KX_BlenderRenderTools  : public RAS_IRenderTools
 {
 	int		m_lastlightlayer;
 	bool	m_lastlighting;
+	void	*m_lastauxinfo;
 	static unsigned int m_numgllights;
 
 public:
@@ -60,9 +65,9 @@ public:
 	void				EndFrame(RAS_IRasterizer* rasty);
 	void				BeginFrame(RAS_IRasterizer* rasty);
 
-	void				EnableOpenGLLights();
+	void				EnableOpenGLLights(RAS_IRasterizer *rasty);
 	void				DisableOpenGLLights();
-	void				ProcessLighting(int layer, const MT_Transform& viewmat);
+	void				ProcessLighting(RAS_IRasterizer *rasty, bool uselights, const MT_Transform& viewmat);
 
 	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,
 									 const char* text,
@@ -94,6 +99,13 @@ public:
 	virtual	void Render2DFilters(RAS_ICanvas* canvas);
 
 	virtual void SetClientObject(RAS_IRasterizer *rasty, void* obj);
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderRenderTools"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_BLENDERRENDERTOOLS

@@ -5,14 +5,20 @@ sources = env.Glob('*.cpp') + env.Glob('Joystick/*.cpp')
 
 incs = '. #/source/kernel/gen_system #/intern/string'
 incs += ' #/source/gameengine/Expressions #/intern/moto/include'
-incs += ' #/source/gameengine/Rasterizer'
+incs += ' #/source/gameengine/Rasterizer #/source/gameengine/SceneGraph'
 
 incs += ' ' + env['BF_PYTHON_INC']
-incs += ' ' + env['BF_SDL_INC']
 
-defs = ''
 
-if not env['WITH_BF_SDL']:
-	defs += ' DISABLE_SDL'
+defs = []
 
-env.BlenderLib ( 'bf_logic', sources, Split(incs), Split(defs), libtype=['game','player'], priority=[30, 110] )
+if env['WITH_BF_SDL']:
+	incs += ' ' + env['BF_SDL_INC']
+else:
+	defs.append('DISABLE_SDL')
+
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+	if env['BF_DEBUG']:
+		defs.append('_DEBUG')
+
+env.BlenderLib ( 'bf_logic', sources, Split(incs), defs, libtype=['core','player'], priority=[330,65], cxx_compileflags=env['BGE_CXXFLAGS'])

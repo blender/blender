@@ -32,8 +32,8 @@
 /* External modules: */
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "MTC_matrixops.h"
-#include "MTC_vectorops.h"
+
+
 
 #include "DNA_camera_types.h"
 #include "DNA_group_types.h"
@@ -43,6 +43,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_lamp_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_material.h"
@@ -58,6 +59,7 @@
 #include "rendercore.h"
 #include "shadbuf.h"
 #include "pixelshading.h"
+#include "shading.h"
 #include "sunsky.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -153,7 +155,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 					
 					/* rotate view to lampspace */
 					VECCOPY(lvrot, lv);
-					MTC_Mat3MulVecfl(lar->imat, lvrot);
+					Mat3MulVecfl(lar->imat, lvrot);
 					
 					x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
 					/* 1.0/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
@@ -511,7 +513,7 @@ static void fillBackgroundImage(float *collector, float fx, float fy)
 }
 
 /* Only view vector is important here. Result goes to colf[3] */
-void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
+void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short thread)
 {
 	float lo[3], zen[3], hor[3], blend, blendm;
 	int skyflag;
@@ -536,21 +538,27 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
 		blend= fabs(0.5+ view[1]);
 	}
 	
-	hor[0]= R.wrld.horr; hor[1]= R.wrld.horg; hor[2]= R.wrld.horb;
-	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zeng; zen[2]= R.wrld.zenb;
-	
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		color_manage_linearize(hor, &R.wrld.horr);
+		color_manage_linearize(zen, &R.wrld.zenr);
+	}
+	else {
+		VECCOPY(hor, &R.wrld.horr);
+		VECCOPY(zen, &R.wrld.zenr);
+	}
+
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and color blend are added.           */
 	if(R.wrld.skytype & WO_SKYTEX) {
 		VECCOPY(lo, view);
 		if(R.wrld.skytype & WO_SKYREAL) {
 			
-			MTC_Mat3MulVecfl(R.imat, lo);
+			Mat3MulVecfl(R.imat, lo);
 			
 			SWAP(float, lo[1],  lo[2]);
 			
 		}
-		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag);
+		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag, thread);
 	}
 	
 	if(blend>1.0) blend= 1.0;
@@ -587,7 +595,7 @@ void shadeSunView(float *colf, float *view)
 				
 				VECCOPY(sview, view);
 				Normalize(sview);
-				MTC_Mat3MulVecfl(R.imat, sview);
+				Mat3MulVecfl(R.imat, sview);
 				if (sview[2] < 0.0)
 					sview[2] = 0.0;
 				Normalize(sview);
@@ -607,7 +615,7 @@ void shadeSunView(float *colf, float *view)
 /*
   Stuff the sky color into the collector.
  */
-void shadeSkyPixel(float *collector, float fx, float fy) 
+void shadeSkyPixel(float *collector, float fx, float fy, short thread) 
 {
 	float view[3], dxyview[2];
 
@@ -625,9 +633,11 @@ void shadeSkyPixel(float *collector, float fx, float fy)
 	} 
 	else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/* 2. solid color */
-		collector[0] = R.wrld.horr;
-		collector[1] = R.wrld.horg;
-		collector[2] = R.wrld.horb;
+		if(R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+			color_manage_linearize(collector, &R.wrld.horr);
+		else
+			VECCOPY(collector, &R.wrld.horr);
+
 		collector[3] = 0.0f;
 	} 
 	else {
@@ -653,7 +663,7 @@ void shadeSkyPixel(float *collector, float fx, float fy)
 		}
 		
 		/* get sky color in the collector */
-		shadeSkyView(collector, NULL, view, dxyview);
+		shadeSkyView(collector, NULL, view, dxyview, thread);
 		collector[3] = 0.0f;
 	}
 	
@@ -668,7 +678,7 @@ void shadeAtmPixel(struct SunSky *sunsky, float *collector, float fx, float fy, 
 		
 	calc_view_vector(view, fx, fy);
 	Normalize(view);
-	/*MTC_Mat3MulVecfl(R.imat, view);*/
+	/*Mat3MulVecfl(R.imat, view);*/
 	AtmospherePixleShader(sunsky, view, distance, collector);
 }
 

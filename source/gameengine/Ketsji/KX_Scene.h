@@ -32,8 +32,6 @@
 
 #include "KX_PhysicsEngineEnums.h"
 
-#include "MT_CmMatrix4x4.h"
-
 #include <vector>
 #include <set>
 #include <list>
@@ -43,7 +41,7 @@
 #include "SG_IObject.h"
 #include "SCA_IScene.h"
 #include "MT_Transform.h"
-#include "SND_Scene.h"
+
 #include "RAS_FramingManager.h"
 #include "RAS_Rect.h"
 
@@ -65,8 +63,6 @@ class SCA_TimeEventManager;
 class SCA_MouseManager;
 class SCA_ISystem;
 class SCA_IInputDevice;
-class SND_Scene;
-class SND_IAudioDevice;
 class NG_NetworkDeviceInterface;
 class NG_NetworkScene;
 class SG_IObject;
@@ -85,6 +81,8 @@ class RAS_IRenderTools;
 class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
+struct KX_ClientObjectInfo;
+
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
@@ -92,6 +90,13 @@ class KX_BlenderSceneConverter;
 class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
 	Py_Header;
+	PyObject*	m_attr_dict;
+
+	struct CullingInfo {
+		int m_layer;
+		CullingInfo(int layer) : m_layer(layer) {}
+	};
+
 protected:
 	RAS_BucketManager*	m_bucketmanager;
 	CListValue*			m_tempObjectList;
@@ -102,21 +107,17 @@ protected:
 	 * LogicEndFrame() via a call to RemoveObject().
 	 */
 	CListValue*	m_euthanasyobjects;
-	/**
-	* The list of objects that couldn't be released during logic update.
-	* for example, AddObject actuator sometimes releases an object that was cached from previous frame
-	*/
-	CListValue*	m_delayReleaseObjects;
 
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
 	CListValue*			m_inactivelist;	// all objects that are not in the active layer
+	
+	SG_QList			m_sghead;		// list of nodes that needs scenegraph update
+										// the Dlist is not object that must be updated
+										// the Qlist is for objects that needs to be rescheduled
+										// for updates after udpate is over (slow parent, bone parent)
 
-	/**
-	 *  The tree of objects in the scene.
-	 */
-	SG_Tree*			m_objecttree;
 
 	/**
 	 * The set of cameras for this scene
@@ -158,14 +159,7 @@ protected:
 	 * @section Different scenes, linked to ketsji scene
 	 */
 
-
 	/**
-	 * Sound scenes
-	 */
-	SND_Scene* m_soundScene;
-	SND_IAudioDevice* m_adi;
-
-	/** 
 	 * Network scene.
 	 */
 	NG_NetworkDeviceInterface*	m_networkDeviceInterface;
@@ -182,20 +176,6 @@ protected:
 	 * The active camera for the scene
 	 */
 	KX_Camera* m_active_camera;
-
-	/** 
-	 * The projection and view matrices of this scene 
-	 * The projection matrix is computed externally by KX_Engine	
-	 * The view mat is stored as a side effect of GetViewMatrix()
-	 * and is totally unnessary.
-	 */
-	MT_CmMatrix4x4				m_projectionmat;
-	MT_CmMatrix4x4				m_viewmat;
-
-	/** Desired canvas width set at design time. */
-	unsigned int m_canvasDesignWidth;
-	/** Desired canvas height set at design time. */
-	unsigned int m_canvasDesignHeight;
 
 	/**
 	 * Another temporary variable outstaying its welcome
@@ -252,6 +232,16 @@ protected:
 	bool m_activity_culling;
 	
 	/**
+	 * Toggle to enable or disable culling via DBVT broadphase of Bullet.
+	 */
+	bool m_dbvt_culling;
+	
+	/**
+	 * Occlusion culling resolution
+	 */ 
+	int m_dbvt_occlusion_res;
+
+	/**
 	 * The framing settings used by this scene
 	 */
 
@@ -269,22 +259,17 @@ protected:
 	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam,int layer=0);
 	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam,int layer=0);
 	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam, int layer=0);
+	static void PhysicsCullingCallback(KX_ClientObjectInfo* objectInfo, void* cullingInfo);
 
 	double				m_suspendedtime;
 	double				m_suspendeddelta;
-	
-	/**
-	 * This stores anything from python
-	 */
-	PyObject* m_attrlist;
 
 	struct Scene* m_blenderScene;
 
-public:
+public:	
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
 		class NG_NetworkDeviceInterface* ndi,
-		class SND_IAudioDevice* adi,
 		const STR_String& scenename,
 		struct Scene* scene);
 
@@ -299,6 +284,8 @@ public:
 	/**
 	 * Update all transforms according to the scenegraph.
 	 */
+	static bool KX_ScenegraphUpdateFunc(SG_IObject* node,void* gameobj,void* scene);
+	static bool KX_ScenegraphRescheduleFunc(SG_IObject* node,void* gameobj,void* scene);
 	void UpdateParents(double curtime);
 	void DupliGroupRecurse(CValue* gameobj, int level);
 	bool IsObjectInGroup(CValue* gameobj)
@@ -316,11 +303,9 @@ public:
 	void RemoveObject(CValue* gameobj);
 	void DelayedRemoveObject(CValue* gameobj);
 	
-	void DelayedReleaseObject(CValue* gameobj);
-
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
-					 void* meshobj);
+					 void* meshob, bool use_gfx, bool use_phys);
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
@@ -403,25 +388,6 @@ public:
 		class KX_Camera*
 	);
 
-	/** Return the viewmatrix as used by the last frame. */
-		MT_CmMatrix4x4&			
-	GetViewMatrix(
-	);
-
-	/** 
-	 * Return the projectionmatrix as used by the last frame. This is
-	 * set by hand :) 
-	 */
-		MT_CmMatrix4x4&			
-	GetProjectionMatrix(
-	);
-
-	/** Sets the projection matrix. */
-		void					
-	SetProjectionMatrix(
-		MT_CmMatrix4x4& pmat
-	);
-
 	/**
 	 * Activates new desired canvas width set at design time.
 	 * @param width	The new desired width.
@@ -500,7 +466,6 @@ public:
 	void CalculateVisibleMeshes(RAS_IRasterizer* rasty, KX_Camera *cam, int layer=0);
 	void UpdateMeshTransformations();
 	KX_Camera* GetpCamera();
-	SND_Scene* GetSoundScene();
 	NG_NetworkDeviceInterface* GetNetworkDeviceInterface();
 	NG_NetworkScene* GetNetworkScene();
 
@@ -530,6 +495,11 @@ public:
 	bool IsSuspended();
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
+	// use of DBVT tree for camera culling
+	void SetDbvtCulling(bool b) { m_dbvt_culling = b; };
+	bool GetDbvtCulling() { return m_dbvt_culling; };
+	void SetDbvtOcclusionRes(int i) { m_dbvt_occlusion_res = i; };
+	int GetDbvtOcclusionRes() { return m_dbvt_occlusion_res; };
 	
 	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
 
@@ -547,26 +517,27 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
-	KX_PYMETHOD_DOC(KX_Scene, getLightList);
-	KX_PYMETHOD_DOC(KX_Scene, getObjectList);
-	KX_PYMETHOD_DOC(KX_Scene, getName);
-/*	
-	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
-	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
-	KX_PYMETHOD_DOC(KX_Scene, findCamera);
-	
-	KX_PYMETHOD_DOC(KX_Scene, getGravity);
-	
-	KX_PYMETHOD_DOC(KX_Scene, setActivityCulling);
-	KX_PYMETHOD_DOC(KX_Scene, setActivityCullingRadius);
-	
-	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
-	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
-	*/
+	/* --------------------------------------------------------------------- */
+	/* Python interface ---------------------------------------------------- */
+	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
-	virtual int _setattr(const STR_String &attr, PyObject *pyvalue);
-	virtual int _delattr(const STR_String &attr);
+	KX_PYMETHOD_DOC(KX_Scene, addObject);
+	KX_PYMETHOD_DOC(KX_Scene, get);
+
+	/* attributes */
+	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_objects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_objects_inactive(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_lights(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_cameras(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
+	virtual PyObject* py_repr(void) { return PyUnicode_FromString(GetName().ReadPtr()); }
+	
+	/* getitem/setitem */
+	static PyMappingMethods	Mapping;
+	static PySequenceMethods	Sequence;
 
 	/**
 	 * Sets the time the scene was suspended

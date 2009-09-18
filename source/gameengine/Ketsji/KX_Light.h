@@ -47,24 +47,30 @@ protected:
 	class RAS_IRenderTools*	m_rendertools;	//needed for registering and replication of lightobj
 	bool				m_glsl;
 	Scene*				m_blenderscene;
-	static char			doc[];
 
 public:
-	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, bool glsl, PyTypeObject *T = &Type);
+	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, bool glsl);
 	virtual ~KX_LightObject();
 	virtual CValue*		GetReplica();
 	RAS_LightObject*	GetLightData() { return &m_lightobj;}
 
-	/* GLSL shadow */
+	/* OpenGL Light */
+	bool ApplyLight(KX_Scene *kxscene, int oblayer, int slot);
+
+	/* GLSL Light */
 	struct GPULamp *GetGPULamp();
 	bool HasShadowBuffer();
 	int GetShadowLayer();
 	void BindShadowBuffer(class RAS_IRasterizer *ras, class KX_Camera *cam, class MT_Transform& camtrans);
 	void UnbindShadowBuffer(class RAS_IRasterizer *ras);
 	void Update();
-	
-	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
-	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+
+	/* attributes */
+	static PyObject*	pyattr_get_color(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_color(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value);
+	static PyObject*	pyattr_get_typeconst(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value);
 
 	virtual bool IsLight(void) { return true; }
 };

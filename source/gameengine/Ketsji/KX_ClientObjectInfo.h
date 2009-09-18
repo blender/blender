@@ -29,7 +29,7 @@
 #ifndef __KX_CLIENTOBJECT_INFO_H
 #define __KX_CLIENTOBJECT_INFO_H
 
-#include <SM_Object.h>
+/* Note, the way this works with/without sumo is a bit odd */
 
 #include <list>
 
@@ -38,28 +38,27 @@ class KX_GameObject;
 /**
  * Client Type and Additional Info. This structure can be use instead of a bare void* pointer, for safeness, and additional info for callbacks
  */
-struct KX_ClientObjectInfo : public SM_ClientObject
+struct KX_ClientObjectInfo
 {
 	enum clienttype {
 		STATIC,
 		ACTOR,
 		RESERVED1,
-		RADAR,
-		NEAR
+		SENSOR,
+		OBSENSOR,
+		OBACTORSENSOR
 	}		m_type;
 	KX_GameObject*	m_gameobject;
 	void*		m_auxilary_info;
 	std::list<SCA_ISensor*>	m_sensors;
 public:
 	KX_ClientObjectInfo(KX_GameObject *gameobject, clienttype type = STATIC, void *auxilary_info = NULL) :
-		SM_ClientObject(),
 		m_type(type),
 		m_gameobject(gameobject),
 		m_auxilary_info(auxilary_info)
 	{}
 	
-	KX_ClientObjectInfo(const KX_ClientObjectInfo &copy)
-		: SM_ClientObject(copy),
+	KX_ClientObjectInfo(const KX_ClientObjectInfo &copy) :
 		  m_type(copy.m_type),
 		  m_gameobject(copy.m_gameobject),
 		  m_auxilary_info(copy.m_auxilary_info)
@@ -74,6 +73,14 @@ public:
 	}
 	
 	bool isActor() { return m_type <= ACTOR; }
+	bool isSensor() { return m_type >= SENSOR && m_type <= OBACTORSENSOR; }
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_ClientObjectInfo"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_CLIENTOBJECT_INFO_H

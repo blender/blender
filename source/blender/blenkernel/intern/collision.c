@@ -45,7 +45,6 @@
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
-#include "mydevice.h"
 
 #include "Bullet-C-Api.h"
 
@@ -314,7 +313,7 @@ gsl_poly_solve_quadratic (double a, double b, double c,
 * See Bridson et al. "Robust Treatment of Collision, Contact and Friction for Cloth Animation"
 *     page 4, left column
 */
-int cloth_get_collision_time ( double a[3], double b[3], double c[3], double d[3], double e[3], double f[3], double solution[3] )
+static int cloth_get_collision_time ( double a[3], double b[3], double c[3], double d[3], double e[3], double f[3], double solution[3] )
 {
 	int num_sols = 0;
 
@@ -428,7 +427,7 @@ int cloth_get_collision_time ( double a[3], double b[3], double c[3], double d[3
 
 
 // w3 is not perfect
-void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 )
+static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 )
 {
 	double	tempV1[3], tempV2[3], tempV4[3];
 	double	a,b,c,d,e,f;
@@ -592,7 +591,9 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 	ClothModifierData *clmd = ( ClothModifierData * ) md1;
 	CollisionModifierData *collmd = ( CollisionModifierData * ) md2;
 	MFace *face1=NULL, *face2 = NULL;
+#ifdef USE_BULLET
 	ClothVertex *verts1 = clmd->clothObject->verts;
+#endif
 	double distance = 0;
 	float epsilon1 = clmd->coll_parms->epsilon;
 	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
@@ -668,7 +669,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 				break;
 		}
 
-#ifdef WITH_BULLET
+#ifdef USE_BULLET
 		// calc distance + normal
 		distance = plNearestPoints (
 			verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector );
@@ -725,7 +726,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 	return collpair;
 }
 
-int cloth_collision_response_moving( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
+static int cloth_collision_response_moving( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
 {
 	int result = 0;
 	Cloth *cloth1;
@@ -890,7 +891,7 @@ static void findClosestPointsEE(float *x1, float *x2, float *x3, float *x4, floa
 }
 
 // calculates the distance of 2 edges
-float edgedge_distance(float np11[3], float np12[3], float np21[3], float np22[3], float *out_a1, float *out_a2, float *out_normal)
+static float edgedge_distance(float np11[3], float np12[3], float np21[3], float np22[3], float *out_a1, float *out_a2, float *out_normal)
 {
 	float line1[3], line2[3], cross[3];
 	float length;
@@ -1064,7 +1065,7 @@ float edgedge_distance(float np11[3], float np12[3], float np21[3], float np22[3
 	return 0;
 }
 
-int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
+static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
 {
 	EdgeCollPair edgecollpair;
 	Cloth *cloth1=NULL;
@@ -1236,7 +1237,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 						if(out_normalVelocity < 0.0)
 						{
 							out_normalVelocity*= -1.0;
-							VecMulf(out_normal, -1.0);
+							VecNegf(out_normal);
 						}
 */
 						/* Inelastic repulsion impulse. */
@@ -1274,7 +1275,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 	return result;
 }
 
-int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
+static int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
 {
 	Cloth *cloth1;
 	cloth1 = clmd->clothObject;
@@ -1295,7 +1296,7 @@ int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *col
 
 // return all collision objects in scene
 // collision object will exclude self 
-CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
+CollisionModifierData **get_collisionobjects(Scene *scene, Object *self, int *numcollobj)
 {
 	Base *base=NULL;
 	CollisionModifierData **objs = NULL;
@@ -1305,7 +1306,7 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 	
 	objs = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
 	// check all collision objects
-	for ( base = G.scene->base.first; base; base = base->next )
+	for ( base = scene->base.first; base; base = base->next )
 	{
 		/*Only proceed for mesh object in same layer */
 		if(!(base->object->type==OB_MESH && (base->lay & self->lay))) 
@@ -1391,7 +1392,7 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 	return objs;
 }
 
-void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, CollisionModifierData *collmd, CollPair **collisions, CollPair **collisions_index, int numresult, BVHTreeOverlap *overlap)
+static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, CollisionModifierData *collmd, CollPair **collisions, CollPair **collisions_index, int numresult, BVHTreeOverlap *overlap)
 {
 	int i;
 	
@@ -1404,7 +1405,7 @@ void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, CollisionModi
 	}
 }
 
-int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, CollisionModifierData *collmd, CollPair *collisions, CollPair *collisions_index)
+static int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, CollisionModifierData *collmd, CollPair *collisions, CollPair *collisions_index)
 {
 	Cloth *cloth = clmd->clothObject;
 	int i=0, j = 0, numfaces = 0, numverts = 0;
@@ -1450,7 +1451,7 @@ int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, CollisionModifie
 }
 
 // cloth - object collisions
-int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, float dt )
+int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, float dt )
 {
 	Cloth *cloth=NULL;
 	BVHTree *cloth_bvh=NULL;
@@ -1480,7 +1481,7 @@ int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, f
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
-	collobjs = get_collisionobjects(ob, &numcollobj);
+	collobjs = get_collisionobjects(clmd->scene, ob, &numcollobj);
 	
 	if(!collobjs)
 		return 0;

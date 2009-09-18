@@ -41,7 +41,7 @@ class KX_NetworkMessageActuator : public SCA_IActuator
 	class NG_NetworkScene* m_networkscene;	// needed for replication
 	STR_String m_toPropName;
 	STR_String m_subject;
-	int m_bodyType;
+	bool m_bPropBody;
 	STR_String m_body;
 public:
 	KX_NetworkMessageActuator(
@@ -50,8 +50,7 @@ public:
 		const STR_String &toPropName,
 		const STR_String &subject,
 		int bodyType,
-		const STR_String &body,
-		PyTypeObject* T=&Type);
+		const STR_String &body);
 	virtual ~KX_NetworkMessageActuator();
 
 	virtual bool Update();
@@ -60,13 +59,6 @@ public:
 	/* ------------------------------------------------------------ */
 	/* Python interface ------------------------------------------- */
 	/* ------------------------------------------------------------ */
-
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	KX_PYMETHOD(KX_NetworkMessageActuator, SetToPropName);
-	KX_PYMETHOD(KX_NetworkMessageActuator, SetSubject);
-	KX_PYMETHOD(KX_NetworkMessageActuator, SetBodyType);
-	KX_PYMETHOD(KX_NetworkMessageActuator, SetBody);
 
 };
 

@@ -38,9 +38,11 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
@@ -62,6 +64,8 @@
 #include "GPU_material.h"
 #include "GPU_draw.h"
 
+#include "smoke_API.h"
+
 /* These are some obscure rendering functions shared between the
  * game engine and the blender, in this module to avoid duplicaten
  * and abstract them away from the rest a bit */
@@ -79,29 +83,55 @@ void GPU_render_text(MTFace *tface, int mode,
 	const char *textstr, int textlen, unsigned int *col,
 	float *v1, float *v2, float *v3, float *v4, int glattrib)
 {
-	if (mode & TF_BMFONT) {
-		Image* ima;
-		int characters, index, character;
+	if ((mode & TF_BMFONT) && (textlen>0) && tface->tpage) {
+		Image* ima = (Image*)tface->tpage;
+		int index, character;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
+		float advance_tab;
+		
+		/* multiline */
+		float line_start= 0.0f, line_height;
+		
+		if (v4)
+			line_height= MAX4(v1[1], v2[1], v3[1], v4[2]) - MIN4(v1[1], v2[1], v3[1], v4[2]);
+		else
+			line_height= MAX3(v1[1], v2[1], v3[1]) - MIN3(v1[1], v2[1], v3[1]);
+		line_height *= 1.2; /* could be an option? */
+		/* end multiline */
 
-		characters = textlen;
-
-		ima = (Image*)tface->tpage;
-		if (ima == NULL)
-			characters = 0;
-
-		// color has been set
+		
+		/* color has been set */
 		if (tface->mode & TF_OBCOL)
 			col= NULL;
 		else if (!col)
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 		glPushMatrix();
-		for (index = 0; index < characters; index++) {
+		
+		/* get the tab width */
+		matrixGlyph((ImBuf *)ima->ibufs.first, ' ', & centerx, &centery,
+			&sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
+		
+		advance_tab= advance * 4; /* tab width could also be an option */
+		
+		
+		for (index = 0; index < textlen; index++) {
 			float uv[4][2];
 
 			// lets calculate offset stuff
 			character = textstr[index];
+			
+			if (character=='\n') {
+				glTranslatef(line_start, -line_height, 0.0);
+				line_start = 0.0f;
+				continue;
+			}
+			else if (character=='\t') {
+				glTranslatef(advance_tab, 0.0, 0.0);
+				line_start -= advance_tab; /* so we can go back to the start of the line */
+				continue;
+				
+			}
 			
 			// space starts at offset 1
 			// character = character - ' ' + 1;
@@ -143,6 +173,7 @@ void GPU_render_text(MTFace *tface, int mode,
 			glEnd();
 
 			glTranslatef(advance, 0.0, 0.0);
+			line_start -= advance; /* so we can go back to the start of the line */
 		}
 		glPopMatrix();
 	}
@@ -167,6 +198,11 @@ static int smaller_pow2(int num)
 static int is_pow2_limit(int num)
 {
 	/* take texture clamping into account */
+
+	/* XXX: texturepaint not global!
+	   if (G.f & G_TEXTUREPAINT)
+	   return 1;*/
+
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return 0;
 
@@ -175,6 +211,10 @@ static int is_pow2_limit(int num)
 
 static int smaller_pow2_limit(int num)
 {
+	/* XXX: texturepaint not global!
+	   if (G.f & G_TEXTUREPAINT)
+	   return 1;*/
+	
 	/* take texture clamping into account */
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return U.glreslimit;
@@ -217,7 +257,7 @@ void GPU_set_linear_mipmap(int linear)
 
 static int gpu_get_mipmap(void)
 {
-	return GTS.domipmap && (!(G.f & G_TEXTUREPAINT));
+	return GTS.domipmap;
 }
 
 static GLenum gpu_get_mipmap_filter(int mag)
@@ -350,7 +390,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
+int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare, int mipmap)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -361,7 +401,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 
 	/* initialize tile mode and number of repeats */
 	GTS.ima = ima;
-	GTS.tilemode= (tfmode & TF_TILES) || (ima && (ima->tpageflag & IMA_TWINANIM));
+	GTS.tilemode= (ima && (ima->tpageflag & (IMA_TILES|IMA_TWINANIM)));
 	GTS.tileXRep = 0;
 	GTS.tileYRep = 0;
 
@@ -391,7 +431,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 
-		if((tfmode & TF_TILES) && ima!=NULL)
+		if(ima && (ima->tpageflag & IMA_TILES))
 			glScalef(ima->xrep, ima->yrep, 1.0);
 
 		glMatrixMode(GL_MODELVIEW);
@@ -475,7 +515,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 	}
 
 	/* scale if not a power of two */
-	if (!is_pow2_limit(rectw) || !is_pow2_limit(recth)) {
+	if (!mipmap && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
 		rectw= smaller_pow2_limit(rectw);
 		recth= smaller_pow2_limit(recth);
 		
@@ -488,7 +528,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 	glGenTextures(1, (GLuint *)bind);
 	glBindTexture( GL_TEXTURE_2D, *bind);
 
-	if (!gpu_get_mipmap()) {
+	if (!(gpu_get_mipmap() && mipmap)) {
 		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
@@ -527,7 +567,7 @@ static void gpu_verify_repeat(Image *ima)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-int GPU_set_tpage(MTFace *tface)
+int GPU_set_tpage(MTFace *tface, int mipmap)
 {
 	Image *ima;
 	
@@ -543,7 +583,7 @@ int GPU_set_tpage(MTFace *tface)
 	gpu_verify_alpha_mode(tface);
 	gpu_verify_reflection(ima);
 
-	if(GPU_verify_image(ima, tface->tile, tface->mode, 1)) {
+	if(GPU_verify_image(ima, tface->tile, tface->mode, 1, mipmap)) {
 		GTS.curtile= GTS.tile;
 		GTS.curima= GTS.ima;
 		GTS.curtilemode= GTS.tilemode;
@@ -608,13 +648,13 @@ void GPU_paint_set_mipmap(int mipmap)
 	}
 }
 
-void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
+void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 {
 	ImBuf *ibuf;
 	
 	ibuf = BKE_image_get_ibuf(ima, NULL);
 	
-	if (ima->repbind || gpu_get_mipmap() || !ima->bindcode || !ibuf ||
+	if (ima->repbind || (gpu_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
 		(!is_pow2(ibuf->x) || !is_pow2(ibuf->y)) ||
 		(w == 0) || (h == 0)) {
 		/* these cases require full reload still */
@@ -708,6 +748,31 @@ int GPU_update_image_time(Image *ima, double time)
 	return inc;
 }
 
+
+void GPU_free_smoke(SmokeModifierData *smd)
+{
+	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain)
+	{
+		if(smd->domain->tex)
+	 		GPU_texture_free(smd->domain->tex);
+		smd->domain->tex = NULL;
+
+		if(smd->domain->tex_shadow)
+	 		GPU_texture_free(smd->domain->tex_shadow);
+		smd->domain->tex_shadow = NULL;
+	}
+}
+
+void GPU_create_smoke(SmokeModifierData *smd, int highres)
+{
+	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && !smd->domain->tex && !highres)
+		smd->domain->tex = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smoke_get_density(smd->domain->fluid));
+	else if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && !smd->domain->tex && highres)
+		smd->domain->tex = GPU_texture_create_3D(smd->domain->res_wt[0], smd->domain->res_wt[1], smd->domain->res_wt[2], smoke_turbulence_get_density(smd->domain->wt));
+
+	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
+}
+
 void GPU_free_image(Image *ima)
 {
 	/* free regular image binding */
@@ -744,26 +809,31 @@ void GPU_free_images(void)
 
 /* OpenGL Materials */
 
-/* materials start counting at # one.... */
-#define MAXMATBUF (MAXMAT+1)
+#define FIXEDMAT	8
 
 /* OpenGL state caching for materials */
 
 static struct GPUMaterialState {
-	float matbuf[MAXMATBUF][2][4];
+	float (*matbuf)[2][4];
+	float matbuf_fixed[FIXEDMAT][2][4];
 	int totmat;
 
-	Material *gmatbuf[MAXMATBUF];
+	Material **gmatbuf;
+	Material *gmatbuf_fixed[FIXEDMAT];
 	Material *gboundmat;
 	Object *gob;
 	Scene *gscene;
+	int glay;
+	float (*gviewmat)[4];
+	float (*gviewinv)[4];
 
-	GPUBlendMode blendmode[MAXMATBUF];
+	GPUBlendMode *blendmode;
+	GPUBlendMode blendmode_fixed[FIXEDMAT];
 	int alphapass;
 
 	int lastmatnr, lastretval;
 	GPUBlendMode lastblendmode;
-} GMS;
+} GMS = {NULL};
 
 Material *gpu_active_node_material(Material *ma)
 {
@@ -779,7 +849,7 @@ Material *gpu_active_node_material(Material *ma)
 	return ma;
 }
 
-void GPU_set_object_materials(Scene *scene, Object *ob, int glsl, int *do_alpha_pass)
+void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob, int glsl, int *do_alpha_pass)
 {
 	extern Material defmaterial; /* from material.c */
 	Material *ma;
@@ -795,22 +865,36 @@ void GPU_set_object_materials(Scene *scene, Object *ob, int glsl, int *do_alpha_
 
 	GMS.gob = ob;
 	GMS.gscene = scene;
-	GMS.totmat= ob->totcol;
+	GMS.totmat= ob->totcol+1; /* materials start from 1, default material is 0 */
+	GMS.glay= v3d->lay;
+	GMS.gviewmat= rv3d->viewmat;
+	GMS.gviewinv= rv3d->viewinv;
 
-	GMS.alphapass = (G.vd && G.vd->transp);
+	GMS.alphapass = (v3d && v3d->transp);
 	if(do_alpha_pass)
 		*do_alpha_pass = 0;
+	
+	if(GMS.totmat > FIXEDMAT) {
+		GMS.matbuf= MEM_callocN(sizeof(*GMS.matbuf)*GMS.totmat, "GMS.matbuf");
+		GMS.gmatbuf= MEM_callocN(sizeof(*GMS.gmatbuf)*GMS.totmat, "GMS.matbuf");
+		GMS.blendmode= MEM_callocN(sizeof(*GMS.blendmode)*GMS.totmat, "GMS.matbuf");
+	}
+	else {
+		GMS.matbuf= GMS.matbuf_fixed;
+		GMS.gmatbuf= GMS.gmatbuf_fixed;
+		GMS.blendmode= GMS.blendmode_fixed;
+	}
 
 	/* no materials assigned? */
 	if(ob->totcol==0) {
-		GMS.matbuf[0][0][0]= defmaterial.r;
-		GMS.matbuf[0][0][1]= defmaterial.g;
-		GMS.matbuf[0][0][2]= defmaterial.b;
+		GMS.matbuf[0][0][0]= (defmaterial.ref+defmaterial.emit)*defmaterial.r;
+		GMS.matbuf[0][0][1]= (defmaterial.ref+defmaterial.emit)*defmaterial.g;
+		GMS.matbuf[0][0][2]= (defmaterial.ref+defmaterial.emit)*defmaterial.b;
 		GMS.matbuf[0][0][3]= 1.0;
 
-		GMS.matbuf[0][1][0]= defmaterial.specr;
-		GMS.matbuf[0][1][1]= defmaterial.specg;
-		GMS.matbuf[0][1][2]= defmaterial.specb;
+		GMS.matbuf[0][1][0]= defmaterial.spec*defmaterial.specr;
+		GMS.matbuf[0][1][1]= defmaterial.spec*defmaterial.specg;
+		GMS.matbuf[0][1][2]= defmaterial.spec*defmaterial.specb;
 		GMS.matbuf[0][1][3]= 1.0;
 		
 		/* do material 1 too, for displists! */
@@ -831,10 +915,6 @@ void GPU_set_object_materials(Scene *scene, Object *ob, int glsl, int *do_alpha_
 		ma= give_current_material(ob, a);
 		if(!glsl) ma= gpu_active_node_material(ma);
 		if(ma==NULL) ma= &defmaterial;
-
-		/* this shouldn't happen .. */
-		if(a>=MAXMATBUF)
-			continue;
 
 		/* create glsl material if requested */
 		gpumat = (glsl)? GPU_material_from_blender(GMS.gscene, ma): NULL;
@@ -883,19 +963,42 @@ void GPU_set_object_materials(Scene *scene, Object *ob, int glsl, int *do_alpha_
 
 int GPU_enable_material(int nr, void *attribs)
 {
+	extern Material defmaterial; /* from material.c */
 	GPUVertexAttribs *gattribs = attribs;
 	GPUMaterial *gpumat;
 	GPUBlendMode blendmode;
 
+	/* no GPU_begin_object_materials, use default material */
+	if(!GMS.matbuf) {
+		float diff[4], spec[4];
+
+		memset(&GMS, 0, sizeof(GMS));
+
+		diff[0]= (defmaterial.ref+defmaterial.emit)*defmaterial.r;
+		diff[1]= (defmaterial.ref+defmaterial.emit)*defmaterial.g;
+		diff[2]= (defmaterial.ref+defmaterial.emit)*defmaterial.b;
+		diff[3]= 1.0;
+
+		spec[0]= defmaterial.spec*defmaterial.specr;
+		spec[1]= defmaterial.spec*defmaterial.specg;
+		spec[2]= defmaterial.spec*defmaterial.specb;
+		spec[3]= 1.0;
+
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
+
+		return 0;
+	}
+
 	/* prevent index to use un-initialized array items */
-	if(nr>GMS.totmat)
-		nr= GMS.totmat;
+	if(nr>=GMS.totmat)
+		nr= 0;
 
 	if(gattribs)
 		memset(gattribs, 0, sizeof(*gattribs));
 
 	/* keep current material */
-	if(nr>=MAXMATBUF || nr==GMS.lastmatnr)
+	if(nr==GMS.lastmatnr)
 		return GMS.lastretval;
 
 	/* unbind glsl material */
@@ -918,8 +1021,8 @@ int GPU_enable_material(int nr, void *attribs)
 
 			gpumat = GPU_material_from_blender(GMS.gscene, mat);
 			GPU_material_vertex_attributes(gpumat, gattribs);
-			GPU_material_bind(gpumat, GMS.gob->lay, G.vd->lay, 1.0);
-			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, G.vd->viewmat, G.vd->viewinv, GMS.gob->col);
+			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT));
+			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gviewinv, GMS.gob->col);
 			GMS.gboundmat= mat;
 
 			if(GMS.alphapass) glDepthMask(1);
@@ -966,6 +1069,21 @@ void GPU_disable_material(void)
 	GPU_set_material_blend_mode(GPU_BLEND_SOLID);
 }
 
+void GPU_end_object_materials(void)
+{
+	GPU_disable_material();
+
+	if(GMS.matbuf && GMS.matbuf != GMS.matbuf_fixed) {
+		MEM_freeN(GMS.matbuf);
+		MEM_freeN(GMS.gmatbuf);
+		MEM_freeN(GMS.blendmode);
+	}
+
+	GMS.matbuf= NULL;
+	GMS.gmatbuf= NULL;
+	GMS.blendmode= NULL;
+}
+
 /* Lights */
 
 int GPU_default_lights(void)
@@ -992,6 +1110,8 @@ int GPU_default_lights(void)
 		U.light[2].spec[0]= 0.5; U.light[2].spec[1]= 0.4; U.light[2].spec[2]= 0.3;
 		U.light[2].spec[3]= 1.0;
 	}
+
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, U.light[0].vec); 
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, U.light[0].col); 
@@ -1030,7 +1150,7 @@ int GPU_default_lights(void)
 	return count;
 }
 
-int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4])
+int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4], int ortho)
 {
 	Base *base;
 	Lamp *la;
@@ -1041,6 +1161,10 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 	for(count=0; count<8; count++)
 		glDisable(GL_LIGHT0+count);
 	
+	/* view direction for specular is not compute correct by default in
+	 * opengl, so we set the settings ourselfs */
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (ortho)? GL_FALSE: GL_TRUE);
+
 	count= 0;
 	
 	for(base=scene->base.first; base; base=base->next) {
@@ -1056,7 +1180,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		glPushMatrix();
 		glLoadMatrixf((float *)viewmat);
 		
-		where_is_object_simul(base->object);
+		where_is_object_simul(scene, base->object);
 		
 		if(la->type==LA_SUN) {
 			/* sun lamp */
@@ -1126,9 +1250,6 @@ void GPU_state_init(void)
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
 	GPU_default_lights();
-	
-	/* no local viewer, looks ugly in ortho mode */
-	/* glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, &one); */
 	
 	glDepthFunc(GL_LEQUAL);
 	/* scaling matrices */

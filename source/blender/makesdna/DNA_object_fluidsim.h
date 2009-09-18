@@ -1,6 +1,6 @@
 /**
  *
- * $Id:  
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -41,6 +41,7 @@ struct Ipo;
 struct MVert;
 	
 typedef struct FluidsimSettings {
+	struct FluidsimModifierData *fmd; /* for fast RNA access */
 	/* domain,fluid or obstacle */
 	short type;
 	/* display advanced options in fluid sim tab (on=1,off=0)*/
@@ -135,12 +136,12 @@ typedef struct FluidsimSettings {
 /* ob->fluidsimSettings defines */
 #define OB_FLUIDSIM_ENABLE			1
 #define OB_FLUIDSIM_DOMAIN			2
-#define OB_FLUIDSIM_FLUID				4
+#define OB_FLUIDSIM_FLUID			4
 #define OB_FLUIDSIM_OBSTACLE		8
-#define OB_FLUIDSIM_INFLOW      16
-#define OB_FLUIDSIM_OUTFLOW     32
-#define OB_FLUIDSIM_PARTICLE    64
-#define OB_FLUIDSIM_CONTROL 	128
+#define OB_FLUIDSIM_INFLOW			16
+#define OB_FLUIDSIM_OUTFLOW			32
+#define OB_FLUIDSIM_PARTICLE		64
+#define OB_FLUIDSIM_CONTROL			128
 
 #define OB_TYPEFLAG_START       7
 #define OB_FSGEO_THIN           (1<<(OB_TYPEFLAG_START+1))
@@ -157,6 +158,7 @@ typedef struct FluidsimSettings {
 #define OB_FSPART_DROP    (1<<2)
 #define OB_FSPART_NEWPART (1<<3)
 #define OB_FSPART_FLOAT   (1<<4)
+#define OB_FSPART_TRACER  (1<<5)
 
 // new fluid bit flags for fss->flags - dg
 #define OB_FLUIDSIM_REVERSE (1 << 0)

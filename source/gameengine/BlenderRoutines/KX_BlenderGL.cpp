@@ -28,6 +28,14 @@
 
 #include "KX_BlenderGL.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "BLF_api.h"
+#ifdef __cplusplus
+}
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -42,9 +50,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BMF_Api.h"
-
-#include "BIF_gl.h"
+#include "GL/glew.h"
 
 #include "BL_Material.h" // MAXTEX
 
@@ -59,17 +65,18 @@
 #include "DNA_image_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_material_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_global.h"
 #include "BKE_bmfont.h"
 #include "BKE_image.h"
 
 extern "C" {
-#include "BDR_drawmesh.h"
-#include "BIF_mywindow.h"
-#include "BIF_toolbox.h"
-#include "BIF_graphics.h" /* For CURSOR_NONE CURSOR_WAIT CURSOR_STD */
-
+//XXX #include "BDR_drawmesh.h"
+//XXX #include "BIF_mywindow.h"
+//XXX #include "BIF_toolbox.h"
+//XXX #include "BIF_graphics.h" /* For CURSOR_NONE CURSOR_WAIT CURSOR_STD */
+void wm_window_swap_buffers(wmWindow *win); // wm_window.h
 }
 
 /* end of blender block */
@@ -84,16 +91,20 @@ void spack(unsigned int ucol)
 
 void BL_warp_pointer(int x,int y)
 {
-	warp_pointer(x,y);
+	//XXX warp_pointer(x,y);
 }
 
-void BL_SwapBuffers()
+void BL_SwapBuffers(wmWindow *win)
 {
-	myswapbuffers();
+	//wmWindow *window= CTX_wm_window(C);
+	wm_window_swap_buffers(win);
+	//XXX myswapbuffers();
 }
 
 void DisableForText()
 {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); /* needed for texture fonts otherwise they render as wireframe */
+
 	if(glIsEnabled(GL_BLEND)) glDisable(GL_BLEND);
 	if(glIsEnabled(GL_ALPHA_TEST)) glDisable(GL_ALPHA_TEST);
 
@@ -126,33 +137,25 @@ void DisableForText()
 	}
 }
 
-void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height)
+void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height)
 {	
 	/* gl prepping */
 	DisableForText();
-	//glDisable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	
-	glOrtho(0, width,
-			0, height, 0, 1);
-	
+
+	glOrtho(0, width, 0, height, -100, 100);
+
 	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glLoadIdentity();
 
 	/* the actual drawing */
 	glColor3ub(255, 255, 255);
-	glRasterPos2s(xco, height-yco);
-	BMF_DrawString(G.fonts, text);
+	BLF_draw_default(xco, height-yco, 0.0f, (char *)text);
 
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
@@ -160,38 +163,29 @@ void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height
 	glEnable(GL_DEPTH_TEST);
 }
 
-void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int height)
+void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int width, int height)
 {
 	/* This is a rather important line :( The gl-mode hasn't been left
 	 * behind quite as neatly as we'd have wanted to. I don't know
 	 * what cause it, though :/ .*/
 	DisableForText();
-	//glDisable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
 	
-	glOrtho(0, width,
-			0, height, 0, 1);
+	glOrtho(0, width, 0, height, -100, 100);
 	
 	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glLoadIdentity();
 
 	/* draw in black first*/
 	glColor3ub(0, 0, 0);
-	glRasterPos2s(xco+1, height-yco-1);
-	BMF_DrawString(G.fonts, text);
+	BLF_draw_default(xco+2, height-yco-2, 0.0f, (char *)text);
 	glColor3ub(255, 255, 255);
-	glRasterPos2s(xco, height-yco);
-	BMF_DrawString(G.fonts, text);
+	BLF_draw_default(xco, height-yco, 0.0f, (char *)text);
 
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
@@ -201,24 +195,24 @@ void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int
 
 void BL_HideMouse()
 {
-	set_cursor(CURSOR_NONE);
+	//XXX set_cursor(CURSOR_NONE);
 }
 
 
 void BL_WaitMouse()
 {
-	set_cursor(CURSOR_WAIT);
+	//XXX set_cursor(CURSOR_WAIT);
 }
 
 
 void BL_NormalMouse()
 {
-	set_cursor(CURSOR_STD);
+	//XXX set_cursor(CURSOR_STD);
 }
 #define MAX_FILE_LENGTH 512
 
 
-void BL_MakeScreenShot(struct ScrArea *area, const char* filename)
+void BL_MakeScreenShot(struct ARegion *ar, const char* filename)
 {
 	char copyfilename[MAX_FILE_LENGTH];
 	strcpy(copyfilename,filename);
@@ -226,9 +220,9 @@ void BL_MakeScreenShot(struct ScrArea *area, const char* filename)
 	// filename read - only
 	
 	  /* XXX will need to change at some point */
-	BIF_screendump(0);
+	//XXX BIF_screendump(0);
 
 	// write+read filename
-	write_screendump((char*) copyfilename);
+	//XXX write_screendump((char*) copyfilename);
 }
 

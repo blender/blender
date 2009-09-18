@@ -46,10 +46,10 @@
 /* ------------------------------------------------------------------------- */
 
 SCA_ExpressionController::SCA_ExpressionController(SCA_IObject* gameobj,
-												   const STR_String& exprtext,
-												   PyTypeObject* T)
-	:SCA_IController(gameobj,T),
-	m_exprText(exprtext)
+												   const STR_String& exprtext)
+	:SCA_IController(gameobj),
+	m_exprText(exprtext),
+	m_exprCache(NULL)
 {
 }
 
@@ -57,6 +57,8 @@ SCA_ExpressionController::SCA_ExpressionController(SCA_IObject* gameobj,
 
 SCA_ExpressionController::~SCA_ExpressionController()
 {
+	if (m_exprCache)
+		m_exprCache->Release();
 }
 
 
@@ -65,25 +67,40 @@ CValue* SCA_ExpressionController::GetReplica()
 {
 	SCA_ExpressionController* replica = new SCA_ExpressionController(*this);
 	replica->m_exprText = m_exprText;
+	replica->m_exprCache = NULL;
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
 
+
+// Forced deletion of precalculated expression to break reference loop
+// Use this function when you know that you won't use the sensor anymore
+void SCA_ExpressionController::Delete()
+{
+	if (m_exprCache)
+	{
+		m_exprCache->Release();
+		m_exprCache = NULL;
+	}
+	Release();
+}
 
 
 void SCA_ExpressionController::Trigger(SCA_LogicManager* logicmgr)
 {
 
 	bool expressionresult = false;
-
-	CParser parser;
-	parser.SetContext(this->AddRef());
-	CExpression* expr = parser.ProcessText(m_exprText);
-	if (expr)
+	if (!m_exprCache)
 	{
-		CValue* value = expr->Calculate();
+		CParser parser;
+		parser.SetContext(this->AddRef());
+		m_exprCache = parser.ProcessText(m_exprText);
+	}
+	if (m_exprCache)
+	{
+		CValue* value = m_exprCache->Calculate();
 		if (value)
 		{
 			if (value->IsError())
@@ -91,42 +108,20 @@ void SCA_ExpressionController::Trigger(SCA_LogicManager* logicmgr)
 				printf(value->GetText());
 			} else
 			{
-				float num = value->GetNumber();
+				float num = (float)value->GetNumber();
 				expressionresult = !MT_fuzzyZero(num);
 			}
 			value->Release();
 
 		}
-		expr->Release();
 	}
-
-	/*
-
-	for (vector<SCA_ISensor*>::const_iterator is=m_linkedsensors.begin();
-	!(is==m_linkedsensors.end());is++)
-	{
-		SCA_ISensor* sensor = *is;
-		if (!sensor->IsPositiveTrigger())
-		{
-			sensorresult = false;
-			break;
-		}
-	}
-	
-	  */
-	
-	CValue* newevent = new CBoolValue(expressionresult);
 
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{
 		SCA_IActuator* actua = *i;
-		logicmgr->AddActiveActuator(actua,newevent);
+		logicmgr->AddActiveActuator(actua,expressionresult);
 	}
-	//printf("expr %d.",expressionresult);
-	// every actuator that needs the event, has a it's own reference to it now so
-	// release it (so to be clear: if there is no actuator, it's deleted right now)
-	newevent->Release();
 }
 
 
@@ -142,7 +137,7 @@ CValue* SCA_ExpressionController::FindIdentifier(const STR_String& identifiernam
 		SCA_ISensor* sensor = *is;
 		if (sensor->GetName() == identifiername)
 		{
-			identifierval = new CBoolValue(sensor->IsPositiveTrigger());
+			identifierval = new CBoolValue(sensor->GetState());
 			//identifierval = sensor->AddRef();
 		}
 

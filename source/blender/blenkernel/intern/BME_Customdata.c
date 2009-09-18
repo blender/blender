@@ -3,7 +3,7 @@
  *
  *	Custom Data functions for Bmesh
  *
- * $Id: BKE_bmesh.h,v 1.00 2007/01/17 17:42:01 Briggs Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -17,17 +17,23 @@
 class btDynamicsWorld;
 #include "LinearMath/btAlignedObjectArray.h"
 #include "btWheelInfo.h"
+#include "BulletDynamics/Dynamics/btActionInterface.h"
 
 class btVehicleTuning;
 
 ///rayCast vehicle, very special constraint that turn a rigidbody into a vehicle.
-class btRaycastVehicle : public btTypedConstraint
+class btRaycastVehicle : public btActionInterface
 {
 
 		btAlignedObjectArray<btVector3>	m_forwardWS;
 		btAlignedObjectArray<btVector3>	m_axle;
 		btAlignedObjectArray<btScalar>	m_forwardImpulse;
 		btAlignedObjectArray<btScalar>	m_sideImpulse;
+
+		int	m_userConstraintType;
+
+		int	m_userConstraintId;
+
 
 public:
 	class btVehicleTuning
@@ -73,13 +79,24 @@ public:
 
 	virtual ~btRaycastVehicle() ;
 
-		
+
+	///btActionInterface interface
+	virtual void updateAction( btCollisionWorld* collisionWorld, btScalar step)
+	{
+		updateVehicle(step);
+	}
+	
+
+	///btActionInterface interface
+	void	debugDraw(btIDebugDraw* debugDrawer);
+			
 	const btTransform& getChassisWorldTransform() const;
 	
 	btScalar rayCast(btWheelInfo& wheel);
 
 	virtual void updateVehicle(btScalar step);
-
+	
+	
 	void resetSuspension();
 
 	btScalar	getSteeringValue(int wheel) const;
@@ -175,15 +192,24 @@ public:
 		m_indexForwardAxis = forwardIndex;
 	}
 
-	virtual void	buildJacobian()
+	int getUserConstraintType() const
 	{
-		//not yet
+		return m_userConstraintType ;
 	}
 
-	virtual	void	solveConstraint(btScalar	timeStep)
+	void	setUserConstraintType(int userConstraintType)
 	{
-		(void)timeStep;
-		//not yet
+		m_userConstraintType = userConstraintType;
+	};
+
+	void	setUserConstraintId(int uid)
+	{
+		m_userConstraintId = uid;
+	}
+
+	int getUserConstraintId() const
+	{
+		return m_userConstraintId;
 	}
 
 

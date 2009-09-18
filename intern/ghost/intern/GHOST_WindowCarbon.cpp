@@ -51,7 +51,6 @@ AGL_RGBA,
 AGL_DOUBLEBUFFER,	
 AGL_ACCELERATED,
 AGL_DEPTH_SIZE,		32,
-AGL_AUX_BUFFERS,     1,
 AGL_NONE,
 };
 
@@ -61,7 +60,6 @@ AGL_DOUBLEBUFFER,
 AGL_ACCELERATED,
 AGL_FULLSCREEN,
 AGL_DEPTH_SIZE,		32,
-AGL_AUX_BUFFERS,     1,
 AGL_NONE,
 };
 
@@ -185,7 +183,7 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
         updateDrawingContext();
         activateDrawingContext();        
 
-	m_tablet.Active = 0;
+	m_tablet.Active = GHOST_kTabletModeNone;
     }
 }
 
@@ -252,7 +250,9 @@ void GHOST_WindowCarbon::getClientBounds(GHOST_Rect& bounds) const
 {
 	Rect rect;
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getClientBounds(): window invalid")
-	::GetPortBounds(m_grafPtr, &rect);
+	//::GetPortBounds(m_grafPtr, &rect);
+	::GetWindowBounds(m_windowRef, kWindowContentRgn, &rect);
+
 	bounds.m_b = rect.bottom;
 	bounds.m_l = rect.left;
 	bounds.m_r = rect.right;
@@ -326,7 +326,7 @@ GHOST_TWindowState GHOST_WindowCarbon::getState() const
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getState(): window invalid")
 	GHOST_TWindowState state;
-	if (::IsWindowVisible(m_windowRef)) {
+	if (::IsWindowVisible(m_windowRef) == false) {
 		state = GHOST_kWindowStateMinimized;
 	}
 	else if (::IsWindowInStandardState(m_windowRef, nil, nil)) {
@@ -378,6 +378,12 @@ GHOST_TSuccess GHOST_WindowCarbon::setState(GHOST_TWindowState state)
 	case GHOST_kWindowStateMinimized:
             ::HideWindow(m_windowRef);
             break;
+	case GHOST_kWindowStateModified:
+		SetWindowModified(m_windowRef, 1);
+		break;
+	case GHOST_kWindowStateUnModified:
+		SetWindowModified(m_windowRef, 0);
+		break;
 	case GHOST_kWindowStateMaximized:
 	case GHOST_kWindowStateNormal:
         default:

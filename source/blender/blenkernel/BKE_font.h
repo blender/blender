@@ -38,9 +38,12 @@ extern "C" {
 #include <wchar.h>
 
 struct VFont;
+struct Scene;
 struct Object;
 struct Curve;
 struct objfnt;
+struct TmpFont;
+struct CharInfo;
 
 struct chartrans {
 	float xof, yof;
@@ -53,18 +56,31 @@ typedef struct SelBox {
 	float x, y, w, h;
 } SelBox;
 
-extern struct SelBox *selboxes;
+typedef struct EditFont {	
+	wchar_t *copybuf;
+	wchar_t *copybufinfo;
+	
+	wchar_t *textbuf;
+	struct CharInfo *textbufinfo;
+	wchar_t *oldstr;
+	struct CharInfo *oldstrinfo;
+	
+	float textcurs[4][2];
+	
+} EditFont;
+
 
 void BKE_font_register_builtin(void *mem, int size);
 
 void free_vfont(struct VFont *sc); 
+void free_ttfont(void);
+struct VFont *get_builtin_font(void);
 struct VFont *load_vfont(char *name);
+struct TmpFont *vfont_find_tmpfont(struct VFont *vfont);
 
-struct chartrans *text_to_curve(struct Object *ob, int mode);
-int style_to_sel(int style, int toggle);
-int mat_to_sel(void);
+struct chartrans *BKE_text_to_curve(struct Scene *scene, struct Object *ob, int mode);
 
-int getselection(int *start, int *end);
+int BKE_font_getselection(struct Object *ob, int *start, int *end);
 
 void chtoutf8(unsigned long c, char *o);
 void wcs2utf8s(char *dst, wchar_t *src);

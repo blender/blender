@@ -30,6 +30,8 @@
 #include "BL_DeformableGameObject.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_ShapeActionActuator.h"
+#include "RAS_MaterialBucket.h"
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -41,27 +43,19 @@ BL_DeformableGameObject::~BL_DeformableGameObject()
 		delete m_pDeformer;		//	__NLA : Temporary until we decide where to put this
 }
 
-void BL_DeformableGameObject::ProcessReplica(KX_GameObject* replica)
+void BL_DeformableGameObject::ProcessReplica()
 {
-	BL_MeshDeformer *deformer;
-	KX_GameObject::ProcessReplica(replica);
+	KX_GameObject::ProcessReplica();
 
-	if (m_pDeformer) {
-		deformer = (BL_MeshDeformer*)m_pDeformer->GetReplica(replica);
-		((BL_DeformableGameObject*)replica)->m_pDeformer = deformer;
-	}
-
+	if (m_pDeformer)
+		m_pDeformer= (BL_MeshDeformer*)m_pDeformer->GetReplica();
 }
 
 CValue*		BL_DeformableGameObject::GetReplica()
 {
 
 	BL_DeformableGameObject* replica = new BL_DeformableGameObject(*this);//m_float,GetName());
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 }
 
@@ -107,5 +101,16 @@ bool BL_DeformableGameObject::GetShape(vector<float> &shape)
 		}
 	}
 	return !shape.empty();
+}
+
+void BL_DeformableGameObject::SetDeformer(class RAS_Deformer* deformer)
+{
+	m_pDeformer = deformer;
+
+	SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
+	for(mit.begin(); !mit.end(); ++mit)
+	{
+		(*mit)->SetDeformer(deformer);
+	}
 }
 

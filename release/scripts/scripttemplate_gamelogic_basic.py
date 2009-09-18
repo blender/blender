@@ -1,7 +1,7 @@
 #!BPY
 """
 Name: 'GameLogic Template'
-Blender: 245
+Blender: 249
 Group: 'ScriptTemplate'
 Tooltip: 'Basic template for new game logic scripts'
 """
@@ -14,15 +14,15 @@ script_data = \
 def main():
 
 	cont = GameLogic.getCurrentController()
-	own = cont.getOwner()
+	own = cont.owner
 	
-	sens = cont.getSensor('mySensor')
-	actu = cont.getActuator('myActuator')
+	sens = cont.sensors['mySensor']
+	actu = cont.actuators['myActuator']
 	
-	if sens.isPositive():
-		GameLogic.addActiveActuator(actu, True)
+	if sens.positive:
+		cont.activate(actu)
 	else:
-		GameLogic.addActiveActuator(actu, False)
+		cont.deactivate(actu)
 
 main()
 '''

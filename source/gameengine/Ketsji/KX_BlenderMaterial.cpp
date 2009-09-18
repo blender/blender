@@ -42,36 +42,45 @@ BL_BlenderShader *KX_BlenderMaterial::mLastBlenderShader = NULL;
 
 //static PyObject *gTextureDict = 0;
 
-KX_BlenderMaterial::KX_BlenderMaterial(
+KX_BlenderMaterial::KX_BlenderMaterial()
+:	PyObjectPlus(),
+	RAS_IPolyMaterial(),
+	mMaterial(NULL),
+	mShader(0),
+	mBlenderShader(0),
+	mScene(NULL),
+	mUserDefBlend(0),
+	mModified(0),
+	mConstructed(false),
+	mPass(0)
+{
+}
+
+void KX_BlenderMaterial::Initialize(
     KX_Scene *scene,
 	BL_Material *data,
-	bool skin,
-	int lightlayer,
-	PyTypeObject *T
-	)
-:	PyObjectPlus(T),
-	RAS_IPolyMaterial(
-		STR_String( data->texname[0] ),
-		STR_String( data->matname ), // needed for physics!
+	bool skin)
+{
+	RAS_IPolyMaterial::Initialize(
+		data->texname[0],
+		data->matname,
+		data->materialindex,
 		data->tile,
 		data->tilexrep[0],
 		data->tileyrep[0],
 		data->mode,
 		data->transp,
 		((data->ras_mode &ALPHA)!=0),
-		((data->ras_mode &ZSORT)!=0),
-		lightlayer
-	),
-	mMaterial(data),
-	mShader(0),
-	mBlenderShader(0),
-	mScene(scene),
-	mUserDefBlend(0),
-	mModified(0),
-	mConstructed(false),
-	mPass(0)
-
-{
+		((data->ras_mode &ZSORT)!=0)
+	);
+	mMaterial = data;
+	mShader = 0;
+	mBlenderShader = 0;
+	mScene = scene;
+	mUserDefBlend = 0;
+	mModified = 0;
+	mConstructed = false;
+	mPass = 0;
 	// --------------------------------
 	// RAS_IPolyMaterial variables... 
 	m_flag |= RAS_BLENDERMAT;
@@ -95,7 +104,6 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 			 );
 	}
 	m_multimode += mMaterial->IdMode+ (mMaterial->ras_mode & ~(COLLIDER|USE_LIGHT));
-
 }
 
 KX_BlenderMaterial::~KX_BlenderMaterial()
@@ -105,7 +113,6 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 		// clean only if material was actually used
 		OnExit();
 }
-
 
 MTFace* KX_BlenderMaterial::GetMTFace(void) const 
 {
@@ -120,14 +127,41 @@ unsigned int* KX_BlenderMaterial::GetMCol(void) const
 	return mMaterial->rgb;
 }
 
-void KX_BlenderMaterial::OnConstruction()
+void KX_BlenderMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
+{
+	if (mMaterial) {
+		*rgba++ = (unsigned char) (mMaterial->matcolor[0]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[1]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[2]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[3]*255.0);
+	} else
+		RAS_IPolyMaterial::GetMaterialRGBAColor(rgba);
+}
+
+Material *KX_BlenderMaterial::GetBlenderMaterial() const
+{
+	return mMaterial->material;
+}
+
+Scene* KX_BlenderMaterial::GetBlenderScene() const
+{
+	return mScene->GetBlenderScene();
+}
+
+void KX_BlenderMaterial::ReleaseMaterial()
+{
+	if (mBlenderShader)
+		mBlenderShader->ReloadMaterial();
+}
+
+void KX_BlenderMaterial::OnConstruction(int layer)
 {
 	if (mConstructed)
 		// when material are reused between objects
 		return;
 	
 	if(mMaterial->glslmat)
-		SetBlenderGLSLShader();
+		SetBlenderGLSLShader(layer);
 
 	// for each unique material...
 	int i;
@@ -201,7 +235,7 @@ void KX_BlenderMaterial::OnExit()
 	}
 
 	if( mMaterial->tface ) 
-		GPU_set_tpage(mMaterial->tface);
+		GPU_set_tpage(mMaterial->tface, 1);
 }
 
 
@@ -377,10 +411,12 @@ KX_BlenderMaterial::ActivatShaders(
 		}
 		else
 			rasty->SetLines(false);
+		ActivatGLMaterials(rasty);
+		ActivateTexGen(rasty);
 	}
 
-	ActivatGLMaterials(rasty);
-	ActivateTexGen(rasty);
+	//ActivatGLMaterials(rasty);
+	//ActivateTexGen(rasty);
 }
 
 void
@@ -469,10 +505,12 @@ KX_BlenderMaterial::ActivateMat(
 		}
 		else
 			rasty->SetLines(false);
+		ActivatGLMaterials(rasty);
+		ActivateTexGen(rasty);
 	}
 
-	ActivatGLMaterials(rasty);
-	ActivateTexGen(rasty);
+	//ActivatGLMaterials(rasty);
+	//ActivateTexGen(rasty);
 }
 
 bool 
@@ -601,8 +639,7 @@ void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
 
 			if (mode &USECUSTOMUV)
 			{
-				STR_String str = mMaterial->mapping[i].uvCoName;
-				if (!str.IsEmpty())
+				if (!mMaterial->mapping[i].uvCoName.IsEmpty())
 					ras->SetTexCoord(RAS_IRasterizer::RAS_TEXCO_UV2, i);
 				continue;
 			}
@@ -737,6 +774,7 @@ void KX_BlenderMaterial::UpdateIPO(
 	mMaterial->hard			= (float)(hard);
 	mMaterial->emit			= (float)(emit);
 	mMaterial->spec_f		= (float)(spec);
+	mMaterial->ref			= (float)(ref);
 }
 
 
@@ -748,40 +786,34 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_BlenderMaterial::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("shader"),
+	//KX_PYATTRIBUTE_TODO("materialIndex"),
+	//KX_PYATTRIBUTE_TODO("blending"),
+	{ NULL }	//Sentinel
+};
 
 PyTypeObject KX_BlenderMaterial::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-		0,
-		"KX_BlenderMaterial",
-		sizeof(KX_BlenderMaterial),
-		0,
-		PyDestructor,
-		0,
-		__getattr,
-		__setattr,
-		0,
-		__repr,
-		0
-};
-
-
-PyParentObject KX_BlenderMaterial::Parents[] = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"KX_BlenderMaterial",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&PyObjectPlus::Type,
-	&KX_BlenderMaterial::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
-PyObject* KX_BlenderMaterial::_getattr(const STR_String& attr)
-{
-	_getattr_up(PyObjectPlus);
-}
-
-int KX_BlenderMaterial::_setattr(const STR_String& attr, PyObject *pyvalue)
-{
-	return PyObjectPlus::_setattr(attr, pyvalue);
-}
-
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 {
@@ -790,7 +822,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			spit("Fragment shaders not supported");
 	
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if( !GLEW_ARB_vertex_shader) {
@@ -798,14 +830,14 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			spit("Vertex shaders not supported");
 
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if(!GLEW_ARB_shader_objects)  {
 		if(!mModified)
 			spit("GLSL not supported");
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	else {
 		// returns Py_None on error
@@ -820,8 +852,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			m_flag &= ~RAS_BLENDERGLSL;
 			mMaterial->SetSharedMaterial(true);
 			mScene->GetBucketManager()->ReleaseDisplayLists(this);
-			Py_INCREF(mShader);
-			return mShader;
+			return mShader->GetProxy();
 		}else
 		{
 			// decref all references to the object
@@ -829,26 +860,21 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			// We will then go back to fixed functionality
 			// for this material
 			if(mShader) {
-				if(mShader->ob_refcnt > 1) {
-					Py_DECREF(mShader);
-				}
-				else {
-					delete mShader;
-					mShader=0;
-				}
+				delete mShader; /* will handle python de-referencing */
+				mShader=0;
 			}
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
-	PyErr_Format(PyExc_ValueError, "GLSL Error");
+	PyErr_SetString(PyExc_ValueError, "material.getShader(): KX_BlenderMaterial, GLSL Error");
 	return NULL;
 }
 
 
-void KX_BlenderMaterial::SetBlenderGLSLShader(void)
+void KX_BlenderMaterial::SetBlenderGLSLShader(int layer)
 {
 	if(!mBlenderShader)
-		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, m_lightlayer);
+		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, layer);
 
 	if(!mBlenderShader->Ok()) {
 		delete mBlenderShader;
@@ -858,7 +884,7 @@ void KX_BlenderMaterial::SetBlenderGLSLShader(void)
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 {
-	return PyInt_FromLong( mMaterial->material_index );
+	return PyLong_FromSsize_t( GetMaterialIndex() );
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getTexture, "getTexture( index )" )
@@ -890,7 +916,7 @@ static unsigned int GL_array[11] = {
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.src, GameLogic.dest)")
 {
 	unsigned int b[2];
-	if(PyArg_ParseTuple(args, "ii", &b[0], &b[1]))
+	if(PyArg_ParseTuple(args, "ii:setBlending", &b[0], &b[1]))
 	{
 		bool value_found[2] = {false, false};
 		for(int i=0; i<11; i++)
@@ -906,11 +932,11 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.sr
 			if(value_found[0] && value_found[1]) break;
 		}
 		if(!value_found[0] || !value_found[1]) {
-			PyErr_Format(PyExc_ValueError, "invalid enum.");
+			PyErr_SetString(PyExc_ValueError, "material.setBlending(int, int): KX_BlenderMaterial, invalid enum.");
 			return NULL;
 		}
 		mUserDefBlend = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }

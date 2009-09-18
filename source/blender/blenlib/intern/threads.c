@@ -35,6 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_listBase.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
@@ -42,7 +44,7 @@
 
 /* for checking system threads - BLI_system_thread_count */
 #ifdef WIN32
-#include "Windows.h"
+#include "windows.h"
 #elif defined(__APPLE__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
@@ -110,12 +112,12 @@ typedef struct ThreadSlot {
 	int avail;
 } ThreadSlot;
 
-static void BLI_lock_malloc_thread(void)
+void BLI_lock_malloc_thread(void)
 {
 	pthread_mutex_lock(&_malloc_lock);
 }
 
-static void BLI_unlock_malloc_thread(void)
+void BLI_unlock_malloc_thread(void)
 {
 	pthread_mutex_unlock(&_malloc_lock);
 }
@@ -140,10 +142,10 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 			tslot->do_thread= do_thread;
 			tslot->avail= 1;
 		}
+		
+		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
+		thread_levels++;
 	}
-
-	MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
-	thread_levels++;
 }
 
 /* amount of available threads */
@@ -233,18 +235,21 @@ void BLI_end_threads(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	
-	if (threadbase) {
+	/* only needed if there's actually some stuff to end
+	 * this way we don't end up decrementing thread_levels on an empty threadbase 
+	 * */
+	if (threadbase && threadbase->first != NULL) {
 		for(tslot= threadbase->first; tslot; tslot= tslot->next) {
 			if(tslot->avail==0) {
 				pthread_join(tslot->pthread, NULL);
 			}
 		}
 		BLI_freelistN(threadbase);
+
+		thread_levels--;
+		if(thread_levels==0)
+			MEM_set_lock_callback(NULL, NULL);
 	}
-	
-	thread_levels--;
-	if(thread_levels==0)
-		MEM_set_lock_callback(NULL, NULL);
 }
 
 void BLI_lock_thread(int type)
@@ -311,7 +316,7 @@ typedef struct WorkParam {
 	int	  index;
 } WorkParam;
 
-void *exec_work_fnct(void *v_param)
+static void *exec_work_fnct(void *v_param)
 {
 	WorkParam *p = (WorkParam*)v_param;
 	void *value;

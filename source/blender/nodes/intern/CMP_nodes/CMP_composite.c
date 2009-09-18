@@ -46,9 +46,11 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 	/* stack order input sockets: col, alpha, z */
 	
 	if(node->flag & NODE_DO_OUTPUT) {	/* only one works on out */
+		Scene *scene= (Scene *)node->id;
 		RenderData *rd= data;
-		if(rd->scemode & R_DOCOMP) {
-			RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name)); /* G.scene is WEAK! */
+		
+		if(scene && (rd->scemode & R_DOCOMP)) {
+			RenderResult *rr= RE_GetResult(RE_GetRender(scene->id.name)); 
 			if(rr) {
 				CompBuf *outbuf, *zbuf=NULL;
 				

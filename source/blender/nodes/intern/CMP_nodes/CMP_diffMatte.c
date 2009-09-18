@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -31,8 +31,8 @@
 
 /* ******************* channel Difference Matte ********************************* */
 static bNodeSocketType cmp_node_diff_matte_in[]={
-	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_RGBA,1,"Image 1", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_RGBA,1,"Image 2", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{-1,0,""}
 };
 
@@ -44,157 +44,85 @@ static bNodeSocketType cmp_node_diff_matte_out[]={
 
 /* note, keyvals is passed on from caller as stack array */
 /* might have been nicer as temp struct though... */
-static void do_diff_matte(bNode *node, float *colorbuf, float *inbuf, float *keyvals)
+static void do_diff_matte(bNode *node, float *colorbuf, float *imbuf1, float *imbuf2)
 {
 	NodeChroma *c= (NodeChroma *)node->storage;
-	float *keymin= keyvals;
-	float *keymax= keyvals+3;
-	float *key=    keyvals+6;
-	float tolerance= keyvals[9];
-	float distance, alpha;
+	float tolerence=c->t1;
+   float falloff=c->t2;
+	float difference;
+   float alpha;
 	
-	/*process the pixel if it is close to the key or already transparent*/
-	if(((colorbuf[0]>keymin[0] && colorbuf[0]<keymax[0]) &&
-		(colorbuf[1]>keymin[1] && colorbuf[1]<keymax[1]) &&
-		(colorbuf[2]>keymin[2] && colorbuf[2]<keymax[2])) || inbuf[3]<1.0f) {
-		
-		/*true distance from key*/
-		distance= sqrt((colorbuf[0]-key[0])*(colorbuf[0]-key[0])+
-					  (colorbuf[1]-key[1])*(colorbuf[1]-key[1])+
-					  (colorbuf[2]-key[2])*(colorbuf[2]-key[2]));
-		
-		/*is it less transparent than the prevous pixel*/
-		alpha= distance/tolerance;
-		if(alpha > inbuf[3]) alpha= inbuf[3];
-		if(alpha > c->fstrength) alpha= 0.0f;
-		
-		/*clamp*/
-		if (alpha>1.0f) alpha=1.0f;
-		if (alpha<0.0f) alpha=0.0f;
-		
-		/*premultiplied picture*/
-		colorbuf[3]= alpha;
+   difference=fabs(imbuf2[0]-imbuf1[0])+
+               fabs(imbuf2[1]-imbuf1[1])+
+               fabs(imbuf2[2]-imbuf1[2]);
+
+   /*average together the distances*/
+   difference=difference/3.0;
+
+   VECCOPY(colorbuf, imbuf1);
+
+   /*make 100% transparent*/
+	if(difference < tolerence){
+      colorbuf[3]=0.0;
 	}
+   /*in the falloff region, make partially transparent */
+   else if(difference < falloff+tolerence){
+      difference=difference-tolerence;
+      alpha=difference/falloff;
+      /*only change if more transparent than before */
+      if(alpha < imbuf1[3]) {      
+         colorbuf[3]=alpha;
+      }
+      else { /* leave as before */
+         colorbuf[3]=imbuf1[3];
+      }
+   }
 	else {
 		/*foreground object*/
-		colorbuf[3]= inbuf[3];
+		colorbuf[3]= imbuf1[3];
 	}
 }
 
 static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/*
-	Losely based on the Sequencer chroma key plug-in, but enhanced to work in other color spaces and
-	uses a differnt difference function (suggested in forums of vfxtalk.com).
-	*/
-	CompBuf *workbuf;
-	CompBuf *inbuf;
+	CompBuf *outbuf;
+	CompBuf *imbuf1;
+   CompBuf *imbuf2;
 	NodeChroma *c;
-	float keyvals[10];
-	float *keymin= keyvals;
-	float *keymax= keyvals+3;
-	float *key=    keyvals+6;
-	float *tolerance= keyvals+9;
-	float t[3];
 	
 	/*is anything connected?*/
 	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
 	/*must have an image imput*/
 	if(in[0]->data==NULL) return;
+   if(in[1]->data==NULL) return;
 	
-	inbuf=typecheck_compbuf(in[0]->data, CB_RGBA);
+	imbuf1=typecheck_compbuf(in[0]->data, CB_RGBA);
+   imbuf2=typecheck_compbuf(in[1]->data, CB_RGBA);
 	
 	c=node->storage;
-	workbuf=dupalloc_compbuf(inbuf);
-	
-	/*use the input color*/
-	key[0]= in[1]->vec[0];
-	key[1]= in[1]->vec[1];
-	key[2]= in[1]->vec[2];
-	
-	/*get the tolerances from the UI*/
-	t[0]=c->t1;
-	t[1]=c->t2;
-	t[2]=c->t3;
-	
-	/*convert to colorspace*/
-	switch(node->custom1) {
-		case 1: /*RGB*/
-				break;
-		case 2: /*HSV*/
-		/*convert the key (in place)*/
-			rgb_to_hsv(key[0], key[1], key[2], &key[0], &key[1], &key[2]);
-			composit1_pixel_processor(node, workbuf, inbuf, in[1]->vec, do_rgba_to_hsva, CB_RGBA);
-			break;
-		case 3: /*YUV*/
-			rgb_to_yuv(key[0], key[1], key[2], &key[0], &key[1], &key[2]);
-			composit1_pixel_processor(node, workbuf, inbuf, in[1]->vec, do_rgba_to_yuva, CB_RGBA);
-			break;
-		case 4: /*YCC*/
-			rgb_to_ycc(key[0], key[1], key[2], &key[0], &key[1], &key[2]);
-			composit1_pixel_processor(node, workbuf, inbuf, in[1]->vec, do_rgba_to_ycca, CB_RGBA);
-			/*account for ycc is on a 0..255 scale*/
-			t[0]= c->t1*255.0;
-			t[1]= c->t2*255.0;
-			t[2]= c->t3*255.0;
-			break;
-		default:
-				break;
-	}
-	
-	/*find min/max tolerances*/
-	keymin[0]= key[0]-t[0];
-	keymin[1]= key[1]-t[1];
-	keymin[2]= key[2]-t[2];
-	keymax[0]= key[0]+t[0];
-	keymax[1]= key[1]+t[1];
-	keymax[2]= key[2]+t[2];
-	
-	/*tolerance*/
-	*tolerance= sqrt((t[0])*(t[0])+
-					(t[1])*(t[1])+
-					(t[2])*(t[2]));
+	outbuf=dupalloc_compbuf(imbuf1);
 	
 	/* note, processor gets a keyvals array passed on as buffer constant */
-	composit2_pixel_processor(node, workbuf, workbuf, in[0]->vec, NULL, keyvals, do_diff_matte, CB_RGBA, CB_VAL);
+	composit2_pixel_processor(node, outbuf, imbuf1, in[0]->vec, imbuf2, in[1]->vec, do_diff_matte, CB_RGBA, CB_RGBA);
 	
-	/*convert back to RGB colorspace*/
-	switch(node->custom1) {
-		case 1: /*RGB*/
-			composit1_pixel_processor(node, workbuf, workbuf, in[1]->vec, do_copy_rgba, CB_RGBA);
-			break;
-		case 2: /*HSV*/
-			composit1_pixel_processor(node, workbuf, workbuf, in[1]->vec, do_hsva_to_rgba, CB_RGBA);
-			break;
-		case 3: /*YUV*/
-			composit1_pixel_processor(node, workbuf, workbuf, in[1]->vec, do_yuva_to_rgba, CB_RGBA);
-			break;
-		case 4: /*YCC*/
-			composit1_pixel_processor(node, workbuf, workbuf, in[1]->vec, do_ycca_to_rgba, CB_RGBA);
-			break;
-		default:
-			break;
-	}
-	
-	out[0]->data=workbuf;
+	out[0]->data=outbuf;
 	if(out[1]->hasoutput)
-		out[1]->data=valbuf_from_rgbabuf(workbuf, CHAN_A);
-	generate_preview(node, workbuf);
+		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
+	generate_preview(node, outbuf);
 
-	if(inbuf!=in[0]->data)
-		free_compbuf(inbuf);
+	if(imbuf1!=in[0]->data)
+		free_compbuf(imbuf1);
+
+	if(imbuf2!=in[1]->data)
+		free_compbuf(imbuf2);
 }
 
 static void node_composit_init_diff_matte(bNode *node)
 {
    NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
    node->storage= c;
-   c->t1= 0.01f;
-   c->t2= 0.01f;
-   c->t3= 0.01f;
-   c->fsize= 0.0f;
-   c->fstrength= 0.0f;
-   node->custom1= 1; /* RGB */
+   c->t1= 0.1f;
+   c->t2= 0.1f;
 }
 
 bNodeType cmp_node_diff_matte={

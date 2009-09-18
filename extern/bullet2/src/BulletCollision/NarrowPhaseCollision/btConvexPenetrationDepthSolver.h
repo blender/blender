@@ -21,7 +21,6 @@ class btStackAlloc;
 class btVector3;
 #include "btSimplexSolverInterface.h"
 class btConvexShape;
-#include "LinearMath/btPoint3.h"
 class btTransform;
 
 ///ConvexPenetrationDepthSolver provides an interface for penetration depth calculation.
@@ -33,7 +32,7 @@ public:
 	virtual bool calcPenDepth( btSimplexSolverInterface& simplexSolver,
 		const btConvexShape* convexA,const btConvexShape* convexB,
 					const btTransform& transA,const btTransform& transB,
-				btVector3& v, btPoint3& pa, btPoint3& pb,
+				btVector3& v, btVector3& pa, btVector3& pb,
 				class btIDebugDraw* debugDraw,btStackAlloc* stackAlloc
 				) = 0;
 

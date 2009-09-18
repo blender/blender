@@ -40,6 +40,13 @@
 #include "MT_Matrix4x4.h"
 
 #include "KX_Python.h"
+#include "PyObjectPlus.h"
+
+#ifdef USE_MATHUTILS
+extern "C" {
+#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+}
+#endif
 
 inline unsigned int Size(const MT_Matrix4x4&)          { return 4; }
 inline unsigned int Size(const MT_Matrix3x3&)          { return 3; }
@@ -92,18 +99,82 @@ bool PyMatTo(PyObject* pymat, T& mat)
 }
 
 /**
- *  Converts a python list to a MT class.
+ *  Converts a python sequence to a MT class.
  */
 template<class T>
 bool PyVecTo(PyObject* pyval, T& vec)
 {
-	if (PySequence_Check(pyval))
+#ifdef USE_MATHUTILS
+	/* no need for BaseMath_ReadCallback() here, reading the sequences will do this */
+	
+	if(VectorObject_Check(pyval)) {
+		VectorObject *pyvec= (VectorObject *)pyval;
+		BaseMath_ReadCallback(pyvec);
+		if (pyvec->size != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", pyvec->size, Size(vec));
+			return false;
+		}
+		vec.setValue((float *) pyvec->vec);
+		return true;
+	}
+	else if(QuaternionObject_Check(pyval)) {
+		QuaternionObject *pyquat= (QuaternionObject *)pyval;
+		BaseMath_ReadCallback(pyquat);
+		if (4 != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 4, Size(vec));
+			return false;
+		}
+		/* xyzw -> wxyz reordering is done by PyQuatTo */
+		vec.setValue((float *) pyquat->quat);
+		return true;
+	}
+	else if(EulerObject_Check(pyval)) {
+		EulerObject *pyeul= (EulerObject *)pyval;
+		BaseMath_ReadCallback(pyeul);
+		if (3 != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 3, Size(vec));
+			return false;
+		}
+		vec.setValue((float *) pyeul->eul);
+		return true;
+	} else
+#endif
+	if(PyTuple_Check(pyval))
+	{
+		unsigned int numitems = PyTuple_GET_SIZE(pyval);
+		if (numitems != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", numitems, Size(vec));
+			return false;
+		}
+		
+		for (unsigned int x = 0; x < numitems; x++)
+			vec[x] = PyFloat_AsDouble(PyTuple_GET_ITEM(pyval, x)); /* borrow ref */
+		
+		if (PyErr_Occurred()) {
+			PyErr_SetString(PyExc_AttributeError, "one or more of the items in the sequence was not a float");
+			return false;
+		}
+		
+		return true;
+	}
+	else if (PyObject_TypeCheck(pyval, &PyObjectPlus::Type))
+	{	/* note, include this check because PySequence_Check does too much introspection
+		 * on the PyObject (like getting its __class__, on a BGE type this means searching up
+		 * the parent list each time only to discover its not a sequence.
+		 * GameObjects are often used as an alternative to vectors so this is a common case
+		 * better to do a quick check for it, likely the error below will be ignored.
+		 * 
+		 * This is not 'correct' since we have proxy type CListValues's which could
+		 * contain floats/ints but there no cases of CValueLists being this way
+		 */
+		PyErr_Format(PyExc_AttributeError, "expected a sequence type");
+		return false;
+	}
+	else if (PySequence_Check(pyval))
 	{
 		unsigned int numitems = PySequence_Size(pyval);
 		if (numitems != Size(vec)) {
-			char err[128];
-			sprintf(err, "error setting vector, %d args, should be %d", numitems, Size(vec));
-			PyErr_SetString(PyExc_AttributeError, err);
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", numitems, Size(vec));
 			return false;
 		}
 		
@@ -122,27 +193,16 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		return true;
 	} else
 	{
-		char err[128];
-		sprintf(err, "not a sequence type, expected a sequence of numbers size %d", Size(vec));
-		PyErr_SetString(PyExc_AttributeError, err);
+		PyErr_Format(PyExc_AttributeError, "not a sequence type, expected a sequence of numbers size %d", Size(vec));
 	}
 	
 	return false;
 }
 
-/**
- *  Converts a python argument to an MT class.
- *  This paramater expects arguments as passed to a python method.
- */
-template<class T>
-bool PyVecArgTo(PyObject* args, T& vec)
-{
-	PyObject* pylist;
-	if (PyArg_ParseTuple(args,"O",&pylist))
-		return PyVecTo(pylist, vec);
-		
-	return false;
-}
+
+bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot);
+
+bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &mat, const char *error_prefix);
 
 /**
  * Converts an MT_Matrix4x4 to a python object.
@@ -164,15 +224,16 @@ PyObject* PyObjectFrom(const MT_Tuple2 &vec);
  */
 PyObject* PyObjectFrom(const MT_Tuple3 &vec);
 
+#ifdef USE_MATHUTILS
+/**
+ * Converts an MT_Quaternion to a python object.
+ */
+PyObject* PyObjectFrom(const MT_Quaternion &qrot);
+#endif
+
 /**
  * Converts an MT_Tuple4 to a python object.
  */
 PyObject* PyObjectFrom(const MT_Tuple4 &pos);
-
-/**
- * True if the given PyObject can be converted to an MT_Matrix
- * @param rank = 3 (for MT_Matrix3x3) or 4 (for MT_Matrix4x4)
- */
-bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank);
 
 #endif

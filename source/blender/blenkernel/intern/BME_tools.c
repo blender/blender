@@ -3,7 +3,7 @@
  *
  *	Functions for changing the topology of a mesh.
  *
- * $Id: BME_eulers.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -38,13 +38,12 @@
 #include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
-
-#include "blendef.h"
 
 /*split this all into a seperate bevel.c file in src*/
 
@@ -192,7 +191,7 @@ static BME_Poly *BME_split_face(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Ver
 	nf = BME_SFME(bm,f,v1,v2,nl);
 	nf->flag = f->flag;
 	/* if the edge was selected, select this face, too */
-	if (example->flag & SELECT) f->flag |= ME_FACE_SEL;
+	if (example && (example->flag & SELECT)) f->flag |= ME_FACE_SEL;
 	nf->h = f->h;
 	nf->mat_nr = f->mat_nr;
 	if (nl && example) {
@@ -206,6 +205,7 @@ static BME_Poly *BME_split_face(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Ver
 }
 
 
+#if 0
 static void BME_data_interp_from_verts(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, float fac)
 {
 	void *src[2];
@@ -218,6 +218,7 @@ static void BME_data_interp_from_verts(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2,
 		CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->data);
 	}
 }
+#endif
 
 
 static void BME_data_facevert_edgesplit(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, BME_Edge *e1, float fac){

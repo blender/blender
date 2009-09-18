@@ -13,12 +13,12 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 #include "btCylinderShape.h"
-#include "LinearMath/btPoint3.h"
 
 btCylinderShape::btCylinderShape (const btVector3& halfExtents)
 :btBoxShape(halfExtents),
 m_upAxis(1)
 {
+	m_shapeType = CYLINDER_SHAPE_PROXYTYPE;
 	recalcLocalAabb();
 }
 

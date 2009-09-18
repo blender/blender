@@ -32,14 +32,11 @@
 #include <config.h>
 #endif
 
-/* This little block needed for linking to Blender... */
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
 
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
 /* end of blender include block */
+
 
 #include "Value.h"
 #include "VectorValue.h"
@@ -47,11 +44,14 @@
 #include "StringValue.h"
 #include "FloatValue.h"
 #include "KX_GameObject.h"
-//#include "ListValue.h"
 #include "IntValue.h"
 #include "SCA_TimeEventManager.h"
 #include "SCA_IScene.h"
 
+/* This little block needed for linking to Blender... */
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
 
 void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventManager* timemgr,SCA_IScene* scene, bool isInActiveLayer)
 {
@@ -66,58 +66,58 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 		show_debug_info = bool (prop->flag & PROP_DEBUG);
 
 		switch(prop->type) {
-		case PROP_BOOL:
-		{
-			propval = new CBoolValue((bool)(prop->data != 0));
-			gameobj->SetProperty(prop->name,propval);
-			//promp->poin= &prop->data;
-			break;
-		}
-		case PROP_INT:
-		{
-			propval = new CIntValue((int)prop->data);
-			gameobj->SetProperty(prop->name,propval);
-			break;
-		}
-		case PROP_FLOAT:
-		{
-			//prop->poin= &prop->data;
-			float floatprop = *((float*)&prop->data);
-			propval = new CFloatValue(floatprop);
-			gameobj->SetProperty(prop->name,propval);
-		}
-		break;
-		case PROP_STRING:
-		{
-			//prop->poin= callocN(MAX_PROPSTRING, "property string");
-			propval = new CStringValue((char*)prop->poin,"");
-			gameobj->SetProperty(prop->name,propval);
-			break;
-		}
-		case PROP_TIME:
-		{
-			float floatprop = *((float*)&prop->data);
-
-			CValue* timeval = new CFloatValue(floatprop);
-			// set a subproperty called 'timer' so that 
-			// we can register the replica of this property 
-			// at the time a game object is replicated (AddObjectActuator triggers this)
-			CValue *bval = new CBoolValue(true);
-			timeval->SetProperty("timer",bval);
-			bval->Release();
-			if (isInActiveLayer)
+			case GPROP_BOOL:
 			{
-				timemgr->AddTimeProperty(timeval);
+				propval = new CBoolValue((bool)(prop->data != 0));
+				gameobj->SetProperty(prop->name,propval);
+				//promp->poin= &prop->data;
+				break;
 			}
-			
-			propval = timeval;
-			gameobj->SetProperty(prop->name,timeval);
+			case GPROP_INT:
+			{
+				propval = new CIntValue((int)prop->data);
+				gameobj->SetProperty(prop->name,propval);
+				break;
+			}
+			case GPROP_FLOAT:
+			{
+				//prop->poin= &prop->data;
+				float floatprop = *((float*)&prop->data);
+				propval = new CFloatValue(floatprop);
+				gameobj->SetProperty(prop->name,propval);
+			}
+			break;
+			case GPROP_STRING:
+			{
+				//prop->poin= callocN(MAX_PROPSTRING, "property string");
+				propval = new CStringValue((char*)prop->poin,"");
+				gameobj->SetProperty(prop->name,propval);
+				break;
+			}
+			case GPROP_TIME:
+			{
+				float floatprop = *((float*)&prop->data);
 
-		}
-		default:
-		{
-			// todo make an assert etc.
-		}
+				CValue* timeval = new CFloatValue(floatprop);
+				// set a subproperty called 'timer' so that 
+				// we can register the replica of this property 
+				// at the time a game object is replicated (AddObjectActuator triggers this)
+				CValue *bval = new CBoolValue(true);
+				timeval->SetProperty("timer",bval);
+				bval->Release();
+				if (isInActiveLayer)
+				{
+					timemgr->AddTimeProperty(timeval);
+				}
+				
+				propval = timeval;
+				gameobj->SetProperty(prop->name,timeval);
+
+			}
+			default:
+			{
+				// todo make an assert etc.
+			}
 		}
 		
 		if (propval)
@@ -129,6 +129,22 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 			// done with propval, release it
 			propval->Release();
 		}
+		
+		
+		/* Warn if we double up on attributes, this isnt quite right since it wont find inherited attributes however there arnt many */
+		for(PyAttributeDef *attrdef = KX_GameObject::Attributes; attrdef->m_name; attrdef++) {
+			if(strcmp(prop->name, attrdef->m_name)==0) {
+				printf("Warning! user defined property name \"%s\" is also a python attribute for object \"%s\"\n\tUse ob[\"%s\"] syntax to avoid conflict\n", prop->name, object->id.name+2, prop->name);
+				break;
+			}
+		}
+		for(PyMethodDef *methdef = KX_GameObject::Methods; methdef->ml_name; methdef++) {
+			if(strcmp(prop->name, methdef->ml_name)==0) {
+				printf("Warning! user defined property name \"%s\" is also a python method for object \"%s\"\n\tUse ob[\"%s\"] syntax to avoid conflict\n", prop->name, object->id.name+2, prop->name);
+				break;
+			}
+		}
+		/* end warning check */
 
 		prop = prop->next;
 	}

@@ -76,12 +76,16 @@
 #include "DNA_effect_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_particle_types.h"
-#include "BKE_particle.h"
+#include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
+#include "DNA_anim_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_bad_level_calls.h"
+#include "BKE_animsys.h"
+#include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -110,10 +114,17 @@
 #include "BKE_effect.h"
 #include "BKE_brush.h"
 #include "BKE_idprop.h"
-
-#include "DNA_space_types.h"
+#include "BKE_particle.h"
+#include "BKE_gpencil.h"
 
 #define MAX_IDPUP		60	/* was 24 */
+
+/* GS reads the memory pointed at in a specific ordering. 
+   only use this definition, makes little and big endian systems
+   work fine, in conjunction with MAKE_ID */
+
+/* from blendef: */
+#define GS(a)	(*((short *)(a)))
 
 /* ************* general ************************ */
 
@@ -136,6 +147,226 @@ void id_us_plus(ID *id)
 			id->flag |= LIB_EXTERN;
 		}
 	}
+}
+
+void id_us_min(ID *id)
+{
+	if(id)
+		id->us--;
+}
+
+int id_make_local(ID *id, int test)
+{
+	if(id->flag & LIB_INDIRECT)
+		return 0;
+
+	switch(GS(id->name)) {
+		case ID_SCE:
+			return 0; /* not implemented */
+		case ID_LI:
+			return 0; /* can't be linked */
+		case ID_OB:
+			if(!test) make_local_object((Object*)id);
+			return 1;
+		case ID_ME:
+			if(!test) {
+				make_local_mesh((Mesh*)id);
+				make_local_key(((Mesh*)id)->key);
+			}
+			return 1;
+		case ID_CU:
+			if(!test) {
+				make_local_curve((Curve*)id);
+				make_local_key(((Curve*)id)->key);
+			}
+			return 1;
+		case ID_MB:
+			if(!test) make_local_mball((MetaBall*)id);
+			return 1;
+		case ID_MA:
+			if(!test) make_local_material((Material*)id);
+			return 1;
+		case ID_TE:
+			if(!test) make_local_texture((Tex*)id);
+			return 1;
+		case ID_IM:
+			return 0; /* not implemented */
+		case ID_WV:
+			return 0; /* deprecated */
+		case ID_LT:
+			if(!test) {
+				make_local_lattice((Lattice*)id);
+				make_local_key(((Lattice*)id)->key);
+			}
+			return 1;
+		case ID_LA:
+			if(!test) make_local_lamp((Lamp*)id);
+			return 1;
+		case ID_CA:
+			if(!test) make_local_camera((Camera*)id);
+			return 1;
+		case ID_IP:
+			return 0; /* deprecated */
+		case ID_KE:
+			if(!test) make_local_key((Key*)id);
+			return 1;
+		case ID_WO:
+			if(!test) make_local_world((World*)id);
+			return 1;
+		case ID_SCR:
+			return 0; /* can't be linked */
+		case ID_VF:
+			return 0; /* not implemented */
+		case ID_TXT:
+			return 0; /* not implemented */
+		case ID_SCRIPT:
+			return 0; /* deprecated */
+		case ID_SO:
+			return 0; /* not implemented */
+		case ID_GR:
+			return 0; /* not implemented */
+		case ID_AR:
+			if(!test) make_local_armature((bArmature*)id);
+			return 1;
+		case ID_AC:
+			if(!test) make_local_action((bAction*)id);
+			return 1;
+		case ID_NT:
+			return 0; /* not implemented */
+		case ID_BR:
+			if(!test) make_local_brush((Brush*)id);
+			return 1;
+		case ID_PA:
+			if(!test) make_local_particlesettings((ParticleSettings*)id);
+			return 1;
+		case ID_WM:
+			return 0; /* can't be linked */
+		case ID_GD:
+			return 0; /* not implemented */
+	}
+
+	return 0;
+}
+
+int id_copy(ID *id, ID **newid, int test)
+{
+	if(!test) *newid= NULL;
+
+	/* conventions:
+	 * - make shallow copy, only this ID block
+	 * - id.us of the new ID is set to 1 */
+	switch(GS(id->name)) {
+		case ID_SCE:
+			return 0; /* can't be copied from here */
+		case ID_LI:
+			return 0; /* can't be copied from here */
+		case ID_OB:
+			if(!test) *newid= (ID*)copy_object((Object*)id);
+			return 1;
+		case ID_ME:
+			if(!test) *newid= (ID*)copy_mesh((Mesh*)id);
+			return 1;
+		case ID_CU:
+			if(!test) *newid= (ID*)copy_curve((Curve*)id);
+			return 1;
+		case ID_MB:
+			if(!test) *newid= (ID*)copy_mball((MetaBall*)id);
+			return 1;
+		case ID_MA:
+			if(!test) *newid= (ID*)copy_material((Material*)id);
+			return 1;
+		case ID_TE:
+			if(!test) *newid= (ID*)copy_texture((Tex*)id);
+			return 1;
+		case ID_IM:
+			return 0; /* not implemented */
+		case ID_WV:
+			return 0; /* deprecated */
+		case ID_LT:
+			if(!test) *newid= (ID*)copy_lattice((Lattice*)id);
+			return 1;
+		case ID_LA:
+			if(!test) *newid= (ID*)copy_lamp((Lamp*)id);
+			return 1;
+		case ID_CA:
+			if(!test) *newid= (ID*)copy_camera((Camera*)id);
+			return 1;
+		case ID_IP:
+			return 0; /* deprecated */
+		case ID_KE:
+			if(!test) *newid= (ID*)copy_key((Key*)id);
+			return 1;
+		case ID_WO:
+			if(!test) *newid= (ID*)copy_world((World*)id);
+			return 1;
+		case ID_SCR:
+			return 0; /* can't be copied from here */
+		case ID_VF:
+			return 0; /* not implemented */
+		case ID_TXT:
+			if(!test) *newid= (ID*)copy_text((Text*)id);
+			return 1;
+		case ID_SCRIPT:
+			return 0; /* deprecated */
+		case ID_SO:
+			return 0; /* not implemented */
+		case ID_GR:
+			if(!test) *newid= (ID*)copy_group((Group*)id);
+			return 1;
+		case ID_AR:
+			if(!test) *newid= (ID*)copy_armature((bArmature*)id);
+			return 1;
+		case ID_AC:
+			if(!test) *newid= (ID*)copy_action((bAction*)id);
+			return 1;
+		case ID_NT:
+			if(!test) *newid= (ID*)ntreeCopyTree((bNodeTree*)id, 0);
+			return 1;
+		case ID_BR:
+			if(!test) *newid= (ID*)copy_brush((Brush*)id);
+			return 1;
+		case ID_PA:
+			if(!test) *newid= (ID*)psys_copy_settings((ParticleSettings*)id);
+			return 1;
+		case ID_WM:
+			return 0; /* can't be copied from here */
+		case ID_GD:
+			return 0; /* not implemented */
+	}
+	
+	return 0;
+}
+
+int id_unlink(ID *id, int test)
+{
+	Main *mainlib= G.main;
+	ListBase *lb;
+
+	switch(GS(id->name)) {
+		case ID_TXT:
+			if(test) return 1;
+			unlink_text(mainlib, (Text*)id);
+			break;
+		case ID_GR:
+			if(test) return 1;
+			unlink_group((Group*)id);
+			break;
+		case ID_OB:
+			if(test) return 1;
+			unlink_object(NULL, (Object*)id);
+			break;
+	}
+
+	if(id->us == 0) {
+		if(test) return 1;
+
+		lb= wich_libbase(mainlib, GS(id->name));
+		free_libblock(lb, id);
+
+		return 1;
+	}
+
+	return 0;
 }
 
 ListBase *wich_libbase(Main *mainlib, short type)
@@ -195,6 +426,10 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->brush);
 		case ID_PA:
 			return &(mainlib->particle);
+		case ID_WM:
+			return &(mainlib->wm);
+		case ID_GD:
+			return &(mainlib->gpencil);
 	}
 	return 0;
 }
@@ -220,6 +455,15 @@ void flag_all_listbases_ids(short flag, short value)
 	while(a--)	flag_listbase_ids(lbarray[a], flag, value);
 }
 
+void recalc_all_library_objects(Main *main)
+{
+	Object *ob;
+
+	/* flag for full recalc */
+	for(ob=main->object.first; ob; ob=ob->id.next)
+		if(ob->id.lib)
+			ob->recalc |= OB_RECALC;
+}
 
 /* note: MAX_LIBARRAY define should match this code */
 int set_listbasepointers(Main *main, ListBase **lb)
@@ -229,6 +473,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	/* BACKWARDS! also watch order of free-ing! (mesh<->mat) */
 
 	lb[a++]= &(main->ipo);
+	lb[a++]= &(main->action); // xxx moved here to avoid problems when freeing with animato (aligorith)
 	lb[a++]= &(main->key);
 	lb[a++]= &(main->nodetree);
 	lb[a++]= &(main->image);
@@ -241,7 +486,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	 */
 
 	lb[a++]= &(main->armature);
-	lb[a++]= &(main->action);
 
 	lb[a++]= &(main->mesh);
 	lb[a++]= &(main->curve);
@@ -264,6 +508,8 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->object);
 	lb[a++]= &(main->scene);
 	lb[a++]= &(main->library);
+	lb[a++]= &(main->wm);
+	lb[a++]= &(main->gpencil);
 	
 	lb[a]= NULL;
 
@@ -343,7 +589,7 @@ static ID *alloc_libblock_notest(short type)
 			id= MEM_callocN(sizeof(Text), "text");
 			break;
 		case ID_SCRIPT:
-			id= MEM_callocN(sizeof(Script), "script");
+			//XXX id= MEM_callocN(sizeof(Script), "script");
 			break;
 		case ID_SO:
 			id= MEM_callocN(sizeof(bSound), "sound");
@@ -366,6 +612,12 @@ static ID *alloc_libblock_notest(short type)
 		case ID_PA:
 			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
   			break;
+		case ID_WM:
+			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
+  			break;
+		case ID_GD:
+			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
+			break;
 	}
 	return id;
 }
@@ -387,12 +639,44 @@ void *alloc_libblock(ListBase *lb, short type, const char *name)
 	return id;
 }
 
-/* GS reads the memory pointed at in a specific ordering. 
-   only use this definition, makes little and big endian systems
-   work fine, in conjunction with MAKE_ID */
-
-/* from blendef: */
-#define GS(a)	(*((short *)(a)))
+/* by spec, animdata is first item after ID */
+/* we still read ->adt itself, to ensure compiler warns when it doesnt exist */
+static void id_copy_animdata(ID *id)
+{
+	switch(GS(id->name)) {
+		case ID_OB:
+			((Object *)id)->adt= BKE_copy_animdata(((Object *)id)->adt);
+			break;
+		case ID_CU:
+			((Curve *)id)->adt= BKE_copy_animdata(((Curve *)id)->adt);
+			break;
+		case ID_CA:
+			((Camera *)id)->adt= BKE_copy_animdata(((Camera *)id)->adt);
+			break;
+		case ID_KE:
+			((Key *)id)->adt= BKE_copy_animdata(((Key *)id)->adt);
+			break;
+		case ID_LA:
+			((Lamp *)id)->adt= BKE_copy_animdata(((Lamp *)id)->adt);
+			break;
+		case ID_MA:
+			((Material *)id)->adt= BKE_copy_animdata(((Material *)id)->adt);
+			break;
+		case ID_NT:
+			((bNodeTree *)id)->adt= BKE_copy_animdata(((bNodeTree *)id)->adt);
+			break;
+		case ID_SCE:
+			((Scene *)id)->adt= BKE_copy_animdata(((Scene *)id)->adt);
+			break;
+		case ID_TE:
+			((Tex *)id)->adt= BKE_copy_animdata(((Tex *)id)->adt);
+			break;
+		case ID_WO:
+			((World *)id)->adt= BKE_copy_animdata(((World *)id)->adt);
+			break;
+	}
+	
+}
 
 /* used everywhere in blenkernel and text.c */
 void *copy_libblock(void *rt)
@@ -422,12 +706,21 @@ void *copy_libblock(void *rt)
 	idn->flag |= LIB_NEW;
 	if (id->properties) idn->properties = IDP_CopyProperty(id->properties);
 
+	id_copy_animdata(id);
+	
 	return idn;
 }
 
 static void free_library(Library *lib)
 {
     /* no freeing needed for libraries yet */
+}
+
+static void (*free_windowmanager_cb)(bContext *, wmWindowManager *)= NULL;
+
+void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
+{
+	free_windowmanager_cb= func;
 }
 
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
@@ -494,10 +787,10 @@ void free_libblock(ListBase *lb, void *idv)
 			free_text((Text *)id);
 			break;
 		case ID_SCRIPT:
-			free_script((Script *)id);
+			//XXX free_script((Script *)id);
 			break;
 		case ID_SO:
-			sound_free_sound((bSound *)id);
+			sound_free((bSound*)id);
 			break;
 		case ID_GR:
 			free_group((Group *)id);
@@ -516,6 +809,13 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_PA:
 			psys_free_settings((ParticleSettings *)id);
+			break;
+		case ID_WM:
+			if(free_windowmanager_cb)
+				free_windowmanager_cb(NULL, (wmWindowManager *)id);
+			break;
+		case ID_GD:
+			free_gpencil_data((bGPdata *)id);
 			break;
 	}
 
@@ -539,7 +839,7 @@ void free_libblock_us(ListBase *lb, void *idv)		/* test users */
 		else printf("ERROR block %s users %d\n", id->name, id->us);
 	}
 	if(id->us==0) {
-		if( GS(id->name)==ID_OB ) unlink_object((Object *)id);
+		if( GS(id->name)==ID_OB ) unlink_object(NULL, (Object *)id);
 		
 		free_libblock(lb, id);
 	}
@@ -597,6 +897,8 @@ static void get_flags_for_id(ID *id, char *buf)
 
 	if(GS(id->name)==ID_MA)
 		isnode= ((Material *)id)->use_nodes;
+	if(GS(id->name)==ID_TE)
+		isnode= ((Tex *)id)->use_nodes;
 	
 	if (id->us<0)
 		sprintf(buf, "-1W ");
@@ -662,52 +964,6 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 	}
 }
 
-	/* Silly routine, the only difference between the one
-	 * above is that it only adds items with a matching
-	 * blocktype... this should be unified somehow... - zr
-	 */
-static void IPOnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, short *nr, int blocktype)
-{
-	ID *id;
-	int i, nids;
-	
-	for (id= lb->first, nids= 0; id; id= id->next) {
-		Ipo *ipo= (Ipo*) id;
-		
-		if (ipo->blocktype==blocktype)
-			nids++;
-	}
-	
-	if (nids>MAX_IDPUP) {
-		BLI_dynstr_append(pupds, "DataBrowse %x-2");
-	} else {
-		for (i=0, id= lb->first; id; id= id->next) {
-			Ipo *ipo= (Ipo*) id;
-			
-			if (ipo->blocktype==blocktype) {
-				char buf[32];
-			
-				if (id==link)
-					*nr= i+1;
-					
-				if (U.uiflag & USER_HIDE_DOT && id->name[2]=='.')
-					continue;
-
-				get_flags_for_id(id, buf);
-				
-				BLI_dynstr_append(pupds, buf);
-				BLI_dynstr_append(pupds, id->name+2);
-				sprintf(buf, "%%x%d", i+1);
-				BLI_dynstr_append(pupds, buf);
-				
-				if(id->next)
-					BLI_dynstr_append(pupds, "|");
-				
-				i++;
-			}
-		}
-	}
-}
 
 /* used by headerbuttons.c buttons.c editobject.c editseq.c */
 /* if nr==NULL no MAX_IDPUP, this for non-header browsing */
@@ -754,28 +1010,6 @@ void IMAnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb
 	BLI_dynstr_free(pupds);
 }
 
-
-/* only used by headerbuttons.c */
-void IPOnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr, int blocktype)
-{
-	DynStr *pupds= BLI_dynstr_new();
-	
-	if (title) {
-		BLI_dynstr_append(pupds, title);
-		BLI_dynstr_append(pupds, "%t|");
-	}
-	
-	if (extraops) {
-		BLI_dynstr_append(pupds, extraops);
-		if (BLI_dynstr_get_len(pupds))
-			BLI_dynstr_append(pupds, "|");
-	}
-
-	IPOnames_to_dyn_pupstring(pupds, lb, link, nr, blocktype);	
-	
-	*str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-}
 
 /* used by buttons.c library.c mball.c */
 void splitIDname(char *name, char *left, int *nr)
@@ -992,14 +1226,15 @@ static void lib_indirect_test_id(ID *id)
 	
 	if(id->lib)
 		return;
-
+	
 	if(GS(id->name)==ID_OB) {		
 		Object *ob= (Object *)id;
 		bActionStrip *strip;
 		Mesh *me;
 
 		int a;
-
+	
+		// XXX old animation system!
 		for (strip=ob->nlastrips.first; strip; strip=strip->next){
 			LIBTAG(strip->object); 
 			LIBTAG(strip->act);
@@ -1018,6 +1253,20 @@ static void lib_indirect_test_id(ID *id)
 	}
 }
 
+void tag_main(struct Main *mainvar, int tag)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	ID *id;
+	int a;
+
+	a= set_listbasepointers(mainvar, lbarray);
+	while(a--) {
+		for(id= lbarray[a]->first; id; id= id->next) {
+			if(tag)	id->flag |= LIB_DOIT;
+			else	id->flag &= ~LIB_DOIT;
+		}
+	}
+}
 
 /* if lib!=NULL, only all from lib local */
 void all_local(Library *lib, int untagged_only)
@@ -1094,6 +1343,27 @@ void test_idbutton(char *name)
 	}
 
 	if(idtest) if( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
+}
+
+void text_idbutton(struct ID *id, char *text)
+{
+	if(id) {
+		if(GS(id->name)==ID_SCE)
+			strcpy(text, "SCE: ");
+        else if(GS(id->name)==ID_SCE)
+			strcpy(text, "SCR: ");
+        else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
+			strcpy(text, "NT: ");
+        else {
+			text[0]= id->name[0];
+			text[1]= id->name[1];
+			text[2]= ':';
+			text[3]= ' ';
+			text[4]= 0;
+        }
+	}
+	else
+		strcpy(text, "");
 }
 
 void rename_id(ID *id, char *name)

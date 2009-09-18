@@ -38,10 +38,9 @@
 KX_StateActuator::KX_StateActuator(
 	SCA_IObject* gameobj,
 	int operation,
-	unsigned int mask,
-	PyTypeObject* T
+	unsigned int mask
 	) 
-	: SCA_IActuator(gameobj,T),
+	: SCA_IActuator(gameobj),
 	  m_operation(operation),
 	  m_mask(mask)
 {
@@ -55,6 +54,9 @@ KX_StateActuator::~KX_StateActuator(
 	// intentionally empty
 }
 
+// used to put state actuator to be executed before any other actuators
+SG_QList KX_StateActuator::m_stateActuatorHead;
+
 CValue*
 KX_StateActuator::GetReplica(
 	void
@@ -62,8 +64,6 @@ KX_StateActuator::GetReplica(
 {
 	KX_StateActuator* replica = new KX_StateActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 
@@ -72,7 +72,10 @@ KX_StateActuator::Update()
 {
 	bool bNegativeEvent = IsNegativeEvent();
 	unsigned int objMask;
-	
+
+	// execution of state actuator means that we are in the execution phase, reset this pointer
+	// because all the active actuator of this object will be removed for sure.
+	m_gameobj->m_firstState = NULL;
 	RemoveAllEvents();
 	if (bNegativeEvent) return false;
 
@@ -101,6 +104,31 @@ KX_StateActuator::Update()
 	return false;
 }
 
+// this function is only used to deactivate actuators outside the logic loop
+// e.g. when an object is deleted.
+void KX_StateActuator::Deactivate()
+{
+	if (QDelink())
+	{
+		// the actuator was in the active list
+		if (m_stateActuatorHead.QEmpty())
+			// no more state object active
+			m_stateActuatorHead.Delink();
+	}
+}
+
+void KX_StateActuator::Activate(SG_DList& head)
+{
+	// sort the state actuators per object on the global list
+	if (QEmpty())
+	{
+		InsertSelfActiveQList(m_stateActuatorHead, &m_gameobj->m_firstState);
+		// add front to make sure it runs before other actuators
+		head.AddFront(&m_stateActuatorHead);
+	}
+}
+
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -108,100 +136,34 @@ KX_StateActuator::Update()
 
 
 /* Integration hooks ------------------------------------------------------- */
-PyTypeObject 
-KX_StateActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+PyTypeObject KX_StateActuator::Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"KX_StateActuator",
-	sizeof(KX_StateActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-PyParentObject 
-KX_StateActuator::Parents[] = {
-	&KX_StateActuator::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
-PyMethodDef 
-KX_StateActuator::Methods[] = {
-	{"setOperation", (PyCFunction) KX_StateActuator::sPySetOperation, 
-	 METH_VARARGS, (PY_METHODCHAR)SetOperation_doc},
-	{"setMask", (PyCFunction) KX_StateActuator::sPySetMask, 
-	 METH_VARARGS, (PY_METHODCHAR)SetMask_doc},
+PyMethodDef KX_StateActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* 
-KX_StateActuator::_getattr(
-	const STR_String& attr
-	) 
-{
-	_getattr_up(SCA_IActuator);
+PyAttributeDef KX_StateActuator::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RW("operation",KX_StateActuator::OP_NOP+1,KX_StateActuator::OP_COUNT-1,false,KX_StateActuator,m_operation),
+	KX_PYATTRIBUTE_INT_RW("mask",0,0x3FFFFFFF,false,KX_StateActuator,m_mask),
+	{ NULL }	//Sentinel
 };
-
-
-
-/* set operation ---------------------------------------------------------- */
-const char 
-KX_StateActuator::SetOperation_doc[] = 
-"setOperation(op)\n"
-"\t - op : bit operation (0=Copy, 1=Set, 2=Clear, 3=Negate)"
-"\tSet the type of bit operation to be applied on object state mask.\n"
-"\tUse setMask() to specify the bits that will be modified.\n";
-PyObject* 
-
-KX_StateActuator::PySetOperation(PyObject* self, 
-				    PyObject* args, 
-				    PyObject* kwds) {
-	int oper;
-
-	if(!PyArg_ParseTuple(args, "i", &oper)) {
-		return NULL;
-	}
-
-	m_operation = oper;
-
-	Py_Return;
-}
-
-/* set mask ---------------------------------------------------------- */
-const char 
-KX_StateActuator::SetMask_doc[] = 
-"setMask(mask)\n"
-"\t - mask : bits that will be modified"
-"\tSet the value that defines the bits that will be modified by the operation.\n"
-"\tThe bits that are 1 in the value will be updated in the object state,\n"
-"\tthe bits that are 0 are will be left unmodified expect for the Copy operation\n"
-"\twhich copies the value to the object state.\n";
-PyObject* 
-
-KX_StateActuator::PySetMask(PyObject* self, 
-				    PyObject* args, 
-				    PyObject* kwds) {
-	int mask;
-
-	if(!PyArg_ParseTuple(args, "i", &mask)) {
-		return NULL;
-	}
-
-	m_mask = mask;
-
-	Py_Return;
-}
-
-

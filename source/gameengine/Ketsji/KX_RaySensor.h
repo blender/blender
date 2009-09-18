@@ -44,15 +44,15 @@ class KX_RaySensor : public SCA_ISensor
 	STR_String		m_propertyname;
 	bool			m_bFindMaterial;
 	bool			m_bXRay;
-	double			m_distance;
+	float			m_distance;
 	class KX_Scene* m_scene;
 	bool			m_bTriggered;
 	int				m_axis;
 	bool			m_rayHit;
-	MT_Point3		m_hitPosition;
+	float			m_hitPosition[3];
 	SCA_IObject*	m_hitObject;
-	MT_Vector3		m_hitNormal;
-	MT_Vector3		m_rayDirection;
+	float			m_hitNormal[3];
+	float			m_rayDirection[3];
 
 public:
 	KX_RaySensor(class SCA_EventManager* eventmgr,
@@ -62,24 +62,31 @@ public:
 					bool bXRay,
 					double distance,
 					int axis,
-					class KX_Scene* ketsjiScene,
-					PyTypeObject* T = &Type);
+					class KX_Scene* ketsjiScene);
 	virtual ~KX_RaySensor();
 	virtual CValue* GetReplica();
 
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
 	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
 	bool NeedRayCast(KX_ClientObjectInfo* client);
-	
-	KX_PYMETHOD_DOC(KX_RaySensor,GetHitObject);
-	KX_PYMETHOD_DOC(KX_RaySensor,GetHitPosition);
-	KX_PYMETHOD_DOC(KX_RaySensor,GetHitNormal);
-	KX_PYMETHOD_DOC(KX_RaySensor,GetRayDirection);
 
-	virtual PyObject* _getattr(const STR_String& attr);
+
+	//Python Interface
+	enum RayAxis {
+		KX_RAY_AXIS_POS_Y = 0,
+		KX_RAY_AXIS_POS_X,
+		KX_RAY_AXIS_POS_Z,
+		KX_RAY_AXIS_NEG_X,
+		KX_RAY_AXIS_NEG_Y,
+		KX_RAY_AXIS_NEG_Z
+	};
+	
+
+	/* Attributes */
+	static PyObject* pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 };
 

@@ -24,7 +24,7 @@ class CListValue : public CPropValue
 	//PLUGIN_DECLARE_SERIAL (CListValue,CValue)
 
 public:
-	CListValue(PyTypeObject *T = &Type);
+	CListValue();
 	virtual ~CListValue();
 
 	void AddConfigurationData(CValue* menuvalue);
@@ -36,7 +36,7 @@ public:
 	virtual CValue* CalcFinal(VALUE_DATA_TYPE dtype,
 							  VALUE_OPERATOR op,
 							  CValue* val);
-	virtual float GetNumber();
+	virtual double GetNumber();
 	virtual CValue* GetReplica();
 
 public:
@@ -46,6 +46,7 @@ public:
 	bool SearchValue(CValue* val);
 	
 	CValue* FindValue(const STR_String & name);
+	CValue* FindValue(const char *name);
 
 	void ReleaseAndRemoveAll();
 	virtual void SetModified(bool bModified);
@@ -59,12 +60,21 @@ public:
 
 	bool CheckEqual(CValue* first,CValue* second);
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* py_repr(void) {
+		PyObject *py_proxy= this->GetProxy();
+		PyObject *py_list= PySequence_List(py_proxy);
+		PyObject *py_string= PyObject_Repr(py_list);
+		Py_DECREF(py_list);
+		Py_DECREF(py_proxy);
+		return py_string;
+	}
 
-	KX_PYMETHOD(CListValue,append);
-	KX_PYMETHOD(CListValue,reverse);
-	KX_PYMETHOD(CListValue,index);
-	KX_PYMETHOD(CListValue,count);
+	KX_PYMETHOD_O(CListValue,append);
+	KX_PYMETHOD_NOARGS(CListValue,reverse);
+	KX_PYMETHOD_O(CListValue,index);
+	KX_PYMETHOD_O(CListValue,count);
+	KX_PYMETHOD_VARARGS(CListValue,get);
+	KX_PYMETHOD_O(CListValue,from_id);
 
 	
 private:

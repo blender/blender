@@ -17,12 +17,17 @@
 #include "BulletSoftBody/btSoftBody.h"
 
 
-KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna)
-: KX_IPhysicsController(dyna,(PHY_IPhysicsController*)this),
+KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool compound)
+: KX_IPhysicsController(dyna,sensor,compound,(PHY_IPhysicsController*)this),
 CcdPhysicsController(ci),
-m_savedCollisionFlags(0)
+m_savedCollisionFlags(0),
+m_savedCollisionFilterGroup(0),
+m_savedCollisionFilterMask(0),
+m_savedMass(0.0),
+m_savedDyna(false),
+m_suspended(false),
+m_bulletChildShape(NULL)
 {
-
 }
 	
 KX_BulletPhysicsController::~KX_BulletPhysicsController ()
@@ -58,6 +63,24 @@ void	KX_BulletPhysicsController::applyImpulse(const MT_Point3& attach, const MT_
 
 }
 
+float KX_BulletPhysicsController::GetLinVelocityMin()
+{
+	return (float)CcdPhysicsController::GetLinVelocityMin();
+}
+void  KX_BulletPhysicsController::SetLinVelocityMin(float val)
+{
+	CcdPhysicsController::SetLinVelocityMin(val);
+}
+
+float KX_BulletPhysicsController::GetLinVelocityMax()
+{
+	return (float)CcdPhysicsController::GetLinVelocityMax();
+}
+void  KX_BulletPhysicsController::SetLinVelocityMax(float val)
+{
+	CcdPhysicsController::SetLinVelocityMax(val);
+}
+
 void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 {
 	SG_Controller::SetObject(object);
@@ -69,9 +92,19 @@ void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 	gameobj->SetPhysicsController(this,gameobj->IsDynamic());
 	CcdPhysicsController::setNewClientInfo(gameobj->getClientInfo());
 
-
+	if (m_bSensor)
+	{
+		// use a different callback function for sensor object, 
+		// bullet will not synchronize, we must do it explicitely
+		SG_Callbacks& callbacks = gameobj->GetSGNode()->GetCallBackFunctions();
+		callbacks.m_updatefunc = KX_GameObject::SynchronizeTransformFunc;
+	} 
 }
 
+MT_Scalar KX_BulletPhysicsController::GetRadius()
+{
+	return MT_Scalar(CcdPhysicsController::GetRadius());
+}
 
 void	KX_BulletPhysicsController::setMargin (float collisionMargin)
 {
@@ -147,6 +180,20 @@ void KX_BulletPhysicsController::setScaling(const MT_Vector3& scaling)
 {
 	CcdPhysicsController::setScaling(scaling.x(),scaling.y(),scaling.z());
 }
+void KX_BulletPhysicsController::SetTransform()
+{
+	btVector3 pos;
+	btVector3 scale;
+	float ori[12];
+	m_MotionState->getWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
+	m_MotionState->getWorldScaling(scale.m_floats[0],scale.m_floats[1],scale.m_floats[2]);
+	m_MotionState->getWorldOrientation(ori);
+	btMatrix3x3 rot(ori[0], ori[4], ori[8],
+					ori[1], ori[5], ori[9],
+					ori[2], ori[6], ori[10]);
+	CcdPhysicsController::forceWorldTransform(rot, pos);
+}
+
 MT_Scalar	KX_BulletPhysicsController::GetMass()
 {
 	if (GetSoftBody())
@@ -161,9 +208,18 @@ MT_Scalar	KX_BulletPhysicsController::GetMass()
 
 }
 
-MT_Scalar KX_BulletPhysicsController::GetRadius()
+MT_Vector3 KX_BulletPhysicsController::GetLocalInertia()
 {
-	return MT_Scalar(CcdPhysicsController::GetRadius());
+    MT_Vector3 inertia(0.f, 0.f, 0.f);
+    btVector3 inv_inertia;
+    if (GetRigidBody()) {
+        inv_inertia = GetRigidBody()->getInvInertiaDiagLocal();
+		if (!btFuzzyZero(inv_inertia.getX()) && 
+			!btFuzzyZero(inv_inertia.getY()) && 
+			!btFuzzyZero(inv_inertia.getZ()))
+			inertia = MT_Vector3(1.f/inv_inertia.getX(), 1.f/inv_inertia.getY(), 1.f/inv_inertia.getZ());
+    }
+    return inertia;
 }
 
 MT_Vector3	KX_BulletPhysicsController::getReactionForce()
@@ -175,36 +231,187 @@ void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 {
 }
 
+/* This function dynamically adds the collision shape of another controller to
+   the current controller shape provided it is a compound shape.
+   The idea is that dynamic parenting on a compound object will dynamically extend the shape
+*/
+void    KX_BulletPhysicsController::AddCompoundChild(KX_IPhysicsController* child)
+{ 
+	if (child == NULL || !IsCompound())
+		return;
+	// other controller must be a bullet controller too
+	// verify that body and shape exist and match
+	KX_BulletPhysicsController* childCtrl = dynamic_cast<KX_BulletPhysicsController*>(child);
+	btRigidBody* rootBody = GetRigidBody();
+	btRigidBody* childBody = childCtrl->GetRigidBody();
+	if (!rootBody || !childBody)
+		return;
+	const btCollisionShape* rootShape = rootBody->getCollisionShape();
+	const btCollisionShape* childShape = childBody->getCollisionShape();
+	if (!rootShape || 
+		!childShape || 
+		rootShape->getShapeType() != COMPOUND_SHAPE_PROXYTYPE ||
+		childShape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE)
+		return;
+	btCompoundShape* compoundShape = (btCompoundShape*)rootShape;
+	// compute relative transformation between parent and child
+	btTransform rootTrans;
+	btTransform childTrans;
+	rootBody->getMotionState()->getWorldTransform(rootTrans);
+	childBody->getMotionState()->getWorldTransform(childTrans);
+	btVector3 rootScale = rootShape->getLocalScaling();
+	rootScale[0] = 1.0/rootScale[0];
+	rootScale[1] = 1.0/rootScale[1];
+	rootScale[2] = 1.0/rootScale[2];
+	// relative scale = child_scale/parent_scale
+	btVector3 relativeScale = childShape->getLocalScaling()*rootScale;
+	btMatrix3x3 rootRotInverse = rootTrans.getBasis().transpose();	
+	// relative pos = parent_rot^-1 * ((parent_pos-child_pos)/parent_scale)
+	btVector3 relativePos = rootRotInverse*((childTrans.getOrigin()-rootTrans.getOrigin())*rootScale);
+	// relative rot = parent_rot^-1 * child_rot
+	btMatrix3x3 relativeRot = rootRotInverse*childTrans.getBasis();
+	// create a proxy shape info to store the transformation
+	CcdShapeConstructionInfo* proxyShapeInfo = new CcdShapeConstructionInfo();
+	// store the transformation to this object shapeinfo
+	proxyShapeInfo->m_childTrans.setOrigin(relativePos);
+	proxyShapeInfo->m_childTrans.setBasis(relativeRot);
+	proxyShapeInfo->m_childScale.setValue(relativeScale[0], relativeScale[1], relativeScale[2]);
+	// we will need this to make sure that we remove the right proxy later when unparenting
+	proxyShapeInfo->m_userData = childCtrl;
+	proxyShapeInfo->SetProxy(childCtrl->GetShapeInfo()->AddRef());
+	// add to parent compound shapeinfo
+	GetShapeInfo()->AddShape(proxyShapeInfo);
+	// create new bullet collision shape from the object shapeinfo and set scaling
+	btCollisionShape* newChildShape = proxyShapeInfo->CreateBulletShape(childCtrl->GetMargin());
+	newChildShape->setLocalScaling(relativeScale);
+	// add bullet collision shape to parent compound collision shape
+	compoundShape->addChildShape(proxyShapeInfo->m_childTrans,newChildShape);
+	// remember we created this shape
+	childCtrl->m_bulletChildShape = newChildShape;
+	// recompute inertia of parent
+	if (!rootBody->isStaticOrKinematicObject())
+	{
+		btVector3 localInertia;
+		float mass = 1.f/rootBody->getInvMass();
+		compoundShape->calculateLocalInertia(mass,localInertia);
+		rootBody->setMassProps(mass,localInertia);
+	}
+	// must update the broadphase cache,
+	GetPhysicsEnvironment()->refreshCcdPhysicsController(this);
+	// remove the children
+	GetPhysicsEnvironment()->disableCcdPhysicsController(childCtrl);
+}
+
+/* Reverse function of the above, it will remove a shape from a compound shape
+   provided that the former was added to the later using  AddCompoundChild()
+*/
+void    KX_BulletPhysicsController::RemoveCompoundChild(KX_IPhysicsController* child)
+{ 
+	if (child == NULL || !IsCompound())
+		return;
+	// other controller must be a bullet controller too
+	// verify that body and shape exist and match
+	KX_BulletPhysicsController* childCtrl = dynamic_cast<KX_BulletPhysicsController*>(child);
+	btRigidBody* rootBody = GetRigidBody();
+	btRigidBody* childBody = childCtrl->GetRigidBody();
+	if (!rootBody || !childBody)
+		return;
+	const btCollisionShape* rootShape = rootBody->getCollisionShape();
+	if (!rootShape || 
+		rootShape->getShapeType() != COMPOUND_SHAPE_PROXYTYPE)
+		return;
+	btCompoundShape* compoundShape = (btCompoundShape*)rootShape;
+	// retrieve the shapeInfo
+	CcdShapeConstructionInfo* childShapeInfo = childCtrl->GetShapeInfo();
+	CcdShapeConstructionInfo* rootShapeInfo = GetShapeInfo();
+	// and verify that the child is part of the parent
+	int i = rootShapeInfo->FindChildShape(childShapeInfo, childCtrl);
+	if (i < 0)
+		return;
+	rootShapeInfo->RemoveChildShape(i);
+	if (childCtrl->m_bulletChildShape)
+	{
+		int numChildren = compoundShape->getNumChildShapes();
+		for (i=0; i<numChildren; i++)
+		{
+			if (compoundShape->getChildShape(i) == childCtrl->m_bulletChildShape)
+			{
+				compoundShape->removeChildShapeByIndex(i);
+				compoundShape->recalculateLocalAabb();
+				break;
+			}
+		}
+		delete childCtrl->m_bulletChildShape;
+		childCtrl->m_bulletChildShape = NULL;
+	}
+	// recompute inertia of parent
+	if (!rootBody->isStaticOrKinematicObject())
+	{
+		btVector3 localInertia;
+		float mass = 1.f/rootBody->getInvMass();
+		compoundShape->calculateLocalInertia(mass,localInertia);
+		rootBody->setMassProps(mass,localInertia);
+	}
+	// must update the broadphase cache,
+	GetPhysicsEnvironment()->refreshCcdPhysicsController(this);
+	// reactivate the children
+	GetPhysicsEnvironment()->enableCcdPhysicsController(childCtrl);
+}
+
+void KX_BulletPhysicsController::SetMass(MT_Scalar newmass)
+{
+	btRigidBody *body = GetRigidBody();
+	if (body && !m_suspended && newmass>MT_EPSILON && GetMass()>MT_EPSILON)
+	{
+		btVector3 grav = body->getGravity();
+		btVector3 accel = grav / GetMass();
+		
+		btBroadphaseProxy* handle = body->getBroadphaseHandle();
+		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
+			newmass,
+			body->getCollisionFlags(),
+			handle->m_collisionFilterGroup, 
+			handle->m_collisionFilterMask);
+		body->setGravity(accel);
+	}
+}
+
 void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 {
 	btRigidBody *body = GetRigidBody();
-	if (body && body->getActivationState() != DISABLE_SIMULATION)
+	if (body && !m_suspended && !IsSensor())
 	{
 		btBroadphaseProxy* handle = body->getBroadphaseHandle();
 		m_savedCollisionFlags = body->getCollisionFlags();
 		m_savedMass = GetMass();
+		m_savedDyna = m_bDyna;
 		m_savedCollisionFilterGroup = handle->m_collisionFilterGroup;
 		m_savedCollisionFilterMask = handle->m_collisionFilterMask;
-		body->setActivationState(DISABLE_SIMULATION);
+		m_suspended = true;
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
 			0.0,
 			btCollisionObject::CF_STATIC_OBJECT|((ghost)?btCollisionObject::CF_NO_CONTACT_RESPONSE:(m_savedCollisionFlags&btCollisionObject::CF_NO_CONTACT_RESPONSE)),
 			btBroadphaseProxy::StaticFilter, 
 			btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter);
+		m_bDyna = false;
 	}
 }
 
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
 	btRigidBody *body = GetRigidBody();
-	if (body && body->getActivationState() == DISABLE_SIMULATION)
+	if (body && m_suspended)
 	{
+		// before make sure any position change that was done in this logic frame are accounted for
+		SetTransform();
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
 			m_savedMass,
 			m_savedCollisionFlags,
 			m_savedCollisionFilterGroup,
 			m_savedCollisionFilterMask);
-		GetRigidBody()->forceActivationState(ACTIVE_TAG);
+		body->activate();
+		m_bDyna = m_savedDyna;
+		m_suspended = false;
 	}
 }
 
@@ -236,10 +443,10 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 			childit!= destnode->GetSGChildren().end();
 			++childit
 				) {
-				KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
-				if (clientgameobj)
+				KX_GameObject *clientgameobj_child = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
+				if (clientgameobj_child)
 				{
-					parentKxCtrl = (KX_BulletPhysicsController*)clientgameobj->GetPhysicsController();
+					parentKxCtrl = (KX_BulletPhysicsController*)clientgameobj_child->GetPhysicsController();
 					parentctrl = parentKxCtrl;
 					ccdParent = parentKxCtrl;
 				}
@@ -250,6 +457,7 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 	physicsreplica->setParentCtrl(ccdParent);
 	physicsreplica->PostProcessReplica(motionstate,parentctrl);
 	physicsreplica->m_userdata = (PHY_IPhysicsController*)physicsreplica;
+	physicsreplica->m_bulletChildShape = NULL;
 	return physicsreplica;
 	
 }
@@ -258,23 +466,24 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 
 void	KX_BulletPhysicsController::SetSumoTransform(bool nondynaonly)
 {
-	if (GetRigidBody())
-		GetRigidBody()->activate(true);
 
-	if (!m_bDyna)
+	if (!m_bDyna && !m_bSensor)
 	{
-		GetCollisionObject()->setCollisionFlags(GetRigidBody()->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		btCollisionObject* object = GetRigidBody();
+		object->setActivationState(ACTIVE_TAG);
+		object->setCollisionFlags(object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 	} else
 	{
 		if (!nondynaonly)
 		{
+			/*
 			btTransform worldTrans;
 			if (GetRigidBody())
 			{
 				GetRigidBody()->getMotionState()->getWorldTransform(worldTrans);
 				GetRigidBody()->setCenterOfMassTransform(worldTrans);
 			}
-			
+			*/
 			/*
 			scaling?
 			if (m_bDyna)

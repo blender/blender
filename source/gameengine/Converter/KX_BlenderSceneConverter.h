@@ -44,7 +44,6 @@ class BL_InterpolatorList;
 class BL_Material;
 struct IpoCurve;
 struct Main;
-struct SpaceIpo;
 struct Scene;
 
 class KX_BlenderSceneConverter : public KX_ISceneConverter
@@ -57,19 +56,14 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	// Should also have a list of collision shapes. 
 	// For the time being this is held in KX_Scene::m_shapes
 
-	GEN_Map<CHashedPtr,struct Object*> m_map_gameobject_to_blender;
-	GEN_Map<CHashedPtr,KX_GameObject*> m_map_blender_to_gameobject;
-
-	GEN_Map<CHashedPtr,RAS_MeshObject*> m_map_mesh_to_gamemesh;
-//	GEN_Map<CHashedPtr,DT_ShapeHandle> m_map_gamemesh_to_sumoshape;
+	GEN_Map<CHashedPtr,KX_GameObject*>	m_map_blender_to_gameobject;		/* cleared after conversion */
+	GEN_Map<CHashedPtr,RAS_MeshObject*>	m_map_mesh_to_gamemesh;				/* cleared after conversion */
+	GEN_Map<CHashedPtr,SCA_IActuator*>	m_map_blender_to_gameactuator;		/* cleared after conversion */
+	GEN_Map<CHashedPtr,SCA_IController*>m_map_blender_to_gamecontroller;	/* cleared after conversion */
 	
-	GEN_Map<CHashedPtr,SCA_IActuator*> m_map_blender_to_gameactuator;
-	GEN_Map<CHashedPtr,SCA_IController*> m_map_blender_to_gamecontroller;
-	
-	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameipolist;
+	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameAdtList;
 	
 	Main*					m_maggie;
-	SpaceIpo*				m_sipo;
 
 	STR_String				m_newfilename;
 	class KX_KetsjiEngine*	m_ketsjiEngine;
@@ -78,13 +72,12 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	bool					m_usemat;
 	bool					m_useglslmat;
 
-	void localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo);
+	void localDel_ipoCurve ( IpoCurve * icu );
 //	struct Ipo* findIpoForName(char* objName);
 
 public:
 	KX_BlenderSceneConverter(
 		Main* maggie,
-		SpaceIpo *sipo,
 		class KX_KetsjiEngine* engine
 	);
 
@@ -95,10 +88,8 @@ public:
 	 * dictobj: python dictionary (for pythoncontrollers)
 	 */
 	virtual void	ConvertScene(
-						const STR_String& scenename,
 						class KX_Scene* destinationscene,
 						PyObject* dictobj,
-						class SCA_IInputDevice* keyinputdev,
 						class RAS_IRenderTools* rendertools,
 						class RAS_ICanvas* canvas
 					);
@@ -112,20 +103,16 @@ public:
 	void RegisterGameObject(KX_GameObject *gameobject, struct Object *for_blenderobject);
 	void UnregisterGameObject(KX_GameObject *gameobject);
 	KX_GameObject *FindGameObject(struct Object *for_blenderobject);
-	struct Object *FindBlenderObject(KX_GameObject *for_gameobject);
 
 	void RegisterGameMesh(RAS_MeshObject *gamemesh, struct Mesh *for_blendermesh);
-	RAS_MeshObject *FindGameMesh(struct Mesh *for_blendermesh, unsigned int onlayer);
-
-//	void RegisterSumoShape(DT_ShapeHandle shape, RAS_MeshObject *for_gamemesh);
-//	DT_ShapeHandle FindSumoShape(RAS_MeshObject *for_gamemesh);
+	RAS_MeshObject *FindGameMesh(struct Mesh *for_blendermesh/*, unsigned int onlayer*/);
 
 	void RegisterPolyMaterial(RAS_IPolyMaterial *polymat);
 
 	void RegisterBlenderMaterial(BL_Material *mat);
 	
-	void RegisterInterpolatorList(BL_InterpolatorList *ipoList, struct Ipo *for_ipo);
-	BL_InterpolatorList *FindInterpolatorList(struct Ipo *for_ipo);
+	void RegisterInterpolatorList(BL_InterpolatorList *adtList, struct AnimData *for_adt);
+	BL_InterpolatorList *FindInterpolatorList(struct AnimData *for_adt);
 
 	void RegisterGameActuator(SCA_IActuator *act, struct bActuator *for_actuator);
 	SCA_IActuator *FindGameActuator(struct bActuator *for_actuator);
@@ -153,6 +140,15 @@ public:
 	virtual bool GetGLSLMaterials();
 
 	struct Scene* GetBlenderSceneForName(const STR_String& name);
+
+	struct Main* GetMain() { return m_maggie; };
+
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderSceneConverter"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_BLENDERSCENECONVERTER_H

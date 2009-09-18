@@ -19,7 +19,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btUnionFind.h"
 #include "btCollisionCreateFunc.h"
 #include "LinearMath/btAlignedObjectArray.h"
-
+#include "btCollisionObject.h"
 
 class btCollisionObject;
 class btCollisionWorld;
@@ -35,6 +35,7 @@ class btSimulationIslandManager
 	btAlignedObjectArray<btPersistentManifold*>  m_islandmanifold;
 	btAlignedObjectArray<btCollisionObject* >  m_islandBodies;
 	
+	bool m_splitIslands;
 	
 public:
 	btSimulationIslandManager();
@@ -61,9 +62,18 @@ public:
 		virtual	void	ProcessIsland(btCollisionObject** bodies,int numBodies,class btPersistentManifold**	manifolds,int numManifolds, int islandId) = 0;
 	};
 
-	void	buildAndProcessIslands(btDispatcher* dispatcher,btCollisionObjectArray& collisionObjects, IslandCallback* callback);
+	void	buildAndProcessIslands(btDispatcher* dispatcher,btCollisionWorld* collisionWorld, IslandCallback* callback);
 
-	void buildIslands(btDispatcher* dispatcher,btCollisionObjectArray& collisionObjects);
+	void buildIslands(btDispatcher* dispatcher,btCollisionWorld* colWorld);
+
+	bool getSplitIslands()
+	{
+		return m_splitIslands;
+	}
+	void setSplitIslands(bool doSplitIslands)
+	{
+		m_splitIslands = doSplitIslands;
+	}
 
 };
 

@@ -58,8 +58,8 @@ KX_IpoSGController::KX_IpoSGController()
   m_ipo_add(false),
   m_ipo_local(false),
   m_modified(true),
-  m_ipo_start_initialized(false),
   m_ipotime(1.0),
+  m_ipo_start_initialized(false),
   m_ipo_start_euler(0.0,0.0,0.0),
   m_ipo_euler_initialized(false)
 {
@@ -194,7 +194,8 @@ bool KX_IpoSGController::Update(double currentTime)
 					else
 						newPosition = m_ipo_start_point + newPosition;
 				}
-				ob->SetLocalPosition(newPosition);
+				if (m_game_object)
+					m_game_object->NodeSetLocalPosition(newPosition);
 			}
 		}
 		//modifies orientation?
@@ -233,7 +234,8 @@ bool KX_IpoSGController::Update(double currentTime)
 						rotation = m_ipo_start_orient * rotation;
 					else
 						rotation = rotation * m_ipo_start_orient;
-					ob->SetLocalOrientation(rotation);
+					if (m_game_object)
+						m_game_object->NodeSetLocalOrientation(rotation);
 				}
 			} else if (m_ipo_channels_active[OB_ROT_X] || m_ipo_channels_active[OB_ROT_Y] || m_ipo_channels_active[OB_ROT_Z]) {
 				if (m_ipo_euler_initialized) {
@@ -265,7 +267,8 @@ bool KX_IpoSGController::Update(double currentTime)
 					else if (m_ipo_channels_active[OB_DROT_Z]) {
 						roll += m_ipo_xform.GetDeltaEulerAngles()[2];
 					}
-					ob->SetLocalOrientation(MT_Vector3(yaw, pitch, roll));
+					if (m_game_object)
+						m_game_object->NodeSetLocalOrientation(MT_Vector3(yaw, pitch, roll));
 				}
 			} else if (m_ipo_start_initialized) {
 				// only DROT, treat as Add
@@ -286,7 +289,8 @@ bool KX_IpoSGController::Update(double currentTime)
 				// dRot are always local
 				MT_Matrix3x3 rotation(MT_Vector3(yaw, pitch, roll));
 				rotation = m_ipo_start_orient * rotation;
-				ob->SetLocalOrientation(rotation);
+				if (m_game_object)
+					m_game_object->NodeSetLocalOrientation(rotation);
 			}
 		}
 		//modifies scale?
@@ -322,8 +326,8 @@ bool KX_IpoSGController::Update(double currentTime)
 			if (m_ipo_add) {
 				newScale = m_ipo_start_scale * newScale;
 			}
-
-			ob->SetLocalScale(newScale);
+			if (m_game_object)
+				m_game_object->NodeSetLocalScale(newScale);
 		}
 
 		m_modified=false;
@@ -342,6 +346,7 @@ SG_Controller*	KX_IpoSGController::GetReplica(class SG_Node* destnode)
 	KX_IpoSGController* iporeplica = new KX_IpoSGController(*this);
 	// clear object that ipo acts on in the replica.
 	iporeplica->ClearObject();
+	iporeplica->SetGameObject((KX_GameObject*)destnode->GetSGClientObject());
 
 	// dirty hack, ask Gino for a better solution in the ipo implementation
 	// hacken en zagen, in what we call datahiding, not written for replication :(

@@ -59,14 +59,17 @@ class KX_SCA_AddObjectActuator : public SCA_IActuator
 	SCA_IScene*	m_scene;
 
 	/// Linear velocity upon creation of the object. 
-	MT_Vector3  m_linear_velocity;
-	
-	/// Angular velocity upon creation of the object. 
-	MT_Vector3  m_angular_velocity;
-
+	float  m_linear_velocity[3];
 	/// Apply the velocity locally 
 	bool m_localLinvFlag;
-	bool m_localAngvFlag;
+	
+	/// Angular velocity upon creation of the object. 
+	float  m_angular_velocity[3];
+	/// Apply the velocity locally 
+	bool m_localAngvFlag; 
+	
+	
+	
 	
 	SCA_IObject*	m_lastCreatedObject;
 	
@@ -82,11 +85,10 @@ public:
 		SCA_IObject *original,
 		int time,
 		SCA_IScene* scene,
-		const MT_Vector3& linvel,
+		const float *linvel,
 		bool linv_local,
-		const MT_Vector3& angvel,
-		bool angv_local,
-		PyTypeObject* T=&Type
+		const float *angvel,
+		bool angv_local
 	);
 
 	~KX_SCA_AddObjectActuator(void);
@@ -107,38 +109,17 @@ public:
 	virtual bool 
 	Update();
 
-	virtual PyObject*  
-	_getattr(
-		const STR_String& attr
-	);
-
 		SCA_IObject*	
 	GetLastCreatedObject(
 	) const ;
 
 	void	InstantAddObject();
 
-	/* 1. setObject */
-	KX_PYMETHOD_DOC_O(KX_SCA_AddObjectActuator,SetObject);
-	/* 2. setTime */
-	KX_PYMETHOD_DOC_O(KX_SCA_AddObjectActuator,SetTime);
-	/* 3. getTime */
-	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetTime);
-	/* 4. getObject */
-	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,GetObject);
-	/* 5. getLinearVelocity */
-	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetLinearVelocity);
-	/* 6. setLinearVelocity */
-	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,SetLinearVelocity);
-	/* 7. getAngularVelocity */
-	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetAngularVelocity);
-	/* 8. setAngularVelocity */
-	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,SetAngularVelocity);
-	/* 9. getLastCreatedObject */
-	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetLastCreatedObject);
-	/* 10. instantAddObject*/
 	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,InstantAddObject);
 
+	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject* pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	
 }; /* end of class KX_SCA_AddObjectActuator : public KX_EditObjectActuator */
 

@@ -4,18 +4,8 @@ Import('env')
 
 SConscript(['glew/SConscript'])
 
-if env['WITH_BF_GAMEENGINE']:
-    SConscript(['qhull/SConscript',
-            'solid/SConscript'])
-
 if env['WITH_BF_BULLET']:
     SConscript(['bullet2/src/SConscript'])
-
-if env['WITH_BF_INTERNATIONAL']:
-    SConscript(['bFTGL/SConscript'])
-
-if env['WITH_BF_VERSE']:
-    SConscript(['verse/dist/SConstruct'])
 
 if env['WITH_BF_FFMPEG'] and env['BF_FFMPEG_LIB'] == '':
     SConscript(['x264/SConscript'])
@@ -32,5 +22,5 @@ if env['WITH_BF_REDCODE'] and env['BF_REDCODE_LIB'] == '':
 if env['OURPLATFORM'] == 'linux2':
     SConscript(['binreloc/SConscript']);
 
-# FFTW not needed atm - dg
-# SConscript(['fftw/SConscript'])
+SConscript(['lzo/SConscript'])
+SConscript(['lzma/SConscript'])

@@ -36,6 +36,7 @@
 #define MAX_MTEX	18
 #endif
 
+struct CurveMapping;
 struct MTex;
 struct Image;
 
@@ -47,20 +48,27 @@ typedef struct BrushClone {
 
 typedef struct Brush {
 	ID id;
+
+	struct BrushClone clone;
+
+	struct CurveMapping *curve;	/* falloff curve */
+	struct MTex *mtex[18];		/* MAX_MTEX */
 	
 	short flag, blend;			/* general purpose flag, blend mode */
 	int size;					/* brush diameter */
-	float innerradius;			/* inner radius after which the falloff starts */
+	float jitter;				/* jitter the position of the brush */
 	float spacing;				/* spacing of paint operations */
+	int smooth_stroke_radius;		/* turning radius (in pixels) for smooth stroke */
+	float smooth_stroke_factor;		/* higher values limit fast changes in the stroke direction */
 	float rate;					/* paint operations / second (airbrush) */
 
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
 
-	short texact, pad;
-	struct MTex *mtex[18];		/* MAX_MTEX */
-
-	struct BrushClone clone;
+	short texact;				/* active texture */
+	char sculpt_tool;			/* active tool */
+	
+	char pad[1];
 } Brush;
 
 /* Brush.flag */
@@ -68,20 +76,27 @@ typedef struct Brush {
 #define BRUSH_TORUS				2
 #define BRUSH_ALPHA_PRESSURE	4
 #define BRUSH_SIZE_PRESSURE		8
-#define BRUSH_RAD_PRESSURE		16
+#define BRUSH_JITTER_PRESSURE	16 /* was BRUSH_RAD_PRESSURE */
 #define BRUSH_SPACING_PRESSURE	32
 #define BRUSH_FIXED_TEX			64
+#define BRUSH_RAKE		128
+#define BRUSH_ANCHORED		256
+#define BRUSH_DIR_IN		512
+#define BRUSH_SPACE		1024
+#define BRUSH_SMOOTH_STROKE	2048
+#define BRUSH_PERSISTENT	4096
 
-/* Brush.blend */
-#define BRUSH_BLEND_MIX 		0
-#define BRUSH_BLEND_ADD 		1
-#define BRUSH_BLEND_SUB 		2
-#define BRUSH_BLEND_MUL 		3
-#define BRUSH_BLEND_LIGHTEN		4
-#define BRUSH_BLEND_DARKEN		5
-#define BRUSH_BLEND_ERASE_ALPHA	6
-#define BRUSH_BLEND_ADD_ALPHA	7
+/* Brush.sculpt_tool */
+#define SCULPT_TOOL_DRAW    1
+#define SCULPT_TOOL_SMOOTH  2
+#define SCULPT_TOOL_PINCH   3
+#define SCULPT_TOOL_INFLATE 4
+#define SCULPT_TOOL_GRAB    5
+#define SCULPT_TOOL_LAYER   6
+#define SCULPT_TOOL_FLATTEN 7
+#define SCULPT_TOOL_CLAY    8
 
+/* ImagePaintSettings.tool */
 #define PAINT_TOOL_DRAW		0
 #define PAINT_TOOL_SOFTEN	1
 #define PAINT_TOOL_SMEAR	2

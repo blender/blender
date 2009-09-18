@@ -51,14 +51,14 @@ public:
 
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 	
-	virtual int	getShapeType() const { return EMPTY_SHAPE_PROXYTYPE;}
-
-	
 	virtual const char*	getName()const
 	{
 		return "Empty";
 	}
 
+	virtual void processAllTriangles(btTriangleCallback* ,const btVector3& ,const btVector3& ) const
+	{
+	}
 
 protected:
 	btVector3	m_localScaling;

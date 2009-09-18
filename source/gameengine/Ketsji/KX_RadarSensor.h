@@ -40,23 +40,23 @@ class KX_RadarSensor : public KX_NearSensor
  protected:
 	Py_Header;
 		
-	MT_Scalar		m_coneradius;
+	float		m_coneradius;
 
 	/**
 	 * Height of the cone.
 	 */
-	MT_Scalar		m_coneheight;
+	float		m_coneheight;
 	int				m_axis;
 
 	/**
 	 * The previous position of the origin of the cone.
 	 */
-	MT_Point3       m_cone_origin;
+	float       m_cone_origin[3];
 
 	/**
 	 * The previous direction of the cone (origin to bottom plane).
 	 */
-	MT_Point3       m_cone_target;
+	float       m_cone_target[3];
 	
 public:
 
@@ -69,9 +69,7 @@ public:
 			double margin,
 			double resetmargin,
 			bool bFindMaterial,
-			const STR_String& touchedpropname,
-			class KX_Scene* kxscene,
-			PyTypeObject* T = &Type);
+			const STR_String& touchedpropname);
 	KX_RadarSensor();
 	virtual ~KX_RadarSensor();
 	virtual void SynchronizeTransform();
@@ -80,12 +78,17 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
-	virtual PyObject* _getattr(const STR_String& attr);
+	enum RadarAxis {
+		KX_RADAR_AXIS_POS_X = 0,
+		KX_RADAR_AXIS_POS_Y,
+		KX_RADAR_AXIS_POS_Z,
+		KX_RADAR_AXIS_NEG_X,
+		KX_RADAR_AXIS_NEG_Y,
+		KX_RADAR_AXIS_NEG_Z
+	};
 
-	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeOrigin);
-	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeTarget);
-	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeHeight);
+	/* python */
+	virtual sensortype GetSensorType() { return ST_RADAR; }
 
 };
 

@@ -77,8 +77,7 @@ class KX_SceneActuator : public SCA_IActuator
 					 KX_Scene* scene,
 					 KX_KetsjiEngine* ketsjiEngine,
 					 const STR_String& nextSceneName,
-					 KX_Camera* camera,
-					 PyTypeObject* T=&Type);
+					 KX_Camera* camera);
 	virtual ~KX_SceneActuator();
 
 	virtual CValue* GetReplica();
@@ -91,25 +90,10 @@ class KX_SceneActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	/* 1. set                                                                */
-	/* Removed */
-	  
-	/* 2. setUseRestart:                                                     */
-	KX_PYMETHOD_DOC(KX_SceneActuator,SetUseRestart);
-	/* 3. getUseRestart:                                                     */
-	KX_PYMETHOD_DOC(KX_SceneActuator,GetUseRestart);
-	/* 4. setScene:                                                          */
-	KX_PYMETHOD_DOC(KX_SceneActuator,SetScene);
-	/* 5. getScene:                                                          */
-	KX_PYMETHOD_DOC(KX_SceneActuator,GetScene);
-	/* 6. setCamera:                                                          */
-	KX_PYMETHOD_DOC(KX_SceneActuator,SetCamera);
-	/* 7. getCamera:                                                          */
-	KX_PYMETHOD_DOC(KX_SceneActuator,GetCamera);
 	
+	static PyObject* pyattr_get_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
 }; /* end of class KXSceneActuator */
 
 #endif

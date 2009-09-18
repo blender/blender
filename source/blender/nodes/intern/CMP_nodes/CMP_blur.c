@@ -567,6 +567,11 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	
 	if(out[0]->hasoutput==0) return;
 	
+	if(nbd->relative) {
+		nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
+		nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+	}
+
 	if (((NodeBlurData *)node->storage)->filtertype == R_FILTER_FAST_GAUSS) {
 		CompBuf *new, *img = in[0]->data;
 		/*from eeshlo's original patch, removed to fit in with the existing blur node */
@@ -665,6 +670,8 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		if(img!=in[0]->data)
 			free_compbuf(img);
 	}
+
+	generate_preview(node, out[0]->data);
 }
 
 static void node_composit_init_blur(bNode* node)
@@ -677,7 +684,7 @@ bNodeType cmp_node_blur= {
 	/* type code   */	CMP_NODE_BLUR,
 	/* name        */	"Blur",
 	/* width+range */	120, 80, 200,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	cmp_node_blur_in,
 	/* output sock */	cmp_node_blur_out,
 	/* storage     */	"NodeBlurData",

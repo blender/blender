@@ -50,12 +50,12 @@
 #include "BLI_arithb.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"
 
 /*  #include "BKE_object.h" */
+#include "BKE_animsys.h"
 #include "BKE_scene.h"
 #include "BKE_blender.h"
 #include "BKE_library.h"
@@ -69,10 +69,10 @@
 
 /* Global variables */
 
-float thresh= 0.6f;
-int totelem=0;
-MetaElem **mainb;
-octal_tree *metaball_tree = NULL;
+static float thresh= 0.6f;
+static int totelem=0;
+static MetaElem **mainb;
+static octal_tree *metaball_tree = NULL;
 /* Functions */
 
 void unlink_mball(MetaBall *mb)
@@ -91,6 +91,7 @@ void free_mball(MetaBall *mb)
 {
 	unlink_mball(mb);	
 	
+	if(mb->adt) BKE_free_animdata((ID *)mb);
 	if(mb->mat) MEM_freeN(mb->mat);
 	if(mb->bb) MEM_freeN(mb->bb);
 	BLI_freelistN(&mb->elems);
@@ -120,7 +121,7 @@ MetaBall *copy_mball(MetaBall *mb)
 	
 	mbn= copy_libblock(mb);
 
-	duplicatelist(&mbn->elems, &mb->elems);
+	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
 	mbn->mat= MEM_dupallocN(mb->mat);
 	for(a=0; a<mbn->totcol; a++) {
@@ -279,6 +280,47 @@ int is_basis_mball(Object *ob)
 	return 1;
 }
 
+/* \brief copy some properties from object to other metaball object with same base name
+ *
+ * When some properties (wiresize, threshold, update flags) of metaball are changed, then this properties
+ * are copied to all metaballs in same "group" (metaballs with same base name: MBall,
+ * MBall.001, MBall.002, etc). The most important is to copy properties to the base metaball,
+ * because this metaball influence polygonisation of metaballs. */
+void copy_mball_properties(Scene *scene, Object *active_object)
+{
+	Base *base;
+	Object *ob;
+	MetaBall *active_mball = (MetaBall*)active_object->data;
+	int basisnr, obnr;
+	char basisname[32], obname[32];
+	
+	splitIDname(active_object->id.name+2, basisname, &basisnr);
+
+	/* XXX recursion check, see scene.c, just too simple code this next_object() */
+	if(F_ERROR==next_object(scene, 0, 0, 0))
+		return;
+	
+	while(next_object(scene, 1, &base, &ob)) {
+		if (ob->type==OB_MBALL) {
+			if(ob!=active_object){
+				splitIDname(ob->id.name+2, obname, &obnr);
+
+				/* Object ob has to be in same "group" ... it means, that it has to have
+				 * same base of its name */
+				if(strcmp(obname, basisname)==0){
+					MetaBall *mb= ob->data;
+
+					/* Copy properties from selected/edited metaball */
+					mb->wiresize= active_mball->wiresize;
+					mb->rendersize= active_mball->rendersize;
+					mb->thresh= active_mball->thresh;
+					mb->flag= active_mball->flag;
+				}
+			}
+		}
+	}
+}
+
 /** \brief This function finds basic MetaBall.
  *
  * Basic MetaBall doesn't include any number at the end of
@@ -286,7 +328,7 @@ int is_basis_mball(Object *ob)
  * blended. MetaBalls with different basic name can't be
  * blended.
  */
-Object *find_basis_mball(Object *basis)
+Object *find_basis_mball(Scene *scene, Object *basis)
 {
 	Base *base;
 	Object *ob,*bob= basis;
@@ -297,18 +339,21 @@ Object *find_basis_mball(Object *basis)
 	splitIDname(basis->id.name+2, basisname, &basisnr);
 	totelem= 0;
 
-	next_object(0, 0, 0);
-	while(next_object(1, &base, &ob)) {
+	/* XXX recursion check, see scene.c, just too simple code this next_object() */
+	if(F_ERROR==next_object(scene, 0, 0, 0))
+		return NULL;
+	
+	while(next_object(scene, 1, &base, &ob)) {
 		
 		if (ob->type==OB_MBALL) {
 			if(ob==bob){
+				MetaBall *mb= ob->data;
+				
 				/* if bob object is in edit mode, then dynamic list of all MetaElems
 				 * is stored in editelems */
-				if(ob==G.obedit) ml= editelems.first;
-				/* keep track of linked data too! */
-				else if(G.obedit && G.obedit->data==ob->data) ml= editelems.first;
+				if(mb->editelems) ml= mb->editelems->first;
 				/* if bob object is in object mode */
-				else ml= ((MetaBall*)ob->data)->elems.first;
+				else ml= mb->elems.first;
 			}
 			else{
 				splitIDname(ob->id.name+2, obname, &obnr);
@@ -316,13 +361,13 @@ Object *find_basis_mball(Object *basis)
 				/* object ob has to be in same "group" ... it means, that it has to have
 				 * same base of its name */
 				if(strcmp(obname, basisname)==0){
+					MetaBall *mb= ob->data;
+					
 					/* if object is in edit mode, then dynamic list of all MetaElems
 					 * is stored in editelems */
-					if(ob==G.obedit) ml= editelems.first;
-					/* keep track of linked data too! */
-					else if(bob==G.obedit && bob->data==ob->data) ml= editelems.first;
-					/* object is in object mode */
-					else ml= ((MetaBall*)ob->data)->elems.first;
+					if(mb->editelems) ml= mb->editelems->first;
+					/* if bob object is in object mode */
+					else ml= mb->elems.first;
 					
 					if(obnr<basisnr){
 						if(!(ob->flag & OB_FROMDUPLI)){
@@ -1452,7 +1497,7 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 	}
 }
 
-float init_meta(Object *ob)	/* return totsize */
+float init_meta(Scene *scene, Object *ob)	/* return totsize */
 {
 	Base *base;
 	Object *bob;
@@ -1471,8 +1516,8 @@ float init_meta(Object *ob)	/* return totsize */
 	
 	/* make main array */
 	
-	next_object(0, 0, 0);
-	while(next_object(1, &base, &bob)) {
+	next_object(scene, 0, 0, 0);
+	while(next_object(scene, 1, &base, &bob)) {
 
 		if(bob->type==OB_MBALL) {
 			zero_size= 0;
@@ -1482,8 +1527,7 @@ float init_meta(Object *ob)	/* return totsize */
 				mat= imat= 0;
 				mb= ob->data;
 	
-				if(ob==G.obedit) ml= editelems.first;
-				else if(G.obedit && G.obedit->type==OB_MBALL && G.obedit->data==mb) ml= editelems.first;
+				if(mb->editelems) ml= mb->editelems->first;
 				else ml= mb->elems.first;
 			}
 			else {
@@ -1493,8 +1537,8 @@ float init_meta(Object *ob)	/* return totsize */
 				splitIDname(bob->id.name+2, name, &nr);
 				if( strcmp(obname, name)==0 ) {
 					mb= bob->data;
-					if(G.obedit && G.obedit->type==OB_MBALL && G.obedit->data==mb) 
-						ml= editelems.first;
+					
+					if(mb->editelems) ml= mb->editelems->first;
 					else ml= mb->elems.first;
 				}
 			}
@@ -2036,7 +2080,7 @@ void init_metaball_octal_tree(int depth)
 	subdivide_metaball_octal_node(node, size[0], size[1], size[2], metaball_tree->depth);
 }
 
-void metaball_polygonize(Object *ob)
+void metaball_polygonize(Scene *scene, Object *ob)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
@@ -2059,7 +2103,7 @@ void metaball_polygonize(Object *ob)
 	mainb= MEM_mallocN(sizeof(void *)*totelem, "mainb");
 	
 	/* initialize all mainb (MetaElems) */
-	totsize= init_meta(ob);
+	totsize= init_meta(scene, ob);
 
 	if(metaball_tree){
 		free_metaball_octal_node(metaball_tree->first);

@@ -20,8 +20,9 @@ subject to the following restrictions:
 
 
 btConvexTriangleMeshShape ::btConvexTriangleMeshShape (btStridingMeshInterface* meshInterface, bool calcAabb)
-:m_stridingMesh(meshInterface)
+: btPolyhedralConvexShape(), m_stridingMesh(meshInterface)
 {
+	m_shapeType = CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE;
 	if ( calcAabb )
 		recalcLocalAabb();
 }
@@ -107,7 +108,7 @@ void	btConvexTriangleMeshShape::batchedUnitVectorGetSupportingVertexWithoutMargi
 		}
 	}
 	
-	//todo: could do the batch inside the callback!
+	///@todo: could do the batch inside the callback!
 
 
 	for (int j=0;j<numVectors;j++)
@@ -162,12 +163,12 @@ int btConvexTriangleMeshShape::getNumEdges() const
 	return 0;
 }
 
-void btConvexTriangleMeshShape::getEdge(int ,btPoint3& ,btPoint3& ) const
+void btConvexTriangleMeshShape::getEdge(int ,btVector3& ,btVector3& ) const
 {
 	btAssert(0);	
 }
 
-void btConvexTriangleMeshShape::getVertex(int ,btPoint3& ) const
+void btConvexTriangleMeshShape::getVertex(int ,btVector3& ) const
 {
 	btAssert(0);
 }
@@ -177,13 +178,13 @@ int	btConvexTriangleMeshShape::getNumPlanes() const
 	return 0;
 }
 
-void btConvexTriangleMeshShape::getPlane(btVector3& ,btPoint3& ,int  ) const
+void btConvexTriangleMeshShape::getPlane(btVector3& ,btVector3& ,int  ) const
 {
 	btAssert(0);
 }
 
 //not yet
-bool btConvexTriangleMeshShape::isInside(const btPoint3& ,btScalar ) const
+bool btConvexTriangleMeshShape::isInside(const btVector3& ,btScalar ) const
 {
 	btAssert(0);
 	return false;
@@ -268,15 +269,12 @@ void btConvexTriangleMeshShape::calculatePrincipalAxisTransform(btTransform& pri
          btVector3 a = triangle[0] - center;
          btVector3 b = triangle[1] - center;
          btVector3 c = triangle[2] - center;
-         btVector3 abc = a + b + c;
          btScalar volNeg = -btFabs(a.triple(b, c)) * btScalar(1. / 6);
          for (int j = 0; j < 3; j++)
          {
             for (int k = 0; k <= j; k++)
             {
-               i[j][k] = i[k][j] = volNeg * (center[j] * center[k]
-                 + btScalar(0.25) * (center[j] * abc[k] + center[k] * abc[j])
-                  + btScalar(0.1) * (a[j] * a[k] + b[j] * b[k] + c[j] * c[k])
+               i[j][k] = i[k][j] = volNeg * (btScalar(0.1) * (a[j] * a[k] + b[j] * b[k] + c[j] * c[k])
                   + btScalar(0.05) * (a[j] * b[k] + a[k] * b[j] + a[j] * c[k] + a[k] * c[j] + b[j] * c[k] + b[k] * c[j]));
             }
          }

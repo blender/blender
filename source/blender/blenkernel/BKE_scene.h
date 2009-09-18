@@ -35,22 +35,17 @@ struct bglMats;
 struct Scene;
 struct Object;
 struct Base;
+struct Text;
 struct AviCodecData;
 struct QuicktimeCodecData;
-struct SculptData;
 struct RenderData;
+struct Text;
+struct Main;
 
-/* sequence related defines */
-#define WHILE_SEQ(base)	{											\
-	int totseq_, seq_; Sequence **seqar;	\
-		build_seqar( base,  &seqar, &totseq_);	\
-			for(seq_ = 0; seq_ < totseq_; seq_++) {	\
-				seq= seqar[seq_];
-				
-				
-#define END_SEQ					}						\
-				if(seqar) MEM_freeN(seqar);		\
-}
+#define SCE_COPY_EMPTY		0
+#define SCE_COPY_LINK_OB	1
+#define SCE_COPY_LINK_DATA	2
+#define SCE_COPY_FULL		3
 
 /* note; doesn't work when scene is empty */
 #define SETLOOPER(s, b) sce= s, b= (Base*)sce->base.first; b; b= (Base*)(b->next?b->next:sce->set?(sce=sce->set)->base.first:NULL)
@@ -59,14 +54,17 @@ struct RenderData;
 void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
-void free_scene(struct Scene *me);
+void free_scene(struct Scene *sce);
 struct Scene *add_scene(char *name);
 struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 
 void set_scene_bg(struct Scene *sce);
 void set_scene_name(char *name);
 
-int next_object(int val, struct Base **base, struct Object **ob);
+struct Scene *copy_scene(struct Main *bmain, struct Scene *sce, int type);
+void unlink_scene(struct Main *bmain, struct Scene *sce, struct Scene *newsce);
+
+int next_object(struct Scene *scene, int val, struct Base **base, struct Object **ob);
 struct Object *scene_find_camera(struct Scene *sc);
 
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);

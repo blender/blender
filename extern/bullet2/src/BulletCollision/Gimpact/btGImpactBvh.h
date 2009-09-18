@@ -32,29 +32,23 @@ subject to the following restrictions:
 
 
 
-/*! \defgroup BOX_TREES
-
-
-
-*/
-//! @{
 
 
 //! Overlapping pair
-struct BT_PAIR
+struct GIM_PAIR
 {
     int m_index1;
     int m_index2;
-    BT_PAIR()
+    GIM_PAIR()
     {}
 
-    BT_PAIR(const BT_PAIR & p)
+    GIM_PAIR(const GIM_PAIR & p)
     {
     	m_index1 = p.m_index1;
     	m_index2 = p.m_index2;
 	}
 
-	BT_PAIR(int index1, int index2)
+	GIM_PAIR(int index1, int index2)
     {
     	m_index1 = index1;
     	m_index2 = index2;
@@ -62,7 +56,7 @@ struct BT_PAIR
 };
 
 //! A pairset array
-class btPairSet: public btAlignedObjectArray<BT_PAIR>
+class btPairSet: public btAlignedObjectArray<GIM_PAIR>
 {
 public:
 	btPairSet()
@@ -71,32 +65,32 @@ public:
 	}
 	inline void push_pair(int index1,int index2)
 	{
-		push_back(BT_PAIR(index1,index2));
+		push_back(GIM_PAIR(index1,index2));
 	}
 
 	inline void push_pair_inv(int index1,int index2)
 	{
-		push_back(BT_PAIR(index2,index1));
+		push_back(GIM_PAIR(index2,index1));
 	}
 };
 
 
-
-struct BT_BVH_DATA
+///GIM_BVH_DATA is an internal GIMPACT collision structure to contain axis aligned bounding box
+struct GIM_BVH_DATA
 {
 	btAABB m_bound;
 	int m_data;
 };
 
 //! Node Structure for trees
-class BT_BVH_TREE_NODE
+class GIM_BVH_TREE_NODE
 {
 public:
 	btAABB m_bound;
 protected:
 	int	m_escapeIndexOrDataIndex;
 public:
-	BT_BVH_TREE_NODE()
+	GIM_BVH_TREE_NODE()
 	{
 		m_escapeIndexOrDataIndex = 0;
 	}
@@ -133,12 +127,12 @@ public:
 };
 
 
-class BT_BVH_DATA_ARRAY:public btAlignedObjectArray<BT_BVH_DATA>
+class GIM_BVH_DATA_ARRAY:public btAlignedObjectArray<GIM_BVH_DATA>
 {
 };
 
 
-class BT_BVH_TREE_NODE_ARRAY:public btAlignedObjectArray<BT_BVH_TREE_NODE>
+class GIM_BVH_TREE_NODE_ARRAY:public btAlignedObjectArray<GIM_BVH_TREE_NODE>
 {
 };
 
@@ -150,15 +144,15 @@ class btBvhTree
 {
 protected:
 	int m_num_nodes;
-	BT_BVH_TREE_NODE_ARRAY m_node_array;
+	GIM_BVH_TREE_NODE_ARRAY m_node_array;
 protected:
 	int _sort_and_calc_splitting_index(
-		BT_BVH_DATA_ARRAY & primitive_boxes,
+		GIM_BVH_DATA_ARRAY & primitive_boxes,
 		 int startIndex,  int endIndex, int splitAxis);
 
-	int _calc_splitting_axis(BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex);
+	int _calc_splitting_axis(GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex);
 
-	void _build_sub_tree(BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex);
+	void _build_sub_tree(GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex);
 public:
 	btBvhTree()
 	{
@@ -167,7 +161,7 @@ public:
 
 	//! prototype functions for box tree management
 	//!@{
-	void build_tree(BT_BVH_DATA_ARRAY & primitive_boxes);
+	void build_tree(GIM_BVH_DATA_ARRAY & primitive_boxes);
 
 	SIMD_FORCE_INLINE void clearNodes()
 	{
@@ -218,7 +212,7 @@ public:
 		return m_node_array[nodeindex].getEscapeIndex();
 	}
 
-	SIMD_FORCE_INLINE const BT_BVH_TREE_NODE * get_node_pointer(int index = 0) const
+	SIMD_FORCE_INLINE const GIM_BVH_TREE_NODE * get_node_pointer(int index = 0) const
 	{
 		return &m_node_array[index];
 	}
@@ -382,12 +376,11 @@ public:
 	}
 
 
-	SIMD_FORCE_INLINE const BT_BVH_TREE_NODE * get_node_pointer(int index = 0) const
+	SIMD_FORCE_INLINE const GIM_BVH_TREE_NODE * get_node_pointer(int index = 0) const
 	{
 		return m_box_tree.get_node_pointer(index);
 	}
 
-//! @}
 
 	static float getAverageTreeCollisionTime();
 

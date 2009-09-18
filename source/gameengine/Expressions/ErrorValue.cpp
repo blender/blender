@@ -34,13 +34,15 @@ effect: constructs a new CErrorValue containing errormessage "Error"
 
 
 
-CErrorValue::CErrorValue(STR_String errmsg)
+CErrorValue::CErrorValue(const char *errmsg)
 /*
 pre:
 effect: constructs a new CErrorValue containing errormessage errmsg
 */
 {
-  m_strErrorText = "[" + errmsg + "]";
+  m_strErrorText = "[";
+  m_strErrorText += errmsg;
+  m_strErrorText += "]";
   SetError(true);
 }
 
@@ -99,7 +101,7 @@ ret: a new object containing the result of applying operator op to val and
 
 
 
-float CErrorValue::GetNumber()
+double CErrorValue::GetNumber()
 {
 	return -1;
 }

@@ -32,10 +32,7 @@
 /* These are defined by the build system... */
 //but the build system is broken, because it doesn't allow for 2 or more defines at once.
 //Please leave Sumo _AND_ Bullet enabled
-#define USE_SUMO_SOLID
 #define USE_BULLET
-
-//#define USE_ODE
 
 //on visual studio 7/8, always enable BULLET for now 
 //you can have multiple physics engines running anyway, and 
@@ -47,6 +44,7 @@
 
 class RAS_MeshObject;
 class KX_Scene;
+struct DerivedMesh;
 
 typedef enum {
 	KX_BOUNDBOX,
@@ -82,6 +80,7 @@ struct KX_ObjectProperties
 	bool	m_ghost;
 	class KX_GameObject*	m_dynamic_parent;
 	bool	m_isactor;
+	bool	m_sensor;
 	bool	m_concave;
 	bool	m_isdeformable;
 	bool	m_disableSleeping;
@@ -124,30 +123,27 @@ struct KX_ObjectProperties
 	float	m_soft_kAHR;			/* Anchors hardness [0,1] */
 	int		m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 	int		m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
+	float   m_soft_welding;			/*   threshold to remove duplicate/nearby vertices */
 
 	/////////////////////////
 	
+	bool	m_lockXaxis;
+	bool	m_lockYaxis;
+	bool	m_lockZaxis;
+	bool	m_lockXRotaxis;
+	bool	m_lockYRotaxis;
+	bool	m_lockZRotaxis;
+
+	/////////////////////////
 	double  m_margin;
+	float	m_contactProcessingThreshold;
+
 	KX_BoundBoxClass	m_boundclass;
 	union {
 		KX_BoxBounds	box;
 		KX_CBounds	c;
 	} m_boundobject;
 };
-
-#ifdef USE_ODE
-
-
-void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
-	RAS_MeshObject* meshobj,
-	KX_Scene* kxscene,
-	struct	PHY_ShapeProps* shapeprops,
-	struct	PHY_MaterialProps*	smmaterial,
-	struct	KX_ObjectProperties*	objprop);
-
-
-#endif //USE_ODE
-
 
 void	KX_ConvertDynamoObject(KX_GameObject* gameobj,
 	RAS_MeshObject* meshobj,
@@ -156,31 +152,19 @@ void	KX_ConvertDynamoObject(KX_GameObject* gameobj,
 	struct	PHY_MaterialProps*	smmaterial,
 	struct	KX_ObjectProperties*	objprop);
 
-#ifdef USE_SUMO_SOLID
-
-void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
-	class	RAS_MeshObject* meshobj,
-	class	KX_Scene* kxscene,
-	struct	PHY_ShapeProps* shapeprops,
-	struct	PHY_MaterialProps*	smmaterial,
-	struct	KX_ObjectProperties*	objprop);
-	
-void	KX_ClearSumoSharedShapes();
-bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
-
-#endif
 
 #ifdef USE_BULLET
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	RAS_MeshObject* meshobj,
+	struct  DerivedMesh* dm,
 	class	KX_Scene* kxscene,
 	struct	PHY_ShapeProps* shapeprops,
 	struct	PHY_MaterialProps*	smmaterial,
 	struct	KX_ObjectProperties*	objprop);
 	
 void	KX_ClearBulletSharedShapes();
-//bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
+bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *from_gameobj, RAS_MeshObject* from_meshobj);
 
 #endif
 #endif //KX_CONVERTPHYSICSOBJECTS

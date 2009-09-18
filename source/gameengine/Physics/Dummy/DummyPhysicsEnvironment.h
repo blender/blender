@@ -48,7 +48,7 @@ public:
 	virtual void		beginFrame();
 	virtual void		endFrame();
 // Perform an integration step of duration 'timeStep'.
-	virtual	bool		proceedDeltaTime(double  curTime,float timeStep);
+	virtual	bool		proceedDeltaTime(double  curTime,float timeStep,float interval);
 	virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep);
 	virtual	float		getFixedTimeStep();
 
@@ -70,6 +70,7 @@ public:
 	}
 
 	virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
+	virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes, int occlusionRes) { return false; }
 
 
 	//gamelogic callbacks
@@ -78,8 +79,8 @@ public:
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
 		{
 		}
-		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl) {}
-		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl) {}
+		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl) { return false; }
+		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl) { return false;}
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;}
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight) { return 0;}
 
@@ -87,6 +88,17 @@ public:
 		{
 		}
 
+		virtual float	getConstraintParam(int constraintId,int param)
+		{
+			return 0.f;
+		}
+
+		
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:DummyPhysicsEnvironment"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //_DUMMYPHYSICSENVIRONMENT

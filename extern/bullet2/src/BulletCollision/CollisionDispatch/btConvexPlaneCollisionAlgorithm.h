@@ -4,8 +4,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -28,17 +28,21 @@ class btPersistentManifold;
 /// Other features are frame-coherency (persistent data) and collision response.
 class btConvexPlaneCollisionAlgorithm : public btCollisionAlgorithm
 {
-	bool	m_ownManifold;
+	bool		m_ownManifold;
 	btPersistentManifold*	m_manifoldPtr;
-	bool	m_isSwapped;
-	
+	bool		m_isSwapped;
+	int			m_numPerturbationIterations;
+	int			m_minimumPointsPerturbationThreshold;
+
 public:
 
-	btConvexPlaneCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* col0,btCollisionObject* col1, bool isSwapped);
+	btConvexPlaneCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* col0,btCollisionObject* col1, bool isSwapped, int numPerturbationIterations,int minimumPointsPerturbationThreshold);
 
 	virtual ~btConvexPlaneCollisionAlgorithm();
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+
+	void collideSingleContact (const btQuaternion& perturbeRot, btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
 	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
@@ -52,15 +56,24 @@ public:
 
 	struct CreateFunc :public 	btCollisionAlgorithmCreateFunc
 	{
+		int	m_numPerturbationIterations;
+		int m_minimumPointsPerturbationThreshold;
+			
+		CreateFunc() 
+			: m_numPerturbationIterations(3),
+			m_minimumPointsPerturbationThreshold(3)
+		{
+		}
+		
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
 			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btConvexPlaneCollisionAlgorithm));
 			if (!m_swapped)
 			{
-				return new(mem) btConvexPlaneCollisionAlgorithm(0,ci,body0,body1,false);
+				return new(mem) btConvexPlaneCollisionAlgorithm(0,ci,body0,body1,false,m_numPerturbationIterations,m_minimumPointsPerturbationThreshold);
 			} else
 			{
-				return new(mem) btConvexPlaneCollisionAlgorithm(0,ci,body0,body1,true);
+				return new(mem) btConvexPlaneCollisionAlgorithm(0,ci,body0,body1,true,m_numPerturbationIterations,m_minimumPointsPerturbationThreshold);
 			}
 		}
 	};

@@ -27,6 +27,7 @@ def matcol(mat):
 		int(mat.R*255),\
 		int(mat.G*255),\
 		int(mat.B*255)
+	else:
 		return None
 
 def mat2vcol(PREF_SEL_FACES_ONLY, PREF_ACTOB_ONLY, PREF_MULTIPLY_COLOR):
@@ -47,7 +48,7 @@ def mat2vcol(PREF_SEL_FACES_ONLY, PREF_ACTOB_ONLY, PREF_MULTIPLY_COLOR):
 		me= ob.getData(mesh=1)
 		
 		try:
-			me.faceUV=True
+			me.vertexColors=True
 		except: # no faces
 			continue
 		

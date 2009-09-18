@@ -319,19 +319,19 @@ void	btOptimizedBvh::updateBvhNodes(btStridingMeshInterface* meshInterface,int f
 				{
 					
 					int graphicsindex = indicestype==PHY_SHORT?((unsigned short*)gfxbase)[j]:gfxbase[j];
-					btScalar* graphicsbase = (btScalar*)(vertexbase+graphicsindex*stride);
-#ifdef DEBUG_PATCH_COLORS
-					btVector3 mycolor = color[index&3];
-					graphicsbase[8] = mycolor.getX();
-					graphicsbase[9] = mycolor.getY();
-					graphicsbase[10] = mycolor.getZ();
-#endif //DEBUG_PATCH_COLORS
-
-
-					triangleVerts[j] = btVector3(
-						graphicsbase[0]*meshScaling.getX(),
-						graphicsbase[1]*meshScaling.getY(),
-						graphicsbase[2]*meshScaling.getZ());
+					if (type == PHY_FLOAT)
+					{
+						float* graphicsbase = (float*)(vertexbase+graphicsindex*stride);
+						triangleVerts[j] = btVector3(
+							graphicsbase[0]*meshScaling.getX(),
+							graphicsbase[1]*meshScaling.getY(),
+							graphicsbase[2]*meshScaling.getZ());
+					}
+					else
+					{
+						double* graphicsbase = (double*)(vertexbase+graphicsindex*stride);
+						triangleVerts[j] = btVector3( btScalar(graphicsbase[0]*meshScaling.getX()), btScalar(graphicsbase[1]*meshScaling.getY()), btScalar(graphicsbase[2]*meshScaling.getZ()));
+					}
 				}
 
 

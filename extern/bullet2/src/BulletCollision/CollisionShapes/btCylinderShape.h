@@ -62,11 +62,7 @@ public:
 	//use box inertia
 	//	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
-	virtual int	getShapeType() const
-	{
-		return CYLINDER_SHAPE_PROXYTYPE;
-	}
-	
+
 	int	getUpAxis() const
 	{
 		return m_upAxis;

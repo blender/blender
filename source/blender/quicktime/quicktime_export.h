@@ -37,12 +37,12 @@
 struct RenderData;
 
 void start_qt(struct RenderData *rd, int rectx, int recty);	//for movie handle (BKE writeavi.c now)
-void append_qt(int frame, int *pixels, int rectx, int recty);
+void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
 void end_qt(void);
 
-int  get_qtcodec_settings(void);		//for buttons.c
+int  get_qtcodec_settings(struct RenderData *rd);		//for buttons.c
 void free_qtcomponentdata(void);
-void makeqtstring (char *string);		//for playanim.c
+void makeqtstring(struct RenderData *rd, char *string);		//for playanim.c
 
 #endif //(_WIN32) || (__APPLE__)
 

@@ -38,29 +38,40 @@ typedef unsigned short BL_IpoChannel;
 class BL_ScalarInterpolator : public KX_IScalarInterpolator {
 public:
 	BL_ScalarInterpolator() {} // required for use in STL list
-	BL_ScalarInterpolator(struct Ipo *ipo, BL_IpoChannel channel) :
-		m_blender_ipo(ipo),
-		m_channel(channel)
+	BL_ScalarInterpolator(struct FCurve* fcu) :
+		m_fcu(fcu)
 		{}
 
 	virtual ~BL_ScalarInterpolator() {}
 	
 	virtual float GetValue(float currentTime) const;
-
-	BL_IpoChannel GetChannel() const { return m_channel; }
+	struct FCurve *GetFCurve() { return m_fcu;};
 
 private:
-	struct Ipo    *m_blender_ipo;
-	BL_IpoChannel  m_channel;
+	struct FCurve *m_fcu;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ScalarInterpolator"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 
 class BL_InterpolatorList : public std::vector<KX_IScalarInterpolator *> {
 public:
-	BL_InterpolatorList(struct Ipo *ipo);
+	BL_InterpolatorList(struct AnimData *adt);
 	~BL_InterpolatorList();
 
-	KX_IScalarInterpolator *GetScalarInterpolator(BL_IpoChannel channel);	
+	KX_IScalarInterpolator *GetScalarInterpolator(const char *rna_path, int array_index);	
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_InterpolatorList"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_SCALARINTERPOLATOR_H

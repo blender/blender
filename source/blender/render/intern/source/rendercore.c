@@ -314,7 +314,7 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 				}
 			}
 		}
-		if(R.test_break() ) break; 
+		if(R.test_break(R.tbh) ) break; 
 	}
 }
 
@@ -430,7 +430,7 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 			if(rd) rd++;
 		}
 		if(y&1)
-			if(R.test_break()) break; 
+			if(R.test_break(R.tbh)) break; 
 	}
 }				
 
@@ -477,7 +477,7 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				col= shr->refr;
 				break;
 			case SCE_PASS_RADIO:
-				col= shr->rad;
+				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -569,7 +569,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				col= shr->refr;
 				break;
 			case SCE_PASS_RADIO:
-				col= shr->rad;
+				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -647,7 +647,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 				if(pass[3]<1.0f) {
 					
 					if(done==0) {
-						shadeSkyPixel(col, x, y);
+						shadeSkyPixel(col, x, y, pa->thread);
 						done= 1;
 					}
 					
@@ -662,7 +662,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 		}
 		
 		if(y&1)
-			if(R.test_break()) break; 
+			if(R.test_break(R.tbh)) break; 
 	}
 }
 
@@ -703,7 +703,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 			for(sample=0; sample<totsample; sample++) {
 				float *zrect= RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_Z) + od;
 				float *rgbrect = rlpp[sample]->rectf + 4*od;
-				float rgb[3];
+				float rgb[3] = {0};
 				int done= 0;
 				
 				for(go=R.lights.first; go; go= go->next) {
@@ -760,7 +760,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	int samp;
 	int x, y, seed, crop=0, offs=0, od;
 	
-	if(R.test_break()) return; 
+	if(R.test_break(R.tbh)) return; 
 	
 	/* irregular shadowb buffer creation */
 	if(R.r.mode & R_SHADOW)
@@ -821,7 +821,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 		rectdaps+= pa->rectx;
 		offs+= pa->rectx;
 		
-		if(y&1) if(R.test_break()) break; 
+		if(y&1) if(R.test_break(R.tbh)) break; 
 	}
 	
 	/* disable scanline updating */
@@ -1142,7 +1142,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 			sdata.psmlist= &psmlist;
 			sdata.edgerect= edgerect;
 			zbuffer_solid(pa, rl, make_pixelstructs, &sdata);
-			if(R.test_break()) break; 
+			if(R.test_break(R.tbh)) break; 
 		}
 		
 		/* shades solid */
@@ -1218,7 +1218,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 		if(rl->layflag & SCE_LAY_EDGE) 
 			if(R.r.mode & R_EDGE) 
 				edge_enhance_add(pa, rl->rectf, edgerect);
-				
+		
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
 		
@@ -1280,7 +1280,7 @@ void zbufshade_tile(RenderPart *pa)
 		
 		zbuffer_solid(pa, rl, NULL, NULL);
 		
-		if(!R.test_break()) {	/* NOTE: this if() is not consistant */
+		if(!R.test_break(R.tbh)) {	/* NOTE: this if() is not consistant */
 			
 			/* edges only for solid part, ztransp doesn't support it yet anti-aliased */
 			if(rl->layflag & SCE_LAY_EDGE) {
@@ -1325,7 +1325,7 @@ void zbufshade_tile(RenderPart *pa)
 						}
 					}
 					if(y&1)
-						if(R.test_break()) break; 
+						if(R.test_break(R.tbh)) break; 
 				}
 				
 				if(R.occlusiontree)
@@ -1377,7 +1377,7 @@ void zbufshade_tile(RenderPart *pa)
 		if(rl->layflag & SCE_LAY_SKY)
 			sky_tile(pa, rl);
 		
-		if(!R.test_break()) {
+		if(!R.test_break(R.tbh)) {
 			if(rl->layflag & SCE_LAY_EDGE) 
 				if(R.r.mode & R_EDGE)
 					edge_enhance_add(pa, rl->rectf, edgerect);
@@ -1505,8 +1505,8 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 
 	/* not a pretty solution, but fixes common cases */
 	if(shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
-		VecMulf(shi->vn, -1.0f);
-		VecMulf(shi->vno, -1.0f);
+		VecNegf(shi->vn);
+		VecNegf(shi->vno);
 	}
 
 	/* if nodetree, use the material that we are currently preprocessing
@@ -1515,9 +1515,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 		shi->mat= mat;
 
 	/* init material vars */
-	// note, keep this synced with render_types.h
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-	shi->har= shi->mat->har;
+	shade_input_init_material(shi);
 	
 	/* render */
 	shade_input_set_shade_texco(shi);
@@ -1717,7 +1715,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 		}
 
 		if(y&1)
-			if(re->test_break()) break; 
+			if(re->test_break(re->tbh)) break; 
 	}
 
 	/* note: after adding we do not free these arrays, sss keeps them */
@@ -1797,7 +1795,7 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 	
 				rectft+= 4*rr->rectx;
 				
-				if(R.test_break()) break; 
+				if(R.test_break(R.tbh)) break; 
 			}
 		}
 	}
@@ -1915,7 +1913,7 @@ void add_halo_flare(Render *re)
 	if(do_draw) {
 		/* weak... the display callback wants an active renderlayer pointer... */
 		rr->renlay= rl;
-		re->display_draw(rr, NULL);
+		re->display_draw(re->ddh, rr, NULL);
 	}
 	
 	R.r.mode= mode;	
@@ -1950,10 +1948,7 @@ void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 	if(shi->mat->nodetree && shi->mat->use_nodes)
 		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
 	else {
-		/* copy all relevant material vars, note, keep this synced with render_types.h */
-		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-		shi->har= shi->mat->har;
-		
+		shade_input_init_material(shi);
 		shade_material_loop(shi, shr);
 	}
 }
@@ -2104,9 +2099,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	ShadeResult shr;
 	VlakRen *vlr= shi->vlr;
 	
-	/* init material vars */
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
-	shi->har= shi->mat->har;
+	shade_input_init_material(shi);
 	
 	if(bs->type==RE_BAKE_AO) {
 		ambient_occlusion(shi);
@@ -2241,7 +2234,7 @@ static int bake_check_intersect(Isect *is, int ob, RayFace *face)
 	/* no direction checking for now, doesn't always improve the result
 	 * (INPR(shi->facenor, bs->dir) > 0.0f); */
 
-	return (R.objectinstance[ob].obr->ob != bs->actob);
+	return (R.objectinstance[ob & ~RE_RAY_TRANSFORM_OFFS].obr->ob != bs->actob);
 }
 
 static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *start, float *dir, float sign, float *hitco, float *dist)
@@ -2334,7 +2327,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	ShadeInput *shi= ssamp->shi;
 	
 	/* fast threadsafe break test */
-	if(R.test_break())
+	if(R.test_break(R.tbh))
 		return;
 	
 	/* setup render coordinates */
@@ -2542,8 +2535,12 @@ static void shade_tface(BakeShade *bs)
 	
 	/* get pixel level vertex coordinates */
 	for(a=0; a<4; a++) {
-		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - 0.5f;
-		vec[a][1]= tface->uv[a][1]*(float)bs->recty - 0.5f;
+		/* Note, workaround for pixel aligned UVs which are common and can screw up our intersection tests
+		 * where a pixel gets inbetween 2 faces or the middle of a quad,
+		 * camera aligned quads also have this problem but they are less common.
+		 * Add a small offset to the UVs, fixes bug #18685 - Campbell */
+		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - (0.5f + 0.001);
+		vec[a][1]= tface->uv[a][1]*(float)bs->recty - (0.5f + 0.002);
 	}
 	
 	/* UV indices have to be corrected for possible quad->tria splits */
@@ -2567,7 +2564,7 @@ static void *do_bake_thread(void *bs_v)
 		shade_tface(bs);
 		
 		/* fast threadsafe break test */
-		if(R.test_break())
+		if(R.test_break(R.tbh))
 			break;
 	}
 	bs->ready= 1;

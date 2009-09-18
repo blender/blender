@@ -1,0 +1,22 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.c')
+
+#incs = '#/intern/guardedalloc ../blenlib ../makesdna ../blenkernel'
+#incs += ' ../imbuf ../editors/include ../render/extern/include ../render/intern/include'
+
+incs = '. ../editors/include ../python ../makesdna ../blenlib ../blenkernel'
+incs += ' ../nodes ../imbuf ../blenloader ../render/extern/include'
+incs += ' ../radiosity/extern/include ../../kernel/gen_system'
+incs += ' ../makesrna ../gpu ../blenfont'
+
+incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost'
+incs += ' #/intern/elbeem #/extern/glew/include'
+
+defs = []
+
+if not env['WITH_BF_PYTHON']:
+	defs.append('DISABLE_PYTHON')
+
+env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defs, libtype=['core'], priority=[5] )

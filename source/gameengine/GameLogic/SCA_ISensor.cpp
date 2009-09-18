@@ -45,26 +45,27 @@ void	SCA_ISensor::ReParent(SCA_IObject* parent)
 	SCA_ILogicBrick::ReParent(parent);
 	// will be done when the sensor is activated
 	//m_eventmgr->RegisterSensor(this);
-	this->SetActive(false);
+	//this->SetActive(false);
 }
 
 
 SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
-						 class SCA_EventManager* eventmgr,
-						 PyTypeObject* T ) :
-	SCA_ILogicBrick(gameobj,T),
-	m_triggered(false)
+						 class SCA_EventManager* eventmgr) :
+	SCA_ILogicBrick(gameobj)
 {
 	m_links = 0;
 	m_suspended = false;
 	m_invert = false;
 	m_level = false;
+	m_tap = false;
 	m_reset = false;
 	m_pos_ticks = 0;
 	m_neg_ticks = 0;
 	m_pos_pulsemode = false;
 	m_neg_pulsemode = false;
 	m_pulse_frequency = 0;
+	m_state = false;
+	m_prev_state = false;
 	
 	m_eventmgr = eventmgr;
 }
@@ -73,6 +74,12 @@ SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
 SCA_ISensor::~SCA_ISensor()  
 {
 	// intentionally empty
+}
+
+void SCA_ISensor::ProcessReplica()
+{
+	SCA_ILogicBrick::ProcessReplica();
+	m_linkedcontrollers.clear();
 }
 
 bool SCA_ISensor::IsPositiveTrigger() { 
@@ -104,9 +111,13 @@ void SCA_ISensor::SetLevel(bool lvl) {
 	m_level = lvl;
 }
 
+void SCA_ISensor::SetTap(bool tap) {
+	m_tap = tap;
+}
 
-float SCA_ISensor::GetNumber() {
-	return IsPositiveTrigger();
+
+double SCA_ISensor::GetNumber() {
+	return GetState();
 }
 
 void SCA_ISensor::Suspend() {
@@ -139,96 +150,84 @@ void SCA_ISensor::DecLink() {
 	}
 }
 
-/* python integration */
-
-PyTypeObject SCA_ISensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
-	"SCA_ISensor",
-	sizeof(SCA_ISensor),
-	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
-	0,
-	0,
-	0,
-	0
-};
-
-PyParentObject SCA_ISensor::Parents[] = {
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
-};
-PyMethodDef SCA_ISensor::Methods[] = {
-	{"isPositive", (PyCFunction) SCA_ISensor::sPyIsPositive, 
-	 METH_NOARGS, (PY_METHODCHAR)IsPositive_doc},
-	{"isTriggered", (PyCFunction) SCA_ISensor::sPyIsTriggered, 
-	 METH_VARARGS, (PY_METHODCHAR)IsTriggered_doc},
-	{"getUsePosPulseMode", (PyCFunction) SCA_ISensor::sPyGetUsePosPulseMode, 
-	 METH_NOARGS, (PY_METHODCHAR)GetUsePosPulseMode_doc},
-	{"setUsePosPulseMode", (PyCFunction) SCA_ISensor::sPySetUsePosPulseMode, 
-	 METH_VARARGS, (PY_METHODCHAR)SetUsePosPulseMode_doc},
-	{"getFrequency", (PyCFunction) SCA_ISensor::sPyGetFrequency, 
-	 METH_NOARGS, (PY_METHODCHAR)GetFrequency_doc},
-	{"setFrequency", (PyCFunction) SCA_ISensor::sPySetFrequency, 
-	 METH_VARARGS, (PY_METHODCHAR)SetFrequency_doc},
-	{"getUseNegPulseMode", (PyCFunction) SCA_ISensor::sPyGetUseNegPulseMode, 
-	 METH_NOARGS, (PY_METHODCHAR)GetUseNegPulseMode_doc},
-	{"setUseNegPulseMode", (PyCFunction) SCA_ISensor::sPySetUseNegPulseMode, 
-	 METH_VARARGS, (PY_METHODCHAR)SetUseNegPulseMode_doc},
-	{"getInvert", (PyCFunction) SCA_ISensor::sPyGetInvert, 
-	 METH_NOARGS, (PY_METHODCHAR)GetInvert_doc},
-	{"setInvert", (PyCFunction) SCA_ISensor::sPySetInvert, 
-	 METH_VARARGS, (PY_METHODCHAR)SetInvert_doc},
-	{"getLevel", (PyCFunction) SCA_ISensor::sPyGetLevel, 
-	 METH_NOARGS, (PY_METHODCHAR)GetLevel_doc},
-	{"setLevel", (PyCFunction) SCA_ISensor::sPySetLevel, 
-	 METH_VARARGS, (PY_METHODCHAR)SetLevel_doc},
-	{"reset", (PyCFunction) SCA_ISensor::sPyReset, 
-	 METH_NOARGS, (PY_METHODCHAR)Reset_doc},
-	{NULL,NULL} //Sentinel
-};
-
-
-PyObject*
-SCA_ISensor::_getattr(const STR_String& attr)
-{
-  _getattr_up(SCA_ILogicBrick);
-}
-
-
 void SCA_ISensor::RegisterToManager()
 {
 	// sensor is just activated, initialize it
 	Init();
-	m_newControllers.erase(m_newControllers.begin(), m_newControllers.end());
+	m_state = false;
 	m_eventmgr->RegisterSensor(this);
+}
+
+void SCA_ISensor::LinkToController(SCA_IController* controller)
+{
+	m_linkedcontrollers.push_back(controller);
+}
+
+void SCA_ISensor::UnlinkController(SCA_IController* controller)
+{
+	std::vector<class SCA_IController*>::iterator contit;
+	for (contit = m_linkedcontrollers.begin();!(contit==m_linkedcontrollers.end());++contit)
+	{
+		if ((*contit) == controller)
+		{
+			*contit = m_linkedcontrollers.back();
+			m_linkedcontrollers.pop_back();
+			return;
+		}
+	}
+	printf("Missing link from sensor %s:%s to controller %s:%s\n", 
+		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(), 
+		controller->GetParent()->GetName().ReadPtr(), controller->GetName().ReadPtr());
+}
+
+void SCA_ISensor::UnlinkAllControllers()
+{
+	std::vector<class SCA_IController*>::iterator contit;
+	for (contit = m_linkedcontrollers.begin();!(contit==m_linkedcontrollers.end());++contit)
+	{
+		(*contit)->UnlinkSensor(this);
+	}
+	m_linkedcontrollers.clear();
 }
 
 void SCA_ISensor::UnregisterToManager()
 {
 	m_eventmgr->RemoveSensor(this);
+	m_links = 0;
 }
 
-void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
+void SCA_ISensor::ActivateControllers(class SCA_LogicManager* logicmgr)
+{
+    for(vector<SCA_IController*>::const_iterator c= m_linkedcontrollers.begin();
+		c!=m_linkedcontrollers.end();++c)
+	{
+		SCA_IController* contr = *c;
+		if (contr->IsActive())
+			logicmgr->AddTriggeredController(contr, this);
+	}
+}
+
+void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 {
 	
 	// calculate if a __triggering__ is wanted
 	// don't evaluate a sensor that is not connected to any controller
 	if (m_links && !m_suspended) {
-		bool result = this->Evaluate(event);
+		bool result = this->Evaluate();
+		// store the state for the rest of the logic system
+		m_prev_state = m_state;
+		m_state = this->IsPositiveTrigger();
 		if (result) {
-			logicmgr->AddActivatedSensor(this);	
-			// reset these counters so that pulse are synchronized with transition
-			m_pos_ticks = 0;
-			m_neg_ticks = 0;
+			// the sensor triggered this frame
+			if (m_state || !m_tap) {
+				ActivateControllers(logicmgr);	
+				// reset these counters so that pulse are synchronized with transition
+				m_pos_ticks = 0;
+				m_neg_ticks = 0;
+			} else
+			{
+				result = false;
+			}
 		} else
 		{
 			/* First, the pulsing behaviour, if pulse mode is
@@ -237,206 +236,148 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 			if (m_pos_pulsemode) {
 				m_pos_ticks++;
 				if (m_pos_ticks > m_pulse_frequency) {
-					if ( this->IsPositiveTrigger() )
+					if ( m_state )
 					{
-						logicmgr->AddActivatedSensor(this);
+						ActivateControllers(logicmgr);
+						result = true;
 					}
 					m_pos_ticks = 0;
 				} 
 			}
-			
-			if (m_neg_pulsemode)
+			// negative pulse doesn't make sense in tap mode, skip
+			if (m_neg_pulsemode && !m_tap)
 			{
 				m_neg_ticks++;
 				if (m_neg_ticks > m_pulse_frequency) {
-					if (!this->IsPositiveTrigger() )
+					if (!m_state )
 					{
-						logicmgr->AddActivatedSensor(this);
+						ActivateControllers(logicmgr);
+						result = true;
 					}
 					m_neg_ticks = 0;
 				}
 			}
 		}
-		if (!m_newControllers.empty())
+		if (m_tap)
 		{
-			if (!IsActive() && m_level)
+			// in tap mode: we send always a negative pulse immediately after a positive pulse
+			if (!result)
 			{
-				// This level sensor is connected to at least one controller that was just made 
-				// active but it did not generate an event yet, do it now to those controllers only 
-				for (std::vector<SCA_IController*>::iterator ci=m_newControllers.begin();
-					 ci != m_newControllers.end(); ci++)
+				// the sensor did not trigger on this frame
+				if (m_prev_state)
 				{
-					logicmgr->AddTriggeredController(*ci, this);
+					// but it triggered on previous frame => send a negative pulse
+					ActivateControllers(logicmgr);
+					result = true;
 				}
+				// in any case, absence of trigger means sensor off
+				m_state = false;
 			}
-			// clear the list. Instead of using clear, which also release the memory,
-			// use erase, which keeps the memory available for next time.
-			m_newControllers.erase(m_newControllers.begin(), m_newControllers.end());
+		}
+		if (!result && m_level)
+		{
+			// This level sensor is connected to at least one controller that was just made 
+			// active but it did not generate an event yet, do it now to those controllers only 
+			for(vector<SCA_IController*>::const_iterator c= m_linkedcontrollers.begin();
+				c!=m_linkedcontrollers.end();++c)
+			{
+				SCA_IController* contr = *c;
+				if (contr->IsJustActivated())
+					logicmgr->AddTriggeredController(contr, this);
+			}
 		}
 	} 
 }
+/* ----------------------------------------------- */
+/* Python Functions						           */
+/* ----------------------------------------------- */
 
-/* Python functions: */
-const char SCA_ISensor::IsPositive_doc[] = 
-"isPositive()\n"
-"\tReturns whether the sensor is in an active state.\n";
-PyObject* SCA_ISensor::PyIsPositive(PyObject* self)
-{
-	int retval = IsPositiveTrigger();
-	return PyInt_FromLong(retval);
-}
-
-const char SCA_ISensor::IsTriggered_doc[] = 
-"isTriggered()\n"
-"\tReturns whether the sensor has triggered the current controller.\n";
-PyObject* SCA_ISensor::PyIsTriggered(PyObject* self)
-{
-	// check with the current controller
-	int retval = 0;
-	if (SCA_PythonController::m_sCurrentController)
-		retval = SCA_PythonController::m_sCurrentController->IsTriggered(this);
-	return PyInt_FromLong(retval);
-}
-
-/**
- * getUsePulseMode: getter for the pulse mode (KX_TRUE = on)
- */
-const char SCA_ISensor::GetUsePosPulseMode_doc[] = 
-"getUsePosPulseMode()\n"
-"\tReturns whether positive pulse mode is active.\n";
-PyObject* SCA_ISensor::PyGetUsePosPulseMode(PyObject* self)
-{
-	return BoolToPyArg(m_pos_pulsemode);
-}
-
-/**
- * setUsePulseMode: setter for the pulse mode (KX_TRUE = on)
- */
-const char SCA_ISensor::SetUsePosPulseMode_doc[] = 
-"setUsePosPulseMode(pulse?)\n"
-"\t - pulse? : Pulse when a positive event occurs?\n"
-"\t            (KX_TRUE, KX_FALSE)\n"
-"\tSet whether to do pulsing when positive pulses occur.\n";
-PyObject* SCA_ISensor::PySetUsePosPulseMode(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	int pyarg = 0;
-	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
-	m_pos_pulsemode = PyArgToBool(pyarg);
-	Py_Return;
-}
-
-/**
- * getFrequency: getter for the pulse mode interval
- */
-const char SCA_ISensor::GetFrequency_doc[] = 
-"getFrequency()\n"
-"\tReturns the frequency of the updates in pulse mode.\n" ;
-PyObject* SCA_ISensor::PyGetFrequency(PyObject* self)
-{
-	return PyInt_FromLong(m_pulse_frequency);
-}
-
-/**
- * setFrequency: setter for the pulse mode (KX_TRUE = on)
- */
-const char SCA_ISensor::SetFrequency_doc[] = 
-"setFrequency(pulse_frequency)\n"
-"\t- pulse_frequency: The frequency of the updates in pulse mode (integer)"
-"\tSet the frequency of the updates in pulse mode.\n"
-"\tIf the frequency is negative, it is set to 0.\n" ;
-PyObject* SCA_ISensor::PySetFrequency(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	int pulse_frequencyArg = 0;
-
-	if(!PyArg_ParseTuple(args, "i", &pulse_frequencyArg)) {
-		return NULL;
-	}
-	
-	/* We can do three things here: clip, ignore and raise an exception.  */
-	/* Exceptions don't work yet, ignoring is not desirable now...        */
-	if (pulse_frequencyArg < 0) {
-		pulse_frequencyArg = 0;
-	};	
-	m_pulse_frequency = pulse_frequencyArg;
-
-	Py_Return;
-}
-
-
-const char SCA_ISensor::GetInvert_doc[] = 
-"getInvert()\n"
-"\tReturns whether or not pulses from this sensor are inverted.\n" ;
-PyObject* SCA_ISensor::PyGetInvert(PyObject* self)
-{
-	return BoolToPyArg(m_invert);
-}
-
-const char SCA_ISensor::SetInvert_doc[] = 
-"setInvert(invert?)\n"
-"\t- invert?: Invert the event-values? (KX_TRUE, KX_FALSE)\n"
-"\tSet whether to invert pulses.\n";
-PyObject* SCA_ISensor::PySetInvert(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	int pyarg = 0;
-	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
-	m_invert = PyArgToBool(pyarg);
-	Py_Return;
-}
-
-const char SCA_ISensor::GetLevel_doc[] = 
-"getLevel()\n"
-"\tReturns whether this sensor is a level detector or a edge detector.\n"
-"\tIt makes a difference only in case of logic state transition (state actuator).\n"
-"\tA level detector will immediately generate a pulse, negative or positive\n"
-"\tdepending on the sensor condition, as soon as the state is activated.\n"
-"\tA edge detector will wait for a state change before generating a pulse.\n";
-PyObject* SCA_ISensor::PyGetLevel(PyObject* self)
-{
-	return BoolToPyArg(m_level);
-}
-
-const char SCA_ISensor::SetLevel_doc[] = 
-"setLevel(level?)\n"
-"\t- level?: Detect level instead of edge? (KX_TRUE, KX_FALSE)\n"
-"\tSet whether to detect level or edge transition when entering a state.\n";
-PyObject* SCA_ISensor::PySetLevel(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	int pyarg = 0;
-	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
-	m_level = PyArgToBool(pyarg);
-	Py_Return;
-}
-
-const char SCA_ISensor::GetUseNegPulseMode_doc[] = 
-"getUseNegPulseMode()\n"
-"\tReturns whether negative pulse mode is active.\n";
-PyObject* SCA_ISensor::PyGetUseNegPulseMode(PyObject* self)
-{
-	return BoolToPyArg(m_neg_pulsemode);
-}
-
-const char SCA_ISensor::SetUseNegPulseMode_doc[] = 
-"setUseNegPulseMode(pulse?)\n"
-"\t - pulse? : Pulse when a negative event occurs?\n"
-"\t            (KX_TRUE, KX_FALSE)\n"
-"\tSet whether to do pulsing when negative pulses occur.\n";
-PyObject* SCA_ISensor::PySetUseNegPulseMode(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	int pyarg = 0;
-	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
-	m_neg_pulsemode = PyArgToBool(pyarg);
-	Py_Return;
-}
-
-const char SCA_ISensor::Reset_doc[] = 
+KX_PYMETHODDEF_DOC_NOARGS(SCA_ISensor, reset,
 "reset()\n"
 "\tReset sensor internal state, effect depends on the type of sensor and settings.\n"
-"\tThe sensor is put in its initial state as if it was just activated.\n";
-PyObject* SCA_ISensor::PyReset(PyObject* self)
+"\tThe sensor is put in its initial state as if it was just activated.\n")
 {
 	Init();
-	Py_Return;
+	m_prev_state = false;
+	Py_RETURN_NONE;
 }
 
+/* ----------------------------------------------- */
+/* Python Integration Hooks					       */
+/* ----------------------------------------------- */
+
+PyTypeObject SCA_ISensor::Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"SCA_ISensor",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ILogicBrick::Type,
+	0,0,0,0,0,0,
+	py_base_new
+};
+
+PyMethodDef SCA_ISensor::Methods[] = {
+	KX_PYMETHODTABLE_NOARGS(SCA_ISensor, reset),
+	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef SCA_ISensor::Attributes[] = {
+	KX_PYATTRIBUTE_BOOL_RW("usePosPulseMode",SCA_ISensor,m_pos_pulsemode),
+	KX_PYATTRIBUTE_BOOL_RW("useNegPulseMode",SCA_ISensor,m_neg_pulsemode),
+	KX_PYATTRIBUTE_INT_RW("frequency",0,100000,true,SCA_ISensor,m_pulse_frequency),
+	KX_PYATTRIBUTE_BOOL_RW("invert",SCA_ISensor,m_invert),
+	KX_PYATTRIBUTE_BOOL_RW_CHECK("level",SCA_ISensor,m_level,pyattr_check_level),
+	KX_PYATTRIBUTE_BOOL_RW_CHECK("tap",SCA_ISensor,m_tap,pyattr_check_tap),
+	KX_PYATTRIBUTE_RO_FUNCTION("triggered", SCA_ISensor, pyattr_get_triggered),
+	KX_PYATTRIBUTE_RO_FUNCTION("positive", SCA_ISensor, pyattr_get_positive),
+	//KX_PYATTRIBUTE_TODO("links"),
+	//KX_PYATTRIBUTE_TODO("posTicks"),
+	//KX_PYATTRIBUTE_TODO("negTicks"),
+	{ NULL }	//Sentinel
+};
+
+
+PyObject* SCA_ISensor::pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	int retval = 0;
+	if (SCA_PythonController::m_sCurrentController)
+		retval = SCA_PythonController::m_sCurrentController->IsTriggered(self);
+	return PyLong_FromSsize_t(retval);
+}
+
+PyObject* SCA_ISensor::pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	return PyLong_FromSsize_t(self->GetState());
+}
+
+int SCA_ISensor::pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	if (self->m_level)
+		self->m_tap = false;
+	return 0;
+}
+
+int SCA_ISensor::pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	if (self->m_tap)
+		self->m_level = false;
+	return 0;
+}
 
 /* eof */

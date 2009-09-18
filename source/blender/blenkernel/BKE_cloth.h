@@ -1,7 +1,7 @@
 /**
  * BKE_cloth.h
  *
- * $Id: BKE_cloth.h,v 1.1 2007/08/01 02:07:27 daniel Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -46,11 +46,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_collision.h"
 
 struct Object;
-
+struct Scene;
 struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
@@ -64,8 +65,7 @@ struct CollisionTree;
 #elif defined (__sun) || defined (__sun__)
 #   define DO_INLINE
 #else
-#   define DO_INLINE inline
-#   define LINUX
+#   define DO_INLINE static inline
 #endif
 
 #define CLOTH_MAX_THREAD 2
@@ -176,7 +176,8 @@ typedef enum
 	CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
 	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
 	CLOTH_SIMSETTINGS_FLAG_SCALING = ( 1 << 8 ), /* is advanced scaling active? */
-	CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12)	/* edit cache in editmode */
+	CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12),	/* edit cache in editmode */
+	CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS = (1 << 13) /* don't allow spring compression */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */
@@ -208,7 +209,7 @@ typedef enum
 ////////////////////////////////////////////////
 
 // needed for implicit.c
-int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, float dt );
+int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, float dt );
 
 ////////////////////////////////////////////////
 
@@ -236,17 +237,13 @@ void clmdSetInterruptCallBack ( int ( *f ) ( void ) );
 void cloth_free_modifier_extern ( ClothModifierData *clmd );
 void cloth_free_modifier ( Object *ob, ClothModifierData *clmd );
 void cloth_init ( ClothModifierData *clmd );
-DerivedMesh *clothModifier_do ( ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc );
+DerivedMesh *clothModifier_do ( ClothModifierData *clmd, struct Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc );
 
 void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
 
 // needed for collision.c
 void bvhtree_update_from_cloth ( ClothModifierData *clmd, int moving );
 void bvhselftree_update_from_cloth ( ClothModifierData *clmd, int moving );
-
-// needed for editmesh.c
-void cloth_write_cache ( Object *ob, ClothModifierData *clmd, float framenr );
-int cloth_read_cache ( Object *ob, ClothModifierData *clmd, float framenr );
 
 // needed for button_object.c
 void cloth_clear_cache ( Object *ob, ClothModifierData *clmd, float framenr );

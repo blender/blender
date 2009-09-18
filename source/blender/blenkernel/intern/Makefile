@@ -41,25 +41,27 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../../../intern/memutil
+CPPFLAGS += -I$(NAN_AUDASPACE)/include
 # Reference to the types in makesdna and imbuf
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 # This mod uses the BLI and BLO module
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../python
+CPPFLAGS += -I../../blenfont
 # also avi is used
 CPPFLAGS += -I../../avi
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # we still refer to /include a bit...
-CPPFLAGS += -I../../include
+CPPFLAGS += -I../../editors/include
 
 # to include the render stuff:
 CPPFLAGS += -I../../render/extern/include
 
-# for image stamping
-CPPFLAGS += -I$(NAN_BMFONT)/include
 # for sound
 #CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS +=  $(NAN_SDLCFLAGS)
@@ -68,6 +70,8 @@ CPPFLAGS += -I$(NAN_IKSOLVER)/include
 CPPFLAGS += -I$(NAN_DECIMATION)/include
 CPPFLAGS += -I$(NAN_ELBEEM)/include
 CPPFLAGS += -I$(NAN_OPENNL)/include
+CPPFLAGS += -I$(NAN_BSP)/include
+CPPFLAGS += -I$(NAN_SMOKE)/include
 
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include
@@ -82,18 +86,13 @@ CPPFLAGS += -I../../gpu
 CPPFLAGS += -I..
 
 # path to bullet2, for cloth
-CPPFLAGS += -I../../../../extern/bullet2/src
+CPPFLAGS += -I$(NAN_BULLET2)/include
+CPPFLAGS += -I$(NAN_FREETYPE)/include
+CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 
-ifeq ($(WITH_FREETYPE2), true)
-    CPPFLAGS += -DWITH_FREETYPE2
-    CPPFLAGS += -I$(NAN_FREETYPE)/include
-    CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
-endif
-
-ifeq ($(WITH_VERSE), true)
-    CPPFLAGS += -DWITH_VERSE
-    CPPFLAGS += -I$(NAN_VERSE)/include
-endif
+# lzo and lzma, for pointcache
+CPPFLAGS += -I$(NAN_LZO)/minilzo
+CPPFLAGS += -I$(NAN_LZMA)
 
 ifeq ($(WITH_FFMPEG),true)
     CPPFLAGS += -DWITH_FFMPEG
@@ -108,7 +107,12 @@ ifeq ($(WITH_DDS), true)
     CPPFLAGS += -DWITH_DDS
 endif
 
+ifeq ($(WITH_OPENJPEG), true)
+    CPPFLAGS += -DWITH_OPENJPEG
+endif
+
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I../../quicktime
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
+

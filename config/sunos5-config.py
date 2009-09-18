@@ -22,14 +22,16 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
+BF_LIBSAMPLERATE = '/usr/local'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
 WITH_BF_SDL = True
 BF_SDL = '/usr/local' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 BF_SDL_LIB = 'SDL' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
-
-WITH_BF_FMOD = False
-BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
@@ -70,28 +72,13 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextlib'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = True
-BF_FTGL = '#extern/bFTGL'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
-
 WITH_BF_GAMEENGINE=False
-
-WITH_BF_ODE = False
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
-
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
-
-WITH_BF_YAFRAY = True
 
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr
@@ -127,11 +114,11 @@ BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = False  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = True # -DWITH_FFMPEG
 BF_FFMPEG = '/usr/local'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avformat avcodec avutil'
+BF_FFMPEG_LIB = 'avformat avcodec avutil avdevice'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = False
@@ -165,19 +152,20 @@ CC_WARN = ['-Wall']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = 'c m dl pthread stdc++'
+LLIBS = ['c', 'm', 'dl', 'pthread', 'stdc++']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ['-pg','-g']
+BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = ''
+BF_DEBUG_CCFLAGS = []
 
 BF_BUILDDIR = '../build/sunos5'
 BF_INSTALLDIR='../install/sunos5'
 BF_DOCDIR='../install/doc'
 
 
-PLATFORM_LINKFLAGS = ['']
+PLATFORM_LINKFLAGS = []

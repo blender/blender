@@ -72,6 +72,39 @@ ComputeDefaultFrustum(
 
 	void
 RAS_FramingManager::
+ComputeDefaultOrtho(
+	const float camnear,
+	const float camfar,
+	const float scale,
+	const float design_aspect_ratio,
+	RAS_FrameFrustum & frustum
+)
+{
+	float halfSize = scale*0.5f;
+	float sizeX;
+	float sizeY;
+
+	if (design_aspect_ratio > 1.f) {
+		// halfsize defines the width
+		sizeX = halfSize;
+		sizeY = halfSize/design_aspect_ratio;
+	} else {
+		// halfsize defines the height
+		sizeX = halfSize * design_aspect_ratio;
+		sizeY = halfSize;
+	}
+		
+	frustum.x2 = sizeX;
+	frustum.x1 = -frustum.x2;
+	frustum.y2 = sizeY;
+	frustum.y1 = -frustum.y2;
+	frustum.camnear = -camfar;
+	frustum.camfar = camfar;
+}
+
+
+	void
+RAS_FramingManager::
 ComputeBestFitViewRect(
 	const RAS_Rect &availableViewport,
 	const float design_aspect_ratio,
@@ -227,5 +260,73 @@ ComputeFrustum(
 	}
 }	
 
+	void
+RAS_FramingManager::
+	ComputeOrtho(
+		const RAS_FrameSettings &settings,
+		const RAS_Rect &availableViewport,
+		const RAS_Rect &viewport,
+		const float scale,
+		const float camnear,
+		const float camfar,
+		RAS_FrameFrustum &frustum
+	)
+{
+	RAS_FrameSettings::RAS_FrameType type = settings.FrameType();
+
+	const float design_width = float(settings.DesignAspectWidth());
+	const float design_height = float(settings.DesignAspectHeight());
+
+	float design_aspect_ratio = float(1);
+
+	if (design_height == float(0)) {
+		// well this is ill defined 
+		// lets just scale the thing
+		type = RAS_FrameSettings::e_frame_scale;
+	} else {
+		design_aspect_ratio = design_width/design_height;
+	}
+
+	
+	ComputeDefaultOrtho(
+		camnear,
+		camfar,
+		scale,
+		design_aspect_ratio,
+		frustum
+	);
+
+	switch (type) {
+
+		case RAS_FrameSettings::e_frame_extend:
+		{
+			RAS_Rect vt;
+			ComputeBestFitViewRect(
+				availableViewport,
+				design_aspect_ratio,	
+				vt
+			);
+
+			// now scale the calculated frustum by the difference
+			// between vt and the viewport in each axis.
+			// These are always > 1
+
+			float x_scale = float(viewport.GetWidth())/float(vt.GetWidth());
+			float y_scale = float(viewport.GetHeight())/float(vt.GetHeight());
+
+			frustum.x1 *= x_scale;
+			frustum.x2 *= x_scale;
+			frustum.y1 *= y_scale;
+			frustum.y2 *= y_scale;
+	
+			break;
+		}	
+		case RAS_FrameSettings::e_frame_scale :
+		case RAS_FrameSettings::e_frame_bars:
+		default :
+			break;
+	}
+	
+}
 
 

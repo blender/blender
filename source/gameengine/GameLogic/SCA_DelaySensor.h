@@ -47,11 +47,10 @@ public:
 					SCA_IObject* gameobj,
 					int delay,
 					int duration,
-					bool repeat,
-					PyTypeObject* T =&Type);
+					bool repeat);
 	virtual ~SCA_DelaySensor();
 	virtual CValue* GetReplica();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
@@ -59,17 +58,7 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
-	virtual PyObject* _getattr(const STR_String& attr);
 
-	/* setProperty */
-	KX_PYMETHOD_DOC(SCA_DelaySensor,SetDelay);
-	KX_PYMETHOD_DOC(SCA_DelaySensor,SetDuration);
-	KX_PYMETHOD_DOC(SCA_DelaySensor,SetRepeat);
-	/* getProperty */
-	KX_PYMETHOD_DOC_NOARGS(SCA_DelaySensor,GetDelay);
-	KX_PYMETHOD_DOC_NOARGS(SCA_DelaySensor,GetDuration);
-	KX_PYMETHOD_DOC_NOARGS(SCA_DelaySensor,GetRepeat);
 
 };
 

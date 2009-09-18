@@ -122,14 +122,14 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 			spoint->dtstrandco *= 0.5f;
 	}
 	else {
-		set_four_ipo(t, data, type);
+		key_curve_position_weights(t, data, type);
 		spoint->co[0]= data[0]*p[0][0] + data[1]*p[1][0] + data[2]*p[2][0] + data[3]*p[3][0];
 		spoint->co[1]= data[0]*p[0][1] + data[1]*p[1][1] + data[2]*p[2][1] + data[3]*p[3][1];
 		spoint->co[2]= data[0]*p[0][2] + data[1]*p[1][2] + data[2]*p[2][2] + data[3]*p[3][2];
 		spoint->strandco= (1.0f-t)*sseg->v[1]->strandco + t*sseg->v[2]->strandco;
 	}
 
-	set_afgeleide_four_ipo(t, data, type);
+	key_curve_tangent_weights(t, data, type);
 	spoint->dtco[0]= data[0]*p[0][0] + data[1]*p[1][0] + data[2]*p[2][0] + data[3]*p[3][0];
 	spoint->dtco[1]= data[0]*p[0][1] + data[1]*p[1][1] + data[2]*p[2][1] + data[3]*p[3][1];
 	spoint->dtco[2]= data[0]*p[0][2] + data[1]*p[1][2] + data[2]*p[2][2] + data[3]*p[3][2];
@@ -234,8 +234,8 @@ void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, Sha
 			interpolate_vec3(shr1->refl, shr2->refl, t, negt, shr->refl);
 		if(addpassflag & SCE_PASS_REFRACT)
 			interpolate_vec3(shr1->refr, shr2->refr, t, negt, shr->refr);
-		if(addpassflag & SCE_PASS_RADIO)
-			interpolate_vec3(shr1->rad, shr2->rad, t, negt, shr->rad);
+		/* removed if(addpassflag & SCE_PASS_RADIO)
+			interpolate_vec3(shr1->rad, shr2->rad, t, negt, shr->rad);*/
 		if(addpassflag & SCE_PASS_MIST)
 			interpolate_vec1(&shr1->mist, &shr2->mist, t, negt, &shr->mist);
 	}
@@ -281,9 +281,7 @@ void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, Str
 	shade_input_set_strand_texco(shi, sseg->strand, sseg->v[1], spoint);
 	
 	/* init material vars */
-	// note, keep this synced with render_types.h
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-	shi->har= shi->mat->har;
+	shade_input_init_material(shi);
 	
 	/* shade */
 	shade_samples_do_AO(ssamp);
@@ -773,7 +771,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	float z[4], bounds[4], winmat[4][4];
 	int a, b, c, i, totsegment, clip[4];
 
-	if(re->test_break())
+	if(re->test_break(re->tbh))
 		return 0;
 	if(re->totstrand == 0)
 		return 0;
@@ -881,7 +879,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 		}
 	}
 
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		/* convert list to array and sort */
 		sortsegments= MEM_mallocN(sizeof(StrandSortSegment)*totsegment, "StrandSortSegment");
 		for(a=0, sortseg=firstseg; a<totsegment; a++, sortseg=sortseg->next)
@@ -893,11 +891,11 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 
 	spart.totapixbuf= MEM_callocN(sizeof(int)*pa->rectx*pa->recty, "totapixbuf");
 
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		/* render segments in sorted order */
 		sortseg= sortsegments;
 		for(a=0; a<totsegment; a++, sortseg++) {
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 
 			obi= &re->objectinstance[sortseg->obi];

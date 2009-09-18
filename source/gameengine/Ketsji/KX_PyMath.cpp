@@ -44,68 +44,150 @@
 #include "ListValue.h"
 
 #include "KX_Python.h"
+#include "KX_PyMath.h"
 
-bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
+bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefix)
 {
-	if (!pymat)
-		return false;
-		
-	unsigned int y;
-	if (PySequence_Check(pymat))
+	int size= PySequence_Size(pyval);
+	
+	if (size == 4)
 	{
-		unsigned int rows = PySequence_Size(pymat);
-		if (rows != rank)
-			return false;
-		
-		bool ismatrix = true;
-		for (y = 0; y < rank && ismatrix; y++)
+		MT_Quaternion qrot;
+		if (PyQuatTo(pyval, qrot))
 		{
-			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
-			if (PySequence_Check(pyrow))
-			{
-				if (((unsigned int)PySequence_Size(pyrow)) != rank)
-					ismatrix = false;
-			} else 
-				ismatrix = false;
-			Py_DECREF(pyrow);
+			rot.setRotation(qrot);
+			return true;
 		}
-		return ismatrix;
 	}
+	else if (size == 3) {
+		/* 3x3 matrix or euler */
+		MT_Vector3 erot;
+		if (PyVecTo(pyval, erot))
+		{
+			rot.setEuler(erot);
+			return true;
+		}
+		PyErr_Clear();
+		
+		if (PyMatTo(pyval, rot))
+		{
+			return true;
+		}
+	}
+	
+	PyErr_Format(PyExc_TypeError, "%s, could not set the orientation from a 3x3 matrix, quaternion or euler sequence", error_prefix);
 	return false;
 }
 
+bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot)
+{
+	if(!PyVecTo(pyval, qrot))
+		return false;
+
+	/* annoying!, Blender/Mathutils have the W axis first! */
+	MT_Scalar w= qrot[0]; /* from python, this is actually the W */
+	qrot[0]= qrot[1];
+	qrot[1]= qrot[2];
+	qrot[2]= qrot[3];
+	qrot[3]= w;
+
+	return true;
+}
 
 PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 {
-	return Py_BuildValue("[[ffff][ffff][ffff][ffff]]",
-		mat[0][0], mat[0][1], mat[0][2], mat[0][3], 
-		mat[1][0], mat[1][1], mat[1][2], mat[1][3], 
-		mat[2][0], mat[2][1], mat[2][2], mat[2][3], 
-		mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+#ifdef USE_MATHUTILS
+	float fmat[16];
+	mat.getValue(fmat);
+	return newMatrixObject(fmat, 4, 4, Py_NEW, NULL);
+#else
+	PyObject *list = PyList_New(4);
+	PyObject *sublist;
+	int i;
+	
+	for(i=0; i < 4; i++) {
+		sublist = PyList_New(4);
+		PyList_SET_ITEM(sublist, 0, PyFloat_FromDouble(mat[i][0]));
+		PyList_SET_ITEM(sublist, 1, PyFloat_FromDouble(mat[i][1]));
+		PyList_SET_ITEM(sublist, 2, PyFloat_FromDouble(mat[i][2]));
+		PyList_SET_ITEM(sublist, 3, PyFloat_FromDouble(mat[i][3]));
+		PyList_SET_ITEM(list, i, sublist);
+	}
+	
+	return list;
+#endif
 }
 
 PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 {
-	return Py_BuildValue("[[fff][fff][fff]]",
-		mat[0][0], mat[0][1], mat[0][2], 
-		mat[1][0], mat[1][1], mat[1][2], 
-		mat[2][0], mat[2][1], mat[2][2]);
+#ifdef USE_MATHUTILS
+	float fmat[9];
+	mat.getValue3x3(fmat);
+	return newMatrixObject(fmat, 3, 3, Py_NEW, NULL);
+#else
+	PyObject *list = PyList_New(3);
+	PyObject *sublist;
+	int i;
+	
+	for(i=0; i < 3; i++) {
+		sublist = PyList_New(3);
+		PyList_SET_ITEM(sublist, 0, PyFloat_FromDouble(mat[i][0]));
+		PyList_SET_ITEM(sublist, 1, PyFloat_FromDouble(mat[i][1]));
+		PyList_SET_ITEM(sublist, 2, PyFloat_FromDouble(mat[i][2]));
+		PyList_SET_ITEM(list, i, sublist);
+	}
+	
+	return list;
+#endif
 }
+
+#ifdef USE_MATHUTILS
+PyObject* PyObjectFrom(const MT_Quaternion &qrot)
+{
+	/* NOTE, were re-ordering here for Mathutils compat */
+	float fvec[4]= {qrot[3], qrot[0], qrot[1], qrot[2]};
+	return newQuaternionObject(fvec, Py_NEW, NULL);
+}
+#endif
 
 PyObject* PyObjectFrom(const MT_Tuple4 &vec)
 {
-	return Py_BuildValue("[ffff]", 
-		vec[0], vec[1], vec[2], vec[3]);
+#ifdef USE_MATHUTILS
+	float fvec[4]= {vec[0], vec[1], vec[2], vec[3]};
+	return newVectorObject(fvec, 4, Py_NEW, NULL);
+#else
+	PyObject *list = PyList_New(4);
+	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(vec[0]));
+	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(vec[1]));
+	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(vec[2]));
+	PyList_SET_ITEM(list, 3, PyFloat_FromDouble(vec[3]));
+	return list;
+#endif
 }
 
 PyObject* PyObjectFrom(const MT_Tuple3 &vec)
 {
-	return Py_BuildValue("[fff]", 
-		vec[0], vec[1], vec[2]);
+#ifdef USE_MATHUTILS
+	float fvec[3]= {vec[0], vec[1], vec[2]};
+	return newVectorObject(fvec, 3, Py_NEW, NULL);
+#else
+	PyObject *list = PyList_New(3);
+	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(vec[0]));
+	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(vec[1]));
+	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(vec[2]));
+	return list;
+#endif	
 }
 
 PyObject* PyObjectFrom(const MT_Tuple2 &vec)
 {
-	return Py_BuildValue("[ff]",
-		vec[0], vec[1]);
+#ifdef USE_MATHUTILS
+	float fvec[2]= {vec[0], vec[1]};
+	return newVectorObject(fvec, 2, Py_NEW, NULL);
+#else
+	PyObject *list = PyList_New(2);
+	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(vec[0]));
+	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(vec[1]));
+	return list;
+#endif
 }

@@ -26,42 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "BLI_bpath.h"
-#include "BKE_global.h"
-#include "BIF_screen.h" /* only for wait cursor */
-#include "DNA_ID.h" /* Library */
-#include "DNA_vfont_types.h"
-#include "DNA_image_types.h"
-#include "DNA_sound_types.h"
-#include "DNA_scene_types.h" /* to get the current frame */
-#include "DNA_sequence_types.h"
-#include <stdlib.h>
-#include <string.h>
-
-#include "BKE_main.h" /* so we can access G.main->*.first */
-#include "BKE_image.h" /* so we can check the image's type */
-
-#include "blendef.h"
-#include "BKE_utildefines.h"
-#include "MEM_guardedalloc.h"
-
-/* for sequence */
-#include "BSE_sequence.h"
-
-/* for writing to a textblock */
-#include "BKE_text.h" 
-#include "BLI_blenlib.h"
-#include "DNA_text_types.h"
-
-/* path/file handeling stuff */
-#ifndef WIN32
-  #include <dirent.h>
-  #include <unistd.h>
-#else
-  #include "BLI_winstuff.h"
-  #include <io.h>
-#endif
-
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -69,6 +33,44 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string.h>
+
+/* path/file handeling stuff */
+#ifndef WIN32
+  #include <dirent.h>
+  #include <unistd.h>
+#else
+  #include <io.h>
+  #include "BLI_winstuff.h"
+#endif
+
+#include "MEM_guardedalloc.h"
+
+#include "DNA_ID.h" /* Library */
+#include "DNA_vfont_types.h"
+#include "DNA_image_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_scene_types.h" /* to get the current frame */
+#include "DNA_sequence_types.h"
+#include "DNA_text_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_bpath.h"
+
+#include "BKE_global.h"
+#include "BKE_image.h" /* so we can check the image's type */
+#include "BKE_main.h" /* so we can access G.main->*.first */
+#include "BKE_sequence.h"
+#include "BKE_text.h" /* for writing to a textblock */
+#include "BKE_utildefines.h"
+
+//XXX #include "BIF_screen.h" /* only for wait cursor */
+//
+/* for sequence */
+//XXX #include "BSE_sequence.h"
+//XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
+#define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_IMAGE)
+
 
 
 #define FILE_MAX			240
@@ -201,7 +203,9 @@ static struct bSound *snd_stepdata__internal(struct bSound *snd, int step_next) 
 	return snd;
 }
 
-static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int step_next) {
+static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int step_next)
+{
+	Editing *ed;
 	Sequence *seq;
 	
 	/* Initializing */
@@ -214,11 +218,11 @@ static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int st
 	}
 	
 	while (bpi->seqdata.scene) {
-		
-		if (bpi->seqdata.scene->ed) {
+		ed= seq_give_editing(bpi->seqdata.scene, 0);
+		if (ed) {
 			if (bpi->seqdata.seqar == NULL) {
 				/* allocate the sequencer array */
-				build_seqar( &(((Editing *)bpi->seqdata.scene->ed)->seqbase), &bpi->seqdata.seqar, &bpi->seqdata.totseq);		
+				seq_array(ed, &bpi->seqdata.seqar, &bpi->seqdata.totseq, 0);
 				bpi->seqdata.seq = 0;
 			}
 			
@@ -339,9 +343,9 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				bSound *snd = (bSound *)bpi->data;
 				
 				bpi->lib = snd->id.lib ? snd->id.lib->filename : NULL;
-				bpi->path = snd->sample->name;
+				bpi->path = snd->name;
 				bpi->name = snd->id.name+2;
-				bpi->len = sizeof(snd->sample->name);
+				bpi->len = sizeof(snd->name);
 				
 				/* we are done, advancing to the next item, this type worked fine */
 				break;
@@ -657,7 +661,7 @@ void findMissingFiles(char *str) {
 	
 	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX];
 	
-	waitcursor( 1 );
+	//XXX waitcursor( 1 );
 	
 	BLI_split_dirfile_basic(str, dirname, NULL);
 	
@@ -668,9 +672,9 @@ void findMissingFiles(char *str) {
 		libpath = BLI_bpathIterator_getLib(&bpi);
 		
 		/* Check if esc was pressed because searching files can be slow */
-		if (blender_test_break()) {
+		/*XXX if (blender_test_break()) {
 			break;
-		}
+		}*/
 		
 		if (libpath==NULL) {
 			
@@ -706,5 +710,5 @@ void findMissingFiles(char *str) {
 	}
 	BLI_bpathIterator_free(&bpi);
 	
-	waitcursor( 0 );
+	//XXX waitcursor( 0 );
 }

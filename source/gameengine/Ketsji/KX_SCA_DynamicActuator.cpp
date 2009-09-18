@@ -47,85 +47,37 @@
 
 /* Integration hooks ------------------------------------------------------- */
 
-	PyTypeObject 
-
-KX_SCA_DynamicActuator::
-
-Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+PyTypeObject KX_SCA_DynamicActuator::Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"KX_SCA_DynamicActuator",
-	sizeof(KX_SCA_DynamicActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, 
-	__repr,
-	0, 
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-PyParentObject KX_SCA_DynamicActuator::Parents[] = {
-	&KX_SCA_DynamicActuator::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
 
 PyMethodDef KX_SCA_DynamicActuator::Methods[] = {
-	KX_PYMETHODTABLE(KX_SCA_DynamicActuator, setOperation),
-   	KX_PYMETHODTABLE(KX_SCA_DynamicActuator, getOperation),
 	{NULL,NULL} //Sentinel
 };
 
-
-
-PyObject* KX_SCA_DynamicActuator::_getattr(const STR_String& attr)
-{
-  _getattr_up(SCA_IActuator);
-}
-
-
-
-/* 1. setOperation */
-KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, setOperation,
-"setOperation(operation?)\n"
-"\t - operation? : type of dynamic operation\n"
-"\t                0 = restore dynamics\n"
-"\t                1 = disable dynamics\n"
-"\t                2 = enable rigid body\n"
-"\t                3 = disable rigid body\n"
-"Change the dynamic status of the parent object.\n")
-{
-	int dyn_operation;
-	
-	if (!PyArg_ParseTuple(args, "i", &dyn_operation))
-	{
-		return NULL;	
-	}
-	if (dyn_operation <0 || dyn_operation>3) {
-		PyErr_SetString(PyExc_IndexError, "Dynamic Actuator's setOperation() range must be between 0 and 3");
-		return NULL;
-	}
-	m_dyn_operation= dyn_operation;
-	Py_Return;
-}
-
-KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
-"getOperation() -> integer\n"
-"Returns the operation type of this actuator.\n"
-)
-{
-	return PyInt_FromLong((long)m_dyn_operation);
-}
-
+PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
+	KX_PYATTRIBUTE_SHORT_RW("mode",0,4,false,KX_SCA_DynamicActuator,m_dyn_operation),
+	KX_PYATTRIBUTE_FLOAT_RW("mass",0.0,FLT_MAX,KX_SCA_DynamicActuator,m_setmass),
+	{ NULL }	//Sentinel
+};
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -133,10 +85,11 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
 
 KX_SCA_DynamicActuator::KX_SCA_DynamicActuator(SCA_IObject *gameobj,
 													   short dyn_operation,
-													   PyTypeObject* T) : 
+													   float setmass) :
 
-	SCA_IActuator(gameobj, T),
-	m_dyn_operation(dyn_operation)
+	SCA_IActuator(gameobj),
+	m_dyn_operation(dyn_operation),
+	m_setmass(setmass)
 {
 } /* End of constructor */
 
@@ -179,6 +132,9 @@ bool KX_SCA_DynamicActuator::Update()
 		case 3:
 			controller->setRigidBody(false);
 			break;
+		case 4:
+			controller->SetMass(m_setmass);
+			break;
 	}
 
 	return false;
@@ -195,10 +151,6 @@ CValue* KX_SCA_DynamicActuator::GetReplica()
 		return NULL;
 
 	replica->ProcessReplica();
-
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 };
 

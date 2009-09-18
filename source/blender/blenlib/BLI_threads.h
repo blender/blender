@@ -53,6 +53,10 @@ void	BLI_unlock_thread	(int type);
 
 int		BLI_system_thread_count( void ); /* gets the number of threads the system can make use of */
 
+		/* exported by preview render, it has to ensure render buffers are not freed while draw */
+void	BLI_lock_malloc_thread(void);
+void	BLI_unlock_malloc_thread(void);
+
 /* ThreadedWorker is a simple tool for dispatching work to a limited number of threads in a transparent
  * fashion from the caller's perspective
  * */

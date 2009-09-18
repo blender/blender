@@ -76,7 +76,6 @@ char *includefiles[] = {
 	"DNA_ID.h",
 	"DNA_ipo_types.h",
 	"DNA_key_types.h",
-	"DNA_scriptlink_types.h",
 	"DNA_text_types.h",
 	"DNA_packedFile_types.h",
 	"DNA_camera_types.h",
@@ -98,7 +97,6 @@ char *includefiles[] = {
 	"DNA_object_force.h",
 	"DNA_object_fluidsim.h",
 	"DNA_world_types.h",
-	"DNA_radio_types.h",
 	"DNA_scene_types.h",
 	"DNA_view3d_types.h",
 	"DNA_view2d_types.h",	
@@ -111,7 +109,7 @@ char *includefiles[] = {
 	"DNA_fileglobal_types.h",
 	"DNA_sequence_types.h",
 	"DNA_effect_types.h",
-	"DNA_oops_types.h",
+	"DNA_outliner_types.h",
 	"DNA_property_types.h",
 	"DNA_sensor_types.h",
 	"DNA_controller_types.h",
@@ -129,9 +127,12 @@ char *includefiles[] = {
 	"DNA_particle_types.h",
 	"DNA_cloth_types.h",
 	"DNA_gpencil_types.h",
-	"DNA_freestyle_types.h",
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
+	"DNA_windowmanager_types.h",
+	"DNA_anim_types.h",
+	"DNA_boid_types.h",
+	"DNA_smoke_types.h",
 
 	// empty string to indicate end of includefiles
 	""
@@ -484,15 +485,18 @@ static void *read_file_data(char *filename, int *len_r)
 	data= MEM_mallocN(*len_r, "read_file_data");
 	if (!data) {
 		*len_r= -1;
+		fclose(fp);
 		return NULL;
 	}
 
 	if (fread(data, *len_r, 1, fp)!=1) {
 		*len_r= -1;
 		MEM_freeN(data);
+		fclose(fp);
 		return NULL;
 	}
-
+	
+	fclose(fp);
 	return data;
 }
 
@@ -519,7 +523,7 @@ int convert_include(char *filename)
 	overslaan= 0;
 	while(count<filelen) {
 		
-		/* code for skipping a struct: two hashes. (preprocess added a space) */
+		/* code for skipping a struct: two hashes on 2 lines. (preprocess added a space) */
 		if(md[0]=='#' && md[1]==' ' && md[2]=='#') {
 			overslaan= 1;
 		}
@@ -559,10 +563,11 @@ int convert_include(char *filename)
 					while( *md1 != '}' ) {
 						if(md1>mainend) break;
 						
-						/* skip when it says 'struct' or 'unsigned' */
+						/* skip when it says 'struct' or 'unsigned' or 'const' */
 						if(*md1) {
 							if( strncmp(md1, "struct", 6)==0 ) md1+= 7;
-							if( strncmp(md1, "unsigned", 6)==0 ) md1+= 9;
+							if( strncmp(md1, "unsigned", 8)==0 ) md1+= 9;
+							if( strncmp(md1, "const", 5)==0 ) md1+= 6;
 							
 							/* we've got a type! */
 							type= add_type(md1, 0);
@@ -1103,7 +1108,6 @@ int main(int argc, char ** argv)
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_text_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_camera_types.h"
@@ -1123,7 +1127,6 @@ int main(int argc, char ** argv)
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_world_types.h"
-#include "DNA_radio_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_view2d_types.h"	
@@ -1134,7 +1137,7 @@ int main(int argc, char ** argv)
 #include "DNA_fileglobal_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_property_types.h"
 #include "DNA_sensor_types.h"
 #include "DNA_controller_types.h"
@@ -1152,5 +1155,8 @@ int main(int argc, char ** argv)
 #include "DNA_particle_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_freestyle_types.h"
+#include "DNA_windowmanager_types.h"
+#include "DNA_anim_types.h"
+#include "DNA_boid_types.h"
+#include "DNA_smoke_types.h"
 /* end of list */

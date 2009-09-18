@@ -27,9 +27,9 @@ public:
 	CParser();
 	virtual				~CParser();
 
-	float				GetFloat(STR_String txt);
-	CValue*				GetValue(STR_String txt, bool bFallbackToText=false);
-	CExpression*		ProcessText(STR_String intext);
+	float				GetFloat(STR_String& txt);
+	CValue*				GetValue(STR_String& txt, bool bFallbackToText=false);
+	CExpression*		ProcessText(const char *intext);
 	void				SetContext(CValue* context);
 
 private:
@@ -49,6 +49,7 @@ private:
 	};			// all kinds of symbols
 
 	enum optype {
+		OPmodulus,
 		OPplus,
 		OPminus,
 		OPtimes,
@@ -85,21 +86,29 @@ private:
 	CValue*	m_identifierContext;// context in which identifiers are looked up
 	
 	
-	void ScanError(STR_String str);
-	CExpression* Error(STR_String str);
+	void ScanError(const char *str);
+	CExpression* Error(const char *str);
 	void NextCh();
 	void TermChar(char c);
 	void DigRep();
 	void CharRep();
 	void GrabString(int start);
 	void NextSym();
+#if 0	/* not used yet */
 	int MakeInt();
+#endif
 	STR_String Symbol2Str(int s);
 	void Term(int s);
 	int Priority(int optor);
 	CExpression *Ex(int i);
 	CExpression *Expr();
-
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CParser"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

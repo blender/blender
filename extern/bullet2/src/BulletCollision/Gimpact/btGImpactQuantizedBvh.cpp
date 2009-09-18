@@ -67,7 +67,7 @@ float btGImpactQuantizedBvh::getAverageTreeCollisionTime()
 /////////////////////// btQuantizedBvhTree /////////////////////////////////
 
 void btQuantizedBvhTree::calc_quantization(
-	BT_BVH_DATA_ARRAY & primitive_boxes, btScalar boundMargin)
+	GIM_BVH_DATA_ARRAY & primitive_boxes, btScalar boundMargin)
 {
 	//calc globa box
 	btAABB global_bound;
@@ -86,7 +86,7 @@ void btQuantizedBvhTree::calc_quantization(
 
 
 int btQuantizedBvhTree::_calc_splitting_axis(
-	BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex)
+	GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex)
 {
 
 	int i;
@@ -118,7 +118,7 @@ int btQuantizedBvhTree::_calc_splitting_axis(
 
 
 int btQuantizedBvhTree::_sort_and_calc_splitting_index(
-	BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,
+	GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,
 	int endIndex, int splitAxis)
 {
 	int i;
@@ -171,15 +171,14 @@ int btQuantizedBvhTree::_sort_and_calc_splitting_index(
 		splitIndex = startIndex+ (numIndices>>1);
 	}
 
-	bool unbal = (splitIndex==startIndex) || (splitIndex == (endIndex));
-	btAssert(!unbal);
+	btAssert(!((splitIndex==startIndex) || (splitIndex == (endIndex))));
 
 	return splitIndex;
 
 }
 
 
-void btQuantizedBvhTree::_build_sub_tree(BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex)
+void btQuantizedBvhTree::_build_sub_tree(GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex)
 {
 	int curIndex = m_num_nodes;
 	m_num_nodes++;
@@ -232,7 +231,7 @@ void btQuantizedBvhTree::_build_sub_tree(BT_BVH_DATA_ARRAY & primitive_boxes, in
 
 //! stackless build tree
 void btQuantizedBvhTree::build_tree(
-	BT_BVH_DATA_ARRAY & primitive_boxes)
+	GIM_BVH_DATA_ARRAY & primitive_boxes)
 {
 	calc_quantization(primitive_boxes);
 	// initialize node count to 0
@@ -258,7 +257,7 @@ void btGImpactQuantizedBvh::refit()
 		}
 		else
 		{
-			//const BT_BVH_TREE_NODE * nodepointer = get_node_pointer(nodecount);
+			//const GIM_BVH_TREE_NODE * nodepointer = get_node_pointer(nodecount);
 			//get left bound
 			btAABB bound;
 			bound.invalidate();
@@ -288,7 +287,7 @@ void btGImpactQuantizedBvh::refit()
 void btGImpactQuantizedBvh::buildSet()
 {
 	//obtain primitive boxes
-	BT_BVH_DATA_ARRAY primitive_boxes;
+	GIM_BVH_DATA_ARRAY primitive_boxes;
 	primitive_boxes.resize(m_primitive_manager->get_primitive_count());
 
 	for (int i = 0;i<primitive_boxes.size() ;i++ )

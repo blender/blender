@@ -39,22 +39,12 @@ class SCA_AlwaysSensor : public SCA_ISensor
 	bool			m_alwaysresult;
 public:
 	SCA_AlwaysSensor(class SCA_EventManager* eventmgr,
-					SCA_IObject* gameobj,
-					PyTypeObject* T =&Type);
+					SCA_IObject* gameobj);
 	virtual ~SCA_AlwaysSensor();
 	virtual CValue* GetReplica();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
-
-
-	/* --------------------------------------------------------------------- */
-	/* Python interface ---------------------------------------------------- */
-	/* --------------------------------------------------------------------- */
-	
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	
 };
 
 #endif //__KX_ALWAYSSENSOR

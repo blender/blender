@@ -10,14 +10,20 @@
 // Credits: The Clock class was inspired by the Timer classes in 
 // Ogre (www.ogre3d.org).
 
+
+
 #ifndef QUICK_PROF_H
 #define QUICK_PROF_H
+
+//To disable built-in profiling, please comment out next line
+//#define BT_NO_PROFILE 1
+#ifndef BT_NO_PROFILE
 
 #include "btScalar.h"
 #include "LinearMath/btAlignedAllocator.h"
 #include <new>
-//To disable built-in profiling, please comment out next line
-//#define BT_NO_PROFILE 1
+
+
 
 
 //if you don't need btClock, you can comment next line
@@ -321,6 +327,10 @@ public:
 	}
 	static	void						Release_Iterator( CProfileIterator * iterator ) { delete ( iterator); }
 
+	static void	dumpRecursive(CProfileIterator* profileIterator, int spacing);
+
+	static void	dumpAll();
+
 private:
 	static	CProfileNode			Root;
 	static	CProfileNode *			CurrentNode;
@@ -344,12 +354,14 @@ public:
 	}
 };
 
-#if !defined(BT_NO_PROFILE)
-#define	BT_PROFILE( name )			CProfileSample __profile( name )
-#else
-#define	BT_PROFILE( name )
-#endif
 
+#define	BT_PROFILE( name )			CProfileSample __profile( name )
+
+#else
+
+#define	BT_PROFILE( name )
+
+#endif //#ifndef BT_NO_PROFILE
 
 
 

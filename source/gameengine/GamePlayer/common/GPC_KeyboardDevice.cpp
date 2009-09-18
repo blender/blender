@@ -42,7 +42,7 @@ void GPC_KeyboardDevice::NextFrame()
 
 	// Now convert justpressed key events into regular (active) keyevents
 	int previousTable = 1-m_currentTable;
-	for (int keyevent= KX_BEGINKEY; keyevent< KX_ENDKEY;keyevent++)
+	for (int keyevent= KX_BEGINKEY; keyevent<= KX_ENDKEY;keyevent++)
 	{
 		SCA_InputEvent& oldevent = m_eventStatusTables[previousTable][keyevent];
 		if (oldevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
@@ -69,7 +69,7 @@ bool GPC_KeyboardDevice::ConvertEvent(int incode, int val)
 	KX_EnumInputs kxevent = this->ToNative(incode);
 
 	// only process it, if it's a key
-	if (kxevent >= KX_BEGINKEY && kxevent < KX_ENDKEY)
+	if (kxevent >= KX_BEGINKEY && kxevent <= KX_ENDKEY)
 	{
 		int previousTable = 1-m_currentTable;
 
@@ -114,9 +114,7 @@ bool GPC_KeyboardDevice::ConvertEvent(int incode, int val)
 				}
 			}
 		}
-	} else if(kxevent==KX_ENDKEY) {
-		exit(1);
-	}	
+	}
 	return result;
 }
 

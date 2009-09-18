@@ -69,9 +69,6 @@ public:
 	}
 
 
-
-		virtual int	getShapeType() const { return CONE_SHAPE_PROXYTYPE; }
-
 		virtual const char*	getName()const 
 		{
 			return "Cone";

@@ -32,6 +32,7 @@
 #define BKE_SOFTBODY_H
 
 struct Object;
+struct Scene;
 struct SoftBody;
 
 typedef struct BodyPoint {
@@ -43,11 +44,13 @@ typedef struct BodyPoint {
 	float choke,choke2,frozen;
 	float colball;
 	short flag;
-	char octantflag;
+	//char octantflag;
+	float mass;
+	float springweight;
 } BodyPoint;
 
 /* allocates and initializes general main data */
-extern struct SoftBody	*sbNew(void);
+extern struct SoftBody	*sbNew(struct Scene *scene);
 
 /* frees internal data and softbody itself */
 extern void				sbFree(struct SoftBody *sb);
@@ -56,7 +59,7 @@ extern void				sbFree(struct SoftBody *sb);
 extern void				sbFreeSimulation(struct SoftBody *sb);
 
 /* do one simul step, reading and writing vertex locs from given array */
-extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[3], int numVerts);
+extern void				sbObjectStep(struct Scene *scene, struct Object *ob, float framnr, float (*vertexCos)[3], int numVerts);
 
 /* makes totally fresh start situation, resets time */
 extern void				sbObjectToSoftbody(struct Object *ob);
@@ -64,9 +67,6 @@ extern void				sbObjectToSoftbody(struct Object *ob);
 /* links the softbody module to a 'test for Interrupt' function */
 /* pass NULL to unlink again */
 extern void             sbSetInterruptCallBack(int (*f)(void));
-
-/* writing to cache for bake editing */
-extern void 			sbWriteCache(struct Object *ob, int framenr);
 
 #endif
 

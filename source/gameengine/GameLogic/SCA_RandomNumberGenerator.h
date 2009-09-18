@@ -34,7 +34,14 @@
 #ifndef __KX_RANDOMNUMBERGENERATOR
 #define __KX_RANDOMNUMBERGENERATOR
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class SCA_RandomNumberGenerator {
+
+	/* reference counted for memleak */
+	int m_refcount;
 
 	/** base seed */
 	long m_seed;
@@ -56,6 +63,23 @@ class SCA_RandomNumberGenerator {
 	float DrawFloat();
 	long GetSeed();
 	void SetSeed(long newseed);
+	SCA_RandomNumberGenerator* AddRef()
+	{
+		++m_refcount;
+		return this;
+	}
+	void Release()
+	{
+		if (--m_refcount == 0)
+			delete this;
+	}
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_RandomNumberGenerator"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif /* __KX_RANDOMNUMBERGENERATOR */

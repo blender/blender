@@ -35,10 +35,9 @@
 
 SCA_LogicManager* SCA_ILogicBrick::m_sCurrentLogicManager = NULL;
 
-SCA_ILogicBrick::SCA_ILogicBrick(SCA_IObject* gameobj,
-								 PyTypeObject* T)
+SCA_ILogicBrick::SCA_ILogicBrick(SCA_IObject* gameobj)
 	:
-	CValue(T),
+	CValue(),
 	m_gameobj(gameobj),
 	m_Execute_Priority(0),
 	m_Execute_Ueber_Priority(0),
@@ -67,13 +66,6 @@ void SCA_ILogicBrick::SetExecutePriority(int execute_Priority)
 void SCA_ILogicBrick::SetUeberExecutePriority(int execute_Priority)
 {
 	m_Execute_Ueber_Priority = execute_Priority;
-}
-
-
-
-SCA_IObject* SCA_ILogicBrick::GetParent()
-{
-	return m_gameobj;
 }
 
 
@@ -123,40 +115,24 @@ const STR_String& SCA_ILogicBrick::GetText()
 
 
 
-float SCA_ILogicBrick::GetNumber()
+double SCA_ILogicBrick::GetNumber()
 {
 	return -1;
 }
 
 
 
-STR_String SCA_ILogicBrick::GetName()
+STR_String& SCA_ILogicBrick::GetName()
 {
 	return m_name;
 }
 
 
 
-void SCA_ILogicBrick::SetName(STR_String name)
+void SCA_ILogicBrick::SetName(const char *name)
 {
 	m_name = name;
 }
-
-
-
-void SCA_ILogicBrick::ReplicaSetName(STR_String name)
-{
-	m_name = name;
-}
-		
-
-
-bool SCA_ILogicBrick::IsActive()
-{
-	return m_bActive;
-}
-
-
 
 bool SCA_ILogicBrick::LessComparedTo(SCA_ILogicBrick* other)
 {
@@ -164,22 +140,6 @@ bool SCA_ILogicBrick::LessComparedTo(SCA_ILogicBrick* other)
 		|| ((this->m_Execute_Ueber_Priority == other->m_Execute_Ueber_Priority) && 
 		(this->m_Execute_Priority < other->m_Execute_Priority));
 }
-
-
-
-void SCA_ILogicBrick::SetActive(bool active)
-{
-	m_bActive=active;
-	if (active)
-	{
-		//m_gameobj->SetDebugColor(GetDrawColor());
-	} else
-	{
-		//m_gameobj->ResetDebugColor();
-	}
-}
-
-
 
 void SCA_ILogicBrick::RegisterEvent(CValue* eventval)
 {
@@ -217,87 +177,66 @@ CValue* SCA_ILogicBrick::GetEvent()
 /* python stuff */
 
 PyTypeObject SCA_ILogicBrick::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SCA_ILogicBrick",
-	sizeof(SCA_ILogicBrick),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-
-
-PyParentObject SCA_ILogicBrick::Parents[] = {
-	&SCA_ILogicBrick::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
-  {"getOwner", (PyCFunction) SCA_ILogicBrick::sPyGetOwner, METH_NOARGS},
-  {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_NOARGS},
-  {"setExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_VARARGS},
   {NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_ILogicBrick::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("owner",	SCA_ILogicBrick, pyattr_get_owner),
+	KX_PYATTRIBUTE_INT_RW("executePriority",0,100000,false,SCA_ILogicBrick,m_Execute_Priority),
+	KX_PYATTRIBUTE_STRING_RO("name", SCA_ILogicBrick, m_name),
+	{NULL} //Sentinel
+};
 
-
-PyObject*
-SCA_ILogicBrick::_getattr(const STR_String& attr)
+int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
 {
-  _getattr_up(CValue);
-}
-
-
-
-PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
-{
-	CValue* parent = GetParent();
-	if (parent)
-	{
-		parent->AddRef();
-		return parent;
+	if (attrdef->m_type != KX_PYATTRIBUTE_TYPE_STRING || attrdef->m_length != 1) {
+		PyErr_SetString(PyExc_AttributeError, "inconsistent check function for attribute type, report to blender.org");
+		return 1;
 	}
-
-	printf("ERROR: Python scriptblock without owner\n");
-	Py_RETURN_NONE; //Int_FromLong(IsPositiveTrigger());
+	SCA_ILogicBrick* brick = reinterpret_cast<SCA_ILogicBrick*>(self);
+	STR_String* var = reinterpret_cast<STR_String*>((char*)self+attrdef->m_offset);
+	CValue* prop = brick->GetParent()->FindIdentifier(*var);
+	bool error = prop->IsError();
+	prop->Release();
+	if (error) {
+		PyErr_SetString(PyExc_ValueError, "string does not correspond to a property");
+		return 1;
+	}
+	return 0;
 }
 
-
-
-PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+/*Attribute functions */
+PyObject* SCA_ILogicBrick::pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-
-	int priority=0;
-
-    if (!PyArg_ParseTuple(args, "i", &priority)) {
-		return NULL;
-    }
+	SCA_ILogicBrick* self= static_cast<SCA_ILogicBrick*>(self_v);
+	CValue* parent = self->GetParent();
 	
-	m_Execute_Ueber_Priority = priority;
-
-	Py_Return;
-}
-
-
-
-PyObject* SCA_ILogicBrick::PyGetExecutePriority(PyObject* self)
-{
-	return PyInt_FromLong(m_Execute_Ueber_Priority);
+	if (parent)
+		return parent->GetProxy();
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -312,9 +251,7 @@ bool SCA_ILogicBrick::PyArgToBool(int boolArg)
 	}
 }
 
-
-
 PyObject* SCA_ILogicBrick::BoolToPyArg(bool boolarg)
 {
-	return PyInt_FromLong(boolarg? KX_TRUE: KX_FALSE);	
+	return PyLong_FromSsize_t(boolarg? KX_TRUE: KX_FALSE);	
 }

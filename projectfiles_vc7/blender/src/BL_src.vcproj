@@ -122,6 +122,9 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
+				RelativePath="..\..\..\source\blender\src\autoarmature.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\B.blend.c">
 			</File>
 			<File

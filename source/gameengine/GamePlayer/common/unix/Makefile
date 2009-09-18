@@ -35,6 +35,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 
@@ -55,12 +56,7 @@ CPPFLAGS += -I../../../../gameengine/Rasterizer
 CPPFLAGS += -I../../../../gameengine/Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../../../../gameengine/SceneGraph
 
-CPPFLAGS += -I$(NAN_FUZZICS)/include
-CPPFLAGS += -I$(NAN_SUMO)/include
-CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
-CPPFLAGS += -I$(NAN_BMFONT)/include
-CPPFLAGS += -I$(NAN_SOLID)/include
 
 # Blender stuff
 CPPFLAGS += -I../../../../blender/blenkernel

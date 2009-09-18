@@ -27,56 +27,58 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../include ../blenlib ../makesdna
-  ../python ../render/extern/include ../../../intern/decimation/extern
-  ../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
-  ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../../../intern/bmfont ../../../extern/bullet2/src
-  ../nodes ../../../extern/glew/include ../gpu ../freestyle
-  ${SDL_INC}
-  ${ZLIB_INC}
-  ${PYTHON_INC}
+	. ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna
+	../render/extern/include ../../../intern/decimation/extern
+	../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
+	../../../intern/iksolver/extern ../blenloader
+	../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
+	../../../intern/bsp/extern ../blenfont
+	../../../intern/audaspace/intern
+	../../../extern/lzo/minilzo
+	../../../extern/lzma
+	${ZLIB_INC}
 )
 
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} ${VERSE_INC})
-ENDIF(WITH_VERSE)
+IF(WITH_BULLET)
+	SET(INC ${INC} ../../../extern/bullet2/src)
+	ADD_DEFINITIONS(-DUSE_BULLET)
+ENDIF(WITH_BULLET)
 
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
+IF(WITH_OPENJPEG)
+	ADD_DEFINITIONS(-DWITH_OPENJPEG)
+ENDIF(WITH_OPENJPEG)
+
 IF(WITH_DDS)
-  ADD_DEFINITIONS(-DWITH_DDS)
+	ADD_DEFINITIONS(-DWITH_DDS)
 ENDIF(WITH_DDS)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
-  SET(INC ${INC} ${FFMPEG_INC})
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	SET(INC ${INC} ${FFMPEG_INC})
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
-IF(WITH_PLAYER)
-  SUBDIRS(bad_level_call_stubs)
-ENDIF(WITH_PLAYER)
+IF(WITH_PYTHON)
+	SET(INC ${INC} ../python ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
-ADD_DEFINITIONS(-DWITH_CCGSUBSURF)
+IF(NOT WITH_ELBEEM)
+	ADD_DEFINITIONS(-DDISABLE_ELBEEM)
+ENDIF(NOT WITH_ELBEEM)
+
+IF(WIN32)
+	SET(INC ${INC} ${PTHREADS_INC})
+ENDIF(WIN32)
 
 BLENDERLIB(bf_blenkernel "${SRC}" "${INC}")
 
-IF(WITH_VERSE)
-  ADD_DEPENDENCIES(bf_blenkernel mkprot verse)
-ENDIF(WITH_VERSE)
-
-IF(WITH_INTERNATIONAL)
-   ADD_DEFINITIONS(-DWITH_FREETYPE2)
-ENDIF(WITH_INTERNATIONAL)
-
-IF(NOT WITH_ELBEEM)
-  ADD_DEFINITIONS(-DDISABLE_ELBEEM)
-ENDIF(NOT WITH_ELBEEM)

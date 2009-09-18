@@ -3,7 +3,7 @@ Import ('env')
 
 SConscript(['BlenderRoutines/SConscript',
             'Converter/SConscript',
-            'Expressions/SConscript',
+            'Expressions/SConscript', #310
             'GameLogic/SConscript',
             'Ketsji/SConscript',
             'Ketsji/KXNetwork/SConscript',
@@ -15,13 +15,8 @@ SConscript(['BlenderRoutines/SConscript',
             'Rasterizer/RAS_OpenGLRasterizer/SConscript',
             'SceneGraph/SConscript',
             'Physics/Bullet/SConscript',
-            'Physics/Sumo/SConscript'
+            'VideoTexture/SConscript'
             ])
 
 if env['WITH_BF_PLAYER']:
     SConscript(['GamePlayer/SConscript'])
-
-#if user_options_dict['USE_PHYSICS'] == 'solid':
-#    SConscript(['Physics/Sumo/SConscript'])
-#elif user_options_dict['USE_PHYSICS'] == 'ode':
-#    SConscript(['Physics/BlOde/SConscript'])

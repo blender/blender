@@ -30,37 +30,30 @@ include nan_definitions.mk
 
 SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid glew/src
+DIRS = glew/src
 
-ifeq ($(WITH_FREETYPE2), true)
-    DIRS += bFTGL/src
-endif
-
-ifeq ($(WITH_FFMPEG), true)
-ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)
-    DIRS += ffmpeg
-endif
-ifeq ($(NAN_FFMPEG), $(LCGDIR)/gcc/ffmpeg)
-    DIRS += ffmpeg
-endif
-endif
-
-ifeq ($(WITH_VERSE), true)
-   DIRS += verse
-endif
-
-ifneq ($(NAN_NO_KETSJI), true)
-    DIRS += bullet2
-endif
+# Cloth requires it
+#ifneq ($(NAN_NO_KETSJI), true)
+DIRS += bullet2
+#endif
 
 ifeq ($(WITH_BINRELOC), true)
     DIRS += binreloc
 endif
 
-TARGET =
-ifneq ($(OS),irix)
-  TARGET=solid
+ifeq ($(WITH_OPENJPEG), true)
+    DIRS += libopenjpeg
 endif
+
+ifeq ($(WITH_LZO), true)
+    DIRS += lzo/minilzo
+endif
+
+ifeq ($(WITH_LZMA), true)
+    DIRS += lzma
+endif
+
+TARGET = solid
 
 all::
 	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern

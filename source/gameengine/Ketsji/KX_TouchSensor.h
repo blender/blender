@@ -39,6 +39,12 @@ struct PHY_CollData;
 
 #include "KX_ClientObjectInfo.h"
 
+#if defined(_WIN64)
+typedef unsigned __int64 uint_ptr;
+#else
+typedef unsigned long uint_ptr;
+#endif
+
 class KX_TouchEventManager;
 
 class KX_TouchSensor : public SCA_ISensor
@@ -51,27 +57,34 @@ protected:
 	 */
 	STR_String				m_touchedpropname;	
 	bool					m_bFindMaterial;
-	class SCA_EventManager*	m_eventmgr;
+	bool					m_bTouchPulse;		/* changes in the colliding objects trigger pulses */
 	
 	class PHY_IPhysicsController*	m_physCtrl;
 
 	bool					m_bCollision;
 	bool					m_bTriggered;
 	bool					m_bLastTriggered;
+
+	// Use with m_bTouchPulse to detect changes
+	int						m_bLastCount;		/* size of m_colliders last tick */
+	uint_ptr				m_bColliderHash;	/* hash collision objects pointers to trigger incase one object collides and another takes its place */
+	uint_ptr				m_bLastColliderHash;
+
 	SCA_IObject*		    m_hitObject;
 	class CListValue*		m_colliders;
 	
 public:
 	KX_TouchSensor(class SCA_EventManager* eventmgr,
 		class KX_GameObject* gameobj,
-		bool fFindMaterial,
-		const STR_String& touchedpropname,
-		PyTypeObject* T=&Type) ;
+		bool bFindMaterial,
+		bool bTouchPulse,
+		const STR_String& touchedpropname) ;
 	virtual ~KX_TouchSensor();
 
 	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
 	virtual void SynchronizeTransform();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual void Init();
 	virtual void ReParent(SCA_IObject* parent);
 	
@@ -88,7 +101,8 @@ public:
 	// obj1 = sensor physical controller, obj2 = physical controller of second object
 	// return value = true if collision should be checked on pair of object
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2) { return true; }
-
+	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2);
+	virtual sensortype GetSensorType() { return ST_TOUCH; }
   
 
 	virtual bool IsPositiveTrigger() {
@@ -106,20 +120,9 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	/* 1. setProperty */
-	KX_PYMETHOD_DOC(KX_TouchSensor,SetProperty);
-	/* 2. getProperty */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetProperty);
-	/* 3. getHitObject */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetHitObject);
-	/* 4. getHitObject */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetHitObjectList);
-	/* 5. getTouchMaterial */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetTouchMaterial);
-	/* 6. setTouchMaterial */
-	KX_PYMETHOD_DOC(KX_TouchSensor,SetTouchMaterial);
+	static PyObject*	pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
 	
 };
 

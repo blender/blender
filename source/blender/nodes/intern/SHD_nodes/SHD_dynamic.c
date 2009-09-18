@@ -33,31 +33,41 @@
 #include <eval.h>
 #endif
 
+/* TODO, support python3.x */
+#define DISABLE_PYTHON 1
+
 #include "DNA_text_types.h"
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 
+// XXX
+#if 0
 #ifndef DISABLE_PYTHON
 #include "api2_2x/Node.h"
 #include "api2_2x/gen_utils.h"
 #include "BPY_extern.h"
 #endif
+#endif
 
 #include "../SHD_util.h"
 
+// XXX
+#if 0
 static void node_dynamic_setup(bNode *node);
 static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNodeStack **out);
 static void node_dynamic_free_storage_cb(bNode *node);
 
 #ifndef DISABLE_PYTHON
 static PyObject *init_dynamicdict(void) {
-	PyObject *newscriptdict;
+	PyObject *newscriptdict, *item;
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	newscriptdict= PyDict_New();
 
 	PyDict_SetItemString(newscriptdict, "__builtins__", PyEval_GetBuiltins());
-	EXPP_dict_set_item_str(newscriptdict, "__name__", PyString_FromString("__main__"));
+	item= PyString_FromString("__main__");
+	PyDict_SetItemString(newscriptdict, "__name__", item);
+	Py_DECREF(item);
 
 	PyGILState_Release(gilstate);
 
@@ -340,7 +350,11 @@ static void node_dynamic_pyerror_print(bNode *node)
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	fprintf(stderr, "\nError in dynamic node script \"%s\":\n", node->name);
-	if (PyErr_Occurred()) { PyErr_Print(); }
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+		PyErr_Clear();
+		PySys_SetObject("last_traceback", NULL);
+	}
 	else { fprintf(stderr, "Not a valid dynamic node Python script.\n"); }
 
 	PyGILState_Release(gilstate);
@@ -760,5 +774,11 @@ bNodeType node_dynamic_typeinfo = {
 	/* copyfunc    */	node_dynamic_copy_cb,
 	/* id          */	NULL
 };
+
+#else
+
+bNodeType node_dynamic_typeinfo = {NULL};
+
+#endif
 
 

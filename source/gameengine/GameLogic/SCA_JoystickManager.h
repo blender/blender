@@ -47,6 +47,12 @@ public:
 	virtual void NextFrame(double curtime,double deltatime);
 	SCA_Joystick* GetJoystickDevice(short int joyindex);
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_JoystickManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

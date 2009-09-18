@@ -59,6 +59,7 @@
 SCA_RandomNumberGenerator::SCA_RandomNumberGenerator(long seed) {
 	// int mti = N + 1; /*unused*/
 	m_seed = seed;
+	m_refcount = 1;
 	SetStartVector();
 }
 

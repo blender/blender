@@ -25,27 +25,29 @@ TODO:
 #ifndef SLIDER_CONSTRAINT_H
 #define SLIDER_CONSTRAINT_H
 
-//-----------------------------------------------------------------------------
+
 
 #include "LinearMath/btVector3.h"
 #include "btJacobianEntry.h"
 #include "btTypedConstraint.h"
 
-//-----------------------------------------------------------------------------
+
 
 class btRigidBody;
 
-//-----------------------------------------------------------------------------
+
 
 #define SLIDER_CONSTRAINT_DEF_SOFTNESS		(btScalar(1.0))
 #define SLIDER_CONSTRAINT_DEF_DAMPING		(btScalar(1.0))
 #define SLIDER_CONSTRAINT_DEF_RESTITUTION	(btScalar(0.7))
 
-//-----------------------------------------------------------------------------
+
 
 class btSliderConstraint : public btTypedConstraint
 {
 protected:
+	///for backwards compatibility during the transition to 'getInfo/getInfo2'
+	bool		m_useSolveConstraintObsolete;
 	btTransform	m_frameInA;
     btTransform	m_frameInB;
 	// use frameA fo define limits, if true
@@ -104,6 +106,7 @@ protected:
 	btVector3 m_relPosB;
 
 	btScalar m_linPos;
+	btScalar m_angPos;
 
 	btScalar m_angDepth;
 	btScalar m_kAngle;
@@ -123,10 +126,17 @@ protected:
 public:
 	// constructors
     btSliderConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
+    btSliderConstraint(btRigidBody& rbB, const btTransform& frameInB, bool useLinearReferenceFrameB);
     btSliderConstraint();
 	// overrides
     virtual void	buildJacobian();
-    virtual	void	solveConstraint(btScalar	timeStep);
+    virtual void getInfo1 (btConstraintInfo1* info);
+	
+	virtual void getInfo2 (btConstraintInfo2* info);
+
+    virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
+	
+
 	// access
     const btRigidBody& getRigidBodyA() const { return m_rbA; }
     const btRigidBody& getRigidBodyB() const { return m_rbB; }
@@ -194,6 +204,7 @@ public:
 	void setMaxAngMotorForce(btScalar maxAngMotorForce) { m_maxAngMotorForce = maxAngMotorForce; }
 	btScalar getMaxAngMotorForce() { return m_maxAngMotorForce; }
 	btScalar getLinearPos() { return m_linPos; }
+	
 
 	// access for ODE solver
 	bool getSolveLinLimit() { return m_solveLinLim; }
@@ -202,17 +213,18 @@ public:
 	btScalar getAngDepth() { return m_angDepth; }
 	// internal
     void	buildJacobianInt(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB);
-    void	solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB);
+    void	solveConstraintInt(btRigidBody& rbA, btSolverBody& bodyA,btRigidBody& rbB, btSolverBody& bodyB);
 	// shared code used by ODE solver
 	void	calculateTransforms(void);
 	void	testLinLimits(void);
+	void	testLinLimits2(btConstraintInfo2* info);
 	void	testAngLimits(void);
 	// access for PE Solver
 	btVector3 getAncorInA(void);
 	btVector3 getAncorInB(void);
 };
 
-//-----------------------------------------------------------------------------
+
 
 #endif //SLIDER_CONSTRAINT_H
 

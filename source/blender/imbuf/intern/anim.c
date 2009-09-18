@@ -83,10 +83,10 @@
 #include "IMB_anim5.h"
 
 #ifdef WITH_FFMPEG
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/rational.h>
-#include <ffmpeg/swscale.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/rational.h>
+#include <libswscale/swscale.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -97,8 +97,13 @@
 #endif
 
 #ifdef WITH_REDCODE
-#include <redcode/format.h>
-#include <redcode/codec.h>
+#ifdef _WIN32 /* on windows we use the ones in extern instead */
+#include "libredcode/format.h"
+#include "libredcode/codec.h"
+#else
+#include "libredcode/format.h"
+#include "libredcode/codec.h"
+#endif
 #endif
 
 /****/
@@ -603,7 +608,7 @@ static int startffmpeg(struct anim * anim) {
 	anim->pFrameDeinterlaced = avcodec_alloc_frame();
 	anim->pFrameRGB = avcodec_alloc_frame();
 
-	if (avpicture_get_size(PIX_FMT_BGR32, anim->x, anim->y)
+	if (avpicture_get_size(PIX_FMT_RGBA, anim->x, anim->y)
 	    != anim->x * anim->y * 4) {
 		fprintf (stderr,
 			 "ffmpeg has changed alloc scheme ... ARGHHH!\n");
@@ -637,7 +642,7 @@ static int startffmpeg(struct anim * anim) {
 		anim->pCodecCtx->pix_fmt,
 		anim->pCodecCtx->width,
 		anim->pCodecCtx->height,
-		PIX_FMT_BGR32,
+		PIX_FMT_RGBA,
 		SWS_FAST_BILINEAR | SWS_PRINT_INFO,
 		NULL, NULL, NULL);
 		
@@ -666,11 +671,11 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 
 	if (anim == 0) return (0);
 
-	ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect, 0);
+	ibuf = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect, 0);
 
 	avpicture_fill((AVPicture*) anim->pFrameRGB, 
 		       (unsigned char*) ibuf->rect, 
-		       PIX_FMT_BGR32, anim->x, anim->y);
+		       PIX_FMT_RGBA, anim->x, anim->y);
 
 	if (position != anim->curposition + 1) { 
 		if (position > anim->curposition + 1 
@@ -743,6 +748,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 			if (frameFinished && !pos_found) {
 				if (packet.dts >= pts_to_search) {
 					pos_found = 1;
+					anim->curposition = position;
 				}
 			} 
 
@@ -773,7 +779,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 					}
 				}
 
-				if (G.order == B_ENDIAN) {
+				if (ENDIAN_ORDER == B_ENDIAN) {
 					int * dstStride 
 						= anim->pFrameRGB->linesize;
 					uint8_t** dst = anim->pFrameRGB->data;
@@ -806,21 +812,21 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 
 					for (y = 0; y < h; y++) {
 						unsigned char tmp[4];
-						unsigned long * tmp_l =
-							(unsigned long*) tmp;
+						unsigned int * tmp_l =
+							(unsigned int*) tmp;
 						tmp[3] = 0xff;
 
 						for (x = 0; x < w; x++) {
-							tmp[0] = bottom[3];
-							tmp[1] = bottom[2];
-							tmp[2] = bottom[1];
+							tmp[0] = bottom[0];
+							tmp[1] = bottom[1];
+							tmp[2] = bottom[2];
 
-							bottom[0] = top[3];
-							bottom[1] = top[2];
-							bottom[2] = top[1];
+							bottom[0] = top[0];
+							bottom[1] = top[1];
+							bottom[2] = top[2];
 							bottom[3] = 0xff;
 								
-							*(unsigned long*) top
+							*(unsigned int*) top
 								= *tmp_l;
 
 							bottom +=4;
@@ -843,8 +849,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 						0, 0, 0 };
 					int i;
 					unsigned char* r;
-					
-						
+	
 					sws_scale(anim->img_convert_ctx,
 						  input->data,
 						  input->linesize,
@@ -852,8 +857,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 						  anim->pCodecCtx->height,
 						  dst2,
 						  dstStride2);
-					
-					/* workaround: sws_scale 
+
+					/* workaround: sws_scale
 					   sets alpha = 0... */
 					
 					r = (unsigned char*) ibuf->rect;
@@ -862,7 +867,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 						r[3] = 0xff;
 						r+=4;
 					}
-					
+
 					av_free_packet(&packet);
 					break;
 				}
@@ -1041,9 +1046,10 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 	char head[256], tail[256];
 	unsigned short digits;
 	int pic;
-	int filter_y = (anim->ib_flags & IB_animdeinterlace);
-
+	int filter_y;
 	if (anim == NULL) return(0);
+
+	filter_y = (anim->ib_flags & IB_animdeinterlace);
 
 	if (anim->curtype == 0)	{
 		ibuf = anim_getnew(anim);

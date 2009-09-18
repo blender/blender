@@ -18,12 +18,6 @@ subject to the following restrictions:
 
 #include "LinearMath/btQuaternion.h"
 
-
-btSphereShape ::btSphereShape (btScalar radius)
-{
-	m_implicitShapeDimensions.setX(radius);
-}
-
 btVector3	btSphereShape::localGetSupportingVertexWithoutMargin(const btVector3& vec)const
 {
 	(void)vec;

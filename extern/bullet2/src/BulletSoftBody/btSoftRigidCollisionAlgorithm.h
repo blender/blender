@@ -28,15 +28,15 @@ class btSoftBody;
 /// btSoftRigidCollisionAlgorithm  provides collision detection between btSoftBody and btRigidBody
 class btSoftRigidCollisionAlgorithm : public btCollisionAlgorithm
 {
-//	bool	m_ownManifold;
-//	btPersistentManifold*	m_manifoldPtr;
+	//	bool	m_ownManifold;
+	//	btPersistentManifold*	m_manifoldPtr;
 
 	btSoftBody*				m_softBody;
 	btCollisionObject*		m_rigidCollisionObject;
 
 	///for rigid versus soft (instead of soft versus rigid), we use this swapped boolean
 	bool	m_isSwapped;
-	
+
 public:
 
 	btSoftRigidCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* col0,btCollisionObject* col1, bool isSwapped);
@@ -52,7 +52,7 @@ public:
 		//we don't add any manifolds
 	}
 
-	
+
 	struct CreateFunc :public 	btCollisionAlgorithmCreateFunc
 	{
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)

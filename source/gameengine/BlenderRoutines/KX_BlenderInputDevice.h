@@ -35,13 +35,13 @@
 
 #include <map>
 
-/* need to be here for conversion purposes */
-#ifdef FREE_WINDOWS
-#undef HKEY
-#endif
-
-#include "mydevice.h"
+#include "wm_event_types.h"
+#include "WM_types.h"
 #include "SCA_IInputDevice.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
 
 /**
  Base Class for Blender specific inputdevices. Blender specific inputdevices are used when the gameengine is running in embedded mode instead of standalone mode.
@@ -69,10 +69,10 @@ public:
 			m_reverseKeyTranslateTable[TIMER0                           ] =	KX_TIMER0                  ;                  
 			m_reverseKeyTranslateTable[TIMER1                           ] =	KX_TIMER1                  ;                  
 			m_reverseKeyTranslateTable[TIMER2                           ] = KX_TIMER2                  ;                  
-			m_reverseKeyTranslateTable[TIMER3                           ] = KX_TIMER3                  ;                  
                                                                                                                    
-			// SYSTEM                                                                                                  
-                                                                                                                   
+			// SYSTEM 
+#if 0			
+			/* **** XXX **** */
 			m_reverseKeyTranslateTable[KEYBD                            ] = KX_KEYBD                   ;                  
 			m_reverseKeyTranslateTable[RAWKEYBD                         ] = KX_RAWKEYBD                ;                  
 			m_reverseKeyTranslateTable[REDRAW                           ] = KX_REDRAW                  ;                  
@@ -83,7 +83,8 @@ public:
 			m_reverseKeyTranslateTable[WINCLOSE                         ] = KX_WINCLOSE                ;                  
 			m_reverseKeyTranslateTable[WINQUIT                          ] = KX_WINQUIT                 ;                  
 			m_reverseKeyTranslateTable[Q_FIRSTTIME                      ] = KX_Q_FIRSTTIME             ;                  
-                                                                                                                   
+			/* **** XXX **** */
+#endif                                                                                                                   
 			// standard keyboard                                                                                       
                                                                                                                    
 			m_reverseKeyTranslateTable[AKEY                             ] = KX_AKEY                    ;                  
@@ -93,7 +94,15 @@ public:
 			m_reverseKeyTranslateTable[EKEY                             ] = KX_EKEY                    ;                  
 			m_reverseKeyTranslateTable[FKEY                             ] = KX_FKEY                    ;                  
 			m_reverseKeyTranslateTable[GKEY                             ] = KX_GKEY                    ;                  
+//XXX clean up
+#ifdef WIN32
+#define HKEY	'h'
+#endif
 			m_reverseKeyTranslateTable[HKEY                             ] = KX_HKEY                    ;                  
+//XXX clean up
+#ifdef WIN32
+#undef HKEY
+#endif
 			m_reverseKeyTranslateTable[IKEY                             ] = KX_IKEY                    ;                  
 			m_reverseKeyTranslateTable[JKEY                             ] = KX_JKEY                    ;                  
 			m_reverseKeyTranslateTable[KKEY                             ] = KX_KKEY                    ;                  
@@ -215,6 +224,12 @@ public:
 //	virtual const SCA_InputEvent&	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode)=0;
 	virtual bool	ConvertBlenderEvent(unsigned short incode,short val)=0;
 
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_BlenderInputDevice"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };                                                                                                                 
 #endif //__KX_BLENDERINPUTDEVICE
 

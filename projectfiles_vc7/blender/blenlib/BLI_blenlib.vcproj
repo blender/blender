@@ -383,6 +383,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\freetypefont.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\graph.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\gsqueue.c">
 			</File>
 			<File
@@ -457,6 +460,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_ghash.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_graph.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_heap.h">

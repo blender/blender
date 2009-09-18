@@ -54,6 +54,8 @@
 #include "BKE_utildefines.h"
 
 
+
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -74,11 +76,6 @@
 #include <shlobj.h>
 
 #include "BLI_winstuff.h"
-
-/* for duplicate_defgroup */
-#if !(defined vsnprintf)
-#define vsnprintf _vsnprintf
-#endif
 
 #endif
 
@@ -101,23 +98,6 @@
 static int add_win32_extension(char *name);
 
 /* implementation */
-
-/* Ripped this from blender.c */
-void addlisttolist(ListBase *list1, ListBase *list2)
-{
-	if (list2->first==0) return;
-
-	if (list1->first==0) {
-		list1->first= list2->first;
-		list1->last= list2->last;
-	}
-	else {
-		((Link *)list1->last)->next= list2->first;
-		((Link *)list2->first)->prev= list1->last;
-		list1->last= list2->last;
-	}
-	list2->first= list2->last= 0;
-}
 
 int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen)
 {
@@ -241,8 +221,9 @@ void BLI_newname(char *name, int add)
  * 	name_offs: should be calculated using offsetof(structname, membername) macro from stddef.h
  *	len: maximum length of string (to prevent overflows, etc.)
  *	defname: the name that should be used by default if none is specified already
+ *	delim: the character which acts as a delimeter between parts of the name
  */
-void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs, short len)
+void BLI_uniquename(ListBase *list, void *vlink, char defname[], char delim, short name_offs, short len)
 {
 	Link *link;
 	char tempname[128];
@@ -278,12 +259,12 @@ void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs
 		return;
 
 	/* Strip off the suffix */
-	dot = strchr(GIVE_STRADDR(vlink, name_offs), '.');
+	dot = strchr(GIVE_STRADDR(vlink, name_offs), delim);
 	if (dot)
 		*dot=0;
 	
 	for (number = 1; number <= 999; number++) {
-		BLI_snprintf(tempname, 128, "%s.%03d", GIVE_STRADDR(vlink, name_offs), number);
+		BLI_snprintf(tempname, 128, "%s%c%03d", GIVE_STRADDR(vlink, name_offs), delim, number);
 		
 		exists = 0;
 		for (link= list->first; link; link= link->next) {
@@ -299,557 +280,6 @@ void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs
 			return;
 		}
 	}
-}
-
-
-void BLI_addhead(ListBase *listbase, void *vlink)
-{
-	Link *link= vlink;
-
-	if (link == NULL) return;
-	if (listbase == NULL) return;
-
-	link->next = listbase->first;
-	link->prev = NULL;
-
-	if (listbase->first) ((Link *)listbase->first)->prev = link;
-	if (listbase->last == NULL) listbase->last = link;
-	listbase->first = link;
-}
-
-
-void BLI_addtail(ListBase *listbase, void *vlink)
-{
-	Link *link= vlink;
-
-	if (link == NULL) return;
-	if (listbase == NULL) return;
-
-	link->next = NULL;
-	link->prev = listbase->last;
-
-	if (listbase->last) ((Link *)listbase->last)->next = link;
-	if (listbase->first == 0) listbase->first = link;
-	listbase->last = link;
-}
-
-
-void BLI_remlink(ListBase *listbase, void *vlink)
-{
-	Link *link= vlink;
-
-	if (link == NULL) return;
-	if (listbase == NULL) return;
-
-	if (link->next) link->next->prev = link->prev;
-	if (link->prev) link->prev->next = link->next;
-
-	if (listbase->last == link) listbase->last = link->prev;
-	if (listbase->first == link) listbase->first = link->next;
-}
-
-
-void BLI_freelinkN(ListBase *listbase, void *vlink)
-{
-	Link *link= vlink;
-
-	if (link == NULL) return;
-	if (listbase == NULL) return;
-
-	BLI_remlink(listbase,link);
-	MEM_freeN(link);
-}
-
-
-void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
-{
-	Link *prevlink= vprevlink;
-	Link *newlink= vnewlink;
-
-	/* newlink comes after prevlink */
-	if (newlink == NULL) return;
-	if (listbase == NULL) return;
-	
-	/* empty list */
-	if (listbase->first == NULL) { 
-		
-		listbase->first= newlink;
-		listbase->last= newlink;
-		return;
-	}
-	
-	/* insert before first element */
-	if (prevlink == NULL) {	
-		newlink->next= listbase->first;
-		newlink->prev= 0;
-		newlink->next->prev= newlink;
-		listbase->first= newlink;
-		return;
-	}
-
-	/* at end of list */
-	if (listbase->last== prevlink) 
-		listbase->last = newlink;
-
-	newlink->next= prevlink->next;
-	prevlink->next= newlink;
-	if (newlink->next) newlink->next->prev= newlink;
-	newlink->prev= prevlink;
-}
-
-/* This uses insertion sort, so NOT ok for large list */
-void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
-{
-	Link *current = NULL;
-	Link *previous = NULL;
-	Link *next = NULL;
-	
-	if (cmp == NULL) return;
-	if (listbase == NULL) return;
-
-	if (listbase->first != listbase->last)
-	{
-		for( previous = listbase->first, current = previous->next; current; current = next )
-		{
-			next = current->next;
-			previous = current->prev;
-			
-			BLI_remlink(listbase, current);
-			
-			while(previous && cmp(previous, current) == 1)
-			{
-				previous = previous->prev;
-			}
-			
-			BLI_insertlinkafter(listbase, previous, current);
-		}
-	}
-}
-
-void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
-{
-	Link *prevlink= vprevlink;
-	Link *newlink= vnewlink;
-
-	/* newlink before nextlink */
-	if (newlink == NULL) return;
-	if (listbase == NULL) return;
-
-	/* empty list */
-	if (listbase->first == NULL) { 
-		listbase->first= newlink;
-		listbase->last= newlink;
-		return;
-	}
-	
-	/* insert at head of list */
-	if (prevlink == NULL) {	
-		newlink->prev = NULL;
-		newlink->next = listbase->first;
-		((Link *)listbase->first)->prev = newlink;
-		listbase->first = newlink;
-		return;
-	}
-
-	/* at end of list */
-	if (listbase->last == prevlink) 
-		listbase->last = newlink;
-
-	newlink->next = prevlink->next;
-	newlink->prev = prevlink;
-	prevlink->next = newlink;
-	if (newlink->next) newlink->next->prev = newlink;
-}
-
-void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
-{
-	Link *nextlink= vnextlink;
-	Link *newlink= vnewlink;
-
-	/* newlink before nextlink */
-	if (newlink == NULL) return;
-	if (listbase == NULL) return;
-
-	/* empty list */
-	if (listbase->first == NULL) { 
-		listbase->first= newlink;
-		listbase->last= newlink;
-		return;
-	}
-	
-	/* insert at end of list */
-	if (nextlink == NULL) {	
-		newlink->prev= listbase->last;
-		newlink->next= 0;
-		((Link *)listbase->last)->next= newlink;
-		listbase->last= newlink;
-		return;
-	}
-
-	/* at beginning of list */
-	if (listbase->first== nextlink) 
-		listbase->first = newlink;
-
-	newlink->next= nextlink;
-	newlink->prev= nextlink->prev;
-	nextlink->prev= newlink;
-	if (newlink->prev) newlink->prev->next= newlink;
-}
-
-
-void BLI_freelist(ListBase *listbase)
-{
-	Link *link, *next;
-
-	if (listbase == NULL) 
-		return;
-	
-	link= listbase->first;
-	while (link) {
-		next= link->next;
-		free(link);
-		link= next;
-	}
-	
-	listbase->first= NULL;
-	listbase->last= NULL;
-}
-
-void BLI_freelistN(ListBase *listbase)
-{
-	Link *link, *next;
-
-	if (listbase == NULL) return;
-	
-	link= listbase->first;
-	while (link) {
-		next= link->next;
-		MEM_freeN(link);
-		link= next;
-	}
-	
-	listbase->first= NULL;
-	listbase->last= NULL;
-}
-
-
-int BLI_countlist(ListBase *listbase)
-{
-	Link *link;
-	int count = 0;
-	
-	if (listbase) {
-		link = listbase->first;
-		while (link) {
-			count++;
-			link= link->next;
-		}
-	}
-	return count;
-}
-
-void *BLI_findlink(ListBase *listbase, int number)
-{
-	Link *link = NULL;
-
-	if (number >= 0) {
-		link = listbase->first;
-		while (link != NULL && number != 0) {
-			number--;
-			link = link->next;
-		}
-	}
-
-	return link;
-}
-
-int BLI_findindex(ListBase *listbase, void *vlink)
-{
-	Link *link= NULL;
-	int number= 0;
-	
-	if (listbase == NULL) return -1;
-	if (vlink == NULL) return -1;
-	
-	link= listbase->first;
-	while (link) {
-		if (link == vlink)
-			return number;
-		
-		number++;
-		link= link->next;
-	}
-	
-	return -1;
-}
-
-/*=====================================================================================*/
-/* Methods for access array (realloc) */
-/*=====================================================================================*/
-
-/* remove item with index */
-static void rem_array_item(struct DynamicArray *da, unsigned int index)
-{
-	da->items[index]=NULL;
-	da->count--;
-	if(index==da->last_item_index){
-		while((!da->items[da->last_item_index]) && (da->last_item_index>0)){
-			da->last_item_index--;
-		}
-	}
-}
-
-/* add array (if needed, then realloc) */
-static void add_array_item(struct DynamicArray *da, void *item, unsigned int index)
-{
-	/* realloc of access array */
-	if(da->max_item_index < index){
-		unsigned int i, max = da->max_item_index;
-		void **nitems;
-
-		do {
-			da->max_item_index += PAGE_SIZE;	/* OS can allocate only PAGE_SIZE Bytes */
-		} while(da->max_item_index<=index);
-
-		nitems = (void**)MEM_mallocN(sizeof(void*)*(da->max_item_index+1), "dlist access array");
-		for(i=0;i<=max;i++)
-			nitems[i] = da->items[i];
-
-		/* set rest pointers to the NULL */
-		for(i=max+1; i<=da->max_item_index; i++)
-			nitems[i]=NULL;
-
-		MEM_freeN(da->items);		/* free old access array */
-		da->items = nitems;
-	}
-
-	da->items[index] = item;
-	da->count++;
-	if(index > da->last_item_index) da->last_item_index = index;
-}
-
-/* free access array */
-static void destroy_array(DynamicArray *da)
-{
-	da->count=0;
-	da->last_item_index=0;
-	da->max_item_index=0;
-	MEM_freeN(da->items);
-	da->items = NULL;
-}
-
-/* initialize dynamic array */
-static void init_array(DynamicArray *da)
-{
-	unsigned int i;
-
-	da->count=0;
-	da->last_item_index=0;
-	da->max_item_index = PAGE_SIZE-1;
-	da->items = (void*)MEM_mallocN(sizeof(void*)*(da->max_item_index+1), "dlist access array");
-	for(i=0; i<=da->max_item_index; i++) da->items[i]=NULL;
-}
-
-/* reinitialize dynamic array */
-static void reinit_array(DynamicArray *da)
-{
-	destroy_array(da);
-	init_array(da);
-}
-
-/*=====================================================================================*/
-/* Methods for two way dynamic list with access array */
-/*=====================================================================================*/
-
-/* create new two way dynamic list with access array from two way dynamic list
- * it doesn't copy any items to new array or something like this It is strongly
- * recomended to use BLI_dlist_ methods for adding/removing items from dynamic list
- * unless you can end with inconsistence system !!! */
-DynamicList *BLI_dlist_from_listbase(ListBase *lb)
-{
-	DynamicList *dlist;
-	Link *item;
-	int i=0, count;
-	
-	if(!lb) return NULL;
-	
-	count = BLI_countlist(lb);
-
-	dlist = MEM_mallocN(sizeof(DynamicList), "temp dynamic list");
-	/* ListBase stuff */
-	dlist->lb.first = lb->first;
-	dlist->lb.last = lb->last;
-	/* access array stuff */
-	dlist->da.count=count;
-	dlist->da.max_item_index = count-1;
-	dlist->da.last_item_index = count -1;
-	dlist->da.items = (void*)MEM_mallocN(sizeof(void*)*count, "temp dlist access array");
-
-	item = (Link*)lb->first;
-	while(item){
-		dlist->da.items[i] = (void*)item;
-		item = item->next;
-		i++;
-	}
-
-	/* to prevent you of using original ListBase :-) */
-	lb->first = lb->last = NULL;
-
-	return dlist;
-}
-
-/* take out ListBase from DynamicList and destroy all temporary structures of DynamicList */
-ListBase *BLI_listbase_from_dlist(DynamicList *dlist, ListBase *lb)
-{
-	if(!dlist) return NULL;
-
-	if(!lb) lb = (ListBase*)MEM_mallocN(sizeof(ListBase), "ListBase");
-	
-	lb->first = dlist->lb.first;
-	lb->last = dlist->lb.last;
-
-	/* free all items of access array */
-	MEM_freeN(dlist->da.items);
-	/* free DynamicList*/
-	MEM_freeN(dlist);
-
-	return lb;
-}
-
-/* return pointer at item from th dynamic list with access array */
-void *BLI_dlist_find_link(DynamicList *dlist, unsigned int index)
-{
-	if(!dlist || !dlist->da.items) return NULL;
-
-	if((index <= dlist->da.last_item_index) && (index >= 0) && (dlist->da.count>0)){
-      		return dlist->da.items[index];
-	}
-	else {
-		return NULL;
-	}
-}
-
-/* return count of items in the dynamic list with access array */
-unsigned int BLI_count_items(DynamicList *dlist)
-{
-	if(!dlist) return 0;
-
-	return dlist->da.count;
-}
-
-/* free item from the dynamic list with access array */
-void BLI_dlist_free_item(DynamicList *dlist, unsigned int index)
-{
-	if(!dlist || !dlist->da.items) return;
-	
-	if((index <= dlist->da.last_item_index) && (dlist->da.items[index])){
-		BLI_freelinkN(&(dlist->lb), dlist->da.items[index]);
-		rem_array_item(&(dlist->da), index);
-	}
-}
-
-/* remove item from the dynamic list with access array */
-void BLI_dlist_rem_item(DynamicList *dlist, unsigned int index)
-{
-	if(!dlist || !dlist->da.items) return;
-	
-	if((index <= dlist->da.last_item_index) && (dlist->da.items[index])){
-		BLI_remlink(&(dlist->lb), dlist->da.items[index]);
-		rem_array_item(&(dlist->da), index);
-	}
-}
-
-/* add item to the dynamic list with access array (index) */
-void* BLI_dlist_add_item_index(DynamicList *dlist, void *item, unsigned int index)
-{
-	if(!dlist || !dlist->da.items) return NULL;
-
-	if((index <= dlist->da.max_item_index) && (dlist->da.items[index])) {
-		/* you can't place item at used index */
-		return NULL;
-	}
-	else {
-		add_array_item(&(dlist->da), item, index);
-		BLI_addtail(&(dlist->lb), item);
-		return item;
-	}
-}
-
-/* destroy dynamic list with access array */
-void BLI_dlist_destroy(DynamicList *dlist)
-{
-	if(!dlist) return;
-
-	BLI_freelistN(&(dlist->lb));
-	destroy_array(&(dlist->da));
-}
-
-/* initialize dynamic list with access array */
-void BLI_dlist_init(DynamicList *dlist)
-{
-	if(!dlist) return;
-
-	dlist->lb.first = NULL;
-	dlist->lb.last = NULL;
-
-	init_array(&(dlist->da));
-}
-
-/* reinitialize dynamic list with acces array */
-void BLI_dlist_reinit(DynamicList *dlist)
-{
-	if(!dlist) return;
-	
-	BLI_freelistN(&(dlist->lb));
-	reinit_array(&(dlist->da));
-}
-
-/*=====================================================================================*/
-
-char *BLI_strdupn(const char *str, int len) {
-	char *n= MEM_mallocN(len+1, "strdup");
-	memcpy(n, str, len);
-	n[len]= '\0';
-	
-	return n;
-}
-char *BLI_strdup(const char *str) {
-	return BLI_strdupn(str, strlen(str));
-}
-
-char *BLI_strncpy(char *dst, const char *src, int maxncpy) {
-	int srclen= strlen(src);
-	int cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
-	
-	memcpy(dst, src, cpylen);
-	dst[cpylen]= '\0';
-	
-	return dst;
-}
-
-int BLI_snprintf(char *buffer, size_t count, const char *format, ...)
-{
-	int n;
-	va_list arg;
-
-	va_start(arg, format);
-	n = vsnprintf(buffer, count, format, arg);
-	
-	if (n != -1 && n < count) {
-		buffer[n] = '\0';
-	} else {
-		buffer[count-1] = '\0';
-	}
-	
-	va_end(arg);
-	return n;
-}
-
-int BLI_streq(char *a, char *b) {
-	return (strcmp(a, b)==0);
-}
-int BLI_strcaseeq(char *a, char *b) {
-	return (BLI_strcasecmp(a, b)==0);
 }
 
 /* ******************** string encoding ***************** */
@@ -1059,6 +489,21 @@ void BLI_makestringcode(const char *relfile, char *file)
 #endif
 		strcpy(file, res);
 	}
+}
+
+int BLI_has_parent(char *path)
+{
+	int len;
+	int slashes = 0;
+	BLI_clean(path);
+	len = BLI_add_slash(path) - 1;
+
+	while (len>=0) {
+		if ((path[len] == '\\') || (path[len] == '/'))
+			slashes++;
+		len--;
+	}
+	return slashes > 1;
 }
 
 int BLI_parent_dir(char *path)
@@ -1303,11 +748,27 @@ void BLI_splitdirstring(char *di, char *fi)
 	}
 }
 
-char *BLI_gethome(void) {
-	#ifdef __BeOS
-		return "/boot/home/";		/* BeOS 4.5: doubleclick at icon doesnt give home env */
+void BLI_getlastdir(const char* dir, char *last, int maxlen)
+{
+	const char *s = dir;
+	const char *lslash = NULL;
+	const char *prevslash = NULL;
+	while (*s) {
+		if ((*s == '\\') || (*s == '/')) {
+			prevslash = lslash;
+			lslash = s;
+		}
+		s++;
+	}
+	if (prevslash) {
+		BLI_strncpy(last, prevslash+1, maxlen);
+	} else {
+		BLI_strncpy(last, dir, maxlen);
+	}
+}
 
-	#elif !defined(WIN32)
+char *BLI_gethome(void) {
+	#if !defined(WIN32)
 		return getenv("HOME");
 
 	#else /* Windows */
@@ -1393,6 +854,117 @@ char *BLI_gethome(void) {
 		
 		return "C:\\Temp";	/* sheesh! bad, bad, bad! (aphex) */
 	#endif
+}
+
+/* this function returns the path to a blender folder, if it exists,
+ * trying in this order:
+ *
+ * path_to_executable/release/folder_name (in svn)
+ * ./release/folder_name (in svn)
+ * $HOME/.blender/folder_name
+ * path_to_executable/.blender/folder_name
+ *
+ * returns NULL if none is found. */
+
+char *BLI_gethome_folder(char *folder_name)
+{
+	extern char bprogname[]; /* argv[0] from creator.c */
+	static char homedir[FILE_MAXDIR] = "";
+	static char fulldir[FILE_MAXDIR] = "";
+	char tmpdir[FILE_MAXDIR];
+	char bprogdir[FILE_MAXDIR];
+	char *s;
+	int i;
+
+	/* use argv[0] (bprogname) to get the path to the executable */
+	s = BLI_last_slash(bprogname);
+
+	i = s - bprogname + 1;
+	BLI_strncpy(bprogdir, bprogname, i);
+
+	/* try path_to_executable/release/folder_name (in svn) */
+	if (folder_name) {
+		BLI_snprintf(tmpdir, sizeof(tmpdir), "release/%s", folder_name);
+		BLI_make_file_string("/", fulldir, bprogdir, tmpdir);
+		if (BLI_exists(fulldir)) return fulldir;
+		else fulldir[0] = '\0';
+	}
+
+	/* try ./release/folder_name (in svn) */
+	if(folder_name) {
+		BLI_snprintf(fulldir, sizeof(fulldir), "./release/%s", folder_name);
+		if (BLI_exists(fulldir)) return fulldir;
+		else fulldir[0] = '\0';
+	}
+
+	/* BLI_gethome() can return NULL if env vars are not set */
+	s = BLI_gethome();
+
+	if(!s) { /* bail if no $HOME */
+		printf("$HOME is NOT set\n");
+		return NULL;
+	}
+
+	if(strstr(s, ".blender"))
+		BLI_strncpy(homedir, s, FILE_MAXDIR);
+	else
+		BLI_make_file_string("/", homedir, s, ".blender");
+
+	/* if $HOME/.blender/folder_name exists, return it */
+	if(BLI_exists(homedir)) {
+		if (folder_name) {
+			BLI_make_file_string("/", fulldir, homedir, folder_name);
+			if(BLI_exists(fulldir))
+				return fulldir;
+		}
+		else
+			return homedir;
+	}
+	else
+		homedir[0] = '\0';
+
+	/* using tmpdir to preserve homedir (if) found above:
+	 * the ideal is to have a home dir with folder_name dir inside
+	 * it, but if that isn't available, it's possible to
+	 * have a 'broken' home dir somewhere and a folder_name dir in the
+	 * svn sources */
+	BLI_make_file_string("/", tmpdir, bprogdir, ".blender");
+
+	if(BLI_exists(tmpdir)) {
+		if(folder_name) {
+			BLI_make_file_string("/", fulldir, tmpdir, folder_name);
+			if(BLI_exists(fulldir)) {
+				BLI_strncpy(homedir, tmpdir, FILE_MAXDIR);
+				return fulldir;
+			}
+			else {
+				homedir[0] = '\0';
+				fulldir[0] = '\0';
+			}
+		}
+		else return homedir;
+	}
+
+	return NULL;
+}
+
+void BLI_setenv(const char *env, const char*val)
+{
+	/* SGI or free windows */
+#if (defined(__sgi) || ((defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)))
+	char *envstr= malloc(sizeof(char) * (strlen(env) + strlen(val) + 2)); /* one for = another for \0 */
+
+	sprintf(envstr, "%s=%s", env, val);
+	putenv(envstr);
+	free(envstr);
+
+	/* non-free windows */
+#elif (defined(WIN32) || defined(WIN64)) /* not free windows */
+	_putenv_s(env, val);
+#else
+	/* linux/osx/bsd */
+	setenv(env, val, 1);
+#endif
 }
 
 void BLI_clean(char *path)
@@ -1718,22 +1290,12 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 /* simple appending of filename to dir, does not check for valid path! */
 void BLI_join_dirfile(char *string, const char *dir, const char *file)
 {
-	int sl_dir = strlen(dir);
-	BLI_strncpy(string, dir, FILE_MAX);
-	if (sl_dir > FILE_MAX-1) sl_dir = FILE_MAX-1;
+	int sl_dir;
 	
-	/* only add seperator if needed */
-#ifdef WIN32
-	if (string[sl_dir-1] != '\\') {
-		string[sl_dir] = '\\';
-		sl_dir++;
-	}
-#else
-	if (string[sl_dir-1] != '/') {
-		string[sl_dir] = '/';
-		sl_dir++;
-	}
-#endif
+	if(string != dir) /* compare pointers */
+		BLI_strncpy(string, dir, FILE_MAX);
+	
+	sl_dir= BLI_add_slash(string);
 	
 	if (sl_dir <FILE_MAX) {
 		BLI_strncpy(string + sl_dir, file, FILE_MAX-sl_dir);
@@ -1785,13 +1347,13 @@ void BLI_where_am_i(char *fullname, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	char *path = NULL, *temp;
-	int len;
+	
 #ifdef _WIN32
 	char *seperator = ";";
-	char *slash = "\\";
+	char slash = '\\';
 #else
 	char *seperator = ":";
-	char *slash = "/";
+	char slash = '/';
 #endif
 
 	
@@ -1811,11 +1373,13 @@ void BLI_where_am_i(char *fullname, const char *name)
 		if (name[0] == '.') {
 			// relative path, prepend cwd
 			BLI_getwdN(fullname);
-			len = strlen(fullname);
-			if (len && fullname[len -1] != slash[0]) {
-				strcat(fullname, slash);
-			}
-			strcat(fullname, name);
+			
+			// not needed but avoids annoying /./ in name
+			if(name && name[0]=='.' && name[1]==slash)
+				BLI_join_dirfile(fullname, fullname, name+2);
+			else
+				BLI_join_dirfile(fullname, fullname, name);
+			
 			add_win32_extension(fullname);
 		} else if (BLI_last_slash(name)) {
 			// full path
@@ -1834,11 +1398,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 					} else {
 						strncpy(filename, path, sizeof(filename));
 					}
-					len = strlen(filename);
-					if (len && filename[len - 1] != slash[0]) {
-						strcat(filename, slash);
-					}
-					strcat(filename, name);
+					BLI_join_dirfile(fullname, fullname, name);
 					if (add_win32_extension(filename)) {
 						strcpy(fullname, filename);
 						break;
@@ -1907,6 +1467,27 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 	}
 }
 
+char *get_install_dir(void) {
+	extern char bprogname[];
+	char *tmpname = BLI_strdup(bprogname);
+	char *cut;
+
+#ifdef __APPLE__
+	cut = strstr(tmpname, ".app");
+	if (cut) cut[0] = 0;
+#endif
+
+	cut = BLI_last_slash(tmpname);
+
+	if (cut) {
+		cut[0] = 0;
+		return tmpname;
+	} else {
+		MEM_freeN(tmpname);
+		return NULL;
+	}
+}
+
 /* 
  * returns absolute path to the app bundle
  * only useful on OS X 
@@ -1924,67 +1505,6 @@ char* BLI_getbundle(void) {
 	return path;
 }
 #endif
-
-/* strcasestr not available in MSVC */
-char *BLI_strcasestr(const char *s, const char *find)
-{
-    register char c, sc;
-    register size_t len;
-	
-    if ((c = *find++) != 0) {
-		c= tolower(c);
-		len = strlen(find);
-		do {
-			do {
-				if ((sc = *s++) == 0)
-					return (NULL);
-				sc= tolower(sc);
-			} while (sc != c);
-		} while (BLI_strncasecmp(s, find, len) != 0);
-		s--;
-    }
-    return ((char *) s);
-}
-
-
-int BLI_strcasecmp(const char *s1, const char *s2) {
-	int i;
-
-	for (i=0; ; i++) {
-		char c1 = tolower(s1[i]);
-		char c2 = tolower(s2[i]);
-
-		if (c1<c2) {
-			return -1;
-		} else if (c1>c2) {
-			return 1;
-		} else if (c1==0) {
-			break;
-		}
-	}
-
-	return 0;
-}
-
-int BLI_strncasecmp(const char *s1, const char *s2, int n) {
-	int i;
-
-	for (i=0; i<n; i++) {
-		char c1 = tolower(s1[i]);
-		char c2 = tolower(s2[i]);
-
-		if (c1<c2) {
-			return -1;
-		} else if (c1>c2) {
-			return 1;
-		} else if (c1==0) {
-			break;
-		}
-	}
-
-	return 0;
-}
-
 
 #ifdef WITH_ICONV
 #include "iconv.h"
@@ -2017,68 +1537,4 @@ void BLI_string_to_utf8(char *original, char *utf_8, const char *code)
 }
 #endif // WITH_ICONV
 
-void BLI_timestr(double _time, char *str)
-{
-	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-	int  hr= ( (int)  _time) / (60*60);
-	int min= (((int)  _time) / 60 ) % 60;
-	int sec= ( (int) (_time)) % 60;
-	int hun= ( (int) (_time   * 100.0)) % 100;
-	
-	if (hr) {
-		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);
-	} else {
-		sprintf(str, "%.2d:%.2d.%.2d",min,sec,hun);
-	}
-	
-	str[11]=0;
-}
-
-/* ************** 64 bits magic, trick to support up to 32 gig of address space *************** */
-/*                only works for malloced pointers (8 aligned)                   */
-
-#ifdef __LP64__ 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#define PMASK		0x07FFFFFFFFi64
-#else
-#define PMASK		0x07FFFFFFFFll
-#endif
-
-
-int BLI_int_from_pointer(void *poin)
-{
-	intptr_t lval= (intptr_t)poin;
-	
-	return (int)(lval>>3);
-}
-
-void *BLI_pointer_from_int(int val)
-{
-	static int firsttime= 1;
-	static intptr_t basevalue= 0;
-	
-	if(firsttime) {
-		void *poin= malloc(10000);
-		basevalue= (intptr_t)poin;
-		basevalue &= ~PMASK;
-		printf("base: %d pointer %p\n", basevalue, poin); /* debug */
-		firsttime= 0;
-		free(poin);
-	}
-	return (void *)(basevalue | (((intptr_t)val)<<3));
-}
-
-#else
-
-int BLI_int_from_pointer(void *poin)
-{
-	return (int)poin;
-}
-void *BLI_pointer_from_int(int val)
-{
-	return (void *)val;
-}
-
-#endif
 

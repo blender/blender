@@ -48,6 +48,10 @@ ifeq ($(WITH_DDS), true)
     CPPFLAGS += -DWITH_DDS
 endif
 
+ifeq ($(WITH_OPENJPEG), true)
+    CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
+endif
+
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_JPEG)/include

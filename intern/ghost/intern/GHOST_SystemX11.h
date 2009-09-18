@@ -59,6 +59,12 @@ public:
 	GHOST_SystemX11(
 	);
 	
+	/**
+	 * Destructor.
+	 */
+	virtual ~GHOST_SystemX11();
+
+
 		GHOST_TSuccess 
 	init(
 	);
@@ -199,26 +205,53 @@ public:
 	prepareNdofInfo(
 		volatile GHOST_TEventNDOFData *current_values
 	);
-		
+
+	/* Helped function for get data from the clipboard. */
+	void getClipboard_xcout(XEvent evt, Atom sel, Atom target,
+			 unsigned char **txt, unsigned long *len,
+			 unsigned int *context) const;
+
 	/**
 	 * Returns unsinged char from CUT_BUFFER0
-	 * @param flag		Flag indicates which buffer to return 0 for clipboard 1 for selection
-	 * @return		Returns the Clipboard indicated by Flag
+	 * @param selection		Get selection, X11 only feature
+	 * @return				Returns the Clipboard indicated by Flag
 	 */
-		GHOST_TUns8*
-	getClipboard(int flag) const;
+	GHOST_TUns8 *getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
 	 * @param buffer	The buffer to copy to the clipboard	
-	 * @param flag		Flag indicates which buffer to set ownership of 0 for clipboard 1 for selection
+	 * @param selection	Set the selection into the clipboard, X11 only feature
 	 */
-	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
-	/* Atom used for ICCCM. */
+	/**
+	 * Atom used for ICCCM, WM-spec and Motif.
+	 * We only need get this atom at the start, it's relative
+	 * to the display not the window and are public for every
+	 * window that need it.
+	 */
+	Atom m_wm_state;
+	Atom m_wm_change_state;
+	Atom m_net_state;
+	Atom m_net_max_horz;
+	Atom m_net_max_vert;
+	Atom m_net_fullscreen;
+	Atom m_motif;
 	Atom m_wm_take_focus;
 	Atom m_wm_protocols;
 	Atom m_delete_window_atom;
+
+	/* Atoms for Selection, copy & paste. */
+	Atom m_targets;
+	Atom m_string;
+	Atom m_compound_text;
+	Atom m_text;
+	Atom m_clipboard;
+	Atom m_primary;
+	Atom m_xclip_out;
+	Atom m_incr;
+	Atom m_utf8_string;
 
 private :
 
@@ -231,7 +264,7 @@ private :
 	GHOST_TUns64 m_start_time;
 
 	/// A vector of keyboard key masks
-	char *m_keyboard_vector;
+	char m_keyboard_vector[32];
 
 	/**
 	 * Return the ghost window associated with the

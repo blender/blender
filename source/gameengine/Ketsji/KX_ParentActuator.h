@@ -2,7 +2,7 @@
  * Set or remove an objects parent
  *
  *
- * $Id: KX_ParentActuator.h 3271 2004-10-16 11:41:50Z kester $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -46,6 +46,9 @@ class KX_ParentActuator : public SCA_IActuator
 	/** Mode */
 	int m_mode;
 	
+	/** option */
+	bool	m_addToCompound;
+	bool	m_ghost;
 	/** Object to set as parent */
 	SCA_IObject *m_ob;
 	
@@ -57,13 +60,15 @@ class KX_ParentActuator : public SCA_IActuator
 		KX_PARENT_NODEF = 0,
 		KX_PARENT_SET,
 		KX_PARENT_REMOVE,
+		KX_PARENT_MAX
 
 	};
  
 	KX_ParentActuator(class SCA_IObject* gameobj,
 						int mode,
-						SCA_IObject *ob,
-						PyTypeObject* T=&Type);
+						bool addToCompound,
+						bool ghost,
+						SCA_IObject *ob);
 	virtual ~KX_ParentActuator();
 	virtual bool Update();
 	
@@ -76,12 +81,9 @@ class KX_ParentActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	/* 1. setObject                                                            */
-	KX_PYMETHOD_DOC_O(KX_ParentActuator,SetObject);
-	/* 2. getObject                                                            */
-	KX_PYMETHOD_DOC_VARARGS(KX_ParentActuator,GetObject);
+	/* These are used to get and set m_ob */
+	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
 }; /* end of class KX_ParentActuator : public SCA_PropertyActuator */
 

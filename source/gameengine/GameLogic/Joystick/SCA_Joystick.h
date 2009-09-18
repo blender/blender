@@ -44,6 +44,7 @@ class SCA_Joystick
 
 {
 	static SCA_Joystick *m_instance[JOYINDEX_MAX];
+	static int m_joynum;
 	static int m_refCount;
 
 	class PrivateData;
@@ -53,34 +54,19 @@ class SCA_Joystick
 	int				m_joyindex;
 
 	/* 
-	 *support for 2 axes 
+	 *support for JOYAXIS_MAX axes (in pairs)
 	 */
+	int m_axis_array[JOYAXIS_MAX];
 
-	int m_axis10,m_axis11;
-	int m_axis20,m_axis21;
-
+	/* 
+	 *support for JOYHAT_MAX hats (each is a direction)
+	 */
+	int m_hat_array[JOYHAT_MAX];	
+	
 	/*
 	 * Precision or range of the axes
 	 */
 	int 			m_prec;
-
-	/*
-	 * multiple axis values stored here
-	 */
-	int 			m_axisnum;
-	int 			m_axisvalue;
-
-	/*
-	 * max # of axes avail
-	 */
-	/*disabled
-	int 			m_axismax;
-	*/
-
-	/* 
-	 *	button values stored here 
-	 */
-	int 			m_buttonnum;
 
 	/*
 	 * max # of buttons avail
@@ -90,18 +76,6 @@ class SCA_Joystick
 	int 			m_buttonmax;
 	int 			m_hatmax;
 	
-	/*
-	 * hat values stored here 
-	 */
-	int 			m_hatnum;
-	int 			m_hatdir;
-
-	/*
-
-	 * max # of hats avail
-		disabled
-	int 			m_hatmax;
-	 */
 	/* is the joystick initialized ?*/
 	bool			m_isinit;
 
@@ -120,7 +94,10 @@ class SCA_Joystick
 	void OnButtonUp(SDL_Event *sdl_event);
 	void OnButtonDown(SDL_Event *sdl_event);
 	void OnNothing(SDL_Event *sdl_event);
+#if 0 /* not used yet */
 	void OnBallMotion(SDL_Event *sdl_event){}
+#endif
+		
 #endif
 	/*
 	 * Open the joystick
@@ -135,23 +112,17 @@ class SCA_Joystick
 	/*
 	 * fills the axis mnember values 
 	 */
-	void pFillAxes(void);
 	void pFillButtons(void);
 
 	/*
-	 * returns m_axis10,m_axis11...
+	 * returns m_axis_array
 	 */
 
 	int pAxisTest(int axisnum);
 	/*
-	 * returns m_axis10,m_axis11...
+	 * returns m_axis_array
 	 */
 	int pGetAxis(int axisnum, int udlr);
-
-	/*
-	 * gets the current hat direction
-	 */
-	int pGetHat(int direction);
 
 	SCA_Joystick(short int index);
 
@@ -166,17 +137,14 @@ public:
 
 	/*
 	 */
-	bool aAnyAxisIsPositive(int axis);
-	bool aUpAxisIsPositive(int axis);
-	bool aDownAxisIsPositive(int axis);
-	bool aLeftAxisIsPositive(int axis);
-	bool aRightAxisIsPositive(int axis);
+	bool aAxisPairIsPositive(int axis);
+	bool aAxisPairDirectionIsPositive(int axis, int dir); /* function assumes joysticks are in axis pairs */
+	bool aAxisIsPositive(int axis_single); /* check a single axis only */
 
 	bool aAnyButtonPressIsPositive(void);
-	bool aAnyButtonReleaseIsPositive(void);
 	bool aButtonPressIsPositive(int button);
 	bool aButtonReleaseIsPositive(int button);
-	bool aHatIsPositive(int dir);
+	bool aHatIsPositive(int hatnum, int dir);
 
 	/*
 	 * precision is default '3200' which is overridden by input
@@ -184,30 +152,12 @@ public:
 
 	void cSetPrecision(int val);
 
-	int GetAxis10(void){
-
-		return m_axis10;
-
+	int GetAxisPosition(int index){
+		return m_axis_array[index];
 	}
 
-	int GetAxis11(void){
-		return m_axis11;
-	}
-
-	int GetAxis20(void){
-		return m_axis20;
-	}
-
-	int GetAxis21(void){
-		return m_axis21;
-	}
-
-	int GetButton(void){
-		return m_buttonnum;
-	}
-
-	int GetHat(void){
-		return m_hatdir;
+	int GetHat(int index){
+		return m_hat_array[index];
 	}
 
 	int GetThreshold(void){

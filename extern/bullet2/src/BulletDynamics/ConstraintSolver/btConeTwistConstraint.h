@@ -17,10 +17,26 @@ Written by: Marcus Hennix
 
 
 
+/*
+Overview:
+
+btConeTwistConstraint can be used to simulate ragdoll joints (upper arm, leg etc).
+It is a fixed translation, 3 degree-of-freedom (DOF) rotational "joint".
+It divides the 3 rotational DOFs into swing (movement within a cone) and twist.
+Swing is divided into swing1 and swing2 which can have different limits, giving an elliptical shape.
+(Note: the cone's base isn't flat, so this ellipse is "embedded" on the surface of a sphere.)
+
+In the contraint's frame of reference:
+twist is along the x-axis,
+and swing 1 and 2 are along the z and y axes respectively.
+*/
+
+
+
 #ifndef CONETWISTCONSTRAINT_H
 #define CONETWISTCONSTRAINT_H
 
-#include "../../LinearMath/btVector3.h"
+#include "LinearMath/btVector3.h"
 #include "btJacobianEntry.h"
 #include "btTypedConstraint.h"
 
@@ -42,9 +58,13 @@ public:
 	btScalar	m_biasFactor;
 	btScalar	m_relaxationFactor;
 
+	btScalar	m_damping;
+
 	btScalar	m_swingSpan1;
 	btScalar	m_swingSpan2;
 	btScalar	m_twistSpan;
+
+	btScalar	m_fixThresh;
 
 	btVector3   m_swingAxis;
 	btVector3	m_twistAxis;
@@ -56,6 +76,8 @@ public:
 	btScalar	m_swingCorrection;
 	btScalar	m_twistCorrection;
 
+	btScalar	m_twistAngle;
+
 	btScalar	m_accSwingLimitImpulse;
 	btScalar	m_accTwistLimitImpulse;
 
@@ -63,6 +85,19 @@ public:
 	bool		m_solveTwistLimit;
 	bool		m_solveSwingLimit;
 
+	bool	m_useSolveConstraintObsolete;
+
+	// not yet used...
+	btScalar	m_swingLimitRatio;
+	btScalar	m_twistLimitRatio;
+	btVector3   m_twistAxisA;
+
+	// motor
+	bool		 m_bMotorEnabled;
+	bool		 m_bNormalizedMotorStrength;
+	btQuaternion m_qTarget;
+	btScalar	 m_maxMotorImpulse;
+	btVector3	 m_accMotorImpulse;
 	
 public:
 
@@ -74,7 +109,12 @@ public:
 
 	virtual void	buildJacobian();
 
-	virtual	void	solveConstraint(btScalar	timeStep);
+	virtual void getInfo1 (btConstraintInfo1* info);
+	
+	virtual void getInfo2 (btConstraintInfo2* info);
+	
+
+	virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
 
 	void	updateRHS(btScalar	timeStep);
 
@@ -92,7 +132,43 @@ public:
 		m_angularOnly = angularOnly;
 	}
 
-	void	setLimit(btScalar _swingSpan1,btScalar _swingSpan2,btScalar _twistSpan,  btScalar _softness = 0.8f, btScalar _biasFactor = 0.3f, btScalar _relaxationFactor = 1.0f)
+	void	setLimit(int limitIndex,btScalar limitValue)
+	{
+		switch (limitIndex)
+		{
+		case 3:
+			{
+				m_twistSpan = limitValue;
+				break;
+			}
+		case 4:
+			{
+				m_swingSpan2 = limitValue;
+				break;
+			}
+		case 5:
+			{
+				m_swingSpan1 = limitValue;
+				break;
+			}
+		default:
+			{
+			}
+		};
+	}
+
+	// setLimit(), a few notes:
+	// _softness:
+	//		0->1, recommend ~0.8->1.
+	//		describes % of limits where movement is free.
+	//		beyond this softness %, the limit is gradually enforced until the "hard" (1.0) limit is reached.
+	// _biasFactor:
+	//		0->1?, recommend 0.3 +/-0.3 or so.
+	//		strength with which constraint resists zeroth order (angular, not angular velocity) limit violation.
+	// __relaxationFactor:
+	//		0->1, recommend to stay near 1.
+	//		the lower the value, the less the constraint will fight velocities which violate the angular limits.
+	void	setLimit(btScalar _swingSpan1,btScalar _swingSpan2,btScalar _twistSpan, btScalar _softness = 1.f, btScalar _biasFactor = 0.3f, btScalar _relaxationFactor = 1.0f)
 	{
 		m_swingSpan1 = _swingSpan1;
 		m_swingSpan2 = _swingSpan2;
@@ -121,6 +197,60 @@ public:
 		return m_twistLimitSign;
 	}
 
+	void calcAngleInfo();
+	void calcAngleInfo2();
+
+	inline btScalar getSwingSpan1()
+	{
+		return m_swingSpan1;
+	}
+	inline btScalar getSwingSpan2()
+	{
+		return m_swingSpan2;
+	}
+	inline btScalar getTwistSpan()
+	{
+		return m_twistSpan;
+	}
+	inline btScalar getTwistAngle()
+	{
+		return m_twistAngle;
+	}
+	bool isPastSwingLimit() { return m_solveSwingLimit; }
+
+
+	void setDamping(btScalar damping) { m_damping = damping; }
+
+	void enableMotor(bool b) { m_bMotorEnabled = b; }
+	void setMaxMotorImpulse(btScalar maxMotorImpulse) { m_maxMotorImpulse = maxMotorImpulse; m_bNormalizedMotorStrength = false; }
+	void setMaxMotorImpulseNormalized(btScalar maxMotorImpulse) { m_maxMotorImpulse = maxMotorImpulse; m_bNormalizedMotorStrength = true; }
+
+	btScalar getFixThresh() { return m_fixThresh; }
+	void setFixThresh(btScalar fixThresh) { m_fixThresh = fixThresh; }
+
+	// setMotorTarget:
+	// q: the desired rotation of bodyA wrt bodyB.
+	// note: if q violates the joint limits, the internal target is clamped to avoid conflicting impulses (very bad for stability)
+	// note: don't forget to enableMotor()
+	void setMotorTarget(const btQuaternion &q);
+
+	// same as above, but q is the desired rotation of frameA wrt frameB in constraint space
+	void setMotorTargetInConstraintSpace(const btQuaternion &q);
+
+	btVector3 GetPointForAngle(btScalar fAngleInRadians, btScalar fLength) const;
+
+
+
+protected:
+	void init();
+
+	void computeConeLimitInfo(const btQuaternion& qCone, // in
+		btScalar& swingAngle, btVector3& vSwingAxis, btScalar& swingLimit); // all outs
+
+	void computeTwistLimitInfo(const btQuaternion& qTwist, // in
+		btScalar& twistAngle, btVector3& vTwistAxis); // all outs
+
+	void adjustSwingAxisToUseEllipseNormal(btVector3& vSwingAxis) const;
 };
 
 #endif //CONETWISTCONSTRAINT_H

@@ -19,55 +19,17 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
  *
  * Contributor(s): 
  * - Martin DeMello
  *   Added dxf_read_arc, dxf_read_ellipse and dxf_read_lwpolyline
  *   Copyright (C) 2004 by Etheract Software Labs
  *
- * ***** END GPL LICENSE BLOCK *****
- *  
- *  eigen videoscape formaat:
+ * - Blender Foundation
  *
- * 
- * lamp:
- *		3DG2
-		aantal_lampen
-		
-		type
-		spsi spbl
-		r, g, b, energy
-		locx, locy, locz
-		vecx, vecy, vecz
+ * ***** END GPL LICENSE BLOCK *****/
 
-		
-	curve / nurbs:
-		3DG3
-		5 of 11 (curve of surf)
-		aantal_nurbs
-		extr1 extr2
-		
-		mat[0][0] mat[0][1] mat[0][2] mat[0][3]
-		mat[1][0] mat[1][1] mat[1][2] mat[1][3]
-		...		
-		
-		type
-		pntsu, pntsv
-		resolu, resolv
-		orderu, orderv
-		flagu, flagv
-		
-		(als type==nurb) x y z w
-						 x y z w
-						 ...
-		(als type==bez)  xyz xyz xyz h1 h2 h3
-						 xyz xyz xyz h1 h2 h3
-						 ...
- *  
- * 
- */
-
+#include "BLI_storage.h"
 
 #include <ctype.h> /* isdigit, isspace */
 #include <math.h>
@@ -76,10 +38,14 @@
 #include <fcntl.h>
 #include <string.h>
 
-#ifndef WIN32 
+#ifndef _WIN32 
 #include <unistd.h>
 #else
 #include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#define write _write
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -96,12 +62,12 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
+#include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -110,6 +76,7 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_exotic.h"
+
 /*  #include "BKE_error.h" */
 #include "BKE_screen.h"
 #include "BKE_displist.h"
@@ -121,12 +88,10 @@
 #include "BPY_extern.h"
 #endif
 
-#include "blendef.h"
-
 #include "zlib.h"
 
 static int is_dxf(char *str);
-static void dxf_read(char *filename);
+static void dxf_read(Scene *scene, char *filename);
 static int is_stl(char *str);
 
 static int is_stl_ascii(char *str)
@@ -177,11 +142,10 @@ static int is_stl(char *str)
     MEM_freeN(facedata);                                \
     fclose(fpSTL);                                      \
     sprintf(error_msg, "Problems reading face %d!", i); \
-    error(error_msg);                                   \
     return;                                             \
   }                                                     \
   else {                                                \
-    if (G.order==B_ENDIAN) {                            \
+    if (ENDIAN_ORDER==B_ENDIAN) {                       \
       SWITCH_INT(mvert->co[0]);                         \
       SWITCH_INT(mvert->co[1]);                         \
       SWITCH_INT(mvert->co[2]);                         \
@@ -231,7 +195,7 @@ static void mesh_add_normals_flags(Mesh *me)
 	}	
 }
 
-static void read_stl_mesh_binary(char *str)
+static void read_stl_mesh_binary(Scene *scene, char *str)
 {
 	FILE   *fpSTL;
 	Object *ob;
@@ -244,13 +208,13 @@ static void read_stl_mesh_binary(char *str)
 
 	fpSTL= fopen(str, "rb");
 	if(fpSTL==NULL) {
-		error("Can't read file");
+		//XXX error("Can't read file");
 		return;
 	}
 
 	fseek(fpSTL, 80, SEEK_SET);
 	fread(&numfacets, 4*sizeof(char), 1, fpSTL);
-	if (G.order==B_ENDIAN) {
+	if (ENDIAN_ORDER==B_ENDIAN) {
                 SWITCH_INT(numfacets);
         }
 
@@ -293,7 +257,7 @@ static void read_stl_mesh_binary(char *str)
 				fseek(fpSTL, 2, SEEK_CUR);
 			}
 
-			ob= add_object(OB_MESH);
+			ob= add_object(scene, OB_MESH);
 			me= ob->data;
 			me->totvert = totvert;
 			me->totface = totface;
@@ -305,7 +269,7 @@ static void read_stl_mesh_binary(char *str)
 			mesh_add_normals_flags(me);
 			make_edges(me, 0);
 		}
-		waitcursor(1);
+		//XXX waitcursor(1);
 	}
 	fclose(fpSTL);
 
@@ -317,7 +281,6 @@ static void read_stl_mesh_binary(char *str)
 	fclose(fpSTL); \
 	sprintf(error_msg, "Can't allocate storage for %d faces!", \
 			numtenthousand * 10000); \
-	error(error_msg); \
 	return; \
 }
 
@@ -326,7 +289,6 @@ static void read_stl_mesh_binary(char *str)
 	fclose(fpSTL); \
 	free(vertdata); \
 	sprintf(error_msg, "Line %d: %s", linenum, message); \
-	error(message); \
 	return; \
 }
 
@@ -344,7 +306,7 @@ static void read_stl_mesh_binary(char *str)
 		STLBAILOUT("Bad vertex!"); \
 	++totvert; \
 }
-static void read_stl_mesh_ascii(char *str)
+static void read_stl_mesh_ascii(Scene *scene, char *str)
 {
 	FILE   *fpSTL;
 	char   buffer[2048], *cp;
@@ -362,7 +324,7 @@ static void read_stl_mesh_ascii(char *str)
 
 	fpSTL= fopen(str, "r");
 	if(fpSTL==NULL) {
-		error("Can't read file");
+		//XXX error("Can't read file");
 		return;
 	}
 	
@@ -372,7 +334,7 @@ static void read_stl_mesh_ascii(char *str)
 	 */
 	numtenthousand = 1;
 	vertdata = malloc(numtenthousand*3*30000*sizeof(float));	// uses realloc!
-	if (!vertdata) STLALLOCERROR;
+	if (!vertdata) { STLALLOCERROR; }
 
 	linenum = 1;
 	/* Get rid of the first line */
@@ -395,7 +357,7 @@ static void read_stl_mesh_ascii(char *str)
 			++numtenthousand;
 			vertdata = realloc(vertdata, 
 							   numtenthousand*3*30000*sizeof(float));
-			if (!vertdata) STLALLOCERROR;
+			if (!vertdata) { STLALLOCERROR; }
 		}
 		
 		/* Don't read normal, but check line for proper syntax anyway
@@ -436,7 +398,7 @@ static void read_stl_mesh_ascii(char *str)
 	fclose(fpSTL);
 
 	/* OK, lets create our mesh */
-	ob = add_object(OB_MESH);
+	ob = add_object(scene, OB_MESH);
 	me = ob->data;
 
 	me->totface = totface;
@@ -473,576 +435,13 @@ static void read_stl_mesh_ascii(char *str)
 	mesh_add_normals_flags(me);
 	make_edges(me, 0);
 
-	waitcursor(1);
+	//XXX waitcursor(1);
 }
 
 #undef STLALLOCERROR
 #undef STLBAILOUT
 #undef STLREADLINE
 #undef STLREADVERT
-
-static void read_videoscape_mesh(char *str)
-{
-	Object *ob;
-	Mesh *me;
-	MVert *mvert;
-	MFace *mface;
-	Material *ma;
-	FILE *fp;
-	float *vertdata, *vd, min[3], max[3], cent[3], ftemp;
-	unsigned int color[32], col;
-	int totcol, a, b, verts, tottria=0, totquad=0, totedge=0, poly, nr0, nr, first;
-	int end;
-	char s[50];
-	
-	fp= fopen(str, "rb");
-	if(fp==NULL) {
-		error("Can't read file");
-		return;
-	}
-	
-	fscanf(fp, "%40s", s);
-	
-	fscanf(fp, "%d\n", &verts);
-	if(verts<=0) {
-		fclose(fp);
-		error("Read error");
-		return;
-	}
-	
-	if(verts>MESH_MAX_VERTS) {
-		error("too many vertices");
-		fclose(fp);
-		return;
-	}
-	
-	INIT_MINMAX(min, max);
-	vd= vertdata= MEM_mallocN(sizeof(float)*3*verts, "videoscapelezer");
-	
-	for(a=0; a<verts; a++) {
-		fscanf(fp, "%f %f %f", vd, vd+1, vd+2);
-		DO_MINMAX(vd, min, max);
-		vd+=3;
-	}
-	
-	/* count faces and colors */
-	for(a=0; a<32; a++) color[a]= 0;
-	totcol= 0;
-	end= 1;
-	while(end>0) {
-		end= fscanf(fp,"%d", &poly);
-		if(end<=0) break;
-	
-		if(poly==3) tottria++;
-		else if(poly==4) totquad++;
-		else totedge+= poly;
-	
-		for(a=0;a<poly;a++) {
-			end= fscanf(fp,"%d", &nr);
-			if(end<=0) break;
-		}
-		if(end<=0) break;
-		
-		end= fscanf(fp,"%i\n", &col);
-		col &= 0xF0F0F0;
-		for(a=0; a<totcol; a++) {
-			if(color[a]==col) break;
-		}
-		if(a>=totcol && totcol<32) {
-			color[totcol]= col;
-			totcol++;
-		}
-	}
-
-	/* new object */
-	ob= add_object(OB_MESH);
-	me= ob->data;
-	me->totvert= verts;
-	me->totface= totedge+tottria+totquad;
-	
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
-	                                NULL, me->totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
-	                                NULL, me->totface);
-	
-	/* colors */
-	if(totcol) {
-		ob->mat= MEM_callocN(sizeof(void *)*totcol, "ob->mat");
-		me->mat= MEM_callocN(sizeof(void *)*totcol, "me->mat");
-		me->totcol= totcol;
-		ob->totcol= (unsigned char) me->totcol;
-		ob->actcol= 1;
-	}
-	
-	/* materials */
-	for(a=0; a<totcol; a++) {
-		ma= G.main->mat.first;
-		while(ma) {
-			if(ma->mtex[0]==0) {
-				col= rgb_to_cpack(ma->r, ma->g, ma->b);
-				if(color[a]==col) {
-					me->mat[a]= ma;
-					ma->id.us++;
-					break;
-				}
-			}
-			ma= ma->id.next;
-		}
-		if(ma==0) {
-			ma= add_material("ext");
-			me->mat[a]= ma;
-			cpack_to_rgb(color[a], cent, cent+1, cent+2);
-			ma->r= cent[0];
-			ma->g= cent[1];
-			ma->b= cent[2];
-			automatname(ma);
-		}
-	}
-	
-	/* verts */
-	
-	cent[0]= (min[0]+max[0])/2.0f;
-	cent[1]= (min[1]+max[1])/2.0f;
-	cent[2]= (min[2]+max[2])/2.0f;
-	VECCOPY(ob->loc, cent);
-	
-	a= me->totvert;
-	vd= vertdata;
-	mvert= me->mvert;
-	while(a--) {
-		VecSubf(mvert->co, vd, cent);
-		mvert++;
-		vd+= 3;
-	}
-	
-	/* faces */
-	if(me->totface) {
-		rewind(fp);
-	
-		fscanf(fp, "%40s", s);
-		fscanf(fp, "%d\n", &verts);
-		/* fake read */
-		for(a=0;a<verts;a++) {
-			fscanf(fp, "%f %f %f", &ftemp, &ftemp, &ftemp);
-		}
-		
-		a= me->totface;
-		mface= me->mface;
-		while(a--) {
-			end= fscanf(fp,"%d", &poly);
-			if(end<=0) break;
-	
-			if(poly==3 || poly==4) {
-				fscanf(fp,"%d", &nr);
-				mface->v1= MIN2(nr, me->totvert-1);
-				fscanf(fp,"%d", &nr);
-				mface->v2= MIN2(nr, me->totvert-1);
-				fscanf(fp,"%d", &nr);
-				mface->v3= MIN2(nr, me->totvert-1);
-				if(poly==4) {
-					if( fscanf(fp,"%d", &nr) <=0 ) break;
-					mface->v4= MIN2(nr, me->totvert-1);
-				}
-				
-				test_index_face(mface, NULL, 0, poly);
-				
-				mface++;
-			}
-			else {
-				if( fscanf(fp,"%d", &nr0) <=0) break;
-				first= nr0;
-				for(b=1; b<poly; b++) {
-					end= fscanf(fp,"%d", &nr);
-					if(end<=0) break;
-					nr= MIN2(nr, me->totvert-1);
-					mface->v1= nr;
-					mface->v2= nr0;
-					nr0= nr;
-					mface++;
-					a--;
-				}
-				mface->v1= first;
-				mface->v2= nr;
-				mface++;
-				if(end<=0) break;
-			}
-			end= fscanf(fp,"%i", &col);
-			col &= 0xF0F0F0;
-			if(end<=0) break;
-			
-			for(b=0; b<totcol; b++) {
-				if(color[b]==col) {
-					(mface-1)->mat_nr= b;
-					break;
-				}
-			}
-		}
-	}
-	
-	fclose(fp);
-	MEM_freeN(vertdata);
-	
-	mesh_add_normals_flags(me);
-	make_edges(me, 0);
-
-	waitcursor(1);
-}
-
-static void read_radiogour(char *str)
-{
-	Object *ob;
-	Mesh *me;
-	MVert *mvert;
-	MFace *mface;
-	FILE *fp;
-	float *vertdata, *vd, min[3], max[3], cent[3], ftemp;
-	unsigned int *colv, *colf, *colvertdata;
-	int  itemp, a, b, verts, tottria=0, totquad=0, totedge=0, poly, nr0, nr, first;
-	int end;
-	char s[50];
-	
-	fp= fopen(str, "rb");
-	if(fp==NULL) {
-		error("Can't read file");
-		return;
-	}
-	
-	fscanf(fp, "%40s", s);
-	
-	fscanf(fp, "%d\n", &verts);
-	if(verts<=0) {
-		fclose(fp);
-		error("Read error");
-		return;
-	}
-	
-	if(verts>MESH_MAX_VERTS) {
-		error("too many vertices");
-		fclose(fp);
-		return;
-	}
-	
-	INIT_MINMAX(min, max);
-	vd= vertdata= MEM_mallocN(sizeof(float)*3*verts, "videoscapelezer");
-	colv= colvertdata= MEM_mallocN(verts*sizeof(float), "coldata");
-	
-	for(a=0; a<verts; a++) {
-		fscanf(fp, "%f %f %f %i", vd, vd+1, vd+2, colv);
-		DO_MINMAX(vd, min, max);
-		vd+=3;
-		colv++;
-	}
-	
-	/* count faces */
-	end= 1;
-	while(end>0) {
-		end= fscanf(fp,"%d", &poly);
-		if(end<=0) break;
-	
-		if(poly==3) tottria++;
-		else if(poly==4) totquad++;
-		else totedge+= poly;
-	
-		for(a=0;a<poly;a++) {
-			end= fscanf(fp,"%d", &nr);
-			if(end<=0) break;
-		}
-		if(end<=0) break;
-		
-	}
-	
-	if(totedge+tottria+totquad>MESH_MAX_VERTS) {
-		printf(" var1: %d, var2: %d, var3: %d \n", totedge, tottria, totquad);
-		error("too many faces");
-		MEM_freeN(vertdata);
-		MEM_freeN(colvertdata);
-		fclose(fp);
-		return;
-	}
-	
-	/* new object */
-	ob= add_object(OB_MESH);
-	me= ob->data;
-	me->totvert= verts;
-	me->totface= totedge+tottria+totquad;
-	me->flag= 0;
-
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
-	                                NULL, me->totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
-	                                NULL, me->totface);
-	
-	/* verts */
-	
-	cent[0]= (min[0]+max[0])/2.0f;
-	cent[1]= (min[1]+max[1])/2.0f;
-	cent[2]= (min[2]+max[2])/2.0f;
-	VECCOPY(ob->loc, cent);
-	
-	a= me->totvert;
-	vd= vertdata;
-	mvert= me->mvert;
-	while(a--) {
-		VecSubf(mvert->co, vd, cent);
-		mvert++;
-		vd+= 3;
-	}
-	
-	/* faces */
-	if(me->totface) {
-		rewind(fp);
-	
-		fscanf(fp, "%40s", s);
-		fscanf(fp, "%d\n", &verts);
-		for(a=0;a<verts;a++) {
-			fscanf(fp, "%f %f %f %i", &ftemp, &ftemp, &ftemp, &itemp);
-		}
-		
-		a= me->totface;
-		mface= me->mface;
-		while(a--) {
-			end= fscanf(fp,"%d", &poly);
-			if(end<=0) break;
-	
-			if(poly==3 || poly==4) {
-				fscanf(fp,"%d", &nr);
-				mface->v1= MIN2(nr, me->totvert-1);
-				fscanf(fp,"%d", &nr);
-				mface->v2= MIN2(nr, me->totvert-1);
-				fscanf(fp,"%d", &nr);
-				mface->v3= MIN2(nr, me->totvert-1);
-				if(poly==4) {
-					if( fscanf(fp,"%d", &nr) <=0 ) break;
-					mface->v4= MIN2(nr, me->totvert-1);
-				}
-				
-				test_index_face(mface, NULL, 0, poly);
-				
-				mface++;
-			}
-			else {
-				if( fscanf(fp,"%d", &nr0) <=0) break;
-				first= nr0;
-				for(b=1; b<poly; b++) {
-					end= fscanf(fp,"%d", &nr);
-					if(end<=0) break;
-					nr= MIN2(nr, me->totvert-1);
-					mface->v1= nr;
-					mface->v2= nr0;
-					nr0= nr;
-					mface++;
-					a--;
-				}
-				mface->v1= first;
-				mface->v2= nr;
-				mface->flag= ME_SMOOTH;
-				
-				mface++;
-				if(end<=0) break;
-			}
-		}
-		
-		/* mcol is 4 colors per face */
-		me->mcol= MEM_mallocN(4*sizeof(int)*me->totface, "mcol");
-		colf= (unsigned int *)me->mcol;
-
-		a= me->totface;
-		mface= me->mface;
-		while(a--) {
-			
-			colf[0]= colvertdata[mface->v1];
-			colf[1]= colvertdata[mface->v2];
-			colf[2]= colvertdata[mface->v3];
-			colf[3]= colvertdata[mface->v4];
-			
-			colf+= 4;
-			mface++;
-		}
-		
-		MEM_freeN(colvertdata);
-	}
-	
-	fclose(fp);
-	MEM_freeN(vertdata);
-	
-	mesh_add_normals_flags(me);
-	make_edges(me, 0);
-
-	waitcursor(1);
-}
-
-
-static void read_videoscape_lamp(char *str)
-{
-	Object *ob;
-	Lamp *la;
-	FILE *fp;
-	float vec[3], q1[4];
-	int tot, val;
-	char s[50];
-	
-	fp= fopen(str, "rb");
-	if(fp==NULL) {
-		error("Can't read file");
-		return;
-	}
-
-	fscanf(fp, "%40s", s);
-	fscanf(fp, "%d\n", &tot);
-	
-	while(tot--) {
-		ob= add_object(OB_LAMP);
-		la= ob->data;
-		
-		fscanf(fp, "%d\n", &val);
-		la->type= val;
-		if(la->type==1) la->type= LA_SPOT;
-		else if(la->type==2) la->type= LA_SUN;
-		
-		fscanf(fp, "%f %f\n", &la->spotsize, &la->spotblend);
-		
-		fscanf(fp, "%f %f %f %f\n", &la->r, &la->g, &la->b, &la->energy);		
-		
-		fscanf(fp, "%f %f %f\n", ob->loc, ob->loc+1, ob->loc+2);
-		val= fscanf(fp, "%f %f %f\n", vec, vec+1, vec+2);
-		vectoquat(vec, 5, 2, q1);
-		QuatToEul(q1, ob->rot);
-		
-		if(val<=0) break;
-		
-	}
-	fclose(fp);
-}
-
-static void read_videoscape_nurbs(char *str)
-{
-	Object *ob;
-	Curve *cu;
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	FILE *fp;
-	float tmat[4][4], omat[3][3], imat[3][3], mat[3][3];
-	int a, tot, type, val;
-	char s[50];
-
-	fp= fopen(str, "rb");
-	if(fp==NULL) {
-		error("Can't read file");
-		return;
-	}
-
-	fscanf(fp, "%40s", s);
-	fscanf(fp, "%d\n", &type);
-	
-	if(type==5) ob= add_object(OB_SURF);
-	else ob= add_object(OB_CURVE);
-	cu= ob->data;
-	
-	fscanf(fp, "%d\n", &tot);
-	fscanf(fp, "%d %d\n", &type, &val);
-	
-	cu->ext1= 0.002f*type;
-	cu->ext2= 0.002f*val;
-
-	for(a=0; a<4; a++) fscanf(fp, "%e %e %e %e\n", tmat[a], tmat[a]+1, tmat[a]+2, tmat[a]+3);
-
-	VECCOPY(ob->loc, tmat[3]);
-
-	Mat3CpyMat4(omat, tmat);
-	Mat3ToEul(omat, ob->rot);
-	EulToMat3(ob->rot, mat);
-	Mat3Inv(imat, mat);
-	Mat3MulMat3((float ( * )[3])tmat, imat, omat);
-	
-	while(tot--) {
-		nu= (Nurb*)MEM_callocN(sizeof(Nurb),"nu from exotic");
-		BLI_addtail(&cu->nurb, nu);
-		
-		fscanf(fp, "%d\n", &type);
-		nu->type= type;
-
-		fscanf(fp, "%d %d\n", &type, &val);
-		nu->pntsu= type; nu->pntsv= val;
-		fscanf(fp, "%d %d\n", &type, &val);
-		nu->resolu= type; nu->resolv= val;
-		fscanf(fp, "%d %d\n", &type, &val);
-		nu->orderu= type; nu->orderv= val;
-		fscanf(fp, "%d %d\n", &type, &val);
-		nu->flagu= type; nu->flagv= val;
-		
-		if( (nu->type & 7)==CU_BEZIER) {
-			a= nu->pntsu;
-			nu->bezt= bezt= MEM_callocN(a*sizeof(BezTriple), "bezt from exotic");
-			while(a--) {
-				fscanf(fp, "%f %f %f ", bezt->vec[0], bezt->vec[0]+1, bezt->vec[0]+2);
-				Mat4MulVecfl(tmat, bezt->vec[0]);
-				fscanf(fp, "%f %f %f ", bezt->vec[1], bezt->vec[1]+1, bezt->vec[1]+2);
-				Mat4MulVecfl(tmat, bezt->vec[1]);
-				fscanf(fp, "%f %f %f ", bezt->vec[2], bezt->vec[2]+1, bezt->vec[2]+2);
-				Mat4MulVecfl(tmat, bezt->vec[2]);
-				fscanf(fp, "%d %d\n", &type, &val);
-				bezt->h1= type;
-				bezt->h2= val;
-				bezt++;
-			}
-		}
-		else {
-			a= nu->pntsu*nu->pntsv;
-			if(a) {
-				nu->bp= bp= MEM_callocN(a*sizeof(BPoint), "bp from exotic");
-				while(a--) {
-					fscanf(fp, "%f %f %f %f\n", bp->vec, bp->vec+1, bp->vec+2, bp->vec+3);
-					Mat4MulVecfl(tmat, bp->vec);
-					bp++;
-				}
-				
-				val= KNOTSU(nu);
-				nu->knotsu= MEM_mallocN(sizeof(float)*val, "knots");
-				for(a=0; a<val; a++) fscanf(fp, "%f\n", nu->knotsu+a);
-				
-				if(nu->pntsv>1) {
-					val= KNOTSV(nu);
-					nu->knotsv= MEM_mallocN(sizeof(float)*val, "knots");
-					for(a=0; a<val; a++) fscanf(fp, "%f\n", nu->knotsv+a);
-				}
-			}
-			else {
-				BLI_remlink(&cu->nurb, nu);
-				MEM_freeN(nu);
-			}
-		}
-	}
-	fclose(fp);
-}
-
-static void read_videoscape(char *str)
-{
-	int file, type;
-	unsigned int val;
-	unsigned short numlen;
-	char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXDIR+FILE_MAXFILE], tail[FILE_MAXFILE];
-	
-	strcpy(name, str);
-
-	while( TRUE ) {
-		file= open(name, O_BINARY|O_RDONLY);
-		if(file<=0) break;
-		else {
-			read(file, &type, 4);
-			close(file);
-			
-			if(type==DDG1) read_videoscape_mesh(name);
-			else if(type==DDG2) read_videoscape_lamp(name);
-			else if(type==DDG3) read_videoscape_nurbs(name);
-		}
-
-		val = BLI_stringdec(name, head, tail, &numlen);
-		BLI_stringenc(name, head, tail, numlen, val + 1);
-
-	}
-}
-
 
 /* ***************** INVENTOR ******************* */
 
@@ -1127,7 +526,7 @@ static int iv_finddata(struct IvNode *iv, char *field, int fieldnr)
 	float *fp;
 	int len, stackcount, skipdata=0;
 	char *cpa, terminator, str[64];
-	long i;
+	intptr_t i;
 	
 	len= strlen(field);
 
@@ -1227,7 +626,7 @@ static void read_iv_index(float *data, float *baseadr, float *index, int nr, int
 
 
 
-static void read_inventor(char *str, struct ListBase *listb)
+static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 {
 	struct IvNode *iv, *ivp, *ivn;
 	char *maindata, *md, *cpa;
@@ -1242,7 +641,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 	
 	file= open(str, O_BINARY|O_RDONLY);
 	if(file== -1) {
-		error("Can't read file\n");
+		//XXX error("Can't read file\n");
 		return;
 	}
 
@@ -1825,7 +1224,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 					BPoint *bp;
 					
 					if(ivsurf==0) {
-						ob= add_object(OB_SURF);
+						ob= add_object(scene, OB_SURF);
 						ivsurf= ob;
 					}
 					else ob= ivsurf;
@@ -1908,7 +1307,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 
 /* ************************************************************ */
 
-static void displist_to_mesh(DispList *dlfirst)
+static void displist_to_mesh(Scene *scene, DispList *dlfirst)
 {
 	Object *ob;
 	Mesh *me;
@@ -2016,24 +1415,20 @@ static void displist_to_mesh(DispList *dlfirst)
 		return;
 	}
 	
-	if(totcol>16) {
-		error("Found more than 16 different colors");
-		totcol= 16;
-	}
-
 	vec[0]= (min[0]+max[0])/2;
 	vec[1]= (min[1]+max[1])/2;
 	vec[2]= (min[2]+max[2])/2;
 
-	ob= add_object(OB_MESH);
+	ob= add_object(scene, OB_MESH);
 	VECCOPY(ob->loc, vec);
-	where_is_object(ob);
+	where_is_object(scene, ob);
 
 	me= ob->data;
 	
 	/* colors */
 	if(totcol) {
 		ob->mat= MEM_callocN(sizeof(void *)*totcol, "ob->mat");
+		ob->matbits= MEM_callocN(sizeof(char)*totcol, "ob->matbits");
 		me->mat= MEM_callocN(sizeof(void *)*totcol, "me->mat");
 		me->totcol= totcol;
 		ob->totcol= (unsigned char) me->totcol;
@@ -2083,7 +1478,7 @@ static void displist_to_mesh(DispList *dlfirst)
 	dl= dlfirst;
 	while(dl) {
 		
-		colnr= (dl->col>15 ? 15: dl->col);
+		colnr= dl->col;
 		if(colnr) colnr--;
 		
 		if(dl->type==DL_SURF) {
@@ -2247,7 +1642,7 @@ static void displist_to_mesh(DispList *dlfirst)
 	make_edges(me, 0);
 }
 
-static void displist_to_objects(ListBase *lbase)
+static void displist_to_objects(Scene *scene, ListBase *lbase)
 {
 	DispList *dl, *first, *prev, *next;
 	ListBase tempbase;
@@ -2255,8 +1650,8 @@ static void displist_to_objects(ListBase *lbase)
 	
 	/* irst this: is still active */
 	if(ivsurf) {
-		where_is_object(ivsurf);
-		docenter_new();
+		where_is_object(scene, ivsurf);
+// XXX		docenter_new();
 	}
 
 	dl= lbase->first;
@@ -2292,7 +1687,7 @@ static void displist_to_objects(ListBase *lbase)
 
 	if(totvert==0) {
 		
-		if(ivsurf==0) error("Found no data");
+		if(ivsurf==0) {}; //XXX error("Found no data");
 		if(lbase->first) BLI_freelistN(lbase);
 		
 		return;
@@ -2336,12 +1731,12 @@ static void displist_to_objects(ListBase *lbase)
 				totvert+= vert;
 				if(totvert > maxaantal || dl->next==0) {
 					if(dl->next==0) {
-						displist_to_mesh(first);
+						displist_to_mesh(scene, first);
 					}
 					else if(dl->prev) {
 						prev= dl->prev;
 						prev->next= 0;
-						displist_to_mesh(first);
+						displist_to_mesh(scene, first);
 						prev->next= dl;
 						first= dl;
 						totvert= 0;
@@ -2356,13 +1751,13 @@ static void displist_to_objects(ListBase *lbase)
 			curcol++;
 		}
 	}
-	else displist_to_mesh(lbase->first);
+	else displist_to_mesh(scene, lbase->first);
 
 	freedisplist(lbase);
 
 }
 
-int BKE_read_exotic(char *name)
+int BKE_read_exotic(Scene *scene, char *name)
 {
 	ListBase lbase={0, 0};
 	int len;
@@ -2378,7 +1773,7 @@ int BKE_read_exotic(char *name)
 		gzfile = gzopen(name,"rb");
 
 		if (NULL == gzfile ) {
-			error("Can't open file: %s", name);
+			//XXX error("Can't open file: %s", name);
 			retval= -1;
 		} else {
 			gzread(gzfile, str, 31);
@@ -2386,47 +1781,30 @@ int BKE_read_exotic(char *name)
 
 			if ((*s0 != FORM) && (strncmp(str, "BLEN", 4) != 0) && !BLI_testextensie(name,".blend.gz")) {
 
-				waitcursor(1);
-				
-				if(*s0==GOUR) {
-					if(G.obedit) {
-						error("Unable to perform function in EditMode");
-					} else {
-						read_radiogour(name);
-						retval = 1;
-					}
-				}
-				else if ELEM4(*s0, DDG1, DDG2, DDG3, DDG4) {
-					if(G.obedit) {
-						error("Unable to perform function in EditMode");
-					} else {
-						read_videoscape(name);
-						retval = 1;
-					}
-				}
-				else if(strncmp(str, "#Inventor V1.0", 14)==0) {
+				//XXX waitcursor(1);
+				if(strncmp(str, "#Inventor V1.0", 14)==0) {
 					if( strncmp(str+15, "ascii", 5)==0) {
-						read_inventor(name, &lbase);
-						displist_to_objects(&lbase);				
+						read_inventor(scene, name, &lbase);
+						displist_to_objects(scene, &lbase);				
 						retval = 1;
 					} else {
-						error("Can only read Inventor 1.0 ascii");
+						//XXX error("Can only read Inventor 1.0 ascii");
 					}
 				}
 				else if((strncmp(str, "#VRML V1.0 asc", 14)==0)) {
-					read_inventor(name, &lbase);
-					displist_to_objects(&lbase);				
+					read_inventor(scene, name, &lbase);
+					displist_to_objects(scene, &lbase);				
 					retval = 1;
 				}
 				else if(is_dxf(name)) {
-					dxf_read(name);
+					dxf_read(scene, name);
 					retval = 1;
 				}
 				else if(is_stl(name)) {
 					if (is_stl_ascii(name))
-						read_stl_mesh_ascii(name);
+						read_stl_mesh_ascii(scene, name);
 					else
-						read_stl_mesh_binary(name);
+						read_stl_mesh_binary(scene, name);
 					retval = 1;
 				}
 #ifndef DISABLE_PYTHON
@@ -2435,12 +1813,12 @@ int BKE_read_exotic(char *name)
 					if (BPY_call_importloader(name)) {
 						retval = 1;
 					} else {	
-						error("Unknown file type or error, check console");
+						//XXX error("Unknown file type or error, check console");
 					}	
 				
 				}
 #endif /* DISABLE_PYTHON */
-				waitcursor(0);
+				//XXX waitcursor(0);
 			}
 		}
 	}
@@ -2461,7 +1839,7 @@ static void write_vert_stl(Object *ob, MVert *verts, int index, FILE *fpSTL)
 	VECCOPY(vert, verts[(index)].co);
 	Mat4MulVecfl(ob->obmat, vert);
 
-	if (G.order==B_ENDIAN) {
+	if (ENDIAN_ORDER==B_ENDIAN) {
 		SWITCH_INT(vert[0]);
 		SWITCH_INT(vert[1]);
 		SWITCH_INT(vert[2]);
@@ -2498,10 +1876,10 @@ static int write_derivedmesh_stl(FILE *fpSTL, Object *ob, DerivedMesh *dm)
 	return numfacets;
 }
 
-static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
+static int write_object_stl(FILE *fpSTL, Scene *scene, Object *ob, Mesh *me)
 {
 	int  numfacets = 0;
-	DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 
 	numfacets += write_derivedmesh_stl(fpSTL, ob, dm);
 
@@ -2510,7 +1888,7 @@ static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
 	return numfacets;
 }
 
-void write_stl(char *str)
+void write_stl(Scene *scene, char *str)
 {
 	Object *ob;
 	Mesh   *me;
@@ -2522,21 +1900,20 @@ void write_stl(char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".stl")==0) strcat(str, ".stl");
 
-	if (!during_script()) {
-		if (BLI_exists(str))
-			if(saveover(str)==0)
-				return;
+	if (BLI_exists(str)) {
+		; //XXX if(saveover(str)==0)
+		//XXX   return;
 	}
 
 	fpSTL= fopen(str, "wb");
 	
 	if(fpSTL==NULL) {
-		if (!during_script()) error("Can't write file");
+		//XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
 	
-	waitcursor(1);
+	//XXX waitcursor(1);
 	
 	/* The header part of the STL */
 	/* First 80 characters are a title or whatever you want.
@@ -2548,14 +1925,14 @@ void write_stl(char *str)
 	fprintf(fpSTL, "Binary STL output from Blender: %-48.48s    ", str);
 
 	/* Write all selected mesh objects */
-	base= G.scene->base.first;
+	base= scene->base.first;
 	while(base) {
 		if (base->flag & SELECT) {
 			ob = base->object;
 			if (ob->type == OB_MESH) {
 				me = ob->data;
 				if (me)
-					numfacets += write_object_stl(fpSTL, ob, me);
+					numfacets += write_object_stl(fpSTL, scene, ob, me);
 			}
 		}
 		base= base->next;
@@ -2566,172 +1943,14 @@ void write_stl(char *str)
 	*/
 	fseek(fpSTL, 80, SEEK_SET);
 
-	if (G.order==B_ENDIAN) {
+	if (ENDIAN_ORDER==B_ENDIAN) {
                 SWITCH_INT(numfacets);
         }
 	fwrite(&numfacets, 4*sizeof(char), 1, fpSTL);
 
 	fclose(fpSTL);
 	
-	waitcursor(0);
-}
-
-static void write_videoscape_mesh(Object *ob, char *str)
-{
-	EditMesh *em = G.editMesh;
-	Mesh *me;
-	Material *ma;
-	MFace *mface;
-	FILE *fp;
-	EditVert *eve;
-	EditFace *evl;
-	unsigned int kleur[32];
-	float co[3];
-	int a;
-	long tot;
-	char *cp;
-	
-	if(ob && ob->type==OB_MESH);
-	else {
-		return;
-	}
-
-	kleur[0]= 0x00C0C0C0;
-
-	cp= (char *)kleur;
-	for(a=0; a<ob->totcol; a++, cp+=4) {
-		
-		ma= give_current_material(ob, a+1);
-		if(ma) {
-			cp[0]= (unsigned char) (255.0*ma->emit);
-			cp[1]= (unsigned char) (255.0*ma->b);
-			cp[2]= (unsigned char) (255.0*ma->g);
-			cp[3]= (unsigned char) (255.0*ma->r);
-			if(G.order==L_ENDIAN) SWITCH_INT(kleur[a]);
-		}
-		else kleur[a]= 0x00C0C0C0;
-	
-		if(a>30) break;
-	}
-	
-	fp= fopen(str, "wb");
-	if(fp==NULL) return;
-
-	fprintf(fp,"3DG1\n");
-
-	if(G.obedit) {
-
-		fprintf(fp, "%d\n", G.totvert);
-	
-		tot= 0;
-		eve= em->verts.first;
-		while(eve) {
-			VECCOPY(co, eve->co);
-			Mat4MulVecfl(ob->obmat, co);
-			fprintf(fp, "%f %f %f\n", co[0], co[1], co[2] );
-			eve->tmp.l = tot;
-			tot++;
-			eve= eve->next;
-		}
-		evl= em->faces.first;
-		while(evl) {
-
-			if(evl->v4==0) {
-				fprintf(fp, "3 %ld %ld %ld 0x%x\n", 
-						(long int) evl->v1->tmp.l,
-						(long int) evl->v2->tmp.l,
-						(long int) evl->v3->tmp.l, 
-						kleur[evl->mat_nr]);
-			}
-			else {
-				fprintf(fp, "4 %ld %ld %ld %ld 0x%x\n", 
-						(long int) evl->v1->tmp.l, 
-						(long int) evl->v2->tmp.l, 
-						(long int) evl->v3->tmp.l, 
-						(long int) evl->v4->tmp.l, 
-						kleur[evl->mat_nr]);
-			}
-			evl= evl->next;
-		}
-	}
-	else {
-		DerivedMesh *dm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
-		
-		me= ob->data;
-		
-		fprintf(fp, "%d\n", me->totvert);
-		
-		mface= me->mface;
-		for(a=0; a<me->totvert; a++) {
-			dm->getVertCo(dm, a, co);
-			Mat4MulVecfl(ob->obmat, co);
-			fprintf(fp, "%f %f %f\n", co[0], co[1], co[2] );
-		}
-		for(a=0; a<me->totface; a++, mface++) {
-			if(mface->v4==0) {
-				fprintf(fp, "3 %d %d %d 0x%x\n", mface->v1, mface->v2, mface->v3, kleur[mface->mat_nr]);
-			}
-			else {
-				fprintf(fp, "4 %d %d %d %d 0x%x\n", mface->v1, mface->v2, mface->v3, mface->v4, kleur[mface->mat_nr]);
-			}
-		}
-
-		dm->release(dm);
-	}
-	
-	fclose(fp);
-	
-}
-
-
-void write_videoscape(char *str)
-{
-	Base *base;
-	int file, val, lampdone=0;
-	unsigned short numlen;
-	char head[FILE_MAXFILE], tail[FILE_MAXFILE];
-	
-	if(BLI_testextensie(str,".trace")) str[ strlen(str)-6]= 0;
-	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
-	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
-	if(BLI_testextensie(str,".obj")==0) strcat(str, ".obj");
-
-	file= open(str,O_BINARY|O_RDONLY);
-	close(file);
-	if(file>-1) if(!during_script() && saveover(str)==0) return;
-
-	strcpy(temp_dir, str);
-
-	base= G.scene->base.first;
-	while(base) {
-		if((base->flag & SELECT) && (base->lay & G.scene->lay))  {
-			if(base->object->type==OB_MESH) {
-				write_videoscape_mesh(base->object, str);
-				val = BLI_stringdec(str, head, tail, &numlen);
-				BLI_stringenc(str, head, tail, numlen, val + 1);
-			}
-			else if(base->object->type==OB_CURVE || base->object->type==OB_SURF) {
-				/* write_videoscape_nurbs(base->object, str); */
-				/* val = stringdec(str, head, tail, &numlen); */
-				/* stringenc(str, head, tail, numlen, val + 1); */
-			}
-			else if(lampdone==0 && base->object->type==OB_LAMP) {
-				/* lampdone= 1; */
-				/* write_videoscape_lamps(str); */
-				/* val = stringdec(str, head, tail, &numlen); */
-				/* stringenc(str, head, tail, numlen, val + 1); */
-			}
-		}
-		base= base->next;
-	}
-	
-	
-	/* remove when higher numbers exist */
-	while(remove(str)==0) {
-		
-		val = BLI_stringdec(str, head, tail, &numlen);
-		BLI_stringenc(str, head, tail, numlen, val + 1);
-	}
+	//XXX waitcursor(0);
 }
 
 /* ******************************* WRITE VRML ***************************** */
@@ -3003,7 +2222,7 @@ static void write_object_vrml(FILE *fp, Object *ob)
 }
 
 
-void write_vrml(char *str)
+void write_vrml(Scene *scene, char *str)
 {
 	Mesh *me;
 	Material *ma;
@@ -3013,22 +2232,21 @@ void write_vrml(char *str)
 	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".wrl")==0) strcat(str, ".wrl");
-
-	if(!during_script() && saveover(str)==0) return;
+	//XXX saveover()       if(saveover(str)==0) return;
 	
 	fp= fopen(str, "w");
 	
-	if(fp==NULL && !during_script()) {
-		error("Can't write file");
+	if(fp==NULL) {
+		//XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
 
-	waitcursor(1);
+	//XXX waitcursor(1);
 	
 	/* FIRST: write all the datablocks */
 	
-	fprintf(fp, "#VRML V1.0 ascii\n\n# Blender V%d\n\n# 'Switch' is used as a hack, to ensure it is not part of the drawing\n\n", G.version);
+	fprintf(fp, "#VRML V1.0 ascii\n\n# Blender V%d\n\n# 'Switch' is used as a hack, to ensure it is not part of the drawing\n\n", BLENDER_VERSION);
 	fprintf(fp, "Separator {\n");
 	fprintf(fp, "Switch {\n");
 
@@ -3043,7 +2261,7 @@ void write_vrml(char *str)
 	/* only write meshes we're using in this scene */
 	flag_listbase_ids(&G.main->mesh, LIB_DOIT, 0);
 	
-	for(base= G.scene->base.first; base; base= base->next)
+	for(base= scene->base.first; base; base= base->next)
 		if(base->object->type== OB_MESH)
 			((ID *)base->object->data)->flag |= LIB_DOIT;	
 	
@@ -3057,10 +2275,10 @@ void write_vrml(char *str)
 	
 	/* THEN:Hidden Objects */
 	fprintf(fp, "\n\t# Hidden Objects, in invisible layers\n\n");
-	base= G.scene->base.first;
+	base= scene->base.first;
 	while(base) {
 		if(base->object->type== OB_MESH) {
-			if( (base->lay & G.scene->lay)==0 ) {
+			if( (base->lay & scene->lay)==0 ) {
 				write_object_vrml(fp, base->object);
 			}
 		}
@@ -3073,14 +2291,14 @@ void write_vrml(char *str)
 	
 	/* The camera */
 
-	write_camera_vrml(fp, G.scene->camera);
+	write_camera_vrml(fp, scene->camera);
 	
 	/* THEN:The Objects */
 	
-	base= G.scene->base.first;
+	base= scene->base.first;
 	while(base) {
 		if(base->object->type== OB_MESH) {
-			if(base->lay & G.scene->lay) {
+			if(base->lay & scene->lay) {
 				write_object_vrml(fp, base->object);
 			}
 		}
@@ -3092,7 +2310,7 @@ void write_vrml(char *str)
 	
 	fclose(fp);
 	
-	waitcursor(0);
+	//XXX waitcursor(0);
 }
 
 
@@ -3256,7 +2474,7 @@ static void write_mesh_dxf(FILE *fp, Mesh *me)
 	
 		/* Write a face color */
 		if (me->totcol) {
-			ma= me->mat[mface->mat_nr];
+			ma= me->mat[(int)mface->mat_nr];
 			if(ma) {
 				sprintf(str,"%d",rgb_to_dxf_col(ma->r,ma->g,ma->b));
 				write_group(62, str); /* Color index */
@@ -3315,7 +2533,7 @@ static void write_object_dxf(FILE *fp, Object *ob, int layer)
 	fprintf (fp, "50\n%f\n", (float) ob->rot[2]*180/M_PI); /* Can only write the Z rot */
 }
 
-void write_dxf(char *str)
+void write_dxf(struct Scene *scene, char *str)
 {
 	Mesh *me;
 	Base *base;
@@ -3325,21 +2543,21 @@ void write_dxf(char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".dxf")==0) strcat(str, ".dxf");
 
-	if (!during_script()) {
-		if (BLI_exists(str))
-			if(saveover(str)==0)
-				return;
+	
+	if (BLI_exists(str)) {
+		; //XXX if(saveover(str)==0)
+		//	return;
 	}
 
 	fp= fopen(str, "w");
 	
-	if(fp==NULL && !during_script()) {
-		error("Can't write file");
+	if(fp==NULL) {
+		//XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
 	
-	waitcursor(1);
+	//XXX waitcursor(1);
 	
 	/* The header part of the DXF */
 	
@@ -3356,7 +2574,7 @@ void write_dxf(char *str)
 	/* only write meshes we're using in this scene */
 	flag_listbase_ids(&G.main->mesh, LIB_DOIT, 0);
 	
-	for(base= G.scene->base.first; base; base= base->next)
+	for(base= scene->base.first; base; base= base->next)
 		if(base->object->type== OB_MESH)
 			((ID *)base->object->data)->flag |= LIB_DOIT;	
 	
@@ -3377,7 +2595,7 @@ void write_dxf(char *str)
     write_group(2, "ENTITIES");
 
 	/* Write all the mesh objects */
-	base= G.scene->base.first;
+	base= scene->base.first;
 	while(base) {
 		if(base->object->type== OB_MESH) {
 			write_object_dxf(fp, base->object, base->lay);
@@ -3392,7 +2610,7 @@ void write_dxf(char *str)
 	write_group(0, "EOF");
 	fclose(fp);
 	
-	waitcursor(0);
+	//XXX waitcursor(0);
 }
 
 
@@ -3447,12 +2665,12 @@ static int dxf_get_layer_col(char *layer)
 	return 1;
 }
 
-static int dxf_get_layer_num(char *layer)
+static int dxf_get_layer_num(Scene *scene, char *layer)
 {
 	int ret = 0;
 
 	if (all_digits(layer) && atoi(layer)<(1<<20)) ret= atoi(layer);
-	if (ret == 0) ret = G.scene->lay;
+	if (ret == 0) ret = scene->lay;
 
 	return ret;
 }
@@ -3519,13 +2737,14 @@ static int read_groupf(char *str)
 	return ret;
 }
 
-#define id_test(id) if(id<0) {char errmsg[128];fclose(dxf_fp); if(id==-1) sprintf(errmsg, "Error inputting dxf, near line %d", dxf_line); else if(id==-2) sprintf(errmsg, "Error reading dxf, near line %d", dxf_line);error(errmsg); return;}
+//XXX error() is now printf until we have a callback error
+#define id_test(id) if(id<0) {char errmsg[128];fclose(dxf_fp); if(id==-1) sprintf(errmsg, "Error inputting dxf, near line %d", dxf_line); else if(id==-2) sprintf(errmsg, "Error reading dxf, near line %d", dxf_line);printf("%s", errmsg); return;}
 
 #define read_group(id,str) {id= read_groupf(str); id_test(id);}
 
 #define group_is(idtst,str) (id==idtst&&strcmp(val,str)==0)
 #define group_isnt(idtst,str) (id!=idtst||strcmp(val,str)!=0)
-#define id_check(idtst,str) if(group_isnt(idtst,str)) { fclose(dxf_fp); error("Error parsing dxf, near line %d", dxf_line); return;}
+#define id_check(idtst,str) if(group_isnt(idtst,str)) { fclose(dxf_fp); printf("Error parsing dxf, near line %d", dxf_line); return;}
 
 static int id;
 static char val[256];
@@ -3580,8 +2799,11 @@ static void dxf_add_mat (Object *ob, Mesh *me, float color[3], char *layer)
 	
 	if (!me) return;
 	
-	if(ob) ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
-	if(ob) ob->actcol= 1;
+	if(ob) {
+		ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
+		ob->matbits= MEM_callocN(sizeof(char)*1, "ob->matbits");
+		ob->actcol= 1;
+	}
 
 	me->totcol= 1;
 	me->mat= MEM_callocN(sizeof(void *)*1, "me->mat");
@@ -3623,22 +2845,22 @@ static float zerovec[3]= {0.0, 0.0, 0.0};
 #define reset_vars cent[0]= cent[1]= cent[2]=0.0; strcpy(layname, ""); color[0]= color[1]= color[2]= -1.0
 
 
-static void dxf_get_mesh(Mesh** m, Object** o, int noob)
+static void dxf_get_mesh(Scene *scene, Mesh** m, Object** o, int noob)
 {
 	Mesh *me = NULL;
 	Object *ob;
 	
 	if (!noob) {
-		*o = add_object(OB_MESH);
+		*o = add_object(scene, OB_MESH);
 		ob = *o;
 		
 		if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
 		else if (strlen(layname)) new_id(&G.main->object, (ID *)ob,  layname);
 
-		if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
-		else ob->lay= G.scene->lay;
+		if (strlen(layname)) ob->lay= dxf_get_layer_num(scene, layname);
+		else ob->lay= scene->lay;
 		// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
-		G.scene->basact->lay= ob->lay;
+		scene->basact->lay= ob->lay;
 
 		*m = ob->data;
 		me= *m;
@@ -3647,7 +2869,7 @@ static void dxf_get_mesh(Mesh** m, Object** o, int noob)
 	} 
 	else {
 		*o = NULL;
-		*m = add_mesh("Mesh"); G.totmesh++;
+		*m = add_mesh("Mesh");
 
 		me = *m;
 		ob = *o;
@@ -3665,7 +2887,7 @@ static void dxf_get_mesh(Mesh** m, Object** o, int noob)
 	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
 }
 
-static void dxf_read_point(int noob) {	
+static void dxf_read_point(Scene *scene, int noob) {	
 	/* Blender vars */
 	Object *ob;
 	Mesh *me;
@@ -3694,7 +2916,7 @@ static void dxf_read_point(int noob) {
 		read_group(id, val);								
 	}
 
-	dxf_get_mesh(&me, &ob, noob);
+	dxf_get_mesh(scene, &me, &ob, noob);
 	me->totvert= 1;
 	me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
 	CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
@@ -3724,7 +2946,7 @@ static void dxf_close_line(void)
 	linehold=NULL;
 }
 
-static void dxf_read_line(int noob) {	
+static void dxf_read_line(Scene *scene, int noob) {	
 	/* Entity specific vars */
 	float epoint[3]={0.0, 0.0, 0.0};
 	short vspace=0; /* Whether or not coords are relative */
@@ -3774,7 +2996,7 @@ static void dxf_read_line(int noob) {
 		dxf_close_line();
 					
 	if (linemhold==NULL) {
-		dxf_get_mesh(&me, &ob, noob);
+		dxf_get_mesh(scene, &me, &ob, noob);
 
 		if(ob) VECCOPY(ob->loc, cent);
 
@@ -3836,7 +3058,7 @@ static void dxf_close_2dpoly(void)
 	p2dhold=NULL;
 }
 
-static void dxf_read_ellipse(int noob) 
+static void dxf_read_ellipse(Scene *scene, int noob) 
 {
 
 	/*
@@ -3982,7 +3204,7 @@ static void dxf_read_ellipse(int noob)
 	cent[2]= center[2];
 #endif
 	
-	dxf_get_mesh(&me, &ob, noob);
+	dxf_get_mesh(scene, &me, &ob, noob);
 	strcpy(oldllay, layname);		
 	if(ob) VECCOPY(ob->loc, cent);
 	dxf_add_mat (ob, me, color, layname);
@@ -4032,7 +3254,7 @@ static void dxf_read_ellipse(int noob)
 	}
 }
 
-static void dxf_read_arc(int noob) 
+static void dxf_read_arc(Scene *scene, int noob) 
 {
 	/* Entity specific vars */
 	float epoint[3]={0.0, 0.0, 0.0};
@@ -4110,7 +3332,7 @@ static void dxf_read_arc(int noob)
 	cent[1]= center[1]+dia*cos(phi);
 	cent[2]= center[2];
 
-	dxf_get_mesh(&me, &ob, noob);
+	dxf_get_mesh(scene, &me, &ob, noob);
 	strcpy(oldllay, layname);		
 	if(ob) VECCOPY(ob->loc, cent);
 	dxf_add_mat (ob, me, color, layname);
@@ -4155,7 +3377,7 @@ static void dxf_read_arc(int noob)
 	}
 }
 
-static void dxf_read_polyline(int noob) {	
+static void dxf_read_polyline(Scene *scene, int noob) {	
 	/* Entity specific vars */
 	short vspace=0; /* Whether or not coords are relative */
 	int flag=0;
@@ -4204,7 +3426,7 @@ static void dxf_read_polyline(int noob) {
 			dxf_close_2dpoly();
 
 		if (p2dmhold==NULL) {
-			dxf_get_mesh(&me, &ob, noob);
+			dxf_get_mesh(scene, &me, &ob, noob);
 
 			strcpy(oldplay, layname);
 				
@@ -4280,7 +3502,7 @@ static void dxf_read_polyline(int noob) {
 		lwasp2d=1;
 	} 
 	else if (flag&64) {
-		dxf_get_mesh(&me, &ob, noob);
+		dxf_get_mesh(scene, &me, &ob, noob);
 		
 		if(ob) VECCOPY(ob->loc, cent);
 	
@@ -4338,7 +3560,7 @@ static void dxf_read_polyline(int noob) {
 	
 			} else if (vflags & 128) {
 				if(vids[2]==0) {
-					error("(PL) Error parsing dxf, not enough vertices near line %d", dxf_line);
+					//XXX error("(PL) Error parsing dxf, not enough vertices near line %d", dxf_line);
 			
 					error_exit=1;
 					fclose(dxf_fp);
@@ -4370,7 +3592,7 @@ static void dxf_read_polyline(int noob) {
 				mface->mat_nr= 0;
 	
 			} else {
-				error("Error parsing dxf, unknown polyline information near %d", dxf_line);
+				//XXX error("Error parsing dxf, unknown polyline information near %d", dxf_line);
 			
 				error_exit=1;
 				fclose(dxf_fp);
@@ -4381,7 +3603,7 @@ static void dxf_read_polyline(int noob) {
 	}
 }
 
-static void dxf_read_lwpolyline(int noob) {	
+static void dxf_read_lwpolyline(Scene *scene, int noob) {	
 	/* Entity specific vars */
 	short vspace=0; /* Whether or not coords are relative */
 	int flag=0;
@@ -4431,7 +3653,7 @@ static void dxf_read_lwpolyline(int noob) {
 	if (nverts == 0)
 		return;
 
-	dxf_get_mesh(&me, &ob, noob);
+	dxf_get_mesh(scene, &me, &ob, noob);
 	strcpy(oldllay, layname);		
 	if(ob) VECCOPY(ob->loc, cent);
 	dxf_add_mat (ob, me, color, layname);
@@ -4450,14 +3672,14 @@ static void dxf_read_lwpolyline(int noob) {
 		if (id == 10) {
 			vert[0]= (float) atof(val);
 		} else {
-			error("Error parsing dxf, expected (10, <x>) at line %d", dxf_line);	
+			//XXX error("Error parsing dxf, expected (10, <x>) at line %d", dxf_line);	
 		}
 
 		read_group(id,val);
 		if (id == 20) {
 			vert[1]= (float) atof(val);
 		} else {
-			error("Error parsing dxf, expected (20, <y>) at line %d", dxf_line);	
+			//XXX error("Error parsing dxf, expected (20, <y>) at line %d", dxf_line);	
 		}
 		
 		mvert = &me->mvert[v];
@@ -4505,7 +3727,7 @@ static void dxf_close_3dface(void)
 	f3dhold=NULL;
 }
 
-static void dxf_read_3dface(int noob) 
+static void dxf_read_3dface(Scene *scene, int noob) 
 {	
 	/* Entity specific vars */
 	float vert2[3]={0.0, 0.0, 0.0};
@@ -4593,7 +3815,7 @@ static void dxf_read_3dface(int noob)
 		dxf_close_3dface();
 	
 	if(nverts<3) {
-		error("(3DF) Error parsing dxf, not enough vertices near line %d", dxf_line);
+		//XXX error("(3DF) Error parsing dxf, not enough vertices near line %d", dxf_line);
 		
 		error_exit=1;
 		fclose(dxf_fp);
@@ -4601,7 +3823,7 @@ static void dxf_read_3dface(int noob)
 	}
 
 	if (f3dmhold==NULL) {
-		dxf_get_mesh(&me, &ob, noob);
+		dxf_get_mesh(scene, &me, &ob, noob);
 		
 		strcpy(oldflay, layname);
 		
@@ -4668,7 +3890,7 @@ static void dxf_read_3dface(int noob)
 	hasbumped=1;
 }
 
-static void dxf_read(char *filename)
+static void dxf_read(Scene *scene, char *filename)
 {
 	Mesh *lastMe = G.main->mesh.last;
 
@@ -4706,7 +3928,7 @@ static void dxf_read(char *filename)
 						} else if (id==3) {
 							/* Now the object def should follow */
 							if(strlen(entname)==0) {
-								error("Error parsing dxf, no mesh name near %d", dxf_line);
+								//XXX error("Error parsing dxf, no mesh name near %d", dxf_line);
 								fclose(dxf_fp);
 								return;
 							}
@@ -4716,7 +3938,7 @@ static void dxf_read(char *filename)
 								read_group(id, val);
 
 								if(group_is(0, "POLYLINE")) {
-									dxf_read_polyline(1);
+									dxf_read_polyline(scene, 1);
 									if(error_exit) return;
 									lwasf3d=0;
 									lwasline=0;
@@ -4724,7 +3946,7 @@ static void dxf_read(char *filename)
 									while(group_isnt(0, "SEQEND")) read_group(id, val);						
 									
 								}	else if(group_is(0, "LWPOLYLINE")) {
-									dxf_read_lwpolyline(1);
+									dxf_read_lwpolyline(scene, 1);
 									if(error_exit) return;
 									lwasf3d=0;
 									lwasline=0;
@@ -4736,27 +3958,27 @@ static void dxf_read(char *filename)
 									lwasp2d=0;
 									lwasline=0;
 								} else if(group_is(0, "POINT")) {
-									dxf_read_point(1);
+									dxf_read_point(scene, 1);
 									if(error_exit) return;
 									lwasf3d=0;
 									lwasp2d=0;
 									lwasline=0;
 								} else if(group_is(0, "LINE")) {
-									dxf_read_line(1);
+									dxf_read_line(scene, 1);
 									if(error_exit) return;
 									lwasline=1;
 									lwasp2d=0;
 									lwasf3d=0;
 								} else if(group_is(0, "3DFACE")) {
-									dxf_read_3dface(1);
+									dxf_read_3dface(scene, 1);
 									if(error_exit) return;
 									lwasf3d=1;
 									lwasp2d=0;
 									lwasline=0;
 								} else if (group_is(0, "CIRCLE")) {
-									dxf_read_arc(1);
+									dxf_read_arc(scene, 1);
 								} else if (group_is(0, "ELLIPSE")) {
-									dxf_read_ellipse(1);
+									dxf_read_ellipse(scene, 1);
 								} else if (group_is(0, "ENDBLK")) { 
 									break;
 								}
@@ -4816,7 +4038,7 @@ static void dxf_read(char *filename)
 					}
 			
 					if(strlen(obname)==0) {
-						error("Error parsing dxf, no object name near %d", dxf_line);
+						//XXX error("Error parsing dxf, no object name near %d", dxf_line);
 						fclose(dxf_fp);
 						return;
 					}
@@ -4829,7 +4051,6 @@ static void dxf_read(char *filename)
 						ob->type= OB_MESH;
 	
 						ob->dt= OB_SHADED;
-						if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
 
 						ob->trackflag= OB_POSY;
 						ob->upflag= OB_POSZ;
@@ -4840,8 +4061,6 @@ static void dxf_read(char *filename)
 						ob->dupsta= 1; ob->dupend= 100;
 						ob->recalc= OB_RECALC;	/* needed because of weird way of adding libdata directly */
 						
-						G.totobj++;
-
 						ob->data= obdata;
 						((ID*)ob->data)->us++;
 						
@@ -4850,20 +4069,21 @@ static void dxf_read(char *filename)
 						VECCOPY(ob->rot, obrot);
 						
 						ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
+						ob->matbits= MEM_callocN(sizeof(char)*1, "ob->matbits");
 						ob->totcol= (unsigned char) ((Mesh*)ob->data)->totcol;
 						ob->actcol= 1;
-						
+
 						/* note: materials are either linked to mesh or object, if both then 
 							you have to increase user counts. below line is not needed.
 							I leave it commented out here as warning (ton) */
 						//for (i=0; i<ob->totcol; i++) ob->mat[i]= ((Mesh*)ob->data)->mat[i];
 						
-						if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
-						else ob->lay= G.scene->lay;
+						if (strlen(layname)) ob->lay= dxf_get_layer_num(scene, layname);
+						else ob->lay= scene->lay;
 	
 						/* link to scene */
 						base= MEM_callocN( sizeof(Base), "add_base");
-						BLI_addhead(&G.scene->base, base);
+						BLI_addhead(&scene->base, base);
 		
 						base->lay= ob->lay;
 		
@@ -4876,7 +4096,7 @@ static void dxf_read(char *filename)
 					lwasp2d=0;
 					lwasline=0;
 				} else if(group_is(0, "POLYLINE")) {
-					dxf_read_polyline(0);
+					dxf_read_polyline(scene, 0);
 					if(error_exit) return;
 					lwasf3d=0;
 					lwasline=0;
@@ -4884,7 +4104,7 @@ static void dxf_read(char *filename)
 					while(group_isnt(0, "SEQEND")) read_group(id, val);						
 
 				} else if(group_is(0, "LWPOLYLINE")) {
-					dxf_read_lwpolyline(0);
+					dxf_read_lwpolyline(scene, 0);
 					if(error_exit) return;
 					lwasf3d=0;
 					lwasline=0;
@@ -4896,27 +4116,27 @@ static void dxf_read(char *filename)
 					lwasp2d=0;
 					lwasline=0;
 				} else if(group_is(0, "POINT")) {
-					dxf_read_point(0);
+					dxf_read_point(scene, 0);
 					if(error_exit) return;
 					lwasf3d=0;
 					lwasp2d=0;
 					lwasline=0;
 				} else if(group_is(0, "LINE")) {
-					dxf_read_line(0);
+					dxf_read_line(scene, 0);
 					if(error_exit) return;
 					lwasline=1;
 					lwasp2d=0;
 					lwasf3d=0;
 				} else if(group_is(0, "3DFACE")) {
-					dxf_read_3dface(0);
+					dxf_read_3dface(scene, 0);
 					if(error_exit) return;
 					lwasline=0;
 					lwasp2d=0;
 					lwasf3d=1;
 				} else if (group_is(0, "CIRCLE") || group_is(0, "ARC")) {
-				  dxf_read_arc(0);
+				  dxf_read_arc(scene, 0);
 				} else if (group_is(0, "ELLIPSE")) {
-				  dxf_read_ellipse(0);
+				  dxf_read_ellipse(scene, 0);
 				} else if(group_is(0, "ENDSEC")) {
 					break;
 				}

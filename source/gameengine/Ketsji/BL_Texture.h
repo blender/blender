@@ -59,6 +59,20 @@ public:
 	void SetMapping(int mode);
 	void DisableUnit();
 	void setTexEnv(BL_Material *mat, bool modulate=false);
+	unsigned int swapTexture (unsigned int newTex) {
+		// swap texture codes
+		unsigned int tmp = mTexture;
+		mTexture = newTex;
+		// return original texture code
+		return tmp;
+	}
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_Texture"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif//__BL_TEXTURE_H__

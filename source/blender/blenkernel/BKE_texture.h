@@ -31,6 +31,7 @@
 #ifndef BKE_TEXTURE_H
 #define BKE_TEXTURE_H
 
+struct Scene;
 struct Tex;
 struct MTex;
 struct PluginTex;
@@ -39,6 +40,8 @@ struct ColorBand;
 struct HaloRen;
 struct TexMapping;
 struct EnvMap;
+struct PointDensity;
+struct VoxelData;
 
 /*  in ColorBand struct */
 #define MAXCOLORBAND 32
@@ -63,7 +66,7 @@ struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);
 struct Tex *give_current_texture(struct Object *ob, int act);
-struct Tex *give_current_world_texture(void);
+struct Tex *give_current_world_texture(struct Scene *scene);
 
 struct TexMapping *add_mapping(void);
 void init_mapping(struct TexMapping *texmap);
@@ -73,6 +76,16 @@ void    BKE_free_envmapdata(struct EnvMap *env);
 void    BKE_free_envmap(struct EnvMap *env);
 struct EnvMap *BKE_add_envmap(void);
 struct EnvMap *BKE_copy_envmap(struct EnvMap *env);
+
+void    BKE_free_pointdensitydata(struct PointDensity *pd);
+void    BKE_free_pointdensity(struct PointDensity *pd);
+struct PointDensity *BKE_add_pointdensity(void);
+struct PointDensity *BKE_copy_pointdensity(struct PointDensity *pd);
+
+void BKE_free_voxeldatadata(struct VoxelData *vd);
+void BKE_free_voxeldata(struct VoxelData *vd);
+struct VoxelData *BKE_add_voxeldata(void);
+struct VoxelData *BKE_copy_voxeldata(struct VoxelData *vd);
 
 int     BKE_texture_dependsOnTime(const struct Tex *texture);
 

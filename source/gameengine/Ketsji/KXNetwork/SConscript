@@ -3,10 +3,10 @@ Import ('env')
 
 sources = env.Glob('*.cpp')
 
-incs = '. #source/kernel/gen_system #intern/string #source/gameengine/Ketsji'
+incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Ketsji'
 incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions'
-incs += ' #source/gameengine/Network'
+incs += ' #source/gameengine/Network #source/gameengine/SceneGraph'
 
 incs += ' ' + env['BF_PYTHON_INC']
 
-env.BlenderLib ( 'kx_network', Split(sources), Split(incs), defines=[],libtype=['game2', 'player'], priority=[5, 155] )
+env.BlenderLib ( 'bf_network', Split(sources), Split(incs), defines=[],libtype=['core','player'], priority=[400,125], cxx_compileflags=env['BGE_CXXFLAGS'])

@@ -32,6 +32,7 @@
 
 #include "GEN_HashedPtr.h"
 #include "SCA_IActuator.h"
+#include "DNA_actuator_types.h"
 #include "MT_Point3.h"
 
 class BL_ActionActuator : public SCA_IActuator  
@@ -48,9 +49,8 @@ public:
 						short	blendin,
 						short	priority,
 						short	end_reset,
-						float	stride,
-						PyTypeObject* T=&Type) 
-		: SCA_IActuator(gameobj,T),
+						float	stride) 
+		: SCA_IActuator(gameobj),
 		
 		m_lastpos(0, 0, 0),
 		m_blendframe(0),
@@ -80,43 +80,56 @@ public:
 	virtual void ProcessReplica();
 	
 	void SetBlendTime (float newtime);
+	
+	bAction*	GetAction() { return m_action; }
+	void		SetAction(bAction* act) { m_action= act; }
 
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetAction);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendin);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetPriority);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetStart);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetEnd);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrame);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetProperty);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrameProperty);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendtime);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetChannel);
+	KX_PYMETHOD_O(BL_ActionActuator,GetChannel);
+	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel);
 
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetAction);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetBlendin);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetPriority);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetStart);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetEnd);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrame);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetProperty);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrameProperty);
-//	KX_PYMETHOD(BL_ActionActuator,GetChannel);
-	KX_PYMETHOD_DOC(BL_ActionActuator,GetType);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
-	KX_PYMETHOD_NOARGS(BL_ActionActuator,GetContinue);
-	KX_PYMETHOD_O(BL_ActionActuator,SetContinue);
-
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	enum ActionActType
+	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_channel_names(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	/* attribute check */
+	static int CheckFrame(void *self, const PyAttributeDef*)
 	{
-		KX_ACT_ACTION_PLAY = 0,
-		KX_ACT_ACTION_FLIPPER = 2,
-		KX_ACT_ACTION_LOOPSTOP,
-		KX_ACT_ACTION_LOOPEND,
-		KX_ACT_ACTION_PROPERTY = 6
-	};
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
 
+		if (act->m_localtime < act->m_startframe)
+			act->m_localtime = act->m_startframe;
+		else if (act->m_localtime > act->m_endframe)
+			act->m_localtime = act->m_endframe;
+
+		return 0;
+	}
+
+	static int CheckBlendTime(void *self, const PyAttributeDef*)
+	{
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
+
+		if (act->m_blendframe > act->m_blendin)
+			act->m_blendframe = act->m_blendin;
+
+		return 0;
+	}
+
+	static int CheckType(void *self, const PyAttributeDef*)
+	{
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
+
+		switch (act->m_playtype) {
+			case ACT_ACTION_PLAY:
+			case ACT_ACTION_FLIPPER:
+			case ACT_ACTION_LOOP_STOP:
+			case ACT_ACTION_LOOP_END:
+			case ACT_ACTION_FROM_PROP:
+				return 0;
+			default:
+				PyErr_SetString(PyExc_ValueError, "Action Actuator, invalid play type supplied");
+				return 1;
+		}
+	}
+	
 protected:
 
 	void SetStartTime(float curtime);
@@ -141,7 +154,7 @@ protected:
 	float	m_stridelength;
 	short	m_playtype;
 	short	m_priority;
-	short	m_end_reset;
+	bool	m_end_reset;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_userpose;

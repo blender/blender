@@ -38,6 +38,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "MT_Matrix4x4.h"
 
@@ -48,17 +49,19 @@
 BL_ArmatureObject::BL_ArmatureObject(
 				void* sgReplicationInfo, 
 				SG_Callbacks callbacks, 
-				Object *armature )
+				Object *armature,
+				Scene *scene)
 
 :	KX_GameObject(sgReplicationInfo,callbacks),
 	m_objArma(armature),
 	m_framePose(NULL),
+	m_scene(scene), // maybe remove later. needed for where_is_pose
 	m_lastframe(0.0),
 	m_activeAct(NULL),
 	m_activePriority(999),
 	m_lastapplyframe(0.0)
 {
-	m_armature = get_armature(m_objArma);
+	m_armature = (bArmature *)armature->data;
 
 	/* we make a copy of blender object's pose, and then always swap it with
 	 * the original pose before calling into blender functions, to deal with
@@ -70,20 +73,17 @@ BL_ArmatureObject::BL_ArmatureObject(
 CValue* BL_ArmatureObject::GetReplica()
 {
 	BL_ArmatureObject* replica = new BL_ArmatureObject(*this);
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 }
 
-void BL_ArmatureObject::ProcessReplica(BL_ArmatureObject *replica)
+void BL_ArmatureObject::ProcessReplica()
 {
-	KX_GameObject::ProcessReplica(replica);
+	bPose *pose= m_pose;
+	KX_GameObject::ProcessReplica();
 
-	replica->m_pose = NULL;
-	game_copy_pose(&replica->m_pose, m_pose);
+	m_pose = NULL;
+	game_copy_pose(&m_pose, pose);
 }
 
 BL_ArmatureObject::~BL_ArmatureObject()
@@ -96,9 +96,9 @@ void BL_ArmatureObject::ApplyPose()
 {
 	m_armpose = m_objArma->pose;
 	m_objArma->pose = m_pose;
-
+	//m_scene->r.cfra++;
 	if(m_lastapplyframe != m_lastframe) {
-		where_is_pose(m_objArma);
+		where_is_pose(m_scene, m_objArma); // XXX
 		m_lastapplyframe = m_lastframe;
 	}
 }

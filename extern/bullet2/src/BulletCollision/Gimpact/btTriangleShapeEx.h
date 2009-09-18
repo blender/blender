@@ -35,14 +35,14 @@ subject to the following restrictions:
 #define MAX_TRI_CLIPPING 16
 
 //! Structure for collision
-struct BT_TRIANGLE_CONTACT
+struct GIM_TRIANGLE_CONTACT
 {
     btScalar m_penetration_depth;
     int m_point_count;
     btVector4 m_separating_normal;
     btVector3 m_points[MAX_TRI_CLIPPING];
 
-	SIMD_FORCE_INLINE void copy_from(const BT_TRIANGLE_CONTACT& other)
+	SIMD_FORCE_INLINE void copy_from(const GIM_TRIANGLE_CONTACT& other)
 	{
 		m_penetration_depth = other.m_penetration_depth;
 		m_separating_normal = other.m_separating_normal;
@@ -54,11 +54,11 @@ struct BT_TRIANGLE_CONTACT
 		}
 	}
 
-	BT_TRIANGLE_CONTACT()
+	GIM_TRIANGLE_CONTACT()
 	{
 	}
 
-	BT_TRIANGLE_CONTACT(const BT_TRIANGLE_CONTACT& other)
+	GIM_TRIANGLE_CONTACT(const GIM_TRIANGLE_CONTACT& other)
 	{
 		copy_from(other);
 	}
@@ -123,7 +123,7 @@ public:
 	/*!
 	\pre this triangle and other must have their triangles calculated
 	*/
-    bool find_triangle_collision_clip_method(btPrimitiveTriangle & other, BT_TRIANGLE_CONTACT & contacts);
+    bool find_triangle_collision_clip_method(btPrimitiveTriangle & other, GIM_TRIANGLE_CONTACT & contacts);
 };
 
 

@@ -59,10 +59,8 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 									   int time,
 									   bool allow3D,
 									   int trackflag,
-									   int upflag,
-									   PyTypeObject* T)
-									   :
-										SCA_IActuator(gameobj, T)
+									   int upflag)
+									   : SCA_IActuator(gameobj)
 {
     m_time = time;
     m_allow3D = allow3D;
@@ -74,7 +72,6 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 	if (m_object)
 		m_object->RegisterActuator(this);
 
-	if (gameobj->isA(&KX_GameObject::Type))
 	{
 		// if the object is vertex parented, don't check parent orientation as the link is broken
 		if (!((KX_GameObject*)gameobj)->IsVertexParent()){
@@ -83,6 +80,10 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 				// if so, store the initial local rotation
 				// this is needed to revert the effect of the parent inverse node (TBC)
 				m_parentlocalmat = m_parentobj->GetSGNode()->GetLocalOrientation();
+				// use registration mechanism rather than AddRef, it creates zombie objects
+				m_parentobj->RegisterActuator(this);
+				// GetParent did AddRef, undo here
+				m_parentobj->Release();
 			}
 		}
 	}
@@ -189,7 +190,7 @@ KX_TrackToActuator::~KX_TrackToActuator()
 	if (m_object)
 		m_object->UnregisterActuator(this);
 	if (m_parentobj)
-		m_parentobj->Release();
+		m_parentobj->UnregisterActuator(this);
 } /* end of destructor */
 
 void KX_TrackToActuator::ProcessReplica()
@@ -198,7 +199,7 @@ void KX_TrackToActuator::ProcessReplica()
 	if (m_object)
 		m_object->RegisterActuator(this);
 	if (m_parentobj)
-		m_parentobj->AddRef();
+		m_parentobj->RegisterActuator(this);
 	SCA_IActuator::ProcessReplica();
 }
 
@@ -209,6 +210,11 @@ bool KX_TrackToActuator::UnlinkObject(SCA_IObject* clientobj)
 	{
 		// this object is being deleted, we cannot continue to track it.
 		m_object = NULL;
+		return true;
+	}
+	if (clientobj == m_parentobj)
+	{
+		m_parentobj = NULL;
 		return true;
 	}
 	return false;
@@ -227,9 +233,9 @@ void KX_TrackToActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 	void **h_parobj = (*obj_map)[m_parentobj];
 	if (h_parobj) {
 		if (m_parentobj)
-			m_parentobj->Release();
+			m_parentobj->UnregisterActuator(this);
 		m_parentobj= (KX_GameObject*)(*h_parobj);
-		m_parentobj->AddRef();
+		m_parentobj->RegisterActuator(this);
 	}
 }
 
@@ -258,18 +264,18 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		{
 		case 0:
 			{
-				up = MT_Vector3(1.0,0,0);
+				up.setValue(1.0,0,0);
 				break;
 			} 
 		case 1:
 			{
-				up = MT_Vector3(0,1.0,0);
+				up.setValue(0,1.0,0);
 				break;
 			}
 		case 2:
 		default:
 			{
-				up = MT_Vector3(0,0,1.0);
+				up.setValue(0,0,1.0);
 			}
 		}
 #endif 
@@ -402,7 +408,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 			// set the models tranformation properties
 			curobj->NodeSetLocalOrientation(mat);
 			curobj->NodeSetLocalPosition(localpos);
-			curobj->UpdateTransform();
+			//curobj->UpdateTransform();
 		}
 		else
 		{
@@ -425,162 +431,65 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_TrackToActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"KX_TrackToActuator",
-	sizeof(KX_TrackToActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
-
-PyParentObject KX_TrackToActuator::Parents[] = {
-	&KX_TrackToActuator::Type,
-		&SCA_IActuator::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
-};
-
-
 
 PyMethodDef KX_TrackToActuator::Methods[] = {
-	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
-	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
-	{"setTime", (PyCFunction) KX_TrackToActuator::sPySetTime, METH_VARARGS, (PY_METHODCHAR)SetTime_doc},
-	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_VARARGS, (PY_METHODCHAR)GetTime_doc},
-	{"setUse3D", (PyCFunction) KX_TrackToActuator::sPySetUse3D, METH_VARARGS, (PY_METHODCHAR)SetUse3D_doc},
-	{"getUse3D", (PyCFunction) KX_TrackToActuator::sPyGetUse3D, METH_VARARGS, (PY_METHODCHAR)GetUse3D_doc},
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_TrackToActuator::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RW("time",0,1000,true,KX_TrackToActuator,m_time),
+	KX_PYATTRIBUTE_BOOL_RW("use3D",KX_TrackToActuator,m_allow3D),
+	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_TrackToActuator, pyattr_get_object, pyattr_set_object),
 
+	{ NULL }	//Sentinel
+};
 
-PyObject* KX_TrackToActuator::_getattr(const STR_String& attr)
+PyObject* KX_TrackToActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
-	_getattr_up(SCA_IActuator);
-}
-
-
-
-/* 1. setObject */
-const char KX_TrackToActuator::SetObject_doc[] = 
-"setObject(object)\n"
-"\t- object: KX_GameObject, string or None\n"
-"\tSet the object to track with the parent of this actuator.\n";
-PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* value)
-{
-	KX_GameObject *gameobj;
-	
-	if (!ConvertPythonToGameObject(value, &gameobj, true))
-		return NULL; // ConvertPythonToGameObject sets the error
-	
-	if (m_object != NULL)
-		m_object->UnregisterActuator(this);	
-
-	m_object = (SCA_IObject*)gameobj;
-	if (m_object)
-		m_object->RegisterActuator(this);
-	
-	Py_RETURN_NONE;
-}
-
-
-
-/* 2. getObject */
-const char KX_TrackToActuator::GetObject_doc[] = 
-"getObject(name_only = 1)\n"
-"name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
-"\tReturns the object to track with the parent of this actuator\n";
-PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args)
-{
-	int ret_name_only = 1;
-	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
-		return NULL;
-	
-	if (!m_object)
+	KX_TrackToActuator* actuator = static_cast<KX_TrackToActuator*>(self);
+	if (!actuator->m_object)	
 		Py_RETURN_NONE;
-	
-	if (ret_name_only)
-		return PyString_FromString(m_object->GetName());
 	else
-		return m_object->AddRef();
+		return actuator->m_object->GetProxy();
 }
 
-
-
-/* 3. setTime */
-const char KX_TrackToActuator::SetTime_doc[] = 
-"setTime(time)\n"
-"\t- time: integer\n"
-"\tSet the time in frames with which to delay the tracking motion.\n";
-PyObject* KX_TrackToActuator::PySetTime(PyObject* self, PyObject* args, PyObject* kwds)
+int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	int timeArg;
-	
-	if (!PyArg_ParseTuple(args, "i", &timeArg))
-	{
-		return NULL;
-	}
-	
-	m_time= timeArg;
-	
-	Py_Return;
-}
+	KX_TrackToActuator* actuator = static_cast<KX_TrackToActuator*>(self);
+	KX_GameObject *gameobj;
+		
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_TrackToActuator"))
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
+		
+	if (actuator->m_object != NULL)
+		actuator->m_object->UnregisterActuator(actuator);	
 
-
-
-/* 4.getTime */
-const char KX_TrackToActuator::GetTime_doc[] = 
-"getTime()\n"
-"\t- time: integer\n"
-"\tReturn the time in frames with which the tracking motion is delayed.\n";
-PyObject* KX_TrackToActuator::PyGetTime(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	return PyInt_FromLong(m_time);
-}
-
-
-
-/* 5. getUse3D */
-const char KX_TrackToActuator::GetUse3D_doc[] = 
-"getUse3D()\n"
-"\tReturns 1 if the motion is allowed to extend in the z-direction.\n";
-PyObject* KX_TrackToActuator::PyGetUse3D(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	return PyInt_FromLong(!(m_allow3D == 0));
-}
-
-
-
-/* 6. setUse3D */
-const char KX_TrackToActuator::SetUse3D_doc[] = 
-"setUse3D(value)\n"
-"\t- value: 0 or 1\n"
-"\tSet to 1 to allow the tracking motion to extend in the z-direction,\n"
-"\tset to 0 to lock the tracking motion to the x-y plane.\n";
-PyObject* KX_TrackToActuator::PySetUse3D(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	int boolArg;
-	
-	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
-		return NULL;
-	}
-	
-	m_allow3D = !(boolArg == 0);
-	
-	Py_Return;
+	actuator->m_object = (SCA_IObject*) gameobj;
+		
+	if (actuator->m_object)
+		actuator->m_object->RegisterActuator(actuator);
+		
+	return PY_SET_ATTR_SUCCESS;
 }
 
 /* eof */

@@ -41,13 +41,12 @@ KX_NetworkMessageActuator::KX_NetworkMessageActuator(
 	const STR_String &toPropName,
 	const STR_String &subject,
 	int bodyType,
-	const STR_String &body,
-	PyTypeObject* T) :
-	SCA_IActuator(gameobj,T),
+	const STR_String &body) :
+	SCA_IActuator(gameobj),
 	m_networkscene(networkscene),
 	m_toPropName(toPropName),
 	m_subject(subject),
-	m_bodyType(bodyType),
+	m_bPropBody(bodyType),
 	m_body(body)
 {
 }
@@ -69,13 +68,13 @@ bool KX_NetworkMessageActuator::Update()
 	}
 	//printf("messageactuator true event\n");
 
-	if (m_bodyType == 1) // ACT_MESG_PROP in DNA_actuator_types.h
+	if (m_bPropBody) // ACT_MESG_PROP in DNA_actuator_types.h
 	{
 		m_networkscene->SendMessage(
 			m_toPropName,
 			GetParent()->GetName(),
 			m_subject,
-			GetParent()->GetPropertyText(m_body,""));
+			GetParent()->GetPropertyText(m_body));
 	} else
 	{
 		m_networkscene->SendMessage(
@@ -93,9 +92,6 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 	    new KX_NetworkMessageActuator(*this);
 	replica->ProcessReplica();
 
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 
@@ -105,117 +101,35 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 
 /* Integration hooks -------------------------------------------------- */
 PyTypeObject KX_NetworkMessageActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"KX_NetworkMessageActuator",
-	sizeof(KX_NetworkMessageActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-PyParentObject KX_NetworkMessageActuator::Parents[] = {
-	&KX_NetworkMessageActuator::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_NetworkMessageActuator::Methods[] = {
-	{"setToPropName", (PyCFunction)
-		KX_NetworkMessageActuator::sPySetToPropName, METH_VARARGS},
-	{"setSubject", (PyCFunction)
-		KX_NetworkMessageActuator::sPySetSubject, METH_VARARGS},
-	{"setBodyType", (PyCFunction)
-		KX_NetworkMessageActuator::sPySetBodyType, METH_VARARGS},
-	{"setBody", (PyCFunction)
-		KX_NetworkMessageActuator::sPySetBody, METH_VARARGS},
 	{NULL,NULL} // Sentinel
 };
 
-PyObject* KX_NetworkMessageActuator::_getattr(const STR_String& attr) {
-	_getattr_up(SCA_IActuator);
-}
-
-// 1. SetToPropName
-PyObject* KX_NetworkMessageActuator::PySetToPropName(
-	PyObject* self,
-	PyObject* args,
-	PyObject* kwds)
-{
-    char* ToPropName;
-
-	if (PyArg_ParseTuple(args, "s", &ToPropName)) {
-	     m_toPropName = ToPropName;
-	}
-	else {
-		return NULL;
-	}
-
-	Py_Return;
-}
-
-// 2. SetSubject
-PyObject* KX_NetworkMessageActuator::PySetSubject(
-	PyObject* self,
-	PyObject* args,
-	PyObject* kwds)
-{
-    char* Subject;
-
-	if (PyArg_ParseTuple(args, "s", &Subject)) {
-	     m_subject = Subject;
-	}
-	else {
-		return NULL;
-	}
-	
-	Py_Return;
-}
-
-// 3. SetBodyType
-PyObject* KX_NetworkMessageActuator::PySetBodyType(
-	PyObject* self,
-	PyObject* args,
-	PyObject* kwds)
-{
-    int BodyType;
-
-	if (PyArg_ParseTuple(args, "i", &BodyType)) {
-	     m_bodyType = BodyType;
-	}
-	else {
-		return NULL;
-	}
-
-	Py_Return;
-}
-
-// 4. SetBody
-PyObject* KX_NetworkMessageActuator::PySetBody(
-	PyObject* self,
-	PyObject* args,
-	PyObject* kwds)
-{
-    char* Body;
-
-	if (PyArg_ParseTuple(args, "s", &Body)) {
-	     m_body = Body;
-	}
-	else {
-		return NULL;
-	}
-
-	Py_Return;
-}
-
+PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW("propName", 0, 100, false, KX_NetworkMessageActuator, m_toPropName),
+	KX_PYATTRIBUTE_STRING_RW("subject", 0, 100, false, KX_NetworkMessageActuator, m_subject),
+	KX_PYATTRIBUTE_BOOL_RW("usePropBody", KX_NetworkMessageActuator, m_bPropBody),
+	KX_PYATTRIBUTE_STRING_RW("body", 0, 16384, false, KX_NetworkMessageActuator, m_body),
+	{ NULL }	//Sentinel
+};

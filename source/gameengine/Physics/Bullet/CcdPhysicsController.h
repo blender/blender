@@ -36,6 +36,7 @@ extern bool gDisableDeactivation;
 class CcdPhysicsEnvironment;
 class btMotionState;
 class RAS_MeshObject;
+struct DerivedMesh;
 class btCollisionShape;
 
 
@@ -57,9 +58,7 @@ class btCollisionShape;
 class CcdShapeConstructionInfo
 {
 public:
-	
-
-	static CcdShapeConstructionInfo* FindMesh(RAS_MeshObject* mesh, bool polytope);
+	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact);
 
 	CcdShapeConstructionInfo() :
 		m_shapeType(PHY_SHAPE_NONE),
@@ -67,11 +66,13 @@ public:
 		m_height(1.0),
 		m_halfExtend(0.f,0.f,0.f),
 		m_childScale(1.0f,1.0f,1.0f),
+		m_userData(NULL),
 		m_refCount(1),
 		m_meshObject(NULL),
 		m_unscaledShape(NULL),
 		m_useGimpact(false),
-		m_weldingThreshold(0.f)
+		m_weldingThreshold1(0.f),
+		m_shapeProxy(NULL)
 	{
 		m_childTrans.setIdentity();
 	}
@@ -92,6 +93,11 @@ public:
 		return 0;
 	}
 
+	bool IsUnused(void)
+	{
+		return (m_meshObject==NULL && m_shapeArray.size() == 0 && m_shapeProxy == NULL);
+	}
+
 	void AddShape(CcdShapeConstructionInfo* shapeInfo);
 
 	btTriangleMeshShape* GetMeshShape(void)
@@ -100,19 +106,54 @@ public:
 	}
 	CcdShapeConstructionInfo* GetChildShape(int i)
 	{
-		if (i < 0 || i >= m_shapeArray.size())
+		if (i < 0 || i >= (int)m_shapeArray.size())
 			return NULL;
 
 		return m_shapeArray.at(i);
 	}
+	int FindChildShape(CcdShapeConstructionInfo* shapeInfo, void* userData)
+	{
+		if (shapeInfo == NULL)
+			return -1;
+		for (int i=0; i<(int)m_shapeArray.size(); i++)
+		{
+			CcdShapeConstructionInfo* childInfo = m_shapeArray.at(i);
+			if ((userData == NULL || userData == childInfo->m_userData) &&
+				(childInfo == shapeInfo ||
+				 (childInfo->m_shapeType == PHY_SHAPE_PROXY && 
+				  childInfo->m_shapeProxy == shapeInfo)))
+				return i;
+		}
+		return -1;
+	}
 
-	bool SetMesh(RAS_MeshObject* mesh, bool polytope,bool useGimpact);
+	bool RemoveChildShape(int i)
+	{
+		if (i < 0 || i >= (int)m_shapeArray.size())
+			return false;
+		m_shapeArray.at(i)->Release();
+		if (i < (int)m_shapeArray.size()-1)
+			m_shapeArray[i] = m_shapeArray.back();
+		m_shapeArray.pop_back();
+		return true;
+	}
+
+	bool SetMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope,bool useGimpact);
 	RAS_MeshObject* GetMesh(void)
 	{
 		return m_meshObject;
 	}
 
-	btCollisionShape* CreateBulletShape();
+	bool UpdateMesh(class KX_GameObject* gameobj, class RAS_MeshObject* mesh);
+
+
+	bool SetProxy(CcdShapeConstructionInfo* shapeInfo);
+	CcdShapeConstructionInfo* GetProxy(void)
+	{
+		return m_shapeProxy;
+	}
+
+	btCollisionShape* CreateBulletShape(btScalar margin);
 
 	// member variables
 	PHY_ShapeType			m_shapeType;
@@ -121,20 +162,20 @@ public:
 	btVector3				m_halfExtend;
 	btTransform				m_childTrans;
 	btVector3				m_childScale;
-	std::vector<btPoint3>	m_vertexArray;	// Contains both vertex array for polytope shape and
-											// triangle array for concave mesh shape.
+	void*					m_userData;	
+	btAlignedObjectArray<btScalar>	m_vertexArray;	// Contains both vertex array for polytope shape and
+											// triangle array for concave mesh shape. Each vertex is 3 consecutive values
 											// In this case a triangle is made of 3 consecutive points
 	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
+	
+	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indicies
+											// quads turn into 2 tris
 
-	void	setVertexWeldingThreshold(float threshold)
+	void	setVertexWeldingThreshold1(float threshold)
 	{
-		m_weldingThreshold  = threshold;
-	}
-	float	getVertexWeldingThreshold() const
-	{
-		return m_weldingThreshold;
+		m_weldingThreshold1  = threshold*threshold;
 	}
 protected:
 	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
@@ -145,8 +186,16 @@ protected:
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
 	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
-	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc.
+	bool	m_forceReInstance; //use gimpact for concave dynamic/moving collision detection
+	float	m_weldingThreshold1;	//welding closeby vertices together can improve softbody stability etc.
+	CcdShapeConstructionInfo* m_shapeProxy;	// only used for PHY_SHAPE_PROXY, pointer to actual shape info
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CcdShapeConstructionInfo"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 struct CcdConstructionInfo
@@ -171,6 +220,8 @@ struct CcdConstructionInfo
 		m_gravity(0,0,0),
 		m_scaling(1.f,1.f,1.f),
 		m_mass(0.f),
+		m_clamp_vel_min(-1.f), 
+		m_clamp_vel_max(-1.f), 
 		m_restitution(0.1f),
 		m_friction(0.5f),
 		m_linearDamping(0.1f),
@@ -180,6 +231,7 @@ struct CcdConstructionInfo
 		m_collisionFlags(0),
 		m_bRigid(false),
 		m_bSoft(false),
+		m_bSensor(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
 		m_collisionShape(0),
@@ -188,7 +240,8 @@ struct CcdConstructionInfo
 		m_physicsEnv(0),
 		m_inertiaFactor(1.f),
 		m_do_anisotropic(false),
-		m_anisotropicFriction(1.f,1.f,1.f)
+		m_anisotropicFriction(1.f,1.f,1.f),
+		m_contactProcessingThreshold(1e10)
 	{
 	}
 
@@ -196,6 +249,8 @@ struct CcdConstructionInfo
 	btVector3	m_gravity;
 	btVector3	m_scaling;
 	btScalar	m_mass;
+	btScalar	m_clamp_vel_min;  
+	btScalar	m_clamp_vel_max;  
 	btScalar	m_restitution;
 	btScalar	m_friction;
 	btScalar	m_linearDamping;
@@ -244,6 +299,7 @@ struct CcdConstructionInfo
 	int			m_collisionFlags;
 	bool		m_bRigid;
 	bool		m_bSoft;
+	bool		m_bSensor;
 
 	///optional use of collision group/mask:
 	///only collision with object goups that match the collision mask.
@@ -271,6 +327,13 @@ struct CcdConstructionInfo
 	btScalar	m_fh_distance;           ///< The range above the surface where Fh is active.    
 	bool		m_fh_normal;             ///< Should the object slide off slopes?
 	float		m_radius;//for fh backwards compatibility
+	
+	///m_contactProcessingThreshold allows to process contact points with positive distance
+	///normally only contacts with negative distance (penetration) are solved
+	///however, rigid body stacking is more stable when positive contacts are still passed into the constraint solver
+	///this might sometimes lead to collisions with 'internal edges' such as a sliding character controller
+	///so disable/set m_contactProcessingThreshold to zero for sliding characters etc.
+	float		m_contactProcessingThreshold;///< Process contacts with positive distance in range [0..INF]
 
 };
 
@@ -282,7 +345,7 @@ class btSoftBody;
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController	
 {
-
+protected:
 	btCollisionObject* m_object;
 	
 
@@ -317,8 +380,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		return (--m_registerCount == 0) ? true : false;
 	}
 
-	protected:
-		void setWorldOrientation(const btMatrix3x3& mat);
+	void setWorldOrientation(const btMatrix3x3& mat);
+	void forceWorldTransform(const btMatrix3x3& mat, const btVector3& pos);
 
 	public:
 	
@@ -326,6 +389,9 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	
 
 		CcdPhysicsController (const CcdConstructionInfo& ci);
+
+		bool DeleteControllerShape();
+		bool ReplaceControllerShape(btCollisionShape *newShape);
 
 		virtual ~CcdPhysicsController();
 
@@ -363,6 +429,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		
 		virtual void		WriteMotionStateToDynamics(bool nondynaonly);
 		virtual	void		WriteDynamicsToMotionState();
+
 		// controller replication
 		virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl);
 
@@ -436,7 +503,24 @@ class CcdPhysicsController : public PHY_IPhysicsController
 			}
 			m_cci.m_radius = margin;
 		}
-
+		
+		// velocity clamping
+		virtual void SetLinVelocityMin(float val) 
+		{
+			m_cci.m_clamp_vel_min= val;
+		}
+		virtual float GetLinVelocityMin() const 
+		{
+			return m_cci.m_clamp_vel_min;
+		}
+		virtual void SetLinVelocityMax(float val) 
+		{
+			m_cci.m_clamp_vel_max= val;
+		}
+		virtual float GetLinVelocityMax() const 
+		{
+			return m_cci.m_clamp_vel_max;
+		}
 
 		bool	wantsSleeping();
 
@@ -444,7 +528,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		void	SetCenterOfMassTransform(btTransform& xform);
 
-		static btTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
+		static btTransform&	GetTransformFromMotionState(PHY_IMotionState* motionState);
 
 		void	setAabb(const btVector3& aabbMin,const btVector3& aabbMax);
 
@@ -480,7 +564,11 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		}
 
 
-		
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CcdPhysicsController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 
@@ -501,12 +589,20 @@ class	DefaultMotionState : public PHY_IMotionState
 		
 		virtual void	setWorldPosition(float posX,float posY,float posZ);
 		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
+		virtual void	getWorldOrientation(float* ori);
+		virtual void	setWorldOrientation(const float* ori);
 		
 		virtual	void	calculateWorldTransformations();
 		
 		btTransform	m_worldTransform;
 		btVector3		m_localScaling;
-
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:DefaultMotionState"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 

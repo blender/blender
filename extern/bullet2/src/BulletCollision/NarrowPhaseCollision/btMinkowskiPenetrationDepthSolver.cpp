@@ -19,9 +19,6 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h"
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
 
-
-
-
 #define NUM_UNITSPHERE_POINTS 42
 static btVector3	sPenetrationDirections[NUM_UNITSPHERE_POINTS+MAX_PREFERRED_PENETRATION_DIRECTIONS*2] = 
 {
@@ -73,7 +70,7 @@ btVector3(btScalar(0.162456) , btScalar(0.499995),btScalar(0.850654))
 bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& simplexSolver,
 												   const btConvexShape* convexA,const btConvexShape* convexB,
 												   const btTransform& transA,const btTransform& transB,
-												   btVector3& v, btPoint3& pa, btPoint3& pb,
+												   btVector3& v, btVector3& pa, btVector3& pb,
 												   class btIDebugDraw* debugDraw,btStackAlloc* stackAlloc
 												   )
 {
@@ -117,7 +114,9 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 	btVector3 seperatingAxisInA,seperatingAxisInB;
 	btVector3 pInA,qInB,pWorld,qWorld,w;
 
+#ifndef __SPU__
 #define USE_BATCHED_SUPPORT 1
+#endif
 #ifdef USE_BATCHED_SUPPORT
 
 	btVector3	supportVerticesABatch[NUM_UNITSPHERE_POINTS+MAX_PREFERRED_PENETRATION_DIRECTIONS*2];
@@ -200,6 +199,7 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 
 	int numSampleDirections = NUM_UNITSPHERE_POINTS;
 
+#ifndef __SPU__
 	{
 		int numPDA = convexA->getNumPreferredPenetrationDirections();
 		if (numPDA)
@@ -229,14 +229,15 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 			}
 		}
 	}
+#endif // __SPU__
 
 	for (int i=0;i<numSampleDirections;i++)
 	{
 		const btVector3& norm = sPenetrationDirections[i];
 		seperatingAxisInA = (-norm)* transA.getBasis();
 		seperatingAxisInB = norm* transB.getBasis();
-		pInA = convexA->localGetSupportingVertexWithoutMargin(seperatingAxisInA);
-		qInB = convexB->localGetSupportingVertexWithoutMargin(seperatingAxisInB);
+		pInA = convexA->localGetSupportVertexWithoutMarginNonVirtual(seperatingAxisInA);
+		qInB = convexB->localGetSupportVertexWithoutMarginNonVirtual(seperatingAxisInB);
 		pWorld = transA(pInA);	
 		qWorld = transB(qInB);
 		w	= qWorld - pWorld;
@@ -254,13 +255,13 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 
 	//add the margins
 
-	minA += minNorm*convexA->getMargin();
-	minB -= minNorm*convexB->getMargin();
+	minA += minNorm*convexA->getMarginNonVirtual();
+	minB -= minNorm*convexB->getMarginNonVirtual();
 	//no penetration
 	if (minProj < btScalar(0.))
 		return false;
 
-	minProj += (convexA->getMargin() + convexB->getMargin());
+	minProj += (convexA->getMarginNonVirtual() + convexB->getMarginNonVirtual());
 
 
 

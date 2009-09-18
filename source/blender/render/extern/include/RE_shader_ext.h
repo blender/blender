@@ -55,7 +55,6 @@ typedef struct ShadeResult
 	float refl[3];
 	float refr[3];
 	float nor[3];
-	float rad[3];
 	float winspeed[4];
 } ShadeResult;
 
@@ -113,7 +112,7 @@ typedef struct ShadeInput
 	
 	/* internal face coordinates */
 	float u, v, dx_u, dx_v, dy_u, dy_v;
-	float co[3], view[3];
+	float co[3], view[3], camera_co[3];
 	
 	/* copy from material, keep synced so we can do memcopy */
 	/* current size: 23*4 */
@@ -132,7 +131,7 @@ typedef struct ShadeInput
 	float layerfac;
 	
 	/* texture coordinates */
-	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4], rad[3];
+	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4];
 	float refcol[4], displace[3];
 	float strandco, tang[3], nmaptang[3], stress, winspeed[4];
 	float duplilo[3], dupliuv[3];
@@ -161,6 +160,7 @@ typedef struct ShadeInput
 	
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
+	int volume_depth;		/* number of intersections through volumes */
 	
 	/* stored copy of original face normal (facenor) 
 	 * before flipping. Used in Front/back output on geometry node */
@@ -171,6 +171,7 @@ typedef struct ShadeInput
 	/* from initialize, part or renderlayer */
 	short do_preview;		/* for nodes, in previewrender */
 	short thread, sample;	/* sample: ShadeSample array index */
+	short nodes;			/* indicate node shading, temp hack to prevent recursion */
 	
 	unsigned int lay;
 	int layflag, passflag, combinedflag;
@@ -183,6 +184,7 @@ typedef struct ShadeInput
 /* node shaders... */
 struct Tex;
 int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
+int	multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output);
 
 /* shaded view and bake */
 struct Render;

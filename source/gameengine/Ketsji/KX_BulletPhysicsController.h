@@ -9,13 +9,16 @@ class KX_BulletPhysicsController : public KX_IPhysicsController ,public CcdPhysi
 {
 private:
 	int m_savedCollisionFlags;
+	int m_savedActivationState;
 	short int m_savedCollisionFilterGroup;
 	short int m_savedCollisionFilterMask;
 	MT_Scalar m_savedMass;
+	bool m_savedDyna;
+	bool m_suspended;
+	btCollisionShape* m_bulletChildShape;
 
 public:
-
-	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna);
+	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool compound);
 	virtual ~KX_BulletPhysicsController ();
 
 	///////////////////////////////////
@@ -38,9 +41,14 @@ public:
 	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
+	virtual void SetTransform();
 	virtual	MT_Scalar	GetMass();
+	virtual	void	SetMass(MT_Scalar newmass);
+	virtual	MT_Vector3	GetLocalInertia();
 	virtual	MT_Vector3	getReactionForce();
 	virtual void	setRigidBody(bool rigid);
+	virtual void    AddCompoundChild(KX_IPhysicsController* child);
+	virtual void    RemoveCompoundChild(KX_IPhysicsController* child);
 
 	virtual void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 
@@ -50,7 +58,11 @@ public:
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 
 	virtual MT_Scalar GetRadius();
-
+	
+	virtual float GetLinVelocityMin();
+	virtual void  SetLinVelocityMin(float val);
+	virtual float GetLinVelocityMax();
+	virtual void  SetLinVelocityMax(float val);
 
 	virtual void	SetSumoTransform(bool nondynaonly);
 	// todo: remove next line !
@@ -68,6 +80,12 @@ public:
 		// intentionally empty
 	};
 
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BulletPhysicsController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //KX_BULLET2PHYSICS_CONTROLLER

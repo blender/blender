@@ -23,47 +23,36 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c)
+FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c intern/TEX_nodes/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../include ../blenlib ../makesdna
-  ../python ../render/extern/include ../../../intern/decimation/extern
-  ../imbuf ../avi ../../../intern/elbeem/extern
-  ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../blenkernel ../../../extern/glew/include ../gpu
-  ${SDL_INC}
-  ${ZLIB_INC}
-  ${PYTHON_INC}
+	. ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
+	../render/extern/include ../../../intern/decimation/extern ../makesrna
+	../imbuf ../avi ../../../intern/elbeem/extern
+	../../../intern/iksolver/extern ../blenloader
+	../blenkernel ../../../extern/glew/include ../gpu
+	${ZLIB_INC}
 )
 
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} ${VERSE_INC})
-ENDIF(WITH_VERSE)
-
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
-  SET(INC ${INC} ${FFMPEG_INC})
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	SET(INC ${INC} ${FFMPEG_INC})
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
-ADD_DEFINITIONS(-DWITH_CCGSUBSURF)
+IF(WITH_PYTHON)
+	SET(INC ${INC} ../python ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_nodes "${SRC}" "${INC}")
-
-IF(WITH_VERSE)
-  ADD_DEPENDENCIES(bf_nodes mkprot verse)
-ENDIF(WITH_VERSE)
-
-IF(WITH_INTERNATIONAL)
-   ADD_DEFINITIONS(-DWITH_FREETYPE2)
-ENDIF(WITH_INTERNATIONAL)
 

@@ -107,6 +107,25 @@ GHOST_SystemX11(
 
 	m_wm_protocols= XInternAtom(m_display, "WM_PROTOCOLS", False);
 	m_wm_take_focus= XInternAtom(m_display, "WM_TAKE_FOCUS", False);
+	m_wm_state= XInternAtom(m_display, "WM_STATE", False);
+	m_wm_change_state= XInternAtom(m_display, "WM_CHANGE_STATE", False);
+	m_net_state= XInternAtom(m_display, "_NET_WM_STATE", False);
+	m_net_max_horz= XInternAtom(m_display,
+					"_NET_WM_STATE_MAXIMIZED_HORZ", False);
+	m_net_max_vert= XInternAtom(m_display,
+					"_NET_WM_STATE_MAXIMIZED_VERT", False);
+	m_net_fullscreen= XInternAtom(m_display,
+					"_NET_WM_STATE_FULLSCREEN", False);
+	m_motif= XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
+	m_targets= XInternAtom(m_display, "TARGETS", False);
+	m_string= XInternAtom(m_display, "STRING", False);
+	m_compound_text= XInternAtom(m_display, "COMPOUND_TEXT", False);
+	m_text= XInternAtom(m_display, "TEXT", False);
+	m_clipboard= XInternAtom(m_display, "CLIPBOARD", False);
+	m_primary= XInternAtom(m_display, "PRIMARY", False);
+	m_xclip_out= XInternAtom(m_display, "XCLIP_OUT", False);
+	m_incr= XInternAtom(m_display, "INCR", False);
+	m_utf8_string= XInternAtom(m_display, "UTF8_STRING", False);
 
 	// compute the initial time
 	timeval tv;
@@ -129,6 +148,13 @@ GHOST_SystemX11(
 	
 }
 
+GHOST_SystemX11::
+~GHOST_SystemX11()
+{
+	XCloseDisplay(m_display);
+}
+
+
 	GHOST_TSuccess 
 GHOST_SystemX11::
 init(
@@ -136,11 +162,9 @@ init(
 	GHOST_TSuccess success = GHOST_System::init();
 
 	if (success) {
-		m_keyboard_vector = new char[32];
-
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
-		if (m_keyboard_vector && m_displayManager) {
+		if (m_displayManager) {
 			return GHOST_kSuccess;
 		}
 	}
@@ -222,11 +246,8 @@ createWindow(
 	);
 
 	if (window) {
-
-		// Install a new protocol for this window - so we can overide
-		// the default window closure mechanism.
-
-		XSetWMProtocols(m_display, window->getXWindow(), &m_delete_window_atom, 1);
+		// Both are now handle in GHOST_WindowX11.cpp
+		// Focus and Delete atoms.
 
 		if (window->getValid()) {
 			// Store the pointer to the window 
@@ -308,7 +329,10 @@ processEvents(
 			if (next==GHOST_kFireTimeNever) {
 				SleepTillEvent(m_display, -1);
 			} else {
-				SleepTillEvent(m_display, next - getMilliSeconds());
+				GHOST_TInt64 maxSleep = next - getMilliSeconds();
+
+				if(maxSleep >= 0)
+					SleepTillEvent(m_display, next - getMilliSeconds());
 			}
 		}
 		
@@ -515,11 +539,28 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					                              window, data);
 				}
 			} else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+				XWindowAttributes attr;
+				Window fwin;
+				int revert_to;
+
 				/* as ICCCM say, we need reply this event
 				 * with a SetInputFocus, the data[1] have
 				 * the valid timestamp (send by the wm).
+				 *
+				 * Some WM send this event before the
+				 * window is really mapped (for example
+				 * change from virtual desktop), so we need
+				 * to be sure that our windows is mapped
+				 * or this call fail and close blender.
 				 */
-				XSetInputFocus(m_display, xcme.window, RevertToParent, xcme.data.l[1]);
+				if (XGetWindowAttributes(m_display, xcme.window, &attr) == True) {
+					if (XGetInputFocus(m_display, &fwin, &revert_to) == True) {
+						if (attr.map_state == IsViewable) {
+							if (fwin != xcme.window)
+								XSetInputFocus(m_display, xcme.window, RevertToParent, xcme.data.l[1]);
+						}
+					}
+				}
 			} else {
 				/* Unknown client message, ignore */
 			}
@@ -531,12 +572,45 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		// We're not interested in the following things.(yet...)
 		case NoExpose : 
 		case GraphicsExpose :
+			break;
 		
 		case EnterNotify:
 		case LeaveNotify:
+		{
 			// XCrossingEvents pointer leave enter window.
+			// also do cursor move here, MotionNotify only
+			// happens when motion starts & ends inside window
+			XCrossingEvent &xce = xe->xcrossing;
+			
+			g_event = new 
+			GHOST_EventCursor(
+				getMilliSeconds(),
+				GHOST_kEventCursorMove,
+				window,
+				xce.x_root,
+				xce.y_root
+			);
 			break;
+		}
 		case MapNotify:
+			/*
+			 * From ICCCM:
+			 * [ Clients can select for StructureNotify on their
+			 *   top-level windows to track transition between
+			 *   Normal and Iconic states. Receipt of a MapNotify
+			 *   event will indicate a transition to the Normal
+			 *   state, and receipt of an UnmapNotify event will
+			 *   indicate a transition to the Iconic state. ]
+			 */
+			if (window->m_post_init == True) {
+				/*
+				 * Now we are sure that the window is
+				 * mapped, so only need change the state.
+				 */
+				window->setState (window->m_post_state);
+				window->m_post_init = False;
+			}
+			break;
 		case UnmapNotify:
 			break;
 		case MappingNotify:
@@ -610,12 +684,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			{
 				XProximityNotifyEvent* data = (XProximityNotifyEvent*)xe;
 				if(data->deviceid == window->GetXTablet().StylusID)
-					window->GetXTablet().CommonData.Active= 1;
+					window->GetXTablet().CommonData.Active= GHOST_kTabletModeStylus;
 				else if(data->deviceid == window->GetXTablet().EraserID)
-					window->GetXTablet().CommonData.Active= 2;
+					window->GetXTablet().CommonData.Active= GHOST_kTabletModeEraser;
 			}
 			else if(xe->type == window->GetXTablet().ProxOutEvent)
-				window->GetXTablet().CommonData.Active= 0;
+				window->GetXTablet().CommonData.Active= GHOST_kTabletModeNone;
 
 			break;
 		}
@@ -646,9 +720,9 @@ getModifierKeys(
 
 	// analyse the masks retuned from XQueryPointer.
 
-	memset(m_keyboard_vector,0,sizeof(m_keyboard_vector));
+	memset((void *)m_keyboard_vector,0,sizeof(m_keyboard_vector));
 
-	XQueryKeymap(m_display,m_keyboard_vector);
+	XQueryKeymap(m_display,(char *)m_keyboard_vector);
 
 	// now translate key symobols into keycodes and
 	// test with vector.
@@ -975,114 +1049,298 @@ convertXKey(
 
 #undef GXMAP
 
-	GHOST_TUns8*
-GHOST_SystemX11::
-getClipboard(int flag
-) const {
-	//Flag 
-	//0 = Regular clipboard 1 = selection
-	static Atom Primary_atom, clip_String, compound_text;
-	Atom rtype;
-	Window m_window, owner;
-	unsigned char *data, *tmp_data;
-	int bits;
-	unsigned long len, bytes;
-	XEvent xevent;
-	
-	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
-	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
-	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
-	m_window = window->getXWindow();
+/* from xclip.c xcout() v0.11 */
 
-	clip_String = XInternAtom(m_display, "_BLENDER_STRING", False);
-	compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
+#define XCLIB_XCOUT_NONE		0 /* no context */
+#define XCLIB_XCOUT_SENTCONVSEL		1 /* sent a request */
+#define XCLIB_XCOUT_INCR		2 /* in an incr loop */
+#define XCLIB_XCOUT_FALLBACK		3 /* STRING failed, need fallback to UTF8 */
+#define XCLIB_XCOUT_FALLBACK_UTF8	4 /* UTF8 failed, move to compouned */
+#define XCLIB_XCOUT_FALLBACK_COMP	5 /* compouned failed, move to text. */
+#define XCLIB_XCOUT_FALLBACK_TEXT	6
 
-	//lets check the owner and if it is us then return the static buffer
-	if(flag == 0) {
-		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
-		owner = XGetSelectionOwner(m_display, Primary_atom);
-		if (owner == m_window) {
-			data = (unsigned char*) malloc(strlen(txt_cut_buffer)+1);
-			strcpy((char*)data, txt_cut_buffer);
-			return (GHOST_TUns8*)data;
-		} else if (owner == None) {
-			return NULL;
-		}
-	} else {
-		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
-		owner = XGetSelectionOwner(m_display, Primary_atom);
-		if (owner == m_window) {
-			data = (unsigned char*) malloc(strlen(txt_select_buffer)+1);
-			strcpy((char*)data, txt_select_buffer);
-			return (GHOST_TUns8*)data;
-		} else if (owner == None) {
-			return NULL;
-		}
-	}
-
-	if(!Primary_atom) {
-		return NULL;
-	}
-	
-	XDeleteProperty(m_display, m_window, Primary_atom);
-	XConvertSelection(m_display, Primary_atom, compound_text, clip_String, m_window, CurrentTime); //XA_STRING
-	XFlush(m_display);
-
-	//This needs to change so we do not wait for ever or check owner first
-	while(1) {
-		XNextEvent(m_display, &xevent);
-		if(xevent.type == SelectionNotify) {
-			if(XGetWindowProperty(m_display, m_window, xevent.xselection.property, 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
-				if (data) {
-					tmp_data = (unsigned char*) malloc(strlen((char*)data)+1);
-					strcpy((char*)tmp_data, (char*)data);
-					XFree(data);
-					return (GHOST_TUns8*)tmp_data;
-				}
-			}
-			return NULL;
-		}
-	}
-}
-
-	void
-GHOST_SystemX11::
-putClipboard(
-GHOST_TInt8 *buffer, int flag) const
+// Retrieves the contents of a selections.
+void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
+	Atom sel, Atom target, unsigned char **txt,
+	unsigned long *len, unsigned int *context) const
 {
-	static Atom Primary_atom;
-	Window m_window, owner;
-	
-	if(!buffer) {return;}
-	
-	if(flag == 0) {
-		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
-		if(txt_cut_buffer) { free((void*)txt_cut_buffer); }
-		
-		txt_cut_buffer = (char*) malloc(strlen(buffer)+1);
-		strcpy(txt_cut_buffer, buffer);
-	} else {
-		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
-		if(txt_select_buffer) { free((void*)txt_select_buffer); }
-		
-		txt_select_buffer = (char*) malloc(strlen(buffer)+1);
-		strcpy(txt_select_buffer, buffer);
-	}
-	
+	Atom pty_type;
+	int pty_format;
+	unsigned char *buffer;
+	unsigned long pty_size, pty_items;
+	unsigned char *ltxt= *txt;
+
 	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
 	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
 	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
-	m_window = window->getXWindow();
+	Window win = window->getXWindow();
 
-	if(!Primary_atom) {
-		return;
+	switch (*context) {
+		// There is no context, do an XConvertSelection()
+		case XCLIB_XCOUT_NONE:
+			// Initialise return length to 0
+			if (*len > 0) {
+				free(*txt);
+				*len = 0;
+			}
+
+			// Send a selection request
+			XConvertSelection(m_display, sel, target, m_xclip_out, win, CurrentTime);
+			*context = XCLIB_XCOUT_SENTCONVSEL;
+			return;
+
+		case XCLIB_XCOUT_SENTCONVSEL:
+			if (evt.type != SelectionNotify)
+				return;
+
+			if (target == m_utf8_string && evt.xselection.property == None) {
+				*context= XCLIB_XCOUT_FALLBACK_UTF8;
+				return;
+			}
+			else if (target == m_compound_text && evt.xselection.property == None) {
+				*context= XCLIB_XCOUT_FALLBACK_COMP;
+				return;
+			}
+			else if (target == m_text && evt.xselection.property == None) {
+				*context= XCLIB_XCOUT_FALLBACK_TEXT;
+				return;
+			}
+
+			// find the size and format of the data in property
+			XGetWindowProperty(m_display, win, m_xclip_out, 0, 0, False,
+				AnyPropertyType, &pty_type, &pty_format,
+				&pty_items, &pty_size, &buffer);
+			XFree(buffer);
+
+			if (pty_type == m_incr) {
+				// start INCR mechanism by deleting property
+				XDeleteProperty(m_display, win, m_xclip_out);
+				XFlush(m_display);
+				*context = XCLIB_XCOUT_INCR;
+				return;
+			}
+
+			// if it's not incr, and not format == 8, then there's
+			// nothing in the selection (that xclip understands, anyway)
+
+			if (pty_format != 8) {
+				*context = XCLIB_XCOUT_NONE;
+				return;
+			}
+
+			// not using INCR mechanism, just read the property
+			XGetWindowProperty(m_display, win, m_xclip_out, 0, (long) pty_size,
+					False, AnyPropertyType, &pty_type,
+					&pty_format, &pty_items, &pty_size, &buffer);
+
+			// finished with property, delete it
+			XDeleteProperty(m_display, win, m_xclip_out);
+
+			// copy the buffer to the pointer for returned data
+			ltxt = (unsigned char *) malloc(pty_items);
+			memcpy(ltxt, buffer, pty_items);
+
+			// set the length of the returned data
+			*len = pty_items;
+			*txt = ltxt;
+
+			// free the buffer
+			XFree(buffer);
+
+			*context = XCLIB_XCOUT_NONE;
+
+			// complete contents of selection fetched, return 1
+			return;
+
+		case XCLIB_XCOUT_INCR:
+			// To use the INCR method, we basically delete the
+			// property with the selection in it, wait for an
+			// event indicating that the property has been created,
+			// then read it, delete it, etc.
+
+			// make sure that the event is relevant
+			if (evt.type != PropertyNotify)
+				return;
+
+			// skip unless the property has a new value
+			if (evt.xproperty.state != PropertyNewValue)
+				return;
+
+			// check size and format of the property
+			XGetWindowProperty(m_display, win, m_xclip_out, 0, 0, False,
+				AnyPropertyType, &pty_type, &pty_format,
+				&pty_items, &pty_size, (unsigned char **) &buffer);
+
+			if (pty_format != 8) {
+				// property does not contain text, delete it
+				// to tell the other X client that we have read	
+				// it and to send the next property
+				XFree(buffer);
+				XDeleteProperty(m_display, win, m_xclip_out);
+				return;
+			}
+
+			if (pty_size == 0) {
+				// no more data, exit from loop
+				XFree(buffer);
+				XDeleteProperty(m_display, win, m_xclip_out);
+				*context = XCLIB_XCOUT_NONE;
+
+				// this means that an INCR transfer is now
+				// complete, return 1
+				return;
+			}
+
+			XFree(buffer);
+
+			// if we have come this far, the propery contains
+			// text, we know the size.
+			XGetWindowProperty(m_display, win, m_xclip_out, 0, (long) pty_size,
+				False, AnyPropertyType, &pty_type, &pty_format,
+				&pty_items, &pty_size, (unsigned char **) &buffer);
+
+			// allocate memory to accommodate data in *txt
+			if (*len == 0) {
+				*len = pty_items;
+				ltxt = (unsigned char *) malloc(*len);
+			}
+			else {
+				*len += pty_items;
+				ltxt = (unsigned char *) realloc(ltxt, *len);
+			}
+
+			// add data to ltxt
+			memcpy(&ltxt[*len - pty_items], buffer, pty_items);
+
+			*txt = ltxt;
+			XFree(buffer);
+
+			// delete property to get the next item
+			XDeleteProperty(m_display, win, m_xclip_out);
+			XFlush(m_display);
+			return;
 	}
-	
-	XSetSelectionOwner(m_display, Primary_atom, m_window, CurrentTime);
-	owner = XGetSelectionOwner(m_display, Primary_atom);
-	if (owner != m_window)
-		fprintf(stderr, "failed to own primary\n");
-	
 	return;
 }
 
+GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
+{
+	Atom sseln;
+	Atom target= m_string;
+	Window owner;
+
+	// from xclip.c doOut() v0.11
+	unsigned char *sel_buf;
+	unsigned long sel_len= 0;
+	XEvent evt;
+	unsigned int context= XCLIB_XCOUT_NONE;
+
+	if (selection == True)
+		sseln= m_primary;
+	else
+		sseln= m_clipboard;
+
+	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
+	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
+	Window win = window->getXWindow();
+
+	/* check if we are the owner. */
+	owner= XGetSelectionOwner(m_display, sseln);
+	if (owner == win) {
+		if (sseln == m_clipboard) {
+			sel_buf= (unsigned char *)malloc(strlen(txt_cut_buffer)+1);
+			strcpy((char *)sel_buf, txt_cut_buffer);
+			return((GHOST_TUns8*)sel_buf);
+		}
+		else {
+			sel_buf= (unsigned char *)malloc(strlen(txt_select_buffer)+1);
+			strcpy((char *)sel_buf, txt_select_buffer);
+			return((GHOST_TUns8*)sel_buf);
+		}
+	}
+	else if (owner == None)
+		return(NULL);
+
+	while (1) {
+		/* only get an event if xcout() is doing something */
+		if (context != XCLIB_XCOUT_NONE)
+			XNextEvent(m_display, &evt);
+
+		/* fetch the selection, or part of it */
+		getClipboard_xcout(evt, sseln, target, &sel_buf, &sel_len, &context);
+
+		/* fallback is needed. set XA_STRING to target and restart the loop. */
+		if (context == XCLIB_XCOUT_FALLBACK) {
+			context= XCLIB_XCOUT_NONE;
+			target= m_string;
+			continue;
+		}
+		else if (context == XCLIB_XCOUT_FALLBACK_UTF8) {
+			/* utf8 fail, move to compouned text. */
+			context= XCLIB_XCOUT_NONE;
+			target= m_compound_text;
+			continue;
+		}
+		else if (context == XCLIB_XCOUT_FALLBACK_COMP) {
+			/* compouned text faile, move to text. */
+			context= XCLIB_XCOUT_NONE;
+			target= m_text;
+			continue;
+		}
+
+		/* only continue if xcout() is doing something */
+		if (context == XCLIB_XCOUT_NONE)
+			break;
+	}
+
+	if (sel_len) {
+		/* only print the buffer out, and free it, if it's not
+		 * empty
+		 */
+		unsigned char *tmp_data = (unsigned char*) malloc(sel_len+1);
+		memcpy((char*)tmp_data, (char*)sel_buf, sel_len);
+		tmp_data[sel_len] = '\0';
+		
+		if (sseln == m_string)
+			XFree(sel_buf);
+		else
+			free(sel_buf);
+		
+		return (GHOST_TUns8*)tmp_data;
+	}
+	return(NULL);
+}
+
+void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
+{
+	Window m_window, owner;
+
+	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();	
+	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
+	m_window = window->getXWindow();
+
+	if (buffer) {
+		if (selection == False) {
+			XSetSelectionOwner(m_display, m_clipboard, m_window, CurrentTime);
+			owner= XGetSelectionOwner(m_display, m_clipboard);
+			if (txt_cut_buffer)
+				free((void*)txt_cut_buffer);
+
+			txt_cut_buffer = (char*) malloc(strlen(buffer)+1);
+			strcpy(txt_cut_buffer, buffer);
+		} else {
+			XSetSelectionOwner(m_display, m_primary, m_window, CurrentTime);
+			owner= XGetSelectionOwner(m_display, m_primary);
+			if (txt_select_buffer)
+				free((void*)txt_select_buffer);
+
+			txt_select_buffer = (char*) malloc(strlen(buffer)+1);
+			strcpy(txt_select_buffer, buffer);
+		}
+	
+		if (owner != m_window)
+			fprintf(stderr, "failed to own primary\n");
+	}
+}

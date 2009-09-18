@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -42,17 +42,17 @@ struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
 struct bNodeStack;
-struct uiBlock;
+struct uiLayout;
 struct rctf;
 struct ListBase;
 struct RenderData;
 struct Scene;
+struct Main;
+struct Tex;
 struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
-
-#define SOCK_IN		1
-#define SOCK_OUT	2
+struct PointerRNA;
 
 /* ************** NODE TYPE DEFINITIONS ***** */
 
@@ -83,7 +83,7 @@ typedef struct bNodeType {
 	void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **);
 	
 	/* this line is set on startup of blender */
-	int (*butfunc)(struct uiBlock *, struct bNodeTree *, struct bNode *, struct rctf *);
+	void (*uifunc)(struct uiLayout *, struct PointerRNA *ptr);
 
 	void (*initfunc)(struct bNode *);
 	void (*freestoragefunc)(struct bNode *);
@@ -105,6 +105,7 @@ typedef struct bNodeType {
 #define NODE_BREAK		2
 #define NODE_FINISHED	4
 #define NODE_FREEBUFS	8
+#define NODE_SKIPPED	16
 
 /* nodetype->nclass, for add-menu and themes */
 #define NODE_CLASS_INPUT		0
@@ -118,6 +119,8 @@ typedef struct bNodeType {
 #define NODE_CLASS_MATTE		9
 #define NODE_CLASS_DISTORT		10
 #define NODE_CLASS_OP_DYNAMIC	11
+#define NODE_CLASS_PATTERN 12
+#define NODE_CLASS_TEXTURE 13
 
 /* ************** GENERIC API, TREES *************** */
 
@@ -145,6 +148,11 @@ void			ntreeInitPreview(struct bNodeTree *, int xsize, int ysize);
 void			ntreeClearPreview(struct bNodeTree *ntree);
 
 void			ntreeFreeCache(struct bNodeTree *ntree);
+				
+				/* calls allowing threaded composite */
+struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
+void			ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
+void			ntreeLocalMerge(struct bNodeTree *localtree, struct bNodeTree *ntree);
 
 /* ************** GENERIC API, NODES *************** */
 
@@ -318,7 +326,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_COMBYUVA	234
 #define CMP_NODE_DIFF_MATTE	235
 #define CMP_NODE_COLOR_SPILL	236
-#define CMP_NODE_CHROMA		237
+#define CMP_NODE_CHROMA_MATTE	237
 #define CMP_NODE_CHANNEL_MATTE	238
 #define CMP_NODE_FLIP		239
 #define CMP_NODE_SPLITVIEWER	240
@@ -338,6 +346,9 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_DBLUR		254
 #define CMP_NODE_BILATERALBLUR  255
 #define CMP_NODE_PREMULKEY  256
+#define CMP_NODE_DIST_MATTE	257
+#define CMP_NODE_VIEW_LEVELS    258
+#define CMP_NODE_COLOR_MATTE 259
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302
@@ -373,11 +384,60 @@ struct CompBuf;
 void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
-void ntreeCompositForceHidden(struct bNodeTree *ntree);
+void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
 
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
+
+/* ************** TEXTURE NODES *************** */
+
+struct TexResult;
+
+#define TEX_NODE_OUTPUT     401
+#define TEX_NODE_CHECKER    402
+#define TEX_NODE_TEXTURE    403
+#define TEX_NODE_BRICKS     404
+#define TEX_NODE_MATH       405
+#define TEX_NODE_MIX_RGB    406
+#define TEX_NODE_RGBTOBW    407
+#define TEX_NODE_VALTORGB   408
+#define TEX_NODE_IMAGE      409
+#define TEX_NODE_CURVE_RGB  410
+#define TEX_NODE_INVERT     411
+#define TEX_NODE_HUE_SAT    412
+#define TEX_NODE_CURVE_TIME 413
+#define TEX_NODE_ROTATE     414
+#define TEX_NODE_VIEWER     415
+#define TEX_NODE_TRANSLATE  416
+#define TEX_NODE_COORD      417
+#define TEX_NODE_DISTANCE   418
+#define TEX_NODE_COMPOSE    419
+#define TEX_NODE_DECOMPOSE  420
+#define TEX_NODE_VALTONOR   421
+#define TEX_NODE_SCALE      422
+#define TEX_NODE_AT         423
+
+/* 501-599 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
+#define TEX_NODE_PROC      500
+#define TEX_NODE_PROC_MAX  600
+
+extern struct ListBase node_all_textures;
+
+/* API */
+int  ntreeTexTagAnimated(struct bNodeTree *ntree);
+void ntreeTexSetPreviewFlag(int);
+void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, short thread, struct Tex *tex, short which_output, int cfra);
+void ntreeTexCheckCyclics(struct bNodeTree *ntree);
+char* ntreeTexOutputMenu(struct bNodeTree *ntree);
+
+
+/**/
+
 void init_nodesystem(void);
 void free_nodesystem(void);
+
+/**/
+
+void clear_scene_in_nodes(struct Main *bmain, struct Scene *sce);
 
 #endif

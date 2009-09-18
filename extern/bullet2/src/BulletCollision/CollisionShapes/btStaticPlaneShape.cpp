@@ -19,10 +19,11 @@ subject to the following restrictions:
 
 
 btStaticPlaneShape::btStaticPlaneShape(const btVector3& planeNormal,btScalar planeConstant)
-:m_planeNormal(planeNormal.normalized()),
+: btConcaveShape (), m_planeNormal(planeNormal.normalized()),
 m_planeConstant(planeConstant),
 m_localScaling(btScalar(0.),btScalar(0.),btScalar(0.))
 {
+	m_shapeType = STATIC_PLANE_PROXYTYPE;
 	//	btAssert( btFuzzyZero(m_planeNormal.length() - btScalar(1.)) );
 }
 

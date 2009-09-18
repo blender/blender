@@ -39,6 +39,8 @@ struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
 struct bNodeGroup;
+struct AnimData;
+struct uiBlock;
 
 #define NODE_MAXSTR 32
 
@@ -121,13 +123,16 @@ typedef struct bNode {
 	float locx, locy;		/* root offset for drawing */
 	float width, miniwidth;			
 	short custom1, custom2;	/* to be abused for buttons */
+	float custom3, custom4;
 	
 	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
+	void *threaddata;		/* optional extra storage for use in thread (read only then!) */
 	
 	rctf totr;				/* entire boundbox */
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */
 	bNodePreview *preview;	/* optional preview image */
+	struct uiBlock *block;	/* runtime during drawing */
 	
 	struct bNodeType *typeinfo;	/* lookup of callbacks and defaults */
 	
@@ -153,12 +158,15 @@ typedef struct bNodeLink {
 	bNode *fromnode, *tonode;
 	bNodeSocket *fromsock, *tosock;
 	
+	int flag, pad;
+	
 } bNodeLink;
 
 /* the basis for a Node tree, all links and nodes reside internal here */
-/* only re-usable node trees are in the library though, materials allocate own tree struct */
+/* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
 typedef struct bNodeTree {
 	ID id;
+	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	ListBase nodes, links;
 	
@@ -177,14 +185,17 @@ typedef struct bNodeTree {
 	bNodeSocket *selout;
 
 	/* callbacks */
-	void (*timecursor)(int nr);
-	void (*stats_draw)(char *str);
-	int (*test_break)(void);
+	void (*timecursor)(void *, int nr);
+	void (*stats_draw)(void *, char *str);
+	int (*test_break)(void *);
+	void *tbh, *tch, *sdh;
+	
 } bNodeTree;
 
 /* ntree->type, index */
 #define NTREE_SHADER	0
 #define NTREE_COMPOSIT	1
+#define NTREE_TEXTURE   2
 
 /* ntree->init, flag */
 #define NTREE_TYPE_INIT	1
@@ -284,5 +295,10 @@ typedef struct NodeTonemap {
 typedef struct NodeLensDist {
 	short jit, proj, fit, pad;
 } NodeLensDist;
+
+/* TEX_output */
+typedef struct TexNodeOutput {
+	char name[32];
+} TexNodeOutput;
 
 #endif

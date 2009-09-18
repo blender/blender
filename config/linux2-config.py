@@ -1,11 +1,9 @@
 LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
-WITH_BF_VERSE = False
-BF_VERSE_INCLUDE = "#extern/verse/dist"
-
 BF_PYTHON = '/usr'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
+BF_PYTHON_VERSION = '3.1'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
@@ -20,22 +18,31 @@ BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
-# some distros have a separate libalut
-# if you get linker complaints, you need to uncomment the line below
-# BF_OPENAL_LIB = 'openal alut'  
-# BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a ${BF_OPENAL}/lib/libalut.a'
-
 BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
+
+BF_LIBSAMPLERATE = '/usr'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
+WITH_BF_JACK = False
+BF_JACK = '/usr'
+BF_JACK_INC = '${BF_JACK}/include/jack'
+BF_JACK_LIB = 'jack'
+BF_JACK_LIBPATH = '${BF_JACK}/lib'
+
+WITH_BF_SNDFILE = False
+BF_SNDFILE = '/usr'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include/sndfile'
+BF_SNDFILE_LIB = 'sndfile'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIB = 'SDL' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
-
-WITH_BF_FMOD = False
-BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
@@ -76,45 +83,13 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextlib'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = True
-BF_FTGL = '#extern/bFTGL'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
-
-WITH_BF_GAMEENGINE=False
-
-WITH_BF_ODE = False
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
+WITH_BF_GAMEENGINE = True
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
-
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
-
-WITH_BF_YAFRAY = True
-
-#WITH_BF_NSPR = True
-#BF_NSPR = $(LIBDIR)/nspr
-#BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
-#BF_NSPR_LIB = 
-
-# Uncomment the following line to use Mozilla inplace of netscape
-#CPPFLAGS += -DMOZ_NOT_NET
-# Location of MOZILLA/Netscape header files...
-#BF_MOZILLA = $(LIBDIR)/mozilla
-#BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
-#BF_MOZILLA_LIB =
-# Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
-# if this is not set.
-#
-# Be paranoid regarding library creation (do not update archives)
-#BF_PARANOID = True
 
 # enable freetype2 support for text objects
 BF_FREETYPE = '/usr'
@@ -139,26 +114,33 @@ BF_FFMPEG = '#extern/ffmpeg'
 BF_FFMPEG_LIB = ''
 # Uncomment the following two lines to use system's ffmpeg
 # BF_FFMPEG = '/usr'
-# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil'
-BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
+BF_FFMPEG_INC = '${BF_FFMPEG}'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
 # enable ogg, vorbis and theora in ffmpeg
 WITH_BF_OGG = False  # -DWITH_OGG 
 BF_OGG = '/usr'
 BF_OGG_INC = '${BF_OGG}/include'
-BF_OGG_LIB = 'ogg vorbis theoraenc theoradec'
+BF_OGG_LIB = 'ogg vorbis vorbisenc theoraenc theoradec'
 
 WITH_BF_OPENJPEG = True 
 BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
-BF_OPENJPEG_INC = '${BF_OPENJPEG}/include'
+BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
+
+WITH_BF_FFTW3 = False
+BF_FFTW3 = LIBDIR + '/usr'
+BF_FFTW3_INC = '${BF_FFTW3}/include'
+BF_FFTW3_LIB = 'fftw3'
+BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
 WITH_BF_REDCODE = False  
 BF_REDCODE = '#extern/libredcode'
 BF_REDCODE_LIB = ''
-BF_REDCODE_INC = '${BF_REDCODE}/include'
+# BF_REDCODE_INC = '${BF_REDCODE}/include'
+BF_REDCODE_INC = '${BF_REDCODE}/../' #C files request "libredcode/format.h" which is in "#extern/libredcode/format.h", stupid but compiles for now.
 BF_REDCODE_LIBPATH='${BF_REDCODE}/lib'
 
 # Mesa Libs should go here if your using them as well....
@@ -188,20 +170,22 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGSQUIET = ru
 ##
 C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement']
-
 CC_WARN = ['-Wall']
+CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
+
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = 'util c m dl pthread stdc++'
+LLIBS = ['util', 'c', 'm', 'dl', 'pthread', 'stdc++']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ['-pg','-g']
 BF_PROFILE = False
+BF_PROFILE_CCFLAGS = ['-pg','-g']
+BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'

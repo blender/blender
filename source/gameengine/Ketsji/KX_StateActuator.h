@@ -33,28 +33,41 @@
 
 #include "SCA_IActuator.h"
 
+
+/*
+ * Use of SG_DList : element of actuator being deactivated
+ *                   Head: SCA_LogicManager::m_removedActuators
+ * Use of SG_QList : element of global activated state actuator list 
+ *                   Head: KX_StateActuator::m_stateActuatorHead
+ */
 class KX_StateActuator : public SCA_IActuator
 {
 	Py_Header;
 
 	/** Make visible? */
 	enum {
+		OP_NOP = -1,
 		OP_CPY = 0,
 		OP_SET,
 		OP_CLR,
-		OP_NEG
+		OP_NEG,
+		OP_COUNT
 	};
+	// SG_Dlist: element of objects with active actuators, always put in front of the list
+	//           Head: SCA_LogicManager::m_activeActuators
+	// SG_QList: Head of active state actuators list globally
+	//           Elements: KX_StateActuator
+	static SG_QList	m_stateActuatorHead;
 	int				m_operation;
-	unsigned int	m_mask;
+	int				m_mask;
 
  public:
 	
 	KX_StateActuator(
 		SCA_IObject* gameobj,
 		int operation,
-		unsigned int mask,
-		PyTypeObject* T=&Type
-		);
+		unsigned int mask
+	);
 
 	virtual
 		~KX_StateActuator(
@@ -69,14 +82,13 @@ class KX_StateActuator : public SCA_IActuator
 	virtual bool
 		Update();
 
+	virtual void Deactivate();
+	virtual void Activate(SG_DList& head);
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
-	//KX_PYMETHOD_DOC
-	KX_PYMETHOD_DOC(KX_StateActuator,SetOperation);
-	KX_PYMETHOD_DOC(KX_StateActuator,SetMask);
 };
 
 #endif

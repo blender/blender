@@ -60,10 +60,6 @@ chmod +x $DISTDIR/python$PVERS.dll
 #Add pthreads dll to package
 cp -f $NAN_PTHREADS/lib/pthreadGC2.dll $DISTDIR/pthreadGC2.dll
 
-# Add fmod DLL to package
-# cp -f $NAN_FMOD/lib/fmod.dll $DISTDIR/fmod.dll
-# chmod +x $DISTDIR/fmod.dll
-
 # Add gettext DLL to package
 cp -f $NAN_GETTEXT/lib/gnu_gettext.dll $DISTDIR/gnu_gettext.dll
 

@@ -33,11 +33,13 @@
 #include "DNA_modifier_types.h"		/* needed for all enum typdefs */
 #include "BKE_customdata.h"
 
+struct ID;
 struct EditMesh;
 struct DerivedMesh;
 struct DagForest;
 struct DagNode;
 struct Object;
+struct Scene;
 struct ListBase;
 struct LinkNode;
 struct bArmature;
@@ -61,7 +63,7 @@ typedef enum {
 	 * used for particles modifier that doesn't actually modify the object
 	 * unless it's a mesh and can be exploded -> curve can also emit particles
 	 */
-	eModifierTypeType_DeformOrConstruct
+	eModifierTypeType_DeformOrConstruct,
 } ModifierTypeType;
 
 typedef enum {
@@ -86,6 +88,12 @@ typedef enum {
 	/* For modifiers that support pointcache, so we can check to see if it has files we need to deal with
 	*/
 	eModifierTypeFlag_UsesPointCache = (1<<6),
+
+	/* For physics modifiers, max one per type */
+	eModifierTypeFlag_Single = (1<<7),
+
+	/* Some modifier can't be added manually by user */
+	eModifierTypeFlag_NoUserAdd = (1<<8)
 } ModifierTypeFlag;
 
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
@@ -123,7 +131,8 @@ typedef struct ModifierTypeInfo {
 	 */
 	void (*deformVerts)(struct ModifierData *md, struct Object *ob,
 	                    struct DerivedMesh *derivedData,
-	                    float (*vertexCos)[3], int numVerts);
+	                    float (*vertexCos)[3], int numVerts,
+	                    int useRenderParams, int isFinalCalc);
 
 	/* Like deformVerts but called during editmode (for supporting modifiers)
 	 */
@@ -202,7 +211,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	CustomDataMask (*requiredDataMask)(struct ModifierData *md);
+	CustomDataMask (*requiredDataMask)(struct Object *ob, struct ModifierData *md);
 
 	/* Free internal modifier data variables, this function should
 	 * not free the md variable itself.
@@ -226,7 +235,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest,
+	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest, struct Scene *scene,
 	                       struct Object *ob, struct DagNode *obNode);
 
 	/* Should return true if the modifier needs to be recalculated on time
@@ -270,6 +279,7 @@ int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct ModifierData *md);
 int           modifier_isDeformer(struct ModifierData *md);
+int           modifier_isEnabled(struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
@@ -290,7 +300,7 @@ int           modifiers_isParticleEnabled(struct Object *ob);
 struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
-int           modifiers_isDeformed(struct Object *ob);
+int           modifiers_isDeformed(struct Scene *scene, struct Object *ob);
 void          modifier_freeTemporaryData(struct ModifierData *md);
 
 int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
@@ -300,8 +310,10 @@ int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md
  * evaluation, assuming the data indicated by dataMask is required at the
  * end of the stack.
  */
-struct LinkNode *modifiers_calcDataMasks(struct ModifierData *md,
-                                         CustomDataMask dataMask);
+struct LinkNode *modifiers_calcDataMasks(struct Object *ob,
+                                         struct ModifierData *md,
+                                         CustomDataMask dataMask,
+                                         int required_mode);
 struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
 
 #endif

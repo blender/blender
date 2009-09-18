@@ -1401,7 +1401,7 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 		debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_MSG," obj "<<obj->getName()<<" skip:"<<skip<<", static:"<<staticInit<<" anim:"<<obj->getIsAnimated()<<" gid:"<<obj->getGeoInitId()<<" simgid:"<<mLbmInitId, 10);
 
 		if( (obj->getGeoInitType()&FGI_ALLBOUNDS) || 
-				(obj->getGeoInitType()&FGI_FLUID) && staticInit ) {
+				((obj->getGeoInitType()&FGI_FLUID) && staticInit) ) {
 
 			otype = ntype = CFInvalid;
 			switch(obj->getGeoInitType()) {
@@ -1464,7 +1464,7 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 				obj->applyTransformation(targetTime, &mMOIVertices,NULL /* no old normals needed */, 0, mMOIVertices.size(), false );
 			} else {
 				// only do transform update
-				obj->getMovingPoints(mMOIVertices,pNormals);
+				obj->getMovingPoints(mMOIVertices,pNormals); // mMOIVertices = mCachedMovPoints
 				mMOIVerticesOld = mMOIVertices;
 				// WARNING - assumes mSimulationTime is global!?
 				obj->applyTransformation(targetTime, &mMOIVertices,pNormals, 0, mMOIVertices.size(), false );

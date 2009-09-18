@@ -58,14 +58,19 @@ extern "C"
 #include "BKE_global.h"	
 #include "BKE_icons.h"	
 #include "BKE_node.h"	
+#include "BKE_report.h"	
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 #include "BLO_readfile.h"
 #include "BLO_readblenfile.h"
 #include "IMB_imbuf.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
+extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
+extern char btempdir[];		/* use this to store a valid temp directory */
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
@@ -84,6 +89,8 @@ extern "C"
 
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+
+#include "RNA_define.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -162,45 +169,53 @@ void usage(const char* program)
 	consoleoption = "";
 #endif
 	
-	printf("usage:   %s [-w [-p l t w h]] %s[-g gamengineoptions] "
+	printf("usage:   %s [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] "
 		"[-s stereomode] filename.blend\n", program, consoleoption);
-	printf("  -h: Prints this command summary\n");
+	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
-	printf("  -p: specify window position\n");
+	printf("       --Optional parameters--\n"); 
+	printf("       w = window width\n");
+	printf("       h = window height\n\n");
 	printf("       l = window left coordinate\n");
 	printf("       t = window top coordinate\n");
-	printf("       w = window width\n");
-	printf("       h = window height\n");
+	printf("       Note: If w or h is defined, both must be defined.\n");
+	printf("          Also, if l or t is defined, all options must be used.\n\n");
 	printf("  -f: start game in full screen mode\n");
+	printf("       --Optional parameters--\n");
 	printf("       fw = full screen mode pixel width\n");
-	printf("       fh = full screen mode pixel height\n");
+	printf("       fh = full screen mode pixel height\n\n");
 	printf("       fb = full screen mode bits per pixel\n");
 	printf("       ff = full screen mode frequency\n");
+	printf("       Note: If fw or fh is defined, both must be defined.\n");
+	printf("          Also, if fb is used, fw and fh must be used. ff requires all options.\n\n");
 	printf("  -s: start player in stereo\n");
 	printf("       stereomode: hwpageflip       (Quad buffered shutter glasses)\n");
 	printf("                   syncdoubling     (Above Below)\n");
 	printf("                   sidebyside       (Left Right)\n");
 	printf("                   anaglyph         (Red-Blue glasses)\n");
 	printf("                   vinterlace       (Vertical interlace for autostereo display)\n");
-	printf("                             depending on the type of stereo you want\n");
+	printf("                             depending on the type of stereo you want\n\n");
 #ifndef _WIN32
-	printf("  -i: parent windows ID \n");
+	printf("  -i: parent windows ID \n\n");
 #endif
 #ifdef _WIN32
-	printf("  -c: keep console window open\n");
+	printf("  -c: keep console window open\n\n");
 #endif
-	printf("  -d: turn debugging on\n");
-	printf("  -g: game engine options:\n");
-	printf("       Name            Default      Description\n");
-	printf("       ----------------------------------------\n");
-	printf("       fixedtime          0         Do the same timestep each frame \"Enable all frames\"\n");
-	printf("       nomipmap           0         Disable mipmaps\n");
-	printf("       show_framerate     0         Show the frame rate\n");
-	printf("       show_properties    0         Show debug properties\n");
-	printf("       show_profile       0         Show profiling information\n");
-	printf("       blender_material   0         Enable material settings\n");
+	printf("  -d: turn debugging on\n\n");
+	printf("  -g: game engine options:\n\n");
+	printf("       Name                       Default      Description\n");
+	printf("       ------------------------------------------------------------------------\n");
+	printf("       fixedtime                      0         \"Enable all frames\"\n");
+	printf("       nomipmap                       0         Disable mipmaps\n");
+	printf("       show_framerate                 0         Show the frame rate\n");
+	printf("       show_properties                0         Show debug properties\n");
+	printf("       show_profile                   0         Show profiling information\n");
+	printf("       blender_material               0         Enable material settings\n");
+	printf("       ignore_deprecation_warnings    1         Ignore deprecation warnings\n");
 	printf("\n");
-	printf("example: %s -p 10 10 320 200 -g noaudio c:\\loadtest.blend\n", program);
+	printf("  - : all arguments after this are ignored, allowing python to access them from sys.argv\n");
+	printf("\n");
+	printf("example: %s -w 320 200 10 10 -g noaudio c:\\loadtest.blend\n", program);
 	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
 }
 
@@ -240,7 +255,7 @@ static void get_filename(int argc, char **argv, char *filename)
 		if (BLI_exists(gamefile))
 			BLI_strncpy(filename, gamefile, FILE_MAXDIR + FILE_MAXFILE);
 
-		delete gamefile;
+		delete [] gamefile;
 	}
 	
 #else
@@ -251,35 +266,33 @@ static void get_filename(int argc, char **argv, char *filename)
 #endif // !_APPLE
 }
 
-static BlendFileData *load_game_data(char *progname, char *filename = NULL, char *relativename = NULL) {
-	BlendReadError error;
+static BlendFileData *load_game_data(char *progname, char *filename = NULL, char *relativename = NULL)
+{
+	ReportList reports;
 	BlendFileData *bfd = NULL;
+
+	BKE_reports_init(&reports, RPT_STORE);
 	
 	/* try to load ourself, will only work if we are a runtime */
 	if (blo_is_a_runtime(progname)) {
-		bfd= blo_read_runtime(progname, &error);
+		bfd= blo_read_runtime(progname, &reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_RUNTIME;
 			strcpy(bfd->main->name, progname);
 		}
 	} else {
-		bfd= BLO_read_from_file(progname, &error);
+		bfd= BLO_read_from_file(progname, &reports);
 	}
- 	
-	/*
-	if (bfd && bfd->type == BLENFILETYPE_BLEND) {
-		BLO_blendfiledata_free(bfd);
-		bfd = NULL;
-		error = BRE_NOT_A_PUBFILE;
-	}
-	*/
 	
 	if (!bfd && filename) {
 		bfd = load_game_data(filename);
 		if (!bfd) {
-			printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
+			printf("Loading %s failed: ", filename);
+			BKE_reports_print(&reports, RPT_ERROR);
 		}
 	}
+
+	BKE_reports_clear(&reports);
 	
 	return bfd;
 }
@@ -287,6 +300,7 @@ static BlendFileData *load_game_data(char *progname, char *filename = NULL, char
 int main(int argc, char** argv)
 {
 	int i;
+	int argc_py_clamped= argc; /* use this so python args can be added after ' - ' */
 	bool error = false;
 	SYS_SystemHandle syshandle = SYS_GetSystem();
 	bool fullScreen = false;
@@ -336,6 +350,8 @@ int main(int argc, char** argv)
     */
 #endif // __APPLE__
 
+	RNA_init();
+
 	init_nodesystem();
 	
 	initglobals();
@@ -375,6 +391,13 @@ int main(int argc, char** argv)
 		}
 	}
 #endif
+	// XXX add the ability to change this values to the command line parsing.
+	U.mixbufsize = 2048;
+	U.audiodevice = 2;
+	U.audiorate = 44100;
+	U.audioformat = 0x24;
+	U.audiochannels = 2;
+
 	for (i = 1; (i < argc) && !error 
 #ifdef WIN32
 		&& scr_saver_mode == SCREEN_SAVER_MODE_NONE
@@ -387,6 +410,12 @@ int main(int argc, char** argv)
 #endif
 		if (argv[i][0] == '-')
 		{
+			/* ignore all args after " - ", allow python to have own args */
+			if (argv[i][1]=='\0') {
+				argc_py_clamped= i;
+				break;
+			}
+			
 			switch (argv[i][1])
 			{
 			case 'g':
@@ -431,54 +460,41 @@ int main(int argc, char** argv)
 				G.f |= G_DEBUG;     /* std output printf's */
 				MEM_set_memory_debug();
 				break;
-				
-			case 'p':
-				// Parse window position and size options
-				if (argv[i][2] == 0) {
-					i++;
-					if ((i + 4) < argc)
-					{
-						windowLeft = atoi(argv[i++]);
-						windowTop = atoi(argv[i++]);
-						windowWidth = atoi(argv[i++]);
-						windowHeight = atoi(argv[i++]);
-						windowParFound = true;
-					}
-					else
-					{
-						error = true;
-						printf("error: too few options for window argument.\n");
-					}
-				} else { /* mac specific */
-				
-                    if (strncmp(argv[i], "-psn_", 5)==0) 
-                        i++; /* skip process serial number */
-				}
-				break;
+
 			case 'f':
 				i++;
 				fullScreen = true;
 				fullScreenParFound = true;
-				if ((i + 2) < argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+				if ((i + 2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
 					fullScreenWidth = atoi(argv[i++]);
 					fullScreenHeight = atoi(argv[i++]);
-					if ((i + 1) < argc && argv[i][0] != '-')
+					if ((i + 1) <= argc && argv[i][0] != '-')
 					{
 						fullScreenBpp = atoi(argv[i++]);
-						if ((i + 1) < argc && argv[i][0] != '-')
+						if ((i + 1) <= argc && argv[i][0] != '-')
 							fullScreenFrequency = atoi(argv[i++]);
 					}
 				}
 				break;
 			case 'w':
 				// Parse window position and size options
+				i++;
+				fullScreen = false;
+				windowParFound = true;
+
+				if ((i + 2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
-					fullScreen = false;
-					fullScreenParFound = true;
-					i++;
+					windowWidth = atoi(argv[i++]);
+					windowHeight = atoi(argv[i++]);
+					if ((i +2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+					{
+						windowLeft = atoi(argv[i++]);
+						windowTop = atoi(argv[i++]);
+					}
 				}
 				break;
+					
 			case 'h':
 				usage(argv[0]);
 				return 0;
@@ -603,7 +619,7 @@ int main(int argc, char** argv)
 				char pathname[FILE_MAXDIR + FILE_MAXFILE];
 				char *titlename;
 
-				get_filename(argc, argv, filename);
+				get_filename(argc_py_clamped, argv, filename);
 				if(filename[0])
 					BLI_convertstringcwd(filename);
 				
@@ -698,14 +714,14 @@ int main(int argc, char** argv)
 						}
 						
 						//					GPG_Application app (system, maggie, startscenename);
-						app.SetGameEngineData(maggie, scene);
+						app.SetGameEngineData(maggie, scene, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
 						
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
 						BLI_strncpy(G.sce, maggie->name, sizeof(G.sce));
+						setGamePythonPath(G.sce);
 
 						if (firstTimeRunning)
 						{
-							setGamePythonPath(G.sce);
 							firstTimeRunning = false;
 
 							if (fullScreen)

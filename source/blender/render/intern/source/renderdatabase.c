@@ -1032,9 +1032,11 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 				har->g= (yn*tg+ zn*ma->g);
 				har->b= (yn*tb+ zn*ma->b);
 			}
-			if(mtex->texco & 16) {
+			if(mtex->texco & TEXCO_UV) {
 				har->alfa= tin;
 			}
+			if(mtex->mapto & MAP_ALPHA)
+				har->alfa= tin;
 		}
 	}
 

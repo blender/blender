@@ -32,6 +32,7 @@
 #include "SG_Controller.h"
 #include "MT_Vector3.h"
 #include "MT_Point3.h"
+#include "MT_Transform.h"
 #include "MT_Matrix3x3.h"
 
 struct KX_ClientObjectInfo;
@@ -48,10 +49,12 @@ class KX_IPhysicsController : public SG_Controller
 {
 protected:
 	bool		m_bDyna;
+	bool		m_bSensor;
+	bool		m_bCompound;
 	bool		m_suspendDynamics;
 	void*		m_userdata;
 public:
-	KX_IPhysicsController(bool dyna,void* userdata);
+	KX_IPhysicsController(bool dyna,bool sensor,bool compound, void* userdata);
 	virtual ~KX_IPhysicsController();
 
 
@@ -72,12 +75,23 @@ public:
 
 	virtual	void	getOrientation(MT_Quaternion& orn)=0;
 	virtual	void setOrientation(const MT_Matrix3x3& orn)=0;
+	virtual void SetTransform()=0;
 	//virtual	void setOrientation(const MT_Quaternion& orn)=0;
 	virtual	void setPosition(const MT_Point3& pos)=0;
 	virtual	void setScaling(const MT_Vector3& scaling)=0;
 	virtual	MT_Scalar	GetMass()=0;
+	virtual void	SetMass(MT_Scalar newmass)=0;
+	
+	virtual	float GetLinVelocityMin()=0;
+	virtual void	SetLinVelocityMin(float newmass)=0;
+	virtual	float GetLinVelocityMax()=0;
+	virtual void	SetLinVelocityMax(float newmass)=0;
+	
+	virtual	MT_Vector3	GetLocalInertia()=0;
 	virtual	MT_Vector3	getReactionForce()=0;
 	virtual void	setRigidBody(bool rigid)=0;
+	virtual void    AddCompoundChild(KX_IPhysicsController* child) = 0;
+	virtual void    RemoveCompoundChild(KX_IPhysicsController* child) = 0;
 
 	virtual void	SuspendDynamics(bool ghost=false)=0;
 	virtual void	RestoreDynamics()=0;
@@ -88,8 +102,20 @@ public:
 		m_bDyna = isDynamic;
 	}
 
+	void	SetSensor(bool isSensor) {
+		m_bSensor = isSensor;
+	}
+
 	bool	IsDyna(void) {
 		return m_bDyna;
+	}
+
+	bool	IsSensor(void) {
+		return m_bSensor;
+	}
+
+	bool	IsCompound(void) {
+		return m_bCompound;
 	}
 
 	virtual MT_Scalar GetRadius()=0;
@@ -100,6 +126,13 @@ public:
 	// call from scene graph to update
 	virtual bool Update(double time)=0;
 	void*	GetUserData() { return m_userdata;}
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_IPhysicsController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_IPHYSICSCONTROLLER_H

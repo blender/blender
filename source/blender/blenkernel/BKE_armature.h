@@ -37,6 +37,7 @@ struct bArmature;
 struct bPose;
 struct bPoseChannel;
 struct bConstraint;
+struct Scene;
 struct Object;
 struct MDeformVert;
 struct Mesh;
@@ -68,10 +69,11 @@ typedef struct PoseTree
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 struct bArmature *add_armature(char *name);
+struct bArmature *get_armature(struct Object *ob);
 void free_boneChildren(struct Bone *bone);
 void free_bones (struct bArmature *arm);
-void unlink_armature(struct bArmature *arm);
 void free_armature(struct bArmature *arm);
 void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);
@@ -79,7 +81,6 @@ struct bArmature *copy_armature(struct bArmature *arm);
 void bone_flip_name (char *name, int strip_number);
 void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail);
 
-struct bArmature *get_armature (struct Object *ob);
 struct Bone *get_named_bone (struct bArmature *arm, const char *name);
 
 float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, float rad2, float rdist);
@@ -87,7 +88,7 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 void where_is_armature (struct bArmature *arm);
 void where_is_armature_bone(struct Bone *bone, struct Bone *prevbone);
 void armature_rebuild_pose(struct Object *ob, struct bArmature *arm);
-void where_is_pose (struct Object *ob);
+void where_is_pose (struct Scene *scene, struct Object *ob);
 
 /* get_objectspace_bone_matrix has to be removed still */
 void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed);

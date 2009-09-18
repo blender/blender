@@ -61,7 +61,6 @@ class btUniformScalingShape : public btConvexShape
 		return "UniformScalingShape";
 	}
 	
-	virtual int	getShapeType() const { return UNIFORM_SCALING_SHAPE_PROXYTYPE; }
 
 
 	///////////////////////////

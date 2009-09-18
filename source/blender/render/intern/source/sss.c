@@ -55,6 +55,7 @@
 
 #include "DNA_material_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -451,13 +452,13 @@ static void compute_radiance(ScatterTree *tree, float *co, float *rad)
 	VECCOPY(rdsum, result.rdsum);
 	VECADD(backrdsum, result.rdsum, result.backrdsum);
 
-	if(rdsum[0] > 0.0f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
-	if(rdsum[1] > 0.0f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
-	if(rdsum[2] > 0.0f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
+	if(rdsum[0] > 1e-16f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
+	if(rdsum[1] > 1e-16f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
+	if(rdsum[2] > 1e-16f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
 
-	if(backrdsum[0] > 0.0f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
-	if(backrdsum[1] > 0.0f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
-	if(backrdsum[2] > 0.0f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
+	if(backrdsum[0] > 1e-16f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
+	if(backrdsum[1] > 1e-16f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
+	if(backrdsum[2] > 1e-16f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
 
 	rad[0]= MAX2(rad[0], backrad[0]);
 	rad[1]= MAX2(rad[1], backrad[1]);
@@ -504,20 +505,20 @@ static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
 		}
 	}
 
-	if(node->area > 0) {
+	if(node->area > 1e-16f) {
 		inv= 1.0/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
-	if(node->backarea > 0) {
+	if(node->backarea > 1e-16f) {
 		inv= 1.0/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
-	if(totrad > 0.0f) {
+	if(totrad > 1e-16f) {
 		inv= 1.0/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
@@ -578,20 +579,20 @@ static void sum_branch_radiance(ScatterTree *tree, ScatterNode *node)
 		node->backarea += subnode->backarea;
 	}
 
-	if(node->area > 0) {
+	if(node->area > 1e-16f) {
 		inv= 1.0/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
-	if(node->backarea > 0) {
+	if(node->backarea > 1e-16f) {
 		inv= 1.0/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
-	if(totrad > 0.0f) {
+	if(totrad > 1e-16f) {
 		inv= 1.0/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
@@ -852,7 +853,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
 	int totpoint = 0, osa, osaflag, partsdone;
 
-	if(re->test_break())
+	if(re->test_break(re->tbh))
 		return;
 	
 	points.first= points.last= NULL;
@@ -871,12 +872,17 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->sss_points= &points;
 	re->sss_mat= mat;
 	re->i.partsdone= 0;
-	re->result= NULL;
 
-	RE_TileProcessor(re, 0, !(re->r.mode & R_PREVIEWBUTS));
-	RE_FreeRenderResult(re->result);
+	if(!(re->r.scemode & R_PREVIEWBUTS))
+		re->result= NULL;
 
-	re->result= rr;
+	RE_TileProcessor(re, 0, 1);
+	
+	if(!(re->r.scemode & R_PREVIEWBUTS)) {
+		RE_FreeRenderResult(re->result);
+		re->result= rr;
+	}
+
 	re->i.partsdone= partsdone;
 	re->sss_mat= NULL;
 	re->sss_points= NULL;
@@ -888,7 +894,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		return;
 
 	/* merge points together into a single buffer */
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		for(totpoint=0, p=points.first; p; p=p->next)
 			totpoint += p->totpoint;
 		
@@ -913,10 +919,10 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	BLI_freelistN(&points);
 
 	/* build tree */
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		SSSData *sss= MEM_callocN(sizeof(*sss), "SSSData");
 		float ior= mat->sss_ior, cfac= mat->sss_colfac;
-		float *col= mat->sss_col, *radius= mat->sss_radius;
+		float col[3], *radius= mat->sss_radius;
 		float fw= mat->sss_front, bw= mat->sss_back;
 		float error = mat->sss_error;
 
@@ -924,6 +930,9 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		if((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
 			error= 0.5f;
 
+		if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(col, mat->sss_col);
+		else VECCOPY(col, mat->sss_col);
+		
 		sss->ss[0]= scatter_settings_new(col[0], radius[0], ior, cfac, fw, bw);
 		sss->ss[1]= scatter_settings_new(col[1], radius[1], ior, cfac, fw, bw);
 		sss->ss[2]= scatter_settings_new(col[2], radius[2], ior, cfac, fw, bw);
@@ -981,7 +990,7 @@ void make_sss_tree(Render *re)
 	re->sss_hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 
 	re->i.infostr= "SSS preprocessing";
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	
 	for(mat= G.main->mat.first; mat; mat= mat->id.next)
 		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))

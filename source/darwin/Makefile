@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.7 2003/05/12 18:12:25 sgefant Exp $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -49,7 +49,13 @@ ifeq ($(APPLICATION), blender)
 	@echo "---> copying .blender/ scripts"
 	@cp -R $(NANBLENDERHOME)/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
 	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
+	@echo "---> copying ui scripts"
+	@cp -R $(NANBLENDERHOME)/release/ui $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
+	@echo "---> copying python modules"
+	@mkdir $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python
+	@unzip -q $(LCGDIR)/release/python.zip -d $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python/	
 endif
-	@echo "---> removing CVS directories and Mac hidden files from distribution"
+	@echo "---> removing SVN directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;
 	@find $(DIR)/bin/$(APPLICATION).app -name .DS_Store -exec rm -f {} \;
+	@find $(DIR)/bin/$(APPLICATION).app -name .svn -prune -exec rm -rf {} \;

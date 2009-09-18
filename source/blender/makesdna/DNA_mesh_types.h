@@ -46,6 +46,7 @@ struct Mesh;
 struct OcInfo;
 struct Multires;
 struct PartialVisibility;
+struct EditMesh;
 
 typedef struct Mesh {
 	ID id;
@@ -63,11 +64,13 @@ typedef struct Mesh {
 	struct TFace *tface;	/* depecrated, use mtface */
 	struct MVert *mvert;	/* array of verts */
 	struct MEdge *medge;	/* array of edges */
-	struct MDeformVert *dvert;	/* __NLA */
+	struct MDeformVert *dvert;	/* deformgroup vertices */
 	struct MCol *mcol;		/* array of colors, this must be the number of faces * 4 */
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
+	
+	struct EditMesh *edit_mesh;	/* not saved in file! */
 
 	struct CustomData vdata, edata, fdata;
 
@@ -86,8 +89,9 @@ typedef struct Mesh {
 	float size[3];
 	float rot[3];
 	
-	float cubemapsize, pad;
-
+	float cubemapsize;
+	
+	int drawflag;
 	short smoothresh, flag;
 
 	short subdiv, subdivr;
@@ -96,10 +100,6 @@ typedef struct Mesh {
 
 	struct Multires *mr;		/* Multiresolution modeling data */
 	struct PartialVisibility *pv;
-/*ifdef WITH_VERSE*/
-	/* not written in file, pointer at geometry VerseNode */
-	void *vnode;
-/*#endif*/
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */
@@ -126,6 +126,45 @@ typedef struct TFace {
 #define ME_SMESH		64
 #define ME_SUBSURF		128
 #define ME_OPT_EDGES	256
+
+/* me->drawflag, int */ 
+#define ME_DRAWEDGES	(1 << 0)
+#define ME_DRAWFACES	(1 << 1)
+#define ME_DRAWNORMALS	(1 << 2)
+#define ME_DRAW_VNORMALS (1 << 3)
+
+#define ME_ALLEDGES		(1 << 4)
+#define ME_HIDDENEDGES  (1 << 5)
+
+#define ME_DRAWCREASES	(1 << 6)
+#define ME_DRAWSEAMS    (1 << 7)
+#define ME_DRAWSHARP    (1 << 8)
+#define ME_DRAWBWEIGHTS	(1 << 9)
+
+#define ME_DRAW_EDGELEN  (1 << 10) 
+#define ME_DRAW_FACEAREA (1 << 11)
+#define ME_DRAW_EDGEANG  (1 << 12)
+
+/* old global flags:
+#define G_DRAWEDGES		(1 << 18)
+#define G_DRAWFACES		(1 <<  7)
+#define G_DRAWNORMALS	(1 <<  6)
+#define G_DRAW_VNORMALS	(1 << 14)
+
+#define G_ALLEDGES		(1 << 11)
+#define G_HIDDENEDGES   (1 << 21)
+
+#define G_DRAWCREASES	(1 << 19)
+#define G_DRAWSEAMS     (1 << 20)
+#define G_DRAWSHARP     (1 << 28)
+#define G_DRAWBWEIGHTS	(1 << 31)
+
+#define G_DRAW_EDGELEN  (1 << 22) 
+#define G_DRAW_FACEAREA (1 << 23)
+#define G_DRAW_EDGEANG  (1 << 24)
+*/
+
+
 
 /* Subsurf Type */
 #define ME_CC_SUBSURF 		0

@@ -35,9 +35,6 @@ email: projectileman@yahoo.com
 #include "gim_basic_geometry_operations.h"
 #include "LinearMath/btTransform.h"
 
-/*! \defgroup BOUND_AABB_OPERATIONS
-*/
-//! @{
 
 
 //SIMD_FORCE_INLINE bool test_cross_edge_box(
@@ -589,6 +586,5 @@ SIMD_FORCE_INLINE bool btCompareTransformsEqual(const btTransform & t1,const btT
 }
 
 
-//! @}
 
 #endif // GIM_BOX_COLLISION_H_INCLUDED

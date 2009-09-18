@@ -35,13 +35,13 @@ m_isSwapped(isSwapped)
 
 btSoftRigidCollisionAlgorithm::~btSoftRigidCollisionAlgorithm()
 {
-	
+
 	//m_softBody->m_overlappingRigidBodies.remove(m_rigidCollisionObject);
 
 	/*if (m_ownManifold)
 	{
-		if (m_manifoldPtr)
-			m_dispatcher->releaseManifold(m_manifoldPtr);
+	if (m_manifoldPtr)
+	m_dispatcher->releaseManifold(m_manifoldPtr);
 	}
 	*/
 

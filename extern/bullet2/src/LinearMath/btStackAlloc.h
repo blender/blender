@@ -23,6 +23,7 @@ Nov.2006
 #include "btScalar.h" //for btAssert
 #include "btAlignedAllocator.h"
 
+///The btBlock class is an internal structure for the btStackAlloc memory allocator.
 struct btBlock
 {
 	btBlock*			previous;

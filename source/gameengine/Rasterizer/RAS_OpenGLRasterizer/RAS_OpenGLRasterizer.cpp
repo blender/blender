@@ -35,11 +35,20 @@
 
 #include "RAS_Rect.h"
 #include "RAS_TexVert.h"
+#include "RAS_MeshObject.h"
 #include "MT_CmMatrix4x4.h"
 #include "RAS_IRenderTools.h" // rendering text
 
 #include "GPU_draw.h"
 #include "GPU_material.h"
+#include "GPU_extensions.h"
+
+#include "DNA_image_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_material_types.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_DerivedMesh.h"
 
 /**
  *  32x32 bit masks for vinterlace stereo mode
@@ -59,6 +68,8 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_2DCanvas(canvas),
 	m_fogenabled(false),
 	m_time(0.0),
+	m_campos(0.0f, 0.0f, 0.0f),
+	m_camortho(false),
 	m_stereomode(RAS_STEREO_NOSTEREO),
 	m_curreye(RAS_STEREO_LEFTEYE),
 	m_eyeseparation(0.0),
@@ -70,7 +81,7 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_motionblurvalue(-1.0),
 	m_texco_num(0),
 	m_attrib_num(0),
-	m_last_blendmode(GPU_BLEND_SOLID),
+	//m_last_blendmode(GPU_BLEND_SOLID),
 	m_last_frontface(true),
 	m_materialCachingInfo(0)
 {
@@ -107,7 +118,8 @@ bool RAS_OpenGLRasterizer::Init()
 
 	glDisable(GL_BLEND);
 	glDisable(GL_ALPHA_TEST);
-	m_last_blendmode = GPU_BLEND_SOLID;
+	//m_last_blendmode = GPU_BLEND_SOLID;
+	GPU_set_material_blend_mode(GPU_BLEND_SOLID);
 
 	glFrontFace(GL_CCW);
 	m_last_frontface = true;
@@ -199,6 +211,10 @@ void RAS_OpenGLRasterizer::DisableFog()
 	m_fogenabled = false;
 }
 
+bool RAS_OpenGLRasterizer::IsFogEnabled()
+{
+	return m_fogenabled;
+}
 
 
 void RAS_OpenGLRasterizer::DisplayFog()
@@ -273,7 +289,8 @@ bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 
 	glDisable(GL_BLEND);
 	glDisable(GL_ALPHA_TEST);
-	m_last_blendmode = GPU_BLEND_SOLID;
+	//m_last_blendmode = GPU_BLEND_SOLID;
+	GPU_set_material_blend_mode(GPU_BLEND_SOLID);
 
 	glFrontFace(GL_CCW);
 	m_last_frontface = true;
@@ -325,18 +342,23 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 	m_materialCachingInfo = 0;
 }
 
-
-void RAS_OpenGLRasterizer::EndFrame()
+void RAS_OpenGLRasterizer::FlushDebugLines()
 {
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
+	if(!m_debugLines.size())
+		return;
 
-	//DrawDebugLines
+	// DrawDebugLines
+	GLboolean light, tex;
+
+	light= glIsEnabled(GL_LIGHTING);
+	tex= glIsEnabled(GL_TEXTURE_2D);
+
+	if(light) glDisable(GL_LIGHTING);
+	if(tex) glDisable(GL_TEXTURE_2D);
+
 	glBegin(GL_LINES);
 	for (unsigned int i=0;i<m_debugLines.size();i++)
 	{
-		
-
 		glColor4f(m_debugLines[i].m_color[0],m_debugLines[i].m_color[1],m_debugLines[i].m_color[2],1.f);
 		const MT_Scalar* fromPtr = &m_debugLines[i].m_from.x();
 		const MT_Scalar* toPtr= &m_debugLines[i].m_to.x();
@@ -346,7 +368,17 @@ void RAS_OpenGLRasterizer::EndFrame()
 	}
 	glEnd();
 
+	if(light) glEnable(GL_LIGHTING);
+	if(tex) glEnable(GL_TEXTURE_2D);
+
 	m_debugLines.clear();
+}
+
+void RAS_OpenGLRasterizer::EndFrame()
+{
+	
+
+	FlushDebugLines();
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	m_2DCanvas->EndFrame();
@@ -406,21 +438,23 @@ void RAS_OpenGLRasterizer::SetRenderArea()
 			break;
 	}
 }
-
 	
 void RAS_OpenGLRasterizer::SetStereoMode(const StereoMode stereomode)
 {
 	m_stereomode = stereomode;
 }
 
-
+RAS_IRasterizer::StereoMode RAS_OpenGLRasterizer::GetStereoMode()
+{
+	return m_stereomode;
+}
 
 bool RAS_OpenGLRasterizer::Stereo()
 {
-	if(m_stereomode == RAS_STEREO_NOSTEREO)
-		return false;
-	else
+	if(m_stereomode > RAS_STEREO_NOSTEREO) // > 0
 		return true;
+	else
+		return false;
 }
 
 bool RAS_OpenGLRasterizer::InterlacedStereo()
@@ -684,6 +718,51 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 	IndexPrimitivesInternal(ms, true);
 }
 
+static bool current_wireframe;
+static RAS_MaterialBucket *current_bucket;
+static RAS_IPolyMaterial *current_polymat;
+static RAS_MeshSlot *current_ms;
+static RAS_MeshObject *current_mesh;
+static int current_blmat_nr;
+static GPUVertexAttribs current_gpu_attribs;
+static int CheckMaterialDM(int matnr, void *attribs)
+{
+	// only draw the current material
+	if (matnr != current_blmat_nr)
+		return 0;
+	GPUVertexAttribs *gattribs = (GPUVertexAttribs *)attribs;
+	if (gattribs)
+		memcpy(gattribs, &current_gpu_attribs, sizeof(GPUVertexAttribs));
+	return 1;
+}
+static int CheckTexfaceDM(void *mcol, int index)
+{
+
+	// index is the original face index, retrieve the polygon
+	RAS_Polygon* polygon = (index >= 0 && index < current_mesh->NumPolygons()) ?
+		current_mesh->GetPolygon(index) : NULL;
+	if (polygon && polygon->GetMaterial() == current_bucket) {
+		// must handle color.
+		if (current_wireframe)
+			return 2;
+		if (current_ms->m_bObjectColor) {
+			MT_Vector4& rgba = current_ms->m_RGBAcolor;
+			glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
+			// don't use mcol
+			return 2;
+		}
+		if (!mcol) {
+			// we have to set the color from the material
+			unsigned char rgba[4];
+			current_polymat->GetMaterialRGBAColor(rgba);
+			glColor4ubv((const GLubyte *)rgba);
+			return 2;
+		}
+		return 1;
+	}
+	return 0;
+}
+
 void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 { 
 	bool obcolor = ms.m_bObjectColor;
@@ -691,6 +770,34 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 	MT_Vector4& rgba = ms.m_RGBAcolor;
 	RAS_MeshSlot::iterator it;
 
+	if (ms.m_pDerivedMesh) {
+		// mesh data is in derived mesh, 
+		current_bucket = ms.m_bucket;
+		current_polymat = current_bucket->GetPolyMaterial();
+		current_ms = &ms;
+		current_mesh = ms.m_mesh;
+		current_wireframe = wireframe;
+		MCol *mcol = (MCol*)ms.m_pDerivedMesh->getFaceDataArray(ms.m_pDerivedMesh, CD_MCOL);
+		if (current_polymat->GetFlag() & RAS_BLENDERGLSL) {
+			// GetMaterialIndex return the original mface material index, 
+			// increment by 1 to match what derived mesh is doing
+			current_blmat_nr = current_polymat->GetMaterialIndex()+1;
+			// For GLSL we need to retrieve the GPU material attribute
+			Material* blmat = current_polymat->GetBlenderMaterial();
+			Scene* blscene = current_polymat->GetBlenderScene();
+			if (!wireframe && blscene && blmat)
+				GPU_material_vertex_attributes(GPU_material_from_blender(blscene, blmat), &current_gpu_attribs);
+			else
+				memset(&current_gpu_attribs, 0, sizeof(current_gpu_attribs));
+			// DM draw can mess up blending mode, restore at the end
+			int current_blend_mode = GPU_get_material_blend_mode();
+			ms.m_pDerivedMesh->drawFacesGLSL(ms.m_pDerivedMesh, CheckMaterialDM);
+			GPU_set_material_blend_mode(current_blend_mode);
+		} else {
+			ms.m_pDerivedMesh->drawMappedFacesTex(ms.m_pDerivedMesh, CheckTexfaceDM, mcol);
+		}
+		return;
+	}
 	// iterate over display arrays, each containing an index + vertex array
 	for(ms.begin(it); !ms.end(it); ms.next(it)) {
 		RAS_TexVert *vertex;
@@ -754,8 +861,9 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 	glMatrixMode(GL_PROJECTION);
 	double* matrix = &mat(0,0);
 	glLoadMatrixd(matrix);
-}
 
+	m_camortho= (mat(3, 3) != 0.0f);
+}
 
 void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 {
@@ -765,6 +873,8 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	mat.getValue(matrix);
 	/* Internally, MT_Matrix4x4 uses doubles (MT_Scalar). */
 	glLoadMatrixd(matrix);	
+
+	m_camortho= (mat[3][3] != 0.0f);
 }
 
 MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
@@ -775,13 +885,13 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	float frustnear,
 	float frustfar,
 	float focallength,
-	bool
+	bool 
 ){
 	MT_Matrix4x4 result;
 	double mat[16];
 
 	// correction for stereo
-	if(m_stereomode != RAS_STEREO_NOSTEREO)
+	if(Stereo())
 	{
 			float near_div_focallength;
 			// next 2 params should be specified on command line and in Blender publisher
@@ -816,17 +926,40 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	return result;
 }
 
+MT_Matrix4x4 RAS_OpenGLRasterizer::GetOrthoMatrix(
+	float left,
+	float right,
+	float bottom,
+	float top,
+	float frustnear,
+	float frustfar
+){
+	MT_Matrix4x4 result;
+	double mat[16];
+
+	// stereo is meaning less for orthographic, disable it
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(left, right, bottom, top, frustnear, frustfar);
+		
+	glGetDoublev(GL_PROJECTION_MATRIX, mat);
+	result.setValue(mat);
+
+	return result;
+}
+
 
 // next arguments probably contain redundant info, for later...
-void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vector3& campos,
-		const MT_Point3 &, const MT_Quaternion &camOrientQuat)
+void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, 
+										 const MT_Matrix3x3 & camOrientMat3x3,
+										 const MT_Point3 & pos,
+										 bool perspective)
 {
 	m_viewmatrix = mat;
 
 	// correction for stereo
-	if(m_stereomode != RAS_STEREO_NOSTEREO)
+	if(Stereo() && perspective)
 	{
-		MT_Matrix3x3 camOrientMat3x3(camOrientQuat);
 		MT_Vector3 unitViewDir(0.0, -1.0, 0.0);  // minus y direction, Blender convention
 		MT_Vector3 unitViewupVec(0.0, 0.0, 1.0);
 		MT_Vector3 viewDir, viewupVec;
@@ -872,7 +1005,7 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vecto
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixd(glviewmat);
-	m_campos = campos;
+	m_campos = pos;
 }
 
 
@@ -881,6 +1014,10 @@ const MT_Point3& RAS_OpenGLRasterizer::GetCameraPosition()
 	return m_campos;
 }
 
+bool RAS_OpenGLRasterizer::GetCameraOrtho()
+{
+	return m_camortho;
+}
 
 void RAS_OpenGLRasterizer::SetCullFace(bool enable)
 {
@@ -964,6 +1101,8 @@ void RAS_OpenGLRasterizer::DisableMotionBlur()
 
 void RAS_OpenGLRasterizer::SetBlendingMode(int blendmode)
 {
+	GPU_set_material_blend_mode(blendmode);
+/*
 	if(blendmode == m_last_blendmode)
 		return;
 
@@ -990,6 +1129,7 @@ void RAS_OpenGLRasterizer::SetBlendingMode(int blendmode)
 	}
 
 	m_last_blendmode = blendmode;
+*/
 }
 
 void RAS_OpenGLRasterizer::SetFrontFace(bool ccw)

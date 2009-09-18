@@ -40,11 +40,12 @@
 // is a 32-bit integer, use all the bits of the pointer as long
 // as possible.
 //
-
+#if 1
 unsigned int GEN_Hash(void * inDWord)
 {
 	uintptr_t key = (uintptr_t)inDWord;
-
+#if 0
+	// this is way too complicated
 	key += ~(key << 16);
 	key ^=  (key >>  5);
 	key +=  (key <<  3);
@@ -53,4 +54,8 @@ unsigned int GEN_Hash(void * inDWord)
 	key ^=  (key >> 17);
 
   	return (unsigned int)(key & 0xffffffff);
+#else
+	return (unsigned int)(key ^ (key>>4));
+#endif
 }
+#endif

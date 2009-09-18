@@ -64,13 +64,20 @@ public:
 					struct Object *bmeshobj_new,
 					class BL_SkinMeshObject *mesh,
 					bool release_object,
+					bool recalc_normal,
 					BL_ArmatureObject* arma = NULL);
 
+	virtual RAS_Deformer *GetReplica();
 	virtual void ProcessReplica();
-	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica);
+
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);
+	bool UpdateBuckets(void) 
+	{
+		// update the deformer and all the mesh slots; Apply() does it well, so just call it.
+		return Apply(NULL);
+	}
 	bool PoseUpdated(void)
 		{ 
 			if (m_armobj && m_lastArmaUpdate!=m_armobj->GetLastFrame()) {
@@ -83,16 +90,27 @@ public:
 	{
 		m_lastArmaUpdate = -1.0;
 	};
+	virtual bool ShareVertexArray()
+	{
+		return false;
+	}
 
 protected:
 	BL_ArmatureObject*		m_armobj;	//	Our parent object
 	float					m_time;
 	double					m_lastArmaUpdate;
-	ListBase*				m_defbase;
+	//ListBase*				m_defbase;
 	float					m_obmat[4][4];	// the reference matrix for skeleton deform
 	bool					m_releaseobject;
 	bool					m_poseApplied;
+	bool					m_recalcNormal;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_SkinDeformer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

@@ -29,8 +29,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#define write _write
 #endif
 #include "imbuf.h"
 #include "imbuf_patch.h"
@@ -528,7 +532,7 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 
 	if (ibuf) {
 		if (ibuf->rect) 
-			if (G.order == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+			if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 	}
 	
 	return (ibuf);

@@ -207,7 +207,13 @@ void cullPoints2 (int n, btScalar p[], int m, int i0, int iret[])
       cy += q*(p[i*2+1]+p[i*2+3]);
     }
     q = p[n*2-2]*p[1] - p[0]*p[n*2-1];
-    a = 1.f/(btScalar(3.0)*(a+q));
+	if (btFabs(a+q) > SIMD_EPSILON)
+	{
+		a = 1.f/(btScalar(3.0)*(a+q));
+	} else
+	{
+		a=1e30f;
+	}
     cx = a*(cx + q*(p[n*2-2]+p[0]));
     cy = a*(cy + q*(p[n*2-1]+p[1]));
   }
@@ -226,9 +232,9 @@ void cullPoints2 (int n, btScalar p[], int m, int i0, int iret[])
     a = btScalar(j)*(2*M__PI/m) + A[i0];
     if (a > M__PI) a -= 2*M__PI;
     btScalar maxdiff=1e9,diff;
-#if defined(DEBUG) || defined (_DEBUG)
-    *iret = i0;			// iret is not allowed to keep this value
-#endif
+
+    *iret = i0;			// iret is not allowed to keep this value, but it sometimes does, when diff=#QNAN0
+
     for (i=0; i<n; i++) {
       if (avail[i]) {
 	diff = btFabs (A[i]-a);

@@ -40,6 +40,7 @@
 #include "KX_BlenderMaterial.h"
 #include "KX_RayCast.h"
 #include "KX_IPhysicsController.h"
+#include "KX_Light.h"
 
 #include "PHY_IPhysicsEnvironment.h"
 
@@ -52,11 +53,12 @@
 
 #include "GPC_RenderTools.h"
 
+
 unsigned int GPC_RenderTools::m_numgllights;
 
 GPC_RenderTools::GPC_RenderTools()
 {
-	m_font = BMF_GetFont(BMF_kHelvetica10);
+// XXX	m_font = BMF_GetFont(BMF_kHelvetica10);
 
 	glGetIntegerv(GL_MAX_LIGHTS, (GLint*) &m_numgllights);
 	if (m_numgllights < 8)
@@ -71,7 +73,8 @@ void GPC_RenderTools::BeginFrame(RAS_IRasterizer* rasty)
 {
 	m_clientobject = NULL;
 	m_lastlightlayer = -1;
-	m_lastlighting = false;
+	m_lastauxinfo = NULL;
+	m_lastlighting = true; /* force disable in DisableOpenGLLights() */
 	DisableOpenGLLights();
 }
 
@@ -85,33 +88,35 @@ void GPC_RenderTools::EndFrame(RAS_IRasterizer* rasty)
  * has a maximum of 8 lights (simultaneous), so 20 * 8 lights are possible in
  * a scene. */
 
-void GPC_RenderTools::ProcessLighting(int layer, const MT_Transform& viewmat)
+void GPC_RenderTools::ProcessLighting(RAS_IRasterizer *rasty, bool uselights, const MT_Transform& viewmat)
 {
-	if(m_lastlightlayer == layer)
+	bool enable = false;
+	int layer= -1;
+
+	/* find the layer */
+	if(uselights) {
+		if(m_clientobject)
+			layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
+	}
+
+	/* avoid state switching */
+	if(m_lastlightlayer == layer && m_lastauxinfo == m_auxilaryClientInfo)
 		return;
 
 	m_lastlightlayer = layer;
+	m_lastauxinfo = m_auxilaryClientInfo;
 
-	bool enable = false;
-
-	if (layer >= 0)
-	{
-		if (m_clientobject)
-		{
-			if (layer == RAS_LIGHT_OBJECT_LAYER)
-				layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
-
-			enable = applyLights(layer, viewmat);
-		}
-	}
+	/* enable/disable lights as needed */
+	if(layer >= 0)
+		enable = applyLights(layer, viewmat);
 
 	if(enable)
-		EnableOpenGLLights();
+		EnableOpenGLLights(rasty);
 	else
 		DisableOpenGLLights();
 }
 
-void GPC_RenderTools::EnableOpenGLLights()
+void GPC_RenderTools::EnableOpenGLLights(RAS_IRasterizer *rasty)
 {
 	if(m_lastlighting == true)
 		return;
@@ -120,7 +125,8 @@ void GPC_RenderTools::EnableOpenGLLights()
 	glEnable(GL_COLOR_MATERIAL);
 
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (rasty->GetCameraOrtho())? GL_FALSE: GL_TRUE);
 	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 	
@@ -279,10 +285,7 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 										 int height)
 {
 	STR_String tmpstr(text);
-	int lines;
 	char* s = tmpstr.Ptr();
-	char* p;
-	
 
 	// Save and change OpenGL settings
 	int texture2D;
@@ -305,27 +308,18 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-	
-	// Actual drawing
-	unsigned char colors[2][3] = {
-		{0x00, 0x00, 0x00},
-		{0xFF, 0xFF, 0xFF}
-	};
-	int numTimes = mode == RAS_TEXT_PADDED ? 2 : 1;
-	for (int i = 0; i < numTimes; i++) {
-		glColor3ub(colors[i][0], colors[i][1], colors[i][2]);
-		glRasterPos2i(xco, yco);
-		for (p = s, lines = 0; *p; p++) {
-			if (*p == '\n')
-			{
-				lines++;
-				glRasterPos2i(xco, yco-(lines*18));
-			}
-			BMF_DrawCharacter(m_font, *p);
-		}
-		xco += 1;
-		yco += 1;
+
+	// Actual drawing (draw black first if padded)
+	if (mode == RAS_IRenderTools::RAS_TEXT_PADDED)
+	{
+		glColor3ub(0, 0, 0);
+		glRasterPos2s(xco+1, height-yco-1);
+		// XXX BMF_DrawString(m_font, s);
 	}
+
+	glColor3ub(255, 255, 255);
+	glRasterPos2s(xco, height-yco);
+	// XXX BMF_DrawString(m_font, s);
 
 	// Restore view settings
 	glMatrixMode(GL_PROJECTION);
@@ -391,17 +385,13 @@ void GPC_RenderTools::PopMatrix()
 int GPC_RenderTools::applyLights(int objectlayer, const MT_Transform& viewmat)
 {
 	// taken from blender source, incompatibility between Blender Object / GameObject	
+	KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
 	float glviewmat[16];
 	unsigned int count;
-	float vec[4];
+	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
 
-	vec[3]= 1.0;
-	
 	for(count=0; count<m_numgllights; count++)
 		glDisable((GLenum)(GL_LIGHT0+count));
-	
-	//std::vector<struct	RAS_LightObject*> m_lights;
-	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
 
 	viewmat.getValue(glviewmat);
 	
@@ -410,76 +400,14 @@ int GPC_RenderTools::applyLights(int objectlayer, const MT_Transform& viewmat)
 	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
 	{
 		RAS_LightObject* lightdata = (*lit);
-		if (lightdata->m_layer & objectlayer)
-		{
-			vec[0] = (*(lightdata->m_worldmatrix))(0,3);
-			vec[1] = (*(lightdata->m_worldmatrix))(1,3);
-			vec[2] = (*(lightdata->m_worldmatrix))(2,3);
-			vec[3] = 1;
+		KX_LightObject *kxlight = (KX_LightObject*)lightdata->m_light;
 
-			if(lightdata->m_type==RAS_LightObject::LIGHT_SUN) {
-				
-				vec[0] = (*(lightdata->m_worldmatrix))(0,2);
-				vec[1] = (*(lightdata->m_worldmatrix))(1,2);
-				vec[2] = (*(lightdata->m_worldmatrix))(2,2);
-				//vec[0]= base->object->obmat[2][0];
-				//vec[1]= base->object->obmat[2][1];
-				//vec[2]= base->object->obmat[2][2];
-				vec[3]= 0.0;
-				glLightfv((GLenum)(GL_LIGHT0+count), GL_POSITION, vec); 
-			}
-			else {
-				//vec[3]= 1.0;
-				glLightfv((GLenum)(GL_LIGHT0+count), GL_POSITION, vec); 
-				glLightf((GLenum)(GL_LIGHT0+count), GL_CONSTANT_ATTENUATION, 1.0);
-				glLightf((GLenum)(GL_LIGHT0+count), GL_LINEAR_ATTENUATION, lightdata->m_att1/lightdata->m_distance);
-				// without this next line it looks backward compatible.
-				//attennuation still is acceptable 
-				glLightf((GLenum)(GL_LIGHT0+count), GL_QUADRATIC_ATTENUATION, lightdata->m_att2/(lightdata->m_distance*lightdata->m_distance)); 
-				
-				if(lightdata->m_type==RAS_LightObject::LIGHT_SPOT) {
-					vec[0] = -(*(lightdata->m_worldmatrix))(0,2);
-					vec[1] = -(*(lightdata->m_worldmatrix))(1,2);
-					vec[2] = -(*(lightdata->m_worldmatrix))(2,2);
-					//vec[0]= -base->object->obmat[2][0];
-					//vec[1]= -base->object->obmat[2][1];
-					//vec[2]= -base->object->obmat[2][2];
-					glLightfv((GLenum)(GL_LIGHT0+count), GL_SPOT_DIRECTION, vec);
-					glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_CUTOFF, lightdata->m_spotsize/2.0);
-					glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_EXPONENT, 128.0*lightdata->m_spotblend);
-				}
-				else glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_CUTOFF, 180.0);
-			}
-			
-			if (lightdata->m_nodiffuse)
-			{
-				vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
-			} else {
-				vec[0]= lightdata->m_energy*lightdata->m_red;
-				vec[1]= lightdata->m_energy*lightdata->m_green;
-				vec[2]= lightdata->m_energy*lightdata->m_blue;
-				vec[3]= 1.0;
-			}
-			glLightfv((GLenum)(GL_LIGHT0+count), GL_DIFFUSE, vec);
-			if (lightdata->m_nospecular)
-			{
-				vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
-			} else if (lightdata->m_nodiffuse) {
-				vec[0]= lightdata->m_energy*lightdata->m_red;
-				vec[1]= lightdata->m_energy*lightdata->m_green;
-				vec[2]= lightdata->m_energy*lightdata->m_blue;
-				vec[3]= 1.0;
-			}
-			glLightfv((GLenum)(GL_LIGHT0+count), GL_SPECULAR, vec);
-			glEnable((GLenum)(GL_LIGHT0+count));
-
+		if(kxlight->ApplyLight(kxscene, objectlayer, count))
 			count++;
-		}
 	}
 	glPopMatrix();
 
 	return count;
-
 }
 
 void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)

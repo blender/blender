@@ -41,10 +41,14 @@
 #include "IntValue.h"
 #include "RAS_CameraData.h"
 
+/* utility conversion function */
+bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
+
 class KX_Camera : public KX_GameObject
 {
 	Py_Header;
 protected:
+	friend class KX_Scene;
 	/** Camera parameters (clips distances, focal lenght). These
 	 * params are closely tied to Blender. In the gameengine, only the
 	 * projection and modelview matrices are relevant. There's a
@@ -67,6 +71,7 @@ protected:
 	 * Storage for the projection matrix that is passed to the
 	 * rasterizer. */
 	MT_Matrix4x4 m_projection_matrix;
+	//MT_Matrix4x4 m_projection_matrix1;
 
 	/**
 	 * Storage for the modelview matrix that is passed to the
@@ -108,9 +113,9 @@ protected:
 	bool         m_set_frustum_center;
 
 	/**
-	 * Python module doc string.
+	 * whether the camera should delete the node itself (only for shadow camera)
 	 */
-	static char doc[];
+	bool		 m_delete_node;
 
 	/**
 	 * Extracts the camera clip frames from the projection and world-to-camera matrices.
@@ -124,11 +129,21 @@ protected:
 	 * Extracts the bound sphere of the view frustum.
 	 */
 	void ExtractFrustumSphere();
+	/**
+	 * return the clip plane
+	 */
+	MT_Vector4 *GetNormalizedClipPlanes()
+	{
+		ExtractClipPlanes();
+		NormalizeClipPlanes();
+		return m_planes;
+	}
+
 public:
 
-	typedef enum { INSIDE, INTERSECT, OUTSIDE } ;
+	enum { INSIDE, INTERSECT, OUTSIDE } ;
 
-	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, PyTypeObject *T = &Type);
+	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, bool delete_node = false);
 	virtual ~KX_Camera();
 	
 	/** 
@@ -139,15 +154,7 @@ public:
 	virtual	CValue*				
 	GetReplica(
 	);
-	
-	/**
-	 * Inherited from CValue -- Makes sure any internal 
-	 * data owned by this class is deep copied. Called internally
-	 */
-	virtual	void				
-	ProcessReplica(
-		KX_Camera* replica
-	);
+	virtual void ProcessReplica();
 
 	MT_Transform		GetWorldToCamera() const;
 	MT_Transform		GetCameraToWorld() const;
@@ -186,6 +193,8 @@ public:
 
 	/** Gets the aperture. */
 	float				GetLens() const;
+	/** Gets the ortho scale. */
+	float				GetScale() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */
@@ -256,23 +265,45 @@ public:
 	 */
 	int GetViewportTop() const;
 
+	virtual int GetGameObjectType() { return OBJ_CAMERA; }
 
-	KX_PYMETHOD_DOC(KX_Camera, sphereInsideFrustum);
-	KX_PYMETHOD_DOC(KX_Camera, boxInsideFrustum);
-	KX_PYMETHOD_DOC(KX_Camera, pointInsideFrustum);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, sphereInsideFrustum);
+	KX_PYMETHOD_DOC_O(KX_Camera, boxInsideFrustum);
+	KX_PYMETHOD_DOC_O(KX_Camera, pointInsideFrustum);
 	
-	KX_PYMETHOD_DOC(KX_Camera, getCameraToWorld);
-	KX_PYMETHOD_DOC(KX_Camera, getWorldToCamera);
-	KX_PYMETHOD_DOC(KX_Camera, getProjectionMatrix);
-	KX_PYMETHOD_DOC(KX_Camera, setProjectionMatrix);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getCameraToWorld);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getWorldToCamera);
 	
-	KX_PYMETHOD_DOC(KX_Camera, enableViewport);
-	KX_PYMETHOD_DOC(KX_Camera, setViewport);	
-	KX_PYMETHOD_DOC(KX_Camera, setOnTop);	
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
 
-	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
-	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+	KX_PYMETHOD_DOC_O(KX_Camera, getScreenPosition);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenVect);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenRay);
+	
+	static PyObject*	pyattr_get_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
+	static PyObject*	pyattr_get_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	
+	static PyObject*	pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	
+	static PyObject*	pyattr_get_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	
+	static PyObject*	pyattr_get_modelview_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_camera_to_world(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_world_to_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	static PyObject*	pyattr_get_INSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 };
 
 #endif //__KX_CAMERA

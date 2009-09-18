@@ -100,17 +100,17 @@ public:
 		KX_ACT_IPO_MAX
 	};
 
-	static STR_String S_KX_ACT_IPO_PLAY_STRING;
-	static STR_String S_KX_ACT_IPO_PINGPONG_STRING;
-	static STR_String S_KX_ACT_IPO_FLIPPER_STRING;
-	static STR_String S_KX_ACT_IPO_LOOPSTOP_STRING;
-	static STR_String S_KX_ACT_IPO_LOOPEND_STRING;
-	static STR_String S_KX_ACT_IPO_KEY2KEY_STRING;
-	static STR_String S_KX_ACT_IPO_FROM_PROP_STRING;
+	static const char *S_KX_ACT_IPO_PLAY_STRING;
+	static const char *S_KX_ACT_IPO_PINGPONG_STRING;
+	static const char *S_KX_ACT_IPO_FLIPPER_STRING;
+	static const char *S_KX_ACT_IPO_LOOPSTOP_STRING;
+	static const char *S_KX_ACT_IPO_LOOPEND_STRING;
+	static const char *S_KX_ACT_IPO_KEY2KEY_STRING;
+	static const char *S_KX_ACT_IPO_FROM_PROP_STRING;
 
-	IpoActType string2mode(char* modename);
+	int string2mode(char* modename);
 	
-	IpoActType	m_type;
+	int m_type;
 
 	KX_IpoActuator(SCA_IObject* gameobj,
 				   const STR_String& propname,
@@ -121,15 +121,12 @@ public:
 				   int acttype,
 				   bool ipo_as_force, 
 				   bool ipo_add,
-				   bool ipo_local,
-				   PyTypeObject* T=&Type);
+				   bool ipo_local);
 	virtual ~KX_IpoActuator() {};
 
 	virtual CValue* GetReplica() {
 		KX_IpoActuator* replica = new KX_IpoActuator(*this);//m_float,GetName());
 		replica->ProcessReplica();
-		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
 		return replica;
 	};
 
@@ -140,24 +137,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* _getattr(const STR_String& attr);
-	//KX_PYMETHOD_DOC
-	KX_PYMETHOD_DOC(KX_IpoActuator,Set);
-	KX_PYMETHOD_DOC(KX_IpoActuator,SetProperty);
-/*  	KX_PYMETHOD_DOC(KX_IpoActuator,SetKey2Key); */
-	KX_PYMETHOD_DOC(KX_IpoActuator,SetStart);
-	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetStart);
-	KX_PYMETHOD_DOC(KX_IpoActuator,SetEnd);
-	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetEnd);
-	KX_PYMETHOD_DOC(KX_IpoActuator,SetIpoAsForce);
-	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetIpoAsForce);
-	KX_PYMETHOD_DOC(KX_IpoActuator,SetIpoAdd);
-	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetIpoAdd);
-	KX_PYMETHOD_DOC(KX_IpoActuator,SetType);
-	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetType);
-	KX_PYMETHOD_DOC(KX_IpoActuator,SetForceIpoActsLocal);
-	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetForceIpoActsLocal);
 	
 };
 

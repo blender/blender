@@ -1,6 +1,6 @@
 /**
  *	
- * $Id: BKE_bullet.h 16773 2008-09-27 22:01:26Z ben2610 $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

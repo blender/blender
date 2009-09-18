@@ -277,12 +277,17 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 	for bvh_node in bvh_nodes.itervalues():
 		
 		if not bvh_node.rest_tail_world:
-			if len(bvh_node.children)==1:
+			if len(bvh_node.children)==0:
+				# could just fail here, but rare BVH files have childless nodes
+				bvh_node.rest_tail_world = Vector(bvh_node.rest_head_world)
+				bvh_node.rest_tail_local = Vector(bvh_node.rest_head_local)
+			elif len(bvh_node.children)==1:
 				bvh_node.rest_tail_world= Vector(bvh_node.children[0].rest_head_world)
 				bvh_node.rest_tail_local= Vector(bvh_node.children[0].rest_head_local)
 			else:
-				if not bvh_node.children:
-					raise 'error, bvh node has no end and no children. bad file'
+				# allow this, see above
+				#if not bvh_node.children:
+				#	raise 'error, bvh node has no end and no children. bad file'
 					
 				# Removed temp for now
 				rest_tail_world= Vector(0,0,0)

@@ -23,139 +23,139 @@ subject to the following restrictions:
 // Modified Paul Hsieh hash
 template <const int DWORDLEN>
 unsigned int HsiehHash(const void* pdata)
-	{
+{
 	const unsigned short*	data=(const unsigned short*)pdata;
 	unsigned				hash=DWORDLEN<<2,tmp;
 	for(int i=0;i<DWORDLEN;++i)
-		{
+	{
 		hash	+=	data[0];
 		tmp		=	(data[1]<<11)^hash;
 		hash	=	(hash<<16)^tmp;
 		data	+=	2;
 		hash	+=	hash>>11;
-		}
+	}
 	hash^=hash<<3;hash+=hash>>5;
 	hash^=hash<<4;hash+=hash>>17;
 	hash^=hash<<25;hash+=hash>>6;
 	return(hash);
-	}
+}
 
 template <const int CELLSIZE>
 struct	btSparseSdf
-	{
+{
 	//
 	// Inner types
 	//
 	struct IntFrac
-		{
+	{
 		int					b;
 		int					i;
 		btScalar			f;
-		};
+	};
 	struct	Cell
-		{
+	{
 		btScalar			d[CELLSIZE+1][CELLSIZE+1][CELLSIZE+1];
 		int					c[3];
 		int					puid;
 		unsigned			hash;
 		btCollisionShape*	pclient;
 		Cell*				next;
-		};
+	};
 	//
 	// Fields
 	//
-	
+
 	btAlignedObjectArray<Cell*>		cells;	
 	btScalar						voxelsz;
 	int								puid;
 	int								ncells;
 	int								nprobes;
 	int								nqueries;	
-	
+
 	//
 	// Methods
 	//
-	
+
 	//
 	void					Initialize(int hashsize=2383)
-		{
+	{
 		cells.resize(hashsize,0);
 		Reset();		
-		}
+	}
 	//
 	void					Reset()
-		{
+	{
 		for(int i=0,ni=cells.size();i<ni;++i)
-			{
+		{
 			Cell*	pc=cells[i];
 			cells[i]=0;
 			while(pc)
-				{
+			{
 				Cell*	pn=pc->next;
 				delete pc;
 				pc=pn;
-				}
 			}
+		}
 		voxelsz		=0.25;
 		puid		=0;
 		ncells		=0;
 		nprobes		=1;
 		nqueries	=1;
-		}
+	}
 	//
 	void					GarbageCollect(int lifetime=256)
-		{
+	{
 		const int life=puid-lifetime;
 		for(int i=0;i<cells.size();++i)
-			{
+		{
 			Cell*&	root=cells[i];
 			Cell*	pp=0;
 			Cell*	pc=root;
 			while(pc)
-				{
+			{
 				Cell*	pn=pc->next;
 				if(pc->puid<life)
-					{
+				{
 					if(pp) pp->next=pn; else root=pn;
 					delete pc;pc=pp;--ncells;
-					}
-				pp=pc;pc=pn;
 				}
+				pp=pc;pc=pn;
 			}
+		}
 		//printf("GC[%d]: %d cells, PpQ: %f\r\n",puid,ncells,nprobes/(btScalar)nqueries);
 		nqueries=1;
 		nprobes=1;
-		++puid;	/* TODO: Reset puid's when int range limit is reached	*/ 
-				/* else setup a priority list...						*/ 
-		}
+		++puid;	///@todo: Reset puid's when int range limit is reached	*/ 
+		/* else setup a priority list...						*/ 
+	}
 	//
 	int						RemoveReferences(btCollisionShape* pcs)
-		{
+	{
 		int	refcount=0;
 		for(int i=0;i<cells.size();++i)
-			{
+		{
 			Cell*&	root=cells[i];
 			Cell*	pp=0;
 			Cell*	pc=root;
 			while(pc)
-				{
+			{
 				Cell*	pn=pc->next;
 				if(pc->pclient==pcs)
-					{
+				{
 					if(pp) pp->next=pn; else root=pn;
 					delete pc;pc=pp;++refcount;
-					}
-				pp=pc;pc=pn;
 				}
+				pp=pc;pc=pn;
 			}
-		return(refcount);
 		}
+		return(refcount);
+	}
 	//
 	btScalar				Evaluate(	const btVector3& x,
-										btCollisionShape* shape,
-										btVector3& normal,
-										btScalar margin)
-		{
+		btCollisionShape* shape,
+		btVector3& normal,
+		btScalar margin)
+	{
 		/* Lookup cell			*/ 
 		const btVector3	scx=x/voxelsz;
 		const IntFrac	ix=Decompose(scx.x());
@@ -166,19 +166,19 @@ struct	btSparseSdf
 		Cell*			c=root;
 		++nqueries;
 		while(c)
-			{
+		{
 			++nprobes;
 			if(	(c->hash==h)	&&
 				(c->c[0]==ix.b)	&&
 				(c->c[1]==iy.b)	&&
 				(c->c[2]==iz.b)	&&
 				(c->pclient==shape))
-				{ break; }
-				else
-				{ c=c->next; }
-			}
+			{ break; }
+			else
+			{ c=c->next; }
+		}
 		if(!c)
-			{
+		{
 			++nprobes;		
 			++ncells;
 			c=new Cell();
@@ -187,82 +187,82 @@ struct	btSparseSdf
 			c->hash=h;
 			c->c[0]=ix.b;c->c[1]=iy.b;c->c[2]=iz.b;
 			BuildCell(*c);
-			}
+		}
 		c->puid=puid;
 		/* Extract infos		*/ 
 		const int		o[]={	ix.i,iy.i,iz.i};
 		const btScalar	d[]={	c->d[o[0]+0][o[1]+0][o[2]+0],
-								c->d[o[0]+1][o[1]+0][o[2]+0],
-								c->d[o[0]+1][o[1]+1][o[2]+0],
-								c->d[o[0]+0][o[1]+1][o[2]+0],
-								c->d[o[0]+0][o[1]+0][o[2]+1],
-								c->d[o[0]+1][o[1]+0][o[2]+1],
-								c->d[o[0]+1][o[1]+1][o[2]+1],
-								c->d[o[0]+0][o[1]+1][o[2]+1]};
+			c->d[o[0]+1][o[1]+0][o[2]+0],
+			c->d[o[0]+1][o[1]+1][o[2]+0],
+			c->d[o[0]+0][o[1]+1][o[2]+0],
+			c->d[o[0]+0][o[1]+0][o[2]+1],
+			c->d[o[0]+1][o[1]+0][o[2]+1],
+			c->d[o[0]+1][o[1]+1][o[2]+1],
+			c->d[o[0]+0][o[1]+1][o[2]+1]};
 		/* Normal	*/ 
-		#if 1
+#if 1
 		const btScalar	gx[]={	d[1]-d[0],d[2]-d[3],
-								d[5]-d[4],d[6]-d[7]};
+			d[5]-d[4],d[6]-d[7]};
 		const btScalar	gy[]={	d[3]-d[0],d[2]-d[1],
-								d[7]-d[4],d[6]-d[5]};
+			d[7]-d[4],d[6]-d[5]};
 		const btScalar	gz[]={	d[4]-d[0],d[5]-d[1],
-								d[7]-d[3],d[6]-d[2]};
+			d[7]-d[3],d[6]-d[2]};
 		normal.setX(Lerp(	Lerp(gx[0],gx[1],iy.f),
-							Lerp(gx[2],gx[3],iy.f),iz.f));
+			Lerp(gx[2],gx[3],iy.f),iz.f));
 		normal.setY(Lerp(	Lerp(gy[0],gy[1],ix.f),
-							Lerp(gy[2],gy[3],ix.f),iz.f));
+			Lerp(gy[2],gy[3],ix.f),iz.f));
 		normal.setZ(Lerp(	Lerp(gz[0],gz[1],ix.f),
-							Lerp(gz[2],gz[3],ix.f),iy.f));
+			Lerp(gz[2],gz[3],ix.f),iy.f));
 		normal		=	normal.normalized();
-		#else
+#else
 		normal		=	btVector3(d[1]-d[0],d[3]-d[0],d[4]-d[0]).normalized();
-		#endif
+#endif
 		/* Distance	*/ 
 		const btScalar	d0=Lerp(Lerp(d[0],d[1],ix.f),
-								Lerp(d[3],d[2],ix.f),iy.f);
+			Lerp(d[3],d[2],ix.f),iy.f);
 		const btScalar	d1=Lerp(Lerp(d[4],d[5],ix.f),
-								Lerp(d[7],d[6],ix.f),iy.f);
+			Lerp(d[7],d[6],ix.f),iy.f);
 		return(Lerp(d0,d1,iz.f)-margin);
-		}
+	}
 	//
 	void					BuildCell(Cell& c)
-		{
+	{
 		const btVector3	org=btVector3(	(btScalar)c.c[0],
-										(btScalar)c.c[1],
-										(btScalar)c.c[2])	*
-										CELLSIZE*voxelsz;
+			(btScalar)c.c[1],
+			(btScalar)c.c[2])	*
+			CELLSIZE*voxelsz;
 		for(int k=0;k<=CELLSIZE;++k)
-			{
+		{
 			const btScalar	z=voxelsz*k+org.z();
 			for(int j=0;j<=CELLSIZE;++j)
-				{
+			{
 				const btScalar	y=voxelsz*j+org.y();
 				for(int i=0;i<=CELLSIZE;++i)
-					{
+				{
 					const btScalar	x=voxelsz*i+org.x();
 					c.d[i][j][k]=DistanceToShape(	btVector3(x,y,z),
-													c.pclient);
-					}
+						c.pclient);
 				}
 			}
 		}
+	}
 	//
 	static inline btScalar	DistanceToShape(const btVector3& x,
-											btCollisionShape* shape)
-		{
+		btCollisionShape* shape)
+	{
 		btTransform	unit;
 		unit.setIdentity();
 		if(shape->isConvex())
-			{
+		{
 			btGjkEpaSolver2::sResults	res;
 			btConvexShape*				csh=static_cast<btConvexShape*>(shape);
 			return(btGjkEpaSolver2::SignedDistance(x,0,csh,unit,res));
-			}
-		return(0);
 		}
+		return(0);
+	}
 	//
 	static inline IntFrac	Decompose(btScalar x)
-		{
+	{
 		/* That one need a lot of improvements...	*/
 		/* Remove test, faster floor...				*/ 
 		IntFrac			r;
@@ -272,18 +272,18 @@ struct	btSparseSdf
 		const btScalar	k=(x-r.b)*CELLSIZE;
 		r.i=(int)k;r.f=k-r.i;r.b-=o;
 		return(r);
-		}
+	}
 	//
 	static inline btScalar	Lerp(btScalar a,btScalar b,btScalar t)
-		{
+	{
 		return(a+(b-a)*t);
-		}
+	}
 
-	
+
 
 	//
 	static inline unsigned int	Hash(int x,int y,int z,btCollisionShape* shape)
-		{
+	{
 		struct btS
 		{ 
 			int x,y,z;
@@ -291,16 +291,16 @@ struct	btSparseSdf
 		};
 
 		btS myset;
-		
+
 		myset.x=x;myset.y=y;myset.z=z;myset.p=shape;
 		const void* ptr = &myset;
 
 		unsigned int result = HsiehHash<sizeof(btS)/4> (ptr);
-		
+
 
 		return result;
-		}
+	}
 };
-	
+
 
 #endif

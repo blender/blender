@@ -37,12 +37,18 @@ struct ListBase;
 struct ID;
 struct Main;
 struct Library;
+struct wmWindowManager;
+struct bContext;
 
 void *alloc_libblock(struct ListBase *lb, short type, const char *name);
 void *copy_libblock(void *rt);
 
 void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);
+void id_us_min(struct ID *id);
+int id_make_local(struct ID *id, int test);
+int id_copy(struct ID *id, struct ID **newid, int test);
+int id_unlink(struct ID *id, int test);
 
 int check_for_dupid(struct ListBase *lb, struct ID *id, char *name);
 int new_id(struct ListBase *lb, struct ID *id, const char *name);
@@ -55,10 +61,12 @@ int set_listbasepointers(struct Main *main, struct ListBase **lb);
 void free_libblock(struct ListBase *lb, void *idv);
 void free_libblock_us(struct ListBase *lb, void *idv);
 void free_main(struct Main *mainvar);
+void tag_main(struct Main *mainvar, int tag);
 
 void splitIDname(char *name, char *left, int *nr);
 void rename_id(struct ID *id, char *name);
 void test_idbutton(char *name);
+void text_idbutton(struct ID *id, char *text);
 void all_local(struct Library *lib, int untagged_only);
 struct ID *find_id(char *type, char *name);
 void clear_id_newpoins(void);
@@ -69,6 +77,9 @@ void IPOnames_to_pupstring(char **str, char *title, char *extraops, struct ListB
 
 void flag_listbase_ids(ListBase *lb, short flag, short value);
 void flag_all_listbases_ids(short flag, short value);
+void recalc_all_library_objects(struct Main *main);
+
+void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
 
 #endif
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# -*- mode: python; tab-width: 4; indent-tabs-mode: t; -*-
+# vim: tabstop=4
+# $Id#
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -18,9 +21,9 @@
 # The Original Code is Copyright (C) 2008 by the Blender Foundation
 # All rights reserved.
 #
-# The Original Code is: all of this file.
+# The Original Code is: see repository.
 #
-# Contributor(s): none yet.
+# Contributor(s): see repository.
 #
 import sys, os, re
 
@@ -49,7 +52,11 @@ for line in infile.readlines():
 
 infile.close()
 
+# Major was changed to float, but minor is still a string
 if minor and major:
-	print str(major)+"."+minor
+	if minor == "0":
+		print "%.2f" % major
+	else:
+		print "%.2f.%s" % (major, minor)
 else:
 	print "unknownversion"

@@ -1,5 +1,5 @@
 /**
- * $Id: CMP_normalize.c,v 1.0 2007/03/24 06:57:29 scourage Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -55,6 +55,7 @@ static void do_normalize(bNode *node, float *out, float *src, float *min, float 
 	}
 }
 
+/* The code below assumes all data is inside range +- this, and that input buffer is single channel */
 #define BLENDER_ZMAX 10000.0f
 
 static void node_composit_exec_normalize(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -63,7 +64,7 @@ static void node_composit_exec_normalize(void *data, bNode *node, bNodeStack **i
 	/* stack order out: valbuf */
 	if(out[0]->hasoutput==0) return;
 
-	/* input no image? then only value operation */
+	/* Input has no image buffer? Then pass the value */
 	if(in[0]->data==NULL) {
 		QUATCOPY(out[0]->vec, in[0]->vec);
 	}
@@ -78,18 +79,20 @@ static void node_composit_exec_normalize(void *data, bNode *node, bNodeStack **i
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
 
 		for (val = cbuf->rect; tot; tot--, val++) {
-			if ((*val > max) && (*val < BLENDER_ZMAX)) {
+			if ((*val > max) && (*val <= BLENDER_ZMAX)) {
 				max = *val;
 			}
-			if (*val < min) {
+			if ((*val < min) && (*val >= -BLENDER_ZMAX)) {
 				min = *val;
 			}
 		}
-		mult = 1.0f/(max-min);
-
-		printf("min %f max %f\n", min, max);
-
-		composit3_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, NULL, &min, NULL, &mult, do_normalize, CB_VAL, CB_VAL, CB_VAL);
+		/* In the rare case of flat buffer, which would cause a divide by 0, just pass the input to the output */
+		if ((max-min) != 0.0f) {
+			mult = 1.0f/(max-min);
+			composit3_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, NULL, &min, NULL, &mult, do_normalize, CB_VAL, CB_VAL, CB_VAL);
+		} else {
+			memcpy(stackbuf->rect, cbuf->rect, sizeof(float) * cbuf->x * cbuf->y);
+		}
 
 		out[0]->data= stackbuf;
 	}

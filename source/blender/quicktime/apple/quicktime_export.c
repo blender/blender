@@ -37,7 +37,6 @@
 #include "BKE_scene.h"
 
 #include "BLI_blenlib.h"
-#include "BIF_toolbox.h"	/* error() */
 
 #include "BLO_sys_types.h"
 
@@ -77,7 +76,7 @@ static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int 
 static void QT_EndAddVideoSamplesToMedia (void);
 static void QT_CreateMyVideoTrack (int rectx, int recty);
 static void QT_EndCreateMyVideoTrack (void);
-static void check_renderbutton_framerate(void);
+static void check_renderbutton_framerate(struct RenderData *rd);
 
 typedef struct QuicktimeExport {
 
@@ -121,7 +120,7 @@ static void CheckError(OSErr err, char *msg)
 }
 
 
-static OSErr QT_SaveCodecSettingsToScene(void)
+static OSErr QT_SaveCodecSettingsToScene(RenderData *rd)
 {	
 	QTAtomContainer		myContainer = NULL;
 	ComponentResult		myErr = noErr;
@@ -131,13 +130,13 @@ static OSErr QT_SaveCodecSettingsToScene(void)
 	CodecInfo			ci;
 	char str[255];
 
-	QuicktimeCodecData *qcd = G.scene->r.qtcodecdata;
+	QuicktimeCodecData *qcd = rd->qtcodecdata;
 
 	// check if current scene already has qtcodec settings, and clear them
 	if (qcd) {
 		free_qtcodecdata(qcd);
 	} else {
-		qcd = G.scene->r.qtcodecdata = MEM_callocN(sizeof(QuicktimeCodecData), "QuicktimeCodecData");
+		qcd = rd->qtcodecdata = MEM_callocN(sizeof(QuicktimeCodecData), "QuicktimeCodecData");
 	}
 
 	// obtain all current codec settings
@@ -182,14 +181,14 @@ bail:
 }
 
 
-static OSErr QT_GetCodecSettingsFromScene(void)
+static OSErr QT_GetCodecSettingsFromScene(RenderData *rd)
 {	
 	Handle				myHandle = NULL;
 	ComponentResult		myErr = noErr;
 //	CodecInfo ci;
 //	char str[255];
 
-	QuicktimeCodecData *qcd = G.scene->r.qtcodecdata;
+	QuicktimeCodecData *qcd = rd->qtcodecdata;
 
 	// if there is codecdata in the blendfile, convert it to a Quicktime handle 
 	if (qcd) {
@@ -422,18 +421,18 @@ static void QT_EndAddVideoSamplesToMedia (void)
 } 
 
 
-void makeqtstring (char *string) {
+void makeqtstring (RenderData *rd, char *string) {
 	char txt[64];
 
 	if (string==0) return;
 
-	strcpy(string, G.scene->r.pic);
+	strcpy(string, rd->pic);
 	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + strlen(string) - 4, ".mov")) {
-		sprintf(txt, "%04d_%04d.mov", (G.scene->r.sfra) , (G.scene->r.efra) );
+		sprintf(txt, "%04d_%04d.mov", (rd->sfra) , (rd->efra) );
 		strcat(string, txt);
 	}
 }
@@ -462,18 +461,18 @@ void start_qt(struct RenderData *rd, int rectx, int recty) {
 	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeCodecDataExt");
 
 	if(rd->qtcodecdata == NULL && rd->qtcodecdata->cdParms == NULL) {
-		get_qtcodec_settings();
+		get_qtcodec_settings(rd);
 	} else {
 		qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
 
-		QT_GetCodecSettingsFromScene();
-		check_renderbutton_framerate();
+		QT_GetCodecSettingsFromScene(rd);
+		check_renderbutton_framerate(rd);
 	}
 	
 	if (G.afbreek != 1) {
 		sframe = (rd->sfra);
 
-		makeqtstring(name);
+		makeqtstring(rd, name);
 
 #ifdef __APPLE__
 		sprintf(theFullPath, "%s", name);
@@ -510,7 +509,7 @@ void start_qt(struct RenderData *rd, int rectx, int recty) {
 
 		if(err != noErr) {
 			G.afbreek = 1;
-			error("Unable to create Quicktime movie: %s", name);
+// XXX			error("Unable to create Quicktime movie: %s", name);
 		} else {
 			printf("Created QuickTime movie: %s\n", name);
 
@@ -520,7 +519,7 @@ void start_qt(struct RenderData *rd, int rectx, int recty) {
 }
 
 
-void append_qt(int frame, int *pixels, int rectx, int recty) {
+void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty) {
 	QT_DoAddVideoSamplesToMedia(frame, pixels, rectx, recty);
 }
 
@@ -564,19 +563,20 @@ void free_qtcomponentdata(void) {
 }
 
 
-static void check_renderbutton_framerate(void) {
+static void check_renderbutton_framerate(RenderData *rd) 
+{
 	// to keep float framerates consistent between the codec dialog and frs/sec button.
 	OSErr	err;	
 
 	err = SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 	CheckError(err, "SCGetInfo fr error");
 
-	if( (G.scene->r.frs_sec == 24 || G.scene->r.frs_sec == 30 || G.scene->r.frs_sec == 60) &&
+	if( (rd->frs_sec == 24 || rd->frs_sec == 30 || rd->frs_sec == 60) &&
 		(qtdata->gTemporalSettings.frameRate == 1571553 ||
 		 qtdata->gTemporalSettings.frameRate == 1964113 ||
 		 qtdata->gTemporalSettings.frameRate == 3928227)) {;} else
 	qtdata->gTemporalSettings.frameRate = 
-		(G.scene->r.frs_sec << 16) / G.scene->r.frs_sec_base ;
+		(rd->frs_sec << 16) / rd->frs_sec_base ;
 
 	err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 	CheckError( err, "SCSetInfo error" );
@@ -597,7 +597,7 @@ static void check_renderbutton_framerate(void) {
 }
 
 
-int get_qtcodec_settings(void) 
+int get_qtcodec_settings(RenderData *rd) 
 {
 	OSErr	err = noErr;
 
@@ -612,9 +612,9 @@ int get_qtcodec_settings(void)
 	qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
 
 	// get previous selected codecsetting, if any 
-	if(G.scene->r.qtcodecdata && G.scene->r.qtcodecdata->cdParms) {
-		QT_GetCodecSettingsFromScene();
-		check_renderbutton_framerate();
+	if(rd->qtcodecdata && rd->qtcodecdata->cdParms) {
+		QT_GetCodecSettingsFromScene(rd);
+		check_renderbutton_framerate(rd);
 	} else {
 		// configure the standard image compression dialog box
 		// set some default settings
@@ -632,7 +632,7 @@ int get_qtcodec_settings(void)
 		CheckError(err, "SCSetInfo3 error");
 	}
 
-	check_renderbutton_framerate();
+	check_renderbutton_framerate(rd);
 
 	// put up the dialog box
 	err = SCRequestSequenceSettings(qtdata->theComponent);
@@ -647,27 +647,27 @@ int get_qtcodec_settings(void)
 	SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
 	SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
 
-	QT_SaveCodecSettingsToScene();
+	QT_SaveCodecSettingsToScene(rd);
 
 	// framerate jugglin'
 	if(qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
 		qtdata->kVideoTimeScale = 24000;
 		qtdata->duration = 1001;
 
-		G.scene->r.frs_sec = 24;
-		G.scene->r.frs_sec_base = 1.001;
+		rd->frs_sec = 24;
+		rd->frs_sec_base = 1.001;
 	} else if (qtdata->gTemporalSettings.frameRate == 1964113) {	// 29.97 fps
 		qtdata->kVideoTimeScale = 30000;
 		qtdata->duration = 1001;
 
-		G.scene->r.frs_sec = 30;
-		G.scene->r.frs_sec_base = 1.001;
+		rd->frs_sec = 30;
+		rd->frs_sec_base = 1.001;
 	} else if (qtdata->gTemporalSettings.frameRate == 3928227) {	// 59.94 fps
 		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = 1001;
 
-		G.scene->r.frs_sec = 60;
-		G.scene->r.frs_sec_base = 1.001;
+		rd->frs_sec = 60;
+		rd->frs_sec_base = 1.001;
 	} else {
 		double fps = qtdata->gTemporalSettings.frameRate;
 
@@ -675,12 +675,12 @@ int get_qtcodec_settings(void)
 		qtdata->duration = qtdata->kVideoTimeScale / (qtdata->gTemporalSettings.frameRate / 65536);
 
 		if ((qtdata->gTemporalSettings.frameRate & 0xffff) == 0) {
-			G.scene->r.frs_sec = fps / 65536;
-			G.scene->r.frs_sec_base = 1;
+			rd->frs_sec = fps / 65536;
+			rd->frs_sec_base = 1;
 		} else {
 			/* we do our very best... */
-			G.scene->r.frs_sec = (fps * 10000 / 65536);
-			G.scene->r.frs_sec_base = 10000;
+			rd->frs_sec = (fps * 10000 / 65536);
+			rd->frs_sec_base = 10000;
 		}
 	}
 

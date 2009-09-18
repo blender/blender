@@ -42,8 +42,8 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,SCA_IObject* sourceObj,const STR_String& propname,const STR_String& expr,int acttype,PyTypeObject* T )
-   :	SCA_IActuator(gameobj,T),
+SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,SCA_IObject* sourceObj,const STR_String& propname,const STR_String& expr,int acttype)
+   :	SCA_IActuator(gameobj),
 	m_type(acttype),
 	m_propname(propname),
 	m_exprtxt(expr),
@@ -77,11 +77,25 @@ bool SCA_PropertyActuator::Update()
 	CParser parser;
 	parser.SetContext( propowner->AddRef());
 	
-	CExpression* userexpr = parser.ProcessText(m_exprtxt);
-	if (userexpr)
+	CExpression* userexpr= NULL;
+	
+	if (m_type==KX_ACT_PROP_TOGGLE)
 	{
-		
-
+		/* dont use */
+		CValue* newval;
+		CValue* oldprop = propowner->GetProperty(m_propname);
+		if (oldprop)
+		{
+			newval = new CBoolValue((oldprop->GetNumber()==0.0) ? true:false);
+			oldprop->SetValue(newval);
+		} else
+		{	/* as not been assigned, evaluate as false, so assign true */
+			newval = new CBoolValue(true);
+			propowner->SetProperty(m_propname,newval);
+		}
+		newval->Release();
+	}
+	else if ((userexpr = parser.ProcessText(m_exprtxt))) {
 		switch (m_type)
 		{
 
@@ -135,6 +149,7 @@ bool SCA_PropertyActuator::Update()
 				}
 				break;
 			}
+		/* case KX_ACT_PROP_TOGGLE: */ /* accounted for above, no need for userexpr */
 		default:
 			{
 
@@ -171,11 +186,6 @@ GetReplica() {
 	SCA_PropertyActuator* replica = new SCA_PropertyActuator(*this);
 
 	replica->ProcessReplica();
-
-	// this will copy properties and so on...
-
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 
 };
@@ -218,105 +228,36 @@ void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_PropertyActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SCA_PropertyActuator",
-	sizeof(SCA_PropertyActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-PyParentObject SCA_PropertyActuator::Parents[] = {
-	&SCA_PropertyActuator::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_PropertyActuator::Methods[] = {
-	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
-	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
-	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, (PY_METHODCHAR)GetValue_doc},
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_PropertyActuator::_getattr(const STR_String& attr) {
-	_getattr_up(SCA_IActuator);
-}
-
-/* 1. setProperty                                                        */
-const char SCA_PropertyActuator::SetProperty_doc[] = 
-"setProperty(name)\n"
-"\t- name: string\n"
-"\tSet the property on which to operate. If there is no property\n"
-"\tof this name, the call is ignored.\n";
-PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	/* Check whether the name exists first ! */
-	char *nameArg;
-	if (!PyArg_ParseTuple(args, "s", &nameArg)) {
-		return NULL;
-	}
-
-	CValue* prop = GetParent()->FindIdentifier(nameArg);
-
-	if (!prop->IsError()) {
-		m_propname = nameArg;
-	} else {
-		; /* not found ... */
-	}
-	prop->Release();
-	
-	Py_Return;
-}
-
-/* 2. getProperty                                                        */
-const char SCA_PropertyActuator::GetProperty_doc[] = 
-"getProperty(name)\n"
-"\tReturn the property on which the actuator operates.\n";
-PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	return PyString_FromString(m_propname);
-}
-
-/* 3. setValue                                                        */
-const char SCA_PropertyActuator::SetValue_doc[] = 
-"setValue(value)\n"
-"\t- value: string\n"
-"\tSet the value with which the actuator operates. If the value\n"
-"\tis not compatible with the type of the property, the subsequent\n"
-"\t action is ignored.\n";
-PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	char *valArg;
-	if(!PyArg_ParseTuple(args, "s", &valArg)) {
-		return NULL;		
-	}
-	
-	if (valArg)	m_exprtxt = valArg;
-
-	Py_Return;
-}
-
-/* 4. getValue                                                        */
-const char SCA_PropertyActuator::GetValue_doc[] = 
-"getValue()\n"
-"\tReturns the value with which the actuator operates.\n";
-PyObject* SCA_PropertyActuator::PyGetValue(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	return PyString_FromString(m_exprtxt);
-}
+PyAttributeDef SCA_PropertyActuator::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,100,false,SCA_PropertyActuator,m_propname,CheckProperty),
+	KX_PYATTRIBUTE_STRING_RW("value",0,100,false,SCA_PropertyActuator,m_exprtxt),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_PROP_NODEF+1, KX_ACT_PROP_MAX-1, false, SCA_PropertyActuator, m_type), /* ATTR_TODO add constents to game logic dict */
+	{ NULL }	//Sentinel
+};
 
 /* eof */

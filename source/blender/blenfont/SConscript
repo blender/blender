@@ -1,0 +1,17 @@
+#!/usr/bin/python
+import sys
+Import ('env')
+
+sources = env.Glob('intern/*.c')
+
+incs = '. intern  #/intern/guardedalloc ../blenkernel ../blenlib ../makesdna ../editors/include'
+incs += ' #/extern/glew/include'
+incs += ' ' + env['BF_FREETYPE_INC']
+incs += ' ' + env['BF_GETTEXT_INC']
+
+defs = ''
+
+if sys.platform == 'win32':
+	defs += ' _WIN32 USE_GETTEXT_DLL'
+
+env.BlenderLib ( 'bf_blenfont', sources, Split(incs), Split(defs), libtype=['core','player'], priority=[210,210] )

@@ -8,25 +8,21 @@ SConscript(['avi/SConscript',
             'blenloader/SConscript',
             'blenpluginapi/SConscript',
             'gpu/SConscript',
+            'editors/SConscript',
             'imbuf/SConscript',
             'imbuf/intern/cineon/SConscript',
             'makesdna/SConscript',
-            'radiosity/SConscript',
+            'makesrna/SConscript',
             'readblenfile/SConscript',
             'render/SConscript',
-            'src/SConscript',
-            'nodes/SConscript'])
+            'nodes/SConscript',
+            'windowmanager/SConscript',
+	    'blenfont/SConscript'])
 
 
 
 if env['WITH_BF_PYTHON']:
     SConscript(['python/SConscript'])
-
-if env['WITH_BF_YAFRAY']:
-    SConscript(['yafray/SConscript'])
-
-if env['WITH_BF_INTERNATIONAL']:
-    SConscript (['ftfont/SConscript'])
 
 if env['WITH_BF_DDS']:
     SConscript (['imbuf/intern/dds/SConscript'])
@@ -36,6 +32,3 @@ if env['WITH_BF_OPENEXR']:
 
 if env['WITH_BF_QUICKTIME']:
     SConscript (['quicktime/SConscript'])
-
-if env['WITH_BF_FREESTYLE'] == 1:
-       SConscript(['freestyle/SConscript'])

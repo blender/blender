@@ -47,11 +47,11 @@
 
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
+#include "BLI_arithb.h"
 
 bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 {
 	size_t i;
-	float *co;
 
 	// only apply once per frame if the mesh is actually modified
 	if(m_pMeshObject->MeshModified() &&
@@ -70,8 +70,7 @@ bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 				//	For each vertex
 				for(i=it.startvertex; i<it.endvertex; i++) {
 					RAS_TexVert& v = it.vertex[i];
-					co = m_bmesh->mvert[v.getOrigIndex()].co;
-					v.SetXYZ(MT_Point3(co));
+					v.SetXYZ(m_bmesh->mvert[v.getOrigIndex()].co);
 				}
 			}
 		}
@@ -92,6 +91,15 @@ BL_MeshDeformer::~BL_MeshDeformer()
 		delete [] m_transnors;
 }
  
+void BL_MeshDeformer::ProcessReplica()
+{
+	m_transverts = NULL;
+	m_transnors = NULL;
+	m_tvtot = 0;
+	m_bDynamic=false;
+	m_lastDeformUpdate = -1;
+}
+
 void BL_MeshDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
 {
 	void **h_obj = (*map)[m_gameobj];
@@ -135,9 +143,9 @@ void BL_MeshDeformer::RecalcNormals()
 				RAS_TexVert& v3 = it.vertex[it.index[i+2]];
 				RAS_TexVert *v4 = NULL;
 
-				const float *co1 = v1.getXYZ();
-				const float *co2 = v2.getXYZ();
-				const float *co3 = v3.getXYZ();
+				const float *co1 = m_transverts[v1.getOrigIndex()];
+				const float *co2 = m_transverts[v2.getOrigIndex()];
+				const float *co3 = m_transverts[v3.getOrigIndex()];
 				const float *co4 = NULL;
 				
 				/* compute face normal */
@@ -145,7 +153,7 @@ void BL_MeshDeformer::RecalcNormals()
 
 				if(nvert == 4) {
 					v4 = &it.vertex[it.index[i+3]];
-					co4 = v4->getXYZ();
+					co4 = m_transverts[v4->getOrigIndex()];
 
 					n1[0]= co1[0]-co3[0];
 					n1[1]= co1[1]-co3[1];
@@ -168,6 +176,7 @@ void BL_MeshDeformer::RecalcNormals()
 				fnor[0]= n1[1]*n2[2] - n1[2]*n2[1];
 				fnor[1]= n1[2]*n2[0] - n1[0]*n2[2];
 				fnor[2]= n1[0]*n2[1] - n1[1]*n2[0];
+				Normalize(fnor);
 
 				/* add to vertices for smooth normals */
 				float *vn1 = m_transnors[v1.getOrigIndex()];

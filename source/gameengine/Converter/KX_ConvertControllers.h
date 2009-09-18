@@ -36,7 +36,6 @@ void BL_ConvertControllers(
 	class KX_GameObject* gameobj,
 	class SCA_LogicManager* logicmgr, 
 	PyObject* pythondictionary,
-	int & executePriority,
 	int activeLayerBitInfo,
 	bool isInActiveLayer, 
 	class KX_BlenderSceneConverter* converter

@@ -31,7 +31,7 @@
 
 #include "SCA_IObject.h"
 
-class KX_VertexProxy	: public SCA_IObject
+class KX_VertexProxy	: public CValue
 {
 	Py_Header;
 protected:
@@ -46,29 +46,26 @@ public:
 	CValue*		Calc(VALUE_OPERATOR op, CValue *val) ;
 	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	const STR_String &	GetText();
-	float		GetNumber();
-	STR_String	GetName();
-	void		SetName(STR_String name);								// Set the name of the value
-	void		ReplicaSetName(STR_String name);
+	double		GetNumber();
+	STR_String&	GetName();
+	void		SetName(const char *name);								// Set the name of the value
 	CValue*		GetReplica();
 
 
 // stuff for python integration
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int    _setattr(const STR_String& attr, PyObject *pyvalue);
 
-	KX_PYMETHOD(KX_VertexProxy,GetXYZ);
-	KX_PYMETHOD(KX_VertexProxy,SetXYZ);
-	KX_PYMETHOD(KX_VertexProxy,GetUV);
-	KX_PYMETHOD(KX_VertexProxy,SetUV);
+	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetXYZ);
+	KX_PYMETHOD_O(KX_VertexProxy,SetXYZ);
+	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetUV);
+	KX_PYMETHOD_O(KX_VertexProxy,SetUV);
 	
-	KX_PYMETHOD(KX_VertexProxy,GetUV2);
-	KX_PYMETHOD(KX_VertexProxy,SetUV2);
+	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetUV2);
+	KX_PYMETHOD_VARARGS(KX_VertexProxy,SetUV2);
 
-	KX_PYMETHOD(KX_VertexProxy,GetRGBA);
-	KX_PYMETHOD(KX_VertexProxy,SetRGBA);
-	KX_PYMETHOD(KX_VertexProxy,GetNormal);
-	KX_PYMETHOD(KX_VertexProxy,SetNormal);
+	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetRGBA);
+	KX_PYMETHOD_O(KX_VertexProxy,SetRGBA);
+	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetNormal);
+	KX_PYMETHOD_O(KX_VertexProxy,SetNormal);
 
 };
 

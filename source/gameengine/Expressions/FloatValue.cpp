@@ -50,7 +50,7 @@ effect: constructs a new CFloatValue containing value fl
 
 
 
-CFloatValue::CFloatValue(float fl,STR_String name,AllocationTYPE alloctype)
+CFloatValue::CFloatValue(float fl,const char *name,AllocationTYPE alloctype)
 /*
 pre:
 effect: constructs a new CFloatValue containing value fl
@@ -127,6 +127,9 @@ ret: a new object containing the result of applying operator op to val and
 		{
 			switch (op)
 			{
+			case VALUE_MOD_OPERATOR:
+				ret = new CFloatValue(fmod(((CIntValue *) val)->GetInt(), m_float));
+				break;
 			case VALUE_ADD_OPERATOR:
 				ret = new CFloatValue(((CIntValue *) val)->GetInt() + m_float);
 				break;
@@ -171,6 +174,9 @@ ret: a new object containing the result of applying operator op to val and
 		{
 			switch (op)
 			{
+			case VALUE_MOD_OPERATOR:
+				ret = new CFloatValue(fmod(((CFloatValue *) val)->GetFloat(), m_float));
+				break;
 			case VALUE_ADD_OPERATOR:
 				ret = new CFloatValue(((CFloatValue *) val)->GetFloat() + m_float);
 				break;
@@ -272,7 +278,7 @@ ret: the float stored in the object
 
 
 
-float CFloatValue::GetNumber()
+double CFloatValue::GetNumber()
 {
 	return m_float;
 }
@@ -281,7 +287,7 @@ float CFloatValue::GetNumber()
 
 void CFloatValue::SetValue(CValue* newval)
 { 	
-	m_float = newval->GetNumber(); 
+	m_float = (float)newval->GetNumber(); 
 	SetModified(true);
 }
 
@@ -301,8 +307,8 @@ const STR_String & CFloatValue::GetText()
 CValue* CFloatValue::GetReplica()
 { 
 	CFloatValue* replica = new CFloatValue(*this);
-	replica->m_pstrRep = NULL;
-	CValue::AddDataToReplica(replica);
+	replica->m_pstrRep = NULL; /* should be in CFloatValue::ProcessReplica() but its not defined, no matter */
+	replica->ProcessReplica();
 
 	return replica;
 }

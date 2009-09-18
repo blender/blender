@@ -4,6 +4,10 @@
 #include "STR_String.h"
 #include "MT_Point2.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 // --
 struct MTex;
 struct Material;
@@ -44,6 +48,7 @@ private:
 public:
 	// -----------------------------------
 	BL_Material();
+	void Initialize();
 
 	int IdMode;
 	unsigned int ras_mode;
@@ -54,6 +59,7 @@ public:
 	int tile,tilexrep[MAXTEX],tileyrep[MAXTEX];
 	STR_String matname;
 	STR_String mtexname[MAXTEX];
+	int materialindex;
 
 	float matcolor[4];
 	float speccolor[3];
@@ -68,8 +74,6 @@ public:
 	int	 mode;
 	int num_enabled;
 	
-	int material_index;
-
 	BL_Mapping	mapping[MAXTEX];
 	STR_String	imageId[MAXTEX];
 
@@ -98,6 +102,13 @@ public:
 	void SetSharedMaterial(bool v);
 	bool IsShared();
 	void SetUsers(int num);
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_Material"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 // BL_Material::IdMode

@@ -25,7 +25,6 @@ import Blender
 import bpy
 Vector= Blender.Mathutils.Vector
 Ang= Blender.Mathutils.AngleBetweenVecs
-CrossVecs= Blender.Mathutils.CrossVecs
 MidpointVecs= Blender.Mathutils.MidpointVecs
 import BPyMesh
 
@@ -198,8 +197,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			# the point of collapsing.
 			
 			# Enlarge so we know they intersect:  self.length*2
-			cv1= CrossVecs(v1no, CrossVecs(v1no, v1co-v2co))
-			cv2= CrossVecs(v2no, CrossVecs(v2no, v2co-v1co))
+			cv1= v1no.cross(v1no.cross(v1co-v2co))
+			cv2= v2no.cross(v2no.cross(v2co-v1co))
 			
 			# Scale to be less then the edge lengths.
 			cv2.length = cv1.length = 1

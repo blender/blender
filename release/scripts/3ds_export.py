@@ -7,7 +7,7 @@ Group: 'Export'
 Tooltip: 'Export to 3DS file format (.3ds).'
 """
 
-__author__ = ["Campbell Barton", "Bob Holcomb", "Richard L‰rk‰ng", "Damien McGinnes", "Mark Stijnman"]
+__author__ = ["Campbell Barton", "Bob Holcomb", "Richard L√§rk√§ng", "Damien McGinnes", "Mark Stijnman"]
 __url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
 __version__ = "0.90a"
 __bpydoc__ = """\
@@ -50,7 +50,10 @@ import Blender
 import bpy
 from BPyMesh import getMeshFromObject
 from BPyObject import getDerivedObjects
-import struct
+try: 
+    import struct
+except: 
+    struct = None
 
 # So 3ds max can open files, limit names to 12 in length
 # this is verry annoying for filenames!
@@ -1009,5 +1012,8 @@ def save_3ds(filename):
 
 
 if __name__=='__main__':
-	Blender.Window.FileSelector(save_3ds, "Export 3DS", Blender.sys.makename(ext='.3ds'))
+    if struct:
+        Blender.Window.FileSelector(save_3ds, "Export 3DS", Blender.sys.makename(ext='.3ds'))
+    else:
+        Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
 # save_3ds('/test_b.3ds')

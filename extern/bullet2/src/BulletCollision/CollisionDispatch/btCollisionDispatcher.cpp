@@ -52,12 +52,12 @@ btCollisionDispatcher::btCollisionDispatcher (btCollisionConfiguration* collisio
 		for (int j=0;j<MAX_BROADPHASE_COLLISION_TYPES;j++)
 		{
 			m_doubleDispatch[i][j] = m_collisionConfiguration->getCollisionAlgorithmCreateFunc(i,j);
-			assert(m_doubleDispatch[i][j]);
+			btAssert(m_doubleDispatch[i][j]);
 		}
 	}
 	
 	
-};
+}
 
 
 void btCollisionDispatcher::registerCollisionCreateFunc(int proxyType0, int proxyType1, btCollisionAlgorithmCreateFunc *createFunc)
@@ -78,7 +78,13 @@ btPersistentManifold*	btCollisionDispatcher::getNewManifold(void* b0,void* b1)
 
 	btCollisionObject* body0 = (btCollisionObject*)b0;
 	btCollisionObject* body1 = (btCollisionObject*)b1;
-	
+
+	//test for Bullet 2.74: use a relative contact breaking threshold without clamping against 'gContactBreakingThreshold'
+	//btScalar contactBreakingThreshold = btMin(gContactBreakingThreshold,btMin(body0->getCollisionShape()->getContactBreakingThreshold(),body1->getCollisionShape()->getContactBreakingThreshold()));
+	btScalar contactBreakingThreshold = btMin(body0->getCollisionShape()->getContactBreakingThreshold(),body1->getCollisionShape()->getContactBreakingThreshold());
+
+	btScalar contactProcessingThreshold = btMin(body0->getContactProcessingThreshold(),body1->getContactProcessingThreshold());
+		
 	void* mem = 0;
 	
 	if (m_persistentManifoldPoolAllocator->getFreeCount())
@@ -89,7 +95,7 @@ btPersistentManifold*	btCollisionDispatcher::getNewManifold(void* b0,void* b1)
 		mem = btAlignedAlloc(sizeof(btPersistentManifold),16);
 
 	}
-	btPersistentManifold* manifold = new(mem) btPersistentManifold (body0,body1,0);
+	btPersistentManifold* manifold = new(mem) btPersistentManifold (body0,body1,0,contactBreakingThreshold,contactProcessingThreshold);
 	manifold->m_index1a = m_manifoldsPtr.size();
 	m_manifoldsPtr.push_back(manifold);
 
@@ -144,7 +150,6 @@ btCollisionAlgorithm* btCollisionDispatcher::findAlgorithm(btCollisionObject* bo
 
 
 
-
 bool	btCollisionDispatcher::needsResponse(btCollisionObject* body0,btCollisionObject* body1)
 {
 	//here you can do filtering
@@ -158,8 +163,8 @@ bool	btCollisionDispatcher::needsResponse(btCollisionObject* body0,btCollisionOb
 
 bool	btCollisionDispatcher::needsCollision(btCollisionObject* body0,btCollisionObject* body1)
 {
-	assert(body0);
-	assert(body1);
+	btAssert(body0);
+	btAssert(body1);
 
 	bool needsCollision = true;
 

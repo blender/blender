@@ -33,7 +33,7 @@ class btSoftSoftCollisionAlgorithm : public btCollisionAlgorithm
 	btSoftBody*	m_softBody0;
 	btSoftBody*	m_softBody1;
 
-	
+
 public:
 	btSoftSoftCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
 		: btCollisionAlgorithm(ci) {}

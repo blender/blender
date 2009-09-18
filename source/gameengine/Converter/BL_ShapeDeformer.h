@@ -58,15 +58,16 @@ public:
 					struct Object *bmeshobj_new,
 					class BL_SkinMeshObject *mesh,
 					bool release_object,
+					bool recalc_normal,
 					BL_ArmatureObject* arma = NULL)
 					:
-						BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, arma),
+						BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, recalc_normal, arma),
 						m_lastShapeUpdate(-1)
 	{
 	};
 
+	virtual RAS_Deformer *GetReplica();
 	virtual void ProcessReplica();
-	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica);
 	virtual ~BL_ShapeDeformer();
 
 	bool Update (void);
@@ -82,6 +83,12 @@ protected:
 	vector<IpoCurve*>		 m_shapeDrivers;
 	double					 m_lastShapeUpdate;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ShapeDeformer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

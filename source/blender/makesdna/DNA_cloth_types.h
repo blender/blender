@@ -1,5 +1,5 @@
 /**
-* $Id: DNA_cloth_types.h,v 1.1 2007/08/01 02:28:34 daniel Exp $
+* $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *
@@ -47,6 +47,9 @@ typedef struct ClothSimSettings
 	float 	mingoal; 	/* see SB */
 	float	Cdis;		/* Mechanical damping of springs.		*/
 	float	Cvi;		/* Viscous/fluid damping.			*/
+	/* XXX the extra space here results in wrong DNA parsing,
+	 * and reconstruct fails and gives corrupt settings when
+	 * removing it because the old dna is wrong ... */
 	float	gravity [3];	/* Gravity/external force vector.		*/
 	float	dt;		/* This is the duration of our time step, computed.	*/
 	float	mass;		/* The mass of the entire cloth.		*/
@@ -65,6 +68,7 @@ typedef struct ClothSimSettings
 	float	defgoal;
 	float	goalspring;
 	float	goalfrict;
+	float	velocity_smooth; /* smoothing of velocities for hair */
 	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
 	int	preroll;	/* How many frames of simulation to do before we start.	*/
@@ -74,8 +78,7 @@ typedef struct ClothSimSettings
 	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.*/
 	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
-	short 	pad;
-	int 	pad2;
+ 	short 	pad;
 } ClothSimSettings;
 
 

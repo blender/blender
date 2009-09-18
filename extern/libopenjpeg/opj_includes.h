@@ -88,6 +88,12 @@ Most compilers implement their own version of this keyword ...
 
 /* MSVC does not have lrintf */
 #ifdef _MSC_VER
+#ifdef _M_X64
+#include <emmintrin.h>
+static INLINE long lrintf(float f) {
+        return _mm_cvtss_si32(_mm_load_ss(&f));
+} 
+#else
 static INLINE long lrintf(float f){
 	int i;
 
@@ -98,6 +104,7 @@ static INLINE long lrintf(float f){
 
 	return i;
 }
+#endif
 #endif
 
 #include "j2k_lib.h"

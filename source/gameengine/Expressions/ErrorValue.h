@@ -23,9 +23,9 @@ class CErrorValue : public CPropValue
 
 public:
 	virtual const STR_String & GetText();
-	virtual float GetNumber();
+	virtual double GetNumber();
 	CErrorValue();
-	CErrorValue(STR_String errmsg);
+	CErrorValue(const char *errmsg);
 	virtual ~CErrorValue();
 	virtual CValue* Calc(VALUE_OPERATOR op, CValue* val);
 	virtual CValue* CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
@@ -33,6 +33,13 @@ public:
 
 private:
 	STR_String m_strErrorText;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CErrorValue"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined _ERRORVALUE_H

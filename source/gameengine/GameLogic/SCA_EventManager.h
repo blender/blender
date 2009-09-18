@@ -33,11 +33,14 @@
 #include <set>
 #include <algorithm>
 
+#include "SG_DList.h"
+
 class SCA_EventManager
 {
 protected:
 	// use a set to speed-up insertion/removal
-	std::set <class SCA_ISensor*>				m_sensors;
+	//std::set <class SCA_ISensor*>				m_sensors;
+	SG_DList		m_sensors;
 
 public:
 	enum EVENT_MANAGER_TYPE {
@@ -68,6 +71,13 @@ public:
 
 protected:
 	EVENT_MANAGER_TYPE		m_mgrtype;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_EventManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

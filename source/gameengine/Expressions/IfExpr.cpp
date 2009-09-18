@@ -15,6 +15,7 @@
 #include "IfExpr.h"
 #include "EmptyValue.h"
 #include "ErrorValue.h"
+#include "BoolValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -72,14 +73,14 @@ ret: a new object containing the value of m_e1 if m_guard is a boolean TRUE
 {
 	CValue *guardval;
 	guardval = m_guard->Calculate();
-	STR_String text = guardval->GetText();
+	const STR_String& text = guardval->GetText();
 	guardval->Release();
 
-	if (text == STR_String("TRUE"))
+	if (&text == &CBoolValue::sTrueString)
 	{
 		return m_e1->Calculate();
 	}
-	else if (text == STR_String("FALSE"))
+	else if (&text == &CBoolValue::sFalseString)
 	{
 		return m_e2->Calculate();
 	}

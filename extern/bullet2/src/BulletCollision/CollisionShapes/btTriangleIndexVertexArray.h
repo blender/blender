@@ -52,9 +52,9 @@ ATTRIBUTE_ALIGNED16( class) btTriangleIndexVertexArray : public btStridingMeshIn
 protected:
 	IndexedMeshArray	m_indexedMeshes;
 	int m_pad[2];
-	int m_hasAabb; // using int instead of bool to maintain alignment
-	btVector3 m_aabbMin;
-	btVector3 m_aabbMax;
+	mutable int m_hasAabb; // using int instead of bool to maintain alignment
+	mutable btVector3 m_aabbMin;
+	mutable btVector3 m_aabbMax;
 
 public:
 
@@ -106,7 +106,7 @@ public:
 	virtual void	preallocateIndices(int numindices){(void) numindices;}
 
 	virtual bool	hasPremadeAabb() const;
-	virtual void	setPremadeAabb(const btVector3& aabbMin, const btVector3& aabbMax );
+	virtual void	setPremadeAabb(const btVector3& aabbMin, const btVector3& aabbMax ) const;
 	virtual void	getPremadeAabb(btVector3* aabbMin, btVector3* aabbMax ) const;
 
 }

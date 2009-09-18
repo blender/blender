@@ -76,13 +76,17 @@
 #endif /* WITH_QUICKTIME */
 
 #ifdef WITH_FFMPEG
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/swscale.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
 #endif
 
 #ifdef WITH_REDCODE
-#include <redcode/format.h>
+#ifdef _WIN32 /* on windows we use the one in extern instead */
+#include "libredcode/format.h"
+#else
+#include "libredcode/format.h"
+#endif
 #endif
 
 #include "IMB_imbuf_types.h"

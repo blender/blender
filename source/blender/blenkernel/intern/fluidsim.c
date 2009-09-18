@@ -28,11 +28,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h" // for pointcache 
+#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h" // N_T
 
@@ -52,7 +56,6 @@
 // headers for fluidsim bobj meshes
 #include <stdlib.h>
 #include "LBM_fluidsim.h"
-#include "elbeem.h"
 #include <zlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -77,12 +80,13 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		if(!fss)
 			return;
 		
-		fss->type = OB_FSBND_NOSLIP;
+		fss->fmd = fluidmd;
+		fss->type = OB_FLUIDSIM_ENABLE;
 		fss->show_advancedoptions = 0;
 
-		fss->resolutionxyz = 50;
-		fss->previewresxyz = 25;
-		fss->realsize = 0.03;
+		fss->resolutionxyz = 65;
+		fss->previewresxyz = 45;
+		fss->realsize = 0.5;
 		fss->guiDisplayMode = 2; // preview
 		fss->renderDisplayMode = 3; // render
 
@@ -95,7 +99,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->gravy = 0.0;
 		fss->gravz = -9.81;
 		fss->animStart = 0.0; 
-		fss->animEnd = 0.30;
+		fss->animEnd = 4.0;
 		fss->gstar = 0.005; // used as normgstar
 		fss->maxRefine = -1;
 		// maxRefine is set according to resolutionxyz during bake
@@ -111,15 +115,15 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		// no bounding box needed
 		
 		// todo - reuse default init from elbeem!
-		fss->typeFlags = 0;
+		fss->typeFlags = OB_FSBND_PARTSLIP;
 		fss->domainNovecgen = 0;
 		fss->volumeInitType = 1; // volume
-		fss->partSlipValue = 0.0;
+		fss->partSlipValue = 0.2;
 
 		fss->generateTracers = 0;
 		fss->generateParticles = 0.0;
 		fss->surfaceSmoothing = 1.0;
-		fss->surfaceSubdivs = 1.0;
+		fss->surfaceSubdivs = 0.0;
 		fss->particleInfSize = 0.0;
 		fss->particleInfAlpha = 0.0;
 	
@@ -167,14 +171,14 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 	return;
 }
 
-DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
+DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
 #ifndef DISABLE_ELBEEM
 	DerivedMesh *result = NULL;
 	int framenr;
 	FluidsimSettings *fss = NULL;
 
-	framenr= (int)G.scene->r.cfra;
+	framenr= (int)scene->r.cfra;
 	
 	// only handle fluidsim domains
 	if(fluidmd && fluidmd->fss && (fluidmd->fss->type != OB_FLUIDSIM_DOMAIN))
@@ -396,7 +400,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int displaymode = 0;
-	int curFrame = framenr - 1 /*G.scene->r.sfra*/; /* start with 0 at start frame */
+	int curFrame = framenr - 1 /*scene->r.sfra*/; /* start with 0 at start frame */
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
@@ -598,7 +602,7 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 // file handling
 //-------------------------------------------------------------------------------
 
-void initElbeemMesh(struct Object *ob, 
+void initElbeemMesh(struct Scene *scene, struct Object *ob, 
 		    int *numVertices, float **vertices, 
       int *numTriangles, int **triangles,
       int useGlobalCoords, int modifierIndex) 
@@ -610,7 +614,7 @@ void initElbeemMesh(struct Object *ob,
 	float *verts;
 	int *tris;
 
-	dm = mesh_create_derived_index_render(ob, CD_MASK_BAREMESH, modifierIndex);
+	dm = mesh_create_derived_index_render(scene, ob, CD_MASK_BAREMESH, modifierIndex);
 	//dm = mesh_create_derived_no_deform(ob,NULL);
 
 	mvert = dm->getVertArray(dm);
@@ -654,6 +658,21 @@ void initElbeemMesh(struct Object *ob,
 	*triangles = tris;
 
 	dm->release(dm);
+}
+
+void fluid_estimate_memory(Object *ob, FluidsimSettings *fss, char *value)
+{
+	Mesh *mesh;
+
+	value[0]= '\0';
+
+	if(ob->type == OB_MESH) {
+		/* use mesh bounding box and object scaling */
+		mesh= ob->data;
+
+		fluid_get_bb(mesh->mvert, mesh->totvert, ob->obmat, fss->bbStart, fss->bbSize);
+		elbeemEstimateMemreq(fss->resolutionxyz, fss->bbSize[0],fss->bbSize[1],fss->bbSize[2], fss->maxRefine, value);
+	}
 }
 
 #endif // DISABLE_ELBEEM

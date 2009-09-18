@@ -40,9 +40,8 @@
 
 SCA_ActuatorSensor::SCA_ActuatorSensor(SCA_EventManager* eventmgr,
 									 SCA_IObject* gameobj,
-									 const STR_String& actname,
-									 PyTypeObject* T )
-	: SCA_ISensor(gameobj,eventmgr,T),
+									 const STR_String& actname)
+	: SCA_ISensor(gameobj,eventmgr),
 	  m_checkactname(actname)
 {
 	m_actuator = GetParent()->FindActuator(m_checkactname);
@@ -60,7 +59,7 @@ CValue* SCA_ActuatorSensor::GetReplica()
 {
 	SCA_ActuatorSensor* replica = new SCA_ActuatorSensor(*this);
 	// m_range_expr must be recalculated on replica!
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	return replica;
@@ -89,7 +88,7 @@ SCA_ActuatorSensor::~SCA_ActuatorSensor()
 
 
 
-bool SCA_ActuatorSensor::Evaluate(CValue* event)
+bool SCA_ActuatorSensor::Evaluate()
 {
 	if (m_actuator)
 	{
@@ -122,75 +121,46 @@ void SCA_ActuatorSensor::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_ActuatorSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SCA_ActuatorSensor",
-	sizeof(SCA_ActuatorSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-PyParentObject SCA_ActuatorSensor::Parents[] = {
-	&SCA_ActuatorSensor::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_ActuatorSensor::Methods[] = {
-	{"getActuator", (PyCFunction) SCA_ActuatorSensor::sPyGetActuator, METH_NOARGS, (PY_METHODCHAR)GetActuator_doc},
-	{"setActuator", (PyCFunction) SCA_ActuatorSensor::sPySetActuator, METH_VARARGS, (PY_METHODCHAR)SetActuator_doc},
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_ActuatorSensor::_getattr(const STR_String& attr) {
-	_getattr_up(SCA_ISensor); /* implicit return! */
-}
+PyAttributeDef SCA_ActuatorSensor::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW_CHECK("actuator",0,100,false,SCA_ActuatorSensor,m_checkactname,CheckActuator),
+	{ NULL }	//Sentinel
+};
 
-/* 3. getActuator */
-const char SCA_ActuatorSensor::GetActuator_doc[] = 
-"getActuator()\n"
-"\tReturn the Actuator with which the sensor operates.\n";
-PyObject* SCA_ActuatorSensor::PyGetActuator(PyObject* self) 
+int SCA_ActuatorSensor::CheckActuator(void *self, const PyAttributeDef*)
 {
-	return PyString_FromString(m_checkactname);
-}
-
-/* 4. setActuator */
-const char SCA_ActuatorSensor::SetActuator_doc[] = 
-"setActuator(name)\n"
-"\t- name: string\n"
-"\tSets the Actuator with which to operate. If there is no Actuator\n"
-"\tof this name, the call is ignored.\n";
-PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* self, PyObject* args, PyObject* kwds) 
-{
-	/* We should query whether the name exists. Or should we create a prop   */
-	/* on the fly?                                                           */
-	char *actNameArg = NULL;
-
-	if (!PyArg_ParseTuple(args, "s", &actNameArg)) {
-		return NULL;
-	}
-
-	SCA_IActuator* act = GetParent()->FindActuator(STR_String(actNameArg));
+	SCA_ActuatorSensor* sensor = reinterpret_cast<SCA_ActuatorSensor*>(self);
+	SCA_IActuator* act = sensor->GetParent()->FindActuator(sensor->m_checkactname);
 	if (act) {
-		m_checkactname = actNameArg;
-		m_actuator = act;
-	} else {
-		; /* error: bad actuator name */
+		sensor->m_actuator = act;
+		return 0;
 	}
-	Py_Return;
+	PyErr_SetString(PyExc_AttributeError, "string does not correspond to an actuator");
+	return 1;
 }
 
 /* eof */

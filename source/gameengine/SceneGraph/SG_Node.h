@@ -40,11 +40,10 @@ typedef std::vector<SG_Node*> NodeList;
 class SG_Node : public SG_Spatial
 {
 public:
-
 	SG_Node(
 		void* clientobj,
 		void* clientinfo,
-		SG_Callbacks callbacks
+		SG_Callbacks& callbacks
 	);
 
 	SG_Node(
@@ -85,45 +84,47 @@ public:
 	 * @return a reference to the list of children of this node.
 	 */
 	
-		NodeList&		
-	GetSGChildren(
-	);
+	NodeList& GetSGChildren()
+	{
+		return this->m_children;
+	}
 
 	/**
 	 * Get the current list of children.
 	 * @return a const reference to the current list of children of this node.
 	 */
 
-	const 
-		NodeList&	
-	GetSGChildren(
-	) const;
+	const NodeList& GetSGChildren() const
+	{
+		return this->m_children;
+	}
 
 	/** 
 	 * Clear the list of children associated with this node
 	 */
 
-		void				
-	ClearSGChildren(
-	);
+	void ClearSGChildren()
+	{
+		m_children.clear();
+	}
 
 	/**
 	 * return the parent of this node if it exists.
 	 */
 		
-		SG_Node*			
-	GetSGParent(
-	) const ;
-
+	SG_Node* GetSGParent() const 
+	{ 
+		return m_SGparent;
+	}
 
 	/**
 	 * Set the parent of this node. 
 	 */
 
-		void				
-	SetSGParent(
-		SG_Node* parent
-	);
+	void SetSGParent(SG_Node* parent)
+	{
+		m_SGparent = parent;
+	}
 
 	/**
 	 * Return the top node in this node's Scene graph hierarchy
@@ -143,30 +144,33 @@ public:
 	);
 
 	/**
-	 * Tell this node to treat it's parent as a vertex parent.
-	 */
-
-		void	
-	SetVertexParent(
-		bool isvertexparent
-	) ;
-
-
-	/**
 	 * Return vertex parent status.
 	 */
+	bool IsVertexParent()
+	{
+		if (m_parent_relation)
+		{
+			return m_parent_relation->IsVertexRelation();
+		}
+		return false;
+	}
 
-		bool	
-	IsVertexParent(
-	) ;
-	
+
 	/**
 	 * Return slow parent status.
 	 */
 
-		bool	
-	IsSlowParent(
-	) ;
+	bool IsSlowParent()
+	{
+		if (m_parent_relation)
+		{
+			return m_parent_relation->IsSlowRelation();
+		}
+		return false;
+	}
+
+
+
 
 	/**		
 	 * Update the spatial data of this node. Iterate through
@@ -175,7 +179,8 @@ public:
 
 		void		
 	UpdateWorldData(
-		double time
+		double time,
+		bool parentUpdated=false
 	);
 
 	/**
@@ -188,6 +193,42 @@ public:
 		double time,
 		bool recurse
 	);
+
+	/**
+	 * Schedule this node for update by placing it in head queue
+	 */
+	bool Schedule(SG_QList& head)
+	{
+		// Put top parent in front of list to make sure they are updated before their
+		// children => the children will be udpated and removed from the list before
+		// we get to them, should they be in the list too.
+		return (m_SGparent)?head.AddBack(this):head.AddFront(this);
+	}
+
+	/**
+	 * Used during Scenegraph update
+	 */
+	static SG_Node* GetNextScheduled(SG_QList& head)
+	{
+		return static_cast<SG_Node*>(head.Remove());
+	}
+
+	/**
+	 * Make this node ready for schedule on next update. This is needed for nodes
+	 * that must always be updated (slow parent, bone parent)
+	 */
+	bool Reschedule(SG_QList& head)
+	{
+		return head.QAddBack(this);
+	}
+
+	/**
+	 * Used during Scenegraph update
+	 */
+	static SG_Node* GetNextRescheduled(SG_QList& head)
+	{
+		return static_cast<SG_Node*>(head.QRemove());
+	}
 
 	/**
 	 * Node replication functions.
@@ -218,6 +259,12 @@ private:
 	 */
 	SG_Node* m_SGparent;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_Node"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__SG_NODE_H

@@ -23,14 +23,23 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): 2008, Joshua Leung (IPO System cleanup)
+ * Contributor(s): 2008,2009 Joshua Leung (IPO System cleanup, Animation System Recode)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/* NOTE:
+ *
+ * This file is no longer used to provide tools for the depreceated IPO system. Instead, it
+ * is only used to house the conversion code to the new system.
+ *
+ * -- Joshua Leung, Jan 2009
+ */
+ 
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -38,8 +47,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
@@ -47,6 +58,7 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
@@ -59,2826 +71,1801 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_dynstr.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h" /* for BPY_pydriver_eval() */
-#endif
-
-#define SMALL -1.0e-10
-
-/* ***************************** Adrcode Blocktype Defines ********************************* */
-
-/* This array concept was meant to make sure that defines such as OB_LOC_X
-   don't have to be enumerated, also for backward compatibility, future changes,
-   and to enable it all can be accessed with a for-next loop.
-   
-   This should whole adrcode system should eventually be replaced by a proper Data API
-*/
 
 
-int co_ar[CO_TOTIPO]= {
-	CO_ENFORCE, CO_HEADTAIL
-};
+/* *************************************************** */
+/* Old-Data Freeing Tools */
 
-int ob_ar[OB_TOTIPO]= {
-	OB_LOC_X, OB_LOC_Y, OB_LOC_Z, OB_DLOC_X, OB_DLOC_Y, OB_DLOC_Z, 
-	OB_ROT_X, OB_ROT_Y, OB_ROT_Z, OB_DROT_X, OB_DROT_Y, OB_DROT_Z, 
-	OB_SIZE_X, OB_SIZE_Y, OB_SIZE_Z, OB_DSIZE_X, OB_DSIZE_Y, OB_DSIZE_Z, 
-	OB_LAY, OB_TIME, OB_COL_R, OB_COL_G, OB_COL_B, OB_COL_A,
-	OB_PD_FSTR, OB_PD_FFALL, OB_PD_SDAMP, OB_PD_RDAMP, OB_PD_PERM, OB_PD_FMAXD
-};
-
-int ac_ar[AC_TOTIPO]= {
-	AC_LOC_X, AC_LOC_Y, AC_LOC_Z,  
-	 AC_QUAT_W, AC_QUAT_X, AC_QUAT_Y, AC_QUAT_Z,
-	AC_SIZE_X, AC_SIZE_Y, AC_SIZE_Z
-};
-
-int ma_ar[MA_TOTIPO]= {
-	MA_COL_R, MA_COL_G, MA_COL_B, 
-	MA_SPEC_R, MA_SPEC_G, MA_SPEC_B, 
-	MA_MIR_R, MA_MIR_G, MA_MIR_B,
-	MA_REF, MA_ALPHA, MA_EMIT, MA_AMB, 
-	MA_SPEC, MA_HARD, MA_SPTR, MA_IOR, 
-	MA_MODE, MA_HASIZE, MA_TRANSLU, MA_RAYM,
-	MA_FRESMIR, MA_FRESMIRI, MA_FRESTRA, MA_FRESTRAI, MA_ADD,
-	
-	MA_MAP1+MAP_OFS_X, MA_MAP1+MAP_OFS_Y, MA_MAP1+MAP_OFS_Z, 
-	MA_MAP1+MAP_SIZE_X, MA_MAP1+MAP_SIZE_Y, MA_MAP1+MAP_SIZE_Z, 
-	MA_MAP1+MAP_R, MA_MAP1+MAP_G, MA_MAP1+MAP_B,
-	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF, MA_MAP1+MAP_NORF, MA_MAP1+MAP_VARF, MA_MAP1+MAP_DISP
-};
-
-int te_ar[TE_TOTIPO] ={
-	
-	TE_NSIZE, TE_NDEPTH, TE_NTYPE, TE_TURB,
-	
-	TE_VNW1, TE_VNW2, TE_VNW3, TE_VNW4,
-	TE_VNMEXP, TE_VN_COLT, TE_VN_DISTM,
-	
-	TE_ISCA, TE_DISTA,
-	
-	TE_MG_TYP, TE_MGH, TE_MG_LAC, TE_MG_OCT, TE_MG_OFF, TE_MG_GAIN,
-	
-	TE_N_BAS1, TE_N_BAS2,
-	
-	TE_COL_R, TE_COL_G, TE_COL_B, TE_BRIGHT, TE_CONTRA
-};
-
-int seq_ar[SEQ_TOTIPO]= {
-	SEQ_FAC1
-};
-
-int cu_ar[CU_TOTIPO]= {
-	CU_SPEED
-};
-
-int wo_ar[WO_TOTIPO]= {
-	WO_HOR_R, WO_HOR_G, WO_HOR_B, WO_ZEN_R, WO_ZEN_G, WO_ZEN_B, 
-	WO_EXPOS, WO_MISI, WO_MISTDI, WO_MISTSTA, WO_MISTHI,
-	WO_STAR_R, WO_STAR_G, WO_STAR_B, WO_STARDIST, WO_STARSIZE, 
-
-	MA_MAP1+MAP_OFS_X, MA_MAP1+MAP_OFS_Y, MA_MAP1+MAP_OFS_Z, 
-	MA_MAP1+MAP_SIZE_X, MA_MAP1+MAP_SIZE_Y, MA_MAP1+MAP_SIZE_Z, 
-	MA_MAP1+MAP_R, MA_MAP1+MAP_G, MA_MAP1+MAP_B,
-	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF, MA_MAP1+MAP_NORF, MA_MAP1+MAP_VARF
-};
-
-int la_ar[LA_TOTIPO]= {
-	LA_ENERGY, LA_COL_R, LA_COL_G, LA_COL_B, 
-	LA_DIST, LA_SPOTSI, LA_SPOTBL, 
-	LA_QUAD1, LA_QUAD2, LA_HALOINT,  
-
-	MA_MAP1+MAP_OFS_X, MA_MAP1+MAP_OFS_Y, MA_MAP1+MAP_OFS_Z, 
-	MA_MAP1+MAP_SIZE_X, MA_MAP1+MAP_SIZE_Y, MA_MAP1+MAP_SIZE_Z, 
-	MA_MAP1+MAP_R, MA_MAP1+MAP_G, MA_MAP1+MAP_B,
-	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF
-};
-
-/* yafray: aperture & focal distance curves added */
-/* qdn: FDIST now available to Blender as well for defocus node */
-int cam_ar[CAM_TOTIPO]= {
-	CAM_LENS, CAM_STA, CAM_END, CAM_YF_APERT, CAM_YF_FDIST, CAM_SHIFT_X, CAM_SHIFT_Y
-};
-
-int snd_ar[SND_TOTIPO]= {
-	SND_VOLUME, SND_PITCH, SND_PANNING, SND_ATTEN
-};
-
-int fluidsim_ar[FLUIDSIM_TOTIPO]= {
-	FLUIDSIM_VISC, FLUIDSIM_TIME,
-	FLUIDSIM_GRAV_X , FLUIDSIM_GRAV_Y , FLUIDSIM_GRAV_Z ,
-	FLUIDSIM_VEL_X  , FLUIDSIM_VEL_Y  , FLUIDSIM_VEL_Z  ,
-	FLUIDSIM_ACTIVE,
-	FLUIDSIM_ATTR_FORCE_STR, FLUIDSIM_ATTR_FORCE_RADIUS,
-	FLUIDSIM_VEL_FORCE_STR, FLUIDSIM_VEL_FORCE_RADIUS,
-};
-
-int part_ar[PART_TOTIPO]= {
-	PART_EMIT_FREQ, PART_EMIT_LIFE, PART_EMIT_VEL, PART_EMIT_AVE, PART_EMIT_SIZE,
-	PART_AVE, PART_SIZE, PART_DRAG, PART_BROWN, PART_DAMP, PART_LENGTH, PART_CLUMP,
-    PART_GRAV_X, PART_GRAV_Y, PART_GRAV_Z, PART_KINK_AMP, PART_KINK_FREQ, PART_KINK_SHAPE,
-	PART_BB_TILT, PART_PD_FSTR, PART_PD_FFALL, PART_PD_FMAXD, PART_PD2_FSTR, PART_PD2_FFALL, PART_PD2_FMAXD
-};
-
-/* ************************** Data-Level Functions ************************* */
-
-/* ---------------------- Freeing --------------------------- */
-
-/* frees the ipo curve itself too */
-void free_ipo_curve (IpoCurve *icu) 
-{
-	if (icu == NULL) 
-		return;
-	
-	if (icu->bezt) 
-		MEM_freeN(icu->bezt);
-	if (icu->driver) 
-		MEM_freeN(icu->driver);
-	
-	MEM_freeN(icu);
-}
-
-/* do not free ipo itself */
+/* Free data from old IPO-Blocks (those which haven't been converted), but not IPO block itself */
+// XXX this shouldn't be necessary anymore, but may occur while not all data is converted yet
 void free_ipo (Ipo *ipo)
 {
 	IpoCurve *icu, *icn;
-	
-	if (ipo == NULL) 
-		return;
+	int n= 0;
 	
 	for (icu= ipo->curve.first; icu; icu= icn) {
 		icn= icu->next;
+		n++;
 		
-		/* must remove the link before freeing, as the curve is freed too */
-		BLI_remlink(&ipo->curve, icu);
-		free_ipo_curve(icu);
-	}
-}
-
-/* ---------------------- Init --------------------------- */
-
-/* on adding new ipos, or for empty views */
-void ipo_default_v2d_cur (int blocktype, rctf *cur)
-{
-	switch (blocktype) {
-	case ID_CA:
-		cur->xmin= (float)G.scene->r.sfra;
-		cur->xmax= (float)G.scene->r.efra;
-		cur->ymin= 0.0f;
-		cur->ymax= 100.0f;
-		break;
+		if (icu->bezt) MEM_freeN(icu->bezt);
+		if (icu->bp) MEM_freeN(icu->bp);
+		if (icu->driver) MEM_freeN(icu->driver);
 		
-	case ID_MA: case ID_WO: case ID_LA: 
-	case ID_CU: case ID_CO:
-		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
-		cur->xmax= (float)G.scene->r.efra;
-		cur->ymin= (float)-0.1f;
-		cur->ymax= (float)+1.1f;
-		break;
-		
-	case ID_TE:
-		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
-		cur->xmax= (float)G.scene->r.efra;
-		cur->ymin= (float)-0.1f;
-		cur->ymax= (float)+1.1f;
-		break;
-		
-	case ID_SEQ:
-		cur->xmin= -5.0f;
-		cur->xmax= 105.0f;
-		cur->ymin= (float)-0.1f;
-		cur->ymax= (float)+1.1f;
-		break;
-		
-	case ID_KE:
-		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
-		cur->xmax= (float)G.scene->r.efra;
-		cur->ymin= (float)-0.1f;
-		cur->ymax= (float)+2.1f;
-		break;
-		
-	default:	/* ID_OB and everything else */
-		cur->xmin= (float)G.scene->r.sfra;
-		cur->xmax= (float)G.scene->r.efra;
-		cur->ymin= -5.0f;
-		cur->ymax= +5.0f;
-		break;
-	}
-}
-
-/* create a new IPO block (allocates the block) */
-Ipo *add_ipo (char name[], int blocktype)
-{
-	Ipo *ipo;
-	
-	ipo= alloc_libblock(&G.main->ipo, ID_IP, name);
-	ipo->blocktype= blocktype;
-	ipo_default_v2d_cur(blocktype, &ipo->cur);
-
-	return ipo;
-}
-
-/* ---------------------- Copy --------------------------- */
-
-/* duplicate an IPO block and all its data  */
-Ipo *copy_ipo (Ipo *src)
-{
-	Ipo *dst;
-	IpoCurve *icu;
-	
-	if (src == NULL) 
-		return NULL;
-	
-	dst= copy_libblock(src);
-	duplicatelist(&dst->curve, &src->curve);
-
-	for (icu= src->curve.first; icu; icu= icu->next) {
-		icu->bezt= MEM_dupallocN(icu->bezt);
-		
-		if (icu->driver) 
-			icu->driver= MEM_dupallocN(icu->driver);
+		BLI_freelinkN(&ipo->curve, icu);
 	}
 	
-	return dst;
+	if (G.f & G_DEBUG)
+		printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s' \n", n, ipo->id.name+2);
 }
 
-/* ---------------------- Relink --------------------------- */
+/* *************************************************** */
+/* ADRCODE to RNA-Path Conversion Code  - Special (Bitflags) */
 
-/* uses id->newid to match pointers with other copied data 
- * 	- called after single-user or other such
- */
-void ipo_idnew (Ipo *ipo)
-{
-	if (ipo) {
-		IpoCurve *icu;
-		
-		for (icu= ipo->curve.first; icu; icu= icu->next) {
-			if (icu->driver)
-				ID_NEW(icu->driver->ob);
-		}
+/* Mapping Table for bitflag <-> RNA path */
+typedef struct AdrBit2Path {
+	int bit;
+	char *path;
+	int array_index;
+} AdrBit2Path;
+
+/* ----------------- */
+/* Mapping Tables to use bits <-> RNA paths */
+
+/* Object layers */
+static AdrBit2Path ob_layer_bits[]= {
+	{(1<<0), "layer", 0},
+	{(1<<1), "layer", 1},
+	{(1<<2), "layer", 2},
+	{(1<<3), "layer", 3},
+	{(1<<4), "layer", 4},
+	{(1<<5), "layer", 5},
+	{(1<<6), "layer", 6},
+	{(1<<7), "layer", 7},
+	{(1<<8), "layer", 8},
+	{(1<<9), "layer", 9},
+	{(1<<10), "layer", 10},
+	{(1<<11), "layer", 11},
+	{(1<<12), "layer", 12},
+	{(1<<13), "layer", 13},
+	{(1<<14), "layer", 14},
+	{(1<<15), "layer", 15},
+	{(1<<16), "layer", 16},
+	{(1<<17), "layer", 17},
+	{(1<<18), "layer", 18},
+	{(1<<19), "layer", 19},
+	{(1<<20), "layer", 20}
+};
+
+/* Material mode */
+static AdrBit2Path ma_mode_bits[]= {
+//	{MA_TRACEBLE, "traceable", 0},
+// 	{MA_SHADOW, "shadow", 0},
+//	{MA_SHLESS, "shadeless", 0},
+// 	...
+	{MA_RAYTRANSP, "transparency", 0},
+	{MA_RAYMIRROR, "raytrace_mirror.enabled", 0},
+//	{MA_HALO, "type", MA_TYPE_HALO}
+};
+
+/* ----------------- */
+
+/* quick macro for returning the appropriate array for adrcode_bitmaps_to_paths() */
+#define RET_ABP(items) \
+	{ \
+		*tot= sizeof(items)/sizeof(AdrBit2Path); \
+		return items; \
 	}
-}
 
-/* --------------------- Find + Check ----------------------- */
-
-/* find the IPO-curve within a given IPO-block with the adrcode of interest */
-IpoCurve *find_ipocurve (Ipo *ipo, int adrcode)
+/* This function checks if a Blocktype+Adrcode combo, returning a mapping table */
+static AdrBit2Path *adrcode_bitmaps_to_paths (int blocktype, int adrcode, int *tot)
 {
-	if (ipo) {
-		IpoCurve *icu;
-		
-		for (icu= ipo->curve.first; icu; icu= icu->next) {
-			if (icu->adrcode == adrcode) 
-				return icu;
-		}
-	}
+	/* Object layers */
+	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) 
+		RET_ABP(ob_layer_bits)
+	else if ((blocktype == ID_MA) && (adrcode == MA_MODE))
+		RET_ABP(ma_mode_bits)
+	// XXX TODO: add other types...
+	
+	/* Normal curve */
 	return NULL;
 }
 
-/* return whether the given IPO block has a IPO-curve with the given adrcode */
-short has_ipo_code(Ipo *ipo, int adrcode)
+/* *************************************************** */
+/* ADRCODE to RNA-Path Conversion Code  - Standard */
+
+/* Object types */
+static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 {
-	/* return success of faliure from trying to find such an IPO-curve */
-	return (find_ipocurve(ipo, adrcode) != NULL);
-}
-
-/* ---------------------- Make Local --------------------------- */
-
-
-/* make the given IPO local (for Objects)
- * - only lib users: do nothing
- * - only local users: set flag
- * - mixed: make copy
- */
-void make_local_obipo (Ipo *src)
-{
-	Object *ob;
-	Ipo *dst;
-	int local=0, lib=0;
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
 	
-	/* check if only local and/or lib */
-	for (ob= G.main->object.first; ob; ob= ob->id.next) {
-		if (ob->ipo == src) {
-			if (ob->id.lib) lib= 1;
-			else local= 1;
-		}
-	}
-	
-	/* only local - set flag */
-	if (local && lib==0) {
-		src->id.lib= 0;
-		src->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)src, 0);
-	}
-	/* mixed: make copy */
-	else if (local && lib) {
-		dst= copy_ipo(src);
-		dst->id.us= 0;
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case OB_LOC_X:
+			*array_index= 0; return "location";
+		case OB_LOC_Y:
+			*array_index= 1; return "location";
+		case OB_LOC_Z:
+			*array_index= 2; return "location";
+		case OB_DLOC_X:
+			*array_index= 0; return "delta_location";
+		case OB_DLOC_Y:
+			*array_index= 1; return "delta_location";
+		case OB_DLOC_Z:
+			*array_index= 2; return "delta_location";
 		
-		for (ob= G.main->object.first; ob; ob= ob->id.next) {
-			if (ob->ipo == src) {
-				if (ob->id.lib == NULL) {
-					ob->ipo= dst;
-					dst->id.us++;
-					src->id.us--;
-				}
-			}
-		}
-	}
-}
-
-/* make the given IPO local (for Materials)
- * - only lib users: do nothing
- * - only local users: set flag
- * - mixed: make copy
- */
-void make_local_matipo (Ipo *src)
-{
-	Material *ma;
-	Ipo *dst;
-	int local=0, lib=0;
-	
-	/* check if only local and/or lib */
-	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
-		if (ma->ipo == src) {
-			if (ma->id.lib) lib= 1;
-			else local= 1;
-		}
-	}
-	
-	/* only local - set flag */
-	if (local && lib==0) {
-		src->id.lib= 0;
-		src->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)src, 0);
-	}
-	/* mixed: make copy */
-	else if (local && lib) {
-		dst= copy_ipo(src);
-		dst->id.us= 0;
-		
-		for (ma= G.main->mat.first; ma; ma= ma->id.next) {
-			if (ma->ipo == src) {
-				if (ma->id.lib == NULL) {
-					ma->ipo= dst;
-					dst->id.us++;
-					src->id.us--;
-				}
-			}
-		}
-	}
-}
-
-/* make the given IPO local (for ShapeKeys)
- * - only lib users: do nothing
- * - only local users: set flag
- * - mixed: make copy
- */
-void make_local_keyipo (Ipo *src)
-{
-	Key *key;
-	Ipo *dst;
-	int local=0, lib=0;
-	
-	/* check if only local and/or lib */
-	for (key= G.main->key.first; key; key= key->id.next) {
-		if (key->ipo == src) {
-			if (key->id.lib) lib= 1;
-			else local= 1;
-		}
-	}
-	
-	/* only local - set flag */
-	if (local && lib==0) {
-		src->id.lib= 0;
-		src->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)src, 0);
-	}
-	/* mixed: make copy */
-	else if (local && lib) {
-		dst= copy_ipo(src);
-		dst->id.us= 0;
-		
-		for (key= G.main->key.first; key; key= key->id.next) {
-			if (key->ipo == src) {
-				if (key->id.lib == NULL) {
-					key->ipo= dst;
-					dst->id.us++;
-					src->id.us--;
-				}
-			}
-		}
-	}
-}
-
-
-/* generic call to make IPO's local */
-void make_local_ipo (Ipo *ipo)
-{
-	/* can't touch lib-linked data */
-	if (ipo->id.lib == NULL) 
-		return;
-		
-	/* with only one user, just set local flag */
-	if (ipo->id.us == 1) {
-		ipo->id.lib= 0;
-		ipo->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)ipo, 0);
-		return;
-	}
-	
-	/* when more than 1 user, can only make local for certain blocktypes */
-	switch (ipo->blocktype) {
-		case ID_OB:
-			make_local_obipo(ipo);
+		case OB_ROT_X:
+			*array_index= 0; return "rotation";
+		case OB_ROT_Y:
+			*array_index= 1; return "rotation";
+		case OB_ROT_Z:
+			*array_index= 2; return "rotation";
+		case OB_DROT_X:
+			*array_index= 0; return "delta_rotation";
+		case OB_DROT_Y:
+			*array_index= 1; return "delta_rotation";
+		case OB_DROT_Z:
+			*array_index= 2; return "delta_rotation";
+			
+		case OB_SIZE_X:
+			*array_index= 0; return "scale";
+		case OB_SIZE_Y:
+			*array_index= 1; return "scale";
+		case OB_SIZE_Z:
+			*array_index= 2; return "scale";
+		case OB_DSIZE_X:
+			*array_index= 0; return "delta_scale";
+		case OB_DSIZE_Y:
+			*array_index= 1; return "delta_scale";
+		case OB_DSIZE_Z:
+			*array_index= 2; return "delta_scale";
+		case OB_COL_R:
+			*array_index= 0; return "color";
+		case OB_COL_G:
+			*array_index= 1; return "color";
+		case OB_COL_B:
+			*array_index= 2; return "color";
+		case OB_COL_A:
+			*array_index= 3; return "color";
+#if 0
+		case OB_PD_FSTR:
+			if (ob->pd) poin= &(ob->pd->f_strength);
 			break;
-		case ID_MA:
-			make_local_matipo(ipo);
+		case OB_PD_FFALL:
+			if (ob->pd) poin= &(ob->pd->f_power);
 			break;
-		case ID_KE:
-			make_local_keyipo(ipo);
+		case OB_PD_SDAMP:
+			if (ob->pd) poin= &(ob->pd->pdef_damp);
 			break;
-	}
-}
-
-/* ***************************** Keyframe Column Tools ********************************* */
-
-/* add a BezTriple to a column */
-void add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
-{
-	CfraElem *ce, *cen;
-	
-	for (ce= lb->first; ce; ce= ce->next) {
-		/* double key? */
-		if (ce->cfra == bezt->vec[1][0]) {
-			if (bezt->f2 & SELECT) ce->sel= bezt->f2;
-			return;
-		}
-		/* should key be inserted before this column? */
-		else if (ce->cfra > bezt->vec[1][0]) break;
+		case OB_PD_RDAMP:
+			if (ob->pd) poin= &(ob->pd->pdef_rdamp);
+			break;
+		case OB_PD_PERM:
+			if (ob->pd) poin= &(ob->pd->pdef_perm);
+			break;
+		case OB_PD_FMAXD:
+			if (ob->pd) poin= &(ob->pd->maxdist);
+			break;
+#endif
 	}
 	
-	/* create a new column */
-	cen= MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem");	
-	if (ce) BLI_insertlinkbefore(lb, ce, cen);
-	else BLI_addtail(lb, cen);
-
-	cen->cfra= bezt->vec[1][0];
-	cen->sel= bezt->f2;
+	return NULL;
 }
 
-/* make a list of keyframe 'columns' in an IPO block */
-void make_cfra_list (Ipo *ipo, ListBase *elems)
-{
-	IpoCurve *icu;
-	BezTriple *bezt;
-	int a;
-	
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		if (icu->flag & IPO_VISIBLE) {
-			/* ... removed old checks for adrcode types from here ...
-			 * 	- (was this used for IpoKeys in the past?)
-			 */
-			
-			bezt= icu->bezt;
-			if (bezt) {
-				for (a=0; a < icu->totvert; a++, bezt++) {
-					add_to_cfra_elem(elems, bezt);
-				}
-			}
-		}
-	}
-}
-
-/* ***************************** Timing Stuff ********************************* */
-
-/* This (evil) function is needed to cope with two legacy Blender rendering features
- * mblur (motion blur that renders 'subframes' and blurs them together), and fields 
- * rendering. Thus, the use of ugly globals from object.c
+/* PoseChannel types 
+ * NOTE: pchan name comes from 'actname' added earlier... 
  */
-// BAD... EVIL... JUJU...!!!!
-float frame_to_float (int cfra)		/* see also bsystem_time in object.c */
+static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 {
-	extern float bluroffs;	/* bad stuff borrowed from object.c */
-	extern float fieldoffs;
-	float ctime;
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
 	
-	ctime= (float)cfra;
-	ctime+= bluroffs+fieldoffs;
-	ctime*= G.scene->r.framelen;
-	
-	return ctime;
-}
-
-/* ***************************** IPO Curve Sanity ********************************* */
-/* The functions here are used in various parts of Blender, usually after some editing
- * of keyframe data has occurred. They ensure that keyframe data is properly ordered and
- * that the handles are correctly 
- */
-
-/* This function recalculates the handles of an IPO-Curve 
- * If the BezTriples have been rearranged, sort them first before using this.
- */
-void calchandles_ipocurve (IpoCurve *icu)
-{
-	BezTriple *bezt, *prev, *next;
-	int a= icu->totvert;
-
-	/* Error checking:
-	 *	- need at least two points
-	 *	- need bezier keys
-	 *	- only bezier-interpolation has handles (for now)
-	 */
-	if (ELEM(NULL, icu, icu->bezt) || (a < 2) || ELEM(icu->ipo, IPO_CONST, IPO_LIN)) 
-		return;
-	
-	/* get initial pointers */
-	bezt= icu->bezt;
-	prev= NULL;
-	next= (bezt + 1);
-	
-	/* loop over all beztriples, adjusting handles */
-	while (a--) {
-		/* clamp timing of handles to be on either side of beztriple */
-		if (bezt->vec[0][0] > bezt->vec[1][0]) bezt->vec[0][0]= bezt->vec[1][0];
-		if (bezt->vec[2][0] < bezt->vec[1][0]) bezt->vec[2][0]= bezt->vec[1][0];
-		
-		/* calculate autohandles */
-		if (icu->flag & IPO_AUTO_HORIZ) 
-			calchandleNurb(bezt, prev, next, 2);	/* 2==special autohandle && keep extrema horizontal */
-		else
-			calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
-		
-		/* for automatic ease in and out */
-		if ((bezt->h1==HD_AUTO) && (bezt->h2==HD_AUTO)) {
-			/* only do this on first or last beztriple */
-			if ((a==0) || (a==icu->totvert-1)) {
-				/* set both handles to have same horizontal value as keyframe */
-				if (icu->extrap==IPO_HORIZ) {
-					bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
-				}
-			}
-		}
-		
-		/* advance pointers for next iteration */
-		prev= bezt;
-		if (a == 1) next= NULL;
-		else next++;
-		bezt++;
-	}
-}
-
-/* Use when IPO-Curve with handles has changed
- * It treats all BezTriples with the following rules:
- *  - PHASE 1: do types have to be altered?
- * 		-> Auto handles: become aligned when selection status is NOT(000 || 111)
- * 		-> Vector handles: become 'nothing' when (one half selected AND other not)
- *  - PHASE 2: recalculate handles
-*/
-void testhandles_ipocurve (IpoCurve *icu)
-{
-	BezTriple *bezt;
-	int a;
-
-	/* only beztriples have handles (bpoints don't though) */
-	if (ELEM(NULL, icu, icu->bezt))
-		return;
-	
-	/* loop over beztriples */
-	for (a=0, bezt=icu->bezt; a < icu->totvert; a++, bezt++) {
-		short flag= 0;
-		
-		/* flag is initialised as selection status
-		 * of beztriple control-points (labelled 0,1,2)
-		 */
-		if (bezt->f1 & SELECT) flag |= (1<<0); // == 1
-		if (bezt->f2 & SELECT) flag |= (1<<1); // == 2
-		if (bezt->f3 & SELECT) flag |= (1<<2); // == 4
-		
-		/* one or two handles selected only */
-		if (ELEM(flag, 0, 7)==0) {
-			/* auto handles become aligned */
-			if (bezt->h1==HD_AUTO)
-				bezt->h1= HD_ALIGN;
-			if(bezt->h2==HD_AUTO)
-				bezt->h2= HD_ALIGN;
-			
-			/* vector handles become 'free' when only one half selected */
-			if(bezt->h1==HD_VECT) {
-				/* only left half (1 or 2 or 1+2) */
-				if (flag < 4) 
-					bezt->h1= 0;
-			}
-			if(bezt->h2==HD_VECT) {
-				/* only right half (4 or 2+4) */
-				if (flag > 3) 
-					bezt->h2= 0;
-			}
-		}
-	}
-
-	/* recalculate handles */
-	calchandles_ipocurve(icu);
-}
-
-/* This function sorts BezTriples so that they are arranged in chronological order,
- * as tools working on IPO-Curves expect that the BezTriples are in order.
- */
-void sort_time_ipocurve(IpoCurve *icu)
-{
-	short ok= 1;
-	
-	/* keep adjusting order of beztriples until nothing moves (bubble-sort) */
-	while (ok) {
-		ok= 0;
-		
-		/* currently, will only be needed when there are beztriples */
-		if (icu->bezt) {
-			BezTriple *bezt;
-			int a;
-			
-			/* loop over ALL points to adjust position in array and recalculate handles */
-			for (a=0, bezt=icu->bezt; a < icu->totvert; a++, bezt++) {
-				/* check if thee's a next beztriple which we could try to swap with current */
-				if (a < (icu->totvert-1)) {
-					/* swap if one is after the other (and indicate that order has changed) */
-					if (bezt->vec[1][0] > (bezt+1)->vec[1][0]) {
-						SWAP(BezTriple, *bezt, *(bezt+1));
-						ok= 1;
-					}
-					
-					/* if either one of both of the points exceeds crosses over the keyframe time... */
-					if ( (bezt->vec[0][0] > bezt->vec[1][0]) && (bezt->vec[2][0] < bezt->vec[1][0]) ) {
-						/* swap handles if they have switched sides for some reason */
-						SWAP(float, bezt->vec[0][0], bezt->vec[2][0]);
-						SWAP(float, bezt->vec[0][1], bezt->vec[2][1]);
-					}
-					else {
-						/* clamp handles */
-						if (bezt->vec[0][0] > bezt->vec[1][0]) 
-							bezt->vec[0][0]= bezt->vec[1][0];
-						if (bezt->vec[2][0] < bezt->vec[1][0]) 
-							bezt->vec[2][0]= bezt->vec[1][0];
-					}
-				}
-			}
-		}
-	}
-}
-
-/* This function tests if any BezTriples are out of order, thus requiring a sort */
-int test_time_ipocurve (IpoCurve *icu)
-{
-	int a;
-	
-	/* currently, only need to test beztriples */
-	if (icu->bezt) {
-		BezTriple *bezt;
-		
-		/* loop through all beztriples, stopping when one exceeds the one after it */
-		for (a=0, bezt= icu->bezt; a < (icu->totvert - 1); a++, bezt++) {
-			if (bezt->vec[1][0] > (bezt+1)->vec[1][0])
-				return 1;
-		}
-	}
-	
-	/* none need any swapping */
-	return 0;
-}
-
-/* --------- */
-
-/* The total length of the handles is not allowed to be more
- * than the horizontal distance between (v1-v4).
- * This is to prevent curve loops.
-*/
-void correct_bezpart (float *v1, float *v2, float *v3, float *v4)
-{
-	float h1[2], h2[2], len1, len2, len, fac;
-	
-	/* calculate handle deltas */
-	h1[0]= v1[0]-v2[0];
-	h1[1]= v1[1]-v2[1];
-	h2[0]= v4[0]-v3[0];
-	h2[1]= v4[1]-v3[1];
-	
-	/* calculate distances: 
-	 * 	- len	= span of time between keyframes 
-	 *	- len1	= length of handle of start key
-	 *	- len2 	= length of handle of end key
-	 */
-	len= v4[0]- v1[0];
-	len1= (float)fabs(h1[0]);
-	len2= (float)fabs(h2[0]);
-	
-	/* if the handles have no length, no need to do any corrections */
-	if ((len1+len2) == 0.0) 
-		return;
-		
-	/* the two handles cross over each other, so force them
-	 * apart using the proportion they overlap 
-	 */
-	if ((len1+len2) > len) {
-		fac= len/(len1+len2);
-		
-		v2[0]= (v1[0]-fac*h1[0]);
-		v2[1]= (v1[1]-fac*h1[1]);
-		
-		v3[0]= (v4[0]-fac*h2[0]);
-		v3[1]= (v4[1]-fac*h2[1]);
-	}
-}
-
-#if 0 // TODO: enable when we have per-segment interpolation
-/* This function sets the interpolation mode for an entire Ipo-Curve. 
- * It is primarily used for patching old files, but is also used in the interface
- * to make sure that all segments of the curve use the same interpolation.
- */
-void set_interpolation_ipocurve (IpoCurve *icu, short ipo)
-{
-	BezTriple *bezt;
-	int a;
-	
-	/* validate arguments */
-	if (icu == NULL) return;
-	if (ELEM3(ipo, IPO_CONST, IPO_LIN, IPO_BEZ)==0) return;
-
-	/* set interpolation mode for whole curve */
-	icu->ipo= ipo;
-	
-	/* set interpolation mode of all beztriples */
-	for (a=0, bezt=icu->bezt; a<icu->totvert; a++, bezt++)
-		bezt->ipo= ipo;
-}
-#endif // TODO: enable when we have per-segment interpolation
-
-/* ***************************** Curve Calculations ********************************* */
-
-/* find root/zero */
-int findzero (float x, float q0, float q1, float q2, float q3, float *o)
-{
-	double c0, c1, c2, c3, a, b, c, p, q, d, t, phi;
-	int nr= 0;
-
-	c0= q0 - x;
-	c1= 3 * (q1 - q0);
-	c2= 3 * (q0 - 2*q1 + q2);
-	c3= q3 - q0 + 3 * (q1 - q2);
-	
-	if (c3 != 0.0) {
-		a= c2/c3;
-		b= c1/c3;
-		c= c0/c3;
-		a= a/3;
-		
-		p= b/3 - a*a;
-		q= (2*a*a*a - a*b + c) / 2;
-		d= q*q + p*p*p;
-		
-		if (d > 0.0) {
-			t= sqrt(d);
-			o[0]= (float)(Sqrt3d(-q+t) + Sqrt3d(-q-t) - a);
-			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
-			else return 0;
-		}
-		else if (d == 0.0) {
-			t= Sqrt3d(-q);
-			o[0]= (float)(2*t - a);
-			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
-			o[nr]= (float)(-t-a);
-			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
-			else return nr;
-		}
-		else {
-			phi= acos(-q / sqrt(-(p*p*p)));
-			t= sqrt(-p);
-			p= cos(phi/3);
-			q= sqrt(3 - 3*p*p);
-			o[0]= (float)(2*t*p - a);
-			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
-			o[nr]= (float)(-t * (p + q) - a);
-			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) nr++;
-			o[nr]= (float)(-t * (p - q) - a);
-			
-			if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
-			else return nr;
-		}
-	}
-	else {
-		a=c2;
-		b=c1;
-		c=c0;
-		
-		if (a != 0.0) {
-			// discriminant
-			p= b*b - 4*a*c;
-			
-			if (p > 0) {
-				p= sqrt(p);
-				o[0]= (float)((-b-p) / (2 * a));
-				
-				if ((o[0] >= SMALL) && (o[0] <= 1.000001)) nr++;
-				o[nr]= (float)((-b+p)/(2*a));
-				
-				if ((o[nr] >= SMALL) && (o[nr] <= 1.000001)) return nr+1;
-				else return nr;
-			}
-			else if (p == 0) {
-				o[0]= (float)(-b / (2 * a));
-				if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
-				else return 0;
-			}
-		}
-		else if (b != 0.0) {
-			o[0]= (float)(-c/b);
-			
-			if ((o[0] >= SMALL) && (o[0] <= 1.000001)) return 1;
-			else return 0;
-		}
-		else if (c == 0.0) {
-			o[0]= 0.0;
-			return 1;
-		}
-		
-		return 0;	
-	}
-}
-
-void berekeny (float f1, float f2, float f3, float f4, float *o, int b)
-{
-	float t, c0, c1, c2, c3;
-	int a;
-
-	c0= f1;
-	c1= 3.0f * (f2 - f1);
-	c2= 3.0f * (f1 - 2.0f*f2 + f3);
-	c3= f4 - f1 + 3.0f * (f2 - f3);
-	
-	for (a=0; a < b; a++) {
-		t= o[a];
-		o[a]= c0 + t*c1 + t*t*c2 + t*t*t*c3;
-	}
-}
-
-void berekenx (float *f, float *o, int b)
-{
-	float t, c0, c1, c2, c3;
-	int a;
-
-	c0= f[0];
-	c1= 3 * (f[3] - f[0]);
-	c2= 3 * (f[0] - 2*f[3] + f[6]);
-	c3= f[9] - f[0] + 3 * (f[3] - f[6]);
-	
-	for (a=0; a < b; a++) {
-		t= o[a];
-		o[a]= c0 + t*c1 + t*t*c2 + t*t*t*c3;
-	}
-}
-
-/* ***************************** IPO - Calculations ********************************* */
-
-/* ---------------------- Curve Evaluation --------------------------- */
-
-/* helper function for evaluating drivers: 
- *	- we need the local transform = current transform - (parent transform + bone transform)
- *	- (local transform is on action channel level)
- */
-static void posechannel_get_local_transform (bPoseChannel *pchan, float loc[], float eul[], float size[])
-{
-	float parmat[4][4], offs_bone[4][4], imat[4][4];
-	float diff_mat[4][4];
-	
-	/* get first the parent + bone transform in parmat */
-	if (pchan->parent) {
-		/* bone transform itself */
-		Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
-		
-		/* The bone's root offset (is in the parent's coordinate system) */
-		VECCOPY(offs_bone[3], pchan->bone->head);
-		
-		/* Get the length translation of parent (length along y axis) */
-		offs_bone[3][1]+= pchan->parent->bone->length;
-		
-		Mat4MulSerie(parmat, pchan->parent->pose_mat, offs_bone, NULL, NULL, NULL, NULL, NULL, NULL);
-		
-		/* invert it */
-		Mat4Invert(imat, parmat);
-	}
-	else {
-		Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
-		VECCOPY(offs_bone[3], pchan->bone->head);
-		
-		/* invert it */
-		Mat4Invert(imat, offs_bone);
-	}
-	
-	/* difference: current transform - (parent transform + bone transform)  */
-	Mat4MulMat4(diff_mat, pchan->pose_mat, imat);
-
-	/* extract relevant components */
-	if (loc)
-		VECCOPY(loc, diff_mat[3]);
-	if (eul)
-		Mat4ToEul(diff_mat, eul);
-	if (size)
-		Mat4ToSize(diff_mat, size);
-}
-
-/* evaluate an IPO-driver to get a 'time' value to use instead of "ipotime"
- *	- "ipotime" is the frame at which IPO-curve is being evaluated
- * 	- has to return a float value 
- */
-static float eval_driver (IpoDriver *driver, float ipotime)
-{
-#ifndef DISABLE_PYTHON
-	/* currently, drivers are either PyDrivers (evaluating a PyExpression, or Object/Pose-Channel transforms) */
-	if (driver->type == IPO_DRIVER_TYPE_PYTHON) {
-		/* check for empty or invalid expression */
-		if ( (driver->name[0] == '\0') ||
-			 (driver->flag & IPO_DRIVER_FLAG_INVALID) )
-		{
-			return 0.0f;
-		}
-		
-		/* this evaluates the expression using Python,and returns its result:
-		 * 	- on errors it reports, then returns 0.0f
-		 */
-		return BPY_pydriver_eval(driver);
-	}
-	else
-#endif /* DISABLE_PYTHON */
-	{
-
-		Object *ob= driver->ob;
-		
-		/* must have an object to evaluate */
-		if (ob == NULL) 
-			return 0.0f;
-			
-		/* if a proxy, use the proxy source*/
-		if (ob->proxy_from)
-			ob= ob->proxy_from;
-		
-		/* use given object as driver */
-		if (driver->blocktype == ID_OB) {
-			/* depsgraph failure: ob ipos are calculated in where_is_object, this might get called too late */
-			if ((ob->ipo) && (ob->ctime != ipotime)) {
-				/* calculate the value of relevant channel on the Object, but do not write the value
-				 * calculated on to the Object but onto "ipotime" instead
-				 */
-				calc_ipo_spec(ob->ipo, driver->adrcode, &ipotime);
-				return ipotime;
-			}
-			
-			/* return the value of the relevant channel */
-			switch (driver->adrcode) {
-			case OB_LOC_X:
-				return ob->loc[0];
-			case OB_LOC_Y:
-				return ob->loc[1];
-			case OB_LOC_Z:
-				return ob->loc[2];
-			case OB_ROT_X:	/* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-				return (float)( ob->rot[0]/(M_PI_2/9.0) );
-			case OB_ROT_Y:	/* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-				return (float)( ob->rot[1]/(M_PI_2/9.0) );
-			case OB_ROT_Z:	/* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-				return (float)( ob->rot[2]/(M_PI_2/9.0) );
-			case OB_SIZE_X:
-				return ob->size[0];
-			case OB_SIZE_Y:
-				return ob->size[1];
-			case OB_SIZE_Z:
-				return ob->size[2];
-			}
-		}
-		
-		/* use given pose-channel as driver */
-		else {	/* ID_AR */
-			bPoseChannel *pchan= get_pose_channel(ob->pose, driver->name);
-			
-			/* must have at least 1 bone to use */
-			if (pchan && pchan->bone) {
-				/* rotation difference is not a simple driver (i.e. value drives value), but the angle between 2 bones is driving stuff... 
-				 *	- the name of the second pchan is also stored in driver->name, but packed after the other one by DRIVER_NAME_OFFS chars
-				 */
-				if (driver->adrcode == OB_ROT_DIFF) {
-					bPoseChannel *pchan2= get_pose_channel(ob->pose, driver->name+DRIVER_NAME_OFFS);
-					
-					if (pchan2 && pchan2->bone) {
-						float q1[4], q2[4], quat[4], angle;
-						
-						Mat4ToQuat(pchan->pose_mat, q1);
-						Mat4ToQuat(pchan2->pose_mat, q2);
-						
-						QuatInv(q1);
-						QuatMul(quat, q1, q2);
-						angle = 2.0f * (saacos(quat[0]));
-						angle= ABS(angle);
-						
-						return (angle > M_PI) ? (float)((2.0f * M_PI) - angle) : (float)(angle);
-					}
-				}
-				
-				/* standard driver */
-				else {
-					float loc[3], eul[3], size[3];
-					
-					/* retrieve local transforms to return 
-					 *	- we use eulers here NOT quats, so that Objects can be driven by bones easily
-					 *	  also, this way is more understandable for users
-					 */
-					posechannel_get_local_transform(pchan, loc, eul, size);
-					
-					switch (driver->adrcode) {
-					case OB_LOC_X:
-						return loc[0];
-					case OB_LOC_Y:
-						return loc[1];
-					case OB_LOC_Z:
-						return loc[2];
-					case OB_ROT_X: /* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-						return (float)( eul[0]/(M_PI_2/9.0) );
-					case OB_ROT_Y: /* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-						return (float)( eul[1]/(M_PI_2/9.0) );
-					case OB_ROT_Z: /* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-						return (float)( eul[2]/(M_PI_2/9.0) );
-					case OB_SIZE_X:
-						return size[0];
-					case OB_SIZE_Y:
-						return size[1];
-					case OB_SIZE_Z:
-						return size[2];
-					}
-				}
-			}
-		}
-	}	
-	
-	/* return 0.0f, as couldn't find relevant data to use */
-	return 0.0f;
-}
-
-/* evaluate and return the value of the given IPO-curve at the specified frame ("evaltime") */
-float eval_icu(IpoCurve *icu, float evaltime) 
-{
-	float cvalue = 0.0f;
-	
-	/* if there is a driver, evaluate it to find value to use as "evaltime" 
-	 *	- this value will also be returned as the value of the 'curve', if there are no keyframes
-	 */
-	if (icu->driver) {
-		/* ipotime now serves as input for the curve */
-		evaltime= cvalue= eval_driver(icu->driver, evaltime);
-	}
-	
-	/* there are keyframes (in the form of BezTriples) which can be interpolated between */
-	if (icu->bezt) {
-		/* get pointers */
-		BezTriple *bezt, *prevbezt, *lastbezt;
-		float v1[2], v2[2], v3[2], v4[2], opl[32], dx, fac;
-		float cycdx, cycdy, ofs, cycyofs= 0.0;
-		int a, b;
-		
-		/* get pointers */
-		a= icu->totvert-1;
-		prevbezt= icu->bezt;
-		bezt= prevbezt+1;
-		lastbezt= prevbezt + a;
-		
-		/* extrapolation mode is 'cyclic' - find relative place within a cycle */
-		if (icu->extrap & IPO_CYCL) {
-			/* ofs is start frame of cycle */
-			ofs= prevbezt->vec[1][0];
-			
-			/* calculate period and amplitude (total height) of a cycle */
-			cycdx= lastbezt->vec[1][0] - prevbezt->vec[1][0];
-			cycdy= lastbezt->vec[1][1] - prevbezt->vec[1][1];
-			
-			/* cycle occurs over some period of time (cycdx should be positive all the time) */
-			if (cycdx) {
-				/* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle
-				 *	- IPO_CYCLX = (IPO_CYCL + IPO_DIR)
-				 */
-				if (icu->extrap & IPO_DIR) {
-					cycyofs = (float)floor((evaltime - ofs) / cycdx);
-					cycyofs *= cycdy;
-				}
-				
-				/* calculate where in the cycle we are (overwrite evaltime to reflect this) */
-				evaltime= (float)(fmod(evaltime-ofs, cycdx) + ofs);
-				if (evaltime < ofs) evaltime += cycdx;
-			}
-		}
-		
-		/* evaluation time at or past endpoints? */
-		// TODO: for per-bezt interpolation, replace all icu->ipo with (bezt)->ipo
-		if (prevbezt->vec[1][0] >= evaltime) {
-			/* before or on first keyframe */
-			if ((icu->extrap & IPO_DIR) && (icu->ipo != IPO_CONST)) {
-				/* linear or bezier interpolation */
-				if (icu->ipo==IPO_LIN) {
-					/* Use the next center point instead of our own handle for
-					 * linear interpolated extrapolate 
-					 */
-					if (icu->totvert == 1) 
-						cvalue= prevbezt->vec[1][1];
-					else {
-						bezt = prevbezt+1;
-						dx= prevbezt->vec[1][0] - evaltime;
-						fac= bezt->vec[1][0] - prevbezt->vec[1][0];
-						
-						/* prevent division by zero */
-						if (fac) {
-							fac= (bezt->vec[1][1] - prevbezt->vec[1][1]) / fac;
-							cvalue= prevbezt->vec[1][1] - (fac * dx);
-						}
-						else 
-							cvalue= prevbezt->vec[1][1];
-					}
-				} 
-				else {
-					/* Use the first handle (earlier) of first BezTriple to calculate the
-					 * gradient and thus the value of the curve at evaltime
-					 */
-					dx= prevbezt->vec[1][0] - evaltime;
-					fac= prevbezt->vec[1][0] - prevbezt->vec[0][0];
-					
-					/* prevent division by zero */
-					if (fac) {
-						fac= (prevbezt->vec[1][1] - prevbezt->vec[0][1]) / fac;
-						cvalue= prevbezt->vec[1][1] - (fac * dx);
-					}
-					else 
-						cvalue= prevbezt->vec[1][1];
-				}
-			}
-			else {
-				/* constant (IPO_HORIZ) extrapolation or constant interpolation, 
-				 * so just extend first keyframe's value 
-				 */
-				cvalue= prevbezt->vec[1][1];
-			}
-		}
-		else if (lastbezt->vec[1][0] <= evaltime) {
-			/* after or on last keyframe */
-			if( (icu->extrap & IPO_DIR) && (icu->ipo != IPO_CONST)) {
-				/* linear or bezier interpolation */
-				if (icu->ipo==IPO_LIN) {
-					/* Use the next center point instead of our own handle for
-					 * linear interpolated extrapolate 
-					 */
-					if (icu->totvert == 1) 
-						cvalue= lastbezt->vec[1][1];
-					else {
-						prevbezt = lastbezt - 1;
-						dx= evaltime - lastbezt->vec[1][0];
-						fac= lastbezt->vec[1][0] - prevbezt->vec[1][0];
-						
-						/* prevent division by zero */
-						if (fac) {
-							fac= (lastbezt->vec[1][1] - prevbezt->vec[1][1]) / fac;
-							cvalue= lastbezt->vec[1][1] + (fac * dx);
-						}
-						else 
-							cvalue= lastbezt->vec[1][1];
-					}
-				} 
-				else {
-					/* Use the gradient of the second handle (later) of last BezTriple to calculate the
-					 * gradient and thus the value of the curve at evaltime
-					 */
-					dx= evaltime - lastbezt->vec[1][0];
-					fac= lastbezt->vec[2][0] - lastbezt->vec[1][0];
-					
-					/* prevent division by zero */
-					if (fac) {
-						fac= (lastbezt->vec[2][1] - lastbezt->vec[1][1]) / fac;
-						cvalue= lastbezt->vec[1][1] + (fac * dx);
-					}
-					else 
-						cvalue= lastbezt->vec[1][1];
-				}
-			}
-			else {
-				/* constant (IPO_HORIZ) extrapolation or constant interpolation, 
-				 * so just extend last keyframe's value 
-				 */
-				cvalue= lastbezt->vec[1][1];
-			}
-		}
-		else {
-			/* evaltime occurs somewhere in the middle of the curve */
-			// TODO: chould be optimised by using a binary search instead???
-			for (a=0; prevbezt && bezt && (a < icu->totvert-1); a++, prevbezt=bezt, bezt++) {  
-				/* evaltime occurs within the interval defined by these two keyframes */
-				if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) {
-					/* value depends on interpolation mode */
-					if (icu->ipo == IPO_CONST) {
-						/* constant (evaltime not relevant, so no interpolation needed) */
-						cvalue= prevbezt->vec[1][1];
-					}
-					else if (icu->ipo == IPO_LIN) {
-						/* linear - interpolate between values of the two keyframes */
-						fac= bezt->vec[1][0] - prevbezt->vec[1][0];
-						
-						/* prevent division by zero */
-						if (fac) {
-							fac= (evaltime - prevbezt->vec[1][0]) / fac;
-							cvalue= prevbezt->vec[1][1] + (fac * (bezt->vec[1][1] - prevbezt->vec[1][1]));
-						}
-						else
-							cvalue= prevbezt->vec[1][1];
-					}
-					else {
-						/* bezier interpolation */
-							/* v1,v2 are the first keyframe and its 2nd handle */
-						v1[0]= prevbezt->vec[1][0];
-						v1[1]= prevbezt->vec[1][1];
-						v2[0]= prevbezt->vec[2][0];
-						v2[1]= prevbezt->vec[2][1];
-							/* v3,v4 are the last keyframe's 1st handle + the last keyframe */
-						v3[0]= bezt->vec[0][0];
-						v3[1]= bezt->vec[0][1];
-						v4[0]= bezt->vec[1][0];
-						v4[1]= bezt->vec[1][1];
-						
-						/* adjust handles so that they don't overlap (forming a loop) */
-						correct_bezpart(v1, v2, v3, v4);
-						
-						/* try to get a value for this position - if failure, try another set of points */
-						b= findzero(evaltime, v1[0], v2[0], v3[0], v4[0], opl);
-						if (b) {
-							berekeny(v1[1], v2[1], v3[1], v4[1], opl, 1);
-							cvalue= opl[0];
-							break;
-						}
-					}
-				}
-			}
-		}
-		
-		/* apply y-offset (for 'cyclic extrapolation') to calculated value */
-		cvalue+= cycyofs;
-	}
-	
-	/* clamp evaluated value to lie within allowable value range for this channel */
-	if (icu->ymin < icu->ymax) {
-		CLAMP(cvalue, icu->ymin, icu->ymax);
-	}
-	
-	/* return evaluated value */
-	return cvalue;
-}
-
-/* ------------------- IPO-Block/Curve Calculation - General API ----------------------- */
-
-/* calculate the value of the given IPO-curve at the current frame, and set its curval */
-void calc_icu (IpoCurve *icu, float ctime)
-{
-	/* calculate and set curval (evaluates driver too) */
-	icu->curval= eval_icu(icu, ctime);
-}
-
-/* calculate for the current frame, all IPO-curves in IPO-block that can be evaluated 
- *	- icu->curval is set for all IPO-curves which are evaluated!
- */
-void calc_ipo (Ipo *ipo, float ctime)
-{
-	IpoCurve *icu;
-	
-	/* if there is no IPO block to evaluate, or whole block is "muted" */
-	if (ipo == NULL) return;
-	if (ipo->muteipo) return;
-	
-	/* loop over all curves */
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		/* only evaluated curve if allowed to:
-		 * 	- Muted channels should not be evaluated as they shouldn't have any effect 
-		 *		--> user explictly turned them off!
-		 *	- Drivers should be evaluated at all updates
-		 *		--> TODO Note: drivers should be separated from standard channels
-		 *	- IPO_LOCK is not set, as it is set by some internal mechanisms to prevent
-		 *		IPO-curve from overwriting data (currently only used for IPO-Record). 
-		 */
-		if ((icu->driver) || (icu->flag & IPO_LOCK)==0) { 
-			if ((icu->flag & IPO_MUTE)==0)
-				calc_icu(icu, ctime);
-		}
-	}
-}
-
-/* ------------------- IPO-Block/Curve Calculation - Special Hacks ----------------------- */
-
-/* Calculate and return the value of the 'Time' Ipo-Curve from an Object,
- * OR return the current time if not found
- * 	- used in object.c -> bsystem_time() 
- */
-float calc_ipo_time (Ipo *ipo, float ctime)
-{
-	/* only Time IPO from Object IPO-blocks are relevant */
-	if ((ipo) && (ipo->blocktype == ID_OB)) {
-		IpoCurve *icu= find_ipocurve(ipo, OB_TIME);
-		
-		/* only calculate (and set icu->curval) for time curve */
-		if (icu) {
-			calc_icu(icu, ctime);
-			return (10.0f * icu->curval);
-		}
-	}
-	
-	/* no appropriate time-curve found */
-	return ctime;
-}
-
-/* Evaluate the specified channel in the given IPO block on the specified frame (ctime),
- * writing the value into that channel's icu->curval, but ALSO dumping it in ctime.
- * 	- Returns success and modifies ctime! 
- */
-short calc_ipo_spec (Ipo *ipo, int adrcode, float *ctime)
-{
-	IpoCurve *icu= find_ipocurve(ipo, adrcode);
-	
-	/* only evaluate if found */
-	if (icu) {
-		/* only calculate if allowed to (not locked and not muted) 
-		 *	- drivers not taken into account, because this may be called when calculating a driver
-		 */
-		if ((icu->flag & (IPO_LOCK|IPO_MUTE))==0) 
-			calc_icu(icu, *ctime);
-		
-		/* value resulting from calculations is written into ctime! */
-		*ctime= icu->curval;
-		return 1;
-	}
-	
-	/* couldn't evaluate */
-	return 0;
-}
-
-/* ***************************** IPO - DataAPI ********************************* */
-
-/* --------------------- Flush/Execute IPO Values ----------------------------- */
-
-/* Flush IpoCurve->curvals to the data they affect (defined by ID)
- *	 - not for Actions or Constraints!  (those have their own special handling)
- */
-void execute_ipo (ID *id, Ipo *ipo)
-{
-	IpoCurve *icu;
-	void *poin;
-	int type;
-	
-	/* don't do anything without an IPO block */
-	if (ipo == NULL) 
-		return;
-	
-	/* loop over IPO Curves, getting pointer to var to affect, and write into that pointer */
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		poin= get_ipo_poin(id, icu, &type);
-		if (poin) write_ipo_poin(poin, type, icu->curval);
-	}
-}
-
-/* Flush Action-Channel IPO data to Pose Channel */
-void execute_action_ipo (bActionChannel *achan, bPoseChannel *pchan)
-{
-	/* only do this if there's an Action Channel and Pose Channel to use */
-	if (achan && achan->ipo && pchan) {
-		IpoCurve *icu;
-		
-		/* loop over IPO-curves, getting a pointer to pchan var to write to
-		 *	- assume for now that only 'float' channels will ever get written into
-		 */
-		for (icu= achan->ipo->curve.first; icu; icu= icu->next) {
-			void *poin= get_pchan_ipo_poin(pchan, icu->adrcode);
-			if (poin) write_ipo_poin(poin, IPO_FLOAT, icu->curval);
-		}
-	}
-}
-
-
-/* --------------------- Force Calculation + Flush IPO Values ----------------------------- */
-
-/* Calculate values for given IPO block, then flush to all of block's users
- *	 - for general usage 
- */
-void do_ipo (Ipo *ipo)
-{
-	if (ipo) {
-		float ctime= frame_to_float(G.scene->r.cfra);
-		
-		/* calculate values, then flush to all users of this IPO block */
-		calc_ipo(ipo, ctime);
-		do_ipo_nocalc(ipo);
-	}
-}
-
-/* Calculate values for given Material's IPO block, then flush to given Material only */
-void do_mat_ipo (Material *ma)
-{
-	float ctime;
-	
-	if (ELEM(NULL, ma, ma->ipo)) 
-		return;
-	
-	ctime= frame_to_float(G.scene->r.cfra);
-	/* if(ob->ipoflag & OB_OFFS_OB) ctime-= ob->sf; */
-	
-	/* calculate values for current time, then flush values to given material only */
-	calc_ipo(ma->ipo, ctime);
-	execute_ipo((ID *)ma, ma->ipo);
-}
-
-/* Calculate values for given Object's IPO block, then flush to given Object only
- *	- there's also some funky stuff that looks like it's for scene layers
- */
-void do_ob_ipo (Object *ob)
-{
-	float ctime;
-	unsigned int lay;
-	
-	if (ob->ipo == NULL) 
-		return;
-	
-	/* do not set ob->ctime here: for example when parent in invisible layer */
-	ctime= bsystem_time(ob, (float) G.scene->r.cfra, 0.0);
-	
-	/* calculate values of */
-	calc_ipo(ob->ipo, ctime);
-	
-	/* Patch: remember localview */
-	lay= ob->lay & 0xFF000000;
-	
-	/* flush IPO values to this object only */
-	execute_ipo((ID *)ob, ob->ipo);
-	
-	/* hack: for layer animation??? - is this what this is? (Aligorith, 28Sep2008) */
-	ob->lay |= lay;
-	if ((ob->id.name[2]=='S') && (ob->id.name[3]=='C') && (ob->id.name[4]=='E')) {
-		if (strcmp(G.scene->id.name+2, ob->id.name+6)==0) {
-			G.scene->lay= ob->lay;
-			copy_view3d_lock(0);
-			/* no redraw here! creates too many calls */
-		}
-	}
-}
-
-/* Only execute those IPO-Curves with drivers, on the current frame, for the given Object
- * 	- TODO: Drivers should really be made separate from standard anim channels
- */
-void do_ob_ipodrivers (Object *ob, Ipo *ipo, float ctime)
-{
-	IpoCurve *icu;
-	void *poin;
-	int type;
-	
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		if (icu->driver) {
-			icu->curval= eval_icu(icu, ctime);
-			
-			poin= get_ipo_poin((ID *)ob, icu, &type);
-			if (poin) write_ipo_poin(poin, type, icu->curval);
-		}
-	}
-}
-
-/* Special variation to calculate IPO values for Sequence + perform other stuff */
-void do_seq_ipo (Sequence *seq, int cfra)
-{
-	float ctime, div;
-	
-	/* seq_ipo has an exception: calc both fields immediately */
-	if (seq->ipo) {
-		if ((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-			ctime = frame_to_float(cfra);
-			div = 1.0;
-		} 
-		else {
-			ctime= frame_to_float(cfra - seq->startdisp);
-			div= (seq->enddisp - seq->startdisp) / 100.0f;
-			if (div == 0.0) return;
-		}
-		
-		/* 2nd field */
-		calc_ipo(seq->ipo, (ctime+0.5f)/div);
-		execute_ipo((ID *)seq, seq->ipo);
-		seq->facf1= seq->facf0;
-		
-		/* 1st field */
-		calc_ipo(seq->ipo, ctime/div);
-		execute_ipo((ID *)seq, seq->ipo);
-	}
-	else 
-		seq->facf1= seq->facf0= 1.0f;
-}
-
-/* --------- */
-
-
-/* exception: it does calc for objects...
- * now find out why this routine was used anyway!
- */
-void do_ipo_nocalc (Ipo *ipo)
-{
-	Object *ob;
-	Material *ma;
-	Tex *tex;
-	World *wo;
-	Lamp *la;
-	Camera *ca;
-	bSound *snd;
-	
-	if (ipo == NULL) 
-		return;
-	
-	/* only flush IPO values (without calculating first/again) on 
-	 * to the datablocks that use the given IPO block 
-	 */
-	switch (ipo->blocktype) {
-	case ID_OB:
-		for (ob= G.main->object.first; ob; ob= ob->id.next) {
-			if (ob->ipo == ipo) do_ob_ipo(ob);
-		}
-		break;
-	case ID_MA:
-		for (ma= G.main->mat.first; ma; ma= ma->id.next) {
-			if (ma->ipo == ipo) execute_ipo((ID *)ma, ipo);
-		}
-		break;
-	case ID_TE:
-		for (tex= G.main->tex.first; tex; tex= tex->id.next) {
-			if (tex->ipo == ipo) execute_ipo((ID *)tex, ipo);
-		}
-		break;
-	case ID_WO:
-		for (wo= G.main->world.first; wo; wo= wo->id.next) {
-			if (wo->ipo == ipo) execute_ipo((ID *)wo, ipo);
-		}
-		break;
-	case ID_LA:
-		for (la= G.main->lamp.first; la; la= la->id.next) {
-			if (la->ipo == ipo) execute_ipo((ID *)la, ipo);
-		}
-		break;
-	case ID_CA:
-		for (ca= G.main->camera.first; ca; ca= ca->id.next) {
-			if (ca->ipo == ipo) execute_ipo((ID *)ca, ipo);
-		}
-		break;
-	case ID_SO:
-		for (snd= G.main->sound.first; snd; snd= snd->id.next) {
-			if (snd->ipo == ipo) execute_ipo((ID *)snd, ipo);
-		}
-		break;
-	}
-}
-
-/* Executes IPO's for whole database on frame change, in a specified order,
- * with datablocks being calculated in alphabetical order
- * 	- called on scene_update_for_newframe() only 
- */
-void do_all_data_ipos ()
-{
-	Material *ma;
-	Tex *tex;
-	World *wo;
-	Ipo *ipo;
-	Lamp *la;
-	Key *key;
-	Camera *ca;
-	bSound *snd;
-	Sequence *seq;
-	Editing *ed;
-	Base *base;
-	float ctime;
-
-	ctime= frame_to_float(G.scene->r.cfra);
-	
-	/* this exception cannot be depgraphed yet... what todo with objects in other layers?... */
-	for (base= G.scene->base.first; base; base= base->next) {
-		Object *ob= base->object;
-		
-		/* only update layer when an ipo */
-		if (has_ipo_code(ob->ipo, OB_LAY)) {
-			do_ob_ipo(ob);
-			base->lay= ob->lay;
-		}
-	}
-	
-	/* layers for the set...*/
-	if (G.scene->set) {
-		for (base= G.scene->set->base.first; base; base= base->next) {
-			Object *ob= base->object;
-			
-			if (has_ipo_code(ob->ipo, OB_LAY)) {
-				do_ob_ipo(ob);
-				base->lay= ob->lay;
-			}
-		}
-	}
-	
-	/* Calculate all IPO blocks in use, execept those for Objects */
-	for (ipo= G.main->ipo.first; ipo; ipo= ipo->id.next) {
-		if ((ipo->id.us) && (ipo->blocktype != ID_OB)) {
-			calc_ipo(ipo, ctime);
-		}
-	}
-
-	/* Texture Blocks */
-	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
-		if (tex->ipo) execute_ipo((ID *)tex, tex->ipo);
-	}
-	
-	/* Material Blocks */
-	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
-		if (ma->ipo) execute_ipo((ID *)ma, ma->ipo);
-	}
-	
-	/* World Blocks */
-	for (wo= G.main->world.first; wo; wo= wo->id.next) {
-		if (wo->ipo) execute_ipo((ID *)wo, wo->ipo);
-	}
-	
-	/* ShapeKey Blocks */
-	for (key= G.main->key.first; key; key= key->id.next) {
-		if (key->ipo) execute_ipo((ID *)key, key->ipo);
-	}
-	
-	/* Lamp Blocks */
-	for (la= G.main->lamp.first; la; la= la->id.next) {
-		if (la->ipo) execute_ipo((ID *)la, la->ipo);
-	}
-	
-	/* Camera Blocks */
-	for (ca= G.main->camera.first; ca; ca= ca->id.next) {
-		if (ca->ipo) execute_ipo((ID *)ca, ca->ipo);
-	}
-	
-	/* Sound Blocks (Old + Unused) */
-	for (snd= G.main->sound.first; snd; snd= snd->id.next) {
-		if (snd->ipo) execute_ipo((ID *)snd, snd->ipo);
-	}
-
-	/* Sequencer: process FAC Ipos used as volume envelopes */
-	ed= G.scene->ed;
-	if (ed) {
-		for (seq= ed->seqbasep->first; seq; seq= seq->next) {
-			if ( ((seq->type == SEQ_RAM_SOUND) || (seq->type == SEQ_HD_SOUND)) &&
-				 (seq->startdisp <= G.scene->r.cfra+2) && 
-			     (seq->enddisp>G.scene->r.cfra) &&
-				 (seq->ipo) ) 
-			{
-					do_seq_ipo(seq, G.scene->r.cfra);
-			}
-		}
-	}
-}
-
-
-/* --------------------- Assorted ----------------------------- */ 
-
-/* clear delta-transforms on all Objects which use the given IPO block */
-void clear_delta_obipo(Ipo *ipo)
-{
-	Object *ob;
-	
-	/* only search if there's an IPO */
-	if (ipo == NULL) 
-		return;
-	
-	/* search through all objects in database */
-	for (ob= G.main->object.first; ob; ob= ob->id.next) {
-		/* can only update if not a library */
-		if (ob->id.lib == NULL) {
-			if (ob->ipo == ipo)  {
-				memset(&ob->dloc, 0, 12);
-				memset(&ob->drot, 0, 12);
-				memset(&ob->dsize, 0, 12);
-			}
-		}
-	}
-}
-
-/* ***************************** IPO - DataAPI ********************************* */
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!! FIXME - BAD CRUFT WARNING !!!!!!!!!!!!!!!!!!!!!!!
-
-/* These functions here should be replaced eventually by the Data API, as this is 
- * inflexible duplication...
- */
-
-/* --------------------- Get Pointer API ----------------------------- */ 
-
-/* get pointer to pose-channel's channel, but set appropriate flags first */
-void *get_pchan_ipo_poin (bPoseChannel *pchan, int adrcode)
-{
-	void *poin= NULL;
-	
+	/* result depends on adrcode */
 	switch (adrcode) {
 		case AC_QUAT_W:
-			poin= &(pchan->quat[0]); 
-			pchan->flag |= POSE_ROT;
-			break;
+			*array_index= 0; return "rotation";
 		case AC_QUAT_X:
-			poin= &(pchan->quat[1]); 
-			pchan->flag |= POSE_ROT;
-			break;
+			*array_index= 1; return "rotation";
 		case AC_QUAT_Y:
-			poin= &(pchan->quat[2]); 
-			pchan->flag |= POSE_ROT;
-			break;
+			*array_index= 2; return "rotation";
 		case AC_QUAT_Z:
-			poin= &(pchan->quat[3]); 
-			pchan->flag |= POSE_ROT;
-			break;
+			*array_index= 3; return "rotation";
+			
+		case AC_EUL_X:
+			*array_index= 0; return "euler_rotation";
+		case AC_EUL_Y:
+			*array_index= 1; return "euler_rotation";
+		case AC_EUL_Z:
+			*array_index= 2; return "euler_rotation";
+			
+		case -1: /* special case for euler-rotations used by old drivers */
+			*array_index= 0; return "euler_rotation";
 			
 		case AC_LOC_X:
-			poin= &(pchan->loc[0]); 
-			pchan->flag |= POSE_LOC;
-			break;
+			*array_index= 0; return "location";
 		case AC_LOC_Y:
-			poin= &(pchan->loc[1]); 
-			pchan->flag |= POSE_LOC;
-			break;
+			*array_index= 1; return "location";
 		case AC_LOC_Z:
-			poin= &(pchan->loc[2]); 
-			pchan->flag |= POSE_LOC;
-			break;
+			*array_index= 2; return "location";
 		
 		case AC_SIZE_X:
-			poin= &(pchan->size[0]); 
-			pchan->flag |= POSE_SIZE;
-			break;
+			*array_index= 0; return "scale";
 		case AC_SIZE_Y:
-			poin= &(pchan->size[1]); 
-			pchan->flag |= POSE_SIZE;
-			break;
+			*array_index= 1; return "scale";
 		case AC_SIZE_Z:
-			poin= &(pchan->size[2]); 
-			pchan->flag |= POSE_SIZE;
-			break;
+			*array_index= 2; return "scale";
 	}
 	
-	/* return pointer */
-	return poin;
+	/* for debugging only */
+	printf("ERROR: unmatched PoseChannel setting (code %d) \n", adrcode);
+	return NULL;
 }
 
-/* get texture channel */
-static void *give_tex_poin (Tex *tex, int adrcode, int *type )
+/* Constraint types */
+static char *constraint_adrcodes_to_paths (int adrcode, int *array_index)
 {
-	void *poin= NULL;
-
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
 	switch (adrcode) {
-	case TE_NSIZE:
-		poin= &(tex->noisesize); break;
-	case TE_TURB:
-		poin= &(tex->turbul); break;
-	case TE_NDEPTH:
-		poin= &(tex->noisedepth); *type= IPO_SHORT; break;
-	case TE_NTYPE:
-		poin= &(tex->noisetype); *type= IPO_SHORT; break;
-	case TE_VNW1:
-		poin= &(tex->vn_w1); break;
-	case TE_VNW2:
-		poin= &(tex->vn_w2); break;
-	case TE_VNW3:
-		poin= &(tex->vn_w3); break;
-	case TE_VNW4:
-		poin= &(tex->vn_w4); break;
-	case TE_VNMEXP:
-		poin= &(tex->vn_mexp); break;
-	case TE_ISCA:
-		poin= &(tex->ns_outscale); break;
-	case TE_DISTA:
-		poin= &(tex->dist_amount); break;
-	case TE_VN_COLT:
-		poin= &(tex->vn_coltype); *type= IPO_SHORT; break;
-	case TE_VN_DISTM:
-		poin= &(tex->vn_distm); *type= IPO_SHORT; break;
-	case TE_MG_TYP:
-		poin= &(tex->stype); *type= IPO_SHORT; break;
-	case TE_MGH:
-		poin= &(tex->mg_H); break;
-	case TE_MG_LAC:
-		poin= &(tex->mg_lacunarity); break;
-	case TE_MG_OCT:
-		poin= &(tex->mg_octaves); break;
-	case TE_MG_OFF:
-		poin= &(tex->mg_offset); break;
-	case TE_MG_GAIN:
-		poin= &(tex->mg_gain); break;
-	case TE_N_BAS1:
-		poin= &(tex->noisebasis); *type= IPO_SHORT; break;
-	case TE_N_BAS2:
-		poin= &(tex->noisebasis2); *type= IPO_SHORT; break;
-	case TE_COL_R:
-		poin= &(tex->rfac); break;
-	case TE_COL_G:
-		poin= &(tex->gfac); break;
-	case TE_COL_B:
-		poin= &(tex->bfac); break;
-	case TE_BRIGHT:
-		poin= &(tex->bright); break;
-	case TE_CONTRA:
-		poin= &(tex->contrast); break;
+		case CO_ENFORCE:
+			return "influence";
+		case CO_HEADTAIL:	// XXX this needs to be wrapped in RNA.. probably then this path will be invalid
+			return "data.head_tail";
 	}
 	
-	/* return pointer */
-	return poin;
+	return NULL;
 }
 
-/* get texture-slot/mapping channel */
-void *give_mtex_poin (MTex *mtex, int adrcode)
-{
-	void *poin= NULL;
-	
-	switch (adrcode) {
-	case MAP_OFS_X:
-		poin= &(mtex->ofs[0]); break;
-	case MAP_OFS_Y:
-		poin= &(mtex->ofs[1]); break;
-	case MAP_OFS_Z:
-		poin= &(mtex->ofs[2]); break;
-	case MAP_SIZE_X:
-		poin= &(mtex->size[0]); break;
-	case MAP_SIZE_Y:
-		poin= &(mtex->size[1]); break;
-	case MAP_SIZE_Z:
-		poin= &(mtex->size[2]); break;
-	case MAP_R:
-		poin= &(mtex->r); break;
-	case MAP_G:
-		poin= &(mtex->g); break;
-	case MAP_B:
-		poin= &(mtex->b); break;
-	case MAP_DVAR:
-		poin= &(mtex->def_var); break;
-	case MAP_COLF:
-		poin= &(mtex->colfac); break;
-	case MAP_NORF:
-		poin= &(mtex->norfac); break;
-	case MAP_VARF:
-		poin= &(mtex->varfac); break;
-	case MAP_DISP:
-		poin= &(mtex->dispfac); break;
-	}
-	
-	/* return pointer */
-	return poin;
-}
-
-/* GS reads the memory pointed at in a specific ordering. There are,
- * however two definitions for it. I have jotted them down here, both,
- * but I think the first one is actually used. The thing is that
- * big-endian systems might read this the wrong way round. OTOH, we
- * constructed the IDs that are read out with this macro explicitly as
- * well. I expect we'll sort it out soon... */
-
-/* from blendef: */
-#define GS(a)	(*((short *)(a)))
-
-/* from misc_util: flip the bytes from x  */
-/*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
-
-
-/* general function to get pointer to source/destination data  */
-void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
-{
-	void *poin= NULL;
-	MTex *mtex= NULL;
-
-	/* most channels will have float data, but those with other types will override this */
-	*type= IPO_FLOAT;
-
-	/* data is divided into 'blocktypes' based on ID-codes */
-	switch (GS(id->name)) {
-		case ID_OB: /* object channels -----------------------------  */
-		{
-			Object *ob= (Object *)id;
-			
-			switch (icu->adrcode) {
-			case OB_LOC_X:
-				poin= &(ob->loc[0]); break;
-			case OB_LOC_Y:
-				poin= &(ob->loc[1]); break;
-			case OB_LOC_Z:
-				poin= &(ob->loc[2]); break;
-			case OB_DLOC_X:
-				poin= &(ob->dloc[0]); break;
-			case OB_DLOC_Y:
-				poin= &(ob->dloc[1]); break;
-			case OB_DLOC_Z:
-				poin= &(ob->dloc[2]); break;
-			
-			case OB_ROT_X:
-				poin= &(ob->rot[0]); *type= IPO_FLOAT_DEGR; break;
-			case OB_ROT_Y:
-				poin= &(ob->rot[1]); *type= IPO_FLOAT_DEGR; break;
-			case OB_ROT_Z:
-				poin= &(ob->rot[2]); *type= IPO_FLOAT_DEGR; break;
-			case OB_DROT_X:
-				poin= &(ob->drot[0]); *type= IPO_FLOAT_DEGR; break;
-			case OB_DROT_Y:
-				poin= &(ob->drot[1]); *type= IPO_FLOAT_DEGR; break;
-			case OB_DROT_Z:
-				poin= &(ob->drot[2]); *type= IPO_FLOAT_DEGR; break;
-				
-			case OB_SIZE_X:
-				poin= &(ob->size[0]); break;
-			case OB_SIZE_Y:
-				poin= &(ob->size[1]); break;
-			case OB_SIZE_Z:
-				poin= &(ob->size[2]); break;
-			case OB_DSIZE_X:
-				poin= &(ob->dsize[0]); break;
-			case OB_DSIZE_Y:
-				poin= &(ob->dsize[1]); break;
-			case OB_DSIZE_Z:
-				poin= &(ob->dsize[2]); break;
-			
-			case OB_LAY:
-				poin= &(ob->lay); *type= IPO_INT_BIT; break;
-				
-			case OB_COL_R:	
-				poin= &(ob->col[0]); break;
-			case OB_COL_G:
-				poin= &(ob->col[1]); break;
-			case OB_COL_B:
-				poin= &(ob->col[2]); break;
-			case OB_COL_A:
-				poin= &(ob->col[3]); break;
-				
-			case OB_PD_FSTR:
-				if (ob->pd) poin= &(ob->pd->f_strength);
-				break;
-			case OB_PD_FFALL:
-				if (ob->pd) poin= &(ob->pd->f_power);
-				break;
-			case OB_PD_SDAMP:
-				if (ob->pd) poin= &(ob->pd->pdef_damp);
-				break;
-			case OB_PD_RDAMP:
-				if (ob->pd) poin= &(ob->pd->pdef_rdamp);
-				break;
-			case OB_PD_PERM:
-				if (ob->pd) poin= &(ob->pd->pdef_perm);
-				break;
-			case OB_PD_FMAXD:
-				if (ob->pd) poin= &(ob->pd->maxdist);
-				break;
-			}
-		}
-			break;
-		case ID_MA: /* material channels -----------------------------  */
-		{
-			Material *ma= (Material *)id;
-			
-			switch (icu->adrcode) {
-			case MA_COL_R:
-				poin= &(ma->r); break;
-			case MA_COL_G:
-				poin= &(ma->g); break;
-			case MA_COL_B:
-				poin= &(ma->b); break;
-			case MA_SPEC_R:
-				poin= &(ma->specr); break;
-			case MA_SPEC_G:
-				poin= &(ma->specg); break;
-			case MA_SPEC_B:
-				poin= &(ma->specb); break;
-			case MA_MIR_R:
-				poin= &(ma->mirr); break;
-			case MA_MIR_G:
-				poin= &(ma->mirg); break;
-			case MA_MIR_B:
-				poin= &(ma->mirb); break;
-			case MA_REF:
-				poin= &(ma->ref); break;
-			case MA_ALPHA:
-				poin= &(ma->alpha); break;
-			case MA_EMIT:
-				poin= &(ma->emit); break;
-			case MA_AMB:
-				poin= &(ma->amb); break;
-			case MA_SPEC:
-				poin= &(ma->spec); break;
-			case MA_HARD:
-				poin= &(ma->har); *type= IPO_SHORT; break;
-			case MA_SPTR:
-				poin= &(ma->spectra); break;
-			case MA_IOR:
-				poin= &(ma->ang); break;
-			case MA_MODE:
-				poin= &(ma->mode); *type= IPO_INT_BIT; break; // evil... dumping bitflags directly to user!
-			case MA_HASIZE:
-				poin= &(ma->hasize); break;
-			case MA_TRANSLU:
-				poin= &(ma->translucency); break;
-			case MA_RAYM:
-				poin= &(ma->ray_mirror); break;
-			case MA_FRESMIR:
-				poin= &(ma->fresnel_mir); break;
-			case MA_FRESMIRI:
-				poin= &(ma->fresnel_mir_i); break;
-			case MA_FRESTRA:
-				poin= &(ma->fresnel_tra); break;
-			case MA_FRESTRAI:
-				poin= &(ma->fresnel_tra_i); break;
-			case MA_ADD:
-				poin= &(ma->add); break;
-			}
-			
-			if (poin == NULL) {
-				if (icu->adrcode & MA_MAP1) mtex= ma->mtex[0];
-				else if (icu->adrcode & MA_MAP2) mtex= ma->mtex[1];
-				else if (icu->adrcode & MA_MAP3) mtex= ma->mtex[2];
-				else if (icu->adrcode & MA_MAP4) mtex= ma->mtex[3];
-				else if (icu->adrcode & MA_MAP5) mtex= ma->mtex[4];
-				else if (icu->adrcode & MA_MAP6) mtex= ma->mtex[5];
-				else if (icu->adrcode & MA_MAP7) mtex= ma->mtex[6];
-				else if (icu->adrcode & MA_MAP8) mtex= ma->mtex[7];
-				else if (icu->adrcode & MA_MAP9) mtex= ma->mtex[8];
-				else if (icu->adrcode & MA_MAP10) mtex= ma->mtex[9];
-				else if (icu->adrcode & MA_MAP12) mtex= ma->mtex[11];
-				else if (icu->adrcode & MA_MAP11) mtex= ma->mtex[10];
-				else if (icu->adrcode & MA_MAP13) mtex= ma->mtex[12];
-				else if (icu->adrcode & MA_MAP14) mtex= ma->mtex[13];
-				else if (icu->adrcode & MA_MAP15) mtex= ma->mtex[14];
-				else if (icu->adrcode & MA_MAP16) mtex= ma->mtex[15];
-				else if (icu->adrcode & MA_MAP17) mtex= ma->mtex[16];
-				else if (icu->adrcode & MA_MAP18) mtex= ma->mtex[17];
-				
-				if (mtex)
-					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-			}
-		}
-			break;
-		case ID_TE: /* texture channels -----------------------------  */
-		{
-			Tex *tex= (Tex *)id;
-			
-			if (tex) 
-				poin= give_tex_poin(tex, icu->adrcode, type);
-		}
-			break;
-		case ID_SEQ: /* sequence channels -----------------------------  */
-		{
-			Sequence *seq= (Sequence *)id;
-			
-			switch (icu->adrcode) {
-			case SEQ_FAC1:
-				poin= &(seq->facf0); break;
-			}
-		}
-			break;
-		case ID_CU: /* curve channels -----------------------------  */
-		{
-			poin= &(icu->curval);
-		}
-			break;
-		case ID_KE: /* shapekey channels -----------------------------  */
-		{
-			Key *key= (Key *)id;
-			KeyBlock *kb;
-			
-			for(kb= key->block.first; kb; kb= kb->next) {
-				if (kb->adrcode == icu->adrcode)
-					break;
-			}
-			
-			if (kb)
-				poin= &(kb->curval);
-		}
-			break;
-		case ID_WO: /* world channels -----------------------------  */
-		{
-			World *wo= (World *)id;
-			
-			switch (icu->adrcode) {
-			case WO_HOR_R:
-				poin= &(wo->horr); break;
-			case WO_HOR_G:
-				poin= &(wo->horg); break;
-			case WO_HOR_B:
-				poin= &(wo->horb); break;
-			case WO_ZEN_R:
-				poin= &(wo->zenr); break;
-			case WO_ZEN_G:
-				poin= &(wo->zeng); break;
-			case WO_ZEN_B:
-				poin= &(wo->zenb); break;
-			
-			case WO_EXPOS:
-				poin= &(wo->exposure); break;
-			
-			case WO_MISI:
-				poin= &(wo->misi); break;
-			case WO_MISTDI:
-				poin= &(wo->mistdist); break;
-			case WO_MISTSTA:
-				poin= &(wo->miststa); break;
-			case WO_MISTHI:
-				poin= &(wo->misthi); break;
-			
-			case WO_STAR_R:
-				poin= &(wo->starr); break;
-			case WO_STAR_G:
-				poin= &(wo->starg); break;
-			case WO_STAR_B:
-				poin= &(wo->starb); break;
-			
-			case WO_STARDIST:
-				poin= &(wo->stardist); break;
-			case WO_STARSIZE:
-				poin= &(wo->starsize); break;
-			}
-			
-			if (poin == NULL) {
-				if (icu->adrcode & MA_MAP1) mtex= wo->mtex[0];
-				else if (icu->adrcode & MA_MAP2) mtex= wo->mtex[1];
-				else if (icu->adrcode & MA_MAP3) mtex= wo->mtex[2];
-				else if (icu->adrcode & MA_MAP4) mtex= wo->mtex[3];
-				else if (icu->adrcode & MA_MAP5) mtex= wo->mtex[4];
-				else if (icu->adrcode & MA_MAP6) mtex= wo->mtex[5];
-				else if (icu->adrcode & MA_MAP7) mtex= wo->mtex[6];
-				else if (icu->adrcode & MA_MAP8) mtex= wo->mtex[7];
-				else if (icu->adrcode & MA_MAP9) mtex= wo->mtex[8];
-				else if (icu->adrcode & MA_MAP10) mtex= wo->mtex[9];
-				else if (icu->adrcode & MA_MAP11) mtex= wo->mtex[10];
-				else if (icu->adrcode & MA_MAP12) mtex= wo->mtex[11];
-				else if (icu->adrcode & MA_MAP13) mtex= wo->mtex[12];
-				else if (icu->adrcode & MA_MAP14) mtex= wo->mtex[13];
-				else if (icu->adrcode & MA_MAP15) mtex= wo->mtex[14];
-				else if (icu->adrcode & MA_MAP16) mtex= wo->mtex[15];
-				else if (icu->adrcode & MA_MAP17) mtex= wo->mtex[16];
-				else if (icu->adrcode & MA_MAP18) mtex= wo->mtex[17];
-				
-				if (mtex)
-					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-			}
-		}
-			break;
-		case ID_LA: /* lamp channels -----------------------------  */
-		{
-			Lamp *la= (Lamp *)id;
-			
-			switch (icu->adrcode) {
-			case LA_ENERGY:
-				poin= &(la->energy); break;		
-			case LA_COL_R:
-				poin= &(la->r); break;
-			case LA_COL_G:
-				poin= &(la->g); break;
-			case LA_COL_B:
-				poin= &(la->b); break;
-			case LA_DIST:
-				poin= &(la->dist); break;		
-			case LA_SPOTSI:
-				poin= &(la->spotsize); break;
-			case LA_SPOTBL:
-				poin= &(la->spotblend); break;
-			case LA_QUAD1:
-				poin= &(la->att1); break;
-			case LA_QUAD2:
-				poin= &(la->att2); break;
-			case LA_HALOINT:
-				poin= &(la->haint); break;
-			}
-			
-			if (poin == NULL) {
-				if (icu->adrcode & MA_MAP1) mtex= la->mtex[0];
-				else if (icu->adrcode & MA_MAP2) mtex= la->mtex[1];
-				else if (icu->adrcode & MA_MAP3) mtex= la->mtex[2];
-				else if (icu->adrcode & MA_MAP4) mtex= la->mtex[3];
-				else if (icu->adrcode & MA_MAP5) mtex= la->mtex[4];
-				else if (icu->adrcode & MA_MAP6) mtex= la->mtex[5];
-				else if (icu->adrcode & MA_MAP7) mtex= la->mtex[6];
-				else if (icu->adrcode & MA_MAP8) mtex= la->mtex[7];
-				else if (icu->adrcode & MA_MAP9) mtex= la->mtex[8];
-				else if (icu->adrcode & MA_MAP10) mtex= la->mtex[9];
-				else if (icu->adrcode & MA_MAP11) mtex= la->mtex[10];
-				else if (icu->adrcode & MA_MAP12) mtex= la->mtex[11];
-				else if (icu->adrcode & MA_MAP13) mtex= la->mtex[12];
-				else if (icu->adrcode & MA_MAP14) mtex= la->mtex[13];
-				else if (icu->adrcode & MA_MAP15) mtex= la->mtex[14];
-				else if (icu->adrcode & MA_MAP16) mtex= la->mtex[15];
-				else if (icu->adrcode & MA_MAP17) mtex= la->mtex[16];
-				else if (icu->adrcode & MA_MAP18) mtex= la->mtex[17];
-				
-				if (mtex)
-					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-			}
-		}
-			break;
-		case ID_CA: /* camera channels -----------------------------  */
-		{
-			Camera *ca= (Camera *)id;
-			
-			switch (icu->adrcode) {
-			case CAM_LENS:
-				if (ca->type == CAM_ORTHO)
-					poin= &(ca->ortho_scale);
-				else
-					poin= &(ca->lens); 
-				break;
-			case CAM_STA:
-				poin= &(ca->clipsta); break;
-			case CAM_END:
-				poin= &(ca->clipend); break;
-				
-			case CAM_YF_APERT:
-				poin= &(ca->YF_aperture); break;
-			case CAM_YF_FDIST:
-				poin= &(ca->YF_dofdist); break;
-				
-			case CAM_SHIFT_X:
-				poin= &(ca->shiftx); break;
-			case CAM_SHIFT_Y:
-				poin= &(ca->shifty); break;
-			}
-		}
-			break;
-		case ID_SO: /* sound channels -----------------------------  */
-		{
-			bSound *snd= (bSound *)id;
-			
-			switch (icu->adrcode) {
-			case SND_VOLUME:
-				poin= &(snd->volume); break;
-			case SND_PITCH:
-				poin= &(snd->pitch); break;
-			case SND_PANNING:
-				poin= &(snd->panning); break;
-			case SND_ATTEN:
-				poin= &(snd->attenuation); break;
-			}
-		}
-			break;
-		case ID_PA: /* particle channels -----------------------------  */
-		{
-			ParticleSettings *part= (ParticleSettings *)id;
-			
-			switch (icu->adrcode) {
-			case PART_EMIT_FREQ:
-			case PART_EMIT_LIFE:
-			case PART_EMIT_VEL:
-			case PART_EMIT_AVE:
-			case PART_EMIT_SIZE:
-				poin= NULL; 
-				break;
-			
-			case PART_CLUMP:
-				poin= &(part->clumpfac); break;
-			case PART_AVE:
-				poin= &(part->avefac); break;
-			case PART_SIZE:
-				poin= &(part->size); break;
-			case PART_DRAG:
-				poin= &(part->dragfac); break;
-			case PART_BROWN:
-				poin= &(part->brownfac); break;
-			case PART_DAMP:
-				poin= &(part->dampfac); break;
-			case PART_LENGTH:
-				poin= &(part->length); break;
-			case PART_GRAV_X:
-				poin= &(part->acc[0]); break;
-			case PART_GRAV_Y:
-				poin= &(part->acc[1]); break;
-			case PART_GRAV_Z:
-				poin= &(part->acc[2]); break;
-			case PART_KINK_AMP:
-				poin= &(part->kink_amp); break;
-			case PART_KINK_FREQ:
-				poin= &(part->kink_freq); break;
-			case PART_KINK_SHAPE:
-				poin= &(part->kink_shape); break;
-			case PART_BB_TILT:
-				poin= &(part->bb_tilt); break;
-				
-			case PART_PD_FSTR:
-				if (part->pd) poin= &(part->pd->f_strength);
-				break;
-			case PART_PD_FFALL:
-				if (part->pd) poin= &(part->pd->f_power);
-				break;
-			case PART_PD_FMAXD:
-				if (part->pd) poin= &(part->pd->maxdist);
-				break;
-			case PART_PD2_FSTR:
-				if (part->pd2) poin= &(part->pd2->f_strength);
-				break;
-			case PART_PD2_FFALL:
-				if (part->pd2) poin= &(part->pd2->f_power);
-				break;
-			case PART_PD2_FMAXD:
-				if (part->pd2) poin= &(part->pd2->maxdist);
-				break;
-			}
-		}
-			break;
-	}
-
-	/* return pointer */
-	return poin;
-}
-
-/* --------------------- IPO-Curve Limits ----------------------------- */
-
-/* set limits for IPO-curve 
- * Note: must be synced with UI and PyAPI
+/* ShapeKey types 
+ * NOTE: as we don't have access to the keyblock where the data comes from (for now), 
+ *	 	we'll just use numerical indicies for now... 
  */
-void set_icu_vars (IpoCurve *icu)
+static char *shapekey_adrcodes_to_paths (int adrcode, int *array_index)
 {
-	/* defaults. 0.0 for y-extents makes these ignored */
-	icu->ymin= icu->ymax= 0.0;
-	icu->ipo= IPO_BEZ;
+	static char buf[128];
 	
-	switch (icu->blocktype) {
-		case ID_OB: /* object channels -----------------------------  */
-		{
-			if (icu->adrcode == OB_LAY) {
-				icu->ipo= IPO_CONST;
-				icu->vartype= IPO_BITS;
-			}
-		}
+	/* block will be attached to ID_KE block, and setting that we alter is the 'value' (which sets keyblock.curval) */
+	// XXX adrcode 0 was dummy 'speed' curve 
+	if (adrcode == 0) 
+		sprintf(buf, "speed");
+	else
+		sprintf(buf, "keys[%d].value", adrcode);
+	return buf;
+}
+
+/* MTex (Texture Slot) types */
+static char *mtex_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	char *base=NULL, *prop=NULL;
+	static char buf[128];
+	
+	/* base part of path */
+	if (adrcode & MA_MAP1) base= "textures[0]";
+	else if (adrcode & MA_MAP2) base= "textures[1]";
+	else if (adrcode & MA_MAP3) base= "textures[2]";
+	else if (adrcode & MA_MAP4) base= "textures[3]";
+	else if (adrcode & MA_MAP5) base= "textures[4]";
+	else if (adrcode & MA_MAP6) base= "textures[5]";
+	else if (adrcode & MA_MAP7) base= "textures[6]";
+	else if (adrcode & MA_MAP8) base= "textures[7]";
+	else if (adrcode & MA_MAP9) base= "textures[8]";
+	else if (adrcode & MA_MAP10) base= "textures[9]";
+	else if (adrcode & MA_MAP11) base= "textures[10]";
+	else if (adrcode & MA_MAP12) base= "textures[11]";
+	else if (adrcode & MA_MAP13) base= "textures[12]";
+	else if (adrcode & MA_MAP14) base= "textures[13]";
+	else if (adrcode & MA_MAP15) base= "textures[14]";
+	else if (adrcode & MA_MAP16) base= "textures[15]";
+	else if (adrcode & MA_MAP17) base= "textures[16]";
+	else if (adrcode & MA_MAP18) base= "textures[17]";
+		
+	/* property identifier for path */
+	adrcode= (adrcode & (MA_MAP1-1));
+	switch (adrcode) {
+#if 0 // XXX these are not wrapped in RNA yet!
+		case MAP_OFS_X:
+			poin= &(mtex->ofs[0]); break;
+		case MAP_OFS_Y:
+			poin= &(mtex->ofs[1]); break;
+		case MAP_OFS_Z:
+			poin= &(mtex->ofs[2]); break;
+		case MAP_SIZE_X:
+			poin= &(mtex->size[0]); break;
+		case MAP_SIZE_Y:
+			poin= &(mtex->size[1]); break;
+		case MAP_SIZE_Z:
+			poin= &(mtex->size[2]); break;
+		case MAP_R:
+			poin= &(mtex->r); break;
+		case MAP_G:
+			poin= &(mtex->g); break;
+		case MAP_B:
+			poin= &(mtex->b); break;
+		case MAP_DVAR:
+			poin= &(mtex->def_var); break;
+		case MAP_COLF:
+			poin= &(mtex->colfac); break;
+		case MAP_NORF:
+			poin= &(mtex->norfac); break;
+		case MAP_VARF:
+			poin= &(mtex->varfac); break;
+#endif
+		case MAP_DISP:
+			prop= "warp_factor"; break;
+	}
+	
+	/* only build and return path if there's a property */
+	if (prop) {
+		BLI_snprintf(buf, 128, "%s.%s", base, prop);
+		return buf;
+	}
+	else
+		return NULL;
+}
+
+/* Texture types */
+static char *texture_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case TE_NSIZE:
+			return "noise_size";
+		case TE_TURB:
+			return "turbulence";
+			
+		case TE_NDEPTH:	// XXX texture RNA undefined
+			//poin= &(tex->noisedepth); *type= IPO_SHORT; break;
 			break;
-		case ID_MA: /* material channels -----------------------------  */
-		{
-			if (icu->adrcode < MA_MAP1) {
-				switch (icu->adrcode) {
-				case MA_HASIZE:
-					icu->ymax= 10000.0; break;
-				case MA_HARD:
-					icu->ymax= 511.0; break;
-				case MA_SPEC:
-					icu->ymax= 2.0; break;
-				case MA_MODE:
-					icu->ipo= IPO_CONST;
-					icu->vartype= IPO_BITS; break;
-				case MA_RAYM:
-					icu->ymax= 1.0; break;
-				case MA_TRANSLU:
-					icu->ymax= 1.0; break;
-				case MA_IOR:
-					icu->ymin= 1.0;
-					icu->ymax= 3.0; break;
-				case MA_FRESMIR:
-					icu->ymax= 5.0; break;
-				case MA_FRESMIRI:
-					icu->ymin= 1.0;
-					icu->ymax= 5.0; break;
-				case MA_FRESTRA:
-					icu->ymax= 5.0; break;
-				case MA_FRESTRAI:
-					icu->ymin= 1.0;
-					icu->ymax= 5.0; break;
-				case MA_ADD:
-					icu->ymax= 1.0; break;
-				case MA_EMIT:
-					icu->ymax= 2.0; break;
-				default:
-					icu->ymax= 1.0; break;
-				}
-			}
-			else {
-				switch (icu->adrcode & (MA_MAP1-1)) {
-				case MAP_OFS_X:
-				case MAP_OFS_Y:
-				case MAP_OFS_Z:
-				case MAP_SIZE_X:
-				case MAP_SIZE_Y:
-				case MAP_SIZE_Z:
-					icu->ymax= 1000.0;
-					icu->ymin= -1000.0;
-					break;
-				case MAP_R:
-				case MAP_G:
-				case MAP_B:
-				case MAP_DVAR:
-				case MAP_COLF:
-				case MAP_VARF:
-				case MAP_DISP:
-					icu->ymax= 1.0;
-					break;
-				case MAP_NORF:
-					icu->ymax= 25.0;
-					break;
-				}
-			}
-		}
+		case TE_NTYPE: // XXX texture RNA undefined
+			//poin= &(tex->noisetype); *type= IPO_SHORT; break;
 			break;
-		case ID_TE: /* texture channels -----------------------------  */
-		{
-			switch (icu->adrcode & (MA_MAP1-1)) {
-				case TE_NSIZE:
-					icu->ymin= 0.0001f;
-					icu->ymax= 2.0f; 
-					break;
-				case TE_NDEPTH:
-					icu->vartype= IPO_SHORT;
-					icu->ipo= IPO_CONST;
-					icu->ymax= 6.0f; 
-					break;
-				case TE_NTYPE:
-					icu->vartype= IPO_SHORT;
-					icu->ipo= IPO_CONST;
-					icu->ymax= 1.0f; 
-					break;
-				case TE_TURB:
-					icu->ymax= 200.0f; 
-					break;
-				case TE_VNW1:
-				case TE_VNW2:
-				case TE_VNW3:
-				case TE_VNW4:
-					icu->ymax= 2.0f;
-					icu->ymin= -2.0f; 
-					break;
-				case TE_VNMEXP:
-					icu->ymax= 10.0f;
-					icu->ymin= 0.01f; 
-					break;
-				case TE_VN_DISTM:
-					icu->vartype= IPO_SHORT;
-					icu->ipo= IPO_CONST;
-					icu->ymax= 6.0f; 
-					break;
-				case TE_VN_COLT:
-					icu->vartype= IPO_SHORT;
-					icu->ipo= IPO_CONST;
-					icu->ymax= 3.0f; 
-					break;
-				case TE_ISCA:
-					icu->ymax= 10.0f;
-					icu->ymin= 0.01f; 
-					break;
-				case TE_DISTA:
-					icu->ymax= 10.0f; 
-					break;
-				case TE_MG_TYP:
-					icu->vartype= IPO_SHORT;
-					icu->ipo= IPO_CONST;
-					icu->ymax= 6.0f; 
-					break;
-				case TE_MGH:
-					icu->ymin= 0.0001f;
-					icu->ymax= 2.0f; 
-					break;
-				case TE_MG_LAC:
-				case TE_MG_OFF:
-				case TE_MG_GAIN:
-					icu->ymax= 6.0f; break;
-				case TE_MG_OCT:
-					icu->ymax= 8.0f; break;
-				case TE_N_BAS1:
-				case TE_N_BAS2:
-					icu->vartype= IPO_SHORT;
-					icu->ipo= IPO_CONST;
-					icu->ymax= 8.0f; 
-					break;
-				case TE_COL_R:
-					icu->ymax= 0.0f; break;
-				case TE_COL_G:
-					icu->ymax= 2.0f; break;
-				case TE_COL_B:
-					icu->ymax= 2.0f; break;
-				case TE_BRIGHT:
-					icu->ymax= 2.0f; break;
-				case TE_CONTRA:
-					icu->ymax= 5.0f; break;	
-			}
-		}
+			
+		case TE_N_BAS1:
+			return "noise_basis";
+		case TE_N_BAS2:
+			return "noise_basis"; // XXX this is not yet defined in RNA...
+		
+			/* voronoi */
+		case TE_VNW1:
+			*array_index= 0; return "feature_weights";
+		case TE_VNW2:
+			*array_index= 1; return "feature_weights";
+		case TE_VNW3:
+			*array_index= 2; return "feature_weights";
+		case TE_VNW4:
+			*array_index= 3; return "feature_weights";
+		case TE_VNMEXP:
+			return "minkovsky_exponent";
+		case TE_VN_DISTM:
+			return "distance_metric";
+		case TE_VN_COLT:
+			return "color_type";
+		
+			/* distorted noise / voronoi */
+		case TE_ISCA:
+			return "noise_intensity";
+			
+			/* distorted noise */
+		case TE_DISTA:
+			return "distortion_amount";
+		
+			/* musgrave */
+		case TE_MG_TYP: // XXX texture RNA undefined
+		//	poin= &(tex->stype); *type= IPO_SHORT; break;
 			break;
-		case ID_SEQ: /* sequence channels -----------------------------  */
-		{
-			icu->ymax= 1.0f;
-		}
+		case TE_MGH:
+			return "highest_dimension";
+		case TE_MG_LAC:
+			return "lacunarity";
+		case TE_MG_OCT:
+			return "octaves";
+		case TE_MG_OFF:
+			return "offset";
+		case TE_MG_GAIN:
+			return "gain";
+			
+		case TE_COL_R:
+			*array_index= 0; return "rgb_factor";
+		case TE_COL_G:
+			*array_index= 1; return "rgb_factor";
+		case TE_COL_B:
+			*array_index= 2; return "rgb_factor";
+			
+		case TE_BRIGHT:
+			return "brightness";
+		case TE_CONTRA:
+			return "constrast";
+	}
+	
+	return NULL;
+}
+
+/* Material Types */
+static char *material_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case MA_COL_R:
+			*array_index= 0; return "diffuse_color";
+		case MA_COL_G:
+			*array_index= 1; return "diffuse_color";
+		case MA_COL_B:
+			*array_index= 2; return "diffuse_color";
+			
+		case MA_SPEC_R:
+			*array_index= 0; return "specular_color";
+		case MA_SPEC_G:
+			*array_index= 1; return "specular_color";
+		case MA_SPEC_B:
+			*array_index= 2; return "specular_color";
+			
+		case MA_MIR_R:
+			*array_index= 0; return "mirror_color";
+		case MA_MIR_G:
+			*array_index= 1; return "mirror_color";
+		case MA_MIR_B:
+			*array_index= 2; return "mirror_color";
+			
+		case MA_ALPHA:
+			return "alpha";
+			
+		case MA_REF:
+			return "diffuse_reflection";
+		
+		case MA_EMIT:
+			return "emit";
+		
+		case MA_AMB:
+			return "ambient";
+		
+		case MA_SPEC:
+			return "specular_reflection";
+		
+		case MA_HARD:
+			return "specular_hardness";
+			
+		case MA_SPTR:
+			return "specular_opacity";
+			
+		case MA_IOR:
+			return "ior";
+			
+		case MA_HASIZE:
+			return "halo.size";
+			
+		case MA_TRANSLU:
+			return "translucency";
+			
+		case MA_RAYM:
+			return "raytrace_mirror.reflect";
+			
+		case MA_FRESMIR:
+			return "raytrace_mirror.fresnel";
+			
+		case MA_FRESMIRI:
+			return "raytrace_mirror.fresnel_fac";
+			
+		case MA_FRESTRA:
+			return "raytrace_transparency.fresnel";
+			
+		case MA_FRESTRAI:
+			return "raytrace_transparency.fresnel_fac";
+			
+		case MA_ADD:
+			return "halo.add";
+		
+		default: /* for now, we assume that the others were MTex channels */
+			return mtex_adrcodes_to_paths(adrcode, array_index);
+	}
+	
+	return NULL;	
+}
+
+/* Camera Types */
+static char *camera_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case CAM_LENS:
+#if 0 // XXX this cannot be resolved easily... perhaps we assume camera is perspective (works for most cases...
+			if (ca->type == CAM_ORTHO)
+				return "ortho_scale";
+			else
+				return "lens"; 
+#endif // XXX this cannot be resolved easily
 			break;
-		case ID_CU: /* curve channels -----------------------------  */
-		{
-			icu->ymax= 1.0f;
+			
+		case CAM_STA:
+			return "clip_start";
+		case CAM_END:
+			return "clip_end";
+			
+#if 0 // XXX these are not defined in RNA
+		case CAM_YF_APERT:
+			poin= &(ca->YF_aperture); break;
+		case CAM_YF_FDIST:
+			poin= &(ca->YF_dofdist); break;
+#endif // XXX these are not defined in RNA
+			
+		case CAM_SHIFT_X:
+			return "shift_x";
+		case CAM_SHIFT_Y:
+			return "shift_y";
+	}
+	
+	/* unrecognised adrcode, or not-yet-handled ones! */
+	return NULL;
+}
+
+/* Lamp Types */
+static char *lamp_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case LA_ENERGY:
+			return "energy";
+			
+		case LA_COL_R:
+			*array_index= 0;  return "color";
+		case LA_COL_G:
+			*array_index= 1;  return "color";
+		case LA_COL_B:
+			*array_index= 2;  return "color";
+			
+		case LA_DIST:
+			return "distance";
+		
+		case LA_SPOTSI:
+			return "spot_size";
+		case LA_SPOTBL:
+			return "spot_blend";
+			
+		case LA_QUAD1:
+			return "linear_attenuation";
+		case LA_QUAD2:
+			return "quadratic_attenuation";
+			
+		case LA_HALOINT:
+			return "halo_intensity";
+			
+		default: /* for now, we assume that the others were MTex channels */
+			return mtex_adrcodes_to_paths(adrcode, array_index);
+	}
+	
+	/* unrecognised adrcode, or not-yet-handled ones! */
+	return NULL;
+}
+
+/* Sound Types */
+static char *sound_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case SND_VOLUME:
+			return "volume";
+		case SND_PITCH:
+			return "pitch";
+	/* XXX Joshua -- I had wrapped panning in rna, but someone commented out, calling it "unused" */
+	/*	case SND_PANNING:
+			return "panning"; */
+		case SND_ATTEN:
+			return "attenuation";
+	}
+	
+	/* unrecognised adrcode, or not-yet-handled ones! */
+	return NULL;
+}
+
+/* World Types */
+static char *world_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case WO_HOR_R:
+			*array_index= 0; return "horizon_color";
+		case WO_HOR_G:
+			*array_index= 1; return "horizon_color";
+		case WO_HOR_B:
+			*array_index= 2; return "horizon_color";
+		case WO_ZEN_R:
+			*array_index= 0; return "zenith_color";
+		case WO_ZEN_G:
+			*array_index= 1; return "zenith_color";
+		case WO_ZEN_B:
+			*array_index= 2; return "zenith_color";
+		
+		case WO_EXPOS:
+			return "exposure";
+		
+		case WO_MISI:
+			return "mist.intensity";
+		case WO_MISTDI:
+			return "mist.depth";
+		case WO_MISTSTA:
+			return "mist.start";
+		case WO_MISTHI:
+			return "mist.height";
+		
+	/*	Star Color is unused -- recommend removal */
+	/*	case WO_STAR_R:
+			*array_index= 0; return "stars.color";
+		case WO_STAR_G:
+			*array_index= 1; return "stars.color";
+		case WO_STAR_B:
+			*array_index= 2; return "stars.color"; */
+		
+		case WO_STARDIST:
+			return "stars.min_distance";
+		case WO_STARSIZE:
+			return "stars.size";
+		
+		default: /* for now, we assume that the others were MTex channels */
+			return mtex_adrcodes_to_paths(adrcode, array_index);
 		}
+		
+	return NULL;	
+}
+
+/* Particle Types */
+static char *particle_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case PART_CLUMP:
+			return "settings.clump_factor";
+		case PART_AVE:
+			return "settings.angular_velocity_factor";
+		case PART_SIZE:
+			return "settings.particle_size";
+		case PART_DRAG:
+			return "settings.drag_factor";
+		case PART_BROWN:
+			return "settings.brownian_factor";
+		case PART_DAMP:
+			return "settings.damp_factor";
+		case PART_LENGTH:
+			return "settings.length";
+		case PART_GRAV_X:
+			*array_index= 0; return "settings.acceleration";
+		case PART_GRAV_Y:
+			*array_index= 1; return "settings.acceleration";
+		case PART_GRAV_Z:
+			*array_index= 2; return "settings.acceleration";
+		case PART_KINK_AMP:
+			return "settings.kink_amplitude";
+		case PART_KINK_FREQ:
+			return "settings.kink_frequency";
+		case PART_KINK_SHAPE:
+			return "settings.kink_shape";
+		case PART_BB_TILT:
+			return "settings.billboard_tilt";
+		
+		/* PartDeflect needs to be sorted out properly in rna_object_force;
+		   If anyone else works on this, but is unfamiliar, these particular
+			settings reference the particles of the system themselves
+			being used as forces -- it will use the same rna structure
+			as the similar object forces				*/
+		/*case PART_PD_FSTR:
+			if (part->pd) poin= &(part->pd->f_strength);
 			break;
-		case ID_WO: /* world channels -----------------------------  */
-		{
-			if (icu->adrcode < MA_MAP1) {
-				switch (icu->adrcode) {
-				case WO_EXPOS:
-					icu->ymax= 5.0f; break;
-				
-				case WO_MISTDI:
-				case WO_MISTSTA:
-				case WO_MISTHI:
-				case WO_STARDIST:
-				case WO_STARSIZE:
-					break;
-					
-				default:
-					icu->ymax= 1.0f;
-					break;
-				}
-			}
-			else {
-				switch (icu->adrcode & (MA_MAP1-1)) {
-				case MAP_OFS_X:
-				case MAP_OFS_Y:
-				case MAP_OFS_Z:
-				case MAP_SIZE_X:
-				case MAP_SIZE_Y:
-				case MAP_SIZE_Z:
-					icu->ymax= 100.0f;
-					icu->ymin= -100.0f;
-					break;
-				case MAP_R:
-				case MAP_G:
-				case MAP_B:
-				case MAP_DVAR:
-				case MAP_COLF:
-				case MAP_NORF:
-				case MAP_VARF:
-				case MAP_DISP:
-					icu->ymax= 1.0f;
-				}
-			}
+		case PART_PD_FFALL:
+			if (part->pd) poin= &(part->pd->f_power);
+			break;
+		case PART_PD_FMAXD:
+			if (part->pd) poin= &(part->pd->maxdist);
+			break;
+		case PART_PD2_FSTR:
+			if (part->pd2) poin= &(part->pd2->f_strength);
+			break;
+		case PART_PD2_FFALL:
+			if (part->pd2) poin= &(part->pd2->f_power);
+			break;
+		case PART_PD2_FMAXD:
+			if (part->pd2) poin= &(part->pd2->maxdist);
+			break;*/
+
 		}
+		
+	return NULL;	
+}
+
+/* ------- */
+
+/* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
+ *	Input:
+ *		- blocktype, adrcode	- determines setting to get
+ *		- actname, constname	- used to build path
+ *	Output:
+ *		- array_index			- index in property's array (if applicable) to use
+ *		- return				- the allocated path...
+ */
+static char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], int *array_index)
+{
+	DynStr *path= BLI_dynstr_new();
+	char *propname=NULL, *rpath=NULL;
+	char buf[512];
+	int dummy_index= 0;
+	
+	/* hack: if constname is set, we can only be dealing with an Constraint curve */
+	if (constname)
+		blocktype= ID_CO;
+	
+	/* get property name based on blocktype */
+	switch (blocktype) {
+		case ID_OB: /* object */
+			propname= ob_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
-		case ID_LA: /* lamp channels -----------------------------  */
-		{
-			if (icu->adrcode < MA_MAP1) {
-				switch (icu->adrcode) {
-				case LA_ENERGY:
-				case LA_DIST:
-					break;		
-				
-				case LA_COL_R:
-				case LA_COL_G:
-				case LA_COL_B:
-				case LA_SPOTBL:
-				case LA_QUAD1:
-				case LA_QUAD2:
-					icu->ymax= 1.0f; break;
-					
-				case LA_SPOTSI:
-					icu->ymax= 180.0f; break;
-				
-				case LA_HALOINT:
-					icu->ymax= 5.0f; break;
-				}
-			}
-			else {
-				switch (icu->adrcode & (MA_MAP1-1)) {
-				case MAP_OFS_X:
-				case MAP_OFS_Y:
-				case MAP_OFS_Z:
-				case MAP_SIZE_X:
-				case MAP_SIZE_Y:
-				case MAP_SIZE_Z:
-					icu->ymax= 100.0f;
-					icu->ymin= -100.0f;
-					break;
-				case MAP_R:
-				case MAP_G:
-				case MAP_B:
-				case MAP_DVAR:
-				case MAP_COLF:
-				case MAP_NORF:
-				case MAP_VARF:
-				case MAP_DISP:
-					icu->ymax= 1.0f;
-				}
-			}
-		}	
+		
+		case ID_PO: /* pose channel */
+			propname= pchan_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
-		case ID_CA: /* camera channels -----------------------------  */
-		{
-			switch (icu->adrcode) {
-			case CAM_LENS:
-				icu->ymin= 1.0f;
-				icu->ymax= 1000.0f;
-				break;
-			case CAM_STA:
-				icu->ymin= 0.001f;
-				break;
-			case CAM_END:
-				icu->ymin= 0.1f;
-				break;
-				
-			case CAM_YF_APERT:
-				icu->ymin = 0.0f;
-				icu->ymax = 2.0f;
-				break;
-			case CAM_YF_FDIST:
-				icu->ymin = 0.0f;
-				icu->ymax = 5000.0f;
-				break;
-				
-			case CAM_SHIFT_X:
-			case CAM_SHIFT_Y:
-				icu->ymin= -2.0f;
-				icu->ymax= 2.0f;
-				break;
-			}
-		}
+			
+		case ID_KE: /* shapekeys */
+			propname= shapekey_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
-		case ID_SO: /* sound channels -----------------------------  */
-		{
-			switch (icu->adrcode) {
-			case SND_VOLUME:
-				icu->ymin= 0.0f;
-				icu->ymax= 1.0f;
-				break;
-			case SND_PITCH:
-				icu->ymin= -12.0f;
-				icu->ymin= 12.0f;
-				break;
-			case SND_PANNING:
-				icu->ymin= 0.0f;
-				icu->ymax= 1.0f;
-				break;
-			case SND_ATTEN:
-				icu->ymin= 0.0f;
-				icu->ymin= 1.0f;
-				break;
-			}
-		}
+			
+		case ID_CO: /* constraint */
+			propname= constraint_adrcodes_to_paths(adrcode, &dummy_index);	
 			break;
-		case ID_PA: /* particle channels -----------------------------  */
-		{
-			switch (icu->adrcode) {
-			case PART_EMIT_LIFE:
-			case PART_SIZE:
-			case PART_KINK_FREQ:
-			case PART_EMIT_VEL:
-			case PART_EMIT_AVE:
-			case PART_EMIT_SIZE:
-				icu->ymin= 0.0f;
-				break;
-			case PART_CLUMP:
-				icu->ymin= -1.0f;
-				icu->ymax= 1.0f;
-				break;
-			case PART_DRAG:
-			case PART_DAMP:
-			case PART_LENGTH:
-				icu->ymin= 0.0f;
-				icu->ymax= 1.0f;
-				break;
-			case PART_KINK_SHAPE:
-				icu->ymin= -0.999f;
-				icu->ymax= 0.999f;
-				break;
-			}
-		}
+			
+		case ID_TE: /* texture */
+			propname= texture_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
-		case ID_CO: /* constraint channels -----------------------------  */
-		{
-			icu->ymin= 0.0f;
-			icu->ymax= 1.0f;
-		}
+			
+		case ID_MA: /* material */
+			propname= material_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
+		case ID_CA: /* camera */
+			propname= camera_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
+		case ID_LA: /* lamp */
+			propname= lamp_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+		
+		case ID_SO: /* sound */
+			propname= sound_adrcodes_to_paths(adrcode, &dummy_index);
+		
+		case ID_WO: /* world */
+			propname= world_adrcodes_to_paths(adrcode, &dummy_index);
+
+		case ID_PA: /* particle */
+			propname= particle_adrcodes_to_paths(adrcode, &dummy_index);
+			
+		/* XXX problematic blocktypes */
+		case ID_CU: /* curve */
+			/* this used to be a 'dummy' curve which got evaluated on the fly... 
+			 * now we've got real var for this!
+			 */
+			propname= "eval_time";
+			break;
+			
+		case ID_SEQ: /* sequencer strip */
+			//SEQ_FAC1:
+			//	poin= &(seq->facf0); // XXX this doesn't seem to be included anywhere in sequencer RNA...
+			break;
+			
+		/* special hacks */
+		case -1:
+			/* special case for rotdiff drivers... we don't need a property for this... */
+			break;
+			
+		// TODO... add other blocktypes...
+		default:
+			printf("IPO2ANIMATO WARNING: No path for blocktype %d, adrcode %d yet \n", blocktype, adrcode);
 			break;
 	}
 	
-	/* by default, slider limits will be icu->ymin and icu->ymax */
-	icu->slide_min= icu->ymin;
-	icu->slide_max= icu->ymax;
-}
-
-/* --------------------- Pointer I/O API ----------------------------- */
- 
-/* write the given value directly into the given pointer */
-void write_ipo_poin (void *poin, int type, float val)
-{
-	/* Note: we only support a limited number of types, with the value
-	 * to set needing to be cast to the appropriate type first
-	 * 	-> (float to integer conversions could be slow)
+	/* check if any property found 
+	 *	- blocktype < 0 is special case for a specific type of driver, where we don't need a property name...
 	 */
-	switch(type) {
-	case IPO_FLOAT:
-		*((float *)poin)= val;
-		break;
+	if ((propname == NULL) && (blocktype > 0)) {
+		/* nothing was found, so exit */
+		if (array_index) 
+			*array_index= 0;
+			
+		BLI_dynstr_free(path);
 		
-	case IPO_FLOAT_DEGR: /* special hack for rotation so that it fits on same axis as other transforms */
-		*((float *)poin)= (float)(val * M_PI_2 / 9.0);
-		break;
+		return NULL;
+	}
+	else {
+		if (array_index)
+			*array_index= dummy_index;
+	}
+	
+	/* append preceeding bits to path */
+	if ((actname && actname[0]) && (constname && constname[0])) {
+		/* Constraint in Pose-Channel */
+		sprintf(buf, "pose.pose_channels[\"%s\"].constraints[\"%s\"]", actname, constname);
+	}
+	else if (actname && actname[0]) {
+		/* Pose-Channel */
+		sprintf(buf, "pose.pose_channels[\"%s\"]", actname);
+	}
+	else if (constname && constname[0]) {
+		/* Constraint in Object */
+		sprintf(buf, "constraints[\"%s\"]", constname);
+	}
+	else
+		strcpy(buf, ""); /* empty string */
+	BLI_dynstr_append(path, buf);
+	
+	/* append property to path (only if applicable) */
+	if (blocktype > 0) {
+		/* need to add dot before property if there was anything precceding this */
+		if (buf[0])
+			BLI_dynstr_append(path, ".");
 		
-	case IPO_INT:
-	case IPO_INT_BIT: // fixme... directly revealing bitflag combinations is evil!
-	case IPO_LONG:
-		*((int *)poin)= (int)val;
-		break;
+		/* now write name of property */
+		BLI_dynstr_append(path, propname);
+	}
+	
+	/* convert to normal MEM_malloc'd string */
+	rpath= BLI_dynstr_get_cstring(path);
+	BLI_dynstr_free(path);
+	
+	/* return path... */
+	return rpath;
+}
+
+/* *************************************************** */
+/* Conversion Utilities */
+
+/* Convert IpoDriver to ChannelDriver - will free the old data (i.e. the old driver) */
+static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
+{
+	ChannelDriver *cdriver;
+	DriverTarget *dtar=NULL, *dtar2=NULL;
+	
+	/* allocate memory for new driver */
+	cdriver= MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
+	
+	/* if 'pydriver', just copy data across */
+	if (idriver->type == IPO_DRIVER_TYPE_PYTHON) {
+		/* PyDriver only requires the expression to be copied */
+		// TODO: but the expression will be useless...
+		cdriver->type = DRIVER_TYPE_PYTHON;
+		strcpy(cdriver->expression, idriver->name); // XXX is this safe? 
+	}
+	else {
+		/* what to store depends on the 'blocktype' (ID_OB or ID_PO - object or posechannel) */
+		if (idriver->blocktype == ID_AR) {
+			/* ID_PO */
+			if (idriver->adrcode == OB_ROT_DIFF) {
+				/* Rotational Difference is a special type of driver now... */
+				cdriver->type= DRIVER_TYPE_ROTDIFF;
+				
+				/* make 2 driver targets */
+				dtar= driver_add_new_target(cdriver);
+				dtar2= driver_add_new_target(cdriver);
+				
+				/* driver must use bones from same armature... */
+				dtar->id= dtar2->id= (ID *)idriver->ob;
+				
+				/* paths for the two targets get the pointers to the relevant Pose-Channels 
+				 *	- return pointers to Pose-Channels not rotation channels, as calculation code is picky
+				 *	- old bone names were stored in same var, in idriver->name
+				 *
+				 *	- we use several hacks here - blocktype == -1 specifies that no property needs to be found, and
+				 *	  providing a name for 'actname' will automatically imply Pose-Channel with name 'actname'
+				 */
+				dtar->rna_path= get_rna_access(-1, -1, idriver->name, NULL, NULL);
+				dtar2->rna_path= get_rna_access(-1, -1, idriver->name+DRIVER_NAME_OFFS, NULL, NULL);
+			}
+			else {
+				/* 'standard' driver */
+				cdriver->type= DRIVER_TYPE_AVERAGE;
+				
+				/* make 1 driver target */
+				dtar= driver_add_new_target(cdriver);
+				dtar->id= (ID *)idriver->ob;
+				
+				switch (idriver->adrcode) {
+					case OB_LOC_X:	/* x,y,z location are quite straightforward */
+						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_X, idriver->name, NULL, &dtar->array_index);
+						break;
+					case OB_LOC_Y:
+						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_Y, idriver->name, NULL, &dtar->array_index);
+						break;
+					case OB_LOC_Z:
+						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_Z, idriver->name, NULL, &dtar->array_index);
+						break;
+						
+					case OB_SIZE_X:	/* x,y,z scaling are also quite straightforward */
+						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_X, idriver->name, NULL, &dtar->array_index);
+						break;
+					case OB_SIZE_Y:
+						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_Y, idriver->name, NULL, &dtar->array_index);
+						break;
+					case OB_SIZE_Z:
+						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_Z, idriver->name, NULL, &dtar->array_index);
+						break;	
+						
+					case OB_ROT_X:	/* rotation - we need to be careful with this... */	
+					case OB_ROT_Y:
+					case OB_ROT_Z:
+					{
+						/* -1 here, not rotation code, since old system didn't have eulers */
+						dtar->rna_path= get_rna_access(ID_PO, -1, idriver->name, NULL, NULL);
+						dtar->array_index= idriver->adrcode - OB_ROT_X;
+					}
+						break;
+				}
+			}
+		}
+		else {
+			/* ID_OB */
+			cdriver->type= DRIVER_TYPE_AVERAGE;
+			
+			/* make 1 driver target */
+			dtar= driver_add_new_target(cdriver);
+			
+			dtar->id= (ID *)idriver->ob;
+			dtar->rna_path= get_rna_access(ID_OB, idriver->adrcode, NULL, NULL, &dtar->array_index);
+		}
+	}
+	
+	
+	/* free old driver */
+	MEM_freeN(idriver);
+	
+	/* return the new one */
+	return cdriver;
+}
+
+/* Add F-Curve to the correct list 
+ *	- grpname is needed to be used as group name where relevant, and is usually derived from actname
+ */
+static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, char *grpname)
+{
+	/* If we're adding to an action, we will have groups to write to... */
+	if (groups && grpname) {
+		/* wrap the pointers given into a dummy action that we pass to the API func
+		 * and extract the resultant lists...
+		 */
+		bAction tmp_act;
+		bActionGroup *agrp= NULL;
 		
-	case IPO_SHORT:
-	case IPO_SHORT_BIT: // fixme... directly revealing bitflag combinations is evil!
-		*((short *)poin)= (short)val;
-		break;
+		/* init the temp action */
+		//memset(&tmp_act, 0, sizeof(bAction)); // XXX only enable this line if we get errors
+		tmp_act.groups.first= groups->first;
+		tmp_act.groups.last= groups->last;
+		tmp_act.curves.first= list->first;
+		tmp_act.curves.last= list->last;
+		/* ... xxx, the other vars don't need to be filled in */
 		
-	case IPO_CHAR:
-	case IPO_CHAR_BIT: // fixme... directly revealing bitflag combinations is evil!
-		*((char *)poin)= (char)val;
-		break;
+		/* get the group to use */
+		agrp= action_groups_find_named(&tmp_act, grpname);
+		if (agrp == NULL) {
+			/* no matching group, so add one */
+			if (agrp == NULL) {
+				/* Add a new group, and make it active */
+				agrp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+				
+				agrp->flag = AGRP_SELECTED;
+				BLI_snprintf(agrp->name, 64, grpname);
+				
+				BLI_addtail(&tmp_act.groups, agrp);
+				BLI_uniquename(&tmp_act.groups, agrp, "Group", '.', offsetof(bActionGroup, name), 64);
+			}
+		}
+		
+		/* add F-Curve to group */
+		/* WARNING: this func should only need to look at the stuff we initialised, if not, things may crash */
+		action_groups_add_channel(&tmp_act, agrp, fcu);
+		
+		/* set the output lists based on the ones in the temp action */
+		groups->first= tmp_act.groups.first;
+		groups->last= tmp_act.groups.last;
+		list->first= tmp_act.curves.first;
+		list->last= tmp_act.curves.last;
+	}
+	else {
+		/* simply add the F-Curve to the end of the given list */
+		BLI_addtail(list, fcu);
 	}
 }
 
-/* read the value from the pointer that was obtained */
-float read_ipo_poin (void *poin, int type)
+/* Convert IPO-Curve to F-Curve (including Driver data), and free any of the old data that 
+ * is not relevant, BUT do not free the IPO-Curve itself...
+ *	actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to
+ *	constname: name of Constraint-Channel (if applicable) that IPO-Curve's IPO-block belonged to
+ */
+static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, char *actname, char *constname)
 {
-	float val = 0.0;
+	AdrBit2Path *abp;
+	FCurve *fcu;
+	int i=0, totbits;
 	
-	/* Note: we only support a limited number of types, with the value
-	 * to set needing to be cast to the appropriate type first
-	 *	-> (int to float conversions may loose accuracy in rare cases)
+	/* allocate memory for a new F-Curve */
+	fcu= MEM_callocN(sizeof(FCurve), "FCurve");
+	
+	/* convert driver - will free the old one... */
+	if (icu->driver) {
+		fcu->driver= idriver_to_cdriver(icu->driver);
+		icu->driver= NULL;
+	}
+	
+	/* copy flags */
+	if (icu->flag & IPO_VISIBLE) fcu->flag |= FCURVE_VISIBLE;
+	if (icu->flag & IPO_SELECT) fcu->flag |= FCURVE_SELECTED;
+	if (icu->flag & IPO_ACTIVE) fcu->flag |= FCURVE_ACTIVE;
+	if (icu->flag & IPO_MUTE) fcu->flag |= FCURVE_MUTED;
+	if (icu->flag & IPO_PROTECT) fcu->flag |= FCURVE_PROTECTED;
+	if (icu->flag & IPO_AUTO_HORIZ) fcu->flag |= FCURVE_AUTO_HANDLES;
+	
+	/* set extrapolation */
+	switch (icu->extrap) {
+		case IPO_HORIZ: /* constant extrapolation */
+		case IPO_DIR: /* linear extrapolation */
+		{
+			/* just copy, as the new defines match the old ones... */
+			fcu->extend= icu->extrap;
+		}
+			break;
+			
+		case IPO_CYCL: /* cyclic extrapolation */
+		case IPO_CYCLX: /* cyclic extrapolation + offset */
+		{
+			/* Add a new FModifier (Cyclic) instead of setting extend value 
+			 * as that's the new equivilant of that option. 
+			 */
+			FModifier *fcm= add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES);
+			FMod_Cycles *data= (FMod_Cycles *)fcm->data;
+			
+			/* if 'offset' one is in use, set appropriate settings */
+			if (icu->extrap == IPO_CYCLX)
+				data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC_OFFSET;
+			else
+				data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC;
+		}
+			break;
+	}
+	
+	/* -------- */
+	
+	/* get adrcode <-> bitflags mapping to handle nasty bitflag curves? */
+	abp= adrcode_bitmaps_to_paths(icu->blocktype, icu->adrcode, &totbits);
+	if (abp && totbits) {
+		FCurve *fcurve;
+		int b;
+		
+		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
+		
+		/* add the 'only int values' flag */
+		fcu->flag |= (FCURVE_INT_VALUES|FCURVE_DISCRETE_VALUES);		
+		
+		/* for each bit we have to remap + check for:
+		 * 1) we need to make copy the existing F-Curve data (fcu -> fcurve),
+		 * 	  except for the last one which will use the original 
+		 * 2) copy the relevant path info across
+		 * 3) filter the keyframes for the flag of interest
+		 */
+		for (b=0; b < totbits; b++, abp++) {
+			/* make a copy of existing base-data if not the last curve */
+			if (b < (totbits-1))
+				fcurve= copy_fcurve(fcu);
+			else
+				fcurve= fcu;
+				
+			/* set path */
+			fcurve->rna_path= BLI_strdupn(abp->path, strlen(abp->path));
+			fcurve->array_index= abp->array_index;
+			
+			/* convert keyframes 
+			 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
+			 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+			 */
+			fcurve->totvert= icu->totvert;
+			
+			if (icu->bezt) {
+				BezTriple *dst, *src;
+				
+				/* allocate new array for keyframes/beztriples */
+				fcurve->bezt= MEM_callocN(sizeof(BezTriple)*fcurve->totvert, "BezTriples");
+				
+				/* loop through copying all BezTriples individually, as we need to modify a few things */
+				for (dst=fcurve->bezt, src=icu->bezt; i < fcurve->totvert; i++, dst++, src++) {
+					/* firstly, copy BezTriple data */
+					*dst= *src;
+					
+					/* interpolation can only be constant... */
+					dst->ipo= BEZT_IPO_CONST;
+					
+					/* correct values, by checking if the flag of interest is set */
+					if ( ((int)(dst->vec[1][1])) & (abp->bit) )
+						dst->vec[0][1]= dst->vec[1][1]= dst->vec[2][1] = 1.0f;
+					else
+						dst->vec[0][1]= dst->vec[1][1]= dst->vec[2][1] = 0.0f;
+				}
+			}
+			else if (icu->bp) {
+				/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
+				//BPoint *bp;
+				//FPoint *fpt;
+			}
+			
+			/* add new F-Curve to list */
+			fcurve_add_to_list(groups, list, fcurve, actname);
+		}
+		
+		/* free old data of curve now that it's no longer needed for converting any more curves */
+		if (icu->bezt) MEM_freeN(icu->bezt);
+		if (icu->bp) MEM_freeN(icu->bezt);
+	}
+	else {
+		/* get rna-path
+		 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
+		 */
+		fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, &fcu->array_index);
+		if (fcu->rna_path == NULL)
+			fcu->flag |= FCURVE_DISABLED;
+		
+		/* convert keyframes 
+		 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
+		 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+		 */
+		fcu->totvert= icu->totvert;
+		
+		if (icu->bezt) {
+			BezTriple *dst, *src;
+			
+			/* allocate new array for keyframes/beztriples */
+			fcu->bezt= MEM_callocN(sizeof(BezTriple)*fcu->totvert, "BezTriples");
+			
+			/* loop through copying all BezTriples individually, as we need to modify a few things */
+			for (dst=fcu->bezt, src=icu->bezt; i < fcu->totvert; i++, dst++, src++) {
+				/* firstly, copy BezTriple data */
+				*dst= *src;
+				
+				/* now copy interpolation from curve (if not already set) */
+				if (icu->ipo != IPO_MIXED)
+					dst->ipo= icu->ipo;
+					
+				/* correct values for euler rotation curves - they were degrees/10 */
+				// XXX for now, just make them into radians as RNA sets/reads directly in that form
+				if ( ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
+					 ((icu->blocktype == ID_PO) && ELEM3(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)) )
+				{
+					const float fac= (float)M_PI / 18.0f; //10.0f * M_PI/180.0f;
+					
+					dst->vec[0][1] *= fac;
+					dst->vec[1][1] *= fac;
+					dst->vec[2][1] *= fac;
+				}
+				
+				/* correct times for rotation drivers 
+				 *	- need to go from degrees to radians...
+				 * 	- there's only really 1 target to worry about 
+				 */
+				if (fcu->driver && fcu->driver->targets.first) {
+					DriverTarget *dtar= fcu->driver->targets.first;
+					
+					/* since drivers could only be for objects, we should just check for 'rotation' being 
+					 * in the name of the path given
+					 *	- WARNING: this will break if we encounter a bone or object explictly named in that way...
+					 */
+					if ((dtar && dtar->rna_path) && strstr(dtar->rna_path, "rotation")) {
+						const float fac= (float)M_PI / 180.0f;
+						
+						dst->vec[0][0] *= fac;
+						dst->vec[1][0] *= fac;
+						dst->vec[2][0] *= fac;
+					}
+				}
+			}
+			
+			/* free this data now */
+			MEM_freeN(icu->bezt);
+		}
+		else if (icu->bp) {
+			/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
+			//BPoint *bp;
+			//FPoint *fpt;
+		}
+		
+		/* add new F-Curve to list */
+		fcurve_add_to_list(groups, list, fcu, actname);
+	}
+}
+
+/* ------------------------- */
+
+/* Convert IPO-block (i.e. all its IpoCurves) to the new system.
+ * This does not assume that any ID or AnimData uses it, but does assume that
+ * it is given two lists, which it will perform driver/animation-data separation.
+ */
+static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase *animgroups, ListBase *anim, ListBase *drivers)
+{
+	IpoCurve *icu, *icn;
+	
+	/* sanity check */
+	if (ELEM3(NULL, ipo, anim, drivers))
+		return;
+		
+	if (G.f & G_DEBUG) printf("ipo_to_animato \n");
+		
+	/* validate actname and constname 
+	 *	- clear actname if it was one of the generic <builtin> ones (i.e. 'Object', or 'Shapes')
+	 *	- actname can then be used to assign F-Curves in Action to Action Groups 
+	 *	  (i.e. thus keeping the benefits that used to be provided by Action Channels for grouping
+	 *		F-Curves for bones). This may be added later... for now let's just dump without them...
 	 */
-	switch (type) {
-	case IPO_FLOAT:
-		val= *((float *)poin);
-		break;
-		
-	case IPO_FLOAT_DEGR: /* special hack for rotation so that it fits on same axis as other transforms */
-		val= *( (float *)poin);
-		val = (float)(val / (M_PI_2/9.0));
-		break;
-	
-	case IPO_INT:
-	case IPO_INT_BIT: // fixme... directly revealing bitflag combinations is evil!
-	case IPO_LONG:
-		val= (float)( *((int *)poin) );
-		break;
-		
-	case IPO_SHORT:
-	case IPO_SHORT_BIT: // fixme... directly revealing bitflag combinations is evil!
-		val= *((short *)poin);
-		break;
-	
-	case IPO_CHAR:
-	case IPO_CHAR_BIT: // fixme... directly revealing bitflag combinations is evil
-		val= *((char *)poin);
-		break;
+	if (actname) {
+		if ((ipo->blocktype == ID_OB) && (strcmp(actname, "Object") == 0))
+			actname= NULL;
+		else if ((ipo->blocktype == ID_OB) && (strcmp(actname, "Shape") == 0))
+			actname= NULL;
 	}
 	
-	/* return value */
-	return val;
+	/* loop over IPO-Curves, freeing as we progress */
+	for (icu= ipo->curve.first; icu; icu= icn) {
+		/* get link to next (for later) */
+		icn= icu->next;
+		
+		/* Since an IPO-Curve may end up being made into many F-Curves (i.e. bitflag curves), 
+		 * we figure out the best place to put the channel, then tell the curve-converter to just dump there
+		 */
+		if (icu->driver) {
+			/* Blender 2.4x allowed empty drivers, but we don't now, since they cause more trouble than they're worth */
+			if ((icu->driver->ob) || (icu->driver->type == IPO_DRIVER_TYPE_PYTHON))
+				icu_to_fcurves(NULL, drivers, icu, actname, constname);
+			else
+				MEM_freeN(icu->driver);
+		}
+		else
+			icu_to_fcurves(animgroups, anim, icu, actname, constname);
+		
+		/* free this IpoCurve now that it's been converted */
+		BLI_freelinkN(&ipo->curve, icu);
+	}
 }
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!! FIXME - BAD CRUFT WARNING !!!!!!!!!!!!!!!!!!!!!!!
-
-
-/* ***************************** IPO <--> GameEngine Interface ********************************* */
-
-/* channels is max 32 items, allocated by calling function */
-short IPO_GetChannels (Ipo *ipo, IPO_Channel *channels)
+/* Convert Action-block to new system, separating animation and drivers
+ * New curves may not be converted directly into the given Action (i.e. for Actions linked
+ * to Objects, where ob->ipo and ob->action need to be combined).
+ * NOTE: we need to be careful here, as same data-structs are used for new system too!
+ */
+static void action_to_animato (bAction *act, ListBase *groups, ListBase *curves, ListBase *drivers)
 {
-	IpoCurve *icu;
-	int total = 0;
+	bActionChannel *achan, *achann;
+	bConstraintChannel *conchan, *conchann;
 	
-	/* don't do anything with no IPO-block */
-	if (ipo == NULL) 
-		return 0;
+	/* only continue if there are Action Channels (indicating unconverted data) */
+	if (act->chanbase.first == NULL)
+		return;
+		
+	/* get rid of all Action Groups */
+	// XXX this is risky if there's some old + some new data in the Action...
+	if (act->groups.first) 
+		BLI_freelistN(&act->groups);
 	
-	/* store the IPO-curve's adrcode in the relevant channel slot */
-	for (icu=ipo->curve.first; (icu) && (total < 31); icu=icu->next, total++)
-		channels[total]= icu->adrcode;
-	
-	/* return the number of channels stored */
-	return total;
+	/* loop through Action-Channels, converting data, freeing as we go */
+	for (achan= act->chanbase.first; achan; achan= achann) {
+		/* get pointer to next Action Channel */
+		achann= achan->next;
+		
+		/* convert Action Channel's IPO data */
+		if (achan->ipo) {
+			ipo_to_animato(achan->ipo, achan->name, NULL, groups, curves, drivers);
+			achan->ipo->id.us--;
+			achan->ipo= NULL;
+		}
+		
+		/* convert constraint channel IPO-data */
+		for (conchan= achan->constraintChannels.first; conchan; conchan= conchann) {
+			/* get pointer to next Constraint Channel */
+			conchann= conchan->next;
+			
+			/* convert Constraint Channel's IPO data */
+			if (conchan->ipo) {
+				ipo_to_animato(conchan->ipo, achan->name, conchan->name, groups, curves, drivers);
+				conchan->ipo->id.us--;
+				conchan->ipo= NULL;
+			}
+			
+			/* free Constraint Channel */
+			BLI_freelinkN(&achan->constraintChannels, conchan);
+		}
+		
+		/* free Action Channel */
+		BLI_freelinkN(&act->chanbase, achan);
+	}
 }
 
-/* Get the float value for channel 'channel' at time 'ctime' */
-float IPO_GetFloatValue (Ipo *ipo, IPO_Channel channel, float ctime)
+
+/* ------------------------- */
+
+/* Convert IPO-block (i.e. all its IpoCurves) for some ID to the new system
+ * This assumes that AnimData has been added already. Separation of drivers
+ * from animation data is accomplished here too...
+ */
+static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
 {
-	/* don't evaluate if no IPO to use */
-	if (ipo == NULL) 
-		return 0;
+	AnimData *adt= BKE_animdata_from_id(id);
+	ListBase anim = {NULL, NULL};
+	ListBase drivers = {NULL, NULL};
 	
-	/* only calculate the specified channel */
-	calc_ipo_spec(ipo, channel, &ctime);
+	/* sanity check */
+	if ELEM(NULL, id, ipo)
+		return;
+	if (adt == NULL) {
+		printf("ERROR ipo_to_animdata(): adt invalid \n");
+		return;
+	}
 	
-	/* unapply rotation hack, as gameengine doesn't use it */
-	if ((OB_ROT_X <= channel) && (channel <= OB_DROT_Z))
-		ctime *= (float)(M_PI_2/9.0); 
-
-	/* return the value of this channel */
-	return ctime;
+	if (G.f & G_DEBUG) {
+		printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s  curves:%d \n", 
+			id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", 
+			BLI_countlist(&ipo->curve));
+	}
+	
+	/* Convert curves to animato system (separated into separate lists of F-Curves for animation and drivers),
+	 * and the try to put these lists in the right places, but do not free the lists here
+	 */
+	// XXX there shouldn't be any need for the groups, so don't supply pointer for that now... 
+	ipo_to_animato(ipo, actname, constname, NULL, &anim, &drivers);
+	
+	/* deal with animation first */
+	if (anim.first) {
+		if (G.f & G_DEBUG) printf("\thas anim \n");
+		/* try to get action */
+		if (adt->action == NULL) {
+			adt->action= add_empty_action("ConvData_Action"); // XXX we need a better name for this
+			if (G.f & G_DEBUG) printf("\t\tadded new action \n");
+		}
+		
+		/* add F-Curves to action */
+		addlisttolist(&adt->action->curves, &anim);
+	}
+	
+	/* deal with drivers */
+	if (drivers.first) {
+		if (G.f & G_DEBUG) printf("\thas drivers \n");
+		/* add drivers to end of driver stack */
+		addlisttolist(&adt->drivers, &drivers);
+	}
 }
+
+/* Convert Action-block to new system
+ * NOTE: we need to be careful here, as same data-structs are used for new system too!
+ */
+static void action_to_animdata (ID *id, bAction *act)
+{
+	AnimData *adt= BKE_animdata_from_id(id);
+	
+	/* only continue if there are Action Channels (indicating unconverted data) */
+	if (ELEM(NULL, adt, act->chanbase.first))
+		return;
+	
+	/* check if we need to set this Action as the AnimData's action */
+	if (adt->action == NULL) {
+		/* set this Action as AnimData's Action */
+		if (G.f & G_DEBUG) printf("act_to_adt - set adt action to act \n");
+		adt->action= act;
+	}
+	
+	/* convert Action data */
+	action_to_animato(act, &adt->action->groups, &adt->action->curves, &adt->drivers);
+}
+
+/* ------------------------- */
+
+// TODO:
+//	- NLA group duplicators info
+//	- NLA curve/stride modifiers...
+
+/* Convert NLA-Strip to new system */
+static void nlastrips_to_animdata (ID *id, ListBase *strips)
+{
+	AnimData *adt= BKE_animdata_from_id(id);
+	NlaTrack *nlt = NULL;
+	NlaStrip *strip;
+	bActionStrip *as, *asn;
+	
+	/* for each one of the original strips, convert to a new strip and free the old... */
+	for (as= strips->first; as; as= asn) {
+		asn= as->next;
+		
+		/* this old strip is only worth something if it had an action... */
+		if (as->act) {
+			/* convert Action data (if not yet converted), storing the results in the same Action */
+			action_to_animato(as->act, &as->act->groups, &as->act->curves, &adt->drivers);
+			
+			/* create a new-style NLA-strip which references this Action, then copy over relevant settings */
+			{
+				/* init a new strip, and assign the action to it 
+				 *	- no need to muck around with the user-counts, since this is just 
+				 *	  passing over the ref to the new owner, not creating an additional ref
+				 */
+				strip= MEM_callocN(sizeof(NlaStrip), "NlaStrip");
+				strip->act= as->act;
+				
+					/* endpoints */
+				strip->start= as->start;
+				strip->end= as->end;
+				strip->actstart= as->actstart;
+				strip->actend= as->actend;
+				
+					/* action reuse */
+				strip->repeat= as->repeat;
+				strip->scale= as->scale;
+				if (as->flag & ACTSTRIP_LOCK_ACTION)	strip->flag |= NLASTRIP_FLAG_SYNC_LENGTH;
+				
+					/* blending */
+				strip->blendin= as->blendin;
+				strip->blendout= as->blendout;
+				strip->blendmode= (as->mode==ACTSTRIPMODE_ADD) ? NLASTRIP_MODE_ADD : NLASTRIP_MODE_REPLACE;
+				if (as->flag & ACTSTRIP_AUTO_BLENDS)	strip->flag |= NLASTRIP_FLAG_AUTO_BLENDS;
+					
+					/* assorted setting flags */
+				if (as->flag & ACTSTRIP_SELECT) 		strip->flag |= NLASTRIP_FLAG_SELECT;
+				if (as->flag & ACTSTRIP_ACTIVE) 		strip->flag |= NLASTRIP_FLAG_ACTIVE;
+				
+				if (as->flag & ACTSTRIP_MUTE)			strip->flag |= NLASTRIP_FLAG_MUTED;
+				if (as->flag & ACTSTRIP_REVERSE)		strip->flag |= NLASTRIP_FLAG_REVERSE;
+				
+					/* by default, we now always extrapolate, while in the past this was optional */
+				if ((as->flag & ACTSTRIP_HOLDLASTFRAME)==0) 
+					strip->extendmode= NLASTRIP_EXTEND_NOTHING;
+			}	
+			
+			/* try to add this strip to the current NLA-Track (i.e. the 'last' one on the stack atm) */
+			if (BKE_nlatrack_add_strip(nlt, strip) == 0) {
+				/* trying to add to the current failed (no space), 
+				 * so add a new track to the stack, and add to that...
+				 */
+				nlt= add_nlatrack(adt, NULL);
+				BKE_nlatrack_add_strip(nlt, strip);
+			}
+		}
+		
+		/* modifiers */
+		// FIXME: for now, we just free them...
+		if (as->modifiers.first)
+			BLI_freelistN(&as->modifiers);
+		
+		/* free the old strip */
+		BLI_freelinkN(strips, as);
+	}
+}
+
+/* *************************************************** */
+/* External API - Only Called from do_versions() */
+
+/* Called from do_versions() in readfile.c to convert the old 'IPO/adrcode' system
+ * to the new 'Animato/RNA' system.
+ *
+ * The basic method used here, is to loop over datablocks which have IPO-data, and 
+ * add those IPO's to new AnimData blocks as Actions. 
+ * Action/NLA data only works well for Objects, so these only need to be checked for there.
+ *  
+ * Data that has been converted should be freed immediately, which means that it is immediately
+ * clear which datablocks have yet to be converted, and also prevent freeing errors when we exit.
+ */
+// XXX currently done after all file reading... 
+void do_versions_ipos_to_animato(Main *main)
+{
+	ListBase drivers = {NULL, NULL};
+	ID *id;
+	AnimData *adt;
+	
+	if (main == NULL) {
+		printf("Argh! Main is NULL in do_versions_ipos_to_animato() \n");
+		return;
+	}
+		
+	/* only convert if version is right */
+	// XXX???
+	if (main->versionfile >= 250) {
+		printf("WARNING: Animation data too new to convert (Version %d) \n", main->versionfile);
+		return;
+	}
+	else
+		printf("INFO: Converting to Animato... \n"); // xxx debug
+		
+	/* ----------- Animation Attached to Data -------------- */
+	
+	/* objects */
+	for (id= main->object.first; id; id= id->next) {
+		Object *ob= (Object *)id;
+		bPoseChannel *pchan;
+		bConstraint *con;
+		bConstraintChannel *conchan, *conchann;
+		
+		if (G.f & G_DEBUG) printf("\tconverting ob %s \n", id->name+2);
+		
+		/* check if object has any animation data */
+		if (ob->nlastrips.first) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* IPO first to take into any non-NLA'd Object Animation */
+			if (ob->ipo) {
+				ipo_to_animdata(id, ob->ipo, NULL, NULL);
+				
+				ob->ipo->id.us--;
+				ob->ipo= NULL;
+			}
+			
+			/* Action is skipped since it'll be used by some strip in the NLA anyway, 
+			 * causing errors with evaluation in the new evaluation pipeline
+			 */
+			if (ob->action) {
+				ob->action->id.us--;
+				ob->action= NULL;
+			}
+			
+			/* finally NLA */
+			nlastrips_to_animdata(id, &ob->nlastrips);
+		}
+		else if ((ob->ipo) || (ob->action)) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Action first - so that Action name get conserved */
+			if (ob->action) {
+				action_to_animdata(id, ob->action);
+				
+				/* only decrease usercount if this Action isn't now being used by AnimData */
+				if (ob->action != adt->action) {
+					ob->action->id.us--;
+					ob->action= NULL;
+				}
+			}
+			
+			/* IPO second... */
+			if (ob->ipo) {
+				ipo_to_animdata(id, ob->ipo, NULL, NULL);
+				ob->ipo->id.us--;
+				ob->ipo= NULL;
+			}
+		}
+		
+		/* check PoseChannels for constraints with local data */
+		if (ob->pose) {
+			/* Verify if there's AnimData block */
+			BKE_id_add_animdata(id);
+			
+			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				for (con= pchan->constraints.first; con; con= con->next) {
+					/* if constraint has own IPO, convert add these to Object 
+					 * (NOTE: they're most likely to be drivers too) 
+					 */
+					if (con->ipo) {
+						/* although this was the constraint's local IPO, we still need to provide pchan + con 
+						 * so that drivers can be added properly...
+						 */
+						ipo_to_animdata(id, con->ipo, pchan->name, con->name);
+						con->ipo->id.us--;
+						con->ipo= NULL;
+					}
+				}
+			}
+		}
+		
+		/* check constraints for local IPO's */
+		for (con= ob->constraints.first; con; con= con->next) {
+			/* if constraint has own IPO, convert add these to Object 
+			 * (NOTE: they're most likely to be drivers too) 
+			 */
+			if (con->ipo) {
+				/* Verify if there's AnimData block, just in case */
+				BKE_id_add_animdata(id);
+				
+				/* although this was the constraint's local IPO, we still need to provide con 
+				 * so that drivers can be added properly...
+				 */
+				ipo_to_animdata(id, con->ipo, NULL, con->name);
+				con->ipo->id.us--;
+				con->ipo= NULL;
+			}
+			 
+			/* check for Action Constraint */
+			// XXX do we really want to do this here?
+		}
+		
+		/* check constraint channels - we need to remove them anyway... */
+		if (ob->constraintChannels.first) {
+			/* Verify if there's AnimData block */
+			BKE_id_add_animdata(id);
+			
+			for (conchan= ob->constraintChannels.first; conchan; conchan= conchann) {
+				/* get pointer to next Constraint Channel */
+				conchann= conchan->next;
+				
+				/* convert Constraint Channel's IPO data */
+				if (conchan->ipo) {
+					ipo_to_animdata(id, conchan->ipo, NULL, conchan->name);
+					conchan->ipo->id.us--;
+					conchan->ipo= NULL;
+				}
+				
+				/* free Constraint Channel */
+				BLI_freelinkN(&ob->constraintChannels, conchan);
+			}
+		}
+	}
+	
+	/* shapekeys */
+	for (id= main->key.first; id; id= id->next) {
+		Key *key= (Key *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting key %s \n", id->name+2);
+		
+		/* we're only interested in the IPO 
+		 * NOTE: for later, it might be good to port these over to Object instead, as many of these
+		 * are likely to be drivers, but it's hard to trace that from here, so move this to Ob loop?
+		 */
+		if (key->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Shapekey data... */
+			ipo_to_animdata(id, key->ipo, NULL, NULL);
+			key->ipo->id.us--;
+			key->ipo= NULL;
+		}
+	}
+	
+	/* materials */
+	for (id= main->mat.first; id; id= id->next) {
+		Material *ma= (Material *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting material %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (ma->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Material data... */
+			ipo_to_animdata(id, ma->ipo, NULL, NULL);
+			ma->ipo->id.us--;
+			ma->ipo= NULL;
+		}
+	}
+	
+	/* textures */
+	for (id= main->tex.first; id; id= id->next) {
+		Tex *te= (Tex *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting texture %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (te->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Texture data... */
+			ipo_to_animdata(id, te->ipo, NULL, NULL);
+			te->ipo->id.us--;
+			te->ipo= NULL;
+		}
+	}
+	
+	/* cameras */
+	for (id= main->camera.first; id; id= id->next) {
+		Camera *ca= (Camera *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting camera %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (ca->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Camera data... */
+			ipo_to_animdata(id, ca->ipo, NULL, NULL);
+			ca->ipo->id.us--;
+			ca->ipo= NULL;
+		}
+	}
+	
+	/* lamps */
+	for (id= main->lamp.first; id; id= id->next) {
+		Lamp *la= (Lamp *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting lamp %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (la->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Lamp data... */
+			ipo_to_animdata(id, la->ipo, NULL, NULL);
+			la->ipo->id.us--;
+			la->ipo= NULL;
+		}
+	}
+	
+	/* --------- Unconverted Animation Data ------------------ */
+	/* For Animation data which may not be directly connected (i.e. not linked) to any other 
+	 * data, we need to perform a separate pass to make sure that they are converted to standalone
+	 * Actions which may then be able to be reused. This does mean that we will be going over data that's
+	 * already been converted, but there are no problems with that.
+	 *
+	 * The most common case for this will be Action Constraints, or IPO's with Fake-Users. 
+	 * We collect all drivers that were found into a temporary collection, and free them in one go, as they're 
+	 * impossible to resolve.
+	 */
+	
+	/* actions */
+	for (id= main->action.first; id; id= id->next) {
+		bAction *act= (bAction *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting action %s \n", id->name+2);
+		
+		/* be careful! some of the actions we encounter will be converted ones... */
+		action_to_animato(act, &act->groups, &act->curves, &drivers);
+	}
+	
+	/* ipo's */
+	for (id= main->ipo.first; id; id= id->next) {
+		Ipo *ipo= (Ipo *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting ipo %s \n", id->name+2);
+		
+		/* most likely this IPO has already been processed, so check if any curves left to convert */
+		if (ipo->curve.first) {
+			bAction *new_act;
+			
+			/* add a new action for this, and convert all data into that action */
+			new_act= add_empty_action("ConvIPO_Action"); // XXX need a better name...
+			ipo_to_animato(ipo, NULL, NULL, NULL, &new_act->curves, &drivers);
+		}
+		
+		/* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */
+		ipo->id.us= 0;
+		ipo->id.flag &= ~LIB_FAKEUSER;
+	}
+	
+	/* free unused drivers from actions + ipos */
+	free_fcurves(&drivers);
+	
+	printf("INFO: Animato convert done \n"); // xxx debug
+}
+

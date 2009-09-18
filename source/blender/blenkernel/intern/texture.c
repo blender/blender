@@ -38,11 +38,12 @@
 
 #include "PIL_dynlib.h"
 
-#include "MTC_matrixops.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_kdopbvh.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_key_types.h"
@@ -61,7 +62,6 @@
 
 #include "BKE_plugin_types.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 
 #include "BKE_global.h"
@@ -73,9 +73,9 @@
 #include "BKE_texture.h"
 #include "BKE_key.h"
 #include "BKE_icons.h"
-#include "BKE_ipo.h"
 #include "BKE_brush.h"
 #include "BKE_node.h"
+#include "BKE_animsys.h"
 
 
 /* ------------------------------------------------------------------------- */
@@ -177,8 +177,8 @@ PluginTex *add_plugin_tex(char *str)
 	open_plugin_tex(pit);
 	
 	if(pit->doit==0) {
-		if(pit->handle==0) error("no plugin: %s", str);
-		else error("in plugin: %s", str);
+		if(pit->handle==0); //XXX error("no plugin: %s", str);
+		else ; //XXX error("in plugin: %s", str);
 		MEM_freeN(pit);
 		return NULL;
 	}
@@ -348,6 +348,15 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 				else
 					fac= 0.0f;
 				
+				if (coba->ipotype==4) {
+					/* constant */
+					out[0]= cbd2->r;
+					out[1]= cbd2->g;
+					out[2]= cbd2->b;
+					out[3]= cbd2->a;
+					return 1;
+				}
+				
 				if(coba->ipotype>=2) {
 					/* ipo from right to left: 3 2 1 0 */
 					
@@ -359,9 +368,9 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 					CLAMP(fac, 0.0f, 1.0f);
 					
 					if(coba->ipotype==3)
-						set_four_ipo(fac, t, KEY_CARDINAL);
+						key_curve_position_weights(fac, t, KEY_CARDINAL);
 					else
-						set_four_ipo(fac, t, KEY_BSPLINE);
+						key_curve_position_weights(fac, t, KEY_BSPLINE);
 
 					out[0]= t[3]*cbd3->r +t[2]*cbd2->r +t[1]*cbd1->r +t[0]*cbd0->r;
 					out[1]= t[3]*cbd3->g +t[2]*cbd2->g +t[1]*cbd1->g +t[0]*cbd0->g;
@@ -409,9 +418,16 @@ void free_texture(Tex *tex)
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
+	if(tex->pd) BKE_free_pointdensity(tex->pd);
+	if(tex->vd) BKE_free_voxeldata(tex->vd);
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
+	
+	if(tex->nodetree) {
+		ntreeFreeTree(tex->nodetree);
+		MEM_freeN(tex->nodetree);
+	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -422,12 +438,15 @@ void default_tex(Tex *tex)
 	VarStruct *varstr;
 	int a;
 
+	tex->type= TEX_CLOUDS;
 	tex->stype= 0;
 	tex->flag= TEX_CHECKER_ODD;
-	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP+TEX_USEALPHA;
+	tex->imaflag= TEX_INTERPOL|TEX_MIPMAP|TEX_USEALPHA;
 	tex->extend= TEX_REPEAT;
 	tex->cropxmin= tex->cropymin= 0.0;
 	tex->cropxmax= tex->cropymax= 1.0;
+	tex->texfilter = TXF_EWA;
+	tex->afmax = 8;
 	tex->xrepeat= tex->yrepeat= 1;
 	tex->fie_ima= 2;
 	tex->sfra= 1;
@@ -470,6 +489,16 @@ void default_tex(Tex *tex)
 		tex->env->depth=0;
 	}
 
+	if (tex->pd) {
+		tex->pd->radius = 0.3f;
+		tex->pd->falloff_type = TEX_PD_FALLOFF_STD;
+	}
+	
+	if (tex->vd) {
+		tex->vd->resol[0] = tex->vd->resol[1] = tex->vd->resol[2] = 0;
+		tex->vd->interp_type=TEX_VD_LINEAR;
+		tex->vd->file_format=TEX_VD_SMOKE;
+	}
 	pit = tex->plugin;
 	if (pit) {
 		varstr= pit->varstr;
@@ -518,7 +547,7 @@ void default_mtex(MTex *mtex)
 	mtex->size[1]= 1.0;
 	mtex->size[2]= 1.0;
 	mtex->tex= 0;
-	mtex->texflag= 0;
+	mtex->texflag= MTEX_NEW_BUMP;
 	mtex->colormodel= 0;
 	mtex->r= 1.0;
 	mtex->g= 0.0;
@@ -527,7 +556,7 @@ void default_mtex(MTex *mtex)
 	mtex->def_var= 1.0;
 	mtex->blendtype= MTEX_BLEND;
 	mtex->colfac= 1.0;
-	mtex->norfac= 0.5;
+	mtex->norfac= 1.0;
 	mtex->varfac= 1.0;
 	mtex->dispfac=0.2;
 	mtex->normapspace= MTEX_NSPACE_TANGENT;
@@ -557,7 +586,9 @@ Tex *copy_texture(Tex *tex)
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= 0;
 	
+#if 0 // XXX old animation system
 	id_us_plus((ID *)texn->ipo);
+#endif // XXX old animation system
 	
 	if(texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
@@ -569,6 +600,11 @@ Tex *copy_texture(Tex *tex)
 	
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
+	if(tex->nodetree) {
+		ntreeEndExecTree(tex->nodetree);
+		texn->nodetree= ntreeCopyTree(tex->nodetree, 0); /* 0 == full new tree */
+	}
+	
 	return texn;
 }
 
@@ -714,11 +750,17 @@ void make_local_texture(Tex *tex)
 
 void autotexname(Tex *tex)
 {
-/*	extern char texstr[20][12];	 *//* buttons.c, already in bad lev calls*/
+	char texstr[20][15]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
+		"Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
+		"Voronoi", "DistNoise", "Point Density", "Voxel Data", "", "", "", ""};
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
 	
 	if(tex) {
+		if(tex->use_nodes) {
+			new_id(&G.main->tex, (ID *)tex, "Noddy");
+		}
+		else
 		if(tex->type==TEX_IMAGE) {
 			ima= tex->ima;
 			if(ima) {
@@ -758,7 +800,7 @@ Tex *give_current_texture(Object *ob, int act)
 		if(act>ob->totcol) act= ob->totcol;
 		else if(act==0) act= 1;
 		
-		if( BTST(ob->colbits, act-1) ) {	/* in object */
+		if(ob->matbits[act-1]) {	/* in object */
 			ma= ob->mat[act-1];
 		}
 		else {								/* in data */
@@ -790,14 +832,14 @@ Tex *give_current_texture(Object *ob, int act)
 	return tex;
 }
 
-Tex *give_current_world_texture(void)
+Tex *give_current_world_texture(Scene *scene)
 {
 	MTex *mtex = 0;
 	Tex *tex = 0;
 	
-	if(!(G.scene->world)) return 0;
+	if(!(scene->world)) return 0;
 	
-	mtex= G.scene->world->mtex[(int)(G.scene->world->texact)];
+	mtex= scene->world->mtex[(int)(scene->world->texact)];
 	if(mtex) tex= mtex->tex;
 	
 	return tex;
@@ -859,18 +901,122 @@ void BKE_free_envmap(EnvMap *env)
 }
 
 /* ------------------------------------------------------------------------- */
+
+PointDensity *BKE_add_pointdensity(void)
+{
+	PointDensity *pd;
+	
+	pd= MEM_callocN(sizeof(PointDensity), "pointdensity");
+	pd->flag = 0;
+	pd->radius = 0.3f;
+	pd->falloff_type = TEX_PD_FALLOFF_STD;
+	pd->falloff_softness = 2.0;
+	pd->source = TEX_PD_PSYS;
+	pd->point_tree = NULL;
+	pd->point_data = NULL;
+	pd->noise_size = 0.5f;
+	pd->noise_depth = 1;
+	pd->noise_fac = 1.0f;
+	pd->noise_influence = TEX_PD_NOISE_STATIC;
+	pd->coba = add_colorband(1);
+	pd->speed_scale = 1.0f;
+	pd->totpoints = 0;
+	pd->coba = add_colorband(1);
+	pd->object = NULL;
+	pd->psys = NULL;
+	return pd;
+} 
+
+PointDensity *BKE_copy_pointdensity(PointDensity *pd)
+{
+	PointDensity *pdn;
+
+	pdn= MEM_dupallocN(pd);
+	pdn->point_tree = NULL;
+	pdn->point_data = NULL;
+	if(pdn->coba) pdn->coba= MEM_dupallocN(pdn->coba);
+	
+	return pdn;
+}
+
+void BKE_free_pointdensitydata(PointDensity *pd)
+{
+	if (pd->point_tree) {
+		BLI_bvhtree_free(pd->point_tree);
+		pd->point_tree = NULL;
+	}
+	if (pd->point_data) {
+		MEM_freeN(pd->point_data);
+		pd->point_data = NULL;
+	}
+	if(pd->coba) MEM_freeN(pd->coba);
+}
+
+void BKE_free_pointdensity(PointDensity *pd)
+{
+	BKE_free_pointdensitydata(pd);
+	MEM_freeN(pd);
+}
+
+
+void BKE_free_voxeldatadata(struct VoxelData *vd)
+{
+	if (vd->dataset) {
+		MEM_freeN(vd->dataset);
+		vd->dataset = NULL;
+	}
+
+}
+ 
+void BKE_free_voxeldata(struct VoxelData *vd)
+{
+	BKE_free_voxeldatadata(vd);
+	MEM_freeN(vd);
+}
+ 
+struct VoxelData *BKE_add_voxeldata(void)
+{
+	VoxelData *vd;
+
+	vd= MEM_callocN(sizeof(struct VoxelData), "voxeldata");
+	vd->dataset = NULL;
+	vd->resol[0] = vd->resol[1] = vd->resol[2] = 1;
+	vd->interp_type= TEX_VD_LINEAR;
+	vd->file_format= TEX_VD_SMOKE;
+	vd->int_multiplier = 1.0;
+	vd->object = NULL;
+	
+	return vd;
+ }
+ 
+struct VoxelData *BKE_copy_voxeldata(struct VoxelData *vd)
+{
+	VoxelData *vdn;
+
+	vdn= MEM_dupallocN(vd);	
+	vdn->dataset = NULL;
+
+	return vdn;
+}
+
+
+/* ------------------------------------------------------------------------- */
 int BKE_texture_dependsOnTime(const struct Tex *texture)
 {
 	if(texture->plugin) {
 		// assume all plugins depend on time
 		return 1;
-	} else if(	texture->ima && 
+	} 
+	else if(	texture->ima && 
 			ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
 		return 1;
-	} else if(texture->ipo) {
+	} 
+#if 0 // XXX old animation system
+	else if(texture->ipo) {
 		// assume any ipo means the texture is animated
 		return 1;
 	}
+#endif // XXX old animation system
 	return 0;
 }
 

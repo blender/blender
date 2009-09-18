@@ -25,7 +25,6 @@ subject to the following restrictions:
 ///It allows either 32bit or 16bit indices, and 4 (x-y-z-w) or 3 (x-y-z) component vertices.
 ///If you want to share triangle/index data between graphics mesh and collision mesh (btBvhTriangleMeshShape), you can directly use btTriangleIndexVertexArray or derive your own class from btStridingMeshInterface.
 ///Performance of btTriangleMesh and btTriangleIndexVertexArray used in a btBvhTriangleMeshShape is the same.
-///It has a brute-force option to weld together closeby vertices.
 class btTriangleMesh : public btTriangleIndexVertexArray
 {
 	btAlignedObjectArray<btVector3>	m_4componentVertices;
@@ -42,7 +41,7 @@ class btTriangleMesh : public btTriangleIndexVertexArray
 
 		btTriangleMesh (bool use32bitIndices=true,bool use4componentVertices=true);
 
-		int		findOrAddVertex(const btVector3& vertex);
+		int		findOrAddVertex(const btVector3& vertex, bool removeDuplicateVertices);
 		void	addIndex(int index);
 
 		bool	getUse32bitIndices() const
@@ -54,8 +53,9 @@ class btTriangleMesh : public btTriangleIndexVertexArray
 		{
 			return m_use4componentVertices;
 		}
-		
-		void	addTriangle(const btVector3& vertex0,const btVector3& vertex1,const btVector3& vertex2);
+		///By default addTriangle won't search for duplicate vertices, because the search is very slow for large triangle meshes.
+		///In general it is better to directly use btTriangleIndexVertexArray instead.
+		void	addTriangle(const btVector3& vertex0,const btVector3& vertex1,const btVector3& vertex2, bool removeDuplicateVertices=false);
 		
 		int getNumTriangles() const;
 

@@ -34,6 +34,7 @@
 #include "DNA_ID.h"
 
 struct PackedFile;
+struct Scene;
 struct anim;
 struct ImBuf;
 struct RenderResult;
@@ -51,6 +52,8 @@ typedef struct ImageUser {
 	
 	short multi_index, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
 	short menunr;					/* localized menu entry, for handling browse event */
+	
+	struct Scene *scene;		/* to retrieve render result */
 } ImageUser;
 
 /* iuser->flag */
@@ -84,6 +87,9 @@ typedef struct Image {
 	struct PackedFile * packedfile;
 	struct PreviewImage * preview;
 
+	/* not saved in file, statistics for render result */
+	char *render_text;
+	
 	float lastupdate;
 	int lastused;
 	short animspeed;
@@ -92,10 +98,6 @@ typedef struct Image {
 	
 	/* display aspect - for UV editing images resized for faster openGL display */
 	float aspx, aspy;
-	
-/*#ifdef WITH_VERSE*/
-	void *vnode;		/* pointer at verse bitmap node */
-/*#endif*/
 } Image;
 
 
@@ -120,6 +122,10 @@ typedef struct Image {
 #define IMA_CLAMP_V		32
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
+
+/* render_text maxlen */
+#define IMA_RW_MAXTEXT           512
+
 
 #endif
 

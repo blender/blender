@@ -46,8 +46,6 @@ public:
 	const btTransform& GetTransformB()const  { return m_transB;}
 
 
-	virtual int	getShapeType() const { return MINKOWSKI_SUM_SHAPE_PROXYTYPE; }
-
 	virtual btScalar	getMargin() const;
 
 	const btConvexShape*	getShapeA() const { return m_shapeA;}

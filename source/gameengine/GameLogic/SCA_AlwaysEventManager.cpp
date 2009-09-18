@@ -51,9 +51,10 @@ SCA_AlwaysEventManager::SCA_AlwaysEventManager(class SCA_LogicManager* logicmgr)
 
 void SCA_AlwaysEventManager::NextFrame()
 {
-	for (set<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
+	SG_DList::iterator<SCA_ISensor> it(m_sensors);
+	for (it.begin();!it.end();++it)
 	{
-		(*i)->Activate(m_logicmgr, NULL);
+		(*it)->Activate(m_logicmgr);
 	}
 }
 

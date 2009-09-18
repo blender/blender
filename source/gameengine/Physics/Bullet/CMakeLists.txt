@@ -24,16 +24,26 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp)
+SET(SRC CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp CcdGraphicController.cpp)
 
 SET(INC
-  .
-  ../common
-  ../../../../extern/bullet2/src
-  ../../../../intern/moto/include
-  ../../../kernel/gen_system
-  ../../../../intern/string
-  ../../Rasterizer
+	.
+	../common
+	../../../../extern/bullet2/src
+	../../../../extern/glew/include
+	../../../../intern/moto/include
+	../../../../intern/guardedalloc
+	../../../kernel/gen_system
+	../../../../intern/string
+	../../Rasterizer
+	../../Ketsji
+	../../Expressions
+	../../GameLogic
+	../../SceneGraph
+	../../../../source/blender/makesdna
+	../../../../source/blender/blenlib
+	../../../../source/blender/blenkernel
+	${PYTHON_INC}
 )
 
 BLENDERLIB(bf_bullet "${SRC}" "${INC}")

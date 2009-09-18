@@ -28,10 +28,9 @@
 #
 #
 
+LIBNAME = dna
 DIR = $(OCGDIR)/blender/makesdna
-CSRCS = $(wildcard *.c)
-
-ALLTARGETS = $(OBJS) $(DIR)/$(DEBUG_DIR)makesdna $(DIR)/$(SHARED_DIR)$(DEBUG_DIR)DNA.o
+CSRCS = DNA.c $(wildcard dna_*.c)
 
 include nan_compile.mk
 
@@ -66,9 +65,10 @@ clean::
 # A small note: we do not use the debug version of the alloc lib. That
 # is done quite intentionally. If there is a bug in that lib, it needs
 # to be fixed by the module maintainer.
-$(DIR)/$(DEBUG_DIR)makesdna: $(OBJS) $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a 
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) \
-	$(NAN_GUARDEDALLOC)/lib/libguardedalloc.a $(WINLIBS)
+DNAOBJS = $(filter-out %DNA.o, $(OBJS))
+
+$(DIR)/$(DEBUG_DIR)makesdna: $(DNAOBJS) $(DIR)/$(DEBUG_DIR)makesdna.o $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
+	$(CC) $(LDFLAGS) -o $@ $^
 
 $(DIR)/$(DEBUG_DIR)DNA.c: $(DIR)/$(DEBUG_DIR)makesdna
     ifeq ($(OS),windows)
@@ -78,6 +78,6 @@ $(DIR)/$(DEBUG_DIR)DNA.c: $(DIR)/$(DEBUG_DIR)makesdna
 	$(DIR)/$(DEBUG_DIR)makesdna $(DIR)/$(DEBUG_DIR)DNA.c
     endif
 
-$(DIR)/$(SHARED_DIR)$(DEBUG_DIR)DNA.o: $(DIR)/$(DEBUG_DIR)DNA.c
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+$(DIR)/$(DEBUG_DIR)makesdna.o: makesdna.c $(wildcard ../*.h)
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) makesdna.c -o $@
 

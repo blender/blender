@@ -34,6 +34,7 @@
 
 /* ************************ FUNKTIES **************************** */
 
+#include <stdlib.h>
 #include <math.h>
 #include <sys/types.h>
 #include <string.h> 
@@ -62,13 +63,13 @@
 #define SWAP(type, a, b)	{ type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
 #define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 
-
-#if defined(WIN32) || defined(__APPLE__)
-#include <stdlib.h>
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
-#define M_SQRT2 1.41421356237309504880   
+#endif
 
-#endif /* defined(WIN32) || defined(__APPLE__) */
+#ifndef M_SQRT2
+#define M_SQRT2 1.41421356237309504880   
+#endif
 
 
 float saacos(float fac)
@@ -91,21 +92,41 @@ float sasqrt(float fac)
 	return (float)sqrt(fac);
 }
 
+float saacosf(float fac)
+{
+	if(fac<= -1.0f) return (float)M_PI;
+	else if(fac>=1.0f) return 0.0f;
+	else return (float)acosf(fac);
+}
+
+float saasinf(float fac)
+{
+	if(fac<= -1.0f) return (float)-M_PI/2.0f;
+	else if(fac>=1.0f) return (float)M_PI/2.0f;
+	else return (float)asinf(fac);
+}
+
+float sasqrtf(float fac)
+{
+	if(fac<=0.0) return 0.0;
+	return (float)sqrtf(fac);
+}
+
 float Normalize(float *n)
 {
 	float d;
 	
 	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
 	/* A larger value causes normalize errors in a scaled down models with camera xtreme close */
-	if(d>1.0e-35F) {
+	if(d>1.0e-35f) {
 		d= (float)sqrt(d);
 
 		n[0]/=d; 
 		n[1]/=d; 
 		n[2]/=d;
 	} else {
-		n[0]=n[1]=n[2]= 0.0;
-		d= 0.0;
+		n[0]=n[1]=n[2]= 0.0f;
+		d= 0.0f;
 	}
 	return d;
 }
@@ -593,17 +614,17 @@ void Mat4CpyMat4(float m1[][4], float m2[][4])
 	memcpy(m1, m2, 4*4*sizeof(float));
 }
 
-void Mat4SwapMat4(float *m1, float *m2)
+void Mat4SwapMat4(float m1[][4], float m2[][4])
 {
 	float t;
-	int i;
+	int i, j;
 
-	for(i=0;i<16;i++) {
-		t= *m1;
-		*m1= *m2;
-		*m2= t;
-		m1++; 
-		m2++;
+	for(i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
+			t        = m1[i][j];
+			m1[i][j] = m2[i][j];
+			m2[i][j] = t;
+		}
 	}
 }
 
@@ -828,6 +849,26 @@ void Mat3One(float m[][3])
 {
 
 	m[0][0]= m[1][1]= m[2][2]= 1.0;
+	m[0][1]= m[0][2]= 0.0;
+	m[1][0]= m[1][2]= 0.0;
+	m[2][0]= m[2][1]= 0.0;
+}
+
+void Mat4Scale(float m[][4], float scale)
+{
+
+	m[0][0]= m[1][1]= m[2][2]= scale;
+	m[3][3]= 1.0;
+	m[0][1]= m[0][2]= m[0][3]= 0.0;
+	m[1][0]= m[1][2]= m[1][3]= 0.0;
+	m[2][0]= m[2][1]= m[2][3]= 0.0;
+	m[3][0]= m[3][1]= m[3][2]= 0.0;
+}
+
+void Mat3Scale(float m[][3], float scale)
+{
+
+	m[0][0]= m[1][1]= m[2][2]= scale;
 	m[0][1]= m[0][2]= 0.0;
 	m[1][0]= m[1][2]= 0.0;
 	m[2][0]= m[2][1]= 0.0;
@@ -1087,6 +1128,10 @@ void printmatrix3( char *str,  float m[][3])
 
 /* **************** QUATERNIONS ********** */
 
+int QuatIsNul(float *q)
+{
+	return (q[0] == 0 && q[1] == 0 && q[2] == 0 && q[3] == 0);
+}
 
 void QuatMul(float *q, float *q1, float *q2)
 {
@@ -1351,8 +1396,8 @@ void Mat4ToQuat( float m[][4], float *q)
 
 void QuatOne(float *q)
 {
-	q[0]= q[2]= q[3]= 0.0;
-	q[1]= 1.0;
+	q[0]= 1.0;
+	q[1]= q[2]= q[3]= 0.0;
 }
 
 void NormalQuat(float *q)
@@ -1381,22 +1426,6 @@ void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3])
 	angle = NormalizedVecAngle2(v1, v2);
 	
 	AxisAngleToQuat(q, axis, angle);
-}
-
-void AxisAngleToQuat(float *q, float *axis, float angle)
-{
-	float nor[3];
-	float si;
-	
-	VecCopyf(nor, axis);
-	Normalize(nor);
-	
-	angle /= 2;
-	si = (float)sin(angle);
-	q[0] = (float)cos(angle);
-	q[1] = nor[0] * si;
-	q[2] = nor[1] * si;
-	q[3] = nor[2] * si;	
 }
 
 void vectoquat(float *vec, short axis, short upflag, float *q)
@@ -1585,7 +1614,7 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 }
 
 /* A & M Watt, Advanced animation and rendering techniques, 1992 ACM press */
-void QuatInterpolW(float *, float *, float *, float );
+void QuatInterpolW(float *, float *, float *, float ); // XXX why this?
 
 void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 {
@@ -1594,16 +1623,16 @@ void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
 	
 	/* rotate around shortest angle */
-	if ((1.0 + cosom) > 0.0001) {
+	if ((1.0f + cosom) > 0.0001f) {
 		
-		if ((1.0 - cosom) > 0.0001) {
-			omega = acos(cosom);
-			sinom = sin(omega);
-			sc1 = sin((1.0 - t) * omega) / sinom;
-			sc2 = sin(t * omega) / sinom;
+		if ((1.0f - cosom) > 0.0001f) {
+			omega = (float)acos(cosom);
+			sinom = (float)sin(omega);
+			sc1 = (float)sin((1.0 - t) * omega) / sinom;
+			sc2 = (float)sin(t * omega) / sinom;
 		} 
 		else {
-			sc1 = 1.0 - t;
+			sc1 = 1.0f - t;
 			sc2 = t;
 		}
 		result[0] = sc1*quat1[0] + sc2*quat2[0];
@@ -1617,9 +1646,9 @@ void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 		result[2] = quat2[1];
 		result[3] = -quat2[0];
 		
-		sc1 = sin((1.0 - t)*M_PI_2);
-		sc2 = sin(t*M_PI_2);
-
+		sc1 = (float)sin((1.0 - t)*M_PI_2);
+		sc2 = (float)sin(t*M_PI_2);
+		
 		result[0] = sc1*quat1[0] + sc2*result[0];
 		result[1] = sc1*quat1[1] + sc2*result[1];
 		result[2] = sc1*quat1[2] + sc2*result[2];
@@ -1634,7 +1663,7 @@ void QuatInterpol(float *result, float *quat1, float *quat2, float t)
 	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
 	
 	/* rotate around shortest angle */
-	if (cosom < 0.0) {
+	if (cosom < 0.0f) {
 		cosom = -cosom;
 		quat[0]= -quat1[0];
 		quat[1]= -quat1[1];
@@ -1648,13 +1677,13 @@ void QuatInterpol(float *result, float *quat1, float *quat2, float t)
 		quat[3]= quat1[3];
 	}
 	
-	if ((1.0 - cosom) > 0.0001) {
-		omega = acos(cosom);
-		sinom = sin(omega);
-		sc1 = sin((1 - t) * omega) / sinom;
-		sc2 = sin(t * omega) / sinom;
+	if ((1.0f - cosom) > 0.0001f) {
+		omega = (float)acos(cosom);
+		sinom = (float)sin(omega);
+		sc1 = (float)sin((1 - t) * omega) / sinom;
+		sc2 = (float)sin(t * omega) / sinom;
 	} else {
-		sc1= 1.0 - t;
+		sc1= 1.0f - t;
 		sc2= t;
 	}
 	
@@ -1770,7 +1799,7 @@ void DQuatToMat4(DualQuat *dq, float mat[][4])
 	QuatCopy(q0, dq->quat);
 
 	/* normalize */
-	len= sqrt(QuatDot(q0, q0)); 
+	len= (float)sqrt(QuatDot(q0, q0)); 
 	if(len != 0.0f)
 		QuatMulf(q0, 1.0f/len);
 	
@@ -1779,9 +1808,9 @@ void DQuatToMat4(DualQuat *dq, float mat[][4])
 
 	/* translation */
 	t= dq->trans;
-	mat[3][0]= 2.0*(-t[0]*q0[1] + t[1]*q0[0] - t[2]*q0[3] + t[3]*q0[2]);
-	mat[3][1]= 2.0*(-t[0]*q0[2] + t[1]*q0[3] + t[2]*q0[0] - t[3]*q0[1]);
-	mat[3][2]= 2.0*(-t[0]*q0[3] - t[1]*q0[2] + t[2]*q0[1] + t[3]*q0[0]);
+	mat[3][0]= 2.0f*(-t[0]*q0[1] + t[1]*q0[0] - t[2]*q0[3] + t[3]*q0[2]);
+	mat[3][1]= 2.0f*(-t[0]*q0[2] + t[1]*q0[3] + t[2]*q0[0] - t[3]*q0[1]);
+	mat[3][2]= 2.0f*(-t[0]*q0[3] - t[1]*q0[2] + t[2]*q0[1] + t[3]*q0[0]);
 
 	/* note: this does not handle scaling */
 }	
@@ -1810,10 +1839,10 @@ void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight)
 	/* interpolate scale - but only if needed */
 	if (dq->scale_weight) {
 		float wmat[4][4];
-
+		
 		if(flipped)	/* we don't want negative weights for scaling */
 			weight= -weight;
-
+		
 		Mat4CpyMat4(wmat, dq->scale);
 		Mat4MulFloat((float*)wmat, weight);
 		Mat4AddMat4(dqsum->scale, dqsum->scale, wmat);
@@ -1830,7 +1859,7 @@ void DQuatNormalize(DualQuat *dq, float totweight)
 	
 	if(dq->scale_weight) {
 		float addweight= totweight - dq->scale_weight;
-
+		
 		if(addweight) {
 			dq->scale[0][0] += addweight;
 			dq->scale[1][1] += addweight;
@@ -2151,21 +2180,45 @@ void VecSubf(float *v, float *v1, float *v2)
 	v[2]= v1[2]- v2[2];
 }
 
-void VecLerpf(float *target, float *a, float *b, float t)
+void VecMulVecf(float *v, float *v1, float *v2)
 {
-	float s = 1.0f-t;
+	v[0] = v1[0] * v2[0];
+	v[1] = v1[1] * v2[1];
+	v[2] = v1[2] * v2[2];
+}
+
+void VecLerpf(float *target, const float *a, const float *b, const float t)
+{
+	const float s = 1.0f-t;
 
 	target[0]= s*a[0] + t*b[0];
 	target[1]= s*a[1] + t*b[1];
 	target[2]= s*a[2] + t*b[2];
 }
 
-void Vec2Lerpf(float *target, float *a, float *b, float t)
+void Vec2Lerpf(float *target, const float *a, const float *b, const float t)
 {
-	float s = 1.0f-t;
+	const float s = 1.0f-t;
 
 	target[0]= s*a[0] + t*b[0];
 	target[1]= s*a[1] + t*b[1];
+}
+
+/* weight 3 vectors, (VecWeightf in 2.4x)
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void VecLerp3f(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
+	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2];
+}
+
+/* weight 3 2D vectors, (Vec2Weightf in 2.4x)
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void Vec2Lerp3f(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
 }
 
 void VecMidf(float *v, float *v1, float *v2)
@@ -2183,27 +2236,32 @@ void VecMulf(float *v1, float f)
 	v1[2]*= f;
 }
 
+void VecNegf(float *v1)
+{
+	v1[0] = -v1[0];
+	v1[1] = -v1[1];
+	v1[2] = -v1[2];
+}
+
 void VecOrthoBasisf(float *v, float *v1, float *v2)
 {
-	float f = sqrt(v[0]*v[0] + v[1]*v[1]);
+	const float f = (float)sqrt(v[0]*v[0] + v[1]*v[1]);
 
 	if (f < 1e-35f) {
 		// degenerate case
-		v1[0] = 0.0f; v1[1] = 1.0f; v1[2] = 0.0f;
-		if (v[2] > 0.0f) {
-			v2[0] = 1.0f; v2[1] = v2[2] = 0.0f;
-		}
-		else {
-			v2[0] = -1.0f; v2[1] = v2[2] = 0.0f;
-		}
+		v1[0] = (v[2] < 0.0f) ? -1.0f : 1.0f;
+		v1[1] = v1[2] = v2[0] = v2[2] = 0.0f;
+		v2[1] = 1.0f;
 	}
 	else  {
-		f = 1.0f/f;
-		v1[0] = v[1]*f;
-		v1[1] = -v[0]*f;
-		v1[2] = 0.0f;
+		const float d= 1.0f/f;
 
-		Crossf(v2, v, v1);
+		v1[0] =  v[1]*d;
+		v1[1] = -v[0]*d;
+		v1[2] = 0.0f;
+		v2[0] = -v[2]*v1[1];
+		v2[1] = v[2]*v1[0];
+		v2[2] = v[0]*v1[1] - v[1]*v1[0];
 	}
 }
 
@@ -2337,9 +2395,9 @@ double Sqrt3d(double d)
 
 void NormalShortToFloat(float *out, short *in)
 {
-	out[0] = in[0] / 32767.0;
-	out[1] = in[1] / 32767.0;
-	out[2] = in[2] / 32767.0;
+	out[0] = in[0] / 32767.0f;
+	out[1] = in[1] / 32767.0f;
+	out[2] = in[2] / 32767.0f;
 }
 
 void NormalFloatToShort(short *out, float *in)
@@ -2476,15 +2534,15 @@ short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4)
 	*/
 	float div, labda, mu;
 	
-	div= (v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]);
-	if(div==0.0) return -1;
+	div= (float)((v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]));
+	if(div==0.0f) return -1;
 	
 	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
 	
 	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
 	
-	if(labda>=0.0 && labda<=1.0 && mu>=0.0 && mu<=1.0) {
-		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return 1;
+	if(labda>=0.0f && labda<=1.0f && mu>=0.0f && mu<=1.0f) {
+		if(labda==0.0f || labda==1.0f || mu==0.0f || mu==1.0f) return 1;
 		return 2;
 	}
 	return 0;
@@ -2643,9 +2701,9 @@ static int BarycentricWeights(float *v1, float *v2, float *v3, float *co, float 
 
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
 	   the 2d projected coords are the same and faster to compute */
-	xn= fabs(n[0]);
-	yn= fabs(n[1]);
-	zn= fabs(n[2]);
+	xn= (float)fabs(n[0]);
+	yn= (float)fabs(n[1]);
+	zn= (float)fabs(n[2]);
 	if(zn>=xn && zn>=yn) {i= 0; j= 1;}
 	else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
 	else {i= 1; j= 2;} 
@@ -2770,6 +2828,241 @@ void MeanValueWeights(float v[][3], int n, float *co, float *w)
 
 /* ************ EULER *************** */
 
+/* Euler Rotation Order Code:
+ * was adapted from  
+  		ANSI C code from the article
+		"Euler Angle Conversion"
+		by Ken Shoemake, shoemake@graphics.cis.upenn.edu
+		in "Graphics Gems IV", Academic Press, 1994
+ * for use in Blender
+ */
+
+/* Type for rotation order info - see wiki for derivation details */
+typedef struct RotOrderInfo {
+	short i;		/* first axis index */
+	short j;		/* second axis index */
+	short k;		/* third axis index */
+	short parity;	/* parity of axis permuation (even=0, odd=1) - 'n' in original code */
+} RotOrderInfo;
+
+/* Array of info for Rotation Order calculations 
+ * WARNING: must be kept in same order as eEulerRotationOrders
+ */
+static RotOrderInfo rotOrders[]= {
+	/* i, j, k, n */
+	{0, 1, 2, 0}, // XYZ
+	{0, 2, 1, 1}, // XZY
+	{1, 0, 2, 1}, // YXZ
+	{1, 2, 0, 0}, // YZX
+	{2, 0, 1, 0}, // ZXY
+	{2, 1, 0, 1}  // ZYZ
+};
+
+/* Get relevant pointer to rotation order set from the array 
+ * NOTE: since we start at 1 for the values, but arrays index from 0, 
+ *		 there is -1 factor involved in this process...
+ */
+#define GET_ROTATIONORDER_INFO(order) (((order)>=1) ? &rotOrders[(order)-1] : &rotOrders[0])
+
+/* Construct quaternion from Euler angles (in radians). */
+void EulOToQuat(float e[3], short order, float q[4])
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
+	short i=R->i,  j=R->j, 	k=R->k;
+	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
+	double a[3];
+	
+	ti = e[i]/2; tj = e[j]/2; th = e[k]/2;
+	
+	if (R->parity) e[j] = -e[j];
+	
+	ci = cos(ti);  cj = cos(tj);  ch = cos(th);
+	si = sin(ti);  sj = sin(tj);  sh = sin(th);
+	
+	cc = ci*ch; cs = ci*sh; 
+	sc = si*ch; ss = si*sh;
+	
+	a[i] = cj*sc - sj*cs;
+	a[j] = cj*ss + sj*cc;
+	a[k] = cj*cs - sj*sc;
+	
+	q[0] = cj*cc + sj*ss;
+	q[1] = a[0];
+	q[2] = a[1];
+	q[3] = a[2];
+	
+	if (R->parity) q[j] = -q[j];
+}
+
+/* Convert quaternion to Euler angles (in radians). */
+void QuatToEulO(float q[4], float e[3], short order)
+{
+	float M[3][3];
+	
+	QuatToMat3(q, M);
+	Mat3ToEulO(M, e, order);
+}
+
+/* Construct 3x3 matrix from Euler angles (in radians). */
+void EulOToMat3(float e[3], short order, float M[3][3])
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
+	short i=R->i,  j=R->j, 	k=R->k;
+	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
+	
+	if (R->parity) {
+		ti = -e[i];	  tj = -e[j];	th = -e[k];
+	}
+	else {
+		ti = e[i];	  tj = e[j];	th = e[k];
+	}
+	
+	ci = cos(ti); cj = cos(tj); ch = cos(th);
+	si = sin(ti); sj = sin(tj); sh = sin(th);
+	
+	cc = ci*ch; cs = ci*sh; 
+	sc = si*ch; ss = si*sh;
+	
+	M[i][i] = cj*ch; M[j][i] = sj*sc-cs; M[k][i] = sj*cc+ss;
+	M[i][j] = cj*sh; M[j][j] = sj*ss+cc; M[k][j] = sj*cs-sc;
+	M[i][k] = -sj;	 M[j][k] = cj*si;	 M[k][k] = cj*ci;
+}
+
+/* Construct 4x4 matrix from Euler angles (in radians). */
+void EulOToMat4(float e[3], short order, float M[4][4])
+{
+	float m[3][3];
+	
+	/* for now, we'll just do this the slow way (i.e. copying matrices) */
+	Mat3Ortho(m);
+	EulOToMat3(e, order, m);
+	Mat4CpyMat3(M, m);
+}
+
+/* Convert 3x3 matrix to Euler angles (in radians). */
+void Mat3ToEulO(float M[3][3], float e[3], short order)
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
+	short i=R->i,  j=R->j, 	k=R->k;
+	double cy = sqrt(M[i][i]*M[i][i] + M[i][j]*M[i][j]);
+	
+	if (cy > 16*FLT_EPSILON) {
+		e[i] = atan2(M[j][k], M[k][k]);
+		e[j] = atan2(-M[i][k], cy);
+		e[k] = atan2(M[i][j], M[i][i]);
+	} 
+	else {
+		e[i] = atan2(-M[k][j], M[j][j]);
+		e[j] = atan2(-M[i][k], cy);
+		e[k] = 0;
+	}
+	
+	if (R->parity) {
+		e[0] = -e[0]; 
+		e[1] = -e[1]; 
+		e[2] = -e[2];
+	}
+}
+
+/* Convert 4x4 matrix to Euler angles (in radians). */
+void Mat4ToEulO(float M[4][4], float e[3], short order)
+{
+	float m[3][3];
+	
+	/* for now, we'll just do this the slow way (i.e. copying matrices) */
+	Mat3CpyMat4(m, M);
+	Mat3Ortho(m);
+	Mat3ToEulO(m, e, order);
+}
+
+/* returns two euler calculation methods, so we can pick the best */
+static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
+	short i=R->i,  j=R->j, 	k=R->k;
+	float m[3][3];
+	double cy;
+	
+	/* process the matrix first */
+	Mat3CpyMat3(m, M);
+	Mat3Ortho(m);
+	
+	cy= sqrt(m[i][i]*m[i][i] + m[i][j]*m[i][j]);
+	
+	if (cy > 16*FLT_EPSILON) {
+		e1[i] = atan2(m[j][k], m[k][k]);
+		e1[j] = atan2(-m[i][k], cy);
+		e1[k] = atan2(m[i][j], m[i][i]);
+		
+		e2[i] = atan2(-m[j][k], -m[k][k]);
+		e2[j] = atan2(-m[i][k], -cy);
+		e2[k] = atan2(-m[i][j], -m[i][i]);
+	} 
+	else {
+		e1[i] = atan2(-m[k][j], m[j][j]);
+		e1[j] = atan2(-m[i][k], cy);
+		e1[k] = 0;
+		
+		VecCopyf(e2, e1);
+	}
+	
+	if (R->parity) {
+		e1[0] = -e1[0]; 
+		e1[1] = -e1[1]; 
+		e1[2] = -e1[2];
+		
+		e2[0] = -e2[0]; 
+		e2[1] = -e2[1]; 
+		e2[2] = -e2[2];
+	}
+}
+
+/* uses 2 methods to retrieve eulers, and picks the closest */
+void Mat3ToCompatibleEulO(float mat[3][3], float eul[3], float oldrot[3], short order)
+{
+	float eul1[3], eul2[3];
+	float d1, d2;
+	
+	mat3_to_eulo2(mat, eul1, eul2, order);
+	
+	compatible_eul(eul1, oldrot);
+	compatible_eul(eul2, oldrot);
+	
+	d1= (float)fabs(eul1[0]-oldrot[0]) + (float)fabs(eul1[1]-oldrot[1]) + (float)fabs(eul1[2]-oldrot[2]);
+	d2= (float)fabs(eul2[0]-oldrot[0]) + (float)fabs(eul2[1]-oldrot[1]) + (float)fabs(eul2[2]-oldrot[2]);
+	
+	/* return best, which is just the one with lowest difference */
+	if (d1 > d2)
+		VecCopyf(eul, eul2);
+	else
+		VecCopyf(eul, eul1);
+}
+
+/* rotate the given euler by the given angle on the specified axis */
+// NOTE: is this safe to do with different axis orders?
+void eulerO_rot(float beul[3], float ang, char axis, short order)
+{
+	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
+	
+	eul[0]= eul[1]= eul[2]= 0.0f;
+	if (axis=='x') 
+		eul[0]= ang;
+	else if (axis=='y') 
+		eul[1]= ang;
+	else 
+		eul[2]= ang;
+	
+	EulOToMat3(eul, order, mat1);
+	EulOToMat3(beul, order, mat2);
+	
+	Mat3MulMat3(totmat, mat2, mat1);
+	
+	Mat3ToEulO(totmat, beul, order);
+}
+
+/* ************ EULER (old XYZ) *************** */
+
+/* XYZ order */
 void EulToMat3( float *eul, float mat[][3])
 {
 	double ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
@@ -2797,6 +3090,7 @@ void EulToMat3( float *eul, float mat[][3])
 
 }
 
+/* XYZ order */
 void EulToMat4( float *eul,float mat[][4])
 {
 	double ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
@@ -2828,6 +3122,7 @@ void EulToMat4( float *eul,float mat[][4])
 }
 
 /* returns two euler calculation methods, so we can pick the best */
+/* XYZ order */
 static void mat3_to_eul2(float tmat[][3], float *eul1, float *eul2)
 {
 	float cy, quat[4], mat[3][3];
@@ -2858,6 +3153,7 @@ static void mat3_to_eul2(float tmat[][3], float *eul1, float *eul2)
 	}
 }
 
+/* XYZ order */
 void Mat3ToEul(float tmat[][3], float *eul)
 {
 	float eul1[3], eul2[3];
@@ -2873,16 +3169,18 @@ void Mat3ToEul(float tmat[][3], float *eul)
 	}
 }
 
+/* XYZ order */
 void Mat4ToEul(float tmat[][4], float *eul)
 {
 	float tempMat[3][3];
 
-	Mat3CpyMat4 (tempMat, tmat);
+	Mat3CpyMat4(tempMat, tmat);
 	Mat3Ortho(tempMat);
 	Mat3ToEul(tempMat, eul);
 }
 
-void QuatToEul( float *quat, float *eul)
+/* XYZ order */
+void QuatToEul(float *quat, float *eul)
 {
 	float mat[3][3];
 	
@@ -2890,8 +3188,8 @@ void QuatToEul( float *quat, float *eul)
 	Mat3ToEul(mat, eul);
 }
 
-
-void EulToQuat( float *eul, float *quat)
+/* XYZ order */
+void EulToQuat(float *eul, float *quat)
 {
     float ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
  
@@ -2906,142 +3204,12 @@ void EulToQuat( float *eul, float *quat)
 	quat[3] = cj*cs - sj*sc;
 }
 
-void VecRotToMat3( float *vec, float phi, float mat[][3])
-{
-	/* rotation of phi radials around vec */
-	float vx, vx2, vy, vy2, vz, vz2, co, si;
-	
-	vx= vec[0];
-	vy= vec[1];
-	vz= vec[2];
-	vx2= vx*vx;
-	vy2= vy*vy;
-	vz2= vz*vz;
-	co= (float)cos(phi);
-	si= (float)sin(phi);
-	
-	mat[0][0]= vx2+co*(1.0f-vx2);
-	mat[0][1]= vx*vy*(1.0f-co)+vz*si;
-	mat[0][2]= vz*vx*(1.0f-co)-vy*si;
-	mat[1][0]= vx*vy*(1.0f-co)-vz*si;
-	mat[1][1]= vy2+co*(1.0f-vy2);
-	mat[1][2]= vy*vz*(1.0f-co)+vx*si;
-	mat[2][0]= vz*vx*(1.0f-co)+vy*si;
-	mat[2][1]= vy*vz*(1.0f-co)-vx*si;
-	mat[2][2]= vz2+co*(1.0f-vz2);
-	
-}
-
-void VecRotToMat4( float *vec, float phi, float mat[][4])
-{
-	float tmat[3][3];
-	
-	VecRotToMat3(vec, phi, tmat);
-	Mat4One(mat);
-	Mat4CpyMat3(mat, tmat);
-}
-
-void VecRotToQuat( float *vec, float phi, float *quat)
-{
-	/* rotation of phi radials around vec */
-	float si;
-
-	quat[1]= vec[0];
-	quat[2]= vec[1];
-	quat[3]= vec[2];
-	
-	if( Normalize(quat+1) == 0.0) {
-		QuatOne(quat);
-	}
-	else {
-		quat[0]= (float)cos( phi/2.0 );
-		si= (float)sin( phi/2.0 );
-		quat[1] *= si;
-		quat[2] *= si;
-		quat[3] *= si;
-	}
-}
-
-/* Return the angle in degrees between vecs 1-2 and 2-3 in degrees
-   If v1 is a shoulder, v2 is the elbow and v3 is the hand,
-   this would return the angle at the elbow */
-float VecAngle3(float *v1, float *v2, float *v3)
-{
-	float vec1[3], vec2[3];
-
-	VecSubf(vec1, v2, v1);
-	VecSubf(vec2, v2, v3);
-	Normalize(vec1);
-	Normalize(vec2);
-
-	return NormalizedVecAngle2(vec1, vec2) * 180.0/M_PI;
-}
-
-float VecAngle3_2D(float *v1, float *v2, float *v3)
-{
-	float vec1[2], vec2[2];
-
-	vec1[0] = v2[0]-v1[0];
-	vec1[1] = v2[1]-v1[1];
-	
-	vec2[0] = v2[0]-v3[0];
-	vec2[1] = v2[1]-v3[1];
-	
-	Normalize2(vec1);
-	Normalize2(vec2);
-
-	return NormalizedVecAngle2_2D(vec1, vec2) * 180.0/M_PI;
-}
-
-/* Return the shortest angle in degrees between the 2 vectors */
-float VecAngle2(float *v1, float *v2)
-{
-	float vec1[3], vec2[3];
-
-	VecCopyf(vec1, v1);
-	VecCopyf(vec2, v2);
-	Normalize(vec1);
-	Normalize(vec2);
-
-	return NormalizedVecAngle2(vec1, vec2)* 180.0/M_PI;
-}
-
-float NormalizedVecAngle2(float *v1, float *v2)
-{
-	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
-	if (Inpf(v1, v2) < 0.0f) {
-		float vec[3];
-		
-		vec[0]= -v2[0];
-		vec[1]= -v2[1];
-		vec[2]= -v2[2];
-
-		return (float)M_PI - 2.0f*saasin(VecLenf(vec, v1)/2.0f);
-	}
-	else
-		return 2.0f*saasin(VecLenf(v2, v1)/2.0);
-}
-
-float NormalizedVecAngle2_2D(float *v1, float *v2)
-{
-	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
-	if (Inp2f(v1, v2) < 0.0f) {
-		float vec[2];
-		
-		vec[0]= -v2[0];
-		vec[1]= -v2[1];
-
-		return (float)M_PI - 2.0f*saasin(Vec2Lenf(vec, v1)/2.0f);
-	}
-	else
-		return 2.0f*saasin(Vec2Lenf(v2, v1)/2.0);
-}
-
+/* XYZ order */
 void euler_rot(float *beul, float ang, char axis)
 {
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 	
-	eul[0]= eul[1]= eul[2]= 0.0;
+	eul[0]= eul[1]= eul[2]= 0.0f;
 	if(axis=='x') eul[0]= ang;
 	else if(axis=='y') eul[1]= ang;
 	else eul[2]= ang;
@@ -3056,38 +3224,38 @@ void euler_rot(float *beul, float ang, char axis)
 }
 
 /* exported to transform.c */
+/* order independent! */
 void compatible_eul(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
 	
 	/* correct differences of about 360 degrees first */
-	
 	dx= eul[0] - oldrot[0];
 	dy= eul[1] - oldrot[1];
 	dz= eul[2] - oldrot[2];
 	
-	while( fabs(dx) > 5.1) {
-		if(dx > 0.0) eul[0] -= 2.0*M_PI; else eul[0]+= 2.0*M_PI;
+	while(fabs(dx) > 5.1) {
+		if(dx > 0.0f) eul[0] -= 2.0f*(float)M_PI; else eul[0]+= 2.0f*(float)M_PI;
 		dx= eul[0] - oldrot[0];
 	}
-	while( fabs(dy) > 5.1) {
-		if(dy > 0.0) eul[1] -= 2.0*M_PI; else eul[1]+= 2.0*M_PI;
+	while(fabs(dy) > 5.1) {
+		if(dy > 0.0f) eul[1] -= 2.0f*(float)M_PI; else eul[1]+= 2.0f*(float)M_PI;
 		dy= eul[1] - oldrot[1];
 	}
-	while( fabs(dz) > 5.1 ) {
-		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
+	while(fabs(dz) > 5.1) {
+		if(dz > 0.0f) eul[2] -= 2.0f*(float)M_PI; else eul[2]+= 2.0f*(float)M_PI;
 		dz= eul[2] - oldrot[2];
 	}
 	
 	/* is 1 of the axis rotations larger than 180 degrees and the other small? NO ELSE IF!! */	
 	if( fabs(dx) > 3.2 && fabs(dy)<1.6 && fabs(dz)<1.6 ) {
-		if(dx > 0.0) eul[0] -= 2.0*M_PI; else eul[0]+= 2.0*M_PI;
+		if(dx > 0.0) eul[0] -= 2.0f*(float)M_PI; else eul[0]+= 2.0f*(float)M_PI;
 	}
 	if( fabs(dy) > 3.2 && fabs(dz)<1.6 && fabs(dx)<1.6 ) {
-		if(dy > 0.0) eul[1] -= 2.0*M_PI; else eul[1]+= 2.0*M_PI;
+		if(dy > 0.0) eul[1] -= 2.0f*(float)M_PI; else eul[1]+= 2.0f*(float)M_PI;
 	}
 	if( fabs(dz) > 3.2 && fabs(dx)<1.6 && fabs(dy)<1.6 ) {
-		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
+		if(dz > 0.0) eul[2] -= 2.0f*(float)M_PI; else eul[2]+= 2.0f*(float)M_PI;
 	}
 	
 	/* the method below was there from ancient days... but why! probably because the code sucks :)
@@ -3120,6 +3288,7 @@ void compatible_eul(float *eul, float *oldrot)
 }
 
 /* uses 2 methods to retrieve eulers, and picks the closest */
+/* XYZ order */
 void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 {
 	float eul1[3], eul2[3];
@@ -3130,8 +3299,8 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 	compatible_eul(eul1, oldrot);
 	compatible_eul(eul2, oldrot);
 	
-	d1= fabs(eul1[0]-oldrot[0]) + fabs(eul1[1]-oldrot[1]) + fabs(eul1[2]-oldrot[2]);
-	d2= fabs(eul2[0]-oldrot[0]) + fabs(eul2[1]-oldrot[1]) + fabs(eul2[2]-oldrot[2]);
+	d1= (float)fabs(eul1[0]-oldrot[0]) + (float)fabs(eul1[1]-oldrot[1]) + (float)fabs(eul1[2]-oldrot[2]);
+	d2= (float)fabs(eul2[0]-oldrot[0]) + (float)fabs(eul2[1]-oldrot[1]) + (float)fabs(eul2[2]-oldrot[2]);
 	
 	/* return best, which is just the one with lowest difference */
 	if( d1 > d2) {
@@ -3143,19 +3312,335 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 	
 }
 
+/* ************ AXIS ANGLE *************** */
+
+/* Axis angle to Quaternions */
+void AxisAngleToQuat(float q[4], float axis[3], float angle)
+{
+	float nor[3];
+	float si;
+	
+	VecCopyf(nor, axis);
+	Normalize(nor);
+	
+	angle /= 2;
+	si = (float)sin(angle);
+	q[0] = (float)cos(angle);
+	q[1] = nor[0] * si;
+	q[2] = nor[1] * si;
+	q[3] = nor[2] * si;	
+}
+
+/* Quaternions to Axis Angle */
+void QuatToAxisAngle(float q[4], float axis[3], float *angle)
+{
+	float ha, si;
+	
+	/* calculate angle/2, and sin(angle/2) */
+	ha= (float)acos(q[0]);
+	si= (float)sin(ha);
+	
+	/* from half-angle to angle */
+	*angle= ha * 2;
+	
+	/* prevent division by zero for axis conversion */
+	if (fabs(si) < 0.0005)
+		si= 1.0f;
+	
+	axis[0]= q[1] / si;
+	axis[1]= q[2] / si;
+	axis[2]= q[3] / si;
+}
+
+/* Axis Angle to Euler Rotation */
+void AxisAngleToEulO(float axis[3], float angle, float eul[3], short order)
+{
+	float q[4];
+	
+	/* use quaternions as intermediate representation for now... */
+	AxisAngleToQuat(q, axis, angle);
+	QuatToEulO(q, eul, order);
+}
+
+/* Euler Rotation to Axis Angle */
+void EulOToAxisAngle(float eul[3], short order, float axis[3], float *angle)
+{
+	float q[4];
+	
+	/* use quaternions as intermediate representation for now... */
+	EulOToQuat(eul, order, q);
+	QuatToAxisAngle(q, axis, angle);
+}
+
+/* axis angle to 3x3 matrix - safer version (normalisation of axis performed) */
+void AxisAngleToMat3(float axis[3], float angle, float mat[3][3])
+{
+	float nor[3], nsi[3], co, si, ico;
+	
+	/* normalise the axis first (to remove unwanted scaling) */
+	VecCopyf(nor, axis);
+	Normalize(nor);
+	
+	/* now convert this to a 3x3 matrix */
+	co= (float)cos(angle);		
+	si= (float)sin(angle);
+	
+	ico= (1.0f - co);
+	nsi[0]= nor[0]*si;
+	nsi[1]= nor[1]*si;
+	nsi[2]= nor[2]*si;
+	
+	mat[0][0] = ((nor[0] * nor[0]) * ico) + co;
+	mat[0][1] = ((nor[0] * nor[1]) * ico) + nsi[2];
+	mat[0][2] = ((nor[0] * nor[2]) * ico) - nsi[1];
+	mat[1][0] = ((nor[0] * nor[1]) * ico) - nsi[2];
+	mat[1][1] = ((nor[1] * nor[1]) * ico) + co;
+	mat[1][2] = ((nor[1] * nor[2]) * ico) + nsi[0];
+	mat[2][0] = ((nor[0] * nor[2]) * ico) + nsi[1];
+	mat[2][1] = ((nor[1] * nor[2]) * ico) - nsi[0];
+	mat[2][2] = ((nor[2] * nor[2]) * ico) + co;
+}
+
+/* axis angle to 4x4 matrix - safer version (normalisation of axis performed) */
+void AxisAngleToMat4(float axis[3], float angle, float mat[4][4])
+{
+	float tmat[3][3];
+	
+	AxisAngleToMat3(axis, angle, tmat);
+	Mat4One(mat);
+	Mat4CpyMat3(mat, tmat);
+}
+
+/* 3x3 matrix to axis angle (see Mat4ToVecRot too) */
+void Mat3ToAxisAngle(float mat[3][3], float axis[3], float *angle)
+{
+	float q[4];
+	
+	/* use quaternions as intermediate representation */
+	// TODO: it would be nicer to go straight there...
+	Mat3ToQuat(mat, q);
+	QuatToAxisAngle(q, axis, angle);
+}
+
+/* 4x4 matrix to axis angle (see Mat4ToVecRot too) */
+void Mat4ToAxisAngle(float mat[4][4], float axis[3], float *angle)
+{
+	float q[4];
+	
+	/* use quaternions as intermediate representation */
+	// TODO: it would be nicer to go straight there...
+	Mat4ToQuat(mat, q);
+	QuatToAxisAngle(q, axis, angle);
+}
+
+/* ************ AXIS ANGLE (unchecked) *************** */
+// TODO: the following calls should probably be depreceated sometime
+
+/* 3x3 matrix to axis angle */
+void Mat3ToVecRot(float mat[3][3], float axis[3], float *angle)
+{
+	float q[4];
+	
+	/* use quaternions as intermediate representation */
+	// TODO: it would be nicer to go straight there...
+	Mat3ToQuat(mat, q);
+	QuatToAxisAngle(q, axis, angle);
+}
+
+/* 4x4 matrix to axis angle */
+void Mat4ToVecRot(float mat[4][4], float axis[3], float *angle)
+{
+	float q[4];
+	
+	/* use quaternions as intermediate representation */
+	// TODO: it would be nicer to go straight there...
+	Mat4ToQuat(mat, q);
+	QuatToAxisAngle(q, axis, angle);
+}
+
+/* axis angle to 3x3 matrix */
+void VecRotToMat3(float *vec, float phi, float mat[][3])
+{
+	/* rotation of phi radials around vec */
+	float vx, vx2, vy, vy2, vz, vz2, co, si;
+	
+	vx= vec[0];
+	vy= vec[1];
+	vz= vec[2];
+	vx2= vx*vx;
+	vy2= vy*vy;
+	vz2= vz*vz;
+	co= (float)cos(phi);
+	si= (float)sin(phi);
+	
+	mat[0][0]= vx2+co*(1.0f-vx2);
+	mat[0][1]= vx*vy*(1.0f-co)+vz*si;
+	mat[0][2]= vz*vx*(1.0f-co)-vy*si;
+	mat[1][0]= vx*vy*(1.0f-co)-vz*si;
+	mat[1][1]= vy2+co*(1.0f-vy2);
+	mat[1][2]= vy*vz*(1.0f-co)+vx*si;
+	mat[2][0]= vz*vx*(1.0f-co)+vy*si;
+	mat[2][1]= vy*vz*(1.0f-co)-vx*si;
+	mat[2][2]= vz2+co*(1.0f-vz2);
+}
+
+/* axis angle to 4x4 matrix */
+void VecRotToMat4(float *vec, float phi, float mat[][4])
+{
+	float tmat[3][3];
+	
+	VecRotToMat3(vec, phi, tmat);
+	Mat4One(mat);
+	Mat4CpyMat3(mat, tmat);
+}
+
+/* axis angle to quaternion */
+void VecRotToQuat(float *vec, float phi, float *quat)
+{
+	/* rotation of phi radials around vec */
+	float si;
+
+	quat[1]= vec[0];
+	quat[2]= vec[1];
+	quat[3]= vec[2];
+	
+	if( Normalize(quat+1) == 0.0f) {
+		QuatOne(quat);
+	}
+	else {
+		quat[0]= (float)cos( phi/2.0 );
+		si= (float)sin( phi/2.0 );
+		quat[1] *= si;
+		quat[2] *= si;
+		quat[3] *= si;
+	}
+}
+
+/* ************ VECTORS *************** */
+
+/* Returns a vector bisecting the angle at v2 formed by v1, v2 and v3 */
+void VecBisect3(float *out, float *v1, float *v2, float *v3)
+{
+	float d_12[3], d_23[3];
+	VecSubf(d_12, v2, v1);
+	VecSubf(d_23, v3, v2);
+	Normalize(d_12);
+	Normalize(d_23);
+	VecAddf(out, d_12, d_23);
+	Normalize(out);
+}
+
+/* Returns a reflection vector from a vector and a normal vector
+reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
+*/
+void VecReflect(float *out, float *v1, float *v2)
+{
+	float vec[3], normal[3];
+	float reflect[3] = {0.0f, 0.0f, 0.0f};
+	float dot2;
+
+	VecCopyf(vec, v1);
+	VecCopyf(normal, v2);
+
+	Normalize(normal);
+
+	dot2 = 2 * Inpf(vec, normal);
+
+	reflect[0] = vec[0] - (dot2 * normal[0]);
+	reflect[1] = vec[1] - (dot2 * normal[1]);
+	reflect[2] = vec[2] - (dot2 * normal[2]);
+
+	VecCopyf(out, reflect);
+}
+
+/* Return the angle in degrees between vecs 1-2 and 2-3 in degrees
+   If v1 is a shoulder, v2 is the elbow and v3 is the hand,
+   this would return the angle at the elbow */
+float VecAngle3(float *v1, float *v2, float *v3)
+{
+	float vec1[3], vec2[3];
+
+	VecSubf(vec1, v2, v1);
+	VecSubf(vec2, v2, v3);
+	Normalize(vec1);
+	Normalize(vec2);
+
+	return NormalizedVecAngle2(vec1, vec2);
+}
+
+float Vec2Angle3(float *v1, float *v2, float *v3)
+{
+	float vec1[2], vec2[2];
+
+	vec1[0] = v2[0]-v1[0];
+	vec1[1] = v2[1]-v1[1];
+	
+	vec2[0] = v2[0]-v3[0];
+	vec2[1] = v2[1]-v3[1];
+	
+	Normalize2(vec1);
+	Normalize2(vec2);
+
+	return NormalizedVecAngle2_2D(vec1, vec2);
+}
+
+/* Return the shortest angle in degrees between the 2 vectors */
+float VecAngle2(float *v1, float *v2)
+{
+	float vec1[3], vec2[3];
+
+	VecCopyf(vec1, v1);
+	VecCopyf(vec2, v2);
+	Normalize(vec1);
+	Normalize(vec2);
+
+	return NormalizedVecAngle2(vec1, vec2);
+}
+
+float NormalizedVecAngle2(float *v1, float *v2)
+{
+	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
+	if (Inpf(v1, v2) < 0.0f) {
+		float vec[3];
+		
+		vec[0]= -v2[0];
+		vec[1]= -v2[1];
+		vec[2]= -v2[2];
+		
+		return (float)M_PI - 2.0f*(float)saasin(VecLenf(vec, v1)/2.0f);
+	}
+	else
+		return 2.0f*(float)saasin(VecLenf(v2, v1)/2.0f);
+}
+
+float NormalizedVecAngle2_2D(float *v1, float *v2)
+{
+	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
+	if (Inp2f(v1, v2) < 0.0f) {
+		float vec[2];
+		
+		vec[0]= -v2[0];
+		vec[1]= -v2[1];
+		
+		return (float)M_PI - 2.0f*saasin(Vec2Lenf(vec, v1)/2.0f);
+	}
+	else
+		return 2.0f*(float)saasin(Vec2Lenf(v2, v1)/2.0f);
+}
+
 /* ******************************************** */
 
 void SizeToMat3( float *size, float mat[][3])
 {
 	mat[0][0]= size[0];
-	mat[0][1]= 0.0;
-	mat[0][2]= 0.0;
+	mat[0][1]= 0.0f;
+	mat[0][2]= 0.0f;
 	mat[1][1]= size[1];
-	mat[1][0]= 0.0;
-	mat[1][2]= 0.0;
+	mat[1][0]= 0.0f;
+	mat[1][2]= 0.0f;
 	mat[2][2]= size[2];
-	mat[2][1]= 0.0;
-	mat[2][0]= 0.0;
+	mat[2][1]= 0.0f;
+	mat[2][0]= 0.0f;
 }
 
 void SizeToMat4( float *size, float mat[][4])
@@ -3187,7 +3672,7 @@ void Mat4ToSize( float mat[][4], float *size)
 float Mat3ToScalef(float mat[][3])
 {
 	/* unit length vector */
-	float unit_vec[3] = {0.577350269189626, 0.577350269189626, 0.577350269189626};
+	float unit_vec[3] = {0.577350269189626f, 0.577350269189626f, 0.577350269189626f};
 	Mat3MulVecfl(mat, unit_vec);
 	return VecLength(unit_vec);
 }
@@ -3212,12 +3697,12 @@ void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 
 	n[0]= vec[1];
 	n[1]= -vec[0];
-	n[2]= 0.0;
+	n[2]= 0.0f;
 	Normalize(n);
 	
-	if(n[0]==0.0 && n[1]==0.0) n[0]= 1.0;
+	if(n[0]==0.0f && n[1]==0.0f) n[0]= 1.0f;
 	
-	angle= -0.5f*saacos(vec[2]);
+	angle= -0.5f*(float)saacos(vec[2]);
 	co= (float)cos(angle);
 	si= (float)sin(angle);
 	q1[0]= co;
@@ -3232,7 +3717,7 @@ void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 	Mat3MulVecfl(imat, vec);
 
 	/* what angle has this line with x-axis? */
-	vec[2]= 0.0;
+	vec[2]= 0.0f;
 	Normalize(vec);
 
 	angle= (float)(0.5*atan2(vec[1], vec[0]));
@@ -3305,14 +3790,13 @@ float Normalize2(float *n)
 	
 	d= n[0]*n[0]+n[1]*n[1];
 
-	if(d>1.0e-35F) {
+	if(d>1.0e-35f) {
 		d= (float)sqrt(d);
-
 		n[0]/=d; 
 		n[1]/=d; 
 	} else {
-		n[0]=n[1]= 0.0;
-		d= 0.0;
+		n[0]=n[1]= 0.0f;
+		d= 0.0f;
 	}
 	return d;
 }
@@ -3324,15 +3808,15 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 
 	h *= 360.0f;
 	
-	if(s==0.0) {
+	if(s==0.0f) {
 		*r = v;
 		*g = v;
 		*b = v;
 	}
 	else {
-		if(h==360) h = 0;
+		if(h== 360.0f) h = 0.0f;
 		
-		h /= 60;
+		h /= 60.0f;
 		i = (int)floor(h);
 		f = h - i;
 		p = v*(1.0f-s);
@@ -3377,9 +3861,9 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv)
 {
 	float y, u, v;
-	y= 0.299*r + 0.587*g + 0.114*b;
-	u=-0.147*r - 0.289*g + 0.436*b;
-	v= 0.615*r - 0.515*g - 0.100*b;
+	y= 0.299f*r + 0.587f*g + 0.114f*b;
+	u=-0.147f*r - 0.289f*g + 0.436f*b;
+	v= 0.615f*r - 0.515f*g - 0.100f*b;
 	
 	*ly=y;
 	*lu=u;
@@ -3389,9 +3873,9 @@ void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv)
 void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb)
 {
 	float r, g, b;
-	r=y+1.140*v;
-	g=y-0.394*u - 0.581*v;
-	b=y+2.032*u;
+	r=y+1.140f*v;
+	g=y-0.394f*u - 0.581f*v;
+	b=y+2.032f*u;
 	
 	*lr=r;
 	*lg=g;
@@ -3403,14 +3887,14 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr)
 	float sr,sg, sb;
 	float y, cr, cb;
 	
-	sr=255.0*r;
-	sg=255.0*g;
-	sb=255.0*b;
+	sr=255.0f*r;
+	sg=255.0f*g;
+	sb=255.0f*b;
 	
 	
-	y=(0.257*sr)+(0.504*sg)+(0.098*sb)+16.0;
-	cb=(-0.148*sr)-(0.291*sg)+(0.439*sb)+128.0;
-	cr=(0.439*sr)-(0.368*sg)-(0.071*sb)+128.0;
+	y=(0.257f*sr)+(0.504f*sg)+(0.098f*sb)+16.0f;
+	cb=(-0.148f*sr)-(0.291f*sg)+(0.439f*sb)+128.0f;
+	cr=(0.439f*sr)-(0.368f*sg)-(0.071f*sb)+128.0f;
 	
 	*ly=y;
 	*lcb=cb;
@@ -3421,13 +3905,13 @@ void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb)
 {
 	float r,g,b;
 	
-	r=1.164*(y-16)+1.596*(cr-128);
-	g=1.164*(y-16)-0.813*(cr-128)-0.392*(cb-128);
-	b=1.164*(y-16)+2.017*(cb-128);
+	r=1.164f*(y-16.0f)+1.596f*(cr-128.0f);
+	g=1.164f*(y-16.0f)-0.813f*(cr-128.0f)-0.392f*(cb-128.0f);
+	b=1.164f*(y-16.0f)+2.017f*(cb-128.0f);
 	
-	*lr=r/255.0;
-	*lg=g/255.0;
-	*lb=b/255.0;
+	*lr=r/255.0f;
+	*lg=g/255.0f;
+	*lb=b/255.0f;
 }
 
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
@@ -3437,9 +3921,9 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 	if (hexcol[0] == '#') hexcol++;
 	
 	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)) {
-		*r = ri / 255.0;
-		*g = gi / 255.0;		
-		*b = bi / 255.0;
+		*r = ri / 255.0f;
+		*g = gi / 255.0f;		
+		*b = bi / 255.0f;
 	}
 }
 
@@ -3457,14 +3941,14 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	cmin = (b<cmin ? b:cmin);
 
 	v = cmax;		/* value */
-	if (cmax!=0.0)
+	if (cmax != 0.0f)
 		s = (cmax - cmin)/cmax;
 	else {
-		s = 0.0;
-		h = 0.0;
+		s = 0.0f;
+		h = 0.0f;
 	}
-	if (s == 0.0)
-		h = -1.0;
+	if (s == 0.0f)
+		h = -1.0f;
 	else {
 		cdelta = cmax-cmin;
 		rc = (cmax-r)/cdelta;
@@ -3478,13 +3962,13 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 			else
 				h = 4.0f+gc-rc;
 		h = h*60.0f;
-		if (h<0.0f)
+		if (h < 0.0f)
 			h += 360.0f;
 	}
 	
 	*ls = s;
-	*lh = h/360.0f;
-	if( *lh < 0.0) *lh= 0.0;
+	*lh = h / 360.0f;
+	if(*lh < 0.0f) *lh= 0.0f;
 	*lv = v;
 }
 
@@ -3494,14 +3978,14 @@ void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int 
 {
 	switch (colorspace) { 
 	case BLI_CS_SMPTE:
-		*r = (3.50570	* xc) + (-1.73964	* yc) + (-0.544011	* zc);
-		*g = (-1.06906	* xc) + (1.97781	* yc) + (0.0351720	* zc);
-		*b = (0.0563117	* xc) + (-0.196994	* yc) + (1.05005	* zc);
+		*r = (3.50570f	 * xc) + (-1.73964f	 * yc) + (-0.544011f * zc);
+		*g = (-1.06906f	 * xc) + (1.97781f	 * yc) + (0.0351720f * zc);
+		*b = (0.0563117f * xc) + (-0.196994f * yc) + (1.05005f	 * zc);
 		break;
 	case BLI_CS_REC709:
-		*r = (3.240476	* xc) + (-1.537150	* yc) + (-0.498535	* zc);
-		*g = (-0.969256 * xc) + (1.875992 * yc) + (0.041556 * zc);
-		*b = (0.055648	* xc) + (-0.204043	* yc) + (1.057311	* zc);
+		*r = (3.240476f	 * xc) + (-1.537150f * yc) + (-0.498535f * zc);
+		*g = (-0.969256f * xc) + (1.875992f  * yc) + (0.041556f  * zc);
+		*b = (0.055648f	 * xc) + (-0.204043f * yc) + (1.057311f  * zc);
 		break;
 	case BLI_CS_CIE:
 		*r = (2.28783848734076f	* xc) + (-0.833367677835217f	* yc) + (-0.454470795871421f	* zc);
@@ -3532,34 +4016,10 @@ int constrain_rgb(float *r, float *g, float *b)
     
     if (w > 0) {
         *r += w;  *g += w; *b += w;
-        return 1;                     /* Colour modified to fit RGB gamut */
+        return 1;                     /* Color modified to fit RGB gamut */
     }
 
-    return 0;                         /* Colour within RGB gamut */
-}
-
-/*Transform linear RGB values to nonlinear RGB values. Rec.
-  709 is ITU-R Recommendation BT. 709 (1990) ``Basic
-  Parameter Values for the HDTV Standard for the Studio and
-  for International Programme Exchange'', formerly CCIR Rec.
-  709.*/
-static void gamma_correct(float *c)
-{
-	/* Rec. 709 gamma correction. */
-	float cc = 0.018;
-	
-	if (*c < cc) {
-	    *c *= ((1.099 * pow(cc, 0.45)) - 0.099) / cc;
-	} else {
-	    *c = (1.099 * pow(*c, 0.45)) - 0.099;
-	}
-}
-
-void gamma_correct_rgb(float *r, float *g, float *b)
-{
-    gamma_correct(r);
-    gamma_correct(g);
-    gamma_correct(b);
+    return 0;                         /* Color within RGB gamut */
 }
 
 
@@ -3618,14 +4078,13 @@ void tubemap(float x, float y, float z, float *u, float *v)
 {
 	float len;
 	
-	*v = (z + 1.0) / 2.0;
+	*v = (z + 1.0f) / 2.0f;
 	
-	len= sqrt(x*x+y*y);
-	if(len>0) {
-		*u = (1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0;
-	} else {
+	len= (float)sqrt(x*x+y*y);
+	if(len > 0.0f)
+		*u = (float)((1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0);
+	else
 		*v = *u = 0.0f; /* to avoid un-initialized variables */
-	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3634,14 +4093,13 @@ void spheremap(float x, float y, float z, float *u, float *v)
 {
 	float len;
 	
-	len= sqrt(x*x+y*y+z*z);
-	if(len>0.0) {
-		
-		if(x==0.0 && y==0.0) *u= 0.0;	/* othwise domain error */
-		else *u = (1.0 - atan2(x,y)/M_PI )/2.0;
+	len= (float)sqrt(x*x+y*y+z*z);
+	if(len > 0.0f) {
+		if(x==0.0f && y==0.0f) *u= 0.0f;	/* othwise domain error */
+		else *u = (float)((1.0 - (float)atan2(x,y) / M_PI) / 2.0);
 		
 		z/=len;
-		*v = 1.0- saacos(z)/M_PI;
+		*v = 1.0f - (float)saacos(z)/(float)M_PI;
 	} else {
 		*v = *u = 0.0f; /* to avoid un-initialized variables */
 	}
@@ -3652,19 +4110,19 @@ void spheremap(float x, float y, float z, float *u, float *v)
 /* proposed api by ton and zr, not used yet */
 #if 0
 /* *****************  m1 = m2 *****************  */
-void cpy_m3_m3(float m1[][3], float m2[][3]) 
+static void cpy_m3_m3(float m1[][3], float m2[][3]) 
 {	
 	memcpy(m1[0], m2[0], 9*sizeof(float));
 }
 
 /* *****************  m1 = m2 *****************  */
-void cpy_m4_m4(float m1[][4], float m2[][4]) 
+static void cpy_m4_m4(float m1[][4], float m2[][4]) 
 {	
 	memcpy(m1[0], m2[0], 16*sizeof(float));
 }
 
 /* ***************** identity matrix *****************  */
-void ident_m4(float m[][4])
+static void ident_m4(float m[][4])
 {
 	
 	m[0][0]= m[1][1]= m[2][2]= m[3][3]= 1.0;
@@ -3675,7 +4133,7 @@ void ident_m4(float m[][4])
 }
 
 /* *****************  m1 = m2 (pre) * m3 (post) ***************** */
-void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
+static void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
 {
 	float m[3][3];
 	
@@ -3695,7 +4153,7 @@ void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
 }
 
 /*  ***************** m1 = m2 (pre) * m3 (post) ***************** */
-void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
+static void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 {
 	float m[4][4];
 	
@@ -3723,7 +4181,7 @@ void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 }
 
 /*  ***************** m1 = inverse(m2)  *****************  */
-void inv_m3_m3(float m1[][3], float m2[][3])
+static void inv_m3_m3(float m1[][3], float m2[][3])
 {
 	short a,b;
 	float det;
@@ -3746,7 +4204,7 @@ void inv_m3_m3(float m1[][3], float m2[][3])
 }
 
 /*  ***************** m1 = inverse(m2)  *****************  */
-int inv_m4_m4(float inverse[][4], float mat[][4])
+static int inv_m4_m4(float inverse[][4], float mat[][4])
 {
 	int i, j, k;
 	double temp;
@@ -3799,7 +4257,7 @@ int inv_m4_m4(float inverse[][4], float mat[][4])
 }
 
 /*  ***************** v1 = v2 * mat  ***************** */
-void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
+static void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
 {
 	float x, y;
 	
@@ -3889,6 +4347,57 @@ int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], flo
 	return 1;
 }
 
+int RayIntersectsTriangleThreshold(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float threshold)
+{
+	float p[3], s[3], e1[3], e2[3], q[3];
+	float a, f, u, v;
+	float du = 0, dv = 0;
+	
+	VecSubf(e1, v1, v0);
+	VecSubf(e2, v2, v0);
+	
+	Crossf(p, d, e2);
+	a = Inpf(e1, p);
+	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	f = 1.0f/a;
+	
+	VecSubf(s, p1, v0);
+	
+	Crossf(q, s, e1);
+	*lambda = f * Inpf(e2, q);
+	if ((*lambda < 0.0)) return 0;
+	
+	u = f * Inpf(s, p);
+	v = f * Inpf(d, q);
+	
+	if (u < 0) du = u;
+	if (u > 1) du = u - 1;
+	if (v < 0) dv = v;
+	if (v > 1) dv = v - 1;
+	if (u > 0 && v > 0 && u + v > 1)
+	{
+		float t = u + v - 1;
+		du = u - t/2;
+		dv = v - t/2;
+	}
+
+	VecMulf(e1, du);
+	VecMulf(e2, dv);
+	
+	if (Inpf(e1, e1) + Inpf(e2, e2) > threshold * threshold)
+	{
+		return 0;
+	}
+
+	if(uv) {
+		uv[0]= u;
+		uv[1]= v;
+	}
+	
+	return 1;
+}
+
+
 /* Adapted from the paper by Kasper Fauerby */
 /* "Improved Collision detection and Response" */
 static int getLowestRoot(float a, float b, float c, float maxR, float* root)
@@ -3901,7 +4410,7 @@ static int getLowestRoot(float a, float b, float c, float maxR, float* root)
 	{
 		// calculate the two roots: (if determinant == 0 then
 		// x1==x2 but let’s disregard that slight optimization)
-		float sqrtD = sqrt(determinant);
+		float sqrtD = (float)sqrt(determinant);
 		float r1 = (-b - sqrtD) / (2.0f*a);
 		float r2 = (-b + sqrtD) / (2.0f*a);
 		
@@ -3945,7 +4454,7 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	Normalize(nor);
 
 	/* flip normal */
-	if(Inpf(nor,vel)>0.0f) VecMulf(nor,-1.0f);
+	if(Inpf(nor,vel)>0.0f) VecNegf(nor);
 	
 	a=Inpf(p1,nor)-Inpf(v0,nor);
 	nordotv=Inpf(nor,vel);
@@ -4223,7 +4732,7 @@ int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float 
 		
 		VecSubf(c, v3t, v1);
 		VecSubf(a, v2, v1);
-		VecSubf(b, v4t, v3);
+		VecSubf(b, v4t, v3t);
 
 		Crossf(ab, a, b);
 		Crossf(cb, c, b);
@@ -4235,6 +4744,67 @@ int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float 
 		VecSubf(i2, i1, t);
 		
 		return 2; /* two nearest points */
+	}
+} 
+
+/* Intersection point strictly between the two lines
+ * 0 when no intersection is found 
+ * */
+int LineIntersectLineStrict(float v1[3], float v2[3], float v3[3], float v4[3], float vi[3], float *lambda)
+{
+	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
+	float d;
+	float d1;
+	
+	VecSubf(c, v3, v1);
+	VecSubf(a, v2, v1);
+	VecSubf(b, v4, v3);
+
+	VecCopyf(dir1, a);
+	Normalize(dir1);
+	VecCopyf(dir2, b);
+	Normalize(dir2);
+	d = Inpf(dir1, dir2);
+	if (d == 1.0f || d == -1.0f || d == 0) {
+		/* colinear or one vector is zero-length*/
+		return 0;
+	}
+	
+	d1 = d;
+
+	Crossf(ab, a, b);
+	d = Inpf(c, ab);
+
+	/* test if the two lines are coplanar */
+	if (d > -0.000001f && d < 0.000001f) {
+		float f1, f2;
+		Crossf(cb, c, b);
+		Crossf(ca, c, a);
+
+		f1 = Inpf(cb, ab) / Inpf(ab, ab);
+		f2 = Inpf(ca, ab) / Inpf(ab, ab);
+		
+		if (f1 >= 0 && f1 <= 1 &&
+			f2 >= 0 && f2 <= 1)
+		{
+			VecMulf(a, f1);
+			VecAddf(vi, v1, a);
+			
+			if (lambda != NULL)
+			{
+				*lambda = f1;
+			}
+			
+			return 1; /* intersection found */
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
 	}
 } 
 
@@ -4259,6 +4829,7 @@ float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3])
 	return lambda;
 }
 
+#if 0
 /* little sister we only need to know lambda */
 static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 {
@@ -4266,6 +4837,16 @@ static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 	VecSubf(u, l2, l1);
 	VecSubf(h, p, l1);
 	return(Inpf(u,h)/Inpf(u,u));
+}
+#endif
+
+/* useful to calculate an even width shell, by taking the angle between 2 planes.
+ * The return value is a scale on the offset.
+ * no angle between planes is 1.0, as the angle between the 2 planes approches 180d
+ * the distance gets very hight, 180d would be inf, but this case isnt valid */
+float AngleToLength(const float angle)
+{
+	return (angle < SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle * (M_PI/180.0f)));
 }
 
 /* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
@@ -4394,6 +4975,79 @@ void PointInFace2DUV(int isquad, float v0[2], float v1[2], float v2[2], float v3
 	}
 }
 
+int IsPointInTri2D(float v1[2], float v2[2], float v3[2], float pt[2])
+{
+	float inp1, inp2, inp3;
+	
+	inp1= (v2[0]-v1[0])*(v1[1]-pt[1]) + (v1[1]-v2[1])*(v1[0]-pt[0]);
+	inp2= (v3[0]-v2[0])*(v2[1]-pt[1]) + (v2[1]-v3[1])*(v2[0]-pt[0]);
+	inp3= (v1[0]-v3[0])*(v3[1]-pt[1]) + (v3[1]-v1[1])*(v3[0]-pt[0]);
+	
+	if(inp1<=0.0f && inp2<=0.0f && inp3<=0.0f) return 1;
+	if(inp1>=0.0f && inp2>=0.0f && inp3>=0.0f) return 1;
+	
+	return 0;
+}
+
+#if 0
+int IsPointInTri2D(float v0[2], float v1[2], float v2[2], float pt[2])
+{
+		/* not for quads, use for our abuse of LineIntersectsTriangleUV */
+		float p1_3d[3], p2_3d[3], v0_3d[3], v1_3d[3], v2_3d[3];
+		/* not used */
+		float lambda, uv[3];
+			
+		p1_3d[0] = p2_3d[0] = uv[0]= pt[0];
+		p1_3d[1] = p2_3d[1] = uv[1]= uv[2]= pt[1];
+		p1_3d[2] = 1.0f;
+		p2_3d[2] = -1.0f;
+		v0_3d[2] = v1_3d[2] = v2_3d[2] = 0.0;
+		
+		/* generate a new fuv, (this is possibly a non optimal solution,
+		 * since we only need 2d calculation but use 3d func's)
+		 * 
+		 * this method makes an imaginary triangle in 2d space using the UV's from the derived mesh face
+		 * Then find new uv coords using the fuv and this face with LineIntersectsTriangleUV.
+		 * This means the new values will be correct in relation to the derived meshes face. 
+		 */
+		Vec2Copyf(v0_3d, v0);
+		Vec2Copyf(v1_3d, v1);
+		Vec2Copyf(v2_3d, v2);
+		
+		/* Doing this in 3D is not nice */
+		return LineIntersectsTriangle(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, uv);
+}
+#endif
+
+/*
+
+	x1,y2
+	|  \
+	|   \     .(a,b)
+	|    \
+	x1,y1-- x2,y1
+
+*/
+int IsPointInTri2DInts(int x1, int y1, int x2, int y2, int a, int b)
+{
+	float v1[2], v2[2], v3[2], p[2];
+	
+	v1[0]= (float)x1;
+	v1[1]= (float)y1;
+	
+	v2[0]= (float)x1;
+	v2[1]= (float)y2;
+	
+	v3[0]= (float)x2;
+	v3[1]= (float)y1;
+	
+	p[0]= (float)a;
+	p[1]= (float)b;
+	
+	return IsPointInTri2D(v1, v2, v3, p);
+	
+}
+
 /* (x1,v1)(t1=0)------(x2,v2)(t2=1), 0<t<1 --> (x,v)(t) */
 void VecfCubicInterpol(float *x1, float *v1, float *x2, float *v2, float t, float *x, float *v)
 {
@@ -4444,6 +5098,7 @@ but see a 'spat' which is a deformed cube with paired parallel planes needs only
 	return 1;
 }
 
+#if 0
 /*adult sister defining the slice planes by the origin and the normal  
 NOTE |normal| may not be 1 but defining the thickness of the slice*/
 static int point_in_slice_as(float p[3],float origin[3],float normal[3])
@@ -4464,6 +5119,7 @@ static int point_in_slice_m(float p[3],float origin[3],float normal[3],float lns
 	if (h < 0.0f || h > 1.0f) return 0;
 	return 1;
 }
+#endif
 
 
 int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
@@ -4503,7 +5159,8 @@ float PdistVL3Dfl(float *v1, float *v2, float *v3)
 
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
-void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
+// TODO: need to have a version that allows for rotation order...
+void LocEulSizeToMat4(float mat[4][4], float loc[3], float eul[3], float size[3])
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
@@ -4526,7 +5183,31 @@ void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
 
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
-void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3])
+void LocEulOSizeToMat4(float mat[4][4], float loc[3], float eul[3], float size[3], short rotOrder)
+{
+	float rmat[3][3], smat[3][3], tmat[3][3];
+	
+	/* initialise new matrix */
+	Mat4One(mat);
+	
+	/* make rotation + scaling part */
+	EulOToMat3(eul, rotOrder, rmat);
+	SizeToMat3(size, smat);
+	Mat3MulMat3(tmat, rmat, smat);
+	
+	/* copy rot/scale part to output matrix*/
+	Mat4CpyMat3(mat, tmat);
+	
+	/* copy location to matrix */
+	mat[3][0] = loc[0];
+	mat[3][1] = loc[1];
+	mat[3][2] = loc[2];
+}
+
+
+/* make a 4x4 matrix out of 3 transform components */
+/* matrices are made in the order: scale * rot * loc */
+void LocQuatSizeToMat4(float mat[4][4], float loc[3], float quat[4], float size[3])
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
@@ -4546,6 +5227,8 @@ void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
 }
+
+/********************************************************/
 
 /* Tangents */
 
@@ -4616,10 +5299,10 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 
 	/* check flip */
 	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
-		VecMulf(tang, -1.0f);
+		VecNegf(tang);
 }
 
 /* used for zoom values*/
 float power_of_2(float val) {
-	return pow(2, ceil(log(val) / log(2)));
+	return (float)pow(2, ceil(log(val) / log(2)));
 }

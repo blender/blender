@@ -36,8 +36,6 @@
 typedef struct PackedFile {
 	int size;
 	int seek;
-	int flags;
-	int pad;
 	void * data;
 } PackedFile;
 
@@ -59,4 +57,5 @@ enum PF_FileStatus
 };
 
 #endif /* PACKEDFILE_TYPES_H */
+
 

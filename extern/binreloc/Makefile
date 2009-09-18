@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -25,13 +27,12 @@ DIR = $(OCGDIR)/extern/$(LIBNAME)
 
 include nan_definitions.mk
 
-CPPFLAGS += -I./include
+CPPFLAGS += -DENABLE_BINRELOC -I./include
 
 
 include nan_compile.mk
 
-
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(DIR) ] || mkdir $(DIR)
 	@[ -d $(DIR)/include ] || mkdir $(DIR)/include
 	@../../intern/tools/cpifdiff.sh include/*.h $(DIR)/include/

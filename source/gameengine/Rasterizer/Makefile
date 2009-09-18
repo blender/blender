@@ -40,6 +40,8 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../kernel/gen_system
+CPPFLAGS += -I../../blender/makesdna
+CPPFLAGS += -I../SceneGraph
 CPPFLAGS += -I../BlenderRoutines
 CPPFLAGS += -I../Expressions
 

@@ -4,15 +4,11 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 incs = '. #/intern/guardedalloc ../blenlib ../blenkernel'
-incs += ' ../makesdna ../readblenfile ../include'
-incs += ' ../python ../../kernel/gen_messaging'
-incs += ' ../render/extern/include'
+incs += ' ../makesdna ../readblenfile ../editors/include'
+incs += ' ../render/extern/include ../makesrna'
 
 incs += ' ' + env['BF_ZLIB_INC']
 
-defs = ''
-if env['WITH_BF_VERSE']:
-	defs += ' WITH_VERSE'
-	incs += ' ' + env['BF_VERSE_INCLUDE']
+defs = []
 
-env.BlenderLib ( 'bf_blenloader', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [70, 30] )
+env.BlenderLib ( 'bf_blenloader', sources, Split(incs), defs, libtype=['core','player'], priority = [167,30] )

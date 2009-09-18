@@ -90,6 +90,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BL_SkinMeshObject.h"
+#include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_SkinDeformer.h"
 #include "BL_MeshDeformer.h"
@@ -99,9 +100,6 @@
 
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderSceneConverter.h"
-
-#include"SND_Scene.h"
-#include "SND_SoundListener.h"
 
 /* This little block needed for linking to Blender... */
 #ifdef WIN32
@@ -162,9 +160,12 @@ extern "C" {
 #include "SG_BBox.h"
 #include "SG_Tree.h"
 
-// defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
-
+#ifdef USE_BULLET
+#include "CcdPhysicsEnvironment.h"
+#include "CcdGraphicController.h"
+#endif
+#include "KX_MotionState.h"
 
 // This file defines relationships between parents and children
 // in the game engine.
@@ -178,8 +179,8 @@ extern "C" {
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "BSE_headerbuttons.h"
-void update_for_newframe();
+//XXX #include "BSE_headerbuttons.h"
+//XXX void update_for_newframe();
 //void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 //#include "BKE_ipo.h"
 //void do_all_data_ipos(void);
@@ -313,20 +314,17 @@ typedef struct MTF_localLayer
 }MTF_localLayer;
 
 // ------------------------------------
-BL_Material* ConvertMaterial(
+bool ConvertMaterial(
+	BL_Material *material,
 	Material *mat, 
 	MTFace* tface,  
 	const char *tfaceName,
 	MFace* mface, 
-	MCol* mmcol, 
-	int lightlayer, 
-	Object* blenderobj,
+	MCol* mmcol,
 	MTF_localLayer *layers,
 	bool glslmat)
 {
-	//this needs some type of manager
-	BL_Material *material = new BL_Material();
-
+	material->Initialize();
 	int numchan =	-1, texalpha = 0;
 	bool validmat	= (mat!=0);
 	bool validface	= (tface!=0);
@@ -337,6 +335,7 @@ BL_Material* ConvertMaterial(
 	
 	material->IdMode = DEFAULT_BLENDER;
 	material->glslmat = (validmat)? glslmat: false;
+	material->materialindex = mface->mat_nr;
 
 	// --------------------------------
 	if(validmat) {
@@ -361,7 +360,7 @@ BL_Material* ConvertMaterial(
 			facetex = true;
 		if(validface && mat->mtex[0]) {
 			MTex *tmp = mat->mtex[0];
-			if(!tmp->tex || tmp->tex && !tmp->tex->ima )
+			if(!tmp->tex || (tmp->tex && !tmp->tex->ima))
 				facetex = true;
 		}
 		numchan = numchan>MAXTEX?MAXTEX:numchan;
@@ -555,7 +554,7 @@ BL_Material* ConvertMaterial(
 		material->ref			= mat->ref;
 		material->amb			= mat->amb;
 
-		material->ras_mode |= (mat->mode & MA_WIRE)? WIRE: 0;
+		material->ras_mode |= (mat->material_type == MA_TYPE_WIRE)? WIRE: 0;
 	}
 	else {
 		int valid = 0;
@@ -593,26 +592,23 @@ BL_Material* ConvertMaterial(
 	MT_Point2 uv2[4];
 	const char *uvName = "", *uv2Name = "";
 
-	uv[0]= uv[1]= uv[2]= uv[3]= MT_Point2(0.0f, 0.0f);
+	
 	uv2[0]= uv2[1]= uv2[2]= uv2[3]= MT_Point2(0.0f, 0.0f);
 
 	if( validface ) {
 
-		material->ras_mode |= !( 
-			(mface->flag & ME_HIDE)	||
-			(tface->mode & TF_INVISIBLE)
-			)?POLY_VIS:0;
+		material->ras_mode |= (tface->mode & TF_INVISIBLE)?0:POLY_VIS;
 
 		material->transp = tface->transp;
 		material->tile	= tface->tile;
 		material->mode	= tface->mode;
 			
-		uv[0]	= MT_Point2(tface->uv[0]);
-		uv[1]	= MT_Point2(tface->uv[1]);
-		uv[2]	= MT_Point2(tface->uv[2]);
+		uv[0].setValue(tface->uv[0]);
+		uv[1].setValue(tface->uv[1]);
+		uv[2].setValue(tface->uv[2]);
 
 		if (mface->v4) 
-			uv[3]	= MT_Point2(tface->uv[3]);
+			uv[3].setValue(tface->uv[3]);
 
 		uvName = tfaceName;
 	} 
@@ -622,10 +618,12 @@ BL_Material* ConvertMaterial(
 		material->mode		= default_face_mode;	
 		material->transp	= TF_SOLID;
 		material->tile		= 0;
+		
+		uv[0]= uv[1]= uv[2]= uv[3]= MT_Point2(0.0f, 0.0f);
 	}
 
 	// with ztransp enabled, enforce alpha blending mode
-	if(validmat && (mat->mode & MA_ZTRA) && (material->transp == TF_SOLID))
+	if(validmat && (mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (material->transp == TF_SOLID))
 		material->transp = TF_ALPHA;
 
   	// always zsort alpha + add
@@ -665,14 +663,14 @@ BL_Material* ConvertMaterial(
 					{
 						MT_Point2 uvSet[4];
 
-						uvSet[0]	= MT_Point2(layer.face->uv[0]);
-						uvSet[1]	= MT_Point2(layer.face->uv[1]);
-						uvSet[2]	= MT_Point2(layer.face->uv[2]);
+						uvSet[0].setValue(layer.face->uv[0]);
+						uvSet[1].setValue(layer.face->uv[1]);
+						uvSet[2].setValue(layer.face->uv[2]);
 
 						if (mface->v4) 
-							uvSet[3]	= MT_Point2(layer.face->uv[3]);
+							uvSet[3].setValue(layer.face->uv[3]);
 						else
-							uvSet[3]	= MT_Point2(0.0f, 0.0f);
+							uvSet[3].setValue(0.0f, 0.0f);
 
 						if (isFirstSet)
 						{
@@ -715,16 +713,18 @@ BL_Material* ConvertMaterial(
 
 	material->tface		= tface;
 	material->material	= mat;
-	return material;
+	return true;
 }
 
-
-RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools* rendertools, KX_Scene* scene, KX_BlenderSceneConverter *converter)
+/* blenderobj can be NULL, make sure its checked for */
+RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
 	RAS_MeshObject *meshobj;
 	bool skinMesh = false;
-	int lightlayer = blenderobj->lay;
+	int lightlayer = blenderobj ? blenderobj->lay:(1<<20)-1; // all layers if no object.
 
+	if ((meshobj = converter->FindGameMesh(mesh/*, ob->lay*/)) != NULL)
+		return meshobj;
 	// Get DerivedMesh data
 	DerivedMesh *dm = CDDM_from_mesh(mesh, blenderobj);
 
@@ -744,13 +744,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 
 	// Determine if we need to make a skinned mesh
-	if (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0)) 
+	if (blenderobj && (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0) || BL_ModifierDeformer::HasCompatibleDeformer(blenderobj)))
 	{
-		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
+		meshobj = new BL_SkinMeshObject(mesh);
 		skinMesh = true;
 	}
 	else
-		meshobj = new RAS_MeshObject(mesh, lightlayer);
+		meshobj = new RAS_MeshObject(mesh);
 
 	// Extract avaiable layers
 	MTF_localLayer *layers =  new MTF_localLayer[MAX_MTFACE];
@@ -776,6 +776,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 	meshobj->SetName(mesh->id.name);
 	meshobj->m_sharedvertex_map.resize(totvert);
+	RAS_IPolyMaterial* polymat = NULL;
+	STR_String imastr;
+	// These pointers will hold persistent material structure during the conversion
+	// to avoid countless allocation/deallocation of memory.
+	BL_Material* bl_mat = NULL;
+	KX_BlenderMaterial* kx_blmat = NULL;
+	KX_PolygonMaterial* kx_polymat = NULL;
 
 	for (int f=0;f<totface;f++,mface++)
 	{
@@ -790,10 +797,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		MT_Vector4 tan0(0,0,0,0), tan1(0,0,0,0), tan2(0,0,0,0), tan3(0,0,0,0);
 
 		/* get coordinates, normals and tangents */
-		pt0 = MT_Point3(mvert[mface->v1].co);
-		pt1 = MT_Point3(mvert[mface->v2].co);
-		pt2 = MT_Point3(mvert[mface->v3].co);
-		pt3 = (mface->v4)? MT_Point3(mvert[mface->v4].co): MT_Point3(0.0, 0.0, 0.0);
+		pt0.setValue(mvert[mface->v1].co);
+		pt1.setValue(mvert[mface->v2].co);
+		pt2.setValue(mvert[mface->v3].co);
+		if (mface->v4) pt3.setValue(mvert[mface->v4].co);
 
 		if(mface->flag & ME_SMOOTH) {
 			float n0[3], n1[3], n2[3], n3[3];
@@ -832,13 +839,11 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				tan3 = tangent[f*4 + 3];
 		}
 
-		/* get material */
-		ma = give_current_material(blenderobj, mface->mat_nr+1);
-	
+ 		ma = give_current_material(blenderobj, mface->mat_nr+1);
+
 		{
 			bool visible = true;
-			RAS_IPolyMaterial* polymat = NULL;
-			BL_Material *bl_mat = NULL;
+			bool twoside = false;
 
 			if(converter->GetMaterials()) {
 				/* do Blender Multitexture and Blender GLSL materials */
@@ -846,13 +851,14 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				MT_Point2 uv[4];
 
 				/* first is the BL_Material */
-				bl_mat = ConvertMaterial(ma, tface, tfaceName, mface, mcol,
-					lightlayer, blenderobj, layers, converter->GetGLSLMaterials());
-
-				bl_mat->material_index =  (int)mface->mat_nr;
+				if (!bl_mat)
+					bl_mat = new BL_Material();
+				ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
+					layers, converter->GetGLSLMaterials());
 
 				visible = ((bl_mat->ras_mode & POLY_VIS)!=0);
 				collider = ((bl_mat->ras_mode & COLLIDER)!=0);
+				twoside = ((bl_mat->mode & TF_TWOSIDE)!=0);
 
 				/* vertex colors and uv's were stored in bl_mat temporarily */
 				bl_mat->GetConversionRGB(rgb);
@@ -868,12 +874,16 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				uv22 = uv[2]; uv23 = uv[3];
 				
 				/* then the KX_BlenderMaterial */
-				polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer);
+				if (kx_blmat == NULL)
+					kx_blmat = new KX_BlenderMaterial();
+
+				kx_blmat->Initialize(scene, bl_mat, skinMesh);
+				polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
 			}
 			else {
 				/* do Texture Face materials */
 				Image* bima = (tface)? (Image*)tface->tpage: NULL;
-				STR_String imastr =  (tface)? (bima? (bima)->id.name : "" ) : "";
+				imastr =  (tface)? (bima? (bima)->id.name : "" ) : "";
 		
 				char transp=0;
 				short mode=0, tile=0;
@@ -892,14 +902,15 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					tile = tface->tile;
 					mode = tface->mode;
 					
-					visible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
+					visible = !(tface->mode & TF_INVISIBLE);
+					twoside = ((tface->mode & TF_TWOSIDE)!=0);
 					
-					uv0 = MT_Point2(tface->uv[0]);
-					uv1 = MT_Point2(tface->uv[1]);
-					uv2 = MT_Point2(tface->uv[2]);
+					uv0.setValue(tface->uv[0]);
+					uv1.setValue(tface->uv[1]);
+					uv2.setValue(tface->uv[2]);
 	
 					if (mface->v4)
-						uv3 = MT_Point2(tface->uv[3]);
+						uv3.setValue(tface->uv[3]);
 				} 
 				else {
 					/* no texfaces, set COLLSION true and everything else FALSE */
@@ -950,9 +961,12 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				bool alpha = (transp == TF_ALPHA || transp == TF_ADD);
 				bool zsort = (mode & TF_ALPHASORT)? alpha: 0;
 
-				polymat = new KX_PolygonMaterial(imastr, ma,
+				if (kx_polymat == NULL)
+					kx_polymat = new KX_PolygonMaterial();
+				kx_polymat->Initialize(imastr, ma, (int)mface->mat_nr,
 					tile, tilexrep, tileyrep, 
 					mode, transp, alpha, zsort, lightlayer, tface, (unsigned int*)mcol);
+				polymat = static_cast<RAS_IPolyMaterial*>(kx_polymat);
 	
 				if (ma) {
 					polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
@@ -960,7 +974,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					polymat->m_diffuse = MT_Vector3(ma->r, ma->g, ma->b)*(ma->emit + ma->ref);
 				}
 				else {
-					polymat->m_specular = MT_Vector3(0.0f,0.0f,0.0f);
+					polymat->m_specular.setValue(0.0f,0.0f,0.0f);
 					polymat->m_shininess = 35.0;
 				}
 			}
@@ -977,15 +991,17 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				converter->RegisterPolyMaterial(polymat);
 				if(converter->GetMaterials()) {
 					converter->RegisterBlenderMaterial(bl_mat);
+					// the poly material has been stored in the bucket, next time we must create a new one
+					bl_mat = NULL;
+					kx_blmat = NULL;
+				} else {
+					// the poly material has been stored in the bucket, next time we must create a new one
+					kx_polymat = NULL;
 				}
 			} else {
-				// delete the material objects since they are no longer needed
 				// from now on, use the polygon material from the material bucket
-				delete polymat;
-				if(converter->GetMaterials()) {
-					delete bl_mat;
-				}
 				polymat = bucket->GetPolyMaterial();
+				// keep the material pointers, they will be reused for next face
 			}
 						 
 			int nverts = (mface->v4)? 4: 3;
@@ -993,6 +1009,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 			poly->SetVisible(visible);
 			poly->SetCollider(collider);
+			poly->SetTwoside(twoside);
 			//poly->SetEdgeCode(mface->edcode);
 
 			meshobj->AddVertex(poly,0,pt0,uv0,uv20,tan0,rgb0,no0,flat,mface->v1);
@@ -1016,26 +1033,35 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 			layer.face++;
 		}
 	}
-	meshobj->m_sharedvertex_map.clear();
+	// keep meshobj->m_sharedvertex_map for reinstance phys mesh.
+	// 2.49a and before it did: meshobj->m_sharedvertex_map.clear();
+	// but this didnt save much ram. - Campbell
+	meshobj->EndConversion();
 
 	// pre calculate texture generation
 	for(list<RAS_MeshMaterial>::iterator mit = meshobj->GetFirstMaterial();
 		mit != meshobj->GetLastMaterial(); ++ mit) {
-		mit->m_bucket->GetPolyMaterial()->OnConstruction();
+		mit->m_bucket->GetPolyMaterial()->OnConstruction(lightlayer);
 	}
 
 	if (layers)
 		delete []layers;
 	
 	dm->release(dm);
-
+	// cleanup material
+	if (bl_mat)
+		delete bl_mat;
+	if (kx_blmat)
+		delete kx_blmat;
+	if (kx_polymat)
+		delete kx_polymat;
+	converter->RegisterGameMesh(meshobj, mesh);
 	return meshobj;
 }
 
 	
 	
-static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blenderobject,
-												  KX_Scene *kxscene)
+static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blenderobject)
 {
 	PHY_MaterialProps *materialProps = new PHY_MaterialProps;
 	
@@ -1068,8 +1094,7 @@ static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blender
 	return materialProps;
 }
 
-static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blenderobject,
-												 KX_Scene *kxscene)
+static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blenderobject)
 {
 	PHY_ShapeProps *shapeProps = new PHY_ShapeProps;
 	
@@ -1097,6 +1122,10 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	shapeProps->m_do_fh     = (blenderobject->gameflag & OB_DO_FH) != 0; 
 	shapeProps->m_do_rot_fh = (blenderobject->gameflag & OB_ROT_FH) != 0;
 	
+//	velocity clamping XXX
+	shapeProps->m_clamp_vel_min = blenderobject->min_vel;
+	shapeProps->m_clamp_vel_max = blenderobject->max_vel;
+	
 	return shapeProps;
 }
 
@@ -1114,6 +1143,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	BoundBox *bb;
 	MT_Point3 min, max;
 	float mloc[3], msize[3];
+	float radius=0.0f, vert_radius, *co;
 	int a;
 	
 	if(me->bb==0) me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
@@ -1126,7 +1156,15 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	
 	mvert= me->mvert;
 	for(a=0; a<me->totvert; a++, mvert++) {
-		DO_MINMAX(mvert->co, min, max);
+		co= mvert->co;
+		
+		/* bounds */
+		DO_MINMAX(co, min, max);
+		
+		/* radius */
+		vert_radius= co[0]*co[0] + co[1]*co[1] + co[2]*co[2];
+		if (vert_radius > radius)
+			radius= vert_radius;
 	}
 		
 	if(me->totvert) {
@@ -1152,13 +1190,6 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= loc[2]-size[2];
 	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= loc[2]+size[2];
 
-	float radius = 0;
-	for (a=0, mvert = me->mvert; a < me->totvert; a++, mvert++)
-	{
-		float vert_radius = MT_Vector3(mvert->co).length2();
-		if (vert_radius > radius)
-			radius = vert_radius;
-	} 
 	return sqrt(radius);
 }
 		
@@ -1215,18 +1246,34 @@ static void my_tex_space_mesh(Mesh *me)
 	
 }
 
-static void my_get_local_bounds(Object *ob, float *center, float *size)
+static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, float *size)
 {
 	BoundBox *bb= NULL;
 	/* uses boundbox, function used by Ketsji */
 	switch (ob->type)
 	{
 		case OB_MESH:
-			bb= ( (Mesh *)ob->data )->bb;
-			if(bb==0) 
+			if (dm)
 			{
-				my_tex_space_mesh((struct Mesh *)ob->data);
+				float min_r[3], max_r[3];
+				INIT_MINMAX(min_r, max_r);
+				dm->getMinMax(dm, min_r, max_r);
+				size[0]= 0.5*fabs(max_r[0] - min_r[0]);
+				size[1]= 0.5*fabs(max_r[1] - min_r[1]);
+				size[2]= 0.5*fabs(max_r[2] - min_r[2]);
+					
+				center[0]= 0.5*(max_r[0] + min_r[0]);
+				center[1]= 0.5*(max_r[1] + min_r[1]);
+				center[2]= 0.5*(max_r[2] + min_r[2]);
+				return;
+			} else
+			{
 				bb= ( (Mesh *)ob->data )->bb;
+				if(bb==0) 
+				{
+					my_tex_space_mesh((struct Mesh *)ob->data);
+					bb= ( (Mesh *)ob->data )->bb;
+				}
 			}
 			break;
 		case OB_CURVE:
@@ -1263,8 +1310,44 @@ static void my_get_local_bounds(Object *ob, float *center, float *size)
 //////////////////////////////////////////////////////
 
 
-
-
+void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
+							   const MT_Point3& localAabbMin,
+							   const MT_Point3& localAabbMax,
+							   KX_Scene* kxscene,
+							   bool isActive,
+							   e_PhysicsEngine physics_engine)
+{
+	if (gameobj->GetMeshCount() > 0) 
+	{
+		switch (physics_engine)
+		{
+#ifdef USE_BULLET
+		case UseBullet:
+			{
+				CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
+				assert(env);
+				PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
+				CcdGraphicController* ctrl = new CcdGraphicController(env, motionstate);
+				gameobj->SetGraphicController(ctrl);
+				ctrl->setNewClientInfo(gameobj->getClientInfo());
+				ctrl->setLocalAabb(localAabbMin, localAabbMax);
+				if (isActive) {
+					// add first, this will create the proxy handle, only if the object is visible
+					if (gameobj->GetVisible())
+						env->addCcdGraphicController(ctrl);
+					// update the mesh if there is a deformer, this will also update the bounding box for modifiers
+					RAS_Deformer* deformer = gameobj->GetDeformer();
+					if (deformer)
+						deformer->UpdateBuckets();
+				}
+			}
+			break;
+#endif
+		default:
+			break;
+		}
+	}
+}
 
 void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 						 struct Object* blenderobject,
@@ -1292,10 +1375,13 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	bool isCompoundChild = false;
+	bool hasCompoundChildren = !parent && (blenderobject->gameflag & OB_CHILD);
 
-	if (parent && (parent->gameflag & OB_DYNAMIC)) {
+	/* When the parent is not OB_DYNAMIC and has no OB_COLLISION then it gets no bullet controller
+	 * and cant be apart of the parents compound shape */
+	if (parent && (parent->gameflag & (OB_DYNAMIC | OB_COLLISION))) {
 		
-		if ((parent->gameflag & OB_CHILD) != 0)
+		if ((parent->gameflag & OB_CHILD) != 0 && (blenderobject->gameflag & OB_CHILD))
 		{
 			isCompoundChild = true;
 		} 
@@ -1305,23 +1391,40 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 
 	PHY_ShapeProps* shapeprops =
-			CreateShapePropsFromBlenderObject(blenderobject, 
-			kxscene);
+			CreateShapePropsFromBlenderObject(blenderobject);
 
 	
 	PHY_MaterialProps* smmaterial = 
-		CreateMaterialFromBlenderObject(blenderobject, kxscene);
+		CreateMaterialFromBlenderObject(blenderobject);
 					
 	KX_ObjectProperties objprop;
+	objprop.m_lockXaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_X_AXIS) !=0;
+	objprop.m_lockYaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Y_AXIS) !=0;
+	objprop.m_lockZaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Z_AXIS) !=0;
+	objprop.m_lockXRotaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_X_ROT_AXIS) !=0;
+	objprop.m_lockYRotaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Y_ROT_AXIS) !=0;
+	objprop.m_lockZRotaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Z_ROT_AXIS) !=0;
 
 	objprop.m_isCompoundChild = isCompoundChild;
-	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
+	objprop.m_hasCompoundChildren = hasCompoundChildren;
 	objprop.m_margin = blenderobject->margin;
+	
 	// ACTOR is now a separate feature
 	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
 	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
 	objprop.m_softbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
+	
+	///contact processing threshold is only for rigid bodies and static geometry, not 'dynamic'
+	if (objprop.m_angular_rigidbody || !objprop.m_dyna )
+	{
+		objprop.m_contactProcessingThreshold = blenderobject->m_contactProcessingThreshold;
+	} else
+	{
+		objprop.m_contactProcessingThreshold = 0.f;
+	}
+
+	objprop.m_sensor = (blenderobject->gameflag & OB_SENSOR) != 0;
 	
 	if (objprop.m_softbody)
 	{
@@ -1363,7 +1466,9 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_kAHR= blenderobject->bsoft->kAHR;			/* Anchors hardness [0,1] */
 			objprop.m_soft_collisionflags= blenderobject->bsoft->collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
-		
+			objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
+			objprop.m_margin = blenderobject->bsoft->margin;
+			objprop.m_contactProcessingThreshold = 0.f;
 		} else
 		{
 			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
@@ -1402,6 +1507,9 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_kAHR= 0.7f;
 			objprop.m_soft_collisionflags= OB_BSB_COL_SDF_RS + OB_BSB_COL_VF_SS;
 			objprop.m_soft_numclusteriterations= 16;
+			objprop.m_soft_welding = 0.f;
+			objprop.m_margin = 0.f;
+			objprop.m_contactProcessingThreshold = 0.f;
 		}
 	}
 
@@ -1421,7 +1529,10 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	KX_BoxBounds bb;
-	my_get_local_bounds(blenderobject,objprop.m_boundobject.box.m_center,bb.m_extends);
+	DerivedMesh* dm = NULL;
+	if (gameobj->GetDeformer())
+		dm = gameobj->GetDeformer()->GetFinalMesh();
+	my_get_local_bounds(blenderobject,dm,objprop.m_boundobject.box.m_center,bb.m_extends);
 	if (blenderobject->gameflag & OB_BOUNDS)
 	{
 		switch (blenderobject->boundtype)
@@ -1473,12 +1584,13 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	
-	if (parent && (parent->gameflag & OB_DYNAMIC)) {
-		
+	if (parent/* && (parent->gameflag & OB_DYNAMIC)*/) {
+		// parented object cannot be dynamic
 		KX_GameObject *parentgameobject = converter->FindGameObject(parent);
 		objprop.m_dynamic_parent = parentgameobject;
 		//cannot be dynamic:
 		objprop.m_dyna = false;
+		objprop.m_softbody = false;
 		shapeprops->m_mass = 0.f;
 	}
 
@@ -1489,22 +1601,10 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	{
 #ifdef USE_BULLET
 		case UseBullet:
-			KX_ConvertBulletObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
+			KX_ConvertBulletObject(gameobj, meshobj, dm, kxscene, shapeprops, smmaterial, &objprop);
 			break;
 
 #endif
-#ifdef USE_SUMO_SOLID
-		case UseSumo:
-			KX_ConvertSumoObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
-			break;
-#endif
-			
-#ifdef USE_ODE
-		case UseODE:
-			KX_ConvertODEEngineObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
-			break;
-#endif //USE_ODE
-
 		case UseDynamo:
 			//KX_ConvertDynamoObject(gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
 			break;
@@ -1564,7 +1664,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 
 static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_BlenderSceneConverter *converter) {
 	Camera* ca = static_cast<Camera*>(ob->data);
-	RAS_CameraData camdata(ca->lens, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, dof_camera(ob));
+	RAS_CameraData camdata(ca->lens, ca->ortho_scale, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, dof_camera(ob));
 	KX_Camera *gamecamera;
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);
@@ -1579,8 +1679,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 								Object *ob, 
 								KX_Scene *kxscene, 
 								RAS_IRenderTools *rendertools, 
-								KX_BlenderSceneConverter *converter,
-								Scene *blenderscene) 
+								KX_BlenderSceneConverter *converter) 
 {
 	KX_GameObject *gameobj = NULL;
 	
@@ -1612,14 +1711,9 @@ static KX_GameObject *gameobject_from_blenderobject(
 	case OB_MESH:
 	{
 		Mesh* mesh = static_cast<Mesh*>(ob->data);
-		RAS_MeshObject* meshobj = converter->FindGameMesh(mesh, ob->lay);
 		float center[3], extents[3];
 		float radius = my_boundbox_mesh((Mesh*) ob->data, center, extents);
-		
-		if (!meshobj) {
-			meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
-			converter->RegisterGameMesh(meshobj, mesh);
-		}
+		RAS_MeshObject* meshobj = BL_ConvertMesh(mesh,ob,kxscene,converter);
 		
 		// needed for python scripting
 		kxscene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
@@ -1634,14 +1728,22 @@ static KX_GameObject *gameobject_from_blenderobject(
 		bool ignoreActivityCulling =  
 			((ob->gameflag2 & OB_NEVER_DO_ACTIVITY_CULLING)!=0);
 		gameobj->SetIgnoreActivityCulling(ignoreActivityCulling);
+		gameobj->SetOccluder((ob->gameflag & OB_OCCLUDER) != 0, false);
 	
 		// two options exists for deform: shape keys and armature
 		// only support relative shape key
 		bool bHasShapeKey = mesh->key != NULL && mesh->key->type==KEY_RELATIVE;
 		bool bHasDvert = mesh->dvert != NULL && ob->defbase.first;
 		bool bHasArmature = (ob->parent && ob->parent->type == OB_ARMATURE && ob->partype==PARSKEL && bHasDvert);
+		bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(ob);
 
-		if (bHasShapeKey) {
+		if (bHasModifier) {
+			BL_ModifierDeformer *dcont = new BL_ModifierDeformer((BL_DeformableGameObject *)gameobj,
+																kxscene->GetBlenderScene(), ob,	(BL_SkinMeshObject *)meshobj);
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
+			if (bHasShapeKey && bHasArmature)
+				dcont->LoadShapeDrivers(ob->parent);
+		} else if (bHasShapeKey) {
 			// not that we can have shape keys without dvert! 
 			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
 															ob, (BL_SkinMeshObject*)meshobj);
@@ -1675,7 +1777,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 		gameobj = new BL_ArmatureObject(
 			kxscene,
 			KX_Scene::m_callbacks,
-			ob // handle
+			ob,
+			kxscene->GetBlenderScene() // handle
 		);
 		/* Get the current pose from the armature object and apply it as the rest pose */
 		break;
@@ -1690,7 +1793,6 @@ static KX_GameObject *gameobject_from_blenderobject(
 	}
 	if (gameobj) 
 	{
-		gameobj->SetPhysicsEnvironment(kxscene->GetPhysicsEnvironment());
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
 		/* set the visibility state based on the objects render option in the outliner */
@@ -1705,7 +1807,7 @@ struct parentChildLink {
 };
 
 #include "DNA_constraint_types.h"
-#include "BIF_editconstraint.h"
+//XXX #include "BIF_editconstraint.h"
 
 bPoseChannel *get_active_posechannel2 (Object *ob)
 {
@@ -1726,7 +1828,8 @@ ListBase *get_active_constraints2(Object *ob)
 	if (!ob)
 		return NULL;
 
-	if (ob->flag & OB_POSEMODE) {
+  // XXX - shouldnt we care about the pose data and not the mode???
+	if (ob->mode & OB_MODE_POSE) { 
 		bPoseChannel *pchan;
 
 		pchan = get_active_posechannel2(ob);
@@ -1789,12 +1892,10 @@ KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 
 // convert blender objects into ketsji gameobjects
 void BL_ConvertBlenderObjects(struct Main* maggie,
-							  const STR_String& scenename,
 							  KX_Scene* kxscene,
 							  KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
 							  PyObject* pythondictionary,
-							  SCA_IInputDevice* keydev,
 							  RAS_IRenderTools* rendertools,
 							  RAS_ICanvas* canvas,
 							  KX_BlenderSceneConverter* converter,
@@ -1802,7 +1903,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  )
 {	
 
-	Scene *blenderscene = converter->GetBlenderSceneForName(scenename);
+	Scene *blenderscene = kxscene->GetBlenderScene();
 	// for SETLOOPER
 	Scene *sce;
 	Base *base;
@@ -1823,42 +1924,41 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		aspect_width = canvas->GetWidth();
 		aspect_height = canvas->GetHeight();
 	} else {
-		if (blenderscene->framing.type == SCE_GAMEFRAMING_BARS) {
+		if (blenderscene->gm.framing.type == SCE_GAMEFRAMING_BARS) {
 			frame_type = RAS_FrameSettings::e_frame_bars;
-		} else if (blenderscene->framing.type == SCE_GAMEFRAMING_EXTEND) {
+		} else if (blenderscene->gm.framing.type == SCE_GAMEFRAMING_EXTEND) {
 			frame_type = RAS_FrameSettings::e_frame_extend;
 		} else {
 			frame_type = RAS_FrameSettings::e_frame_scale;
 		}
 		
-		aspect_width = blenderscene->r.xsch;
-		aspect_height = blenderscene->r.ysch;
+		aspect_width = blenderscene->gm.xsch;
+		aspect_height = blenderscene->gm.ysch;
 	}
 	
 	RAS_FrameSettings frame_settings(
 		frame_type,
-		blenderscene->framing.col[0],
-		blenderscene->framing.col[1],
-		blenderscene->framing.col[2],
+		blenderscene->gm.framing.col[0],
+		blenderscene->gm.framing.col[1],
+		blenderscene->gm.framing.col[2],
 		aspect_width,
 		aspect_height
 	);
 	kxscene->SetFramingType(frame_settings);
 
-	kxscene->SetGravity(MT_Vector3(0,0,(blenderscene->world != NULL) ? -blenderscene->world->gravity : -9.8));
+	kxscene->SetGravity(MT_Vector3(0,0, -blenderscene->gm.gravity));
 	
 	/* set activity culling parameters */
-	if (blenderscene->world) {
-		kxscene->SetActivityCulling( (blenderscene->world->mode & WO_ACTIVITY_CULLING) != 0);
-		kxscene->SetActivityCullingRadius(blenderscene->world->activityBoxRadius);
-	} else {
-		kxscene->SetActivityCulling(false);
-	}
+	kxscene->SetActivityCulling( (blenderscene->gm.mode & WO_ACTIVITY_CULLING) != 0);
+	kxscene->SetActivityCullingRadius(blenderscene->gm.activityBoxRadius);
+	kxscene->SetDbvtCulling((blenderscene->gm.mode & WO_DBVT_CULLING) != 0);
 	
+	// no occlusion culling by default
+	kxscene->SetDbvtOcclusionRes(0);
+
 	int activeLayerBitInfo = blenderscene->lay;
 	
-	// templist to find Root Parents (object with no parents)
-	CListValue* templist = new CListValue();
+	// list of all object converted, active and inactive
 	CListValue*	sumolist = new CListValue();
 	
 	vector<parentChildLink> vec_parent_child;
@@ -1895,8 +1995,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 										base->object, 
 										kxscene, 
 										rendertools, 
-										converter,
-										blenderscene);
+										converter);
 										
 		bool isInActiveLayer = (blenderobject->lay & activeLayerBitInfo) !=0;
 		bool addobj=true;
@@ -1911,25 +2010,18 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			MT_Matrix3x3 angor;			
 			if (converter->addInitFromFrame) blenderscene->r.cfra=blenderscene->r.sfra;
 			
-			MT_Point3 pos = MT_Point3(
+			MT_Point3 pos;
+			pos.setValue(
 				blenderobject->loc[0]+blenderobject->dloc[0],
 				blenderobject->loc[1]+blenderobject->dloc[1],
 				blenderobject->loc[2]+blenderobject->dloc[2]
 			);
-			MT_Vector3 eulxyz = MT_Vector3(
-				blenderobject->rot[0],
-				blenderobject->rot[1],
-				blenderobject->rot[2]
-			);
-			MT_Vector3 scale = MT_Vector3(
-				blenderobject->size[0],
-				blenderobject->size[1],
-				blenderobject->size[2]
-			);
+			MT_Vector3 eulxyz(blenderobject->rot);
+			MT_Vector3 scale(blenderobject->size);
 			if (converter->addInitFromFrame){//rcruiz
 				float eulxyzPrev[3];
 				blenderscene->r.cfra=blenderscene->r.sfra-1;
-				update_for_newframe();
+				//XXX update_for_newframe();
 				MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
 											blenderobject->loc[1]+blenderobject->dloc[1],
 											blenderobject->loc[2]+blenderobject->dloc[2]
@@ -1947,13 +2039,13 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				tmp.scale(fps, fps, fps);
 				iniang.push_back(tmp);
 				blenderscene->r.cfra=blenderscene->r.sfra;
-				update_for_newframe();
+				//XXX update_for_newframe();
 			}		
 						
 			gameobj->NodeSetLocalPosition(pos);
 			gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 			gameobj->NodeSetLocalScale(scale);
-			gameobj->NodeUpdateGS(0,true);
+			gameobj->NodeUpdateGS(0);
 			
 			BL_ConvertIpos(blenderobject,gameobj,converter);
 			BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
@@ -1965,14 +2057,12 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	
 			gameobj->SetName(blenderobject->id.name);
 	
-			// templist to find Root Parents (object with no parents)
-			templist->Add(gameobj->AddRef());
-			
 			// update children/parent hierarchy
 			if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
 			{
 				// blender has an additional 'parentinverse' offset in each object
-				SG_Node* parentinversenode = new SG_Node(NULL,NULL,SG_Callbacks());
+				SG_Callbacks callback(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc);
+				SG_Node* parentinversenode = new SG_Node(NULL,kxscene,callback);
 			
 				// define a normal parent relationship for this node.
 				KX_NormalParentRelation * parent_relation = KX_NormalParentRelation::New();
@@ -1997,18 +2087,18 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				MT_Vector3 x(ori.getColumn(0));
 				MT_Vector3 y(ori.getColumn(1));
 				MT_Vector3 z(ori.getColumn(2));
-				MT_Vector3 scale(x.length(), y.length(), z.length());
-				if (!MT_fuzzyZero(scale[0]))
-					x /= scale[0];
-				if (!MT_fuzzyZero(scale[1]))
-					y /= scale[1];
-				if (!MT_fuzzyZero(scale[2]))
-					z /= scale[2];
+				MT_Vector3 parscale(x.length(), y.length(), z.length());
+				if (!MT_fuzzyZero(parscale[0]))
+					x /= parscale[0];
+				if (!MT_fuzzyZero(parscale[1]))
+					y /= parscale[1];
+				if (!MT_fuzzyZero(parscale[2]))
+					z /= parscale[2];
 				ori.setColumn(0, x);								
 				ori.setColumn(1, y);								
 				ori.setColumn(2, z);								
 				parentinversenode->SetLocalOrientation(ori);
-				parentinversenode->SetLocalScale(scale);
+				parentinversenode->SetLocalScale(parscale);
 				
 				parentinversenode->AddChild(gameobj->GetSGNode());
 			}
@@ -2036,7 +2126,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				objectlist->Add(gameobj->AddRef());
 				//tf.Add(gameobj->GetSGNode());
 				
-				gameobj->NodeUpdateGS(0,true);
+				gameobj->NodeUpdateGS(0);
 				gameobj->AddMeshUser();
 		
 			}
@@ -2094,8 +2184,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 														blenderobject, 
 														kxscene, 
 														rendertools, 
-														converter,
-														blenderscene);
+														converter);
 										
 						// this code is copied from above except that
 						// object from groups are never in active layer
@@ -2113,25 +2202,17 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							if (converter->addInitFromFrame) 
 								blenderscene->r.cfra=blenderscene->r.sfra;
 							
-							MT_Point3 pos = MT_Point3(
+							MT_Point3 pos(
 								blenderobject->loc[0]+blenderobject->dloc[0],
 								blenderobject->loc[1]+blenderobject->dloc[1],
 								blenderobject->loc[2]+blenderobject->dloc[2]
 							);
-							MT_Vector3 eulxyz = MT_Vector3(
-								blenderobject->rot[0],
-								blenderobject->rot[1],
-								blenderobject->rot[2]
-							);
-							MT_Vector3 scale = MT_Vector3(
-								blenderobject->size[0],
-								blenderobject->size[1],
-								blenderobject->size[2]
-							);
+							MT_Vector3 eulxyz(blenderobject->rot);
+							MT_Vector3 scale(blenderobject->size);
 							if (converter->addInitFromFrame){//rcruiz
 								float eulxyzPrev[3];
 								blenderscene->r.cfra=blenderscene->r.sfra-1;
-								update_for_newframe();
+								//XXX update_for_newframe();
 								MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
 															blenderobject->loc[1]+blenderobject->dloc[1],
 															blenderobject->loc[2]+blenderobject->dloc[2]
@@ -2149,13 +2230,13 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								tmp.scale(fps, fps, fps);
 								iniang.push_back(tmp);
 								blenderscene->r.cfra=blenderscene->r.sfra;
-								update_for_newframe();
+								//XXX update_for_newframe();
 							}		
 										
 							gameobj->NodeSetLocalPosition(pos);
 							gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 							gameobj->NodeSetLocalScale(scale);
-							gameobj->NodeUpdateGS(0,true);
+							gameobj->NodeUpdateGS(0);
 							
 							BL_ConvertIpos(blenderobject,gameobj,converter);
 							BL_ConvertMaterialIpos(blenderobject,gameobj, converter);	
@@ -2167,14 +2248,12 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 					
 							gameobj->SetName(blenderobject->id.name);
 					
-							// templist to find Root Parents (object with no parents)
-							templist->Add(gameobj->AddRef());
-							
 							// update children/parent hierarchy
 							if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
 							{
 								// blender has an additional 'parentinverse' offset in each object
-								SG_Node* parentinversenode = new SG_Node(NULL,NULL,SG_Callbacks());
+								SG_Callbacks callback(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc);
+								SG_Node* parentinversenode = new SG_Node(NULL,kxscene,callback);
 							
 								// define a normal parent relationship for this node.
 								KX_NormalParentRelation * parent_relation = KX_NormalParentRelation::New();
@@ -2194,18 +2273,18 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								MT_Vector3 x(ori.getColumn(0));
 								MT_Vector3 y(ori.getColumn(1));
 								MT_Vector3 z(ori.getColumn(2));
-								MT_Vector3 scale(x.length(), y.length(), z.length());
-								if (!MT_fuzzyZero(scale[0]))
-									x /= scale[0];
-								if (!MT_fuzzyZero(scale[1]))
-									y /= scale[1];
-								if (!MT_fuzzyZero(scale[2]))
-									z /= scale[2];
+								MT_Vector3 localscale(x.length(), y.length(), z.length());
+								if (!MT_fuzzyZero(localscale[0]))
+									x /= localscale[0];
+								if (!MT_fuzzyZero(localscale[1]))
+									y /= localscale[1];
+								if (!MT_fuzzyZero(localscale[2]))
+									z /= localscale[2];
 								ori.setColumn(0, x);								
 								ori.setColumn(1, y);								
 								ori.setColumn(2, z);								
 								parentinversenode->SetLocalOrientation(ori);
-								parentinversenode->SetLocalScale(scale);
+								parentinversenode->SetLocalScale(localscale);
 								
 								parentinversenode->AddChild(gameobj->GetSGNode());
 							}
@@ -2233,7 +2312,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								objectlist->Add(gameobj->AddRef());
 								//tf.Add(gameobj->GetSGNode());
 								
-								gameobj->NodeUpdateGS(0,true);
+								gameobj->NodeUpdateGS(0);
 								gameobj->AddMeshUser();
 							}
 							else
@@ -2316,21 +2395,22 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			// Remove the child reference in the local list!
 			// Note: there may be descendents already if the children of the child were processed
 			//       by this loop before the child. In that case, we must remove the children also
-			CListValue* childrenlist = (CListValue*)childobj->PyGetChildrenRecursive(childobj);
+			CListValue* childrenlist = childobj->GetChildrenRecursive();
 			childrenlist->Add(childobj->AddRef());
 			for ( i=0;i<childrenlist->GetCount();i++)
 			{
 				KX_GameObject* obj = static_cast<KX_GameObject*>(childrenlist->GetValue(i));
-				if (templist->RemoveValue(obj))
-					obj->Release();
 				if (sumolist->RemoveValue(obj))
 					obj->Release();
 				if (logicbrick_conversionlist->RemoveValue(obj))
 					obj->Release();
 			}
 			childrenlist->Release();
+			
 			// now destroy recursively
+			converter->UnregisterGameObject(childobj); // removing objects during conversion make sure this runs too
 			kxscene->RemoveObject(childobj);
+			
 			continue;
 		}
 
@@ -2353,7 +2433,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			case PARBONE:
 			{
 				// parent this to a bone
-				Bone *parent_bone = get_named_bone(get_armature(blenderchild->parent), blenderchild->parsubstr);
+				Bone *parent_bone = get_named_bone( (bArmature *)(blenderchild->parent)->data, blenderchild->parsubstr);
 
 				if(parent_bone) {
 					KX_BoneParentRelation *bone_parent_relation = KX_BoneParentRelation::New(parent_bone);
@@ -2378,23 +2458,56 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	vec_parent_child.clear();
 	
 	// find 'root' parents (object that has not parents in SceneGraph)
-	for (i=0;i<templist->GetCount();++i)
+	for (i=0;i<sumolist->GetCount();++i)
 	{
-		KX_GameObject* gameobj = (KX_GameObject*) templist->GetValue(i);
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
 		if (gameobj->GetSGNode()->GetSGParent() == 0)
 		{
 			parentlist->Add(gameobj->AddRef());
-			gameobj->NodeUpdateGS(0,true);
+			gameobj->NodeUpdateGS(0);
 		}
 	}
-	
+
+	// create graphic controller for culling
+	if (kxscene->GetDbvtCulling())
+	{
+		bool occlusion = false;
+		for (i=0; i<sumolist->GetCount();i++)
+		{
+			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+			if (gameobj->GetMeshCount() > 0) 
+			{
+				MT_Point3 box[2];
+				gameobj->GetSGNode()->BBox().getmm(box, MT_Transform::Identity());
+				// box[0] is the min, box[1] is the max
+				bool isactive = objectlist->SearchValue(gameobj);
+				BL_CreateGraphicObjectNew(gameobj,box[0],box[1],kxscene,isactive,physics_engine);
+				if (gameobj->GetOccluder())
+					occlusion = true;
+			}
+		}
+		if (occlusion)
+			kxscene->SetDbvtOcclusionRes(blenderscene->gm.occlusionRes);
+	}
+	if (blenderscene->world)
+		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->gm.physubstep);
+
+	// now that the scenegraph is complete, let's instantiate the deformers.
+	// We need that to create reusable derived mesh and physic shapes
+	for (i=0;i<sumolist->GetCount();++i)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+		if (gameobj->GetDeformer())
+			gameobj->GetDeformer()->UpdateBuckets();
+	}
+
 	bool processCompoundChildren = false;
 
 	// create physics information
 	for (i=0;i<sumolist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobject = gameobj->GetBlenderObject();
 		int nummeshes = gameobj->GetMeshCount();
 		RAS_MeshObject* meshobj = 0;
 		if (nummeshes > 0)
@@ -2410,7 +2523,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for (i=0;i<sumolist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobject = gameobj->GetBlenderObject();
 		int nummeshes = gameobj->GetMeshCount();
 		RAS_MeshObject* meshobj = 0;
 		if (nummeshes > 0)
@@ -2420,7 +2533,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		int layerMask = (groupobj.find(blenderobject) == groupobj.end()) ? activeLayerBitInfo : 0;
 		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,physics_engine,converter,processCompoundChildren);
 	}
-	
 	
 	//set ini linearVel and int angularVel //rcruiz
 	if (converter->addInitFromFrame)
@@ -2439,7 +2551,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for (i=0;i<sumolist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobject = gameobj->GetBlenderObject();
 		ListBase *conlist;
 		bConstraint *curcon;
 		conlist = get_active_constraints2(blenderobject);
@@ -2507,26 +2619,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 	}
 
-	templist->Release();
-	sumolist->Release();	
-
-	int executePriority=0; /* incremented by converter routines */
-	
-	// convert global sound stuff
-
-	/* XXX, glob is the very very wrong place for this
-	 * to be, re-enable once the listener has been moved into
-	 * the scene. */
-#if 1
-	SND_Scene* soundscene = kxscene->GetSoundScene();
-	SND_SoundListener* listener = soundscene->GetListener();
-	if (listener && G.listener)
-	{
-		listener->SetDopplerFactor(G.listener->dopplerfactor);
-		listener->SetDopplerVelocity(G.listener->dopplervelocity);
-		listener->SetGain(G.listener->gain);
-	}
-#endif
+	sumolist->Release();
 
 	// convert world
 	KX_WorldInfo* worldinfo = new BlenderWorldInfo(blenderscene->world);
@@ -2539,26 +2632,26 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for (i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
-		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertActuators(maggie->name, blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,executePriority, layerMask,isInActiveLayer,rendertools,converter);
+		BL_ConvertActuators(maggie->name, blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,layerMask,isInActiveLayer,rendertools,converter);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
-		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertControllers(blenderobj,gameobj,logicmgr,pythondictionary,executePriority,layerMask,isInActiveLayer,converter);
+		BL_ConvertControllers(blenderobj,gameobj,logicmgr,pythondictionary,layerMask,isInActiveLayer,converter);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
-		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
+		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,layerMask,isInActiveLayer,canvas,converter);
 		// set the init state to all objects
 		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
 	}
@@ -2596,4 +2689,3 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	RAS_BucketManager *bucketmanager = kxscene->GetBucketManager();
 	bucketmanager->OptimizeBuckets(distance);
 }
-

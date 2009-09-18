@@ -181,8 +181,8 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 
 	/* not a pretty solution, but fixes common cases */
 	if(shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
-		VecMulf(shi->vn, -1.0f);
-		VecMulf(shi->vno, -1.0f);
+		VecNegf(shi->vn);
+		VecNegf(shi->vno);
 	}
 
 	/* init material vars */
@@ -514,10 +514,6 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 	OccFace *face;
 	int a, b, totthread=0, offset[TOTCHILD], count[TOTCHILD];
 
-	/* keep track of maximum depth for stack */
-	if(depth > tree->maxdepth)
-		tree->maxdepth= depth;
-
 	/* add a new node */
 	node->occlusion= 1.0f;
 
@@ -551,6 +547,10 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 
 				child= BLI_memarena_alloc(tree->arena, sizeof(OccNode));
 				node->child[b].node= child;
+
+				/* keep track of maximum depth for stack */
+				if(depth+1 > tree->maxdepth)
+					tree->maxdepth= depth+1;
 
 				if(tree->dothreadedbuild)
 					BLI_unlock_thread(LOCK_CUSTOM1);
@@ -630,7 +630,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 			else vlr++;
 
-			if(vlr->mat->mode & MA_TRACEBLE)
+			if((vlr->mat->mode & MA_TRACEBLE) && (vlr->mat->material_type == MA_TYPE_SURFACE))
 				totface++;
 		}
 	}
@@ -663,7 +663,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 			else vlr++;
 
-			if(vlr->mat->mode & MA_TRACEBLE) {
+			if((vlr->mat->mode & MA_TRACEBLE) && (vlr->mat->material_type == MA_TYPE_SURFACE)) {
 				tree->face[b].obi= c;
 				tree->face[b].facenr= a;
 				tree->occlusion[b]= 1.0f;
@@ -679,6 +679,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 
 	/* recurse */
 	tree->root= BLI_memarena_alloc(tree->arena, sizeof(OccNode));
+	tree->maxdepth= 1;
 	occ_build_recursive(tree, tree->root, 0, totface, 1);
 
 #if 0
@@ -753,9 +754,9 @@ static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2,
 	sd[1]= INPR(n, v1) - c;
 	sd[2]= INPR(n, v2) - c;
 
-	if(fabs(sd[0]) < epsilon) sd[0] = 0.0f;
-	if(fabs(sd[1]) < epsilon) sd[1] = 0.0f;
-	if(fabs(sd[2]) < epsilon) sd[2] = 0.0f;
+	if(fabsf(sd[0]) < epsilon) sd[0] = 0.0f;
+	if(fabsf(sd[1]) < epsilon) sd[1] = 0.0f;
+	if(fabsf(sd[2]) < epsilon) sd[2] = 0.0f;
 
 	if(sd[0] > 0) {
 		if(sd[1] > 0) {
@@ -1085,13 +1086,6 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 
 #endif
 
-static float saacosf(float fac)
-{
-	if(fac<= -1.0f) return (float)M_PI;
-	else if(fac>=1.0f) return 0.0f;
-	else return acos(fac); /* acosf(fac) */
-}
-
 static void normalizef(float *n)
 {
 	float d;
@@ -1099,7 +1093,7 @@ static void normalizef(float *n)
 	d= INPR(n, n);
 
 	if(d > 1.0e-35F) {
-		d= 1.0f/sqrt(d); /* sqrtf(d) */
+		d= 1.0f/sqrtf(d);
 
 		n[0] *= d; 
 		n[1] *= d; 
@@ -1221,7 +1215,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 				fac= 1.0f;
 
 			/* accumulate occlusion from spherical harmonics */
-			invd2 = 1.0f/sqrt(d2);
+			invd2 = 1.0f/sqrtf(d2);
 			weight= occ_solid_angle(node, v, d2, invd2, n);
 			weight *= node->occlusion;
 
@@ -1257,7 +1251,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 						weight *= tree->occlusion[node->child[b].face];
 
 						if(bentn) {
-							invd2= 1.0f/sqrt(d2);
+							invd2= 1.0f/sqrtf(d2);
 							bentn[0] -= weight*invd2*v[0];
 							bentn[1] -= weight*invd2*v[1];
 							bentn[2] -= weight*invd2*v[2];
@@ -1288,15 +1282,15 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 	for(pass=0; pass<totpass; pass++) {
 		for(i=0; i<tree->totface; i++) {
 			occ_face(&tree->face[i], co, n, NULL);
-			VecMulf(n, -1.0f);
+			VecNegf(n);
 			VECADDFAC(co, co, n, 1e-8f);
 
 			occ_lookup(tree, 0, &tree->face[i], co, n, &occ[i], NULL);
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 		}
 
-		if(re->test_break())
+		if(re->test_break(re->tbh))
 			break;
 
 		for(i=0; i<tree->totface; i++) {
@@ -1321,7 +1315,7 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 		aocolor= WO_AOPLAIN;
 
 	VECCOPY(nn, n);
-	VecMulf(nn, -1.0f);
+	VecNegf(nn);
 
 	occ_lookup(tree, thread, exclude, co, nn, &occ, (aocolor)? bn: NULL);
 
@@ -1525,7 +1519,7 @@ static void *exec_strandsurface_sample(void *data)
 			CalcCent3f(co, co1, co2, co3);
 			CalcNormFloat(co1, co2, co3, n);
 		}
-		VecMulf(n, -1.0f);
+		VecNegf(n);
 
 		sample_occ_tree(re, re->occlusiontree, NULL, co, n, othread->thread, 0, col);
 		VECCOPY(othread->facecol[a], col);
@@ -1546,7 +1540,7 @@ void make_occ_tree(Render *re)
 	R= *re;
 
 	re->i.infostr= "Occlusion preprocessing";
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	
 	re->occlusiontree= occ_tree_build(re);
 	
@@ -1632,7 +1626,7 @@ void sample_occ(Render *re, ShadeInput *shi)
 			sample_occ_surface(shi);
 		}
 		/* try to get result from the cache if possible */
-		else if(!sample_occ_cache(tree, shi->co, shi->vno, shi->xs, shi->ys, shi->thread, shi->ao)) {
+		else if(shi->depth!=0 || !sample_occ_cache(tree, shi->co, shi->vno, shi->xs, shi->ys, shi->thread, shi->ao)) {
 			/* no luck, let's sample the occlusion */
 			exclude.obi= shi->obi - re->objectinstance;
 			exclude.facenr= shi->vlr->index;
@@ -1738,7 +1732,7 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 				sample->filled= 1;
 			}
 
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 		}
 	}

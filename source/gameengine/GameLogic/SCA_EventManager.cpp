@@ -28,6 +28,7 @@
 
 #include <assert.h>
 #include "SCA_EventManager.h"
+#include "SCA_ISensor.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -43,16 +44,18 @@ SCA_EventManager::SCA_EventManager(EVENT_MANAGER_TYPE mgrtype)
 
 SCA_EventManager::~SCA_EventManager()
 {
+	// all sensors should be removed
+	assert(m_sensors.Empty());
 }
 
 void SCA_EventManager::RegisterSensor(class SCA_ISensor* sensor)
 {
-	m_sensors.insert(sensor);
+	m_sensors.AddBack(sensor);
 }
 
 void SCA_EventManager::RemoveSensor(class SCA_ISensor* sensor)
 {
-	m_sensors.erase(sensor);
+	sensor->Delink();
 }
 
 void SCA_EventManager::NextFrame(double curtime, double fixedtime)

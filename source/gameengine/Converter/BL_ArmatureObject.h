@@ -45,13 +45,14 @@ class BL_ArmatureObject : public KX_GameObject
 public:
 	double GetLastFrame ();
 	short GetActivePriority();
-	virtual void ProcessReplica(BL_ArmatureObject *replica);
+	virtual void ProcessReplica();
 	class BL_ActionActuator * GetActiveAction();
 	
 	BL_ArmatureObject(
 		void* sgReplicationInfo,
 		SG_Callbacks callbacks,
-		Object *armature
+		Object *armature,
+		Scene *scene
 	);
 	virtual ~BL_ArmatureObject();
 
@@ -59,6 +60,7 @@ public:
 	void GetMRDPose(struct bPose **pose);
 	void GetPose(struct bPose **pose);
 	void SetPose (struct bPose *pose);
+	struct bPose *GetOrigPose() {return m_pose;} // never edit this, only for accessing names
 
 	void ApplyPose();
 	void RestorePose();
@@ -67,6 +69,7 @@ public:
 	
 	struct bArmature * GetArmature() { return m_armature; }
 	const struct bArmature * GetArmature() const { return m_armature; }
+	const struct Scene * GetScene() const { return m_scene; }
 	
 	Object* GetArmatureObject() {return m_objArma;}
 
@@ -84,11 +87,19 @@ protected:
 	struct bPose		*m_pose;
 	struct bPose		*m_armpose;
 	struct bPose		*m_framePose;
+	struct Scene		*m_scene; // need for where_is_pose 
 	double	m_lastframe;
 	class BL_ActionActuator *m_activeAct;
 	short	m_activePriority;
 
 	double			m_lastapplyframe;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ArmatureObject"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

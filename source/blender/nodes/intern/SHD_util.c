@@ -82,6 +82,7 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	/* convert caller data to struct */
 	scd.shi= shi;
 	scd.shr= shr;
+	
 	/* each material node has own local shaderesult, with optional copying */
 	memset(shr, 0, sizeof(ShadeResult));
 		   

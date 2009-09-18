@@ -43,6 +43,9 @@ typedef struct bExpressionCont {
 
 typedef struct bPythonCont {
 	struct Text *text;
+	char module[64];
+	int mode;
+	int flag; /* only used for debug now */
 } bPythonCont;
 
 typedef struct bController {
@@ -76,6 +79,10 @@ typedef struct bController {
 #define CONT_DEL		2
 #define CONT_NEW		4
 #define CONT_MASK		8
+#define CONT_PRIO		16
+
+/* pyctrl->flag */
+#define CONT_PY_DEBUG	1
 
 #endif
 

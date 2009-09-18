@@ -39,8 +39,17 @@ CPPFLAGS += -I$(NAN_BULLET2)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
+CPPFLAGS += -I$(NAN_GLEW)/include
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION) 
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I../../Physics/common
 CPPFLAGS += -I../../Physics/Dummy
 CPPFLAGS += -I../../Rasterizer
+CPPFLAGS += -I../../Ketsji
+CPPFLAGS += -I../../Expressions
+CPPFLAGS += -I../../GameLogic
+CPPFLAGS += -I../../SceneGraph
+CPPFLAGS += -I../../../../source/blender/makesdna
+CPPFLAGS += -I../../../../source/blender/blenkernel
+CPPFLAGS += -I../../../../source/blender/blenlib
 

@@ -39,17 +39,10 @@ class SCA_XORController : public SCA_IController
 	Py_Header;
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
-	SCA_XORController(SCA_IObject* gameobj,PyTypeObject* T=&Type);
+	SCA_XORController(SCA_IObject* gameobj);
 	virtual ~SCA_XORController();
 	virtual CValue* GetReplica();
 	virtual void Trigger(SCA_LogicManager* logicmgr);
-
-	/* --------------------------------------------------------------------- */
-	/* Python interface ---------------------------------------------------- */
-	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* _getattr(const STR_String& attr);
-
 };
 
 #endif //__KX_XORCONTROLLER

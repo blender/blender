@@ -54,7 +54,7 @@ typedef struct VFontData {
 typedef struct VChar {
 	struct VChar    *next, *prev;
  	ListBase        nurbsbase;
-	unsigned long   index;
+	intptr_t   index;
 	float           resol;
 	float           width;
 	float           *points;
@@ -66,19 +66,6 @@ struct TmpFont
 	struct PackedFile *pf;
 	struct VFont *vfont;
 };
-
-
-/**
- * Construct a new VFontData structure from 
- * PostScript font data in a PackedFile.
- * 
- * @param pf The font data.
- * @retval A new VFontData structure, or NULL
- * if unable to load.
- */
-	VFontData*
-BLI_vfontdata_from_psfont(
-	struct PackedFile *pf);
 
 /**
  * Construct a new VFontData structure from 

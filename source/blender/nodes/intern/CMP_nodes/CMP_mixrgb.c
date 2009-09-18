@@ -73,6 +73,8 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 		composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, fac, do_mix_rgb, CB_RGBA, CB_RGBA, CB_VAL);
 		
 		out[0]->data= stackbuf;
+		
+		generate_preview(node, out[0]->data);
 	}
 }
 
@@ -82,7 +84,7 @@ bNodeType cmp_node_mix_rgb= {
 	/* type code   */	CMP_NODE_MIX_RGB,
 	/* name        */	"Mix",
 	/* width+range */	110, 60, 120,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	cmp_node_mix_rgb_in,
 	/* output sock */	cmp_node_mix_rgb_out,
 	/* storage     */	"", 

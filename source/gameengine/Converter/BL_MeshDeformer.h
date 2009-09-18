@@ -64,8 +64,12 @@ public:
 	virtual void SetSimulatedTime(double time){};
 	virtual bool Apply(class RAS_IPolyMaterial *mat);
 	virtual bool Update(void){ return false; };
-	virtual	RAS_Deformer*	GetReplica(class KX_GameObject* replica){return NULL;};
+	virtual bool UpdateBuckets(void){ return false; };
+	virtual	RAS_Deformer*	GetReplica(){return NULL;};
+	virtual void ProcessReplica();
 	struct Mesh* GetMesh() { return m_bmesh; };
+	virtual class RAS_MeshObject* GetRasMesh() { return (RAS_MeshObject*)m_pMeshObject; };
+	virtual float (* GetTransVerts(int *tot))[3]	{	*tot= m_tvtot; return m_transverts; }
 	//	virtual void InitDeform(double time){};
 
 protected:
@@ -81,6 +85,13 @@ protected:
 	int							m_tvtot;
 	BL_DeformableGameObject*	m_gameobj;
 	double					 	m_lastDeformUpdate;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_MeshDeformer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

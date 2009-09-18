@@ -219,9 +219,6 @@ int check_file_chars(char *filename)
 
 #else
 
-static void BLI_WINSTUFF_C_IS_EMPTY_FOR_UNIX(void) 
-{
-  /*intentionally empty*/
-}
+/* intentionally empty for UNIX */
 
 #endif

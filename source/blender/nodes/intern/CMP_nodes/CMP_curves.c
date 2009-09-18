@@ -40,11 +40,12 @@ static bNodeSocketType cmp_node_time_out[]= {
 
 static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	RenderData *rd= data;
 	/* stack order output: fac */
 	float fac= 0.0f;
 	
 	if(node->custom1 < node->custom2)
-		fac= (G.scene->r.cfra - node->custom1)/(float)(node->custom2-node->custom1);
+		fac= (rd->cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
 	fac= curvemapping_evaluateF(node->storage, 0, fac);
 	out[0]->vec[0]= CLAMPIS(fac, 0.0f, 1.0f);
@@ -53,8 +54,8 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 
 static void node_composit_init_curves_time(bNode* node)
 {
-   node->custom1= G.scene->r.sfra;
-   node->custom2= G.scene->r.efra;
+   node->custom1= 1;
+   node->custom2= 250;
    node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 

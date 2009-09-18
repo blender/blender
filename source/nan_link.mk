@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -34,7 +36,7 @@ ifdef NAN_DEBUG
     LDFLAGS += $(NAN_DEBUG)
 endif
 
-DBG_LDFLAGS	+= -g
+DBG_LDFLAGS += -g
 
 ifneq (x$(DEBUG_DIR), x)
     LDFLAGS+=$(DBG_LDFLAGS)
@@ -46,10 +48,6 @@ endif
 
 # default (overriden by windows)
 SOEXT = .so
-
-ifeq ($(OS),beos)
-    LLIBS = -L/boot/develop/lib/x86/ -lGL -lbe -L/boot/home/config/lib/
-endif
 
 ifeq ($(OS),darwin)
     LLIBS    += -lGLU -lGL
@@ -72,11 +70,19 @@ ifeq ($(OS),freebsd)
 endif
 
 ifeq ($(OS),irix)
-    LDFLAGS += -mips3
-    LLIBS = -lmovieGL -lGLU -lGL -lXmu -lXext -lX11 -lc -lm -ldmedia
-    LLIBS += -lcl -laudio -ldb -lCio -lz
-    LLIBS += -lpthread
-    LLIBS += -woff 84,171
+    ifeq ($(IRIX_USE_GCC), true)
+        LDFLAGS += -mabi=n32 -mips4 
+        DBG_LDFLAGS += -LD_LAYOUT:lgot_buffer=40
+    else
+        LDFLAGS += -n32 -mips3
+        LDFLAGS += -woff 84,171
+    endif
+    LLIBS = -lmovieGL -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldmedia
+    LLIBS += -lcl -laudio
+    ifneq ($(IRIX_USE_GCC), true)
+        LLIBS += -lCio -ldb
+    endif
+    LLIBS += -lz -lpthread
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 
@@ -90,8 +96,8 @@ ifeq ($(OS),linux)
   ifeq ($(CPU),$(findstring $(CPU), "i386 x86_64 ia64 parisc64 powerpc sparc64"))
     COMMENT = "MESA 3.1"
     LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXmu -lXext -lX11 -lXi
-    LLIBS += -lutil -lc -lm -ldl -lpthread 
-#    LLIBS += -L$(NAN_ODE)/lib -lode
+    LLIBS += -lutil -lc -lm -ldl -lpthread
+    LLIBS += -L$(NAN_PYTHON)/lib -Wl,-rpath -Wl,$(NAN_PYTHON)/lib -lpython$(NAN_PYTHON_VERSION)
     LOPTS = -export-dynamic
     DADD = -lGL -lGLU
     SADD = $(NAN_MESA)/lib/libGL.a $(NAN_MESA)/lib/libGLU.a
@@ -120,31 +126,28 @@ endif
 
 ifeq ($(OS),windows)
     EXT = .exe
-	SOEXT = .dll
-	ifeq ($(FREE_WINDOWS),true)
-		MINGWLIB = /usr/lib/w32api
-		LDFLAGS += -mwindows -mno-cygwin -mconsole
-		DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32 -lshfolder
-		DADD += -L/usr/lib/w32api -lwinmm -lwsock32
-		ifeq ($(WITH_VERSE),true)
-			DADD += -lws2_32
-		endif
+    SOEXT = .dll
+    ifeq ($(FREE_WINDOWS),true)
+        MINGWLIB = /usr/lib/w32api
+        LDFLAGS += -mwindows -mno-cygwin -mconsole
+        DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32 -lshfolder
+        DADD += -L/usr/lib/w32api -lwinmm -lwsock32
     else
-	    DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
-		DADD += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
-	    DADD += vfw32.lib winmm.lib opengl32.lib glu32.lib largeint.lib dxguid.lib
-		DADD += libcmt.lib
-		LOPTS = /link
-		LOPTS += /NODEFAULTLIB:"libc" 
-		LOPTS += /NODEFAULTLIB:"libcd" 
-		LOPTS += /NODEFAULTLIB:"libcp" 
-		LOPTS += /NODEFAULTLIB:"libcpd" 
-		LOPTS += /NODEFAULTLIB:"python20" 
-		LOPTS += /NODEFAULTLIB:"msvcrt" 
-		LOPTS += /SUBSYSTEM:CONSOLE
-		LDFLAGS += /MT
-		DYNLDFLAGS = /LD
-	endif
+        DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
+        DADD += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
+        DADD += vfw32.lib winmm.lib opengl32.lib glu32.lib largeint.lib dxguid.lib
+        DADD += libcmt.lib
+        LOPTS = /link
+        LOPTS += /NODEFAULTLIB:"libc" 
+        LOPTS += /NODEFAULTLIB:"libcd" 
+        LOPTS += /NODEFAULTLIB:"libcp" 
+        LOPTS += /NODEFAULTLIB:"libcpd" 
+        LOPTS += /NODEFAULTLIB:"python20" 
+        LOPTS += /NODEFAULTLIB:"msvcrt" 
+        LOPTS += /SUBSYSTEM:CONSOLE
+        LDFLAGS += /MT
+        DYNLDFLAGS = /LD
+    endif
 endif
 
 ifneq ($(OS), irix)

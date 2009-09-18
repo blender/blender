@@ -78,6 +78,11 @@ typedef struct StripColorBalance {
 
 typedef struct StripProxy {
 	char dir[160];
+	char file[80];
+	struct anim *anim;
+	short size;
+	short quality;
+	int pad;
 } StripProxy;
 
 typedef struct Strip {
@@ -142,7 +147,7 @@ typedef struct Sequence {
 
 	Strip *strip;
 
-	struct Ipo *ipo;
+	struct Ipo *ipo;	// xxx depreceated... old animation system
 	struct Scene *scene;
 	struct anim *anim;
 	float facf0, facf1;
@@ -155,9 +160,9 @@ typedef struct Sequence {
 	ListBase seqbase;	/* list of strips for metastrips */
 
 	struct bSound *sound;	/* the linked "bSound" object */
-        struct hdaudio *hdaudio; /* external hdaudio object */
+	struct SoundHandle *sound_handle;
 	float level, pan;	/* level in dB (0=full), pan -1..1 */
-	int curpos;		/* last sample position in audio_fill() */
+	int scenenr;          /* for scene selection */
 	float strobe;
 
 	void *effectdata;	/* Struct pointer for effect settings */
@@ -168,8 +173,6 @@ typedef struct Sequence {
 	int blend_mode;
 	float blend_opacity;
 
-	int scenenr;          /* for scene selection */
-	int pad;
 } Sequence;
 
 typedef struct MetaStack {
@@ -182,9 +185,11 @@ typedef struct Editing {
 	ListBase *seqbasep;
 	ListBase seqbase;
 	ListBase metastack;
-	short flag;
-	short pad;
-	int rt;
+	
+	/* Context vars, used to be static */
+	Sequence *act_seq;
+	char act_imagedir[256];
+	char act_sounddir[256];
 } Editing;
 
 /* ************* Effect Variable Structs ********* */
@@ -230,6 +235,9 @@ typedef struct SpeedControlVars {
 	int lastValidFrame;
 } SpeedControlVars;
 
+#define SEQ_STRIP_OFSBOTTOM		0.2f
+#define SEQ_STRIP_OFSTOP		0.8f
+
 /* SpeedControlVars->flags */
 #define SEQ_SPEED_INTEGRATE      1
 #define SEQ_SPEED_BLEND          2
@@ -257,7 +265,10 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_CROP                           131072
 #define SEQ_USE_COLOR_BALANCE                  262144
 #define SEQ_USE_PROXY_CUSTOM_DIR               524288
-#define SEQ_ACTIVE                            1048576
+#define SEQ_USE_PROXY_CUSTOM_FILE             2097152
+
+/* deprecated, dont use a flag anymore*/
+/*#define SEQ_ACTIVE                            1048576*/
 
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
 #define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
@@ -270,7 +281,7 @@ typedef struct SpeedControlVars {
 #define SEQ_MOVIE		3
 #define SEQ_RAM_SOUND		4
 #define SEQ_HD_SOUND            5
-#define SEQ_MOVIE_AND_HD_SOUND  6 /* helper for add_sequence */
+#define SEQ_SOUND		4
 
 #define SEQ_EFFECT		8
 #define SEQ_CROSS		8

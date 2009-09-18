@@ -51,7 +51,6 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 
-#define WITH_OPENEXR
 #include "openexr_multi.h"
 }
 
@@ -570,13 +569,17 @@ void IMB_exr_write_channels(void *handle)
 	FrameBuffer frameBuffer;
 	ExrChannel *echan;
 	
-	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
-		frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
-												echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
-	
-	data->ofile->setFrameBuffer (frameBuffer);
-	data->ofile->writePixels (data->height);	
-	
+	if(data->channels.first) {
+		for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
+			frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
+													echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+		
+		data->ofile->setFrameBuffer (frameBuffer);
+		data->ofile->writePixels (data->height);	
+	}
+	else {
+		printf("Error: attempt to save MultiLayer without layers.\n");
+	}
 }
 
 void IMB_exr_read_channels(void *handle)
@@ -861,7 +864,7 @@ static const char *exr_rgba_channelname(InputFile *file, const char *chan)
 	
 	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
 	{
-		const Channel &channel = i.channel();
+		/* const Channel &channel = i.channel(); */ /* Not used yet */
 		const char *str= i.name();
 		int len= strlen(str);
 		if(len) {

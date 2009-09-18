@@ -39,20 +39,28 @@ extern "C" {
 
 struct ListBase;
 struct MemFile;
+struct bContext;
+struct ReportList;
 
-#define BLENDER_VERSION			248
-#define BLENDER_SUBVERSION		1
+#define BLENDER_VERSION			250
+#define BLENDER_SUBVERSION		3
 
-#define BLENDER_MINVERSION		245
-#define BLENDER_MINSUBVERSION	15
+#define BLENDER_MINVERSION		250
+#define BLENDER_MINSUBVERSION	0
 
-int	BKE_read_file(char *dir, void *type_r);
-int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r);
-int BKE_read_file_from_memfile(struct MemFile *memfile);
+int BKE_read_file(struct bContext *C, char *dir, void *type_r, struct ReportList *reports);
+int BKE_read_file_from_memory(struct bContext *C, char* filebuf, int filelength, void *type_r, struct ReportList *reports);
+int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile, struct ReportList *reports);
 
-void duplicatelist(struct ListBase *list1, struct ListBase *list2);
 void free_blender(void);
 void initglobals(void);
+
+/* load new userdef from file, exit blender */
+void BKE_userdef_free(void);
+
+/* set this callback when a UI is running */
+void set_blender_test_break_cb(void (*func)(void) );
+int blender_test_break(void);
 
 void pushdata(void *data, int len);
 void popfirst(void *data);
@@ -61,11 +69,12 @@ void free_pushpop(void);
 void pushpop_test(void);
 
 /* global undo */
-extern void BKE_write_undo(char *name);
-extern void BKE_undo_step(int step);
+extern void BKE_write_undo(struct bContext *C, char *name);
+extern void BKE_undo_step(struct bContext *C, int step);
+extern void BKE_undo_name(struct bContext *C, const char *name);
 extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
-extern void BKE_undo_number(int nr);
+extern void BKE_undo_number(struct bContext *C, int nr);
 extern void BKE_undo_save_quit(void);
 
 #ifdef __cplusplus

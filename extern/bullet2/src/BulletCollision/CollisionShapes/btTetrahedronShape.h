@@ -27,15 +27,15 @@ class btBU_Simplex1to4 : public btPolyhedralConvexShape
 protected:
 
 	int	m_numVertices;
-	btPoint3	m_vertices[4];
+	btVector3	m_vertices[4];
 
 public:
 	btBU_Simplex1to4();
 
-	btBU_Simplex1to4(const btPoint3& pt0);
-	btBU_Simplex1to4(const btPoint3& pt0,const btPoint3& pt1);
-	btBU_Simplex1to4(const btPoint3& pt0,const btPoint3& pt1,const btPoint3& pt2);
-	btBU_Simplex1to4(const btPoint3& pt0,const btPoint3& pt1,const btPoint3& pt2,const btPoint3& pt3);
+	btBU_Simplex1to4(const btVector3& pt0);
+	btBU_Simplex1to4(const btVector3& pt0,const btVector3& pt1);
+	btBU_Simplex1to4(const btVector3& pt0,const btVector3& pt1,const btVector3& pt2);
+	btBU_Simplex1to4(const btVector3& pt0,const btVector3& pt1,const btVector3& pt2,const btVector3& pt3);
 
     
 	void	reset()
@@ -44,9 +44,8 @@ public:
 	}
 	
 
-	virtual int	getShapeType() const{ return TETRAHEDRAL_SHAPE_PROXYTYPE; }
 
-	void addVertex(const btPoint3& pt);
+	void addVertex(const btVector3& pt);
 
 	//PolyhedralConvexShape interface
 
@@ -54,17 +53,17 @@ public:
 
 	virtual int getNumEdges() const;
 
-	virtual void getEdge(int i,btPoint3& pa,btPoint3& pb) const;
+	virtual void getEdge(int i,btVector3& pa,btVector3& pb) const;
 	
-	virtual void getVertex(int i,btPoint3& vtx) const;
+	virtual void getVertex(int i,btVector3& vtx) const;
 
 	virtual int	getNumPlanes() const;
 
-	virtual void getPlane(btVector3& planeNormal,btPoint3& planeSupport,int i) const;
+	virtual void getPlane(btVector3& planeNormal,btVector3& planeSupport,int i) const;
 
 	virtual int getIndex(int i) const;
 
-	virtual	bool isInside(const btPoint3& pt,btScalar tolerance) const;
+	virtual	bool isInside(const btVector3& pt,btScalar tolerance) const;
 
 
 	///getName is for debugging

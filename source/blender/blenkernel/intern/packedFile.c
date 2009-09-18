@@ -61,9 +61,17 @@
 #include "BKE_image.h"
 #include "BKE_font.h"
 #include "BKE_packedFile.h"
-#include "BKE_bad_level_calls.h" /* <- waitcursor */
+#include "BKE_report.h"
 
-int seekPackedFile(PackedFile * pf, int offset, int whence)
+#ifdef _WIN32
+#define open _open
+#define close _close
+#define read _read
+#define write _write
+#endif
+
+
+int seekPackedFile(PackedFile *pf, int offset, int whence)
 {
 	int oldseek = -1, seek = 0;
 
@@ -93,12 +101,12 @@ int seekPackedFile(PackedFile * pf, int offset, int whence)
 	return(oldseek);
 }
 	
-void rewindPackedFile(PackedFile * pf)
+void rewindPackedFile(PackedFile *pf)
 {
 	seekPackedFile(pf, 0, SEEK_SET);
 }
 
-int readPackedFile(PackedFile * pf, void * data, int size)
+int readPackedFile(PackedFile *pf, void *data, int size)
 { 
 	if ((pf != NULL) && (size >= 0) && (data != NULL)) {
 		if (size + pf->seek > pf->size) {
@@ -119,68 +127,56 @@ int readPackedFile(PackedFile * pf, void * data, int size)
 	return(size);
 }
 
-int countPackedFiles()
+int countPackedFiles(Main *bmain)
 {
-	int count = 0;
 	Image *ima;
 	VFont *vf;
-	bSample *sample;
+	bSound *sound;
+	int count = 0;
 	
 	// let's check if there are packed files...
-	ima = G.main->image.first;
-	while (ima) {
-		if (ima->packedfile) {
+	for(ima=bmain->image.first; ima; ima=ima->id.next)
+		if(ima->packedfile)
 			count++;
-		}
-		ima= ima->id.next;
-	}
 
-	vf = G.main->vfont.first;
-	while (vf) {
-		if (vf->packedfile) {
+	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
+		if(vf->packedfile)
 			count++;
-		}
-		vf = vf->id.next;
-	}
 
-	sample = samples->first;
-	while (sample) {
-		if (sample->packedfile) {
+	for(sound=bmain->sound.first; sound; sound=sound->id.next)
+		if(sound->packedfile)
 			count++;
-		}
-		sample = sample->id.next;
-	}
 
-	return(count);
+	return count;
 }
 
-void freePackedFile(PackedFile * pf)
+void freePackedFile(PackedFile *pf)
 {
-	if (pf) {
+	if(pf) {
 		MEM_freeN(pf->data);
 		MEM_freeN(pf);
-	} else {
-		printf("freePackedFile: Trying to free a NULL pointer\n");
 	}
+	else
+		printf("freePackedFile: Trying to free a NULL pointer\n");
 }
 	
-PackedFile * newPackedFileMemory(void *mem, int memlen)
+PackedFile *newPackedFileMemory(void *mem, int memlen)
 {
-	PackedFile * pf = MEM_callocN(sizeof(*pf), "PackedFile");
+	PackedFile *pf = MEM_callocN(sizeof(*pf), "PackedFile");
 	pf->data = mem;
 	pf->size = memlen;
 	
 	return pf;
 }
 
-PackedFile * newPackedFile(char * filename)
+PackedFile *newPackedFile(ReportList *reports, char *filename)
 {
-	PackedFile * pf = NULL;
+	PackedFile *pf = NULL;
 	int file, filelen;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
-	void * data;
+	void *data;
 	
-	waitcursor(1);
+	//XXX waitcursor(1);
 	
 	// convert relative filenames to absolute filenames
 	
@@ -192,7 +188,7 @@ PackedFile * newPackedFile(char * filename)
 
 	file= open(name, O_BINARY|O_RDONLY);
 	if (file <= 0) {
-		// error("Can't open file: %s", name);
+		BKE_reportf(reports, RPT_ERROR, "Can't open file: %s", name);
 	} else {
 		filelen = BLI_filesize(file);
 
@@ -210,41 +206,28 @@ PackedFile * newPackedFile(char * filename)
 		close(file);
 	}
 
-	waitcursor(0);
+	//XXX waitcursor(0);
 		
 	return (pf);
 }
 
-void packAll()
+void packAll(Main *bmain, ReportList *reports)
 {
 	Image *ima;
 	VFont *vf;
-	bSample *sample;
-	
-	ima = G.main->image.first;
-	while (ima) {
-		if (ima->packedfile == NULL) {
-			ima->packedfile = newPackedFile(ima->name);
-		}
-		ima= ima->id.next;
-	}
-	
-	vf = G.main->vfont.first;
-	while (vf) {
-		if (vf->packedfile == NULL) {
-			vf->packedfile = newPackedFile(vf->name);
-		}
-		vf = vf->id.next;
-	}
+	bSound *sound;
 
+	for(ima=bmain->image.first; ima; ima=ima->id.next)
+		if(ima->packedfile == NULL)
+			ima->packedfile = newPackedFile(reports, ima->name);
 
-	sample = samples->first;
-	while (sample) {
-		if (sample->packedfile == NULL) {
-			sound_set_packedfile(sample, newPackedFile(sample->name));
-		}
-		sample = sample->id.next;
-	}
+	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
+		if(vf->packedfile == NULL)
+			vf->packedfile = newPackedFile(reports, vf->name);
+
+	for(sound=bmain->sound.first; sound; sound=sound->id.next)
+		if(sound->packedfile == NULL)
+			sound->packedfile = newPackedFile(reports, sound->name);
 }
 
 
@@ -253,10 +236,10 @@ void packAll()
 // attempt to create a function that generates an unique filename
 // this will work when all funtions in fileops.c understand relative filenames...
 
-char * find_new_name(char * name)
+static char *find_new_name(char *name)
 {
 	char tempname[FILE_MAXDIR + FILE_MAXFILE];
-	char * newname;
+	char *newname;
 	
 	if (fop_exists(name)) {
 		for (number = 1; number <= 999; number++) {
@@ -275,15 +258,15 @@ char * find_new_name(char * name)
 	
 */
 
-int writePackedFile(char * filename, PackedFile *pf, int guimode)
+int writePackedFile(ReportList *reports, char *filename, PackedFile *pf, int guimode)
 {
 	int file, number, remove_tmp = FALSE;
 	int ret_value = RET_OK;
 	char name[FILE_MAXDIR + FILE_MAXFILE];
 	char tempname[FILE_MAXDIR + FILE_MAXFILE];
-/*  	void * data; */
+/*  	void *data; */
 	
-	if (guimode) waitcursor(1);
+	if (guimode); //XXX  waitcursor(1);
 	
 	strcpy(name, filename);
 	BLI_convertstringcode(name, G.sce);
@@ -306,28 +289,28 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	file = open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file >= 0) {
 		if (write(file, pf->data, pf->size) != pf->size) {
-			if(guimode) error("Error writing file: %s", name);
+			BKE_reportf(reports, RPT_ERROR, "Error writing file: %s", name);
 			ret_value = RET_ERROR;
 		}
 		close(file);
 	} else {
-		if(guimode) error("Error creating file: %s", name);
+		BKE_reportf(reports, RPT_ERROR, "Error creating file: %s", name);
 		ret_value = RET_ERROR;
 	}
 	
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
 			if (BLI_rename(tempname, name) != 0) {
-				if(guimode) error("Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
+				BKE_reportf(reports, RPT_ERROR, "Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
 			}
 		} else {
 			if (BLI_delete(tempname, 0, 0) != 0) {
-				if(guimode) error("Error deleting '%s' (ignored)");
+				BKE_reportf(reports, RPT_ERROR, "Error deleting '%s' (ignored)", tempname);
 			}
 		}
 	}
 	
-	if(guimode) waitcursor(0);
+	if(guimode); //XXX waitcursor(0);
 
 	return (ret_value);
 }
@@ -343,7 +326,7 @@ PF_NOFILE		- the original file doens't exist
 
 */
 
-int checkPackedFile(char * filename, PackedFile * pf)
+int checkPackedFile(char *filename, PackedFile *pf)
 {
 	struct stat st;
 	int ret_val, i, len, file;
@@ -383,6 +366,8 @@ int checkPackedFile(char * filename, PackedFile * pf)
 					}
 				}
 			}
+			
+			close(file);
 		}
 	}
 	
@@ -391,68 +376,21 @@ int checkPackedFile(char * filename, PackedFile * pf)
 
 /*
 
-unpackFile() looks at the existing files (abs_name, local_name) and a packed file.
-If how == PF_ASK it offers the user a couple of options what to do with the packed file.
+   unpackFile() looks at the existing files (abs_name, local_name) and a packed file.
 
-It returns a char * to the existing file name / new file name or NULL when
+It returns a char *to the existing file name / new file name or NULL when
 there was an error or when the user desides to cancel the operation.
 
 */
 
-char *unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
+char *unpackFile(ReportList *reports, char *abs_name, char *local_name, PackedFile *pf, int how)
 {
-	char menu[6 * (FILE_MAXDIR + FILE_MAXFILE + 100)];
-	char line[FILE_MAXDIR + FILE_MAXFILE + 100];
-	char * newname = NULL, * temp = NULL;
+	char *newname = NULL, *temp = NULL;
 	
 	// char newabs[FILE_MAXDIR + FILE_MAXFILE];
 	// char newlocal[FILE_MAXDIR + FILE_MAXFILE];
 	
 	if (pf != NULL) {
-		if (how == PF_ASK) {
-			sprintf(menu, "UnPack file%%t|Remove Pack %%x%d", PF_REMOVE);
-			
-			if (strcmp(abs_name, local_name)) {
-				switch (checkPackedFile(local_name, pf)) {
-					case PF_NOFILE:
-						sprintf(line, "|Create %s%%x%d", local_name, PF_WRITE_LOCAL);
-						strcat(menu, line);
-						break;
-					case PF_EQUAL:
-						sprintf(line, "|Use %s (identical)%%x%d", local_name, PF_USE_LOCAL);
-						strcat(menu, line);
-						break;
-					case PF_DIFFERS:
-						sprintf(line, "|Use %s (differs)%%x%d", local_name, PF_USE_LOCAL);
-						strcat(menu, line);
-						sprintf(line, "|Overwrite %s%%x%d", local_name, PF_WRITE_LOCAL);
-						strcat(menu, line);
-						break;
-				}
-				// sprintf(line, "|%%x%d", PF_INVALID);
-				// strcat(menu, line);
-			}
-			
-			switch (checkPackedFile(abs_name, pf)) {
-				case PF_NOFILE:
-					sprintf(line, "|Create %s%%x%d", abs_name, PF_WRITE_ORIGINAL);
-					strcat(menu, line);
-					break;
-				case PF_EQUAL:
-					sprintf(line, "|Use %s (identical)%%x%d", abs_name, PF_USE_ORIGINAL);
-					strcat(menu, line);
-					break;
-				case PF_DIFFERS:
-					sprintf(line, "|Use %s (differs)%%x%d", abs_name, PF_USE_ORIGINAL);
-					strcat(menu, line);
-					sprintf(line, "|Overwrite %s%%x%d", abs_name, PF_WRITE_ORIGINAL);
-					strcat(menu, line);
-					break;
-			}
-			
-			how = pupmenu(menu);
-		}
-		
 		switch (how) {
 			case -1:
 			case PF_KEEP:
@@ -468,7 +406,7 @@ char *unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 				}
 				// else fall through and create it
 			case PF_WRITE_LOCAL:
-				if (writePackedFile(local_name, pf, 1) == RET_OK) {
+				if (writePackedFile(reports, local_name, pf, 1) == RET_OK) {
 					temp = local_name;
 				}
 				break;
@@ -480,7 +418,7 @@ char *unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 				}
 				// else fall through and create it
 			case PF_WRITE_ORIGINAL:
-				if (writePackedFile(abs_name, pf, 1) == RET_OK) {
+				if (writePackedFile(reports, abs_name, pf, 1) == RET_OK) {
 					temp = abs_name;
 				}
 				break;
@@ -499,10 +437,10 @@ char *unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 }
 
 
-int unpackVFont(VFont * vfont, int how)
+int unpackVFont(ReportList *reports, VFont *vfont, int how)
 {
 	char localname[FILE_MAXDIR + FILE_MAXFILE], fi[FILE_MAXFILE];
-	char * newname;
+	char *newname;
 	int ret_value = RET_ERROR;
 	
 	if (vfont != NULL) {
@@ -511,7 +449,7 @@ int unpackVFont(VFont * vfont, int how)
 		
 		sprintf(localname, "//fonts/%s", fi);
 		
-		newname = unpackFile(vfont->name, localname, vfont->packedfile, how);
+		newname = unpackFile(reports, vfont->name, localname, vfont->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
 			freePackedFile(vfont->packedfile);
@@ -524,28 +462,26 @@ int unpackVFont(VFont * vfont, int how)
 	return (ret_value);
 }
 
-int unpackSample(bSample *sample, int how)
+int unpackSound(ReportList *reports, bSound *sound, int how)
 {
 	char localname[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
-	char * newname;
+	char *newname;
 	int ret_value = RET_ERROR;
-	PackedFile *pf;
-	
-	if (sample != NULL) {
-		strcpy(localname, sample->name);
+
+	if (sound != NULL) {
+		strcpy(localname, sound->name);
 		BLI_splitdirstring(localname, fi);
-		sprintf(localname, "//samples/%s", fi);
-		
-		newname = unpackFile(sample->name, localname, sample->packedfile, how);
+		sprintf(localname, "//sounds/%s", fi);
+
+		newname = unpackFile(reports, sound->name, localname, sound->packedfile, how);
 		if (newname != NULL) {
-			strcpy(sample->name, newname);
+			strcpy(sound->name, newname);
 			MEM_freeN(newname);
 
-			pf = sample->packedfile;
-			// because samples and sounds can point to the
-			// same packedfile we have to check them all
-			sound_set_packedfile(sample, NULL);
-			freePackedFile(pf);
+			freePackedFile(sound->packedfile);
+			sound->packedfile = 0;
+
+			sound_load(NULL, sound);
 
 			ret_value = RET_OK;
 		}
@@ -554,10 +490,10 @@ int unpackSample(bSample *sample, int how)
 	return(ret_value);
 }
 
-int unpackImage(Image * ima, int how)
+int unpackImage(ReportList *reports, Image *ima, int how)
 {
 	char localname[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
-	char * newname;
+	char *newname;
 	int ret_value = RET_ERROR;
 	
 	if (ima != NULL) {
@@ -565,7 +501,7 @@ int unpackImage(Image * ima, int how)
 		BLI_splitdirstring(localname, fi);
 		sprintf(localname, "//textures/%s", fi);
 			
-		newname = unpackFile(ima->name, localname, ima->packedfile, how);
+		newname = unpackFile(reports, ima->name, localname, ima->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
 			freePackedFile(ima->packedfile);
@@ -579,33 +515,22 @@ int unpackImage(Image * ima, int how)
 	return(ret_value);
 }
 
-void unpackAll(int how)
+void unpackAll(Main *bmain, ReportList *reports, int how)
 {
 	Image *ima;
 	VFont *vf;
-	bSample *sample;
-		
-	ima = G.main->image.first;
-	while (ima) {
-		if (ima->packedfile) {
-			unpackImage(ima, how);
-		}
-		ima= ima->id.next;
-	}
-	
-	vf = G.main->vfont.first;
-	while (vf) {
-		if (vf->packedfile) {
-			unpackVFont(vf, how);
-		}
-		vf = vf->id.next;
-	}
+	bSound *sound;
 
-	sample = samples->first;
-	while (sample) {
-		if (sample->packedfile) {
-			unpackSample(sample, how);
-		}
-		sample = sample->id.next;
-	}
+	for(ima=bmain->image.first; ima; ima=ima->id.next)
+		if(ima->packedfile)
+			unpackImage(reports, ima, how);
+
+	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
+		if(vf->packedfile)
+			unpackVFont(reports, vf, how);
+
+	for(sound=bmain->sound.first; sound; sound=sound->id.next)
+		if(sound->packedfile)
+			unpackSound(reports, sound, how);
 }
+

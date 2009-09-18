@@ -41,6 +41,7 @@ struct bProperty *copy_property(struct bProperty *prop);
 void copy_properties(struct ListBase *lbn, struct ListBase *lbo);
 void init_property(struct bProperty *prop);
 struct bProperty *new_property(int type);
+void unique_property(struct bProperty *first, struct  bProperty *prop, int force);
 struct bProperty *get_ob_property(struct Object *ob, char *name);
 void set_ob_property(struct Object *ob, struct bProperty *propc);
 int compare_property(struct bProperty *prop, char *str);

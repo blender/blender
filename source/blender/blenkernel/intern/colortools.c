@@ -32,6 +32,10 @@
 #include <stdlib.h>
 #include <float.h>
 
+#ifdef WITH_LCMS
+#include <lcms.h>
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_color_types.h"
@@ -53,6 +57,91 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+/* ********************************* color transforms ********************************* */
+
+/*Transform linear RGB values to nonlinear RGB values. Rec.
+  709 is ITU-R Recommendation BT. 709 (1990) ``Basic
+  Parameter Values for the HDTV Standard for the Studio and
+  for International Programme Exchange'', formerly CCIR Rec.
+  709.*/
+void gamma_correct_rec709(float *c, float gamma)
+{
+	/* Rec. 709 gamma correction. */
+	const float cc = 0.018f;
+	
+	if (*c < cc)
+	    *c *= ((1.099f * (float)powf(cc, gamma)) - 0.099f) * (1.0f/cc);
+	else 
+	    *c = (1.099f * (float)powf(*c, gamma)) - 0.099f;
+}
+
+void gamma_correct(float *c, float gamma)
+{
+	*c = powf((*c), gamma);
+}
+
+float srgb_to_linearrgb(float c)
+{
+	if (c < 0.04045f)
+		return (c < 0.0f)? 0.0f: c*(1.0f/12.92f);
+	else
+		return powf((c + 0.055f)*(1.0f/1.055f), 2.4f);
+}
+
+float linearrgb_to_srgb(float c)
+{
+	if (c < 0.0031308f)
+		return (c < 0.0f)? 0.0f: c * 12.92f;
+	else
+		return  1.055f * powf(c, 1.0f/2.4f) - 0.055f;
+}
+
+/* utility function convert an RGB triplet from sRGB to linear RGB color space */
+void color_manage_linearize(float *col_to, float *col_from)
+{
+	col_to[0] = srgb_to_linearrgb(col_from[0]);
+	col_to[1] = srgb_to_linearrgb(col_from[1]);
+	col_to[2] = srgb_to_linearrgb(col_from[2]);
+}
+
+void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
+{
+	int x, y;
+	float *rf= rectf;
+	float srgb[3];
+	unsigned char *rc= rectc;
+	
+	for(y=y1; y<y2; y++) {
+		for(x=x1; x<x2; x++, rf+=4, rc+=4) {
+			srgb[0]= linearrgb_to_srgb(rf[0]);
+			srgb[1]= linearrgb_to_srgb(rf[1]);
+			srgb[2]= linearrgb_to_srgb(rf[2]);
+
+			rc[0]= FTOCHAR(srgb[0]);
+			rc[1]= FTOCHAR(srgb[1]);
+			rc[2]= FTOCHAR(srgb[2]);
+			rc[3]= FTOCHAR(rf[3]);
+		}
+	}
+}
+
+void floatbuf_to_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
+{
+	int x, y;
+	float *rf= rectf;
+	unsigned char *rc= rectc;
+	
+	for(y=y1; y<y2; y++) {
+		for(x=x1; x<x2; x++, rf+=4, rc+=4) {
+			rc[0]= FTOCHAR(rf[0]);
+			rc[1]= FTOCHAR(rf[1]);
+			rc[2]= FTOCHAR(rf[2]);
+			rc[3]= FTOCHAR(rf[3]);
+		}
+	}
+}
+
 
 /* ********************************* color curve ********************* */
 
@@ -413,8 +502,8 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	
 	for(a=0; a<cuma->totpoint-1; a++, fp += 2*CM_RESOL) {
 		correct_bezpart(bezt[a].vec[1], bezt[a].vec[2], bezt[a+1].vec[0], bezt[a+1].vec[1]);
-		forward_diff_bezier(bezt[a].vec[1][0], bezt[a].vec[2][0], bezt[a+1].vec[0][0], bezt[a+1].vec[1][0], fp, CM_RESOL-1, 2);	
-		forward_diff_bezier(bezt[a].vec[1][1], bezt[a].vec[2][1], bezt[a+1].vec[0][1], bezt[a+1].vec[1][1], fp+1, CM_RESOL-1, 2);
+		forward_diff_bezier(bezt[a].vec[1][0], bezt[a].vec[2][0], bezt[a+1].vec[0][0], bezt[a+1].vec[1][0], fp, CM_RESOL-1, 2*sizeof(float));	
+		forward_diff_bezier(bezt[a].vec[1][1], bezt[a].vec[2][1], bezt[a+1].vec[0][1], bezt[a+1].vec[1][1], fp+1, CM_RESOL-1, 2*sizeof(float));
 	}
 	
 	/* store first and last handle for extrapolation, unit length */
@@ -648,6 +737,38 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const 
 	
 	fac= (vecin[2] - cumap->black[2])*cumap->bwmul[2];
 	vecout[2]= curvemap_evaluateF(cumap->cm+2, fac);
+}
+
+void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
+{
+	if (ibuf->crect == NULL)
+	{
+#ifdef WITH_LCMS
+		cmsHPROFILE imageProfile, proofingProfile;
+		cmsHTRANSFORM hTransform;
+		
+		ibuf->crect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(int), "imbuf crect");
+
+		imageProfile  = cmsCreate_sRGBProfile();
+		proofingProfile = cmsOpenProfileFromFile(profile, "r");
+		
+		cmsErrorAction(LCMS_ERROR_SHOW);
+	
+		hTransform = cmsCreateProofingTransform(imageProfile, TYPE_RGBA_8, imageProfile, TYPE_RGBA_8, 
+	                                          proofingProfile,
+	                                          INTENT_ABSOLUTE_COLORIMETRIC,
+	                                          INTENT_ABSOLUTE_COLORIMETRIC,
+	                                          cmsFLAGS_SOFTPROOFING);
+	
+		cmsDoTransform(hTransform, ibuf->rect, ibuf->crect, ibuf->x * ibuf->y);
+	
+		cmsDeleteTransform(hTransform);
+		cmsCloseProfile(imageProfile);
+		cmsCloseProfile(proofingProfile);
+#else
+		ibuf->crect = ibuf->rect;
+#endif
+	}
 }
 
 

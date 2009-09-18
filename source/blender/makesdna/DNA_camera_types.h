@@ -32,17 +32,18 @@
 #define DNA_CAMERA_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct Ipo;
 struct Object;
+struct AnimData;
+struct Ipo;
 
 typedef struct Camera {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short type, flag;
 	float passepartalpha, angle;
@@ -57,9 +58,8 @@ typedef struct Camera {
 	short YF_bkhtype, YF_bkhbias;
 	float YF_bkhrot;
 
-	struct Ipo *ipo;
+	struct Ipo *ipo;			// XXX depreceated... old animation system
 	
-	ScriptLink scriptlink;
 	struct Object *dof_ob;
 } Camera;
 
@@ -76,6 +76,8 @@ typedef struct Camera {
 #define CAM_SHOWTITLESAFE	8
 #define CAM_SHOWNAME		16
 #define CAM_ANGLETOGGLE		32
+#define CAM_DS_EXPAND		64
+#define CAM_PANORAMA		128
 
 /* yafray: dof sampling switch */
 #define CAM_YF_NO_QMC	512

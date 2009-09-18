@@ -43,6 +43,7 @@
 
 #ifdef WIN32
 #include <io.h>		// read, open
+#include "BLI_winstuff.h"
 #else // ! WIN32
 #include <unistd.h>		// read
 #endif
@@ -51,6 +52,7 @@
 #include "BLO_readblenfile.h"
 
 #include "BKE_blender.h"
+#include "BKE_report.h"
 
 #include "BLI_blenlib.h"
 
@@ -67,7 +69,7 @@ char *headerMagic = "BLENDFI";
  */
 void BLO_setversionnumber(char array[4], int version)
 {
-	memset(array, 0, sizeof(array));
+	memset(array, 0, sizeof(char)*4);
 
 	array[1] = version / 100;
 	array[2] = version % 100;
@@ -130,7 +132,7 @@ cleanup:
 BlendFileData *
 blo_read_runtime(
 	char *path, 
-	BlendReadError *error_r) 
+	ReportList *reports)
 {
 	BlendFileData *bfd= NULL;
 	int fd, actualsize, datastart;
@@ -138,7 +140,7 @@ blo_read_runtime(
 
 	fd= open(path, O_BINARY|O_RDONLY, 0);
 	if (fd==-1) {
-		*error_r= BRE_UNABLE_TO_OPEN;
+		BKE_report(reports, RPT_ERROR, "Unable to open");
 		goto cleanup;
 	}
 	
@@ -148,18 +150,18 @@ blo_read_runtime(
 
 	datastart= handle_read_msb_int(fd);
 	if (datastart==-1) {
-		*error_r= BRE_UNABLE_TO_READ;
+		BKE_report(reports, RPT_ERROR, "Unable to read");
 		goto cleanup;
 	} else if (read(fd, buf, 8)!=8) {
-		*error_r= BRE_UNABLE_TO_READ;
+		BKE_report(reports, RPT_ERROR, "Unable to read");
 		goto cleanup;
 	} else if (memcmp(buf, "BRUNTIME", 8)!=0) {
-		*error_r= BRE_NOT_A_BLEND;
+		BKE_report(reports, RPT_ERROR, "File is not a Blender file");
 		goto cleanup;
 	} else {	
 		//printf("starting to read runtime from %s at datastart %d\n", path, datastart);
 		lseek(fd, datastart, SEEK_SET);
-		bfd = blo_read_blendafterruntime(fd, path, actualsize-datastart, error_r);
+		bfd = blo_read_blendafterruntime(fd, path, actualsize-datastart, reports);
 		fd= -1;	// file was closed in blo_read_blendafterruntime()
 	}
 	

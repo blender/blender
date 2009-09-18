@@ -56,7 +56,8 @@ protected:
 	// sinus of maximum angle
 	float m_maximumSine;
 	// reference direction
-	MT_Vector3 m_refDirection;
+	float m_refDirection[3];
+	MT_Vector3 m_refDirVector;	// same as m_refDirection
 	// locrotxyz choice (pick one): only one choice allowed at a time!
 	int m_locrot;
 	// active time of actuator
@@ -65,7 +66,7 @@ protected:
 	// option
 	int m_option;
 	// property to check
-	char m_property[32];
+	STR_String m_property;
 	// hit object
 	KX_GameObject* m_hitObject;
 
@@ -125,14 +126,11 @@ protected:
 						  int locrot,
 						  int time,
 						  int option,
-						  char *property,
-						  PyTypeObject* T=&Type);
+						  char *property);
 	virtual ~KX_ConstraintActuator();
 	virtual CValue* GetReplica() {
 		KX_ConstraintActuator* replica = new KX_ConstraintActuator(*this);
 		replica->ProcessReplica();
-		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
 		return replica;
 	};
 
@@ -142,30 +140,9 @@ protected:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	static int pyattr_check_direction(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_check_min(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetDamp);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDamp);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetRotDamp);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetRotDamp);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetDirection);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDirection);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetOption);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetOption);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetTime);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetTime);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetProperty);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetProperty);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMin);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMin);
-	static const char SetDistance_doc[];
-	static const char GetDistance_doc[];
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMax);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMax);
-	static const char SetRayLength_doc[];
-	static const char GetRayLength_doc[];
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetLimit);
-	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetLimit);
 };
 
 #endif //__KX_CONSTRAINTACTUATOR

@@ -30,11 +30,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef WIN32 
-    #include <unistd.h> // for read close
-    #include <sys/param.h> // for MAXPATHLEN
+#ifndef _WIN32 
+	#include <unistd.h> // for read close
+	#include <sys/param.h> // for MAXPATHLEN
 #else
-    #include <io.h> // for open close read
+	#include <io.h> // for open close read
+	#define open _open
+	#define read _read
+	#define close _close
+	#define write _write
 #endif
 
 #include <stdlib.h>
@@ -44,12 +48,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 #include "DNA_sdna_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_object_types.h"
-#include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -57,21 +65,24 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_screen_types.h"
-
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_ipo.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
+#include "BKE_sequence.h"
 #include "BKE_sound.h"
 
 #include "BLI_editVert.h"
@@ -80,15 +91,12 @@
 #include "BLO_readfile.h" 
 #include "BLO_writefile.h" 
 
-#include "BKE_bad_level_calls.h" // for freeAllRad editNurb free_editMesh free_editText free_editArmature
 #include "BKE_utildefines.h" // O_BINARY FALSE
-#include "BIF_mainqueue.h" // mainqenter for onload script
-#include "mydevice.h"
-#include "nla.h"
-#include "blendef.h"
 
 Global G;
 UserDef U;
+ListBase WMlist= {NULL, NULL};
+short ENDIAN_ORDER;
 
 char versionstr[48]= "";
 
@@ -164,65 +172,41 @@ void pushpop_test()
 
 /* ********** free ********** */
 
+/* only to be called on exit blender */
 void free_blender(void)
 {
 	/* samples are in a global list..., also sets G.main->sound->sample NULL */
-	sound_free_all_samples();
-	
 	free_main(G.main);
 	G.main= NULL;
 
+	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
+	
 	IMB_freeImBufdata();		/* imbuf lib */
 	
 	free_nodesystem();	
 }
 
-void duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */
-{
-	struct Link *link1, *link2;
-	
-	list1->first= list1->last= 0;
-	
-	link2= list2->first;
-	while(link2) {
-
-		link1= MEM_dupallocN(link2);
-		BLI_addtail(list1, link1);
-		
-		link2= link2->next;
-	}	
-}
-
-static EditMesh theEditMesh;
-
 void initglobals(void)
 {
 	memset(&G, 0, sizeof(Global));
 	
-	memset(&theEditMesh, 0, sizeof(theEditMesh));
-	G.editMesh = &theEditMesh;
-
 	U.savetime= 1;
 
 	G.main= MEM_callocN(sizeof(Main), "initglobals");
 
 	strcpy(G.ima, "//");
 
-	G.version= BLENDER_VERSION;
-
-	G.order= 1;
-	G.order= (((char*)&G.order)[0])?L_ENDIAN:B_ENDIAN;
+	ENDIAN_ORDER= 1;
+	ENDIAN_ORDER= (((char*)&ENDIAN_ORDER)[0])? L_ENDIAN: B_ENDIAN;
 
 	if(BLENDER_SUBVERSION)
-		sprintf(versionstr, "www.blender.org %d.%d", G.version, BLENDER_SUBVERSION);
+		sprintf(versionstr, "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
 	else
-		sprintf(versionstr, "www.blender.org %d", G.version);
+		sprintf(versionstr, "www.blender.org %d", BLENDER_VERSION);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;
 #endif
-
-	clear_workob();	/* object.c */
 
 	G.charstart = 0x0000;
 	G.charmin = 0x0000;
@@ -233,38 +217,16 @@ void initglobals(void)
 
 static void clear_global(void) 
 {
-	extern short winqueue_break;	/* screen.c */
+//	extern short winqueue_break;	/* screen.c */
 
-	freeAllRad();
 	fastshade_free_render();	/* lamps hang otherwise */
 	free_main(G.main);			/* free all lib data */
-
-	/* force all queues to be left */
-	winqueue_break= 1;
 	
-	if (G.obedit) {
-		freeNurblist(&editNurb);
-		free_editMesh(G.editMesh);
-		free_editText();
-		free_editArmature();
-	}
+//	free_vertexpaint();
 
-	G.curscreen= NULL;
-	G.scene= NULL;
 	G.main= NULL;
 	
-	G.obedit= NULL;
-	G.saction= NULL;
-	G.buts= NULL;
-	G.v2d= NULL;
-	G.vd= NULL;
-	G.soops= NULL;
-	G.sima= NULL;
-	G.sipo= NULL;
-	
-	free_vertexpaint();
-	
-	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
+	G.f &= ~(G_FACESELECT);
 }
 
 /* make sure path names are correct for OS */
@@ -288,7 +250,7 @@ static void clean_paths(Main *main)
 	}
 	
 	while(scene) {
-		ed= scene->ed;
+		ed= seq_give_editing(scene, 0);
 		if(ed) {
 			seq= ed->seqbasep->first;
 			while(seq) {
@@ -310,7 +272,10 @@ static void clean_paths(Main *main)
 	}
 }
 
-static void setup_app_data(BlendFileData *bfd, char *filename) 
+/* context matching */
+/* handle no-ui case */
+
+static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename) 
 {
 	Object *ob;
 	bScreen *curscreen= NULL;
@@ -324,16 +289,19 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	
 	clean_paths(bfd->main);
 	
+	/* XXX here the complex windowmanager matching */
+	
 	/* no load screens? */
 	if(mode) {
 		/* comes from readfile.c */
-		extern void lib_link_screen_restore(Main *, Scene *);
+		extern void lib_link_screen_restore(Main *, bScreen *, Scene *);
 		
+		SWAP(ListBase, G.main->wm, bfd->main->wm);
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
 		SWAP(ListBase, G.main->script, bfd->main->script);
 		
 		/* we re-use current screen */
-		curscreen= G.curscreen;
+		curscreen= CTX_wm_screen(C);
 		/* but use new Scene pointer */
 		curscene= bfd->curscene;
 		if(curscene==NULL) curscene= bfd->main->scene.first;
@@ -341,76 +309,79 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		curscreen->scene= curscene;
 
 		/* clear_global will free G.main, here we can still restore pointers */
-		lib_link_screen_restore(bfd->main, curscene);
+		lib_link_screen_restore(bfd->main, curscreen, curscene);
 	}
 	
-	clear_global();	/* free Main database */
-	
-	if(mode!='u') G.save_over = 1;
+	/* free G.main Main database */
+	clear_global();	
 	
 	G.main= bfd->main;
+
+	CTX_data_main_set(C, G.main);
+	
 	if (bfd->user) {
 		
 		/* only here free userdef themes... */
-		BLI_freelistN(&U.themes);
-
+		BKE_userdef_free();
+		
 		U= *bfd->user;
 		MEM_freeN(bfd->user);
-		
 	}
-	
-	/* samples is a global list... */
-	sound_free_all_samples();
 	
 	/* case G_FILE_NO_UI or no screens in file */
 	if(mode) {
-		G.curscreen= curscreen;
-		G.scene= curscene;
+		/* leave entire context further unaltered? */
+		CTX_data_scene_set(C, curscene);
 	}
 	else {
 		G.winpos= bfd->winpos;
 		G.displaymode= bfd->displaymode;
 		G.fileflags= bfd->fileflags;
-		G.curscreen= bfd->curscreen;
-		G.scene= G.curscreen->scene;
+		
+		CTX_wm_screen_set(C, bfd->curscreen);
+		CTX_data_scene_set(C, bfd->curscreen->scene);
+		CTX_wm_area_set(C, NULL);
+		CTX_wm_region_set(C, NULL);
+		CTX_wm_menu_set(C, NULL);
 	}
+	
 	/* this can happen when active scene was lib-linked, and doesnt exist anymore */
-	if(G.scene==NULL) {
-		G.scene= G.main->scene.first;
-		G.curscreen->scene= G.scene;
+	if(CTX_data_scene(C)==NULL) {
+		CTX_data_scene_set(C, bfd->main->scene.first);
+		CTX_wm_screen(C)->scene= CTX_data_scene(C);
+		curscene= CTX_data_scene(C);
 	}
 
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
 	else bfd->globalf &= ~G_DEBUG;
+	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
+	else bfd->globalf &= ~G_SWAP_EXCHANGE;
 
 	if ((U.flag & USER_DONT_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
 
 	G.f= bfd->globalf;
 
 	if (!G.background) {
-		setscreen(G.curscreen);
+		//setscreen(G.curscreen);
 	}
 	
+	// XXX temporarily here
+	if(G.main->versionfile < 250)
+		do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
+	
 	/* baseflags, groups, make depsgraph, etc */
-	set_scene_bg(G.scene);
-
-	/* clear BONE_UNKEYED flags, these are not valid anymore for proxies */
-	framechange_poses_clear_unkeyed();
+	set_scene_bg(CTX_data_scene(C));
 
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		if(ob->type==OB_ARMATURE)
-			if(ob->recalc) object_handle_update(ob);
+			if(ob->recalc) object_handle_update(CTX_data_scene(C), ob);
 	}
 	
 	/* now tag update flags, to ensure deformers get calculated on redraw */
-	DAG_scene_update_flags(G.scene, G.scene->lay);
+	DAG_scene_update_flags(CTX_data_scene(C), CTX_data_scene(C)->lay);
 	
-	if (G.f & G_DOSCRIPTLINKS) {
-		/* there's an onload scriptlink to execute in screenmain */
-		mainqenter(ONLOAD_SCRIPT, 1);
-	}
 	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
 		strcpy(G.sce, filename);
 	
@@ -419,7 +390,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	MEM_freeN(bfd);
 }
 
-static void handle_subversion_warning(Main *main)
+static int handle_subversion_warning(Main *main)
 {
 	if(main->minversionfile > BLENDER_VERSION ||
 	   (main->minversionfile == BLENDER_VERSION && 
@@ -428,9 +399,18 @@ static void handle_subversion_warning(Main *main)
 		char str[128];
 		
 		sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
-		error(str);
+// XXX		error(str);
 	}
-		
+	return 1;
+}
+
+void BKE_userdef_free(void)
+{
+	
+	BLI_freelistN(&U.uistyles);
+	BLI_freelistN(&U.uifonts);
+	BLI_freelistN(&U.themes);
+	
 }
 
 /* returns:
@@ -439,79 +419,75 @@ static void handle_subversion_warning(Main *main)
    2: OK, and with new user settings
 */
 
-int BKE_read_file(char *dir, void *type_r) 
+int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports) 
 {
-	BlendReadError bre;
 	BlendFileData *bfd;
 	int retval= 1;
-	
-	if (!G.background)
-		waitcursor(1);
-		
-	bfd= BLO_read_from_file(dir, &bre);
+
+	bfd= BLO_read_from_file(dir, reports);
 	if (bfd) {
 		if(bfd->user) retval= 2;
-		if (type_r)
-			*((BlenFileType*)type_r)= bfd->type;
 		
-		setup_app_data(bfd, dir);
-		
-		handle_subversion_warning(G.main);
+		if(0==handle_subversion_warning(bfd->main)) {
+			free_main(bfd->main);
+			MEM_freeN(bfd);
+			bfd= NULL;
+			retval= 0;
+		}
+		else
+			setup_app_data(C, bfd, dir); // frees BFD
 	} 
-	else {
-		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));
-	}
-	
-	if (!G.background)
-		waitcursor(0);
-	
+	else
+		BKE_reports_prependf(reports, "Loading %s failed: ", dir);
+		
 	return (bfd?retval:0);
 }
 
-int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
+int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *unused, ReportList *reports)
 {
-	BlendReadError bre;
 	BlendFileData *bfd;
-	
-	if (!G.background)
-		waitcursor(1);
-		
-	bfd= BLO_read_from_memory(filebuf, filelength, &bre);
-	if (bfd) {
-		if (type_r)
-			*((BlenFileType*)type_r)= bfd->type;
-		
-		setup_app_data(bfd, "<memory2>");
-	} else {
-		error("Loading failed: %s", BLO_bre_as_string(bre));
-	}
-	
-	if (!G.background)
-		waitcursor(0);
-	
+
+	bfd= BLO_read_from_memory(filebuf, filelength, reports);
+	if (bfd)
+		setup_app_data(C, bfd, "<memory2>");
+	else
+		BKE_reports_prepend(reports, "Loading failed: ");
+
 	return (bfd?1:0);
 }
 
 /* memfile is the undo buffer */
-int BKE_read_file_from_memfile(MemFile *memfile)
+int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *reports)
 {
-	BlendReadError bre;
 	BlendFileData *bfd;
-	
-	if (!G.background)
-		waitcursor(1);
-		
-	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
-	if (bfd) {
-		setup_app_data(bfd, "<memory1>");
-	} else {
-		error("Loading failed: %s", BLO_bre_as_string(bre));
+
+	bfd= BLO_read_from_memfile(CTX_data_main(C), G.sce, memfile, reports);
+	if (bfd)
+		setup_app_data(C, bfd, "<memory1>");
+	else
+		BKE_reports_prepend(reports, "Loading failed: ");
+
+	return (bfd?1:0);
+}
+
+/* *****************  testing for break ************* */
+
+static void (*blender_test_break_cb)(void)= NULL;
+
+void set_blender_test_break_cb(void (*func)(void) )
+{
+	blender_test_break_cb= func;
+}
+
+
+int blender_test_break(void)
+{
+	if (!G.background) {
+		if (blender_test_break_cb)
+			blender_test_break_cb();
 	}
 	
-	if (!G.background)
-		waitcursor(0);
-	
-	return (bfd?1:0);
+	return (G.afbreek==1);
 }
 
 
@@ -532,7 +508,7 @@ static ListBase undobase={NULL, NULL};
 static UndoElem *curundo= NULL;
 
 
-static int read_undosave(UndoElem *uel)
+static int read_undosave(bContext *C, UndoElem *uel)
 {
 	char scestr[FILE_MAXDIR+FILE_MAXFILE];
 	int success=0, fileflags;
@@ -542,10 +518,10 @@ static int read_undosave(UndoElem *uel)
 	G.fileflags |= G_FILE_NO_UI;
 
 	if(UNDO_DISK) 
-		success= BKE_read_file(uel->str, NULL);
+		success= BKE_read_file(C, uel->str, NULL, NULL);
 	else
-		success= BKE_read_file_from_memfile(&uel->memfile);
-	
+		success= BKE_read_file_from_memfile(C, &uel->memfile, NULL);
+
 	/* restore */
 	strcpy(G.sce, scestr);
 	G.fileflags= fileflags;
@@ -554,7 +530,7 @@ static int read_undosave(UndoElem *uel)
 }
 
 /* name can be a dynamic string */
-void BKE_write_undo(char *name)
+void BKE_write_undo(bContext *C, char *name)
 {
 	uintptr_t maxmem, totmem, memused;
 	int nr, success;
@@ -598,7 +574,7 @@ void BKE_write_undo(char *name)
 	/* disk save version */
 	if(UNDO_DISK) {
 		static int counter= 0;
-		char *err, tstr[FILE_MAXDIR+FILE_MAXFILE];
+		char tstr[FILE_MAXDIR+FILE_MAXFILE];
 		char numstr[32];
 		
 		/* calculate current filename */
@@ -608,18 +584,17 @@ void BKE_write_undo(char *name)
 		sprintf(numstr, "%d.blend", counter);
 		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
-		success= BLO_write_file(tstr, G.fileflags, &err);
+		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL);
 		
 		strcpy(curundo->str, tstr);
 	}
 	else {
 		MemFile *prevfile=NULL;
-		char *err;
 		
 		if(curundo->prev) prevfile= &(curundo->prev->memfile);
 		
 		memused= MEM_get_memory_in_use();
-		success= BLO_write_file_mem(prevfile, &curundo->memfile, G.fileflags, &err);
+		success= BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags, NULL);
 		curundo->undosize= MEM_get_memory_in_use() - memused;
 	}
 
@@ -651,30 +626,29 @@ void BKE_write_undo(char *name)
 	}
 }
 
-/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation
- * Note, ALWAYS call sound_initialize_sounds after BKE_undo_step() */
-void BKE_undo_step(int step)
+/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
+void BKE_undo_step(bContext *C, int step)
 {
 	
 	if(step==0) {
-		read_undosave(curundo);
+		read_undosave(C, curundo);
 	}
 	else if(step==1) {
 		/* curundo should never be NULL, after restart or load file it should call undo_save */
-		if(curundo==NULL || curundo->prev==NULL) error("No undo available");
+		if(curundo==NULL || curundo->prev==NULL) ; // XXX error("No undo available");
 		else {
 			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
-			read_undosave(curundo);
+			read_undosave(C, curundo);
 		}
 	}
 	else {
 		
 		/* curundo has to remain current situation! */
 		
-		if(curundo==NULL || curundo->next==NULL) error("No redo available");
+		if(curundo==NULL || curundo->next==NULL) ; // XXX error("No redo available");
 		else {
-			read_undosave(curundo->next);
+			read_undosave(C, curundo->next);
 			curundo= curundo->next;
 			if(G.f & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
@@ -696,7 +670,7 @@ void BKE_reset_undo(void)
 }
 
 /* based on index nr it does a restore */
-void BKE_undo_number(int nr)
+void BKE_undo_number(bContext *C, int nr)
 {
 	UndoElem *uel;
 	int a=1;
@@ -705,8 +679,24 @@ void BKE_undo_number(int nr)
 		if(a==nr) break;
 	}
 	curundo= uel;
-	BKE_undo_step(0);
+	BKE_undo_step(C, 0);
 }
+
+/* go back to the last occurance of name in stack */
+void BKE_undo_name(bContext *C, const char *name)
+{
+	UndoElem *uel;
+	
+	for(uel= undobase.last; uel; uel= uel->prev) {
+		if(strcmp(name, uel->name)==0)
+			break;
+	}
+	if(uel && uel->prev) {
+		curundo= uel->prev;
+		BKE_undo_step(C, 0);
+	}
+}
+
 
 char *BKE_undo_menu_string(void)
 {
@@ -750,7 +740,7 @@ void BKE_undo_save_quit(void)
 
 	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
-		error("Unable to save %s, check you have permissions", str);
+		//XXX error("Unable to save %s, check you have permissions", str);
 		return;
 	}
 
@@ -762,7 +752,7 @@ void BKE_undo_save_quit(void)
 	
 	close(file);
 	
-	if(chunk) error("Unable to save %s, internal error", str);
+	if(chunk) ; //XXX error("Unable to save %s, internal error", str);
 	else printf("Saved session recovery to %s\n", str);
 }
 

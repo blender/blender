@@ -38,6 +38,10 @@
 
 #include <vector> 
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class SG_Node;
 
 /**
@@ -122,10 +126,18 @@ public:
 	 */
 	void getaa(MT_Point3 *box, const MT_Transform &world) const;
 	
+	void getmm(MT_Point3 *box, const MT_Transform &world) const;
+
 	void split(SG_BBox &left, SG_BBox &right) const;
 	
 	friend class SG_Tree;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_BBox"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif /* __SG_BBOX_H__ */

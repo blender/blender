@@ -80,6 +80,7 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	MT_Matrix4x4	m_viewmatrix;
 	MT_Matrix4x4	m_viewinvmatrix;
 	MT_Point3		m_campos;
+	bool			m_camortho;
 
 	StereoMode		m_stereomode;
 	StereoEye		m_curreye;
@@ -99,7 +100,7 @@ protected:
 	TexCoGen		m_attrib[RAS_MAX_ATTRIB];
 	int				m_texco_num;
 	int				m_attrib_num;
-	int				m_last_blendmode;
+	//int				m_last_blendmode;
 	bool			m_last_frontface;
 
 	/** Stores the caching information for the last material activated. */
@@ -137,6 +138,7 @@ public:
 	virtual void	SetRenderArea();
 
 	virtual void	SetStereoMode(const StereoMode stereomode);
+    virtual RAS_IRasterizer::StereoMode GetStereoMode();
 	virtual bool	Stereo();
 	virtual bool	InterlacedStereo();
 	virtual void	SetEye(const StereoEye eye);
@@ -161,12 +163,13 @@ public:
 	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat);
 	virtual void	SetViewMatrix(
 						const MT_Matrix4x4 & mat,
-						const MT_Vector3& campos,
-						const MT_Point3 &camLoc,
-						const MT_Quaternion &camOrientQuat
+						const MT_Matrix3x3 & ori,
+						const MT_Point3 & pos,
+						bool perspective
 					);
 
 	virtual const	MT_Point3& GetCameraPosition();
+	virtual bool	GetCameraOrtho();
 	
 	virtual void	SetFog(
 						float start,
@@ -187,6 +190,7 @@ public:
 
 	void			DisableFog();
 	virtual void	DisplayFog();
+	virtual bool	IsFogEnabled();
 
 	virtual void	SetBackColor(
 						float red,
@@ -210,6 +214,15 @@ public:
 							float frustfar,
 							float focallength,
 							bool perspective
+						);
+
+	virtual MT_Matrix4x4 GetOrthoMatrix(
+							float left,
+							float right,
+							float bottom,
+							float top,
+							float frustnear,
+							float frustfar
 						);
 
 	virtual void	SetSpecularity(
@@ -236,6 +249,8 @@ public:
 	virtual void	SetAmbient(float factor);
 
 	virtual void	SetPolygonOffset(float mult, float add);
+
+	virtual	void	FlushDebugLines();
 
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 	{
@@ -274,6 +289,13 @@ public:
 
 	virtual void	SetBlendingMode(int blendmode);
 	virtual void	SetFrontFace(bool ccw);
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_OpenGLRasterizer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_OPENGLRASTERIZER

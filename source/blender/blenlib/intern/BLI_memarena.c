@@ -60,6 +60,10 @@ void BLI_memarena_use_calloc(MemArena *ma) {
 	ma->use_calloc= 1;
 }
 
+void BLI_memarena_use_malloc(MemArena *ma) {
+	ma->use_calloc= 0;
+}
+
 void BLI_memarena_free(MemArena *ma) {
 	BLI_linklist_free(ma->bufs, (void(*)(void*)) MEM_freeN);
 	MEM_freeN(ma);

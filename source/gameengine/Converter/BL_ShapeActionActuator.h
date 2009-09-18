@@ -32,6 +32,7 @@
 
 #include "GEN_HashedPtr.h"
 #include "SCA_IActuator.h"
+#include "BL_ActionActuator.h"
 #include "MT_Point3.h"
 #include <vector>
 
@@ -49,9 +50,8 @@ public:
 						short	playtype,
 						short	blendin,
 						short	priority,
-						float	stride,
-						PyTypeObject* T=&Type) 
-		: SCA_IActuator(gameobj,T),
+						float	stride) 
+		: SCA_IActuator(gameobj),
 		
 		m_lastpos(0, 0, 0),
 		m_blendframe(0),
@@ -78,31 +78,50 @@ public:
 	
 	void SetBlendTime (float newtime);
 	void BlendShape(struct Key* key, float weigth);
+	
+	bAction*	GetAction() { return m_action; }
+	void		SetAction(bAction* act) { m_action= act; }
 
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetAction);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendin);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetPriority);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetStart);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetEnd);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetFrame);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetProperty);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetFrameProperty);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendtime);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetChannel);
+	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetAction);
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetBlendin);
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetPriority);
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetStart);
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetEnd);
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetFrame);
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetProperty);
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetFrameProperty);
-//	KX_PYMETHOD(BL_ActionActuator,GetChannel);
-	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetType);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetType);
+	static int CheckBlendTime(void *self, const PyAttributeDef*)
+	{
+		BL_ShapeActionActuator* act = reinterpret_cast<BL_ShapeActionActuator*>(self);
 
-	virtual PyObject* _getattr(const STR_String& attr);
+		if (act->m_blendframe > act->m_blendin)
+			act->m_blendframe = act->m_blendin;
+
+		return 0;
+	}
+	static int CheckFrame(void *self, const PyAttributeDef*)
+	{
+		BL_ShapeActionActuator* act = reinterpret_cast<BL_ShapeActionActuator*>(self);
+
+		if (act->m_localtime < act->m_startframe)
+			act->m_localtime = act->m_startframe;
+		else if (act->m_localtime > act->m_endframe)
+			act->m_localtime = act->m_endframe;
+
+		return 0;
+	}
+	static int CheckType(void *self, const PyAttributeDef*)
+	{
+		BL_ShapeActionActuator* act = reinterpret_cast<BL_ShapeActionActuator*>(self);
+
+		switch (act->m_playtype) {
+			case ACT_ACTION_PLAY:
+			case ACT_ACTION_FLIPPER:
+			case ACT_ACTION_LOOP_STOP:
+			case ACT_ACTION_LOOP_END:
+			case ACT_ACTION_FROM_PROP:
+				return 0;
+			default:
+				PyErr_SetString(PyExc_ValueError, "Shape Action Actuator, invalid play type supplied");
+				return 1;
+		}
+
+	}
 
 protected:
 
@@ -129,8 +148,8 @@ protected:
 	short	m_playtype;
 	short	m_priority;
 	struct bAction *m_action;
-	STR_String	m_propname;
 	STR_String	m_framepropname;
+	STR_String	m_propname;
 	vector<float> m_blendshape;
 };
 

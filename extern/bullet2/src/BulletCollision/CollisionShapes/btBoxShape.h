@@ -19,7 +19,7 @@ subject to the following restrictions:
 #include "btPolyhedralConvexShape.h"
 #include "btCollisionMargin.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-#include "LinearMath/btPoint3.h"
+#include "LinearMath/btVector3.h"
 #include "LinearMath/btMinMax.h"
 
 ///The btBoxShape is a box primitive around the origin, its sides axis aligned with length specified by half extents, in local shape coordinates. When used as part of a btCollisionObject or btRigidBody it will be an oriented box in world space.
@@ -44,8 +44,6 @@ public:
 		return m_implicitShapeDimensions;//changed in Bullet 2.63: assume the scaling and margin are included
 	}
 	
-
-	virtual int	getShapeType() const { return BOX_SHAPE_PROXYTYPE;}
 
 	virtual btVector3	localGetSupportingVertex(const btVector3& vec) const
 	{
@@ -82,8 +80,10 @@ public:
 	}
 
 
-	btBoxShape( const btVector3& boxHalfExtents)
+	btBoxShape( const btVector3& boxHalfExtents) 
+		: btPolyhedralConvexShape()
 	{
+		m_shapeType = BOX_SHAPE_PROXYTYPE;
 		btVector3 margin(getMargin(),getMargin(),getMargin());
 		m_implicitShapeDimensions = (boxHalfExtents * m_localScaling) - margin;
 	};
@@ -117,7 +117,7 @@ public:
 
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
-	virtual void getPlane(btVector3& planeNormal,btPoint3& planeSupport,int i ) const
+	virtual void getPlane(btVector3& planeNormal,btVector3& planeSupport,int i ) const
 	{
 		//this plane might not be aligned...
 		btVector4 plane ;
@@ -161,36 +161,30 @@ public:
 		switch (i)
 		{
 		case 0:
-			plane.setValue(btScalar(1.),btScalar(0.),btScalar(0.));
-			plane[3] = -halfExtents.x();
+			plane.setValue(btScalar(1.),btScalar(0.),btScalar(0.),-halfExtents.x());
 			break;
 		case 1:
-			plane.setValue(btScalar(-1.),btScalar(0.),btScalar(0.));
-			plane[3] = -halfExtents.x();
+			plane.setValue(btScalar(-1.),btScalar(0.),btScalar(0.),-halfExtents.x());
 			break;
 		case 2:
-			plane.setValue(btScalar(0.),btScalar(1.),btScalar(0.));
-			plane[3] = -halfExtents.y();
+			plane.setValue(btScalar(0.),btScalar(1.),btScalar(0.),-halfExtents.y());
 			break;
 		case 3:
-			plane.setValue(btScalar(0.),btScalar(-1.),btScalar(0.));
-			plane[3] = -halfExtents.y();
+			plane.setValue(btScalar(0.),btScalar(-1.),btScalar(0.),-halfExtents.y());
 			break;
 		case 4:
-			plane.setValue(btScalar(0.),btScalar(0.),btScalar(1.));
-			plane[3] = -halfExtents.z();
+			plane.setValue(btScalar(0.),btScalar(0.),btScalar(1.),-halfExtents.z());
 			break;
 		case 5:
-			plane.setValue(btScalar(0.),btScalar(0.),btScalar(-1.));
-			plane[3] = -halfExtents.z();
+			plane.setValue(btScalar(0.),btScalar(0.),btScalar(-1.),-halfExtents.z());
 			break;
 		default:
-			assert(0);
+			btAssert(0);
 		}
 	}
 
 	
-	virtual void getEdge(int i,btPoint3& pa,btPoint3& pb) const
+	virtual void getEdge(int i,btVector3& pa,btVector3& pb) const
 	//virtual void getEdge(int i,Edge& edge) const
 	{
 		int edgeVert0 = 0;
@@ -261,7 +255,7 @@ public:
 
 
 	
-	virtual	bool isInside(const btPoint3& pt,btScalar tolerance) const
+	virtual	bool isInside(const btVector3& pt,btScalar tolerance) const
 	{
 		btVector3 halfExtents = getHalfExtentsWithoutMargin();
 
@@ -312,7 +306,7 @@ public:
 			penetrationVector.setValue(btScalar(0.),btScalar(0.),btScalar(-1.));
 			break;
 		default:
-			assert(0);
+			btAssert(0);
 		}
 	}
 

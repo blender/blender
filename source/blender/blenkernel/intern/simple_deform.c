@@ -32,6 +32,7 @@
 
 #include "BKE_simple_deform.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_lattice.h"
 #include "BKE_deform.h"
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
@@ -204,7 +205,14 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 
 
 	if(dm)
-		dvert	= dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	{
+		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	}
+	else if(ob->type == OB_LATTICE)
+	{
+		dvert = lattice_get_deform_verts(ob);
+	}
+
 
 
 	switch(smd->mode)

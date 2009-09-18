@@ -58,6 +58,7 @@ public:
 	void OptimizeBuckets(MT_Scalar distance);
 	
 	void ReleaseDisplayLists(RAS_IPolyMaterial * material = NULL);
+	void ReleaseMaterials(RAS_IPolyMaterial * material = NULL);
 
 private:
 	void OrderBuckets(const MT_Transform& cameratrans, BucketList& buckets, vector<sortedmeshslot>& slots, bool alpha);
@@ -66,6 +67,12 @@ private:
 		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
 	void RenderAlphaBuckets(const MT_Transform& cameratrans, 
 		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_BucketManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_BUCKETMANAGER

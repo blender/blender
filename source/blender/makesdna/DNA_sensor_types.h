@@ -158,7 +158,8 @@ typedef struct bSensor {
 	/* just add here, to avoid align errors... */
 	short invert; /* Whether or not to invert the output. */
 	short level;  /* Whether the sensor is level base (edge by default) */
-	int pad;
+	short tap;
+	short pad;
 } bSensor;
 
 typedef struct bJoystickSensor {
@@ -166,7 +167,8 @@ typedef struct bJoystickSensor {
 	char type;
 	char joyindex;
 	short flag;
-	int axis;
+	short axis;
+	short axis_single;
 	int axisf;
 	int button;
 	int hat;
@@ -175,6 +177,9 @@ typedef struct bJoystickSensor {
 } bJoystickSensor;
 
 /* bMouseSensor->type: uses blender event defines */
+
+/* bMouseSensor->flag: only pulse for now */
+#define SENS_MOUSE_FOCUS_PULSE	1
 
 /* propertysensor->type */
 #define SENS_PROP_EQUAL		0
@@ -238,6 +243,7 @@ typedef struct bJoystickSensor {
  * */
 /*  #define SENS_COLLISION_PROPERTY 0  */
 #define SENS_COLLISION_MATERIAL 1
+#define SENS_COLLISION_PULSE 2
 /* ray specific mode */
 /* X-Ray means that the ray will traverse objects that don't have the property/material */
 #define SENS_RAY_XRAY			2
@@ -254,19 +260,21 @@ typedef struct bJoystickSensor {
 
 #define SENS_JOY_ANY_EVENT		1
 
-#define SENS_JOY_BUTTON		0
+#define SENS_JOY_BUTTON		0			/* axis type */
 #define SENS_JOY_BUTTON_PRESSED	0
 #define SENS_JOY_BUTTON_RELEASED	1
 
-#define SENS_JOY_AXIS			1
+#define SENS_JOY_AXIS			1		/* axis type */
 #define SENS_JOY_X_AXIS		0
 #define SENS_JOY_Y_AXIS		1
 #define SENS_JOY_NEG_X_AXIS     	2
 #define SENS_JOY_NEG_Y_AXIS     	3
 #define SENS_JOY_PRECISION		4
 
-#define SENS_JOY_HAT			2
+#define SENS_JOY_HAT			2		/* axis type */
 #define SENS_JOY_HAT_DIR		0
+
+#define SENS_JOY_AXIS_SINGLE	3		/* axis type */
 
 
 #define SENS_DELAY_REPEAT		1

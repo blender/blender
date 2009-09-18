@@ -29,6 +29,10 @@
 #ifndef RAS_FRAMINGMANAGER_H
 #define RAS_FRAMINGMANAGER_H
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class RAS_Rect;
 
 /**
@@ -55,7 +59,6 @@ class RAS_Rect;
 class RAS_FrameSettings 
 {
 public :
-
 	/**
 	 * enum defining the policy to use 
 	 * in each axis.
@@ -154,6 +157,13 @@ private :
 	float m_bar_b;
 	unsigned int m_design_aspect_width;
 	unsigned int m_design_aspect_height;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_FrameSettings"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 }; 
 
 struct RAS_FrameFrustum
@@ -163,6 +173,13 @@ struct RAS_FrameFrustum
 	float x2,y2;
 };	
 
+/* must match R_CULLING_... from DNA_scene_types.h */
+enum RAS_CullingMode
+{
+	RAS_CULLING_DBVT = 0,
+	RAS_CULLING_NORMAL,
+	RAS_CULLING_NONE
+};
 
 /**
  * @section RAS_FramingManager
@@ -202,6 +219,18 @@ public :
 
 	static
 		void
+	ComputeOrtho(
+		const RAS_FrameSettings &settings,
+		const RAS_Rect &availableViewport,
+		const RAS_Rect &viewport,
+		const float scale,
+		const float camnear,
+		const float camfar,
+		RAS_FrameFrustum &frustum
+	);
+
+	static
+		void
 	ComputeFrustum(
 		const RAS_FrameSettings &settings,
 		const RAS_Rect &availableViewport,
@@ -212,9 +241,6 @@ public :
 		RAS_FrameFrustum &frustum
 	);
 
-
-private :
-
 	static
 		void
 	ComputeDefaultFrustum(
@@ -224,6 +250,18 @@ private :
 		const float design_aspect_ratio,
 		RAS_FrameFrustum & frustum
 	);	
+
+	static
+		void
+	ComputeDefaultOrtho(
+		const float camnear,
+		const float camfar,
+		const float scale,
+		const float design_aspect_ratio,
+		RAS_FrameFrustum & frustum
+	);
+
+private :
 
 	static
 		void
@@ -246,6 +284,13 @@ private :
 	RAS_FramingManager(
 		const RAS_FramingManager &
 	);
+	
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_FramingManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };		
 		
 #endif

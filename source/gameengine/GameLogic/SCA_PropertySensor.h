@@ -47,10 +47,6 @@ class SCA_PropertySensor : public SCA_ISensor
 	bool			m_recentresult;
 	CExpression*	m_range_expr;
 
-	/**
-	 * Test whether this is a sensible value (type check)
-	 */
-	bool validValueForProperty(char *val, STR_String &prop);
  protected:
 
 public:
@@ -71,9 +67,12 @@ public:
 					  const STR_String& propname,
 					  const STR_String& propval,
 					  const STR_String& propmaxval,
-					  KX_PROPSENSOR_TYPE checktype,
-					  PyTypeObject* T=&Type );
+					  KX_PROPSENSOR_TYPE checktype);
 	
+	/** 
+	 *  For property sensor, it is used to release the pre-calculated expression
+	 *  so that self references are removed before the sensor itself is released
+	 */
 	virtual void Delete();
 	virtual ~SCA_PropertySensor();
 	virtual CValue* GetReplica();
@@ -81,7 +80,7 @@ public:
 	void	PrecalculateRangeExpression();
 	bool	CheckPropertyCondition();
 
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool	IsPositiveTrigger();
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
 
@@ -89,21 +88,10 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
-
-	/* 1. getType */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,GetType);
-	/* 2. setType */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,SetType);
-	/* 3. setProperty */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,SetProperty);
-	/* 4. getProperty */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,GetProperty);
-	/* 5. getValue */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,GetValue);
-	/* 6. setValue */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,SetValue);
-	
+	/**
+	 * Test whether this is a sensible value (type check)
+	 */
+	static int validValueForProperty(void* self, const PyAttributeDef*);
 };
 
 #endif

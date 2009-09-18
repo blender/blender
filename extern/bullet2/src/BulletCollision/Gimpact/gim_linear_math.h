@@ -40,11 +40,6 @@ email: projectileman@yahoo.com
 
 
 
-/*! \defgroup VECTOR_OPERATIONS
-T
-Operations for vectors : vec2f,vec3f and vec4f
-*/
-//! @{
 
 //! Zero out a 2D vector
 #define VEC_ZERO_2(a)				\
@@ -446,13 +441,8 @@ Takes two vectors a, b, blends them together with s <=1 */
 
 
 
-//! @}
 
 
-/*! \defgroup MATRIX_OPERATIONS
-Operations for matrices : mat2f, mat3f and mat4f
-*/
-//! @{
 
 /// initialize matrix
 #define IDENTIFY_MATRIX_3X3(m)			\
@@ -1579,6 +1569,5 @@ and m is a mat4f<br>
 }\
 
 
-//! @}
 
 #endif // GIM_VECTOR_H_INCLUDED

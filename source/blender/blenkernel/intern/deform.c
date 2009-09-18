@@ -239,11 +239,8 @@ float deformvert_get_weight(const struct MDeformVert *dvert, int group_num)
 
 float vertexgroup_get_vertex_weight(const struct MDeformVert *dvert, int index, int group_num)
 {
-	if(group_num == -1)
+	if(group_num == -1 || dvert == NULL)
 		return 1.0;
-
-	if(dvert == 0)
-		return 0.0;
 
 	return deformvert_get_weight(dvert+index, group_num);
 }

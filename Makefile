@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 # $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,7 +23,7 @@
 #
 # The Original Code is: revision 1.1
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -31,12 +33,11 @@
 # If the user wants to override some of the build
 # vars they can put it in the file user-def.mk which
 # will get included if it exists (please do not commit
-# user-def.mk to cvs).
-
+# user-def.mk to the revision control server).
 sinclude user-def.mk
 
-# To build without openAL, uncomment the following line, or set it as
-# an environment variable, or put it uncommented in user-def.mk:
+# To build without openAL, set it as an environment variable,
+# or put it uncommented in user-def.mk:
 # export NAN_NO_OPENAL=true
 
 export NANBLENDERHOME=$(shell pwd)
@@ -44,13 +45,9 @@ MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory
 
 SOURCEDIR = 
 ifeq ($(FREE_WINDOWS),true)
-    DIRS ?= dlltool extern intern source
-endif
-
-DIRS ?= extern intern source
-
-ifneq ($(INTERNATIONAL),false)
-    DIRS += po
+    DIRS ?= dlltool extern intern source po
+else
+    DIRS ?= extern intern source po
 endif
 
 include source/nan_subdirs.mk

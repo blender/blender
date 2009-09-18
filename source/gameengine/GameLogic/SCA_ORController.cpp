@@ -42,9 +42,8 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_ORController::SCA_ORController(SCA_IObject* gameobj,
-								   PyTypeObject* T)
-		:SCA_IController(gameobj, T)
+SCA_ORController::SCA_ORController(SCA_IObject* gameobj)
+		:SCA_IController(gameobj)
 {
 }
 
@@ -60,7 +59,7 @@ CValue* SCA_ORController::GetReplica()
 {
 	CValue* replica = new SCA_ORController(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -76,21 +75,16 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 	while ( (!sensorresult) && (!(is==m_linkedsensors.end())) )
 	{
 		sensor = *is;
-		if (sensor->IsPositiveTrigger()) sensorresult = true;
+		if (sensor->GetState()) sensorresult = true;
 		is++;
 	}
 	
-	CValue* newevent = new CBoolValue(sensorresult);
-
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{
-		SCA_IActuator* actua = *i;//m_linkedactuators.at(i);
-		logicmgr->AddActiveActuator(actua,newevent);
+		SCA_IActuator* actua = *i;
+		logicmgr->AddActiveActuator(actua,sensorresult);
 	}
-
-
-	newevent->Release();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -99,38 +93,33 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_ORController::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SCA_ORController",
-	sizeof(SCA_ORController),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-PyParentObject SCA_ORController::Parents[] = {
-	&SCA_ORController::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IController::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_ORController::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_ORController::_getattr(const STR_String& attr) {
-	_getattr_up(SCA_IController);
-}
+PyAttributeDef SCA_ORController::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 /* eof */

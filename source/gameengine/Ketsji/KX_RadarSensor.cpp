@@ -28,7 +28,9 @@
 
 #include "KX_RadarSensor.h"
 #include "KX_GameObject.h"
+#include "KX_PyMath.h"
 #include "PHY_IPhysicsController.h"
+#include "PHY_IMotionState.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -46,9 +48,7 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 			double margin,
 			double resetmargin,
 			bool bFindMaterial,
-			const STR_String& touchedpropname,
-			class KX_Scene* kxscene,
-			PyTypeObject* T)
+			const STR_String& touchedpropname)
 
 			: KX_NearSensor(
 				eventmgr,
@@ -58,14 +58,13 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 				resetmargin,
 				bFindMaterial,
 				touchedpropname,
-				kxscene,
-				physCtrl,
-				T),
+				physCtrl),
+
 				m_coneradius(coneradius),
 				m_coneheight(coneheight),
 				m_axis(axis)
 {
-	m_client_info->m_type = KX_ClientObjectInfo::RADAR;
+	m_client_info->m_type = KX_ClientObjectInfo::SENSOR;
 	//m_client_info->m_clientobject = gameobj;
 	//m_client_info->m_auxilary_info = NULL;
 	//sumoObj->setClientObject(&m_client_info);
@@ -79,33 +78,9 @@ KX_RadarSensor::~KX_RadarSensor()
 CValue* KX_RadarSensor::GetReplica()
 {
 	KX_RadarSensor* replica = new KX_RadarSensor(*this);
-	replica->m_colliders = new CListValue();
-	replica->Init();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-	
-	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::RADAR);
-	
-	if (replica->m_physCtrl)
-	{
-		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
-		if (replica->m_physCtrl)
-		{
-			replica->m_physCtrl->setNewClientInfo(replica->m_client_info);
-		}
-	}
-
-	//todo: make sure replication works fine!
-	//>m_sumoObj = new SM_Object(DT_NewCone(m_coneradius, m_coneheight),NULL,NULL,NULL);
-	//replica->m_sumoObj->setMargin(m_Margin);
-	//replica->m_sumoObj->setClientObject(replica->m_client_info);
-	
-	((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
-	replica->SynchronizeTransform();
-	
+	replica->ProcessReplica();
 	return replica;
 }
-
 
 /**
  *	Transforms the collision object. A cone is not correctly centered
@@ -170,110 +145,74 @@ void KX_RadarSensor::SynchronizeTransform()
 		{
 		}
 	}
-	m_cone_origin = trans.getOrigin();
-	m_cone_target = trans(MT_Point3(0, -m_coneheight/2.0 ,0));
+	
+	//Using a temp variable to translate MT_Point3 to float[3].
+	//float[3] works better for the Python interface.
+	MT_Point3 temp = trans.getOrigin();
+	m_cone_origin[0] = temp[0];
+	m_cone_origin[1] = temp[1];
+	m_cone_origin[2] = temp[2];
+
+	temp = trans(MT_Point3(0, -m_coneheight/2.0 ,0));
+	m_cone_target[0] = temp[0];
+	m_cone_target[1] = temp[1];
+	m_cone_target[2] = temp[2];
 
 
 	if (m_physCtrl)
 	{
-		MT_Quaternion orn = trans.getRotation();
-		MT_Point3 pos = trans.getOrigin();
-		m_physCtrl->setPosition(pos[0],pos[1],pos[2]);
-		m_physCtrl->setOrientation(orn[0],orn[1],orn[2],orn[3]);
-		m_physCtrl->calcXform();
+		PHY_IMotionState* motionState = m_physCtrl->GetMotionState();
+		const MT_Point3& pos = trans.getOrigin();
+		float ori[12];
+		trans.getBasis().getValue(ori);
+		motionState->setWorldPosition(pos[0], pos[1], pos[2]);
+		motionState->setWorldOrientation(ori);
+		m_physCtrl->WriteMotionStateToDynamics(true);
 	}
 
 }
 
 /* ------------------------------------------------------------------------- */
-/* Python functions                                                          */
+/* Python Functions															 */
 /* ------------------------------------------------------------------------- */
 
-/* Integration hooks ------------------------------------------------------- */
-PyTypeObject KX_RadarSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
-	"KX_RadarSensor",
-	sizeof(KX_RadarSensor),
-	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
-	0,
-	0,
-	0,
-	0
-};
+/* none */
 
-PyParentObject KX_RadarSensor::Parents[] = {
-	&KX_RadarSensor::Type,
+/* ------------------------------------------------------------------------- */
+/* Python Integration Hooks                                                  */
+/* ------------------------------------------------------------------------- */
+PyTypeObject KX_RadarSensor::Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"KX_RadarSensor",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&KX_NearSensor::Type,
-	&KX_TouchSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_RadarSensor::Methods[] = {
-	{"getConeOrigin", (PyCFunction) KX_RadarSensor::sPyGetConeOrigin, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeOrigin_doc},
-	{"getConeTarget", (PyCFunction) KX_RadarSensor::sPyGetConeTarget, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeTarget_doc},
-	{"getConeHeight", (PyCFunction) KX_RadarSensor::sPyGetConeHeight, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeHeight_doc},
-	{NULL,NULL,NULL,NULL} //Sentinel
+	{NULL} //Sentinel
 };
 
-PyObject* KX_RadarSensor::_getattr(const STR_String& attr) {
-	_getattr_up(KX_TouchSensor);
-}
-
-/* getConeOrigin */
-const char KX_RadarSensor::GetConeOrigin_doc[] = 
-"getConeOrigin()\n"
-"\tReturns the origin of the cone with which to test. The origin\n"
-"\tis in the middle of the cone.";
-PyObject* KX_RadarSensor::PyGetConeOrigin(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_cone_origin[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_cone_origin[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_cone_origin[2]));
-	
-	return retVal;
-}
-
-/* getConeOrigin */
-const char KX_RadarSensor::GetConeTarget_doc[] = 
-"getConeTarget()\n"
-"\tReturns the center of the bottom face of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeTarget(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_cone_target[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_cone_target[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_cone_target[2]));
-	
-	return retVal;
-}
-
-/* getConeOrigin */
-const char KX_RadarSensor::GetConeHeight_doc[] = 
-"getConeHeight()\n"
-"\tReturns the height of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeHeight(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
-	return PyFloat_FromDouble(m_coneheight);
-}
-
+PyAttributeDef KX_RadarSensor::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("coneOrigin", KX_RadarSensor, m_cone_origin, 3),
+	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("coneTarget", KX_RadarSensor, m_cone_target, 3),
+	KX_PYATTRIBUTE_FLOAT_RO("distance", KX_RadarSensor, m_coneheight),
+	KX_PYATTRIBUTE_FLOAT_RW("angle", 0, 360, KX_RadarSensor, m_coneradius),
+	KX_PYATTRIBUTE_INT_RW("axis", 0, 5, true, KX_RadarSensor, m_axis),
+	{NULL} //Sentinel
+};
 

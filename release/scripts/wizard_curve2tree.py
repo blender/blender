@@ -39,7 +39,7 @@ __bpydoc__ = """\
 import bpy
 import Blender
 import BPyMesh
-from Blender.Mathutils import Vector, Matrix, CrossVecs, AngleBetweenVecs, LineIntersect, TranslationMatrix, ScaleMatrix, RotationMatrix, Rand
+from Blender.Mathutils import Vector, Matrix, AngleBetweenVecs, LineIntersect, TranslationMatrix, ScaleMatrix, RotationMatrix, Rand
 from Blender.Geometry import ClosestPointOnLine
 from Blender.Noise import randuvec
 
@@ -496,12 +496,12 @@ class tree:
 						
 						# Align this with the existing branch
 						angle = AngleBetweenVecsSafe(zup, parent_pt.no)
-						cross = CrossVecs(zup, parent_pt.no)
+						cross = zup.cross(parent_pt.no)
 						mat_align = RotationMatrix(angle, 3, 'r', cross)
 						
 						# Use the bend on the point to work out which way to make the branch point!
-						if parent_pt.prev:	cross = CrossVecs(parent_pt.no, parent_pt.prev.no - parent_pt.no)
-						else:				cross = CrossVecs(parent_pt.no, parent_pt.next.no - parent_pt.no)
+						if parent_pt.prev:	cross = parent_pt.no.cross(parent_pt.prev.no - parent_pt.no)
+						else:				cross = parent_pt.no.cross(parent_pt.next.no - parent_pt.no)
 						
 						if parent_pt.branch.parent_pt:
 							angle = AngleBetweenVecsSafe(parent_pt.branch.parent_pt.no, parent_pt.no)
@@ -1065,8 +1065,8 @@ class tree:
 				l = line_normal.length
 				
 				
-				cross1 = CrossVecs( seg.no, line_normal )
-				cross2 = CrossVecs( pt.no, line_normal )
+				cross1 = seg.no.cross(line_normal)
+				cross2 = pt.no.cross(line_normal)
 				
 				angle_line = min(AngleBetweenVecsSafe(cross1, cross2), AngleBetweenVecsSafe(cross1, -cross2))
 				angle_leaf_no_diff = min(AngleBetweenVecsSafe(line_normal, seg.no), AngleBetweenVecsSafe(line_normal, -seg.no))
@@ -1914,8 +1914,8 @@ class tree:
 							
 							# endpoints dont rotate
 							if pt.next != None:
-								cross1 = CrossVecs(zup, pt.no) # use this to offset the leaf later
-								cross2 = CrossVecs(cross1, pt.no)
+								cross1 = zup.cross(pt.no) # use this to offset the leaf later
+								cross2 = cross1.cross(pt.no)
 								if odd_even ==0:
 									mat_yaw = RotationMatrix(leaf_branch_angle, 3, 'r',  cross2)
 								else:
@@ -1939,7 +1939,7 @@ class tree:
 							# Randomize pitch and roll for the leaf
 							
 							# work out the axis to pitch and roll
-							cross1 = CrossVecs(zup, leaf_no) # use this to offset the leaf later
+							cross1 = zup.cross(leaf_no) # use this to offset the leaf later
 							if leaf_branch_pitch_rand or leaf_branch_pitch_angle:
 								
 								angle = -leaf_branch_pitch_angle
@@ -2480,7 +2480,7 @@ class bpoint(object):
 	def calcVerts(self):
 		if self.prev == None:
 			if self.branch.parent_pt:
-				cross = CrossVecs(self.no, self.branch.parent_pt.no) * RotationMatrix(-45, 3, 'r', self.no)
+				cross = self.no.cross(self.branch.parent_pt.no) * RotationMatrix(-45, 3, 'r', self.no)
 			else:
 				# parentless branch - for best results get a cross thats not the same as the normal, in rare cases this happens.
 				
@@ -2493,9 +2493,9 @@ class bpoint(object):
 				else:											cross = xup
 				
 		else:
-			cross = CrossVecs(self.prev.vecs[0], self.no)
+			cross = self.prev.vecs[0].cross(self.no)
 		
-		self.vecs[0] = Blender.Mathutils.CrossVecs(self.no, cross)
+		self.vecs[0] = self.no.cross(cross)
 		self.vecs[0].length = abs(self.radius)
 		mat = RotationMatrix(90, 3, 'r', self.no)
 		self.vecs[1] = self.vecs[0] * mat
@@ -2660,8 +2660,8 @@ class branch:
 		self_normal = self.bpoints[1].co - self.parent_pt.co
 		# We only want the angle in relation to the parent points normal
 		# modify self_normal to make this so
-		cross = CrossVecs(self_normal, self.parent_pt.no)
-		self_normal = CrossVecs(self.parent_pt.no, cross) # CHECK
+		cross = self_normal.cross(self.parent_pt.no)
+		self_normal = self.parent_pt.no.cross(cross) # CHECK
 		
 		#try:	angle = AngleBetweenVecs(parent_normal, self_normal)
 		#except:	return 0.0
@@ -2670,7 +2670,7 @@ class branch:
 		
 		# see if we need to rotate positive or negative
 		# USE DOT PRODUCT!
-		cross = CrossVecs(parent_normal, self_normal)
+		cross = parent_normal.cross(self_normal)
 		if AngleBetweenVecsSafe(cross, self.parent_pt.no) > 90:
 			angle = -angle
 		
@@ -3018,7 +3018,7 @@ class branch:
 			
 		scales = []
 		for cos_ls in (cos1, cos2):
-			cross = CrossVecs(cos_ls[-1], zup)
+			cross = cos_ls[-1].cross(zup)
 			mat = RotationMatrix(AngleBetweenVecsSafe(cos_ls[-1], zup), 3, 'r', cross)
 			cos_ls[:] = [co*mat for co in cos_ls]
 		
@@ -3029,7 +3029,7 @@ class branch:
 			for co in cos_ls:
 				xy_nor.x += co.x
 				xy_nor.y += co.y
-			cross = CrossVecs(xy_nor, xup)
+			cross = xy_nor.cross(xup)
 			
 			# Also scale them here so they are 1.0 tall always
 			scale = 1.0/(cos_ls[0]-cos_ls[-1]).length

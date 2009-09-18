@@ -279,7 +279,7 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 BNode * BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
 {
 	BNode *closest_node = NULL, *node;
-	float min_distance;
+	float min_distance = 0.0f;
 	
 	for(node = graph->nodes.first; node; node = node->next)
 	{
@@ -354,7 +354,7 @@ void BLI_ReflagSubgraph(BGraph *graph, int old_subgraph, int new_subgraph)
 
 /*************************************** CYCLE DETECTION ***********************************************/
 
-int detectCycle(BNode *node, BArc *src_arc)
+static int detectCycle(BNode *node, BArc *src_arc)
 {
 	int value = 0;
 	
@@ -465,8 +465,6 @@ int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 
 int BLI_subtreeShape(BGraph *graph, BNode *node, BArc *rootArc, int include_root)
 {
-	BNode *test_node;
-	
 	BLI_flagNodes(graph, 0);
 	return subtreeShape(node, rootArc, include_root);
 }
@@ -522,7 +520,7 @@ void BLI_calcGraphLength(BGraph *graph)
 
 /********************************* SYMMETRY DETECTION **************************************************/
 
-void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit);
+static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit);
 
 void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3])
 {
@@ -809,15 +807,15 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 	
 	if (abs(nor[0]) > abs(nor[1]) && abs(nor[0]) > abs(nor[2]) && nor[0] < 0)
 	{
-		VecMulf(nor, -1);
+		VecNegf(nor);
 	}
 	else if (abs(nor[1]) > abs(nor[0]) && abs(nor[1]) > abs(nor[2]) && nor[1] < 0)
 	{
-		VecMulf(nor, -1);
+		VecNegf(nor);
 	}
 	else if (abs(nor[2]) > abs(nor[1]) && abs(nor[2]) > abs(nor[0]) && nor[2] < 0)
 	{
-		VecMulf(nor, -1);
+		VecNegf(nor);
 	}
 	
 	/* mirror node2 along axis */
@@ -937,7 +935,7 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	}
 }
 
-void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit)
+static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit)
 {
 	int i;
 
@@ -1033,6 +1031,11 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 	BNode *node;
 	BArc *arc;
 	
+	if (root_node == NULL)
+	{
+		return;
+	}
+	
 	if (BLI_isGraphCyclic(graph))
 	{
 		return;
@@ -1085,3 +1088,56 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 	}
 }
 
+void* IT_head(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->head(iter);
+}
+
+void* IT_tail(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->tail(iter); 
+}
+
+void* IT_peek(void* arg, int n)
+{
+	BArcIterator *iter = (BArcIterator*)arg;
+	
+	if (iter->index + n < 0)
+	{
+		return iter->head(iter);
+	}
+	else if (iter->index + n >= iter->length)
+	{
+		return iter->tail(iter);
+	}
+	else
+	{
+		return iter->peek(iter, n);
+	}
+}
+
+void* IT_next(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->next(iter);
+}
+
+void* IT_nextN(void* arg, int n)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->nextN(iter, n);
+}
+
+void* IT_previous(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->previous(iter);
+}
+
+int   IT_stopped(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->stopped(iter);
+}

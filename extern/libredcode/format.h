@@ -3,8 +3,8 @@
 
 struct redcode_handle;
 struct redcode_frame {
-	unsigned long length;
-	unsigned long offset;
+	unsigned int length;
+	unsigned int offset;
 	unsigned char * data;
 };
 

@@ -110,6 +110,12 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
 	RAS_MeshSlot::iterator it;
 	GLenum drawmode;
 
+	if (ms.m_pDerivedMesh) {
+		// cannot be handled here, pass to RAS_OpenGLRasterizer
+		RAS_OpenGLRasterizer::IndexPrimitivesInternal(ms, false);
+		return;
+	}
+
 	if(!wireframe)
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -166,6 +172,12 @@ void RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 	bool wireframe = m_drawingmode <= KX_WIREFRAME;
 	RAS_MeshSlot::iterator it;
 	GLenum drawmode;
+
+	if (ms.m_pDerivedMesh) {
+		// cannot be handled here, pass to RAS_OpenGLRasterizer
+		RAS_OpenGLRasterizer::IndexPrimitivesInternal(ms, true);
+		return;
+	}
 
 	if(!wireframe)
 		EnableTextures(true);

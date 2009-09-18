@@ -299,7 +299,6 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 	if (ibuf1->rect==NULL && ibuf1->rect_float==NULL) return (0);
 
 	do_rect= (ibuf1->rect != NULL);
-	do_float= (ibuf1->rect_float != NULL);
 
 	if (ibuf1->x <= 1) return(IMB_half_y(ibuf1));
 	if (ibuf1->y <= 1) return(IMB_half_x(ibuf1));
@@ -311,6 +310,8 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 	destf=ibuf2->rect_float;
 	p1 = (uchar *) ibuf1->rect;
 	dest=(uchar *) ibuf2->rect;
+
+	do_float= (ibuf1->rect_float != NULL && ibuf2->rect_float != NULL);
 
 	for(y=ibuf2->y;y>0;y--){
 		if (do_rect) p2 = p1 + (ibuf1->x << 2);
@@ -595,12 +596,12 @@ static void shrink_picture_byte(
 	y_counter = 65536;
 	for (y_src = 0; y_src < src_height; y_src++) {
 		unsigned char* line = src + y_src * 4 * src_width;
-		uintptr_t weight1y = 65536 - (y_dst & 0xffff);
-		uintptr_t weight2y = 65536 - weight1y;
+		uintptr_t weight1y = 65535 - (y_dst & 0xffff);
+		uintptr_t weight2y = 65535 - weight1y;
 		x_dst = 0;
 		for (x_src = 0; x_src < src_width; x_src++) {
-			uintptr_t weight1x = 65536 - (x_dst & 0xffff);
-			uintptr_t weight2x = 65536 - weight1x;
+			uintptr_t weight1x = 65535 - (x_dst & 0xffff);
+			uintptr_t weight2x = 65535 - weight1x;
 
 			uintptr_t x = x_dst >> 16;
 
@@ -608,34 +609,35 @@ static void shrink_picture_byte(
 
 			w = (weight1y * weight1x) >> 16;
 
-			dst_line1[x].r += (line[0] * w) >> 16;
-			dst_line1[x].g += (line[1] * w) >> 16;
-			dst_line1[x].b += (line[2] * w) >> 16;
-			dst_line1[x].a += (line[3] * w) >> 16;
+			/* ensure correct rounding, without this you get ugly banding, or too low color values (ton) */
+			dst_line1[x].r += (line[0] * w + 32767) >> 16;
+			dst_line1[x].g += (line[1] * w + 32767) >> 16;
+			dst_line1[x].b += (line[2] * w + 32767) >> 16;
+			dst_line1[x].a += (line[3] * w + 32767) >> 16;
 			dst_line1[x].weight += w;
 
 			w = (weight2y * weight1x) >> 16;
 
-			dst_line2[x].r += (line[0] * w) >> 16;
-			dst_line2[x].g += (line[1] * w) >> 16;
-			dst_line2[x].b += (line[2] * w) >> 16;
-			dst_line2[x].a += (line[3] * w) >> 16;
+			dst_line2[x].r += (line[0] * w + 32767) >> 16;
+			dst_line2[x].g += (line[1] * w + 32767) >> 16;
+			dst_line2[x].b += (line[2] * w + 32767) >> 16;
+			dst_line2[x].a += (line[3] * w + 32767) >> 16;
 			dst_line2[x].weight += w;
 
 			w = (weight1y * weight2x) >> 16;
 
-			dst_line1[x+1].r += (line[0] * w) >> 16;
-			dst_line1[x+1].g += (line[1] * w) >> 16;
-			dst_line1[x+1].b += (line[2] * w) >> 16;
-			dst_line1[x+1].a += (line[3] * w) >> 16;
+			dst_line1[x+1].r += (line[0] * w + 32767) >> 16;
+			dst_line1[x+1].g += (line[1] * w + 32767) >> 16;
+			dst_line1[x+1].b += (line[2] * w + 32767) >> 16;
+			dst_line1[x+1].a += (line[3] * w + 32767) >> 16;
 			dst_line1[x+1].weight += w;
 
 			w = (weight2y * weight2x) >> 16;
 
-			dst_line2[x+1].r += (line[0] * w) >> 16;
-			dst_line2[x+1].g += (line[1] * w) >> 16;
-			dst_line2[x+1].b += (line[2] * w) >> 16;
-			dst_line2[x+1].a += (line[3] * w) >> 16;
+			dst_line2[x+1].r += (line[0] * w + 32767) >> 16;
+			dst_line2[x+1].g += (line[1] * w + 32767) >> 16;
+			dst_line2[x+1].b += (line[2] * w + 32767) >> 16;
+			dst_line2[x+1].a += (line[3] * w + 32767) >> 16;
 			dst_line2[x+1].weight += w;
 
 			x_dst += dx_dst;
@@ -645,18 +647,18 @@ static void shrink_picture_byte(
 		y_dst += dy_dst;
 		y_counter -= dy_dst;
 		if (y_counter < 0) {
+			int val;
 			uintptr_t x;
 			struct scale_outpix_byte * temp;
 
 			y_counter += 65536;
 			
 			for (x=0; x < dst_width; x++) {
-				uintptr_t f = 0x80000000UL
-					/ dst_line1[x].weight;
-				*dst++ = (dst_line1[x].r * f) >> 15;
-				*dst++ = (dst_line1[x].g * f) >> 15;
-				*dst++ = (dst_line1[x].b * f) >> 15;
-				*dst++ = (dst_line1[x].a * f) >> 15;
+				uintptr_t f =  0x80000000UL / dst_line1[x].weight;
+				*dst++ = (val= (dst_line1[x].r * f) >> 15) > 255 ? 255: val;
+				*dst++ = (val= (dst_line1[x].g * f) >> 15) > 255 ? 255: val;
+				*dst++ = (val= (dst_line1[x].b * f) >> 15) > 255 ? 255: val;
+				*dst++ = (val= (dst_line1[x].a * f) >> 15) > 255 ? 255: val;
 			}
 			memset(dst_line1, 0, dst_width *
 			       sizeof(struct scale_outpix_byte));
@@ -666,13 +668,14 @@ static void shrink_picture_byte(
 		}
 	}
 	if (dst - dst_begin < dst_width * dst_height * 4) {
+		int val;
 		uintptr_t x;
 		for (x = 0; x < dst_width; x++) {
 			uintptr_t f = 0x80000000UL / dst_line1[x].weight;
-			*dst++ = (dst_line1[x].r * f) >> 15;
-			*dst++ = (dst_line1[x].g * f) >> 15;
-			*dst++ = (dst_line1[x].b * f) >> 15;
-			*dst++ = (dst_line1[x].a * f) >> 15;
+			*dst++ = (val= (dst_line1[x].r * f) >> 15) > 255 ? 255: val;
+			*dst++ = (val= (dst_line1[x].g * f) >> 15) > 255 ? 255: val;
+			*dst++ = (val= (dst_line1[x].b * f) >> 15) > 255 ? 255: val;
+			*dst++ = (val= (dst_line1[x].a * f) >> 15) > 255 ? 255: val;
 		}
 	}
 	MEM_freeN(dst_line1);
@@ -909,6 +912,8 @@ static void q_scale_float(float* in, float* out, int in_width,
 
    Should be comparable in speed to the ImBuf ..._fast functions at least 
    for byte-buffers.
+
+   NOTE: disabled, due to inacceptable inaccuracy and quality loss, see bug #18609 (ton)
 
 */
 static int q_scale_linear_interpolation(
@@ -1582,7 +1587,8 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, short newx, short newy)
 	scalefast_Z_ImBuf(ibuf, newx, newy);
 
 	/* try to scale common cases in a fast way */
-	if (q_scale_linear_interpolation(ibuf, newx, newy)) {
+	/* disabled, quality loss is inacceptable, see report #18609  (ton) */
+	if (0 && q_scale_linear_interpolation(ibuf, newx, newy)) {
 		return ibuf;
 	}
 

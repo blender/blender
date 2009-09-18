@@ -34,8 +34,8 @@
  #include "SG_Node.h"
  
 SG_BBox::SG_BBox() :
-	m_min(MT_Point3(0., 0., 0.)),
-	m_max(MT_Point3(0., 0., 0.))
+	m_min(0., 0., 0.),
+	m_max(0., 0., 0.)
 {
 }
 
@@ -185,6 +185,13 @@ void SG_BBox::getaa(MT_Point3 *box, const MT_Transform &world) const
 	*box++ = MT_Point3(max[0], min[1], min[2]);
 	*box++ = MT_Point3(max[0], min[1], max[2]);
 	*box++ = MT_Point3(max[0], max[1], min[2]);
+	*box++ = max;
+}
+
+void SG_BBox::getmm(MT_Point3 *box, const MT_Transform &world) const
+{
+	const MT_Point3 min(world(m_min)), max(world(m_max));
+	*box++ = min;
 	*box++ = max;
 }
 

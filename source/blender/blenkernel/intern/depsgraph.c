@@ -33,13 +33,13 @@
 #include "BLI_winstuff.h"
 #endif
 
-//#include "BMF_Api.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_ID.h"
@@ -54,13 +54,16 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "BLI_ghash.h"
 
 #include "BKE_action.h"
 #include "BKE_effect.h"
@@ -75,9 +78,9 @@
 #include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "MEM_guardedalloc.h"
-#include "blendef.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -303,61 +306,49 @@ DagForest * dag_init()
 	return forest;
 }
 
-static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int isdata)
+/* isdata = object data... */
+// XXX this needs to be extended to be more flexible (so that not only objects are evaluated via depsgraph)...
+static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node, int isdata)
 {
-	IpoCurve *icu;
+	FCurve *fcu;
 	DagNode *node1;
 	
-	for(icu= ipo->curve.first; icu; icu= icu->next) {
-		if(icu->driver) {
-
-			if (icu->driver->type == IPO_DRIVER_TYPE_PYTHON) {
-
-				if ((icu->driver->flag & IPO_DRIVER_FLAG_INVALID) || (icu->driver->name[0] == '\0'))
-					continue; /* empty or invalid expression */
-#ifndef DISABLE_PYTHON
-				else {
-					/* now we need refs to all objects mentioned in this
-					 * pydriver expression, to call 'dag_add_relation'
-					 * for each of them */
-					Object **obarray = BPY_pydriver_get_objects(icu->driver);
-					if (obarray) {
-						Object *ob, **oba = obarray;
-
-						while (*oba) {
-							ob = *oba;
-							node1 = dag_get_node(dag, ob);
-							if (ob->type == OB_ARMATURE)
-								dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Python Ipo Driver");
-							else
-								dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Python Ipo Driver");
-							oba++;
-						}
-
-						MEM_freeN(obarray);
-					}
+	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
+		ChannelDriver *driver= fcu->driver;
+		DriverTarget *dtar;
+		
+		/* loop over targets, adding relationships as appropriate */
+		for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+			if (dtar->id) {
+				if (GS(dtar->id->name)==ID_OB) {
+					Object *ob= (Object *)dtar->id;
+					
+					/* normal channel-drives-channel */
+					node1 = dag_get_node(dag, dtar->id);
+					
+					/* check if bone... */
+					if ((ob->type==OB_ARMATURE) && dtar->rna_path && strstr(dtar->rna_path, "pose.pose_channels["))
+						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+					/* check if ob data */
+					else if (dtar->rna_path && strstr(dtar->rna_path, "data."))
+						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+					/* normal */
+					else
+						dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
 				}
-#endif /* DISABLE_PYTHON */
-			}
-			else if (icu->driver->ob) {
-				node1 = dag_get_node(dag, icu->driver->ob);
-				if(icu->driver->blocktype==ID_AR)
-					dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Ipo Driver");
-				else
-					dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
 			}
 		}
 	}
 }
 
-static void dag_add_collision_field_relation(DagForest *dag, Object *ob, DagNode *node)
+static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node)
 {
 	Base *base;
 	DagNode *node2;
 
 	// would be nice to have a list of colliders here
 	// so for now walk all objects in scene check 'same layer rule'
-	for(base = G.scene->base.first; base; base= base->next) {
+	for(base = scene->base.first; base; base= base->next) {
 		if((base->lay & ob->lay) && base->object->pd) {
 			Object *ob1= base->object;
 			if((ob1->pd->deflect || ob1->pd->forcefield) && (ob1 != ob))  {
@@ -368,10 +359,9 @@ static void dag_add_collision_field_relation(DagForest *dag, Object *ob, DagNode
 	}
 }
 
-static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int mask)
+static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, Object *ob, int mask)
 {
 	bConstraint *con;
-	bConstraintChannel *conchan;
 	DagNode * node;
 	DagNode * node2;
 	DagNode * node3;
@@ -426,35 +416,11 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	}
 	
 	/* driver dependencies, nla modifiers */
-	if(ob->ipo) 
-		dag_add_driver_relation(ob->ipo, dag, node, 0);
-	
-	key= ob_get_key(ob);
-	if(key && key->ipo)
-		dag_add_driver_relation(key->ipo, dag, node, 1);
-	
-	for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next)
-		if(conchan->ipo)
-			dag_add_driver_relation(conchan->ipo, dag, node, 0);
-
-	if(ob->action) {
-		bActionChannel *chan;
-		for (chan = ob->action->chanbase.first; chan; chan=chan->next){
-			if(chan->ipo)
-				dag_add_driver_relation(chan->ipo, dag, node, 1);
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-				if(conchan->ipo)
-					dag_add_driver_relation(conchan->ipo, dag, node, 1);
-		}
-	}
+#if 0 // XXX old animation system
 	if(ob->nlastrips.first) {
 		bActionStrip *strip;
 		bActionChannel *chan;
 		for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-			if(strip->act && strip->act!=ob->action)
-				for (chan = strip->act->chanbase.first; chan; chan=chan->next)
-					if(chan->ipo)
-						dag_add_driver_relation(chan->ipo, dag, node, 1);
 			if(strip->modifiers.first) {
 				bActionModifier *amod;
 				for(amod= strip->modifiers.first; amod; amod= amod->next) {
@@ -466,13 +432,21 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			}
 		}
 	}
+#endif // XXX old animation system
+	if (ob->adt)
+		dag_add_driver_relation(ob->adt, dag, node, (ob->type == OB_ARMATURE)); // XXX isdata arg here doesn't give an accurate picture of situation
+		
+	key= ob_get_key(ob);
+	if (key && key->adt)
+		dag_add_driver_relation(key->adt, dag, node, 1);
+
 	if (ob->modifiers.first) {
 		ModifierData *md;
 		
 		for(md=ob->modifiers.first; md; md=md->next) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 			
-			if (mti->updateDepgraph) mti->updateDepgraph(md, dag, ob, node);
+			if (mti->updateDepgraph) mti->updateDepgraph(md, dag, scene, ob, node);
 		}
 	}
 	if (ob->parent) {
@@ -515,11 +489,12 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA|DAG_RL_OB_OB, "Proxy");
 		/* inverted relation, so addtoroot shouldn't be set to zero */
 	}
+	
+
 	if (ob->type==OB_CAMERA) {
 		Camera *cam = (Camera *)ob->data;
-		if (cam->ipo) {
-			dag_add_driver_relation(cam->ipo, dag, node, 1);
-		}
+		if (cam->adt)
+			dag_add_driver_relation(cam->adt, dag, node, 1);
 		if (cam->dof_ob) {
 			node2 = dag_get_node(dag, cam->dof_ob);
 			dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Camera DoF");
@@ -527,10 +502,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	}
 	if (ob->type==OB_LAMP) {
 		Lamp *la = (Lamp *)ob->data;
-		if (la->ipo) {
-			dag_add_driver_relation(la->ipo, dag, node, 1);
-		}
+		if (la->adt)
+			dag_add_driver_relation(la->adt, dag, node, 1);
 	}
+	
 	if (ob->transflag & OB_DUPLI) {
 		if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
 			GroupObject *go;
@@ -547,10 +522,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	/* softbody collision  */
 	if((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE))
 		if(modifiers_isSoftbodyEnabled(ob) || modifiers_isClothEnabled(ob))
-			dag_add_collision_field_relation(dag, ob, node);
+			dag_add_collision_field_relation(dag, scene, ob, node);
 		
 	if (ob->type==OB_MBALL) {
-		Object *mom= find_basis_mball(ob);
+		Object *mom= find_basis_mball(scene, ob);
 		if(mom!=ob) {
 			node2 = dag_get_node(dag, mom);
 			dag_add_relation(dag,node,node2,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Metaball");  // mom depends on children!
@@ -566,9 +541,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			node2 = dag_get_node(dag, cu->taperobj);
 			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Curve Taper");
 		}
-		if(cu->ipo)
-			dag_add_driver_relation(cu->ipo, dag, node, 1);
-
+		if (cu->adt)
+			dag_add_driver_relation(cu->adt, dag, node, 1);
 	}
 	else if(ob->type==OB_FONT) {
 		Curve *cu= ob->data;
@@ -584,60 +558,81 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		GroupObject *go;
 
 		for(; psys; psys=psys->next) {
+			BoidRule *rule = NULL;
+			BoidState *state = NULL;
+			ParticleSimulationData sim = {scene, ob, psys, NULL};
 			ParticleSettings *part= psys->part;
 
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
 
-			if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE)
+			if(!psys_check_enabled(ob, psys))
 				continue;
 
-			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
-			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {
-				node2 = dag_get_node(dag, psys->keyed_ob);
-				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Keyed Physics");
+			if(ELEM(part->phystype,PART_PHYS_KEYED,PART_PHYS_BOIDS)) {
+				ParticleTarget *pt = psys->targets.first;
+
+				for(; pt; pt=pt->next) {
+					if(pt->ob && BLI_findlink(&pt->ob->particlesystem, pt->psys-1)) {
+						node2 = dag_get_node(dag, pt->ob);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Targets");
+					}
+			   }
 			}
 
-			if(part->draw_as == PART_DRAW_OB && part->dup_ob) {
+			if(part->ren_as == PART_DRAW_OB && part->dup_ob) {
 				node2 = dag_get_node(dag, part->dup_ob);
 				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualisation");
 				if(part->dup_ob->type == OB_MBALL)
 					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Object Visualisation");
 			}
 
-			if(part->draw_as == PART_DRAW_GR && part->dup_group) {
+			if(part->ren_as == PART_DRAW_GR && part->dup_group) {
 				for(go=part->dup_group->gobject.first; go; go=go->next) {
 					node2 = dag_get_node(dag, go->ob);
 					dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Group Visualisation");
 				}
 			}
 
-			if(psys->effectors.first)
-				psys_end_effectors(psys);
-			psys_init_effectors(ob,psys->part->eff_group,psys);
+			psys_update_effectors(&sim, 0.0, 0);
 
-			if(psys->effectors.first) {
-				for(nec= psys->effectors.first; nec; nec= nec->next) {
-					Object *ob1= nec->ob;
+			for(nec= psys->effectors.first; nec; nec= nec->next) {
+				Object *ob1= nec->ob;
 
-					if(nec->type & PSYS_EC_EFFECTOR) {
-						node2 = dag_get_node(dag, ob1);
-						if(ob1->pd->forcefield==PFIELD_GUIDE)
-							dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
-						else
-							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Particle Field");
-					}
-					else if(nec->type & PSYS_EC_DEFLECT) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Collision");
-					}
-					else if(nec->type & PSYS_EC_PARTICLE) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Field");
-					}
-					
-					if(nec->type & PSYS_EC_REACTOR) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Reactor");
+				if(nec->type & PSYS_EC_EFFECTOR) {
+					node2 = dag_get_node(dag, ob1);
+					if(ob1->pd->forcefield==PFIELD_GUIDE)
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
+					else
+						dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Particle Field");
+				}
+				else if(nec->type & PSYS_EC_DEFLECT) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Collision");
+				}
+				else if(nec->type & PSYS_EC_PARTICLE) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Field");
+				}
+				
+				if(nec->type & PSYS_EC_REACTOR) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Reactor");
+				}
+			}
+
+			if(part->boids) {
+				for(state = part->boids->states.first; state; state=state->next) {
+					for(rule = state->rules.first; rule; rule=rule->next) {
+						Object *ruleob = NULL;
+						if(rule->type==eBoidRuleType_Avoid)
+							ruleob = ((BoidRuleGoalAvoid*)rule)->ob;
+						else if(rule->type==eBoidRuleType_FollowLeader)
+							ruleob = ((BoidRuleFollowLeader*)rule)->ob;
+
+						if(ruleob) {
+							node2 = dag_get_node(dag, ruleob);
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Boid Rule");
+						}
 					}
 				}
 			}
@@ -708,9 +703,9 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 	for(base = sce->base.first; base; base= base->next) {
 		ob= base->object;
 		
-		build_dag_object(dag, scenenode, ob, mask);
+		build_dag_object(dag, scenenode, sce, ob, mask);
 		if(ob->proxy)
-			build_dag_object(dag, scenenode, ob->proxy, mask);
+			build_dag_object(dag, scenenode, sce, ob->proxy, mask);
 		
 		/* handled in next loop */
 		if(ob->dup_group) 
@@ -721,7 +716,7 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
-				build_dag_object(dag, scenenode, go->ob, mask);
+				build_dag_object(dag, scenenode, sce, go->ob, mask);
 			}
 			group->id.flag &= ~LIB_DOIT;
 		}
@@ -785,6 +780,9 @@ void free_forest(DagForest *Dag)
 		itN = itN->next;
 		MEM_freeN(tempN);
 	}
+
+	BLI_ghash_free(Dag->nodeHash, NULL, NULL);
+	Dag->nodeHash= NULL;
 	Dag->DagNode.first = NULL;
 	Dag->DagNode.last = NULL;
 	Dag->numNodes = 0;
@@ -793,13 +791,9 @@ void free_forest(DagForest *Dag)
 
 DagNode * dag_find_node (DagForest *forest,void * fob)
 {
-	DagNode *node = forest->DagNode.first;
-	
-	while (node) {
-		if (node->ob == fob)
-			return node;
-		node = node->next;
-	}
+	if(forest->nodeHash)
+		return BLI_ghash_lookup(forest->nodeHash, fob);
+
 	return NULL;
 }
 
@@ -825,7 +819,12 @@ DagNode * dag_add_node (DagForest *forest, void * fob)
 			forest->DagNode.first = node;
 			forest->numNodes = 1;
 		}
+
+		if(!forest->nodeHash)
+			forest->nodeHash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		BLI_ghash_insert(forest->nodeHash, fob, node);
 	}
+
 	return node;
 }
 
@@ -1765,7 +1764,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 		for(itA = node->child; itA; itA= itA->next) {
 			all_layer |= itA->lay;
 			/* the relationship is visible */
-			if((itA->lay & layer) || (itA->node->ob == G.obedit)) {
+			if((itA->lay & layer)) { // XXX || (itA->node->ob == obedit)
 				if(itA->node->type==ID_OB) {
 					obc= itA->node->ob;
 					oldflag= obc->recalc;
@@ -1796,7 +1795,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 			}
 		}
 		/* even nicer, we can clear recalc flags...  */
-		if((all_layer & layer)==0 && (ob != G.obedit)) {
+		if((all_layer & layer)==0) { // XXX && (ob != obedit)) {
 			/* but existing displaylists or derivedmesh should be freed */
 			if(ob->recalc & OB_RECALC_DATA)
 				object_free_display(ob);
@@ -1810,7 +1809,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	/* could merge this in with loop above...? (ton) */
 	for(itA = node->child; itA; itA= itA->next) {
 		/* the relationship is visible */
-		if((itA->lay & layer) || (itA->node->ob == G.obedit)) {
+		if((itA->lay & layer)) {		// XXX  || (itA->node->ob == obedit)
 			if(itA->node->type==ID_OB) {
 				obc= itA->node->ob;
 				/* child moves */
@@ -1836,17 +1835,10 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
 static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 {
-	Base *base;
 	DagAdjList *itA;
 	
 	node->lasttime= curtime;
-	node->lay= 0;
-	for(base= sce->base.first; base; base= base->next) {
-		if(node->ob == base->object) {
-			node->lay= ((Object *)node->ob)->lay;
-			break;
-		}
-	}
+	node->lay= node->scelay;
 	
 	for(itA = node->child; itA; itA= itA->next) {
 		if(itA->node->type==ID_OB) {
@@ -1863,7 +1855,7 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 }
 
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
-static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
+static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int reset)
 {
 	DagAdjList *itA;
 	Object *ob;
@@ -1876,13 +1868,13 @@ static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
 				ob= (Object*)(node->ob);
 
 				if(reset || (ob->recalc & OB_RECALC)) {
-					if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
 						ob->recalc |= OB_RECALC_DATA;
 
-					flush_pointcache_reset(itA->node, curtime, 1);
+					flush_pointcache_reset(scene, itA->node, curtime, 1);
 				}
 				else
-					flush_pointcache_reset(itA->node, curtime, 0);
+					flush_pointcache_reset(scene, itA->node, curtime, 0);
 			}
 		}
 	}
@@ -1891,9 +1883,10 @@ static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
 /* flushes all recalc flags in objects down the dependency tree */
 void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 {
-	DagNode *firstnode;
+	DagNode *firstnode, *node;
 	DagAdjList *itA;
 	Object *ob;
+	Base *base;
 	int lasttime;
 	
 	if(sce->theDag==NULL) {
@@ -1909,6 +1902,15 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 	/* first we flush the layer flags */
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
+
+
+	for(base= sce->base.first; base; base= base->next) {
+		node= dag_get_node(sce->theDag, base->object);
+		if(node)
+			node->scelay= base->object->lay;
+		else
+			node->scelay= 0;
+	}
 
 	for(itA = firstnode->child; itA; itA= itA->next)
 		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) 
@@ -1930,13 +1932,13 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 				ob= (Object*)(itA->node->ob);
 
 				if(ob->recalc & OB_RECALC) {
-					if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					if(BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH))
 						ob->recalc |= OB_RECALC_DATA;
 
-					flush_pointcache_reset(itA->node, lasttime, 1);
+					flush_pointcache_reset(sce, itA->node, lasttime, 1);
 				}
 				else
-					flush_pointcache_reset(itA->node, lasttime, 0);
+					flush_pointcache_reset(sce, itA->node, lasttime, 0);
 			}
 		}
 	}
@@ -1953,25 +1955,28 @@ static int object_modifiers_use_time(Object *ob)
 	return 0;
 }
 
-static int exists_channel(Object *ob, char *name)
+static short animdata_use_time(AnimData *adt)
 {
-	bActionStrip *strip;
+	NlaTrack *nlt;
 	
-	if(ob->action)
-		if(get_action_channel(ob->action, name))
-			return 1;
+	if(adt==NULL) return 0;
 	
-	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if(get_action_channel(strip->act, name))
+	/* check action - only if assigned, and it has anim curves */
+	if (adt->action && adt->action->curves.first)
+		return 1;
+	
+	/* check NLA tracks + strips */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		if (nlt->strips.first)
 			return 1;
+	}
+	
 	return 0;
 }
 
 static void dag_object_time_update_flags(Object *ob)
 {
-	
-	if(ob->ipo) ob->recalc |= OB_RECALC_OB;
-	else if(ob->constraints.first) {
+	if(ob->constraints.first) {
 		bConstraint *con;
 		for (con = ob->constraints.first; con; con=con->next) {
 			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
@@ -1994,21 +1999,14 @@ static void dag_object_time_update_flags(Object *ob)
 		}
 	}
 	
-	if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
-	
 	if(ob->parent) {
 		/* motion path or bone child */
 		if(ob->parent->type==OB_CURVE || ob->parent->type==OB_ARMATURE) ob->recalc |= OB_RECALC_OB;
 	}
 	
-	if(ob->action || ob->nlastrips.first) {
-		/* since actions now are mixed, we set the recalcs on the safe side */
-		ob->recalc |= OB_RECALC_OB;
-		if(ob->type==OB_ARMATURE)
-			ob->recalc |= OB_RECALC_DATA;
-		else if(exists_channel(ob, "Shape"))
-			ob->recalc |= OB_RECALC_DATA;
-		else if(ob->dup_group) {
+#if 0 // XXX old animation system
+	if(ob->nlastrips.first) {
+		if(ob->dup_group) {
 			bActionStrip *strip;
 			/* this case is for groups with nla, whilst nla target has no action or nla */
 			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
@@ -2017,6 +2015,14 @@ static void dag_object_time_update_flags(Object *ob)
 			}
 		}
 	}
+#endif // XXX old animation system
+	
+	if(animdata_use_time(ob->adt)) {
+		ob->recalc |= OB_RECALC;
+		ob->adt->recalc |= ADT_RECALC_ANIM;
+	}
+	
+	if((ob->adt) && (ob->type==OB_ARMATURE)) ob->recalc |= OB_RECALC_DATA;
 	
 	if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 	if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
@@ -2079,7 +2085,6 @@ static void dag_object_time_update_flags(Object *ob)
 		}
 	}		
 }
-
 /* flag all objects that need recalc, for changes in time for example */
 void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 {
@@ -2138,59 +2143,106 @@ void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 	
 }
 
-/* for depgraph updating, all layers visible in a screen */
-/* this is a copy from editscreen.c... I need to think over a more proper solution for this */
-/* probably the DAG_object_flush_update() should give layer too? */
-/* or some kind of dag context... (DAG_set_layer) */
-static unsigned int dag_screen_view3d_layers(void)
+static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay)
 {
-	ScrArea *sa;
-	int layer= 0;
-	
-	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_VIEW3D)
-			layer |= ((View3D *)sa->spacedata.first)->lay;
+	wmWindowManager *wm;
+	wmWindow *win;
+
+	/* only one scene supported currently, making more scenes work
+	   correctly requires changes beyond just the dependency graph */
+
+	*sce= NULL;
+	*lay= 0;
+
+	if((wm= bmain->wm.first)) {
+		/* if we have a windowmanager, look into windows */
+		for(win=wm->windows.first; win; win=win->next) {
+			if(win->screen) {
+				if(!*sce) *sce= win->screen->scene;
+				*lay |= BKE_screen_visible_layers(win->screen);
+			}
+		}
 	}
-	return layer;
+	else {
+		/* if not, use the first sce */
+		*sce= bmain->scene.first;
+		if(*sce) *lay= (*sce)->lay;
+
+		/* XXX for background mode, we should get the scen
+		   from somewhere, for the -S option, but it's in
+		   the context, how to get it here? */
+	}
 }
 
-
-/* flag this object and all its relations to recalc */
-/* if you need to do more objects, tag object yourself and
-   use DAG_scene_flush_update() in end */
-void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
+void DAG_ids_flush_update(int time)
 {
-	
-	if(ob==NULL || sce->theDag==NULL) return;
+	Main *bmain= G.main;
+	Scene *sce;
+	unsigned int lay;
 
-	ob->recalc |= flag;
-	BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH);
-	
-	/* all users of this ob->data should be checked */
-	/* BUT! displists for curves are still only on cu */
-	if(flag & OB_RECALC_DATA) {
-		if(ob->type!=OB_CURVE && ob->type!=OB_SURF) {
-			ID *id= ob->data;
-			if(id && id->us>1) {
-				/* except when there's a key and shapes are locked */
-				if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)));
-				else {
-					Object *obt;
-					for (obt=G.main->object.first; obt; obt= obt->id.next) {
-						if (obt != ob && obt->data==ob->data) {
-							obt->recalc |= OB_RECALC_DATA;
-							BKE_ptcache_object_reset(obt, PTCACHE_RESET_DEPSGRAPH);
-						}
-					}
+	dag_current_scene_layers(bmain, &sce, &lay);
+
+	if(sce)
+		DAG_scene_flush_update(sce, lay, time);
+}
+
+void DAG_id_flush_update(ID *id, short flag)
+{
+	Main *bmain= G.main;
+	Scene *sce;
+	Object *obt, *ob= NULL;
+	short idtype;
+	unsigned int lay;
+
+	dag_current_scene_layers(bmain, &sce, &lay);
+
+	if(!id || !sce || !sce->theDag)
+		return;
+
+	/* set flags & pointcache for object */
+	if(GS(id->name) == ID_OB) {
+		ob= (Object*)id;
+		ob->recalc |= flag;
+		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
+
+		if(flag & OB_RECALC_DATA) {
+			/* all users of this ob->data should be checked */
+			id= ob->data;
+
+			/* no point in trying in this cases */
+			if(!id || id->us <= 1)
+				id= NULL;
+			/* curves and surfaces only need to mark one object, since
+			   otherwise cu->displist would be computed multiple times */
+			else if(ob->type==OB_CURVE || ob->type==OB_SURF)
+				id= NULL;
+			/* also for locked shape keys we make an exception */
+			else if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)))
+				id= NULL;
+		}
+	}
+
+	/* set flags & pointcache for object data */
+	if(id) {
+		idtype= GS(id->name);
+
+		if(ELEM7(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR)) {
+			for(obt=bmain->object.first; obt; obt= obt->id.next) {
+				if(!(ob && obt == ob) && obt->data == id) {
+					obt->recalc |= OB_RECALC_DATA;
+					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+
+					/* for these we only flag one object, otherwise cu->displist
+					   would be computed multiple times */
+					if(obt->type==OB_CURVE || obt->type==OB_SURF)
+						break;
 				}
 			}
 		}
 	}
-	
-	if(G.curscreen)
-		DAG_scene_flush_update(sce, dag_screen_view3d_layers(), 0);
-	else
-		DAG_scene_flush_update(sce, sce->lay, 0);
+
+	/* flush to other objects that depend on this one */
+	DAG_scene_flush_update(sce, lay, 0);
 }
 
 /* recursively descends tree, each node only checked once */
@@ -2225,10 +2277,25 @@ static int parent_check_node(DagNode *node, int curtime)
 
 /* all nodes that influence this object get tagged, for calculating the exact
    position of this object at a given timeframe */
-void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
+void DAG_id_update_flags(ID *id)
 {
+	Main *bmain= G.main;
+	Scene *sce;
 	DagNode *node;
 	DagAdjList *itA;
+	Object *ob;
+	unsigned int lay;
+
+	dag_current_scene_layers(bmain, &sce, &lay);
+
+	if(!id || !sce || !sce->theDag)
+		return;
+	
+	/* objects only currently */
+	if(GS(id->name) != ID_OB)
+		return;
+	
+	ob= (Object*)id;
 	
 	/* tag nodes unchecked */
 	for(node = sce->theDag->DagNode.first; node; node= node->next) 
@@ -2308,6 +2375,7 @@ void DAG_pose_sort(Object *ob)
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
+#if 0 // XXX old animation system... driver stuff to watch out for
 			if(con->ipo) {
 				IpoCurve *icu;
 				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
@@ -2319,7 +2387,7 @@ void DAG_pose_sort(Object *ob)
 						if(target) {
 							node2 = dag_get_node(dag, target);
 							dag_add_relation(dag, node2, node, 0, "Ipo Driver");
-
+							
 							/* uncommented this line, results in dependencies
 							 * not being added properly for this constraint,
 							 * what is the purpose of this? - brecht */
@@ -2328,6 +2396,7 @@ void DAG_pose_sort(Object *ob)
 					}
 				}
 			}
+#endif // XXX old animation system... driver stuff to watch out for
 			
 			if (cti && cti->get_constraint_targets) {
 				cti->get_constraint_targets(con, &targets);

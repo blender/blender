@@ -30,16 +30,18 @@
 #include "SCA_LogicManager.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
+#include "PyObjectPlus.h"
+#include "../Ketsji/KX_PythonSeq.h" /* not nice, only need for KX_PythonSeq_CreatePyObject */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-SCA_IController::SCA_IController(SCA_IObject* gameobj,
-								 PyTypeObject* T)
+SCA_IController::SCA_IController(SCA_IObject* gameobj)
 	:
+	SCA_ILogicBrick(gameobj),
 	m_statemask(0),
-	SCA_ILogicBrick(gameobj,T)
+	m_justActivated(false)
 {
 }
 	
@@ -47,19 +49,19 @@ SCA_IController::SCA_IController(SCA_IObject* gameobj,
 	
 SCA_IController::~SCA_IController()
 {
-	UnlinkAllActuators();
+	//UnlinkAllActuators();
 }
 
 
 
-const std::vector<class SCA_ISensor*>& SCA_IController::GetLinkedSensors()
+std::vector<class SCA_ISensor*>& SCA_IController::GetLinkedSensors()
 {
 	return m_linkedsensors;
 }
 
 
 
-const std::vector<class SCA_IActuator*>& SCA_IController::GetLinkedActuators()
+std::vector<class SCA_IActuator*>& SCA_IController::GetLinkedActuators()
 {
 	return m_linkedactuators;
 }
@@ -68,13 +70,14 @@ const std::vector<class SCA_IActuator*>& SCA_IController::GetLinkedActuators()
 
 void SCA_IController::UnlinkAllSensors()
 {
-	if (IsActive()) 
+	std::vector<class SCA_ISensor*>::iterator sensit;
+	for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
 	{
-		std::vector<class SCA_ISensor*>::iterator sensit;
-		for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
+		if (IsActive()) 
 		{
 			(*sensit)->DecLink();
 		}
+		(*sensit)->UnlinkController(this);
 	}
 	m_linkedsensors.clear();
 }
@@ -83,33 +86,17 @@ void SCA_IController::UnlinkAllSensors()
 
 void SCA_IController::UnlinkAllActuators()
 {
-	if (IsActive()) 
+	std::vector<class SCA_IActuator*>::iterator actit;
+	for (actit = m_linkedactuators.begin();!(actit==m_linkedactuators.end());++actit)
 	{
-		std::vector<class SCA_IActuator*>::iterator actit;
-		for (actit = m_linkedactuators.begin();!(actit==m_linkedactuators.end());++actit)
+		if (IsActive()) 
 		{
 			(*actit)->DecLink();
 		}
+		(*actit)->UnlinkController(this);
 	}
 	m_linkedactuators.clear();
 }
-
-
-
-/*
-void SCA_IController::Trigger(SCA_LogicManager* logicmgr)
-{
-	//for (int i=0;i<m_linkedactuators.size();i++)
-	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
-	!(i==m_linkedactuators.end());i++)
-	{
-		SCA_IActuator* actua = *i;//m_linkedactuators.at(i);
-		
-		logicmgr->AddActiveActuator(actua);
-	}
-
-}
-*/
 
 void SCA_IController::LinkToActuator(SCA_IActuator* actua)
 {
@@ -127,18 +114,18 @@ void	SCA_IController::UnlinkActuator(class SCA_IActuator* actua)
 	{
 		if ((*actit) == actua)
 		{
-			break;
+			if (IsActive())
+			{
+				(*actit)->DecLink();
+			}
+			*actit = m_linkedactuators.back();
+			m_linkedactuators.pop_back();
+			return;
 		}
-		
 	}
-	if (!(actit==m_linkedactuators.end()))
-	{
-		if (IsActive())
-		{
-			(*actit)->DecLink();
-		}
-		m_linkedactuators.erase(actit);
-	}
+	printf("Missing link from controller %s:%s to actuator %s:%s\n", 
+		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(), 
+		actua->GetParent()->GetName().ReadPtr(), actua->GetName().ReadPtr());
 }
 
 void SCA_IController::LinkToSensor(SCA_ISensor* sensor)
@@ -157,19 +144,20 @@ void SCA_IController::UnlinkSensor(class SCA_ISensor* sensor)
 	{
 		if ((*sensit) == sensor)
 		{
-			break;
+			if (IsActive())
+			{
+				sensor->DecLink();
+			}
+			*sensit = m_linkedsensors.back();
+			m_linkedsensors.pop_back();
+			return;
 		}
-		
 	}
-	if (!(sensit==m_linkedsensors.end()))
-	{
-		if (IsActive())
-		{
-			(*sensit)->DecLink();
-		}
-		m_linkedsensors.erase(sensit);
-	}
+	printf("Missing link from controller %s:%s to sensor %s:%s\n", 
+		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(), 
+		sensor->GetParent()->GetName().ReadPtr(), sensor->GetName().ReadPtr());
 }
+
 
 void SCA_IController::ApplyState(unsigned int state)
 {
@@ -185,13 +173,13 @@ void SCA_IController::ApplyState(unsigned int state)
 			{
 				(*actit)->IncLink();
 			}
+
 			for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
 			{
 				(*sensit)->IncLink();
-				// remember that this controller just activated that sensor
-				(*sensit)->AddNewController(this);
 			}
 			SetActive(true);
+			m_justActivated = true;
 		}
 	} else if (IsActive())
 	{
@@ -204,6 +192,58 @@ void SCA_IController::ApplyState(unsigned int state)
 			(*sensit)->DecLink();
 		}
 		SetActive(false);
+		m_justActivated = false;
 	}
 }
 
+/* Python api */
+
+PyTypeObject SCA_IController::Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"SCA_IController",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ILogicBrick::Type,
+	0,0,0,0,0,0,
+	py_base_new
+};
+
+PyMethodDef SCA_IController::Methods[] = {
+	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef SCA_IController::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("state", SCA_IController, pyattr_get_state),
+	KX_PYATTRIBUTE_RO_FUNCTION("sensors", SCA_IController, pyattr_get_sensors),
+	KX_PYATTRIBUTE_RO_FUNCTION("actuators", SCA_IController, pyattr_get_actuators),
+	KX_PYATTRIBUTE_BOOL_RW("useHighPriority",SCA_IController,m_bookmark),
+	{ NULL }	//Sentinel
+};
+
+PyObject* SCA_IController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_IController* self= static_cast<SCA_IController*>(self_v);
+	return PyLong_FromSsize_t(self->m_statemask);
+}
+
+PyObject* SCA_IController::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	return KX_PythonSeq_CreatePyObject((static_cast<SCA_IController*>(self_v))->m_proxy, KX_PYGENSEQ_CONT_TYPE_SENSORS);	
+}
+
+PyObject* SCA_IController::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	return KX_PythonSeq_CreatePyObject((static_cast<SCA_IController*>(self_v))->m_proxy, KX_PYGENSEQ_CONT_TYPE_ACTUATORS);	
+}

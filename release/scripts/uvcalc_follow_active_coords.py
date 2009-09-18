@@ -42,28 +42,15 @@ from Blender import *
 import bpy
 import BPyMesh
 
-def extend():
-	sce = bpy.data.scenes.active
-	ob = sce.objects.active
-	
-	# print ob, ob.type
-	if ob == None or ob.type != 'Mesh':
-		Draw.PupMenu('ERROR: No mesh object.')
+def extend(EXTEND_MODE,ob):
+	if EXTEND_MODE == -1:
 		return
-	
-	# Toggle Edit mode
+	me = ob.getData(mesh=1)
+	me_verts = me.verts
+		# Toggle Edit mode
 	is_editmode = Window.EditMode()
 	if is_editmode:
 		Window.EditMode(0)
-	
-	me = ob.getData(mesh=1)
-	me_verts = me.verts
-	
-	# 0:normal extend, 1:edge length
-	EXTEND_MODE = Draw.PupMenu("Use Face Area%t|Loop Average%x2|None%x0")
-	if EXTEND_MODE == -1:
-		return
-	
 	Window.WaitCursor(1)
 	t = sys.time()
 	edge_average_lengths = {}
@@ -153,8 +140,7 @@ def extend():
 			uvs_vhash_target[edgepair_outer_target[iA]][:] = uvs_vhash_source[edgepair_inner_source[1]] + (uvs_vhash_source[edgepair_inner_source[1]] - uvs_vhash_source[edgepair_outer_source[0]])
 	
 	if not me.faceUV:
-		Draw.PupMenu('ERROR: Mesh has no face UV coords.')
-		return
+		me.faceUV= True
 	
 	face_act = 	me.activeFace
 	if face_act == -1:
@@ -247,7 +233,22 @@ def extend():
 	Window.RedrawAll()
 	Window.WaitCursor(0)
 
+
+def main():
+	sce = bpy.data.scenes.active
+	ob = sce.objects.active
+	
+	# print ob, ob.type
+	if ob == None or ob.type != 'Mesh':
+		Draw.PupMenu('ERROR: No mesh object.')
+		return
+	
+
+	
+	# 0:normal extend, 1:edge length
+	EXTEND_MODE = Draw.PupMenu("Use Face Area%t|Loop Average%x2|None%x0")
+	extend(EXTEND_MODE,ob)
+
 if __name__ == '__main__':
-	extend()
-	
-	
+	main()
+

@@ -76,7 +76,7 @@ this object
 
 
 
-float CEmptyValue::GetNumber()
+double CEmptyValue::GetNumber()
 {
 	return 0;
 }
@@ -121,7 +121,7 @@ const STR_String & CEmptyValue::GetText()
 CValue* CEmptyValue::GetReplica()
 { 
 	CEmptyValue* replica = new CEmptyValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 }
 

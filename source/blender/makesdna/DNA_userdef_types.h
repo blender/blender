@@ -38,40 +38,148 @@
 /* themes; defines in BIF_resource.h */
 struct ColorBand;
 
-/* global, button colors */
-typedef struct ThemeUI {
-	char outline[4];
-	char neutral[4];
-	char action[4];
-	char setting[4];
-	char setting1[4];
-	char setting2[4];
-	char num[4];
-	char textfield[4];
-	char textfield_hi[4];
-	char popup[4];
-	char text[4];
-	char text_hi[4];
-	char menu_back[4];
-	char menu_item[4];
-	char menu_hilite[4];
-	char menu_text[4];
-	char menu_text_hi[4];
+/* ************************ style definitions ******************** */
+
+#define MAX_STYLE_NAME	64
+#define MAX_FONT_NAME	256
+
+/* default uifont_id offered by Blender */
+#define UIFONT_DEFAULT	0
+#define UIFONT_BITMAP	1
+/* free slots */
+#define UIFONT_CUSTOM1	2
+#define UIFONT_CUSTOM2	3
+
+/* default fonts to load/initalize */
+/* first font is the default (index 0), others optional */
+typedef struct uiFont {
+	struct uiFont *next, *prev;
+	char filename[256];
+	short blf_id;		/* from blfont lib */
+	short uifont_id;	/* own id */
+	short r_to_l;		/* fonts that read from left to right */
+	short pad;
 	
-	char but_drawtype;
-	char pad[3];
+} uiFont;
+
+/* this state defines appearance of text */
+typedef struct uiFontStyle {
+	short uifont_id;		/* saved in file, 0 is default */
+	short points;			/* actual size depends on 'global' dpi */
+	short kerning;			/* unfitted or default kerning value. */
+	char pad[6];
+	short italic, bold;		/* style hint */
+	short shadow;			/* value is amount of pixels blur */
+	short shadx, shady;		/* shadow offset in pixels */
+	short align;			/* text align hint */
+	float shadowalpha;		/* total alpha */
+	float shadowcolor;		/* 1 value, typically white or black anyway */
+	
+} uiFontStyle;
+
+/* uiFontStyle->align */
+#define UI_STYLE_TEXT_LEFT		0
+#define UI_STYLE_TEXT_CENTER	1
+#define UI_STYLE_TEXT_RIGHT		2
+
+
+/* this is fed to the layout engine and widget code */
+typedef struct uiStyle {
+	struct uiStyle *next, *prev;
+	
+	char name[64];			/* MAX_STYLE_NAME */
+	
+	uiFontStyle paneltitle;
+	uiFontStyle grouplabel;
+	uiFontStyle widgetlabel;
+	uiFontStyle widget;
+	
+	float panelzoom;
+	
+	short minlabelchars;	/* in characters */
+	short minwidgetchars;	/* in characters */
+
+	short columnspace;
+	short templatespace;
+	short boxspace;
+	short buttonspacex;
+	short buttonspacey;
+	short panelspace;
+	short panelouter;
+
+	short pad[1];
+} uiStyle;
+
+typedef struct uiWidgetColors {
+	char outline[4];
+	char inner[4];
+	char inner_sel[4];
+	char item[4];
+	char text[4];
+	char text_sel[4];
+	short shaded;
+	short shadetop, shadedown;
+	short pad;
+} uiWidgetColors;
+
+typedef struct uiWidgetStateColors {
+	char inner_anim[4];
+	char inner_anim_sel[4];
+	char inner_key[4];
+	char inner_key_sel[4];
+	char inner_driven[4];
+	char inner_driven_sel[4];
+	float blend, pad;
+} uiWidgetStateColors;
+
+typedef struct ThemeUI {
+	
+	/* Interface Elements (buttons, menus, icons) */
+	uiWidgetColors wcol_regular, wcol_tool, wcol_text;
+	uiWidgetColors wcol_radio, wcol_option, wcol_toggle;
+	uiWidgetColors wcol_num, wcol_numslider;
+	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item;
+	uiWidgetColors wcol_box, wcol_scroll, wcol_list_item;
+
+	uiWidgetStateColors wcol_state;
+	
 	char iconfile[80];	// FILE_MAXFILE length
+	
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well
  * for example later on, when we introduce wire colors for ob types or so...
  */
 typedef struct ThemeSpace {
+	/* main window colors */
 	char back[4];
+	char title[4];
 	char text[4];	
 	char text_hi[4];
+	
+	/* header colors */
 	char header[4];
+	char header_title[4];
+	char header_text[4];	
+	char header_text_hi[4];
+
+	/* button/tool regions */
+	char button[4];
+	char button_title[4];
+	char button_text[4];	
+	char button_text_hi[4];
+	
+	/* listview regions */
+	char list[4];
+	char list_title[4];
+	char list_text[4];	
+	char list_text_hi[4];
+	
+	/* float panel */
 	char panel[4];
+	char panel_title[4];	
+	char panel_text[4];	
+	char panel_text_hi[4];
 	
 	char shade1[4];
 	char shade2[4];
@@ -90,7 +198,8 @@ typedef struct ThemeSpace {
 	char normal[4];
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
-	char cframe[4], pad[4];
+	char cframe[4];
+	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
 	char vertex_size, facedot_size;
 	char bpad[2]; 
@@ -104,8 +213,12 @@ typedef struct ThemeSpace {
 
 	char handle_vertex[4];
 	char handle_vertex_select[4];
+	
 	char handle_vertex_size;
-	char hpad[7];
+	char hpad[3];
+	
+	char pad[4];
+	
 } ThemeSpace;
 
 
@@ -128,7 +241,6 @@ typedef struct bTheme {
 	struct bTheme *next, *prev;
 	char name[32];
 	
-	/* Interface Elements (buttons, menus, icons) */
 	ThemeUI tui;
 	
 	/* Individual Spacetypes */
@@ -147,12 +259,13 @@ typedef struct bTheme {
 	ThemeSpace toops;
 	ThemeSpace ttime;
 	ThemeSpace tnode;
+	ThemeSpace tlogic;
+	ThemeSpace tuserpref;	
 	
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];
 	/*ThemeWireColor tobj[20];*/
-
-	unsigned char bpad[4], bpad1[4];
+	
 } bTheme;
 
 typedef struct SolidLight {
@@ -173,20 +286,29 @@ typedef struct UserDef {
 	char sounddir[160];
 	/* yafray: temporary xml export directory */
 	char yfexportdir[160];
-	short versions, vrmlflag;	// tmp for export, will be replaced by strubi
+	short versions, pad;
+	
 	int gameflags;
 	int wheellinescroll;
 	int uiflag, language;
 	short userpref, viewzoom;
-	short console_buffer;	//console vars here for tuhopuu compat, --phase
-	short console_out;
+	
 	int mixbufsize;
-	int fontsize;
+	int audiodevice;
+	int audiorate;
+	int audioformat;
+	int audiochannels;
+
+	int scrollback; /* console scrollback limit */
+	int dpi;		/* range 48-128? */
 	short encoding;
 	short transopts;
 	short menuthreshold1, menuthreshold2;
-	char fontname[256];		// FILE_MAXDIR+FILE length
+	
 	struct ListBase themes;
+	struct ListBase uifonts;
+	struct ListBase uistyles;
+	
 	short undosteps;
 	short undomemory;
 	short gp_manhattendist, gp_euclideandist, gp_eraser;
@@ -194,7 +316,8 @@ typedef struct UserDef {
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
-	int textimeout, texcollectrate;
+	short textimeout,texcollectrate;
+	short wmdrawmethod, wmpad;
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;
@@ -206,19 +329,19 @@ typedef struct UserDef {
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
-	short curssize, pad;
-//	char pad[8];
+	short curssize, ipo_new;
+
 	char versemaster[160];
 	char verseuser[160];
 	float glalphaclip;
 	
 	short autokey_mode;		/* autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
-	
+
 	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
 
-extern UserDef U; /* from usiblender.c !!!! */
+extern UserDef U; /* from blenkernel blender.c */
 
 /* ***************** USERDEF ****************** */
 
@@ -246,6 +369,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_RELPATHS			(1 << 20)
 #define USER_DRAGIMMEDIATE		(1 << 21)
 #define USER_DONT_DOSCRIPTLINKS	(1 << 22)
+#define USER_FILENOUI			(1 << 23)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
@@ -277,6 +401,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
 #define USER_SHOW_FPS			(1 << 21)
 #define USER_MMB_PASTE			(1 << 22)
+#define USER_MENUFIXEDORDER		(1 << 23)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */
@@ -286,10 +411,12 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define		AUTOKEY_MODE_EDITKEYS	5
 
 /* Auto-Keying flag */
+	/* U.autokey_flag */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
-
+	/* toolsettings->autokey_flag */
+#define 	ANIMRECORD_FLAG_WITHNLA		(1<<10)
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)
@@ -313,16 +440,17 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_DUP_TEX			(1 << 8)
 #define	USER_DUP_ARM			(1 << 9)
 #define	USER_DUP_ACT			(1 << 10)
+#define	USER_DUP_PSYS			(1 << 11)
 
 /* gameflags */
 #define USER_DEPRECATED_FLAG	1
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
 
-/* vrml flag */
-#define USER_VRML_LAYERS		1
-#define USER_VRML_AUTOSCALE		2
-#define USER_VRML_TWOSIDED		4
+/* wm draw method */
+#define USER_DRAW_TRIPLE		0
+#define USER_DRAW_OVERLAP		1
+#define USER_DRAW_FULL			2
 
 /* tw_flag (transform widget) */
 
@@ -330,5 +458,11 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define GP_PAINT_DOSMOOTH		(1<<0)
 #define GP_PAINT_DOSIMPLIFY		(1<<1)
 
+/* theme drawtypes */
+#define TH_MINIMAL  	0
+#define TH_ROUNDSHADED	1
+#define TH_ROUNDED  	2
+#define TH_OLDSKOOL 	3
+#define TH_SHADED   	4
 
 #endif

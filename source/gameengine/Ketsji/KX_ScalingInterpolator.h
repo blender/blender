@@ -50,6 +50,13 @@ public:
 private:
 	MT_Vector3&              m_target;
 	KX_IScalarInterpolator *m_ipos[3];
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_ScalingInterpolator"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

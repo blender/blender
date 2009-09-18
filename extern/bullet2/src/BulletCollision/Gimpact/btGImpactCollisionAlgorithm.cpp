@@ -192,7 +192,7 @@ float btGImpactCollisionAlgorithm::getAverageTriangleCollisionTime()
 
 
 btGImpactCollisionAlgorithm::btGImpactCollisionAlgorithm( const btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
-: btCollisionAlgorithm(ci)
+: btActivatingCollisionAlgorithm(ci,body0,body1)
 {
 	m_manifoldPtr = NULL;
 	m_convex_algorithm = NULL;
@@ -404,7 +404,7 @@ void btGImpactCollisionAlgorithm::collide_sat_triangles(btCollisionObject * body
 
 	btPrimitiveTriangle ptri0;
 	btPrimitiveTriangle ptri1;
-	BT_TRIANGLE_CONTACT contact_data;
+	GIM_TRIANGLE_CONTACT contact_data;
 
 	shape0->lockChildShapes();
 	shape1->lockChildShapes();
@@ -540,7 +540,7 @@ void btGImpactCollisionAlgorithm::gimpact_vs_gimpact(
 	int i = pairset.size();
 	while(i--)
 	{
-		BT_PAIR * pair = &pairset[i];
+		GIM_PAIR * pair = &pairset[i];
 		m_triface0 = pair->m_index1;
 		m_triface1 = pair->m_index2;
 		btCollisionShape * colshape0 = retriever0.getChildShape(m_triface0);
@@ -584,14 +584,15 @@ void btGImpactCollisionAlgorithm::gimpact_vs_shape(btCollisionObject * body0,
 	if(shape0->getGImpactShapeType()==CONST_GIMPACT_TRIMESH_SHAPE)
 	{
 		btGImpactMeshShape * meshshape0 = static_cast<btGImpactMeshShape *>(shape0);
-		m_part0 = meshshape0->getMeshPartCount();
+		int& part = swapped ? m_part1 : m_part0;
+		part = meshshape0->getMeshPartCount();
 
-		while(m_part0--)
+		while(part--)
 		{
 
 			gimpact_vs_shape(body0,
 				  body1,
-				  meshshape0->getMeshPart(m_part0),
+				  meshshape0->getMeshPart(part),
 				  shape1,swapped);
 
 		}

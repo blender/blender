@@ -31,10 +31,12 @@ public:
 
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
-    btMultimaterialTriangleMeshShape(): btBvhTriangleMeshShape() {}
+    btMultimaterialTriangleMeshShape(): btBvhTriangleMeshShape() {m_shapeType = MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE;}
     btMultimaterialTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression, bool buildBvh = true):
         btBvhTriangleMeshShape(meshInterface, useQuantizedAabbCompression, buildBvh)
         {
+            m_shapeType = MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE;
+
             btVector3 m_triangle[3];
             const unsigned char *vertexbase;
             int numverts;
@@ -67,6 +69,8 @@ public:
 	btMultimaterialTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax, bool buildBvh = true):
         btBvhTriangleMeshShape(meshInterface, useQuantizedAabbCompression, bvhAabbMin, bvhAabbMax, buildBvh)
         {
+            m_shapeType = MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE;
+
             btVector3 m_triangle[3];
             const unsigned char *vertexbase;
             int numverts;
@@ -107,11 +111,6 @@ public:
         m_materialLookup = NULL;
 */
     }
-	virtual int	getShapeType() const
-	{
-		return MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE;
-	}
-	
 	//debugging
 	virtual const char*	getName()const {return "MULTIMATERIALTRIANGLEMESH";}
 

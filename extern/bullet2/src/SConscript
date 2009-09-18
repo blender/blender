@@ -7,10 +7,10 @@ Import('env')
 defs = 'USE_DOUBLES QHULL _LIB'
 cflags = []
 
-if env['OURPLATFORM']=='win32-vc':
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
     defs += ' WIN32 NDEBUG _WINDOWS _LIB'
     #cflags += ['/MT', '/W3', '/GX', '/O2', '/Op']
-    cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6']
+    cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6', '/O3', '/EHcs']
 elif env['OURPLATFORM']=='win32-mingw':
     defs += ' NDEBUG'
     cflags += ['-O2']
@@ -35,11 +35,11 @@ softbody_src = env.Glob("BulletSoftBody/*.cpp")
 
 incs = '. BulletCollision BulletDynamics LinearMath BulletSoftBody'
 
-env.BlenderLib ( libname = 'extern_bullet2linmath', sources=linearmath_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2dynamics', sources=bulletdyn_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[19, 169], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_broadphase', sources=collision_broadphase_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[25, 175], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_dispatch', sources=collision_dispatch_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_gimpact', sources=collision_gimpact_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_shapes', sources=collision_shapes_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_narrowphase', sources=collision_narrowphase_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2softbody', sources=softbody_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[18,168], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2linmath', sources=linearmath_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2dynamics', sources=bulletdyn_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[19,136], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2collision_broadphase', sources=collision_broadphase_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[25,145], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2collision_dispatch', sources=collision_dispatch_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2collision_gimpact', sources=collision_gimpact_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2collision_shapes', sources=collision_shapes_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2collision_narrowphase', sources=collision_narrowphase_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2softbody', sources=softbody_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[18,135], compileflags=cflags )

@@ -32,6 +32,11 @@
 
 #include <vector>
 #include "PHY_DynamicTypes.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class PHY_IVehicle;
 class RAS_MeshObject;
 class PHY_IPhysicsController;
@@ -76,6 +81,12 @@ public:
 		m_faceNormal(faceNormal)
 	{
 	}
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IRayCastFilterCallback"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /**
@@ -89,7 +100,9 @@ class PHY_IPhysicsEnvironment
 		virtual	void		beginFrame() = 0;
 		virtual void		endFrame() = 0;
 		/// Perform an integration step of duration 'timeStep'.
-		virtual	bool		proceedDeltaTime(double curTime,float timeStep)=0;
+		virtual	bool		proceedDeltaTime(double curTime,float timeStep,float interval)=0;
+		///draw debug lines (make sure to call this during the render phase, otherwise lines are not drawn properly)
+		virtual void		debugDrawWorld(){}
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)=0;
 		//returns 0.f if no fixed timestep is used
 		virtual	float		getFixedTimeStep()=0;
@@ -140,19 +153,31 @@ class PHY_IPhysicsEnvironment
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)=0;
 
+		//culling based on physical broad phase
+		// the plane number must be set as follow: near, far, left, right, top, botton
+		// the near plane must be the first one and must always be present, it is used to get the direction of the view
+		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes) = 0;
 
 		//Methods for gamelogic collision/physics callbacks
 		//todo:
 		virtual void addSensor(PHY_IPhysicsController* ctrl)=0;
 		virtual void removeSensor(PHY_IPhysicsController* ctrl)=0;
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)=0;
-		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl)=0;
-		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl)=0;
+		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl)=0;
+		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl)=0;
 		//These two methods are *solely* used to create controllers for sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) =0;
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight)=0;
 		
 		virtual void	setConstraintParam(int constraintId,int param,float value,float value1) = 0;
+		virtual float	getConstraintParam(int constraintId,int param) = 0;
+		
+		
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IPhysicsEnvironment"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //_IPHYSICSENVIRONMENT

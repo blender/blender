@@ -43,9 +43,8 @@ import bpy
 import BPyMesh
 
 
-def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):
+def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_STRENGTH, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):
 	Window.WaitCursor(1)
-	DotVecs = Mathutils.DotVecs
 	Ang= Mathutils.AngleBetweenVecs
 	
 	BPyMesh.meshCalcNormals(me)
@@ -63,7 +62,7 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PRE
 		for v in f.v:
 			vno=v.no # get a scaled down normal.
 			
-			dot= DotVecs(vno, v.co) - DotVecs(vno, fc)
+			dot= vno.dot(v.co) - vno.dot(fc)
 			vert_tone_count[v.index]+=1
 			try:
 				a= Ang(vno, fno)
@@ -84,32 +83,34 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PRE
 		if vert_tone_count[i]:
 			vert_tone[i] = vert_tone[i] / vert_tone_count[i]
 
+	
+	# Below we use edges to blur along so the edges need counting, not the faces
+	vert_tone_count=	[0] *	len(me.verts)
+	for ed in me.edges:
+		vert_tone_count[ed.v1.index] += 1
+		vert_tone_count[ed.v2.index] += 1
 
-	# BLUR TONE
-	edge_lengths= [ ed.length for ed in me.edges]
+
+	# Blur tone
+	blur		= PREF_BLUR_STRENGTH
+	blur_inv	= 1.0 - PREF_BLUR_STRENGTH
 	
 	for i in xrange(PREF_BLUR_ITERATIONS):
+		
+		# backup the original tones
 		orig_vert_tone= list(vert_tone)
-		for ii, ed in enumerate(me.edges):
+		
+		for ed in me.edges:
+			
 			i1= ed.v1.index
 			i2= ed.v2.index
-			l= edge_lengths[ii]
+		
+			val1= (orig_vert_tone[i2]*blur) +  (orig_vert_tone[i1]*blur_inv)
+			val2= (orig_vert_tone[i1]*blur) +  (orig_vert_tone[i2]*blur_inv)
 			
-			f=1.0
-			if l > PREF_MIN_EDLEN and l < PREF_BLUR_RADIUS:
-				f= l/PREF_BLUR_RADIUS
-				
-				len_vert_tone_list_i1 = vert_tone_count[i1]
-				len_vert_tone_list_i2 = vert_tone_count[i2]
-					
-				if not len_vert_tone_list_i1: len_vert_tone_list_i1=1
-				if not len_vert_tone_list_i2: len_vert_tone_list_i2=1
-				
-				val1= (orig_vert_tone[i2]/len_vert_tone_list_i1)/ f
-				val2= (orig_vert_tone[i1]/len_vert_tone_list_i2)/ f
-				
-				vert_tone[i1]+= val1
-				vert_tone[i2]+= val2
+			# Apply the ton divided by the number of faces connected
+			vert_tone[i1]+= val1 / max(vert_tone_count[i1], 1)
+			vert_tone[i2]+= val2 / max(vert_tone_count[i2], 1)
 	
 
 	min_tone= min(vert_tone)
@@ -145,21 +146,19 @@ def main():
 	
 	me= ob.getData(mesh=1)
 	
-	PREF_BLUR_ITERATIONS= Draw.Create(1)	
-	PREF_BLUR_RADIUS= Draw.Create(0.05)
-	PREF_MIN_EDLEN= Draw.Create(0.01)
+	PREF_BLUR_ITERATIONS= Draw.Create(1)
+	PREF_BLUR_STRENGTH= Draw.Create(0.5)
 	PREF_CLAMP_CONCAVE= Draw.Create(90)
 	PREF_CLAMP_CONVEX= Draw.Create(20)
 	PREF_SHADOW_ONLY= Draw.Create(0)
 	PREF_SEL_ONLY= Draw.Create(0)	
 	pup_block= [\
 	'Post AO Blur',\
-	('  Iterations:', PREF_BLUR_ITERATIONS, 0, 40, 'Number times to blur the colors. (higher blurs more)'),\
-	('  Blur Radius:', PREF_BLUR_RADIUS, 0.01, 40.0, 'How much distance effects blur transfur (higher blurs more).'),\
-	('  Min EdgeLen:', PREF_MIN_EDLEN, 0.00001, 1.0, 'Minimim edge length to blur (very low values can cause errors).'),\
+	('Strength:', PREF_BLUR_STRENGTH, 0, 1, 'Blur strength per iteration'),\
+	('Iterations:', PREF_BLUR_ITERATIONS, 0, 40, 'Number times to blur the colors. (higher blurs more)'),\
 	'Angle Clipping',\
-	('  Highlight Angle:', PREF_CLAMP_CONVEX, 0, 180, 'Less then 180 limits the angle used in the tonal range.'),\
-	('  Shadow Angle:', PREF_CLAMP_CONCAVE, 0, 180, 'Less then 180 limits the angle used in the tonal range.'),\
+	('Highlight Angle:', PREF_CLAMP_CONVEX, 0, 180, 'Less then 180 limits the angle used in the tonal range.'),\
+	('Shadow Angle:', PREF_CLAMP_CONCAVE, 0, 180, 'Less then 180 limits the angle used in the tonal range.'),\
 	('Shadow Only', PREF_SHADOW_ONLY, 'Dont calculate highlights for convex areas.'),\
 	('Sel Faces Only', PREF_SEL_ONLY, 'Only apply to UV/Face selected faces (mix vpain/uvface select).'),\
 	]
@@ -167,19 +166,20 @@ def main():
 	if not Draw.PupBlock('SelfShadow...', pup_block):
 		return
 	
-	PREF_BLUR_ITERATIONS= PREF_BLUR_ITERATIONS.val
-	PREF_BLUR_RADIUS= PREF_BLUR_RADIUS.val
-	PREF_MIN_EDLEN= PREF_MIN_EDLEN.val
-	PREF_CLAMP_CONCAVE= PREF_CLAMP_CONCAVE.val
-	PREF_CLAMP_CONVEX= PREF_CLAMP_CONVEX.val
-	PREF_SHADOW_ONLY= PREF_SHADOW_ONLY.val
-	PREF_SEL_ONLY= PREF_SEL_ONLY.val
-	
 	if not me.vertexColors:
 		me.vertexColors= 1
 	
 	t= sys.time()
-	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
+	vertexFakeAO(me,	PREF_BLUR_ITERATIONS.val, \
+						PREF_BLUR_STRENGTH.val, \
+						PREF_CLAMP_CONCAVE.val, \
+						PREF_CLAMP_CONVEX.val, \
+						PREF_SHADOW_ONLY.val, \
+						PREF_SEL_ONLY.val)
+	
+	if ob.modifiers:
+		me.update()
+	
 	print 'done in %.6f' % (sys.time()-t)
 if __name__=='__main__':
 	main()

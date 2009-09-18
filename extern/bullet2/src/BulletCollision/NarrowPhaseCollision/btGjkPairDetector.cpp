@@ -18,11 +18,15 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btSimplexSolverInterface.h"
 #include "BulletCollision/NarrowPhaseCollision/btConvexPenetrationDepthSolver.h"
 
+
+
 #if defined(DEBUG) || defined (_DEBUG)
+//#define TEST_NON_VIRTUAL 1
 #include <stdio.h> //for debug printf
 #ifdef __SPU__
 #include <spu_printf.h>
 #define printf spu_printf
+//#define DEBUG_SPU_COLLISION_DETECTION 1
 #endif //__SPU__
 #endif
 
@@ -49,6 +53,8 @@ m_catchDegeneracies(1)
 
 void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw,bool swapResults)
 {
+	m_cachedSeparatingDistance = 0.f;
+
 	btScalar distance=btScalar(0.);
 	btVector3	normalInB(btScalar(0.),btScalar(0.),btScalar(0.));
 	btVector3 pointOnA,pointOnB;
@@ -58,16 +64,35 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 	localTransA.getOrigin() -= positionOffset;
 	localTransB.getOrigin() -= positionOffset;
 
+#ifdef __SPU__
+	btScalar marginA = m_minkowskiA->getMarginNonVirtual();
+	btScalar marginB = m_minkowskiB->getMarginNonVirtual();
+#else
 	btScalar marginA = m_minkowskiA->getMargin();
 	btScalar marginB = m_minkowskiB->getMargin();
+#ifdef TEST_NON_VIRTUAL
+	btScalar marginAv = m_minkowskiA->getMarginNonVirtual();
+	btScalar marginBv = m_minkowskiB->getMarginNonVirtual();
+	btAssert(marginA == marginAv);
+	btAssert(marginB == marginBv);
+#endif //TEST_NON_VIRTUAL
+#endif
+	
+
 
 	gNumGjkChecks++;
 
+#ifdef DEBUG_SPU_COLLISION_DETECTION
+	spu_printf("inside gjk\n");
+#endif
 	//for CCD we don't use margins
 	if (m_ignoreMargin)
 	{
 		marginA = btScalar(0.);
 		marginB = btScalar(0.);
+#ifdef DEBUG_SPU_COLLISION_DETECTION
+		spu_printf("ignoring margin\n");
+#endif
 	}
 
 	m_curIter = 0;
@@ -98,18 +123,35 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			btVector3 seperatingAxisInA = (-m_cachedSeparatingAxis)* input.m_transformA.getBasis();
 			btVector3 seperatingAxisInB = m_cachedSeparatingAxis* input.m_transformB.getBasis();
 
+#ifdef __SPU__
+			btVector3 pInA = m_minkowskiA->localGetSupportVertexWithoutMarginNonVirtual(seperatingAxisInA);
+			btVector3 qInB = m_minkowskiB->localGetSupportVertexWithoutMarginNonVirtual(seperatingAxisInB);
+#else
 			btVector3 pInA = m_minkowskiA->localGetSupportingVertexWithoutMargin(seperatingAxisInA);
 			btVector3 qInB = m_minkowskiB->localGetSupportingVertexWithoutMargin(seperatingAxisInB);
-			btPoint3  pWorld = localTransA(pInA);	
-			btPoint3  qWorld = localTransB(qInB);
-			
+#ifdef TEST_NON_VIRTUAL
+			btVector3 pInAv = m_minkowskiA->localGetSupportingVertexWithoutMargin(seperatingAxisInA);
+			btVector3 qInBv = m_minkowskiB->localGetSupportingVertexWithoutMargin(seperatingAxisInB);
+			btAssert((pInAv-pInA).length() < 0.0001);
+			btAssert((qInBv-qInB).length() < 0.0001);
+#endif //
+#endif //__SPU__
+
+			btVector3  pWorld = localTransA(pInA);	
+			btVector3  qWorld = localTransB(qInB);
+
+#ifdef DEBUG_SPU_COLLISION_DETECTION
+		spu_printf("got local supporting vertices\n");
+#endif
+
 			btVector3 w	= pWorld - qWorld;
 			delta = m_cachedSeparatingAxis.dot(w);
 
 			// potential exit, they don't overlap
 			if ((delta > btScalar(0.0)) && (delta * delta > squaredDistance * input.m_maximumDistanceSquared)) 
 			{
-				checkPenetration = false;
+				checkSimplex=true;
+				//checkPenetration = false;
 				break;
 			}
 
@@ -133,9 +175,15 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 				checkSimplex = true;
 				break;
 			}
+
+#ifdef DEBUG_SPU_COLLISION_DETECTION
+		spu_printf("addVertex 1\n");
+#endif
 			//add current vertex to simplex
 			m_simplexSolver->addVertex(w, pWorld, qWorld);
-
+#ifdef DEBUG_SPU_COLLISION_DETECTION
+		spu_printf("addVertex 2\n");
+#endif
 			//calculate the closest point to the origin (update vector v)
 			if (!m_simplexSolver->closest(m_cachedSeparatingAxis))
 			{
@@ -167,7 +215,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			  //degeneracy, this is typically due to invalid/uninitialized worldtransforms for a btCollisionObject   
               if (m_curIter++ > gGjkMaxIter)   
               {   
-                      #if defined(DEBUG) || defined (_DEBUG)   
+                      #if defined(DEBUG) || defined (_DEBUG) || defined (DEBUG_SPU_COLLISION_DETECTION)
 
                               printf("btGjkPairDetector maxIter exceeded:%i\n",m_curIter);   
                               printf("sepAxis=(%f,%f,%f), squaredDistance = %f, shapeTypeA=%i,shapeTypeB=%i\n",   
@@ -290,10 +338,20 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 #endif //__CELLOS_LV2__
 
 
+#ifdef DEBUG_SPU_COLLISION_DETECTION
+		spu_printf("output 1\n");
+#endif
+		m_cachedSeparatingAxis = normalInB;
+		m_cachedSeparatingDistance = distance;
+
 		output.addContactPoint(
 			normalInB,
 			pointOnB+positionOffset,
 			distance);
+
+#ifdef DEBUG_SPU_COLLISION_DETECTION
+		spu_printf("output 2\n");
+#endif
 		//printf("gjk add:%f",distance);
 	}
 

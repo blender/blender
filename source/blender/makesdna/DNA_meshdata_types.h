@@ -30,13 +30,14 @@
 #define DNA_MESHDATA_TYPES_H
 
 #include "DNA_customdata_types.h"
+#include "DNA_listBase.h"
 
 struct Bone;
 struct Image;
 
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
-	char pad, mat_nr;
+	short mat_nr;
 	char edcode, flag;	/* we keep edcode, for conversion to edges draw flags in old files */
 } MFace;
 
@@ -60,7 +61,8 @@ typedef struct MDeformVert {
 typedef struct MVert {
 	float	co[3];
 	short	no[3];
-	char flag, mat_nr, bweight, pad[3];
+	short	mat_nr;
+	char flag, bweight, pad[2];
 } MVert;
 
 /* at the moment alpha is abused for vertex painting
@@ -116,7 +118,14 @@ typedef struct OrigSpaceFace {
 	float uv[4][2];
 } OrigSpaceFace;
 
-/* Multiresolution modeling */
+typedef struct MDisps {
+	/* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
+	int totdisp;
+	char pad[4];
+	float (*disps)[3];
+} MDisps;
+
+/** Multires structs kept for compatibility with old files **/
 typedef struct MultiresCol {
 	float a, r, g, b;
 } MultiresCol;
@@ -126,7 +135,7 @@ typedef struct MultiresColFace {
 } MultiresColFace;
 typedef struct MultiresFace {
 	unsigned int v[4];
-       	unsigned int mid;
+	unsigned int mid;
 	char flag, mat_nr, pad[2];
 } MultiresFace;
 typedef struct MultiresEdge {
@@ -142,15 +151,9 @@ typedef struct MultiresLevel {
 	MultiresColFace *colfaces;
 	MultiresEdge *edges;
 
-	/* Temporary connectivity data */
-	char *edge_boundary_states;
-	struct ListBase *vert_edge_map;
-	struct ListBase *vert_face_map;
-	struct MultiresMapNode *map_mem;
-
 	unsigned int totvert, totface, totedge, pad;
 
-	/* Kept for compatibility with older files */
+	/* Kept for compatibility with even older files */
 	MVert *verts;
 } MultiresLevel;
 
@@ -167,6 +170,8 @@ typedef struct Multires {
 	short *edge_flags;
 	char *edge_creases;
 } Multires;
+
+/** End Multires **/
 
 typedef struct PartialVisibility {
 	unsigned int *vert_map; /* vert_map[Old Index]= New Index */
@@ -235,7 +240,7 @@ typedef struct PartialVisibility {
 #define TF_LIGHT		16
 
 #define TF_SHAREDCOL	64
-#define TF_TILES		128
+#define TF_TILES		128		/* deprecated */
 #define TF_BILLBOARD	256
 #define TF_TWOSIDE		512
 #define TF_INVISIBLE	1024
@@ -264,8 +269,5 @@ typedef struct PartialVisibility {
 #define TF_PIN2		    32
 #define TF_PIN3	   		64
 #define TF_PIN4	    	128
-
-/* multires->flag */
-#define MULTIRES_NO_RENDER 1
 
 #endif

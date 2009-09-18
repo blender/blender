@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # memutil main makefile.
@@ -38,16 +40,13 @@ DIRS = intern
  
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_MEMUTIL) ] || mkdir $(NAN_MEMUTIL)
 	@[ -d $(NAN_MEMUTIL)/include ] || mkdir $(NAN_MEMUTIL)/include
-	@[ -d $(NAN_MEMUTIL)/lib ] || mkdir $(NAN_MEMUTIL)/lib
-	@[ -d $(NAN_MEMUTIL)/lib/debug ] || mkdir $(NAN_MEMUTIL)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libmemutil.a $(NAN_MEMUTIL)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libmemutil.a $(NAN_MEMUTIL)/lib/debug
+	@[ -d $(NAN_MEMUTIL)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_MEMUTIL)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libmemutil.a $(NAN_MEMUTIL)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_MEMUTIL)/lib/libmemutil.a
-	ranlib $(NAN_MEMUTIL)/lib/debug/libmemutil.a
+	ranlib $(NAN_MEMUTIL)/lib/$(DEBUG_DIR)libmemutil.a
 endif
 	@../tools/cpifdiff.sh *.h $(NAN_MEMUTIL)/include/
 

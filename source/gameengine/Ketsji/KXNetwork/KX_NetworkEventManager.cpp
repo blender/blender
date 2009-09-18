@@ -61,12 +61,12 @@ void KX_NetworkEventManager::NextFrame()
 	// each frame, the logicmanager will call the network
 	// eventmanager to look for network events, and process it's
 	// 'network' sensors
-	set<class SCA_ISensor*>::iterator it;
-
-	for (it = m_sensors.begin(); !(it==m_sensors.end()); it++) {
+	SG_DList::iterator<SCA_ISensor> it(m_sensors);
+	for (it.begin();!it.end();++it)
+	{
 //	    printf("KX_NetworkEventManager::proceed sensor %.2f\n", curtime);
 	    // process queue
-	    (*it)->Activate(m_logicmgr, NULL);
+	    (*it)->Activate(m_logicmgr);
 	}
 
 	// now a list of triggerer sensors has been built

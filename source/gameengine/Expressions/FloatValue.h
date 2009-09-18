@@ -23,12 +23,12 @@ class CFloatValue : public CPropValue
 public:
 	CFloatValue();
 	CFloatValue(float fl);
-	CFloatValue(float fl,STR_String name,AllocationTYPE alloctype=CValue::HEAPVALUE);
+	CFloatValue(float fl,const char *name,AllocationTYPE alloctype=CValue::HEAPVALUE);
 
 	virtual const STR_String & GetText();
 
 	void Configure(CValue* menuvalue);
-	virtual float GetNumber();
+	virtual double GetNumber();
 	virtual void SetValue(CValue* newval);
 	float GetFloat();
 	void SetFloat(float fl);
@@ -42,6 +42,12 @@ protected:
 	float m_float;
 	STR_String* m_pstrRep;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CFloatValue"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined _FLOATVALUE_H

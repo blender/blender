@@ -43,9 +43,8 @@
 #endif
 
 KX_SCA_EndObjectActuator::KX_SCA_EndObjectActuator(SCA_IObject *gameobj,
-												   SCA_IScene* scene,
-												   PyTypeObject* T): 
-	SCA_IActuator(gameobj, T),
+												   SCA_IScene* scene):
+	SCA_IActuator(gameobj),
 	m_scene(scene)
 {
     // intentionally empty 
@@ -82,8 +81,6 @@ CValue* KX_SCA_EndObjectActuator::GetReplica()
 	if (replica == NULL) return NULL;
 
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 };
 
@@ -94,43 +91,33 @@ CValue* KX_SCA_EndObjectActuator::GetReplica()
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject KX_SCA_EndObjectActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"KX_SCA_EndObjectActuator",
-	sizeof(KX_SCA_EndObjectActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
-};
-
-
-PyParentObject KX_SCA_EndObjectActuator::Parents[] = {
-	&KX_SCA_EndObjectActuator::Type,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
 
 PyMethodDef KX_SCA_EndObjectActuator::Methods[] = {
   {NULL,NULL} //Sentinel
 };
 
-
-PyObject* KX_SCA_EndObjectActuator::_getattr(const STR_String& attr)
-{
-  _getattr_up(SCA_IActuator);
-}
+PyAttributeDef KX_SCA_EndObjectActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 /* eof */
