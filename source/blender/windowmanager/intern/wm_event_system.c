@@ -259,20 +259,23 @@ void wm_event_do_notifiers(bContext *C)
 
 /* ********************* operators ******************* */
 
-static int wm_operator_poll(bContext *C, wmOperatorType *ot)
+int WM_operator_poll(bContext *C, wmOperatorType *ot)
 {
 	wmOperatorTypeMacro *otmacro;
 	
 	for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
 		wmOperatorType *ot= WM_operatortype_find(otmacro->idname, 0);
 		
-		if(0==wm_operator_poll(C, ot))
+		if(0==WM_operator_poll(C, ot))
 			return 0;
 	}
 	
-	if(ot->poll)
+	/* python needs operator type, so we added exception for it */
+	if(ot->pyop_poll)
+		return ot->pyop_poll(C, ot);
+	else if(ot->poll)
 		return ot->poll(C);
-	
+
 	return 1;
 }
 
@@ -284,7 +287,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	if(op==NULL || op->type==NULL)
 		return retval;
 	
-	if(0==wm_operator_poll(C, op->type))
+	if(0==WM_operator_poll(C, op->type))
 		return retval;
 	
 	if(op->type->exec)
@@ -397,7 +400,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
 
-	if(wm_operator_poll(C, ot)) {
+	if(WM_operator_poll(C, ot)) {
 		wmOperator *op= wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
 		
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)

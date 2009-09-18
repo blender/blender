@@ -682,7 +682,7 @@ static void operator_search_cb(const struct bContext *C, void *arg, char *str, u
 	for(; ot; ot= ot->next) {
 		
 		if(BLI_strcasestr(ot->name, str)) {
-			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+			if(WM_operator_poll((bContext*)C, ot)) {
 				char name[256];
 				int len= strlen(ot->name);
 				

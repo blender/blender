@@ -65,7 +65,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		return NULL;
 	}
 	
-	if(ot->poll && (ot->poll(C) == FALSE)) {
+	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
 		PyErr_SetString( PyExc_SystemError, "bpy.__ops__.call: operator poll() function failed, context is incorrect");
 		return NULL;
 	}

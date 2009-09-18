@@ -250,7 +250,6 @@ class EXPORT_OT_ply(bpy.types.Operator):
 	]
 	
 	def poll(self, context):
-		print("Poll")
 		return context.active_object != None
 	
 	def execute(self, context):

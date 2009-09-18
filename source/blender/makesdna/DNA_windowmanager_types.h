@@ -228,6 +228,7 @@ typedef struct wmOperatorType {
 	/* only used for operators defined with python
 	 * use to store pointers to python functions */
 	void *pyop_data;
+	int (*pyop_poll)(struct bContext *, struct wmOperatorType *ot);
 
 } wmOperatorType;
 
