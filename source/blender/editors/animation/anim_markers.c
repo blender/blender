@@ -458,7 +458,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		mm->event_type= evt->type;
 		
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 		
 		/* reset frs delta */
 		RNA_int_set(op->ptr, "frames", 0);

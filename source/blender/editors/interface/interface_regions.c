@@ -2275,7 +2275,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	if(!but) {
 		handle->popup= 1;
 
-		UI_add_popup_handlers(C, &window->handlers, handle);
+		UI_add_popup_handlers(C, &window->modalhandlers, handle);
 		WM_event_add_mousemove(C);
 	}
 	
@@ -2332,7 +2332,7 @@ void uiPupMenuEnd(bContext *C, uiPopupMenu *pup)
 	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_POPUP, pup);
 	menu->popup= 1;
 	
-	UI_add_popup_handlers(C, &window->handlers, menu);
+	UI_add_popup_handlers(C, &window->modalhandlers, menu);
 	WM_event_add_mousemove(C);
 	
 	MEM_freeN(pup);
@@ -2493,7 +2493,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, i
 	handle->optype= (opname)? WM_operatortype_find(opname, 0): NULL;
 	handle->opcontext= opcontext;
 	
-	UI_add_popup_handlers(C, &window->handlers, handle);
+	UI_add_popup_handlers(C, &window->modalhandlers, handle);
 	WM_event_add_mousemove(C);
 }
 
@@ -2516,7 +2516,7 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int
 	handle->cancel_func= confirm_cancel_operator;
 	handle->opcontext= opcontext;
 	
-	UI_add_popup_handlers(C, &window->handlers, handle);
+	UI_add_popup_handlers(C, &window->modalhandlers, handle);
 	WM_event_add_mousemove(C);
 }
 

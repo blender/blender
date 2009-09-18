@@ -1024,7 +1024,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 							event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 							
 							action= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
-							if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */
+							if(action==WM_HANDLER_BREAK)  /* not always_pass here, it denotes removed handler */
 								break;
 						}
 					}
@@ -1042,8 +1042,12 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				action= wm_handler_operator_call(C, handlers, handler, event, NULL);
 			}
 
-			if(!always_pass && action==WM_HANDLER_BREAK)
-				break;
+			if(action==WM_HANDLER_BREAK) {
+				if(always_pass)
+					action= WM_HANDLER_CONTINUE;
+				else
+					break;
+			}
 		}
 		
 		/* fileread case */
@@ -1055,6 +1059,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 static int wm_event_inside_i(wmEvent *event, rcti *rect)
 {
+	if(wm_event_always_pass(event))
+		return 1;
 	if(BLI_in_rcti(rect, event->x, event->y))
 	   return 1;
 	if(event->type==MOUSEMOVE) {
@@ -1156,58 +1162,70 @@ void wm_event_do_handlers(bContext *C)
 			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
 			wm_window_make_drawable(C, win);
 			
-			action= wm_handlers_do(C, event, &win->handlers);
+			/* first we do modal handlers */
+			action= wm_handlers_do(C, event, &win->modalhandlers);
 			
 			/* fileread case */
-			if(CTX_wm_window(C)==NULL) {
+			if(CTX_wm_window(C)==NULL)
 				return;
-			}
 			
 			/* builtin tweak, if action is break it removes tweak */
-			if(!wm_event_always_pass(event))
-				wm_tweakevent_test(C, event, action);
+			wm_tweakevent_test(C, event, action);
 			
-			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
+			if(action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
 				int doit= 0;
 				
 				/* XXX to solve, here screen handlers? */
-				if(!wm_event_always_pass(event)) {
-					if(event->type==MOUSEMOVE) {
-						/* state variables in screen, cursors */
-						ED_screen_set_subwinactive(win, event);	
-						/* for regions having custom cursors */
-						wm_paintcursor_test(C, event);
-					}
+				if(event->type==MOUSEMOVE) {
+					/* state variables in screen, cursors */
+					ED_screen_set_subwinactive(win, event);	
+					/* for regions having custom cursors */
+					wm_paintcursor_test(C, event);
 				}
 				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-					if(wm_event_always_pass(event) || wm_event_inside_i(event, &sa->totrct)) {
-						
+					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
-						CTX_wm_region_set(C, NULL);
-						action= wm_handlers_do(C, event, &sa->handlers);
 
-						if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
+						if(action==WM_HANDLER_CONTINUE) {
 							for(ar=sa->regionbase.first; ar; ar= ar->next) {
-								if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct)) {
+								if(wm_event_inside_i(event, &ar->winrct)) {
 									CTX_wm_region_set(C, ar);
 									action= wm_handlers_do(C, event, &ar->handlers);
 
 									doit |= (BLI_in_rcti(&ar->winrct, event->x, event->y));
 									
-									if(!wm_event_always_pass(event)) {
-										if(action==WM_HANDLER_BREAK)
-											break;
-									}
+									if(action==WM_HANDLER_BREAK)
+										break;
 								}
 							}
 						}
+
+						CTX_wm_region_set(C, NULL);
+
+						if(action==WM_HANDLER_CONTINUE)
+							action= wm_handlers_do(C, event, &sa->handlers);
+
+						CTX_wm_area_set(C, NULL);
+
 						/* NOTE: do not escape on WM_HANDLER_BREAK, mousemove needs handled for previous area */
 					}
 				}
 				
+				if(action==WM_HANDLER_CONTINUE) {
+					/* also some non-modal handlers need active area/region */
+					CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
+					CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
+
+					action= wm_handlers_do(C, event, &win->handlers);
+
+					/* fileread case */
+					if(CTX_wm_window(C)==NULL)
+						return;
+				}
+
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
 				   doing it on ghost queue gives errors when mousemoves go over area borders */
 				if(doit && win->screen->subwinactive != win->screen->mainwin) {
@@ -1274,7 +1292,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	handler->op_region= CTX_wm_region(C);
 	handler->filescreen= CTX_wm_screen(C);
 	
-	BLI_addhead(&win->handlers, handler);
+	BLI_addhead(&win->modalhandlers, handler);
 	
 	WM_event_fileselect_event(C, op, full?EVT_FILESELECT_FULL_OPEN:EVT_FILESELECT_OPEN);
 }
@@ -1285,9 +1303,10 @@ void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 	handler->flag= flag;
 }
 
-wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op)
+wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
 	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event modal handler");
+	wmWindow *win= CTX_wm_window(C);
 	
 	/* operator was part of macro */
 	if(op->opm) {
@@ -1302,7 +1321,7 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOp
 	handler->op_area= CTX_wm_area(C);		/* means frozen screen context for modal handlers! */
 	handler->op_region= CTX_wm_region(C);
 	
-	BLI_addhead(handlers, handler);
+	BLI_addhead(&win->modalhandlers, handler);
 
 	return handler;
 }

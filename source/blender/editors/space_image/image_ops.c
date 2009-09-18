@@ -161,7 +161,7 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->xof= sima->xof;
 	vpd->yof= sima->yof;
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 }
 
 static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
@@ -280,7 +280,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->y= event->y;
 	vpd->zoom= sima->zoom;
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 }
 
 static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
@@ -1453,7 +1453,7 @@ static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	sample_apply(C, op, event);
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1621,7 +1621,7 @@ static int record_composite_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	rcd= op->customdata;
 	rcd->timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER, 0.0f);
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	if(!record_composite_apply(C, op))
 		return OPERATOR_FINISHED;

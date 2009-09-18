@@ -3352,7 +3352,7 @@ static int brush_edit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	brush_edit_apply_event(C, op, event);
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

@@ -1731,7 +1731,7 @@ static int scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	st->flags|= ST_SCROLL_SELECT;
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1860,7 +1860,7 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	st->flags|= ST_SCROLL_SELECT;
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2115,7 +2115,7 @@ static int set_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	scu->sell= txt_get_span(st->text->lines.first, st->text->sell);
 	scu->selc= st->text->selc;
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	set_cursor_apply(C, op, event);
 

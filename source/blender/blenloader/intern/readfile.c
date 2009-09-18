@@ -4371,6 +4371,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->timers.first= win->timers.last= NULL;
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
+		win->modalhandlers.first= win->modalhandlers.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
 		win->gesture.first= win->gesture.last= NULL;
 

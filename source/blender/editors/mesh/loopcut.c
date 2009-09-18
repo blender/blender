@@ -328,7 +328,7 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		return OPERATOR_CANCELLED;
 	
 	/* add a modal handler for this operator - handles loop selection */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	lcd = op->customdata;
 	lcd->vc.mval[0] = evt->mval[0];
@@ -356,7 +356,7 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		return OPERATOR_CANCELLED;
 	
 	/* add a modal handler for this operator - handles loop selection */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	lcd = op->customdata;
 	lcd->vc.mval[0] = evt->mval[0];

@@ -1411,7 +1411,7 @@ static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	poselib_preview_apply(C, op);
 	
 	/* add temp handler if we're running as a modal operator */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

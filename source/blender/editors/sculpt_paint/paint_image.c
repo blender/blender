@@ -4764,7 +4764,7 @@ static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	paint_apply_event(C, op, event);
 
 	pop= op->customdata;
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	if(pop->s.brush->flag & BRUSH_AIRBRUSH)
 		pop->timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER, 0.01f);
@@ -4966,7 +4966,7 @@ static int grab_clone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	cmv->starty= event->y;
 	op->customdata= cmv;
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

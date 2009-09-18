@@ -541,7 +541,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -625,7 +625,7 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	viewops_data(C, op, event);
 
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -823,7 +823,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		viewops_data(C, op, event);
 
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 
 		return OPERATOR_RUNNING_MODAL;
 	}

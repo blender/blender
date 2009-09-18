@@ -119,7 +119,7 @@ void		WM_event_remove_ui_handler(ListBase *handlers,
 			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
 			void (*remove)(struct bContext *C, void *userdata), void *userdata);
 
-struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, ListBase *handlers, struct wmOperator *op);
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 
 void		WM_event_add_mousemove(struct bContext *C);

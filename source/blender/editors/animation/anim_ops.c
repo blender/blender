@@ -162,7 +162,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	change_frame_apply(C, op);
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

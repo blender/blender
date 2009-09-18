@@ -2618,7 +2618,7 @@ static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
 
 	sk_draw_stroke(C, sketch, sketch->active_stroke, dd, snap);
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2644,7 +2644,7 @@ static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
 	sk_start_draw_gesture(sketch);
 	sk_draw_stroke(C, sketch, sketch->gesture, dd, snap);
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

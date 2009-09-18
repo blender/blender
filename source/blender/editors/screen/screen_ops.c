@@ -456,7 +456,7 @@ static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		/* add modal handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 		
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -588,7 +588,7 @@ static int area_swap_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* add modal handler */
 	WM_cursor_modal(CTX_wm_window(C), BC_SWAPAREA_CURSOR);
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	return OPERATOR_RUNNING_MODAL;
 
@@ -870,7 +870,7 @@ static int area_move_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1160,7 +1160,7 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			area_move_set_limits(CTX_wm_screen(C), dir, &sd->bigger, &sd->smaller);
 			
 			/* add temp handler for edge move or cancel */
-			WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+			WM_event_add_modal_handler(C, op);
 			
 			return OPERATOR_RUNNING_MODAL;
 		}
@@ -1296,7 +1296,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			rmd->origval= rmd->ar->type->minsizey;
 		
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 		
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -1749,7 +1749,7 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 	
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 	
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -2944,7 +2944,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
 
 	/* add modal handler for ESC */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	return OPERATOR_RUNNING_MODAL;
 }

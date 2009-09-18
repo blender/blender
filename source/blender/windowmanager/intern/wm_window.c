@@ -146,6 +146,7 @@ void wm_window_free(bContext *C, wmWindow *win)
 			CTX_wm_window_set(C, NULL);
 		
 		WM_event_remove_handlers(C, &win->handlers);
+		WM_event_remove_handlers(C, &win->modalhandlers);
 
 		/* end running jobs, a job end also removes its timer */
 		for(wt= win->timers.first; wt; wt= wtnext) {

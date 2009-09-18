@@ -1400,14 +1400,14 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 		MEM_freeN(data);
 		pa->activedata= NULL;
 
-		WM_event_remove_ui_handler(&win->handlers, ui_handler_panel, ui_handler_remove_panel, pa);
+		WM_event_remove_ui_handler(&win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa);
 	}
 	else {
 		if(!data) {
 			data= MEM_callocN(sizeof(uiHandlePanelData), "uiHandlePanelData");
 			pa->activedata= data;
 
-			WM_event_add_ui_handler(C, &win->handlers, ui_handler_panel, ui_handler_remove_panel, pa);
+			WM_event_add_ui_handler(C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa);
 		}
 
 		if(ELEM(state, PANEL_STATE_ANIMATION, PANEL_STATE_DRAG))

@@ -1502,7 +1502,7 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					  wpaint_stroke_done);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	op->type->modal(C, op, event);
 	
@@ -1775,7 +1775,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					  vpaint_stroke_done);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	op->type->modal(C, op, event);
 	

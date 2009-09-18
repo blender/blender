@@ -1366,7 +1366,7 @@ int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
 
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
 
@@ -1430,7 +1430,7 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
 	
@@ -1607,7 +1607,7 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_LASSO);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
 	
@@ -1622,7 +1622,7 @@ int WM_gesture_lines_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_LINES);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
 	
@@ -1929,7 +1929,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					      wm_radial_control_paint, op->customdata);
 
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	WM_radial_control_modal(C, op, event);
 	

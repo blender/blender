@@ -270,7 +270,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		TransInfo *t = op->customdata;
 
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 
 		t->flag |= T_MODAL; // XXX meh maybe somewhere else
 

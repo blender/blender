@@ -3660,11 +3660,11 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	if(!(but->block->handle && but->block->handle->popup)) {
 		if(button_modal_state(state)) {
 			if(!button_modal_state(data->state))
-				WM_event_add_ui_handler(C, &data->window->handlers, ui_handler_region_menu, NULL, data);
+				WM_event_add_ui_handler(C, &data->window->modalhandlers, ui_handler_region_menu, NULL, data);
 		}
 		else {
 			if(button_modal_state(data->state))
-				WM_event_remove_ui_handler(&data->window->handlers, ui_handler_region_menu, NULL, data);
+				WM_event_remove_ui_handler(&data->window->modalhandlers, ui_handler_region_menu, NULL, data);
 		}
 	}
 
@@ -4600,7 +4600,7 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 		uiPopupBlockHandle temp= *menu;
 		
 		ui_popup_block_free(C, menu);
-		WM_event_remove_ui_handler(&CTX_wm_window(C)->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
+		WM_event_remove_ui_handler(&CTX_wm_window(C)->modalhandlers, ui_handler_popup, ui_handler_remove_popup, menu);
 
 		if(temp.menuretval == UI_RETURN_OK) {
 			if(temp.popup_func)
