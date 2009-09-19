@@ -1348,72 +1348,49 @@ static void node_composit_buts_splitviewer(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_map_value(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	TexMapping *texmap= node->storage;
-	short xstart= (short)butr->xmin;
-	short dy= (short)(butr->ymax-19.0f);
-	short dx= (short)(butr->xmax-butr->xmin)/2;
+	uiLayout *sub, *col;
 	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NODE_EXEC, "Offs:", xstart, dy, 2*dx, 19, texmap->loc, -1000.0f, 1000.0f, 10, 2, "");
-	dy-= 19;
-	uiDefButF(block, NUM, B_NODE_EXEC, "Size:", xstart, dy, 2*dx, 19, texmap->size, -1000.0f, 1000.0f, 10, 3, "");
-	dy-= 23;
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC, "Min", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
-	uiDefButF(block, NUM, B_NODE_EXEC, "", xstart+dx, dy, dx, 19, texmap->min, -1000.0f, 1000.0f, 10, 2, "");
-	dy-= 19;
-	uiDefButBitI(block, TOG, TEXMAP_CLIP_MAX, B_NODE_EXEC, "Max", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
-	uiDefButF(block, NUM, B_NODE_EXEC, "", xstart+dx, dy, dx, 19, texmap->max, -1000.0f, 1000.0f, 10, 2, "");
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "offset", 0);
+	uiItemR(col, NULL, 0, ptr, "size", 0);
+	
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "use_min", 0);
+	sub =uiLayoutColumn(col, 0);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min"));
+	uiItemR(sub, "", 0, ptr, "min", 0);
+	
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "use_max", 0);
+	sub =uiLayoutColumn(col, 0);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max"));
+	uiItemR(sub, "", 0, ptr, "max", 0);
 }
 
 static void node_composit_buts_alphaover(uiLayout *layout, PointerRNA *ptr)
-{
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeTwoFloats *ntf= node->storage;
+{	
+	uiLayout *col;
 	
+	col =uiLayoutColumn(layout, 1);
 	/* alpha type */
-	uiDefButS(block, TOG, B_NODE_EXEC, "ConvertPremul",
-			  butr->xmin, butr->ymin+19, butr->xmax-butr->xmin, 19, 
-			  &node->custom1, 0, 0, 0, 0, "");
+	uiItemR(col, NULL, 0, ptr, "convert_premul", 0);
 	/* mix factor */
-	uiDefButF(block, NUM, B_NODE_EXEC, "Premul: ",
-			  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
-			  &ntf->x, 0.0f, 1.0f, 100, 0, "");
+	uiItemR(col, NULL, 0, ptr, "premul", 0);
 }
 
 static void node_composit_buts_hue_sat(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeHueSat *nhs= node->storage;
+	uiLayout *col;
 	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Hue: ",
-			  butr->xmin, butr->ymin+40.0f, butr->xmax-butr->xmin, 20, 
-			  &nhs->hue, 0.0f, 1.0f, 100, 0, "");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Sat: ",
-			  butr->xmin, butr->ymin+20.0f, butr->xmax-butr->xmin, 20, 
-			  &nhs->sat, 0.0f, 2.0f, 100, 0, "");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Val: ",
-			  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-			  &nhs->val, 0.0f, 2.0f, 100, 0, "");
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "hue", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "sat", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "val", UI_ITEM_R_SLIDER);
 }
 
 static void node_composit_buts_dilateerode(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-
-	uiDefButS(block, NUM, B_NODE_EXEC, "Distance:",
-			  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-			  &node->custom2, -100, 100, 0, 0, "Distance to grow/shrink (number of iterations)");
+	uiItemR(layout, NULL, 0, ptr, "distance", 0);
 }
 
 static void node_composit_buts_diff_matte(uiLayout *layout, PointerRNA *ptr)
