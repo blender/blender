@@ -540,10 +540,13 @@ static void rna_def_armature(BlenderRNA *brna)
 		{ARM_PATH_ACFRA, "CURRENT_FRAME", 0, "Around Frame", "Display Paths of poses within a fixed number of frames around the current frame."},
 		{0, "RANGE", 0, "In Range", "Display Paths of poses within specified range."},
 		{0, NULL, 0, NULL, NULL}};
-		
 	static const EnumPropertyItem prop_paths_location_items[]= {
 		{ARM_PATH_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
-		{0, "TIPS", 0, "Tips", "Calculate bone paths from tips"},
+		{0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},
+		{0, NULL, 0, NULL, NULL}};
+	static const EnumPropertyItem prop_pose_position_items[]= {
+		{0, "POSE_POSITION", 0, "Pose Position", "Show armature in posed state."},
+		{ARM_RESTPOS, "REST_POSITION", 0, "Rest Position", "Show Armature in binding pose state. No posing possible."},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");
@@ -565,6 +568,17 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edit Bones", "");
 	
 	/* Enum values */
+//	prop= RNA_def_property(srna, "rest_position", PROP_BOOLEAN, PROP_NONE);
+//	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_RESTPOS);
+//	RNA_def_property_ui_text(prop, "Rest Position", "Show Armature in Rest Position. No posing possible.");
+//	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	
+	prop= RNA_def_property(srna, "pose_position", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_pose_position_items);
+	RNA_def_property_ui_text(prop, "Pose Position", "Show armature in binding pose or final posed state.");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
 	prop= RNA_def_property(srna, "drawtype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_drawtype_items);
 	RNA_def_property_ui_text(prop, "Draw Type", "");
@@ -606,10 +620,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 		
 		/* flag */
-	prop= RNA_def_property(srna, "rest_position", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_RESTPOS);
-	RNA_def_property_ui_text(prop, "Rest Position", "Show Armature in Rest Position. No posing possible.");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	
 	
 	prop= RNA_def_property(srna, "draw_axes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWAXES);

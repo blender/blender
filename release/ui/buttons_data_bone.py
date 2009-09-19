@@ -177,7 +177,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 		split = layout.split(percentage=0.25)
 		split.itemR(pchan, "ik_dof_x", text="X")
 		row = split.row()
-		row.itemR(pchan, "ik_stiffness_x", text="Stiffness")
+		row.itemR(pchan, "ik_stiffness_x", text="Stiffness", slider=True)
 		row.active = pchan.ik_dof_x
 
 		split = layout.split(percentage=0.25)
@@ -192,7 +192,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 		split = layout.split(percentage=0.25)
 		split.itemR(pchan, "ik_dof_y", text="Y")
 		row = split.row()
-		row.itemR(pchan, "ik_stiffness_y", text="Stiffness")
+		row.itemR(pchan, "ik_stiffness_y", text="Stiffness", slider=True)
 		row.active = pchan.ik_dof_y
 
 		split = layout.split(percentage=0.25)
@@ -207,7 +207,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 		split = layout.split(percentage=0.25)
 		split.itemR(pchan, "ik_dof_z", text="Z")
 		row = split.row()
-		row.itemR(pchan, "ik_stiffness_z", text="Stiffness")
+		row.itemR(pchan, "ik_stiffness_z", text="Stiffness", slider=True)
 		row.active = pchan.ik_dof_z
 
 		split = layout.split(percentage=0.25)
@@ -220,7 +220,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 		row.active = pchan.ik_dof_z and pchan.ik_limit_z
 
 		split = layout.split()
-		split.itemR(pchan, "ik_stretch", text="Stretch")
+		split.itemR(pchan, "ik_stretch", text="Stretch", slider=True)
 		split.itemL()
 
 class BONE_PT_deform(BoneButtonsPanel):

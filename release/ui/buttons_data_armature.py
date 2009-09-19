@@ -37,7 +37,9 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		ob = context.object
 		arm = context.armature
 		space = context.space_data
-
+		
+		layout.itemR(arm, "pose_position", expand=True)
+		
 		split = layout.split()
 
 		col = split.column()
@@ -50,7 +52,6 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		col.itemR(arm, "auto_ik")
 		
 		col = split.column()
-		col.itemR(arm, "rest_position")
 		col.itemL(text="Deform:")
 		col.itemR(arm, "deform_vertexgroups", text="Vertex Groups")
 		col.itemR(arm, "deform_envelope", text="Envelopes")
@@ -140,12 +141,16 @@ class DATA_PT_paths(DataButtonsPanel):
 		col.row().itemR(arm, "paths_location", expand=True)
 		
 		col = split.column()
-		col.itemL(text="Show:")
+		col.itemL(text="Display:")
 		col.itemR(arm, "paths_show_frame_numbers", text="Frame Numbers")
 		col.itemR(arm, "paths_highlight_keyframes", text="Keyframes")
 		col.itemR(arm, "paths_show_keyframe_numbers", text="Keyframe Numbers")
 		
-		layout.itemO("pose.paths_calculate")
+		layout.itemS()
+		
+		row = layout.row()
+		row.itemO("pose.paths_calculate", text="Calculate Paths")
+		row.itemO("pose.paths_clear", text="Clear Paths")
 
 class DATA_PT_ghost(DataButtonsPanel):
 	__label__ = "Ghost"
@@ -171,6 +176,7 @@ class DATA_PT_ghost(DataButtonsPanel):
 			sub.itemR(arm, "ghost_size", text="Step")
 
 		col = split.column()
+		col.itemL(text="Display:")
 		col.itemR(arm, "ghost_only_selected", text="Selected Only")
 
 bpy.types.register(DATA_PT_context_arm)
