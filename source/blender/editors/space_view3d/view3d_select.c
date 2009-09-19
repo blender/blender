@@ -1148,7 +1148,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter,
 					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
 					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
-					if(basact->object->mode & OB_MODE_WEIGHT_PAINT) {
+					if(BASACT && BASACT->object->mode & OB_MODE_WEIGHT_PAINT) {
 						/* prevent activating */
 						basact= NULL;
 					}

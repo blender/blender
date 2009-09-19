@@ -2513,7 +2513,11 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 			/* drawing posemode selection indices or colors only in these cases */
 			if(!(base->flag & OB_FROMDUPLI)) {
 				if(G.f & G_PICKSEL) {
-					if(ob->mode & OB_MODE_POSE) 
+					if(OBACT && (OBACT->mode & OB_MODE_WEIGHT_PAINT)) {
+						if(ob==modifiers_isDeformedByArmature(OBACT))
+							arm->flag |= ARM_POSEMODE;
+					}
+					else if(ob->mode & OB_MODE_POSE) 
 						arm->flag |= ARM_POSEMODE;
 				}
 				else if(ob->mode & OB_MODE_POSE) {
@@ -2530,8 +2534,8 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 					if ((flag & DRAW_SCENESET)==0) {
 						if(ob==OBACT) 
 							arm->flag |= ARM_POSEMODE;
-						else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-							if(OBACT && ob==modifiers_isDeformedByArmature(OBACT))
+						else if(OBACT && (OBACT->mode & OB_MODE_WEIGHT_PAINT)) {
+							if(ob==modifiers_isDeformedByArmature(OBACT))
 								arm->flag |= ARM_POSEMODE;
 						}
 						draw_pose_paths(scene, v3d, rv3d, ob);

@@ -5289,7 +5289,7 @@ void createTransData(bContext *C, TransInfo *t)
 		{
 			if(ob_armature->type==OB_ARMATURE)
 			{
-				if(ob_armature->mode & OB_MODE_POSE)
+				if((ob_armature->mode & OB_MODE_POSE) && ob_armature == modifiers_isDeformedByArmature(ob))
 				{
 					createTransPose(C, t, ob_armature);
 					break;

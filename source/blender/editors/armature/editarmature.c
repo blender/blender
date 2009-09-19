@@ -4333,7 +4333,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		}
 		
 		/* in weightpaint we select the associated vertex group too */
-		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+		if (OBACT && OBACT->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone->flag & BONE_ACTIVE) {
 				ED_vgroup_select_by_name(OBACT, nearBone->name);
 				DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
