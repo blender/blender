@@ -639,7 +639,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 	
 	/* figure out the sizes of spheres */
 	if (ebone) {
-		/* this routine doesn't call set_matrix_editbone() that calculates it */
+		/* this routine doesn't call get_matrix_editbone() that calculates it */
 		ebone->length = VecLenf(ebone->head, ebone->tail);
 		
 		length= ebone->length;
@@ -749,7 +749,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 	
 	/* figure out the sizes of spheres */
 	if (ebone) {
-		/* this routine doesn't call set_matrix_editbone() that calculates it */
+		/* this routine doesn't call get_matrix_editbone() that calculates it */
 		ebone->length = VecLenf(ebone->head, ebone->tail);
 		
 		length= ebone->length;
@@ -1516,15 +1516,25 @@ static void draw_pose_dofs(Object *ob)
 	}
 }
 
-/* assumes object is Armature with pose */
-static void draw_pose_channels(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt)
+static void bone_matrix_translate_y(float mat[][4], float y)
 {
+	float trans[3];
+
+	VECCOPY(trans, mat[1]);
+	VecMulf(trans, y);
+	VecAddf(mat[3], mat[3], trans);
+}
+
+/* assumes object is Armature with pose */
+static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt)
+{
+	RegionView3D *rv3d= ar->regiondata;
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
 	GLfloat tmp;
-	float smat[4][4], imat[4][4];
+	float smat[4][4], imat[4][4], bmat[4][4];
 	int index= -1;
 	short do_dashed= 3, draw_wire= 0;
 	short flag, constflag;
@@ -1809,15 +1819,21 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ba
 						/* 	Draw names of bone 	*/
 						if (arm->flag & ARM_DRAWNAMES) {
 							VecMidf(vec, pchan->pose_head, pchan->pose_tail);
-							view3d_object_text_draw_add(vec[0], vec[1], vec[2], pchan->name, 10);
+							view3d_cached_text_draw_add(vec[0], vec[1], vec[2], pchan->name, 10);
 						}	
 						
 						/*	Draw additional axes on the bone tail  */
 						if ( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ) {
 							glPushMatrix();
-							glMultMatrixf(pchan->pose_mat);
-							glTranslatef(0.0f, pchan->bone->length, 0.0f);
-							drawaxes(0.25f*pchan->bone->length, 0, OB_ARROWS);
+							Mat4CpyMat4(bmat, pchan->pose_mat);
+							bone_matrix_translate_y(bmat, pchan->bone->length);
+							glMultMatrixf(bmat);
+
+							/* do cached text draw immediate to include transform */
+							view3d_cached_text_draw_begin();
+							drawaxes(pchan->bone->length*0.25f, 0, OB_ARROWS);
+							view3d_cached_text_draw_end(v3d, ar, 1, bmat);
+
 							glPopMatrix();
 						}
 					}
@@ -1830,32 +1846,28 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ba
 }
 
 /* in editmode, we don't store the bone matrix... */
-static void set_matrix_editbone(EditBone *eBone)
+static void get_matrix_editbone(EditBone *eBone, float bmat[][4])
 {
-	float		delta[3],offset[3];
-	float		mat[3][3], bmat[4][4];
+	float		delta[3];
+	float		mat[3][3];
 	
 	/* Compose the parent transforms (i.e. their translations) */
-	VECCOPY(offset, eBone->head);
-	
-	glTranslatef(offset[0],offset[1],offset[2]);
-	
 	VecSubf(delta, eBone->tail, eBone->head);	
 	
 	eBone->length = (float)sqrt(delta[0]*delta[0] + delta[1]*delta[1] +delta[2]*delta[2]);
 	
 	vec_roll_to_mat3(delta, eBone->roll, mat);
 	Mat4CpyMat3(bmat, mat);
-		
-	glMultMatrixf(bmat);
-	
+
+	VecAddf(bmat[3], bmat[3], eBone->head);
 }
 
-static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
+static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	EditBone *eBone;
 	bArmature *arm= ob->data;
-	float smat[4][4], imat[4][4];
+	float smat[4][4], imat[4][4], bmat[4][4];
 	unsigned int index;
 	int flag;
 	
@@ -1893,7 +1905,8 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 			if (eBone->layer & arm->layer) {
 				if ((eBone->flag & BONE_HIDDEN_A)==0) {
 					glPushMatrix();
-					set_matrix_editbone(eBone);
+					get_matrix_editbone(eBone, bmat);
+					glMultMatrixf(bmat);
 					
 					/* catch exception for bone with hidden parent */
 					flag= eBone->flag;
@@ -1941,7 +1954,8 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 				}
 				else {
 					glPushMatrix();
-					set_matrix_editbone(eBone);
+					get_matrix_editbone(eBone, bmat);
+					glMultMatrixf(bmat);
 					
 					if (arm->drawtype == ARM_LINE) 
 						draw_line_bone(arm->flag, flag, 0, index, NULL, eBone);
@@ -1994,14 +2008,20 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 						if (arm->flag & ARM_DRAWNAMES) {
 							VecMidf(vec, eBone->head, eBone->tail);
 							glRasterPos3fv(vec);
-							view3d_object_text_draw_add(vec[0], vec[1], vec[2], eBone->name, 10);
+							view3d_cached_text_draw_add(vec[0], vec[1], vec[2], eBone->name, 10);
 						}					
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
 							glPushMatrix();
-							set_matrix_editbone(eBone);
-							glTranslatef(0.0f, eBone->length, 0.0f);
+							get_matrix_editbone(eBone, bmat);
+							bone_matrix_translate_y(bmat, eBone->length);
+							glMultMatrixf(bmat);
+
+							/* do cached text draw immediate to include transform */
+							view3d_cached_text_draw_begin();
 							drawaxes(eBone->length*0.25f, 0, OB_ARROWS);
+							view3d_cached_text_draw_end(v3d, ar, 1, bmat);
+
 							glPopMatrix();
 						}
 						
@@ -2021,8 +2041,9 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 /* draw bone paths
  *	- in view space 
  */
-static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
+static void draw_pose_paths(Scene *scene, View3D *v3d, ARegion *ar, Object *ob)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	AnimData *adt= BKE_animdata_from_id(&ob->id);
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -2155,12 +2176,12 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 						/* only draw framenum if several consecutive highlighted points don't occur on same point */
 						if (a == 0) {
 							sprintf(str, "%d", (a+sfra));
-							view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
+							view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 						}
 						else if ((a > stepsize) && (a < len-stepsize)) { 
 							if ((VecEqual(fp, fp-(stepsize*3))==0) || (VecEqual(fp, fp+(stepsize*3))==0)) {
 								sprintf(str, "%d", (a+sfra));
-								view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
+								view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 							}
 						}
 					}
@@ -2202,7 +2223,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 									char str[32];
 									
 									sprintf(str, "%d", (a+sfra));
-									view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
+									view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 								}
 							}
 						}
@@ -2253,7 +2274,7 @@ static void ghost_poses_tag_unselected(Object *ob, short unset)
 /* draw ghosts that occur within a frame range 
  * 	note: object should be in posemode 
  */
-static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
+static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob= base->object;
 	AnimData *adt= BKE_animdata_from_id(&ob->id);
@@ -2295,7 +2316,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		
 		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
-		draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
+		draw_pose_channels(scene, v3d, ar, base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2315,7 +2336,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d
 /* draw ghosts on keyframes in action within range 
  *	- object should be in posemode 
  */
-static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
+static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob= base->object;
 	AnimData *adt= BKE_animdata_from_id(&ob->id);
@@ -2374,7 +2395,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		
 		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
-		draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
+		draw_pose_channels(scene, v3d, ar, base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2394,7 +2415,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 /* draw ghosts around current frame
  * 	- object is supposed to be armature in posemode 
  */
-static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
+static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob= base->object;
 	AnimData *adt= BKE_animdata_from_id(&ob->id);
@@ -2444,7 +2465,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
-				draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
+				draw_pose_channels(scene, v3d, ar, base, OB_WIRE);
 			}
 		}
 		
@@ -2459,7 +2480,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
-				draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
+				draw_pose_channels(scene, v3d, ar, base, OB_WIRE);
 			}
 		}
 	}
@@ -2480,7 +2501,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 /* ********************************** Armature Drawing - Main ************************* */
 
 /* called from drawobject.c, return 1 if nothing was drawn */
-int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
+int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
@@ -2504,7 +2525,7 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 	/* editmode? */
 	if(arm->edbo) {
 		arm->flag |= ARM_EDITMODE;
-		draw_ebones(v3d, rv3d, ob, dt);
+		draw_ebones(v3d, ar, ob, dt);
 		arm->flag &= ~ARM_EDITMODE;
 	}
 	else{
@@ -2522,14 +2543,14 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 				}
 				else if(ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {
-						draw_ghost_poses_range(scene, v3d, rv3d, base);
+						draw_ghost_poses_range(scene, v3d, ar, base);
 					}
 					else if (arm->ghosttype == ARM_GHOST_KEYS) {
-						draw_ghost_poses_keys(scene, v3d, rv3d, base);
+						draw_ghost_poses_keys(scene, v3d, ar, base);
 					}
 					else if (arm->ghosttype == ARM_GHOST_CUR) {
 						if (arm->ghostep)
-							draw_ghost_poses(scene, v3d, rv3d, base);
+							draw_ghost_poses(scene, v3d, ar, base);
 					}
 					if ((flag & DRAW_SCENESET)==0) {
 						if(ob==OBACT) 
@@ -2538,11 +2559,11 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 							if(ob==modifiers_isDeformedByArmature(OBACT))
 								arm->flag |= ARM_POSEMODE;
 						}
-						draw_pose_paths(scene, v3d, rv3d, ob);
+						draw_pose_paths(scene, v3d, ar, ob);
 					}
 				}	
 			}
-			draw_pose_channels(scene, v3d, rv3d, base, dt);
+			draw_pose_channels(scene, v3d, ar, base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 			
 			if(ob->mode & OB_MODE_POSE)

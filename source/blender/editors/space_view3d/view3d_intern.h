@@ -89,10 +89,13 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob);
 void drawaxes(float size, int flag, char drawtype);
-void view3d_object_text_draw_add(float x, float y, float z, char *str, short xoffs);
+
+void view3d_cached_text_draw_begin(void);
+void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs);
+void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4]);
 
 /* drawarmature.c */
-int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag);
+int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag);
 
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, struct DerivedMesh *dm, int faceselect);
