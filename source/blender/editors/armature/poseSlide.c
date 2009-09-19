@@ -103,6 +103,7 @@ typedef struct tPoseSlideOp {
 	Scene *scene;		/* current scene */
 	ARegion *ar;		/* region that we're operating in (needed for  */
 	Object *ob;			/* active object that Pose Info comes from */
+	bArmature *arm;		/* armature for pose */
 	
 	ListBase pfLinks;	/* links between posechannels and f-curves  */
 	DLRBT_Tree keys;	/* binary tree for quicker searching for keyframes (when applicable) */
@@ -151,6 +152,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	/* get info from context */
 	pso->scene= CTX_data_scene(C);
 	pso->ob= CTX_data_active_object(C);
+	pso->arm= (pso->ob)? pso->ob->data : NULL;
 	pso->ar= CTX_wm_region(C); /* only really needed when doing modal() */
 	
 	pso->cframe= pso->scene->r.cfra;
@@ -162,7 +164,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	pso->nextFrame= RNA_int_get(op->ptr, "next_frame");
 	
 	/* check the settings from the context */
-	if (ELEM3(NULL, pso->ob, pso->ob->adt, pso->ob->adt->action))
+	if (ELEM4(NULL, pso->ob, pso->arm, pso->ob->adt, pso->ob->adt->action))
 		return 0;
 	else
 		act= pso->ob->adt->action;
@@ -203,6 +205,11 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 		}
 	}
 	CTX_DATA_END;
+	
+	/* set depsgraph flags */
+		/* make sure the lock is set OK, unlock can be accidentally saved? */
+	pso->ob->pose->flag |= POSE_LOCKED;
+	pso->ob->pose->flag &= ~POSE_DO_UNLOCK;
 	
 	/* do basic initialise of RB-BST used for finding keyframes, but leave the filling of it up 
 	 * to the caller of this (usually only invoke() will do it, to make things more efficient).
@@ -289,8 +296,8 @@ static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, flo
 	/* using this path, find each matching F-Curve for the variables we're interested in */
 	while ( (ld= find_next_fcurve_link(&pfl->fcurves, ld, path)) ) {
 		FCurve *fcu= (FCurve *)ld->data;
-		float w1, w2, wtot, ctrl, ictrl;
 		float sVal, eVal;
+		float w1, w2;
 		int ch;
 		
 		/* get keyframe values for endpoint poses to blend with */
@@ -302,21 +309,26 @@ static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, flo
 		/* get channel index */
 		ch= fcu->array_index;
 		
-		/* get the influence of the control */
-		ctrl= pso->percentage;
-		ictrl= 1.0f - pso->percentage;
-		
-		/* calculate the relative weights of the endpoints 
-		 *	- these weights are derived from the relative distance of these 
-		 *	  poses from the current frame
-		 *	- they then get normalised, with the results of these normalised 
-		 */
-		w1 = cframe - (float)pso->prevFrame;
-		w2 = (float)pso->nextFrame - cframe;
-		
-		wtot = w1 + w2;
-		w1 = w1/wtot;
-		w2 = w2/wtot;
+		/* calculate the relative weights of the endpoints */
+		if (pso->mode == POSESLIDE_BREAKDOWN) {
+			/* get weights from the percentage control */
+			w1= pso->percentage;	/* this must come second */
+			w2= 1.0f - w1;			/* this must come first */
+		}
+		else {
+			/*	- these weights are derived from the relative distance of these 
+			 *	  poses from the current frame
+			 *	- they then get normalised so that they only sum up to 1
+			 */
+			float wtot; 
+			
+			w1 = cframe - (float)pso->prevFrame;
+			w2 = (float)pso->nextFrame - cframe;
+			
+			wtot = w1 + w2;
+			w1 = (w1/wtot);
+			w2 = (w2/wtot);
+		}
 		
 		/* depending on the mode, */
 		switch (pso->mode) {
@@ -332,10 +344,8 @@ static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, flo
 				break;
 				
 			case POSESLIDE_BREAKDOWN: /* make the current pose slide around between the endpoints */
-				// NOTE: just linear interpolation for now, but could add small component of our key if necessary...
-				// TODO: this doesn't work at all
-				w2= 1.0f - w1;
-				vec[ch]= ((sVal * w1) + (eVal * w2));
+				/* perform simple linear interpolation - coefficient for start must come from pso->percentage... */
+				vec[ch]= ((sVal * w2) + (eVal * w1));
 				break;
 		}
 		
@@ -449,15 +459,18 @@ static void pose_slide_apply (bContext *C, wmOperator *op, tPoseSlideOp *pso)
 		}
 	}
 	
-	/* funky depsgraph flags - are these still needed? */
-	pso->ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-	
-	/* do depsgraph flush */
-	DAG_id_flush_update(&pso->ob->id, OB_RECALC_DATA);
+	/* old optimize trick... this enforces to bypass the depgraph 
+	 *	- note: code copied from transform_generics.c -> recalcData()
+	 */
+	// FIXME: shouldn't this use the builtin stuff?
+	if ((pso->arm->flag & ARM_DELAYDEFORM)==0)
+		DAG_id_flush_update(&pso->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+	else
+		where_is_pose(pso->scene, pso->ob);
 	
 	/* note, notifier might evolve */
-	//WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pso->ob);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, pso->ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pso->ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 }
 
 /* ------------------------------------ */
@@ -482,7 +495,7 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 	/* consolidate these keyframes, and figure out the nearest ones */
 	BLI_dlrbTree_linkedlist_sync(&pso->keys);
 	
-	/* cancel if no keyframes found... */
+		/* cancel if no keyframes found... */
 	if (pso->keys.root) {
 		ActKeyColumn *ak;
 		
@@ -491,14 +504,24 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 		
 		if (ak == NULL) {
 			/* current frame is not a keyframe, so search */
+			ActKeyColumn *pk= cfra_find_nearest_next_ak(pso->keys.root, pso->cframe, 0);
+			ActKeyColumn *nk= cfra_find_nearest_next_ak(pso->keys.root, pso->cframe, 1);
+			
+			/* check if we found good keyframes */
+			if ((pk == nk) && (pk != NULL)) {
+				if (pk->cfra < pso->cframe)
+					nk= nk->next;
+				else if (nk->cfra > pso->cframe)
+					pk= pk->prev;
+			}
+			
+			/* new set the frames */
 				/* prev frame */
-			ak= cfra_find_nearest_next_ak(pso->keys.root, pso->cframe, 0);
-			pso->prevFrame= (ak)? (ak->cfra) : (pso->cframe - 1);
+			pso->prevFrame= (pk)? (pk->cfra) : (pso->cframe - 1);
 			RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
 				/* next frame */
-			ak= cfra_find_nearest_next_ak(pso->keys.root, pso->cframe, 1);
-			pso->nextFrame= (ak)? (ak->cfra) : (pso->cframe + 1);
-			RNA_int_set(op->ptr, "next_frame", pso->prevFrame);
+			pso->nextFrame= (nk)? (nk->cfra) : (pso->cframe + 1);
+			RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
 		}
 		else {
 			/* current frame itself is a keyframe, so just take keyframes on either side */
@@ -515,18 +538,63 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 		return OPERATOR_CANCELLED;
 	}
 	
-	
-	// TODO -----------------------------------
-	// from here on, we should just invoke the modal operator, but for now, just do static...
-	
-	/* temp static operator code... */
-	pose_slide_apply(C, op, pso);
-	pose_slide_exit(C, op);
-	return OPERATOR_FINISHED;
+	// FIXME: for now, just do modal for breakdowns... 
+	if (pso->mode == POSESLIDE_BREAKDOWN) {	
+		/* initial apply for operator... */
+		pose_slide_apply(C, op, pso);
+		
+		/* add a modal handler for this operator */
+		WM_event_add_modal_handler(C, op);
+		return OPERATOR_RUNNING_MODAL;
+	}
+	else {
+		/* temp static operator code... until a way to include percentage in the formulation comes up */
+		pose_slide_apply(C, op, pso);
+		pose_slide_exit(C, op);
+		return OPERATOR_FINISHED;
+	}
 }
 
-// TODO: common modal + cancel
+/* common code for modal() */
+static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	tPoseSlideOp *pso= op->customdata;
+	
+	switch (evt->type) {
+		case LEFTMOUSE:	/* confirm */
+			pose_slide_exit(C, op);
+			return OPERATOR_FINISHED;
+		
+		case ESCKEY:	/* cancel */
+		case RIGHTMOUSE: 
+			pose_slide_exit(C, op);
+			return OPERATOR_CANCELLED;
+			
+		case MOUSEMOVE: /* calculate new position */
+		{
+			/* calculate percentage based on position of mouse (we only use x-axis for now.
+			 * since this is more conveninent for users to do), and store new percentage value 
+			 */
+			pso->percentage= (evt->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
+			RNA_float_set(op->ptr, "percentage", pso->percentage);
+			
+			/* apply... */
+			pose_slide_apply(C, op, pso);
+		}
+			break;
+	}
+	
+	/* still running... */
+	return OPERATOR_RUNNING_MODAL;
+}
 
+/* common code for cancel() */
+static int pose_slide_cancel (bContext *C, wmOperator *op)
+{
+	/* cleanup and done */
+	pose_slide_exit(C, op);
+	return OPERATOR_CANCELLED;
+}
 
 /* common code for exec() methods */
 static int pose_slide_exec_common (bContext *C, wmOperator *op, tPoseSlideOp *pso)
@@ -708,12 +776,12 @@ void POSE_OT_breakdown (wmOperatorType *ot)
 	/* callbacks */
 	ot->exec= pose_slide_breakdown_exec;
 	ot->invoke= pose_slide_breakdown_invoke;
-	//ot->modal= pose_slide_modal;
-	//ot->cancel= pose_slide_cancel;
+	ot->modal= pose_slide_modal;
+	ot->cancel= pose_slide_cancel;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;//|OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);

@@ -1942,7 +1942,7 @@ static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 /* Set the visible layers for the active armature (edit and pose modes) */
 static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm= (ob)? ob->data : NULL;
 	PointerRNA ptr;
 	int layers[16]; /* hardcoded for now - we can only have 16 armature layers, so this should be fine... */
@@ -1955,7 +1955,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_EditBone, ebone, &ptr);
-		RNA_boolean_set_array(&ptr, "layers", layers);
+		RNA_boolean_set_array(&ptr, "layer", layers);
 	}
 	CTX_DATA_END;
 	

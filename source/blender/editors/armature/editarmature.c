@@ -2630,6 +2630,9 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 								/* copy transform locks */
 								channew->protectflag = chanold->protectflag;
 								
+								/* copy rotation mode */
+								channew->rotmode = chanold->rotmode;
+								
 								/* copy bone group */
 								channew->agrp_index= chanold->agrp_index;
 								

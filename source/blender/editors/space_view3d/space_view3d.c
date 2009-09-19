@@ -420,6 +420,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_POSE:
 				case ND_DRAW:
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
@@ -560,6 +561,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_POSE:
 				case ND_DRAW:
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);

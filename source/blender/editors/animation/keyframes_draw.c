@@ -332,6 +332,7 @@ ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
 }
 
 /* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
+// FIXME: this is buggy... next() is ignored completely...
 ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
 {
 	ActKeyColumn *akn= NULL;
