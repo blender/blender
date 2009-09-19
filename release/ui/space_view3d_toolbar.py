@@ -299,11 +299,13 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col.itemL(text="Pose:")
 		col.itemO("pose.copy", text="Copy")
 		col.itemO("pose.paste", text="Paste")
+		col.itemO("poselib.pose_add", text="Add To library")
 		
 		col = layout.column(align=True)
-		col.itemL(text="Library:")
-		col.itemO("poselib.pose_add", text="Add")
-		col.itemO("poselib.pose_remove", text="Remove")
+		col.itemL(text="In-Between:")
+		col.itemO("pose.relax", text="Relax")
+		col.itemO("pose.push", text="Push")
+		col.itemO("pose.breakdown", text="Breakdowner")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")

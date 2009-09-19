@@ -526,15 +526,24 @@ static void rna_def_armature(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_drawtype_items[] = {
-		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Draw bones as octahedral shape (default)."},
-		{ARM_LINE, "STICK", 0, "Stick", "Draw bones as simple 2D lines with dots."},
-		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Draw bones as boxes, showing subdivision and B-Splines"},
-		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Draw bones as extruded spheres, showing defomation influence volume."},
+		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape (default)."},
+		{ARM_LINE, "STICK", 0, "Stick", "Display bones as simple 2D lines with dots."},
+		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Display bones as boxes, showing subdivision and B-Splines"},
+		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Display bones as extruded spheres, showing defomation influence volume."},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_ghost_type_items[] = {
-		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Current Frame", "Draw Ghosts of poses within a fixed number of frames around the current frame."},
-		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Draw Ghosts of poses within specified range."},
-		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Draw Ghosts of poses on Keyframes."},
+		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame", "Display Ghosts of poses within a fixed number of frames around the current frame."},
+		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Display Ghosts of poses within specified range."},
+		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Display Ghosts of poses on Keyframes."},
+		{0, NULL, 0, NULL, NULL}};
+	static const EnumPropertyItem prop_paths_type_items[]= {
+		{ARM_PATH_ACFRA, "CURRENT_FRAME", 0, "Around Frame", "Display Paths of poses within a fixed number of frames around the current frame."},
+		{0, "RANGE", 0, "In Range", "Display Paths of poses within specified range."},
+		{0, NULL, 0, NULL, NULL}};
+		
+	static const EnumPropertyItem prop_paths_location_items[]= {
+		{ARM_PATH_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
+		{0, "TIPS", 0, "Tips", "Calculate bone paths from tips"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");
@@ -564,7 +573,19 @@ static void rna_def_armature(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ghost_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ghosttype");
 	RNA_def_property_enum_items(prop, prop_ghost_type_items);
-	RNA_def_property_ui_text(prop, "Ghost Drawing", "Method of Onion-skinning for active Action");
+	RNA_def_property_ui_text(prop, "Ghost Type", "Method of Onion-skinning for active Action");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
+	prop= RNA_def_property(srna, "paths_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_paths_type_items);
+	RNA_def_property_ui_text(prop, "Paths Type", "Mapping type to use for this image in the game engine.");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
+	prop= RNA_def_property(srna, "paths_location", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_paths_location_items);
+	RNA_def_property_ui_text(prop, "Paths Location", "When calculating Bone Paths, use Head or Tips");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	/* Boolean values */
@@ -672,15 +693,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Paths Show Keyframe Numbers", "When drawing Armature in Pose Mode, show frame numbers of Keyframes on Bone Paths");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "paths_show_around_current_frame", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "pathflag", ARM_PATH_ACFRA);
-	RNA_def_property_ui_text(prop, "Paths Around Current Frame", "When drawing Armature in Pose Mode, only show section of Bone Paths that falls around current frame");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "paths_calculate_head_positions", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "pathflag", ARM_PATH_HEADS);
-	RNA_def_property_ui_text(prop, "Paths Use Heads", "When calculating Bone Paths, use Head locations instead of Tips");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	/* Number fields */
 		/* ghost/onionskining settings */

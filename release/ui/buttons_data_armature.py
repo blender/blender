@@ -121,28 +121,31 @@ class DATA_PT_paths(DataButtonsPanel):
 		layout = self.layout
 		
 		arm = context.armature
-
+		
+		layout.itemR(arm, "paths_type", expand=True)
+		
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(arm, "paths_show_around_current_frame", text="Around Frame")
 		
 		sub = col.column(align=True)
-		if (arm.paths_show_around_current_frame):
+		if (arm.paths_type == 'CURRENT_FRAME'):
 			sub.itemR(arm, "path_before_current", text="Before")
 			sub.itemR(arm, "path_after_current", text="After")
-		else:
+		elif (arm.paths_type == 'RANGE'):
 			sub.itemR(arm, "path_start_frame", text="Start")
 			sub.itemR(arm, "path_end_frame", text="End")
 
-		sub.itemR(arm, "path_size", text="Step")	
-		col.itemR(arm, "paths_calculate_head_positions", text="Head")
+		sub.itemR(arm, "path_size", text="Step")
+		col.row().itemR(arm, "paths_location", expand=True)
 		
 		col = split.column()
 		col.itemL(text="Show:")
 		col.itemR(arm, "paths_show_frame_numbers", text="Frame Numbers")
 		col.itemR(arm, "paths_highlight_keyframes", text="Keyframes")
 		col.itemR(arm, "paths_show_keyframe_numbers", text="Keyframe Numbers")
+		
+		layout.itemO("pose.paths_calculate")
 
 class DATA_PT_ghost(DataButtonsPanel):
 	__label__ = "Ghost"
@@ -151,11 +154,12 @@ class DATA_PT_ghost(DataButtonsPanel):
 		layout = self.layout
 		
 		arm = context.armature
-
+		
+		layout.itemR(arm, "ghost_type", expand=True)
+		
 		split = layout.split()
 
 		col = split.column()
-		col.itemR(arm, "ghost_type", text="")
 
 		sub = col.column(align=True)
 		if arm.ghost_type == 'RANGE':
