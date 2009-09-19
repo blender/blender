@@ -103,7 +103,7 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 	job.priority = netsettings.priority
 	
 	# try to send path first
-	conn.request("POST", "job", repr(job.serialize()))
+	conn.request("POST", "/job", repr(job.serialize()))
 	response = conn.getresponse()
 	
 	job_id = response.getheader("job-id")
@@ -112,7 +112,7 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 	if response.status == http.client.ACCEPTED:
 		for filepath, start, end in job.files:
 			f = open(filepath, "rb")
-			conn.request("PUT", "file", f, headers={"job-id": job_id, "job-file": filepath})
+			conn.request("PUT", "/file", f, headers={"job-id": job_id, "job-file": filepath})
 			f.close()
 			response = conn.getresponse()
 	
@@ -121,7 +121,7 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 	return job_id
 
 def requestResult(conn, job_id, frame):
-	conn.request("GET", "render", headers={"job-id": job_id, "job-frame":str(frame)})
+	conn.request("GET", "/render", headers={"job-id": job_id, "job-frame":str(frame)})
 
 @rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
@@ -174,7 +174,6 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 				requestResult(conn, job_id, scene.current_frame)
 			
 			while response.status == http.client.ACCEPTED and not self.test_break():
-				print("waiting")
 				time.sleep(1)
 				requestResult(conn, job_id, scene.current_frame)
 				response = conn.getresponse()

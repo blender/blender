@@ -6,6 +6,7 @@ import client
 import slave
 import master
 import utils
+import balancing
 import ui
 
 # store temp data in bpy module

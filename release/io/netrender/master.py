@@ -4,10 +4,7 @@ import subprocess, shutil, time, hashlib
 
 from netrender.utils import *
 import netrender.model
-
-JOB_WAITING = 0 # before all data has been entered
-JOB_PAUSED = 1 # paused by user
-JOB_QUEUED = 2 # ready to be dispatched
+import netrender.balancing
 
 class MRenderFile:
 	def __init__(self, filepath, start, end):
@@ -37,10 +34,6 @@ class MRenderSlave(netrender.model.RenderSlave):
 
 	def seen(self):
 		self.last_seen = time.time()
-
-# sorting key for jobs
-def groupKey(job):
-	return (job.status, job.framesLeft() > 0, job.priority, job.credits)
 
 class MRenderJob(netrender.model.RenderJob):
 	def __init__(self, job_id, name, files, chunks = 1, priority = 1, credits = 100.0, blacklist = []):
@@ -95,14 +88,6 @@ class MRenderJob(netrender.model.RenderJob):
 		frame = MRenderFrame(frame_number)
 		self.frames.append(frame)
 		return frame
-	
-	def framesLeft(self):
-		total = 0
-		for j in self.frames:
-			if j.status == QUEUED:
-				total += 1
-		
-		return total
 		
 	def reset(self, all):
 		for f in self.frames:
@@ -153,7 +138,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 	def do_HEAD(self):
 		print(self.path)
 	
-		if self.path == "status":
+		if self.path == "/status":
 			job_id = self.headers.get('job-id', "")
 			job_frame = int(self.headers.get('job-frame', -1))
 			
@@ -185,12 +170,12 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 	def do_GET(self):
 		print(self.path)
 		
-		if self.path == "version":
+		if self.path == "/version":
 			self.send_head()
 			self.server.stats("", "New client connection")
 			self.wfile.write(VERSION)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "render":
+		elif self.path == "/render":
 			job_id = self.headers['job-id']
 			job_frame = int(self.headers['job-frame'])
 			print("render:", job_id, job_frame)
@@ -221,7 +206,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				# no such job id
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "log":
+		elif self.path == "/log":
 			job_id = self.headers['job-id']
 			job_frame = int(self.headers['job-frame'])
 			print("log:", job_id, job_frame)
@@ -250,7 +235,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				# no such job id
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "status":
+		elif self.path == "/status":
 			job_id = self.headers.get('job-id', "")
 			job_frame = int(self.headers.get('job-frame', -1))
 			
@@ -284,7 +269,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			self.wfile.write(bytes(repr(message), encoding='utf8'))
 			
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "job":
+		elif self.path == "/job":
 			self.server.update()
 			
 			slave_id = self.headers['slave-id']
@@ -315,7 +300,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			else: # invalid slave id
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "file":
+		elif self.path == "/file":
 			slave_id = self.headers['slave-id']
 			
 			slave = self.server.updateSlave(slave_id)
@@ -348,7 +333,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			else: # invalid slave id
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "slave":
+		elif self.path == "/slave":
 			message = []
 			
 			for slave in self.server.slaves:
@@ -368,7 +353,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 		print(self.path)
 	
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		if self.path == "job":
+		if self.path == "/job":
 			print("posting job info")
 			self.server.stats("", "Receiving job")
 			
@@ -394,7 +379,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			else:
 				self.send_head(http.client.ACCEPTED, headers=headers)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "cancel":
+		elif self.path == "/cancel":
 			job_id = self.headers.get('job-id', "")
 			if job_id:
 				print("cancel:", job_id, "\n")
@@ -404,7 +389,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				
 			self.send_head()
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "reset":
+		elif self.path == "/reset":
 			job_id = self.headers.get('job-id', "")
 			job_frame = int(self.headers.get('job-frame', "-1"))
 			all = bool(self.headers.get('reset-all', "False"))
@@ -421,7 +406,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			else: # job not found
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "slave":
+		elif self.path == "/slave":
 			length = int(self.headers['content-length'])
 			job_frame_string = self.headers['job-frame']
 			
@@ -431,7 +416,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			
 			self.send_head(headers = {"slave-id": slave_id})
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "log":
+		elif self.path == "/log":
 			slave_id = self.headers['slave-id']
 			
 			slave = self.server.updateSlave(slave_id)
@@ -460,7 +445,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 		print(self.path)
 		
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		if self.path == "file":
+		if self.path == "/file":
 			print("writing blend file")
 			self.server.stats("", "Receiving job")
 			
@@ -504,7 +489,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			else: # job not found
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "render":
+		elif self.path == "/render":
 			print("writing result file")
 			self.server.stats("", "Receiving render result")
 			
@@ -547,7 +532,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			else: # invalid slave id
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-		elif self.path == "log":
+		elif self.path == "/log":
 			print("writing log file")
 			self.server.stats("", "Receiving log file")
 			
@@ -587,6 +572,11 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.job_id = 0
 		self.path = path + "master_" + str(os.getpid()) + os.sep
 		
+		self.balancer = netrender.balancing.Balancer()
+		self.balancer.addRule(netrender.balancing.RatingCredit())
+		self.balancer.addException(netrender.balancing.ExcludeQueuedEmptyJob())
+		self.balancer.addPriority(netrender.balancing.NewJobPriority())
+		
 		if not os.path.exists(self.path):
 			os.mkdir(self.path)
 	
@@ -616,7 +606,7 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.jobs = []
 	
 	def update(self):
-		self.jobs.sort(key = groupKey)
+		self.balancer.balance(self.jobs)
 		
 	def removeJob(self, id):
 		job = self.jobs_map.pop(id)
@@ -644,8 +634,8 @@ class RenderMasterServer(http.server.HTTPServer):
 	
 	def getNewJob(self, slave_id):
 		if self.jobs:
-			for job in reversed(self.jobs):
-				if job.status == JOB_QUEUED and job.framesLeft() > 0 and slave_id not in job.blacklist:
+			for job in self.jobs:
+				if not self.balancer.applyExceptions(job) and slave_id not in job.blacklist:
 					return job, job.getFrames()
 		
 		return None, None

@@ -33,7 +33,7 @@ def slave_Info():
 	return slave
 
 def testCancel(conn, job_id):
-		conn.request("HEAD", "status", headers={"job-id":job_id})
+		conn.request("HEAD", "/status", headers={"job-id":job_id})
 		response = conn.getresponse()
 		
 		# cancelled if job isn't found anymore
@@ -47,7 +47,7 @@ def testFile(conn, job_id, slave_id, JOB_PREFIX, file_path, main_path = None):
 	
 	if not os.path.exists(job_full_path):
 		temp_path = JOB_PREFIX + "slave.temp.blend"
-		conn.request("GET", "file", headers={"job-id": job_id, "slave-id":slave_id, "job-file":file_path})
+		conn.request("GET", "/file", headers={"job-id": job_id, "slave-id":slave_id, "job-file":file_path})
 		response = conn.getresponse()
 		
 		if response.status != http.client.OK:
@@ -76,7 +76,7 @@ def render_slave(engine, scene):
 	conn = clientConnection(scene)
 	
 	if conn:
-		conn.request("POST", "slave", repr(slave_Info().serialize()))
+		conn.request("POST", "/slave", repr(slave_Info().serialize()))
 		response = conn.getresponse()
 		
 		slave_id = response.getheader("slave-id")
@@ -87,7 +87,7 @@ def render_slave(engine, scene):
 	
 		while not engine.test_break():
 			
-			conn.request("GET", "job", headers={"slave-id":slave_id})
+			conn.request("GET", "/job", headers={"slave-id":slave_id})
 			response = conn.getresponse()
 			
 			if response.status == http.client.OK:
@@ -119,7 +119,7 @@ def render_slave(engine, scene):
 				
 				# announce log to master
 				logfile = netrender.model.LogFile(job.id, [frame.number for frame in job.frames])
-				conn.request("POST", "log", bytes(repr(logfile.serialize()), encoding='utf8'), headers={"slave-id":slave_id})
+				conn.request("POST", "/log", bytes(repr(logfile.serialize()), encoding='utf8'), headers={"slave-id":slave_id})
 				response = conn.getresponse()
 				
 				first_frame = job.frames[0].number
@@ -146,7 +146,7 @@ def render_slave(engine, scene):
 						if stdout:
 							# (only need to update on one frame, they are linked
 							headers["job-frame"] = str(first_frame)
-							conn.request("PUT", "log", stdout, headers=headers)
+							conn.request("PUT", "/log", stdout, headers=headers)
 							response = conn.getresponse()
 							
 							stdout = bytes()
@@ -173,7 +173,7 @@ def render_slave(engine, scene):
 				if stdout:
 					# (only need to update on one frame, they are linked
 					headers["job-frame"] = str(first_frame)
-					conn.request("PUT", "log", stdout, headers=headers)
+					conn.request("PUT", "/log", stdout, headers=headers)
 					response = conn.getresponse()
 				
 				headers = {"job-id":job.id, "slave-id":slave_id, "job-time":str(avg_t)}
@@ -184,7 +184,7 @@ def render_slave(engine, scene):
 						headers["job-frame"] = str(frame.number)
 						# send result back to server
 						f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
-						conn.request("PUT", "render", f, headers=headers)
+						conn.request("PUT", "/render", f, headers=headers)
 						f.close()
 						response = conn.getresponse()
 				else:
@@ -192,7 +192,7 @@ def render_slave(engine, scene):
 					for frame in job.frames:
 						headers["job-frame"] = str(frame.number)
 						# send error result back to server
-						conn.request("PUT", "render", headers=headers)
+						conn.request("PUT", "/render", headers=headers)
 						response = conn.getresponse()
 			else:
 				if timeout < MAX_TIMEOUT:

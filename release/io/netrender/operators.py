@@ -89,7 +89,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 		conn = clientConnection(context.scene)
 
 		if conn:
-			conn.request("GET", "status")
+			conn.request("GET", "/status")
 			
 			response = conn.getresponse()
 			print( response.status, response.reason )
@@ -205,7 +205,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			conn.request("GET", "slave")
+			conn.request("GET", "/slave")
 			
 			response = conn.getresponse()
 			print( response.status, response.reason )
@@ -258,7 +258,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 		if conn:
 			job = bpy.data.netrender_jobs[netsettings.active_job_index]
 			
-			conn.request("POST", "cancel", headers={"job-id":job.id})
+			conn.request("POST", "/cancel", headers={"job-id":job.id})
 			
 			response = conn.getresponse()
 			print( response.status, response.reason )

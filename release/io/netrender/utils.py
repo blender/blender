@@ -8,6 +8,12 @@ import netrender.model
 
 VERSION = b"0.5"
 
+# Jobs status
+JOB_WAITING = 0 # before all data has been entered
+JOB_PAUSED = 1 # paused by user
+JOB_QUEUED = 2 # ready to be dispatched
+
+# Frames status
 QUEUED = 0
 DISPATCHED = 1
 DONE = 2
@@ -36,7 +42,7 @@ def clientConnection(scene):
 			return None
 
 def clientVerifyVersion(conn):
-	conn.request("GET", "version")
+	conn.request("GET", "/version")
 	response = conn.getresponse()
 	
 	if response.status != http.client.OK:
