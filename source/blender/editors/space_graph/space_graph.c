@@ -374,6 +374,7 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCENE:
 			switch(wmn->data) {
+				case ND_RENDER_OPTIONS:
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
 				case ND_MARKERS:

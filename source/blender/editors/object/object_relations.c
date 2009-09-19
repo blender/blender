@@ -647,6 +647,8 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
 					ob->partype= PARSKEL; /* note, dna define, not operator property */
+				else if (partype == PAR_BONE)
+					ob->partype= PARBONE; /* note, dna define, not operator property */
 				else
 					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
 			}

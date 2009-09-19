@@ -40,6 +40,7 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -1517,7 +1518,10 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 		AnimData *adt= BKE_animdata_from_id(id);
 		Curve *cu= (Curve *)id;
 		
+		/* set ctime variable for curve */
 		cu->ctime= ctime;
+		
+		/* now execute animation data on top of this as per normal */
 		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
 	}
 	
@@ -1537,7 +1541,19 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);
 	
 	/* scenes */
-	EVAL_ANIM_IDS(main->scene.first, ADT_RECALC_ANIM);
+	for (id= main->scene.first; id; id= id->next) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		Scene *scene= (Scene *)id;
+		
+		/* do compositing nodes first (since these aren't included in main tree) */
+		if (scene->nodetree) {
+			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
+			BKE_animsys_evaluate_animdata((ID *)scene->nodetree, adt2, ctime, ADT_RECALC_ANIM);
+		}
+		
+		/* now execute scene animation data as per normal */
+		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
+	}
 }
 
 /* ***************************************** */ 

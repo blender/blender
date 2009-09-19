@@ -480,6 +480,7 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 {
 	tPChanFCurveLink *pfl;
 	AnimData *adt= pso->ob->adt;
+	wmWindow *win= CTX_wm_window(C);
 	
 	/* for each link, add all its keyframes to the search tree */
 	for (pfl= pso->pfLinks.first; pfl; pfl= pfl->next) {
@@ -543,6 +544,9 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 		/* initial apply for operator... */
 		pose_slide_apply(C, op, pso);
 		
+		/* set cursor to indicate modal */
+		WM_cursor_modal(win, BC_EW_SCROLLCURSOR);
+		
 		/* add a modal handler for this operator */
 		WM_event_add_modal_handler(C, op);
 		return OPERATOR_RUNNING_MODAL;
@@ -559,14 +563,17 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 {
 	tPoseSlideOp *pso= op->customdata;
+	wmWindow *win= CTX_wm_window(C);
 	
 	switch (evt->type) {
 		case LEFTMOUSE:	/* confirm */
+			WM_cursor_restore(win);
 			pose_slide_exit(C, op);
 			return OPERATOR_FINISHED;
 		
 		case ESCKEY:	/* cancel */
 		case RIGHTMOUSE: 
+			WM_cursor_restore(win);
 			pose_slide_exit(C, op);
 			return OPERATOR_CANCELLED;
 			
