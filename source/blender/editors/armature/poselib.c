@@ -44,7 +44,6 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
@@ -61,8 +60,6 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
-
-#include "PIL_time.h"			/* sleep				*/
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -769,6 +766,10 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 					if (poselib_ks_locrotscale == NULL)
 						poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					
+					/* now insert the keyframe */
 					modify_keyframes(C, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */

@@ -1444,29 +1444,6 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 
 /* ************** jump to keyframe operator ***************************** */
 
-/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
-// TODO: make this an API func?
-static ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
-{
-	ActKeyColumn *akn= NULL;
-	
-	/* sanity checks */
-	if (ak == NULL)
-		return NULL;
-	
-	/* check if this is a match, or whether it is in some subtree */
-	if (cframe < ak->cfra)
-		akn= cfra_find_nearest_next_ak(ak->left, cframe, next);
-	else if (cframe > ak->cfra)
-		akn= cfra_find_nearest_next_ak(ak->right, cframe, next);
-		
-	/* if no match found (or found match), just use the current one */
-	if (akn == NULL)
-		return ak;
-	else
-		return akn;
-}
-
 /* function to be called outside UI context, or for redo */
 static int keyframe_jump_exec(bContext *C, wmOperator *op)
 {

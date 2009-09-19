@@ -196,6 +196,11 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSELIB_OT_pose_remove);
 	WM_operatortype_append(POSELIB_OT_pose_rename);
 	
+	/* POSE SLIDING */
+	WM_operatortype_append(POSE_OT_push);
+	WM_operatortype_append(POSE_OT_relax);
+	WM_operatortype_append(POSE_OT_breakdown);
+	
 	/* TESTS */
 	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
@@ -365,5 +370,11 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "POSELIB_OT_pose_add", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSELIB_OT_pose_remove", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSELIB_OT_pose_rename", LKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	
+	/* Pose -> Pose Sliding ------------- */
+	/* only set in posemode, by space_view3d listener */
+	WM_keymap_add_item(keymap, "POSE_OT_push", EKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_relax", EKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_breakdown", EKEY, KM_PRESS, KM_SHIFT, 0);
 }
 

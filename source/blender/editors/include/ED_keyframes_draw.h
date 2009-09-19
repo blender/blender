@@ -119,5 +119,9 @@ void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree 
 void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 
+/* Keyframe Finding */
+ActKeyColumn *cfra_find_actkeycolumn(ActKeyColumn *ak, float cframe);
+ActKeyColumn *cfra_find_nearest_next_ak(ActKeyColumn *ak, float cframe, short next);
+
 #endif  /*  ED_KEYFRAMES_DRAW_H */
 

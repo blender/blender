@@ -316,7 +316,7 @@ static void set_touched_actkeyblock (ActKeyBlock *ab)
 /* *************************** Keyframe Drawing *************************** */
 
 /* helper function - find actkeycolumn that occurs on cframe */
-static ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
+ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
 {
 	/* sanity checks */
 	if (ak == NULL)
@@ -329,6 +329,28 @@ static ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
 		return cfra_find_actkeycolumn(ak->right, cframe);
 	else
 		return ak; /* match */
+}
+
+/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
+ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
+{
+	ActKeyColumn *akn= NULL;
+	
+	/* sanity checks */
+	if (ak == NULL)
+		return NULL;
+	
+	/* check if this is a match, or whether it is in some subtree */
+	if (cframe < ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->left, cframe, next);
+	else if (cframe > ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->right, cframe, next);
+		
+	/* if no match found (or found match), just use the current one */
+	if (akn == NULL)
+		return ak;
+	else
+		return akn;
 }
 
 /* -------- */
