@@ -74,6 +74,7 @@ class BONE_PT_transform(BoneButtonsPanel):
 				
 class BONE_PT_transform_locks(BoneButtonsPanel):
 	__label__ = "Transform Locks"
+	__default_closed__ = True
 	
 	def poll(self, context):
 		return context.bone

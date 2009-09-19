@@ -513,7 +513,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
 	__label__ = "Constraints"
-	__context__ = "bone"
+	__context__ = "bone_constraint"
 
 	def poll(self, context):
 		ob = context.object
