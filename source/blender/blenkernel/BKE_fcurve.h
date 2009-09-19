@@ -35,6 +35,8 @@ struct DriverTarget;
 
 struct BezTriple;
 
+#include "DNA_curve_types.h"
+
 /* ************** Keyframe Tools ***************** */
 
 // XXX this stuff is defined in BKE_ipo.h too, so maybe skip for now?
