@@ -577,13 +577,13 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	prop= RNA_def_property(srna, "paths_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "pathflag");
 	RNA_def_property_enum_items(prop, prop_paths_type_items);
 	RNA_def_property_ui_text(prop, "Paths Type", "Mapping type to use for this image in the game engine.");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	prop= RNA_def_property(srna, "paths_location", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "pathflag");
 	RNA_def_property_enum_items(prop, prop_paths_location_items);
 	RNA_def_property_ui_text(prop, "Paths Location", "When calculating Bone Paths, use Head or Tips");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
