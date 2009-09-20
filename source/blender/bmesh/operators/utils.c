@@ -22,6 +22,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 
+#include "BLI_heap.h"
+
 #include "bmesh.h"
 
 /*
@@ -1080,4 +1082,219 @@ void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BLI_array_free(uvs);
+}
+
+/******************************************************************************
+** Cycle colors for a face
+******************************************************************************/
+
+void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter fs_iter;	/* selected faces iterator */
+	BMFace *fs;	/* current face */
+	BMIter l_iter;	/* iteration loop */
+	int n;
+
+	int dir = BMO_Get_Int(op, "dir");
+
+	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
+		if( CustomData_has_layer(&(bm->ldata), CD_MLOOPCOL) ) {
+			if( dir == DIRECTION_CW ) { /* same loops direction */
+				BMLoop *lf;	/* current face loops */
+				MLoopCol *f_lcol; /* first face loop color */
+				MLoopCol p_col;	/* previous color */
+				MLoopCol t_col;	/* tmp color */
+
+				int n = 0;
+				BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+					/* current loop color is the previous loop color */
+					MLoopCol *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
+					if( n == 0 ) {
+						f_lcol = luv;
+						p_col = *luv;
+					} else {
+						t_col = *luv;
+						*luv = p_col;
+						p_col = t_col;
+					}
+					n++;
+				}
+
+				*f_lcol = p_col;
+			} else if( dir == DIRECTION_CCW ) { /* counter loop direction */
+				BMLoop *lf;	/* current face loops */
+				MLoopCol *p_lcol; /*previous loop color */
+				MLoopCol *lcol;
+				MLoopCol t_col;	/* current color */
+
+				int n = 0;
+				BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+					/* previous loop color is the current loop color */
+					lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
+					if( n == 0 ) {
+						p_lcol = lcol;
+						t_col = *lcol;
+					} else {
+						*p_lcol = *lcol;
+						p_lcol = lcol;
+					}
+					n++;
+				}
+
+				*lcol = t_col;
+			}
+		}
+	}
+}
+
+/******************************************************************************
+** Reverse colors for a face
+******************************************************************************/
+
+void bmesh_reversecolors_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter fs_iter;	/* selected faces iterator */
+	BMFace *fs;		/* current face */
+	BMIter l_iter;		/* iteration loop */
+	BLI_array_declare(cols);
+	MLoopCol *cols = NULL;
+	int max_vert_count = 0;
+
+
+	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
+		if( CustomData_has_layer(&(bm->ldata), CD_MLOOPCOL) ) {
+			BMLoop *lf;	/* current face loops */
+			MLoopCol *f_lcol; /* first face loop color */
+			int num_verts = fs->len;
+			int i = 0;
+
+			BLI_array_empty(cols);
+			BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+				MLoopCol *lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
+
+				/* current loop uv is the previous loop color */
+				BLI_array_growone(cols);
+				cols[i] = *lcol;
+				i++;
+			}
+
+			/* now that we have the uvs in the array, reverse! */
+			i = 0;
+			BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+				/* current loop uv is the previous loop color */
+				MLoopCol *lcol = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL);
+				*lcol = cols[(fs->len - i - 1)];
+				i++;
+			}
+		}
+	}
+
+	BLI_array_free(cols);
+}
+
+
+/******************************************************************************
+** shortest vertex path select
+******************************************************************************/
+
+typedef struct element_node {
+	BMVert *v;	/* vertex */
+	BMVert *parent;	/* node parent id */
+	float weight;	/* node weight */
+	HeapNode *hn;	/* heap node */
+} element_node;
+
+void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter vs_iter, vs2_iter;	/* selected verts iterator */
+	BMIter v_iter;		/* mesh verts iterator */
+	BMVert *vs, *sv, *ev;	/* starting vertex, ending vertex */
+	BMVert *v;		/* mesh vertex */
+	Heap *h = NULL;
+
+	element_node *vert_list = NULL;
+
+	int num_total = 0, num_sels = 0, i = 0;
+	int type = BMO_Get_Int(op, "type");
+
+	BMO_ITER(vs, &vs_iter, bm, op, "startv", BM_VERT)
+			sv = vs;
+	BMO_ITER(vs, &vs_iter, bm, op, "endv", BM_VERT)
+			ev = vs;
+
+	num_total = BM_Count_Element(bm, BM_VERT);
+
+	/* allocate memory for the nodes */
+	vert_list = (element_node*)MEM_mallocN(sizeof(element_node) * num_total, "vertex nodes");
+
+	/* iterate through all the mesh vertices */
+	/* loop through all the vertices and fill the vertices/indices structure */
+	i = 0;
+	BM_ITER(v, &v_iter, bm, BM_VERTS_OF_MESH, NULL) {
+		vert_list[i].v = v;
+		vert_list[i].parent = NULL;
+		vert_list[i].weight = FLT_MAX;
+		BMINDEX_SET(v, i);
+		i++;
+	}
+
+	/*
+	** we now have everything we need, start Dijkstra path finding algorithm
+	*/
+
+	/* set the distance/weight of the start vertex to 0 */
+	vert_list[BMINDEX_GET(sv)].weight = 0.0f;
+
+	h = BLI_heap_new();
+
+	for( i = 0; i < num_total; i++ )
+		vert_list[i].hn = BLI_heap_insert(h, vert_list[i].weight, vert_list[i].v);
+
+	while( !BLI_heap_empty(h) ) {
+		BMEdge *e;
+		BMIter e_i;
+		float v_weight;
+
+		/* take the vertex with the lowest weight out of the heap */
+		BMVert *v = (BMVert*)BLI_heap_popmin(h);
+
+		if( vert_list[BMINDEX_GET(v)].weight == FLT_MAX ) /* this means that there is no path */
+			break;
+
+		v_weight = vert_list[BMINDEX_GET(v)].weight;
+
+		BM_ITER(e, &e_i, bm, BM_EDGES_OF_VERT, v) {
+			BMVert *u;
+			float e_weight = v_weight;
+
+			if( type == VPATH_SELECT_EDGE_LENGTH )
+				e_weight += VecLenf(e->v1->co, e->v2->co);
+			else e_weight += 1.0f;
+
+			u = ( e->v1 == v ) ? e->v2 : e->v1;
+
+			if( e_weight < vert_list[BMINDEX_GET(u)].weight ) { /* is this path shorter ? */
+				/* add it if so */
+				vert_list[BMINDEX_GET(u)].parent = v;
+				vert_list[BMINDEX_GET(u)].weight = e_weight;
+
+				/* we should do a heap update node function!!! :-/ */
+				BLI_heap_remove(h, vert_list[BMINDEX_GET(u)].hn);
+				BLI_heap_insert(h, e_weight, u);
+			}
+		}
+	}
+
+	/* now we trace the path (if it exists) */
+	v = ev;
+
+	while( vert_list[BMINDEX_GET(v)].parent != NULL ) {
+		BMO_SetFlag(bm, v, VERT_MARK);
+		v = vert_list[BMINDEX_GET(v)].parent;
+	}
+
+	BLI_heap_free(h, NULL);
+	MEM_freeN(vert_list);
+
+	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
 }

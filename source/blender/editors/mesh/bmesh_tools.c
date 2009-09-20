@@ -2215,7 +2215,9 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	/* dependencies graph and notification stuff */
 	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-
+/*	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+*/
 	/* we succeeded */
 	return OPERATOR_FINISHED;
 }
@@ -2240,73 +2242,67 @@ static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 	/* dependencies graph and notification stuff */
 	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-
+/*	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+*/
 	/* we succeeded */
 	return OPERATOR_FINISHED;
 }
 
 static int mesh_rotate_colors(bContext *C, wmOperator *op)
 {
-#if 0
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
 
-	EditFace *efa;
-	short change = 0;
-	MCol tmpcol, *mcol;
-	int dir= RNA_enum_get(op->ptr, "direction");
+	/* get the direction from RNA */
+	int dir = RNA_enum_get(op->ptr, "direction");
 
-	if (!EM_vertColorCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers.");
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;
-	}
+	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+	EDBM_InitOpf(em, &bmop, op, "meshrotatecolors faces=%hf dir=%d", BM_SELECT, dir);
 
-	for(efa=em->faces.first; efa; efa=efa->next) {
-		if (efa->f & SELECT) {
-			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
-			tmpcol= mcol[0];
+	/* execute the operator */
+	BMO_Exec_Op(em->bm, &bmop);
 
-			if (dir == DIRECTION_CCW) {
-				if(efa->v4) {
-					mcol[0]= mcol[3];
-					mcol[3]= mcol[2];
-				} else {
-					mcol[0]= mcol[2];
-				}
-				mcol[2]= mcol[1];
-				mcol[1]= tmpcol;
-			} else {
-				mcol[0]= mcol[1];
-				mcol[1]= mcol[2];
-
-				if(efa->v4) {
-					mcol[2]= mcol[3];
-					mcol[3]= tmpcol;
-				}
-				else
-					mcol[2]= tmpcol;
-			}
-			change = 1;
-		}
-	}
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	if(!change)
+	/* finish the operator */
+	if( !EDBM_FinishOp(em, &bmop, op, 1) )
 		return OPERATOR_CANCELLED;
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
+	/* dependencies graph and notification stuff */
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+/*	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+*/
+	/* we succeeded */
 	return OPERATOR_FINISHED;
-#endif
 }
 
 
-static int mesh_mirror_colors(bContext *C, wmOperator *op)
+static int mesh_reverse_colors(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
+
+	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+	EDBM_InitOpf(em, &bmop, op, "meshreversecolors faces=%hf", BM_SELECT);
+
+	/* execute the operator */
+	BMO_Exec_Op(em->bm, &bmop);
+
+	/* finish the operator */
+	if( !EDBM_FinishOp(em, &bmop, op, 1) )
+		return OPERATOR_CANCELLED;
+
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	/* we succeeded */
+	return OPERATOR_FINISHED;
 #if 0
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -2415,21 +2411,21 @@ void MESH_OT_colors_rotate(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around.");
 }
 
-void MESH_OT_colors_mirror(wmOperatorType *ot)
+void MESH_OT_colors_reverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mirror Colors";
-	ot->idname= "MESH_OT_colors_mirror";
+	ot->name= "Reverse Colors";
+	ot->idname= "MESH_OT_colors_reverse";
 
 	/* api callbacks */
-	ot->exec= mesh_mirror_colors;
+	ot->exec= mesh_reverse_colors;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
+	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
 }
 
 
@@ -2665,4 +2661,250 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "mergedist", 0.0001, 0.0001, 100.0, 
 		"Merge Distance", 
 		"Minimum distance between elements to merge.", 0.00001, 10.0);
+}
+
+/************************ Vertex Path Operator *************************/
+
+typedef struct PathNode {
+	int u;
+	int visited;
+	ListBase edges;
+} PathNode;
+
+typedef struct PathEdge {
+	struct PathEdge *next, *prev;
+	int v;
+	float w;
+} PathEdge;
+
+
+
+int select_vertex_path_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
+	BMEditSelection *sv, *ev;
+
+	/* get the type from RNA */
+	int type = RNA_enum_get(op->ptr, "type");
+
+	sv = em->bm->selected.last;
+	if( sv != NULL )
+		ev = sv->prev;
+	else return OPERATOR_CANCELLED;
+	if( ev == NULL )
+		return OPERATOR_CANCELLED;
+
+	if( sv->type != BM_VERT || ev->type != BM_VERT )
+		return OPERATOR_CANCELLED;
+
+	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+	EDBM_InitOpf(em, &bmop, op, "vertexshortestpath startv=%e endv=%e type=%d", sv->data, ev->data, type);
+
+	/* execute the operator */
+	BMO_Exec_Op(em->bm, &bmop);
+
+	/* DO NOT clear the existing selection */
+	/* EDBM_clear_flag_all(em, BM_SELECT); */
+
+	/* select the output */
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "vertout", BM_SELECT, BM_ALL);
+
+	/* finish the operator */
+	if( !EDBM_FinishOp(em, &bmop, op, 1) )
+		return OPERATOR_CANCELLED;
+
+	EDBM_selectmode_flush(em);
+
+	/* dependencies graph and notification stuff */
+/*	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+*/
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+
+	/* we succeeded */
+	return OPERATOR_FINISHED;
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	EditVert *eve, *s, *t;
+	EditEdge *eed;
+	EditSelection *ese;
+	PathEdge *newpe, *currpe;
+	PathNode *currpn;
+	PathNode *Q;
+	int v, *previous, pathvert, pnindex; /*pnindex redundant?*/
+	int unbalanced, totnodes;
+	short physical;
+	float *cost;
+	Heap *heap; /*binary heap for sorting pointers to PathNodes based upon a 'cost'*/
+
+	s = t = NULL;
+
+	ese = ((EditSelection*)em->selected.last);
+	if(ese && ese->type == EDITVERT && ese->prev && ese->prev->type == EDITVERT){
+		physical= pupmenu("Distance Method? %t|Edge Length%x1|Topological%x0");
+
+		t = (EditVert*)ese->data;
+		s = (EditVert*)ese->prev->data;
+
+		/*need to find out if t is actually reachable by s....*/
+		for(eve=em->verts.first; eve; eve=eve->next){
+			eve->f1 = 0;
+		}
+
+		s->f1 = 1;
+
+		unbalanced = 1;
+		totnodes = 1;
+		while(unbalanced){
+			unbalanced = 0;
+			for(eed=em->edges.first; eed; eed=eed->next){
+				if(!eed->h){
+					if(eed->v1->f1 && !eed->v2->f1){
+							eed->v2->f1 = 1;
+							totnodes++;
+							unbalanced = 1;
+					}
+					else if(eed->v2->f1 && !eed->v1->f1){
+							eed->v1->f1 = 1;
+							totnodes++;
+							unbalanced = 1;
+					}
+				}
+			}
+		}
+
+		if(s->f1 && t->f1){ /* t can be reached by s */
+			Q = MEM_callocN(sizeof(PathNode)*totnodes, "Path Select Nodes");
+			totnodes = 0;
+			for(eve=em->verts.first; eve; eve=eve->next){
+				if(eve->f1){
+					Q[totnodes].u = totnodes;
+					Q[totnodes].edges.first = 0;
+					Q[totnodes].edges.last = 0;
+					Q[totnodes].visited = 0;
+					eve->tmp.p = &(Q[totnodes]);
+					totnodes++;
+				}
+				else eve->tmp.p = NULL;
+			}
+
+			for(eed=em->edges.first; eed; eed=eed->next){
+				if(!eed->h){
+					if(eed->v1->f1){
+						currpn = ((PathNode*)eed->v1->tmp.p);
+
+						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
+						newpe->v = ((PathNode*)eed->v2->tmp.p)->u;
+						if(physical){
+								newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+						}
+						else newpe->w = 1;
+						newpe->next = 0;
+						newpe->prev = 0;
+						BLI_addtail(&(currpn->edges), newpe);
+					}
+					if(eed->v2->f1){
+						currpn = ((PathNode*)eed->v2->tmp.p);
+						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
+						newpe->v = ((PathNode*)eed->v1->tmp.p)->u;
+						if(physical){
+								newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+						}
+						else newpe->w = 1;
+						newpe->next = 0;
+						newpe->prev = 0;
+						BLI_addtail(&(currpn->edges), newpe);
+					}
+				}
+			}
+
+			heap = BLI_heap_new();
+			cost = MEM_callocN(sizeof(float)*totnodes, "Path Select Costs");
+			previous = MEM_callocN(sizeof(int)*totnodes, "PathNode indices");
+
+			for(v=0; v < totnodes; v++){
+				cost[v] = 1000000;
+				previous[v] = -1; /*array of indices*/
+			}
+
+			pnindex = ((PathNode*)s->tmp.p)->u;
+			cost[pnindex] = 0;
+			BLI_heap_insert(heap,  0.0f, SET_INT_IN_POINTER(pnindex));
+
+			while( !BLI_heap_empty(heap) ){
+
+				pnindex = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
+				currpn = &(Q[pnindex]);
+
+				if(currpn == (PathNode*)t->tmp.p) /*target has been reached....*/
+					break;
+
+				for(currpe=currpn->edges.first; currpe; currpe=currpe->next){
+					if(!Q[currpe->v].visited){
+						if( cost[currpe->v] > (cost[currpn->u ] + currpe->w) ){
+							cost[currpe->v] = cost[currpn->u] + currpe->w;
+							previous[currpe->v] = currpn->u;
+							Q[currpe->v].visited = 1;
+							BLI_heap_insert(heap, cost[currpe->v], SET_INT_IN_POINTER(currpe->v));
+						}
+					}
+				}
+			}
+
+			pathvert = ((PathNode*)t->tmp.p)->u;
+			while(pathvert != -1){
+				for(eve=em->verts.first; eve; eve=eve->next){
+					if(eve->f1){
+						if( ((PathNode*)eve->tmp.p)->u == pathvert) eve->f |= SELECT;
+					}
+				}
+				pathvert = previous[pathvert];
+			}
+
+			for(v=0; v < totnodes; v++) BLI_freelistN(&(Q[v].edges));
+			MEM_freeN(Q);
+			MEM_freeN(cost);
+			MEM_freeN(previous);
+			BLI_heap_free(heap, NULL);
+			EM_select_flush(em);
+		}
+	}
+	else {
+		BKE_mesh_end_editmesh(obedit->data, em);
+		BKE_report(op->reports, RPT_ERROR, "Path Selection requires that exactly two vertices be selected");
+		return OPERATOR_CANCELLED;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	BKE_mesh_end_editmesh(obedit->data, em);
+#endif
+}
+
+void MESH_OT_select_vertex_path(wmOperatorType *ot)
+{
+	static const EnumPropertyItem type_items[] = {
+		{VPATH_SELECT_EDGE_LENGTH, "EDGE_LENGTH", 0, "Edge Length", NULL},
+		{VPATH_SELECT_TOPOLOGICAL, "TOPOLOGICAL", 0, "Topological", NULL},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Select Vertex Path";
+	ot->idname= "MESH_OT_select_vertex_path";
+
+	/* api callbacks */
+	ot->exec= select_vertex_path_exec;
+	ot->invoke= WM_menu_invoke;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "type", type_items, VPATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
 }

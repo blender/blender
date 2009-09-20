@@ -55,6 +55,8 @@ void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op);
 void object_load_bmesh_exec(BMesh *bm, BMOperator *op);
 void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op);
 void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op);
+void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op);
+void bmesh_reversecolors_exec(BMesh *bm, BMOperator *op);
+void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op);
 void bmesh_scale_exec(BMesh *bm, BMOperator *op);
-
 #endif

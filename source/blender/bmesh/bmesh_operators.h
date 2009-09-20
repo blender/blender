@@ -60,6 +60,12 @@ enum {
 	DIRECTION_CCW
 };
 
+/* vertex path selection values */
+enum {
+	VPATH_SELECT_EDGE_LENGTH = 0,
+	VPATH_SELECT_TOPOLOGICAL
+};
+
 extern BMOpDefine *opdefines[];
 extern int bmesh_total_ops;
 

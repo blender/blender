@@ -761,6 +761,47 @@ BMOpDefine def_meshreverseuvs = {
 	0
 };
 
+/*
+** color rotation
+** cycle the colors
+*/
+BMOpDefine def_meshrotatecolors = {
+	"meshrotatecolors",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
+	 {BMOP_OPSLOT_INT, "dir"},			/* direction */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_rotatecolors_exec,
+	0
+};
+
+/*
+** color reverse
+** reverse the colors
+*/
+BMOpDefine def_meshreversecolors = {
+	"meshreversecolors",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_reversecolors_exec,
+	0
+};
+
+/*
+  Similar vertices select
+
+  Select similar vertices (normal, face, vertex group,....).
+*/
+BMOpDefine def_vertexshortestpath = {
+	"vertexshortestpath",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "startv"}, /* start vertex */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "endv"}, /* end vertex */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, /* output vertices */
+	 {BMOP_OPSLOT_INT, "type"},			/* type of selection */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_vertexshortestpath_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -810,6 +851,9 @@ BMOpDefine *opdefines[] = {
 	&def_bmesh_to_mesh,
 	&def_meshreverseuvs,
 	&def_edgenet_prepare,
+	&def_meshrotatecolors,
+	&def_meshreversecolors,
+	&def_vertexshortestpath,
 	&def_scale,
 };
 
