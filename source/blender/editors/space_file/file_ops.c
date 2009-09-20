@@ -526,6 +526,16 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 	return OPERATOR_FINISHED;
 }
 
+int file_operator_poll(bContext *C)
+{
+	int poll = ED_operator_file_active(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	if (!sfile->op) poll= 0;
+
+	return poll;
+}
+
 void FILE_OT_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
@@ -534,7 +544,7 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= file_cancel_exec;
-	ot->poll= ED_operator_file_active;
+	ot->poll= file_operator_poll;
 }
 
 /* sends events now, so things get handled on windowqueue level */
@@ -612,7 +622,7 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= file_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->poll= file_operator_poll; 
 }
 
 
