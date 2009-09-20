@@ -64,7 +64,7 @@ DefNode( CompositorNode, CMP_NODE_VECBLUR,        def_cmp_vector_blur,    "VECBL
 DefNode( CompositorNode, CMP_NODE_SEPRGBA,        0,                      "SEPRGBA",        SepRGBA,          "Separate RGBA",     ""              )
 DefNode( CompositorNode, CMP_NODE_SEPHSVA,        0,                      "SEPHSVA",        SepHSVA,          "Separate HSVA",     ""              )
 DefNode( CompositorNode, CMP_NODE_SETALPHA,       0,                      "SETALPHA",       SetAlpha,         "Set Alpha",         ""              )
-DefNode( CompositorNode, CMP_NODE_HUE_SAT,        def_cmp_hue_saturation,                      "HUE_SAT",        HueSat,           "Hue/Saturation",    ""              )
+DefNode( CompositorNode, CMP_NODE_HUE_SAT,        def_cmp_hue_saturation, "HUE_SAT",        HueSat,           "Hue/Saturation",    ""              )
 DefNode( CompositorNode, CMP_NODE_IMAGE,          def_cmp_image,          "IMAGE",          Image,            "Image",             ""              )
 DefNode( CompositorNode, CMP_NODE_R_LAYERS,       def_cmp_render_layers,  "R_LAYERS",       RLayers,          "Render Layers",     ""              )
 DefNode( CompositorNode, CMP_NODE_COMPOSITE,      0,                      "COMPOSITE",      Composite,        "Composite",         ""              )
@@ -104,7 +104,7 @@ DefNode( CompositorNode, CMP_NODE_PREMULKEY,      def_cmp_premul_key,     "PREMU
 DefNode( CompositorNode, CMP_NODE_GLARE,          def_cmp_glare,          "GLARE",          Glare,            "Glare",             ""              )
 DefNode( CompositorNode, CMP_NODE_TONEMAP,        def_cmp_tonemap,        "TONEMAP",        Tonemap,          "Tonemap",           ""              )
 DefNode( CompositorNode, CMP_NODE_LENSDIST,       def_cmp_lensdist,       "LENSDIST",       Lensdist,         "Lensdist",          ""              )
-DefNode( CompositorNode, CMP_NODE_VIEW_LEVELS,    0,                      "LEVELS",         Levels,           "Levels",            ""              )
+DefNode( CompositorNode, CMP_NODE_VIEW_LEVELS,    def_cmp_levels,         "LEVELS",         Levels,           "Levels",            ""              )
 DefNode( CompositorNode, CMP_NODE_COLOR_MATTE,    def_cmp_color_matte,    "COLOR_MATTE",    ColorMatte,       "Color Matte",       ""              )
 DefNode( CompositorNode, CMP_NODE_DIST_MATTE,     def_cmp_distance_matte, "DISTANCE_MATTE", DistanceMatte,    "Distance Matte",    ""              )
                                                                                                                                                    

@@ -700,6 +700,26 @@ static void def_cmp_vector_blur(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
+static void def_cmp_levels(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem space_items[] = {
+		{1, "COMNINED_RGB", 0, "C", "Combined RGB"},
+		{2, "RED", 0, "R", "Red Channel"},
+		{3, "GREEN", 0, "G", "Green Channel"},
+		{4, "BLUE", 0, "B", "Blue Channel"},
+		{5, "LUMINANCE", 0, "L", "Luminance Channel"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
+	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, space_items);
+	RNA_def_property_ui_text(prop, "Color Space", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
 static void def_cmp_image(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -964,9 +984,9 @@ static void def_cmp_color_spill(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem channel_items[] = {
-		{1, "R", 0, "Red",   ""},
-		{2, "G", 0, "Green", ""},
-		{3, "B", 0, "Blue",  ""},
+		{1, "R", 0, "R", "Red Spill Suppression"},
+		{2, "G", 0, "G", "Green Spill Suppression"},
+		{3, "B", 0, "B", "Blue Spill Suppression"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	

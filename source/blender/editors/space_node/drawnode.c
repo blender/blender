@@ -1294,7 +1294,6 @@ static void node_composit_buts_lensdist(uiLayout *layout, PointerRNA *ptr)
 	uiLayoutSetActive(col, RNA_boolean_get(ptr, "projector")==0);
 	uiItemR(col, NULL, 0, ptr, "jitter", 0);
 	uiItemR(col, NULL, 0, ptr, "fit", 0);
-
 }
 
 static void node_composit_buts_vecblur(uiLayout *layout, PointerRNA *ptr)
@@ -1395,60 +1394,30 @@ static void node_composit_buts_dilateerode(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_diff_matte(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeChroma *c= node->storage;
+	uiLayout *col;
 	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Tolerance: ", 
-		butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-		&c->t1, 0.0f, 1.0f, 100, 0, "Color differences below this threshold are keyed.");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Falloff: ", 
-		butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-		&c->t2, 0.0f, 1.0f, 100, 0, "Color differences below this additional threshold are partially keyed.");
-	uiBlockEndAlign(block);
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "tolerance", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "falloff", UI_ITEM_R_SLIDER);
 }
 
 static void node_composit_buts_distance_matte(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeChroma *c= node->storage;
+	uiLayout *col;
 	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Tolerance: ", 
-		butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-		&c->t1, 0.0f, 1.0f, 100, 0, "Color distances below this threshold are keyed.");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Falloff: ", 
-		butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-		&c->t2, 0.0f, 1.0f, 100, 0, "Color distances below this additional threshold are partially keyed.");
-	uiBlockEndAlign(block);
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "tolerance", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "falloff", UI_ITEM_R_SLIDER);
 }
 
 static void node_composit_buts_color_spill(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	short dx= (butr->xmax-butr->xmin)/3;
-
-	NodeChroma *c=node->storage;
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NODE_EXEC, "Enhance: ", 
-			butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-			&c->t1, 0.0f, 0.5f, 100, 2, "Adjusts how much selected channel is affected by color spill algorithm");
-	uiDefButS(block, ROW, B_NODE_EXEC, "R",
-			butr->xmin,butr->ymin,dx,20,
-			&node->custom1,1,1, 0, 0, "Red Spill Suppression");
-	uiDefButS(block, ROW, B_NODE_EXEC, "G",
-			butr->xmin+dx,butr->ymin,dx,20,
-			&node->custom1,1,2, 0, 0, "Green Spill Suppression");
-	uiDefButS(block, ROW, B_NODE_EXEC, "B",
-			butr->xmin+2*dx,butr->ymin,dx,20,
-			&node->custom1, 1, 3, 0, 0, "Blue Spill Suppression");
-	uiBlockEndAlign(block);
+	uiLayout *row, *col;
+	
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "factor", 0);
+	row= uiLayoutRow(col, 0);
+	uiItemR(row, NULL, 0, ptr, "channel", UI_ITEM_R_EXPAND);
 }
 
 static void node_composit_buts_chroma_matte(uiLayout *layout, PointerRNA *ptr)
@@ -1709,55 +1678,22 @@ static void node_composit_buts_scale(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_invert(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, CMP_CHAN_RGB, B_NODE_EXEC, "RGB",
-				 butr->xmin, butr->ymin, (butr->xmax-butr->xmin)/2, 20, 
-				 &node->custom1, 0, 0, 0, 0, "");
-	uiDefButBitS(block, TOG, CMP_CHAN_A, B_NODE_EXEC, "A",
-				 butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin, (butr->xmax-butr->xmin)/2, 20, 
-				 &node->custom1, 0, 0, 0, 0, "");
-	uiBlockEndAlign(block);
+	uiLayout *col;
+	
+	col= uiLayoutColumn(layout, 0);
+	uiItemR(col, NULL, 0, ptr, "rgb", 0);
+	uiItemR(col, NULL, 0, ptr, "alpha", 0);
 }
 
 static void node_composit_buts_premulkey(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	uiBut *bt;
-	
-	/* blend type */
-	bt=uiDefButS(block, MENU, B_NODE_EXEC, "Key to Premul %x0|Premul to Key %x1",
-				 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-				 &node->custom1, 0, 0, 0, 0, "Conversion between premultiplied alpha and key alpha");
+	uiItemR(layout, "", 0, ptr, "mapping", 0);
 }
 
 static void node_composit_buts_view_levels(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	short sx= (butr->xmax-butr->xmin)/5;
-
-	/*color space selectors*/
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"C",
-		butr->xmin,butr->ymin,sx,20,&node->custom1,1,1, 0, 0, "Combined RGB");
-	uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"R",
-		butr->xmin+sx,butr->ymin,sx,20,&node->custom1,1,2, 0, 0, "Red Channel");
-	uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"G",
-		butr->xmin+2*sx,butr->ymin,sx,20,&node->custom1,1,3, 0, 0, "Green Channel");
-	uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"B",
-		butr->xmin+3*sx,butr->ymin,sx,20,&node->custom1,1,4, 0, 0, "Blue Channel");
-	uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"L",
-		butr->xmin+4*sx,butr->ymin,sx,20,&node->custom1,1,5, 0, 0, "Luminenc Channel");
-	uiBlockEndAlign(block);
+	uiItemR(layout, NULL, 0, ptr, "color_space", UI_ITEM_R_EXPAND);
 }
-
 
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
