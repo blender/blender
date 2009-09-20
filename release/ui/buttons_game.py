@@ -304,12 +304,25 @@ class SCENE_PT_game_performance(SceneButtonsPanel):
 		col.itemL(text="Render:")
 		col.itemR(gs, "all_frames")
 		col.itemR(gs, "display_lists")
+		
+class SCENE_PT_game_sound(SceneButtonsPanel):
+	__label__ = "Sound"
+
+	def draw(self, context):
+		layout = self.layout
+
+		scene = context.scene
+		
+		layout.itemR(scene, "distance_model")
+		layout.itemR(scene, "speed_of_sound", text="Speed")
+		layout.itemR(scene, "doppler_factor")
 
 bpy.types.register(SCENE_PT_game)
 bpy.types.register(SCENE_PT_game_player)
 bpy.types.register(SCENE_PT_game_stereo)
 bpy.types.register(SCENE_PT_game_shading)
 bpy.types.register(SCENE_PT_game_performance)
+bpy.types.register(SCENE_PT_game_sound)
 
 class WorldButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
