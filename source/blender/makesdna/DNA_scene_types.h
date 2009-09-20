@@ -94,7 +94,7 @@ typedef struct FFMpegCodecData {
 	int video_bitrate;
 	int audio_bitrate;
 	int audio_mixrate;
-	int audio_volume;
+	float audio_volume;
 	int gop_size;
 	int flags;
 
@@ -110,8 +110,11 @@ typedef struct FFMpegCodecData {
 typedef struct AudioData {
 	int mixrate; // 2.5: now in FFMpegCodecData: audio_mixrate
 	float main; // 2.5: now in FFMpegCodecData: audio_volume
+	float speed_of_sound;
+	float doppler_factor;
+	int distance_model;
 	short flag;
-	short pad[3];
+	short pad;
 } AudioData;
 
 typedef struct SceneRenderLayer {

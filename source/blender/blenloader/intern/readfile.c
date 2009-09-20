@@ -9352,13 +9352,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 */
 		//do_versions_ipos_to_animato(main);
 		
-		/* toolsettings */
-		for(scene= main->scene.first; scene; scene= scene->id.next)
-		{
-			scene->r.ffcodecdata.audio_mixrate = scene->audio.mixrate;
-			scene->r.ffcodecdata.audio_volume = scene->audio.main;
-		}
-		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
 		 */
@@ -9713,6 +9706,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					fluidmd->fss->fmd = fluidmd;
 				}
 			}
+		}
+
+		for(sce= main->scene.first; sce; sce= sce->id.next)
+		{
+			if(sce->audio.main == 0.0)
+				sce->audio.main = 1.0;
+
+			sce->r.ffcodecdata.audio_mixrate = sce->audio.mixrate;
+			sce->r.ffcodecdata.audio_volume = sce->audio.main;
+			sce->audio.distance_model = 2.0;
+			sce->audio.doppler_factor = 1.0;
+			sce->audio.speed_of_sound = 343.3;
 		}
 	}
 

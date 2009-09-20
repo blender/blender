@@ -340,7 +340,7 @@ void sound_update_playing(struct bContext *C)
 
 	for(handle = scene->sound_handles.first; handle; handle = handle->next)
 	{
-		if(cfra < handle->startframe || cfra >= handle->endframe || handle->mute)
+		if(cfra < handle->startframe || cfra >= handle->endframe || handle->mute || (scene->audio.flag & AUDIO_MUTE))
 		{
 			if(handle->state == AUD_STATUS_PLAYING)
 			{
