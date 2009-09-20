@@ -9,7 +9,6 @@ class TIME_HT_header(bpy.types.Header):
 		
 		st = context.space_data
 		scene = context.scene
-		rd = context.scene.render_data
 		tools = context.tool_settings
 		screen = context.screen
 
@@ -55,7 +54,7 @@ class TIME_HT_header(bpy.types.Header):
 			subsub = row.row()
 			subsub.itemR(tools, "record_with_nla", toggle=True)
 			
-		layout.itemR(rd, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
+		layout.itemR(scene, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
 		
 		layout.itemS()
 		
@@ -112,7 +111,7 @@ class TIME_MT_playback(bpy.types.Menu):
 		layout = self.layout
 		
 		st = context.space_data
-		rd = context.scene.render_data
+		scene = context.scene
 		
 		layout.itemR(st, "play_top_left")
 		layout.itemR(st, "play_all_3d")
@@ -127,10 +126,10 @@ class TIME_MT_playback(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.itemR(rd, "sync_audio", icon='ICON_SPEAKER')
+		layout.itemR(scene, "sync_audio", icon='ICON_SPEAKER')
+		layout.itemR(scene, "mute_audio")
+		layout.itemR(scene, "scrub_audio")
 
-		
-		
 class TIME_MT_autokey(bpy.types.Menu):
 	__space_type__ = 'TIMELINE'
 	__label__ = "Auto-Keyframing Mode"

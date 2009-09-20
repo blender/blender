@@ -323,8 +323,10 @@ class SCENE_PT_encoding(RenderButtonsPanel):
 
 		col = split.column()
 		col.itemR(rd, "ffmpeg_audio_bitrate")
+		col.itemR(rd, "ffmpeg_audio_mixrate")
 		col = split.column()
 		col.itemR(rd, "ffmpeg_multiplex_audio")
+		col.itemR(rd, "ffmpeg_audio_volume")
 
 class SCENE_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
