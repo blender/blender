@@ -417,13 +417,16 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 			struct direntry* file = filelist_file(sfile->files, i);
 			const char* dir = filelist_dir(sfile->files);
 			if (file && S_ISDIR(file->type))	{
-				BLI_make_file_string(G.sce, tmp, dir, file->relname);
+				// BLI_make_file_string(G.sce, tmp, dir, file->relname);
+				BLI_join_dirfile(tmp, dir, file->relname);
 				autocomplete_do_name(autocpl,tmp);
 			}
 		}
 		autocomplete_end(autocpl, str);
 		if (BLI_exists(str)) {
 			BLI_add_slash(str);
+		} else {
+			BLI_make_exist(str);
 		}
 	}
 }

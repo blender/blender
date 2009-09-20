@@ -943,7 +943,7 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return WM_operator_call(C, op);
 	} 
 	else {
-		/* XXX solve where to get last linked library from */
+		/* XXX TODO solve where to get last linked library from */
 		RNA_string_set(op->ptr, "path", G.lib);
 		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
@@ -1064,6 +1064,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	DAG_ids_flush_update(0);
 
 	BLO_blendhandle_close(bh);
+
+	/* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
 	BLI_strncpy(G.lib, dir, FILE_MAX);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
