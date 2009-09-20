@@ -422,6 +422,7 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 		sys->heat.vface[mface->v3]= mface;
 		if(mface->v4) sys->heat.vface[mface->v4]= mface;
 	}
+	RE_rayobject_done(sys->heat.raytree); 
 }
 
 static int heat_ray_bone_visible(LaplacianSystem *sys, int vertex, int bone)
