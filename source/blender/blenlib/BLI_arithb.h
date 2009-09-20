@@ -299,7 +299,7 @@ void Mat3MulMat3(float *m1, float *m3, float *m2);
 #endif
 void Mat4MulMat34(float (*m1)[4], float (*m3)[3], float (*m2)[4]);
 void Mat4CpyMat4(float m1[][4], float m2[][4]);
-void Mat4SwapMat4(float *m1, float *m2);
+void Mat4SwapMat4(float m1[][4], float m2[][4]);
 void Mat3CpyMat3(float m1[][3], float m2[][3]);
 
 void Mat3MulSerie(float answ[][3],
