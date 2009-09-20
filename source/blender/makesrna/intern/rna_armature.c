@@ -52,6 +52,7 @@ static void rna_Armature_update_data(bContext *C, PointerRNA *ptr)
 
 	DAG_id_flush_update(id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	//WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 }
 
 static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
@@ -577,7 +578,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_pose_position_items);
 	RNA_def_property_ui_text(prop, "Pose Position", "Show armature in binding pose or final posed state.");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
 	prop= RNA_def_property(srna, "drawtype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_drawtype_items);
@@ -593,7 +594,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "paths_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "pathflag");
 	RNA_def_property_enum_items(prop, prop_paths_type_items);
-	RNA_def_property_ui_text(prop, "Paths Type", "Mapping type to use for this image in the game engine.");
+	RNA_def_property_ui_text(prop, "Paths Type", "Type of range to show for Bone Paths");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	prop= RNA_def_property(srna, "paths_location", PROP_ENUM, PROP_NONE);
@@ -609,7 +610,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 		/* layer protection */
@@ -658,8 +659,8 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	prop= RNA_def_property(srna, "ghost_only_selected", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ARM_GHOST_ONLYSEL);
-	RNA_def_property_ui_text(prop, "Draw Ghosts on Selected Keyframes Only", "");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_GHOST_ONLYSEL);
+	RNA_def_property_ui_text(prop, "Draw Ghosts on Selected Bones Only", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 		/* deformflag */
@@ -703,7 +704,6 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "pathflag", ARM_PATH_KFNOS);
 	RNA_def_property_ui_text(prop, "Paths Show Keyframe Numbers", "When drawing Armature in Pose Mode, show frame numbers of Keyframes on Bone Paths");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
 	
 	
 	/* Number fields */

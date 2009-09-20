@@ -1588,7 +1588,8 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		VECCOPY(loc, cob->matrix[3]);
 		Mat4ToSize(cob->matrix, size);
 		
-		Mat4ToEulO(ct->matrix, eul, ct->rotOrder);
+		/* to allow compatible rotations, must get both rotations in the order of the owner... */
+		Mat4ToEulO(ct->matrix, eul, cob->rotOrder);
 		Mat4ToEulO(cob->matrix, obeul, cob->rotOrder);
 		
 		if ((data->flag & ROTLIKE_X)==0)

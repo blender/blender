@@ -410,30 +410,82 @@ static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, flo
 /* helper for apply() - perform sliding for quaternion rotations (using quat blending) */
 static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 {
-	// TODO: this is quite evil stuff...
-#if 0 // XXX port...
-	/* get 2 quats */
-	quat_prev[0] = eval_icu(icu_w, frame_prev);
-	quat_prev[1] = eval_icu(icu_x, frame_prev);
-	quat_prev[2] = eval_icu(icu_y, frame_prev);
-	quat_prev[3] = eval_icu(icu_z, frame_prev);
+	FCurve *fcu_w=NULL, *fcu_x=NULL, *fcu_y=NULL, *fcu_z=NULL;
+	bPoseChannel *pchan= pfl->pchan;
+	LinkData *ld=NULL;
+	char *path=NULL;
+	float cframe;
 	
-	quat_next[0] = eval_icu(icu_w, frame_next);
-	quat_next[1] = eval_icu(icu_x, frame_next);
-	quat_next[2] = eval_icu(icu_y, frame_next);
-	quat_next[3] = eval_icu(icu_z, frame_next);
+	/* get the path to use - this should be quaternion rotations only (needs care) */
+	path= BLI_sprintfN("%s.%s", pfl->pchan_path, "rotation");
 	
-#if 0
-	/* apply the setting, completely smooth */
-	QuatInterpol(pchan->quat, quat_prev, quat_next, (framef-frame_prev) / (frame_next-frame_prev) );
-#else
-	/* tricky interpolation */
-	QuatInterpol(quat_interp, quat_prev, quat_next, (framef-frame_prev) / (frame_next-frame_prev) );
-	QUATCOPY(quat_orig, pchan->quat);
-	QuatInterpol(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
-	/* done */
-#endif
-#endif
+	/* get the current frame number */
+	cframe= (float)pso->cframe;
+	
+	/* using this path, find each matching F-Curve for the variables we're interested in */
+	while ( (ld= find_next_fcurve_link(&pfl->fcurves, ld, path)) ) {
+		FCurve *fcu= (FCurve *)ld->data;
+		
+		/* assign this F-Curve to one of the relevant pointers... */
+		switch (fcu->array_index) {
+			case 3: /* z */
+				fcu_z= fcu;
+				break;
+			case 2: /* y */
+				fcu_y= fcu;
+				break;
+			case 1: /* x */
+				fcu_x= fcu;
+				break;
+			case 0: /* w */
+				fcu_w= fcu;
+				break;
+		}
+	}
+	
+	/* only if all channels exist, proceed */
+	if (fcu_w && fcu_x && fcu_y && fcu_z) {
+		float quat_prev[4], quat_next[4];
+		
+		/* get 2 quats */
+		quat_prev[0] = evaluate_fcurve(fcu_w, pso->prevFrame);
+		quat_prev[1] = evaluate_fcurve(fcu_x, pso->prevFrame);
+		quat_prev[2] = evaluate_fcurve(fcu_y, pso->prevFrame);
+		quat_prev[3] = evaluate_fcurve(fcu_z, pso->prevFrame);
+		
+		quat_next[0] = evaluate_fcurve(fcu_w, pso->nextFrame);
+		quat_next[1] = evaluate_fcurve(fcu_x, pso->nextFrame);
+		quat_next[2] = evaluate_fcurve(fcu_y, pso->nextFrame);
+		quat_next[3] = evaluate_fcurve(fcu_z, pso->nextFrame);
+		
+		/* perform blending */
+		if (pso->mode == POSESLIDE_BREAKDOWN) {
+			/* just perform the interpol between quat_prev and quat_next using pso->percentage as a guide */
+			QuatInterpol(pchan->quat, quat_prev, quat_next, pso->percentage);
+		}
+		else {
+			float quat_interp[4], quat_orig[4];
+			int iters= (int)ceil(10.0f*pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
+			
+			/* perform this blending several times until a satisfactory result is reached */
+			while (iters-- > 0) {
+				/* calculate the interpolation between the endpoints */
+				QuatInterpol(quat_interp, quat_prev, quat_next, (cframe-pso->prevFrame) / (pso->nextFrame-pso->prevFrame) );
+				
+				/* make a copy of the original rotation */
+				QUATCOPY(quat_orig, pchan->quat);
+				
+				/* tricky interpolations - mode-dependent blending between original and new */
+				if (pso->mode == POSESLIDE_RELAX) // xxx this was the original code, so should work fine
+					QuatInterpol(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
+				else // I'm just guessing here...
+					QuatInterpol(pchan->quat, quat_orig, quat_interp, 6.0f/5.0f);
+			}
+		}
+	}
+	
+	/* free the path now */
+	MEM_freeN(path);
 }
 
 /* apply() - perform the pose sliding based on weighting various poses */
