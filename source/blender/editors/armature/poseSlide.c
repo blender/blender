@@ -135,7 +135,13 @@ typedef struct tPChanFCurveLink {
 	
 	ListBase fcurves;		/* F-Curves for this PoseChannel */
 	bPoseChannel *pchan;	/* Pose Channel which data is attached to */
+	
 	char *pchan_path;		/* RNA Path to this Pose Channel (needs to be freed when we're done) */
+	
+	float oldloc[3];		/* transform values at start of operator (to be restored before each modal step) */
+	float oldrot[3];
+	float oldscale[3];
+	float oldquat[4];
 } tPChanFCurveLink;
 
 /* ------------------------------------ */
@@ -202,6 +208,12 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 				pchan->flag |= POSE_ROT;
 			if (transFlags & ACT_TRANS_SCALE)
 				pchan->flag |= POSE_SIZE;
+				
+			/* store current transforms */
+			VECCOPY(pfl->oldloc, pchan->loc);
+			VECCOPY(pfl->oldrot, pchan->eul);
+			VECCOPY(pfl->oldscale, pchan->size);
+			QUATCOPY(pfl->oldquat, pchan->quat);
 		}
 	}
 	CTX_DATA_END;
@@ -260,6 +272,23 @@ static void pose_slide_exit (bContext *C, wmOperator *op)
 }
 
 /* ------------------------------------ */
+
+/* helper for apply() / reset() - refresh the data */
+static void pose_slide_refresh (bContext *C, tPoseSlideOp *pso)
+{
+	/* old optimize trick... this enforces to bypass the depgraph 
+	 *	- note: code copied from transform_generics.c -> recalcData()
+	 */
+	// FIXME: shouldn't this use the builtin stuff?
+	if ((pso->arm->flag & ARM_DELAYDEFORM)==0)
+		DAG_id_flush_update(&pso->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+	else
+		where_is_pose(pso->scene, pso->ob);
+	
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pso->ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);	
+}
 
 /* helper for apply() callabcks - find the next F-Curve with matching path... */
 static LinkData *find_next_fcurve_link (ListBase *fcuLinks, LinkData *prev, char *path)
@@ -330,22 +359,45 @@ static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, flo
 			w2 = (w2/wtot);
 		}
 		
-		/* depending on the mode, */
+		/* depending on the mode, calculate the new value
+		 *	- in all of these, the start+end values are multiplied by w2 and w1 (respectively),
+		 *	  since multiplication in another order would decrease the value the current frame is closer to
+		 */
 		switch (pso->mode) {
 			case POSESLIDE_PUSH: /* make the current pose more pronounced */
-				// TODO: this is not interactively modifiable!
-				vec[ch]= ( -((sVal * w2) + (eVal * w1)) + (vec[ch] * 6.0f) ) / 5.0f;
+			{
+				/* perform a weighted average here, favouring the middle pose 
+				 *	- numerator should be larger than denominator to 'expand' the result
+				 *	- perform this weighting a number of times given by the percentage...
+				 */
+				int iters= (int)ceil(10.0f*pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
+				
+				while (iters-- > 0) {
+					vec[ch]= ( -((sVal * w2) + (eVal * w1)) + (vec[ch] * 6.0f) ) / 5.0f; 
+				}
+			}
 				break;
 				
 			case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
-				/* apply the value with a hard coded 6th */
-				// TODO: this is not interactively modifiable!
-				vec[ch]= ( ((sVal * w2) + (eVal * w1)) + (vec[ch] * 5.0f) ) / 6.0f;
+			{
+				/* perform a weighted average here, favouring the middle pose 
+				 *	- numerator should be smaller than denominator to 'relax' the result
+				 *	- perform this weighting a number of times given by the percentage...
+				 */
+				int iters= (int)ceil(10.0f*pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
+				
+				while (iters-- > 0) {
+					vec[ch]= ( ((sVal * w2) + (eVal * w1)) + (vec[ch] * 5.0f) ) / 6.0f;
+				}
+			}
 				break;
 				
 			case POSESLIDE_BREAKDOWN: /* make the current pose slide around between the endpoints */
+			{
 				/* perform simple linear interpolation - coefficient for start must come from pso->percentage... */
+				// TODO: make this use some kind of spline interpolation instead?
 				vec[ch]= ((sVal * w2) + (eVal * w1));
+			}
 				break;
 		}
 		
@@ -384,26 +436,6 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 #endif
 }
 
-/* helper for apply() - perform autokeyframing */
-static void pose_slide_autoKeyframe (bContext *C, tPoseSlideOp *pso, bPoseChannel *pchan, KeyingSet *ks)
-{
-	/* insert keyframes as necessary if autokeyframing */
-	if (autokeyframe_cfra_can_key(pso->scene, &pso->ob->id)) {
-		bCommonKeySrc cks;
-		ListBase dsources = {&cks, &cks};
-		
-		/* init common-key-source for use by KeyingSets */
-		memset(&cks, 0, sizeof(bCommonKeySrc));
-		cks.id= &pso->ob->id;
-		
-		/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-		cks.pchan= pchan;
-		
-		/* insert keyframes */
-		modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
-	}
-}
-
 /* apply() - perform the pose sliding based on weighting various poses */
 static void pose_slide_apply (bContext *C, wmOperator *op, tPoseSlideOp *pso)
 {
@@ -428,15 +460,11 @@ static void pose_slide_apply (bContext *C, wmOperator *op, tPoseSlideOp *pso)
 		if (pchan->flag & POSE_LOC) {
 			/* calculate these for the 'location' vector, and use location curves */
 			pose_slide_apply_vec3(pso, pfl, pchan->loc, "location");
-			/* insert keyframes if needed */
-			pose_slide_autoKeyframe(C, pso, pchan, pso->ks_loc);
 		}
 		
 		if (pchan->flag & POSE_SIZE) {
 			/* calculate these for the 'scale' vector, and use scale curves */
 			pose_slide_apply_vec3(pso, pfl, pchan->size, "scale");
-			/* insert keyframes if needed */
-			pose_slide_autoKeyframe(C, pso, pchan, pso->ks_scale);
 		}
 		
 		if (pchan->flag & POSE_ROT) {
@@ -452,24 +480,58 @@ static void pose_slide_apply (bContext *C, wmOperator *op, tPoseSlideOp *pso)
 				/* quaternions - use quaternion blending */
 				pose_slide_apply_quat(pso, pfl);
 			}
-			
-			/* insert keyframes if needed */
-			pose_slide_autoKeyframe(C, pso, pchan, pso->ks_rot);
 		}
 	}
 	
-	/* old optimize trick... this enforces to bypass the depgraph 
-	 *	- note: code copied from transform_generics.c -> recalcData()
-	 */
-	// FIXME: shouldn't this use the builtin stuff?
-	if ((pso->arm->flag & ARM_DELAYDEFORM)==0)
-		DAG_id_flush_update(&pso->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-	else
-		where_is_pose(pso->scene, pso->ob);
+	/* depsgraph updates + redraws */
+	pose_slide_refresh(C, pso);
+}
+
+/* perform autokeyframing after changes were made + confirmed */
+static void pose_slide_autoKeyframe (bContext *C, tPoseSlideOp *pso)
+{
+	/* insert keyframes as necessary if autokeyframing */
+	if (autokeyframe_cfra_can_key(pso->scene, &pso->ob->id)) {
+		bCommonKeySrc cks;
+		ListBase dsources = {&cks, &cks};
+		tPChanFCurveLink *pfl;
+		
+		/* init common-key-source for use by KeyingSets */
+		memset(&cks, 0, sizeof(bCommonKeySrc));
+		cks.id= &pso->ob->id;
+		
+		/* iterate over each pose-channel affected, applying the changes */
+		for (pfl= pso->pfLinks.first; pfl; pfl= pfl->next) {
+			bPoseChannel *pchan= pfl->pchan;
+			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+			cks.pchan= pchan;
+			
+			/* insert keyframes */
+			if (pchan->flag & POSE_LOC)
+				modify_keyframes(C, &dsources, NULL, pso->ks_loc, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
+			if (pchan->flag & POSE_ROT)
+				modify_keyframes(C, &dsources, NULL, pso->ks_rot, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
+			if (pchan->flag & POSE_SIZE)
+				modify_keyframes(C, &dsources, NULL, pso->ks_scale, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
+		}
+	}
+}
+
+/* reset changes made to current pose */
+static void pose_slide_reset (bContext *C, tPoseSlideOp *pso)
+{
+	tPChanFCurveLink *pfl;
 	
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pso->ob);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	/* iterate over each pose-channel affected, restoring all channels to their original values */
+	for (pfl= pso->pfLinks.first; pfl; pfl= pfl->next) {
+		bPoseChannel *pchan= pfl->pchan;
+		
+		/* just copy all the values over regardless of whether they changed or not */
+		VECCOPY(pchan->loc, pfl->oldloc);
+		VECCOPY(pchan->eul, pfl->oldrot);
+		VECCOPY(pchan->size, pfl->oldscale);
+		QUATCOPY(pchan->quat, pfl->oldquat);
+	}
 }
 
 /* ------------------------------------ */
@@ -538,24 +600,19 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 		return OPERATOR_CANCELLED;
 	}
 	
-	// FIXME: for now, just do modal for breakdowns... 
-	if (pso->mode == POSESLIDE_BREAKDOWN) {	
-		/* initial apply for operator... */
-		pose_slide_apply(C, op, pso);
-		
-		/* set cursor to indicate modal */
-		WM_cursor_modal(win, BC_EW_SCROLLCURSOR);
-		
-		/* add a modal handler for this operator */
-		WM_event_add_modal_handler(C, op);
-		return OPERATOR_RUNNING_MODAL;
-	}
-	else {
-		/* temp static operator code... until a way to include percentage in the formulation comes up */
-		pose_slide_apply(C, op, pso);
-		pose_slide_exit(C, op);
-		return OPERATOR_FINISHED;
-	}
+	/* initial apply for operator... */
+	// TODO: need to calculate percentage for initial round too...
+	pose_slide_apply(C, op, pso);
+	
+	/* depsgraph updates + redraws */
+	pose_slide_refresh(C, pso);
+	
+	/* set cursor to indicate modal */
+	WM_cursor_modal(win, BC_EW_SCROLLCURSOR);
+	
+	/* add a modal handler for this operator */
+	WM_event_add_modal_handler(C, op);
+	return OPERATOR_RUNNING_MODAL;
 }
 
 /* common code for modal() */
@@ -566,15 +623,36 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 	
 	switch (evt->type) {
 		case LEFTMOUSE:	/* confirm */
+		{
+			/* return to normal cursor */
 			WM_cursor_restore(win);
+			
+			/* insert keyframes as required... */
+			pose_slide_autoKeyframe(C, pso);
 			pose_slide_exit(C, op);
+			
+			/* done! */
 			return OPERATOR_FINISHED;
+		}
 		
 		case ESCKEY:	/* cancel */
 		case RIGHTMOUSE: 
+		{
+			/* return to normal cursor */
 			WM_cursor_restore(win);
+			
+			/* reset transforms back to original state */
+			pose_slide_reset(C, pso);
+			
+			/* depsgraph updates + redraws */
+			pose_slide_refresh(C, pso);
+			
+			/* clean up temp data */
 			pose_slide_exit(C, op);
+			
+			/* cancelled! */
 			return OPERATOR_CANCELLED;
+		}
 			
 		case MOUSEMOVE: /* calculate new position */
 		{
@@ -583,6 +661,9 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 			 */
 			pso->percentage= (evt->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
 			RNA_float_set(op->ptr, "percentage", pso->percentage);
+			
+			/* reset transforms (to avoid accumulation errors) */
+			pose_slide_reset(C, pso);
 			
 			/* apply... */
 			pose_slide_apply(C, op, pso);
@@ -607,6 +688,9 @@ static int pose_slide_exec_common (bContext *C, wmOperator *op, tPoseSlideOp *ps
 {
 	/* settings should have been set up ok for applying, so just apply! */
 	pose_slide_apply(C, op, pso);
+	
+	/* insert keyframes if needed */
+	pose_slide_autoKeyframe(C, pso);
 	
 	/* cleanup and done */
 	pose_slide_exit(C, op);
@@ -668,12 +752,12 @@ void POSE_OT_push (wmOperatorType *ot)
 	/* callbacks */
 	ot->exec= pose_slide_push_exec;
 	ot->invoke= pose_slide_push_invoke;
-	//ot->modal= pose_slide_modal;
-	//ot->cancel= pose_slide_cancel;
+	ot->modal= pose_slide_modal;
+	ot->cancel= pose_slide_cancel;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;//|OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);
@@ -725,12 +809,12 @@ void POSE_OT_relax (wmOperatorType *ot)
 	/* callbacks */
 	ot->exec= pose_slide_relax_exec;
 	ot->invoke= pose_slide_relax_invoke;
-	//ot->modal= pose_slide_modal;
-	//ot->cancel= pose_slide_cancel;
+	ot->modal= pose_slide_modal;
+	ot->cancel= pose_slide_cancel;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;//|OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);

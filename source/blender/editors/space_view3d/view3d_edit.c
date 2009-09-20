@@ -1628,7 +1628,7 @@ static int viewpersportho_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View persp/ortho";
+	ot->name= "View Persp/Ortho";
 	ot->description = "Switch the current view from perspective/orthographic.";
 	ot->idname= "VIEW3D_OT_view_persportho";
 
