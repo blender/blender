@@ -516,19 +516,38 @@ AUD_Device* AUD_openReadDevice(AUD_Specs specs)
 	}
 }
 
-int AUD_playDevice(AUD_Device* device, AUD_Sound* sound)
+AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound)
 {
 	assert(device);
 	assert(sound);
 
 	try
 	{
-		return device->play(sound) != NULL;
+		return device->play(sound);
 	}
 	catch(AUD_Exception)
 	{
-		return false;
+		return NULL;
 	}
+}
+
+int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Handle* handle,
+							 float volume)
+{
+	if(handle)
+	{
+		assert(device);
+		AUD_SourceCaps caps;
+		caps.handle = handle;
+		caps.value = volume;
+
+		try
+		{
+			return device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps);
+		}
+		catch(AUD_Exception) {}
+	}
+	return false;
 }
 
 int AUD_readDevice(AUD_Device* device, sample_t* buffer, int length)

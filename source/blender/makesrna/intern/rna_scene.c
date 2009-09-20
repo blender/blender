@@ -1512,6 +1512,19 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_MULTIPLEX_AUDIO);
 	RNA_def_property_ui_text(prop, "Multiplex Audio", "Interleave audio with the output video");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "ffmpeg_audio_mixrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_mixrate");
+	RNA_def_property_range(prop, 8000, 192000);
+	RNA_def_property_ui_text(prop, "Sample", "Audio samplerate(samples/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "ffmpeg_audio_volume", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ffcodecdata.audio_volume");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
 #endif
 
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
@@ -1582,11 +1595,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_FIELDSTILL);
 	RNA_def_property_ui_text(prop, "Fields Still", "Disable the time difference between fields.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "sync_audio", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
-	RNA_def_property_ui_text(prop, "Sync Audio", "Play back and sync with audio from Sequence Editor");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop= RNA_def_property(srna, "render_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SHADOW);
@@ -2062,6 +2070,22 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Timeline Markers", "Markers used in all timelines for the current scene.");
+
+	/* Audio Settings */
+	prop= RNA_def_property(srna, "mute_audio", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_MUTE);
+	RNA_def_property_ui_text(prop, "Mute Audio", "Play back of audio from Sequence Editor will be muted.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "sync_audio", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
+	RNA_def_property_ui_text(prop, "Sync Audio", "Play back and sync with audio from Sequence Editor.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "scrub_audio", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SCRUB);
+	RNA_def_property_ui_text(prop, "Scrub Audio", "Play audio from Sequence Editor while scrubbing.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* Game Settings */
 	prop= RNA_def_property(srna, "game_data", PROP_POINTER, PROP_NONE);

@@ -421,7 +421,7 @@ void sound_scrub(struct bContext *C)
 	int cfra = CFRA;
 	float fps = FPS;
 
-	if(scene->r.audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
+	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
 	{
 		AUD_lock();
 
@@ -443,13 +443,14 @@ void sound_scrub(struct bContext *C)
 	}
 }
 
-AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int end)
+AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int end, float volume)
 {
 	AUD_Device* mixdown = AUD_openReadDevice(specs);
 	SoundHandle *handle;
 	float fps = FPS;
 	AUD_Sound *limiter, *delayer;
 	int frameskip, s, e;
+	AUD_Handle* h;
 
 	end++;
 
@@ -470,7 +471,8 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 			limiter = AUD_limitSound(handle->source->handle, frameskip / fps, e / fps);
 			delayer = AUD_delaySound(limiter, s / fps);
 
-			AUD_playDevice(mixdown, delayer);
+			h = AUD_playDevice(mixdown, delayer);
+			AUD_setDeviceSoundVolume(mixdown, h, volume);
 
 			AUD_unload(delayer);
 			AUD_unload(limiter);

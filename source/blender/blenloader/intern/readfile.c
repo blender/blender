@@ -9354,7 +9354,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		/* toolsettings */
 		for(scene= main->scene.first; scene; scene= scene->id.next)
-			scene->r.audio = scene->audio;
+		{
+			scene->r.ffcodecdata.audio_mixrate = scene->audio.mixrate;
+			scene->r.ffcodecdata.audio_volume = scene->audio.main;
+		}
 		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
