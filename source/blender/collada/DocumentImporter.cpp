@@ -2264,7 +2264,7 @@ public:
 												anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C)) {}
 
 	/** Destructor. */
-	~Writer() {};
+	~Writer() {}
 
 	bool write()
 	{
@@ -2827,6 +2827,11 @@ public:
 	}
 
 	virtual bool writeFormulas( const COLLADAFW::Formulas* formulas )
+	{
+		return true;
+	}
+
+	virtual bool writeKinematicsScene( const COLLADAFW::KinematicsScene* kinematicsScene )
 	{
 		return true;
 	}
