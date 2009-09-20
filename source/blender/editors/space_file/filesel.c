@@ -117,8 +117,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		BLI_strncpy(sfile->params->file, file, sizeof(sfile->params->file));
 		BLI_make_file_string(G.sce, sfile->params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
 	}
-	
-	ED_fileselect_reset_params(sfile);
 
 	params = sfile->params;
 

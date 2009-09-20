@@ -1107,7 +1107,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= fbo;
 
 	str= RNA_property_string_get_alloc(&ptr, prop, 0, 0);
-	RNA_string_set(op->ptr, "filename", str);
+	RNA_string_set(op->ptr, "path", str);
 	MEM_freeN(str);
 
 	WM_event_add_fileselect(C, op); 
