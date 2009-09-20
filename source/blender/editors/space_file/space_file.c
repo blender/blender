@@ -156,16 +156,6 @@ static void file_free(SpaceLink *sl)
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
-	if(sfile->params) {
-		MEM_freeN(sfile->params);
-		sfile->params = 0;
-		ED_fileselect_set_params(sfile);
-		if (sfile->files) {
-			filelist_free(sfile->files);
-			MEM_freeN(sfile->files);
-			sfile->files= NULL;
-		}
-	}
 	printf("file_init\n");
 }
 
@@ -213,6 +203,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	if (filelist_empty(sfile->files))
 	{
 		filelist_readdir(sfile->files);
+		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
 	}
 	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
 	

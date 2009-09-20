@@ -518,6 +518,7 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 	sfile->op = NULL;
 	
 	if (sfile->files) {
+		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
@@ -606,6 +607,7 @@ int file_exec(bContext *C, wmOperator *unused)
 		fsmenu_write_file(fsmenu_get(), name);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
+		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
