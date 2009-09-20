@@ -89,6 +89,8 @@ extern "C" {
 #include "DNA_scene_types.h"
 	/***/
 
+#include "AUD_C-API.h"
+
 //XXX #include "BSE_headerbuttons.h"
 #include "BKE_context.h"
 #include "../../blender/windowmanager/WM_types.h"
@@ -385,6 +387,11 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 			//initialize Dome Settings
 			if(blscene->gm.stereoflag == STEREO_DOME)
 				ketsjiengine->InitDome(blscene->gm.dome.res, blscene->gm.dome.mode, blscene->gm.dome.angle, blscene->gm.dome.resbuf, blscene->gm.dome.tilt, blscene->gm.dome.warptext);
+
+			// initialize 3D Audio Settings
+			AUD_set3DSetting(AUD_3DS_SPEED_OF_SOUND, blscene->audio.speed_of_sound);
+			AUD_set3DSetting(AUD_3DS_DOPPLER_FACTOR, blscene->audio.doppler_factor);
+			AUD_set3DSetting(AUD_3DS_DISTANCE_MODEL, blscene->audio.distance_model);
 
 			if (sceneconverter)
 			{
