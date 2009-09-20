@@ -219,7 +219,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	/* get builtin KeyingSets */
 	pso->ks_loc= ANIM_builtin_keyingset_get_named(NULL, "Location");
 	pso->ks_rot= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-	pso->ks_scale= ANIM_builtin_keyingset_get_named(NULL, "Scale");
+	pso->ks_scale= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
 	
 	/* return status is whether we've got all the data we were requested to get */
 	return 1;
@@ -393,8 +393,7 @@ static void pose_slide_autoKeyframe (bContext *C, tPoseSlideOp *pso, bPoseChanne
 		ListBase dsources = {&cks, &cks};
 		
 		/* init common-key-source for use by KeyingSets */
-		// TODO: for now, we don't clear it out, since it should be safe to do so...
-		//memset(&cks, 0, sizeof(bCommonKeySrc));
+		memset(&cks, 0, sizeof(bCommonKeySrc));
 		cks.id= &pso->ob->id;
 		
 		/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
