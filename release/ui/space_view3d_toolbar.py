@@ -277,8 +277,6 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		
-
 		col = layout.column(align=True)
 		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
@@ -299,7 +297,8 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col.itemL(text="Pose:")
 		col.itemO("pose.copy", text="Copy")
 		col.itemO("pose.paste", text="Paste")
-		col.itemO("poselib.pose_add", text="Add To library")
+		col.itemO("poselib.pose_add", text="Add To Library")
+		col.itemO("poselib.browse_interactive", text="Browse Library")
 		
 		col = layout.column(align=True)
 		col.itemL(text="In-Between:")

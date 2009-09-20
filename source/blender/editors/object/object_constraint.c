@@ -823,17 +823,22 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	/* free constraints for all selected bones */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
 	{
 		free_constraints(&pchan->constraints);
+		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_CONST);
 	}
 	CTX_DATA_END;
 	
+	/* force depsgraph to get recalculated since relationships removed */
+	DAG_scene_sort(scene);		/* sort order of objects */	
+	
 	/* do updates */
-	DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_CONSTRAINT|NA_REMOVED, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -854,14 +859,18 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 static int object_constraints_clear_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	/* do freeing */
 	// TODO: we should free constraints for all selected objects instead (to be more consistent with bones)
 	free_constraints(&ob->constraints);
 	
+	/* force depsgraph to get recalculated since relationships removed */
+	DAG_scene_sort(scene);		/* sort order of objects */	
+	
 	/* do updates */
 	DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 	
 	return OPERATOR_FINISHED;
 }

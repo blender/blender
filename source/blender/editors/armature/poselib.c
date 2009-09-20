@@ -467,6 +467,7 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* remove relevant keyframes */
@@ -533,6 +534,7 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* get new name */

@@ -685,9 +685,17 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 		ct->flag= CONSTRAINT_TAR_TEMP; \
 		 \
 		if (ct->tar) { \
-			if ((ct->tar->type==OB_ARMATURE) && (ct->subtarget[0])) ct->type = CONSTRAINT_OBTYPE_BONE; \
-			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) ct->type = CONSTRAINT_OBTYPE_VERT; \
-			else ct->type = CONSTRAINT_OBTYPE_OBJECT; \
+			if ((ct->tar->type==OB_ARMATURE) && (ct->subtarget[0])) { \
+				bPoseChannel *pchan= get_pose_channel(ct->tar->pose, ct->subtarget); \
+				ct->type = CONSTRAINT_OBTYPE_BONE; \
+				ct->rotOrder= pchan->rotmode; \
+			}\
+			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) { \
+				ct->type = CONSTRAINT_OBTYPE_VERT; \
+			} \
+			else {\
+				ct->type = CONSTRAINT_OBTYPE_OBJECT; \
+			} \
 		} \
 		 \
 		BLI_addtail(list, ct); \
