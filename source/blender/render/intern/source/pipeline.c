@@ -406,7 +406,7 @@ static int passtype_from_name(char *str)
 
 static void render_unique_exr_name(Render *re, char *str, int sample)
 {
-	char di[FILE_MAX], name[FILE_MAXFILE], fi[FILE_MAXFILE];
+	char di[FILE_MAX], name[FILE_MAXFILE+MAX_ID_NAME+100], fi[FILE_MAXFILE];
 	
 	BLI_strncpy(di, G.sce, FILE_MAX);
 	BLI_splitdirstring(di, fi);
