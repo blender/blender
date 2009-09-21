@@ -1579,6 +1579,10 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				event.type= LEFTMOUSE;
 			else if (bd->button == GHOST_kButtonMaskRight)
 				event.type= RIGHTMOUSE;
+			else if (bd->button == GHOST_kButtonMaskButton4)
+				event.type= BUTTON4MOUSE;
+			else if (bd->button == GHOST_kButtonMaskButton5)
+				event.type= BUTTON5MOUSE;
 			else
 				event.type= MIDDLEMOUSE;
 			

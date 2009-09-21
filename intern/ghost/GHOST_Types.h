@@ -132,6 +132,8 @@ typedef enum {
 	GHOST_kButtonMaskLeft = 0,
 	GHOST_kButtonMaskMiddle,
 	GHOST_kButtonMaskRight,
+	GHOST_kButtonMaskButton4,
+	GHOST_kButtonMaskButton5,
 	GHOST_kButtonNumMasks
 } GHOST_TButtonMask;
 

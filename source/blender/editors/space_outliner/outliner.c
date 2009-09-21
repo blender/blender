@@ -5049,6 +5049,8 @@ static char *keymap_mouse_menu(void)
 	str += sprintf(str, formatstr, "Left Mouse", LEFTMOUSE);
 	str += sprintf(str, formatstr, "Middle Mouse", MIDDLEMOUSE);
 	str += sprintf(str, formatstr, "Right Mouse", RIGHTMOUSE);
+	str += sprintf(str, formatstr, "Button4 Mouse ", BUTTON4MOUSE);
+	str += sprintf(str, formatstr, "Button5 Mouse ", BUTTON5MOUSE);
 	str += sprintf(str, formatstr, "Action Mouse", ACTIONMOUSE);
 	str += sprintf(str, formatstr, "Select Mouse", SELECTMOUSE);
 	str += sprintf(str, formatstr, "Mouse Move", MOUSEMOVE);
@@ -5071,6 +5073,8 @@ static char *keymap_tweak_menu(void)
 	str += sprintf(str, formatstr, "Left Mouse", EVT_TWEAK_L);
 	str += sprintf(str, formatstr, "Middle Mouse", EVT_TWEAK_M);
 	str += sprintf(str, formatstr, "Right Mouse", EVT_TWEAK_R);
+	str += sprintf(str, formatstr, "Button4 Mouse ", BUTTON4MOUSE);
+	str += sprintf(str, formatstr, "Button5 Mouse ", BUTTON5MOUSE);
 	str += sprintf(str, formatstr, "Action Mouse", EVT_TWEAK_A);
 	str += sprintf(str, formatstr, "Select Mouse", EVT_TWEAK_S);
 	

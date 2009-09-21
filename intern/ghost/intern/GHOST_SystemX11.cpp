@@ -444,10 +444,15 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 			XButtonEvent & xbe = xe->xbutton;
 			GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
-
 			switch (xbe.button) {
 				case Button1 : gbmask = GHOST_kButtonMaskLeft; break;
 				case Button3 : gbmask = GHOST_kButtonMaskRight; break;
+				/* It seems events 6 and 7 are for horizontal scrolling.
+				 * you can re-order button mapping like this... (swaps 6,7 with 8,9)
+				 *   xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7" 
+				 */
+				case 8 : gbmask = GHOST_kButtonMaskButton4; break; /* Button4 is the wheel */
+				case 9 : gbmask = GHOST_kButtonMaskButton5; break; /* Button5 is a wheel too */
 				default:
 				case Button2 : gbmask = GHOST_kButtonMaskMiddle; break;
 			}
