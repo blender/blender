@@ -575,7 +575,9 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.balancer = netrender.balancing.Balancer()
 		self.balancer.addRule(netrender.balancing.RatingCredit())
 		self.balancer.addException(netrender.balancing.ExcludeQueuedEmptyJob())
+		self.balancer.addException(netrender.balancing.ExcludeSlavesLimit(self.countJobs, self.countSlaves))
 		self.balancer.addPriority(netrender.balancing.NewJobPriority())
+		self.balancer.addPriority(netrender.balancing.MinimumTimeBetweenDispatchPriority())
 		
 		if not os.path.exists(self.path):
 			os.mkdir(self.path)
@@ -607,7 +609,18 @@ class RenderMasterServer(http.server.HTTPServer):
 	
 	def update(self):
 		self.balancer.balance(self.jobs)
+	
+	def countJobs(self, status = JOB_QUEUED):
+		total = 0
+		for j in self.jobs:
+			if j.status == status:
+				total += 1
 		
+		return total
+	
+	def countSlaves(self):
+		return len(self.slaves)
+	
 	def removeJob(self, id):
 		job = self.jobs_map.pop(id)
 

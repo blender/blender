@@ -64,12 +64,31 @@ class Balancer:
 
 class RatingCredit(RatingRule):
 	def rate(self, job):
-		return -job.credits # more credit is better (sort at first in list)
+		return -job.credits * job.priority # more credit is better (sort at first in list)
 
 class NewJobPriority(PriorityRule):
+	def __init__(self, limit = 1):
+		self.limit = limit
+		
 	def test(self, job):
-		return job.countFrames(status = DISPATCHED) == 0
+		return job.countFrames(status = DISPATCHED) < self.limit
+
+class MinimumTimeBetweenDispatchPriority(PriorityRule):
+	def __init__(self, limit = 10):
+		self.limit = limit
+		
+	def test(self, job):
+		return (time.time() - job.last_dispatched) / 60 > self.limit
 
 class ExcludeQueuedEmptyJob(ExclusionRule):
 	def test(self, job):
 		return job.status != JOB_QUEUED or job.countFrames(status = QUEUED) == 0
+	
+class ExcludeSlavesLimit(ExclusionRule):
+	def __init__(self, count_jobs, count_slaves, limit = 0.75):
+		self.count_jobs = count_jobs
+		self.count_slaves = count_slaves
+		self.limit = limit
+		
+	def test(self, job):
+		return not ( self.count_jobs() == 1 or float(job.countSlaves() + 1) / self.count_slaves() <= self.limit )

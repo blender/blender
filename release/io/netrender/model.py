@@ -97,15 +97,14 @@ class RenderJob:
 	
 	def countFrames(self, status=QUEUED):
 		total = 0
-		for j in self.frames:
-			if j.status == status:
+		for f in self.frames:
+			if f.status == status:
 				total += 1
 		
 		return total
 	
 	def countSlaves(self):
 		return len(set((frame.slave for frame in self.frames if frame.status == DISPATCHED)))
-		
 	
 	def framesStatus(self):
 		results = {
