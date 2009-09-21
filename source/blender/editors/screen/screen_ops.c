@@ -1348,9 +1348,11 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(event->val==0) {
 				
 				if(ABS(event->x - rmd->origx) < 2 && ABS(event->y - rmd->origy) < 2) {
-					ED_region_toggle_hidden(C, rmd->ar);
-					WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-				}				
+					if(rmd->ar->flag & RGN_FLAG_HIDDEN) {
+						ED_region_toggle_hidden(C, rmd->ar);
+						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+					}
+				}
 				MEM_freeN(op->customdata);
 				op->customdata = NULL;
 
