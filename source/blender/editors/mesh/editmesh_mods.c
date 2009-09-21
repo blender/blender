@@ -2033,6 +2033,9 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 	vc.mval[0]= mval[0];
 	vc.mval[1]= mval[1];
 	em= vc.em;
+
+	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
+	view3d_validate_backbuf(&vc);
 	
 	eed= findnearestedge(&vc, &dist);
 	if(eed) {
@@ -2109,6 +2112,9 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 	vc.mval[0]= mval[0];
 	vc.mval[1]= mval[1];
 	em= vc.em;
+	
+	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
+	view3d_validate_backbuf(&vc);
 	
 	eed= findnearestedge(&vc, &dist);
 	if(eed) {
