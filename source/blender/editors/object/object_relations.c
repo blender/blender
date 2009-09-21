@@ -566,8 +566,9 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 			}
 			else cu->flag |= CU_FOLLOW;
 			
-			/* fall back on regular parenting now */
-			partype= PAR_OBJECT;
+			/* fall back on regular parenting now (for follow only) */
+			if(partype == PAR_FOLLOW)
+				partype= PAR_OBJECT;
 		}		
 	}
 	else if(partype==PAR_BONE) {
@@ -593,7 +594,9 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				/* apply transformation of previous parenting */
 				ED_object_apply_obmat(ob);
 				
-				ob->parent= par;
+				/* set the parent (except for follow-path constraint option) */
+				if(partype != PAR_PATH_CONST)
+					ob->parent= par;
 				
 				/* handle types */
 				if (pchan)
@@ -602,7 +605,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					ob->parsubstr[0]= 0;
 				
 				/* constraint */
-				if(partype==PAR_PATH_CONST) {
+				if(partype == PAR_PATH_CONST) {
 					bConstraint *con;
 					bFollowPathConstraint *data;
 					float cmat[4][4], vec[3];
@@ -620,6 +623,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					
 					ob->loc[0] = vec[0];
 					ob->loc[1] = vec[1];
+					ob->loc[2] = vec[2];
 				}
 				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
 					if(partype == PAR_ARMATURE_NAME)
@@ -645,6 +649,8 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 				
+				if(partype == PAR_PATH_CONST)
+					; /* don't do anything here, since this is not technically "parenting" */
 				if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
 					ob->partype= PARSKEL; /* note, dna define, not operator property */
 				else if (partype == PAR_BONE)
