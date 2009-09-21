@@ -405,9 +405,11 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
-	ModifierData *md;
-	
+	ModifierData *md= md_v;
 	int i, cageIndex = modifiers_getCageIndex(ob, NULL );
+
+	/* undo button operation */
+	md->mode ^= eModifierMode_OnCage;
 
 	for(i = 0, md=ob->modifiers.first; md; ++i, md=md->next) {
 		if(md == md_v) {
@@ -517,9 +519,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		/* XXX uiBlockSetEmboss(block, UI_EMBOSSR); */
 
 		if(ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
-
 			/* XXX uiBlockSetCol(block, color); */
-			but = uiDefIconBut(block, BUT, 0, ICON_MESH_DATA, 0, 0, 16, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			if(index < cageIndex)
+				uiButSetFlag(but, UI_BUT_DISABLED);
 			uiButSetFunc(but, modifiers_setOnCage, ob, md);
 			uiBlockEndAlign(block);
 			/* XXX uiBlockSetCol(block, TH_AUTO); */
