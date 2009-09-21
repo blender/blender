@@ -122,11 +122,7 @@ char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 #define BLENDERPATH ""
 #endif
  
-#if !(defined(__APPLE__) && defined(WIN32))
 char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
-#else
-char blender_path[FILE_MAXDIR+FILE_MAXFILE] = "";
-#endif
 
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
@@ -233,12 +229,10 @@ static void print_help(void)
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
 	printf ("\nEnvironment Variables:\n");
 	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
-#if !(defined(__APPLE__) && defined(WIN32))
 	printf ("  $BLENDERPATH\tSystem directory to use for data files and scripts.\n");
 	printf ("              \tFor this build of blender the default BLENDERPATH is...\n");
 	printf ("              \t\"%s\"\n", blender_path);
 	printf ("              \tseting the $BLENDERPATH will override this\n");
-#endif
 #ifdef WIN32
 	printf ("  $TEMP\t\tStore temporary files here.\n");
 #else
