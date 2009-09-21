@@ -540,7 +540,7 @@ static void def_cmp_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "sizey", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sizey");
-	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_range(prop, 0, 256);
 	RNA_def_property_ui_text(prop, "Size Y", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 	
