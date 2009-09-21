@@ -1600,7 +1600,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			event.val= (type==GHOST_kEventKeyDown)?KM_PRESS:KM_RELEASE;
 			
 			/* exclude arrow keys, esc, etc from text input */
-			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>14))
+			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>0))
 				event.ascii= '\0';
 			
 			/* modifiers */
@@ -1630,6 +1630,13 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				else if(event.val==KM_RELEASE && event.keymodifier==event.type)
 					event.keymodifier= evt->keymodifier= 0;
 			}
+
+			/* this case happens on some systems that on holding a key pressed,
+			   generate press events without release, we still want to keep the
+			   modifier in win->eventstate, but for the press event of the same
+			   key we don't want the key modifier */
+			if(event.keymodifier == event.type)
+				event.keymodifier= 0;
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */
 			if(event.type==ESCKEY)
