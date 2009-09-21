@@ -567,6 +567,7 @@ static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 	}
 	
 	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
