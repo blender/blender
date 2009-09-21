@@ -1239,6 +1239,11 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sequencer Windows", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
+	prop= RNA_def_property(srna, "play_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_NODES);
+	RNA_def_property_ui_text(prop, "Node Windows", "");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
+	
 	/* Other options */
 	
 	prop= RNA_def_property(srna, "continue_physics", PROP_BOOLEAN, PROP_NONE);

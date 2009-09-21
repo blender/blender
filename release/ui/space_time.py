@@ -119,6 +119,7 @@ class TIME_MT_playback(bpy.types.Menu):
 		layout.itemR(st, "play_buttons")
 		layout.itemR(st, "play_image")
 		layout.itemR(st, "play_sequencer")
+		layout.itemR(st, "play_nodes")
 		
 		layout.itemS()
 		

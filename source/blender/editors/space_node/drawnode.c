@@ -1107,58 +1107,28 @@ static void node_blur_update_sizey_cb(bContext *C, void *node, void *poin2)
 }
 static void node_composit_buts_blur(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeBlurData *nbd= node->storage;
-	uiBut *bt;
-	short dy= butr->ymin+58;
-	short dx= (butr->xmax-butr->xmin)/2;
-	char str[256];
+	uiLayout *row, *col;
 	
-	uiBlockBeginAlign(block);
-	sprintf(str, "Filter Type%%t|Flat %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|Fast Gauss%%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_FAST_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
-	uiDefButS(block, MENU, B_NODE_EXEC,str,
-			  butr->xmin, dy, dx*2, 19, 
-			  &nbd->filtertype, 0, 0, 0, 0, "Set sampling filter for blur");
-	dy-=19;
-	if (nbd->filtertype != R_FILTER_FAST_GAUSS) { 
-		uiDefButC(block, TOG, B_NODE_EXEC, "Bokeh",
-				butr->xmin, dy, dx, 19, 
-				&nbd->bokeh, 0, 0, 0, 0, "Uses circular filter, warning it's slow!");
-		uiDefButC(block, TOG, B_NODE_EXEC, "Gamma",
-				butr->xmin+dx, dy, dx, 19, 
-				&nbd->gamma, 0, 0, 0, 0, "Applies filter on gamma corrected values");
-	} else {
-		uiBlockEndAlign(block);
-		uiBlockBeginAlign(block);
+	col= uiLayoutColumn(layout, 0);
+	
+	uiItemR(col, "", 0, ptr, "filter_type", 0);
+	/* Only for "Fast Gaussian" */
+	if (RNA_enum_get(ptr, "filter_type")!= 7) {
+		uiItemR(col, NULL, 0, ptr, "bokeh", 0);
+		uiItemR(col, NULL, 0, ptr, "gamma", 0);
 	}
-	dy-=19;
-	bt= uiDefButS(block, TOG, B_NOP, "Relative",
-			  butr->xmin, dy, dx*2, 19,
-			  &nbd->relative, 0, 0, 0, 0, "Use relative (percent) values to define blur radius");
-	uiButSetFunc(bt, node_blur_relative_cb, node, NULL);
-
-	dy-=19;
-	if(nbd->relative) {
-		bt= uiDefButF(block, NUM, B_NODE_EXEC, "X:",
-					 butr->xmin, dy, dx, 19, 
-					 &nbd->percentx, 0.0f, 1.0f, 0, 0, "");
-		uiButSetFunc(bt, node_blur_update_sizex_cb, node, NULL);
-		bt= uiDefButF(block, NUM, B_NODE_EXEC, "Y:",
-					 butr->xmin+dx, dy, dx, 19, 
-					 &nbd->percenty, 0.0f, 1.0f, 0, 0, "");
-		uiButSetFunc(bt, node_blur_update_sizey_cb, node, NULL);
+	
+	uiItemR(col, NULL, 0, ptr, "relative", 0);
+	row= uiLayoutRow(col, 1);
+	if (RNA_boolean_get(ptr, "relative")== 1) {
+		uiItemR(row, "X", 0, ptr, "factor_x", 0);
+		uiItemR(row, "Y", 0, ptr, "factor_y", 0);
 	}
+	
 	else {
-		uiDefButS(block, NUM, B_NODE_EXEC, "X:",
-					 butr->xmin, dy, dx, 19, 
-					 &nbd->sizex, 0, 256, 0, 0, "");
-		uiDefButS(block, NUM, B_NODE_EXEC, "Y:",
-					 butr->xmin+dx, dy, dx, 19, 
-					 &nbd->sizey, 0, 256, 0, 0, "");
+		uiItemR(row, "X", 0, ptr, "sizex", 0);
+		uiItemR(row, "Y", 0, ptr, "sizey", 0);
 	}
-	uiBlockEndAlign(block);
 }
 
 static void node_composit_buts_dblur(uiLayout *layout, PointerRNA *ptr)
@@ -1455,23 +1425,12 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_color_matte(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	NodeChroma *c= node->storage;
-	uiBlockBeginAlign(block);
-
-	uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "H: ",
-		butr->xmin, butr->ymin+40, butr->xmax-butr->xmin, 20,
-		&c->t1, 0.0f, 0.25f, 100, 0, "Hue tolerance for colors to be considered a keying color");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "S: ",
-		butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-		&c->t2, 0.0f, 1.0f, 100, 0, "Saturation Tolerance for the color");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "V: ",
-		butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-		&c->t3, 0.0f, 1.0f, 100, 0, "Value Tolerance for the color");
-
-	uiBlockEndAlign(block);
+	uiLayout *col;
+	
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "h", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "s", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "v", UI_ITEM_R_SLIDER);
 }
 
 static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)

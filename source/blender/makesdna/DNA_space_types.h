@@ -834,6 +834,7 @@ enum {
 #define TIME_SEQ				32
 #define TIME_ALL_IMAGE_WIN		64
 #define TIME_CONTINUE_PHYSICS	128
+#define TIME_NODES				256
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0
