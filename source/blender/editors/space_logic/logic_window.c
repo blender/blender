@@ -1067,6 +1067,19 @@ static void test_scenepoin_but(struct bContext *C, char *name, ID **idpp)
 	*idpp= NULL;
 }
 
+
+static void test_keyboard_event(struct bContext *C, void *arg_ks, void *arg_unused)
+{
+	bKeyboardSensor *ks= (bKeyboardSensor*)arg_ks;
+	
+	if(!ISKEYBOARD(ks->key))
+		ks->key= 0;
+	if(!ISKEYBOARD(ks->qual))
+		ks->qual= 0;
+	if(!ISKEYBOARD(ks->qual2))
+		ks->qual2= 0;
+}
+
 /**
  * Draws a toggle for pulse mode, a frequency field and a toggle to invert
  * the value of this sensor. Operates on the shared data block of sensors.
@@ -1131,6 +1144,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 	bJoystickSensor	 *joy		   = NULL;
 	bActuatorSensor  *as           = NULL;
 	bDelaySensor     *ds		   = NULL;
+	uiBut *but;
 	short ysize;
 	char *str;
 	
@@ -1279,12 +1293,15 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			
 			if ((ks->type&1)==0) { /* is All Keys option off? */
 				/* line 2: hotkey and allkeys toggle */
-				uiDefKeyevtButS(block, 0, "", xco+40, yco-44, (width)/2, 19, &ks->key, "Key code");
+				but= uiDefKeyevtButS(block, 0, "", xco+40, yco-44, (width)/2, 19, &ks->key, "Key code");
+				uiButSetFunc(but, test_keyboard_event, ks, NULL);
 				
 				/* line 3: two key modifyers (qual1, qual2) */
 				uiDefBut(block, LABEL, 0, "Hold",	  xco, yco-68, 40, 19, NULL, 0, 0, 0, 0, "");
-				uiDefKeyevtButS(block, 0, "", xco+40, yco-68, (width-50)/2, 19, &ks->qual, "Modifier key code");
-				uiDefKeyevtButS(block, 0, "", xco+40+(width-50)/2, yco-68, (width-50)/2, 19, &ks->qual2, "Second Modifier key code");
+				but= uiDefKeyevtButS(block, 0, "", xco+40, yco-68, (width-50)/2, 19, &ks->qual, "Modifier key code");
+				uiButSetFunc(but, test_keyboard_event, ks, NULL);
+				but= uiDefKeyevtButS(block, 0, "", xco+40+(width-50)/2, yco-68, (width-50)/2, 19, &ks->qual2, "Second Modifier key code");
+				uiButSetFunc(but, test_keyboard_event, ks, NULL);
 			}
 			
 			/* line 4: toggle property for string logging mode */

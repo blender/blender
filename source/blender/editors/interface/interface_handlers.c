@@ -855,6 +855,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_CHARTAB(C, but, data);
 			break;
 #endif
+		case KEYEVT:
 		case HOTKEYEVT:
 			ui_apply_but_BUT(C, but, data);
 			break;

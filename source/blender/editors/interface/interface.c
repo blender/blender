@@ -3098,10 +3098,11 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 	return but;
 }
 
-void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip)
+uiBut *uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip)
 {
 	uiBut *but= ui_def_but(block, KEYEVT|SHO, retval, str, x1, y1, x2, y2, spoin, 0.0, 0.0, 0.0, 0.0, tip);
 	ui_check_but(but);
+	return but;
 }
 
 /* short pointers hardcoded */

@@ -194,10 +194,13 @@
 
 /* for event checks */
 	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
-#define ISKEYBOARD(event)	(event >=' ' && event <=255)
+#define ISTEXTINPUT(event)	(event >=' ' && event <=255)
+
+	/* test wether the event is a key on the keyboard */
+#define ISKEYBOARD(event)	(event >=' ' && event <=320)
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */
-#define ISHOTKEY(event)	(event >=' ' && event <=320 && !(event>=LEFTCTRLKEY && event<=ESCKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
+#define ISHOTKEY(event)	(ISKEYBOARD(event) && !(event>=LEFTCTRLKEY && event<=ESCKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
 
 
 /* **************** BLENDER GESTURE EVENTS ********************* */

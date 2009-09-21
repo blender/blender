@@ -431,7 +431,7 @@ uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, char *
 uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
-void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
+uiBut *uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip);
 
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip);

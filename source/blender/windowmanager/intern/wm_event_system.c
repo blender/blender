@@ -718,7 +718,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
-		if(ISKEYBOARD(winevent->type) && winevent->ascii) return 1;
+		if(ISTEXTINPUT(winevent->type) && winevent->ascii) return 1;
 	if(kmitype!=KM_ANY)
 		if(winevent->type!=kmitype) return 0;
 	
@@ -741,7 +741,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	/* key modifiers always check when event has it */
 	/* otherwise regular keypresses with keymodifier still work */
 	if(winevent->keymodifier)
-		if(ISKEYBOARD(winevent->type)) 
+		if(ISTEXTINPUT(winevent->type)) 
 			if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
 	return 1;
