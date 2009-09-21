@@ -1439,7 +1439,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	else {
 		sync= 0;
 		selectmode= ts->uv_selectmode;
-		sticky= sima->sticky;
+		sticky= sima ? sima->sticky : 1;
 	}
 
 	/* find nearest element */
@@ -2471,13 +2471,18 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 {
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
-	Image *ima= sima->image;
+	Image *ima;
 	EditFace *efa;
 	MTFace *tface;
 	int width= 0, height= 0;
 	float w, h;
 	short change = 0;
 
+	if(!sima)
+		return 0;
+	
+	ima= sima->image;
+	
 	ED_space_image_size(sima, &width, &height);
 	w = (float)width;
 	h = (float)height;
@@ -2657,6 +2662,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	EditFace *efa;
 	MTFace *tf;
 	int swap= RNA_boolean_get(op->ptr, "unselected");
+	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EM_hide_mesh(em, swap);
@@ -2670,7 +2676,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->f & SELECT) {
 				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if(sima->flag & SI_SELACTFACE) {
+				if(facemode) {
 					/* Pretend face mode */
 					if((	(efa->v4==NULL && 
 							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
@@ -2715,7 +2721,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 			if(efa->f & SELECT) {
 				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-				if(sima->flag & SI_SELACTFACE) {
+				if(facemode) {
 					if(	(efa->v4==NULL && 
 							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
 							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) ==	(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)	) {
@@ -2799,6 +2805,8 @@ static int reveal_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
+	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
+	int stickymode= sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
 	
 	/* call the mesh function if we are in mesh sync sel */
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
@@ -2809,7 +2817,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	
-	if(sima->flag & SI_SELACTFACE) {
+	if(facemode) {
 		if(em->selectmode == SCE_SELECT_FACE) {
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(!(efa->h) && !(efa->f & SELECT)) {
@@ -2821,7 +2829,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			/* enable adjacent faces to have disconnected UV selections if sticky is disabled */
-			if(sima->sticky == SI_STICKY_DISABLE) {
+			if(!stickymode) {
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if(!(efa->h) && !(efa->f & SELECT)) {
 						/* All verts must be unselected for the face to be selected in the UV view */

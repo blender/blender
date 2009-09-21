@@ -532,7 +532,7 @@ int file_operator_poll(bContext *C)
 	int poll = ED_operator_file_active(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
-	if (!sfile->op) poll= 0;
+	if (!sfile || !sfile->op) poll= 0;
 
 	return poll;
 }

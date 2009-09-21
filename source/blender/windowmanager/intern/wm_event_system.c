@@ -1231,7 +1231,7 @@ void wm_event_do_handlers(bContext *C)
 
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
 				   doing it on ghost queue gives errors when mousemoves go over area borders */
-				if(doit && win->screen->subwinactive != win->screen->mainwin) {
+				if(doit && win->screen && win->screen->subwinactive != win->screen->mainwin) {
 					win->eventstate->prevx= event->x;
 					win->eventstate->prevy= event->y;
 				}
@@ -1244,7 +1244,7 @@ void wm_event_do_handlers(bContext *C)
 		}
 		
 		/* only add mousemove when queue was read entirely */
-		if(win->addmousemove) {
+		if(win->addmousemove && win->eventstate) {
 			wmEvent event= *(win->eventstate);
 			event.type= MOUSEMOVE;
 			event.prevx= event.x;

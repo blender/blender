@@ -738,9 +738,9 @@ void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
-	ParticleData *pa = psys->particles;
-	PTCacheEdit *edit = psys->edit;
-	PTCacheEditPoint *point = edit ? edit->points : NULL;
+	ParticleData *pa;
+	PTCacheEdit *edit;
+	PTCacheEditPoint *point;
 	PTCacheEditKey *ekey = NULL;
 	HairKey *key;
 	int i, k;
@@ -751,8 +751,11 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	if(!psys->part || psys->part->type != PART_HAIR)
 		return;
+	
+	edit = psys->edit;
+	point= edit ? edit->points : NULL;
 
-	for(i=0; i<psys->totpart; i++,pa++) {
+	for(i=0, pa=psys->particles; i<psys->totpart; i++,pa++) {
 		if(point) {
 			ekey = point->keys;
 			point++;
@@ -820,9 +823,9 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
-	ParticleData *pa = psys->particles;
-	PTCacheEdit *edit = psys->edit;
-	PTCacheEditPoint *point = edit ? edit->points : NULL;
+	ParticleData *pa;
+	PTCacheEdit *edit;
+	PTCacheEditPoint *point;
 	PTCacheEditKey *ekey;
 	HairKey *key;
 	BVHTreeFromMesh bvhtree;
@@ -836,7 +839,10 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	if(!psys || !psys->part || psys->part->type != PART_HAIR)
 		return;
-
+	
+	edit= psys->edit;
+	point=  edit ? edit->points : NULL;
+	
 	if(psmd->dm->deformedOnly)
 		dm= psmd->dm;
 	else
@@ -852,7 +858,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	bvhtree_from_mesh_faces(&bvhtree, dm, 0.0, 2, 6);
 
-	for(i=0; i<psys->totpart; i++,pa++) {
+	for(i=0, pa= psys->particles; i<psys->totpart; i++,pa++) {
 		key = pa->hair;
 
 		nearest.index = -1;

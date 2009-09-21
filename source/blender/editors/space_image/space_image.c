@@ -623,7 +623,7 @@ ImBuf *ED_space_image_buffer(SpaceImage *sima)
 {
 	ImBuf *ibuf;
 
-	if(sima->image) {
+	if(sima && sima->image) {
 #if 0
 		if(sima->image->type==IMA_TYPE_R_RESULT && BIF_show_render_spare())
 			return BIF_render_spare_imbuf();
