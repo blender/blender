@@ -1665,6 +1665,30 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_BORDER);
 	RNA_def_property_ui_text(prop, "Border", "Render a user-defined border region, within the frame size.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "border_min_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "border.xmin");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Minimum X", "Sets minimum X value to for the render border.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "border_min_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "border.ymin");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Minimum Y", "Sets minimum Y value for the render border");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "border_max_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "border.xmax");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Maximum X", "Sets maximum X value for the render border");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "border_max_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "border.ymax");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Maximum Y", "Sets maximum Y value for the render border");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "crop_to_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_CROP);
