@@ -1801,8 +1801,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
         ED_area_tag_redraw(sa);
 		break;
 	case B_NDOF:
+        ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_MODE:
+        ED_area_tag_redraw(sa);
 		break;		
 	case B_VIEW_BUTSEDIT:
 		break;
