@@ -253,6 +253,22 @@ static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *C, PointerR
 	return space_object_items;
 }
 
+static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float *max)
+{
+	bConstraint *con= (bConstraint*)ptr->data;
+	bActionConstraint *acon = (bActionConstraint *)con->data;
+
+	/* 0, 1, 2 = magic numbers for rotX, rotY, rotZ */
+	if (ELEM3(acon->type, 0, 1, 2)) {
+		*min= -90.f;
+		*max= 90.f;
+	} else {
+		*min= -1000.f;
+		*max= 1000.f;
+	}
+}
+
+
 #else
 
 static void rna_def_constrainttarget(BlenderRNA *brna)
@@ -781,15 +797,17 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max");
-	RNA_def_property_range(prop, 0.0, 1000.f);
+	RNA_def_property_range(prop, -1000.f, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum", "Maximum value for target channel range.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_ActionConstraint_minmax_range");
 
 	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min");
-	RNA_def_property_range(prop, 0.0, 1000.f);
+	RNA_def_property_range(prop, -1000.f, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum", "Minimum value for target channel range.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_ActionConstraint_minmax_range");
 }
 
 static void rna_def_constraint_locked_track(BlenderRNA *brna)
