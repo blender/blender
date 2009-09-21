@@ -212,7 +212,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 			sub.itemR(settings, "inner_thickness", text="Inner", slider=True)
 		
 			layout.itemL(text="Force Fields:")
-			layout.itemR(md, "absorption", text="Absorption")
+			layout.itemR(settings, "absorption", text="Absorption")
 		
 			col = split.column()
 			col.itemL(text="")

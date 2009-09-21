@@ -1118,7 +1118,7 @@ static void def_cmp_splitviewer(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Axis", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
-	prop = RNA_def_property(srna, "factor", PROP_INT, PROP_PERCENTAGE);
+	prop = RNA_def_property(srna, "factor", PROP_INT, PROP_FACTOR);
 	RNA_def_property_int_sdna(prop, NULL, "custom1");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Factor", "");
@@ -1140,7 +1140,7 @@ static void def_cmp_map_uv(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	prop = RNA_def_property(srna, "alpha", PROP_INT, PROP_PERCENTAGE);
+	prop = RNA_def_property(srna, "alpha", PROP_INT, PROP_FACTOR);
 	RNA_def_property_int_sdna(prop, NULL, "custom1");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Alpha", "");

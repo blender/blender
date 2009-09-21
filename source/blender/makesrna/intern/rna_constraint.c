@@ -591,7 +591,7 @@ static void rna_def_constraint_locate_like(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "CopyLocationConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Copy Location Constraint", "Copies the location of the target.");
 
-	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
 	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -893,10 +893,10 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset", "Offset from the position corresponding to the time frame.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "offset_percentage", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "offset_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "offset"); // XXX we might be better with another var or some hackery?
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Offset Percentage", "Percentage value defining target position along length of bone.");
+	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of bone.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop= RNA_def_property(srna, "forward", PROP_ENUM, PROP_NONE);
@@ -1617,7 +1617,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Proxy Local", "Constraint was added in this proxy instance (i.e. did not belong to source Armature).");
 	
 	/* values */
-	prop= RNA_def_property(srna, "influence", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "influence", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "enforce");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Influence", "Amount of influence constraint will have on the final solution.");

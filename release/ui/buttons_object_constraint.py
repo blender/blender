@@ -130,7 +130,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		col = split.column()
 		col.itemR(con, "use_fixed_position")
 		if con.use_fixed_position:
-			col.itemR(con, "offset_percentage", text="Offset")
+			col.itemR(con, "offset_factor", text="Offset")
 		else:
 			col.itemR(con, "offset")
 		

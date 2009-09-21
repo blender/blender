@@ -1406,6 +1406,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_DIRPATH: return "PROP_DIRPATH";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
+		case PROP_FACTOR: return "PROP_FACTOR";
 		case PROP_ANGLE: return "PROP_ANGLE";
 		case PROP_TIME: return "PROP_TIME";
 		case PROP_DISTANCE: return "PROP_DISTANCE";

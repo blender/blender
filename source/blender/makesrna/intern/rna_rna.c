@@ -842,6 +842,7 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_DIRPATH, "DIRECTORY_PATH", 0, "Directory Path", ""},
 		{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned Number", ""},
 		{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
+		{PROP_FACTOR, "FACTOR", 0, "Factor", ""},
 		{PROP_ANGLE, "ANGLE", 0, "Angle", ""},
 		{PROP_TIME, "TIME", 0, "Time", ""},
 		{PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},

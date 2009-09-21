@@ -523,7 +523,7 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_float_percentage(ot->srna, "value", 0, 0, 1, "Percentage", "", 0, 1);
+	RNA_def_float_factor(ot->srna, "value", 0, 0, 1, "Factor", "", 0, 1);
 
 	Properties_Proportional(ot);
 

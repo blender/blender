@@ -1619,12 +1619,6 @@ static void rna_def_modifier_collision(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "CollisionSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_CollisionModifier_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Settings", "");
-	
-	prop= RNA_def_property(srna, "absorption", PROP_INT, PROP_PERCENTAGE);
-	RNA_def_property_int_sdna(prop, NULL, "absorption");
-	RNA_def_property_ui_range(prop, 0, 100, 1, 2);
-	RNA_def_property_ui_text(prop, "Absorption %", "How much of effector force gets lost during collision with this object (in percent).");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_bevel(BlenderRNA *brna)
