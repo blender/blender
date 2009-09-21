@@ -37,6 +37,9 @@ class CONSOLE_HT_header(bpy.types.Header):
 			row = layout.row()
 			row.enabled = sc.show_report_operator
 			row.itemO("console.report_replay")
+		else:
+			row = layout.row(align=True)
+			row.itemO("console.autocomplete", text="Autocomplete")
 
 class CONSOLE_MT_console(bpy.types.Menu):
 	__space_type__ = 'CONSOLE'
@@ -107,9 +110,7 @@ def get_console(console_id):
 	return namespace, console, stdout, stderr
 
 class CONSOLE_OT_exec(bpy.types.Operator):
-	'''
-	Execute the current console line as a python expression.
-	'''
+	'''Execute the current console line as a python expression.'''
 	__idname__ = "console.execute"
 	__label__ = "Console Execute"
 	__register__ = False
@@ -384,15 +385,13 @@ def autocomp(bcon):
 
 
 class CONSOLE_OT_autocomplete(bpy.types.Operator):
-	'''
-	Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one.
-	'''
+	'''Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one.'''
 	__idname__ = "console.autocomplete"
 	__label__ = "Console Autocomplete"
 	__register__ = False
 	
 	def poll(self, context):
-		return context.space_data.type == 'PYTHON'
+		return context.space_data.console_type == 'PYTHON'
 	
 	def execute(self, context):
 		

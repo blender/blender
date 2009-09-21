@@ -232,9 +232,7 @@ def write(filename, scene, ob, \
 	"""
 
 class EXPORT_OT_ply(bpy.types.Operator):
-	'''
-	Operator documentatuon text, will be used for the operator tooltip and python docs.
-	'''
+	'''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
 	__idname__ = "export.ply"
 	__label__ = "Export PLY"
 	
