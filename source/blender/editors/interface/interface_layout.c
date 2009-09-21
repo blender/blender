@@ -533,7 +533,7 @@ void uiFileBrowseContextProperty(const bContext *C, PointerRNA *ptr, PropertyRNA
 			prevbut= but->prev;
 
 			/* find the button before the active one */
-			if((but->flag & UI_BUT_LAST_ACTIVE) && prevbut && prevbut->rnapoin.id.data) {
+			if((but->flag & UI_BUT_LAST_ACTIVE) && prevbut && prevbut->rnapoin.data) {
 				if(RNA_property_type(prevbut->rnaprop) == PROP_STRING) {
 					*ptr= prevbut->rnapoin;
 					*prop= prevbut->rnaprop;

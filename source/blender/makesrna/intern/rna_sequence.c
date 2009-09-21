@@ -239,6 +239,35 @@ static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, ms->parseq);
 }
 
+static void rna_MovieSequence_filename_set(PointerRNA *ptr, const char *value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	char dir[FILE_MAX], name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, dir, name);
+	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
+	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
+}
+
+static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	char dir[FILE_MAX], name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, dir, name);
+	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
+	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
+}
+
+static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
+{
+	StripElem *elem= (StripElem*)(ptr->data);
+	char name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, NULL, name);
+	BLI_strncpy(elem->name, name, sizeof(elem->name));
+}
+
 #else
 
 static void rna_def_strip_element(BlenderRNA *brna)
@@ -253,6 +282,7 @@ static void rna_def_strip_element(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SequenceElement_filename_set");
 }
 
 static void rna_def_strip_crop(BlenderRNA *brna)
@@ -736,6 +766,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MovieSequence_filename_set");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");
@@ -762,6 +793,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoundSequence_filename_set");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");
