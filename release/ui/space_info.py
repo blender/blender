@@ -124,7 +124,7 @@ class INFO_MT_add(bpy.types.Menu):
 		layout.item_menu_enumO("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
 		layout.item_menu_enumO("object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
 		layout.item_menu_enumO("object.surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
-		layout.item_menu_enumO("object.metaball_add", "type", 'META', icon='ICON_OUTLINER_OB_META')
+		layout.item_menu_enumO("object.metaball_add", "type", 'META', text="Metaball", icon='ICON_OUTLINER_OB_META')
 		layout.itemO("object.text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
 
 		layout.itemS()
@@ -136,7 +136,7 @@ class INFO_MT_add(bpy.types.Menu):
 		layout.itemS()
 
 		layout.item_enumO("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
-		layout.item_enumO("object.add", "type", 'LAMP', icon='ICON_OUTLINER_OB_LAMP')
+		layout.item_menu_enumO("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
 
 class INFO_MT_game(bpy.types.Menu):
 	__space_type__ = 'INFO'

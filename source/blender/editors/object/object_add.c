@@ -32,6 +32,7 @@
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -165,7 +166,7 @@ static Object *object_add_type(bContext *C, int type)
 /* for object add operator */
 static int object_add_exec(bContext *C, wmOperator *op)
 {
-	object_add_type(C, RNA_int_get(op->ptr, "type"));
+	object_add_type(C, RNA_enum_get(op->ptr, "type"));
 	
 	return OPERATOR_FINISHED;
 }
@@ -467,7 +468,7 @@ static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *even
 void OBJECT_OT_metaball_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Metaball";
+	ot->name= "Add Metaball";
 	ot->description= "Add an metaball object to the scene.";
 	ot->idname= "OBJECT_OT_metaball_add";
 
@@ -559,6 +560,45 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int object_lamp_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob;
+	int type= RNA_enum_get(op->ptr, "type");
+
+	ob= object_add_type(C, OB_LAMP);
+	if(ob && ob->data)
+		((Lamp*)ob->data)->type= type;
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_lamp_add(wmOperatorType *ot)
+{	
+	static EnumPropertyItem lamp_type_items[] = {
+		{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source."},
+		{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source."},
+		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source."},
+		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemi", "180 degree constant light source."},
+		{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source."},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Add Lamp";
+	ot->description = "Add a lamp object to the scene.";
+	ot->idname= "OBJECT_OT_lamp_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_lamp_add_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+}
+
 static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
@@ -567,7 +607,7 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
 	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
 	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_metaball_add", "type");
+	uiItemMenuEnumO(layout, "Metaball", ICON_OUTLINER_OB_META, "OBJECT_OT_metaball_add", "type");
 	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
 	uiItemS(layout);
 	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
@@ -575,7 +615,7 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_add", "type", OB_EMPTY);
 	uiItemS(layout);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_add", "type", OB_CAMERA);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LAMP, "OBJECT_OT_add", "type", OB_LAMP);
+	uiItemMenuEnumO(layout, "Lamp", ICON_OUTLINER_OB_LAMP, "OBJECT_OT_lamp_add", "type");
 	
 	uiPupMenuEnd(C, pup);
 	
