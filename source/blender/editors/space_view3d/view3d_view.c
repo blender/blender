@@ -1416,8 +1416,6 @@ static void SaveState(bContext *C)
 	
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	GPU_state_init();
-
 	if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 		GPU_paint_set_mipmap(1);
 	
@@ -1446,6 +1444,8 @@ static void RestoreState(bContext *C)
 	
 	win->queue= queue_back;
 	
+	GPU_state_init();
+
 	glPopAttrib();
 }
 
