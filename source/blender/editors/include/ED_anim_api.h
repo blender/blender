@@ -137,6 +137,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSWOR,
 	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
+	ANIMTYPE_DSARM,
 	
 	ANIMTYPE_SHAPEKEY,		// XXX probably can become depreceated???
 	
@@ -206,6 +207,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
 #define FILTER_PART_OBJD(part) ((part->flag & PART_DS_EXPAND))
 #define FILTER_MBALL_OBJD(mb) ((mb->flag2 & MB_DS_EXPAND))
+#define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)

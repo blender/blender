@@ -62,6 +62,11 @@ static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
 }
 
+static char *rna_Bone_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("bones[\"%s\"]", ((Bone*)ptr->data)->name);
+}
+
 static void rna_bone_layer_set(short *layer, const int *values)
 {
 	int i, tot= 0;
@@ -431,6 +436,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Bone", NULL);
 	RNA_def_struct_ui_text(srna, "Bone", "Bone in an Armature datablock.");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
+	RNA_def_struct_path_func(srna, "rna_Bone_path");
 	
 	/* pointers/collections */
 		/* parent (pointer) */
@@ -553,8 +559,9 @@ static void rna_def_armature(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Armature", "ID");
 	RNA_def_struct_ui_text(srna, "Armature", "Armature datablock containing a hierarchy of bones, usually used for rigging characters.");
 	RNA_def_struct_ui_icon(srna, ICON_ARMATURE_DATA);
-	
 	RNA_def_struct_sdna(srna, "bArmature");
+	
+	rna_def_animdata_common(srna);
 	
 	/* Collections */
 	prop= RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);

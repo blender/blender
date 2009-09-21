@@ -52,6 +52,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
@@ -1101,6 +1102,14 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 			expanded= FILTER_MBALL_OBJD(mb);
 		}
 			break;
+		case OB_ARMATURE: /* ------- Armature ---------- */
+		{
+			bArmature *arm= (bArmature *)ob->data;
+			
+			type= ANIMTYPE_DSARM;
+			expanded= FILTER_ARM_OBJD(arm);
+		}
+			break;
 	}
 	
 	/* special exception for drivers instead of action */
@@ -1290,6 +1299,19 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			
 			if ((ads->filterflag & ADS_FILTER_NOMBA) == 0) {
 				ANIMDATA_FILTER_CASES(mb,
+					{ /* AnimData blocks - do nothing... */ },
+					obdata_ok= 1;,
+					obdata_ok= 1;,
+					obdata_ok= 1;)
+			}
+		}
+			break;
+		case OB_ARMATURE: /* ------- Armature ---------- */
+		{
+			bArmature *arm= (bArmature *)ob->data;
+			
+			if ((ads->filterflag & ADS_FILTER_NOARM) == 0) {
+				ANIMDATA_FILTER_CASES(arm,
 					{ /* AnimData blocks - do nothing... */ },
 					obdata_ok= 1;,
 					obdata_ok= 1;,
@@ -1652,6 +1674,23 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOMBA);)
 					}
 						break;
+					case OB_ARMATURE: /* ------- Armature ---------- */
+					{
+						bArmature *arm= (bArmature *)ob->data;
+						dataOk= 0;
+						ANIMDATA_FILTER_CASES(arm, 
+							if ((ads->filterflag & ADS_FILTER_NOARM)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(arm);
+								dataOk=0;
+							},
+							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);)
+					}
+						break;
 					default: /* --- other --- */
 						dataOk= 0;
 						break;
@@ -1732,6 +1771,12 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					{
 						MetaBall *mb= (MetaBall *)ob->data;
 						dataOk= ANIMDATA_HAS_KEYS(mb);	
+					}
+						break;
+					case OB_ARMATURE: /* -------- Armature ---------- */
+					{
+						bArmature *arm= (bArmature *)ob->data;
+						dataOk= ANIMDATA_HAS_KEYS(arm);	
 					}
 						break;
 					default: /* --- other --- */

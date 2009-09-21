@@ -372,6 +372,7 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_NOSCE			= (1<<15),
 	ADS_FILTER_NOPART			= (1<<16),
 	ADS_FILTER_NOMBA			= (1<<17),
+	ADS_FILTER_NOARM			= (1<<18),
 	
 		/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT		= (1<<20),	/* if the AnimData block has no NLA data, don't include to just show Action-line */

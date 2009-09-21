@@ -2116,6 +2116,8 @@ static void write_armatures(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_AR, "bArmature", 1, arm);
 			if (arm->id.properties) IDP_WriteProperty(arm->id.properties, wd);
 
+			if (arm->adt) write_animdata(wd, arm->adt);
+
 			/* Direct data */
 			bone= arm->bonebase.first;
 			while(bone) {

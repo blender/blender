@@ -2331,6 +2331,7 @@ static void lib_link_armature(FileData *fd, Main *main)
 
 	while(arm) {
 		if(arm->id.flag & LIB_NEEDLINK) {
+			if (arm->adt) lib_link_animdata(fd, &arm->id, arm->adt);
 			arm->id.flag -= LIB_NEEDLINK;
 		}
 		arm= arm->id.next;
@@ -2357,6 +2358,7 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
 	arm->sketch = NULL;
+	arm->adt= newdataadr(fd, arm->adt);
 	
 	bone=arm->bonebase.first;
 	while (bone) {
@@ -9697,15 +9699,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->unit.scale_length= 1.0f;
 		
 		for(ob = main->object.first; ob; ob = ob->id.next) {
-			ModifierData *md;
-
-			/* add backwards pointer for fluidsim modifier RNA access */
-			for (md=ob->modifiers.first; md; md = md->next) {
-				if (md->type == eModifierType_Fluidsim) {
-					FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
-					fluidmd->fss->fmd = fluidmd;
-				}
-			}
+			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+			if (fluidmd) fluidmd->fss->fmd = fluidmd;
 		}
 
 		for(sce= main->scene.first; sce; sce= sce->id.next)
@@ -10433,6 +10428,9 @@ static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 {
 	Bone *curBone;
+
+	if(arm->adt)
+		expand_animdata(fd, mainvar, arm->adt);
 
 	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
 		expand_bones(fd, mainvar, curBone);

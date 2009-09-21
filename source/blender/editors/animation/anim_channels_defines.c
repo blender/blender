@@ -1526,6 +1526,76 @@ static bAnimChannelType ACF_DSMBALL=
 	acf_dsmball_setting_ptr					/* pointer for setting */
 };
 
+/* Armature Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dsarm_icon(bAnimListElem *ale)
+{
+	return ICON_ARMATURE_DATA;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dsarm_setting_flag(int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return ARM_DS_EXPAND;
+			
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	bArmature *arm= (bArmature *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			GET_ACF_FLAG_PTR(arm->flag);
+			
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (arm->adt)
+				GET_ACF_FLAG_PTR(arm->adt->flag)
+			else
+				return NULL;
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* metaball expander type define */
+static bAnimChannelType ACF_DSARM= 
+{
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_1,		/* indent level */
+	acf_generic_basic_offset,		/* offset */
+	
+	acf_generic_idblock_name,		/* name */
+	acf_dsarm_icon,				/* icon */
+	
+	acf_generic_dataexpand_setting_valid,	/* has setting */
+	acf_dsarm_setting_flag,				/* flag for setting */
+	acf_dsarm_setting_ptr					/* pointer for setting */
+};
+
+
 /* ShapeKey Entry  ------------------------------------------- */
 // XXX ... this is currently obsolete...
 
@@ -1709,6 +1779,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSWOR;		/* World Channel */
 		animchannelTypeInfo[type++]= &ACF_DSPART;		/* Particle Channel */
 		animchannelTypeInfo[type++]= &ACF_DSMBALL;		/* MetaBall Channel */
+		animchannelTypeInfo[type++]= &ACF_DSARM;		/* Armature Channel */
 		
 		animchannelTypeInfo[type++]= NULL;				/* ShapeKey */ // XXX this is no longer used for now...
 		
