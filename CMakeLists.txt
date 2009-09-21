@@ -51,6 +51,10 @@ PROJECT(Blender)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 
+# Note! - Could create this from the blender version string
+# ...but thats quite involved, make sure this matches the blender version.
+SET(BLENDER_VERSION  2.5)
+
 #-----------------------------------------------------------------------------
 # Set default config options
 OPTION(WITH_PLAYER        "Build Player" OFF)

@@ -405,8 +405,11 @@ def PyInstall(target=None, source=None, env=None):
 		print 'Install command:', cmd
 		commands.getoutput(cmd)
 	
+	if env['WITH_BF_FHS']:	dir = os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION']) # BLENDERPATH
+	else:					dir = os.path.join(env['BF_INSTALLDIR'], '.blender')
+	
 	py_src =	env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
-	py_target =	env.subst( env['BF_INSTALLDIR'] + '/.blender/python/lib/python'+env['BF_PYTHON_VERSION'] )
+	py_target =	env.subst( dir + '/python/lib/python'+env['BF_PYTHON_VERSION'] )
 	
 	# Copied from source/creator/CMakeLists.txt, keep in sync.
 	print 'Install python from:'

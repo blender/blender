@@ -69,6 +69,8 @@ def validate_arguments(args, bc):
 			'WITH_BF_DOCS',
 			'BF_NUMJOBS',
 			'BF_MSVS',
+			'WITH_BF_FHS',
+			'BF_VERSION',
 			]
 	
 	# Have options here that scons expects to be lists
@@ -91,7 +93,7 @@ def validate_arguments(args, bc):
 			'BF_BSC', 'BF_CONFIG',
 			'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
 			'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-			'BF_DOCDIR', 'BF_UNIT_TEST']
+			'BF_UNIT_TEST']
 
 	okdict = {}
 
@@ -362,7 +364,6 @@ def read_opts(cfg, args):
 
 		('BF_BUILDDIR', 'Build dir', ''),
 		('BF_INSTALLDIR', 'Installation dir', ''),
-		('BF_DOCDIR', 'Dir where BPy documentation will be created', ''),
 
 		('CC', 'C compiler to use', ''),
 		('CXX', 'C++ compiler to use', ''),
@@ -387,6 +388,9 @@ def read_opts(cfg, args):
 		('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
 		('BF_MSVS', 'Generate MSVS project files and solution', False),
+		
+		(BoolVariable('WITH_BF_FHS', 'Use the Unix "Filesystem Hierarchy Standard" rather then a redistributable directory layout', False)),
+		('BF_VERSION', 'The root path for Unix (non-apple)', '2.5'),
 
 		(BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False))
 

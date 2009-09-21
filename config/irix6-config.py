@@ -189,7 +189,6 @@ BF_DEBUG_FLAGS = '-g'
 
 BF_BUILDDIR = '../build/irix6'
 BF_INSTALLDIR='../install/irix6'
-BF_DOCDIR='../install/doc'
 
 #Link against pthread
 LDIRS = []

@@ -186,6 +186,15 @@ if not env['BF_FANCY']:
 SetOption('num_jobs', int(env['BF_NUMJOBS']))
 print "Build with %d parallel jobs" % (GetOption('num_jobs'))
 
+# BLENDERPATH is a unix only option to enable typical style paths this is
+# spesifically a data-dir, which is used a lot but cant replace BF_INSTALLDIR
+# because the blender binary is installed in $BF_INSTALLDIR/bin/blender
+
+if env['WITH_BF_FHS']:
+	BLENDERPATH = os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION'])
+else:
+	BLENDERPATH = env['BF_INSTALLDIR']
+
 # disable elbeem (fluidsim) compilation?
 if env['BF_NO_ELBEEM'] == 1:
 	env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
@@ -198,7 +207,7 @@ if env['WITH_BF_OPENMP'] == 1:
 				env['CPPFLAGS'].append('/openmp')
 				env['CXXFLAGS'].append('/openmp')
 		else:
-			if env['CC'][-3:] == 'icc': # to be able to handle CC=/opt/bla/icc case
+			if env['CC'].endswith('icc'): # to be able to handle CC=/opt/bla/icc case
 				env.Append(LINKFLAGS=['-openmp', '-static-intel'])
 				env['CCFLAGS'].append('-openmp')
 				env['CPPFLAGS'].append('-openmp')
@@ -301,7 +310,7 @@ if env['WITH_BF_SDL'] == False and env['OURPLATFORM'] in ('win32-vc', 'win32-min
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
-B.doc_build_dir = env['BF_DOCDIR']
+B.doc_build_dir = os.path.join(BLENDERPATH, 'doc')
 if not B.root_build_dir[-1]==os.sep:
 	B.root_build_dir += os.sep
 if not B.doc_build_dir[-1]==os.sep:
@@ -426,7 +435,10 @@ if  env['OURPLATFORM']=='darwin':
 			source=[dp+os.sep+f for f in df]
 			blenderinstall.append(env.Install(dir=dir,source=source))
 else:
-	blenderinstall = env.Install(dir=env['BF_INSTALLDIR'], source=B.program_list)
+	if env['WITH_BF_FHS']:	dir= os.path.join(env['BF_INSTALLDIR'], 'bin')
+	else:					dir= env['BF_INSTALLDIR']
+	
+	blenderinstall = env.Install(dir=dir, source=B.program_list)
 
 #-- .blender
 #- dont do .blender and scripts for darwin, it is already in the bundle
@@ -450,7 +462,13 @@ if  env['OURPLATFORM']!='darwin':
 						continue
 				
 				dotblendlist.append(os.path.join(dp, f))
-				dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
+				if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[2:]))	# skip bin/.blender
+				else:					dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[1:]))	# skip bin
+				
+				# print dir+ os.sep + f
+				print dir
+				dottargetlist.append(dir + os.sep + f)
+					
 
 		dotblenderinstall = []
 		for targetdir,srcfile in zip(dottargetlist, dotblendlist):
@@ -464,8 +482,12 @@ if  env['OURPLATFORM']!='darwin':
 				for dp, dn, df in os.walk(scriptpath):
 					if '.svn' in dn:
 						dn.remove('.svn')
-					dir=env['BF_INSTALLDIR']+'/.blender/'+os.path.basename(scriptpath)+dp[len(scriptpath):]
-					source=[dp+os.sep+f for f in df]
+					
+					if env['WITH_BF_FHS']:		dir = BLENDERPATH
+					else:						dir = os.path.join(env['BF_INSTALLDIR'], '.blender')				
+					dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
+					
+					source=[os.path.join(dp, f) for f in df]
 					scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
@@ -477,8 +499,8 @@ if env['OURPLATFORM']=='linux2':
 		if '.svn' in tn:
 			tn.remove('.svn')
 		for f in tf:
-			iconlist.append(tp+os.sep+f)
-			icontargetlist.append(env['BF_INSTALLDIR']+tp[19:]+os.sep+f)
+			iconlist.append(os.path.join(tp, f))
+			icontargetlist.append( os.path.join(*([BLENDERPATH] + tp.split(os.sep)[2:] + [f])) )
 
 	iconinstall = []
 	for targetdir,srcfile in zip(icontargetlist, iconlist):
@@ -499,24 +521,25 @@ for tp, tn, tf in os.walk('release/plugins'):
 	if '.svn' in tn:
 		tn.remove('.svn')
 	for f in tf:
-		pluglist.append(tp+os.sep+f)
-		plugtargetlist.append(env['BF_INSTALLDIR']+tp[7:]+os.sep+f)
+		pluglist.append(os.path.join(tp, f))
+		plugtargetlist.append( os.path.join(*([BLENDERPATH] + tp.split(os.sep)[1:] + [f])) )
+
 
 # header files for plugins
 pluglist.append('source/blender/blenpluginapi/documentation.h')
-plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'documentation.h')
+plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'documentation.h'))
 pluglist.append('source/blender/blenpluginapi/externdef.h')
-plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'externdef.h')
+plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'externdef.h'))
 pluglist.append('source/blender/blenpluginapi/floatpatch.h')
-plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'floatpatch.h')
+plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'floatpatch.h'))
 pluglist.append('source/blender/blenpluginapi/iff.h')
-plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'iff.h')
+plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'iff.h'))
 pluglist.append('source/blender/blenpluginapi/plugin.h')
-plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'plugin.h')
+plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'plugin.h'))
 pluglist.append('source/blender/blenpluginapi/util.h')
-plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'util.h')
+plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'util.h'))
 pluglist.append('source/blender/blenpluginapi/plugin.DEF')
-plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep + 'plugin.def')
+plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'plugin.def'))
 
 plugininstall = []
 for targetdir,srcfile in zip(plugtargetlist, pluglist):
@@ -531,7 +554,7 @@ for tp, tn, tf in os.walk('release/text'):
 	for f in tf:
 		textlist.append(tp+os.sep+f)
 
-textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
+textinstall = env.Install(dir=BLENDERPATH, source=textlist)
 
 if  env['OURPLATFORM']=='darwin':
 		allinstall = [blenderinstall, plugininstall, textinstall]

@@ -139,4 +139,3 @@ BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_BUILDDIR = '../build/linuxcross'
 BF_INSTALLDIR='../install/linuxcross'
-BF_DOCDIR='../install/doc'

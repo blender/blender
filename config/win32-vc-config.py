@@ -173,4 +173,3 @@ PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/INCREMENTAL:NO','/N
 
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'
-BF_DOCDIR='..\\install\\doc'

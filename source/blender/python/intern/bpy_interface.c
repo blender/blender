@@ -232,26 +232,10 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	return dict;
 }
 
-/* Use this so we can include our own python bundle */
-#if 0
-wchar_t* Py_GetPath(void)
-{
-	int i;
-	static wchar_t py_path[FILE_MAXDIR] = L"";
-	char *dirname= BLI_gethome_folder("python");
-	if(dirname) {
-		i= mbstowcs(py_path, dirname, FILE_MAXDIR);
-		printf("py path %s, %d\n", dirname, i);
-	}
-	return py_path;
-}
-#endif
-
-
 /* must be called before Py_Initialize */
 void BPY_start_python_path(void)
 {
-	char *py_path_bundle= BLI_gethome_folder("python");
+	char *py_path_bundle= BLI_gethome_folder("python", BLI_GETHOME_ALL);
 
 	if(py_path_bundle==NULL)
 		return;
@@ -589,7 +573,8 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *dirname;
 	char path[FILE_MAX];
 	char *dirs[] = {"ui", "io", NULL};
-	int a, err;
+	int path_flags[] = {BLI_GETHOME_LOCAL|BLI_GETHOME_SYSTEM, BLI_GETHOME_USER}; /* SYSTEM / NON-SYSTEM */
+	int a, err, flag_iter;
 	
 	PyGILState_STATE gilstate;
 	PyObject *sys_path;
@@ -599,56 +584,60 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	sys_path= PySys_GetObject("path"); /* borrow */
 	PyList_Insert(sys_path, 0, Py_None); /* place holder, resizes the list */
 
-	for(a=0; dirs[a]; a++) {
-		dirname= BLI_gethome_folder(dirs[a]);
-
-		if(!dirname)
-			continue;
-
-		dir = opendir(dirname);
-
-		if(!dir)
-			continue;
+	/* Scan system scripts first, then local/user */
+	for(flag_iter=0; flag_iter < sizeof(path_flags)/sizeof(int); flag_iter++) {
 		
-		/* set the first dir in the sys.path for fast importing of modules */
-		PyList_SetItem(sys_path, 0, PyUnicode_FromString(dirname)); /* steals the ref */
+		for(a=0; dirs[a]; a++) {
+			dirname= BLI_gethome_folder(dirs[a], path_flags[flag_iter]);
+
+			if(!dirname)
+				continue;
+
+			dir = opendir(dirname);
+
+			if(!dir)
+				continue;
 			
-		while((de = readdir(dir)) != NULL) {
-			/* We could stat the file but easier just to let python
-			 * import it and complain if theres a problem */
-			err = 0;
+			/* set the first dir in the sys.path for fast importing of modules */
+			PyList_SetItem(sys_path, 0, PyUnicode_FromString(dirname)); /* steals the ref */
+				
+			while((de = readdir(dir)) != NULL) {
+				/* We could stat the file but easier just to let python
+				 * import it and complain if theres a problem */
+				err = 0;
 
-			if (de->d_name[0] == '.') {
-				/* do nothing, probably .svn */
-			}
-			else if ((file_extension = strstr(de->d_name, ".py"))) {
-				/* normal py files? */
-				if(file_extension && file_extension[3] == '\0') {
-					de->d_name[(file_extension - de->d_name)] = '\0';
-					err= bpy_import_module(de->d_name, reload);
+				if (de->d_name[0] == '.') {
+					/* do nothing, probably .svn */
 				}
-			}
+				else if ((file_extension = strstr(de->d_name, ".py"))) {
+					/* normal py files? */
+					if(file_extension && file_extension[3] == '\0') {
+						de->d_name[(file_extension - de->d_name)] = '\0';
+						err= bpy_import_module(de->d_name, reload);
+					}
+				}
 #ifndef __linux__
-			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exist(path))) {
+				else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exist(path))) {
 #else
-			else if(de->d_type==DT_DIR) {
-				BLI_join_dirfile(path, dirname, de->d_name);
+				else if(de->d_type==DT_DIR) {
+					BLI_join_dirfile(path, dirname, de->d_name);
 #endif
-				/* support packages */
-				BLI_join_dirfile(path, path, "__init__.py");
+					/* support packages */
+					BLI_join_dirfile(path, path, "__init__.py");
 
-				if(BLI_exists(path)) {
-					err= bpy_import_module(de->d_name, reload);
+					if(BLI_exists(path)) {
+						err= bpy_import_module(de->d_name, reload);
+					}
+				}
+
+				if(err==-1) {
+					BPy_errors_to_report(NULL);
+					fprintf(stderr, "unable to import %s/%s\n", dirname, de->d_name);
 				}
 			}
 
-			if(err==-1) {
-				BPy_errors_to_report(NULL);
-				fprintf(stderr, "unable to import %s/%s\n", dirname, de->d_name);
-			}
+			closedir(dir);
 		}
-
-		closedir(dir);
 	}
 	
 	PyList_SetSlice(sys_path, 0, 1, NULL); /* remove the first item */

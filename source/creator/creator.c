@@ -116,6 +116,18 @@ extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
+/* unix path support.
+ * defined by the compiler. eg "/usr/share/blender/2.5" "/opt/blender/2.5" */
+#ifndef BLENDERPATH
+#define BLENDERPATH ""
+#endif
+ 
+#if !(defined(__APPLE__) && defined(WIN32))
+char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
+#else
+char blender_path[FILE_MAXDIR+FILE_MAXFILE] = "";
+#endif
+
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
@@ -221,6 +233,12 @@ static void print_help(void)
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
 	printf ("\nEnvironment Variables:\n");
 	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
+#if !(defined(__APPLE__) && defined(WIN32))
+	printf ("  $BLENDERPATH\tSystem directory to use for data files and scripts.\n");
+	printf ("              \tFor this build of blender the default BLENDERPATH is...\n");
+	printf ("              \t\"%s\"\n", blender_path);
+	printf ("              \tseting the $BLENDERPATH will override this\n");
+#endif
 #ifdef WIN32
 	printf ("  $TEMP\t\tStore temporary files here.\n");
 #else
@@ -304,6 +322,12 @@ int main(int argc, char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, argv[0]);
+	
+	{	/* override the hard coded blender path */
+		char *blender_path_env = getenv("BLENDERPATH");
+		if(blender_path_env)
+			BLI_strncpy(blender_path, blender_path_env, sizeof(blender_path));
+	}
 	
 	RNA_init();
 	RE_engines_init();

@@ -66,6 +66,13 @@ IF(NOT WITH_SDL)
 	ADD_DEFINITIONS(-DDISABLE_SDL)
 ENDIF(NOT WITH_SDL)
 
+IF(UNIX AND NOT APPLE)
+	SET(BLENDERPATH ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION})
+	CMAKE_POLICY(SET CMP0005 NEW)
+	# blender_path in creator.c
+	ADD_DEFINITIONS(-DBLENDERPATH="${BLENDERPATH}")
+ENDIF(UNIX AND NOT APPLE)
+
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	ADD_DEFINITIONS(-DWITH_BINRELOC)
 	INCLUDE_DIRECTORIES(${BINRELOC_INC})
@@ -96,6 +103,9 @@ IF(WITH_INSTALL)
 	ENDIF(UNIX)
 
 	IF(UNIX AND NOT APPLE)
+		
+		# Local installation, "make install" can be done after this optionally
+		
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND rm -Rf ${TARGETDIR}/.blender
@@ -151,6 +161,27 @@ IF(WITH_INSTALL)
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND find ${TARGETDIR} -name .svn -prune -exec rm -rf {} "\;"
 		)
+    
+    
+		# Above we bundle a portable distrobution in ./bin
+		# This is an optional "make install" which installs blender on the system.
+		INSTALL(
+			PROGRAMS ${TARGETDIR}/blender
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+		)
+
+		IF(WITH_GAMEENGINE AND WITH_PLAYER)
+			INSTALL(
+				PROGRAMS ${TARGETDIR}/blenderplayer
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+			)
+		ENDIF(WITH_GAMEENGINE AND WITH_PLAYER)
+
+		INSTALL(
+			DIRECTORY ${TARGETDIR}/.blender/
+			DESTINATION ${BLENDERPATH}
+		)
+		# end "make install"
     
 	ENDIF(UNIX AND NOT APPLE)
 

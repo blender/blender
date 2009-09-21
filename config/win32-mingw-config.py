@@ -152,4 +152,3 @@ BF_PROFILE = False
 
 BF_BUILDDIR = '..\\build\\win32-mingw'
 BF_INSTALLDIR='..\\install\\win32-mingw'
-BF_DOCDIR = '..\\install\\doc'

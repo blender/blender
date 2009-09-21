@@ -192,7 +192,6 @@ PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/INCREMENTAL:NO','/NO
 
 BF_BUILDDIR = '..\\build\\blender25-win64-vc'
 BF_INSTALLDIR='..\\install\\blender25-win64-vc'
-BF_DOCDIR='..\\install\\blender25-win64-vc\\doc'
 
 
 

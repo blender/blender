@@ -856,97 +856,122 @@ char *BLI_gethome(void) {
 	#endif
 }
 
-/* this function returns the path to a blender folder, if it exists,
- * trying in this order:
- *
- * path_to_executable/release/folder_name (in svn)
- * ./release/folder_name (in svn)
- * $HOME/.blender/folder_name
- * path_to_executable/.blender/folder_name
- *
- * returns NULL if none is found. */
+/* this function returns the path to a blender folder, if it exists
+ * utility functions for BLI_gethome_folder */
 
-char *BLI_gethome_folder(char *folder_name)
+/* #define PATH_DEBUG */ /* for testing paths that are checked */
+
+static int test_data_path(char *targetpath, char *path_base, char *path_sep, char *folder_name)
+{
+	char tmppath[FILE_MAXDIR];
+	
+	if(path_sep)	BLI_join_dirfile(tmppath, path_base, path_sep);
+	else			BLI_strncpy(tmppath, path_base, sizeof(tmppath));
+	
+	BLI_make_file_string("/", targetpath, tmppath, folder_name);
+	
+	if (BLI_exists(targetpath)) {
+#ifdef PATH_DEBUG
+		printf("\tpath found: %s\n", targetpath);
+#endif
+		return 1;
+	}
+	else {
+#ifdef PATH_DEBUG
+		printf("\tpath missing: %s\n", targetpath);
+#endif
+		targetpath[0] = '\0';
+		return 0;
+	}
+}
+
+static int gethome_path_local(char *targetpath, char *folder_name)
 {
 	extern char bprogname[]; /* argv[0] from creator.c */
-	static char homedir[FILE_MAXDIR] = "";
-	static char fulldir[FILE_MAXDIR] = "";
-	char tmpdir[FILE_MAXDIR];
 	char bprogdir[FILE_MAXDIR];
+	char cwd[FILE_MAXDIR];
 	char *s;
 	int i;
-
+	
+#ifdef PATH_DEBUG
+	printf("gethome_path_local...\n");
+#endif
+	
+	/* try release/folder_name (binary relative) */
 	/* use argv[0] (bprogname) to get the path to the executable */
 	s = BLI_last_slash(bprogname);
-
 	i = s - bprogname + 1;
 	BLI_strncpy(bprogdir, bprogname, i);
+	
+	/* try ./.blender/folder_name */
+	if(test_data_path(targetpath, bprogdir, ".blender", folder_name))
+		return 1;
+	
+	if(test_data_path(targetpath, bprogdir, "release", folder_name))
+		return 1;
+	
+	/* try release/folder_name (CWD relative) */
+	if(test_data_path(targetpath, BLI_getwdN(cwd), "release", folder_name))
+		return 1;
+	
+	return 0;
+}
 
-	/* try path_to_executable/release/folder_name (in svn) */
-	if (folder_name) {
-		BLI_snprintf(tmpdir, sizeof(tmpdir), "release/%s", folder_name);
-		BLI_make_file_string("/", fulldir, bprogdir, tmpdir);
-		if (BLI_exists(fulldir)) return fulldir;
-		else fulldir[0] = '\0';
+static int gethome_path_user(char *targetpath, char *folder_name)
+{
+	char *home_path= BLI_gethome();
+
+#ifdef PATH_DEBUG
+	printf("gethome_path_user...\n");
+#endif
+	
+	/* try $HOME/folder_name */
+	return test_data_path(targetpath, home_path, ".blender", folder_name);
+}
+
+static int gethome_path_system(char *targetpath, char *folder_name)
+{
+	extern char blender_path[]; /* unix prefix eg. /usr/share/blender/2.5 creator.c */
+	
+	if(!blender_path[0])
+		return 0;
+	
+#ifdef PATH_DEBUG
+	printf("gethome_path_system...\n");
+#endif
+	
+	/* try $BLENDERPATH/folder_name */
+	return test_data_path(targetpath, blender_path, NULL, folder_name);
+}
+
+char *BLI_gethome_folder(char *folder_name, int flag)
+{
+	static char fulldir[FILE_MAXDIR] = "";
+	
+	/* first check if this is a redistributable bundle */
+	if(flag & BLI_GETHOME_LOCAL) {
+		if (gethome_path_local(fulldir, folder_name))
+			return fulldir;
 	}
 
-	/* try ./release/folder_name (in svn) */
-	if(folder_name) {
-		BLI_snprintf(fulldir, sizeof(fulldir), "./release/%s", folder_name);
-		if (BLI_exists(fulldir)) return fulldir;
-		else fulldir[0] = '\0';
+	/* then check if the OS has blender data files installed in a global location */
+	if(flag & BLI_GETHOME_SYSTEM) {
+		if (gethome_path_system(fulldir, folder_name))
+			return fulldir;
 	}
-
-	/* BLI_gethome() can return NULL if env vars are not set */
-	s = BLI_gethome();
-
-	if(!s) { /* bail if no $HOME */
-		printf("$HOME is NOT set\n");
-		return NULL;
+	
+	/* now check the users home dir for data files */
+	if(flag & BLI_GETHOME_USER) {
+		if (gethome_path_user(fulldir, folder_name))
+			return fulldir;
 	}
-
-	if(strstr(s, ".blender"))
-		BLI_strncpy(homedir, s, FILE_MAXDIR);
-	else
-		BLI_make_file_string("/", homedir, s, ".blender");
-
-	/* if $HOME/.blender/folder_name exists, return it */
-	if(BLI_exists(homedir)) {
-		if (folder_name) {
-			BLI_make_file_string("/", fulldir, homedir, folder_name);
-			if(BLI_exists(fulldir))
-				return fulldir;
-		}
-		else
-			return homedir;
-	}
-	else
-		homedir[0] = '\0';
-
-	/* using tmpdir to preserve homedir (if) found above:
-	 * the ideal is to have a home dir with folder_name dir inside
-	 * it, but if that isn't available, it's possible to
-	 * have a 'broken' home dir somewhere and a folder_name dir in the
-	 * svn sources */
-	BLI_make_file_string("/", tmpdir, bprogdir, ".blender");
-
-	if(BLI_exists(tmpdir)) {
-		if(folder_name) {
-			BLI_make_file_string("/", fulldir, tmpdir, folder_name);
-			if(BLI_exists(fulldir)) {
-				BLI_strncpy(homedir, tmpdir, FILE_MAXDIR);
-				return fulldir;
-			}
-			else {
-				homedir[0] = '\0';
-				fulldir[0] = '\0';
-			}
-		}
-		else return homedir;
-	}
-
+	
 	return NULL;
 }
+
+#ifdef PATH_DEBUG
+#undef PATH_DEBUG
+#endif
 
 void BLI_setenv(const char *env, const char*val)
 {
