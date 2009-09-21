@@ -34,7 +34,7 @@
 
 #include "transform.h"
 
-
+#include "MEM_guardedalloc.h" 
 
 /* ************************** INPUT FROM MOUSE *************************** */
 

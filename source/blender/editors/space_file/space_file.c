@@ -155,7 +155,7 @@ static void file_free(SpaceLink *sl)
 /* spacetype; init callback, area size changes, screen set, etc */
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
+	//SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
 	printf("file_init\n");
 }
 

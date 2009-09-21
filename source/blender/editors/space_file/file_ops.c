@@ -72,7 +72,6 @@ static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short 
 {
 	float fx,fy;
 	int active_file = -1;
-	int numfiles = filelist_numfiles(sfile->files);
 	View2D* v2d = &ar->v2d;
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
