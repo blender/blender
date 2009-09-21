@@ -419,6 +419,13 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 			}
 				break;
 				
+			case BEZT_KEYTYPE_EXTREME: /* redish frames for now */
+			{
+				if (sel) glColor3f(95.0f, 0.5f, 0.5f);
+				else glColor3f(0.91f, 0.70f, 0.80f);
+			}
+				break;
+				
 			case BEZT_KEYTYPE_KEYFRAME: /* traditional yellowish frames for now */
 			default:
 			{

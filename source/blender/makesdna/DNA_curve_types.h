@@ -310,6 +310,7 @@ typedef enum eBezTriple_Interpolation {
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
 typedef enum eBezTriple_KeyframeType {
 	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
+	BEZT_KEYTYPE_EXTREME,		/* 'extreme' keyframe */
 	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
 } eBezTriple_KeyframeType;
 

@@ -685,12 +685,22 @@ static short set_keytype_breakdown(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+static short set_keytype_extreme(BeztEditData *bed, BezTriple *bezt) 
+{
+	if (bezt->f2 & SELECT) 
+		BEZKEYTYPE(bezt)= BEZT_KEYTYPE_EXTREME;
+	return 0;
+}
+
 /* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
 BeztEditFunc ANIM_editkeyframes_keytype(short code)
 {
 	switch (code) {
 		case BEZT_KEYTYPE_BREAKDOWN: /* breakdown */
 			return set_keytype_breakdown;
+			
+		case BEZT_KEYTYPE_EXTREME: /* extreme keyframe */
+			return set_keytype_extreme;
 			
 		case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */	
 		default:

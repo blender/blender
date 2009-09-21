@@ -189,6 +189,7 @@ static void act_edit_keytypesmenu(bContext *C, uiLayout *layout, void *arg_unuse
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_KEYFRAME);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_BREAKDOWN);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_EXTREME);
 }
 
 static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
