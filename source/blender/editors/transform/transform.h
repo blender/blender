@@ -210,6 +210,7 @@ typedef struct MouseInput {
 	short	precision_mval[2];	/* mouse position when precision key was pressed */
 	int		center[2];
 	float	factor;
+	void 	*data; /* additional data, if needed by the particular function */
 } MouseInput;
 
 typedef struct TransInfo {
@@ -575,13 +576,16 @@ typedef enum {
 	INPUT_HORIZONTAL_RATIO,
 	INPUT_HORIZONTAL_ABSOLUTE,
 	INPUT_VERTICAL_RATIO,
-	INPUT_VERTICAL_ABSOLUTE
+	INPUT_VERTICAL_ABSOLUTE,
+	INPUT_CUSTOM_RATIO
 } MouseInputMode;
 
 void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], short mval[2]);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, short mval[2], float output[3]);
+
+void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2]);
 
 /*********************** Generics ********************************/
 

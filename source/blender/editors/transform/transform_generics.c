@@ -1052,7 +1052,7 @@ void postTrans (TransInfo *t)
 		}
 		MEM_freeN(t->data);
 	}
-
+	
 	if (t->ext) MEM_freeN(t->ext);
 	if (t->data2d) {
 		MEM_freeN(t->data2d);
@@ -1067,6 +1067,11 @@ void postTrans (TransInfo *t)
 	else if(ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
 		if (t->customData)
 			MEM_freeN(t->customData);
+	}
+
+	if (t->mouse.data)
+	{
+		MEM_freeN(t->mouse.data);
 	}
 }
 

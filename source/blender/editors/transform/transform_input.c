@@ -163,6 +163,47 @@ void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float ou
 	output[0] = Inpf(t->viewinv[1], vec) * 2.0f;
 }
 
+void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2])
+{
+	short *data = mi->data;
+	
+	data[0] = start[0];
+	data[1] = start[1];
+	data[2] = end[0];
+	data[3] = end[1];
+}
+
+void InputCustomRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
+{
+	float length;
+	float distance;
+	short *data = mi->data;
+	short dx, dy;
+	
+	dx = data[2] - data[0];
+	dy = data[3] - data[1];
+	
+	length = (float)sqrtf(dx*dx + dy*dy);
+	
+	if (mi->precision) {
+		/* deal with Shift key by adding motion / 10 to motion before shift press */
+		short mdx, mdy;
+		mdx = (mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f) - data[2];
+		mdy = (mi->precision_mval[1] + (float)(mval[1] - mi->precision_mval[1]) / 10.0f) - data[3];
+		
+		distance = (mdx*dx + mdy*dy) / length;
+	}
+	else {
+		short mdx, mdy;
+		mdx = mval[0] - data[2];
+		mdy = mval[1] - data[3];
+		
+		distance = (mdx*dx + mdy*dy) / length;
+	}
+
+	output[0] = distance / length;
+}
+
 void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 {
 	double dx2 = mval[0] - mi->center[0];
@@ -290,6 +331,11 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	case INPUT_VERTICAL_ABSOLUTE:
 		mi->apply = InputVerticalAbsolute;
 		t->helpline = HLP_VARROW;
+		break;
+	case INPUT_CUSTOM_RATIO:
+		mi->apply = InputCustomRatio;
+		t->helpline = HLP_NONE;
+		mi->data = MEM_callocN(sizeof(short) * 4, "custom points");
 		break;
 	case INPUT_NONE:
 	default:
