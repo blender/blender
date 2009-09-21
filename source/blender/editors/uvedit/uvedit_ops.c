@@ -180,7 +180,13 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 {
 	int width, height;
 
-	ED_space_image_size(sima, &width, &height);
+	if(sima) {
+		ED_space_image_size(sima, &width, &height);
+	}
+	else {
+		width= 256;
+		height= 256;
+	}
 
 	dist[0]= pixeldist/width;
 	dist[1]= pixeldist/height;
@@ -1097,11 +1103,11 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "use_limit")) {
 		UvVertMap *vmap;
 		UvMapVert *vlist, *iterv;
-		float newuv[2], limit[2], pixels;
+		float newuv[2], limit[2];
 		int a, vtot;
 
-		pixels= RNA_float_get(op->ptr, "limit");
-		uvedit_pixel_to_float(sima, limit, pixels);
+		limit[0]= RNA_float_get(op->ptr, "limit");
+		limit[1]= limit[0];
 
 		EM_init_index_arrays(em, 0, 0, 1);
 		vmap= EM_make_uv_vert_map(em, 1, 0, limit);
@@ -1255,7 +1261,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "use_limit", 1, "Use Limit", "Stitch UVs within a specified limit distance.");
-	RNA_def_float(ot->srna, "limit", 20.0, 0.0f, FLT_MAX, "Limit", "Limit distance in image pixels.", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, "Limit", "Limit distance in normalized coordinates.", -FLT_MAX, FLT_MAX);
 }
 
 /* ******************** (de)select all operator **************** */
@@ -1439,7 +1445,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	else {
 		sync= 0;
 		selectmode= ts->uv_selectmode;
-		sticky= sima ? sima->sticky : 1;
+		sticky= (sima)? sima->sticky: 1;
 	}
 
 	/* find nearest element */
