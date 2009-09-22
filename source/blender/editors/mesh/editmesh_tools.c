@@ -4679,6 +4679,7 @@ int EdgeLoopDelete(EditMesh *em, wmOperator *op)
 	//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	return 1;
 #endif
+	return 0;
 }
 
 

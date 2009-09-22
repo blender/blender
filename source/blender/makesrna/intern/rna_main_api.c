@@ -31,6 +31,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
@@ -134,21 +135,6 @@ void RNA_api_main(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
-
-	/* copied from rna_def_object */
-	static EnumPropertyItem object_type_items[] = {
-		{OB_EMPTY, "EMPTY", 0, "Empty", ""},
-		{OB_MESH, "MESH", 0, "Mesh", ""},
-		{OB_CURVE, "CURVE", 0, "Curve", ""},
-		{OB_SURF, "SURFACE", 0, "Surface", ""},
-		{OB_FONT, "TEXT", 0, "Text", ""},
-		{OB_MBALL, "META", 0, "Meta", ""},
-		{OB_LAMP, "LAMP", 0, "Lamp", ""},
-		{OB_CAMERA, "CAMERA", 0, "Camera", ""},
-		{OB_WAVE, "WAVE", 0, "Wave", ""},
-		{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
-		{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	func= RNA_def_function(srna, "add_object", "rna_Main_add_object");
 	RNA_def_function_ui_description(func, "Add a new object.");

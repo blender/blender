@@ -114,7 +114,7 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 		
 		/* nurbs_to_mesh changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
-			free_libblock_us( &G.main->object, tmpobj );
+			free_libblock_us( &(CTX_data_main(C)->object), tmpobj );
 			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
 			return NULL;
 		}
@@ -125,6 +125,9 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
  	case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
 		ob = find_basis_mball( sce, ob );
+		/* todo, re-generatre for render-res */
+		/* metaball_polygonize(scene, ob) */
+
 		tmpmesh = add_mesh("Mesh");
 		mball_to_mesh( &ob->disp, tmpmesh );
  		break;
