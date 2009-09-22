@@ -415,7 +415,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		else
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
 
-		if(!(retval & OPERATOR_RUNNING_MODAL)) {
+		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
+		 * currently python only uses this */
+		if(!(retval & OPERATOR_RUNNING_MODAL) && reports==NULL) {
 			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
 				uiPupMenuReports(C, op->reports);
 		

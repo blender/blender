@@ -1979,17 +1979,19 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 
 /* uses no type defines, fully local testing function anyway... ;) */
 
-static int ten_timer_exec(bContext *C, wmOperator *op)
+static int redraw_timer_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	double stime= PIL_check_seconds_timer();
 	int type = RNA_int_get(op->ptr, "type");
-	int a, time;
-	char tmpstr[128];
+	int iter = RNA_int_get(op->ptr, "iterations");
+	int a;
+	float time;
+	char *infostr= "";
 	
 	WM_cursor_wait(1);
-	
-	for(a=0; a<10; a++) {
+
+	for(a=0; a<iter; a++) {
 		if (type==0) {
 			ED_region_do_draw(C, ar);
 		} 
@@ -2005,13 +2007,35 @@ static int ten_timer_exec(bContext *C, wmOperator *op)
 			wmWindow *win= CTX_wm_window(C);
 			ScrArea *sa;
 			
+			ScrArea *sa_back= CTX_wm_area(C);
+			ARegion *ar_back= CTX_wm_region(C);
+
+			for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next) {
+				ARegion *ar_iter;
+				CTX_wm_area_set(C, sa);
+
+				for(ar_iter= sa->regionbase.first; ar_iter; ar_iter= ar_iter->next) {
+					CTX_wm_region_set(C, ar_iter);
+					ED_region_do_draw(C, ar_iter);
+				}
+			}
+
+			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
+
+			CTX_wm_area_set(C, sa_back);
+			CTX_wm_region_set(C, ar_back);
+		}
+		else if (type==3) {
+			wmWindow *win= CTX_wm_window(C);
+			ScrArea *sa;
+
 			for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next)
 				ED_area_tag_redraw(sa);
 			wm_draw_update(C);
 			
 			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
 		}
-		else if (type==3) {
+		else if (type==4) {
 			Scene *scene= CTX_data_scene(C);
 			
 			if(a & 1) scene->r.cfra--;
@@ -2024,40 +2048,43 @@ static int ten_timer_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	time= (int) ((PIL_check_seconds_timer()-stime)*1000);
+	time= ((PIL_check_seconds_timer()-stime)*1000);
 	
-	if(type==0) sprintf(tmpstr, "10 x Draw Region: %d ms", time);
-	if(type==1) sprintf(tmpstr, "10 x Draw Region and Swap: %d ms", time);
-	if(type==2) sprintf(tmpstr, "10 x Draw Window and Swap: %d ms", time);
-	if(type==3) sprintf(tmpstr, "Anim Step: %d ms", time);
-	if(type==4) sprintf(tmpstr, "10 x Undo/Redo: %d ms", time);
+	if(type==0) infostr= "Draw Region";
+	if(type==1) infostr= "Draw Region and Swap";
+	if(type==2) infostr= "Draw Window";
+	if(type==3) infostr= "Draw Window and Swap";
+	if(type==4) infostr= "Animation Steps";
+	if(type==5) infostr= "Undo/Redo";
 	
 	WM_cursor_wait(0);
 	
-	uiPupMenuNotice(C, tmpstr);
+	BKE_reportf(op->reports, RPT_INFO, "%d x %s: %.2f ms,  average: %.4f", iter, infostr, time, time/iter);
 	
 	return OPERATOR_FINISHED;
 }
 
-static void WM_OT_ten_timer(wmOperatorType *ot)
+static void WM_OT_redraw_timer(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_type_items[] = {
 	{0, "DRAW", 0, "Draw Region", ""},
-	{1, "DRAWSWAP", 0, "Draw Region + Swap", ""},
-	{2, "DRAWWINSWAP", 0, "Draw Window + Swap", ""},
-	{3, "ANIMSTEP", 0, "Anim Step", ""},
-	{4, "UNDO", 0, "Undo/Redo", ""},
+	{1, "DRAW_SWAP", 0, "Draw Region + Swap", ""},
+	{2, "DRAW_WIN", 0, "Draw Window", ""},
+	{3, "DRAW_WIN_SWAP", 0, "Draw Window + Swap", ""},
+	{4, "ANIM_STEP", 0, "Anim Step", ""},
+	{5, "UNDO", 0, "Undo/Redo", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
-	ot->name= "Ten Timer";
-	ot->idname= "WM_OT_ten_timer";
-	ot->description="Ten Timer operator.";
+	ot->name= "Redraw Timer";
+	ot->idname= "WM_OT_redraw_timer";
+	ot->description="Simple redraw timer to test the speed of updating the interface.";
 	
 	ot->invoke= WM_menu_invoke;
-	ot->exec= ten_timer_exec;
+	ot->exec= redraw_timer_exec;
 	ot->poll= WM_operator_winactive;
 	
 	RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
+	RNA_def_int(ot->srna, "iterations", 10, 1,INT_MAX, "Iterations", "Number of times to redraw", 1,1000);
 
 }
 
@@ -2092,7 +2119,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
-	WM_operatortype_append(WM_OT_ten_timer);
+	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_search_menu);
 }
@@ -2127,7 +2154,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */
-	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	

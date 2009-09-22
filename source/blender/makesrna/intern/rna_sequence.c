@@ -520,6 +520,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "machine");
+	RNA_def_property_range(prop, 0, MAXSEQ-1);
 	RNA_def_property_ui_text(prop, "Channel", "Y position of the sequence strip.");
 	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_channel_set",NULL); // overlap test
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
