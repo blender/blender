@@ -1553,13 +1553,11 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 	cfra+= bluroffs+fieldoffs;
 
 	/* global time */
-	cfra*= scene->r.framelen;	
+	if (scene)
+		cfra*= scene->r.framelen;	
 	
 #if 0 // XXX old animation system
 	if (ob) {
-		if (no_speed_curve==0 && ob->ipo)
-			cfra= calc_ipo_time(ob->ipo, cfra);
-		
 		/* ofset frames */
 		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) 
 			cfra-= give_timeoffset(ob);
@@ -1574,29 +1572,22 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	if(ob->ipo) {
-		vec[0]= ob->size[0]+ob->dsize[0];
-		vec[1]= ob->size[1]+ob->dsize[1];
-		vec[2]= ob->size[2]+ob->dsize[2];
-		SizeToMat3(vec, mat);
-	}
-	else {
-		SizeToMat3(ob->size, mat);
-	}
+	
+	vec[0]= ob->size[0]+ob->dsize[0];
+	vec[1]= ob->size[1]+ob->dsize[1];
+	vec[2]= ob->size[2]+ob->dsize[2];
+	SizeToMat3(vec, mat);
 }
 
+// TODO: this should take rotation orders into account later...
 void object_rot_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	if(ob->ipo) {
-		vec[0]= ob->rot[0]+ob->drot[0];
-		vec[1]= ob->rot[1]+ob->drot[1];
-		vec[2]= ob->rot[2]+ob->drot[2];
-		EulToMat3(vec, mat);
-	}
-	else {
-		EulToMat3(ob->rot, mat);
-	}
+	
+	vec[0]= ob->rot[0]+ob->drot[0];
+	vec[1]= ob->rot[1]+ob->drot[1];
+	vec[2]= ob->rot[2]+ob->drot[2];
+	EulToMat3(vec, mat);
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -1611,13 +1602,8 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 	/* rot */
 	/* Quats arnt used yet */
 	/*if(ob->transflag & OB_QUAT) {
-		if(ob->ipo) {
-			QuatMul(q1, ob->quat, ob->dquat);
-			QuatToMat3(q1, rmat);
-		}
-		else {
-			QuatToMat3(ob->quat, rmat);
-		}
+		QuatMul(q1, ob->quat, ob->dquat);
+		QuatToMat3(q1, rmat);
 	}
 	else {*/
 		object_rot_to_mat3(ob, rmat);
@@ -1633,12 +1619,9 @@ void object_to_mat4(Object *ob, float mat[][4])
 	
 	Mat4CpyMat3(mat, tmat);
 	
-	VECCOPY(mat[3], ob->loc);
-	if(ob->ipo) {
-		mat[3][0]+= ob->dloc[0];
-		mat[3][1]+= ob->dloc[1];
-		mat[3][2]+= ob->dloc[2];
-	}
+	mat[3][0]= ob->loc[0] + ob->dloc[0];
+	mat[3][1]= ob->loc[1] + ob->dloc[1];
+	mat[3][2]= ob->loc[2] + ob->dloc[2];
 }
 
 int enable_cu_speed= 1;
