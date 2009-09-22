@@ -4508,6 +4508,9 @@ void initEdgeSlide(TransInfo *t)
 	createSlideVerts(t);
 	sld = t->customData;
 
+	if (!sld)
+		return;
+
 	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
 	
