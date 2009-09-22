@@ -1,5 +1,5 @@
 /**
- * $Id: poseSlide.c 23179 2009-09-13 12:34:00Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

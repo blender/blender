@@ -25,7 +25,7 @@ Known issues:<br>
 """
 
 
-# $Id: export_x3d.py 23222 2009-09-14 14:55:49Z kazanbas $
+# $Id$
 #
 #------------------------------------------------------------------------
 # X3D exporter for blender 2.36 or above
