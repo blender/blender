@@ -32,6 +32,8 @@
 
 #include "ED_transform.h"
 
+#include "BLI_editVert.h"
+
 /* ************************** Types ***************************** */
 
 struct TransInfo;
@@ -178,6 +180,31 @@ typedef struct TransDataNla {
 	int trackIndex;				/* index of track that strip is currently in */
 	int handle;					/* handle-index: 0 for dummy entry, -1 for start, 1 for end, 2 for both ends */
 } TransDataNla;
+
+struct LinkNode;
+struct EditEdge;
+struct EditVert;
+struct GHash;
+typedef struct TransDataSlideUv {
+	float origuv[2];
+	float *uv_up, *uv_down;
+	//float *fuv[4];
+	struct LinkNode *fuv_list;
+} TransDataSlideUv;
+
+typedef struct TransDataSlideVert {
+	struct EditEdge *up, *down;
+	struct EditVert origvert;
+} TransDataSlideVert;
+
+typedef struct SlideData {
+	TransDataSlideUv *slideuv, *suv_last;
+	int totuv, uvlay_tot;
+	struct GHash *vhash, **uvhash;
+	struct EditVert *nearest;
+	struct LinkNode *edgelist, *vertlist;
+	short start[2], end[2];
+} SlideData;
 
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
@@ -467,6 +494,9 @@ int BoneEnvelope(TransInfo *t, short mval[2]);
 void initBoneRoll(TransInfo *t);
 int BoneRoll(TransInfo *t, short mval[2]);
 
+void initEdgeSlide(TransInfo *t);
+int EdgeSlide(TransInfo *t, short mval[2]);
+
 void initTimeTranslate(TransInfo *t);
 int TimeTranslate(TransInfo *t, short mval[2]);
 
@@ -666,6 +696,8 @@ void applyTransformOrientation(const struct bContext *C, TransInfo *t);
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
 int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
+
+void freeSlideVerts(TransInfo *t);
 
 #endif
 

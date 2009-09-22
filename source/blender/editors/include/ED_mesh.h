@@ -175,5 +175,13 @@ float		ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int ver
 struct MDeformWeight	*ED_vgroup_weight_verify(struct MDeformVert *dv, int defgroup);
 struct MDeformWeight	*ED_vgroup_weight_get(struct MDeformVert *dv, int defgroup);
 
+/*needed by edge slide*/
+struct EditVert *editedge_getOtherVert(struct EditEdge *eed, struct EditVert *eve);
+struct EditVert *editedge_getSharedVert(struct EditEdge *eed, struct EditEdge *eed2);
+int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
+int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
+int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
+short sharesFace(struct EditMesh *em, struct EditEdge *e1, struct EditEdge *e2);
+
 #endif /* ED_MESH_H */
 

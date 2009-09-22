@@ -578,6 +578,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 			{TFM_BEVEL, "BEVEL", 0, "Bevel", ""},
 			{TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
 			{TFM_ALIGN, "ALIGN", 0, "Align", ""},
+			{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
 			{0, NULL, 0, NULL, NULL}
 	};
 

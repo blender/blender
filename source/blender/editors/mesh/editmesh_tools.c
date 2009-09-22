@@ -3868,11 +3868,11 @@ typedef struct SlideVert {
 	EditVert origvert;
 } SlideVert;
 
+#if 0
 int EdgeSlide(EditMesh *em, wmOperator *op, short immediate, float imperc)
 {
 	return 0;
 /* XXX REFACTOR - #if 0'd for now, otherwise can't make 64bit windows builds on 64bit machine */
-#if 0
 useless:
 	goto useless // because it doesn't do anything right now
 
@@ -4654,11 +4654,12 @@ useless:
 	}
 
 	return 1;
-#endif // END OF XXX
 }
+#endif // END OF XXX
 
 int EdgeLoopDelete(EditMesh *em, wmOperator *op)
 {
+#if 0 //XXX won't work with new edgeslide
 
 	/* temporal flag setting so we keep UVs when deleting edge loops,
 	* this is a bit of a hack but it works how you would want in almost all cases */
@@ -4677,6 +4678,7 @@ int EdgeLoopDelete(EditMesh *em, wmOperator *op)
 	EM_select_flush(em);
 	//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	return 1;
+#endif
 }
 
 

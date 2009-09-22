@@ -113,6 +113,7 @@ static int edge_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiItemEnumO(layout, "Rotate Edge CCW", 0, "MESH_OT_edge_rotate", "direction", 2);
 	//uiItemO(layout, "Loopcut", 0, "MESH_OT_loop_cut"); // CutEdgeloop(em, 1);
 	//uiItemO(layout, "Edge Slide", 0, "MESH_OT_edge_slide"); // EdgeSlide(em, 0,0.0);
+	uiItemEnumO(layout, "Edge Slide", 0, "TFM_OT_transform", "mode", TFM_EDGE_SLIDE);
 	uiItemO(layout, "Edge Loop", 0, "MESH_OT_loop_multi_select");
 	uiItemBooleanO(layout, "Edge Ring", 0, "MESH_OT_loop_multi_select", "ring", 1);
 	uiItemO(layout, NULL, 0, "MESH_OT_loop_to_region");

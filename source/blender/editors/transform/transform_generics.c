@@ -1073,6 +1073,10 @@ void postTrans (TransInfo *t)
 	{
 		MEM_freeN(t->mouse.data);
 	}
+
+	if (t->mode == TFM_EDGE_SLIDE) {
+		freeSlideVerts(t);
+	}
 }
 
 void applyTransObjects(TransInfo *t)

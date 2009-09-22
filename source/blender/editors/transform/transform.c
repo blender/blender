@@ -100,6 +100,7 @@
 #include "ED_markers.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
+#include "ED_mesh.h"
 
 #include "UI_view2d.h"
 #include "WM_types.h"
@@ -108,6 +109,8 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_ghash.h"
+#include "BLI_linklist.h"
 
 #include "PIL_time.h"			/* sleep				*/
 
@@ -1427,6 +1430,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	case TFM_BONE_ENVELOPE:
 		initBoneEnvelope(t);
+		break;
+	case TFM_EDGE_SLIDE:
+		initEdgeSlide(t);
 		break;
 	case TFM_BONE_ROLL:
 		initBoneRoll(t);
@@ -4029,6 +4035,669 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 	return 1;
 }
 
+/* ********************  Edge Slide   *************** */
+
+static int createSlideVerts(TransInfo *t)
+{
+	Mesh *me = t->obedit->data;
+	EditMesh *em = me->edit_mesh;
+	EditFace *efa;
+	EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
+	EditVert *ev, *nearest = NULL;
+	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
+	GHash *vertgh;
+	TransDataSlideVert *tempsv;
+	float perc = 0, percp = 0,vertdist; // XXX, projectMat[4][4];
+	float shiftlabda= 0.0f,len = 0.0f;
+	int i, j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
+	int wasshift = 0;
+	/* UV correction vars */
+	GHash **uvarray= NULL;
+	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
+	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+	int uvlay_idx;
+	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
+	RegionView3D *v3d = t->ar->regiondata;
+	float projectMat[4][4];
+	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
+	float vec[3];
+	//short mval[2], mvalo[2];
+	float labda = 0.0f, totvec=0.0;
+
+	view3d_get_object_project_mat(v3d, t->obedit, projectMat);
+
+	//mvalo[0] = -1; mvalo[1] = -1;
+	numsel =0;
+
+	// Get number of selected edges and clear some flags
+	for(eed=em->edges.first;eed;eed=eed->next) {
+		eed->f1 = 0;
+		eed->f2 = 0;
+		if(eed->f & SELECT) numsel++;
+	}
+
+	for(ev=em->verts.first;ev;ev=ev->next) {
+		ev->f1 = 0;
+	}
+
+	//Make sure each edge only has 2 faces
+	// make sure loop doesn't cross face
+	for(efa=em->faces.first;efa;efa=efa->next) {
+		int ct = 0;
+		if(efa->e1->f & SELECT) {
+			ct++;
+			efa->e1->f1++;
+			if(efa->e1->f1 > 2) {
+				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
+				return 0;
+			}
+		}
+		if(efa->e2->f & SELECT) {
+			ct++;
+			efa->e2->f1++;
+			if(efa->e2->f1 > 2) {
+				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
+				return 0;
+			}
+		}
+		if(efa->e3->f & SELECT) {
+			ct++;
+			efa->e3->f1++;
+			if(efa->e3->f1 > 2) {
+				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
+				return 0;
+			}
+		}
+		if(efa->e4 && efa->e4->f & SELECT) {
+			ct++;
+			efa->e4->f1++;
+			if(efa->e4->f1 > 2) {
+				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
+				return 0;
+			}
+		}
+		// Make sure loop is not 2 edges of same face
+		if(ct > 1) {
+		   //BKE_report(op->reports, RPT_ERROR, "Loop crosses itself");
+		   return 0;
+		}
+	}
+
+	// Get # of selected verts
+	for(ev=em->verts.first;ev;ev=ev->next) {
+		if(ev->f & SELECT) vertsel++;
+	}
+
+	// Test for multiple segments
+	if(vertsel > numsel+1) {
+		//BKE_report(op->reports, RPT_ERROR, "Please choose a single edge loop");
+		return 0;
+	}
+
+	// Get the edgeloop in order - mark f1 with SELECT once added
+	for(eed=em->edges.first;eed;eed=eed->next) {
+		if((eed->f & SELECT) && !(eed->f1 & SELECT)) {
+			// If this is the first edge added, just put it in
+			if(!edgelist) {
+				BLI_linklist_prepend(&edgelist,eed);
+				numadded++;
+				first = eed;
+				last  = eed;
+				eed->f1 = SELECT;
+			} else {
+				if(editedge_getSharedVert(eed, last)) {
+					BLI_linklist_append(&edgelist,eed);
+					eed->f1 = SELECT;
+					numadded++;
+					last = eed;
+				}  else if(editedge_getSharedVert(eed, first)) {
+					BLI_linklist_prepend(&edgelist,eed);
+					eed->f1 = SELECT;
+					numadded++;
+					first = eed;
+				}
+			}
+		}
+		if(eed->next == NULL && numadded != numsel) {
+			eed=em->edges.first;
+			timesthrough++;
+		}
+
+		// It looks like there was an unexpected case - Hopefully should not happen
+		if(timesthrough >= numsel*2) {
+			BLI_linklist_free(edgelist,NULL);
+			//BKE_report(op->reports, RPT_ERROR, "Could not order loop");
+			return 0;
+		}
+	}
+
+	// Put the verts in order in a linklist
+	look = edgelist;
+	while(look) {
+		eed = look->link;
+		if(!vertlist) {
+			if(look->next) {
+				temp = look->next->link;
+
+				//This is the first entry takes care of extra vert
+				if(eed->v1 != temp->v1 && eed->v1 != temp->v2) {
+					BLI_linklist_append(&vertlist,eed->v1);
+					eed->v1->f1 = 1;
+				} else {
+					BLI_linklist_append(&vertlist,eed->v2);
+					eed->v2->f1 = 1;
+				}
+			} else {
+				//This is the case that we only have 1 edge
+				BLI_linklist_append(&vertlist,eed->v1);
+				eed->v1->f1 = 1;
+			}
+		}
+		// for all the entries
+		if(eed->v1->f1 != 1) {
+			BLI_linklist_append(&vertlist,eed->v1);
+			eed->v1->f1 = 1;
+		} else  if(eed->v2->f1 != 1) {
+			BLI_linklist_append(&vertlist,eed->v2);
+			eed->v2->f1 = 1;
+		}
+		look = look->next;
+	}
+
+	// populate the SlideVerts
+
+	vertgh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	look = vertlist;
+	while(look) {
+		i=0;
+		j=0;
+		ev = look->link;
+		tempsv = (struct TransDataSlideVert*)MEM_mallocN(sizeof(struct TransDataSlideVert),"SlideVert");
+		tempsv->up = NULL;
+		tempsv->down = NULL;
+		tempsv->origvert.co[0] = ev->co[0];
+		tempsv->origvert.co[1] = ev->co[1];
+		tempsv->origvert.co[2] = ev->co[2];
+		tempsv->origvert.no[0] = ev->no[0];
+		tempsv->origvert.no[1] = ev->no[1];
+		tempsv->origvert.no[2] = ev->no[2];
+		// i is total edges that vert is on
+		// j is total selected edges that vert is on
+
+		for(eed=em->edges.first;eed;eed=eed->next) {
+			if(eed->v1 == ev || eed->v2 == ev) {
+				i++;
+				if(eed->f & SELECT) {
+					 j++;
+				}
+			}
+		}
+		// If the vert is in the middle of an edge loop, it touches 2 selected edges and 2 unselected edges
+		if(i == 4 && j == 2) {
+			for(eed=em->edges.first;eed;eed=eed->next) {
+				if(editedge_containsVert(eed, ev)) {
+					if(!(eed->f & SELECT)) {
+						 if(!tempsv->up) {
+							 tempsv->up = eed;
+						 } else if (!(tempsv->down)) {
+							 tempsv->down = eed;
+						 }
+					}
+				}
+			}
+		}
+		// If it is on the end of the loop, it touches 1 selected and as least 2 more unselected
+		if(i >= 3 && j == 1) {
+			for(eed=em->edges.first;eed;eed=eed->next) {
+				if(editedge_containsVert(eed, ev) && eed->f & SELECT) {
+					for(efa = em->faces.first;efa;efa=efa->next) {
+						if(editface_containsEdge(efa, eed)) {
+							if(editedge_containsVert(efa->e1, ev) && efa->e1 != eed) {
+								 if(!tempsv->up) {
+									 tempsv->up = efa->e1;
+								 } else if (!(tempsv->down)) {
+									 tempsv->down = efa->e1;
+								 }
+							}
+							if(editedge_containsVert(efa->e2, ev) && efa->e2 != eed) {
+								 if(!tempsv->up) {
+									 tempsv->up = efa->e2;
+								 } else if (!(tempsv->down)) {
+									 tempsv->down = efa->e2;
+								 }
+							}
+							if(editedge_containsVert(efa->e3, ev) && efa->e3 != eed) {
+								 if(!tempsv->up) {
+									 tempsv->up = efa->e3;
+								 } else if (!(tempsv->down)) {
+									 tempsv->down = efa->e3;
+								 }
+							}
+							if(efa->e4) {
+								if(editedge_containsVert(efa->e4, ev) && efa->e4 != eed) {
+									 if(!tempsv->up) {
+										 tempsv->up = efa->e4;
+									 } else if (!(tempsv->down)) {
+										 tempsv->down = efa->e4;
+									 }
+								}
+							}
+
+						}
+					}
+				}
+			}
+		}
+		if(i > 4 && j == 2) {
+			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
+			BLI_linklist_free(vertlist,NULL);
+			BLI_linklist_free(edgelist,NULL);
+			return 0;
+		}
+		BLI_ghash_insert(vertgh,ev,tempsv);
+
+		look = look->next;
+	}
+
+	// make sure the UPs nad DOWNs are 'faceloops'
+	// Also find the nearest slidevert to the cursor
+
+	look = vertlist;
+	nearest = NULL;
+	vertdist = -1;
+	while(look) {
+		tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+
+		if(!tempsv->up || !tempsv->down) {
+			//BKE_report(op->reports, RPT_ERROR, "Missing rails");
+			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
+			BLI_linklist_free(vertlist,NULL);
+			BLI_linklist_free(edgelist,NULL);
+			return 0;
+		}
+
+		if(me->drawflag & ME_DRAW_EDGELEN) {
+			if(!(tempsv->up->f & SELECT)) {
+				tempsv->up->f |= SELECT;
+				tempsv->up->f2 |= 16;
+			} else {
+				tempsv->up->f2 |= ~16;
+			}
+			if(!(tempsv->down->f & SELECT)) {
+				tempsv->down->f |= SELECT;
+				tempsv->down->f2 |= 16;
+			} else {
+				tempsv->down->f2 |= ~16;
+			}
+		}
+
+		if(look->next != NULL) {
+			TransDataSlideVert *sv;
+			
+			ev = (EditVert*)look->next->link;
+			sv = BLI_ghash_lookup(vertgh, ev);
+
+			if(sv) {
+				float co[3], co2[3], vec[3];
+
+				if(!sharesFace(em, tempsv->up,sv->up)) {
+					EditEdge *swap;
+					swap = sv->up;
+					sv->up = sv->down;
+					sv->down = swap;
+				}
+				
+				view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
+				view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
+				
+				if (ev == sv->up->v1) {
+					VecSubf(vec, co, co2);
+				} else {
+					VecSubf(vec, co2, co);
+				}
+
+				VecAddf(start, start, vec);
+
+				view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
+				view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
+				
+				if (ev == sv->down->v1) {
+					VecSubf(vec, co2, co);
+				} else {
+					VecSubf(vec, co, co2);
+				}
+
+				VecAddf(end, end, vec);
+
+				totvec += 1.0f;
+				nearest = (EditVert*)look->link;
+			}
+		}
+
+
+
+		look = look->next;
+	}
+
+	VecAddf(start, start, end);
+	VecMulf(start, 0.5*(1.0/totvec));
+	VECCOPY(vec, start);
+	start[0] = t->mval[0];
+	start[1] = t->mval[1];
+	VecAddf(end, start, vec);
+	
+	sld->start[0] = (short) start[0];
+	sld->start[1] = (short) start[1];
+	sld->end[0] = (short) end[0];
+	sld->end[1] = (short) end[1];
+	
+	if (uvlay_tot) { // XXX && (scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
+		int maxnum = 0;
+
+		uvarray = MEM_callocN( uvlay_tot * sizeof(GHash *), "SlideUVs Array");
+		sld->totuv = uvlay_tot;
+		suv_last = slideuvs = MEM_callocN( uvlay_tot * (numadded+1) * sizeof(TransDataSlideUv), "SlideUVs"); /* uvLayers * verts */
+		suv = NULL;
+
+		for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
+
+			uvarray[uvlay_idx] = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+
+			for(ev=em->verts.first;ev;ev=ev->next) {
+				ev->tmp.l = 0;
+			}
+			look = vertlist;
+			while(look) {
+				float *uv_new;
+				tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+
+				ev = look->link;
+				suv = NULL;
+				for(efa = em->faces.first;efa;efa=efa->next) {
+					if (ev->tmp.l != -1) { /* test for self, in this case its invalid */
+						int k=-1; /* face corner */
+
+						/* Is this vert in the faces corner? */
+						if		(efa->v1==ev)				k=0;
+						else if	(efa->v2==ev)				k=1;
+						else if	(efa->v3==ev)				k=2;
+						else if	(efa->v4 && efa->v4==ev)	k=3;
+
+						if (k != -1) {
+							MTFace *tf = CustomData_em_get_n(&em->fdata, efa->data, CD_MTFACE, uvlay_idx);
+							EditVert *ev_up, *ev_down;
+
+							uv_new = tf->uv[k];
+
+							if (ev->tmp.l) {
+								if (fabs(suv->origuv[0]-uv_new[0]) > 0.0001 || fabs(suv->origuv[1]-uv_new[1])) {
+									ev->tmp.l = -1; /* Tag as invalid */
+									BLI_linklist_free(suv->fuv_list,NULL);
+									suv->fuv_list = NULL;
+									BLI_ghash_remove(uvarray[uvlay_idx],ev, NULL, NULL);
+									suv = NULL;
+									break;
+								}
+							} else {
+								ev->tmp.l = 1;
+								suv = suv_last;
+
+								suv->fuv_list = NULL;
+								suv->uv_up = suv->uv_down = NULL;
+								suv->origuv[0] = uv_new[0];
+								suv->origuv[1] = uv_new[1];
+
+								BLI_linklist_prepend(&suv->fuv_list, uv_new);
+								BLI_ghash_insert(uvarray[uvlay_idx],ev,suv);
+
+								suv_last++; /* advance to next slide UV */
+								maxnum++;
+							}
+
+							/* Now get the uvs along the up or down edge if we can */
+							if (suv) {
+								if (!suv->uv_up) {
+									ev_up = editedge_getOtherVert(tempsv->up,ev);
+									if		(efa->v1==ev_up)				suv->uv_up = tf->uv[0];
+									else if	(efa->v2==ev_up)				suv->uv_up = tf->uv[1];
+									else if	(efa->v3==ev_up)				suv->uv_up = tf->uv[2];
+									else if	(efa->v4 && efa->v4==ev_up)		suv->uv_up = tf->uv[3];
+								}
+								if (!suv->uv_down) { /* if the first face was apart of the up edge, it cant be apart of the down edge */
+									ev_down = editedge_getOtherVert(tempsv->down,ev);
+									if		(efa->v1==ev_down)				suv->uv_down = tf->uv[0];
+									else if	(efa->v2==ev_down)				suv->uv_down = tf->uv[1];
+									else if	(efa->v3==ev_down)				suv->uv_down = tf->uv[2];
+									else if	(efa->v4 && efa->v4==ev_down)	suv->uv_down = tf->uv[3];
+								}
+
+								/* Copy the pointers to the face UV's */
+								BLI_linklist_prepend(&suv->fuv_list, uv_new);
+							}
+						}
+					}
+				}
+				look = look->next;
+			}
+		} /* end uv layer loop */
+	} /* end uvlay_tot */
+
+	sld->uvhash = uvarray;
+	sld->slideuv = slideuvs;
+	sld->vhash = vertgh;
+	sld->nearest = nearest;
+	sld->vertlist = vertlist;
+	sld->edgelist = edgelist;
+	sld->suv_last = suv_last;
+	sld->uvlay_tot = uvlay_tot;
+
+	// we should have enough info now to slide
+
+	t->customData = sld;
+
+	return 1;
+}
+
+void initEdgeSlide(TransInfo *t)
+{
+	SlideData *sld;
+
+	t->mode = TFM_EDGE_SLIDE;
+	t->transform = EdgeSlide;
+
+	createSlideVerts(t);
+	sld = t->customData;
+
+	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
+	setCustomPoints(t, &t->mouse, sld->end, sld->start);
+	
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = (float)((5.0/180)*M_PI);
+	t->snap[2] = t->snap[1] * 0.2f;
+
+	t->flag |= T_NO_CONSTRAINT;
+}
+
+int doEdgeSlide(TransInfo *t, float perc)
+{
+	Mesh *me= t->obedit->data;
+	EditMesh *em = me->edit_mesh;
+	SlideData *sld = t->customData;
+	EditEdge *first=NULL,*last=NULL, *temp = NULL;
+	EditVert *ev, *nearest = sld->nearest;
+	EditVert *centerVert, *upVert, *downVert;
+	LinkNode *edgelist = sld->edgelist, *vertlist=sld->vertlist, *look;
+	GHash *vertgh = sld->vhash;
+	TransDataSlideVert *tempsv;
+	float shiftlabda= 0.0f,len = 0.0f;
+	int i = 0, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
+	int wasshift = 0;
+	/* UV correction vars */
+	GHash **uvarray= sld->uvhash;
+	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+	int uvlay_idx;
+	TransDataSlideUv *slideuvs=sld->slideuv, *suv=sld->slideuv, *suv_last=NULL;
+	float uv_tmp[2];
+	LinkNode *fuv_link;
+	float labda = 0.0f;
+
+	len = 0.0f;
+
+	tempsv = BLI_ghash_lookup(vertgh,nearest);
+
+	centerVert = editedge_getSharedVert(tempsv->up, tempsv->down);
+	upVert = editedge_getOtherVert(tempsv->up, centerVert);
+	downVert = editedge_getOtherVert(tempsv->down, centerVert);
+
+	len = MIN2(perc, VecLenf(upVert->co,downVert->co));
+	len = MAX2(len, 0);
+
+	//Adjust Edgeloop
+	if(prop) {
+		look = vertlist;
+		while(look) {
+			EditVert *tempev;
+			ev = look->link;
+			tempsv = BLI_ghash_lookup(vertgh,ev);
+
+			tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
+			VecLerpf(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
+
+			if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+				for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
+					suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
+					if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
+						Vec2Lerpf(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
+						fuv_link = suv->fuv_list;
+						while (fuv_link) {
+							VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+							fuv_link = fuv_link->next;
+						}
+					}
+				}
+			}
+
+			look = look->next;
+		}
+	}
+	else {
+		//Non prop code
+		look = vertlist;
+		while(look) {
+			float newlen;
+			ev = look->link;
+			tempsv = BLI_ghash_lookup(vertgh,ev);
+			newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
+			if(newlen > 1.0) {newlen = 1.0;}
+			if(newlen < 0.0) {newlen = 0.0;}
+			if(flip == 0) {
+				VecLerpf(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));
+				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+					/* dont do anything if no UVs */
+					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
+						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
+						if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
+							Vec2Lerpf(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
+							fuv_link = suv->fuv_list;
+							while (fuv_link) {
+								VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+								fuv_link = fuv_link->next;
+							}
+						}
+					}
+				}
+			} else{
+				VecLerpf(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));
+
+				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+					/* dont do anything if no UVs */
+					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
+						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
+						if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
+							Vec2Lerpf(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
+							fuv_link = suv->fuv_list;
+							while (fuv_link) {
+								VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+								fuv_link = fuv_link->next;
+							}
+						}
+					}
+				}
+			}
+			look = look->next;
+		}
+
+	}
+
+	return 1;
+}
+
+void freeSlideVerts(TransInfo *t)
+{
+	TransDataSlideUv *suv;
+	SlideData *sld = t->customData;
+	int uvlay_idx;
+
+	//BLI_ghash_free(edgesgh, freeGHash, NULL);
+	BLI_ghash_free(sld->vhash, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_linklist_free(sld->vertlist, NULL);
+	BLI_linklist_free(sld->edgelist, NULL);
+
+	if (sld->uvlay_tot) {
+		for (uvlay_idx=0; uvlay_idx<sld->uvlay_tot; uvlay_idx++) {
+			BLI_ghash_free(sld->uvhash[uvlay_idx], NULL, NULL);
+		}
+		MEM_freeN(sld->slideuv);
+		MEM_freeN(sld->uvhash);
+
+		suv = sld->suv_last-1;
+		while (suv >= sld->slideuv) {
+			if (suv->fuv_list) {
+				BLI_linklist_free(suv->fuv_list,NULL);
+			}
+			suv--;
+		}
+	}
+
+	MEM_freeN(sld);
+}
+
+int EdgeSlide(TransInfo *t, short mval[2])
+{
+	TransData *td = t->data;
+	char str[50];
+	float final;
+
+	final = t->values[0];
+
+	snapGrid(t, &final);
+
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		applyNumInput(&t->num, &final);
+
+		outputNumInput(&(t->num), c);
+
+		sprintf(str, "Edge Slide Percent: %s", &c[0]);
+	}
+	else {
+		sprintf(str, "Edge Slide Percent: %.2f", final);
+	}
+
+	CLAMP(final, -1.0f, 1.0f);
+
+	/*do stuff here*/
+	doEdgeSlide(t, final);
+
+	recalcData(t);
+
+	ED_area_headerprint(t->sa, str);
+
+	return 1;
+}
 
 /* ******************** EditBone roll *************** */
 
