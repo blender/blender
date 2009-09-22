@@ -602,11 +602,9 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "localview", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "localview", 0);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	prop= RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
 	RNA_def_property_ui_text(prop, "Local View", "Display an isolated sub-set of objects, apart from the scene visibility.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");

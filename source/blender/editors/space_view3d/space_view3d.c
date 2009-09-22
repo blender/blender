@@ -259,7 +259,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	if(v3do->localvd) {
 		v3do->localvd= NULL;
 		v3do->properties_storage= NULL;
-		v3do->localview= 0;
 		v3do->lay= v3dn->localvd->lay;
 		v3do->lay &= 0xFFFFFF;
 	}

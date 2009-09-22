@@ -110,7 +110,7 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 		VECCOPY(ob->loc, scene->cursor);
 	} 
 	else {
-		if (v3d->localview) {
+		if (v3d->localvd) {
 			base->lay= ob->lay= v3d->layact | v3d->lay;
 			VECCOPY(ob->loc, v3d->cursor);
 		} 

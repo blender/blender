@@ -177,7 +177,7 @@ static void handle_view3d_lock(bContext *C)
 	View3D *v3d= CTX_wm_view3d(C);
 	
 	if (v3d != NULL && sa != NULL) {
-		if(v3d->localview==0 && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
+		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
 			
 			/* copy to scene */
 			scene->lay= v3d->lay;
@@ -195,27 +195,38 @@ static int layers_exec(bContext *C, wmOperator *op)
 	View3D *v3d= sa->spacedata.first;
 	int nr= RNA_int_get(op->ptr, "nr");
 	
-	if(nr<=0)
+	if(nr < 0)
 		return OPERATOR_CANCELLED;
-	nr--;
 	
-	if(RNA_boolean_get(op->ptr, "extend"))
-		v3d->lay |= (1<<nr);
-	else 
-		v3d->lay = (1<<nr);
 	
-	/* set active layer, ensure to always have one */
-	if(v3d->lay & (1<<nr))
-	   v3d->layact= 1<<nr;
-	else if((v3d->lay & v3d->layact)==0) {
-		int bit= 0;
+	if(nr == 0) {
+		/* all layers */
+		v3d->lay |= (1<<20)-1;
+
+		if(!v3d->layact)
+			v3d->layact= 1;
+	}
+	else {
+		nr--;
+
+		if(RNA_boolean_get(op->ptr, "extend"))
+			v3d->lay |= (1<<nr);
+		else
+			v3d->lay = (1<<nr);
 		
-		while(bit<32) {
-			if(v3d->lay & (1<<bit)) {
-				v3d->layact= 1<<bit;
-				break;
+		/* set active layer, ensure to always have one */
+		if(v3d->lay & (1<<nr))
+		   v3d->layact= 1<<nr;
+		else if((v3d->lay & v3d->layact)==0) {
+			int bit= 0;
+
+			while(bit<32) {
+				if(v3d->lay & (1<<bit)) {
+					v3d->layact= 1<<bit;
+					break;
+				}
+				bit++;
 			}
-			bit++;
 		}
 	}
 	
@@ -263,8 +274,8 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "", 0, 20);
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "The layer number to set, zero for all layers", 0, 20);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Add this layer to the current view layers");
 }
 
 #if 0
@@ -2078,7 +2089,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
  		}
  		
 		/* LAYERS */
-		if(obedit==NULL && v3d->localview==0) {
+		if(obedit==NULL && v3d->localvd==NULL) {
 			int ob_lay = ob ? ob->lay : 0;
 			uiBlockBeginAlign(block);
 			for(a=0; a<5; a++) {

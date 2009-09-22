@@ -244,6 +244,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0)->ptr, "linked", 1);
 	WM_keymap_add_item(keymap, "OBJECT_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_convert", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith

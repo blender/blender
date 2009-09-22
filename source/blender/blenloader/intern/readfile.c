@@ -4688,7 +4688,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 							v3d->layact= v3d->localvd->layact;
 							MEM_freeN(v3d->localvd); 
 							v3d->localvd= NULL;
-							v3d->localview= 0;
 						}
 						*/
 					}

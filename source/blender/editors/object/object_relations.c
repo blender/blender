@@ -994,7 +994,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 
 	if(lay==0) return OPERATOR_CANCELLED;
 	
-	if(v3d && v3d->localview) {
+	if(v3d && v3d->localvd) {
 		/* now we can move out of localview. */
 		// XXX if (!okee("Move from localview")) return;
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {

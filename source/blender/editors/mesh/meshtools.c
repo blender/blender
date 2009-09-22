@@ -632,7 +632,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 		if (event == 1)
 			Mat4MulMat4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
 		else if (event == 2) { /* sort from cursor */
-			if( v3d && v3d->localview ) {
+			if( v3d && v3d->localvd ) {
 				VECCOPY(cur, v3d->cursor);
 			} else {
 				VECCOPY(cur, scene->cursor);

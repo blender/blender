@@ -110,7 +110,7 @@ void view3d_operator_needs_opengl(const bContext *C)
 
 float *give_cursor(Scene *scene, View3D *v3d)
 {
-	if(v3d && v3d->localview) return v3d->cursor;
+	if(v3d && v3d->localvd) return v3d->cursor;
 	else return scene->cursor;
 }
 
@@ -1303,7 +1303,6 @@ static void initlocalview(Scene *scene, ScrArea *sa)
 				base->object->lay= base->lay;
 			}
 		}		
-		v3d->localview= 0;
 	}
 
 }
@@ -1325,7 +1324,6 @@ static void restore_localviewdata(ScrArea *sa, int free)
 	if(free) {
 		MEM_freeN(v3d->localvd);
 		v3d->localvd= NULL;
-		v3d->localview= 0;
 	}
 	
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
