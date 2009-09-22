@@ -118,6 +118,7 @@ void		EM_select_face(struct EditFace *efa, int sel);
 void		EM_select_face_fgon(struct EditMesh *em, struct EditFace *efa, int val);
 void		EM_select_swap(struct EditMesh *em);
 void		EM_toggle_select_all(struct EditMesh *em);
+void		EM_select_all(struct EditMesh *em);
 void		EM_selectmode_flush(struct EditMesh *em);
 void		EM_deselect_flush(struct EditMesh *em);
 void		EM_selectmode_set(struct EditMesh *em);

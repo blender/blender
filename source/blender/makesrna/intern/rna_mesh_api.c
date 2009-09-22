@@ -42,11 +42,18 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_material.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
+
+#include "BLI_arithb.h"
 #include "BLI_edgehash.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "MEM_guardedalloc.h"
 
 static void rna_Mesh_calc_edges(Mesh *mesh)
 {
@@ -102,6 +109,9 @@ static void rna_Mesh_calc_edges(Mesh *mesh)
 
 static void rna_Mesh_update(Mesh *mesh, bContext *C)
 {
+	Main *bmain= CTX_data_main(C);
+	Object *ob;
+
 	if(mesh->totface && mesh->totedge == 0)
 		rna_Mesh_calc_edges(mesh);
 
@@ -109,6 +119,18 @@ static void rna_Mesh_update(Mesh *mesh, bContext *C)
 
 	DAG_id_flush_update(&mesh->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
+}
+
+static void rna_Mesh_transform(Mesh *me, float *mat)
+{
+
+	/* TODO: old API transform had recalc_normals option */
+	int i;
+	MVert *mvert= me->mvert;
+
+	for(i= 0; i < me->totvert; i++, mvert++) {
+		Mat4MulVecfl((float (*)[4])mat, mvert->co);
+	}
 }
 
 static void rna_Mesh_add_verts(Mesh *mesh, int len)
@@ -139,6 +161,14 @@ static void rna_Mesh_add_verts(Mesh *mesh, int len)
 
 	/* set final vertex list size */
 	mesh->totvert= totvert;
+}
+
+Mesh *rna_Mesh_create_copy(Mesh *me)
+{
+	Mesh *ret= copy_mesh(me);
+	ret->id.us--;
+	
+	return ret;
 }
 
 static void rna_Mesh_add_edges(Mesh *mesh, int len)
@@ -201,6 +231,12 @@ static void rna_Mesh_add_faces(Mesh *mesh, int len)
 	mesh->totface= totface;
 }
 
+/*
+static void rna_Mesh_add_faces(Mesh *mesh)
+{
+}
+*/
+
 static void rna_Mesh_add_geometry(Mesh *mesh, int verts, int edges, int faces)
 {
 	if(verts)
@@ -211,12 +247,50 @@ static void rna_Mesh_add_geometry(Mesh *mesh, int verts, int edges, int faces)
 		rna_Mesh_add_faces(mesh, faces);
 }
 
+static void rna_Mesh_add_uv_texture(Mesh *me)
+{
+	me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface);
+}
+
+static void rna_Mesh_calc_normals(Mesh *me)
+{
+	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+}
+
+static void rna_Mesh_add_material(Mesh *me, Material *ma)
+{
+	int i;
+	int totcol = me->totcol + 1;
+	Material **mat;
+
+	/* don't add if mesh already has it */
+	for (i = 0; i < me->totcol; i++)
+		if (me->mat[i] == ma)
+			return;
+
+	mat= MEM_callocN(sizeof(void*) * totcol, "newmatar");
+
+	if (me->totcol) memcpy(mat, me->mat, sizeof(void*) * me->totcol);
+	if (me->mat) MEM_freeN(me->mat);
+
+	me->mat = mat;
+	me->mat[me->totcol++] = ma;
+	ma->id.us++;
+
+	test_object_materials((ID*)me);
+}
+
 #else
 
 void RNA_api_mesh(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
+
+	func= RNA_def_function(srna, "transform", "rna_Mesh_transform");
+	RNA_def_function_ui_description(func, "Transform mesh vertices by a matrix.");
+	parm= RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix.", 0.0f, 0.0f);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "add_geometry", "rna_Mesh_add_geometry");
 	parm= RNA_def_int(func, "verts", 0, 0, INT_MAX, "Number", "Number of vertices to add.", 0, INT_MAX);
@@ -226,8 +300,24 @@ void RNA_api_mesh(StructRNA *srna)
 	parm= RNA_def_int(func, "faces", 0, 0, INT_MAX, "Number", "Number of faces to add.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
+	func= RNA_def_function(srna, "create_copy", "rna_Mesh_create_copy");
+	RNA_def_function_ui_description(func, "Create a copy of this Mesh datablock.");
+	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh, remove it if it is only used for export.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_uv_texture", "rna_Mesh_add_uv_texture");
+	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh.");
+
+	func= RNA_def_function(srna, "calc_normals", "rna_Mesh_calc_normals");
+	RNA_def_function_ui_description(func, "Calculate vertex normals.");
+
 	func= RNA_def_function(srna, "update", "rna_Mesh_update");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func= RNA_def_function(srna, "add_material", "rna_Mesh_add_material");
+	RNA_def_function_ui_description(func, "Add a new material to Mesh.");
+	parm= RNA_def_pointer(func, "material", "Material", "", "Material to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

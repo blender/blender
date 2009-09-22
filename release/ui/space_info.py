@@ -84,7 +84,9 @@ class INFO_MT_file_import(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 		
-		layout.itemL(text="Nothing yet")
+		layout.itemO("import.3ds", text="3DS")
+		layout.itemO("import.obj", text="OBJ")
+
 
 class INFO_MT_file_export(bpy.types.Menu):
 	__space_type__ = 'INFO'
@@ -93,7 +95,12 @@ class INFO_MT_file_export(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
+		layout.itemO("export.3ds", text="3DS")
+		layout.itemO("export.fbx", text="FBX")
+		layout.itemO("export.obj", text="OBJ")
 		layout.itemO("export.ply", text="PLY")
+		layout.itemO("export.x3d", text="X3D")
+
 
 class INFO_MT_file_external_data(bpy.types.Menu):
 	__space_type__ = 'INFO'

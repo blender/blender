@@ -3293,6 +3293,11 @@ void EM_toggle_select_all(EditMesh *em) /* exported for UV */
 		EM_set_flag_all(em, SELECT);
 }
 
+void EM_select_all(EditMesh *em)
+{
+	EM_set_flag_all(em, SELECT);
+}
+
 static int toggle_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);

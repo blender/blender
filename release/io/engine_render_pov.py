@@ -281,7 +281,7 @@ def write_pov(filename, scene=None, info_callback = None):
 			me = ob.data
 			me_materials= me.materials
 			
-			me = ob.create_render_mesh(scene)
+			me = ob.create_mesh(True, 'RENDER')
 			
 			if not me:
 				continue

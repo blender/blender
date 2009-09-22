@@ -243,6 +243,7 @@ typedef struct Object {
 
 	ListBase gpulamp;		/* runtime, for lamps only */
 	ListBase pc_ids;
+	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -263,6 +264,14 @@ typedef struct ObHook {
 	float force;
 } ObHook;
 
+typedef struct DupliObject {
+	struct DupliObject *next, *prev;
+	struct Object *ob;
+	unsigned int origlay;
+	int index, no_draw, type, animated;
+	float mat[4][4], omat[4][4];
+	float orco[3], uv[2];
+} DupliObject;
 
 /* this work object is defined in object.c */
 extern Object workob;

@@ -78,7 +78,7 @@ def write(filename, scene, ob, \
 	
 	#mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn) # XXX
 	if EXPORT_APPLY_MODIFIERS:
-		mesh = ob.create_render_mesh(scene)
+		mesh = ob.create_mesh(True, 'PREVIEW')
 	else:
 		mesh = ob.data
 	

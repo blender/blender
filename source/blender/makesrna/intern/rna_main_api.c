@@ -32,13 +32,21 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+#include "DNA_object_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_library.h"
+#include "BKE_object.h"
+#include "BKE_material.h"
+#include "BKE_image.h"
+#include "BKE_texture.h"
 
-#include "DNA_mesh_types.h"
+#include "DNA_lamp_types.h"
 
 static Mesh *rna_Main_add_mesh(Main *main, char *name)
 {
@@ -57,24 +65,145 @@ static void rna_Main_remove_mesh(Main *main, ReportList *reports, Mesh *me)
 	/* XXX python now has invalid pointer? */
 }
 
+static Lamp *rna_Main_add_lamp(Main *main, char *name)
+{
+	Lamp *la= add_lamp(name);
+	la->id.us--;
+	return la;
+}
+
+/*
+static void rna_Main_remove_lamp(Main *main, ReportList *reports, Lamp *la)
+{
+	if(la->id.us == 0)
+		free_libblock(&main->lamp, la);
+	else
+		BKE_report(reports, RPT_ERROR, "Lamp must have zero users to be removed.");
+}
+*/
+
+static Object* rna_Main_add_object(Main *main, int type, char *name)
+{
+	Object *ob= add_only_object(type, name);
+	ob->id.us--;
+	return ob;
+}
+
+/*
+  NOTE: the following example shows when this function should _not_ be called
+
+  ob = bpy.data.add_object()
+  scene.add_object(ob)
+
+  # ob is freed here
+  scene.remove_object(ob)
+
+  # don't do this since ob is already freed!
+  bpy.data.remove_object(ob)
+*/
+static void rna_Main_remove_object(Main *main, ReportList *reports, Object *ob)
+{
+	if(ob->id.us == 0)
+		free_libblock(&main->object, ob);
+	else
+		BKE_report(reports, RPT_ERROR, "Object must have zero users to be removed.");
+}
+
+static Material *rna_Main_add_material(Main *main, char *name)
+{
+	return add_material(name);
+}
+
+/* TODO: remove material? */
+
+struct Tex *rna_Main_add_texture(Main *main, char *name)
+{
+	return add_texture(name);
+}
+
+/* TODO: remove texture? */
+
+struct Image *rna_Main_add_image(Main *main, char *filename)
+{
+	return BKE_add_image_file(filename, 0);
+}
+
 #else
 
 void RNA_api_main(StructRNA *srna)
 {
 	FunctionRNA *func;
-	PropertyRNA *prop;
+	PropertyRNA *parm;
+
+	/* copied from rna_def_object */
+	static EnumPropertyItem object_type_items[] = {
+		{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+		{OB_MESH, "MESH", 0, "Mesh", ""},
+		{OB_CURVE, "CURVE", 0, "Curve", ""},
+		{OB_SURF, "SURFACE", 0, "Surface", ""},
+		{OB_FONT, "TEXT", 0, "Text", ""},
+		{OB_MBALL, "META", 0, "Meta", ""},
+		{OB_LAMP, "LAMP", 0, "Lamp", ""},
+		{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+		{OB_WAVE, "WAVE", 0, "Wave", ""},
+		{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
+		{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	func= RNA_def_function(srna, "add_object", "rna_Main_add_object");
+	RNA_def_function_ui_description(func, "Add a new object.");
+	parm= RNA_def_enum(func, "type", object_type_items, 0, "", "Type of Object.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "object", "Object", "", "New object.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove_object", "rna_Main_remove_object");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove an object if it has zero users.");
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "add_mesh", "rna_Main_add_mesh");
 	RNA_def_function_ui_description(func, "Add a new mesh.");
-	prop= RNA_def_string(func, "name", "Mesh", 0, "", "New name for the datablock.");
-	prop= RNA_def_pointer(func, "mesh", "Mesh", "", "New mesh.");
-	RNA_def_function_return(func, prop);
+	parm= RNA_def_string(func, "name", "Mesh", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "New mesh.");
+	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "remove_mesh", "rna_Main_remove_mesh");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove a mesh if it has zero users.");
-	prop= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to remove.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "add_lamp", "rna_Main_add_lamp");
+	RNA_def_function_ui_description(func, "Add a new lamp.");
+	parm= RNA_def_string(func, "name", "Lamp", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "mesh", "Lamp", "", "New lamp.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_material", "rna_Main_add_material");
+	RNA_def_function_ui_description(func, "Add a new material.");
+	parm= RNA_def_string(func, "name", "Material", 0, "", "New name for the datablock."); /* optional */
+	parm= RNA_def_pointer(func, "material", "Material", "", "New material.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_texture", "rna_Main_add_texture");
+	RNA_def_function_ui_description(func, "Add a new texture.");
+	parm= RNA_def_string(func, "name", "Tex", 0, "", "New name for the datablock."); /* optional */
+	parm= RNA_def_pointer(func, "texture", "Texture", "", "New texture.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
+	RNA_def_function_ui_description(func, "Add a new image.");
+	parm= RNA_def_string(func, "filename", "", 0, "", "Filename to load image from.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "image", "Image", "", "New image.");
+	RNA_def_function_return(func, parm);
+
 }
 
 #endif

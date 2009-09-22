@@ -547,21 +547,25 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	/* These three matrix properties await an implementation of the PROP_MATRIX subtype, which currently doesn't exist. */
-/*	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_struct_type(prop, "chan_mat");
+	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "chan_mat");
+	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");*/
+	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");
 
 	/* kaito says this should be not user-editable; I disagree; power users should be able to force this in python; he's the boss. */
-/*	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_struct_type(prop, "pose_mat");
+	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
+	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix for this channel.");
 
+	/*
 	prop= RNA_def_property(srna, "constraint_inverse_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_struct_type(prop, "constinv");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Constraint Inverse Matrix", "4x4 matrix, defines transform from final position to unconstrained position."); */
+	RNA_def_property_ui_text(prop, "Constraint Inverse Matrix", "4x4 matrix, defines transform from final position to unconstrained position.");
+	*/
 	
 	/* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */
 	prop= RNA_def_property(srna, "pose_head", PROP_FLOAT, PROP_TRANSLATION);
@@ -757,6 +761,8 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Pose_active_bone_group_index_get", "rna_Pose_active_bone_group_index_set", "rna_Pose_active_bone_group_index_range");
 	RNA_def_property_ui_text(prop, "Active Bone Group Index", "Active index in bone groups array.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+
+	/* RNA_api_pose(srna); */
 }
 
 void RNA_def_pose(BlenderRNA *brna)

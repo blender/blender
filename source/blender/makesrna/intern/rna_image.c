@@ -144,6 +144,29 @@ static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, in
 	return item;
 }
 
+static int rna_Image_has_data_get(PointerRNA *ptr)
+{
+	Image *im= (Image*)ptr->data;
+
+	if (im->ibufs.first)
+		return 1;
+
+	return 0;
+}
+
+static int rna_Image_depth_get(PointerRNA *ptr)
+{
+	Image *im= (Image*)ptr->data;
+	ImBuf *ibuf= BKE_image_get_ibuf(im, NULL);
+
+	if (!ibuf) return 0;
+
+	if (ibuf->rect_float)
+		return 128;
+
+	return ibuf->depth;
+}
+
 #else
 
 static void rna_def_imageuser(BlenderRNA *brna)
@@ -356,6 +379,22 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_CLAMP_V);
 	RNA_def_property_ui_text(prop, "Clamp Y", "Disable texture repeating vertically.");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+
+	/*
+	   Image.has_data and Image.depth are temporary,
+	   Update import_obj.py when they are replaced (Arystan)
+	*/
+	prop= RNA_def_property(srna, "has_data", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Image_has_data_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Has data", "True if this image has data.");
+
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_Image_depth_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Depth", "Image bit depth.");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	RNA_api_image(srna);
 }
 
 void RNA_def_image(BlenderRNA *brna)

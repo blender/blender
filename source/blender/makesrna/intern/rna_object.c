@@ -103,6 +103,12 @@ void rna_Object_update(bContext *C, PointerRNA *ptr)
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
 }
 
+void rna_Object_matrix_update(bContext *C, PointerRNA *ptr)
+{
+	ED_object_apply_obmat(ptr->id.data);
+	rna_Object_update(C, ptr);
+}
+
 void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
@@ -1212,6 +1218,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "obmat");
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_ui_text(prop, "Matrix", "Transformation matrix.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_matrix_update");
 
 	/* collections */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
@@ -1524,12 +1531,43 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_api_object(srna);
 }
 
+static void rna_def_dupli_object(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "DupliObject", NULL);
+	RNA_def_struct_sdna(srna, "DupliObject");
+	RNA_def_struct_ui_text(srna, "Dupli Object", "Dupli Object data."); 
+	/* RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA); */
+
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	/* RNA_def_property_struct_type(prop, "Object"); */
+	RNA_def_property_pointer_sdna(prop, NULL, "ob");
+	/* RNA_def_property_pointer_funcs(prop, "rna_DupliObject_object_get", NULL, NULL); */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object", "Object this DupliObject represents.");
+
+	prop= RNA_def_property(srna, "ob_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "omat");
+	RNA_def_property_array(prop, 16);
+	RNA_def_property_ui_text(prop, "Object Matrix", "Object transformation matrix.");
+
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "mat");
+	RNA_def_property_array(prop, 16);
+	RNA_def_property_ui_text(prop, "DupliObject Matrix", "DupliObject transformation matrix.");
+
+	/* TODO: DupliObject has more properties that can be wrapped */
+}
+
 void RNA_def_object(BlenderRNA *brna)
 {
 	rna_def_object(brna);
 	rna_def_object_game_settings(brna);
 	rna_def_vertex_group(brna);
 	rna_def_material_slot(brna);
+	rna_def_dupli_object(brna);
 }
 
 #endif
