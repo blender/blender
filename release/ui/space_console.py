@@ -246,11 +246,17 @@ def autocomp(bcon):
 					break
 				else:
 					autocomp_prefix_ret += char_soup.pop()
-				
-			print(autocomp_prefix_ret)
+			
 			return autocomp_prefix_ret, autocomp_members
 		elif len(autocomp_members) == 1:
-			return autocomp_members[0][len(autocomp_prefix):], []
+			if autocomp_prefix == autocomp_members[0]:
+				# the variable matched the prefix exactly
+				# add a '.' so you can quickly continue.
+				# Could try add [] or other possible extensions rather then '.' too if we had the variable.
+				return '.', []
+			else:
+				# finish off the of the word word
+				return autocomp_members[0][len(autocomp_prefix):], []
 		else:
 			return '', []
 	
