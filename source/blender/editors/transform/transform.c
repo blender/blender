@@ -4340,6 +4340,8 @@ static int createSlideVerts(TransInfo *t)
 			if(sv) {
 				float co[3], co2[3], vec[3];
 
+				ev = (EditVert*)look->link;
+
 				if(!sharesFace(em, tempsv->up,sv->up)) {
 					EditEdge *swap;
 					swap = sv->up;
@@ -4350,7 +4352,7 @@ static int createSlideVerts(TransInfo *t)
 				view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
 				view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
 				
-				if (ev == sv->up->v1) {
+				if (ev == tempsv->up->v1) {
 					VecSubf(vec, co, co2);
 				} else {
 					VecSubf(vec, co2, co);
@@ -4361,7 +4363,7 @@ static int createSlideVerts(TransInfo *t)
 				view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
 				view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
 				
-				if (ev == sv->down->v1) {
+				if (ev == tempsv->down->v1) {
 					VecSubf(vec, co2, co);
 				} else {
 					VecSubf(vec, co, co2);
