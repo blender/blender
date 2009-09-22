@@ -207,8 +207,13 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 					// TODO: perform some other operations?
 				}
 				else {
+					char oldKeyType= BEZKEYTYPE(fcu->bezt + i);
+					
 					/* just brutally replace the values */
 					*(fcu->bezt + i) = *bezt;
+					
+					/* special exception for keyframe type - copy value back so that this info isn't lost */
+					BEZKEYTYPE(fcu->bezt + i)= oldKeyType;
 				}
 			}
 		}
