@@ -1321,7 +1321,12 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	if (t->flag & T_MODAL)
 	{
 		ts->prop_mode = t->prop_mode;
-		ts->proportional = proportional;
+		
+		/* only save back if it wasn't automatically disabled */
+		if ((t->options & CTX_NO_PET) == 0)
+		{
+			ts->proportional = proportional;
+		}
 
 		if(t->spacetype == SPACE_VIEW3D)
 		{
@@ -4500,18 +4505,51 @@ static int createSlideVerts(TransInfo *t)
 	return 1;
 }
 
+void freeSlideVerts(TransInfo *t)
+{
+	TransDataSlideUv *suv;
+	SlideData *sld = t->customData;
+	int uvlay_idx;
+
+	//BLI_ghash_free(edgesgh, freeGHash, NULL);
+	BLI_ghash_free(sld->vhash, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_linklist_free(sld->vertlist, NULL);
+	BLI_linklist_free(sld->edgelist, NULL);
+
+	if (sld->uvlay_tot) {
+		for (uvlay_idx=0; uvlay_idx<sld->uvlay_tot; uvlay_idx++) {
+			BLI_ghash_free(sld->uvhash[uvlay_idx], NULL, NULL);
+		}
+		MEM_freeN(sld->slideuv);
+		MEM_freeN(sld->uvhash);
+
+		suv = sld->suv_last-1;
+		while (suv >= sld->slideuv) {
+			if (suv->fuv_list) {
+				BLI_linklist_free(suv->fuv_list,NULL);
+			}
+			suv--;
+		}
+	}
+
+	MEM_freeN(sld);
+	t->customData = NULL;
+}
+
 void initEdgeSlide(TransInfo *t)
 {
 	SlideData *sld;
 
 	t->mode = TFM_EDGE_SLIDE;
 	t->transform = EdgeSlide;
-
+	
 	createSlideVerts(t);
 	sld = t->customData;
 
 	if (!sld)
 		return;
+
+	t->customFree = freeSlideVerts;
 
 	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
@@ -4637,36 +4675,6 @@ int doEdgeSlide(TransInfo *t, float perc)
 	}
 
 	return 1;
-}
-
-void freeSlideVerts(TransInfo *t)
-{
-	TransDataSlideUv *suv;
-	SlideData *sld = t->customData;
-	int uvlay_idx;
-
-	//BLI_ghash_free(edgesgh, freeGHash, NULL);
-	BLI_ghash_free(sld->vhash, NULL, (GHashValFreeFP)MEM_freeN);
-	BLI_linklist_free(sld->vertlist, NULL);
-	BLI_linklist_free(sld->edgelist, NULL);
-
-	if (sld->uvlay_tot) {
-		for (uvlay_idx=0; uvlay_idx<sld->uvlay_tot; uvlay_idx++) {
-			BLI_ghash_free(sld->uvhash[uvlay_idx], NULL, NULL);
-		}
-		MEM_freeN(sld->slideuv);
-		MEM_freeN(sld->uvhash);
-
-		suv = sld->suv_last-1;
-		while (suv >= sld->slideuv) {
-			if (suv->fuv_list) {
-				BLI_linklist_free(suv->fuv_list,NULL);
-			}
-			suv--;
-		}
-	}
-
-	MEM_freeN(sld);
 }
 
 int EdgeSlide(TransInfo *t, short mval[2])

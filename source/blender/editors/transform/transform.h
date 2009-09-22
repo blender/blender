@@ -291,6 +291,7 @@ typedef struct TransInfo {
 	struct Object *poseobj;		/* if t->flag & T_POSE, this denotes pose object */
 
 	void       *customData;		/* Per Transform custom data */
+	void  	  (*customFree)(struct TransInfo *); /* if a special free function is needed */
 
 	/*************** NEW STUFF *********************/
 

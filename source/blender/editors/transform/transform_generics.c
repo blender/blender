@@ -978,51 +978,60 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	/* setting PET flag */
-	if (op && RNA_struct_find_property(op->ptr, "proportional") && RNA_property_is_set(op->ptr, "proportional"))
+	/* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
+	if (op && RNA_struct_find_property(op->ptr, "proportional"))
 	{
-		switch(RNA_enum_get(op->ptr, "proportional"))
+		if (RNA_property_is_set(op->ptr, "proportional"))
 		{
-		case 2: /* XXX connected constant */
-			t->flag |= T_PROP_CONNECTED;
-		case 1: /* XXX prop on constant */
-			t->flag |= T_PROP_EDIT;
-			break;
+			switch(RNA_enum_get(op->ptr, "proportional"))
+			{
+			case 2: /* XXX connected constant */
+				t->flag |= T_PROP_CONNECTED;
+			case 1: /* XXX prop on constant */
+				t->flag |= T_PROP_EDIT;
+				break;
+			}
+		}
+		else
+		{
+			if ((t->options & CTX_NO_PET) == 0 && (ts->proportional)) {
+				t->flag |= T_PROP_EDIT;
+
+				if(ts->proportional == 2)
+					t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
+			}
+		}
+
+		if (op && RNA_struct_find_property(op->ptr, "proportional_size") && RNA_property_is_set(op->ptr, "proportional_size"))
+		{
+			t->prop_size = RNA_float_get(op->ptr, "proportional_size");
+		}
+		else
+		{
+			t->prop_size = ts->proportional_size;
+		}
+
+
+		/* TRANSFORM_FIX_ME rna restrictions */
+		if (t->prop_size <= 0)
+		{
+			t->prop_size = 1.0f;
+		}
+		
+		if (op && RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
+		{
+			t->prop_mode = RNA_enum_get(op->ptr, "proportional_editing_falloff");
+		}
+		else
+		{
+			t->prop_mode = ts->prop_mode;
 		}
 	}
-	else
+	else /* add not pet option to context when not available */
 	{
-		if ((t->options & CTX_NO_PET) == 0 && (ts->proportional)) {
-			t->flag |= T_PROP_EDIT;
-
-			if(ts->proportional == 2)
-				t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
-		}
+		t->options |= CTX_NO_PET;
 	}
 
-	if (op && RNA_struct_find_property(op->ptr, "proportional_size") && RNA_property_is_set(op->ptr, "proportional_size"))
-	{
-		t->prop_size = RNA_float_get(op->ptr, "proportional_size");
-	}
-	else
-	{
-		t->prop_size = ts->proportional_size;
-	}
-
-	if (op && RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
-	{
-		t->prop_mode = RNA_enum_get(op->ptr, "proportional_editing_falloff");
-	}
-	else
-	{
-		t->prop_mode = ts->prop_mode;
-	}
-
-	/* TRANSFORM_FIX_ME rna restrictions */
-	if (t->prop_size <= 0)
-	{
-		t->prop_size = 1.0f;
-	}
 
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
@@ -1065,8 +1074,6 @@ void postTrans (TransInfo *t)
 			ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
 	}
 	else if(ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
-		if (t->customData)
-			MEM_freeN(t->customData);
 	}
 
 	if (t->mouse.data)
@@ -1074,8 +1081,11 @@ void postTrans (TransInfo *t)
 		MEM_freeN(t->mouse.data);
 	}
 
-	if (t->mode == TFM_EDGE_SLIDE) {
-		freeSlideVerts(t);
+	if (t->customFree) {
+		t->customFree(t);
+	}
+	else if (t->customData) {
+		MEM_freeN(t->customData);
 	}
 }
 

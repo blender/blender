@@ -99,6 +99,7 @@ char OP_SHRINK_FATTEN[] = "TFM_OT_shrink_fatten";
 char OP_TILT[] = "TFM_OT_tilt";
 char OP_TRACKBALL[] = "TFM_OT_trackball";
 char OP_MIRROR[] = "TFM_OT_mirror";
+char OP_EDGE_SLIDE[] = "TFM_OT_edge_slide";
 
 
 TransformModeItem transform_modes[] =
@@ -113,6 +114,7 @@ TransformModeItem transform_modes[] =
 	{OP_TILT, TFM_TILT},
 	{OP_TRACKBALL, TFM_TRACKBALL},
 	{OP_MIRROR, TFM_MIRROR},
+	{OP_EDGE_SLIDE, TFM_EDGE_SLIDE},
 	{NULL, 0}
 };
 
@@ -549,6 +551,26 @@ void TFM_OT_mirror(struct wmOperatorType *ot)
 	Properties_Constraints(ot);
 }
 
+void TFM_OT_edge_slide(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Tilt";
+	ot->description= "Tilt selected control vertices of 3d curve."; 
+	ot->idname = OP_EDGE_SLIDE;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	/* api callbacks */
+	ot->invoke = transform_invoke;
+	ot->exec   = transform_exec;
+	ot->modal  = transform_modal;
+	ot->cancel  = transform_cancel;
+	ot->poll   = ED_operator_editmesh;
+
+	RNA_def_float_factor(ot->srna, "value", 0, 0, 1, "Factor", "", 0, 1);
+
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+}
+
 void TFM_OT_transform(struct wmOperatorType *ot)
 {
 	static EnumPropertyItem transform_mode_types[] = {
@@ -618,6 +640,7 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TFM_OT_tilt);
 	WM_operatortype_append(TFM_OT_trackball);
 	WM_operatortype_append(TFM_OT_mirror);
+	WM_operatortype_append(TFM_OT_edge_slide);
 
 	WM_operatortype_append(TFM_OT_select_orientation);
 }
