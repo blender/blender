@@ -140,7 +140,7 @@ static int vergface(const void *v1, const void *v2)
 
 /* *********************************** */
 
-void convert_to_triface(EditMesh *em, int direction)
+static void convert_to_triface(EditMesh *em, int direction)
 {
 	EditFace *efa, *efan, *next;
 	float fac;
@@ -5638,7 +5638,7 @@ static void collapseuvs(EditMesh *em, EditVert *mergevert)
 	}
 }
 
-int collapseEdges(EditMesh *em)
+static int collapseEdges(EditMesh *em)
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -5704,7 +5704,7 @@ int collapseEdges(EditMesh *em)
 	return mergecount;
 }
 
-int merge_firstlast(EditMesh *em, int first, int uvmerge)
+static int merge_firstlast(EditMesh *em, int first, int uvmerge)
 {
 	EditVert *eve,*mergevert;
 	EditSelection *ese;
@@ -5738,7 +5738,7 @@ int merge_firstlast(EditMesh *em, int first, int uvmerge)
 	return removedoublesflag(em, 1, 0, MERGELIMIT);
 }
 
-void em_snap_to_center(EditMesh *em)
+static void em_snap_to_center(EditMesh *em)
 {
 	EditVert *eve;
 	float cent[3] = {0.0f, 0.0f, 0.0f};
@@ -5763,7 +5763,7 @@ void em_snap_to_center(EditMesh *em)
 	}
 }
 
-void em_snap_to_cursor(EditMesh *em, bContext *C)
+static void em_snap_to_cursor(EditMesh *em, bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
@@ -5784,7 +5784,7 @@ void em_snap_to_cursor(EditMesh *em, bContext *C)
 	}
 }
 
-int merge_target(bContext *C, EditMesh *em, int target, int uvmerge)
+static int merge_target(bContext *C, EditMesh *em, int target, int uvmerge)
 {
 	EditVert *eve;
 
@@ -5927,7 +5927,7 @@ typedef struct PathEdge {
 #define PATH_SELECT_EDGE_LENGTH 0
 #define PATH_SELECT_TOPOLOGICAL 1
 
-int select_vertex_path_exec(bContext *C, wmOperator *op)
+static int select_vertex_path_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -7140,7 +7140,7 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 
 /********************** Smooth/Solid Operators *************************/
 
-void mesh_set_smooth_faces(EditMesh *em, short smooth)
+static void mesh_set_smooth_faces(EditMesh *em, short smooth)
 {
 	EditFace *efa;
 

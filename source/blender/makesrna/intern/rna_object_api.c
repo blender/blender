@@ -260,34 +260,6 @@ static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
 	}
 }
 
-static void rna_Object_convert_to_triface(Object *ob, bContext *C, ReportList *reports, Scene *sce)
-{
-	Mesh *me;
-	int ob_editing = CTX_data_edit_object(C) == ob;
-
-	if (ob->type != OB_MESH) {
-		BKE_report(reports, RPT_ERROR, "Object should be of type MESH.");
-		return;
-	}
-
-	me= (Mesh*)ob->data;
-
-	if (!ob_editing)
-		make_editMesh(sce, ob);
-
-	/* select all */
-	EM_select_all(me->edit_mesh);
-
-	convert_to_triface(me->edit_mesh, 0);
-
-	load_editMesh(sce, ob);
-
-	if (!ob_editing)
-		free_editMesh(me->edit_mesh);
-
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-}
-
 static bDeformGroup *rna_Object_add_vertex_group(Object *ob, char *group_name)
 {
 	return ED_vgroup_add_name(ob, group_name);
@@ -407,12 +379,6 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
 	RNA_def_function_return(func, parm);
-
-	func= RNA_def_function(srna, "convert_to_triface", "rna_Object_convert_to_triface");
-	RNA_def_function_ui_description(func, "Convert all mesh faces to triangles.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene where the object belongs.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* duplis */
 	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");

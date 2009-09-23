@@ -125,6 +125,9 @@ void BKE_image_assign_ibuf(struct Image *ima, struct ImBuf *ibuf);
 /* called on frame change or before render */
 void BKE_image_user_calc_imanr(struct ImageUser *iuser, int cfra, int fieldnr);
 
+/* produce image export path */
+int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size);
+
 /* fix things in ImageUser when new image gets assigned */
 void BKE_image_user_new_image(struct Image *ima, struct ImageUser *iuser);
 

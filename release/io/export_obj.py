@@ -451,6 +451,9 @@ def write(filename, objects, scene,
 			else:
 				faceuv = False
 
+			# XXX - todo, find a better way to do triangulation
+			# ...removed convert_to_triface because it relies on editmesh
+			'''
 			# We have a valid mesh
 			if EXPORT_TRI and me.faces:
 				# Add a dummy object to it.
@@ -468,7 +471,8 @@ def write(filename, objects, scene,
 					newob.convert_to_triface(scene)
 					# mesh will still be there
 					scene.remove_object(newob)
-
+			'''
+			
 			# Make our own list so it can be sorted to reduce context switching
 			face_index_pairs = [ (face, index) for index, face in enumerate(me.faces)]
 			# faces = [ f for f in me.faces ]
