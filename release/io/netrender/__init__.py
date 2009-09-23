@@ -5,6 +5,7 @@ import operators
 import client
 import slave
 import master
+import master_html
 import utils
 import balancing
 import ui

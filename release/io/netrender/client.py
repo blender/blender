@@ -1,5 +1,5 @@
 import bpy
-import sys, os
+import sys, os, re
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
 

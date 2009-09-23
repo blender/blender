@@ -32,7 +32,7 @@ class RenderSlave:
 	def __init__(self):
 		self.id = ""
 		self.name = ""
-		self.address = (0,0)
+		self.address = ("",0)
 		self.stats = ""
 		self.total_done = 0
 		self.total_error = 0
@@ -172,6 +172,9 @@ class RenderFrame:
 		self.time = 0
 		self.status = QUEUED
 		self.slave = None
+
+	def statusText(self):
+		return STATUS_TEXT[self.status]
 
 	def serialize(self):
 		return 	{

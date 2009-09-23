@@ -5,6 +5,7 @@ import subprocess, shutil, time, hashlib
 from netrender.utils import *
 import netrender.model
 import netrender.balancing
+import netrender.master_html
 
 class MRenderFile:
 	def __init__(self, filepath, start, end):
@@ -126,9 +127,9 @@ class MRenderFrame(netrender.model.RenderFrame):
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 class RenderHandler(http.server.BaseHTTPRequestHandler):
-	def send_head(self, code = http.client.OK, headers = {}):
+	def send_head(self, code = http.client.OK, headers = {}, content = "application/octet-stream"):
 		self.send_response(code)
-		self.send_header("Content-type", "application/octet-stream")
+		self.send_header("Content-type", content)
 		
 		for key, value in headers.items():
 			self.send_header(key, value)
@@ -342,7 +343,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			self.send_head()
 			
 			self.wfile.write(bytes(repr(message), encoding='utf8'))
-			
+		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+		else:
+			# hand over the rest to the html section
+			netrender.master_html.get(self)
 
 	# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

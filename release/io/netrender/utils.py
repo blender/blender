@@ -19,6 +19,13 @@ DISPATCHED = 1
 DONE = 2
 ERROR = 3
 
+STATUS_TEXT = {
+								QUEUED: "Queued",
+								DISPATCHED: "Dispatched",
+								DONE: "Done",
+								ERROR: "Error"
+							}
+
 def rnaType(rna_type):
 	bpy.types.register(rna_type)
 	return rna_type
