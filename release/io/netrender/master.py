@@ -50,6 +50,7 @@ class MRenderJob(netrender.model.RenderJob):
 		self.last_dispatched = time.time()
 	
 		# special server properties
+		self.last_update = 0
 		self.save_path = ""
 		self.files_map = {path: MRenderFile(path, start, end) for path, start, end in files}
 		self.status = JOB_WAITING
@@ -68,13 +69,23 @@ class MRenderJob(netrender.model.RenderJob):
 		self.start()
 		return True
 	
+	def testFinished(self):
+		for f in self.frames:
+			if f.status == QUEUED or f.status == DISPATCHED:
+				break
+		else:
+			self.status = JOB_FINISHED
+
 	def start(self):
 		self.status = JOB_QUEUED
-	
+
 	def update(self):
-		self.credits -= 5 # cost of one frame
-		self.credits += (time.time() - self.last_dispatched) / 60
-		self.last_dispatched = time.time()
+		if self.last_update == 0:
+			self.credits += (time.time() - self.last_dispatched) / 60
+		else:
+			self.credits += (time.time() - self.last_update) / 60
+
+		self.last_update = time.time()
 	
 	def addLog(self, frames):
 		log_name = "_".join(("%04d" % f for f in frames)) + ".log"
@@ -98,7 +109,8 @@ class MRenderJob(netrender.model.RenderJob):
 		frames = []
 		for f in self.frames:
 			if f.status == QUEUED:
-				self.update()
+				self.credits -= 1 # cost of one frame
+				self.last_dispatched = time.time()
 				frames.append(f)
 				if len(frames) >= self.chunks:
 					break
@@ -512,7 +524,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 					job_time = float(self.headers['job-time'])
 					
 					frame = job[job_frame]
-					
+
 					if job_result == DONE:
 						length = int(self.headers['content-length'])
 						buf = self.rfile.read(length)
@@ -527,6 +539,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 						
 					frame.status = job_result
 					frame.time = job_time
+
+					job.testFinished()
 			
 					self.server.updateSlave(self.headers['slave-id'])
 					
@@ -581,7 +595,7 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.balancer.addException(netrender.balancing.ExcludeQueuedEmptyJob())
 		self.balancer.addException(netrender.balancing.ExcludeSlavesLimit(self.countJobs, self.countSlaves))
 		self.balancer.addPriority(netrender.balancing.NewJobPriority())
-		self.balancer.addPriority(netrender.balancing.MinimumTimeBetweenDispatchPriority())
+		self.balancer.addPriority(netrender.balancing.MinimumTimeBetweenDispatchPriority(limit = 2))
 		
 		if not os.path.exists(self.path):
 			os.mkdir(self.path)
@@ -612,6 +626,8 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.jobs = []
 	
 	def update(self):
+		for job in self.jobs:
+			job.update()
 		self.balancer.balance(self.jobs)
 	
 	def countJobs(self, status = JOB_QUEUED):

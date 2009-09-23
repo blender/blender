@@ -262,12 +262,46 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 			
 			response = conn.getresponse()
 			print( response.status, response.reason )
+
+			netsettings.jobs.remove(netsettings.active_job_index)
 		
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):
 		return self.execute(context)
 	
+@rnaOperator
+class RENDER_OT_netclientcancelall(bpy.types.Operator):
+	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	__idname__ = "render.netclientcancelall"
+	__label__ = "Net Render Client Cancel All"
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = []
+	
+	def poll(self, context):
+		return True
+		
+	def execute(self, context):
+		netsettings = context.scene.network_render
+		conn = clientConnection(context.scene)
+		
+		if conn:
+			conn.request("POST", "/cancel")
+			
+			response = conn.getresponse()
+			print( response.status, response.reason )
+		
+			while(len(netsettings.jobs) > 0):
+				netsettings.jobs.remove(0)
+
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		return self.execute(context)
+
 @rnaOperator
 class netclientdownload(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''

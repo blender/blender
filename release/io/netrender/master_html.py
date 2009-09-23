@@ -52,11 +52,13 @@ def get(handler):
 		output("<h2>Jobs</h2>")
 		
 		startTable()
-		headerTable("id", "name", "length", "done", "dispatched", "error")
+		headerTable("id", "name", "credits", "time since last", "length", "done", "dispatched", "error", "priority", "exception")
+
+		handler.server.update()
 		
 		for job in handler.server.jobs:
 			results = job.framesStatus()
-			rowTable(link(job.id, "/html/job" + job.id), job.name, len(job), results[DONE], results[DISPATCHED], results[ERROR])
+			rowTable(link(job.id, "/html/job" + job.id), job.name, round(job.credits, 1), int(time.time() - job.last_dispatched), len(job), results[DONE], results[DISPATCHED], results[ERROR], handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job))
 		
 		endTable()
 		

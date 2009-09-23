@@ -11,7 +11,8 @@ VERSION = b"0.5"
 # Jobs status
 JOB_WAITING = 0 # before all data has been entered
 JOB_PAUSED = 1 # paused by user
-JOB_QUEUED = 2 # ready to be dispatched
+JOB_FINISHED = 2 # finished rendering
+JOB_QUEUED = 3 # ready to be dispatched
 
 # Frames status
 QUEUED = 0

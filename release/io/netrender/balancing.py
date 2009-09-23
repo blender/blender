@@ -71,14 +71,14 @@ class NewJobPriority(PriorityRule):
 		self.limit = limit
 		
 	def test(self, job):
-		return job.countFrames(status = DISPATCHED) < self.limit
+		return job.countFrames(status = DONE) < self.limit
 
 class MinimumTimeBetweenDispatchPriority(PriorityRule):
 	def __init__(self, limit = 10):
 		self.limit = limit
 		
 	def test(self, job):
-		return (time.time() - job.last_dispatched) / 60 > self.limit
+		return job.countFrames(status = DISPATCHED) == 0 and (time.time() - job.last_dispatched) / 60 > self.limit
 
 class ExcludeQueuedEmptyJob(ExclusionRule):
 	def test(self, job):
@@ -91,4 +91,4 @@ class ExcludeSlavesLimit(ExclusionRule):
 		self.limit = limit
 		
 	def test(self, job):
-		return not ( self.count_jobs() == 1 or float(job.countSlaves() + 1) / self.count_slaves() <= self.limit )
+		return not ( self.count_jobs() == 1 or self.count_slaves() == 1 or float(job.countSlaves() + 1) / self.count_slaves() <= self.limit )

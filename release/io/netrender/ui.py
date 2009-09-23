@@ -165,6 +165,7 @@ class SCENE_PT_network_jobs(RenderButtonsPanel):
 		subcol = col.column(align=True)
 		subcol.itemO("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
 		subcol.itemO("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
+		subcol.itemO("render.netclientcancelall", icon="ICON_ZOOMOUT", text="")
 		subcol.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
 
 		if len(bpy.data.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
