@@ -583,9 +583,9 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 		dllsources.append('${LCGDIR}/release/python' + ver + '.zip')
 		dllsources.append('${LCGDIR}/release/zlib.pyd')
 		if env['BF_DEBUG']:
-			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}_d.dll')
+			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}_d.dll')
 		else:
-			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}.dll')
+			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}.dll')
 	if env['WITH_BF_ICONV']:
 		if env['OURPLATFORM'] == 'win64-vc':
 			pass # we link statically to iconv on win64

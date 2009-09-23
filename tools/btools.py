@@ -27,7 +27,7 @@ def print_arguments(args, bc):
 
 def validate_arguments(args, bc):
 	opts_list = [
-			'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
+			'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL',
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
 			'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH',
@@ -158,6 +158,7 @@ def read_opts(cfg, args):
 		('BF_PYTHON_INC', 'include path for Python headers', ''),
 		('BF_PYTHON_BINARY', 'Path to the Python interpreter', ''),
 		('BF_PYTHON_LIB', 'Python library', ''),
+		('BF_PYTHON_DLL', 'Python dll - used on Windows only', ''),
 		('BF_PYTHON_LIB_STATIC', 'Python static libraries', ''),
 		('BF_PYTHON_LIBPATH', 'Library path', ''),
 		('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
