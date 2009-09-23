@@ -1351,7 +1351,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	vert= v2d->vert;
 	hor= v2d->hor;
 	
-	/* slider rects smaller than region */
+	/* slider rects need to be smaller than region */
 	hor.xmin+=4;
 	hor.xmax-=4;
 	if (scroll & V2D_SCROLL_BOTTOM)
@@ -1393,13 +1393,18 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		else
 			scrollers->hor_max= (int)(hor.xmin + (fac2 * scrollsize));
 		
+		/* prevent inverted sliders */
 		if (scrollers->hor_min > scrollers->hor_max) 
 			scrollers->hor_min= scrollers->hor_max;
+		/* prevent sliders from being too small, and disappearing */
+		if ((scrollers->hor_max - scrollers->hor_min) < V2D_SCROLLER_HANDLE_SIZE)
+			scrollers->hor_max+= V2D_SCROLLER_HANDLE_SIZE;
 		
 		/* check whether sliders can disappear */
-		if(v2d->keeptot)
+		if(v2d->keeptot) {
 			if(fac1 <= 0.0f && fac2 >= 1.0f) 
 				scrollers->horfull= 1;
+		}
 	}
 	
 	/* vertical scrollers */
@@ -1420,13 +1425,18 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		else
 			scrollers->vert_max= (int)(vert.ymin + (fac2 * scrollsize));
 		
+		/* prevent inverted sliders */
 		if (scrollers->vert_min > scrollers->vert_max) 
 			scrollers->vert_min= scrollers->vert_max;
+		/* prevent sliders from being too small, and disappearing */
+		if ((scrollers->vert_max - scrollers->vert_min) < V2D_SCROLLER_HANDLE_SIZE)
+			scrollers->vert_max+= V2D_SCROLLER_HANDLE_SIZE;
 		
 		/* check whether sliders can disappear */
-		if(v2d->keeptot)
+		if(v2d->keeptot) {
 			if(fac1 <= 0.0f && fac2 >= 1.0f) 
 				scrollers->vertfull= 1;
+		}
 	}
 	
 	/* grid markings on scrollbars */
@@ -1550,14 +1560,6 @@ static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, f
 	BLF_draw_default(x, y, 0.0f, str);
 }
 
-/* local defines for scrollers drawing */
-	/* radius of scroller 'button' caps */
-#define V2D_SCROLLCAP_RAD		5
-	/* shading factor for scroller 'bar' */
-#define V2D_SCROLLBAR_SHADE		0.1f
-	/* shading factor for scroller 'button' caps */
-#define V2D_SCROLLCAP_SHADE		0.2f
-
 /* Draw scrollbars in the given 2d-region */
 void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *vs)
 {
@@ -1571,7 +1573,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	
 	/* horizontal scrollbar */
 	if (scroll & V2D_SCROLL_HORIZONTAL) {
-		
+		/* only draw scrollbar when it doesn't fill the entire space */
 		if(vs->horfull==0) {
 			bTheme *btheme= U.themes.first;
 			uiWidgetColors wcol= btheme->tui.wcol_scroll;
@@ -1584,13 +1586,15 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			slider.ymax= hor.ymax;
 			
 			state= (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SCROLL_PRESSED:0;
+			
+			// TODO: disable this for button regions... 
 			if (!(v2d->keepzoom & V2D_LOCKZOOM_X))
 				state |= UI_SCROLL_ARROWS;
+				
 			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
 		
 		/* scale indicators */
-		// XXX will need to update the font drawing when the new stuff comes in
 		if ((scroll & V2D_SCROLL_SCALE_HORIZONTAL) && (vs->grid)) {
 			View2DGrid *grid= vs->grid;
 			float fac, dfac, fac2, val;
@@ -1667,7 +1671,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	
 	/* vertical scrollbar */
 	if (scroll & V2D_SCROLL_VERTICAL) {
-		
+		/* only draw scrollbar when it doesn't fill the entire space */
 		if(vs->vertfull==0) {
 			bTheme *btheme= U.themes.first;
 			uiWidgetColors wcol= btheme->tui.wcol_scroll;
@@ -1680,14 +1684,16 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			slider.ymax= vs->vert_max;
 			
 			state= (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SCROLL_PRESSED:0;
-			if (!(v2d->keepzoom & V2D_LOCKZOOM_Y))
+			
+			// TODO: disable this for button regions...
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_Y)) 
 				state |= UI_SCROLL_ARROWS;
+				
 			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}
 		
 		
 		/* scale indiators */
-		// XXX will need to update the font drawing when the new stuff comes in
 		if ((scroll & V2D_SCROLL_SCALE_VERTICAL) && (vs->grid)) {
 			View2DGrid *grid= vs->grid;
 			float fac, dfac, val;
