@@ -60,15 +60,15 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 		ob = context.object
 
 		row = layout.row()
-		row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index")
+		row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index", rows=2)
 
 		col = row.column(align=True)
 		col.itemO("object.vertex_group_add", icon='ICON_ZOOMIN', text="")
 		col.itemO("object.vertex_group_remove", icon='ICON_ZOOMOUT', text="")
 
-		col.itemO("object.vertex_group_copy", icon='ICON_BLANK1', text="")
+		col.itemO("object.vertex_group_copy", icon='ICON_COPYDOWN', text="")
 		if ob.data.users > 1:
-			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_BLANK1', text="")
+			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_COPYDOWN', text="")
 
 		group = ob.active_vertex_group
 		if group:

@@ -721,6 +721,10 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 			pose_slide_apply(C, op, pso);
 		}
 			break;
+			
+		default: /* unhandled event (maybe it was some view manip? */
+			/* allow to pass through */
+			return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
 	}
 	
 	/* still running... */
