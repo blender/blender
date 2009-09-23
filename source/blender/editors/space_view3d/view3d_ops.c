@@ -85,6 +85,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_drawtype);
 	WM_operatortype_append(VIEW3D_OT_localview);
 	WM_operatortype_append(VIEW3D_OT_game_start);
+	WM_operatortype_append(VIEW3D_OT_fly);
 	WM_operatortype_append(VIEW3D_OT_layers);
 	
 	WM_operatortype_append(VIEW3D_OT_properties);
@@ -123,6 +124,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center", PADPERIOD, KM_PRESS, 0, 0);
 	
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_fly", FKEY, KM_PRESS, KM_ANY, 0);
+
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
@@ -218,5 +221,6 @@ void view3d_keymap(wmWindowManager *wm)
 
 	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
 
+	fly_modal_keymap(wm);
 }
 

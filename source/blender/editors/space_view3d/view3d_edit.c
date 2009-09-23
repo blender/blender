@@ -2338,7 +2338,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 
     if (use_sel) {
         QuatConj(q1); /* conj == inv for unit quat */
-        VecSubf(v3d->ofs, v3d->ofs, obofs);
+        VecSubf(rv3d->ofs, rv3d->ofs, obofs);
         QuatMulVecf(q1, rv3d->ofs);
         VecAddf(rv3d->ofs, rv3d->ofs, obofs);
     }

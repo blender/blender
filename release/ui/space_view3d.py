@@ -136,6 +136,10 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
 		
 		layout.item_floatO("view3d.zoom", "delta", 1.0, text="Zoom In")
 		layout.item_floatO("view3d.zoom", "delta", -1.0, text="Zoom Out")
+		
+		layout.itemS()
+		
+		layout.itemO("view3d.fly")
 
 class VIEW3D_MT_view_align(bpy.types.Menu):
 	__space_type__ = 'VIEW_3D'

@@ -429,7 +429,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_edge_face_add", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, 0, 0);
 						/* use KM_RELEASE because same key is used for tweaks */
 	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_RELEASE, KM_CTRL, 0);
 	

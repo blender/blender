@@ -124,6 +124,7 @@ void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
+void VIEW3D_OT_fly(struct wmOperatorType *ot);
 
 
 int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
@@ -134,6 +135,8 @@ void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
+
+void fly_modal_keymap(struct wmWindowManager *wm);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
