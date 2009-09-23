@@ -919,7 +919,6 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		/* restricted target-type constraints -------------- */
 		/* NOTE: for these, we cannot try to add a target object if no valid ones are found, since that doesn't work */
 			/* curve-based constraints - set the only_curve and only_ob flags */
-		case CONSTRAINT_TYPE_TRACKTO:
 		case CONSTRAINT_TYPE_CLAMPTO:
 		case CONSTRAINT_TYPE_FOLLOWPATH:
 			only_curve= 1;
