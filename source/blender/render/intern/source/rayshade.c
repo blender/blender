@@ -1900,7 +1900,8 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		else max_samples = 1;
 	} else {
 		if (do_soft) max_samples = lar->ray_totsamp;
-		else max_samples = (R.osa > 4)?R.osa:5;
+		else if (shi->depth == 0) max_samples = (R.osa > 4)?R.osa:5;
+		else max_samples = 1;
 	}
 	
 	ray_shadow_jittered_coords(shi, max_samples, jitco, &totjitco);
