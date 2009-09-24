@@ -174,6 +174,9 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 		console_scrollback_add_str(C, "Autocomplete:     Ctrl+Space", 0);
 		console_scrollback_add_str(C, "Ctrl +/-  Wheel:  Zoom", 0);
 		console_scrollback_add_str(C, "Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.ui", 0);
+
+		/* This is normally set by python but to start with its easier just to set it like this rather then running python with no args */
+		strcpy(sc->prompt, ">>> ");
 	}
 	
 	/* clear and setup matrix */
