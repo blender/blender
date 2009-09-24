@@ -28,3 +28,7 @@ SOURCEDIR = source/blender/blenfont
 DIRS = intern
 
 include nan_subdirs.mk
+
+ifeq ($(INTERNATIONAL), true)
+	CPPFLAGS += -DINTERNATIONAL
+endif
