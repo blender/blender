@@ -29,6 +29,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
+#ifndef __WINSTUFF_H__
+#define __WINSTUFF_H__
+
 #ifndef FREE_WINDOWS
 #pragma warning(once: 4761 4305 4244 4018)
 #endif
@@ -59,10 +62,7 @@
 
 #undef small
 
-#ifndef __WINSTUFF_H__
-#define __WINSTUFF_H__
-
-	// These definitions are also in arithb for simplicity
+// These definitions are also in arithb for simplicity
 
 #ifdef __cplusplus
 extern "C" {
