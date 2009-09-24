@@ -2271,8 +2271,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 
-	if(!ELEM7(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, SEARCH_MENU))
-		but->flag |= UI_BUT_UNDO;
+	if(ELEM8(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, SEARCH_MENU, BUTM));
+	else if(ELEM5(but->type, SCROLL, SEPR, LINK, INLINK, FTPREVIEW));
+	else but->flag |= UI_BUT_UNDO;
 
 	BLI_addtail(&block->buttons, but);
 	
