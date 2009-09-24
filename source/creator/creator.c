@@ -101,6 +101,7 @@
 #ifdef BUILD_DATE
 extern char * build_date;
 extern char * build_time;
+extern char * build_rev;
 extern char * build_platform;
 extern char * build_type;
 #endif
