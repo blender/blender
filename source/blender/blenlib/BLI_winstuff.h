@@ -91,12 +91,13 @@ extern "C" {
 typedef unsigned int mode_t;
 #endif
 
+/* mingw using _SSIZE_T_ to declare ssize_t type */
 #ifndef _SSIZE_T_
 #define _SSIZE_T_
-#if defined(_WIN64)
-typedef __int64 ssize_t;
-#else
-typedef _W64 int ssize_t;
+/* python uses HAVE_SSIZE_T */
+#ifndef HAVE_SSIZE_T
+#define HAVE_SSIZE_T 1
+typedef long ssize_t;
 #endif
 #endif
 
