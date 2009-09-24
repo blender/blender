@@ -442,7 +442,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
 					VECCOPY(dstf, brush->rgb);
-					dstf[3]= brush->alpha*brush_curve_strength(brush, dist, maxsize);
+					dstf[3]= brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize);
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, dstf);
@@ -455,7 +455,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dstf[0] = rgba[0]*brush->rgb[0];
 					dstf[1] = rgba[1]*brush->rgb[1];
 					dstf[2] = rgba[2]*brush->rgb[2];
-					dstf[3] = rgba[3]*brush->alpha*brush_curve_strength(brush, dist, maxsize);
+					dstf[3] = rgba[3]*brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize);
 				}
 			}
 		}
@@ -494,7 +494,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dst[0] = FTOCHAR(rgba[0]*brush->rgb[0]);
 					dst[1] = FTOCHAR(rgba[1]*brush->rgb[1]);
 					dst[2] = FTOCHAR(rgba[2]*brush->rgb[2]);
-					dst[3] = FTOCHAR(rgba[3]*brush->alpha*brush_curve_strength(brush, dist, maxsize));
+					dst[3] = FTOCHAR(rgba[3]*brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize));
 				}
 			}
 		}
@@ -952,12 +952,23 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 }
 
 /* Uses the brush curve control to find a strength value between 0 and 1 */
+float brush_curve_strength_clamp(Brush *br, float p, const float len)
+{
+	if(p >= len)	p= 1.0f;
+	else			p= p/len;
+
+	p= curvemapping_evaluateF(br->curve, 0, p);
+	if(p < 0.0)			p= 0.0f;
+	else if(p > 1.0f)	p= 1.0f;
+	return p;
+}
+/* same as above but can return negative values if the curve enables
+ * used for sculpt only */
 float brush_curve_strength(Brush *br, float p, const float len)
 {
-	float f;
-	if(p > len) p= len;
-	f= curvemapping_evaluateF(br->curve, 0, p/len);
-	return (f > 0.0f) ? f:0.0f;
+	if(p >= len)	p= 1.0f;
+	else			p= p/len;
+	return curvemapping_evaluateF(br->curve, 0, p);
 }
 
 /* TODO: should probably be unified with BrushPainter stuff? */
@@ -1024,7 +1035,7 @@ static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 	for(i=0; i<side; ++i) {
 		for(j=0; j<side; ++j) {
 			float magn= sqrt(pow(i - half, 2) + pow(j - half, 2));
-			im->rect_float[i*side + j]= brush_curve_strength(br, magn, half);
+			im->rect_float[i*side + j]= brush_curve_strength_clamp(br, magn, half);
 		}
 	}
 
