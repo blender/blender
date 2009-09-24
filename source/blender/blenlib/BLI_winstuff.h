@@ -28,7 +28,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+ 
+#ifndef FREE_WINDOWS
 #pragma warning(once: 4761 4305 4244 4018)
+#endif
 
 #define WIN32_LEAN_AND_MEAN
 
