@@ -174,6 +174,9 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 		bone = context.bone
 		pchan = ob.pose.pose_channels[context.bone.name]
 
+		row = layout.row()
+		row.itemR(ob.pose, "ik_solver")
+
 		split = layout.split(percentage=0.25)
 		split.itemR(pchan, "ik_dof_x", text="X")
 		row = split.row()
@@ -218,10 +221,26 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 		row.itemR(pchan, "ik_min_z", text="")
 		row.itemR(pchan, "ik_max_z", text="")
 		row.active = pchan.ik_dof_z and pchan.ik_limit_z
-
 		split = layout.split()
 		split.itemR(pchan, "ik_stretch", text="Stretch", slider=True)
 		split.itemL()
+
+		if ob.pose.ik_solver == "ITASC":
+			layout.itemL(text="Joint constraint:")
+			split = layout.split(percentage=0.3)
+			row = split.row()
+			row.itemR(pchan, "ik_rot_control", text="Rotation")
+			row = split.row()
+			row.itemR(pchan, "ik_rot_weight", text="Weight", slider=True)
+			row.active = pchan.ik_rot_control
+			# not supported yet
+			#split = layout.split(percentage=0.3)
+			#row = split.row()
+			#row.itemR(pchan, "ik_lin_control", text="Size")
+			#row = split.row()
+			#row.itemR(pchan, "ik_lin_weight", text="Weight", slider=True)
+			#row.active = pchan.ik_lin_control
+			
 
 class BONE_PT_deform(BoneButtonsPanel):
 	__label__ = "Deform"
@@ -271,9 +290,64 @@ class BONE_PT_deform(BoneButtonsPanel):
 		col.itemL(text="Offset:")
 		col.itemR(bone, "cyclic_offset")
 
+class BONE_PT_iksolver_itasc(BoneButtonsPanel):
+	__idname__ = "BONE_PT_iksolver_itasc"
+	__label__ = "iTaSC parameters"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		ob = context.object
+		bone = context.bone
+
+		if ob and context.bone:
+			pchan = ob.pose.pose_channels[context.bone.name]
+			return pchan.has_ik and ob.pose.ik_solver == "ITASC" and ob.pose.ik_param
+		
+		return False
+
+	def draw(self, context):
+		layout = self.layout
+		ob = context.object
+		itasc = ob.pose.ik_param
+
+		layout.row().itemR(itasc, "simulation")
+		if itasc.simulation:
+			split = layout.split()
+			row = split.row()
+			row.itemR(itasc, "reiteration")
+			row = split.row()
+			if itasc.reiteration:
+				itasc.initial_reiteration = True
+			row.itemR(itasc, "initial_reiteration")
+			row.active = not itasc.reiteration
+		
+		flow = layout.column_flow()
+		flow.itemR(itasc, "precision")
+		flow.itemR(itasc, "num_iter")
+		flow.active = not itasc.simulation or itasc.initial_reiteration or itasc.reiteration
+
+		if itasc.simulation:		
+			layout.itemR(itasc, "auto_step")
+			row = layout.row()
+			if itasc.auto_step:
+				row.itemR(itasc, "min_step")
+				row.itemR(itasc, "max_step")
+			else:
+				row.itemR(itasc, "num_step")
+			
+		layout.itemR(itasc, "solver")
+		if itasc.simulation:
+			layout.itemR(itasc, "feedback")
+			layout.itemR(itasc, "max_velocity")
+		if itasc.solver == "DLS":
+			row = layout.row()
+			row.itemR(itasc, "dampmax")
+			row.itemR(itasc, "dampeps")
+
 bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)
 bpy.types.register(BONE_PT_transform_locks)
 bpy.types.register(BONE_PT_bone)
 bpy.types.register(BONE_PT_deform)
 bpy.types.register(BONE_PT_inverse_kinematics)
+bpy.types.register(BONE_PT_iksolver_itasc)

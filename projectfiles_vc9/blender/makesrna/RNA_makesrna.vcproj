@@ -74,11 +74,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
 				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern\mtdll\debug;..\..\..\..\build\msvc_9\libs\mtdll\debug"
+				AdditionalLibraryDirectories=""
 				IgnoreDefaultLibraryNames=" libc.lib, libcmt.lib, msvcrt.lib, libcd.lib, libcmtd.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="..\..\..\..\build\msvc_9\libs\debug\DNA_makesrna.pdb"
@@ -139,6 +138,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
@@ -169,11 +169,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib"
 				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern;..\..\..\..\build\msvc_9\libs"
+				AdditionalLibraryDirectories=""
 				IgnoreDefaultLibraryNames="libc.lib"
 				ProgramDatabaseFile="..\..\..\..\build\msvc_9\libs\DNA_makesrna.pdb"
 				SubSystem="1"
@@ -263,11 +262,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
 				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern\mtdll;..\..\..\..\build\msvc_9\libs\mtdll"
+				AdditionalLibraryDirectories=""
 				IgnoreDefaultLibraryNames=" libc.lib, libcmt.lib, libcd.lib, libcmtd.lib, msvcrtd.lib"
 				ProgramDatabaseFile="..\..\..\..\build\msvc_9\libs\DNA_makesrna.pdb"
 				SubSystem="1"
@@ -358,11 +356,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386&#x0D;&#x0A;"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib DNA_dna.lib"
 				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern\debug;..\..\..\..\build\msvc_9\libs\debug"
+				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="libc.lib, libcd.lib"
 				GenerateDebugInformation="true"
@@ -455,11 +452,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386&#x0D;&#x0A;"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
 				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern\debug;..\..\..\..\build\msvc_9\libs\debug"
+				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="libc.lib, libcd.lib"
 				GenerateDebugInformation="true"
@@ -551,11 +547,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
 				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern;..\..\..\..\build\msvc_9\libs"
+				AdditionalLibraryDirectories=""
 				IgnoreDefaultLibraryNames="libc.lib"
 				ProgramDatabaseFile="..\..\..\..\build\msvc_9\libs\DNA_makesrna.pdb"
 				SubSystem="1"
@@ -871,6 +866,22 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\RNA_access.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\RNA_define.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\RNA_enum_types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\RNA_types.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

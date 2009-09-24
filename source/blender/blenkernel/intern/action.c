@@ -62,6 +62,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BIK_api.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -451,7 +452,7 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	chan->limitmin[0]= chan->limitmin[1]= chan->limitmin[2]= -180.0f;
 	chan->limitmax[0]= chan->limitmax[1]= chan->limitmax[2]= 180.0f;
 	chan->stiffness[0]= chan->stiffness[1]= chan->stiffness[2]= 0.0f;
-	
+	chan->ikrotweight = chan->iklinweight = 0.0f;
 	Mat4One(chan->constinv);
 	
 	BLI_addtail(&pose->chanbase, chan);
@@ -477,7 +478,18 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	return NULL;
 }
 
-
+const char *get_ikparam_name(bPose *pose)
+{
+	if (pose) {
+		switch (pose->iksolver) {
+		case IKSOLVER_LEGACY:
+			return NULL;
+		case IKSOLVER_ITASC:
+			return "bItasc";
+		}
+	}
+	return NULL;
+}
 /* dst should be freed already, makes entire duplicate */
 void copy_pose (bPose **dst, bPose *src, int copycon)
 {
@@ -499,7 +511,10 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	outPose= MEM_callocN(sizeof(bPose), "pose");
 	
 	BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
-	
+	outPose->iksolver = src->iksolver;
+	outPose->ikdata = NULL;
+	outPose->ikparam = MEM_dupallocN(src->ikparam);
+
 	if (copycon) {
 		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
 			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
@@ -509,6 +524,39 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	}
 	
 	*dst=outPose;
+}
+
+void init_pose_itasc(bItasc *itasc)
+{
+	if (itasc) {
+		itasc->iksolver = IKSOLVER_ITASC;
+		itasc->minstep = 0.01f;
+		itasc->maxstep = 0.06f;
+		itasc->numiter = 100;
+		itasc->numstep = 4;
+		itasc->precision = 0.005f;
+		itasc->flag = ITASC_AUTO_STEP|ITASC_INITIAL_REITERATION|ITASC_SIMULATION;
+		itasc->feedback = 20.f;
+		itasc->maxvel = 50.f;
+		itasc->solver = ITASC_SOLVER_SDLS;
+		itasc->dampmax = 0.5;
+		itasc->dampeps = 0.15;
+	}
+}
+void init_pose_ikparam(bPose *pose)
+{
+	bItasc *itasc;
+	switch (pose->iksolver) {
+	case IKSOLVER_ITASC:
+		itasc = MEM_callocN(sizeof(bItasc), "itasc");
+		init_pose_itasc(itasc);
+		pose->ikparam = itasc;
+		break;
+	case IKSOLVER_LEGACY:
+	default:
+		pose->ikparam = NULL;
+		break;
+	}
 }
 
 void free_pose_channels(bPose *pose) 
@@ -534,133 +582,15 @@ void free_pose(bPose *pose)
 		/* free pose-groups */
 		if (pose->agroups.first)
 			BLI_freelistN(&pose->agroups);
-		
+
+		/* free IK solver state */
+		BIK_clear_data(pose);
+
+		/* free IK solver param */
+		if (pose->ikparam)
+			MEM_freeN(pose->ikparam);
+
 		/* free pose */
-		MEM_freeN(pose);
-	}
-}
-
-void game_copy_pose(bPose **dst, bPose *src)
-{
-	bPose *out;
-	bPoseChannel *pchan, *outpchan;
-	GHash *ghash;
-	
-	/* the game engine copies the current armature pose and then swaps
-	 * the object pose pointer. this makes it possible to change poses
-	 * without affecting the original blender data. */
-
-	if (!src) {
-		*dst=NULL;
-		return;
-	}
-	else if (*dst==src) {
-		printf("copy_pose source and target are the same\n");
-		*dst=NULL;
-		return;
-	}
-	
-	out= MEM_dupallocN(src);
-	out->agroups.first= out->agroups.last= NULL;
-	BLI_duplicatelist(&out->chanbase, &src->chanbase);
-
-	/* remap pointers */
-	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-
-	pchan= src->chanbase.first;
-	outpchan= out->chanbase.first;
-	for (; pchan; pchan=pchan->next, outpchan=outpchan->next)
-		BLI_ghash_insert(ghash, pchan, outpchan);
-
-	for (pchan=out->chanbase.first; pchan; pchan=pchan->next) {
-		pchan->parent= BLI_ghash_lookup(ghash, pchan->parent);
-		pchan->child= BLI_ghash_lookup(ghash, pchan->child);
-		pchan->path= NULL;
-	}
-
-	BLI_ghash_free(ghash, NULL, NULL);
-	
-	*dst=out;
-}
-
-
-/* Only allowed for Poses with identical channels */
-void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
-{
-	short mode= ACTSTRIPMODE_BLEND;
-	
-	bPoseChannel *dchan;
-	const bPoseChannel *schan;
-	bConstraint *dcon, *scon;
-	float dstweight;
-	int i;
-
-	switch (mode){
-	case ACTSTRIPMODE_BLEND:
-		dstweight = 1.0F - srcweight;
-		break;
-	case ACTSTRIPMODE_ADD:
-		dstweight = 1.0F;
-		break;
-	default :
-		dstweight = 1.0F;
-	}
-	
-	schan= src->chanbase.first;
-	for (dchan = dst->chanbase.first; dchan; dchan=dchan->next, schan= schan->next){
-		if (schan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE)) {
-			/* replaced quat->matrix->quat conversion with decent quaternion interpol (ton) */
-			
-			/* Do the transformation blend */
-			if (schan->flag & POSE_ROT) {
-				/* quat interpolation done separate */
-				if (schan->rotmode == PCHAN_ROT_QUAT) {
-					float dquat[4], squat[4];
-					
-					QUATCOPY(dquat, dchan->quat);
-					QUATCOPY(squat, schan->quat);
-					if (mode==ACTSTRIPMODE_BLEND)
-						QuatInterpol(dchan->quat, dquat, squat, srcweight);
-					else {
-						QuatMulFac(squat, srcweight);
-						QuatMul(dchan->quat, dquat, squat);
-					}
-					
-					NormalQuat(dchan->quat);
-				}
-			}
-
-			for (i=0; i<3; i++) {
-				/* blending for loc and scale are pretty self-explanatory... */
-				if (schan->flag & POSE_LOC)
-					dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
-				if (schan->flag & POSE_SIZE)
-					dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
-				
-				/* euler-rotation interpolation done here instead... */
-				// FIXME: are these results decent?
-				if ((schan->flag & POSE_ROT) && (schan->rotmode))
-					dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
-			}
-			dchan->flag |= schan->flag;
-		}
-		for(dcon= dchan->constraints.first, scon= schan->constraints.first; dcon && scon; dcon= dcon->next, scon= scon->next) {
-			/* no 'add' option for constraint blending */
-			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
-		}
-	}
-	
-	/* this pose is now in src time */
-	dst->ctime= src->ctime;
-}
-
-void game_free_pose(bPose *pose)
-{
-	if (pose) {
-		/* we don't free constraints, those are owned by the original pose */
-		if(pose->chanbase.first)
-			BLI_freelistN(&pose->chanbase);
-		
 		MEM_freeN(pose);
 	}
 }
@@ -916,7 +846,6 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 		*end= 1.0f;
 	}
 }
-
 
 /* Return flags indicating which transforms the given object/posechannel has 
  *	- if 'curves' is provided, a list of links to these curves are also returned

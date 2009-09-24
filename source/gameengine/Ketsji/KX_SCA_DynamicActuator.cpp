@@ -87,7 +87,7 @@ KX_SCA_DynamicActuator::KX_SCA_DynamicActuator(SCA_IObject *gameobj,
 													   short dyn_operation,
 													   float setmass) :
 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_DYNAMIC),
 	m_dyn_operation(dyn_operation),
 	m_setmass(setmass)
 {

@@ -41,6 +41,7 @@ struct bAction;
 struct bActionGroup;
 struct FCurve;
 struct bPose;
+struct bItasc;
 struct bPoseChannel;
 struct Object;
 struct Scene;
@@ -154,10 +155,20 @@ struct bPoseChannel *get_active_posechannel(struct Object *ob);
  */
 struct bPoseChannel *verify_pose_channel(struct bPose* pose, const char* name);
 
-
+/* Copy the data from the action-pose (src) into the pose */
+void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* sets constraint flags */
 void update_pose_constraint_flags(struct bPose *pose);
+
+/* return the name of structure pointed by pose->ikparam */
+const char *get_ikparam_name(struct bPose *pose);
+
+/* allocate and initialize pose->ikparam according to pose->iksolver */
+void init_pose_ikparam(struct bPose *pose);
+
+/* initialize a bItasc structure with default value */
+void init_pose_itasc(struct bItasc *itasc);
 
 /* clears BONE_UNKEYED flags for frame changing */
 // XXX to be depreceated for a more general solution in animsys...
@@ -180,16 +191,6 @@ void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *w
 void copy_pose_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void rest_pose(struct bPose *pose);
-
-/* Game Engine ------------------------- */
-
-/* exported for game engine */
-void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight/*, short mode*/); /* was blend_poses */
-void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
-
-/* functions used by the game engine */
-void game_copy_pose(struct bPose **dst, struct bPose *src);
-void game_free_pose(struct bPose *pose);
 
 #ifdef __cplusplus
 };

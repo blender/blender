@@ -6,14 +6,14 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 	__region_type__ = 'WINDOW'
 	__context__ = "constraint"
 
-	def draw_constraint(self, con):
+	def draw_constraint(self, context, con):
 		layout = self.layout
 		
 		box = layout.template_constraint(con)
 
 		if box:
 			# match enum type to our functions, avoids a lookup table.
-			getattr(self, con.type)(box, con)
+			getattr(self, con.type)(context, box, con)
 	
 			# show/key buttons here are most likely obsolete now, with
 			# keyframing functionality being part of every button
@@ -48,8 +48,29 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 					row.itemR(con, "head_tail", text="")
 			elif con.target.type in ('MESH', 'LATTICE'):
 				layout.item_pointerR(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
+
+	def ik_template(self, layout, con):
+		layout.itemR(con, "pole_target")
 	
-	def CHILD_OF(self, layout, con):
+		if con.pole_target and con.pole_target.type == 'ARMATURE':
+			layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+		
+		if con.pole_target:
+			row = layout.row()
+			row.itemL()
+			row.itemR(con, "pole_angle")
+		
+		split = layout.split()
+		col = split.column()
+		col.itemR(con, "tail")
+		col.itemR(con, "stretch")
+
+		col = split.column()
+		col.itemR(con, "iterations")
+		col.itemR(con, "chain_length")
+		
+	
+	def CHILD_OF(self, context, layout, con):
 		self.target_template(layout, con)
 
 		split = layout.split()
@@ -76,7 +97,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemO("constraint.childof_set_inverse")
 		row.itemO("constraint.childof_clear_inverse")
 		
-	def TRACK_TO(self, layout, con):
+	def TRACK_TO(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		row = layout.row()
@@ -90,35 +111,40 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		self.space_template(layout, con)
 		
-	def IK(self, layout, con):
+	def IK(self, context, layout, con):
+		if context.object.pose.ik_solver == "ITASC":
+			layout.itemR(con, "ik_type")
+			getattr(self, "IK_"+con.ik_type)(context, layout, con)
+		else:
+			self.IK_COPY_POSE(context, layout, con)
+
+	def IK_COPY_POSE(self, context, layout, con):
 		self.target_template(layout, con)
-		
-		layout.itemR(con, "pole_target")
-	
-		if con.pole_target and con.pole_target.type == 'ARMATURE':
-			layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
-		
+		self.ik_template(layout, con)
+
 		split = layout.split()
-	
 		col = split.column()
-		col.itemR(con, "iterations")
-		col.itemR(con, "chain_length")
-		sub = col.column()
-		sub.active = con.pole_target
-		sub.itemR(con, "pole_angle")
+		col.itemL()
+		col.itemR(con, "targetless")
+		col.itemR(con, "rotation")
+
+		col = split.column()
 		col.itemL(text="Weight:")
 		col.itemR(con, "weight", text="Position", slider=True)
 		sub = col.column()
 		sub.active = con.rotation
 		sub.itemR(con, "orient_weight", text="Rotation", slider=True)
 		
-		col = split.column()
-		col.itemR(con, "tail")
-		col.itemR(con, "rotation")
-		col.itemR(con, "targetless")
-		col.itemR(con, "stretch")
-		
-	def FOLLOW_PATH(self, layout, con):
+	def IK_DISTANCE(self, context, layout, con):
+		self.target_template(layout, con)
+		self.ik_template(layout, con)
+
+		layout.itemR(con, "limit_mode")
+		row = layout.row()
+		row.itemR(con, "weight", text="Weight", slider=True)
+		row.itemR(con, "distance", text="Distance", slider=True)
+
+	def FOLLOW_PATH(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		split = layout.split()
@@ -142,7 +168,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemR(con, "up", text="Up")
 		row.itemL()
 		
-	def LIMIT_ROTATION(self, layout, con):
+	def LIMIT_ROTATION(self, context, layout, con):
 		
 		split = layout.split()
 		
@@ -175,7 +201,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Convert:")
 		row.itemR(con, "owner_space", text="")
 		
-	def LIMIT_LOCATION(self, layout, con):
+	def LIMIT_LOCATION(self, context, layout, con):
 		split = layout.split()
 		
 		col = split.column()
@@ -216,7 +242,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Convert:")
 		row.itemR(con, "owner_space", text="")
 		
-	def LIMIT_SCALE(self, layout, con):
+	def LIMIT_SCALE(self, context, layout, con):
 		split = layout.split()
 
 		col = split.column()
@@ -257,7 +283,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Convert:")
 		row.itemR(con, "owner_space", text="")
 	
-	def COPY_ROTATION(self, layout, con):
+	def COPY_ROTATION(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		split = layout.split()
@@ -284,7 +310,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		self.space_template(layout, con)
 		
-	def COPY_LOCATION(self, layout, con):
+	def COPY_LOCATION(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		split = layout.split()
@@ -311,7 +337,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 			
 		self.space_template(layout, con)
 		
-	def COPY_SCALE(self, layout, con):
+	def COPY_SCALE(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		row = layout.row(align=True)
@@ -323,9 +349,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		self.space_template(layout, con)
 		
-	#def SCRIPT(self, layout, con):
+	#def SCRIPT(self, context, layout, con):
 	
-	def ACTION(self, layout, con):
+	def ACTION(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		layout.itemR(con, "action")
@@ -345,7 +371,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Convert:")
 		row.itemR(con, "owner_space", text="")
 	
-	def LOCKED_TRACK(self, layout, con):
+	def LOCKED_TRACK(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		row = layout.row()
@@ -356,7 +382,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Lock:")
 		row.itemR(con, "locked", expand=True)
 		
-	def LIMIT_DISTANCE(self, layout, con):
+	def LIMIT_DISTANCE(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		col = layout.column(align=True);
@@ -367,7 +393,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Clamp Region:")
 		row.itemR(con, "limit_mode", text="")
 		
-	def STRETCH_TO(self, layout, con):
+	def STRETCH_TO(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		row = layout.row()
@@ -383,7 +409,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Plane:")
 		row.itemR(con, "keep_axis", expand=True)
 		
-	def FLOOR(self, layout, con):
+	def FLOOR(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		row = layout.row()
@@ -396,7 +422,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Min/Max:")
 		row.itemR(con, "floor_location", expand=True)
 		
-	def RIGID_BODY_JOINT(self, layout, con):
+	def RIGID_BODY_JOINT(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		layout.itemR(con, "pivot_type")
@@ -422,7 +448,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		#Missing: Limit arrays (not wrapped in RNA yet) 
 	
-	def CLAMP_TO(self, layout, con):
+	def CLAMP_TO(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		row = layout.row()
@@ -432,7 +458,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row = layout.row()
 		row.itemR(con, "cyclic")
 		
-	def TRANSFORM(self, layout, con):
+	def TRANSFORM(self, context, layout, con):
 		self.target_template(layout, con)
 		
 		layout.itemR(con, "extrapolate_motion", text="Extrapolate")
@@ -481,7 +507,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		self.space_template(layout, con)
 		
-	def SHRINKWRAP (self, layout, con):
+	def SHRINKWRAP (self, context, layout, con):
 		self.target_template(layout, con)
 		
 		layout.itemR(con, "distance")
@@ -509,7 +535,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 		row.itemL();
 
 		for con in ob.constraints:
-			self.draw_constraint(con)
+			self.draw_constraint(context, con)
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
 	__label__ = "Constraints"
@@ -530,7 +556,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 		row.itemL();
 
 		for con in pchan.constraints:
-			self.draw_constraint(con)
+			self.draw_constraint(context, con)
 
 bpy.types.register(OBJECT_PT_constraints)
 bpy.types.register(BONE_PT_constraints)

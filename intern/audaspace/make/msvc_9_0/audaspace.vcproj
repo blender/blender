@@ -42,6 +42,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"

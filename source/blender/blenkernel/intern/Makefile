@@ -47,6 +47,7 @@ CPPFLAGS += -I$(NAN_AUDASPACE)/include
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../ikplugin
 # This mod uses the BLI and BLO module
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenloader

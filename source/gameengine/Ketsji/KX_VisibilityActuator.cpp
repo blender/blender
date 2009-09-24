@@ -41,7 +41,7 @@ KX_VisibilityActuator::KX_VisibilityActuator(
 	bool occlusion,
 	bool recursive
 	) 
-	: SCA_IActuator(gameobj),
+	: SCA_IActuator(gameobj, KX_ACT_VISIBILITY),
 	  m_visible(visible),
 	  m_occlusion(occlusion),
 	  m_recursive(recursive)

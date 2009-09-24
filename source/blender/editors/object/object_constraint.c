@@ -56,6 +56,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
+#include "BIK_api.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -334,6 +335,7 @@ static void test_constraints (Object *owner, const char substring[])
 				 *		optional... otherwise poletarget must exist too or else
 				 *		the constraint is deemed invalid
 				 */
+				/* default IK check ... */
 				if (exist_object(data->tar) == 0) {
 					data->tar = NULL;
 					curcon->flag |= CONSTRAINT_DISABLE;
@@ -355,7 +357,8 @@ static void test_constraints (Object *owner, const char substring[])
 						}
 					}
 				}
-				
+				/* ... can be overwritten here */
+				BIK_test_constraint(owner, curcon);
 				/* targets have already been checked for this */
 				continue;
 			}
@@ -702,6 +705,25 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 	}
 }
 
+void ED_object_constraint_update(Object *ob)
+{
+
+	if(ob->pose) update_pose_constraint_flags(ob->pose);
+
+	object_test_constraints(ob);
+
+	if(ob->type==OB_ARMATURE) DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
+	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+}
+
+void ED_object_constraint_dependency_update(Scene *scene, Object *ob)
+{
+	ED_object_constraint_update(ob);
+
+	if(ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
+    DAG_scene_sort(scene);
+}
+
 static int constraint_poll(bContext *C)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
@@ -717,6 +739,10 @@ static int constraint_delete_exec (bContext *C, wmOperator *op)
 	
 	/* remove constraint itself */
 	lb= get_active_constraints(ob);
+	if (BLI_findindex(lb, con) == -1)
+		/* abnormal situation which happens on bone constraint when the armature is not in pose mode */
+		return OPERATOR_CANCELLED;
+
 	free_constraint_data(con);
 	BLI_freelinkN(lb, con);
 	

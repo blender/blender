@@ -5,7 +5,7 @@ sources = env.Glob('intern/*.c')
 
 incs = '. #/intern/guardedalloc #/intern/memutil ../editors/include ../blenlib ../blenfont ../makesdna'
 incs += ' ../render/extern/include #/intern/decimation/extern ../makesrna'
-incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
+incs += ' ../imbuf ../ikplugin ../avi #/intern/elbeem/extern ../nodes'
 incs += ' #/intern/iksolver/extern ../blenloader'
 incs += ' #/extern/bullet2/src'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'

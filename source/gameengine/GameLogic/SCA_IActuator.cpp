@@ -34,8 +34,9 @@
 
 using namespace std;
 
-SCA_IActuator::SCA_IActuator(SCA_IObject* gameobj) :
+SCA_IActuator::SCA_IActuator(SCA_IObject* gameobj, KX_ACTUATOR_TYPE type) :
 	SCA_ILogicBrick(gameobj),
+	m_type(type),
 	m_links(0),
 	m_posevent(false),
 	m_negevent(false)

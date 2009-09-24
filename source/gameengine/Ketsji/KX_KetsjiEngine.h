@@ -269,6 +269,10 @@ public:
 	 * Returns current render frame clock time
 	 */
 	double GetClockTime(void) const;
+	/**
+	 * Returns current logic frame clock time
+	 */
+	double GetFrameTime(void) const;
 
 	double GetRealTime(void) const;
 	/**

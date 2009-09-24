@@ -30,7 +30,7 @@ SET(INC
 	. ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna
 	../render/extern/include ../../../intern/decimation/extern
 	../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
-	../../../intern/iksolver/extern ../blenloader
+	../../../intern/iksolver/extern ../blenloader ../ikplugin
 	../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/audaspace/intern

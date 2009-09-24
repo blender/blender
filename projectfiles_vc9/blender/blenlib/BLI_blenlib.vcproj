@@ -194,6 +194,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB"

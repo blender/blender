@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BLO_readblenfile"
 	ProjectGUID="{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}"
+	RootNamespace="BLO_readblenfile"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -264,6 +265,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\readblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"

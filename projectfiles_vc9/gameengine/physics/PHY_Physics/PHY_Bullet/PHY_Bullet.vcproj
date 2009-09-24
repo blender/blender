@@ -176,6 +176,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\gameengine\Ketsji;..\..\..\..\..\source\gameengine\Expressions;..\..\..\..\..\source\gameengine\GameLogic;..\..\..\..\..\source\gameengine\SceneGraph;..\..\..\..\..\source\kernel\gen_system;..\..\..\..\..\source\blender\makesdna;..\..\..\..\..\source\blender\blenkernel;..\..\..\..\..\source\blender\blenlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"

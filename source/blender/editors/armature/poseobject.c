@@ -798,6 +798,8 @@ void pose_copy_menu(Scene *scene)
 						VECCOPY(pchan->limitmax, pchanact->limitmax);
 						VECCOPY(pchan->stiffness, pchanact->stiffness);
 						pchan->ikstretch= pchanact->ikstretch;
+						pchan->ikrotweight= pchanact->ikrotweight;
+						pchan->iklinweight= pchanact->iklinweight;
 					}
 						break;
 					case 8: /* Custom Bone Shape */

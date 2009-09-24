@@ -114,6 +114,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				AdditionalIncludeDirectories="..\..\intern;..\..\extern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1;LBM_INCLUDE_CONTROL=1"
 				StringPooling="true"

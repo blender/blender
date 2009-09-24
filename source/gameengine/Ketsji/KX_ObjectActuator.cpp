@@ -55,7 +55,7 @@ KX_ObjectActuator(
 	const short damping,
 	const KX_LocalFlags& flag
 ) : 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_OBJECT),
 	m_force(force),
 	m_torque(torque),
 	m_dloc(dloc),

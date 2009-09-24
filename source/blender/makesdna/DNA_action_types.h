@@ -146,7 +146,9 @@ typedef struct bPoseChannel {
 	float		limitmin[3], limitmax[3];	/* DOF constraint */
 	float		stiffness[3];				/* DOF stiffness */
 	float		ikstretch;
-	
+	float		ikrotweight;		/* weight of joint rotation constraint */
+	float		iklinweight;		/* weight of joint stretch constraint */
+
 	float		*path;				/* totpath x 3 x float */
 	struct Object *custom;			/* draws custom object instead of this channel */
 } bPoseChannel;
@@ -166,7 +168,8 @@ typedef enum ePchan_Flag {
 	POSE_CHAIN		=	0x0200,
 	POSE_DONE		=   0x0400,
 	POSE_KEY		=	0x1000,
-	POSE_STRIDE		=	0x2000
+	POSE_STRIDE		=	0x2000,
+	POSE_IKTREE		=   0x4000,
 } ePchan_Flag;
 
 /* PoseChannel constflag (constraint detection) */
@@ -190,9 +193,13 @@ typedef enum ePchan_IkFlag {
 	BONE_IK_YLIMIT	= (1<<4),
 	BONE_IK_ZLIMIT	= (1<<5),
 	
+	BONE_IK_ROTCTL  = (1<<6),
+	BONE_IK_LINCTL  = (1<<7),
+
 	BONE_IK_NO_XDOF_TEMP = (1<<10),
 	BONE_IK_NO_YDOF_TEMP = (1<<11),
-	BONE_IK_NO_ZDOF_TEMP = (1<<12)
+	BONE_IK_NO_ZDOF_TEMP = (1<<12),
+
 } ePchan_IkFlag;
 
 /* PoseChannel->rotmode */
@@ -209,6 +216,7 @@ typedef enum ePchan_RotMode {
 	/* NOTE: space is reserved here for 18 other possible 
 	 * euler rotation orders not implemented 
 	 */
+	PCHAN_ROT_MAX,	/* sentinel for Py API*/
 		/* axis angle rotations */
 	PCHAN_ROT_AXISANGLE = -1
 } ePchan_RotMode;
@@ -233,7 +241,9 @@ typedef struct bPose {
 	ListBase agroups;			/* list of bActionGroups */
 	
 	int active_group;			/* index of active group (starts from 1) */
-	int pad;
+	int	iksolver;				/* ik solver to use, see ePose_IKSolverType */
+	void *ikdata;				/* temporary IK data, depends on the IK solver. Not saved in file */
+	void *ikparam;				/* IK solver parameters, structure depends on iksolver */ 
 } bPose;
 
 
@@ -249,7 +259,52 @@ typedef enum ePose_Flags {
 	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
 		/* recalculate bone paths */
 	POSE_RECALCPATHS = (1<<4),
+	    /* set by armature_rebuild_pose to give a chance to the IK solver to rebuild IK tree */
+	POSE_WAS_REBUILT = (1<<5),
+	    /* set by game_copy_pose to indicate that this pose is used in the game engine */
+	POSE_GAME_ENGINE = (1<<6),
 } ePose_Flags;
+
+/* bPose->iksolver and bPose->ikparam->iksolver */
+typedef enum {
+	IKSOLVER_LEGACY = 0,
+	IKSOLVER_ITASC,
+} ePose_IKSolverType;
+
+/* header for all bPose->ikparam structures */
+typedef struct bIKParam {
+	int   iksolver;
+} bIKParam;
+
+/* bPose->ikparam when bPose->iksolver=1 */
+typedef struct bItasc {
+	int   iksolver;
+	float precision;
+	short numiter;
+	short numstep;
+	float minstep;
+	float maxstep;
+	short solver;	
+	short flag;
+	float feedback;
+	float maxvel;	/* max velocity to SDLS solver */
+	float dampmax;	/* maximum damping for DLS solver */
+	float dampeps;	/* threshold of singular value from which the damping start progressively */
+} bItasc;
+
+/* bItasc->flag */
+typedef enum {
+	ITASC_AUTO_STEP = (1<<0),
+	ITASC_INITIAL_REITERATION = (1<<1),
+	ITASC_REITERATION = (1<<2),
+	ITASC_SIMULATION = (1<<3),
+} eItasc_Flags;
+
+/* bItasc->solver */
+typedef enum {
+	ITASC_SOLVER_SDLS = 0,	/* selective damped least square, suitable for CopyPose constraint */
+	ITASC_SOLVER_DLS		/* damped least square with numerical filtering of damping */
+} eItasc_Solver;
 
 /* ************************************************ */
 /* Action */

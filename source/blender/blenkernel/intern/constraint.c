@@ -1053,6 +1053,7 @@ static void kinematic_new_data (void *cdata)
 	data->weight= (float)1.0;
 	data->orientweight= (float)1.0;
 	data->iterations = 500;
+	data->dist= (float)1.0;
 	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_STRETCH|CONSTRAINT_IK_POS;
 }
 
@@ -3643,7 +3644,7 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		
 		/* these we can skip completely (invalid constraints...) */
 		if (cti == NULL) continue;
-		if (con->flag & CONSTRAINT_DISABLE) continue;
+		if (con->flag & (CONSTRAINT_DISABLE|CONSTRAINT_OFF)) continue;
 		/* these constraints can't be evaluated anyway */
 		if (cti->evaluate_constraint == NULL) continue;
 		/* influence == 0 should be ignored */

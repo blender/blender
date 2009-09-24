@@ -71,7 +71,7 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   bool ipo_as_force,
 							   bool ipo_add,
 							   bool ipo_local)
-	: SCA_IActuator(gameobj),
+	: SCA_IActuator(gameobj, KX_ACT_IPO),
 	m_bNegativeEvent(false),
 	m_startframe (starttime),
 	m_endframe(endtime),

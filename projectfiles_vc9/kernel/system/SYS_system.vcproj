@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="SYS_system"
 	ProjectGUID="{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}"
+	RootNamespace="SYS_system"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -266,6 +267,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"

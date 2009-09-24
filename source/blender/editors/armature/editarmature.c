@@ -2539,6 +2539,8 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *edit
 					VECCOPY(channew->limitmax, chanold->limitmax);
 					VECCOPY(channew->stiffness, chanold->stiffness);
 					channew->ikstretch= chanold->ikstretch;
+					channew->ikrotweight= chanold->ikrotweight;
+					channew->iklinweight= chanold->iklinweight;
 					
 					/* constraints */
 					listnew = &channew->constraints;
@@ -2642,6 +2644,8 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 								VECCOPY(channew->limitmax, chanold->limitmax);
 								VECCOPY(channew->stiffness, chanold->stiffness);
 								channew->ikstretch= chanold->ikstretch;
+								channew->ikrotweight= chanold->ikrotweight;
+								channew->iklinweight= chanold->iklinweight;
 								
 								/* constraints */
 								listnew = &channew->constraints;

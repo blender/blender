@@ -56,6 +56,7 @@
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BIK_api.h"
 
 #include "BLI_blenlib.h"
 
@@ -2006,6 +2007,9 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 			}
 		}
 	}
+
+	if (ob->type == OB_ARMATURE)
+		BIK_clear_cache(ob->pose);
 
 	return reset;
 }

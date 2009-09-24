@@ -43,7 +43,7 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
 		int int_arg,
 		RAS_IRasterizer* rasterizer,
 		RAS_IRenderTools* rendertools)
-    : SCA_IActuator(gameobj),
+    : SCA_IActuator(gameobj, KX_ACT_2DFILTER),
      m_type(type),
 	 m_disableMotionBlur(flag),
 	 m_float_arg(float_arg),

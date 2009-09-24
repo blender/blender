@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="NG_loopbacknetwork"
 	ProjectGUID="{6B801390-5F95-4F07-81A7-97FBA046AACC}"
+	RootNamespace="NG_loopbacknetwork"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -116,6 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\Network"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"

@@ -267,6 +267,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging;..\..\..\..\build\msvc_9\extern\verse\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB"

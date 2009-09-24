@@ -42,7 +42,7 @@ KX_NetworkMessageActuator::KX_NetworkMessageActuator(
 	const STR_String &subject,
 	int bodyType,
 	const STR_String &body) :
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_MESSAGE),
 	m_networkscene(networkscene),
 	m_toPropName(toPropName),
 	m_subject(subject),

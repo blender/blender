@@ -39,6 +39,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_sensor_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_action_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -608,6 +611,8 @@ static char *sensor_name(int type)
 		return "Keyboard";
 	case SENS_PROPERTY:
 		return "Property";
+	case SENS_ARMATURE:
+		return "Armature";
 	case SENS_ACTUATOR:
 		return "Actuator";
 	case SENS_DELAY:
@@ -635,7 +640,7 @@ static char *sensor_pup(void)
 	/* the number needs to match defines in game.h */
 	return "Sensors %t|Always %x0|Delay %x13|Keyboard %x3|Mouse %x5|"
 		"Touch %x1|Collision %x6|Near %x2|Radar %x7|"
-		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11|Actuator %x12";
+		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11|Actuator %x12|Armature %x14";
 }
 
 static char *controller_name(int type)
@@ -709,6 +714,8 @@ static char *actuator_name(int type)
 		return "Parent";
 	case ACT_STATE:
 		return "State";
+	case ACT_ARMATURE:
+		return "Armature";
 	}
 	return "unknown";
 }
@@ -721,7 +728,7 @@ static char *actuator_pup(Object *owner)
 	switch (owner->type)
 	{
 	case OB_ARMATURE:
-		return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
+		return "Actuators  %t|Action %x15|Armature %x23|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
                         "|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
@@ -936,6 +943,7 @@ static int get_col_sensor(int type)
 	case SENS_NEAR:			return TH_PANEL; 
 	case SENS_KEYBOARD:		return TH_PANEL;
 	case SENS_PROPERTY:		return TH_PANEL;
+	case SENS_ARMATURE:		return TH_PANEL;
 	case SENS_ACTUATOR:		return TH_PANEL;
 	case SENS_MOUSE:		return TH_PANEL;
 	case SENS_RADAR:		return TH_PANEL;
@@ -1129,12 +1137,51 @@ static void draw_default_sensor_header(bSensor *sens,
 			 "Invert the level (output) of this sensor");
 }
 
-static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
+static void check_armature_bone_constraint(Object *ob, char *posechannel, char *constraint)
+{
+	/* check that bone exist in the active object */
+	if (ob->type == OB_ARMATURE && ob->pose) {
+		bPoseChannel *pchan;
+		bPose *pose = ob->pose;
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+			if (!strcmp(pchan->name, posechannel)) {
+				/* found it, now look for constraint channel */
+				bConstraint *con;
+				for (con=pchan->constraints.first; con; con=con->next) {
+					if (!strcmp(con->name, constraint)) {
+						/* found it, all ok */
+						return;						
+					}
+				}
+				/* didn't find constraint, make empty */
+				constraint[0] = 0;
+				return;
+			}
+		}
+	}
+	/* didn't find any */
+	posechannel[0] = 0;
+	constraint[0] = 0;
+}
+
+static void check_armature_sensor(bContext *C, void *arg1_but, void *arg2_sens)
+{
+	bArmatureSensor *sens = arg2_sens;
+	uiBut *but = arg1_but;
+	Object *ob= CTX_data_active_object(C);
+
+	/* check that bone exist in the active object */
+	but->retval = B_REDR;
+	check_armature_bone_constraint(ob, sens->posechannel, sens->constraint);
+}
+
+static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
 {
 	bNearSensor      *ns           = NULL;
 	bTouchSensor     *ts           = NULL;
 	bKeyboardSensor  *ks           = NULL;
 	bPropertySensor  *ps           = NULL;
+	bArmatureSensor  *arm          = NULL;
 	bMouseSensor     *ms           = NULL;
 	bCollisionSensor *cs           = NULL;
 	bRadarSensor     *rs           = NULL;
@@ -1357,6 +1404,45 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					ps->value, 0, 31, 0, 0, "check for value");
 			}
 			
+			yco-= ysize;
+			break;
+		}
+	case SENS_ARMATURE:
+		{
+			ysize= 70;
+			
+			glRects(xco, yco-ysize, xco+width, yco);
+			uiEmboss((float)xco, (float)yco-ysize,
+				(float)xco+width, (float)yco, 1);
+			
+			draw_default_sensor_header(sens, block, xco, yco, width);
+			arm= sens->data;
+
+			if (ob->type == OB_ARMATURE) {
+				uiBlockBeginAlign(block);
+				but = uiDefBut(block, TEX, 1, "Bone: ",
+						(xco+10), (yco-44), (width-20)/2, 19,
+						arm->posechannel, 0, 31, 0, 0,
+						"Bone on which you want to check a constraint");
+				uiButSetFunc(but, check_armature_sensor, but, arm);
+				but = uiDefBut(block, TEX, 1, "Cons: ",
+						(xco+10)+(width-20)/2, (yco-44), (width-20)/2, 19,
+						arm->constraint, 0, 31, 0, 0,
+						"Name of the constraint you want to control");
+				uiButSetFunc(but, check_armature_sensor, but, arm);
+				uiBlockEndAlign(block);
+
+				str= "Type %t|State changed %x0|Lin error below %x1|Lin error above %x2|Rot error below %x3|Rot error above %x4"; 
+
+				uiDefButI(block, MENU, B_REDR, str,			xco+10,yco-66,0.4*(width-20), 19,
+					&arm->type, 0, 31, 0, 0, "Type");
+			
+				if (arm->type != SENS_ARM_STATE_CHANGED)
+				{
+					uiDefButF(block, NUM, 1, "Value: ",		xco+10+0.4*(width-20),yco-66,0.6*(width-20), 19,
+					&arm->value, -10000.0, 10000.0, 100, 0, "Test the error against this value");
+				}
+			}
 			yco-= ysize;
 			break;
 		}
@@ -1694,6 +1780,7 @@ static int get_col_actuator(int type)
 	case ACT_VISIBILITY:		return TH_PANEL;
 	case ACT_CONSTRAINT:		return TH_PANEL;
 	case ACT_STATE:			return TH_PANEL;
+	case ACT_ARMATURE:			return TH_PANEL;
 	default:				return TH_PANEL;
 	}
 }
@@ -1774,6 +1861,18 @@ static void check_state_mask(bContext *C, void *arg1_but, void *arg2_mask)
 	but->retval = B_REDR;
 }
 
+static void check_armature_actuator(bContext *C, void *arg1_but, void *arg2_act)
+{
+	bArmatureActuator *act = arg2_act;
+	uiBut *but = arg1_but;
+	Object *ob= CTX_data_active_object(C);
+
+	/* check that bone exist in the active object */
+	but->retval = B_REDR;
+	check_armature_bone_constraint(ob, act->posechannel, act->constraint);
+}
+
+
 static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, short xco, short yco, short width)
 {
 	bSoundActuator      *sa      = NULL;
@@ -1793,6 +1892,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 	bTwoDFilterActuator	*tdfa	 = NULL;
 	bParentActuator     *parAct  = NULL;
 	bStateActuator		*staAct  = NULL;
+	bArmatureActuator   *armAct  = NULL;
 	
 	float *fp;
 	short ysize = 0, wval;
@@ -2820,6 +2920,48 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
   		yco-= ysize; 
   		break; 
+	case ACT_ARMATURE:
+  		armAct = act->data; 
+
+		if (ob->type == OB_ARMATURE) {
+			str= "Constraint %t|Run armature %x0|Enable %x1|Disable %x2|Set target %x3|Set weight %x4";
+			uiDefButI(block, MENU, B_REDR, str,		xco+5, yco-24, (width-10)*0.35, 19, &armAct->type, 0.0, 0.0, 0, 0, ""); 
+
+			switch (armAct->type) {
+			case ACT_ARM_RUN:
+				ysize = 28;
+				break;
+			default:
+				uiBlockBeginAlign(block);
+				but = uiDefBut(block, TEX, 1, "Bone: ",
+						(xco+5), (yco-44), (width-10)/2, 19,
+						armAct->posechannel, 0, 31, 0, 0,
+						"Bone on which the constraint is defined");
+				uiButSetFunc(but, check_armature_actuator, but, armAct);
+				but = uiDefBut(block, TEX, 1, "Cons: ",
+						(xco+5)+(width-10)/2, (yco-44), (width-10)/2, 19,
+						armAct->constraint, 0, 31, 0, 0,
+						"Name of the constraint you want to controle");
+				uiButSetFunc(but, check_armature_actuator, but, armAct);
+				uiBlockEndAlign(block);
+				ysize = 48;
+				switch (armAct->type) {
+				case ACT_ARM_SETTARGET:
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "Target: ",		xco+5, yco-64, (width-10), 19, &(armAct->target), "Set this object as the target of the constraint"); 
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "Secondary Target: ",		xco+5, yco-84, (width-10), 19, &(armAct->subtarget), "Set this object as the secondary target of the constraint (only IK polar target at the moment)"); 
+					ysize += 40;
+					break;
+				case ACT_ARM_SETWEIGHT:
+					uiDefButF(block, NUM, B_REDR, "Weight:", xco+5+(width-10)*0.35,yco-24,(width-10)*0.65,19,&armAct->weight,0.0,1.0,0.0,0.0,"Set weight of this constraint");
+					break;
+				}
+			}
+  		}
+		glRects(xco, yco-ysize, xco+width, yco); 
+		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+  		yco-= ysize; 
+  		break; 
+
  	default:
 		ysize= 4;
 
@@ -3334,7 +3476,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
-						yco= draw_sensorbuttons(sens, block, xco, yco, width,ob->id.name);
+						yco= draw_sensorbuttons(ob, sens, block, xco, yco, width,ob->id.name);
 						if(yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
 					}
 					else {

@@ -2184,6 +2184,8 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data = ((bKinematicConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
 				data->poletar = newlibadr(fd, id->lib, data->poletar);
+				con->lin_error = 0.f;
+				con->rot_error = 0.f;
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -3615,6 +3617,11 @@ static void lib_link_object(FileData *fd, Main *main)
 				else if(act->type==ACT_STATE) {
 					/* bStateActuator *statea = act->data; */
 				}
+				else if(act->type==ACT_ARMATURE) {
+					bArmatureActuator *arma= act->data;
+					arma->target= newlibadr(fd, ob->id.lib, arma->target);
+					arma->subtarget= newlibadr(fd, ob->id.lib, arma->subtarget);
+				}
 				act= act->next;
 			}
 			
@@ -3675,6 +3682,10 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
+	}
+	pose->ikdata = NULL;
+	if (pose->ikparam != NULL) {
+		pose->ikparam= newdataadr(fd, pose->ikparam);
 	}
 }
 
@@ -10579,10 +10590,18 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 			bObjectActuator *oa= act->data;
 			expand_doit(fd, mainvar, oa->reference);
 		}
+		else if(act->type==ACT_ADD_OBJECT) {
+			bAddObjectActuator *aoa= act->data;
+			expand_doit(fd, mainvar, aoa->ob);
+		}
 		else if(act->type==ACT_SCENE) {
 			bSceneActuator *sa= act->data;
 			expand_doit(fd, mainvar, sa->camera);
 			expand_doit(fd, mainvar, sa->scene);
+		}
+		else if(act->type==ACT_2DFILTER) {
+			bTwoDFilterActuator *tdfa= act->data;
+			expand_doit(fd, mainvar, tdfa->text);
 		}
 		else if(act->type==ACT_ACTION) {
 			bActionActuator *aa= act->data;
@@ -10599,6 +10618,14 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		else if(act->type==ACT_MESSAGE) {
 			bMessageActuator *ma= act->data;
 			expand_doit(fd, mainvar, ma->toObject);
+		}
+		else if(act->type==ACT_PARENT) {
+			bParentActuator *pa= act->data;
+			expand_doit(fd, mainvar, pa->ob);
+		}
+		else if(act->type==ACT_ARMATURE) {
+			bArmatureActuator *arma= act->data;
+			expand_doit(fd, mainvar, arma->target);
 		}
 		act= act->next;
 	}

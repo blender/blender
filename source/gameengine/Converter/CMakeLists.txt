@@ -59,6 +59,7 @@ SET(INC
 	../../../source/blender/misc
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
+	../../../source/blender/ikplugin
 	../../../extern/bullet2/src
 	${PYTHON_INC}
 )

@@ -116,6 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\moto\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_SUMO_SOLID"

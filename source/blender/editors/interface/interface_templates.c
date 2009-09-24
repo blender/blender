@@ -676,6 +676,8 @@ void do_constraint_panels(bContext *C, void *arg, int event)
 	
 	if(ob->type==OB_ARMATURE) DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
 	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 	
 	// XXX allqueue(REDRAWVIEW3D, 0);
 	// XXX allqueue(REDRAWBUTSOBJECT, 0);
@@ -687,19 +689,15 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 	ED_object_constraint_set_active(ob_v, con_v);
 }
 
-static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
+static void verify_constraint_name_func (bContext *C, void *con_v, void *dummy)
 {
 	Object *ob= CTX_data_active_object(C);
 	bConstraint *con= con_v;
-	char oldname[32];	
 	
 	if (!con)
 		return;
 	
-	/* put on the stack */
-	BLI_strncpy(oldname, (char *)name_v, 32);
-	
-	ED_object_constraint_rename(ob, con, oldname);
+	ED_object_constraint_rename(ob, con, NULL);
 	ED_object_constraint_set_active(ob, con);
 	// XXX allqueue(REDRAWACTION, 0); 
 }
@@ -904,11 +902,13 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
 			uiBlockEndAlign(block);
 		}
-		
-		
+	
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
+			uiBlockBeginAlign(block);
+			uiDefIconButBitS(block, ICONTOGN, CONSTRAINT_OFF, B_CONSTRAINT_TEST, ICON_CHECKBOX_DEHLT, xco+243, yco, 19, 19, &con->flag, 0.0, 0.0, 0.0, 0.0, "enable/disable constraint");
 			uiDefIconButO(block, BUT, "CONSTRAINT_OT_delete", WM_OP_INVOKE_DEFAULT, ICON_X, xco+262, yco, 19, 19, "Delete constraint");
+			uiBlockEndAlign(block);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	

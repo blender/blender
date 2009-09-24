@@ -42,6 +42,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"

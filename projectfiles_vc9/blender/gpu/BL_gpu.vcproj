@@ -192,6 +192,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"

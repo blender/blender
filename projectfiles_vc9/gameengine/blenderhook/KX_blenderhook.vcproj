@@ -118,6 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\soundsystem\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\extern\solid\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenloader;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\ketsji;..\..\..\source\gameengine\network;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Physics\Sumo;..\..\..\source\gameengine\Physics\common;..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\blenfont;..\..\..\intern\audaspace\intern"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID;WITH_GLEXT;WITH_FFMPEG"

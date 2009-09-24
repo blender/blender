@@ -58,6 +58,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 		{ACT_PARENT, "PARENT", 0, "Parent", ""},
 		{ACT_SHAPEACTION, "SHAPE_ACTION", 0, "Shape Action", ""},
 		{ACT_STATE, "STATE", 0, "State", ""},
+		{ACT_ARMATURE, "ARMATURE", 0, "Armature", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Actuator", NULL);

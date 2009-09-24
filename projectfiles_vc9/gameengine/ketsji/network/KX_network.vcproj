@@ -42,6 +42,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
