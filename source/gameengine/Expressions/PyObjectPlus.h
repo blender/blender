@@ -112,13 +112,13 @@ typedef struct PyObjectPlus_Proxy {
   static PyAttributeDef Attributes[]; \
   virtual PyTypeObject *GetType(void) {return &Type;}; \
   virtual PyObject *GetProxy() {return GetProxy_Ext(this, &Type);}; \
-  virtual PyObject *NewProxy(bool py_owns) {return NewProxy_Ext(this, &Type, py_owns);}; \
+  virtual PyObject *NewProxy(bool py_owns) {return NewProxy_Ext(this, &Type, py_owns);}; 
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #define Py_Header __Py_Header \
   void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
-  void operator delete( void *mem ) { MEM_freeN(mem); } \
+  void operator delete( void *mem ) { MEM_freeN(mem); } 
 
 #else
 #define Py_Header __Py_Header
