@@ -26,7 +26,12 @@
 
 #include <string.h>
 
-#include <unistd.h>
+#ifndef WIN32
+  #include <unistd.h>
+#else
+  #include <io.h>
+#include "BLI_winstuff.h"
+#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>

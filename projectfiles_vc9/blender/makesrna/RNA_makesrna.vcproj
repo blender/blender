@@ -603,6 +603,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_action_api.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_actuator.c"
 				>
 			</File>
@@ -683,6 +687,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_image_api.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_key.c"
 				>
 			</File>
@@ -704,6 +712,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_material.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_material_api.c"
 				>
 			</File>
 			<File
@@ -752,6 +764,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_pose.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_pose_api.c"
 				>
 			</File>
 			<File

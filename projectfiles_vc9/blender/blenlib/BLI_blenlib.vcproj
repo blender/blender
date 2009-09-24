@@ -483,6 +483,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_bfile.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_dynstr.c"
 				>
 			</File>
@@ -617,6 +621,10 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_arithb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_bfile.h"
 				>
 			</File>
 			<File

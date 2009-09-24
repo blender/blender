@@ -91,6 +91,12 @@ extern "C" {
 typedef unsigned int mode_t;
 #endif
 
+#if defined(_WIN64)
+typedef __int64 ssize_t;
+#else
+typedef _W64 int ssize_t;
+#endif
+
 struct dirent {
 	int d_ino;
 	int d_off;
