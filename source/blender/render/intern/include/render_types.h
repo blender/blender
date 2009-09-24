@@ -172,6 +172,7 @@ struct Render
 	/* octree tables and variables for raytrace */
 	struct RayObject *raytree;
 	struct RayFace *rayfaces;
+	struct VlakPrimitive *rayprimitives;
 	float maxdist; /* needed for keeping an incorrect behaviour of SUN and HEMI lights (avoid breaking old scenes) */
 
 	/* occlusion tree */
@@ -289,6 +290,7 @@ typedef struct ObjectRen {
 	/* used on makeraytree */
 	struct RayObject *raytree;
 	struct RayFace *rayfaces;
+	struct VlakPrimitive *rayprimitives;
 	struct ObjectInstanceRen *rayobi;
 	
 } ObjectRen;
@@ -313,6 +315,7 @@ typedef struct ObjectInstanceRen {
 	
 	/* used on makeraytree */
 	struct RayObject *raytree;
+	int transform_primitives;
 
 } ObjectInstanceRen;
 

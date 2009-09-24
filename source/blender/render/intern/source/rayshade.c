@@ -61,6 +61,8 @@
 #include "rayobject.h"
 #include "raycounter.h"
 
+
+#define USE_VLAK_PRIMITIVES 1
 #define RAY_TRA		1
 #define RAY_TRAFLIP	2
 
@@ -133,6 +135,11 @@ void freeraytree(Render *re)
 		MEM_freeN(re->rayfaces);
 		re->rayfaces = NULL;
 	}
+	if(re->rayprimitives)
+	{
+		MEM_freeN(re->rayprimitives);
+		re->rayprimitives = NULL;
+	}
 
 	for(obi=re->instancetable.first; obi; obi=obi->next)
 	{
@@ -203,6 +210,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 	{
 		RayObject *raytree;
 		RayFace *face;
+		VlakPrimitive *vlakprimitive;
 		int v;
 		
 		//Count faces
@@ -217,7 +225,11 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 
 		//Create Ray cast accelaration structure		
 		raytree = obr->raytree = RE_rayobject_create( re->r.raytrace_tree_type, faces );
-		face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
+		if(USE_VLAK_PRIMITIVES)
+			vlakprimitive = obr->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "ObjectRen primitives");
+		else
+			face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
+
 		obr->rayobi = obi;
 		
 		for(v=0;v<obr->totvlak;v++)
@@ -225,17 +237,26 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 			if(is_raytraceable_vlr(re, vlr))
 			{
-				RE_rayface_from_vlak( face, obi, vlr );				
-				RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
-				face++;
+				if(USE_VLAK_PRIMITIVES)
+				{
+					RE_rayobject_add( raytree, RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr ) );
+					vlakprimitive++;
+				}
+				else
+				{
+					RE_rayface_from_vlak( face, obi, vlr );				
+					RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
+					face++;
+				}
 			}
 		}
 		RE_rayobject_done( raytree );
 	}
 
 
-	if(obi->flag & R_TRANSFORMED)
+	if((obi->flag & R_TRANSFORMED) && obi->raytree == NULL)
 	{
+		obi->transform_primitives = 0;
 		obi->raytree = RE_rayobject_instance_create( obr->raytree, obi->mat, obi, obi->obr->rayobi );
 	}
 	
@@ -271,7 +292,8 @@ static void makeraytree_single(Render *re)
 	ObjectInstanceRen *obi;
 	RayObject *raytree;
 	RayFace *face;
-	int faces = 0, obs = 0;
+	VlakPrimitive *vlakprimitive;
+	int faces = 0, obs = 0, special = 0;
 
 	for(obi=re->instancetable.first; obi; obi=obi->next)
 	if(is_raytraceable(re, obi))
@@ -282,7 +304,7 @@ static void makeraytree_single(Render *re)
 		
 		if(has_special_rayobject(re, obi))
 		{
-			faces++;
+			special++;
 		}
 		else
 		{
@@ -296,9 +318,16 @@ static void makeraytree_single(Render *re)
 	}
 	
 	//Create raytree
-	raytree = re->raytree = RE_rayobject_create( re->r.raytrace_tree_type, faces );
+	raytree = re->raytree = RE_rayobject_create( re->r.raytrace_tree_type, faces+special );
 
-	face	= re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
+	if(USE_VLAK_PRIMITIVES)
+	{
+		vlakprimitive = re->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "Raytrace vlak-primitives");
+	}
+	else
+	{
+		face = re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
+	}
 	
 	for(obi=re->instancetable.first; obi; obi=obi->next)
 	if(is_raytraceable(re, obi))
@@ -312,28 +341,46 @@ static void makeraytree_single(Render *re)
 		{
 			int v;
 			ObjectRen *obr = obi->obr;
+			
+			if(obi->flag & R_TRANSFORMED)
+			{
+				obi->transform_primitives = 1;
+			}
 
 			for(v=0;v<obr->totvlak;v++)
 			{
 				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 				if(is_raytraceable_vlr(re, vlr))
 				{
-					RE_rayface_from_vlak(face, obi, vlr);
-					if((obi->flag & R_TRANSFORMED))
+					if(USE_VLAK_PRIMITIVES)
 					{
-						Mat4MulVecfl(obi->mat, face->v1);
-						Mat4MulVecfl(obi->mat, face->v2);
-						Mat4MulVecfl(obi->mat, face->v3);
-						if(RE_rayface_isQuad(face))
-							Mat4MulVecfl(obi->mat, face->v4);
+						RayObject *obj = RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr );
+						RE_rayobject_add( raytree, obj );
+						vlakprimitive++;
 					}
+					else
+					{
+						RE_rayface_from_vlak(face, obi, vlr);
+						if((obi->flag & R_TRANSFORMED))
+						{
+							Mat4MulVecfl(obi->mat, face->v1);
+							Mat4MulVecfl(obi->mat, face->v2);
+							Mat4MulVecfl(obi->mat, face->v3);
+							if(RE_rayface_isQuad(face))
+								Mat4MulVecfl(obi->mat, face->v4);
+						}
 
-					RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
-					face++;
+						RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
+						face++;
+					}
 				}
 			}
 		}
 	}
+	
+	re->i.infostr= "Raytree.. building";
+	re->stats_draw(re->sdh, &re->i);
+
 	RE_rayobject_done( raytree );	
 }
 
@@ -342,7 +389,7 @@ void makeraytree(Render *re)
 	float min[3], max[3], sub[3];
 	int i;
 	
-	re->i.infostr= "Make raytree";
+	re->i.infostr= "Raytree.. preparing";
 	re->stats_draw(re->sdh, &re->i);
 
 	BENCH(makeraytree_single(re), tree_build);
@@ -359,6 +406,7 @@ void makeraytree(Render *re)
 	re->maxdist = sqrt( sub[0]*sub[0] + sub[1]*sub[1] + sub[2]*sub[2] );
 
 	re->i.infostr= "Raytree finished";
+	re->stats_draw(re->sdh, &re->i);
 }
 
 void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)

@@ -57,17 +57,18 @@ extern "C" {
 	
 	In order to allow a mixture of RayFace+RayObjects,
 	all RayObjects must be 4byte aligned, allowing us to use the
-	2 least significant bits (with the mask 0x02) to define the
+	2 least significant bits (with the mask 0x03) to define the
 	type of RayObject.
 	
-	This leads to 4 possible types of RayObject, but at the moment
-	only 2 are used:
+	This leads to 4 possible types of RayObject:
 
-	 addr&2  - type of object
+	 addr&3  - type of object
 	 	0		Self (reserved for each structure)
-		1     	RayFace
+		1     	RayFace (tri/quad primitive)
 		2		RayObject (generic with API callbacks)
-		3		RayObject_Vlak
+		3		VlakPrimitive
+				(vlak primitive - to be used when we have a vlak describing the data
+				 eg.: on render code)
 
 	0 means it's reserved and has it own meaning inside each ray acceleration structure
 	(this way each structure can use the allign offset to determine if a node represents a
@@ -83,24 +84,14 @@ extern "C" {
 /* used to unalign a given ray object */
 #define RE_rayobject_unalignRayFace(o)		((RayObject*)(((intptr_t)o)|1))
 #define RE_rayobject_unalignRayAPI(o)		((RayObject*)(((intptr_t)o)|2))
-#define RE_rayobject_unalignRayVlak(o)		((RayObject*)(((intptr_t)o)|3))
+#define RE_rayobject_unalignVlakPrimitive(o)	((RayObject*)(((intptr_t)o)|3))
 
 /* used to test the type of ray object */
 #define RE_rayobject_isAligned(o)	((((intptr_t)o)&3) == 0)
 #define RE_rayobject_isRayFace(o)	((((intptr_t)o)&3) == 1)
 #define RE_rayobject_isRayAPI(o)	((((intptr_t)o)&3) == 2)
-#define RE_rayobject_isRayVlak(o)	((((intptr_t)o)&3) == 3)
+#define RE_rayobject_isVlakPrimitive(o)	((((intptr_t)o)&3) == 3)
 
-
-/*
- * This ray object represents faces directly from a given VlakRen structure.
- * Thus allowing to save memory, but making code dependant on render structures
-typedef struct RayVlak
-{
-	struct ObjectInstanceRen *ob;
-	struct VlakRen *face;
-} RayVlak;
- */
 
 /*
  * This rayobject represents a generic object. With it's own callbacks for raytrace operations.

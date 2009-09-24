@@ -879,6 +879,11 @@ void free_renderdata_tables(Render *re)
 			MEM_freeN(obr->rayfaces);
 			obr->rayfaces = NULL;
 		}
+		if(obr->rayprimitives)
+		{
+			MEM_freeN(obr->rayprimitives);
+			obr->rayprimitives = NULL;
+		}
 		if(obr->raytree)
 		{
 			RE_rayobject_free(obr->raytree);

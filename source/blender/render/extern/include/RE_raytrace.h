@@ -52,6 +52,8 @@ typedef struct RayCounter RayCounter;
 
 struct DerivedMesh;
 struct Mesh;
+struct VlakRen;
+struct ObjectInstanceRen;
 
 int  RE_rayobject_raycast(RayObject *r, Isect *i);
 void RE_rayobject_add    (RayObject *r, RayObject *);
@@ -93,14 +95,28 @@ typedef struct RayFace
 } RayFace;
 
 #define RE_rayface_isQuad(a) ((a)->quad)
-struct VlakRen;
-struct ObjectInstanceRen;
 
 RayObject* RE_rayface_from_vlak(RayFace *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
 RayObject* RE_rayface_from_coords(RayFace *rayface, void *ob, void *face, float *co1, float *co2, float *co3, float *co4);
 
 
+/*
+ * This ray object represents faces directly from a given VlakRen structure.
+ * Thus allowing to save memory, but making code triangle intersection dependant on render structures
+ */
+typedef struct VlakPrimitive
+{
+	struct ObjectInstanceRen *ob;
+	struct VlakRen *face;
+} VlakPrimitive;
 
+RayObject* RE_vlakprimitive_from_vlak(VlakPrimitive *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
+
+
+
+/*
+ * Raytrace hints
+ */
 typedef struct LCTSHint LCTSHint;
 struct LCTSHint
 {

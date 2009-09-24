@@ -30,6 +30,7 @@
 
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
+#include "DNA_material_types.h"
 
 #include "RE_raytrace.h"
 #include "render_types.h"
@@ -141,7 +142,6 @@ static int intersection2(VlakRen *face, float r0, float r1, float r2, float rx1,
 	return 0;
 }
 
-#include "DNA_material_types.h"
 static int vlr_check_intersect(Isect *is, ObjectInstanceRen *obi, VlakRen *vlr)
 {
 	/* for baking selected to active non-traceable materials might still
@@ -178,7 +178,7 @@ static int rayface_check_cullface(RayFace *face, Isect *is)
 
 /* ray - triangle or quad intersection */
 /* this function shall only modify Isect if it detects an hit */
-static int intersect_rayface(RayFace *face, Isect *is)
+static int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *is)
 {
 	float co1[3],co2[3],co3[3],co4[3];
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22,r0,r1,r2;
@@ -301,8 +301,8 @@ static int intersect_rayface(RayFace *face, Isect *is)
 		{
 			if(labda < 0.1f && is->orig.ob == face->ob)
 			{
-				VlakRen * a = is->orig.face;
-				VlakRen * b = face->face;
+				VlakRen * a = (VlakRen*)is->orig.face;
+				VlakRen * b = (VlakRen*)face->face;
 
 				/* so there's a shared edge or vertex, let's intersect ray with face
 				itself, if that's true we can safely return 1, otherwise we assume
@@ -327,7 +327,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 		is->hit.ob   = face->ob;
 		is->hit.face = face->face;
 #ifdef RT_USE_LAST_HIT
-		is->last_hit = (RayObject*) RE_rayobject_unalignRayFace(face);
+		is->last_hit = hit_obj;
 #endif
 		return 1;
 	}
@@ -360,6 +360,14 @@ RayObject* RE_rayface_from_coords(RayFace *rayface, void *ob, void *face, float 
 
 	return RE_rayobject_unalignRayFace(rayface);
 }
+
+RayObject* RE_vlakprimitive_from_vlak(VlakPrimitive *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr)
+{
+	face->ob = obi;
+	face->face = vlr;
+	return RE_rayobject_unalignVlakPrimitive(face);
+}
+
 
 int RE_rayobject_raycast(RayObject *r, Isect *isec)
 {
@@ -416,7 +424,25 @@ int RE_rayobject_intersect(RayObject *r, Isect *i)
 {
 	if(RE_rayobject_isRayFace(r))
 	{
-		return intersect_rayface( (RayFace*) RE_rayobject_align(r), i);
+		return intersect_rayface(r, (RayFace*) RE_rayobject_align(r), i);
+	}
+	else if(RE_rayobject_isVlakPrimitive(r))
+	{
+		//TODO optimize (useless copy to RayFace to avoid duplicate code)
+		VlakPrimitive *face = (VlakPrimitive*) RE_rayobject_align(r);
+		RayFace nface;
+		RE_rayface_from_vlak(&nface, face->ob, face->face);
+
+		if(face->ob->transform_primitives)
+		{
+			Mat4MulVecfl(face->ob->mat, nface.v1);
+			Mat4MulVecfl(face->ob->mat, nface.v2);
+			Mat4MulVecfl(face->ob->mat, nface.v3);
+			if(RE_rayface_isQuad(&nface))
+				Mat4MulVecfl(face->ob->mat, nface.v4);
+		}
+
+		return intersect_rayface(r, &nface, i);
 	}
 	else if(RE_rayobject_isRayAPI(r))
 	{
@@ -455,6 +481,16 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 		DO_MINMAX( face->v3, min, max );
 		if(RE_rayface_isQuad(face)) DO_MINMAX( face->v4, min, max );
 	}
+	else if(RE_rayobject_isVlakPrimitive(r))
+	{
+		VlakPrimitive *face = (VlakPrimitive*) RE_rayobject_align(r);
+		VlakRen *vlr = face->face;
+
+		DO_MINMAX( vlr->v1->co, min, max );
+		DO_MINMAX( vlr->v2->co, min, max );
+		DO_MINMAX( vlr->v3->co, min, max );
+		if(vlr->v4) DO_MINMAX( vlr->v4->co, min, max );
+	}
 	else if(RE_rayobject_isRayAPI(r))
 	{
 		r = RE_rayobject_align( r );
@@ -465,7 +501,7 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 
 float RE_rayobject_cost(RayObject *r)
 {
-	if(RE_rayobject_isRayFace(r))
+	if(RE_rayobject_isRayFace(r) || RE_rayobject_isVlakPrimitive(r))
 	{
 		return 1.0;
 	}
@@ -479,7 +515,7 @@ float RE_rayobject_cost(RayObject *r)
 
 void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max)
 {
-	if(RE_rayobject_isRayFace(r))
+	if(RE_rayobject_isRayFace(r) || RE_rayobject_isVlakPrimitive(r))
 	{
 		return;
 	}
