@@ -45,12 +45,12 @@ class MRenderJob(netrender.model.RenderJob):
 		self.frames = []
 		self.chunks = chunks
 		self.priority = priority
+		self.usage = 0.0
 		self.credits = credits
 		self.blacklist = blacklist
 		self.last_dispatched = time.time()
 	
 		# special server properties
-		self.usage = 0.0
 		self.last_update = 0
 		self.save_path = ""
 		self.files_map = {path: MRenderFile(path, start, end) for path, start, end in files}
@@ -603,9 +603,10 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.first_usage = True
 		
 		self.balancer = netrender.balancing.Balancer()
-		self.balancer.addRule(netrender.balancing.RatingCredit())
+		#self.balancer.addRule(netrender.balancing.RatingCredit())
+		self.balancer.addRule(netrender.balancing.RatingUsage())
 		self.balancer.addException(netrender.balancing.ExcludeQueuedEmptyJob())
-		self.balancer.addException(netrender.balancing.ExcludeSlavesLimit(self.countJobs, self.countSlaves))
+		self.balancer.addException(netrender.balancing.ExcludeSlavesLimit(self.countJobs, self.countSlaves, limit = 0.9))
 		self.balancer.addPriority(netrender.balancing.NewJobPriority())
 		self.balancer.addPriority(netrender.balancing.MinimumTimeBetweenDispatchPriority(limit = 2))
 		

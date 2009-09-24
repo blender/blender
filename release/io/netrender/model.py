@@ -81,6 +81,7 @@ class RenderJob:
 		self.chunks = 0
 		self.priority = 0
 		self.credits = 0
+		self.usage = 0.0
 		self.blacklist = []
 		self.last_dispatched = 0.0
 	
@@ -143,6 +144,7 @@ class RenderJob:
 							"frames": [f.serialize() for f in self.frames if not frames or f in frames],
 							"chunks": self.chunks,
 							"priority": self.priority,
+							"usage": self.usage,
 							"credits": self.credits,
 							"blacklist": self.blacklist,
 							"last_dispatched": self.last_dispatched
@@ -160,6 +162,7 @@ class RenderJob:
 		job.frames = [RenderFrame.materialize(f) for f in data["frames"]]
 		job.chunks = data["chunks"]
 		job.priority = data["priority"]
+		job.usage = data["usage"]
 		job.credits = data["credits"]
 		job.blacklist = data["blacklist"]
 		job.last_dispatched = data["last_dispatched"]
