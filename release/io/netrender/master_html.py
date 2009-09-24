@@ -42,23 +42,32 @@ def get(handler):
 		output("<h2>Slaves</h2>")
 		
 		startTable()
-		headerTable("id", "name", "address", "stats")
+		headerTable("name", "address", "last seen", "stats", "job")
 		
 		for slave in handler.server.slaves:
-			rowTable(slave.id, slave.name, slave.address[0], slave.stats)
+			rowTable(slave.name, slave.address[0], time.ctime(slave.last_seen), slave.stats, link(slave.job.name, "/html/job" + slave.job.id) if slave.job else "None")
 		
 		endTable()
 		
 		output("<h2>Jobs</h2>")
 		
 		startTable()
-		headerTable("id", "name", "credits", "time since last", "length", "done", "dispatched", "error", "priority", "exception")
+		headerTable("name", "credits", "usage", "time since last", "length", "done", "dispatched", "error", "priority", "exception")
 
 		handler.server.update()
 		
 		for job in handler.server.jobs:
 			results = job.framesStatus()
-			rowTable(link(job.id, "/html/job" + job.id), job.name, round(job.credits, 1), int(time.time() - job.last_dispatched), len(job), results[DONE], results[DISPATCHED], results[ERROR], handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job))
+			rowTable(	link(job.name, "/html/job" + job.id),
+								round(job.credits, 1),
+								"%0.1f%%" % (job.usage * 100),
+								int(time.time() - job.last_dispatched),
+								len(job),
+								results[DONE],
+								results[DISPATCHED],
+								results[ERROR],
+								handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job)
+								)
 		
 		endTable()
 		

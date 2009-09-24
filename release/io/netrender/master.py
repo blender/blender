@@ -29,7 +29,7 @@ class MRenderSlave(netrender.model.RenderSlave):
 		self.last_seen = time.time()
 		
 		self.job = None
-		self.frame = None
+		self.job_frames = []
 		
 		netrender.model.RenderSlave._slave_map[self.id] = self
 
@@ -50,6 +50,7 @@ class MRenderJob(netrender.model.RenderJob):
 		self.last_dispatched = time.time()
 	
 		# special server properties
+		self.usage = 0.0
 		self.last_update = 0
 		self.save_path = ""
 		self.files_map = {path: MRenderFile(path, start, end) for path, start, end in files}
@@ -300,6 +301,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 						f.status = DISPATCHED
 						f.slave = slave
 					
+					slave.job = job
+					slave.job_frames = [f.number for f in frames]
+					
 					self.send_head(headers={"job-id": job.id})
 					
 					message = job.serialize(frames)
@@ -536,7 +540,11 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 					elif job_result == ERROR:
 						# blacklist slave on this job on error
 						job.blacklist.append(slave.id)
-						
+					
+					slave.job_frames.remove(job_frame)
+					if not slave.job_frames:
+						slave.job = None
+					
 					frame.status = job_result
 					frame.time = job_time
 
@@ -590,6 +598,10 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.job_id = 0
 		self.path = path + "master_" + str(os.getpid()) + os.sep
 		
+		self.slave_timeout = 2
+		
+		self.first_usage = True
+		
 		self.balancer = netrender.balancing.Balancer()
 		self.balancer.addRule(netrender.balancing.RatingCredit())
 		self.balancer.addException(netrender.balancing.ExcludeQueuedEmptyJob())
@@ -611,6 +623,10 @@ class RenderMasterServer(http.server.HTTPServer):
 		
 		return slave.id
 	
+	def removeSlave(self, slave):
+		self.slaves.remove(slave)
+		self.slaves_map.pop(slave.id)
+	
 	def getSlave(self, slave_id):
 		return self.slaves_map.get(slave_id, None)
 	
@@ -621,9 +637,46 @@ class RenderMasterServer(http.server.HTTPServer):
 			
 		return slave
 	
+	def timeoutSlaves(self):
+		removed = []
+		
+		t = time.time()
+		
+		for slave in self.slaves:
+			if (t - slave.last_seen) / 60 > self.slave_timeout:
+				removed.append(slave)
+				
+				if slave.job:
+					for f in slave.job_frames:
+						slave.job[f].status = ERROR
+				
+		for slave in removed:
+			self.removeSlave(slave)
+	
+	def updateUsage(self):
+		m = 1.0
+		
+		if not self.first_usage:
+			for job in self.jobs:
+				job.usage *= 0.5
+			
+			m = 0.5
+		else:
+			self.first_usage = False
+			
+		if self.slaves:
+			slave_usage = m / self.countSlaves()
+			
+			for slave in self.slaves:
+				if slave.job:
+					slave.job.usage += slave_usage
+		
+	
 	def clear(self):
-		self.jobs_map = {}
-		self.jobs = []
+		removed = self.jobs[:]
+		
+		for job in removed:
+			self.removeJob(job)
 	
 	def update(self):
 		for job in self.jobs:
@@ -646,6 +699,11 @@ class RenderMasterServer(http.server.HTTPServer):
 
 		if job:
 			self.jobs.remove(job)
+			
+			for slave in self.slaves:
+				if slave.job == job:
+					slave.job = None
+					slave.job_frames = []
 	
 	def addJob(self, job):
 		self.jobs.append(job)
@@ -687,8 +745,12 @@ def runMaster(address, broadcast, path, update_stats, test_break):
 		while not test_break():
 			httpd.handle_request()
 			
-			if broadcast:
-				if time.time() - start_time >= 10: # need constant here
-					print("broadcasting address")
-					s.sendto(bytes("%i" % address[1], encoding='utf8'), 0, ('<broadcast>', 8000))
-					start_time = time.time()
+			if time.time() - start_time >= 10: # need constant here
+				httpd.timeoutSlaves()
+				
+				httpd.updateUsage()
+				
+				if broadcast:
+						print("broadcasting address")
+						s.sendto(bytes("%i" % address[1], encoding='utf8'), 0, ('<broadcast>', 8000))
+						start_time = time.time()

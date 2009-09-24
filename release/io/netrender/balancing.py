@@ -91,4 +91,4 @@ class ExcludeSlavesLimit(ExclusionRule):
 		self.limit = limit
 		
 	def test(self, job):
-		return not ( self.count_jobs() == 1 or self.count_slaves() == 1 or float(job.countSlaves() + 1) / self.count_slaves() <= self.limit )
+		return not ( self.count_jobs() == 1 or self.count_slaves() <= 1 or float(job.countSlaves() + 1) / self.count_slaves() <= self.limit )
