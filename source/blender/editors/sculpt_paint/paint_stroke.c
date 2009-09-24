@@ -263,7 +263,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	/* TODO: fix hardcoded event here */
-	if(event->type == LEFTMOUSE && event->val == 0) {
+	if(event->type == LEFTMOUSE && event->val == KM_RELEASE) {
 		/* Exit stroke, free data */
 
 		if(stroke->smooth_stroke_cursor)

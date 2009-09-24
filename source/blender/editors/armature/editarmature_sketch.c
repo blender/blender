@@ -2675,7 +2675,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 		retval = OPERATOR_CANCELLED;
 		break;
 	case LEFTMOUSE:
-		if (event->val == 0)
+		if (event->val == KM_RELEASE)
 		{
 			if (gesture == 0)
 			{

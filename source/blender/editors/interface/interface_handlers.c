@@ -1660,7 +1660,7 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 			break;
 		}
 		case LEFTMOUSE:
-			if(event->val == 0)
+			if(event->val == KM_RELEASE)
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			retval= WM_UI_HANDLER_BREAK;
 			break;

@@ -380,7 +380,7 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 	switch (event->type) {
 		case RIGHTMOUSE:
 		case LEFTMOUSE: /* confirm */ // XXX hardcoded
-			if (event->val == 0) {
+			if (event->val == KM_RELEASE) {
 				/* finish */
 				ED_region_tag_redraw(lcd->ar);
 

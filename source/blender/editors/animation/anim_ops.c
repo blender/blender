@@ -193,7 +193,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init 
 			 * the modal op) doesn't work for some reason
 			 */
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				change_frame_exit(C, op);
 				return OPERATOR_FINISHED;
 			}

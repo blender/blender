@@ -604,7 +604,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 			sad->sa2= screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
 			break;
 		case LEFTMOUSE: /* release LMB */
-			if(event->val==0) {
+			if(event->val==KM_RELEASE) {
 				if(!sad->sa2 || sad->sa1 == sad->sa2) {
 
 					return area_swap_cancel(C, op);
@@ -1225,7 +1225,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
-			if(event->val==0) { /* mouse up */
+			if(event->val==KM_RELEASE) { /* mouse up */
 				area_split_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -1345,7 +1345,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
-			if(event->val==0) {
+			if(event->val==KM_RELEASE) {
 				
 				if(ABS(event->x - rmd->origx) < 2 && ABS(event->y - rmd->origy) < 2) {
 					if(rmd->ar->flag & RGN_FLAG_HIDDEN) {
@@ -1828,7 +1828,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			break;
 		case LEFTMOUSE:
-			if(event->val==0) {
+			if(event->val==KM_RELEASE) {
 				area_join_apply(C, op);
 				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				area_join_exit(C, op);

@@ -1004,7 +1004,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	int always_pass;
 
 	if(handlers==NULL) return action;
-	
+
 	/* modal handlers can get removed in this loop, we keep the loop this way */
 	for(handler= handlers->first; handler; handler= nexthandler) {
 		nexthandler= handler->next;
@@ -1157,7 +1157,7 @@ void wm_event_do_handlers(bContext *C)
 		
 		while( (event= win->queue.first) ) {
 			int action;
-			
+
 			CTX_wm_window_set(C, win);
 			
 			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
@@ -1176,7 +1176,7 @@ void wm_event_do_handlers(bContext *C)
 			
 			/* builtin tweak, if action is break it removes tweak */
 			wm_tweakevent_test(C, event, action);
-			
+
 			if(action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
@@ -1189,7 +1189,7 @@ void wm_event_do_handlers(bContext *C)
 					/* for regions having custom cursors */
 					wm_paintcursor_test(C, event);
 				}
-				
+
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
@@ -1575,7 +1575,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 		case GHOST_kEventButtonDown:
 		case GHOST_kEventButtonUp: {
 			GHOST_TEventButtonData *bd= customdata;
-			event.val= (type==GHOST_kEventButtonDown);
+			event.val= (type==GHOST_kEventButtonDown) ? KM_PRESS:KM_RELEASE; /* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
 			
 			if (bd->button == GHOST_kButtonMaskLeft)
 				event.type= LEFTMOUSE;

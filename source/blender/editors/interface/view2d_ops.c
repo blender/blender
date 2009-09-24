@@ -237,7 +237,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				/* calculate overall delta mouse-movement for redo */
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
@@ -836,7 +836,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				/* for redo, store the overall deltas - need to respect zoom-locks here... */
 				if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)
 					RNA_float_set(op->ptr, "deltax", vzd->dx);
@@ -1244,7 +1244,7 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				scroller_activate_exit(C, op);
 				return OPERATOR_FINISHED;
 			}

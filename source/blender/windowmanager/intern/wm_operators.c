@@ -1485,7 +1485,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			if(event->val==0) {	/* key release */
+			if(event->val==KM_RELEASE) {	/* key release */
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -1568,7 +1568,7 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 			if(gesture->event_type==event->type) {
 				WM_gesture_end(C, gesture);
 				window->tweak= NULL;
-				
+
 				/* when tweak fails we should give the other keymap entries a chance */
 				event->val= KM_RELEASE;
 			}
@@ -1586,7 +1586,7 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 	
 	if(win->tweak==NULL) {
 		if(CTX_wm_region(C)) {
-			if(event->val) { // pressed
+			if(event->val==KM_PRESS) { // pressed
 				if( ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) )
 					win->tweak= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
 			}
@@ -1686,7 +1686,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			if(event->val==0) {	/* key release */
+			if(event->val==KM_RELEASE) {	/* key release */
 				gesture_lasso_apply(C, op, event->type);
 				return OPERATOR_FINISHED;
 			}

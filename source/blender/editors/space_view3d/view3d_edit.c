@@ -505,7 +505,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		default:
 			/* origkey may be zero when invoked from a button */
-			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==0)) {
+			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==KM_RELEASE)) {
 				request_depth_update(CTX_wm_region_view3d(C));
 
 				MEM_freeN(vod);
@@ -606,7 +606,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		default:
 			/* origkey may be zero when invoked from a button */
-			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==0)) {
+			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==KM_RELEASE)) {
 				request_depth_update(CTX_wm_region_view3d(C));
 
 				MEM_freeN(vod);
@@ -767,7 +767,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		default:
 			/* origkey may be zero when invoked from a button */
-			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==0)) {
+			if(ELEM3(event->type, ESCKEY, LEFTMOUSE, RIGHTMOUSE) || (event->type==vod->origkey && event->val==KM_RELEASE)) {
 				request_depth_update(CTX_wm_region_view3d(C));
 
 				MEM_freeN(vod);
