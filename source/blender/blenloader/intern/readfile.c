@@ -9366,7 +9366,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
 
 			/* move to cameras */
-			if(sce->r.scemode & R_PANORAMA) {
+			if(sce->r.mode & R_PANORAMA) {
 				for(base=sce->base.first; base; base=base->next) {
 					ob= newlibadr(fd, lib, base->object);
 
@@ -9376,7 +9376,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 
-				sce->r.scemode &= ~R_PANORAMA;
+				sce->r.mode &= ~R_PANORAMA;
 			}
 		}
 		/* and texture trees */
