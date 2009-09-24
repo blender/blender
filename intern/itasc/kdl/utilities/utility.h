@@ -254,7 +254,8 @@ inline double Norm(double arg) {
     return fabs(  (double)arg );
 }
 
-#ifdef __WIN32__
+
+#if defined(__WIN32__) && !defined(__GNUC__)
 inline double hypot(double y,double x) { return ::_hypot(y,x);}
 inline double abs(double x) { return ::fabs(x);}
 #endif
