@@ -461,6 +461,9 @@ static void acf_object_name(bAnimListElem *ale, char *name)
 /* check if some setting exists for this channel */
 static short acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
+	Base *base= (Base *)ale->data;
+	Object *ob= base->object;
+	
 	switch (setting) {
 		/* muted only in NLA */
 		case ACHANNEL_SETTING_MUTE: 
@@ -468,7 +471,7 @@ static short acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 			
 		/* visible only in Graph Editor */
 		case ACHANNEL_SETTING_VISIBLE: 
-			return ((ac) && (ac->spacetype == SPACE_IPO));
+			return ((ac) && (ac->spacetype == SPACE_IPO) && (ob->adt));
 		
 		/* only select and expand supported otherwise */
 		case ACHANNEL_SETTING_SELECT:
