@@ -134,13 +134,6 @@ protected:
 	float m_obmat[4][4];
 
 	double			m_lastapplyframe;
-
-
-#ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ArmatureObject"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
-#endif
 };
 
 /* Pose function specific to the game engine */
