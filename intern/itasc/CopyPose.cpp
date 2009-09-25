@@ -21,7 +21,7 @@ CopyPose::CopyPose(unsigned int control_output, unsigned int dynamic_output, dou
 {
 	m_maxerror = armlength/2.0;
 	m_outputControl = (control_output & CTL_ALL);
-	int _nc = nBitsOn(m_outputControl);
+	unsigned int _nc = nBitsOn(m_outputControl);
 	if (!_nc) 
 		return;
 	// reset the constraint set
@@ -284,7 +284,7 @@ void CopyPose::updateJacobian()
 
 void CopyPose::updateState(ConstraintValues* _values, ControlState* _state, unsigned int mask, double timestep)
 {
-	int id = (mask == CTL_ROTATIONX) ? ID_ROTATIONX : ID_POSITIONX;
+	unsigned int id = (mask == CTL_ROTATIONX) ? ID_ROTATIONX : ID_POSITIONX;
 	ControlState::ControlValue* _yval;
 	ConstraintSingleValue* _data;
 	int i, j, k;

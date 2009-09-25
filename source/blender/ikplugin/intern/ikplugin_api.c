@@ -72,8 +72,6 @@ static IKPlugin ikplugin_tab[BIK_SOLVER_COUNT] = {
 
 static IKPlugin *get_plugin(bPose *pose)
 {
-	IKPlugin *plugin;
-
 	if (!pose || pose->iksolver < 0 || pose->iksolver >= BIK_SOLVER_COUNT)
 		return NULL;
 

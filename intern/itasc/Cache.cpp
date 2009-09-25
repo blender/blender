@@ -7,9 +7,7 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
-#ifndef __STDC__
-#include <malloc.h>
-#endif
+#include <stdlib.h>
 #include "Cache.hpp"
 
 namespace iTaSC {

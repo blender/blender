@@ -8,9 +8,7 @@
 #include "Armature.hpp"
 #include <algorithm>
 #include <string.h>
-#ifndef __STDC__
-#include <malloc.h>
-#endif
+#include <stdlib.h>
 
 namespace iTaSC {
 
@@ -37,9 +35,9 @@ Armature::Armature():
 	m_newqKdl(),
 	m_qdotKdl(),
 	m_jac(NULL),
+	m_armlength(0.0),
 	m_jacsolver(NULL),
-	m_fksolver(NULL),
-	m_armlength(0.0)
+	m_fksolver(NULL)
 {
 }
 
@@ -118,6 +116,8 @@ Armature::JointConstraint_struct::JointConstraint_struct(SegmentMap::const_itera
 		values[0].id = value[0].id = ID_JOINT_RX;		
 		values[1].id = value[1].id = ID_JOINT_RZ;		
 		v_nr = 2;
+		break;
+	case Joint::None:
 		break;
 	}
 }
@@ -734,6 +734,8 @@ bool Armature::setControlParameter(unsigned int constraintId, unsigned int value
 				case ACT_ALPHA:
 					pConstraint->values[i].alpha = value;
 					break;
+				default:
+					break;
 				}
 			}
 		} else {
@@ -754,6 +756,8 @@ bool Armature::setControlParameter(unsigned int constraintId, unsigned int value
 						break;
 					case ACT_ALPHA:
 						pConstraint->values[i].alpha = value;
+						break;
+					case ACT_NONE:
 						break;
 					}
 				}

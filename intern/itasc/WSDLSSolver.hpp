@@ -31,6 +31,8 @@ public:
 		case DLS_QMAX:
 			m_qmax = value;
 			break;
+		default:
+			break;
 		}
 	}
 };

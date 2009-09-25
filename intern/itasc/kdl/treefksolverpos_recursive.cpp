@@ -42,7 +42,6 @@ namespace KDL {
         else if(baseit == tree.getSegments().end()) //if the base segment name is not found
          	return -3;
         else{
-        	const TreeElement& currentElement = it->second;
 			p_out = recursiveFk(q_in, it, baseit);	
         	return 0;        	
         }

@@ -354,7 +354,7 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
 
 static bool is_cartesian_constraint(bConstraint *con)
 {
-	bKinematicConstraint* data=(bKinematicConstraint*)con->data;
+	//bKinematicConstraint* data=(bKinematicConstraint*)con->data;
 
 	return true;
 }
@@ -379,12 +379,8 @@ static bool constraint_valid(bConstraint *con)
 
 int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 {
-	bPoseChannel *curchan, *pchan_root=NULL, *chanlist[256], **oldchan;
-	PoseTree *tree;
-	PoseTarget *target;
 	bConstraint *con;
-	bKinematicConstraint *data;
-	int a, segcount= 0, size, newsize, *oldparent, parent, rootbone, treecount;
+	int treecount;
 
 	/* find all IK constraints and validate them */
 	treecount = 0;
@@ -456,6 +452,7 @@ static void RemoveEulerAngleFromMatrix(KDL::Rotation& R, double angle, int axis)
 	R = R*T;
 }
 
+#if 0
 static void GetEulerXZY(const KDL::Rotation& R, double& X,double& Z,double& Y)
 {
 	if (fabs(R(0,1)) > 1.0 - KDL::epsilon ) {
@@ -481,6 +478,7 @@ static void GetEulerXYZ(const KDL::Rotation& R, double& X,double& Y,double& Z)
         Z = KDL::atan2(-R(0,1), R(0,0));
     }
 }
+#endif
 
 static void GetJointRotation(KDL::Rotation& boneRot, int type, double* rot)
 {
@@ -660,9 +658,6 @@ static bool copypose_callback(const iTaSC::Timestamp& timestamp, iTaSC::Constrai
 	bKinematicConstraint *condata = (bKinematicConstraint *)iktarget->blenderConstraint->data;
 	iTaSC::ConstraintValues* values = _values;
 	bItasc* ikparam = (bItasc*) iktarget->owner->pose->ikparam;
-	iTaSC::ConstraintSingleValue* value;
-	double error;
-	int i;
 
 	// we need default parameters
 	if (!ikparam) 
@@ -839,7 +834,7 @@ static bool joint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintV
 		break;
 	}
 	if (dof >= 0) {
-		for (int i=0; i<_nvalues; i++, dof++) {
+		for (unsigned int i=0; i<_nvalues; i++, dof++) {
 			_values[i].values[0].yd = ikchan->jointValue[dof];
 			_values[i].alpha = chan->ikrotweight;
 			_values[i].feedback = ikparam->feedback;
@@ -853,7 +848,6 @@ static int convert_channels(IK_Scene *ikscene, PoseTree *tree)
 {
 	IK_Channel *ikchan;
 	bPoseChannel *pchan;
-	PoseTarget* target;
 	Bone *bone;
 	int a, flag, njoint;
 
@@ -1046,11 +1040,11 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 	KDL::Frame initPose;
 	KDL::Rotation boneRot;
 	Bone *bone;
-	int a, t, numtarget;
+	int a, numtarget;
+	unsigned int t;
 	float length;
 	bool ret = true, ingame;
 	double *rot;
-	double lmin[3], lmax[3];
 
 	if (tree->totchannel == 0)
 		return NULL;
@@ -1105,7 +1099,6 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 	double weight[3];
 	// assume uniform scaling and take Y scale as general scale for the armature
 	float scale = VecLength(ob->obmat[1]);
-	double X, Y, Z;
 	// build the array of joints corresponding to the IK chain
 	convert_channels(ikscene, tree);
 	if (ingame) {
@@ -1366,8 +1359,8 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 	}
 	// set the weight
 	e_matrix& Wq = arm->getWq();
-	assert(Wq.cols() == weights.size());
-	for (unsigned int q=0; q<Wq.cols(); q++)
+	assert(Wq.cols() == (int)weights.size());
+	for (int q=0; q<Wq.cols(); q++)
 		Wq(q,q)=weights[q];
 	// get the inverse rest pose frame of the base to compute relative rest pose of end effectors
 	// this is needed to handle the enforce parameter
@@ -1492,8 +1485,6 @@ static void create_scene(Scene *scene, Object *ob)
 
 static void init_scene(Object *ob)
 {
-	bPoseChannel *pchan;
-
 	if (ob->pose->ikdata) {
 		for(IK_Scene* scene = ((IK_Data*)ob->pose->ikdata)->first;
 			scene != NULL;
@@ -1559,7 +1550,7 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 	}
 		
 	if (ikscene->cache && !reiterate && simulation) {
-		iTaSC::CacheTS sts, cts, dts;
+		iTaSC::CacheTS sts, cts;
 		sts = cts = (iTaSC::CacheTS)(timestamp*1000.0+0.5);
 		if (ikscene->cache->getPreviousCacheItem(ikscene->armature, 0, &cts) == NULL || cts == 0) {
 			// the cache is empty before this time, reiterate

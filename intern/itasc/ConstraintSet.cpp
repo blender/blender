@@ -12,13 +12,13 @@ namespace iTaSC {
 
 ConstraintSet::ConstraintSet(unsigned int _nc,double accuracy,unsigned int maximum_iterations):
     m_nc(_nc),
-    m_Jf(e_identity_matrix(6,6)),
     m_Cf(e_zero_matrix(m_nc,6)),
+    m_Wy(e_scalar_vector(m_nc,1.0)),
+    m_y(m_nc),m_ydot(e_zero_vector(m_nc)),m_chi(e_zero_vector(6)),
+    m_S(6),m_temp(6),m_tdelta(6),
+    m_Jf(e_identity_matrix(6,6)),
     m_U(e_identity_matrix(6,6)),m_V(e_identity_matrix(6,6)),m_B(e_zero_matrix(6,6)),
     m_Jf_inv(e_zero_matrix(6,6)),
-    m_Wy(e_scalar_vector(m_nc,1.0)),
-    m_chi(e_zero_vector(6)),m_y(m_nc),m_ydot(e_zero_vector(m_nc)),
-    m_S(6),m_temp(6),m_tdelta(6),
 	m_internalPose(F_identity), m_externalPose(F_identity),
 	m_constraintCallback(NULL), m_constraintParam(NULL), 
 	m_toggle(false),m_substep(false),
