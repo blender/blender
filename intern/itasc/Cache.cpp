@@ -6,10 +6,11 @@
  */
 #include <string.h>
 #include <assert.h>
-#include <malloc.h>
-#include "Cache.hpp"
-
 #include <math.h>
+#ifndef __STDC__
+#include <malloc.h>
+#endif
+#include "Cache.hpp"
 
 namespace iTaSC {
 

@@ -6,7 +6,6 @@
  */
 
 #include "MovingFrame.hpp"
-#include <malloc.h>
 #include <string.h>
 namespace iTaSC{
 

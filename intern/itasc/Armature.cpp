@@ -7,8 +7,10 @@
 
 #include "Armature.hpp"
 #include <algorithm>
-#include <malloc.h>
 #include <string.h>
+#ifndef __STDC__
+#include <malloc.h>
+#endif
 
 namespace iTaSC {
 

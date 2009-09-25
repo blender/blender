@@ -8,7 +8,6 @@
 #include "Distance.hpp"
 #include "kdl/kinfam_io.hpp"
 #include <math.h>
-#include <malloc.h>
 #include <string.h>
 
 namespace iTaSC
