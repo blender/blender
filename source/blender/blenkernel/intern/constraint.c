@@ -688,7 +688,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			if ((ct->tar->type==OB_ARMATURE) && (ct->subtarget[0])) { \
 				bPoseChannel *pchan= get_pose_channel(ct->tar->pose, ct->subtarget); \
 				ct->type = CONSTRAINT_OBTYPE_BONE; \
-				ct->rotOrder= pchan->rotmode; \
+				ct->rotOrder= (pchan) ? (pchan->rotmode) : EULER_ORDER_DEFAULT; \
 			}\
 			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) { \
 				ct->type = CONSTRAINT_OBTYPE_VERT; \

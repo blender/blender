@@ -480,7 +480,7 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h, int icon_only)
 {
 	uiLayout *sub;
-	uiBut *but;
+	uiBut *but=NULL;
 	PropertyType type;
 	PropertySubType subtype;
 	int labelw;

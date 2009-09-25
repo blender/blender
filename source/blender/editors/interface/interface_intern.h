@@ -470,6 +470,8 @@ void ui_but_anim_insert_keyframe(struct bContext *C);
 void ui_but_anim_delete_keyframe(struct bContext *C);
 void ui_but_anim_add_driver(struct bContext *C);
 void ui_but_anim_remove_driver(struct bContext *C);
+void ui_but_anim_copy_driver(struct bContext *C);
+void ui_but_anim_paste_driver(struct bContext *C);
 void ui_but_anim_add_keyingset(struct bContext *C);
 void ui_but_anim_remove_keyingset(struct bContext *C);
 void ui_but_anim_menu(struct bContext *C, uiBut *but);

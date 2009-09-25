@@ -399,6 +399,8 @@ void ED_operatortypes_anim(void)
 	
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);
+	WM_operatortype_append(ANIM_OT_copy_driver_button);
+	WM_operatortype_append(ANIM_OT_paste_driver_button);
 	
 	WM_operatortype_append(ANIM_OT_add_keyingset_button);
 	WM_operatortype_append(ANIM_OT_remove_keyingset_button);
