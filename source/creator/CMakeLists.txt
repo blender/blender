@@ -362,6 +362,7 @@ IF(UNIX)
 		blender_ONL 
 		bf_python 
 		bf_gen_python 
+		bf_ikplugin 
 		bf_blenkernel 
 		bf_nodes
 		bf_gpu
@@ -376,15 +377,12 @@ IF(UNIX)
 		bf_readblenfile 
 		blender_bop 
 		bf_kernel 
-		bf_decimation 
 		bf_elbeem 
 		bf_IK 
 		bf_memutil 
 		bf_guardedalloc 
 		blender_CTR 
 		bf_moto 
-		bf_windowmanager
-		bf_editors
 		bf_blroutines 
 		bf_converter 
 		bf_dummy 
@@ -399,17 +397,11 @@ IF(UNIX)
 		bf_oglrasterizer 
 		bf_expressions 
 		bf_scenegraph 
-		bf_moto 
-		bf_blroutines 
 		kx_network 
-		bf_kernel 
 		bf_ngnetwork 
 		extern_bullet 
 		bf_loopbacknetwork 
-		bf_common 
-		bf_moto 
-		bf_python
-		bf_gen_python
+		bf_ITASC 
 		extern_binreloc
 		extern_glew
 		extern_libopenjpeg
