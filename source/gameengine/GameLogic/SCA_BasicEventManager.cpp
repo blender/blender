@@ -42,8 +42,7 @@
 using namespace std;
 
 SCA_BasicEventManager::SCA_BasicEventManager(class SCA_LogicManager* logicmgr)
-	: SCA_EventManager(BASIC_EVENTMGR),
-	m_logicmgr(logicmgr)
+	: SCA_EventManager(logicmgr, BASIC_EVENTMGR)
 {
 }
 

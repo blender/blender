@@ -43,7 +43,6 @@ class PHY_IPhysicsEnvironment;
 class KX_TouchEventManager : public SCA_EventManager
 {
 	typedef std::pair<PHY_IPhysicsController*, PHY_IPhysicsController*> NewCollision;
-	class SCA_LogicManager* m_logicmgr;
 	PHY_IPhysicsEnvironment*	m_physEnv;
 	
 	std::set<NewCollision> m_newCollisions;

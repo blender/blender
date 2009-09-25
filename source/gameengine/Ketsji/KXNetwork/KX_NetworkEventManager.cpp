@@ -45,7 +45,7 @@
 
 KX_NetworkEventManager::KX_NetworkEventManager(class SCA_LogicManager*
 logicmgr, class NG_NetworkDeviceInterface *ndi) :
-SCA_EventManager(NETWORK_EVENTMGR), m_logicmgr(logicmgr), m_ndi(ndi)
+SCA_EventManager(logicmgr, NETWORK_EVENTMGR), m_ndi(ndi)
 {
 	//printf("KX_NetworkEventManager constructor\n");
 }

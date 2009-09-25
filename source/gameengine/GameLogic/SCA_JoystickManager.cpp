@@ -37,8 +37,7 @@
 
 
 SCA_JoystickManager::SCA_JoystickManager(class SCA_LogicManager* logicmgr)
-	: SCA_EventManager(JOY_EVENTMGR),
-	m_logicmgr(logicmgr)
+	: SCA_EventManager(logicmgr, JOY_EVENTMGR)
 {
 	int i;
 	for (i=0; i<JOYINDEX_MAX; i++) {
