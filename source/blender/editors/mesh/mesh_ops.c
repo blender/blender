@@ -356,7 +356,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	keymap= WM_keymap_find(wm, "EditMesh", 0, 0);
 	keymap->poll= ED_operator_editmesh;
 	
-	WM_keymap_add_item(keymap, "MESH_OT_loopcut", ACTIONMOUSE, KM_PRESS, KM_CTRL, RKEY);
+	WM_keymap_add_item(keymap, "MESH_OT_loopcut", RKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */
@@ -438,7 +438,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_fgon_make", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_fgon_clear", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, XKEY);
+	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, 0, KKEY);
 
 	/* menus */
 	WM_keymap_add_item(keymap, "MESH_OT_vertex_specials", VKEY, KM_PRESS, KM_CTRL, 0);
