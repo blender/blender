@@ -30,8 +30,9 @@
 
 include nan_definitions.mk
 
-LIBNAME = itasc
-DIR = $(OCGDIR)/intern/$(LIBNAME)
+LIBNAME = itasc_kdl
+# Yep, same dir than parent (itasc instead of $(LIBNAME))
+DIR = $(OCGDIR)/intern/itasc
 DIRS = utilities
 SOURCEDIR = intern/$(LIBNAME)/kdl
 

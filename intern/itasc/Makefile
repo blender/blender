@@ -40,15 +40,14 @@ include nan_compile.mk
 CPPFLAGS += -I.
 CPPFLAGS += -I../../extern/Eigen2
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_ITASC) ] || mkdir $(NAN_ITASC)
-	@[ -d $(NAN_ITASC)/lib ] || mkdir $(NAN_ITASC)/lib
-	@[ -d $(NAN_ITASC)/lib/debug ] || mkdir $(NAN_ITASC)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libitasc.a $(NAN_ITASC)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libitasc.a $(NAN_ITASC)/lib/debug/
+	@[ -d $(NAN_ITASC)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_ITASC)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libitasc.a $(DIR)/$(DEBUG_DIR)libitasc_kdl.a $(DIR)/$(DEBUG_DIR)libitasc_kdl_util.a $(NAN_ITASC)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_ITASC)/lib/libitasc.a
-	ranlib $(NAN_ITASC)/lib/debug/libitasc.a
+	ranlib $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc.a
+	ranlib $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc_kdl.a
+	ranlib $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc_kdl_util.a
 endif
 ##############################
 include nan_subdirs.mk
