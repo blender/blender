@@ -34,6 +34,7 @@
 #include "BLI_arithb.h"
 
 #include "BKE_armature.h"
+#include "BKE_constraint.h"
 #include "BKE_utildefines.h"
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
@@ -42,6 +43,8 @@
 
 #include "IK_solver.h"
 #include "iksolver_plugin.h"
+
+#include <string.h> /* memcpy */
 
 /* ********************** THE IK SOLVER ******************* */
 
