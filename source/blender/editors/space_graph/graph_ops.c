@@ -221,7 +221,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	
 		/* F-Modifiers */
-	WM_keymap_add_item(keymap, "GRAPH_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPH_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "only_active", 0);
 	
 	
 	/* transform system */
