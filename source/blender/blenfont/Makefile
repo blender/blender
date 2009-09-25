@@ -30,5 +30,5 @@ DIRS = intern
 include nan_subdirs.mk
 
 ifeq ($(INTERNATIONAL), true)
-	CPPFLAGS += -DINTERNATIONAL
+    CPPFLAGS += -DINTERNATIONAL
 endif

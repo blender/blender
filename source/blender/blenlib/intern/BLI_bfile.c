@@ -30,7 +30,7 @@
   #include <unistd.h>
 #else
   #include <io.h>
-#include "BLI_winstuff.h"
+  #include "BLI_winstuff.h"
 #endif
 
 #include <sys/types.h>
