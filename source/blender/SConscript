@@ -18,7 +18,7 @@ SConscript(['avi/SConscript',
             'nodes/SConscript',
             'ikplugin/SConscript',
             'windowmanager/SConscript',
-	    'blenfont/SConscript'])
+            'blenfont/SConscript'])
 
 
 

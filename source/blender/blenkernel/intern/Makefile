@@ -86,14 +86,24 @@ CPPFLAGS += -I../../gpu
 # path to our own external headerfiles
 CPPFLAGS += -I..
 
-# path to bullet2, for cloth
-CPPFLAGS += -I$(NAN_BULLET2)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 
+# path to bullet2, for cloth
+ifeq ($(NAN_USE_BULLET), true)
+	CPPFLAGS += -I$(NAN_BULLET2)/include
+endif
+
 # lzo and lzma, for pointcache
-CPPFLAGS += -I$(NAN_LZO)/minilzo
-CPPFLAGS += -I$(NAN_LZMA)
+ifeq ($(WITH_LZO),true)
+	CPPFLAGS += -I$(NAN_LZO)/minilzo
+	CPPFLAGS += -DWITH_LZO
+endif
+
+ifeq ($(WITH_LZO),true)
+	CPPFLAGS += -I$(NAN_LZMA)
+	CPPFLAGS += -DWITH_LZMA
+endif
 
 ifeq ($(WITH_FFMPEG),true)
     CPPFLAGS += -DWITH_FFMPEG

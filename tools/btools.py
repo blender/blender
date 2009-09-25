@@ -56,6 +56,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
 			'WITH_BF_BINRELOC',
+			'WITH_BF_LZO', 'WITH_BF_LZMA',
 			'LCGDIR',
 			'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
 			'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
@@ -378,6 +379,9 @@ def read_opts(cfg, args):
 		(BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
 		(BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
 		(BoolVariable('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),
+		
+		(BoolVariable('WITH_BF_LZO', 'Enable fast LZO pointcache compression', True)),
+		(BoolVariable('WITH_BF_LZMA', 'Enable best LZMA pointcache compression', True)),
 		
 		(BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
 		('BF_LCMS_LIB', 'LCMSlibrary', 'lcms'),

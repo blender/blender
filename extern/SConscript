@@ -22,5 +22,8 @@ if env['WITH_BF_REDCODE'] and env['BF_REDCODE_LIB'] == '':
 if env['OURPLATFORM'] == 'linux2':
     SConscript(['binreloc/SConscript']);
 
-SConscript(['lzo/SConscript'])
-SConscript(['lzma/SConscript'])
+if env['WITH_BF_LZO']:
+	SConscript(['lzo/SConscript'])
+
+if env['WITH_BF_LZMA']:
+	SConscript(['lzma/SConscript'])

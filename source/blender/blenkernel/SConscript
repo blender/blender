@@ -11,8 +11,6 @@ incs += ' #/extern/bullet2/src'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
 incs += ' #/intern/smoke/extern'
-incs += ' #/extern/lzo/minilzo'
-incs += ' #/extern/lzma'
 incs += ' #/intern/audaspace/intern'
 
 incs += ' ' + env['BF_OPENGL_INC']
@@ -61,7 +59,15 @@ if env['BF_NO_ELBEEM']:
 
 if env['WITH_BF_LCMS']:
 	defs.append('WITH_LCMS')
-	
+
+if env['WITH_BF_LZO']:
+	incs += ' #/extern/lzo/minilzo'
+	defs.append('WITH_LZO')
+
+if env['WITH_BF_LZMA']:
+	incs += ' #/extern/lzma'
+	defs.append('WITH_LZMA')
+
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 

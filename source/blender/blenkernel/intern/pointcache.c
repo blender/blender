@@ -62,10 +62,17 @@
 
 /* both in intern */
 #include "smoke_API.h"
+
+#ifdef WITH_LZO
 #include "minilzo.h"
+#else
+/* used for non-lzo cases */
+#define LZO_OUT_LEN(size)     ((size) + (size) / 16 + 64 + 3)
+#endif
 
+#ifdef WITH_LZMA
 #include "LzmaLib.h"
-
+#endif
 
 /* needed for directory lookup */
 /* untitled blend's need getpid for a unique name */
@@ -625,20 +632,25 @@ static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, int size);
 static int ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned int in_len, unsigned char *out, int mode)
 {
 	int r = 0;
-	unsigned char compressed;
-	LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
-	unsigned int out_len = LZO_OUT_LEN(in_len);
+	unsigned char compressed = 0;
+	unsigned int out_len= 0;
 	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
 	size_t sizeOfIt = 5;
 
+#ifdef WITH_LZO
+	out_len= LZO_OUT_LEN(in_len);
 	if(mode == 1) {
+		LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
+		
 		r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);	
 		if (!(r == LZO_E_OK) || (out_len >= in_len))
 			compressed = 0;
 		else
 			compressed = 1;
 	}
-	else if(mode == 2) {
+#endif
+#ifdef WITH_LZMA
+	if(mode == 2) {
 		
 		r = LzmaCompress(out, (size_t *)&out_len, in, in_len,//assume sizeof(char)==1....
 						props, &sizeOfIt, 5, 1 << 24, 3, 0, 2, 32, 2);
@@ -648,7 +660,8 @@ static int ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned i
 		else
 			compressed = 2;
 	}
-
+#endif
+	
 	ptcache_file_write(pf, &compressed, 1, sizeof(unsigned char));
 	if(compressed) {
 		ptcache_file_write(pf, &out_len, 1, sizeof(unsigned int));
@@ -762,16 +775,19 @@ static int ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigne
 		in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
 		ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
 
+#ifdef WITH_LZO
 		if(compressed == 1)
 				r = lzo1x_decompress(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
-		else if(compressed == 2)
+#endif
+#ifdef WITH_LZMA
+		if(compressed == 2)
 		{
 			size_t leni = in_len, leno = out_len;
 			ptcache_file_read(pf, &sizeOfIt, 1, sizeof(unsigned int));
 			ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
 			r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
 		}
-
+#endif
 		MEM_freeN(in);
 	}
 	else {
