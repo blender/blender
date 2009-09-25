@@ -28,6 +28,8 @@
 # iksolver main makefile.
 #
 
+include nan_definitions.mk
+
 LIBNAME = itasc
 DIR = $(OCGDIR)/intern/$(LIBNAME)
 

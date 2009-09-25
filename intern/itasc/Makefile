@@ -28,10 +28,13 @@
 # iksolver main makefile.
 #
 
+include nan_definitions.mk
 
 LIBNAME = itasc
-DIR = $(OCGDIR)/intern/$(SOURCEDIR)
-
+SOURCEDIR = intern/$(LIBNAME)
+DIR = $(OCGDIR)/$(SOURCEDIR)
+DIRS = kdl
+include nan_subdirs.mk
 include nan_compile.mk
 
 CPPFLAGS += -I.
@@ -48,6 +51,4 @@ ifeq ($(OS),darwin)
 	ranlib $(NAN_ITASC)/lib/debug/libitasc.a
 endif
 ##############################
-DIRS = kdl
-SOURCEDIR = intern/$(LIBNAME)
 include nan_subdirs.mk

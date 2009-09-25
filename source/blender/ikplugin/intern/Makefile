@@ -36,8 +36,8 @@ CFLAGS += -I../../makesdna
 CFLAGS += -I../../blenkernel
 CFLAGS += -I../../blenlib
 CFLAGS += -I../../include
-CFLAGS += -I../../../intern/itasc
-CFLAGS += -I../../../extern/Eigen2
+CFLAGS += -I../../../../intern/itasc
+CFLAGS += -I../../../../extern/Eigen2
 CFLAGS += -I..
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
@@ -46,4 +46,6 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../include
+CPPFLAGS += -I../../../../intern/itasc
+CPPFLAGS += -I../../../../extern/Eigen2
 CPPFLAGS += -I..

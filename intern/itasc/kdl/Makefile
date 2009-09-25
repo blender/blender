@@ -28,15 +28,15 @@
 # iksolver main makefile.
 #
 
+include nan_definitions.mk
+
 LIBNAME = itasc
 DIR = $(OCGDIR)/intern/$(LIBNAME)
+DIRS = utilities
+SOURCEDIR = intern/$(LIBNAME)/kdl
 
+include nan_subdirs.mk
 include nan_compile.mk
 
 CPPFLAGS += -I.
 CPPFLAGS += -I../../../extern/Eigen2
-
-##############################
-DIRS = utilities
-SOURCEDIR = intern/$(LIBNAME)/kdl
-include nan_subdirs.mk
