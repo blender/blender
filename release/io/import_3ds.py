@@ -1154,10 +1154,10 @@ class IMPORT_OT_3ds(bpy.types.Operator):
 		wm = context.manager
 		wm.add_fileselect(self.__operator__)
 		return ('RUNNING_MODAL',)
-	
-	def poll(self, context): # Poll isnt working yet
+	'''
+	def poll(self, context):
 		print("Poll")
-		return context.active_object != None
+		return context.active_object != None'''
 
 bpy.ops.add(IMPORT_OT_3ds)
 

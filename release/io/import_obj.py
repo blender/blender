@@ -41,7 +41,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 # --------------------------------------------------------------------------
 
 import os
-
+import time
 import bpy
 import Mathutils
 import Geometry
@@ -993,7 +993,7 @@ def load_obj(filepath,
 	if SPLIT_OBJECTS or SPLIT_GROUPS or SPLIT_MATERIALS:
 		POLYGROUPS = False
 
-	time_main= bpy.sys.time()
+	time_main= time.time()
 # 	time_main= sys.time()
 	
 	verts_loc= []
@@ -1032,7 +1032,7 @@ def load_obj(filepath,
 	context_multi_line= ''
 	
 	print('\tparsing obj file "%s"...' % filepath)
-	time_sub= bpy.sys.time()
+	time_sub= time.time()
 # 	time_sub= sys.time()
 
 	file= open(filepath, 'rU')
@@ -1241,7 +1241,7 @@ def load_obj(filepath,
 		'''
 	
 	file.close()
-	time_new= bpy.sys.time()
+	time_new= time.time()
 # 	time_new= sys.time()
 	print('%.4f sec' % (time_new-time_sub))
 	time_sub= time_new
@@ -1250,7 +1250,7 @@ def load_obj(filepath,
 	print('\tloading materials and images...')
 	create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH)
 
-	time_new= bpy.sys.time()
+	time_new= time.time()
 # 	time_new= sys.time()
 	print('%.4f sec' % (time_new-time_sub))
 	time_sub= time_new
@@ -1307,7 +1307,7 @@ def load_obj(filepath,
 	#	for ob in new_objects:
 	#		ob.RotX = -1.570796326794896558
 
-	time_new= bpy.sys.time()
+	time_new= time.time()
 # 	time_new= sys.time()
 	
 	print('%.4f sec' % (time_new-time_sub))
@@ -1585,9 +1585,9 @@ class IMPORT_OT_obj(bpy.types.Operator):
 		bpy.props.BoolProperty(attr="IMAGE_SEARCH", name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default= True),
 	]
 	
+	'''
 	def poll(self, context):
-		print("Poll")
-		return context.active_object != None
+		return True '''
 	
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
