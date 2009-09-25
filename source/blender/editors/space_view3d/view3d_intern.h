@@ -66,8 +66,8 @@ void view3d_keymap(struct wmWindowManager *wm);
 
 /* view3d_edit.c */
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
-void VIEW3D_OT_viewmove(struct wmOperatorType *ot);
-void VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
+void VIEW3D_OT_move(struct wmOperatorType *ot);
+void VIEW3D_OT_rotate(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center(struct wmOperatorType *ot);
@@ -137,6 +137,9 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for pick
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 void fly_modal_keymap(struct wmWindowManager *wm);
+void viewrotate_modal_keymap(struct wmWindowManager *wm);
+void viewmove_modal_keymap(struct wmWindowManager *wm);
+void viewzoom_modal_keymap(struct wmWindowManager *wm);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);

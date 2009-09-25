@@ -62,8 +62,8 @@
 
 void view3d_operatortypes(void)
 {
-	WM_operatortype_append(VIEW3D_OT_viewrotate);
-	WM_operatortype_append(VIEW3D_OT_viewmove);
+	WM_operatortype_append(VIEW3D_OT_rotate);
+	WM_operatortype_append(VIEW3D_OT_move);
 	WM_operatortype_append(VIEW3D_OT_zoom);
 	WM_operatortype_append(VIEW3D_OT_view_all);
 	WM_operatortype_append(VIEW3D_OT_viewnumpad);
@@ -119,8 +119,8 @@ void view3d_keymap(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
 	
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_viewrotate", MIDDLEMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_viewmove", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_rotate", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_move", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center", PADPERIOD, KM_PRESS, 0, 0);
 	
@@ -222,5 +222,8 @@ void view3d_keymap(wmWindowManager *wm)
 	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
 
 	fly_modal_keymap(wm);
+	viewrotate_modal_keymap(wm);
+	viewmove_modal_keymap(wm);
+	viewzoom_modal_keymap(wm);
 }
 
