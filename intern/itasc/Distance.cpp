@@ -1,4 +1,4 @@
-/* $Id: Distance.cpp 20603 2009-06-03 15:17:52Z ben2610 $
+/* $Id$
  * Distance.cpp
  *
  *  Created on: Jan 30, 2009

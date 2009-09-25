@@ -1,4 +1,4 @@
-/* $Id: Armature.cpp 21152 2009-06-25 11:57:19Z ben2610 $
+/* $Id$
  * Armature.cpp
  *
  *  Created on: Feb 3, 2009

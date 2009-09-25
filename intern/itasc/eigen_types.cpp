@@ -1,4 +1,4 @@
-/* $Id: eigen_types.cpp 19905 2009-04-23 13:29:54Z ben2610 $
+/* $Id$
  * eigen_types.cpp
  *
  *  Created on: March 19, 2009

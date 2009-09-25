@@ -39,7 +39,7 @@
  *		- $log$
  *
  *	\par Release
- *		$Id: error.h 19905 2009-04-23 13:29:54Z ben2610 $
+ *		$Id$
  *		$Name:  $ 
  ****************************************************************************/
 #ifndef ERROR_H_84822 // to make it unique, a random number

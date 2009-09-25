@@ -1,4 +1,4 @@
-/* $Id: ConstraintSet.cpp 19905 2009-04-23 13:29:54Z ben2610 $
+/* $Id$
  * ConstraintSet.cpp
  *
  *  Created on: Jan 5, 2009

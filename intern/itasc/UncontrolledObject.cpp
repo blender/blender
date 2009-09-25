@@ -1,4 +1,4 @@
-/* $Id: UncontrolledObject.cpp 19907 2009-04-23 13:41:59Z ben2610 $
+/* $Id$
  * UncontrolledObject.cpp
  *
  *  Created on: Jan 5, 2009

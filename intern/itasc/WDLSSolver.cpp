@@ -1,4 +1,4 @@
-/* $Id: WDLSSolver.cpp 20749 2009-06-09 11:27:30Z ben2610 $
+/* $Id$
  * WDLSSolver.hpp.cpp
  *
  *  Created on: Jan 8, 2009

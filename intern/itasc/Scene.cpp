@@ -1,4 +1,4 @@
-/* $Id: Scene.cpp 20874 2009-06-14 13:50:34Z ben2610 $
+/* $Id$
  * Scene.cpp
  *
  *  Created on: Jan 5, 2009

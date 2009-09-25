@@ -9,7 +9,7 @@
  *		- $log$
  *
  *	\par Release
- *		$Id: utility.h 19905 2009-04-23 13:29:54Z ben2610 $
+ *		$Id$
  *		$Name:  $ 
  *  \file
  *    Included by most lrl-files to provide some general

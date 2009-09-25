@@ -1,4 +1,4 @@
-/* $Id: MovingFrame.cpp 20853 2009-06-13 12:29:46Z ben2610 $
+/* $Id$
  * MovingFrame.cpp
  *
  *  Created on: Feb 10, 2009

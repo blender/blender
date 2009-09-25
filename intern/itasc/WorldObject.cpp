@@ -1,4 +1,4 @@
-/* $Id: WorldObject.cpp 19907 2009-04-23 13:41:59Z ben2610 $
+/* $Id$
  * WorldObject.cpp
  *
  *  Created on: Feb 10, 2009

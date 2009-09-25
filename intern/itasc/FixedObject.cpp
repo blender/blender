@@ -1,4 +1,4 @@
-/* $Id: FixedObject.cpp 19905 2009-04-23 13:29:54Z ben2610 $
+/* $Id$
  * FixedObject.cpp
  *
  *  Created on: Feb 10, 2009
