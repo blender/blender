@@ -48,9 +48,6 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 		
 		col = split.column()
 		
-		if scene.network_render.mode == "RENDER_CLIENT":
-			col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animaton on network")
-			
 		col.itemR(scene.network_render, "mode")
 		col.itemR(scene.network_render, "path")
 		col.itemR(scene.network_render, "server_address")
@@ -60,12 +57,33 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 			col.itemR(scene.network_render, "server_broadcast")
 		else:
 			col.itemO("render.netclientscan", icon="ICON_FILE_REFRESH", text="")
+
+@rnaType
+class SCENE_PT_network_job(RenderButtonsPanel):
+	__label__ = "Job Settings"
+	COMPAT_ENGINES = set(['NET_RENDER'])
+	
+	def poll(self, context):
+		scene = context.scene
+		return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+
+	def draw(self, context):
+		layout = self.layout
+		scene = context.scene
+		rd = scene.render_data
 		
-		if scene.network_render.mode == "RENDER_CLIENT":
-			col.itemO("render.netclientsend", text="send job to server")
-			col.itemR(scene.network_render, "job_name")
-			col.itemR(scene.network_render, "priority")
-			col.itemR(scene.network_render, "chunks")
+		layout.active = True
+		
+		split = layout.split()
+		
+		col = split.column()
+		
+		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animaton on network")
+		col.itemO("render.netclientsend", icon="ICON_FILE_BLEND", text="Send job")
+		col.itemO("render.netclientweb", icon="ICON_QUESTION", text="Open Master Monitor")
+		col.itemR(scene.network_render, "job_name")
+		col.itemR(scene.network_render, "priority")
+		col.itemR(scene.network_render, "chunks")
 
 @rnaType
 class SCENE_PT_network_slaves(RenderButtonsPanel):

@@ -1,6 +1,7 @@
 import bpy
 import sys, os
 import http, http.client, http.server, urllib, socket
+import webbrowser
 
 from netrender.utils import *
 import netrender.client as client
@@ -369,13 +370,13 @@ class netclientscan(bpy.types.Operator):
 	def execute(self, context):
 		netsettings = context.scene.network_render
 		
-		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-		s.settimeout(30)
-
-		s.bind(('', 8000))
-		
 		try:
+			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+			s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+			s.settimeout(30)
+	
+			s.bind(('', 8000))
+			
 			buf, address = s.recvfrom(64)
 			
 			print("received:", buf)
@@ -384,6 +385,37 @@ class netclientscan(bpy.types.Operator):
 			netsettings.server_port = int(str(buf, encoding='utf8'))
 		except socket.timeout:
 			print("no server info")
+		
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		return self.execute(context)
+
+@rnaOperator
+class netclientweb(bpy.types.Operator):
+	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	__idname__ = "render.netclientweb"
+	__label__ = "Net Render Client Web"
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = []
+	
+	def poll(self, context):
+		return True
+		
+	def execute(self, context):
+		netsettings = context.scene.network_render
+		
+		
+		# open connection to make sure server exists
+		conn = clientConnection(context.scene)
+		
+		if conn:
+			conn.close()
+			
+			webbrowser.open("http://%s:%i" % (netsettings.server_address, netsettings.server_port))
 		
 		return ('FINISHED',)
 	
