@@ -61,12 +61,6 @@ class Balancer:
 	
 # ==========================
 
-
-class RatingCredit(RatingRule):
-	def rate(self, job):
-		# more credit is better (sort at first in list)
-		return -job.credits * job.priority
-
 class RatingUsage(RatingRule):
 	def rate(self, job):
 		# less usage is better

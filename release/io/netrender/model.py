@@ -80,7 +80,6 @@ class RenderJob:
 		self.frames = []
 		self.chunks = 0
 		self.priority = 0
-		self.credits = 0
 		self.usage = 0.0
 		self.blacklist = []
 		self.last_dispatched = 0.0
@@ -145,7 +144,6 @@ class RenderJob:
 							"chunks": self.chunks,
 							"priority": self.priority,
 							"usage": self.usage,
-							"credits": self.credits,
 							"blacklist": self.blacklist,
 							"last_dispatched": self.last_dispatched
 						}
@@ -163,7 +161,6 @@ class RenderJob:
 		job.chunks = data["chunks"]
 		job.priority = data["priority"]
 		job.usage = data["usage"]
-		job.credits = data["credits"]
 		job.blacklist = data["blacklist"]
 		job.last_dispatched = data["last_dispatched"]
 

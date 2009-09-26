@@ -205,7 +205,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			conn.request("GET", "/slave")
+			conn.request("GET", "/slaves")
 			
 			response = conn.getresponse()
 			print( response.status, response.reason )
@@ -289,7 +289,7 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			conn.request("POST", "/cancel")
+			conn.request("POST", "/clear")
 			
 			response = conn.getresponse()
 			print( response.status, response.reason )

@@ -32,8 +32,8 @@ def slave_Info():
 	slave.stats = sysname + " " + release + " " + machine + " " + processor
 	return slave
 
-def testCancel(conn, job_id):
-		conn.request("HEAD", "/status", headers={"job-id":job_id})
+def testCancel(conn, job_id, frame_number):
+		conn.request("HEAD", "/status", headers={"job-id":job_id, "job-frame": str(frame_number)})
 		response = conn.getresponse()
 		
 		# cancelled if job isn't found anymore
@@ -152,7 +152,7 @@ def render_slave(engine, scene):
 							stdout = bytes()
 						
 						run_t = current_t
-						if testCancel(conn, job.id):
+						if testCancel(conn, job.id, first_frame):
 							cancelled = True
 				
 				if cancelled:

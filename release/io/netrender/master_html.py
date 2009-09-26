@@ -55,7 +55,6 @@ def get(handler):
 		headerTable(	
 									"name",
 									"priority",
-									"credits",
 									"usage",
 									"wait",
 									"length",
@@ -66,14 +65,13 @@ def get(handler):
 									"exception"
 								)
 
-		handler.server.update()
+		handler.server.balance()
 		
 		for job in handler.server.jobs:
 			results = job.framesStatus()
 			rowTable(	
 								link(job.name, "/html/job" + job.id),
 								job.priority,
-								round(job.credits, 1),
 								"%0.1f%%" % (job.usage * 100),
 								"%is" % int(time.time() - job.last_dispatched),
 								len(job),
@@ -92,7 +90,7 @@ def get(handler):
 		
 		output("<html><head><title>NetRender</title></head><body>")
 	
-		job = handler.server.getJobByID(job_id)
+		job = handler.server.getJobID(job_id)
 		
 		if job:
 			output("<h2>Frames</h2>")
@@ -119,7 +117,7 @@ def get(handler):
 			job_id = match.groups()[0]
 			frame_number = int(match.groups()[1])
 			
-			job = handler.server.getJobByID(job_id)
+			job = handler.server.getJobID(job_id)
 			
 			if job:
 				frame = job[frame_number]
