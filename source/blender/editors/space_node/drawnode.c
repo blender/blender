@@ -1119,15 +1119,15 @@ static void node_composit_buts_blur(uiLayout *layout, PointerRNA *ptr)
 	}
 	
 	uiItemR(col, NULL, 0, ptr, "relative", 0);
-	row= uiLayoutRow(col, 1);
+	col= uiLayoutColumn(layout, 1);
 	if (RNA_boolean_get(ptr, "relative")== 1) {
-		uiItemR(row, "X", 0, ptr, "factor_x", 0);
-		uiItemR(row, "Y", 0, ptr, "factor_y", 0);
+		uiItemR(col, "X", 0, ptr, "factor_x", 0);
+		uiItemR(col, "Y", 0, ptr, "factor_y", 0);
 	}
 	
 	else {
-		uiItemR(row, "X", 0, ptr, "sizex", 0);
-		uiItemR(row, "Y", 0, ptr, "sizey", 0);
+		uiItemR(col, "X", 0, ptr, "sizex", 0);
+		uiItemR(col, "Y", 0, ptr, "sizey", 0);
 	}
 }
 
@@ -1140,10 +1140,8 @@ static void node_composit_buts_dblur(uiLayout *layout, PointerRNA *ptr)
 	
 	col= uiLayoutColumn(layout, 1);
 	uiItemL(col, "Center:", 0);
-	
-	row= uiLayoutRow(col, 1);
-	uiItemR(row, "X:", 0, ptr, "center_x", 0);
-	uiItemR(row, "Y", 0, ptr, "center_y", 0);
+	uiItemR(col, "X", 0, ptr, "center_x", 0);
+	uiItemR(col, "Y", 0, ptr, "center_y", 0);
 	
 	uiItemS(layout);
 	
@@ -1172,7 +1170,7 @@ static void node_composit_buts_defocus(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *sub, *col;
 	
-	col= uiLayoutColumn(layout, 1);
+	col= uiLayoutColumn(layout, 0);
 	uiItemL(col, "Bokeh Type:", 0);
 	uiItemR(col, "", 0, ptr, "bokeh", 0);
 	uiItemR(col, NULL, 0, ptr, "angle", 0);
@@ -1211,7 +1209,7 @@ static void node_composit_buts_glare(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(layout, NULL, 0, ptr, "iterations", 0);
 	
 		if (RNA_enum_get(ptr, "glare_type")!= 0) 
-			uiItemR(layout, NULL, 0, ptr, "color_modulation", 0);
+			uiItemR(layout, NULL, 0, ptr, "color_modulation", UI_ITEM_R_SLIDER);
 	}
 	
 	uiItemR(layout, NULL, 0, ptr, "mix", 0);		
@@ -1222,7 +1220,7 @@ static void node_composit_buts_glare(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(layout, NULL, 0, ptr, "angle_offset", 0);
 	}
 	if (RNA_enum_get(ptr, "glare_type")== 0 || RNA_enum_get(ptr, "glare_type")== 2) {
-		uiItemR(layout, NULL, 0, ptr, "fade", 0);
+		uiItemR(layout, NULL, 0, ptr, "fade", UI_ITEM_R_SLIDER);
 		
 		if (RNA_enum_get(ptr, "glare_type")== 0) 
 			uiItemR(layout, NULL, 0, ptr, "rotate_45", 0);
@@ -1237,18 +1235,18 @@ static void node_composit_buts_tonemap(uiLayout *layout, PointerRNA *ptr)
 {	
 	uiLayout *col;
 
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, 0);
 	uiItemR(col, "", 0, ptr, "tonemap_type", 0);
 	if (RNA_enum_get(ptr, "tonemap_type")== 0) {
-		uiItemR(col, NULL, 0, ptr, "key", 0);
+		uiItemR(col, NULL, 0, ptr, "key", UI_ITEM_R_SLIDER);
 		uiItemR(col, NULL, 0, ptr, "offset", 0);
 		uiItemR(col, NULL, 0, ptr, "gamma", 0);
 	}
 	else {
 		uiItemR(col, NULL, 0, ptr, "intensity", 0);
-		uiItemR(col, NULL, 0, ptr, "contrast", 0);
-		uiItemR(col, NULL, 0, ptr, "adaptation", 0);
-		uiItemR(col, NULL, 0, ptr, "correction", 0);
+		uiItemR(col, NULL, 0, ptr, "contrast", UI_ITEM_R_SLIDER);
+		uiItemR(col, NULL, 0, ptr, "adaptation", UI_ITEM_R_SLIDER);
+		uiItemR(col, NULL, 0, ptr, "correction", UI_ITEM_R_SLIDER);
 	}
 }
 
@@ -1270,7 +1268,7 @@ static void node_composit_buts_vecblur(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *col;
 	
-	col= uiLayoutColumn(layout, 1);
+	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, NULL, 0, ptr, "samples", 0);
 	uiItemR(col, "Blur", 0, ptr, "factor", 0);
 	
@@ -1309,7 +1307,7 @@ static void node_composit_buts_splitviewer(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *row, *col;
 	
-	col= uiLayoutColumn(layout, 1);
+	col= uiLayoutColumn(layout, 0);
 	row= uiLayoutRow(col, 0);
 	uiItemR(row, NULL, 0, ptr, "axis", UI_ITEM_R_EXPAND);
 	uiItemR(col, NULL, 0, ptr, "factor", 0);
@@ -1351,7 +1349,7 @@ static void node_composit_buts_hue_sat(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *col;
 	
-	col =uiLayoutColumn(layout, 1);
+	col =uiLayoutColumn(layout, 0);
 	uiItemR(col, NULL, 0, ptr, "hue", UI_ITEM_R_SLIDER);
 	uiItemR(col, NULL, 0, ptr, "sat", UI_ITEM_R_SLIDER);
 	uiItemR(col, NULL, 0, ptr, "val", UI_ITEM_R_SLIDER);
@@ -1384,7 +1382,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *row, *col;
 	
-	col =uiLayoutColumn(layout, 1);
+	col =uiLayoutColumn(layout, 0);
 	uiItemR(col, NULL, 0, ptr, "factor", 0);
 	row= uiLayoutRow(col, 0);
 	uiItemR(row, NULL, 0, ptr, "channel", UI_ITEM_R_EXPAND);
@@ -1392,35 +1390,37 @@ static void node_composit_buts_color_spill(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_chroma_matte(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-	short dx=(butr->xmax-butr->xmin)/2;
-	NodeChroma *c= node->storage;
 
-	uiBlockBeginAlign(block);
+	uiLayout *col;
+	
+	col= uiLayoutColumn(layout, 0);
+	uiItemR(col, NULL, 0, ptr, "acceptance", 0);
+	uiItemR(col, NULL, 0, ptr, "cutoff", 0);
+	
+	col= uiLayoutColumn(layout, 1);
+	uiItemR(col, NULL, 0, ptr, "lift", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "gain", UI_ITEM_R_SLIDER);
+	uiItemR(col, NULL, 0, ptr, "shadow_adjust", UI_ITEM_R_SLIDER);
 
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Acceptance ",
-		butr->xmin, butr->ymin+60, butr->xmax-butr->xmin, 20,
-		&c->t1, 1.0f, 80.0f, 100, 0, "Tolerance for colors to be considered a keying color");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Cutoff ",
-		butr->xmin, butr->ymin+40, butr->xmax-butr->xmin, 20,
-		&c->t2, 0.0f, 30.0f, 100, 0, "Colors below this will be considered as exact matches for keying color");
+//	uiBlock *block= uiLayoutFreeBlock(layout);
+//	bNode *node= ptr->data;
+//	rctf *butr= &node->butr;
+//	short dx=(butr->xmax-butr->xmin)/2;
+//	NodeChroma *c= node->storage;
 
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Lift ",
-		butr->xmin, butr->ymin+20, dx, 20,
-		&c->fsize, 0.0f, 1.0f, 100, 0, "Alpha Lift");
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Gain ",
-		butr->xmin+dx, butr->ymin+20, dx, 20,
-		&c->fstrength, 0.0f, 1.0f, 100, 0, "Alpha Gain");
-
-	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Shadow Adjust ",
-		butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-		&c->t3, 0.0f, 1.0f, 100, 0, "Adjusts the brightness of any shadows captured");
-	uiBlockEndAlign(block);
-
-	if(c->t2 > c->t1)
-		c->t2=c->t1;
+//	uiBlockBeginAlign(block);
+//
+//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Acceptance ", butr->xmin, butr->ymin+60, butr->xmax-butr->xmin, 20, &c->t1, 1.0f, 80.0f, 100, 0, "Tolerance for colors to be considered a keying color");
+//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Cutoff ", butr->xmin, butr->ymin+40, butr->xmax-butr->xmin, 20, &c->t2, 0.0f, 30.0f, 100, 0, "Colors below this will be considered as exact matches for keying color");
+//
+//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Lift ", butr->xmin, butr->ymin+20, dx, 20, &c->fsize, 0.0f, 1.0f, 100, 0, "Alpha Lift");
+//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Gain ", butr->xmin+dx, butr->ymin+20, dx, 20, &c->fstrength, 0.0f, 1.0f, 100, 0, "Alpha Gain");
+//
+//	uiDefButF(block, NUMSLI, B_NODE_EXEC, "Shadow Adjust ", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &c->t3, 0.0f, 1.0f, 100, 0, "Adjusts the brightness of any shadows captured");
+//	uiBlockEndAlign(block);
+//
+//	if(c->t2 > c->t1)
+//		c->t2=c->t1;
 }
 
 static void node_composit_buts_color_matte(uiLayout *layout, PointerRNA *ptr)

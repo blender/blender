@@ -38,13 +38,13 @@ class DATA_PT_camera(DataButtonsPanel):
 
 		layout.itemR(cam, "type", expand=True)
 			
-		row = layout.row(align=True)
+		row = layout.row()
 		if cam.type == 'PERSP':
-			row.itemR(cam, "lens_unit", text="")
 			if cam.lens_unit == 'MILLIMETERS':
 				row.itemR(cam, "lens", text="Angle")
 			elif cam.lens_unit == 'DEGREES':
 				row.itemR(cam, "angle")
+			row.itemR(cam, "lens_unit", text="")
 
 		elif cam.type == 'ORTHO':
 			row.itemR(cam, "ortho_scale")
@@ -86,11 +86,13 @@ class DATA_PT_camera_display(DataButtonsPanel):
 		col.itemR(cam, "show_name", text="Name")
 			
 		col = split.column()
+		col.itemR(cam, "draw_size", text="Size")
+		col.itemS()
 		col.itemR(cam, "show_passepartout", text="Passepartout")
 		sub = col.column()
 		sub.active = cam.show_passepartout
 		sub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
-		col.itemR(cam, "draw_size", text="Size")
+		
 		
 bpy.types.register(DATA_PT_context_camera)
 bpy.types.register(DATA_PT_camera)

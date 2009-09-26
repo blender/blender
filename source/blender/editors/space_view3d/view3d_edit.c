@@ -1056,7 +1056,7 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "View home";
+	ot->name= "View All";
 	ot->description = "View all objects in scene.";
 	ot->idname= "VIEW3D_OT_view_all";
 
@@ -1195,7 +1195,7 @@ void VIEW3D_OT_view_center(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "View center";
+	ot->name= "View Selected";
 	ot->description = "Move the view to the selection center.";
 	ot->idname= "VIEW3D_OT_view_center";
 

@@ -242,7 +242,7 @@ static void rna_def_image(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_field_order_items[]= {
 		{0, "EVEN", 0, "Even", "Even Fields first"},
-		{IMA_STD_FIELD, "Odd", 0, "Odd", "Odd Fields first"},
+		{IMA_STD_FIELD, "ODD", 0, "Odd", "Odd Fields first"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Image", "ID");

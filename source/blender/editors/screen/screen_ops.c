@@ -1574,7 +1574,7 @@ static int screen_full_area_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 {
-	ot->name = "Toggle Make Area Fullscreen";
+	ot->name = "Toggle Full Screen";
 	ot->idname = "SCREEN_OT_screen_full_area";
 	
 	ot->exec= screen_full_area_exec;
@@ -2097,7 +2097,7 @@ static int region_foursplit_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Split Region in 4 Parts";
+	ot->name= "Toggle Quad View";
 	ot->idname= "SCREEN_OT_region_foursplit";
 	
 	/* api callbacks */
@@ -2347,7 +2347,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_animation_play(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Animation player";
+	ot->name= "Play Animation";
 	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */
