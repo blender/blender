@@ -2123,13 +2123,13 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "speed_of_sound", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "audio.speed_of_sound");
-	RNA_def_property_range(prop, 1.0f, FLT_MAX);
+	RNA_def_property_range(prop, 0.01f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Speed of Sound", "Speed of sound for doppler effect calculation.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "doppler_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "audio.doppler_factor");
-	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Doppler Factor", "Pitch factor for doppler effect calculation.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 

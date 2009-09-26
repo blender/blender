@@ -39,8 +39,6 @@ using namespace std;
 
 class SCA_BasicEventManager : public SCA_EventManager
 {
-	class SCA_LogicManager* m_logicmgr;
-
 public:
 	SCA_BasicEventManager(class SCA_LogicManager* logicmgr);
 	~SCA_BasicEventManager();

@@ -450,9 +450,10 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 	float fps = FPS;
 	AUD_Sound *limiter, *delayer;
 	int frameskip, s, e;
-	AUD_Handle* h;
 
 	end++;
+
+	AUD_setDeviceVolume(mixdown, volume);
 
 	for(handle = scene->sound_handles.first; handle; handle = handle->next)
 	{
@@ -471,8 +472,7 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 			limiter = AUD_limitSound(handle->source->handle, frameskip / fps, e / fps);
 			delayer = AUD_delaySound(limiter, s / fps);
 
-			h = AUD_playDevice(mixdown, delayer);
-			AUD_setDeviceSoundVolume(mixdown, h, volume);
+			AUD_playDevice(mixdown, delayer);
 
 			AUD_unload(delayer);
 			AUD_unload(limiter);
