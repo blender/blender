@@ -62,8 +62,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #include <Python.h>
-#include "api2_2x/vector.h"
-#include "api2_2x/gen_utils.h"
+#include "generic/Mathutils.h"
 
 //==============================
 // C++ => Python
@@ -88,10 +87,10 @@ PyObject * BPy_FEdgeSmooth_from_FEdgeSmooth( FEdgeSmooth& fes );
 PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
 PyObject * BPy_Interface1D_from_Interface1D( Interface1D& if1D );
-PyObject * BPy_IntegrationType_from_IntegrationType( int i );
+PyObject * BPy_IntegrationType_from_IntegrationType( IntegrationType i );
 PyObject * BPy_FrsMaterial_from_FrsMaterial( FrsMaterial& m );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
-PyObject * BPy_MediumType_from_MediumType( int n );
+PyObject * BPy_MediumType_from_MediumType( Stroke::MediumType n );
 PyObject * BPy_SShape_from_SShape( SShape& ss );
 PyObject * BPy_Stroke_from_Stroke( Stroke& s );
 PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa );

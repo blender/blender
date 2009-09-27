@@ -24,7 +24,7 @@ typedef struct {
 
 /*---------------------------Python BPy_StrokeAttribute visible prototypes-----------*/
 
-PyMODINIT_FUNC StrokeAttribute_Init( PyObject *module );
+int StrokeAttribute_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

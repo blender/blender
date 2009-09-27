@@ -23,7 +23,7 @@ typedef struct {
 
 /*---------------------------Python BPy_UnaryFunction0D visible prototypes-----------*/
 
-PyMODINIT_FUNC UnaryFunction0D_Init( PyObject *module );
+int UnaryFunction0D_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

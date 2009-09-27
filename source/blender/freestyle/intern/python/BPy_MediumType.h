@@ -17,12 +17,21 @@ extern PyTypeObject MediumType_Type;
 
 /*---------------------------Python BPy_MediumType structure definition----------*/
 typedef struct {
-	PyIntObject i;
+	PyLongObject i;
 } BPy_MediumType;
 
 /*---------------------------Python BPy_MediumType visible prototypes-----------*/
 
-PyMODINIT_FUNC MediumType_Init( PyObject *module );
+int MediumType_Init( PyObject *module );
+
+// internal constants
+extern PyLongObject _BPy_MediumType_DRY_MEDIUM;
+extern PyLongObject _BPy_MediumType_HUMID_MEDIUM;
+extern PyLongObject _BPy_MediumType_OPAQUE_MEDIUM;
+// public constants
+#define BPy_MediumType_DRY_MEDIUM     ((PyObject *)&_BPy_MediumType_DRY_MEDIUM)
+#define BPy_MediumType_HUMID_MEDIUM   ((PyObject *)&_BPy_MediumType_HUMID_MEDIUM)
+#define BPy_MediumType_OPAQUE_MEDIUM  ((PyObject *)&_BPy_MediumType_OPAQUE_MEDIUM)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

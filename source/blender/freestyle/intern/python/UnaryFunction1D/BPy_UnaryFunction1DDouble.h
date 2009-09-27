@@ -22,7 +22,7 @@ typedef struct {
 } BPy_UnaryFunction1DDouble;
 
 /*---------------------------Python BPy_UnaryFunction1DDouble visible prototypes-----------*/
-PyMODINIT_FUNC UnaryFunction1DDouble_Init( PyObject *module );
+int UnaryFunction1DDouble_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

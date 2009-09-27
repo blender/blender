@@ -25,7 +25,7 @@ typedef struct {
 } BPy_UnaryFunction0DVec3f;
 
 /*---------------------------Python BPy_UnaryFunction0DVec3f visible prototypes-----------*/
-PyMODINIT_FUNC UnaryFunction0DVec3f_Init( PyObject *module );
+int UnaryFunction0DVec3f_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

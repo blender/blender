@@ -83,90 +83,45 @@ static PySequenceMethods Stroke_as_sequence = {
 };
 
 PyTypeObject Stroke_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,							/* ob_size */
-	"Stroke",				/* tp_name */
-	sizeof( BPy_Stroke ),	/* tp_basicsize */
-	0,							/* tp_itemsize */
-	
-	/* methods */
-	NULL,	/* tp_dealloc */
-	NULL,                       				/* printfunc tp_print; */
-	NULL,                       				/* getattrfunc tp_getattr; */
-	NULL,                       				/* setattrfunc tp_setattr; */
-	NULL,										/* tp_compare */
-	NULL,					/* tp_repr */
-
-	/* Method suites for standard classes */
-
-	NULL,                       /* PyNumberMethods *tp_as_number; */
-	&Stroke_as_sequence,        /* PySequenceMethods *tp_as_sequence; */
-	NULL,                       /* PyMappingMethods *tp_as_mapping; */
-
-	/* More standard operations (here for binary compatibility) */
-
-	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
-	NULL,                       /* getattrofunc tp_getattro; */
-	NULL,                       /* setattrofunc tp_setattro; */
-
-	/* Functions to access object as input/output buffer */
-	NULL,                       /* PyBufferProcs *tp_as_buffer; */
-
-  /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 		/* long tp_flags; */
-
-	NULL,                       /*  char *tp_doc;  Documentation string */
-  /*** Assigned meaning in release 2.0 ***/
-	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
-
-	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
-
-  /***  Assigned meaning in release 2.1 ***/
-  /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
-
-  /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
-
-  /*** Added in release 2.2 ***/
-	/*   Iterators */
-	(getiterfunc)Stroke___iter__,            /* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
-
-  /*** Attribute descriptor and subclassing stuff ***/
-	BPy_Stroke_methods,	/* struct PyMethodDef *tp_methods; */
-	NULL,                       	/* struct PyMemberDef *tp_members; */
-	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&Interface1D_Type,				/* struct _typeobject *tp_base; */
-	NULL,							/* PyObject *tp_dict; */
-	NULL,							/* descrgetfunc tp_descr_get; */
-	NULL,							/* descrsetfunc tp_descr_set; */
-	0,                          	/* long tp_dictoffset; */
-	(initproc)Stroke___init__,                       	/* initproc tp_init; */
-	NULL,							/* allocfunc tp_alloc; */
-	NULL,		/* newfunc tp_new; */
-	
-	/*  Low-level free-memory routine */
-	NULL,                       /* freefunc tp_free;  */
-	
-	/* For PyObject_IS_GC */
-	NULL,                       /* inquiry tp_is_gc;  */
-	NULL,                       /* PyObject *tp_bases; */
-	
-	/* method resolution order */
-	NULL,                       /* PyObject *tp_mro;  */
-	NULL,                       /* PyObject *tp_cache; */
-	NULL,                       /* PyObject *tp_subclasses; */
-	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	PyObject_HEAD_INIT(NULL)
+	"Stroke",                       /* tp_name */
+	sizeof(BPy_Stroke),             /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	0,                              /* tp_dealloc */
+	0,                              /* tp_print */
+	0,                              /* tp_getattr */
+	0,                              /* tp_setattr */
+	0,                              /* tp_reserved */
+	0,                              /* tp_repr */
+	0,                              /* tp_as_number */
+	&Stroke_as_sequence,            /* tp_as_sequence */
+	0,                              /* tp_as_mapping */
+	0,                              /* tp_hash  */
+	0,                              /* tp_call */
+	0,                              /* tp_str */
+	0,                              /* tp_getattro */
+	0,                              /* tp_setattro */
+	0,                              /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	"Stroke objects",               /* tp_doc */
+	0,                              /* tp_traverse */
+	0,                              /* tp_clear */
+	0,                              /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	(getiterfunc)Stroke___iter__,   /* tp_iter */
+	0,                              /* tp_iternext */
+	BPy_Stroke_methods,             /* tp_methods */
+	0,                              /* tp_members */
+	0,                              /* tp_getset */
+	&Interface1D_Type,              /* tp_base */
+	0,                              /* tp_dict */
+	0,                              /* tp_descr_get */
+	0,                              /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	(initproc)Stroke___init__,      /* tp_init */
+	0,                              /* tp_alloc */
+	0,                              /* tp_new */
 };
-
-//-------------------MODULE INITIALIZATION--------------------------------
-
 
 //------------------------INSTANCE METHODS ----------------------------------
 
@@ -224,16 +179,13 @@ PyObject * Stroke_item( BPy_Stroke *self, Py_ssize_t i ) {
 PyObject * Stroke___getitem__( BPy_Stroke *self, PyObject *item ) {
 	long i;
 
-	if (PyInt_Check(item)) {
-		i = PyInt_AS_LONG(item);
-	} else if (PyLong_Check(item)) {
-		i = PyLong_AsLong(item);
-		if (i == -1 && PyErr_Occurred())
-			return NULL;
-	} else {
+	if (!PyLong_Check(item)) {
 		PyErr_SetString(PyExc_TypeError, "subscript indices must be integers");
 		return NULL;
 	}
+	i = PyLong_AsLong(item);
+	if (i == -1 && PyErr_Occurred())
+		return NULL;
 	if (i < 0) {
 		i += self->s->strokeVerticesSize();
 	}
@@ -255,8 +207,8 @@ PyObject * Stroke_Resample( BPy_Stroke *self, PyObject *args ) {
 	if(!( PyArg_ParseTuple(args, "O", &obj) ))
 		return NULL;
 
-	if( PyInt_Check(obj) )
-		self->s->Resample( (int) PyInt_AsLong(obj) );
+	if( PyLong_Check(obj) )
+		self->s->Resample( (int) PyLong_AsLong(obj) );
 	else if( PyFloat_Check(obj) )
 		self->s->Resample( (float) PyFloat_AsDouble(obj) );
 	else {
@@ -301,7 +253,7 @@ PyObject * Stroke_getMediumType( BPy_Stroke *self ) {
 }
 
 PyObject * Stroke_getTextureId( BPy_Stroke *self ) {	
-	return PyInt_FromLong( self->s->getTextureId() );
+	return PyLong_FromLong( self->s->getTextureId() );
 }
 
 PyObject * Stroke_hasTips( BPy_Stroke *self ) {	
@@ -337,7 +289,7 @@ PyObject *Stroke_setMediumType( BPy_Stroke *self , PyObject *args) {
 	if(!( PyArg_ParseTuple(args, "O!", &MediumType_Type, &py_mt) ))
 		return NULL;
 
-	self->s->setMediumType( static_cast<Stroke::MediumType>(PyInt_AsLong(py_mt)) );
+	self->s->setMediumType( MediumType_from_BPy_MediumType(py_mt) );
 
 	Py_RETURN_NONE;
 }
@@ -380,7 +332,7 @@ PyObject * Stroke_strokeVerticesEnd( BPy_Stroke *self ) {
 }
 
 PyObject * Stroke_strokeVerticesSize( BPy_Stroke *self ) {
-	return PyInt_FromLong( self->s->strokeVerticesSize() );
+	return PyLong_FromLong( self->s->strokeVerticesSize() );
 }
 
 PyObject * Stroke_verticesBegin( BPy_Stroke *self ) {

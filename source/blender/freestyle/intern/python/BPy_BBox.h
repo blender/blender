@@ -25,7 +25,7 @@ typedef struct {
 
 /*---------------------------Python BPy_BBox visible prototypes-----------*/
 
-PyMODINIT_FUNC BBox_Init( PyObject *module );
+int BBox_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

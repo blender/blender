@@ -8,127 +8,235 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*----------------------Nature instance definitions ----------------------------*/
-static PyMethodDef BPy_Nature_methods[] = {
-	{NULL, NULL, 0, NULL}
+static PyObject *BPy_Nature___and__(PyObject *a, PyObject *b);
+static PyObject *BPy_Nature___xor__(PyObject *a, PyObject *b);
+static PyObject *BPy_Nature___or__(PyObject *a, PyObject *b);
+
+/*-----------------------BPy_Nature number method definitions --------------------*/
+
+PyNumberMethods nature_as_number = {
+	0,                              /* binaryfunc nb_add */
+	0,                              /* binaryfunc nb_subtract */
+	0,                              /* binaryfunc nb_multiply */
+	0,                              /* binaryfunc nb_remainder */
+	0,                              /* binaryfunc nb_divmod */
+	0,                              /* ternaryfunc nb_power */
+	0,                              /* unaryfunc nb_negative */
+	0,                              /* unaryfunc nb_positive */
+	0,                              /* unaryfunc nb_absolute */
+	0,                              /* inquiry nb_bool */
+	0,                              /* unaryfunc nb_invert */
+	0,                              /* binaryfunc nb_lshift */
+	0,                              /* binaryfunc nb_rshift */
+	(binaryfunc)BPy_Nature___and__, /* binaryfunc nb_and */
+	(binaryfunc)BPy_Nature___xor__, /* binaryfunc nb_xor */
+	(binaryfunc)BPy_Nature___or__,  /* binaryfunc nb_or */
+	0,                              /* unaryfunc nb_int */
+	0,                              /* void *nb_reserved */
+	0,                              /* unaryfunc nb_float */
+	0,                              /* binaryfunc nb_inplace_add */
+	0,                              /* binaryfunc nb_inplace_subtract */
+	0,                              /* binaryfunc nb_inplace_multiply */
+	0,                              /* binaryfunc nb_inplace_remainder */
+	0,                              /* ternaryfunc nb_inplace_power */
+	0,                              /* binaryfunc nb_inplace_lshift */
+	0,                              /* binaryfunc nb_inplace_rshift */
+	0,                              /* binaryfunc nb_inplace_and */
+	0,                              /* binaryfunc nb_inplace_xor */
+	0,                              /* binaryfunc nb_inplace_or */
+	0,                              /* binaryfunc nb_floor_divide */
+	0,                              /* binaryfunc nb_true_divide */
+	0,                              /* binaryfunc nb_inplace_floor_divide */
+	0,                              /* binaryfunc nb_inplace_true_divide */
+	0,                              /* unaryfunc nb_index */
 };
 
 /*-----------------------BPy_Nature type definition ------------------------------*/
 
 PyTypeObject Nature_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,							/* ob_size */
-	"Nature",				/* tp_name */
-	sizeof( BPy_Nature ),	/* tp_basicsize */
-	0,							/* tp_itemsize */
-	
-	/* methods */
-	NULL,	/* tp_dealloc */
-	NULL,                       				/* printfunc tp_print; */
-	NULL,                       				/* getattrfunc tp_getattr; */
-	NULL,                       				/* setattrfunc tp_setattr; */
-	NULL,										/* tp_compare */
-	NULL,					/* tp_repr */
-
-	/* Method suites for standard classes */
-
-	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,                       /* PySequenceMethods *tp_as_sequence; */
-	NULL,                       /* PyMappingMethods *tp_as_mapping; */
-
-	/* More standard operations (here for binary compatibility) */
-
-	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
-	NULL,                       /* getattrofunc tp_getattro; */
-	NULL,                       /* setattrofunc tp_setattro; */
-
-	/* Functions to access object as input/output buffer */
-	NULL,                       /* PyBufferProcs *tp_as_buffer; */
-
-  /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 		/* long tp_flags; */
-
-	NULL,                       /*  char *tp_doc;  Documentation string */
-  /*** Assigned meaning in release 2.0 ***/
-	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
-
-	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
-
-  /***  Assigned meaning in release 2.1 ***/
-  /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
-
-  /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
-
-  /*** Added in release 2.2 ***/
-	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
-
-  /*** Attribute descriptor and subclassing stuff ***/
-	BPy_Nature_methods,	/* struct PyMethodDef *tp_methods; */
-	NULL,                       	/* struct PyMemberDef *tp_members; */
-	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	NULL,							/* struct _typeobject *tp_base; */
-	NULL,							/* PyObject *tp_dict; */
-	NULL,							/* descrgetfunc tp_descr_get; */
-	NULL,							/* descrsetfunc tp_descr_set; */
-	0,                          	/* long tp_dictoffset; */
-	NULL,							/* initproc tp_init; */
-	NULL,							/* allocfunc tp_alloc; */
-	NULL,							/* newfunc tp_new; */
-	
-	/*  Low-level free-memory routine */
-	NULL,                       /* freefunc tp_free;  */
-	
-	/* For PyObject_IS_GC */
-	NULL,                       /* inquiry tp_is_gc;  */
-	NULL,                       /* PyObject *tp_bases; */
-	
-	/* method resolution order */
-	NULL,                       /* PyObject *tp_mro;  */
-	NULL,                       /* PyObject *tp_cache; */
-	NULL,                       /* PyObject *tp_subclasses; */
-	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	PyObject_HEAD_INIT(NULL)
+	"Nature",                       /* tp_name */
+	sizeof(PyLongObject),           /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	0,                              /* tp_dealloc */
+	0,                              /* tp_print */
+	0,                              /* tp_getattr */
+	0,                              /* tp_setattr */
+	0,                              /* tp_reserved */
+	0,                              /* tp_repr */
+	&nature_as_number,              /* tp_as_number */
+	0,                              /* tp_as_sequence */
+	0,                              /* tp_as_mapping */
+	0,                              /* tp_hash  */
+	0,                              /* tp_call */
+	0,                              /* tp_str */
+	0,                              /* tp_getattro */
+	0,                              /* tp_setattro */
+	0,                              /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,             /* tp_flags */
+	"Nature objects",               /* tp_doc */
+	0,                              /* tp_traverse */
+	0,                              /* tp_clear */
+	0,                              /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	0,                              /* tp_iter */
+	0,                              /* tp_iternext */
+	0,                              /* tp_methods */
+	0,                              /* tp_members */
+	0,                              /* tp_getset */
+	&PyLong_Type,                   /* tp_base */
+	0,                              /* tp_dict */
+	0,                              /* tp_descr_get */
+	0,                              /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	0,                              /* tp_init */
+	0,                              /* tp_alloc */
+	0,                              /* tp_new */
 };
 
-//-------------------MODULE INITIALIZATION--------------------------------
-PyMODINIT_FUNC Nature_Init( PyObject *module )
-{	
-	PyObject *tmp;
-	
-	if( module == NULL )
-		return;
+/*-----------------------BPy_Nature instance definitions ----------------------------------*/
 
-	Nature_Type.tp_base = &PyInt_Type;
+static PyLongObject _Nature_POINT = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::POINT }
+};
+static PyLongObject _Nature_S_VERTEX = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::S_VERTEX }
+};
+static PyLongObject _Nature_VIEW_VERTEX = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::VIEW_VERTEX }
+};
+static PyLongObject _Nature_NON_T_VERTEX = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::NON_T_VERTEX }
+};
+static PyLongObject _Nature_T_VERTEX = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::T_VERTEX }
+};
+static PyLongObject _Nature_CUSP = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::CUSP }
+};
+static PyLongObject _Nature_NO_FEATURE = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::NO_FEATURE }
+};
+static PyLongObject _Nature_SILHOUETTE = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::SILHOUETTE }
+};
+static PyLongObject _Nature_BORDER = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::BORDER }
+};
+static PyLongObject _Nature_CREASE = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::CREASE }
+};
+static PyLongObject _Nature_RIDGE = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::RIDGE }
+};
+static PyLongObject _Nature_VALLEY = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::VALLEY }
+};
+static PyLongObject _Nature_SUGGESTIVE_CONTOUR = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::SUGGESTIVE_CONTOUR }
+};
+
+#define BPy_Nature_POINT               ((PyObject *)&_Nature_POINT)
+#define BPy_Nature_S_VERTEX            ((PyObject *)&_Nature_S_VERTEX)
+#define BPy_Nature_VIEW_VERTEX         ((PyObject *)&_Nature_VIEW_VERTEX)
+#define BPy_Nature_NON_T_VERTEX        ((PyObject *)&_Nature_NON_T_VERTEX)
+#define BPy_Nature_T_VERTEX            ((PyObject *)&_Nature_T_VERTEX)
+#define BPy_Nature_CUSP                ((PyObject *)&_Nature_CUSP)
+#define BPy_Nature_NO_FEATURE          ((PyObject *)&_Nature_NO_FEATURE)
+#define BPy_Nature_SILHOUETTE          ((PyObject *)&_Nature_SILHOUETTE)
+#define BPy_Nature_BORDER              ((PyObject *)&_Nature_BORDER)
+#define BPy_Nature_CREASE              ((PyObject *)&_Nature_CREASE)
+#define BPy_Nature_RIDGE               ((PyObject *)&_Nature_RIDGE)
+#define BPy_Nature_VALLEY              ((PyObject *)&_Nature_VALLEY)
+#define BPy_Nature_SUGGESTIVE_CONTOUR  ((PyObject *)&_Nature_SUGGESTIVE_CONTOUR)
+
+//-------------------MODULE INITIALIZATION--------------------------------
+int Nature_Init( PyObject *module )
+{	
+	if( module == NULL )
+		return -1;
+
 	if( PyType_Ready( &Nature_Type ) < 0 )
-		return;
+		return -1;
 	Py_INCREF( &Nature_Type );
 	PyModule_AddObject(module, "Nature", (PyObject *)&Nature_Type);
 
 	// VertexNature
-	tmp = PyInt_FromLong( Nature::POINT ); PyDict_SetItemString( Nature_Type.tp_dict, "POINT", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::S_VERTEX ); PyDict_SetItemString( Nature_Type.tp_dict, "S_VERTEX", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::VIEW_VERTEX ); PyDict_SetItemString( Nature_Type.tp_dict, "VIEW_VERTEX", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::NON_T_VERTEX ); PyDict_SetItemString( Nature_Type.tp_dict, "NON_T_VERTEX", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::T_VERTEX ); PyDict_SetItemString( Nature_Type.tp_dict, "T_VERTEX", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::CUSP ); PyDict_SetItemString( Nature_Type.tp_dict, "CUSP", tmp); Py_DECREF(tmp);
+	PyDict_SetItemString( Nature_Type.tp_dict, "POINT", BPy_Nature_POINT);
+	PyDict_SetItemString( Nature_Type.tp_dict, "S_VERTEX", BPy_Nature_S_VERTEX);
+	PyDict_SetItemString( Nature_Type.tp_dict, "VIEW_VERTEX", BPy_Nature_VIEW_VERTEX );
+	PyDict_SetItemString( Nature_Type.tp_dict, "NON_T_VERTEX", BPy_Nature_NON_T_VERTEX );
+	PyDict_SetItemString( Nature_Type.tp_dict, "T_VERTEX", BPy_Nature_T_VERTEX );
+	PyDict_SetItemString( Nature_Type.tp_dict, "CUSP", BPy_Nature_CUSP );
 	
 	// EdgeNature
-	tmp = BPy_Nature_from_Nature( Nature::NO_FEATURE ); PyDict_SetItemString( Nature_Type.tp_dict, "NO_FEATURE", tmp); Py_DECREF(tmp);
-	tmp = BPy_Nature_from_Nature( Nature::SILHOUETTE ); PyDict_SetItemString( Nature_Type.tp_dict, "SILHOUETTE", tmp); Py_DECREF(tmp);
-	tmp = BPy_Nature_from_Nature( Nature::BORDER ); PyDict_SetItemString( Nature_Type.tp_dict, "BORDER", tmp); Py_DECREF(tmp);
-	tmp = BPy_Nature_from_Nature( Nature::CREASE ); PyDict_SetItemString( Nature_Type.tp_dict, "CREASE", tmp); Py_DECREF(tmp);
-	tmp = BPy_Nature_from_Nature( Nature::RIDGE ); PyDict_SetItemString( Nature_Type.tp_dict, "RIDGE", tmp); Py_DECREF(tmp);
-	tmp = BPy_Nature_from_Nature( Nature::VALLEY ); PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", tmp); Py_DECREF(tmp);
-	tmp = BPy_Nature_from_Nature( Nature::SUGGESTIVE_CONTOUR ); PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", tmp); Py_DECREF(tmp);
-	
+	PyDict_SetItemString( Nature_Type.tp_dict, "NO_FEATURE", BPy_Nature_NO_FEATURE );
+	PyDict_SetItemString( Nature_Type.tp_dict, "SILHOUETTE", BPy_Nature_SILHOUETTE );
+	PyDict_SetItemString( Nature_Type.tp_dict, "BORDER", BPy_Nature_BORDER );
+	PyDict_SetItemString( Nature_Type.tp_dict, "CREASE", BPy_Nature_CREASE );
+	PyDict_SetItemString( Nature_Type.tp_dict, "RIDGE", BPy_Nature_RIDGE );
+	PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", BPy_Nature_VALLEY );
+	PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", BPy_Nature_SUGGESTIVE_CONTOUR );
+
+	return 0;
+}
+
+static PyObject *
+BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
+{
+	BPy_Nature *result;
+
+	if (!BPy_Nature_Check(a) || !BPy_Nature_Check(b)) {
+		PyErr_SetString(PyExc_TypeError, "operands must be a Nature object");
+		return NULL;
+	}
+	result = PyObject_NewVar(BPy_Nature, &Nature_Type, 1);
+	if (!result)
+		return NULL;
+	assert(Py_SIZE(a) == 1 && Py_SIZE(b) == 1 && Py_SIZE(result) == 1);
+	switch (op) {
+	case '&':
+		result->i.ob_digit[0] = (((PyLongObject *)a)->ob_digit[0]) & (((PyLongObject *)b)->ob_digit)[0];
+		break;
+	case '^':
+		result->i.ob_digit[0] = (((PyLongObject *)a)->ob_digit[0]) ^ (((PyLongObject *)b)->ob_digit)[0];
+		break;
+	case '|':
+		result->i.ob_digit[0] = (((PyLongObject *)a)->ob_digit[0]) | (((PyLongObject *)b)->ob_digit)[0];
+		break;
+	}
+	return (PyObject *)result;
+}
+
+static PyObject *
+BPy_Nature___and__(PyObject *a, PyObject *b)
+{
+	return BPy_Nature_bitwise(a, '&', b);
+}
+
+static PyObject *
+BPy_Nature___xor__(PyObject *a, PyObject *b)
+{
+	return BPy_Nature_bitwise(a, '^', b);
+}
+
+static PyObject *
+BPy_Nature___or__(PyObject *a, PyObject *b)
+{
+	return BPy_Nature_bitwise(a, '|', b);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -25,7 +25,7 @@ typedef struct {
 } BPy_UnaryFunction0DVectorViewShape;
 
 /*---------------------------Python BPy_UnaryFunction0DVectorViewShape visible prototypes-----------*/
-PyMODINIT_FUNC UnaryFunction0DVectorViewShape_Init( PyObject *module );
+int UnaryFunction0DVectorViewShape_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

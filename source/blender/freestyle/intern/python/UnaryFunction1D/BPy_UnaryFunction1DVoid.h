@@ -22,7 +22,7 @@ typedef struct {
 } BPy_UnaryFunction1DVoid;
 
 /*---------------------------Python BPy_UnaryFunction1DVoid visible prototypes-----------*/
-PyMODINIT_FUNC UnaryFunction1DVoid_Init( PyObject *module );
+int UnaryFunction1DVoid_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

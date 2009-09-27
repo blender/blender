@@ -23,7 +23,7 @@ typedef struct {
 
 /*---------------------------Python BPy_Iterator visible prototypes-----------*/
 
-PyMODINIT_FUNC Iterator_Init( PyObject *module );
+int Iterator_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

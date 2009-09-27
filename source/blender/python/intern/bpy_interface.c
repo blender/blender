@@ -66,6 +66,8 @@
 
 #include "BPY_extern.h"
 
+#include "BPy_Freestyle.h"
+
 #include "../generic/bpy_internal_import.h" // our own imports
 /* external util modules */
 
@@ -181,6 +183,7 @@ static void bpy_init_modules( void )
 	Geometry_Init();
 	Mathutils_Init();
 	BGL_Init();
+	Freestyle_Init();
 }
 
 void BPY_update_modules( void )

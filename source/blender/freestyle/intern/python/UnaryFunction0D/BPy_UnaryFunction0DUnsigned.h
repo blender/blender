@@ -22,7 +22,7 @@ typedef struct {
 } BPy_UnaryFunction0DUnsigned;
 
 /*---------------------------Python BPy_UnaryFunction0DUnsigned visible prototypes-----------*/
-PyMODINIT_FUNC UnaryFunction0DUnsigned_Init( PyObject *module );
+int UnaryFunction0DUnsigned_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

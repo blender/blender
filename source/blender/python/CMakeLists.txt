@@ -29,7 +29,7 @@ FILE(GLOB GENSRC generic/*.c)
 SET(INC 
 	. ../../../intern/guardedalloc ../blenlib ../makesdna ../makesrna
 	../blenkernel ../editors/include ../windowmanager ${PYTHON_INC}
-	../../../extern/glew/include
+	../../../extern/glew/include ../freestyle/intern/python
 )
 
 IF(WITH_OPENEXR)

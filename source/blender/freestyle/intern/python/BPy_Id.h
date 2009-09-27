@@ -26,7 +26,7 @@ typedef struct {
 
 /*---------------------------Python BPy_Id visible prototypes-----------*/
 
-PyMODINIT_FUNC Id_Init( PyObject *module );
+int Id_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

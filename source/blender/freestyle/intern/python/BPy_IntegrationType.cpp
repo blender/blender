@@ -12,13 +12,11 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-static PyObject *BPy_IntegrationType_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
-
 static PyObject * Integrator_integrate( PyObject *self, PyObject *args );
 
 /*-----------------------Integrator module docstring---------------------------------------*/
 
-static char module_docstring[] = "The Blender.Freestyle.Integrator submodule";
+static char module_docstring[] = "The Blender Freestyle.Integrator submodule\n\n";
 
 /*-----------------------Integrator module functions definitions---------------------------*/
 
@@ -27,150 +25,110 @@ static PyMethodDef module_functions[] = {
   {NULL, NULL, 0, NULL}
 };
 
+/*-----------------------Integrator module definition--------------------------------------*/
+
+static PyModuleDef module_definition = {
+    PyModuleDef_HEAD_INIT,
+    "Freestyle.Integrator",
+    module_docstring,
+    -1,
+    module_functions
+};
+
 /*-----------------------BPy_IntegrationType type definition ------------------------------*/
 
 PyTypeObject IntegrationType_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,							/* ob_size */
-	"IntegrationType",				/* tp_name */
-	sizeof( BPy_IntegrationType ),	/* tp_basicsize */
-	0,							/* tp_itemsize */
-	
-	/* methods */
-	NULL,	/* tp_dealloc */
-	NULL,                       				/* printfunc tp_print; */
-	NULL,                       				/* getattrfunc tp_getattr; */
-	NULL,                       				/* setattrfunc tp_setattr; */
-	NULL,										/* tp_compare */
-	NULL,					/* tp_repr */
-
-	/* Method suites for standard classes */
-
-	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,                       /* PySequenceMethods *tp_as_sequence; */
-	NULL,                       /* PyMappingMethods *tp_as_mapping; */
-
-	/* More standard operations (here for binary compatibility) */
-
-	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
-	NULL,                       /* getattrofunc tp_getattro; */
-	NULL,                       /* setattrofunc tp_setattro; */
-
-	/* Functions to access object as input/output buffer */
-	NULL,                       /* PyBufferProcs *tp_as_buffer; */
-
-  /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 		/* long tp_flags; */
-
-	NULL,                       /*  char *tp_doc;  Documentation string */
-  /*** Assigned meaning in release 2.0 ***/
-	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
-
-	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
-
-  /***  Assigned meaning in release 2.1 ***/
-  /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
-
-  /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
-
-  /*** Added in release 2.2 ***/
-	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
-
-  /*** Attribute descriptor and subclassing stuff ***/
-	NULL,							/* struct PyMethodDef *tp_methods; */
-	NULL,                       	/* struct PyMemberDef *tp_members; */
-	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&PyInt_Type,							/* struct _typeobject *tp_base; */
-	NULL,							/* PyObject *tp_dict; */
-	NULL,							/* descrgetfunc tp_descr_get; */
-	NULL,							/* descrsetfunc tp_descr_set; */
-	0,                          	/* long tp_dictoffset; */
-	NULL,                       	/* initproc tp_init; */
-	NULL,							/* allocfunc tp_alloc; */
-	BPy_IntegrationType_new,		/* newfunc tp_new; */
-	
-	/*  Low-level free-memory routine */
-	NULL,                       /* freefunc tp_free;  */
-	
-	/* For PyObject_IS_GC */
-	NULL,                       /* inquiry tp_is_gc;  */
-	NULL,                       /* PyObject *tp_bases; */
-	
-	/* method resolution order */
-	NULL,                       /* PyObject *tp_mro;  */
-	NULL,                       /* PyObject *tp_cache; */
-	NULL,                       /* PyObject *tp_subclasses; */
-	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	PyObject_HEAD_INIT(NULL)
+	"IntegrationType",              /* tp_name */
+	sizeof(PyLongObject),           /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	0,                              /* tp_dealloc */
+	0,                              /* tp_print */
+	0,                              /* tp_getattr */
+	0,                              /* tp_setattr */
+	0,                              /* tp_reserved */
+	0,                              /* tp_repr */
+	0,                              /* tp_as_number */
+	0,                              /* tp_as_sequence */
+	0,                              /* tp_as_mapping */
+	0,                              /* tp_hash  */
+	0,                              /* tp_call */
+	0,                              /* tp_str */
+	0,                              /* tp_getattro */
+	0,                              /* tp_setattro */
+	0,                              /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,             /* tp_flags */
+	"IntegrationType objects",      /* tp_doc */
+	0,                              /* tp_traverse */
+	0,                              /* tp_clear */
+	0,                              /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	0,                              /* tp_iter */
+	0,                              /* tp_iternext */
+	0,                              /* tp_methods */
+	0,                              /* tp_members */
+	0,                              /* tp_getset */
+	&PyLong_Type,                   /* tp_base */
+	0,                              /* tp_dict */
+	0,                              /* tp_descr_get */
+	0,                              /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	0,                              /* tp_init */
+	0,                              /* tp_alloc */
+	0,                              /* tp_new */
 };
 
-static PyObject *
-BPy_IntegrationType_FromIntegrationType(int t)
-{
-	BPy_IntegrationType *obj;
+/*-----------------------BPy_IntegrationType instance definitions -------------------------*/
 
-	obj = PyObject_New(BPy_IntegrationType, &IntegrationType_Type);
-	if (!obj)
-		return NULL;
-	((PyIntObject *)obj)->ob_ival = t;
-	return (PyObject *)obj;
-}
+static PyLongObject _IntegrationType_MEAN = {
+	PyVarObject_HEAD_INIT(&IntegrationType_Type, 1)
+	{ MEAN }
+};
+static PyLongObject _IntegrationType_MIN = {
+	PyVarObject_HEAD_INIT(&IntegrationType_Type, 1)
+	{ MIN }
+};
+static PyLongObject _IntegrationType_MAX = {
+	PyVarObject_HEAD_INIT(&IntegrationType_Type, 1)
+	{ MAX }
+};
+static PyLongObject _IntegrationType_FIRST = {
+	PyVarObject_HEAD_INIT(&IntegrationType_Type, 1)
+	{ FIRST }
+};
+static PyLongObject _IntegrationType_LAST = {
+	PyVarObject_HEAD_INIT(&IntegrationType_Type, 1)
+	{ LAST }
+};
 
-static PyObject *
-BPy_IntegrationType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-	int x = 0;
-	static char *kwlist[] = {"x", 0};
-
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", kwlist, &x))
-		return NULL;
-	return BPy_IntegrationType_FromIntegrationType(x);
-}
+#define BPy_IntegrationType_MEAN  ((PyObject *)&_IntegrationType_MEAN)
+#define BPy_IntegrationType_MIN   ((PyObject *)&_IntegrationType_MIN)
+#define BPy_IntegrationType_MAX   ((PyObject *)&_IntegrationType_MAX)
+#define BPy_IntegrationType_FIRST ((PyObject *)&_IntegrationType_FIRST)
+#define BPy_IntegrationType_LAST  ((PyObject *)&_IntegrationType_LAST)
 
 //-------------------MODULE INITIALIZATION--------------------------------
-PyMODINIT_FUNC IntegrationType_Init( PyObject *module )
+int IntegrationType_Init( PyObject *module )
 {	
-	PyObject *tmp, *m, *d, *f;
+	PyObject *m, *d, *f;
 	
 	if( module == NULL )
-		return;
+		return -1;
 
 	if( PyType_Ready( &IntegrationType_Type ) < 0 )
-		return;
+		return -1;
 	Py_INCREF( &IntegrationType_Type );
 	PyModule_AddObject(module, "IntegrationType", (PyObject *)&IntegrationType_Type);
 
-	tmp = BPy_IntegrationType_FromIntegrationType( MEAN );
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MEAN", tmp);
-	Py_DECREF(tmp);
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MEAN", BPy_IntegrationType_MEAN);
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MIN", BPy_IntegrationType_MIN);
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MAX", BPy_IntegrationType_MAX);
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "FIRST", BPy_IntegrationType_FIRST);
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "LAST", BPy_IntegrationType_LAST);
 	
-	tmp = BPy_IntegrationType_FromIntegrationType( MIN );
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MIN", tmp);
-	Py_DECREF(tmp);
-	
-	tmp = BPy_IntegrationType_FromIntegrationType( MAX );
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MAX", tmp);
-	Py_DECREF(tmp);
-	
-	tmp = BPy_IntegrationType_FromIntegrationType( FIRST );
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "FIRST", tmp);
-	Py_DECREF(tmp);
-	
-	tmp = BPy_IntegrationType_FromIntegrationType( LAST );
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "LAST", tmp);
-	Py_DECREF(tmp);
-	
-	m = Py_InitModule3("Blender.Freestyle.Integrator", module_functions, module_docstring);
-	if (m == NULL)
-		return;
+    m = PyModule_Create(&module_definition);
+    if (m == NULL)
+        return -1;
 	Py_INCREF(m);
 	PyModule_AddObject(module, "Integrator", m);
 
@@ -181,6 +139,8 @@ PyMODINIT_FUNC IntegrationType_Init( PyObject *module )
 		Py_INCREF(f);
 		PyModule_AddObject(module, p->ml_name, f);
 	}
+
+	return 0;
 }
 
 //------------------------ MODULE FUNCTIONS ----------------------------------
@@ -232,7 +192,7 @@ static PyObject * Integrator_integrate( PyObject *self, PyObject *args )
 	} else if( BPy_UnaryFunction0DUnsigned_Check(obj1) ) {
 		UnaryFunction0D<unsigned int> *fun = ((BPy_UnaryFunction0DUnsigned *)obj1)->uf0D_unsigned;
 		unsigned int res = integrate( *fun, it, it_end, t );
-		return PyInt_FromLong( res );
+		return PyLong_FromLong( res );
 
 	} else {
 		string msg("unsupported function type: " + string(obj1->ob_type->tp_name));

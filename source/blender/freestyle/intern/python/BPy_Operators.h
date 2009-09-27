@@ -22,7 +22,7 @@ typedef struct {
 
 /*---------------------------Python BPy_Operators visible prototypes-----------*/
 
-PyMODINIT_FUNC Operators_Init( PyObject *module );
+int Operators_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

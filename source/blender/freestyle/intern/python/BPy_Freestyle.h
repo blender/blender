@@ -9,15 +9,6 @@ extern "C" {
 
 #include <Python.h>
 
-extern PyTypeObject Freestyle_Type;
-
-#define BPy_Freestyle_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Freestyle_Type)  )
-
-/*---------------------------Python BPy_Freestyle structure definition----------*/
-typedef struct {
-	PyObject_HEAD 
-} BPy_Freestyle;
-
 /*---------------------------Python BPy_Freestyle visible prototypes-----------*/
 
 PyObject *Freestyle_Init( void );

@@ -24,7 +24,7 @@ typedef struct {
 
 /*---------------------------Python BPy_FrsMaterial visible prototypes-----------*/
 
-PyMODINIT_FUNC FrsMaterial_Init( PyObject *module );
+int FrsMaterial_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

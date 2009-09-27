@@ -24,7 +24,7 @@ typedef struct {
 
 /*---------------------------Python BPy_ViewShape visible prototypes-----------*/
 
-PyMODINIT_FUNC ViewShape_Init( PyObject *module );
+int ViewShape_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

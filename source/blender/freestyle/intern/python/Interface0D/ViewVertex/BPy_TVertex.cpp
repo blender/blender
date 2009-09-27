@@ -25,103 +25,59 @@ static PyObject * TVertex_mate( BPy_TVertex *self, PyObject *args);
 
 /*----------------------TVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_TVertex_methods[] = {	
-//	{"__copy__", ( PyCFunction ) TVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
-	{"frontSVertex", ( PyCFunction ) TVertex_frontSVertex, METH_NOARGS, "（ ）Returns the SVertex that is closer to the viewpoint. "},
-	{"backSVertex", ( PyCFunction ) TVertex_backSVertex, METH_NOARGS, "（ ）Returns the SVertex that is further away from the viewpoint. "},
-	{"setFrontSVertex", ( PyCFunction ) TVertex_setFrontSVertex, METH_VARARGS, "（SVertex sv ）Sets the SVertex that is closer to the viewpoint. "},
-	{"setBackSVertex", ( PyCFunction ) TVertex_setBackSVertex, METH_VARARGS, "（SVertex sv ）Sets the SVertex that is further away from the viewpoint. "},
-	{"setId", ( PyCFunction ) TVertex_setId, METH_VARARGS, "（Id id ）Sets the Id."},
-	{"getSVertex", ( PyCFunction ) TVertex_getSVertex, METH_VARARGS, "（FEdge fe ）Returns the SVertex (among the 2) belonging to the FEdge iFEdge "},
-	{"mate", ( PyCFunction ) TVertex_mate, METH_VARARGS, "（ViewEdge ve ）Returns the mate edge of iEdgeA. For example, if iEdgeA is frontEdgeA, then frontEdgeB is returned. If iEdgeA is frontEdgeB then frontEdgeA is returned. Same for back edges"},
+//	{"__copy__", ( PyCFunction ) TVertex___copy__, METH_NOARGS, "() Cloning method."},
+	{"frontSVertex", ( PyCFunction ) TVertex_frontSVertex, METH_NOARGS, "() Returns the SVertex that is closer to the viewpoint. "},
+	{"backSVertex", ( PyCFunction ) TVertex_backSVertex, METH_NOARGS, "() Returns the SVertex that is further away from the viewpoint. "},
+	{"setFrontSVertex", ( PyCFunction ) TVertex_setFrontSVertex, METH_VARARGS, "(SVertex sv) Sets the SVertex that is closer to the viewpoint. "},
+	{"setBackSVertex", ( PyCFunction ) TVertex_setBackSVertex, METH_VARARGS, "(SVertex sv) Sets the SVertex that is further away from the viewpoint. "},
+	{"setId", ( PyCFunction ) TVertex_setId, METH_VARARGS, "(Id id) Sets the Id."},
+	{"getSVertex", ( PyCFunction ) TVertex_getSVertex, METH_VARARGS, "(FEdge fe) Returns the SVertex (among the 2) belonging to the FEdge iFEdge "},
+	{"mate", ( PyCFunction ) TVertex_mate, METH_VARARGS, "(ViewEdge ve) Returns the mate edge of iEdgeA. For example, if iEdgeA is frontEdgeA, then frontEdgeB is returned. If iEdgeA is frontEdgeB then frontEdgeA is returned. Same for back edges"},
 	{NULL, NULL, 0, NULL}
 };
 
 /*-----------------------BPy_TVertex type definition ------------------------------*/
 
 PyTypeObject TVertex_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,							/* ob_size */
-	"TVertex",				/* tp_name */
-	sizeof( BPy_TVertex ),	/* tp_basicsize */
-	0,							/* tp_itemsize */
-	
-	/* methods */
-	NULL,	/* tp_dealloc */
-	NULL,                       				/* printfunc tp_print; */
-	NULL,                       				/* getattrfunc tp_getattr; */
-	NULL,                       				/* setattrfunc tp_setattr; */
-	NULL,										/* tp_compare */
-	NULL,					/* tp_repr */
-
-	/* Method suites for standard classes */
-
-	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,                       /* PySequenceMethods *tp_as_sequence; */
-	NULL,                       /* PyMappingMethods *tp_as_mapping; */
-
-	/* More standard operations (here for binary compatibility) */
-
-	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
-	NULL,                       /* getattrofunc tp_getattro; */
-	NULL,                       /* setattrofunc tp_setattro; */
-
-	/* Functions to access object as input/output buffer */
-	NULL,                       /* PyBufferProcs *tp_as_buffer; */
-
-  /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 		/* long tp_flags; */
-
-	NULL,                       /*  char *tp_doc;  Documentation string */
-  /*** Assigned meaning in release 2.0 ***/
-	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
-
-	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
-
-  /***  Assigned meaning in release 2.1 ***/
-  /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
-
-  /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
-
-  /*** Added in release 2.2 ***/
-	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
-
-  /*** Attribute descriptor and subclassing stuff ***/
-	BPy_TVertex_methods,	/* struct PyMethodDef *tp_methods; */
-	NULL,                       	/* struct PyMemberDef *tp_members; */
-	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&ViewVertex_Type,				/* struct _typeobject *tp_base; */
-	NULL,							/* PyObject *tp_dict; */
-	NULL,							/* descrgetfunc tp_descr_get; */
-	NULL,							/* descrsetfunc tp_descr_set; */
-	0,                          	/* long tp_dictoffset; */
-	(initproc)TVertex___init__,                       	/* initproc tp_init; */
-	NULL,							/* allocfunc tp_alloc; */
-	NULL,		/* newfunc tp_new; */
-	
-	/*  Low-level free-memory routine */
-	NULL,                       /* freefunc tp_free;  */
-	
-	/* For PyObject_IS_GC */
-	NULL,                       /* inquiry tp_is_gc;  */
-	NULL,                       /* PyObject *tp_bases; */
-	
-	/* method resolution order */
-	NULL,                       /* PyObject *tp_mro;  */
-	NULL,                       /* PyObject *tp_cache; */
-	NULL,                       /* PyObject *tp_subclasses; */
-	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	PyObject_HEAD_INIT(NULL)
+	"TVertex",                      /* tp_name */
+	sizeof(BPy_TVertex),            /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	0,                              /* tp_dealloc */
+	0,                              /* tp_print */
+	0,                              /* tp_getattr */
+	0,                              /* tp_setattr */
+	0,                              /* tp_reserved */
+	0,                              /* tp_repr */
+	0,                              /* tp_as_number */
+	0,                              /* tp_as_sequence */
+	0,                              /* tp_as_mapping */
+	0,                              /* tp_hash  */
+	0,                              /* tp_call */
+	0,                              /* tp_str */
+	0,                              /* tp_getattro */
+	0,                              /* tp_setattro */
+	0,                              /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	"TVertex objects",              /* tp_doc */
+	0,                              /* tp_traverse */
+	0,                              /* tp_clear */
+	0,                              /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	0,                              /* tp_iter */
+	0,                              /* tp_iternext */
+	BPy_TVertex_methods,            /* tp_methods */
+	0,                              /* tp_members */
+	0,                              /* tp_getset */
+	&ViewVertex_Type,               /* tp_base */
+	0,                              /* tp_dict */
+	0,                              /* tp_descr_get */
+	0,                              /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	(initproc)TVertex___init__,     /* tp_init */
+	0,                              /* tp_alloc */
+	0,                              /* tp_new */
 };
-
-
 
 //------------------------INSTANCE METHODS ----------------------------------
 

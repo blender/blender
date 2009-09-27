@@ -9,7 +9,7 @@ extern "C" {
 
 /*---------------------------Python BPy_ContextFunctions visible prototypes-----------*/
 
-PyMODINIT_FUNC ContextFunctions_Init( PyObject *module );
+int ContextFunctions_Init( PyObject *module );
 
 #ifdef __cplusplus
 }

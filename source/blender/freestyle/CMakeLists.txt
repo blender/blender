@@ -27,7 +27,7 @@
 FILE(GLOB_RECURSE SRC *.cpp)
 
 SET(INC 
-  ../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../python
+  ../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../makesrna ../python
   ../render/extern/include ../render/intern/include ../include ../src
   ../../../extern/glew/include ../../../intern/guardedalloc ../freestyle
   ${PYTHON_INC}

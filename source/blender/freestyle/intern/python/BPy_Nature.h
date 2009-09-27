@@ -17,12 +17,12 @@ extern PyTypeObject Nature_Type;
 
 /*---------------------------Python BPy_Nature structure definition----------*/
 typedef struct {
-	PyIntObject i;
+	PyLongObject i;
 } BPy_Nature;
 
 /*---------------------------Python BPy_Nature visible prototypes-----------*/
 
-PyMODINIT_FUNC Nature_Init( PyObject *module );
+int Nature_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

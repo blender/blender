@@ -15,14 +15,9 @@ extern PyTypeObject IntegrationType_Type;
 
 #define BPy_IntegrationType_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &IntegrationType_Type)  )
 
-/*---------------------------Python BPy_IntegrationType structure definition----------*/
-typedef struct {
-	PyIntObject i;
-} BPy_IntegrationType;
-
 /*---------------------------Python BPy_IntegrationType visible prototypes-----------*/
 
-PyMODINIT_FUNC IntegrationType_Init( PyObject *module );
+int IntegrationType_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

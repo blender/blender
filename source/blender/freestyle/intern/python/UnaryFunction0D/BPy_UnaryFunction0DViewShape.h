@@ -24,7 +24,7 @@ typedef struct {
 } BPy_UnaryFunction0DViewShape;
 
 /*---------------------------Python BPy_UnaryFunction0DViewShape visible prototypes-----------*/
-PyMODINIT_FUNC UnaryFunction0DViewShape_Init( PyObject *module );
+int UnaryFunction0DViewShape_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

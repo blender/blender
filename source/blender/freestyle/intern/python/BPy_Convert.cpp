@@ -58,21 +58,21 @@ PyObject * Vector_from_Vec2f( Vec2f& vec ) {
 	float vec_data[2]; // because vec->_coord is protected
 
 	vec_data[0] = vec.x();		vec_data[1] = vec.y();
-	return newVectorObject( vec_data, 2, Py_NEW);
+	return newVectorObject( vec_data, 2, Py_NEW, NULL);
 }
 
 PyObject * Vector_from_Vec3f( Vec3f& vec ) {
 	float vec_data[3]; // because vec->_coord is protected
 	
 	vec_data[0] = vec.x();		vec_data[1] = vec.y(); 		vec_data[2] = vec.z(); 
-	return newVectorObject( vec_data, 3, Py_NEW);
+	return newVectorObject( vec_data, 3, Py_NEW, NULL);
 }
 
 PyObject * Vector_from_Vec3r( Vec3r& vec ) {
 	float vec_data[3]; // because vec->_coord is protected
 	
 	vec_data[0] = vec.x();		vec_data[1] = vec.y(); 		vec_data[2] = vec.z(); 
-	return newVectorObject( vec_data, 3, Py_NEW);
+	return newVectorObject( vec_data, 3, Py_NEW, NULL);
 }
 
 PyObject * BPy_Id_from_Id( Id& id ) {
@@ -208,7 +208,7 @@ PyObject * BPy_Nature_from_Nature( unsigned short n ) {
 	PyObject *py_n;
 
 	PyObject *args = PyTuple_New(1);
-	PyTuple_SetItem( args, 0, PyInt_FromLong(n) );
+	PyTuple_SetItem( args, 0, PyLong_FromLong(n) );
 	py_n =  Nature_Type.tp_new(&Nature_Type, args, NULL);
 	Py_DECREF(args);
 
@@ -231,12 +231,12 @@ PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa ) {
 	return py_sa;	
 }
 
-PyObject * BPy_MediumType_from_MediumType( int n ) {
-	PyObject *py_mt =  MediumType_Type.tp_new( &MediumType_Type, 0, 0 );
+PyObject * BPy_MediumType_from_MediumType( Stroke::MediumType n ) {
+	PyObject *py_mt;
 
 	PyObject *args = PyTuple_New(1);
-	PyTuple_SetItem( args, 0, PyInt_FromLong(n) );
-	MediumType_Type.tp_init( py_mt, args, 0 );
+	PyTuple_SetItem( args, 0, PyLong_FromLong(n) );
+	py_mt = MediumType_Type.tp_new( &MediumType_Type, args, NULL );
 	Py_DECREF(args);
 
 	return py_mt;
@@ -330,12 +330,12 @@ PyObject * BPy_FrsMaterial_from_FrsMaterial( FrsMaterial& m ){
 	return py_m;
 }
 
-PyObject * BPy_IntegrationType_from_IntegrationType( int i ) {
-	PyObject *py_it = IntegrationType_Type.tp_new( &IntegrationType_Type, 0, 0 );
+PyObject * BPy_IntegrationType_from_IntegrationType( IntegrationType i ) {
+	PyObject *py_it;
 
 	PyObject *args = PyTuple_New(1);
-	PyTuple_SetItem( args, 0, PyInt_FromLong(i) );
-	IntegrationType_Type.tp_init( py_it, args, 0 );
+	PyTuple_SetItem( args, 0, PyLong_FromLong(i) );
+	py_it = IntegrationType_Type.tp_new( &IntegrationType_Type, args, NULL );
 	Py_DECREF(args);
 
 	return py_it;
@@ -457,15 +457,15 @@ bool bool_from_PyBool( PyObject *b ) {
 }
 
 IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj ) {
-	return static_cast<IntegrationType>( PyInt_AsLong(obj) );
+	return static_cast<IntegrationType>( PyLong_AsLong(obj) );
 }
 
 Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj ) {
-	return static_cast<Stroke::MediumType>( PyInt_AsLong(obj) );
+	return static_cast<Stroke::MediumType>( PyLong_AsLong(obj) );
 }
 
 Nature::EdgeNature EdgeNature_from_BPy_Nature( PyObject* obj ) {
-	return static_cast<Nature::EdgeNature>( PyInt_AsLong(obj) );
+	return static_cast<Nature::EdgeNature>( PyLong_AsLong(obj) );
 }
 
 Vec2f * Vec2f_ptr_from_PyObject( PyObject* obj ) {

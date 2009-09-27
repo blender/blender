@@ -24,7 +24,7 @@ typedef struct {
 
 /*---------------------------Python BPy_SShape visible prototypes-----------*/
 
-PyMODINIT_FUNC SShape_Init( PyObject *module );
+int SShape_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

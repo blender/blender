@@ -22,7 +22,7 @@ static PyObject * ContextFunctions_GetSelectedFEdgeCF( PyObject *self );
 
 /*-----------------------ContextFunctions module docstring-------------------------------*/
 
-static char module_docstring[] = "The Blender.Freestyle.ContextFunctions submodule";
+static char module_docstring[] = "The Blender Freestyle.ContextFunctions submodule\n\n";
 
 /*-----------------------ContextFunctions module functions definitions-------------------*/
 
@@ -38,18 +38,28 @@ static PyMethodDef module_functions[] = {
   {NULL, NULL, 0, NULL}
 };
 
+/*-----------------------ContextFunctions module definition--------------------------------*/
+
+static PyModuleDef module_definition = {
+    PyModuleDef_HEAD_INIT,
+    "Freestyle.ContextFunctions",
+    module_docstring,
+    -1,
+    module_functions
+};
+
 //------------------- MODULE INITIALIZATION --------------------------------
 
-void ContextFunctions_Init( PyObject *module )
+int ContextFunctions_Init( PyObject *module )
 {	
   PyObject *m, *d, *f;
 
   if( module == NULL )
-    return;
+    return -1;
 
-  m = Py_InitModule3("Blender.Freestyle.ContextFunctions", module_functions, module_docstring);
+  m = PyModule_Create(&module_definition);
   if (m == NULL)
-    return;
+    return -1;
   Py_INCREF(m);
   PyModule_AddObject(module, "ContextFunctions", m);
 
@@ -60,6 +70,8 @@ void ContextFunctions_Init( PyObject *module )
 	Py_INCREF(f);
 	PyModule_AddObject(module, p->ml_name, f);
   }
+
+  return 0;
 }
 
 //------------------------ MODULE FUNCTIONS ----------------------------------
@@ -67,19 +79,19 @@ void ContextFunctions_Init( PyObject *module )
 static PyObject *
 ContextFunctions_GetTimeStampCF( PyObject* self )
 {
-  return PyInt_FromLong( ContextFunctions::GetTimeStampCF() );
+  return PyLong_FromLong( ContextFunctions::GetTimeStampCF() );
 }
 
 static PyObject *
 ContextFunctions_GetCanvasWidthCF( PyObject* self )
 {
-  return PyInt_FromLong( ContextFunctions::GetCanvasWidthCF() );
+  return PyLong_FromLong( ContextFunctions::GetCanvasWidthCF() );
 }
 
 static PyObject *
 ContextFunctions_GetCanvasHeightCF( PyObject* self )
 {
-  return PyInt_FromLong( ContextFunctions::GetCanvasHeightCF() );
+  return PyLong_FromLong( ContextFunctions::GetCanvasHeightCF() );
 }
 
 static PyObject *

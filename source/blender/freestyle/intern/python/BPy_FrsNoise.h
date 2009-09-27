@@ -23,7 +23,7 @@ typedef struct {
 
 /*---------------------------Python BPy_FrsNoise visible prototypes-----------*/
 
-PyMODINIT_FUNC FrsNoise_Init( PyObject *module );
+int FrsNoise_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

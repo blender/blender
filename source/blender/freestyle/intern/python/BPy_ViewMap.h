@@ -23,7 +23,7 @@ typedef struct {
 
 /*---------------------------Python BPy_ViewMap visible prototypes-----------*/
 
-PyMODINIT_FUNC ViewMap_Init( PyObject *module );
+int ViewMap_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

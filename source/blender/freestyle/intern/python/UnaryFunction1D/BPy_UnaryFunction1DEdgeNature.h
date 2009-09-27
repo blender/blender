@@ -24,7 +24,7 @@ typedef struct {
 } BPy_UnaryFunction1DEdgeNature;
 
 /*---------------------------Python BPy_UnaryFunction1DEdgeNature visible prototypes-----------*/
-PyMODINIT_FUNC UnaryFunction1DEdgeNature_Init( PyObject *module );
+int UnaryFunction1DEdgeNature_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

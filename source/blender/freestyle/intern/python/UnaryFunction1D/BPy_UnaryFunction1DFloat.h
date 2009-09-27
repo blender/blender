@@ -22,7 +22,7 @@ typedef struct {
 } BPy_UnaryFunction1DFloat;
 
 /*---------------------------Python BPy_UnaryFunction1DFloat visible prototypes-----------*/
-PyMODINIT_FUNC UnaryFunction1DFloat_Init( PyObject *module );
+int UnaryFunction1DFloat_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

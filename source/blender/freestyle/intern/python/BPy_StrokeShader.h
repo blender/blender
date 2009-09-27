@@ -28,7 +28,7 @@ typedef struct {
 
 /*---------------------------Python BPy_StrokeShader visible prototypes-----------*/
 
-PyMODINIT_FUNC StrokeShader_Init( PyObject *module );
+int StrokeShader_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
