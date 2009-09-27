@@ -155,6 +155,7 @@ short fcurve_needs_draw_fmodifier_controls(struct FCurve *fcu, struct FModifier 
 int graphop_visible_keyframes_poll(struct bContext *C);
 int graphop_editable_keyframes_poll(struct bContext *C);
 int graphop_active_fcurve_poll(struct bContext *C);
+int graphop_selected_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */
 /* graph_ops.c */

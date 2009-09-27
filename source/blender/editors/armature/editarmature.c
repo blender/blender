@@ -1736,7 +1736,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	
 	ED_armature_sync_selection(arm->edbo);
 
-	WM_event_add_notifier(C, NC_OBJECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -3938,7 +3938,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	ED_armature_sync_selection(arm->edbo);
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 	
 	return OPERATOR_FINISHED;
 }

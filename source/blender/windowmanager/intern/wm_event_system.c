@@ -239,7 +239,7 @@ void wm_event_do_notifiers(bContext *C)
 		
 		if(G.rendering==0) { // XXX make lock in future, or separated derivedmesh users in scene
 			
-			/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
+			/* update all objects, drivers, matrices, displists, etc. Flags set by depgraph or manual, 
 				no layer check here, gets correct flushed */
 			/* sets first, we allow per definition current scene to have dependencies on sets */
 			if(scene->set) {

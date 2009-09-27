@@ -1296,8 +1296,7 @@ void GRAPH_OT_handle_type (wmOperatorType *ot)
 /* set of three euler-rotation F-Curves */
 typedef struct tEulerFilter {
 	ID *id;							/* ID-block which owns the channels */
-	FCurve *fcu1, *fcu2, *fcu3;		/* x,y,z rotation curves */
-	int i1, i2, i3;					/* current index for each curve */
+	FCurve (*fcurves)[3];			/* 3 Pointers to F-Curves */				
 } tEulerFilter;
  
 static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
@@ -1347,10 +1346,26 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 		if ((euf) && (ale->id != euf->id)) {
 			
 		}
+		else {
+			/* just add to a new block */
+			euf= MEM_callocN(sizeof(tEulerFilter), "tEulerFilter");
+			BLI_addtail(&eulers, euf);
+			
+			euf->id= ale->id;
+			euf->fcurves[fcu->array_index]= fcu;
+		}
 	}
+	BLI_freelistN(&anim_data);
 	
-	// XXX for now
-	return OPERATOR_CANCELLED;
+	/* step 2: go through each set of curves, processing the values at each keyframe 
+	 *	- it is assumed that there must be a full set of keyframes at each keyframe position
+	 */
+	for (euf= eulers.first; euf; euf= euf->next) {
+		
+	}
+	BLI_freelistN(&eulers);
+	
+	return OPERATOR_FINISHED;
 }
  
 void GRAPH_OT_euler_filter (wmOperatorType *ot)
@@ -1789,7 +1804,7 @@ void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= graph_fmodifier_add_invoke;
 	ot->exec= graph_fmodifier_add_exec;
-	ot->poll= graphop_active_fcurve_poll; 
+	ot->poll= graphop_selected_fcurve_poll; 
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

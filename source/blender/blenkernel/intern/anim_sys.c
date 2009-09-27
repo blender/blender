@@ -244,6 +244,8 @@ void BKE_animdata_make_local(AnimData *adt)
 /* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate */
 static char *rna_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *newName, char *oldpath)
 {
+	
+	
 	return oldpath; // FIXME!!!
 }
 
@@ -264,7 +266,7 @@ static void fcurves_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *new
 			
 			/* driver targets */
 			for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
-				dtat->rna_path= rna_path_rename_fix(owner_id, modPtr, newName, dtar->rna_path);
+				dtat->rna_path= rna_path_rename_fix(dtar->id, modPtr, newName, dtar->rna_path);
 			}
 		}
 	}

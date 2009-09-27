@@ -285,4 +285,34 @@ int graphop_active_fcurve_poll (bContext *C)
 	return has_fcurve;
 }
 
+/* has selected F-Curve that's editable */
+int graphop_selected_fcurve_poll (bContext *C)
+{
+	bAnimContext ac;
+	bAnimListElem *ale;
+	ListBase anim_data = {NULL, NULL};
+	ScrArea *sa= CTX_wm_area(C);
+	int filter, items;
+	short found = 0;
+	
+	/* firstly, check if in Graph Editor */
+	// TODO: also check for region?
+	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
+		return 0;
+		
+	/* try to init Anim-Context stuff ourselves and check */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return 0;
+	
+	/* get the editable + selected F-Curves, and as long as we got some, we can return */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	if (items == 0) 
+		return 0;
+	
+	/* cleanup and return findings */
+	BLI_freelistN(&anim_data);
+	return found;
+}
+
 /* ************************************************************** */

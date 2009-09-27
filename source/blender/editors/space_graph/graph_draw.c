@@ -858,9 +858,6 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		 *	- if the option to only show controls if the F-Curve is selected is enabled, we must obey this
 		 */
 		if (!(sipo->flag & SIPO_SELCUVERTSONLY) || (fcu->flag & FCURVE_SELECTED)) {
-			/* enable blending to allow fading of curves */
-			glEnable(GL_BLEND);
-			
 			if (fcurve_needs_draw_fmodifier_controls(fcu, fcm)) {
 				/* only draw controls if this is the active modifier */
 				if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
@@ -874,7 +871,10 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 				if (fcu->bezt) {
 					/* only draw handles/vertices on keyframes */
-					draw_fcurve_handles(sipo, ar, fcu);
+					glEnable(GL_BLEND);
+						draw_fcurve_handles(sipo, ar, fcu);
+					glDisable(GL_BLEND);
+					
 					draw_fcurve_vertices(sipo, ar, fcu);
 				}
 				else {
@@ -882,9 +882,6 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 					draw_fcurve_samples(sipo, ar, fcu);
 				}
 			}
-			
-			/* restore settings */
-			glDisable(GL_BLEND);
 		}
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */

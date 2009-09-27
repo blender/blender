@@ -91,6 +91,7 @@
 /* -------------------------- Exposed API ----------------------------------- */
 
 /* Set the given animation-channel as the active one for the active context */
+// TODO: extend for animdata types...
 void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type)
 {
 	ListBase anim_data = {NULL, NULL};
@@ -130,11 +131,29 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 				ACHANNEL_SET_FLAG(nlt, ACHANNEL_SETFLAG_CLEAR, NLATRACK_ACTIVE);
 			}
 				break;
+			
+			case ANIMTYPE_FILLACTD: /* Action Expander */
+			case ANIMTYPE_DSMAT:	/* Datablock AnimData Expanders */
+			case ANIMTYPE_DSLAM:
+			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCUR:
+			case ANIMTYPE_DSSKEY:
+			case ANIMTYPE_DSWOR:
+			case ANIMTYPE_DSPART:
+			case ANIMTYPE_DSMBALL:
+			case ANIMTYPE_DSARM:
+			{
+				/* need to verify that this data is valid for now */
+				if (ale->adt) {
+					ACHANNEL_SET_FLAG(ale->adt, ACHANNEL_SETFLAG_CLEAR, ADT_UI_ACTIVE);
+				}
+			}
+				break;
 		}
 	}
 	
 	/* set active flag */
-	if (channel_data != NULL) {
+	if (channel_data) {
 		switch (channel_type) {
 			case ANIMTYPE_GROUP:
 			{
@@ -152,6 +171,23 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 			{
 				NlaTrack *nlt= (NlaTrack *)channel_data;
 				nlt->flag |= NLATRACK_ACTIVE;
+			}
+				break;
+				
+			case ANIMTYPE_FILLACTD: /* Action Expander */
+			case ANIMTYPE_DSMAT:	/* Datablock AnimData Expanders */
+			case ANIMTYPE_DSLAM:
+			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCUR:
+			case ANIMTYPE_DSSKEY:
+			case ANIMTYPE_DSWOR:
+			case ANIMTYPE_DSPART:
+			case ANIMTYPE_DSMBALL:
+			case ANIMTYPE_DSARM:
+			{
+				/* need to verify that this data is valid for now */
+				if (ale->adt)
+					ale->adt->flag |= ADT_UI_ACTIVE;
 			}
 				break;
 		}
@@ -174,7 +210,7 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 	int filter;
 	
 	/* filter data */
-	filter= ANIMFILTER_VISIBLE;
+	filter= ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS;
 	ANIM_animdata_filter(NULL, &anim_data, filter, data, datatype);
 	
 	/* See if we should be selecting or deselecting */
@@ -189,12 +225,10 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 						sel= ACHANNEL_SETFLAG_CLEAR;
 					break;
 				case ANIMTYPE_OBJECT:
+				#if 0	/* for now, do not take object selection into account, since it gets too annoying */
 					if (ale->flag & SELECT)
 						sel= ACHANNEL_SETFLAG_CLEAR;
-					break;
-				case ANIMTYPE_FILLACTD:
-					if (ale->flag & ACT_SELECTED)
-						sel= ACHANNEL_SETFLAG_CLEAR;
+				#endif
 					break;
 				case ANIMTYPE_GROUP:
 					if (ale->flag & AGRP_SELECTED)
@@ -208,6 +242,22 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 					if (ale->flag & NLATRACK_SELECTED)
 						sel= ACHANNEL_SETFLAG_CLEAR;
 					break;
+					
+				case ANIMTYPE_FILLACTD: /* Action Expander */
+				case ANIMTYPE_DSMAT:	/* Datablock AnimData Expanders */
+				case ANIMTYPE_DSLAM:
+				case ANIMTYPE_DSCAM:
+				case ANIMTYPE_DSCUR:
+				case ANIMTYPE_DSSKEY:
+				case ANIMTYPE_DSWOR:
+				case ANIMTYPE_DSPART:
+				case ANIMTYPE_DSMBALL:
+				case ANIMTYPE_DSARM:
+				{
+					if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED))
+						sel= ACHANNEL_SETFLAG_CLEAR;
+				}
+					break;
 			}
 		}
 	}
@@ -220,23 +270,26 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 				Scene *scene= (Scene *)ale->data;
 				
 				ACHANNEL_SET_FLAG(scene, sel, SCE_DS_SELECTED);
+				
+				if (scene->adt) {
+					ACHANNEL_SET_FLAG(scene, sel, ADT_UI_SELECTED);
+				}
 			}
 				break;
 			case ANIMTYPE_OBJECT:
+			#if 0	/* for now, do not take object selection into account, since it gets too annoying */
 			{
 				Base *base= (Base *)ale->data;
 				Object *ob= base->object;
 				
 				ACHANNEL_SET_FLAG(base, sel, SELECT);
 				ACHANNEL_SET_FLAG(ob, sel, SELECT);
-			}
-				break;
-			case ANIMTYPE_FILLACTD:
-			{
-				bAction *act= (bAction *)ale->data;
 				
-				ACHANNEL_SET_FLAG(act, sel, ACT_SELECTED);
+				if (ob->adt) {
+					ACHANNEL_SET_FLAG(ob, sel, ADT_UI_SELECTED);
+				}
 			}
+			#endif
 				break;
 			case ANIMTYPE_GROUP:
 			{
@@ -260,6 +313,25 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 				
 				ACHANNEL_SET_FLAG(nlt, sel, NLATRACK_SELECTED);
 				nlt->flag &= ~NLATRACK_ACTIVE;
+			}
+				break;
+				
+			case ANIMTYPE_FILLACTD: /* Action Expander */
+			case ANIMTYPE_DSMAT:	/* Datablock AnimData Expanders */
+			case ANIMTYPE_DSLAM:
+			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCUR:
+			case ANIMTYPE_DSSKEY:
+			case ANIMTYPE_DSWOR:
+			case ANIMTYPE_DSPART:
+			case ANIMTYPE_DSMBALL:
+			case ANIMTYPE_DSARM:
+			{
+				/* need to verify that this data is valid for now */
+				if (ale->adt) {
+					ACHANNEL_SET_FLAG(ale->adt, sel, ADT_UI_SELECTED);
+					ale->adt->flag &= ~ADT_UI_ACTIVE;
+				}
 			}
 				break;
 		}
@@ -1310,18 +1382,22 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 	}
 	
 	/* action to take depends on what channel we've got */
+	// WARNING: must keep this in sync with the equivalent function in nla_channels.c
 	switch (ale->type) {
 		case ANIMTYPE_SCENE:
 		{
 			Scene *sce= (Scene *)ale->data;
+			AnimData *adt= sce->adt;
 			
 			/* set selection status */
 			if (selectmode == SELECT_INVERT) {
 				/* swap select */
 				sce->flag ^= SCE_DS_SELECTED;
+				if (adt) adt->flag ^= ADT_UI_SELECTED;
 			}
 			else {
 				sce->flag |= SCE_DS_SELECTED;
+				if (adt) adt->flag |= ADT_UI_SELECTED;
 			}
 			
 			notifierFlags |= ND_ANIMCHAN_SELECT;
@@ -1333,34 +1409,75 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			Scene *sce= (Scene *)ads->source;
 			Base *base= (Base *)ale->data;
 			Object *ob= base->object;
+			AnimData *adt= ob->adt;
 			
 			/* set selection status */
 			if (selectmode == SELECT_INVERT) {
 				/* swap select */
 				base->flag ^= SELECT;
 				ob->flag= base->flag;
+				
+				if (adt) adt->flag ^= ADT_UI_SELECTED;
 			}
 			else {
 				Base *b;
 				
-				/* deleselect all */
+				/* deselect all */
+				// TODO: should this deselect all other types of channels too?
 				for (b= sce->base.first; b; b= b->next) {
 					b->flag &= ~SELECT;
 					b->object->flag= b->flag;
+					if (b->object->adt) b->object->adt->flag &= ~(ADT_UI_SELECTED|ADT_UI_ACTIVE);
 				}
 				
 				/* select object now */
 				base->flag |= SELECT;
 				ob->flag |= SELECT;
+				if (adt) adt->flag |= ADT_UI_SELECTED;
 			}
 			
 			/* xxx should be ED_base_object_activate(), but we need context pointer for that... */
 			//set_active_base(base);
+			if ((adt) && (adt->flag & ADT_UI_SELECTED))
+				adt->flag |= ADT_UI_ACTIVE;
 			
 			notifierFlags |= ND_ANIMCHAN_SELECT;
 		}
 			break;
+		
+		case ANIMTYPE_FILLACTD: /* Action Expander */
+		case ANIMTYPE_DSMAT:	/* Datablock AnimData Expanders */
+		case ANIMTYPE_DSLAM:
+		case ANIMTYPE_DSCAM:
+		case ANIMTYPE_DSCUR:
+		case ANIMTYPE_DSSKEY:
+		case ANIMTYPE_DSWOR:
+		case ANIMTYPE_DSPART:
+		case ANIMTYPE_DSMBALL:
+		case ANIMTYPE_DSARM:
+		{
+			/* sanity checking... */
+			if (ale->adt) {
+				/* select/deselect */
+				if (selectmode == SELECT_INVERT) {
+					/* inverse selection status of this AnimData block only */
+					ale->adt->flag ^= ADT_UI_SELECTED;
+				}
+				else {
+					/* select AnimData block by itself */
+					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					ale->adt->flag |= ADT_UI_SELECTED;
+				}
+				
+				/* set active? */
+				if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED))
+					ale->adt->flag |= ADT_UI_ACTIVE;
+			}
 			
+			notifierFlags |= ND_ANIMCHAN_SELECT;
+		}	
+			break;
+		
 		case ANIMTYPE_GROUP: 
 		{
 			bActionGroup *agrp= (bActionGroup *)ale->data;

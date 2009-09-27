@@ -762,7 +762,7 @@ static int acf_fillactd_setting_flag(int setting, short *neg)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
-			return ACT_SELECTED;
+			return ADT_UI_SELECTED;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			*neg= 1;
@@ -777,13 +777,18 @@ static int acf_fillactd_setting_flag(int setting, short *neg)
 static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *type)
 {
 	bAction *act= (bAction *)ale->data;
+	AnimData *adt= ale->adt;
 	
 	/* clear extra return data first */
 	*type= 0;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
-			GET_ACF_FLAG_PTR(act->flag);
+			if (adt) {
+				GET_ACF_FLAG_PTR(adt->flag);
+			}
+			else
+				return 0;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(act->flag);
@@ -1001,6 +1006,9 @@ static int acf_dsmat_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1019,6 +1027,7 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(ma->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ma->adt)
@@ -1070,6 +1079,9 @@ static int acf_dslam_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1088,6 +1100,7 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(la->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (la->adt)
@@ -1139,6 +1152,9 @@ static int acf_dscam_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1157,6 +1173,7 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(ca->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ca->adt)
@@ -1208,6 +1225,9 @@ static int acf_dscur_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1226,6 +1246,7 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(cu->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (cu->adt)
@@ -1277,6 +1298,9 @@ static int acf_dsskey_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1295,6 +1319,7 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(key->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (key->adt)
@@ -1346,6 +1371,9 @@ static int acf_dswor_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1364,6 +1392,7 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(wo->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (wo->adt)
@@ -1415,6 +1444,9 @@ static int acf_dspart_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1433,6 +1465,7 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(part->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (part->adt)
@@ -1485,6 +1518,9 @@ static int acf_dsmball_setting_flag(int setting, short *neg)
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
 		
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+		
 		default: /* unsupported */
 			return 0;
 	}
@@ -1502,6 +1538,7 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *typ
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(mb->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (mb->adt)
@@ -1553,6 +1590,9 @@ static int acf_dsarm_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1571,6 +1611,7 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(arm->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (arm->adt)
