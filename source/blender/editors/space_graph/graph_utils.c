@@ -289,7 +289,6 @@ int graphop_active_fcurve_poll (bContext *C)
 int graphop_selected_fcurve_poll (bContext *C)
 {
 	bAnimContext ac;
-	bAnimListElem *ale;
 	ListBase anim_data = {NULL, NULL};
 	ScrArea *sa= CTX_wm_area(C);
 	int filter, items;

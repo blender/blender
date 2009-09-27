@@ -55,6 +55,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
+#include "ED_types.h"
 #include "ED_util.h"
 
 #include "WM_api.h"
@@ -314,5 +315,54 @@ void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, s
 	/* apply to F-Curve */
 	ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, map_cb, NULL);
 } 
+
+/* *************************************************** */
+/* ANIMATION EDITOR UI-WIDGETS */
+
+/* ui button event */
+#define B_REDR 		1
+
+/* standard header buttons for Animation Editors */
+short ANIM_headerUI_standard_buttons (const bContext *C, bDopeSheet *ads, uiBlock *block, short xco, short yco)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
+	
+	/* check if the DopeSheet data exists, just in case... */
+	if (ads) {
+		/* more 'generic' filtering options */
+		if (nlaActive) uiBlockBeginAlign(block);
+			uiDefIconButBitI(block, TOG, ADS_FILTER_ONLYSEL, B_REDR, ICON_RESTRICT_SELECT_OFF,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Only display selected Objects");
+			if (nlaActive) uiDefIconButBitI(block, TOGN, ADS_FILTER_NLA_NOACT, B_REDR, ICON_ACTION,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Include AnimData blocks with no NLA Data");
+		if (nlaActive) uiBlockEndAlign(block);
+		xco += 5;
+		
+		/* datatype based */
+		// TODO: only show the datablocks which exist
+		uiBlockBeginAlign(block);
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSCE, B_REDR, ICON_SCENE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Scene Animation");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOWOR, B_REDR, ICON_WORLD_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display World Animation");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSHAPEKEYS, B_REDR, ICON_SHAPEKEY_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display ShapeKeys");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMAT, B_REDR, ICON_MATERIAL_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Material Data");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Lamp Data");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Camera Data");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Curve Data");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMBA, B_REDR, ICON_META_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display MetaBall Data");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOARM, B_REDR, ICON_ARMATURE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Armature Data");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Particle Data");
+		uiBlockEndAlign(block);
+		xco += 30;
+	}
+	else {
+		// XXX this case shouldn't happen at all... for now, just pad out same amount of space
+		printf("ERROR: dopesheet data not available when drawing Animation Editor header \n");
+		xco += 11*XIC + 30;
+	}
+	
+	// TODO: include auto-snapping menu here too...
+	
+	/* return the width of the buttons */
+	return xco;
+}
 
 /* *************************************************** */
