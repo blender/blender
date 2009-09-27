@@ -1226,8 +1226,21 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		ANIMDATA_FILTER_CASES(key,
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
-				/* add NLA tracks */
-				items += animdata_filter_nla(anim_data, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+				/* include shapekey-expand widget? */
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+					/* check if filtering by active status */
+					if ANIMCHANNEL_ACTIVEOK(key) {
+						ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT, (ID *)ob);
+						if (ale) {
+							BLI_addtail(anim_data, ale);
+							items++;
+						}
+					}
+				}
+				
+				/* add NLA tracks - only if expanded or so */
+				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY))
+					items += animdata_filter_nla(anim_data, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 			},
 			{ /* drivers */
 				/* include shapekey-expand widget? */
