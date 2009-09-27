@@ -555,11 +555,9 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 		return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META')
 	
 	def draw_header(self, context):
-		layout = self.layout
-		
 		strip = act_strip(context)
 		
-		layout.itemR(strip, "use_proxy", text="")
+		self.layout.itemR(strip, "use_proxy", text="")
 
 	def draw(self, context):
 		layout = self.layout

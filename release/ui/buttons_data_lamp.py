@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.lamp)
+		return context.lamp
 		
 class DATA_PT_preview(DataButtonsPanel):
 	__label__ = "Preview"
@@ -87,8 +87,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		lamp = context.lamp.sky
 
 		layout.itemR(lamp, "sky")
-		
-		
+
 		row = layout.row()
 		row.active = lamp.sky or lamp.atmosphere
 		row.itemR(lamp, "atmosphere_turbidity", text="Turbidity")
@@ -198,7 +197,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 					sub.itemR(lamp, "dither")
 					sub.itemR(lamp, "jitter")	
 
-		if lamp.shadow_method == 'BUFFER_SHADOW':
+		elif lamp.shadow_method == 'BUFFER_SHADOW':
 			col = layout.column()
 			col.itemL(text="Buffer Type:")
 			col.row().itemR(lamp, "shadow_buffer_type", expand=True)
@@ -258,8 +257,6 @@ class DATA_PT_area(DataButtonsPanel):
 		elif (lamp.shape == 'RECTANGLE'):
 			sub.itemR(lamp, "size", text="Size X")
 			sub.itemR(lamp, "size_y", text="Size Y")
-		
-		col = split.column()
 
 class DATA_PT_spot(DataButtonsPanel):
 	__label__ = "Spot Shape"

@@ -68,8 +68,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		col = split.column()
 		col.itemR(con, "iterations")
 		col.itemR(con, "chain_length")
-		
-	
+
 	def CHILD_OF(self, context, layout, con):
 		self.target_template(layout, con)
 

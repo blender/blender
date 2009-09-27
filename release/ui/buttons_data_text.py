@@ -125,7 +125,6 @@ class DATA_PT_font(DataButtonsPanel):
 		col.itemL(text="Underline:")
 		col.itemR(text, "ul_position", text="Position")
 		col.itemR(text, "ul_height", text="Thickness")
-		
 
 class DATA_PT_paragraph(DataButtonsPanel):
 	__label__ = "Paragraph"
@@ -150,7 +149,6 @@ class DATA_PT_paragraph(DataButtonsPanel):
 		col.itemL(text="Offset:")
 		col.itemR(text, "offset_x", text="X")
 		col.itemR(text, "offset_y", text="Y")
-
 
 class DATA_PT_textboxes(DataButtonsPanel):
 	__label__ = "Text Boxes"

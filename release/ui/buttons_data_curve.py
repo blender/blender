@@ -120,7 +120,6 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
 		col.itemL(text="Bevel Object:")
 		col.itemR(curve, "bevel_object", text="")
 
-	
 class DATA_PT_pathanim(DataButtonsPanelCurve):
 	__label__ = "Path Animation"
 	

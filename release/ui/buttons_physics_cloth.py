@@ -89,7 +89,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 	__default_closed__ = True
 
 	def poll(self, context):
-		return (context.cloth)
+		return context.cloth
 
 	def draw(self, context):
 		md = context.cloth
@@ -100,7 +100,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 	__default_closed__ = True
 
 	def poll(self, context):
-		return (context.cloth)
+		return context.cloth
 	
 	def draw_header(self, context):
 		cloth = context.cloth.collision_settings
@@ -135,7 +135,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 	__default_closed__ = True
 
 	def poll(self, context):
-		return (context.cloth != None)
+		return context.cloth
 	
 	def draw_header(self, context):
 		cloth = context.cloth.settings

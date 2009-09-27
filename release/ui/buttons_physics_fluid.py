@@ -174,8 +174,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
 	
 	def poll(self, context):
 		md = context.fluid
-		if md:
-			return (md.settings.type == 'DOMAIN')
+		return md and (md.settings.type == 'DOMAIN')
 
 	def draw(self, context):
 		layout = self.layout
@@ -213,8 +212,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
 	
 	def poll(self, context):
 		md = context.fluid
-		if md:
-			return (md.settings.type == 'DOMAIN')
+		return md and (md.settings.type == 'DOMAIN')
 
 	def draw(self, context):
 		layout = self.layout
@@ -242,8 +240,7 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
 	
 	def poll(self, context):
 		md = context.fluid
-		if md:
-			return (md.settings.type == 'DOMAIN')
+		return md and (md.settings.type == 'DOMAIN')
 			
 	def draw(self, context):
 		layout = self.layout

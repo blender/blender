@@ -452,7 +452,6 @@ class SCENE_PT_unit(RenderButtonsPanel):
 		row.itemR(unit, "scale_length", text="Scale")
 		row.itemR(unit, "use_separate")
 
-
 bpy.types.register(SCENE_PT_render)
 bpy.types.register(SCENE_PT_layers)
 bpy.types.register(SCENE_PT_dimensions)

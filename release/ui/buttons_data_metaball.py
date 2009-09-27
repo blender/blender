@@ -6,7 +6,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.meta_ball)
+		return context.meta_ball
 
 class DATA_PT_context_metaball(DataButtonsPanel):
 	__show_header__ = False
@@ -74,11 +74,9 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 		col.itemR(metaelem, "hide", text="Hide")
 		
 		if metaelem.type == 'BALL':
-		
 			col = split.column(align=True)
 			
 		elif metaelem.type == 'CUBE':
-		
 			col = split.column(align=True)
 			col.itemL(text="Size:")	
 			col.itemR(metaelem, "size_x", text="X")
@@ -86,26 +84,22 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 			col.itemR(metaelem, "size_z", text="Z")
 			
 		elif metaelem.type == 'TUBE':
-		
 			col = split.column(align=True)
 			col.itemL(text="Size:")	
 			col.itemR(metaelem, "size_x", text="X")
 			
 		elif metaelem.type == 'PLANE':
-			
 			col = split.column(align=True)
 			col.itemL(text="Size:")	
 			col.itemR(metaelem, "size_x", text="X")
 			col.itemR(metaelem, "size_y", text="Y")
 			
 		elif metaelem.type == 'ELLIPSOID':
-			
 			col = split.column(align=True)
 			col.itemL(text="Size:")	
 			col.itemR(metaelem, "size_x", text="X")
 			col.itemR(metaelem, "size_y", text="Y")
 			col.itemR(metaelem, "size_z", text="Z")
-		
 
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)

@@ -63,7 +63,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 	__default_closed__ = True
 
 	def poll(self, context):
-		return (context.soft_body)
+		return context.soft_body
 
 	def draw(self, context):
 		md = context.soft_body
@@ -74,7 +74,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 	__default_closed__ = True
 	
 	def poll(self, context):
-		return (context.soft_body)
+		return context.soft_body
 		
 	def draw_header(self, context):
 		softbody = context.soft_body.settings
@@ -115,7 +115,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 	__default_closed__ = True
 	
 	def poll(self, context):
-		return (context.soft_body)
+		return context.soft_body
 		
 	def draw_header(self, context):
 		softbody = context.soft_body.settings
@@ -163,7 +163,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 	__default_closed__ = True
 	
 	def poll(self, context):
-		return (context.soft_body)
+		return context.soft_body
 		
 	def draw_header(self, context):
 		softbody = context.soft_body.settings
@@ -194,7 +194,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 	__default_closed__ = True
 	
 	def poll(self, context):
-		return (context.soft_body)
+		return context.soft_body
 		
 	def draw(self, context):
 		layout = self.layout

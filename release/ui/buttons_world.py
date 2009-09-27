@@ -169,10 +169,9 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		col.itemR(ao, "energy")
 		
 		col = split.column()
-		colsub = col.split(percentage=0.3)
-		colsub.itemL(text="Color:")
-		colsub.itemR(ao, "color", text="")
-		
+		sub = col.split(percentage=0.3)
+		sub.itemL(text="Color:")
+		sub.itemR(ao, "color", text="")
 
 bpy.types.register(WORLD_PT_context_world)	
 bpy.types.register(WORLD_PT_preview)

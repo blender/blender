@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.mesh)
+		return context.mesh
 
 class DATA_PT_context_mesh(DataButtonsPanel):
 	__show_header__ = False

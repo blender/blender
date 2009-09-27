@@ -39,6 +39,7 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+
 		scene = context.scene
 		rd = scene.render_data
 		
@@ -69,6 +70,7 @@ class SCENE_PT_network_job(RenderButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+
 		scene = context.scene
 		rd = scene.render_data
 		

@@ -253,7 +253,6 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 				col.itemL(text=" ")
 				factor_but(col, tex.map_alpha, "map_coloremission", "coloremission_factor", "Emission Color")
 				factor_but(col, tex.map_colorabsorption, "map_colorabsorption", "colorabsorption_factor", "Absorption Color")
-				
 
 		elif la:
 			row = layout.row()
@@ -617,9 +616,8 @@ class TEXTURE_PT_distortednoise(TextureTypePanel):
 		flow.itemR(tex, "nabla")	
 		
 class TEXTURE_PT_voxeldata(TextureButtonsPanel):
-	__idname__= "TEXTURE_PT_voxeldata"
 	__label__ = "Voxel Data"
-	
+
 	def poll(self, context):
 		tex = context.texture
 		return (tex and tex.type == 'VOXEL_DATA')
@@ -647,9 +645,8 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
 		layout.itemR(vd, "intensity")
 		
 class TEXTURE_PT_pointdensity(TextureButtonsPanel):
-	__idname__= "TEXTURE_PT_pointdensity"
 	__label__ = "Point Density"
-	
+
 	def poll(self, context):
 		tex = context.texture
 		return (tex and tex.type == 'POINT_DENSITY')

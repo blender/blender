@@ -240,7 +240,6 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 			#row = split.row()
 			#row.itemR(pchan, "ik_lin_weight", text="Weight", slider=True)
 			#row.active = pchan.ik_lin_control
-			
 
 class BONE_PT_deform(BoneButtonsPanel):
 	__label__ = "Deform"
@@ -307,6 +306,7 @@ class BONE_PT_iksolver_itasc(BoneButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+
 		ob = context.object
 		itasc = ob.pose.ik_param
 

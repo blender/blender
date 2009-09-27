@@ -110,8 +110,7 @@ def write_pov(filename, scene=None, info_callback = None):
 			file.write('\tdiffuse 0.8\n')
 			file.write('\tspecular 0.2\n')
 			
-			
-		
+
 		# This is written into the object
 		'''
 		if material and material.transparency_method=='RAYTRACE':
@@ -143,9 +142,7 @@ def write_pov(filename, scene=None, info_callback = None):
 		file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotationPart().toEuler()]))
 		file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
 		file.write('}\n')
-	
-	
-	
+
 	def exportLamps(lamps):
 		# Get all lamps
 		for ob in lamps:
@@ -186,9 +183,7 @@ def write_pov(filename, scene=None, info_callback = None):
 				else:
 					size_y = lamp.size_y
 					samples_y = lamp.shadow_ray_samples_y
-				
-				
-				
+
 				file.write('\tarea_light <%d,0,0>,<0,0,%d> %d, %d\n' % (size_x, size_y, samples_x, samples_y))
 				if lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
 					if lamp.jitter:
@@ -264,10 +259,7 @@ def write_pov(filename, scene=None, info_callback = None):
 			writeMatrix(ob.matrix)
 			
 			file.write('}\n')
-		
-		
-	
-	
+
 	def exportMeshs(sel):
 		
 		ob_num = 0
@@ -475,8 +467,7 @@ def write_pov(filename, scene=None, info_callback = None):
 						
 						file.write(',\n\t\t<%d,%d,%d>, %d,%d,%d' % (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3)) # vert count
 					
-					
-					
+	
 			file.write('\n  }\n')
 			
 			# normal_indices indicies
@@ -588,7 +579,6 @@ def write_pov(filename, scene=None, info_callback = None):
 	exportGlobalSettings(scene)
 	
 	file.close()
-
 
 def write_pov_ini(filename_ini, filename_pov, filename_image):
 	scene = bpy.data.scenes[0]
@@ -775,9 +765,7 @@ class PovrayRender(bpy.types.RenderEngine):
 		# compute resolution
 		x= int(r.resolution_x*r.resolution_percentage*0.01)
 		y= int(r.resolution_y*r.resolution_percentage*0.01)
-		
-		
-		
+
 		# Wait for the file to be created
 		while not os.path.exists(self.temp_file_out):
 			if self.test_break():
@@ -876,12 +864,13 @@ class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 	COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
 	def draw_header(self, context):
-		layout = self.layout
 		scene = context.scene
-		layout.itemR(scene, "pov_radio_enable", text="")
+
+		self.layout.itemR(scene, "pov_radio_enable", text="")
 
 	def draw(self, context):
 		layout = self.layout
+
 		scene = context.scene
 		rd = scene.render_data
 		
@@ -890,7 +879,6 @@ class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		
 		col.itemR(scene, "pov_radio_count", text="Rays")
 		col.itemR(scene, "pov_radio_recursion_limit", text="Recursions")
 		col = split.column()
@@ -905,15 +893,12 @@ class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 			col.itemR(scene, "pov_radio_adc_bailout", slider=True)
 			col.itemR(scene, "pov_radio_gray_threshold", slider=True)
 			col.itemR(scene, "pov_radio_low_error_factor", slider=True)
-			
-			
-			
+
 			col = split.column()
 			col.itemR(scene, "pov_radio_brightness")
 			col.itemR(scene, "pov_radio_minimum_reuse", text="Min Reuse")
 			col.itemR(scene, "pov_radio_nearest_count")
-			
-			
+
 			split = layout.split()
 		
 			col = split.column()
@@ -923,6 +908,5 @@ class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 			
 			col = split.column()
 			col.itemR(scene, "pov_radio_always_sample")
-		
 
 bpy.types.register(SCENE_PT_povray_radiosity)

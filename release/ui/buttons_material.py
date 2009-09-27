@@ -356,8 +356,8 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
 	def draw_header(self, context):
-		sss = context.material.subsurface_scattering
 		mat = context.material
+		sss = mat.subsurface_scattering
 		
 		self.layout.active = (not mat.shadeless)
 		self.layout.itemR(sss, "enabled", text="")
@@ -366,7 +366,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 		layout = self.layout
 		
 		mat = context.material
-		sss = context.material.subsurface_scattering
+		sss = mat.subsurface_scattering
 
 		layout.active = sss.enabled	
 		
@@ -409,7 +409,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 		layout = self.layout
 		
 		mat = context.material
-		raym = context.material.raytrace_mirror
+		raym = mat.raytrace_mirror
 		
 		layout.active = raym.enabled
 		
@@ -457,13 +457,14 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 
 	def draw_header(self, context):	
 		mat = context.material
+
 		self.layout.itemR(mat, "transparency", text="")
 
 	def draw(self, context):
 		layout = self.layout
 		
 		mat = context.material
-		rayt = context.material.raytrace_transparency
+		rayt = mat.raytrace_transparency
 		
 		row = layout.row()
 		row.active = mat.transparency and (not mat.shadeless)
@@ -561,11 +562,9 @@ class MATERIAL_PT_flare(MaterialButtonsPanel):
 		return mat and (mat.type == 'HALO') and (engine in self.COMPAT_ENGINES)
 	
 	def draw_header(self, context):
-		layout = self.layout
-		
-		mat = context.material
-		halo = mat.halo
-		layout.itemR(halo, "flare_mode", text="")
+		halo = context.material.halo
+
+		self.layout.itemR(halo, "flare_mode", text="")
 	
 	def draw(self, context):
 		layout = self.layout
@@ -619,7 +618,6 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		mat = context.material
 		vol = context.material.volume
 		
 		row = layout.row()
@@ -658,10 +656,10 @@ class MATERIAL_PT_volume_scattering(VolumeButtonsPanel):
 		elif vol.scattering_mode in ('MULTIPLE_SCATTERING', 'SINGLE_PLUS_MULTIPLE_SCATTERING'):
 			col.itemR(vol, "cache_resolution")
 			
-			col = col.column(align=True)
-			col.itemR(vol, "ms_diffusion")
-			col.itemR(vol, "ms_spread")
-			col.itemR(vol, "ms_intensity")
+			sub = col.column(align=True)
+			sub.itemR(vol, "ms_diffusion")
+			sub.itemR(vol, "ms_spread")
+			sub.itemR(vol, "ms_intensity")
 		
 		col = split.column()
 		# col.itemL(text="Anisotropic Scattering:")
@@ -677,11 +675,8 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
 		layout = self.layout
 		
 		mat = context.material
-		rayt = context.material.raytrace_transparency
 		
-		row= layout.row()
-		row.itemR(mat, "transparency_method", expand=True)
-		row.active = mat.transparency and (not mat.shadeless)
+		layout.itemR(mat, "transparency_method", expand=True)
 		
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
 	__label__ = "Integration"
@@ -690,8 +685,7 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		
-		mat = context.material
+
 		vol = context.material.volume
 		
 		split = layout.split()
@@ -699,9 +693,9 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
 		col = split.column()
 		col.itemL(text="Step Calculation:")
 		col.itemR(vol, "step_calculation", text="")
-		col = col.column(align=True)
-		col.itemR(vol, "step_size")
-		col.itemR(vol, "shading_step_size")
+		sub = col.column(align=True)
+		sub.itemR(vol, "step_size")
+		sub.itemR(vol, "shading_step_size")
 		
 		col = split.column()
 		col.itemL()

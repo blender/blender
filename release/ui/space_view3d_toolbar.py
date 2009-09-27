@@ -173,9 +173,7 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		
-		
-		
+
 		col = layout.column(align=True)
 		col.itemL(text="Text Edit:")
 		col.itemO("font.text_copy", text="Copy")
@@ -201,9 +199,7 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		
-		
-		
+
 		col = layout.column(align=True)
 		col.itemL(text="Transform:")
 		col.itemO("tfm.translate")
@@ -366,7 +362,6 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				col.itemR(brush, "strength", slider=True)
 				
 			if settings.tool == 'ADD':
-				
 				col = layout.column()
 				col.itemR(settings, "add_interpolate")
 				sub = col.column(align=True)
@@ -409,8 +404,6 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 					col.itemR(brush, "persistent")
 					col.itemO("sculpt.set_persistent_base")
 
-			
-				
 		# Texture Paint Mode #
 		
 		elif context.texture_paint_object and brush:
@@ -625,10 +618,10 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
 	def poll(self, context): 	 
 		return context.tool_settings.image_paint.tool != 'SMEAR' 	 
 
-	def draw_header(self, context): 	 
-		layout = self.layout 	 
-		ipaint = context.tool_settings.image_paint 	 
-		layout.itemR(ipaint, "use_projection", text="")
+	def draw_header(self, context): 	  
+		ipaint = context.tool_settings.image_paint
+		
+		self.layout.itemR(ipaint, "use_projection", text="")
 
 	def draw(self, context):
 		layout = self.layout

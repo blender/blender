@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 
 	def poll(self, context):
-		return (context.camera)
+		return context.camera
 		
 class DATA_PT_context_camera(DataButtonsPanel):
 	__show_header__ = False
@@ -92,8 +92,7 @@ class DATA_PT_camera_display(DataButtonsPanel):
 		sub = col.column()
 		sub.active = cam.show_passepartout
 		sub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
-		
-		
+
 bpy.types.register(DATA_PT_context_camera)
 bpy.types.register(DATA_PT_camera)
 bpy.types.register(DATA_PT_camera_display)

@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.armature)
+		return context.armature
 
 class DATA_PT_context_arm(DataButtonsPanel):
 	__show_header__ = False
@@ -128,7 +128,6 @@ class DATA_PT_paths(DataButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		
 		sub = col.column(align=True)
 		if (arm.paths_type == 'CURRENT_FRAME'):
 			sub.itemR(arm, "path_before_current", text="Before")

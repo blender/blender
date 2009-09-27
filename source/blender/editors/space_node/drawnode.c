@@ -243,12 +243,12 @@ static void node_buts_rgb(uiLayout *layout, PointerRNA *ptr)
 }
 
 static void node_buts_mix_rgb(uiLayout *layout, PointerRNA *ptr)
-{
-	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+{	
 	uiLayout *row;
 
-	row= uiLayoutRow(layout, 1);
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 
+	row= uiLayoutRow(layout, 1);
 	uiItemR(row, "", 0, ptr, "blend_type", 0);
 	if(ntree->type == NTREE_COMPOSIT)
 		uiItemR(row, "", ICON_IMAGE_RGB_ALPHA, ptr, "alpha", 0);
@@ -1107,7 +1107,7 @@ static void node_blur_update_sizey_cb(bContext *C, void *node, void *poin2)
 }
 static void node_composit_buts_blur(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row, *col;
+	uiLayout *col;
 	
 	col= uiLayoutColumn(layout, 0);
 	
@@ -1124,7 +1124,6 @@ static void node_composit_buts_blur(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(col, "X", 0, ptr, "factor_x", 0);
 		uiItemR(col, "Y", 0, ptr, "factor_y", 0);
 	}
-	
 	else {
 		uiItemR(col, "X", 0, ptr, "sizex", 0);
 		uiItemR(col, "Y", 0, ptr, "sizey", 0);
@@ -1133,7 +1132,7 @@ static void node_composit_buts_blur(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_dblur(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row, *col;
+	uiLayout *col;
 	
 	uiItemR(layout, NULL, 0, ptr, "iterations", 0);
 	uiItemR(layout, NULL, 0, ptr, "wrap", 0);

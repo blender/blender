@@ -103,7 +103,6 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 			sub.itemR(field, "maximum_distance", text="Distance")
 			
 			if field.falloff_type == 'CONE':
-				
 				layout.itemS()
 				
 				split = layout.split(percentage=0.35)
@@ -125,7 +124,6 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 				sub.itemR(field, "radial_maximum", text="Angle")
 				
 			elif field.falloff_type == 'TUBE':
-				
 				layout.itemS()
 				
 				split = layout.split(percentage=0.35)

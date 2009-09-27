@@ -26,7 +26,6 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 		
 		#if game.physics_type == 'DYNAMIC':
 		if game.physics_type in ('DYNAMIC', 'RIGID_BODY'):
-
 			split = layout.split()
 			
 			col = split.column()
@@ -88,7 +87,6 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			col.itemR(game, "lock_z_rot_axis", text="Z")
 		
 		elif game.physics_type == 'SOFT_BODY':
-
 			col = layout.column()
 			col.itemR(game, "actor")
 			col.itemR(game, "ghost")
@@ -124,14 +122,12 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			sub.itemR(soft, "cluster_iterations", text="Iterations")
 		
 		elif game.physics_type == 'STATIC':
-			
 			col = layout.column()
 			col.itemR(game, "actor")
 			col.itemR(game, "ghost")
 			col.itemR(ob, "restrict_render", text="Invisible")
 			
 		elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
-			
 			layout.itemR(ob, "restrict_render", text="Invisible")
 			
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
