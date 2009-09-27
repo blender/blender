@@ -18,7 +18,7 @@ class pyCurvilinearLengthF0D(UnaryFunction0DDouble):
 		i0d = inter.getObject()
 		s = i0d.getExactTypeName()
 		if (string.find(s, "CurvePoint") == -1):
-			print "CurvilinearLengthF0D: not implemented yet for %s" % (s)
+			print("CurvilinearLengthF0D: not implemented yet for", s)
 			return -1
 		cp = castToCurvePoint(i0d)
 		return cp.t2d()

@@ -156,7 +156,7 @@ class pyExternalContourChainingIterator(ChainingIterator):
 			if(self._isExternalContour(ave)):
 				return 1
 			it.increment()
-		print "pyExternlContourChainingIterator : didn't find next edge"
+		print("pyExternlContourChainingIterator : didn't find next edge")
 		return 0
 	def traverse(self, iter):
 		winner = None
@@ -290,7 +290,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
+		print(self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond())
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
@@ -303,7 +303,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 						winnerOrientation = 1
 					else:
 						winnerOrientation = 0
-                                        break
+					break
 				it.increment()
 		else:
 			## case of NonTVertex
@@ -327,7 +327,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 		if(winner != None):
 			# check whether this edge was part of the selection
 			if(winner.getTimeStamp() != GetTimeStampCF()):
-				#print "---", winner.getId().getFirst(), winner.getId().getSecond()
+				#print("---", winner.getId().getFirst(), winner.getId().getSecond())
 				# if not, let's check whether it's short enough with
 				# respect to the chain made without staying in the selection
 				#------------------------------------------------------------
@@ -341,7 +341,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 					_it.init()
 					while(_it.isEnd() == 0):
 						ve = _it.getObject()
-						#print "--------", ve.getId().getFirst(), ve.getId().getSecond()
+						#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
 						self._length = self._length + ve.getLength2D()
 						_it.increment()
 						if(_it.isBegin() != 0):
@@ -353,7 +353,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 						_it.decrement()
 						while ((_it.isEnd() == 0) and (_it.isBegin() == 0)):
 							ve = _it.getObject()
-							#print "--------", ve.getId().getFirst(), ve.getId().getSecond()
+							#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
 							self._length = self._length + ve.getLength2D()
 							_it.decrement()
 
@@ -367,7 +367,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 				_cit.init()
 				while((_cit.isEnd() == 0) and (_cit.getObject().getTimeStamp() != GetTimeStampCF())):
 					ve = _cit.getObject()
-					#print "-------- --------", ve.getId().getFirst(), ve.getId().getSecond()
+					#print("-------- --------", ve.getId().getFirst(), ve.getId().getSecond())
 					connexl = connexl + ve.getLength2D()
 					_cit.increment()
 				if(connexl > self._percent * self._length):
@@ -389,7 +389,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		#print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
+		#print(self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond())
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
@@ -402,7 +402,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 						winnerOrientation = 1
 					else:
 						winnerOrientation = 0
-                                        break
+					break
 				it.increment()
 		else:
 			## case of NonTVertex
@@ -426,7 +426,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 		if(winner != None):
 			# check whether this edge was part of the selection
 			if(winner.getTimeStamp() != GetTimeStampCF()):
-				#print "---", winner.getId().getFirst(), winner.getId().getSecond()
+				#print("---", winner.getId().getFirst(), winner.getId().getSecond())
 				# nw let's compute the length of this connex non selected part:
 				connexl = 0
 				_cit = pyChainSilhouetteGenericIterator(0,0)
@@ -436,7 +436,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 				_cit.init()
 				while((_cit.isEnd() == 0) and (_cit.getObject().getTimeStamp() != GetTimeStampCF())):
 					ve = _cit.getObject()
-					#print "-------- --------", ve.getId().getFirst(), ve.getId().getSecond()
+					#print("-------- --------", ve.getId().getFirst(), ve.getId().getSecond())
 					connexl = connexl + ve.getLength2D()
 					_cit.increment()
 				if(connexl > self._length):
@@ -464,7 +464,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
+		print(self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond())
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
@@ -477,7 +477,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 						winnerOrientation = 1
 					else:
 						winnerOrientation = 0
-                                        break
+					break
 				it.increment()
 		else:
 			## case of NonTVertex
@@ -501,7 +501,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 		if(winner != None):
 			# check whether this edge was part of the selection
 			if(winner.getTimeStamp() != GetTimeStampCF()):
-				#print "---", winner.getId().getFirst(), winner.getId().getSecond()
+				#print("---", winner.getId().getFirst(), winner.getId().getSecond())
 				# if not, let's check whether it's short enough with
 				# respect to the chain made without staying in the selection
 				#------------------------------------------------------------
@@ -515,7 +515,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 					_it.init()
 					while(_it.isEnd() == 0):
 						ve = _it.getObject()
-						#print "--------", ve.getId().getFirst(), ve.getId().getSecond()
+						#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
 						self._length = self._length + ve.getLength2D()
 						_it.increment()
 						if(_it.isBegin() != 0):
@@ -527,7 +527,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 						_it.decrement()
 						while ((_it.isEnd() == 0) and (_it.isBegin() == 0)):
 							ve = _it.getObject()
-							#print "--------", ve.getId().getFirst(), ve.getId().getSecond()
+							#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
 							self._length = self._length + ve.getLength2D()
 							_it.decrement()
 
@@ -541,7 +541,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 				_cit.init()
 				while((_cit.isEnd() == 0) and (_cit.getObject().getTimeStamp() != GetTimeStampCF())):
 					ve = _cit.getObject()
-					#print "-------- --------", ve.getId().getFirst(), ve.getId().getSecond()
+					#print("-------- --------", ve.getId().getFirst(), ve.getId().getSecond())
 					connexl = connexl + ve.getLength2D()
 					_cit.increment()
 				if((connexl > self._percent * self._length) or (connexl > self._absLength)):
@@ -569,7 +569,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
+		print(self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond())
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
@@ -582,7 +582,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 						winnerOrientation = 1
 					else:
 						winnerOrientation = 0
-                                        break
+					break
 				it.increment()
 		else:
 			## case of NonTVertex
@@ -606,7 +606,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 		if(winner != None):
 			# check whether this edge was part of the selection
 			if(winner.qi() != 0):
-				#print "---", winner.getId().getFirst(), winner.getId().getSecond()
+				#print("---", winner.getId().getFirst(), winner.getId().getSecond())
 				# if not, let's check whether it's short enough with
 				# respect to the chain made without staying in the selection
 				#------------------------------------------------------------
@@ -620,7 +620,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 					_it.init()
 					while(_it.isEnd() == 0):
 						ve = _it.getObject()
-						#print "--------", ve.getId().getFirst(), ve.getId().getSecond()
+						#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
 						self._length = self._length + ve.getLength2D()
 						_it.increment()
 						if(_it.isBegin() != 0):
@@ -632,7 +632,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 						_it.decrement()
 						while ((_it.isEnd() == 0) and (_it.isBegin() == 0)):
 							ve = _it.getObject()
-							#print "--------", ve.getId().getFirst(), ve.getId().getSecond()
+							#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
 							self._length = self._length + ve.getLength2D()
 							_it.decrement()
 
@@ -646,7 +646,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 				_cit.init()
 				while((_cit.isEnd() == 0) and (_cit.getObject().qi() != 0)):
 					ve = _cit.getObject()
-					#print "-------- --------", ve.getId().getFirst(), ve.getId().getSecond()
+					#print("-------- --------", ve.getId().getFirst(), ve.getId().getSecond())
 					connexl = connexl + ve.getLength2D()
 					_cit.increment()
 				if((connexl > self._percent * self._length) or (connexl > self._absLength)):

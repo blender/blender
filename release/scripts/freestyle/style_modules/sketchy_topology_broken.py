@@ -57,7 +57,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			newFirst = p0+d1*float(self._l)
 			v0.setPoint(newFirst)
 		else:
-			print "got a v0 cusp"
+			print("got a v0 cusp")
 		vn_1 = itn_1.getObject()
 		vn = itn.getObject()
 		if((vn.getNature() & Nature.CUSP == 0) and (vn_1.getNature() & Nature.CUSP == 0)):
@@ -68,7 +68,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			newLast = pn+dn*float(self._l)	
 			vn.setPoint(newLast)
 		else:
-			print "got a vn cusp"
+			print("got a vn cusp")
 
 
 Operators.select(QuantitativeInvisibilityUP1D(0))

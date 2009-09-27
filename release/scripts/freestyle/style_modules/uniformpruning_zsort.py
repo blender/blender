@@ -20,7 +20,7 @@ class pyDensityUP1D(UnaryPredicate1D):
 
 	def __call__(self, inter):
 		d = self._func(inter)
-		print "For Chain ", inter.getId().getFirst(), inter.getId().getSecond(), "density is ", d
+		print("For Chain ", inter.getId().getFirst(), inter.getId().getSecond(), "density is ", d)
 		if(d < self._threshold):
 			return 1
 		return 0

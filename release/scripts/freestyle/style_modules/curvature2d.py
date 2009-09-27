@@ -45,7 +45,7 @@ class py2DCurvatureColorShader(StrokeShader):
 			att = sv.attribute()
 			c = func(it0D)
 			if (c<0):
- 				print "negative 2D curvature"
+ 				print("negative 2D curvature")
 			color = 10.0 * c/3.1415
 			att.setColor(color,color,color);
 			it.increment()

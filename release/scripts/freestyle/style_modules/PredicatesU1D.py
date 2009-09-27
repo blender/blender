@@ -88,7 +88,7 @@ class pyLowSteerableViewMapDensityUP1D(UnaryPredicate1D):
 	def __call__(self, inter):
 		func = GetSteerableViewMapDensityF1D(self._level, self._integration)
 		v = func(inter)
-		print v
+		print(v)
 		if(v < self._threshold):
 			return 1
 		return 0
@@ -107,7 +107,7 @@ class pyLowDirectionalViewMapDensityUP1D(UnaryPredicate1D):
 	def __call__(self, inter):
 		func = GetDirectionalViewMapDensityF1D(self._orientation, self._level, self._integration)
 		v = func(inter)
-		#print v
+		#print(v)
 		if(v < self._threshold):
 			return 1
 		return 0
@@ -160,9 +160,9 @@ class pyHighViewMapDensityUP1D(UnaryPredicate1D):
 		return "pyHighViewMapDensityUP1D"
 
 	def __call__(self, inter):
-		#print "toto"
-		#print func.getName()
-		#print inter.getExactTypeName()
+		#print("toto")
+		#print(func.getName())
+		#print(inter.getExactTypeName())
 		v= self._func(inter)
 		if(v > self._threshold):
 			return 1
@@ -222,23 +222,23 @@ class pyIsOccludedByUP1D(UnaryPredicate1D):
 		vlast = itlast.getObject()
 		tvertex = v.viewvertex()
 		if type(tvertex) is TVertex:
-			print "TVertex: [ ", tvertex.getId().getFirst(), ",",  tvertex.getId().getSecond()," ]"
+			print("TVertex: [ ", tvertex.getId().getFirst(), ",",  tvertex.getId().getSecond()," ]")
 			eit = tvertex.edgesBegin()
 			while(eit.isEnd() == 0):
 				ve, incoming = eit.getObject()
 				if(ve.getId() == self._id):
 					return 1
-				print "-------", ve.getId().getFirst(), "-", ve.getId().getSecond()
+				print("-------", ve.getId().getFirst(), "-", ve.getId().getSecond())
 				eit.increment()
 		tvertex = vlast.viewvertex()
 		if type(tvertex) is TVertex:
-			print "TVertex: [ ", tvertex.getId().getFirst(), ",",  tvertex.getId().getSecond()," ]"
+			print("TVertex: [ ", tvertex.getId().getFirst(), ",",  tvertex.getId().getSecond()," ]")
 			eit = tvertex.edgesBegin()
 			while(eit.isEnd() == 0):
 				ve, incoming = eit.getObject()
 				if(ve.getId() == self._id):
 					return 1
-				print "-------", ve.getId().getFirst(), "-", ve.getId().getSecond()
+				print("-------", ve.getId().getFirst(), "-", ve.getId().getSecond())
 				eit.increment()
 		return 0
 
@@ -337,7 +337,7 @@ class pyHighViewMapGradientNormUP1D(UnaryPredicate1D):
 		return "pyHighViewMapGradientNormUP1D"
 	def __call__(self, inter):
 		gn = self._GetGradient(inter)
-		#print gn
+		#print(gn)
 		return (gn > self._threshold)
 
 class pyDensityVariableSigmaUP1D(UnaryPredicate1D):
@@ -374,8 +374,8 @@ class pyClosedCurveUP1D(UnaryPredicate1D):
 		itlast.decrement()	
 		vlast = itlast.getObject()
 		v = it.getObject()
-		print v.getId().getFirst(), v.getId().getSecond()
-		print vlast.getId().getFirst(), vlast.getId().getSecond()
+		print(v.getId().getFirst(), v.getId().getSecond())
+		print(vlast.getId().getFirst(), vlast.getId().getSecond())
 		if(v.getId() == vlast.getId()):
 			return 1
 		return 0

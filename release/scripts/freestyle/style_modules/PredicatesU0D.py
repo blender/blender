@@ -77,7 +77,7 @@ class pyParameterUP0DGoodOne(UnaryPredicate0D):
 	def __call__(self, inter):
 		#s = self.getCurvilinearAbscissa(inter)
 		u = inter.u()
-		#print u
+		#print(u)
 		return ((u>=self._m) and (u<=self._M))
 
 class pyParameterUP0D(UnaryPredicate0D):
@@ -96,7 +96,7 @@ class pyParameterUP0D(UnaryPredicate0D):
 		b1 = (c>0.1)
 		#s = self.getCurvilinearAbscissa(inter)
 		u = inter.u()
-		#print u
+		#print(u)
 		b = ((u>=self._m) and (u<=self._M))
 		return b and b1
 

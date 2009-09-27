@@ -522,7 +522,7 @@ class pyRandomColorShader(StrokeShader):
 		c0 = float(uniform(15,75))/100.0
 		c1 = float(uniform(15,75))/100.0
 		c2 = float(uniform(15,75))/100.0
-		print c0, c1, c2
+		print(c0, c1, c2)
 		it = stroke.strokeVerticesBegin()
 		while(it.isEnd() == 0):
 			it.getObject().attribute().setColor(c0,c1,c2)
@@ -542,9 +542,9 @@ class py2DCurvatureColorShader(StrokeShader):
 			att = sv.attribute()
 			c = func(toto)
 			if (c<0):
- 				print "negative 2D curvature"
+				print("negative 2D curvature")
 			color = 10.0 * c/3.1415
-			print color
+			print(color)
 			att.setColor(color,color,color);
 			it.increment()
 
@@ -750,7 +750,7 @@ class pyTipRemoverShader(StrokeShader):
 			stroke.RemoveVertex(sv)
 		stroke.Resample(originalSize)
 		if(stroke.strokeVerticesSize() != originalSize):
-			print "pyTipRemover: Warning: resampling problem"
+			print("pyTipRemover: Warning: resampling problem")
 		it = stroke.strokeVerticesBegin()
 		for a in oldAttributes:
 			if(it.isEnd() == 1):
@@ -765,14 +765,14 @@ class pyTVertexRemoverShader(StrokeShader):
 	def shade(self, stroke):
 		if(stroke.strokeVerticesSize() <= 3 ):
 			return
- 		predTVertex = pyVertexNatureUP0D(Nature.T_VERTEX)
+		predTVertex = pyVertexNatureUP0D(Nature.T_VERTEX)
 		it = stroke.strokeVerticesBegin()
 		itlast = stroke.strokeVerticesEnd()
 		itlast.decrement()
 		if(predTVertex(it) == 1):
- 			stroke.RemoveVertex(it.getObject())
+			stroke.RemoveVertex(it.getObject())
 		if(predTVertex(itlast) == 1):
- 			stroke.RemoveVertex(itlast.getObject())
+			stroke.RemoveVertex(itlast.getObject())
 
 class pyExtremitiesOrientationShader(StrokeShader):
 	def __init__(self, x1,y1,x2=0,y2=0):
@@ -782,7 +782,7 @@ class pyExtremitiesOrientationShader(StrokeShader):
 	def getName(self):
 		return "pyExtremitiesOrientationShader"
 	def shade(self, stroke):
-		print self._v1.x,self._v1.y
+		print(self._v1.x,self._v1.y)
 		stroke.setBeginningOrientation(self._v1.x,self._v1.y)
 		stroke.setEndingOrientation(self._v2.x,self._v2.y)
 
@@ -858,7 +858,7 @@ class pyTVertexOrientationShader(StrokeShader):
 			ve = getFEdge(v, it2.getObject()).viewedge()
 			if(tv != None):			
 				dir = self.findOrientation(tv, ve)
-				#print dir.x, dir.y
+				#print(dir.x, dir.y)
 				v.attribute().setAttributeVec2f("orientation", dir)
 		while(it2.isEnd() == 0):
 			vprevious = it.getObject()
@@ -868,7 +868,7 @@ class pyTVertexOrientationShader(StrokeShader):
 				ve = getFEdge(vprevious, v).viewedge()
 				if(tv != None):	
 					dir = self.findOrientation(tv, ve)
-					#print dir.x, dir.y
+					#print(dir.x, dir.y)
 					v.attribute().setAttributeVec2f("orientation", dir)			
 			it.increment()
 			it2.increment()
@@ -881,7 +881,7 @@ class pyTVertexOrientationShader(StrokeShader):
 			ve = getFEdge(itPrevious.getObject(), v).viewedge()
 			if(tv != None):			
 				dir = self.findOrientation(tv, ve)
-				#print dir.x, dir.y
+				#print(dir.x, dir.y)
 				v.attribute().setAttributeVec2f("orientation", dir)
 
 class pySinusDisplacementShader(StrokeShader):
@@ -897,13 +897,13 @@ class pySinusDisplacementShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			v = it.getObject()
-			#print self._getNormal.getName()
+			#print(self._getNormal.getName())
 			n = self._getNormal(it.castToInterface0DIterator())
 			p = v.getPoint()
 			u = v.u()
 			a = self._a*(1-2*(fabs(u-0.5)))
 			n = n*a*cos(self._f*u*6.28)
-			#print n.x, n.y
+			#print(n.x, n.y)
 			v.setPoint(p+n)
 			#v.setPoint(v.getPoint()+n*a*cos(f*v.u()))
 			it.increment()
@@ -968,10 +968,10 @@ class pyBluePrintCirclesShader(StrokeShader):
 			it.increment()
 		stroke.Resample(32 * self.__turns)
 		sv_nb = stroke.strokeVerticesSize()
-#		print "min  :", p_min.x, p_min.y # DEBUG
-#		print "mean :", p_sum.x, p_sum.y # DEBUG
-#		print "max  :", p_max.x, p_max.y # DEBUG
-#		print "----------------------" # DEBUG
+#		print("min  :", p_min.x, p_min.y) # DEBUG
+#		print("mean :", p_sum.x, p_sum.y) # DEBUG
+#		print("max  :", p_max.x, p_max.y) # DEBUG
+#		print("----------------------") # DEBUG
 #######################################################	
 		sv_nb = sv_nb / self.__turns
 		center = (p_min + p_max) / 2
@@ -986,7 +986,7 @@ class pyBluePrintCirclesShader(StrokeShader):
 			i = 0
 			while i < sv_nb:
 				p_new.x = center.x + radius * cos(2 * pi * float(i) / float(sv_nb - 1))
-   				p_new.y = center.y + radius * sin(2 * pi * float(i) / float(sv_nb - 1))
+				p_new.y = center.y + radius * sin(2 * pi * float(i) / float(sv_nb - 1))
 				it.getObject().setPoint(p_new)
 				i = i + 1
 				it.increment()
@@ -1018,10 +1018,10 @@ class pyBluePrintEllipsesShader(StrokeShader):
 			it.increment()
 		stroke.Resample(32 * self.__turns)
 		sv_nb = stroke.strokeVerticesSize()
-#		print "min  :", p_min.x, p_min.y # DEBUG
-#		print "mean :", p_sum.x, p_sum.y # DEBUG
-#		print "max  :", p_max.x, p_max.y # DEBUG
-#		print "----------------------" # DEBUG
+#		print("min  :", p_min.x, p_min.y) # DEBUG
+#		print("mean :", p_sum.x, p_sum.y) # DEBUG
+#		print("max  :", p_max.x, p_max.y) # DEBUG
+#		print("----------------------") # DEBUG
 #######################################################	
 		sv_nb = sv_nb / self.__turns
 		center = (p_min + p_max) / 2
@@ -1038,7 +1038,7 @@ class pyBluePrintEllipsesShader(StrokeShader):
 			i = 0
 			while i < sv_nb:
 				p_new.x = center.x + radius_x * cos(2 * pi * float(i) / float(sv_nb - 1))
-   				p_new.y = center.y + radius_y * sin(2 * pi * float(i) / float(sv_nb - 1))
+				p_new.y = center.y + radius_y * sin(2 * pi * float(i) / float(sv_nb - 1))
 				it.getObject().setPoint(p_new)
 				i = i + 1
 				it.increment()
@@ -1159,15 +1159,15 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 		p_var_xx = p_var_xx / sv_nb
 		p_var_yy = p_var_yy / sv_nb
 		p_var_xy = p_var_xy / sv_nb
-##		print p_var_xx, p_var_yy, p_var_xy
+##		print(p_var_xx, p_var_yy, p_var_xy)
 		trace = p_var_xx + p_var_yy
 		det = p_var_xx * p_var_yy - p_var_xy * p_var_xy
 		sqrt_coeff = sqrt(trace * trace - 4 * det)
 		lambda1 = (trace + sqrt_coeff) / 2
 		lambda2 = (trace - sqrt_coeff) / 2
-##		print lambda1, lambda2
+##		print(lambda1, lambda2)
 		theta = atan(2 * p_var_xy / (p_var_xx - p_var_yy)) / 2
-##		print theta
+##		print(theta)
 		if p_var_yy > p_var_xx:
 			e1 = Vector(cos(theta + pi / 2), sin(theta + pi / 2)) * sqrt(lambda1) * self.__mult
 			e2 = Vector(cos(theta + pi), sin(theta + pi)) *  sqrt(lambda2) * self.__mult
@@ -1261,12 +1261,12 @@ class pyDebugShader(StrokeShader):
 	def getName(self):
 		return "pyDebugShader"
 
- 	def shade(self, stroke):
+	def shade(self, stroke):
 		fe = GetSelectedFEdgeCF()
 		id1=fe.vertexA().getId()
 		id2=fe.vertexB().getId()
-		#print id1.getFirst(), id1.getSecond()
-		#print id2.getFirst(), id2.getSecond()
+		#print(id1.getFirst(), id1.getSecond())
+		#print(id2.getFirst(), id2.getSecond())
 		it = stroke.strokeVerticesBegin()
 		found = 0
 		foundfirst = 0
@@ -1282,5 +1282,4 @@ class pyDebugShader(StrokeShader):
 				break
 			it.increment()
 		if(found != 0):
-			print "The selected Stroke id is: ", stroke.getId().getFirst(), stroke.getId().getSecond()
-
+			print("The selected Stroke id is: ", stroke.getId().getFirst(), stroke.getId().getSecond())

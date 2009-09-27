@@ -1,2 +1,2 @@
-from Blender.Freestyle import *
-from Blender.Mathutils import Vector
+from Freestyle import *
+from Mathutils import Vector
