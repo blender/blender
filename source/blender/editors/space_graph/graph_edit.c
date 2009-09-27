@@ -1344,6 +1344,8 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 		 *	- first check if id-blocks are compatible
 		 */
 		if ((euf) && (ale->id != euf->id)) {
+			/* if the paths match, add this curve to the set of curves */
+			// NOTE: simple string compare for now... could be a bit more fancy...
 			
 		}
 		else {

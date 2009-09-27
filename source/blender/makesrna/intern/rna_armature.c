@@ -592,6 +592,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_ARMATURE_DATA);
 	RNA_def_struct_sdna(srna, "bArmature");
 	
+	/* Animation Data */
 	rna_def_animdata_common(srna);
 	
 	/* Collections */

@@ -228,7 +228,15 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	/* sequencer data comes from scene... 
 	 * TODO: would be nice to make SequenceEditor data a datablock of its own (for shorter paths)
 	 */
-	return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+	if (seq->name+2)
+		return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+	else {
+		/* compromise for the frequent sitation when strips don't have names... */
+		Scene *sce= (Scene*)ptr->id.data;
+		Editing *ed= seq_give_editing(sce, FALSE);
+		
+		return BLI_sprintfN("sequence_editor.sequences[%d]", BLI_findindex(&ed->seqbase, seq));
+	}
 }
 
 static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *iter)
