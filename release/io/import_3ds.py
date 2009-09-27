@@ -939,7 +939,7 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 # 	if BPyMessages.Error_NoFile(filename):
 # 		return
 	
-	print('\n\nImporting 3DS: "%s"' % (bpy.sys.expandpath(filename)))
+	print('\n\nImporting 3DS: "%s"' % (filename))
 # 	print('\n\nImporting 3DS: "%s"' % (Blender.sys.expandpath(filename)))
 
 	time1 = time.clock()

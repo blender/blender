@@ -94,6 +94,7 @@ def copy_file(source, dest):
 	file.close()
 
 
+# XXX not used anymore, images are copied one at a time
 def copy_images(dest_dir, textures):
 	if not dest_dir.endswith(os.sep):
 		dest_dir += os.sep
@@ -1285,10 +1286,9 @@ def write(filename, batch_objects = None, \
 		base = os.path.basename(rel)
 
 		if EXP_IMAGE_COPY:
-			src = bpy.sys.expandpath(image.filename)
 			absp = image.get_export_path(basepath, False)
 			if not os.path.exists(absp):
-				shutil.copy(src, absp)
+				shutil.copy(image.get_abs_filename(), absp)
 
 		return (rel, base)
 

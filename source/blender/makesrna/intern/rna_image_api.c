@@ -34,12 +34,14 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
-#include "DNA_object_types.h"
-
 #ifdef RNA_RUNTIME
 
-#include "BKE_utildefines.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
+#include "BKE_utildefines.h"
+
+#include "DNA_image_types.h"
+#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -61,6 +63,17 @@ static char *rna_Image_get_export_path(Image *image, char *dest_dir, int rel)
 	return path;
 }
 
+char *rna_Image_get_abs_filename(Image *image, bContext *C)
+{
+	char *filename= MEM_callocN(FILE_MAX, "Image.get_abs_filename()");
+
+	BLI_strncpy(filename, image->name, FILE_MAXDIR + FILE_MAXFILE);
+	BLI_convertstringcode(filename, CTX_data_main(C)->name);
+	BLI_convertstringframe(filename, CTX_data_scene(C)->r.cfra);
+
+	return filename;
+}
+
 #else
 
 void RNA_api_image(StructRNA *srna)
@@ -75,6 +88,12 @@ void RNA_api_image(StructRNA *srna)
 	parm= RNA_def_boolean(func, "get_rel_path", 1, "", "Return relative path if True.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "path", "", 0, "", "Absolute export path.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "get_abs_filename", "rna_Image_get_abs_filename");
+	RNA_def_function_ui_description(func, "Get absolute filename.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_string_file_path(func, "abs_filename", NULL, 0, "", "Image/movie absolute filename.");
 	RNA_def_function_return(func, parm);
 }
 

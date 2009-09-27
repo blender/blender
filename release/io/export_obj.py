@@ -48,6 +48,7 @@ will be exported as mesh data.
 # import math and other in functions that use them for the sake of fast Blender startup
 # import math
 import os
+import time
 
 import bpy
 import Mathutils
@@ -98,7 +99,7 @@ def write_mtl(scene, filename, copy_images):
 		if copy_images:
 			abspath = image.get_export_path(dest_dir, False)
 			if not os.path.exists(abs_path):
-				shutil.copy(bpy.sys.expandpath(image.filename), abs_path)
+				shutil.copy(image.get_abs_filename(), abs_path)
 
 		return rel
 
@@ -370,7 +371,7 @@ def write(filename, objects, scene,
 	print('OBJ Export path: "%s"' % filename)
 	temp_mesh_name = '~tmp-mesh'
 
-	time1 = bpy.sys.time()
+	time1 = time.clock()
 #	time1 = sys.time()
 #	scn = Scene.GetCurrent()
 
@@ -816,7 +817,7 @@ def write(filename, objects, scene,
 # 		else:
 # 			print('\tError: "%s" could not be used as a base for an image path.' % filename)
 
-	print("OBJ Export time: %.2f" % (bpy.sys.time() - time1))
+	print("OBJ Export time: %.2f" % (time.clock() - time1))
 #	print "OBJ Export time: %.2f" % (sys.time() - time1)
 
 def do_export(filename, context, 

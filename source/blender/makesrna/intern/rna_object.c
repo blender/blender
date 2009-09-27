@@ -1414,6 +1414,11 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Frames Off", "Recurring frames to exclude from the Dupliframes.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
+	prop= RNA_def_property(srna, "dupli_list", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "duplilist", NULL);
+	RNA_def_property_struct_type(prop, "DupliObject");
+	RNA_def_property_ui_text(prop, "Dupli list", "Object duplis.");
+
 	/* time offset */
 
 	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE|PROP_UNIT_TIME);
