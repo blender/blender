@@ -24,12 +24,22 @@ bool WDLSSolver::init(unsigned int nq, unsigned int nc, const std::vector<bool>&
 	m_ns = std::min(nc,nq);
     m_AWq = e_zero_matrix(nc,nq);
     m_WyAWq = e_zero_matrix(nc,nq);
-    m_U = e_zero_matrix(nc,nq);
+    m_WyAWqt = e_zero_matrix(nq,nc);
 	m_S = e_zero_vector(std::max(nc,nq));
-    m_temp = e_zero_vector(nq);
-    m_V = e_zero_matrix(nq,nq);
-    m_WqV = e_zero_matrix(nq,nq);
 	m_Wy_ydot = e_zero_vector(nc);
+	if (nq > nc) {
+		m_transpose = true;
+	    m_temp = e_zero_vector(nc);
+	    m_U = e_zero_matrix(nc,nc);
+		m_V = e_zero_matrix(nq,nc);
+	    m_WqV = e_zero_matrix(nq,nc);
+	} else {
+		m_transpose = false;
+	    m_temp = e_zero_vector(nq);
+	    m_U = e_zero_matrix(nc,nq);
+		m_V = e_zero_matrix(nq,nq);
+	    m_WqV = e_zero_matrix(nq,nq);
+	}
     return true;
 }
 
@@ -42,7 +52,13 @@ bool WDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& yd
 		m_WyAWq.row(i) = Wy(i)*m_AWq.row(i);
 
     // Compute the SVD of the weighted jacobian
-	int ret = KDL::svd_eigen_HH(m_WyAWq,m_U,m_S,m_V,m_temp);
+	int ret;
+	if (m_transpose) {
+		m_WyAWqt = m_WyAWq.transpose();
+		ret = KDL::svd_eigen_HH(m_WyAWqt,m_V,m_S,m_U,m_temp);
+	} else {
+		ret = KDL::svd_eigen_HH(m_WyAWq,m_U,m_S,m_V,m_temp);
+	}
     if(ret<0)
         return false;
 

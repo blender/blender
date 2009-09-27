@@ -14,12 +14,13 @@ namespace iTaSC {
 
 class WDLSSolver: public iTaSC::Solver {
 private:
-    e_matrix m_AWq,m_WyAWq,m_U,m_V,m_WqV;
+    e_matrix m_AWq,m_WyAWq,m_WyAWqt,m_U,m_V,m_WqV;
     e_vector m_S,m_temp,m_Wy_ydot;
     double m_lambda;
     double m_epsilon;
 	double m_qmax;
 	int m_ns;
+	bool m_transpose;
 public:
     WDLSSolver();
     virtual ~WDLSSolver();
