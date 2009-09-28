@@ -42,6 +42,7 @@
 
 #include "BIK_api.h"
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BLI_arithb.h"
 
 #include "DNA_userdef_types.h"
