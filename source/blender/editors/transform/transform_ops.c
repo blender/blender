@@ -152,8 +152,9 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name   = "Select Orientation";
-	ot->description= "Select orientation type.";
+	ot->description= "Select transformation orientation.";
 	ot->idname = "TFM_OT_select_orientation";
+	ot->flag   = OPTYPE_UNDO;
 
 	/* api callbacks */
 	ot->invoke = select_orientation_invoke;
@@ -162,6 +163,92 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 
 	prop= RNA_def_enum(ot->srna, "orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
 	RNA_def_enum_funcs(prop, select_orientation_itemf);
+}
+
+
+static int delete_orientation_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
+
+	BIF_removeTransformOrientationIndex(C, selected_index);
+
+	return OPERATOR_FINISHED;
+}
+
+static int delete_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return delete_orientation_exec(C, op);
+}
+
+static int delete_orientation_poll(bContext *C)
+{
+	int selected_index = -1;
+	View3D *v3d = CTX_wm_view3d(C);
+	
+	if (ED_operator_areaactive(C) == 0)
+		return 0;
+	
+	
+	if(v3d) {
+		selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
+	}
+	
+	return selected_index >= 0;
+}
+
+void TFM_OT_delete_orientation(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Delete Orientation";
+	ot->description= "Delete transformation orientation.";
+	ot->idname = "TFM_OT_delete_orientation";
+	ot->flag   = OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->invoke = delete_orientation_invoke;
+	ot->exec   = delete_orientation_exec;
+	ot->poll   = delete_orientation_poll;
+}
+
+static int create_orientation_exec(bContext *C, wmOperator *op)
+{
+	char name[36];
+	int use = RNA_boolean_get(op->ptr, "use");
+	int overwrite = RNA_boolean_get(op->ptr, "overwrite");
+	
+	RNA_string_get(op->ptr, "name", name);
+
+	BIF_createTransformOrientation(C, op->reports, name, use, overwrite);
+
+	/* Do we need more refined tags? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return create_orientation_exec(C, op);
+}
+
+void TFM_OT_create_orientation(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Create Orientation";
+	ot->description= "Create transformation orientation from selection.";
+	ot->idname = "TFM_OT_create_orientation";
+	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->invoke = create_orientation_invoke;
+	ot->exec   = create_orientation_exec;
+	ot->poll   = ED_operator_areaactive;
+	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_string(ot->srna, "name", "", 35, "Name", "Text to insert at the cursor position.");
+	RNA_def_boolean(ot->srna, "use", 0, "Use after creation", "Select orientation after its creation");
+	RNA_def_boolean(ot->srna, "overwrite", 0, "Overwrite previous", "Overwrite previously created orientation with same name");
 }
 
 static void transformops_exit(bContext *C, wmOperator *op)
@@ -643,6 +730,8 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TFM_OT_edge_slide);
 
 	WM_operatortype_append(TFM_OT_select_orientation);
+	WM_operatortype_append(TFM_OT_create_orientation);
+	WM_operatortype_append(TFM_OT_delete_orientation);
 }
 
 void transform_keymap_for_space(struct wmWindowManager *wm, struct wmKeyMap *keymap, int spaceid)
@@ -674,6 +763,9 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct wmKeyMap *key
 			km = WM_keymap_add_item(keymap, "TFM_OT_tilt", TKEY, KM_PRESS, 0, 0);
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_select_orientation", SPACEKEY, KM_PRESS, KM_ALT, 0);
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_create_orientation", SPACEKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+			RNA_boolean_set(km->ptr, "use", 1);
 
 			break;
 		case SPACE_ACTION:

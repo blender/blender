@@ -412,6 +412,9 @@ int calc_manipulator_stats(const bContext *C)
 	if(ob && totsel) {
 
 		switch(v3d->twmode) {
+		
+		case V3D_MANIP_GLOBAL:
+			break; /* nothing to do */
 
 		case V3D_MANIP_NORMAL:
 			if(obedit || ob->mode & OB_MODE_POSE) {
@@ -473,8 +476,12 @@ int calc_manipulator_stats(const bContext *C)
 			}
 			break;
 		default: /* V3D_MANIP_CUSTOM */
-			// XXX 			applyTransformOrientation(C, t);
-			break;
+			{
+				float mat[3][3];
+				applyTransformOrientation(C, mat, NULL);
+				Mat4CpyMat3(rv3d->twmat, mat);
+				break;
+			}
 		}
 
 	}

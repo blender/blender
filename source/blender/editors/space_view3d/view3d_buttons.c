@@ -886,7 +886,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		}
 		break;
 	case B_TRANSFORMSPACEADD:
-		BIF_manageTransformOrientation(C, 1, 0);
+		BIF_createTransformOrientation(C, NULL, "", 1, 0);
 		break;
 	case B_TRANSFORMSPACECLEAR:
 		BIF_clearTransformOrientation(C);
