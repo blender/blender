@@ -189,14 +189,14 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 	int numfiles;
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
-		short width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
+		int width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
 		numfiles = width/layout->tile_w + 1;
+		return numfiles*layout->rows;
 	} else {
-		short height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
+		int height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
 		numfiles = height/layout->tile_h + 1;
+		return numfiles*layout->columns;
 	}
-
-	return layout->columns*layout->rows;
 }
 
 int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
@@ -220,7 +220,7 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	return active_file;
 }
 
-void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, short *x, short *y)
+void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y)
 {
 	if (layout->flag == FILE_LAYOUT_HOR) {
 		*x = layout->tile_border_x + (tile/layout->rows)*(layout->tile_w+2*layout->tile_border_x);
@@ -263,7 +263,7 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 		if (file) {
 			int len;
 			len = file_string_width(file->relname);
-			if (len > layout->column_widths[COLUMN_NAME]) layout->column_widths[COLUMN_NAME] = len;
+			if (len > layout->column_widths[COLUMN_NAME]) layout->column_widths[COLUMN_NAME] = len + 20;
 			len = file_string_width(file->date);
 			if (len > layout->column_widths[COLUMN_DATE]) layout->column_widths[COLUMN_DATE] = len;
 			len = file_string_width(file->time);
@@ -335,18 +335,23 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
-			maxlen = layout->column_widths[COLUMN_NAME] +
+			maxlen = layout->column_widths[COLUMN_NAME] + 12 +
 					 layout->column_widths[COLUMN_SIZE];
-			maxlen += 20+2*10; // for icon and space between columns
+			maxlen += 20; // for icon
 		} else {
-			maxlen = layout->column_widths[COLUMN_NAME] +
-					 layout->column_widths[COLUMN_DATE] +
-					 layout->column_widths[COLUMN_TIME] +
+			maxlen = layout->column_widths[COLUMN_NAME] + 12 +
+#ifndef WIN32
+					 layout->column_widths[COLUMN_MODE1] + 12 +
+					 layout->column_widths[COLUMN_MODE2] + 12 +
+					 layout->column_widths[COLUMN_MODE3] + 12 +
+					 layout->column_widths[COLUMN_OWNER] + 12 +
+#endif
+					 layout->column_widths[COLUMN_DATE] + 12 +
+					 layout->column_widths[COLUMN_TIME] + 12 +
 					 layout->column_widths[COLUMN_SIZE];
-					/* XXX add mode1, mode2, mode3, owner columns for non-windows platforms */
-			maxlen += 20+4*10; // for icon and space between columns
+			maxlen += 20; // for icon
 		}
-		layout->tile_w = maxlen + 40;
+		layout->tile_w = maxlen;
 		if(layout->rows > 0)
 			layout->columns = numfiles/layout->rows + 1; // XXX dirty, modulo is zero
 		else {

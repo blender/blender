@@ -133,24 +133,24 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 void file_draw_buttons(const bContext *C, ARegion *ar)
 {
 	/* Button layout. */
-	const short min_x      = 10;
-	const short max_x      = ar->winx - 10;
-	const short line1_y    = IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN*2;
-	const short line2_y    = IMASEL_BUTTONS_MARGIN;
-	const short input_minw = 20;
-	const short btn_h      = UI_UNIT_Y;
-	const short btn_fn_w   = UI_UNIT_X;
-	const short btn_minw   = 80;
-	const short btn_margin = 20;
-	const short separator  = 4;
+	const int min_x      = 10;
+	const int max_x      = ar->winx - 10;
+	const int line1_y    = IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN*2;
+	const int line2_y    = IMASEL_BUTTONS_MARGIN;
+	const int input_minw = 20;
+	const int btn_h      = UI_UNIT_Y;
+	const int btn_fn_w   = UI_UNIT_X;
+	const int btn_minw   = 80;
+	const int btn_margin = 20;
+	const int separator  = 4;
 
 	/* Additional locals. */
 	char  name[20];
-	short loadbutton;
-	short fnumbuttons;
-	short available_w = max_x - min_x;
-	short line1_w     = available_w;
-	short line2_w     = available_w;
+	int loadbutton;
+	int fnumbuttons;
+	int available_w = max_x - min_x;
+	int line1_w     = available_w;
+	int line2_w     = available_w;
 	
 	uiBut*            but;
 	uiBlock*          block;
@@ -230,7 +230,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 }
 
 
-static void draw_tile(short sx, short sy, short width, short height, int colorid, int shade)
+static void draw_tile(int sx, int sy, int width, int height, int colorid, int shade)
 {	
 	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(15);	
@@ -310,7 +310,7 @@ static int get_file_icon(struct direntry *file)
 		return ICON_FILE_BLANK;
 }
 
-static void file_draw_icon(short sx, short sy, int icon, short width, short height)
+static void file_draw_icon(int sx, int sy, int icon, int width, int height)
 {
 	float x,y;
 	int blend=0;
@@ -326,9 +326,9 @@ static void file_draw_icon(short sx, short sy, int icon, short width, short heig
 }
 
 
-static void file_draw_string(short sx, short sy, const char* string, float width, short height, int flag)
+static void file_draw_string(int sx, int sy, const char* string, float width, int height, int flag)
 {
-	short soffs;
+	int soffs;
 	char fname[FILE_MAXFILE];
 	float sw;
 	float x,y;
@@ -350,18 +350,19 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	
 	ED_fileselect_init_layout(sfile, ar);
-	UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
+	/* +SCROLL_HEIGHT is bad hack to work around issue in UI_view2d_totRect_set */
+	UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height+V2D_SCROLL_HEIGHT);
 }
 
-static void file_draw_preview(short sx, short sy, ImBuf *imb, FileLayout *layout, short dropshadow)
+static void file_draw_preview(int sx, int sy, ImBuf *imb, FileLayout *layout, short dropshadow)
 {
 	if (imb) {
 			float fx, fy;
 			float dx, dy;
-			short xco, yco;
+			int xco, yco;
 			float scaledx, scaledy;
 			float scale;
-			short ex, ey;
+			int ex, ey;
 
 			if ( (imb->x > layout->prv_w) || (imb->y > layout->prv_h) ) {
 				if (imb->x > imb->y) {
@@ -379,8 +380,8 @@ static void file_draw_preview(short sx, short sy, ImBuf *imb, FileLayout *layout
 				scaledy = (float)imb->y;
 				scale = 1.0;
 			}
-			ex = (short)scaledx;
-			ey = (short)scaledy;
+			ex = (int)scaledx;
+			ey = (int)scaledy;
 			fx = ((float)layout->prv_w - (float)ex)/2.0f;
 			fy = ((float)layout->prv_h - (float)ey)/2.0f;
 			dx = (fx + 0.5f + layout->prv_border_x);
@@ -442,7 +443,7 @@ static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
 static void draw_background(FileLayout *layout, View2D *v2d)
 {
 	int i;
-	short sy;
+	int sy;
 
 	/* alternating flat shade background */
 	for (i=0; (i <= layout->rows); i+=2)
@@ -457,7 +458,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 
 static void draw_dividers(FileLayout *layout, View2D *v2d)
 {
-	short sx;
+	int sx;
 
 	/* vertical column dividers */
 	sx = v2d->tot.xmin;
@@ -483,7 +484,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	int numfiles;
 	int numfiles_layout;
 	int colorid = 0;
-	short sx, sy;
+	int sx, sy;
 	int offset;
 	int i;
 	float sw, spos;
@@ -491,12 +492,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 	numfiles = filelist_numfiles(files);
 	
-	sx = ar->v2d.tot.xmin + layout->tile_border_x/2;
-	sy = ar->v2d.cur.ymax - layout->tile_border_y;
-
-	offset = ED_fileselect_layout_offset(layout, 0, 0);
-	if (offset<0) offset=0;
-
 	if (params->display != FILE_IMGDISPLAY) {
 
 		draw_background(layout, v2d);
@@ -504,9 +499,9 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		draw_dividers(layout, v2d);
 	}
 
-	sx = ar->v2d.cur.xmin + layout->tile_border_x;
-	sy = ar->v2d.cur.ymax - layout->tile_border_y;
-	
+	offset = ED_fileselect_layout_offset(layout, ar->v2d.cur.xmin, -ar->v2d.cur.ymax);
+	if (offset<0) offset=0;
+
 	numfiles_layout = ED_fileselect_layout_numfiles(layout, ar);
 
 	for (i=offset; (i < numfiles) && (i<offset+numfiles_layout); ++i)
@@ -552,7 +547,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		sw = file_string_width(file->relname);
 		if (file->flags & EDITING) {
-			short but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
+			int but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
 			uiBlock *block = uiBeginBlock(C, ar, "FileName", UI_EMBOSS);
 			uiBut *but = uiDefBut(block, TEX, 1, "", spos, sy-layout->tile_h-3, 
 				but_width, layout->textheight*2, file->relname, 1.0f, (float)FILE_MAX,0,0,"");
@@ -573,15 +568,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			spos += layout->column_widths[COLUMN_NAME] + 12;
 			if (!(file->type & S_IFDIR)) {
 				sw = file_string_width(file->size);
-				spos += layout->column_widths[COLUMN_SIZE] + 12 - sw;
 				file_draw_string(spos, sy, file->size, sw+1, layout->tile_h, FILE_SHORTEN_END);	
+				spos += layout->column_widths[COLUMN_SIZE] + 12;
 			}
 		} else if (params->display == FILE_LONGDISPLAY) {
 			spos += layout->column_widths[COLUMN_NAME] + 12;
 
 #ifndef WIN32
 			/* rwx rwx rwx */
-			spos += 20;
 			sw = file_string_width(file->mode1);
 			file_draw_string(spos, sy, file->mode1, sw, layout->tile_h, FILE_SHORTEN_END); 
 			spos += layout->column_widths[COLUMN_MODE1] + 12;
@@ -609,8 +603,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 			if (!(file->type & S_IFDIR)) {
 				sw = file_string_width(file->size);
-				spos += layout->column_widths[COLUMN_SIZE] + 12 - sw;
 				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
+				spos += layout->column_widths[COLUMN_SIZE] + 12;
 			}
 		}
 	}

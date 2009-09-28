@@ -68,7 +68,7 @@
 
 /* ---------- FILE SELECTION ------------ */
 
-static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short y)
+static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, int x, int y)
 {
 	float fx,fy;
 	int active_file = -1;

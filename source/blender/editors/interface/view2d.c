@@ -831,6 +831,7 @@ void UI_view2d_totRect_set_resize (View2D *v2d, int width, int height, int resiz
 	height= abs(height);
 	
 	/* hrumf! */
+	/* XXX: there are work arounds for this in the panel and file browse code. */
 	if(scroll & V2D_SCROLL_HORIZONTAL) 
 		width -= V2D_SCROLL_WIDTH;
 	if(scroll & V2D_SCROLL_VERTICAL) 
@@ -1397,8 +1398,14 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if (scrollers->hor_min > scrollers->hor_max) 
 			scrollers->hor_min= scrollers->hor_max;
 		/* prevent sliders from being too small, and disappearing */
-		if ((scrollers->hor_max - scrollers->hor_min) < V2D_SCROLLER_HANDLE_SIZE)
-			scrollers->hor_max+= V2D_SCROLLER_HANDLE_SIZE;
+		if ((scrollers->hor_max - scrollers->hor_min) < V2D_SCROLLER_HANDLE_SIZE) {
+			scrollers->hor_max= scrollers->hor_min + V2D_SCROLLER_HANDLE_SIZE;
+
+			if(scrollers->hor_max > hor.xmax) {
+				scrollers->hor_max= hor.xmax;
+				scrollers->hor_min= MAX2(scrollers->hor_max - V2D_SCROLLER_HANDLE_SIZE, hor.xmin);
+			}
+		}
 		
 		/* check whether sliders can disappear */
 		if(v2d->keeptot) {
@@ -1429,8 +1436,14 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if (scrollers->vert_min > scrollers->vert_max) 
 			scrollers->vert_min= scrollers->vert_max;
 		/* prevent sliders from being too small, and disappearing */
-		if ((scrollers->vert_max - scrollers->vert_min) < V2D_SCROLLER_HANDLE_SIZE)
-			scrollers->vert_max+= V2D_SCROLLER_HANDLE_SIZE;
+		if ((scrollers->vert_max - scrollers->vert_min) < V2D_SCROLLER_HANDLE_SIZE) {
+			scrollers->vert_max= scrollers->vert_min + V2D_SCROLLER_HANDLE_SIZE;
+
+			if(scrollers->vert_max > vert.ymax) {
+				scrollers->vert_max= vert.ymax;
+				scrollers->vert_min= MAX2(scrollers->vert_max - V2D_SCROLLER_HANDLE_SIZE, vert.ymin);
+			}
+		}
 		
 		/* check whether sliders can disappear */
 		if(v2d->keeptot) {
