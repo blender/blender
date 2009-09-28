@@ -193,7 +193,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init 
 			 * the modal op) doesn't work for some reason
 			 */
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				change_frame_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -399,6 +399,8 @@ void ED_operatortypes_anim(void)
 	
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);
+	WM_operatortype_append(ANIM_OT_copy_driver_button);
+	WM_operatortype_append(ANIM_OT_paste_driver_button);
 	
 	WM_operatortype_append(ANIM_OT_add_keyingset_button);
 	WM_operatortype_append(ANIM_OT_remove_keyingset_button);

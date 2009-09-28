@@ -31,6 +31,7 @@
 
 #include "KX_PythonSeq.h"
 #include "KX_GameObject.h"
+#include "BL_ArmatureObject.h"
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
 #include "SCA_IActuator.h"
@@ -72,6 +73,10 @@ static Py_ssize_t KX_PythonSeq_len( PyObject * self )
 		return ((KX_GameObject *)self_plus)->GetControllers().size();
 	case KX_PYGENSEQ_OB_TYPE_ACTUATORS:
 		return ((KX_GameObject *)self_plus)->GetActuators().size();
+	case KX_PYGENSEQ_OB_TYPE_CONSTRAINTS:
+		return ((BL_ArmatureObject *)self_plus)->GetConstraintNumber();
+	case KX_PYGENSEQ_OB_TYPE_CHANNELS:
+		return ((BL_ArmatureObject *)self_plus)->GetChannelNumber();
 	default:
 		/* Should never happen */
 		PyErr_SetString(PyExc_SystemError, "invalid type, internal error");
@@ -139,6 +144,29 @@ static PyObject *KX_PythonSeq_getIndex(PyObject* self, int index)
 			}
 			return linkedactuators[index]->GetProxy();
 		}
+		case KX_PYGENSEQ_OB_TYPE_CONSTRAINTS:
+		{
+			int nb_constraint = ((BL_ArmatureObject *)self_plus)->GetConstraintNumber();
+			if(index<0) 
+				index += nb_constraint;
+			if(index<0 || index>= nb_constraint) {
+				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
+				return NULL;
+			}
+			return ((BL_ArmatureObject *)self_plus)->GetConstraint(index)->GetProxy();
+		}
+		case KX_PYGENSEQ_OB_TYPE_CHANNELS:
+		{
+			int nb_channel = ((BL_ArmatureObject *)self_plus)->GetChannelNumber();
+			if(index<0) 
+				index += nb_channel;
+			if(index<0 || index>= nb_channel) {
+				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
+				return NULL;
+			}
+			return ((BL_ArmatureObject *)self_plus)->GetChannel(index)->GetProxy();
+		}
+
 	}
 	
 	PyErr_SetString(PyExc_SystemError, "invalid sequence type, this is a bug");
@@ -205,6 +233,14 @@ static PyObjectPlus * KX_PythonSeq_subscript__internal(PyObject *self, char *key
 					return static_cast<PyObjectPlus *>(actuator);
 			}
 			break;
+		}
+		case KX_PYGENSEQ_OB_TYPE_CONSTRAINTS:
+		{
+			return ((BL_ArmatureObject*)self_plus)->GetConstraint(key);
+		}
+		case KX_PYGENSEQ_OB_TYPE_CHANNELS:
+		{
+			return ((BL_ArmatureObject*)self_plus)->GetChannel(key);
 		}
 	}
 	

@@ -2501,6 +2501,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			gameobj->GetDeformer()->UpdateBuckets();
 	}
 
+	// Set up armature constraints
+	for (i=0;i<sumolist->GetCount();++i)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+		if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
+			((BL_ArmatureObject*)gameobj)->LoadConstraints(converter);
+	}
+
 	bool processCompoundChildren = false;
 
 	// create physics information

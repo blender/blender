@@ -37,8 +37,6 @@ using namespace std;
 
 class SCA_ActuatorEventManager : public SCA_EventManager
 {
-	class SCA_LogicManager*	m_logicmgr;
-
 public:
 	SCA_ActuatorEventManager(class SCA_LogicManager* logicmgr);
 	virtual ~SCA_ActuatorEventManager();

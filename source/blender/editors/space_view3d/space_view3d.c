@@ -259,7 +259,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	if(v3do->localvd) {
 		v3do->localvd= NULL;
 		v3do->properties_storage= NULL;
-		v3do->localview= 0;
 		v3do->lay= v3dn->localvd->lay;
 		v3do->lay &= 0xFFFFFF;
 	}
@@ -420,6 +419,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_POSE:
 				case ND_DRAW:
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
@@ -560,6 +560,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_POSE:
 				case ND_DRAW:
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);

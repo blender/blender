@@ -604,7 +604,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 			sad->sa2= screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
 			break;
 		case LEFTMOUSE: /* release LMB */
-			if(event->val==0) {
+			if(event->val==KM_RELEASE) {
 				if(!sad->sa2 || sad->sa1 == sad->sa2) {
 
 					return area_swap_cancel(C, op);
@@ -1225,7 +1225,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
-			if(event->val==0) { /* mouse up */
+			if(event->val==KM_RELEASE) { /* mouse up */
 				area_split_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -1345,12 +1345,14 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
-			if(event->val==0) {
+			if(event->val==KM_RELEASE) {
 				
 				if(ABS(event->x - rmd->origx) < 2 && ABS(event->y - rmd->origy) < 2) {
-					ED_region_toggle_hidden(C, rmd->ar);
-					WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-				}				
+					if(rmd->ar->flag & RGN_FLAG_HIDDEN) {
+						ED_region_toggle_hidden(C, rmd->ar);
+						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+					}
+				}
 				MEM_freeN(op->customdata);
 				op->customdata = NULL;
 
@@ -1443,29 +1445,6 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 
 
 /* ************** jump to keyframe operator ***************************** */
-
-/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
-// TODO: make this an API func?
-static ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
-{
-	ActKeyColumn *akn= NULL;
-	
-	/* sanity checks */
-	if (ak == NULL)
-		return NULL;
-	
-	/* check if this is a match, or whether it is in some subtree */
-	if (cframe < ak->cfra)
-		akn= cfra_find_nearest_next_ak(ak->left, cframe, next);
-	else if (cframe > ak->cfra)
-		akn= cfra_find_nearest_next_ak(ak->right, cframe, next);
-		
-	/* if no match found (or found match), just use the current one */
-	if (akn == NULL)
-		return ak;
-	else
-		return akn;
-}
 
 /* function to be called outside UI context, or for redo */
 static int keyframe_jump_exec(bContext *C, wmOperator *op)
@@ -1595,7 +1574,7 @@ static int screen_full_area_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 {
-	ot->name = "Toggle Make Area Fullscreen";
+	ot->name = "Toggle Full Screen";
 	ot->idname = "SCREEN_OT_screen_full_area";
 	
 	ot->exec= screen_full_area_exec;
@@ -1849,7 +1828,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			break;
 		case LEFTMOUSE:
-			if(event->val==0) {
+			if(event->val==KM_RELEASE) {
 				area_join_apply(C, op);
 				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				area_join_exit(C, op);
@@ -2118,7 +2097,7 @@ static int region_foursplit_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Split Region in 4 Parts";
+	ot->name= "Toggle Quad View";
 	ot->idname= "SCREEN_OT_region_foursplit";
 	
 	/* api callbacks */
@@ -2197,6 +2176,10 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 				if(redraws & (TIME_SEQ|TIME_ALL_ANIM_WIN))
 					return 1;
 				break;
+			case SPACE_NODE:
+				if(redraws & (TIME_NODES))
+					return 1;
+				break;
 			case SPACE_IMAGE:
 				if(redraws & TIME_ALL_IMAGE_WIN)
 					return 1;
@@ -2229,7 +2212,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		/* sync, don't sync, or follow scene setting */
 		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
 		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
-		else sync= (scene->r.audio.flag & AUDIO_SYNC);
+		else sync= (scene->audio.flag & AUDIO_SYNC);
 		
 		if(sync) {
 			/* skip frames */
@@ -2364,7 +2347,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_animation_play(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Animation player";
+	ot->name= "Play Animation";
 	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */

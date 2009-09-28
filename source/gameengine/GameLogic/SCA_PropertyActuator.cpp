@@ -43,7 +43,7 @@
 /* ------------------------------------------------------------------------- */
 
 SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,SCA_IObject* sourceObj,const STR_String& propname,const STR_String& expr,int acttype)
-   :	SCA_IActuator(gameobj),
+   :	SCA_IActuator(gameobj, KX_ACT_PROPERTY),
 	m_type(acttype),
 	m_propname(propname),
 	m_exprtxt(expr),

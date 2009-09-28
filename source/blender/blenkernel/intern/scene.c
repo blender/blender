@@ -421,7 +421,11 @@ Scene *add_scene(char *name)
 	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
 	sce->jumpframe = 10;
-	sce->r.audio.mixrate = 44100;
+	sce->r.ffcodecdata.audio_mixrate = 44100;
+
+	sce->audio.distance_model = 2.0;
+	sce->audio.doppler_factor = 1.0;
+	sce->audio.speed_of_sound = 343.3;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);

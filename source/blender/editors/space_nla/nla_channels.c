@@ -116,18 +116,22 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	}
 	
 	/* action to take depends on what channel we've got */
+	// WARNING: must keep this in sync with the equivalent function in anim_channels_edit.c
 	switch (ale->type) {
 		case ANIMTYPE_SCENE:
 		{
 			Scene *sce= (Scene *)ale->data;
+			AnimData *adt= sce->adt;
 			
 			/* set selection status */
 			if (selectmode == SELECT_INVERT) {
 				/* swap select */
 				sce->flag ^= SCE_DS_SELECTED;
+				if (adt) adt->flag ^= ADT_UI_SELECTED;
 			}
 			else {
 				sce->flag |= SCE_DS_SELECTED;
+				if (adt) adt->flag |= ADT_UI_SELECTED;
 			}
 			
 			notifierFlags |= ND_ANIMCHAN_SELECT;
@@ -139,6 +143,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			Scene *sce= (Scene *)ads->source;
 			Base *base= (Base *)ale->data;
 			Object *ob= base->object;
+			AnimData *adt= ob->adt;
 			
 			if (nlaedit_is_tweakmode_on(ac) == 0) {
 				/* set selection status */
@@ -146,28 +151,68 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 					/* swap select */
 					base->flag ^= SELECT;
 					ob->flag= base->flag;
+					
+					if (adt) adt->flag ^= ADT_UI_SELECTED;
 				}
 				else {
 					Base *b;
 					
-					/* deleselect all */
+					/* deselect all */
+					// TODO: should this deselect all other types of channels too?
 					for (b= sce->base.first; b; b= b->next) {
 						b->flag &= ~SELECT;
 						b->object->flag= b->flag;
+						if (b->object->adt) b->object->adt->flag &= ~(ADT_UI_SELECTED|ADT_UI_ACTIVE);
 					}
 					
 					/* select object now */
 					base->flag |= SELECT;
 					ob->flag |= SELECT;
+					if (adt) adt->flag |= ADT_UI_SELECTED;
 				}
 				
 				/* xxx should be ED_base_object_activate(), but we need context pointer for that... */
 				//set_active_base(base);
+				if ((adt) && (adt->flag & ADT_UI_SELECTED))
+					adt->flag |= ADT_UI_ACTIVE;
 				
 				/* notifiers - channel was selected */
 				notifierFlags |= ND_ANIMCHAN_SELECT;
 			}
 		}
+			break;
+			
+		case ANIMTYPE_FILLACTD: /* Action Expander */
+		case ANIMTYPE_DSMAT:	/* Datablock AnimData Expanders */
+		case ANIMTYPE_DSLAM:
+		case ANIMTYPE_DSCAM:
+		case ANIMTYPE_DSCUR:
+		case ANIMTYPE_DSSKEY:
+		case ANIMTYPE_DSWOR:
+		case ANIMTYPE_DSPART:
+		case ANIMTYPE_DSMBALL:
+		case ANIMTYPE_DSARM:
+		{
+			/* sanity checking... */
+			if (ale->adt) {
+				/* select/deselect */
+				if (selectmode == SELECT_INVERT) {
+					/* inverse selection status of this AnimData block only */
+					ale->adt->flag ^= ADT_UI_SELECTED;
+				}
+				else {
+					/* select AnimData block by itself */
+					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					ale->adt->flag |= ADT_UI_SELECTED;
+				}
+				
+				/* set active? */
+				if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED))
+					ale->adt->flag |= ADT_UI_ACTIVE;
+			}
+			
+			notifierFlags |= ND_ANIMCHAN_SELECT;
+		}	
 			break;
 			
 		case ANIMTYPE_NLATRACK:

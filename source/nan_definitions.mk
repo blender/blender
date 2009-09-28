@@ -81,6 +81,8 @@ ifndef CONFIG_GUESS
     endif
 
     export NAN_MOTO ?= $(LCGDIR)/moto
+	export NAN_ITASC ?= $(LCGDIR)/itasc
+	
     export BF_PROFILE ?= false
     export NAN_USE_BULLET ?= true
     export NAN_BULLET2 ?= $(LCGDIR)/bullet2

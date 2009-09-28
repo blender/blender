@@ -517,10 +517,12 @@ void ui_theme_init_userdef(void)
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
-	SETCOL(btheme->tfile.back, 	90, 90, 90, 255);
+	SETCOLF(btheme->tfile.back, 0.3, 0.3, 0.3, 1);
+	SETCOLF(btheme->tfile.panel, 0.3, 0.3, 0.3, 1);
+	SETCOLF(btheme->tfile.list, 0.4, 0.4, 0.4, 1);
 	SETCOL(btheme->tfile.text, 	250, 250, 250, 255);
 	SETCOL(btheme->tfile.text_hi, 15, 15, 15, 255);
-	SETCOL(btheme->tfile.panel, 180, 180, 180, 255);	// bookmark/ui regions
+	SETCOL(btheme->tfile.panel, 145, 145, 145, 255);	// bookmark/ui regions
 	SETCOL(btheme->tfile.active, 130, 130, 130, 255); // selected files
 	SETCOL(btheme->tfile.hilite, 255, 140, 25, 255); // selected files
 	
@@ -604,11 +606,11 @@ void ui_theme_init_userdef(void)
 	/* space node, re-uses syntax color storage */
 	btheme->tnode= btheme->tv3d;
 	SETCOL(btheme->tnode.edge_select, 255, 255, 255, 255);
-	SETCOL(btheme->tnode.syntaxl, 150, 150, 150, 255);	/* TH_NODE, backdrop */
-	SETCOL(btheme->tnode.syntaxn, 129, 131, 144, 255);	/* in/output */
-	SETCOL(btheme->tnode.syntaxb, 127,127,127, 255);	/* operator */
-	SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
-	SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
+	SETCOL(btheme->tnode.syntaxl, 155, 155, 155, 160);	/* TH_NODE, backdrop */
+	SETCOL(btheme->tnode.syntaxn, 100, 100, 100, 255);	/* in/output */
+	SETCOL(btheme->tnode.syntaxb, 108, 105, 111, 255);	/* operator */
+	SETCOL(btheme->tnode.syntaxv, 104, 106, 117, 255);	/* generator */
+	SETCOL(btheme->tnode.syntaxc, 105, 117, 110, 255);	/* group */
 
 	/* space logic */
 	btheme->tlogic= btheme->tv3d;

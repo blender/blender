@@ -114,13 +114,15 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	if(sbuts->pathflag & (1<<BCONTEXT_OBJECT))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
 	if(sbuts->pathflag & (1<<BCONTEXT_CONSTRAINT))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_CONSTRAINT, 0, 0, "Constraint");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_CONSTRAINT, 0, 0, "Object Constraints");
 	if(sbuts->pathflag & (1<<BCONTEXT_DATA))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	sbuts->dataicon,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
 	if(sbuts->pathflag & (1<<BCONTEXT_MODIFIER))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifier");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifiers");
 	if(sbuts->pathflag & (1<<BCONTEXT_BONE))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
+	if(sbuts->pathflag & (1<<BCONTEXT_BONE_CONSTRAINT))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE_CONSTRAINT, 0, 0, "Bone Constraints");
 	if(sbuts->pathflag & (1<<BCONTEXT_MATERIAL))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
 	if(sbuts->pathflag & (1<<BCONTEXT_TEXTURE))

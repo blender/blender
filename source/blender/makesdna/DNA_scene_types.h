@@ -94,6 +94,8 @@ typedef struct FFMpegCodecData {
 	int audio_codec;
 	int video_bitrate;
 	int audio_bitrate;
+	int audio_mixrate;
+	float audio_volume;
 	int gop_size;
 	int flags;
 
@@ -107,10 +109,13 @@ typedef struct FFMpegCodecData {
 
 
 typedef struct AudioData {
-	int mixrate;
-	float main;		/* Main mix in dB */
+	int mixrate; // 2.5: now in FFMpegCodecData: audio_mixrate
+	float main; // 2.5: now in FFMpegCodecData: audio_volume
+	float speed_of_sound;
+	float doppler_factor;
+	int distance_model;
 	short flag;
-	short pad[3];
+	short pad;
 } AudioData;
 
 typedef struct SceneRenderLayer {
@@ -175,7 +180,6 @@ typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
 	struct FFMpegCodecData ffcodecdata;
-	struct AudioData audio;	/* new in 2.5 */
 	
 	int cfra, sfra, efra;	/* frames as in 'images' */
 	int psfra, pefra;		/* start+end frames of preview range */
@@ -702,7 +706,7 @@ typedef struct Scene {
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */
 	struct RenderData r;
-	struct AudioData audio;		/* DEPRECATED 2.5 */
+	struct AudioData audio;
 	
 	ListBase markers;
 	ListBase transform_spaces;

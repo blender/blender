@@ -114,34 +114,69 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 	if (ANIM_animdata_get_context(C, &ac) == 0) 
 		return 0;
 	
-	/* extract list of active channel(s), of which we should only take the first one (expecting it to be an NLA track) */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_ACTIVE);
+	/* extract list of active channel(s), of which we should only take the first one 
+	 *	- we need the channels flag to get the active AnimData block when there are no NLA Tracks
+	 */
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_ACTIVE|ANIMFILTER_CHANNELS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		// TODO: need some way to select active animdata too...
-		if (ale->type == ANIMTYPE_NLATRACK) {
-			NlaTrack *nlt= (NlaTrack *)ale->data;
-			AnimData *adt= ale->adt;
-			
-			/* found it, now set the pointers */
-			if (adt_ptr) {
-				/* AnimData pointer */
-				RNA_pointer_create(ale->id, &RNA_AnimData, adt, adt_ptr);
+		switch (ale->type) {
+			case ANIMTYPE_NLATRACK: /* NLA Track - The primary data type which should get caught */
+			{
+				NlaTrack *nlt= (NlaTrack *)ale->data;
+				AnimData *adt= ale->adt;
+				
+				/* found it, now set the pointers */
+				if (adt_ptr) {
+					/* AnimData pointer */
+					RNA_pointer_create(ale->id, &RNA_AnimData, adt, adt_ptr);
+				}
+				if (nlt_ptr) {
+					/* NLA-Track pointer */
+					RNA_pointer_create(ale->id, &RNA_NlaTrack, nlt, nlt_ptr);
+				}
+				if (strip_ptr) {
+					/* NLA-Strip pointer */
+					NlaStrip *strip= BKE_nlastrip_find_active(nlt);
+					RNA_pointer_create(ale->id, &RNA_NlaStrip, strip, strip_ptr);
+				}
+				
+				found= 1;
 			}
-			if (nlt_ptr) {
-				/* NLA-Track pointer */
-				RNA_pointer_create(ale->id, &RNA_NlaTrack, nlt, nlt_ptr);
-			}
-			if (strip_ptr) {
-				/* NLA-Strip pointer */
-				NlaStrip *strip= BKE_nlastrip_find_active(nlt);
-				RNA_pointer_create(ale->id, &RNA_NlaStrip, strip, strip_ptr);
-			}
-			
-			found= 1;
-			break;
+				break;
+				
+			case ANIMTYPE_SCENE: 	/* Top-Level Widgets doubling up as datablocks */
+			case ANIMTYPE_OBJECT:
+			case ANIMTYPE_FILLACTD: /* Action Expander */
+			case ANIMTYPE_DSMAT:	/* Datablock AnimData Expanders */
+			case ANIMTYPE_DSLAM:
+			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCUR:
+			case ANIMTYPE_DSSKEY:
+			case ANIMTYPE_DSWOR:
+			case ANIMTYPE_DSPART:
+			case ANIMTYPE_DSMBALL:
+			case ANIMTYPE_DSARM:
+			{
+				/* for these channels, we only do AnimData */
+				if (ale->id && ale->adt) {
+					if (adt_ptr) {
+						/* AnimData pointer */
+						RNA_pointer_create(ale->id, &RNA_AnimData, ale->adt, adt_ptr);
+						
+						/* set found status to -1, since setting to 1 would break the loop 
+						 * and potentially skip an active NLA-Track in some cases...
+						 */
+						found= -1;
+					}
+				}
+			}	
+				break;
 		}
+		
+		if (found > 0)
+			break;
 	}
 	
 	/* free temp data */
@@ -211,7 +246,7 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	/* Active Action Properties ------------------------------------- */
 	/* action */
 	row= uiLayoutRow(layout, 1);
-		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", NULL /*"ACT_OT_new"*/, NULL, NULL /*"ACT_OT_unlink"*/); // XXX: need to make these operators
+		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACT_OT_new", NULL, NULL /*"ACT_OT_unlink"*/); // XXX: need to make these operators
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);

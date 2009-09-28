@@ -62,7 +62,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	
 	/* Number values */
 
-	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "passepartalpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the darkened overlay in Camera view.");

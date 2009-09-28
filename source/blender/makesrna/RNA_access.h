@@ -333,6 +333,7 @@ extern StructRNA RNA_Pose;
 extern StructRNA RNA_PoseChannel;
 extern StructRNA RNA_Property;
 extern StructRNA RNA_PropertySensor;
+extern StructRNA RNA_ArmatureSensor;
 extern StructRNA RNA_PythonConstraint;
 extern StructRNA RNA_PythonController;
 extern StructRNA RNA_RadarSensor;

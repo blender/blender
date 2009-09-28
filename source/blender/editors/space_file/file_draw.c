@@ -189,7 +189,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	if (available_w > 0) {
 		but = uiDefBut(block, TEX, B_FS_DIRNAME, "",
 		         min_x, line1_y, line1_w, btn_h, 
-		         params->dir, 0.0, (float)FILE_MAXDIR-1, 0, 0, 
+		         params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
 		         "File path.");
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiDefBut(block, TEX, B_FS_FILENAME, "",

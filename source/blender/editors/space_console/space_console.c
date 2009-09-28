@@ -174,6 +174,9 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 		console_scrollback_add_str(C, "Autocomplete:     Ctrl+Space", 0);
 		console_scrollback_add_str(C, "Ctrl +/-  Wheel:  Zoom", 0);
 		console_scrollback_add_str(C, "Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.ui", 0);
+
+		/* This is normally set by python but to start with its easier just to set it like this rather then running python with no args */
+		strcpy(sc->prompt, ">>> ");
 	}
 	
 	/* clear and setup matrix */
@@ -233,13 +236,13 @@ void console_keymap(struct wmWindowManager *wm)
 {
 	wmKeyMap *keymap= WM_keymap_find(wm, "Console", SPACE_CONSOLE, 0);
 	
-	#ifdef __APPLE__
+#ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", RIGHTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_END);
-	#endif
+#endif
 
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_BEGIN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", PREV_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", NEXT_WORD);
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);

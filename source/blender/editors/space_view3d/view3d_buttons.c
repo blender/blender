@@ -512,6 +512,10 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 		if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
 			break;
 	}
+	if (!pchan)	{
+		uiDefBut(block, LABEL, 0, "No Bone Active",			0, 240, 100, 20, 0, 0, 0, 0, 0, "");
+		return; 
+	}
 	
 	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
 		float quat[4];
@@ -1447,24 +1451,11 @@ void view3d_buttons_register(ARegionType *art)
 	pt->draw= view3d_panel_transform_spaces;
 	BLI_addtail(&art->paneltypes, pt);
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
-	strcpy(pt->idname, "VIEW3D_PT_gpencil");
-	strcpy(pt->label, "Greas Pencil");
-	pt->draw= view3d_panel_gpencil;
-	BLI_addtail(&art->paneltypes, pt);*/
-
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel bonesketch spaces");
 	strcpy(pt->idname, "VIEW3D_PT_bonesketch_spaces");
 	strcpy(pt->label, "Bone Sketching");
 	pt->draw= view3d_panel_bonesketch_spaces;
 	pt->poll= view3d_panel_bonesketch_spaces_poll;
-	BLI_addtail(&art->paneltypes, pt);
-
-	/*
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel redo");
-	strcpy(pt->idname, "VIEW3D_PT_redo");
-	strcpy(pt->label, "Last Operator");
-	pt->draw= view3d_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 */
 	// XXX view3d_panel_preview(C, ar, 0);

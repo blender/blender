@@ -126,6 +126,13 @@ typedef struct bRaySensor {
 	int axisflag;
 } bRaySensor;
 
+typedef struct bArmatureSensor {
+	char posechannel[32];
+	char constraint[32];
+	int  type;
+	float value;
+} bArmatureSensor;
+
 typedef struct bMessageSensor {
 	/**
 	 * (Possible future use) pointer to a single sender object
@@ -202,6 +209,15 @@ typedef struct bJoystickSensor {
 #define SENS_MESG_MESG		0
 #define SENS_MESG_PROP		1
 
+/* bArmatureSensor->type */
+#define SENS_ARM_STATE_CHANGED		0
+#define SENS_ARM_LIN_ERROR_BELOW	1
+#define SENS_ARM_LIN_ERROR_ABOVE	2
+#define SENS_ARM_ROT_ERROR_BELOW	3
+#define SENS_ARM_ROT_ERROR_ABOVE	4
+/* update this when adding new type */
+#define SENS_ARM_MAXTYPE			4
+
 /* sensor->type */
 #define SENS_ALWAYS		0
 #define SENS_TOUCH		1
@@ -217,6 +233,7 @@ typedef struct bJoystickSensor {
 #define SENS_JOYSTICK  11
 #define SENS_ACTUATOR  12
 #define SENS_DELAY     13
+#define SENS_ARMATURE  14
 /* sensor->flag */
 #define SENS_SHOW		1
 #define SENS_DEL		2

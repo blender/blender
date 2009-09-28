@@ -2271,8 +2271,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 
-	if(!ELEM7(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, SEARCH_MENU))
-		but->flag |= UI_BUT_UNDO;
+	if(ELEM8(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, SEARCH_MENU, BUTM));
+	else if(ELEM5(but->type, SCROLL, SEPR, LINK, INLINK, FTPREVIEW));
+	else but->flag |= UI_BUT_UNDO;
 
 	BLI_addtail(&block->buttons, but);
 	
@@ -3098,10 +3099,11 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 	return but;
 }
 
-void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip)
+uiBut *uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip)
 {
 	uiBut *but= ui_def_but(block, KEYEVT|SHO, retval, str, x1, y1, x2, y2, spoin, 0.0, 0.0, 0.0, 0.0, tip);
 	ui_check_but(but);
+	return but;
 }
 
 /* short pointers hardcoded */

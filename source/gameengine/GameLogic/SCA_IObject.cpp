@@ -26,6 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <iostream>
+#include <algorithm>
 
 #include "SCA_IObject.h"
 #include "SCA_ISensor.h"
@@ -76,6 +77,12 @@ SCA_IObject::~SCA_IObject()
 		(*ita)->Delete();
 	}
 
+	SCA_ObjectList::iterator ito;
+	for (ito = m_registeredObjects.begin(); !(ito==m_registeredObjects.end()); ++ito)
+	{
+		(*ito)->UnlinkObject(this);
+	}
+
 	//T_InterpolatorList::iterator i;
 	//for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 	//	delete *i;
@@ -123,6 +130,26 @@ void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
 	}
 }
 
+void SCA_IObject::RegisterObject(SCA_IObject* obj)
+{
+	// one object may be registered multiple times via constraint target
+	// store multiple reference, this will serve as registration counter
+	m_registeredObjects.push_back(obj);
+}
+
+void SCA_IObject::UnregisterObject(SCA_IObject* obj)
+{
+	SCA_ObjectList::iterator ito;
+	for (ito = m_registeredObjects.begin(); ito != m_registeredObjects.end(); ++ito)
+	{
+		if ((*ito) == obj) {
+			(*ito) = m_registeredObjects.back();
+			m_registeredObjects.pop_back();
+			break;
+		}
+	}
+}
+
 void SCA_IObject::ReParentLogic()
 {
 	SCA_ActuatorList& oldactuators  = GetActuators();
@@ -165,7 +192,7 @@ void SCA_IObject::ReParentLogic()
 
 	// a new object cannot be client of any actuator
 	m_registeredActuators.clear();
-		
+	m_registeredObjects.clear();
 }
 
 

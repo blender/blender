@@ -89,6 +89,44 @@
 #include "action_intern.h"
 
 /* ************************************************************************** */
+/* ACTION MANAGEMENT */
+
+/* ******************** New Action Operator *********************** */
+
+static int act_new_exec(bContext *C, wmOperator *op)
+{
+	bAction *action;
+
+	// XXX need to restore behaviour to copy old actions...
+	action= add_empty_action("Action");
+
+	/* combined with RNA property, this will assign & increase user,
+	   so decrease here to compensate for that */
+	action->id.us--;
+	
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_new (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New";
+	ot->idname= "ACT_OT_new";
+	ot->description= "Create new action.";
+	
+	/* api callbacks */
+	ot->exec= act_new_exec;
+		// NOTE: this is used in the NLA too...
+	//ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************************************************************** */
 /* KEYFRAME-RANGE STUFF */
 
 /* *************************** Calculate Range ************************** */
@@ -1329,40 +1367,6 @@ void ACT_OT_mirror (wmOperatorType *ot)
 	
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", prop_actkeys_mirror_types, 0, "Type", "");
-}
-
-/* ******************** New Action Operator *********************** */
-
-static int act_new_exec(bContext *C, wmOperator *op)
-{
-	bAction *action;
-
-	// XXX need to restore behaviour to copy old actions...
-	action= add_empty_action("Action");
-
-	/* combined with RNA property, this will assign & increase user,
-	   so decrease here to compensate for that */
-	action->id.us--;
-	
-	/* set notifier that keyframes have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-	
-	return OPERATOR_FINISHED;
-}
- 
-void ACT_OT_new (wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "New";
-	ot->idname= "ACT_OT_new";
-	ot->description= "Create new action.";
-	
-	/* api callbacks */
-	ot->exec= act_new_exec;
-	ot->poll= ED_operator_action_active;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */

@@ -47,7 +47,6 @@ class SCA_MouseManager : public SCA_EventManager
 {
 
 	class 	SCA_IInputDevice*				m_mousedevice;
-	class 	SCA_LogicManager*				m_logicmanager;
 	
 	unsigned short m_xpos; // Cached location of the mouse pointer
 	unsigned short m_ypos;

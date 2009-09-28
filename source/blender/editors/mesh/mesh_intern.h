@@ -61,12 +61,6 @@ extern struct EditEdge *addedgelist(EditMesh *em, struct EditVert *v1, struct Ed
 extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
 extern struct EditEdge *findedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2);
 
-EditVert *editedge_getOtherVert(EditEdge *eed, EditVert *eve);
-EditVert *editedge_getSharedVert(EditEdge *eed, EditEdge *eed2);
-int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
-int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
-int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
-
 void em_setup_viewcontext(struct bContext *C, ViewContext *vc);
 
 void MESH_OT_separate(struct wmOperatorType *ot);

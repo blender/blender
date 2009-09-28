@@ -117,8 +117,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		BLI_strncpy(sfile->params->file, file, sizeof(sfile->params->file));
 		BLI_make_file_string(G.sce, sfile->params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
 	}
-	
-	ED_fileselect_reset_params(sfile);
 
 	params = sfile->params;
 
@@ -419,13 +417,16 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 			struct direntry* file = filelist_file(sfile->files, i);
 			const char* dir = filelist_dir(sfile->files);
 			if (file && S_ISDIR(file->type))	{
-				BLI_make_file_string(G.sce, tmp, dir, file->relname);
+				// BLI_make_file_string(G.sce, tmp, dir, file->relname);
+				BLI_join_dirfile(tmp, dir, file->relname);
 				autocomplete_do_name(autocpl,tmp);
 			}
 		}
 		autocomplete_end(autocpl, str);
 		if (BLI_exists(str)) {
 			BLI_add_slash(str);
+		} else {
+			BLI_make_exist(str);
 		}
 	}
 }

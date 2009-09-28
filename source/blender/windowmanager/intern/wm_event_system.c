@@ -239,7 +239,7 @@ void wm_event_do_notifiers(bContext *C)
 		
 		if(G.rendering==0) { // XXX make lock in future, or separated derivedmesh users in scene
 			
-			/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
+			/* update all objects, drivers, matrices, displists, etc. Flags set by depgraph or manual, 
 				no layer check here, gets correct flushed */
 			/* sets first, we allow per definition current scene to have dependencies on sets */
 			if(scene->set) {
@@ -415,7 +415,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		else
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
 
-		if(!(retval & OPERATOR_RUNNING_MODAL)) {
+		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
+		 * currently python only uses this */
+		if(!(retval & OPERATOR_RUNNING_MODAL) && reports==NULL) {
 			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
 				uiPupMenuReports(C, op->reports);
 		
@@ -718,7 +720,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
-		if(ISKEYBOARD(winevent->type) && winevent->ascii) return 1;
+		if(ISTEXTINPUT(winevent->type) && winevent->ascii) return 1;
 	if(kmitype!=KM_ANY)
 		if(winevent->type!=kmitype) return 0;
 	
@@ -741,7 +743,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	/* key modifiers always check when event has it */
 	/* otherwise regular keypresses with keymodifier still work */
 	if(winevent->keymodifier)
-		if(ISKEYBOARD(winevent->type)) 
+		if(ISTEXTINPUT(winevent->type)) 
 			if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
 	return 1;
@@ -1002,7 +1004,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	int always_pass;
 
 	if(handlers==NULL) return action;
-	
+
 	/* modal handlers can get removed in this loop, we keep the loop this way */
 	for(handler= handlers->first; handler; handler= nexthandler) {
 		nexthandler= handler->next;
@@ -1155,7 +1157,7 @@ void wm_event_do_handlers(bContext *C)
 		
 		while( (event= win->queue.first) ) {
 			int action;
-			
+
 			CTX_wm_window_set(C, win);
 			
 			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
@@ -1174,7 +1176,7 @@ void wm_event_do_handlers(bContext *C)
 			
 			/* builtin tweak, if action is break it removes tweak */
 			wm_tweakevent_test(C, event, action);
-			
+
 			if(action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
@@ -1187,7 +1189,7 @@ void wm_event_do_handlers(bContext *C)
 					/* for regions having custom cursors */
 					wm_paintcursor_test(C, event);
 				}
-				
+
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
@@ -1231,7 +1233,7 @@ void wm_event_do_handlers(bContext *C)
 
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
 				   doing it on ghost queue gives errors when mousemoves go over area borders */
-				if(doit && win->screen->subwinactive != win->screen->mainwin) {
+				if(doit && win->screen && win->screen->subwinactive != win->screen->mainwin) {
 					win->eventstate->prevx= event->x;
 					win->eventstate->prevy= event->y;
 				}
@@ -1244,7 +1246,7 @@ void wm_event_do_handlers(bContext *C)
 		}
 		
 		/* only add mousemove when queue was read entirely */
-		if(win->addmousemove) {
+		if(win->addmousemove && win->eventstate) {
 			wmEvent event= *(win->eventstate);
 			event.type= MOUSEMOVE;
 			event.prevx= event.x;
@@ -1573,12 +1575,16 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 		case GHOST_kEventButtonDown:
 		case GHOST_kEventButtonUp: {
 			GHOST_TEventButtonData *bd= customdata;
-			event.val= (type==GHOST_kEventButtonDown);
+			event.val= (type==GHOST_kEventButtonDown) ? KM_PRESS:KM_RELEASE; /* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
 			
 			if (bd->button == GHOST_kButtonMaskLeft)
 				event.type= LEFTMOUSE;
 			else if (bd->button == GHOST_kButtonMaskRight)
 				event.type= RIGHTMOUSE;
+			else if (bd->button == GHOST_kButtonMaskButton4)
+				event.type= BUTTON4MOUSE;
+			else if (bd->button == GHOST_kButtonMaskButton5)
+				event.type= BUTTON5MOUSE;
 			else
 				event.type= MIDDLEMOUSE;
 			
@@ -1596,7 +1602,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			event.val= (type==GHOST_kEventKeyDown)?KM_PRESS:KM_RELEASE;
 			
 			/* exclude arrow keys, esc, etc from text input */
-			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>14))
+			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>0))
 				event.ascii= '\0';
 			
 			/* modifiers */
@@ -1626,6 +1632,13 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				else if(event.val==KM_RELEASE && event.keymodifier==event.type)
 					event.keymodifier= evt->keymodifier= 0;
 			}
+
+			/* this case happens on some systems that on holding a key pressed,
+			   generate press events without release, we still want to keep the
+			   modifier in win->eventstate, but for the press event of the same
+			   key we don't want the key modifier */
+			if(event.keymodifier == event.type)
+				event.keymodifier= 0;
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */
 			if(event.type==ESCKEY)

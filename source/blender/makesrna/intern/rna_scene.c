@@ -523,7 +523,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_items(prop, mesh_select_mode_items);
 	RNA_def_property_ui_text(prop, "Mesh Selection Mode", "Mesh selection and display mode.");
 
-	prop= RNA_def_property(srna, "vertex_group_weight", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "vertex_group_weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "vgroup_weight");
 	RNA_def_property_ui_text(prop, "Vertex Group Weight", "Weight to assign in vertex groups.");
 }
@@ -1512,6 +1512,19 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_MULTIPLEX_AUDIO);
 	RNA_def_property_ui_text(prop, "Multiplex Audio", "Interleave audio with the output video");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "ffmpeg_audio_mixrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_mixrate");
+	RNA_def_property_range(prop, 8000, 192000);
+	RNA_def_property_ui_text(prop, "Samplerate", "Audio samplerate(samples/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "ffmpeg_audio_volume", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ffcodecdata.audio_volume");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
 #endif
 
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
@@ -1583,11 +1596,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fields Still", "Disable the time difference between fields.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "sync_audio", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
-	RNA_def_property_ui_text(prop, "Sync Audio", "Play back and sync with audio from Sequence Editor");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-	
 	prop= RNA_def_property(srna, "render_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SHADOW);
 	RNA_def_property_ui_text(prop, "Render Shadows", "Calculate shadows while rendering.");
@@ -1656,6 +1664,30 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_BORDER);
 	RNA_def_property_ui_text(prop, "Border", "Render a user-defined border region, within the frame size.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "border_min_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "border.xmin");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Minimum X", "Sets minimum X value to for the render border.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "border_min_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "border.ymin");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Minimum Y", "Sets minimum Y value for the render border");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "border_max_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "border.xmax");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Maximum X", "Sets maximum X value for the render border");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "border_max_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "border.ymax");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Maximum Y", "Sets maximum Y value for the render border");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "crop_to_border", PROP_BOOLEAN, PROP_NONE);
@@ -1907,6 +1939,16 @@ void RNA_def_scene(BlenderRNA *brna)
 	PropertyRNA *prop;
 	FunctionRNA *func;
 	
+	static EnumPropertyItem audio_distance_model_items[] = {
+		{0, "NONE", 0, "None", "No distance attenuation."},
+		{1, "INVERSE", 0, "Inverse", "Inverse distance model."},
+		{2, "INVERSE_CLAMPED", 0, "Inverse Clamped", "Inverse distance model with clamping."},
+		{3, "LINEAR", 0, "Linear", "Linear distance model."},
+		{4, "LINEAR_CLAMPED", 0, "Linear Clamped", "Linear distance model with clamping."},
+		{5, "EXPONENT", 0, "Exponent", "Exponent distance model."},
+		{6, "EXPONENT_CLAMPED", 0, "Exponent Clamped", "Exponent distance model with clamping."},
+		{0, NULL, 0, NULL, NULL}};
+
 	/* Struct definition */
 	srna= RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
@@ -1999,6 +2041,9 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stamp Note", "User define note for the render stamping.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
+	/* Animation Data (for Scene) */
+	rna_def_animdata_common(srna);
+	
 	/* Nodes (Compositing) */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree.");
@@ -2062,6 +2107,40 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Timeline Markers", "Markers used in all timelines for the current scene.");
+
+	/* Audio Settings */
+	prop= RNA_def_property(srna, "mute_audio", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_MUTE);
+	RNA_def_property_ui_text(prop, "Audio Muted", "Play back of audio from Sequence Editor will be muted.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "sync_audio", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
+	RNA_def_property_ui_text(prop, "Audio Sync", "Play back and sync with audio from Sequence Editor.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "scrub_audio", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SCRUB);
+	RNA_def_property_ui_text(prop, "Audio Scrubbing", "Play audio from Sequence Editor while scrubbing.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "speed_of_sound", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "audio.speed_of_sound");
+	RNA_def_property_range(prop, 0.01f, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Speed of Sound", "Speed of sound for doppler effect calculation.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "doppler_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "audio.doppler_factor");
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Doppler Factor", "Pitch factor for doppler effect calculation.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "distance_model", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "audio.distance_model");
+	RNA_def_property_enum_items(prop, audio_distance_model_items);
+	RNA_def_property_ui_text(prop, "Distance Model", "Distance model for distance attenuation calculation.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* Game Settings */
 	prop= RNA_def_property(srna, "game_data", PROP_POINTER, PROP_NONE);

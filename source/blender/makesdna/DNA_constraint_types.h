@@ -66,6 +66,9 @@ typedef struct bConstraint {
 	int			pad;
 	
 	struct Ipo *ipo;		/* local influence ipo or driver */ // XXX depreceated for 2.5... old animation system hack
+	/* below are readonly fields that are set at runtime by the solver for use in the GE (only IK atm) */
+	float       lin_error;		/* residual error on constraint expressed in blender unit*/
+	float       rot_error;		/* residual error on constraint expressed in radiant */
 } bConstraint;
 
 
@@ -119,24 +122,34 @@ typedef struct bPythonConstraint {
 } bPythonConstraint;
 
 
-/* Inverse-Kinematics (IK) constraint */
+/* inverse-Kinematics (IK) constraint
+   This constraint supports a variety of mode determine by the type field 
+   according to B_CONSTRAINT_IK_TYPE.
+   Some fields are used by all types, some are specific to some types
+   This is indicated in the comments for each field
+ */
 typedef struct bKinematicConstraint {
-	Object		*tar;
-	short		iterations;		/* Maximum number of iterations to try */
-	short		flag;			/* Like CONSTRAINT_IK_TIP */
-	short		rootbone;		/* index to rootbone, if zero go all the way to mother bone */
-	short		max_rootbone;	/* for auto-ik, maximum length of chain */
-	char		subtarget[32];	/* String to specify sub-object target */
-
-	Object		*poletar;			/* Pole vector target */
-	char		polesubtarget[32];	/* Pole vector sub-object target */
-	float		poleangle;			/* Pole vector rest angle */
-
-	float		weight;			/* Weight of goal in IK tree */
-	float		orientweight;	/* Amount of rotation a target applies on chain */
-	float		grabtarget[3];	/* for target-less IK */
+	Object		*tar;			/* All: target object in case constraint needs a target */
+	short		iterations;		/* All: Maximum number of iterations to try */
+	short		flag;			/* All & CopyPose: some options Like CONSTRAINT_IK_TIP */
+	short		rootbone;		/* All: index to rootbone, if zero go all the way to mother bone */
+	short		max_rootbone;	/* CopyPose: for auto-ik, maximum length of chain */
+	char		subtarget[32];	/* All: String to specify sub-object target */
+	Object		*poletar;			/* All: Pole vector target */
+	char		polesubtarget[32];	/* All: Pole vector sub-object target */
+	float		poleangle;			/* All: Pole vector rest angle */
+	float		weight;			/* All: Weight of constraint in IK tree */
+	float		orientweight;	/* CopyPose: Amount of rotation a target applies on chain */
+	float		grabtarget[3];	/* CopyPose: for target-less IK */
+	short		type;			/* subtype of IK constraint: B_CONSTRAINT_IK_TYPE */
+	short 		mode;			/* Distance: how to limit in relation to clamping sphere: LIMITDIST_.. */
+	float 		dist;			/* Distance: distance (radius of clamping sphere) from target */
 } bKinematicConstraint;
 
+typedef enum B_CONSTRAINT_IK_TYPE {
+	CONSTRAINT_IK_COPYPOSE = 0,		/* 'standard' IK constraint: match position and/or orientation of target */
+	CONSTRAINT_IK_DISTANCE			/* maintain distance with target */
+} B_CONSTRAINT_IK_TYPE;
 
 /* Single-target subobject constraints ---------------------  */
 /* Track To Constraint */
@@ -376,7 +389,9 @@ typedef enum B_CONSTRAINT_FLAG {
 		/* influence ipo is on constraint itself, not in action channel */
 	CONSTRAINT_OWN_IPO	= (1<<7),
 		/* indicates that constraint was added locally (i.e.  didn't come from the proxy-lib) */
-	CONSTRAINT_PROXY_LOCAL = (1<<8)
+	CONSTRAINT_PROXY_LOCAL = (1<<8),
+		/* indicates that constraint is temporarily disabled (only used in GE) */
+	CONSTRAINT_OFF = (1<<9)
 } B_CONSTRAINT_FLAG;
 
 /* bConstraint->ownspace/tarspace */

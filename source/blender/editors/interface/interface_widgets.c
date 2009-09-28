@@ -773,7 +773,8 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 /* sets but->ofs to make sure text is correctly visible */
 static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 {
-	int okwidth= rect->xmax-rect->xmin;
+	int border= (but->flag & UI_BUT_ALIGN_RIGHT)? 8: 10;
+	int okwidth= rect->xmax-rect->xmin - border;
 	
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
@@ -842,11 +843,8 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 				
 				but->drawstr[selend_tmp]= ch;
 
-				/* if at pos 0, leave a bit more to the left */
-				t= (pos == 0)? 0: 1;
-				
 				glColor3ubv((unsigned char*)wcol->item);
-				glRects(rect->xmin+selsta_draw+1, rect->ymin+2, rect->xmin+selwidth_draw+1, rect->ymax-2);
+				glRects(rect->xmin+selsta_draw, rect->ymin+2, rect->xmin+selwidth_draw, rect->ymax-2);
 			}
 		} else {
 			/* text cursor */
@@ -861,9 +859,6 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 					but->drawstr[pos]= ch;
 				}
 
-				/* if at pos 0, leave a bit more to the left */
-				t += (pos == 0)? 0: 1;
-				
 				glColor3ub(255,0,0);
 				glRects(rect->xmin+t, rect->ymin+2, rect->xmin+t+2, rect->ymax-2);
 			}

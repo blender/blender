@@ -119,6 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\..\build\msvc_9\intern\container\include;..\..\..\..\..\build\msvc_9\intern\moto\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"

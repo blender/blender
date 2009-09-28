@@ -192,6 +192,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern\openexr"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"

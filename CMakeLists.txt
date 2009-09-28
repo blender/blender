@@ -51,6 +51,10 @@ PROJECT(Blender)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 
+# Note! - Could create this from the blender version string
+# ...but thats quite involved, make sure this matches the blender version.
+SET(BLENDER_VERSION  2.5)
+
 #-----------------------------------------------------------------------------
 # Set default config options
 OPTION(WITH_PLAYER        "Build Player" OFF)
@@ -71,8 +75,10 @@ OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 OPTION(WITH_FFTW3         "Enable FFTW3 support" OFF)
 OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
 OPTION(WITH_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
+OPTION(WITH_LZO           "Enable fast LZO compression, used for pointcache" ON)
+OPTION(WITH_LZMA          "Enable best LZMA compression, used for pointcache" ON)
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
-# OPTION(WITH_BUILDINFO     "Include extra build details" ON)
+OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
@@ -513,15 +519,15 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 
-# TODO - buildinfo
-# IF(UNIX)
-#   IF(WITH_BUILDINFO)
-#     EXEC_PROGRAM("date \"+%Y-%m-%d\"" OUTPUT_VARIABLE BUILD_DATE)
-#     EXEC_PROGRAM("date \"+%H:%M:%S\"" OUTPUT_VARIABLE BUILD_TIME)  
-#     EXEC_PROGRAM("svnversion ${CMAKE_SOURCE_DIR}" OUTPUT_VARIABLE BUILD_REV)
-#     SET(BUILD_TYPE ${CMAKE_BUILD_TYPE})
-#   ENDIF(WITH_BUILDINFO)
-# ENDIF(UNIX)
+# buildinfo
+IF(UNIX)
+	IF(WITH_BUILDINFO)
+		EXEC_PROGRAM("date \"+%Y-%m-%d\"" OUTPUT_VARIABLE BUILD_DATE)
+		EXEC_PROGRAM("date \"+%H:%M:%S\"" OUTPUT_VARIABLE BUILD_TIME)  
+		EXEC_PROGRAM("svnversion ${CMAKE_SOURCE_DIR}" OUTPUT_VARIABLE BUILD_REV)
+		# BUILD_PLATFORM and BUILD_PLATFORM are taken from CMake
+	ENDIF(WITH_BUILDINFO)
+ENDIF(UNIX)
 
 #-----------------------------------------------------------------------------
 # Common.

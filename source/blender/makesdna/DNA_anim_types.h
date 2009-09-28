@@ -763,6 +763,11 @@ typedef enum eAnimData_Flag {
 		/* don't execute drivers */
 	ADT_DRIVERS_DISABLED	= (1<<11),
 	
+		/* AnimData block is selected in UI */
+	ADT_UI_SELECTED			= (1<<14),
+		/* AnimData block is active in UI */
+	ADT_UI_ACTIVE			= (1<<15),
+	
 		/* F-Curves from this AnimData block are not visible in the Graph Editor */
 	ADT_CURVES_NOT_VISIBLE	= (1<<16),
 } eAnimData_Flag;

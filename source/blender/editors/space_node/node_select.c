@@ -140,7 +140,7 @@ static int node_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			printf("%d %d\n", event->x, event->y);
 			break;
 		case SELECTMOUSE:
-			//if (event->val==0) {
+			//if (event->val==KM_RELEASE) {
 				/* calculate overall delta mouse-movement for redo */
 				printf("done translating\n");
 				//WM_cursor_restore(CTX_wm_window(C));

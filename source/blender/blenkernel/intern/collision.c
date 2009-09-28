@@ -1296,15 +1296,15 @@ static int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierDa
 
 // return all collision objects in scene
 // collision object will exclude self 
-CollisionModifierData **get_collisionobjects(Scene *scene, Object *self, int *numcollobj)
+Object **get_collisionobjects(Scene *scene, Object *self, int *numcollobj)
 {
 	Base *base=NULL;
-	CollisionModifierData **objs = NULL;
+	Object **objs = NULL;
 	Object *coll_ob = NULL;
 	CollisionModifierData *collmd = NULL;
 	int numobj = 0, maxobj = 100;
 	
-	objs = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
+	objs = MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
 	// check all collision objects
 	for ( base = scene->base.first; base; base = base->next )
 	{
@@ -1330,16 +1330,16 @@ CollisionModifierData **get_collisionobjects(Scene *scene, Object *self, int *nu
 			{
 				// realloc
 				int oldmax = maxobj;
-				CollisionModifierData **tmp;
+				Object **tmp;
 				maxobj *= 2;
-				tmp = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
-				memcpy(tmp, objs, sizeof(CollisionModifierData *)*oldmax);
+				tmp = MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
+				memcpy(tmp, objs, sizeof(Object *)*oldmax);
 				MEM_freeN(objs);
 				objs = tmp;
 				
 			}
 			
-			objs[numobj] = collmd;
+			objs[numobj] = coll_ob;
 			numobj++;
 		}
 		else
@@ -1374,15 +1374,15 @@ CollisionModifierData **get_collisionobjects(Scene *scene, Object *self, int *nu
 					{
 						// realloc
 						int oldmax = maxobj;
-						CollisionModifierData **tmp;
+						Object **tmp;
 						maxobj *= 2;
-						tmp = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
-						memcpy(tmp, objs, sizeof(CollisionModifierData *)*oldmax);
+						tmp = MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
+						memcpy(tmp, objs, sizeof(Object *)*oldmax);
 						MEM_freeN(objs);
 						objs = tmp;
 					}
 					
-					objs[numobj] = collmd;
+					objs[numobj] = coll_ob;
 					numobj++;
 				}
 			}
@@ -1459,7 +1459,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 	int rounds = 0; // result counts applied collisions; ic is for debug output;
 	ClothVertex *verts = NULL;
 	int ret = 0, ret2 = 0;
-	CollisionModifierData **collobjs = NULL;
+	Object **collobjs = NULL;
 	int numcollobj = 0;
 
 	if ( ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ ) || ! ( ( ( Cloth * ) clmd->clothObject )->bvhtree ) )
@@ -1498,7 +1498,8 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 		// check all collision objects
 		for(i = 0; i < numcollobj; i++)
 		{
-			CollisionModifierData *collmd = collobjs[i];
+			Object *collob= collobjs[i];
+			CollisionModifierData *collmd = (CollisionModifierData*)modifiers_findByType(collob, eModifierType_Collision);
 			BVHTreeOverlap *overlap = NULL;
 			int result = 0;
 			

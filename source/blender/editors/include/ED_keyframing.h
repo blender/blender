@@ -163,6 +163,9 @@ void ANIM_OT_remove_keyingset_button(struct wmOperatorType *ot);
 
 /* ************ Drivers ********************** */
 
+/* Returns whether there is a driver in the copy/paste buffer to paste */
+short ANIM_driver_can_paste(void);
+
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
  */
@@ -171,11 +174,24 @@ short ANIM_add_driver (struct ID *id, const char rna_path[], int array_index, sh
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)
  */
-short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag);
+short ANIM_remove_driver(struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* Main Driver Management API calls:
+ * 	Make a copy of the driver for the specified property on the given ID block
+ */
+short ANIM_copy_driver(struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* Main Driver Management API calls:
+ * 	Add a new driver for the specified property on the given ID block or replace an existing one
+ *	with the driver + driver-curve data from the buffer 
+ */
+short ANIM_paste_driver(struct ID *id, const char rna_path[], int array_index, short flag);
 
 /* Driver management operators for UI buttons */
 void ANIM_OT_add_driver_button(struct wmOperatorType *ot);
 void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
+void ANIM_OT_copy_driver_button(struct wmOperatorType *ot);
+void ANIM_OT_paste_driver_button(struct wmOperatorType *ot);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

@@ -142,7 +142,7 @@ typedef struct bGroupActuator {
 	char name[32];		/* property or groupkey */
 	
 	short pad[3], cur, butsta, butend;/* not referenced, can remove? */
-	struct Group *group;		/* only during game */
+	/* struct Group *group;		not used, remove */
 	
 } bGroupActuator;
 
@@ -224,6 +224,15 @@ typedef struct bStateActuator {
 	unsigned int mask;	/* the bits to change */
 } bStateActuator;
 
+typedef struct bArmatureActuator {
+	char posechannel[32];
+	char constraint[32];
+	int type;		/* 0=run, 1=enable, 2=disable, 3=set target, 4=set weight */
+	float weight;
+	struct Object *target;
+	struct Object *subtarget;
+} bArmatureActuator;
+
 typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
 	short type;
@@ -295,6 +304,7 @@ typedef struct FreeCamera {
 #define ACT_PARENT      20
 #define ACT_SHAPEACTION 21
 #define ACT_STATE		22
+#define ACT_ARMATURE	23
 
 /* actuator flag */
 #define ACT_SHOW		1
@@ -483,6 +493,15 @@ typedef struct FreeCamera {
 /* parentactuator->flag */
 #define ACT_PARENT_COMPOUND	1
 #define ACT_PARENT_GHOST	2
+
+/* armatureactuator->type */
+#define ACT_ARM_RUN			0
+#define ACT_ARM_ENABLE		1
+#define ACT_ARM_DISABLE		2
+#define ACT_ARM_SETTARGET	3
+#define ACT_ARM_SETWEIGHT	4
+/* update this define if more type are addedd */
+#define ACT_ARM_MAXTYPE		4
 
 #endif
 

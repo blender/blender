@@ -2226,7 +2226,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		}
 
 		block->minbounds= minwidth;
-		uiTextBoundsBlock(block, 40);
+		uiTextBoundsBlock(block, 50);
 	}
 
 	/* if menu slides out of other menu, override direction */

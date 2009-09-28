@@ -104,6 +104,14 @@ struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marke
 struct TextMarker	*txt_prev_marker_color	(struct Text *text, struct TextMarker *marker);
 struct TextMarker	*txt_next_marker_color	(struct Text *text, struct TextMarker *marker);
 
+/* utility functions, could be moved somewhere more generic but are python/text related  */
+int text_check_bracket(char ch);
+int text_check_delim(char ch);
+int text_check_digit(char ch);
+int text_check_identifier(char ch);
+int text_check_whitespace(char ch);
+
+
 /* Undo opcodes */
 
 /* Simple main cursor movement */

@@ -42,6 +42,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\intern\guardedalloc;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\ftfont;..\..\..\..\lib\windows\freetype\include;..\..\..\source\blender\editors\include;..\..\..\..\build\msvc_9\extern\glew\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;WITH_BF_INTERNATIONAL"

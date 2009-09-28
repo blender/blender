@@ -46,6 +46,8 @@ EnumPropertyItem event_type_items[] = {
 	{LEFTMOUSE, "LEFTMOUSE", 0, "Left Mouse", ""},
 	{MIDDLEMOUSE, "MIDDLEMOUSE", 0, "Middle Mouse", ""},
 	{RIGHTMOUSE, "RIGHTMOUSE", 0, "Right Mouse", ""},
+	{BUTTON4MOUSE, "BUTTON4MOUSE", 0, "Button4 Mouse", ""},
+	{BUTTON5MOUSE, "BUTTON5MOUSE", 0, "Button5 Mouse", ""},
 	{ACTIONMOUSE, "ACTIONMOUSE", 0, "Action Mouse", ""},
 	{SELECTMOUSE, "SELECTMOUSE", 0, "Select Mouse", ""},
 

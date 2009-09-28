@@ -42,11 +42,14 @@ struct View2D;
 struct Scene;
 struct Object;
 
+struct bDopeSheet;
+
 struct bActionGroup;
 struct FCurve;
 struct FModifier;
 
 struct uiBlock;
+struct uiLayout;
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -137,6 +140,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSWOR,
 	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
+	ANIMTYPE_DSARM,
 	
 	ANIMTYPE_SHAPEKEY,		// XXX probably can become depreceated???
 	
@@ -206,6 +210,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
 #define FILTER_PART_OBJD(part) ((part->flag & PART_DS_EXPAND))
 #define FILTER_MBALL_OBJD(mb) ((mb->flag2 & MB_DS_EXPAND))
+#define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)
@@ -392,10 +397,13 @@ void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 /* main call to draw preview range curtains */
 void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 
+/* ------------- Preview Range Drawing -------------- */
+
+/* standard header buttons for Animation Editors */
+short ANIM_headerUI_standard_buttons(const struct bContext *C, struct bDopeSheet *ads, struct uiBlock *block, short xco, short yco);
+
 /* ************************************************* */
 /* F-MODIFIER TOOLS */
-
-struct uiLayout;
 
 /* draw a given F-Modifier for some layout/UI-Block */
 void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);

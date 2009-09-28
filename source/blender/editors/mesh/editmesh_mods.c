@@ -2033,6 +2033,9 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 	vc.mval[0]= mval[0];
 	vc.mval[1]= mval[1];
 	em= vc.em;
+
+	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
+	view3d_validate_backbuf(&vc);
 	
 	eed= findnearestedge(&vc, &dist);
 	if(eed) {
@@ -2109,6 +2112,9 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 	vc.mval[0]= mval[0];
 	vc.mval[1]= mval[1];
 	em= vc.em;
+	
+	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
+	view3d_validate_backbuf(&vc);
 	
 	eed= findnearestedge(&vc, &dist);
 	if(eed) {
@@ -3287,6 +3293,11 @@ void EM_toggle_select_all(EditMesh *em) /* exported for UV */
 		EM_set_flag_all(em, SELECT);
 }
 
+void EM_select_all(EditMesh *em)
+{
+	EM_set_flag_all(em, SELECT);
+}
+
 static int toggle_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -3547,7 +3558,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
 }
 
 void EM_select_by_material(EditMesh *em, int index) 

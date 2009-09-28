@@ -51,7 +51,7 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 									 float para1,
 									 float para2,
 									 const STR_String &propName)
-	: SCA_IActuator(gameobj),
+	: SCA_IActuator(gameobj, KX_ACT_RANDOM),
 	  m_propname(propName),
 	  m_parameter1(para1),
 	  m_parameter2(para2),

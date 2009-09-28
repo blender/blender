@@ -4843,7 +4843,7 @@ static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 /* useful to calculate an even width shell, by taking the angle between 2 planes.
  * The return value is a scale on the offset.
  * no angle between planes is 1.0, as the angle between the 2 planes approches 180d
- * the distance gets very hight, 180d would be inf, but this case isnt valid */
+ * the distance gets very high, 180d would be inf, but this case isn't valid */
 float AngleToLength(const float angle)
 {
 	return (angle < SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle * (M_PI/180.0f)));

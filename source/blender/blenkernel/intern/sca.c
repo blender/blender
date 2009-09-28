@@ -128,6 +128,9 @@ void init_sensor(bSensor *sens)
 	case SENS_PROPERTY:
 		sens->data= MEM_callocN(sizeof(bPropertySensor), "propsens");
 		break;
+	case SENS_ARMATURE:
+		sens->data= MEM_callocN(sizeof(bArmatureSensor), "armsens");
+		break;
 	case SENS_ACTUATOR:
 		sens->data= MEM_callocN(sizeof(bActuatorSensor), "actsens");
 		break;
@@ -455,6 +458,9 @@ void init_actuator(bActuator *act)
 	case ACT_STATE:
         act->data = MEM_callocN(sizeof( bStateActuator ), "state act");
         break;
+	case ACT_ARMATURE:
+        act->data = MEM_callocN(sizeof( bArmatureActuator ), "armature act");
+        break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */
@@ -596,6 +602,8 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 	bEditObjectActuator *eoa;
 	bPropertyActuator *pa;
 	bMessageActuator *ma;
+	bParentActuator *para;
+	bArmatureActuator *aa;
 
 	sens= obt->sensors.first;
 	while(sens) {
@@ -634,7 +642,15 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 			ma= act->data;
 			if(ma->toObject==ob) ma->toObject= NULL;
 			break;
-
+		case ACT_PARENT:
+			para = act->data;
+			if (para->ob==ob) para->ob = NULL;
+			break;
+		case ACT_ARMATURE:
+			aa = act->data;
+			if (aa->target == ob) aa->target = NULL;
+			if (aa->subtarget == ob) aa->subtarget = NULL;
+			break;
 		}
 		act= act->next;
 	}	

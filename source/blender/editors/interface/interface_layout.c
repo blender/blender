@@ -480,7 +480,7 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h, int icon_only)
 {
 	uiLayout *sub;
-	uiBut *but;
+	uiBut *but=NULL;
 	PropertyType type;
 	PropertySubType subtype;
 	int labelw;
@@ -533,7 +533,7 @@ void uiFileBrowseContextProperty(const bContext *C, PointerRNA *ptr, PropertyRNA
 			prevbut= but->prev;
 
 			/* find the button before the active one */
-			if((but->flag & UI_BUT_LAST_ACTIVE) && prevbut && prevbut->rnapoin.id.data) {
+			if((but->flag & UI_BUT_LAST_ACTIVE) && prevbut && prevbut->rnapoin.data) {
 				if(RNA_property_type(prevbut->rnaprop) == PROP_STRING) {
 					*ptr= prevbut->rnapoin;
 					*prop= prevbut->rnaprop;

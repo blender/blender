@@ -257,6 +257,11 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, type, rna_iterator_array_get(iter));
 }
 
+static char *rna_ShapeKey_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("keys[\"%s\"]", ((KeyBlock*)ptr->data)->name);
+}
+
 static void rna_Key_update_data(bContext *C, PointerRNA *ptr)
 {
 	Main *bmain= CTX_data_main(C);
@@ -343,6 +348,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock.");
 	RNA_def_struct_sdna(srna, "KeyBlock");
+	RNA_def_struct_path_func(srna, "rna_ShapeKey_path");
 	RNA_def_struct_ui_icon(srna, ICON_SHAPEKEY_DATA);
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);

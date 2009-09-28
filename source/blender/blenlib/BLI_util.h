@@ -42,7 +42,14 @@ struct ListBase;
 struct direntry;
 
 char *BLI_gethome(void);
-char *BLI_gethome_folder(char *folder_name);
+char *BLI_gethome_folder(char *folder_name, int flag);
+
+/* BLI_gethome_folder flag */
+#define BLI_GETHOME_LOCAL		1<<1 /* relative location for portable binaries */
+#define BLI_GETHOME_SYSTEM		1<<2 /* system location, or set from the BLENDERPATH env variable (UNIX only) */
+#define BLI_GETHOME_USER		1<<3 /* home folder ~/.blender */
+#define BLI_GETHOME_ALL			(BLI_GETHOME_SYSTEM|BLI_GETHOME_LOCAL|BLI_GETHOME_USER)
+
 void BLI_setenv(const char *env, const char *val);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);

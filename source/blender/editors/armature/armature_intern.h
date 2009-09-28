@@ -118,10 +118,18 @@ void SKETCH_OT_select(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* PoseLib */
+
 void POSELIB_OT_pose_add(struct wmOperatorType *ot);
 void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
 void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
 void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
+
+/* ******************************************************* */
+/* Pose Sliding Tools */
+
+void POSE_OT_push(struct wmOperatorType *ot);
+void POSE_OT_relax(struct wmOperatorType *ot);
+void POSE_OT_breakdown(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* editarmature.c */

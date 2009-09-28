@@ -4262,7 +4262,7 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 /* it deselects Bases, so we have to call the clear function always after */
 static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 {
-	Scene *sce = CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = t->view;
 
 	/*
@@ -4279,15 +4279,15 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 	copy_baseflags(t->scene);
 
 	/* handle pending update events, otherwise they got copied below */
-	for (base= sce->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		if(base->object->recalc)
 			object_handle_update(t->scene, base->object);
 	}
 
-	for (base= sce->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		base->flag &= ~BA_WAS_SEL;
 
-		if(TESTBASELIB(v3d, base)) {
+		if(TESTBASELIB_BGMODE(v3d, base)) {
 			Object *ob= base->object;
 			Object *parsel= ob->parent;
 
@@ -4319,7 +4319,7 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
-	for (base= sce->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		if(base->object->recalc & OB_RECALC_OB)
 			base->flag |= BA_HAS_RECALC_OB;
 		if(base->object->recalc & OB_RECALC_DATA)
@@ -5289,7 +5289,7 @@ void createTransData(bContext *C, TransInfo *t)
 		{
 			if(ob_armature->type==OB_ARMATURE)
 			{
-				if(ob_armature->mode & OB_MODE_POSE)
+				if((ob_armature->mode & OB_MODE_POSE) && ob_armature == modifiers_isDeformedByArmature(ob))
 				{
 					createTransPose(C, t, ob_armature);
 					break;
@@ -5312,6 +5312,8 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else {
 		t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
+		t->options |= CTX_NO_PET;
+		
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
 
@@ -5319,7 +5321,7 @@ void createTransData(bContext *C, TransInfo *t)
 		{
 			View3D *v3d = t->view;
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if((t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+			if(rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
 			{
 				t->flag |= T_CAMERA;
 			}

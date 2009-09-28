@@ -405,9 +405,11 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
-	ModifierData *md;
-	
+	ModifierData *md= md_v;
 	int i, cageIndex = modifiers_getCageIndex(ob, NULL );
+
+	/* undo button operation */
+	md->mode ^= eModifierMode_OnCage;
 
 	for(i = 0, md=ob->modifiers.first; md; ++i, md=md->next) {
 		if(md == md_v) {
@@ -517,9 +519,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		/* XXX uiBlockSetEmboss(block, UI_EMBOSSR); */
 
 		if(ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
-
 			/* XXX uiBlockSetCol(block, color); */
-			but = uiDefIconBut(block, BUT, 0, ICON_MESH_DATA, 0, 0, 16, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			if(index < cageIndex)
+				uiButSetFlag(but, UI_BUT_DISABLED);
 			uiButSetFunc(but, modifiers_setOnCage, ob, md);
 			uiBlockEndAlign(block);
 			/* XXX uiBlockSetCol(block, TH_AUTO); */
@@ -673,6 +676,8 @@ void do_constraint_panels(bContext *C, void *arg, int event)
 	
 	if(ob->type==OB_ARMATURE) DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
 	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 	
 	// XXX allqueue(REDRAWVIEW3D, 0);
 	// XXX allqueue(REDRAWBUTSOBJECT, 0);
@@ -684,19 +689,15 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 	ED_object_constraint_set_active(ob_v, con_v);
 }
 
-static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
+static void verify_constraint_name_func (bContext *C, void *con_v, void *dummy)
 {
 	Object *ob= CTX_data_active_object(C);
 	bConstraint *con= con_v;
-	char oldname[32];	
 	
 	if (!con)
 		return;
 	
-	/* put on the stack */
-	BLI_strncpy(oldname, (char *)name_v, 32);
-	
-	ED_object_constraint_rename(ob, con, oldname);
+	ED_object_constraint_rename(ob, con, NULL);
 	ED_object_constraint_set_active(ob, con);
 	// XXX allqueue(REDRAWACTION, 0); 
 }
@@ -901,10 +902,11 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
 			uiBlockEndAlign(block);
 		}
-		
-		
+	
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
+			uiDefIconButBitS(block, ICONTOGN, CONSTRAINT_OFF, B_CONSTRAINT_TEST, ICON_CHECKBOX_DEHLT, xco+243, yco, 19, 19, &con->flag, 0.0, 0.0, 0.0, 0.0, "enable/disable constraint");
+			
 			uiDefIconButO(block, BUT, "CONSTRAINT_OT_delete", WM_OP_INVOKE_DEFAULT, ICON_X, xco+262, yco, 19, 19, "Delete constraint");
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
@@ -1336,7 +1338,7 @@ static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
 /* offset aligns from bottom, standard width 300, height 115 */
 static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, int yoffs, RNAUpdateCb *cb)
 {
-	CBData *cbd;
+	
 	uiBut *bt;
 
 	if(coba==NULL) return;
@@ -1347,7 +1349,7 @@ static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, 
 	bt= uiDefBut(block, BUT, 0,	"Delete",		60+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
-	uiDefButS(block, NUM, 0,		"",				120+xoffs,100+yoffs,80, 20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Choose active color stop");
+	uiDefButS(block, NUM, 0,		"",				120+xoffs,100+yoffs,80, 20, &coba->cur, 0.0, (float)(MAX2(0, coba->tot-1)), 0, 0, "Choose active color stop");
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
 			210+xoffs, 100+yoffs, 90, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
@@ -1357,25 +1359,24 @@ static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, 
 	bt= uiDefBut(block, BUT_COLORBAND, 0, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	cbd= coba->data + coba->cur;
+	if(coba->tot) {
+		CBData *cbd= coba->data + coba->cur;
 
-	bt= uiDefButF(block, NUM, 0, "Pos:",			0+xoffs,40+yoffs,100, 20, &cbd->pos, 0.0, 1.0, 10, 0, "The position of the active color stop");
-	uiButSetNFunc(bt, colorband_pos_cb, MEM_dupallocN(cb), coba);
-	bt= uiDefButF(block, COL, 0,		"",				110+xoffs,40+yoffs,80,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
-	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-	bt= uiDefButF(block, NUMSLI, 0,	"A ",			200+xoffs,40+yoffs,100,20, &cbd->a, 0.0, 1.0, 10, 0, "The alpha value of the active color stop");
-	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+		bt= uiDefButF(block, NUM, 0, "Pos:",			0+xoffs,40+yoffs,100, 20, &cbd->pos, 0.0, 1.0, 10, 0, "The position of the active color stop");
+		uiButSetNFunc(bt, colorband_pos_cb, MEM_dupallocN(cb), coba);
+		bt= uiDefButF(block, COL, 0,		"",				110+xoffs,40+yoffs,80,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
+		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+		bt= uiDefButF(block, NUMSLI, 0,	"A ",			200+xoffs,40+yoffs,100,20, &cbd->a, 0.0, 1.0, 10, 0, "The alpha value of the active color stop");
+		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+	}
 
 }
 
 static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr, RNAUpdateCb *cb)
 {
-	CBData *cbd;
 	uiBut *bt;
 	float unit= (butr->xmax-butr->xmin)/14.0f;
 	float xs= butr->xmin;
-
-	cbd= coba->data + coba->cur;
 
 
 	bt= uiDefBut(block, BUT, 0,	"Add",			xs,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
@@ -1383,10 +1384,13 @@ static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr,
 	bt= uiDefBut(block, BUT, 0,	"Delete",		xs+2.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
-	bt= uiDefButF(block, COL, 0,		"",			xs+4.0f*unit,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
-	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-	bt= uiDefButF(block, NUMSLI, 0,		"A:",		xs+6.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "The alpha value of the active color stop");
-	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+	if(coba->tot) {
+		CBData *cbd= coba->data + coba->cur;
+		bt= uiDefButF(block, COL, 0,		"",			xs+4.0f*unit,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
+		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+		bt= uiDefButF(block, NUMSLI, 0,		"A:",		xs+6.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "The alpha value of the active color stop");
+		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+	}
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
 			xs+10.0f*unit, butr->ymin+20.0f, unit*4, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");

@@ -142,9 +142,13 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 		/* Keyframes First */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, sel_cb, NULL);
 		
-		/* deactivate the F-Curve, and deselect if deselecting keyframes */
+		/* deactivate the F-Curve, and deselect if deselecting keyframes.
+		 * otherwise select the F-Curve too since we've selected all the keyframes
+		 */
 		if (sel == SELECT_SUBTRACT) 
 			fcu->flag &= ~FCURVE_SELECTED;
+		else
+			fcu->flag |= FCURVE_SELECTED;
 		fcu->flag &= ~FCURVE_ACTIVE;
 	}
 	
@@ -259,8 +263,9 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		/* select the curve too 
 		 * NOTE: this should really only happen if the curve got touched...
 		 */
-		if (selectmode == SELECT_ADD)
+		if (selectmode == SELECT_ADD) {
 			fcu->flag |= FCURVE_SELECTED;
+		}
 	}
 	
 	/* cleanup */

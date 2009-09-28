@@ -434,11 +434,11 @@ void drawaxes(float size, int flag, char drawtype)
 			// patch for 3d cards crashing on glSelect for text drawing (IBM)
 			if((flag & DRAW_PICKING) == 0) {
 				if (axis==0)
-					view3d_object_text_draw_add(v2[0], v2[1], v2[2], "x", 0);
+					view3d_cached_text_draw_add(v2[0], v2[1], v2[2], "x", 0);
 				else if (axis==1)
-					view3d_object_text_draw_add(v2[0], v2[1], v2[2], "y", 0);
+					view3d_cached_text_draw_add(v2[0], v2[1], v2[2], "y", 0);
 				else
-					view3d_object_text_draw_add(v2[0], v2[1], v2[2], "z", 0);
+					view3d_cached_text_draw_add(v2[0], v2[1], v2[2], "z", 0);
 			}
 		}
 		break;
@@ -496,23 +496,32 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, float *vec, int se
 	if(v3d->zbuf)  glDepthFunc(GL_LEQUAL);
 }
 
-/* *********** text drawing for object ************* */
-static ListBase strings= {NULL, NULL};
+/* *********** text drawing for object/particles/armature ************* */
 
-typedef struct ViewObjectString {
-	struct ViewObjectString *next, *prev;
+static ListBase CachedText[3];
+static int CachedTextLevel= 0;
+
+typedef struct ViewCachedString {
+	struct ViewCachedString *next, *prev;
 	float vec[3], col[4];
 	char str[128]; 
 	short mval[2];
 	short xoffs;
-} ViewObjectString;
+} ViewCachedString;
 
-
-void view3d_object_text_draw_add(float x, float y, float z, char *str, short xoffs)
+void view3d_cached_text_draw_begin()
 {
-	ViewObjectString *vos= MEM_callocN(sizeof(ViewObjectString), "ViewObjectString");
+	ListBase *strings= &CachedText[CachedTextLevel];
+	strings->first= strings->last= NULL;
+	CachedTextLevel++;
+}
 
-	BLI_addtail(&strings, vos);
+void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs)
+{
+	ListBase *strings= &CachedText[CachedTextLevel-1];
+	ViewCachedString *vos= MEM_callocN(sizeof(ViewCachedString), "ViewCachedString");
+
+	BLI_addtail(strings, vos);
 	BLI_strncpy(vos->str, str, 128);
 	vos->vec[0]= x;
 	vos->vec[1]= y;
@@ -521,22 +530,23 @@ void view3d_object_text_draw_add(float x, float y, float z, char *str, short xof
 	vos->xoffs= xoffs;
 }
 
-static void view3d_object_text_draw(View3D *v3d, ARegion *ar)
+void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4])
 {
-	ViewObjectString *vos;
-	int tot= 0;
+	RegionView3D *rv3d= ar->regiondata;
+	ListBase *strings= &CachedText[CachedTextLevel-1];
+	ViewCachedString *vos;
+	int a, tot= 0;
 	
 	/* project first and test */
-	for(vos= strings.first; vos; vos= vos->next) {
+	for(vos= strings->first; vos; vos= vos->next) {
+		if(mat)
+			Mat4MulVecfl(mat, vos->vec);
 		view3d_project_short_clip(ar, vos->vec, vos->mval);
 		if(vos->mval[0]!=IS_CLIPPED)
 			tot++;
 	}
-	
+
 	if(tot) {
-		RegionView3D *rv3d= ar->regiondata;
-		int a;
-		
 		if(rv3d->rflag & RV3D_CLIPPING)
 			for(a=0; a<6; a++)
 				glDisable(GL_CLIP_PLANE0+a);
@@ -544,16 +554,22 @@ static void view3d_object_text_draw(View3D *v3d, ARegion *ar)
 		wmPushMatrix();
 		ED_region_pixelspace(ar);
 		
-		if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+		if(depth_write) {
+			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+		}
+		else glDepthMask(0);
 		
-		for(vos= strings.first; vos; vos= vos->next) {
+		for(vos= strings->first; vos; vos= vos->next) {
 			if(vos->mval[0]!=IS_CLIPPED) {
 				glColor3fv(vos->col);
-				BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], 0.0, vos->str);
+				BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, vos->str);
 			}
 		}
 		
-		if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+		if(depth_write) {
+			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+		}
+		else glDepthMask(1);
 		
 		wmPopMatrix();
 
@@ -562,9 +578,13 @@ static void view3d_object_text_draw(View3D *v3d, ARegion *ar)
 				glEnable(GL_CLIP_PLANE0+a);
 	}
 	
-	if(strings.first) 
-		BLI_freelistN(&strings);
+	if(strings->first) 
+		BLI_freelistN(strings);
+	
+	CachedTextLevel--;
 }
+
+/* ******************** primitive drawing ******************* */
 
 static void drawcube(void)
 {
@@ -1912,7 +1932,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val, conv_float, VecLenf(v1, v2));
 				
-				view3d_object_text_draw_add(x, y, z, val, 0);
+				view3d_cached_text_draw_add(x, y, z, val, 0);
 			}
 		}
 	}
@@ -1951,7 +1971,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val, conv_float, area);
 
-				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
+				view3d_cached_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 		}
 	}
@@ -1993,13 +2013,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				/* Vec 1 */
 				sprintf(val,"%.3f", RAD2DEG(VecAngle3(v4, v1, v2)));
 				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8f);
-				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
+				view3d_cached_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", RAD2DEG(VecAngle3(v1, v2, v3)));
 				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8f);
-				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
+				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
@@ -2008,14 +2028,14 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val,"%.3f", RAD2DEG(VecAngle3(v2, v3, v1)));
 				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8f);
-				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
+				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", RAD2DEG(VecAngle3(v3, v4, v1)));
 					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8f);
-					view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
+					view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 				}
 			}
 		}
@@ -2905,75 +2925,8 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	return retval;
 }
 
-/* *********** text drawing for particles ************* */
-static ListBase pstrings= {NULL, NULL};
+/* *********** drawing for particles ************* */
 
-typedef struct ViewParticleString {
-	struct ViewParticleString *next, *prev;
-	float vec[3], col[4];
-	char str[128]; 
-	short mval[2];
-	short xoffs;
-} ViewParticleString;
-
-
-void view3d_particle_text_draw_add(float x, float y, float z, char *str, short xoffs)
-{
-	ViewObjectString *vos= MEM_callocN(sizeof(ViewObjectString), "ViewObjectString");
-
-	BLI_addtail(&pstrings, vos);
-	BLI_strncpy(vos->str, str, 128);
-	vos->vec[0]= x;
-	vos->vec[1]= y;
-	vos->vec[2]= z;
-	glGetFloatv(GL_CURRENT_COLOR, vos->col);
-	vos->xoffs= xoffs;
-}
-
-static void view3d_particle_text_draw(View3D *v3d, ARegion *ar)
-{
-	ViewObjectString *vos;
-	int tot= 0;
-	
-	/* project first and test */
-	for(vos= pstrings.first; vos; vos= vos->next) {
-		project_short(ar, vos->vec, vos->mval);
-		if(vos->mval[0]!=IS_CLIPPED)
-			tot++;
-	}
-	
-	if(tot) {
-		RegionView3D *rv3d= ar->regiondata;
-		int a;
-		
-		if(rv3d->rflag & RV3D_CLIPPING)
-			for(a=0; a<6; a++)
-				glDisable(GL_CLIP_PLANE0+a);
-		
-		wmPushMatrix();
-		ED_region_pixelspace(ar);
-		
-		if(v3d->zbuf) glDepthMask(0);
-
-		for(vos= pstrings.first; vos; vos= vos->next) {
-			if(vos->mval[0]!=IS_CLIPPED) {
-				glColor3fv(vos->col);
-				BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], 2.0, vos->str);
-			}
-		}
-		
-		if(v3d->zbuf) glDepthMask(1);
-		
-		wmPopMatrix();
-
-		if(rv3d->rflag & RV3D_CLIPPING)
-			for(a=0; a<6; a++)
-				glEnable(GL_CLIP_PLANE0+a);
-	}
-	
-	if(pstrings.first) 
-		BLI_freelistN(&pstrings);
-}
 static void draw_particle(ParticleKey *state, int draw_as, short draw, float pixsize, float imat[4][4], float *draw_line, ParticleBillboardData *bb, ParticleDrawData *pdd)
 {
 	float vec[3], vec2[3];
@@ -3540,7 +3493,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 							sprintf(val, "%s %.2f", val, pa_health);
 
 						/* in path drawing state.co is the end point */
-						view3d_particle_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0);
+						view3d_cached_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0);
 					}
 				}
 			}
@@ -4755,8 +4708,9 @@ static void drawtexspace(Object *ob)
 }
 
 /* draws wire outline */
-static void drawSolidSelect(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base) 
+static void drawSolidSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base) 
 {
+	RegionView3D *rv3d= ar->regiondata;
 	Object *ob= base->object;
 	
 	glLineWidth(2.0);
@@ -4775,7 +4729,7 @@ static void drawSolidSelect(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 	}
 	else if(ob->type==OB_ARMATURE) {
 		if(!(ob->mode & OB_MODE_POSE))
-			draw_armature(scene, v3d, rv3d, base, OB_WIRE, 0);
+			draw_armature(scene, v3d, ar, base, OB_WIRE, 0);
 	}
 
 	glLineWidth(1.0);
@@ -4885,11 +4839,11 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 		glVertex3fv(v);			
 		glEnd();
 		if (axis==0)
-			view3d_object_text_draw_add(v[0], v[1], v[2], "px", 0);
+			view3d_cached_text_draw_add(v[0], v[1], v[2], "px", 0);
 		else if (axis==1)
-			view3d_object_text_draw_add(v[0], v[1], v[2], "py", 0);
+			view3d_cached_text_draw_add(v[0], v[1], v[2], "py", 0);
 		else
-			view3d_object_text_draw_add(v[0], v[1], v[2], "pz", 0);
+			view3d_cached_text_draw_add(v[0], v[1], v[2], "pz", 0);
 	}
 	glLineWidth (1.0f);
 	setlinestyle(0);
@@ -4931,6 +4885,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 		}
 	}
+
+	/* no return after this point, otherwise leaks */
+	view3d_cached_text_draw_begin();
 
 	/* draw keys? */
 #if 0 // XXX old animation system
@@ -5116,7 +5073,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=scene->obedit && (flag && DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
 				
-				drawSolidSelect(scene, v3d, rv3d, base);
+				drawSolidSelect(scene, v3d, ar, base);
 			}
 		}
 	}
@@ -5262,7 +5219,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		case OB_ARMATURE:
 			if(dt>OB_WIRE) GPU_enable_material(0, NULL); // we use default material
-			empty_object= draw_armature(scene, v3d, rv3d, base, dt, flag);
+			empty_object= draw_armature(scene, v3d, ar, base, dt, flag);
 			if(dt>OB_WIRE) GPU_disable_material();
 			break;
 		default:
@@ -5282,10 +5239,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		wmLoadMatrix(rv3d->viewmat);
 		
+		view3d_cached_text_draw_begin();
+
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		
-		view3d_particle_text_draw(v3d, ar);
+		view3d_cached_text_draw_end(v3d, ar, 0, NULL);
 
 		wmMultMatrix(ob->obmat);
 		
@@ -5437,7 +5396,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 			/* but, we also dont draw names for sets or duplicators */
 			if(flag == 0) {
-				view3d_object_text_draw_add(0.0f, 0.0f, 0.0f, ob->id.name+2, 10);
+				view3d_cached_text_draw_add(0.0f, 0.0f, 0.0f, ob->id.name+2, 10);
 			}
 		}
 		/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
@@ -5460,7 +5419,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 	
 	/* return warning, this is cached text draw */
-	view3d_object_text_draw(v3d, ar);
+	view3d_cached_text_draw_end(v3d, ar, 1, NULL);
 
 	wmLoadMatrix(rv3d->viewmat);
 

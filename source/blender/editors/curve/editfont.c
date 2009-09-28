@@ -381,19 +381,19 @@ static int paste_file(bContext *C, ReportList *reports, char *filename)
 
 static int paste_file_exec(bContext *C, wmOperator *op)
 {
-	char *filename;
+	char *path;
 	int retval;
 	
-	filename= RNA_string_get_alloc(op->ptr, "filename", NULL, 0);
-	retval= paste_file(C, op->reports, filename);
-	MEM_freeN(filename);
+	path= RNA_string_get_alloc(op->ptr, "path", NULL, 0);
+	retval= paste_file(C, op->reports, path);
+	MEM_freeN(path);
 
 	return retval;
 }
 
 static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(RNA_property_is_set(op->ptr, "filename"))
+	if(RNA_property_is_set(op->ptr, "path"))
 		return paste_file_exec(C, op);
 
 	WM_event_add_fileselect(C, op); 

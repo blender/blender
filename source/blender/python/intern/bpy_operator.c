@@ -89,6 +89,16 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		if(BPy_reports_to_error(reports))
 			error_val = -1;
 
+		/* operator output is nice to have in the terminal/console too */
+		if(reports->list.first) {
+			char *report_str= BKE_reports_string(reports, 0); /* all reports */
+
+			if(report_str) {
+				PySys_WriteStdout(report_str);
+				MEM_freeN(report_str);
+			}
+		}
+
 		BKE_reports_clear(reports);
 		if ((reports->flag & RPT_FREE) == 0)
 		{

@@ -51,7 +51,7 @@ public:
 						short	blendin,
 						short	priority,
 						float	stride) 
-		: SCA_IActuator(gameobj),
+		: SCA_IActuator(gameobj, KX_ACT_SHAPEACTION),
 		
 		m_lastpos(0, 0, 0),
 		m_blendframe(0),

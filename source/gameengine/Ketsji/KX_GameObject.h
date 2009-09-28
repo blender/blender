@@ -158,6 +158,15 @@ public:
 		return &m_OpenGL_4x4Matrix;
 	};
 
+	/**
+	 * Update the blender object obmat field from the object world position
+	 * if blendobj is NULL, update the object pointed by m_pBlenderObject
+	 * The user must take action to restore the matrix before leaving the GE.
+	 * Used in Armature evaluation
+	 */
+		void
+	UpdateBlenderObjectMatrix(Object* blendobj=NULL);
+
 	/** 
 	 * Get a pointer to the game object that is the parent of 
 	 * this object. Or NULL if there is no parent. The returned

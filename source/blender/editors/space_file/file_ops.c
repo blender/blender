@@ -68,25 +68,15 @@
 
 /* ---------- FILE SELECTION ------------ */
 
-static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short y, short clamp)
+static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short y)
 {
 	float fx,fy;
 	int active_file = -1;
-	int numfiles = filelist_numfiles(sfile->files);
 	View2D* v2d = &ar->v2d;
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
 
 	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
-
-	if(active_file < 0) {
-		if(clamp)	active_file=  0;
-		else		active_file= -1;
-	}
-	else if(active_file >= numfiles) {
-		if(clamp)	active_file=  numfiles-1;
-		else		active_file= -1;
-	}
 	
 	return active_file;
 }
@@ -109,6 +99,31 @@ typedef enum FileSelect { FILE_SELECT_DIR = 1,
   FILE_SELECT_FILE = 2 } FileSelect;
 
 
+static void clamp_to_filelist(int numfiles, int *first_file, int *last_file)
+{
+	/* border select before the first file */
+	if ( (*first_file < 0) && (*last_file >=0 ) ) {
+		*first_file = 0;
+	}
+	/* don't select if everything is outside filelist */
+	if ( (*first_file >= numfiles) && ((*last_file < 0) || (*last_file >= numfiles)) ) {
+		*first_file = -1;
+		*last_file = -1;
+	}
+	
+	/* fix if last file invalid */
+	if ( (*first_file > 0) && (*last_file < 0) )
+		*last_file = numfiles-1;
+
+	/* clamp */
+	if ( (*first_file >= numfiles) ) {
+		*first_file = numfiles-1;
+	}
+	if ( (*last_file >= numfiles) ) {
+		*last_file = numfiles-1;
+	}
+}
+
 static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short val)
 {
 	int first_file = -1;
@@ -123,9 +138,11 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 	int numfiles = filelist_numfiles(sfile->files);
 
 	params->selstate = NOTACTIVE;
-	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax, 1);
-	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin, 1);
+	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax);
+	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin);
 	
+	clamp_to_filelist(numfiles, &first_file, &last_file);
+
 	/* select all valid files between first and last indicated */
 	if ( (first_file >= 0) && (first_file < numfiles) && (last_file >= 0) && (last_file < numfiles) ) {
 		for (act_file = first_file; act_file <= last_file; act_file++) {
@@ -136,6 +153,9 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 				file->flags &= ~ACTIVE;
 		}
 	}
+
+	/* Don't act on multiple selected files */
+	if (first_file != last_file) selecting= 0;
 
 	/* make the last file active */
 	if (selecting && (last_file >= 0 && last_file < numfiles)) {
@@ -168,7 +188,7 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 			}
 			
 		}	
-	}
+	} 
 	return retval;
 }
 
@@ -449,7 +469,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	my -= ar->winrct.ymin;
 
 	if(BLI_in_rcti(&ar->v2d.mask, mx, my)) {
-		actfile = find_file_mouse(sfile, ar, mx , my, 0);
+		actfile = find_file_mouse(sfile, ar, mx , my);
 
 		if((actfile >= 0) && (actfile < numfiles))
 			params->active_file=actfile;
@@ -497,12 +517,23 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 	sfile->op = NULL;
 	
 	if (sfile->files) {
+		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
 	}
 	
 	return OPERATOR_FINISHED;
+}
+
+int file_operator_poll(bContext *C)
+{
+	int poll = ED_operator_file_active(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	if (!sfile || !sfile->op) poll= 0;
+
+	return poll;
 }
 
 void FILE_OT_cancel(struct wmOperatorType *ot)
@@ -513,7 +544,7 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= file_cancel_exec;
-	ot->poll= ED_operator_file_active;
+	ot->poll= file_operator_poll;
 }
 
 /* sends events now, so things get handled on windowqueue level */
@@ -575,6 +606,7 @@ int file_exec(bContext *C, wmOperator *unused)
 		fsmenu_write_file(fsmenu_get(), name);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
+		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
@@ -591,7 +623,7 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= file_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->poll= file_operator_poll; 
 }
 
 

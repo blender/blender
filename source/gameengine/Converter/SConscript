@@ -19,6 +19,7 @@ incs += ' #source/gameengine/Network/LoopBackNetwork'
 incs += ' #source/blender/misc #source/blender/blenloader #source/blender/gpu'
 incs += ' #source/blender/windowmanager'
 incs += ' #source/blender/makesrna'
+incs += ' #source/blender/ikplugin'
 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']

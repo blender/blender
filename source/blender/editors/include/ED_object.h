@@ -88,6 +88,8 @@ void object_test_constraints(struct Object *ob);
 
 void ED_object_constraint_rename(struct Object *ob, struct bConstraint *con, char *oldname);
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
+void ED_object_constraint_update(struct Object *ob);
+void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob);
 
 /* object_lattice.c */
 void mouse_lattice(struct bContext *C, short mval[2], int extend);

@@ -6,6 +6,7 @@ SET(INC
 	../../../source/kernel/gen_system
 	../../../intern/string
 	../../../intern/guardedalloc
+	../../../intern/audaspace/intern
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
 	../../../source/gameengine/Converter
 	../../../source/blender/imbuf

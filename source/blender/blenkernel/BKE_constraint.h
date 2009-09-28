@@ -38,6 +38,9 @@ struct Scene;
 struct bPoseChannel;
 
 /* ---------------------------------------------------------------------------- */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* special struct for use in constraint evaluation */
 typedef struct bConstraintOb {
@@ -131,6 +134,9 @@ void constraint_mat_convertspace(struct Object *ob, struct bPoseChannel *pchan, 
 void get_constraint_target_matrix(struct bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime);
 void solve_constraints(struct ListBase *conlist, struct bConstraintOb *cob, float ctime);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -209,6 +209,18 @@ void ui_but_anim_remove_driver(bContext *C)
 	WM_operator_name_call(C, "ANIM_OT_remove_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
+void ui_but_anim_copy_driver(bContext *C)
+{
+	/* this operator calls uiAnimContextProperty above */
+	WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+void ui_but_anim_paste_driver(bContext *C)
+{
+	/* this operator calls uiAnimContextProperty above */
+	WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
 void ui_but_anim_add_keyingset(bContext *C)
 {
 	/* this operator calls uiAnimContextProperty above */
@@ -264,6 +276,10 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 			}
 			else
 				uiItemBooleanO(layout, "Delete Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+				
+			uiItemO(layout, "Copy Driver", 0, "ANIM_OT_copy_driver_button");
+			if (ANIM_driver_can_paste())
+				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
 		}
 		else if(but->flag & UI_BUT_ANIMATED_KEY);
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
@@ -275,6 +291,9 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 			}
 			else
 				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+			
+			if (ANIM_driver_can_paste())			
+				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
 		}
 		
 		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {

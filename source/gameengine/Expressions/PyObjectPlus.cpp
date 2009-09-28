@@ -51,6 +51,7 @@
 #include "PyObjectPlus.h"
 #include "STR_String.h"
 #include "MT_Vector3.h"
+#include "MEM_guardedalloc.h"
 /*------------------------------
  * PyObjectPlus Type		-- Every class, even the abstract one should have a Type
 ------------------------------*/
@@ -95,7 +96,6 @@ PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the ent
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
-	
 	return self_plus->py_repr();  
 }
 
@@ -145,42 +145,55 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 
 	PyObjectPlus_Proxy *ret = (PyObjectPlus_Proxy *) type->tp_alloc(type, 0); /* starts with 1 ref, used for the return ref' */
 	ret->ref= base->ref;
-	base->ref= NULL;		/* invalidate! disallow further access */
-
+	ret->ptr= base->ptr;
 	ret->py_owns= base->py_owns;
+	ret->py_ref = base->py_ref;
 
-	ret->ref->m_proxy= NULL;
-
-	/* 'base' may be free'd after this func finished but not necessarily
-	 * there is no reference to the BGE data now so it will throw an error on access */
-	Py_DECREF(base);
-
-	ret->ref->m_proxy= (PyObject *)ret; /* no need to add a ref because one is added when creating. */
-	Py_INCREF(ret); /* we return a new ref but m_proxy holds a ref so we need to add one */
-
-
-	/* 'ret' will have 2 references.
-	 * - One ref is needed because ret->ref->m_proxy holds a refcount to the current proxy.
-	 * - Another is needed for returning the value.
-	 *
-	 * So we should be ok with 2 refs, but for some reason this crashes. so adding a new ref...
-	 * */
+	if (ret->py_ref) {
+		base->ref= NULL;		/* invalidate! disallow further access */
+		base->ptr = NULL;
+		if (ret->ref)
+			ret->ref->m_proxy= NULL;
+		/* 'base' may be free'd after this func finished but not necessarily
+		 * there is no reference to the BGE data now so it will throw an error on access */
+		Py_DECREF(base);
+		if (ret->ref) {
+			ret->ref->m_proxy= (PyObject *)ret; /* no need to add a ref because one is added when creating. */
+			Py_INCREF(ret); /* we return a new ref but m_proxy holds a ref so we need to add one */
+		}
+	} else {
+		// generic structures don't hold a reference to this proxy, so don't increment ref count
+		if (ret->py_owns)
+			// but if the proxy owns the structure, there can be only one owner
+			base->ptr= NULL;
+	}
 
 	return (PyObject *)ret;
 }
 
 void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 {
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-	if(self_plus) {
-		if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
-			self_plus->m_proxy = NULL; /* Need this to stop ~PyObjectPlus from decrefing m_proxy otherwise its decref'd twice and py-debug crashes */
-			delete self_plus;
+	if (BGE_PROXY_PYREF(self)) {
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+		if(self_plus) {
+			if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
+				self_plus->m_proxy = NULL; /* Need this to stop ~PyObjectPlus from decrefing m_proxy otherwise its decref'd twice and py-debug crashes */
+				delete self_plus;
+			}
+			BGE_PROXY_REF(self)= NULL; // not really needed
 		}
-
-		BGE_PROXY_REF(self)= NULL; // not really needed
+		// the generic pointer is not deleted directly, only through self_plus
+		BGE_PROXY_PTR(self)= NULL; // not really needed
+	} else {
+		void *ptr= BGE_PROXY_PTR(self);
+		if(ptr) {
+			if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
+				// generic structure owned by python MUST be created though MEM_alloc
+				MEM_freeN(ptr);
+			}
+			BGE_PROXY_PTR(self)= NULL; // not really needed
+		}
 	}
-
 #if 0
 	/* is ok normally but not for subtyping, use tp_free instead. */
 	PyObject_DEL( self );
@@ -217,15 +230,15 @@ PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DE
 /* note, this is called as a python 'getset, where the PyAttributeDef is the closure */
 PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *attrdef)
 {
-	void *self= (void *)(BGE_PROXY_REF(self_py));
-	if(self==NULL) {
+	PyObjectPlus *ref= (BGE_PROXY_REF(self_py));
+	char* ptr = (attrdef->m_usePtr) ? (char*)BGE_PROXY_PTR(self_py) : (char*)ref;
+	if(ptr == NULL || (BGE_PROXY_PYREF(self_py) && (ref==NULL || !ref->py_is_valid()))) {
 		if(attrdef == attr_invalid)
 			Py_RETURN_TRUE; // dont bother running the function
 
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
-
 
 	if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
 	{
@@ -237,9 +250,9 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		// the attribute has no field correspondance, handover processing to function.
 		if (attrdef->m_getFunction == NULL)
 			return NULL;
-		return (*attrdef->m_getFunction)(self, attrdef);
+		return (*attrdef->m_getFunction)(ref, attrdef);
 	}
-	char *ptr = reinterpret_cast<char*>(self)+attrdef->m_offset;
+	ptr += attrdef->m_offset;
 	if (attrdef->m_length > 1)
 	{
 		PyObject* resultlist = PyList_New(attrdef->m_length);
@@ -293,6 +306,35 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 	else
 	{
 		switch (attrdef->m_type) {
+		case KX_PYATTRIBUTE_TYPE_FLAG:
+			{
+				bool bval;
+				switch (attrdef->m_size) {
+				case 1:
+					{
+						unsigned char *val = reinterpret_cast<unsigned char*>(ptr);
+						bval = (*val & attrdef->m_imin);
+						break;
+					}
+				case 2:
+					{
+						unsigned short *val = reinterpret_cast<unsigned short*>(ptr);
+						bval = (*val & attrdef->m_imin);
+						break;
+					}
+				case 4:
+					{
+						unsigned int *val = reinterpret_cast<unsigned int*>(ptr);
+						bval = (*val & attrdef->m_imin);
+						break;
+					}
+				default:
+					return NULL;
+				}
+				if (attrdef->m_imax)
+					bval = !bval;
+				return PyLong_FromSsize_t(bval);
+			}
 		case KX_PYATTRIBUTE_TYPE_BOOL:
 			{
 				bool *val = reinterpret_cast<bool*>(ptr);
@@ -318,7 +360,49 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		case KX_PYATTRIBUTE_TYPE_FLOAT:
 			{
 				float *val = reinterpret_cast<float*>(ptr);
-				return PyFloat_FromDouble(*val);
+				if (attrdef->m_imin == 0) {
+					if (attrdef->m_imax == 0) {
+						return PyFloat_FromDouble(*val);
+					} else {
+						// vector, verify size
+						if (attrdef->m_size != attrdef->m_imax*sizeof(float)) 
+						{
+							return NULL;
+						}
+#ifdef USE_MATHUTILS
+						return newVectorObject(val, attrdef->m_imax, Py_NEW, NULL);
+#else
+						PyObject* resultlist = PyList_New(attrdef->m_imax);
+						for (unsigned int i=0; i<attrdef->m_imax; i++)
+						{
+							PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble(val[i]));
+						}
+						return resultlist;
+#endif
+					}
+				} else {
+					// matrix case
+					if (attrdef->m_size != attrdef->m_imax*attrdef->m_imin*sizeof(float)) 
+					{
+						return NULL;
+					}
+#ifdef USE_MATHUTILS
+					return newMatrixObject(val, attrdef->m_imin, attrdef->m_imax, Py_WRAP, NULL);
+#else
+					PyObject* rowlist = PyList_New(attrdef->m_imin);
+					for (unsigned int i=0; i<attrdef->m_imin; i++)
+					{
+						PyObject* collist = PyList_New(attrdef->m_imax);
+						for (unsigned int j=0; j<attrdef->m_imax; j++)
+						{
+							PyList_SET_ITEM(collist,j,PyFloat_FromDouble(val[j]));
+						}
+						PyList_SET_ITEM(rowlist,i,collist);
+						val += attrdef->m_imax;
+					}
+					return rowlist;
+#endif
+				}
 			}
 		case KX_PYATTRIBUTE_TYPE_VECTOR:
 			{
@@ -340,17 +424,47 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				STR_String *val = reinterpret_cast<STR_String*>(ptr);
 				return PyUnicode_FromString(*val);
 			}
+		case KX_PYATTRIBUTE_TYPE_CHAR:
+			{
+				return PyUnicode_FromString(ptr);
+			}
 		default:
 			return NULL;
 		}
 	}
 }
 
+
+static bool py_check_attr_float(float *var, PyObject *value, const PyAttributeDef *attrdef)
+{
+	double val = PyFloat_AsDouble(value);
+	if (val == -1.0 && PyErr_Occurred())
+	{
+		PyErr_Format(PyExc_TypeError, "expected float value for attribute \"%s\"", attrdef->m_name);
+		return false;
+	}
+	if (attrdef->m_clamp)
+	{
+		if (val < attrdef->m_fmin)
+			val = attrdef->m_fmin;
+		else if (val > attrdef->m_fmax)
+			val = attrdef->m_fmax;
+	}
+	else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
+	{
+		PyErr_Format(PyExc_ValueError, "value out of range for attribute \"%s\"", attrdef->m_name);
+		return false;
+	}
+	*var = (float)val;
+	return true;
+}
+
 /* note, this is called as a python getset */
 int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAttributeDef *attrdef)
 {
-	void *self= (void *)(BGE_PROXY_REF(self_py));
-	if(self==NULL) {
+	PyObjectPlus *ref= (BGE_PROXY_REF(self_py));
+	char* ptr = (attrdef->m_usePtr) ? (char*)BGE_PROXY_PTR(self_py) : (char*)ref;
+	if(ref==NULL || !ref->py_is_valid() || ptr==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return PY_SET_ATTR_FAIL;
 	}
@@ -358,8 +472,10 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 	void *undoBuffer = NULL;
 	void *sourceBuffer = NULL;
 	size_t bufferSize = 0;
+	PyObject *item = NULL;	// to store object that must be dereferenced in case of error
+	PyObject *list = NULL;	// to store object that must be dereferenced in case of error
 	
-	char *ptr = reinterpret_cast<char*>(self)+attrdef->m_offset;
+	ptr += attrdef->m_offset;
 	if (attrdef->m_length > 1)
 	{
 		if (!PySequence_Check(value)) 
@@ -380,7 +496,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				PyErr_Format(PyExc_AttributeError, "function attribute without function for attribute \"%s\", report to blender.org", attrdef->m_name);
 				return PY_SET_ATTR_FAIL;
 			}
-			return (*attrdef->m_setFunction)(self, attrdef, value);
+			return (*attrdef->m_setFunction)(ref, attrdef, value);
 		case KX_PYATTRIBUTE_TYPE_BOOL:
 			bufferSize = sizeof(bool);
 			break;
@@ -409,10 +525,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		}
 		for (int i=0; i<attrdef->m_length; i++)
 		{
-			PyObject *item = PySequence_GetItem(value, i); /* new ref */
-			// we can decrement the reference immediately, the reference count
-			// is at least 1 because the item is part of an array
-			Py_DECREF(item);
+			item = PySequence_GetItem(value, i); /* new ref */
 			switch (attrdef->m_type) 
 			{
 			case KX_PYATTRIBUTE_TYPE_BOOL:
@@ -528,11 +641,14 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				PyErr_Format(PyExc_AttributeError, "type check error for attribute \"%s\", report to blender.org", attrdef->m_name);
 				goto UNDO_AND_ERROR;
 			}
+			// finished using item, release
+			Py_DECREF(item);
+			item = NULL;
 		}
 		// no error, call check function if any
 		if (attrdef->m_checkFunction != NULL)
 		{
-			if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
+			if ((*attrdef->m_checkFunction)(ref, attrdef) != 0)
 			{
 				// if the checing function didnt set an error then set a generic one here so we dont set an error with no exception
 				if (PyErr_Occurred()==0)
@@ -545,6 +661,8 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 					memcpy(sourceBuffer, undoBuffer, bufferSize);
 					free(undoBuffer);
 				}
+				if (item)
+					Py_DECREF(item);
 				return PY_SET_ATTR_FAIL;
 			}
 		}
@@ -561,7 +679,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				PyErr_Format(PyExc_AttributeError, "function attribute without function \"%s\", report to blender.org", attrdef->m_name);
 				return PY_SET_ATTR_FAIL;
 			}
-			return (*attrdef->m_setFunction)(self, attrdef, value);
+			return (*attrdef->m_setFunction)(ref, attrdef, value);
 		}
 		if (attrdef->m_checkFunction != NULL || attrdef->m_type == KX_PYATTRIBUTE_TYPE_VECTOR)
 		{
@@ -576,11 +694,19 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				bufferSize = sizeof(short);
 				break;
 			case KX_PYATTRIBUTE_TYPE_ENUM:
+			case KX_PYATTRIBUTE_TYPE_FLAG:
+			case KX_PYATTRIBUTE_TYPE_CHAR:
+				bufferSize = attrdef->m_size;
+				break;
 			case KX_PYATTRIBUTE_TYPE_INT:
 				bufferSize = sizeof(int);
 				break;
 			case KX_PYATTRIBUTE_TYPE_FLOAT:
 				bufferSize = sizeof(float);
+				if (attrdef->m_imax)
+					bufferSize *= attrdef->m_imax;
+				if (attrdef->m_imin)
+					bufferSize *= attrdef->m_imin;
 				break;
 			case KX_PYATTRIBUTE_TYPE_STRING:
 				sourceBuffer = reinterpret_cast<STR_String*>(ptr)->Ptr();
@@ -620,6 +746,49 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				else
 				{
 					PyErr_Format(PyExc_TypeError, "expected an integer or a bool for attribute \"%s\"", attrdef->m_name);
+					goto FREE_AND_ERROR;
+				}
+				break;
+			}
+		case KX_PYATTRIBUTE_TYPE_FLAG:
+			{
+				bool bval;
+				if (PyLong_Check(value)) 
+				{
+					bval = (PyLong_AsSsize_t(value) != 0);
+				} 
+				else if (PyBool_Check(value))
+				{
+					bval = (value == Py_True);
+				}
+				else
+				{
+					PyErr_Format(PyExc_TypeError, "expected an integer or a bool for attribute \"%s\"", attrdef->m_name);
+					goto FREE_AND_ERROR;
+				}
+				if (attrdef->m_imax)
+					bval = !bval;
+				switch (attrdef->m_size) {
+				case 1:
+					{
+						unsigned char *val = reinterpret_cast<unsigned char*>(ptr);
+						*val = (*val & ~attrdef->m_imin) | ((bval)?attrdef->m_imin:0);
+						break;
+					}
+				case 2:
+					{
+						unsigned short *val = reinterpret_cast<unsigned short*>(ptr);
+						*val = (*val & ~attrdef->m_imin) | ((bval)?attrdef->m_imin:0);
+						break;
+					}
+				case 4:
+					{
+						unsigned int *val = reinterpret_cast<unsigned int*>(ptr);
+						*val = (*val & ~attrdef->m_imin) | ((bval)?attrdef->m_imin:0);
+						break;
+					}
+				default:
+					PyErr_Format(PyExc_TypeError, "internal error: unsupported flag field \"%s\"", attrdef->m_name);
 					goto FREE_AND_ERROR;
 				}
 				break;
@@ -689,25 +858,71 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_FLOAT:
 			{
 				float *var = reinterpret_cast<float*>(ptr);
-				double val = PyFloat_AsDouble(value);
-				if (val == -1.0 && PyErr_Occurred())
+				if (attrdef->m_imin != 0) 
 				{
-					PyErr_Format(PyExc_TypeError, "expected a float for attribute \"%s\"", attrdef->m_name);
-					goto FREE_AND_ERROR;
-				}
-				else if (attrdef->m_clamp)
+					if (attrdef->m_size != attrdef->m_imin*attrdef->m_imax*sizeof(float)) 
+					{
+						PyErr_Format(PyExc_TypeError, "internal error: incorrect field size for attribute \"%s\"", attrdef->m_name);
+						goto FREE_AND_ERROR;
+					}
+					if (!PySequence_Check(value) || PySequence_Size(value) != attrdef->m_imin) 
+					{
+						PyErr_Format(PyExc_TypeError, "expected a sequence of [%d][%d] floats for attribute \"%s\"", attrdef->m_imin, attrdef->m_imax, attrdef->m_name);
+						goto FREE_AND_ERROR;
+					}
+					for (int i=0; i<attrdef->m_imin; i++)
+					{
+						PyObject *list = PySequence_GetItem(value, i); /* new ref */
+						if (!PySequence_Check(list) || PySequence_Size(list) != attrdef->m_imax) 
+						{
+							PyErr_Format(PyExc_TypeError, "expected a sequence of [%d][%d] floats for attribute \"%s\"", attrdef->m_imin, attrdef->m_imax, attrdef->m_name);
+							goto RESTORE_AND_ERROR;
+						}
+						for (int j=0; j<attrdef->m_imax; j++)
+						{
+							item = PySequence_GetItem(list, j); /* new ref */
+							if (!py_check_attr_float(var, item, attrdef))
+							{
+								PyErr_Format(PyExc_TypeError, "expected a sequence of [%d][%d] floats for attribute \"%s\"", attrdef->m_imin, attrdef->m_imax, attrdef->m_name);
+								goto RESTORE_AND_ERROR;
+							}
+							Py_DECREF(item);
+							item = NULL;
+							++var;
+						}
+						Py_DECREF(list);
+						list = NULL;
+					}
+				} 
+				else if (attrdef->m_imax != 0) 
 				{
-					if (val < attrdef->m_fmin)
-						val = attrdef->m_fmin;
-					else if (val > attrdef->m_fmax)
-						val = attrdef->m_fmax;
-				}
-				else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
+					if (attrdef->m_size != attrdef->m_imax*sizeof(float)) 
+					{
+						PyErr_Format(PyExc_TypeError, "internal error: incorrect field size for attribute \"%s\"", attrdef->m_name);
+						goto FREE_AND_ERROR;
+					}
+					if (!PySequence_Check(value) || PySequence_Size(value) != attrdef->m_imax) 
+					{
+						PyErr_Format(PyExc_TypeError, "expected a sequence of [%d] floats for attribute \"%s\"", attrdef->m_imax, attrdef->m_name);
+						goto FREE_AND_ERROR;
+					}
+					for (int i=0; i<attrdef->m_imax; i++)
+					{
+						item = PySequence_GetItem(value, i); /* new ref */
+						if (!py_check_attr_float(var, item, attrdef))
+						{
+							goto RESTORE_AND_ERROR;
+						}
+						Py_DECREF(item);
+						item = NULL;
+						++var;
+					}
+				} 
+				else
 				{
-					PyErr_Format(PyExc_ValueError, "value out of range for attribute \"%s\"", attrdef->m_name);
-					goto FREE_AND_ERROR;
+					if (!py_check_attr_float(var, value, attrdef))
+						goto FREE_AND_ERROR;
 				}
-				*var = (float)val;
 				break;
 			}
 		case KX_PYATTRIBUTE_TYPE_VECTOR:
@@ -715,16 +930,15 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				if (!PySequence_Check(value) || PySequence_Size(value) != 3) 
 				{
 					PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
-					return PY_SET_ATTR_FAIL;
+					goto FREE_AND_ERROR;
 				}
 				MT_Vector3 *var = reinterpret_cast<MT_Vector3*>(ptr);
 				for (int i=0; i<3; i++)
 				{
-					PyObject *item = PySequence_GetItem(value, i); /* new ref */
-					// we can decrement the reference immediately, the reference count
-					// is at least 1 because the item is part of an array
-					Py_DECREF(item);
+					item = PySequence_GetItem(value, i); /* new ref */
 					double val = PyFloat_AsDouble(item);
+					Py_DECREF(item);
+					item = NULL;
 					if (val == -1.0 && PyErr_Occurred())
 					{
 						PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
@@ -743,6 +957,22 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 						goto RESTORE_AND_ERROR;
 					}
 					(*var)[i] = (MT_Scalar)val;
+				}
+				break;
+			}
+		case KX_PYATTRIBUTE_TYPE_CHAR:
+			{
+				if (PyUnicode_Check(value)) 
+				{
+					Py_ssize_t val_len;
+					char *val = _PyUnicode_AsStringAndSize(value, &val_len);
+					strncpy(ptr, val, attrdef->m_size);
+					ptr[attrdef->m_size-1] = 0;
+				}
+				else
+				{
+					PyErr_Format(PyExc_TypeError, "expected a string for attribute \"%s\"", attrdef->m_name);
+					goto FREE_AND_ERROR;
 				}
 				break;
 			}
@@ -793,7 +1023,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 	// check if post processing is needed
 	if (attrdef->m_checkFunction != NULL)
 	{
-		if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
+		if ((*attrdef->m_checkFunction)(ref, attrdef) != 0)
 		{
 			// restore value
 		RESTORE_AND_ERROR:
@@ -814,6 +1044,10 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		FREE_AND_ERROR:
 			if (undoBuffer)
 				free(undoBuffer);
+			if (list)
+				Py_DECREF(list);
+			if (item)
+				Py_DECREF(item);
 			return 1;
 		}
 	}
@@ -857,23 +1091,35 @@ void PyObjectPlus::InvalidateProxy()		// check typename of each parent
 	}
 }
 
-PyObject *PyObjectPlus::GetProxy_Ext(PyObjectPlus *self, PyTypeObject *tp)
+PyObject *PyObjectPlus::GetProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, void *ptr)
 {
 	if (self->m_proxy==NULL)
 	{
 		self->m_proxy = reinterpret_cast<PyObject *>PyObject_NEW( PyObjectPlus_Proxy, tp);
 		BGE_PROXY_PYOWNS(self->m_proxy) = false;
+		BGE_PROXY_PYREF(self->m_proxy) = true;
 	}
 	//PyObject_Print(self->m_proxy, stdout, 0);
 	//printf("ref %d\n", self->m_proxy->ob_refcnt);
 	
 	BGE_PROXY_REF(self->m_proxy) = self; /* Its possible this was set to NULL, so set it back here */
+	BGE_PROXY_PTR(self->m_proxy) = ptr;
 	Py_INCREF(self->m_proxy); /* we own one, thos ones fore the return */
 	return self->m_proxy;
 }
 
-PyObject *PyObjectPlus::NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool py_owns)
+PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, void *ptr, bool py_owns)
 {
+	if (!self) 
+	{
+		// in case of proxy without reference to game object
+		PyObject* proxy = reinterpret_cast<PyObject *>PyObject_NEW( PyObjectPlus_Proxy, tp);
+		BGE_PROXY_PYREF(proxy) = false;
+		BGE_PROXY_PYOWNS(proxy) = py_owns;
+		BGE_PROXY_REF(proxy) = NULL; 
+		BGE_PROXY_PTR(proxy) = ptr;
+		return proxy;
+	}
 	if (self->m_proxy)
 	{
 		if(py_owns)
@@ -889,7 +1135,7 @@ PyObject *PyObjectPlus::NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool 
 		
 	}
 	
-	GetProxy_Ext(self, tp);
+	GetProxyPlus_Ext(self, tp, ptr);
 	if(py_owns) {
 		BGE_PROXY_PYOWNS(self->m_proxy) = py_owns;
 		Py_DECREF(self->m_proxy); /* could avoid thrashing here but for now its ok */

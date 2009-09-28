@@ -2184,6 +2184,8 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data = ((bKinematicConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
 				data->poletar = newlibadr(fd, id->lib, data->poletar);
+				con->lin_error = 0.f;
+				con->rot_error = 0.f;
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -2331,6 +2333,7 @@ static void lib_link_armature(FileData *fd, Main *main)
 
 	while(arm) {
 		if(arm->id.flag & LIB_NEEDLINK) {
+			if (arm->adt) lib_link_animdata(fd, &arm->id, arm->adt);
 			arm->id.flag -= LIB_NEEDLINK;
 		}
 		arm= arm->id.next;
@@ -2357,6 +2360,7 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
 	arm->sketch = NULL;
+	arm->adt= newdataadr(fd, arm->adt);
 	
 	bone=arm->bonebase.first;
 	while (bone) {
@@ -3613,6 +3617,11 @@ static void lib_link_object(FileData *fd, Main *main)
 				else if(act->type==ACT_STATE) {
 					/* bStateActuator *statea = act->data; */
 				}
+				else if(act->type==ACT_ARMATURE) {
+					bArmatureActuator *arma= act->data;
+					arma->target= newlibadr(fd, ob->id.lib, arma->target);
+					arma->subtarget= newlibadr(fd, ob->id.lib, arma->subtarget);
+				}
 				act= act->next;
 			}
 			
@@ -3673,6 +3682,10 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
+	}
+	pose->ikdata = NULL;
+	if (pose->ikparam != NULL) {
+		pose->ikparam= newdataadr(fd, pose->ikparam);
 	}
 }
 
@@ -4686,7 +4699,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 							v3d->layact= v3d->localvd->layact;
 							MEM_freeN(v3d->localvd); 
 							v3d->localvd= NULL;
-							v3d->localview= 0;
 						}
 						*/
 					}
@@ -9352,10 +9364,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 */
 		//do_versions_ipos_to_animato(main);
 		
-		/* toolsettings */
-		for(scene= main->scene.first; scene; scene= scene->id.next)
-			scene->r.audio = scene->audio;
-		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
 		 */
@@ -9369,7 +9377,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
 
 			/* move to cameras */
-			if(sce->r.scemode & R_PANORAMA) {
+			if(sce->r.mode & R_PANORAMA) {
 				for(base=sce->base.first; base; base=base->next) {
 					ob= newlibadr(fd, lib, base->object);
 
@@ -9379,7 +9387,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 
-				sce->r.scemode &= ~R_PANORAMA;
+				sce->r.mode &= ~R_PANORAMA;
 			}
 		}
 		/* and texture trees */
@@ -9701,15 +9709,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->unit.scale_length= 1.0f;
 		
 		for(ob = main->object.first; ob; ob = ob->id.next) {
-			ModifierData *md;
+			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+			if (fluidmd) fluidmd->fss->fmd = fluidmd;
+		}
 
-			/* add backwards pointer for fluidsim modifier RNA access */
-			for (md=ob->modifiers.first; md; md = md->next) {
-				if (md->type == eModifierType_Fluidsim) {
-					FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
-					fluidmd->fss->fmd = fluidmd;
-				}
-			}
+		for(sce= main->scene.first; sce; sce= sce->id.next)
+		{
+			if(sce->audio.main == 0.0)
+				sce->audio.main = 1.0;
+
+			sce->r.ffcodecdata.audio_mixrate = sce->audio.mixrate;
+			sce->r.ffcodecdata.audio_volume = sce->audio.main;
+			sce->audio.distance_model = 2.0;
+			sce->audio.doppler_factor = 1.0;
+			sce->audio.speed_of_sound = 343.3;
 		}
 	}
 
@@ -10426,6 +10439,9 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 {
 	Bone *curBone;
 
+	if(arm->adt)
+		expand_animdata(fd, mainvar, arm->adt);
+
 	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
 		expand_bones(fd, mainvar, curBone);
 	}
@@ -10574,10 +10590,18 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 			bObjectActuator *oa= act->data;
 			expand_doit(fd, mainvar, oa->reference);
 		}
+		else if(act->type==ACT_ADD_OBJECT) {
+			bAddObjectActuator *aoa= act->data;
+			expand_doit(fd, mainvar, aoa->ob);
+		}
 		else if(act->type==ACT_SCENE) {
 			bSceneActuator *sa= act->data;
 			expand_doit(fd, mainvar, sa->camera);
 			expand_doit(fd, mainvar, sa->scene);
+		}
+		else if(act->type==ACT_2DFILTER) {
+			bTwoDFilterActuator *tdfa= act->data;
+			expand_doit(fd, mainvar, tdfa->text);
 		}
 		else if(act->type==ACT_ACTION) {
 			bActionActuator *aa= act->data;
@@ -10594,6 +10618,14 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		else if(act->type==ACT_MESSAGE) {
 			bMessageActuator *ma= act->data;
 			expand_doit(fd, mainvar, ma->toObject);
+		}
+		else if(act->type==ACT_PARENT) {
+			bParentActuator *pa= act->data;
+			expand_doit(fd, mainvar, pa->ob);
+		}
+		else if(act->type==ACT_ARMATURE) {
+			bArmatureActuator *arma= act->data;
+			expand_doit(fd, mainvar, arma->target);
 		}
 		act= act->next;
 	}

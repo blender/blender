@@ -804,6 +804,8 @@ static void filelist_read_library(struct FileList* filelist)
 	if(!filelist->libfiledata) {
 		int num;
 		struct direntry *file;
+
+		BLI_make_exist(filelist->dir);
 		filelist_read_dir(filelist);
 		file = filelist->filelist;
 		for(num=0; num<filelist->numfiles; num++, file++) {

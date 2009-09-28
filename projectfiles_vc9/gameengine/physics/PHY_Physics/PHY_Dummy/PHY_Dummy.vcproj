@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="PHY_Dummy"
 	ProjectGUID="{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}"
+	RootNamespace="PHY_Dummy"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -264,6 +265,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"

@@ -353,8 +353,8 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 				pen_x += delta.x >> 6;
 		}
 
-		gbox.xmin= g->box.xmin + pen_x;
-		gbox.xmax= g->box.xmax + pen_x;
+		gbox.xmin= pen_x;
+		gbox.xmax= pen_x + g->advance;
 		gbox.ymin= g->box.ymin + pen_y;
 		gbox.ymax= g->box.ymax + pen_y;
 

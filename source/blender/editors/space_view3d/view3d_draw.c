@@ -732,7 +732,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 	char *name = view3d_get_name(v3d, rv3d);
 	char *printable = NULL;
 	
-	if (v3d->localview) {
+	if (v3d->localvd) {
 		printable = malloc(strlen(name) + strlen(" (Local)_")); /* '_' gives space for '\0' */
 												 strcpy(printable, name);
 												 strcat(printable, " (Local)");
@@ -745,7 +745,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 		BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
 	}
 
-	if (v3d->localview) {
+	if (v3d->localvd) {
 		free(printable);
 	}
 }
