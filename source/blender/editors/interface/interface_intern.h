@@ -451,8 +451,8 @@ void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int i
 void uiStyleInit(void);
 
 /* interface_icons.c */
-void ui_id_icon_render(struct Scene *scene, struct ID *id);
-int ui_id_icon_get(struct Scene *scene, struct ID *id);
+void ui_id_icon_render(struct bContext *C, struct ID *id);
+int ui_id_icon_get(struct bContext *C, struct ID *id);
 
 /* resources.c */
 void init_userdef_do_versions(void);

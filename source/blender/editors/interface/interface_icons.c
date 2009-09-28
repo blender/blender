@@ -47,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
 #include "BKE_utildefines.h"
@@ -676,56 +677,6 @@ void UI_icons_init(int first_dyn_id)
 	init_internal_icons();
 }
 
-static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned int *rect)
-{
-	struct ImBuf *ima;
-	unsigned int *drect, *srect;
-	float scaledx, scaledy;
-	short ex, ey, dx, dy;
-
-	/* paranoia test */
-	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
-		return;
-	
-	/* waste of cpu cyles... but the imbuf API has no other way to scale fast (ton) */
-	ima = IMB_dupImBuf(ibuf);
-	
-	if (!ima) 
-		return;
-	
-	if (ima->x > ima->y) {
-		scaledx = (float)w;
-		scaledy =  ( (float)ima->y/(float)ima->x )*(float)w;
-	}
-	else {			
-		scaledx =  ( (float)ima->x/(float)ima->y )*(float)h;
-		scaledy = (float)h;
-	}
-	
-	ex = (short)scaledx;
-	ey = (short)scaledy;
-	
-	dx = (w - ex) / 2;
-	dy = (h - ey) / 2;
-	
-	IMB_scalefastImBuf(ima, ex, ey);
-	
-	/* if needed, convert to 32 bits */
-	if(ima->rect==NULL)
-		IMB_rect_from_float(ima);
-
-	srect = ima->rect;
-	drect = rect;
-
-	drect+= dy*w+dx;
-	for (;ey > 0; ey--){		
-		memcpy(drect,srect, ex * sizeof(int));
-		drect += w;
-		srect += ima->x;
-	}
-	IMB_freeImBuf(ima);
-}
-
 /* Render size for preview images at level miplevel */
 static int preview_render_size(int miplevel)
 {
@@ -751,105 +702,20 @@ static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel)
 	}
 }
 
-/* create single icon from jpg, png etc. */
-static void icon_from_image(Scene *scene, Image *img, int miplevel)
-{
-	ImBuf *ibuf= NULL;
-	ImageUser iuser;
-	PreviewImage *pi;
-	unsigned int pr_size;
-	short image_loaded = 0;
-
-	/* img->ok is zero when Image cannot load */
-	if (img==NULL || img->ok==0)
-		return;
-
-	/* setup dummy image user */
-	memset(&iuser, 0, sizeof(ImageUser));
-	iuser.ok= iuser.framenr= 1;
-	iuser.scene= scene;
-	
-	/* elubie: this needs to be changed: here image is always loaded if not
-	   already there. Very expensive for large images. Need to find a way to 
-	   only get existing ibuf */
-	
-	ibuf = BKE_image_get_ibuf(img, &iuser);
-	if(ibuf==NULL || ibuf->rect==NULL) {
-		return;
-	}
-	
-	pi = BKE_previewimg_get((ID*)img); 	
-	
-	if(!pi) {
-		printf("preview image could'nt be allocated");
-		return;
-	}
-	/* we can only create the preview rect here, since loading possibly deallocated
-	   old preview */
-	icon_create_mipmap(pi, miplevel);
-
-	pr_size = img->preview->w[miplevel]*img->preview->h[miplevel]*sizeof(unsigned int);
-
-	image_loaded = 1;
-	icon_copy_rect(ibuf, img->preview->w[miplevel], img->preview->h[miplevel], img->preview->rect[miplevel]);	
-}
-
-static void set_alpha(char* cp, int sizex, int sizey, char alpha) 
-{
-	int x,y;
-	for(y=0; y<sizey; y++) {
-		for(x=0; x<sizex; x++, cp+=4) {
-			cp[3]= alpha;
-		}
-	}
-}
-
 /* only called when icon has changed */
 /* only call with valid pointer from UI_icon_draw */
-static void icon_set_image(Scene *scene, ID *id, PreviewImage* prv_img, int miplevel)
+static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, int miplevel)
 {
-	RenderInfo ri;	
-	unsigned int pr_size = 0;
-	
 	if (!prv_img) {
 		printf("No preview image for this ID: %s\n", id->name);
 		return;
 	}	
 
-	/* no drawing (see last parameter doDraw, just calculate preview image 
-		- hopefully small enough to be fast */
-	if (GS(id->name) == ID_IM)
-		icon_from_image(scene, (struct Image*)id, miplevel);
-	else {	
-		/* create the preview rect */
-		icon_create_mipmap(prv_img, miplevel);
+	/* create the preview rect */
+	icon_create_mipmap(prv_img, miplevel);
 
-		ri.curtile= 0;
-		ri.tottile= 0;
-		ri.pr_rectx = prv_img->w[miplevel];
-		ri.pr_recty = prv_img->h[miplevel];
-		pr_size = ri.pr_rectx*ri.pr_recty*sizeof(unsigned int);
-		ri.rect = MEM_callocN(pr_size, "pr icon rect");
-
-		ED_preview_iconrender(scene, id, ri.rect, ri.pr_rectx, ri.pr_recty);
-
-		/* world is rendered with alpha=0, so it wasn't displayed 
-		   this could be render option for sky to, for later */
-		if (GS(id->name) == ID_WO) { 
-			set_alpha( (char*) ri.rect, ri.pr_rectx, ri.pr_recty, 255);
-		} 
-		else if (GS(id->name) == ID_MA) {
-			Material* mat = (Material*)id;
-			if (mat->material_type == MA_TYPE_HALO) {
-				set_alpha( (char*) ri.rect, ri.pr_rectx, ri.pr_recty, 255);
-			}
-		}
-
-		memcpy(prv_img->rect[miplevel], ri.rect, pr_size);
-
-		/* and clean up */
-		MEM_freeN(ri.rect);
-	}
+	ED_preview_icon_job(C, prv_img, id, prv_img->rect[miplevel],
+		prv_img->w[miplevel], prv_img->h[miplevel]);
 }
 
 static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect)
@@ -944,7 +810,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, int mipl
 	}
 }
 
-void ui_id_icon_render(Scene *scene, ID *id)
+void ui_id_icon_render(bContext *C, ID *id)
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
 		
@@ -952,13 +818,13 @@ void ui_id_icon_render(Scene *scene, ID *id)
 		if ((pi->changed[0] ||!pi->rect[0])) /* changed only ever set by dynamic icons */
 		{
 			/* create the preview rect if necessary */				
-			icon_set_image(scene, id, pi, 0);
+			icon_set_image(C, id, pi, 0);
 			pi->changed[0] = 0;
 		}
 	}
 }
 
-int ui_id_icon_get(Scene *scene, ID *id)
+int ui_id_icon_get(bContext *C, ID *id)
 {
 	int iconid= 0;
 	
@@ -972,7 +838,7 @@ int ui_id_icon_get(Scene *scene, ID *id)
 		case ID_LA: /* fall through */
 			iconid= BKE_icon_getid(id);
 			/* checks if not exists, or changed */
-			ui_id_icon_render(scene, id);
+			ui_id_icon_render(C, id);
 			break;
 		default:
 			break;

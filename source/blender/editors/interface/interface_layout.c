@@ -1021,7 +1021,6 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 
 static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, uiSearchItems *items)
 {
-	Scene *scene= CTX_data_scene(C);
 	uiBut *but= arg_but;
 	char *name;
 	int i, iconid;
@@ -1030,7 +1029,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 	RNA_PROP_BEGIN(&but->rnasearchpoin, itemptr, but->rnasearchprop) {
 		iconid= 0;
 		if(RNA_struct_is_ID(itemptr.type))
-			iconid= ui_id_icon_get(scene, itemptr.data);
+			iconid= ui_id_icon_get((bContext*)C, itemptr.data);
 
 		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
