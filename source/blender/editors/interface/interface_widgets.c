@@ -1973,7 +1973,19 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	
 	/* text space */
 	rect->xmax -= (rect->ymax-rect->ymin);
+}
+
+static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
 	
+	widget_init(&wtb);
+	
+	/* half rounded */
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	
+	/* decoration */
+	widgetbase_draw(&wtb, wcol);
 }
 
 static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -2209,12 +2221,16 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme= &btheme->tui.wcol_menu;
 			wt.draw= widget_menubut;
 			break;
+
+		case UI_WTYPE_MENU_ICON_RADIO:
+			wt.wcol_theme= &btheme->tui.wcol_menu;
+			wt.draw= widget_menuiconbut;
+			break;
 			
 		case UI_WTYPE_MENU_POINTER_LINK:
 			wt.wcol_theme= &btheme->tui.wcol_menu;
 			wt.draw= widget_menubut;
 			break;
-			
 			
 		case UI_WTYPE_PULLDOWN:
 			wt.wcol_theme= &btheme->tui.wcol_pulldown;
@@ -2405,7 +2421,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case MENU:
 			case BLOCK:
 			case ICONTEXTROW:
-				wt= widget_type(UI_WTYPE_MENU_RADIO);
+				if(!but->str[0] && but->icon)
+					wt= widget_type(UI_WTYPE_MENU_ICON_RADIO);
+				else
+					wt= widget_type(UI_WTYPE_MENU_RADIO);
 				break;
 				
 			case PULLDOWN:

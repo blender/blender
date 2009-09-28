@@ -1183,8 +1183,10 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 	if(layout->root->type == UI_LAYOUT_HEADER) /* ugly .. */
 		w -= 10;
 
-	if(icon)
+	if(name[0] && icon)
 		but= uiDefIconTextMenuBut(block, func, arg, icon, (char*)name, 0, 0, w, h, "");
+	else if(icon)
+		but= uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, "");
 	else
 		but= uiDefMenuBut(block, func, arg, (char*)name, 0, 0, w, h, "");
 
