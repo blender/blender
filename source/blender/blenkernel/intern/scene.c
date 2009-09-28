@@ -92,6 +92,8 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
+#include "FRS_freestyle_config.h"
+
 //XXX #include "nla.h"
 
 #ifdef WIN32
@@ -824,6 +826,7 @@ void scene_add_render_layer(Scene *sce)
 	srl->lay= (1<<20) -1;
 	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
+	FRS_add_freestyle_config( srl );
 }
 
 /* render simplification */

@@ -66,6 +66,9 @@
 
 #include "RE_pipeline.h"
 
+#include "FRS_freestyle.h"
+#include "FRS_freestyle_config.h"
+
 /* internal */
 #include "render_types.h"
 #include "renderpipeline.h"
@@ -596,6 +599,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl->lay= (1<<20) -1;
 		rl->layflag= 0x7FFF;	/* solid ztra halo strand */
 		rl->passflag= SCE_PASS_COMBINED;
+		FRS_add_freestyle_config( srl );
 		
 		re->r.actlay= 0;
 	}
@@ -1709,6 +1713,10 @@ static void do_render_3d(Render *re)
 		if(!re->test_break(re->tbh))
 			add_halo_flare(re);
 	
+	/* Freestyle  */
+	if( re->r.mode & R_EDGE_FRS && re->r.renderer==R_INTERN)
+		FRS_add_Freestyle(re);
+		
 	/* free all render verts etc */
 	RE_Database_Free(re);
 }

@@ -29,7 +29,7 @@ FILE(GLOB SRC intern/source/*.c)
 SET(INC 
 	intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
 	extern/include ../blenkernel ../imbuf
-	../include ../../kernel/gen_messaging ../blenloader
+	../include ../../kernel/gen_messaging ../blenloader ../freestyle
 	../../../intern/smoke/extern
 	../makesrna
 )
