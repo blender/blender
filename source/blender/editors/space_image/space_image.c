@@ -374,8 +374,8 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	ar->v2d.mask.ymax= winy;
 
 	/* which part of the image space do we see? */
-	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2;
-	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2;
+	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2.0f;
+	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2.0f;
 
 	x1-= sima->zoom*sima->xof;
 	y1-= sima->zoom*sima->yof;
@@ -440,11 +440,13 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* and uvs in 0.0-1.0 space */
 	UI_view2d_view_ortho(C, v2d);
-		draw_uvedit_main(sima, ar, scene, obedit);
-		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
+	draw_uvedit_main(sima, ar, scene, obedit);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
 		
-		/* Grease Pencil too (in addition to UV's) */
-		draw_image_grease_pencil((bContext *)C, 1); 
+	/* Grease Pencil too (in addition to UV's) */
+	draw_image_grease_pencil((bContext *)C, 1); 
+
 	UI_view2d_view_restore(C);
 	
 	/* draw Grease Pencil - screen space only */
