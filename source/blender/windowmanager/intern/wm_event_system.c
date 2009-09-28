@@ -943,7 +943,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					/* XXX also extension code in image-save doesnt work for this yet */
 					if(strncmp(handler->op->type->name, "Save", 4)==0) {
 						/* this gives ownership to pupmenu */
-						uiPupMenuSaveOver(C, handler->op, path);
+						uiPupMenuSaveOver(C, handler->op, (path)? path: "");
 					}
 					else {
 						int retval= handler->op->type->exec(C, handler->op);
@@ -961,7 +961,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					WM_operator_free(handler->op);
 				
 				wm_event_free_handler(handler);
-				MEM_freeN(path);
+				if(path)
+					MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
 			}
