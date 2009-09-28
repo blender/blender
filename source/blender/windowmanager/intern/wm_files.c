@@ -262,6 +262,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 			writeBlog();
 		}
 
+		FRS_initialize(C);
+
 // XXX		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo(C, "original");	/* save current state */
@@ -321,6 +323,8 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	strcpy(G.sce, scestr); /* restore */
 	
 	wm_init_userdef();
+	FRS_initialize(C);
+	
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
 	GPU_default_lights();

@@ -42,8 +42,6 @@ class LIB_SYSTEM_EXPORT Interpreter
 
   virtual ~Interpreter() {}; //soc
 
-  virtual int interpretCmd(const string& cmd) = 0;
-
   virtual int interpretFile(const string& filename) = 0;
 
   virtual string getLanguage() const { return _language; }

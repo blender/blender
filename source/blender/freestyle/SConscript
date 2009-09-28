@@ -6,7 +6,7 @@ sources = []
 defs = []
 incs = ''
 
-incs += '../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../python '
+incs += '../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../makesrna ../python '
 incs += '../render/extern/include ../render/intern/include ../include ../src'
 incs += ' #/extern/glew/include #/intern/guardedalloc'
 incs += ' ' + env['BF_PYTHON_INC']	
@@ -67,7 +67,7 @@ env.BlenderLib (libname="bf_freestyle",
 				sources=sources,
                 includes=Split(incs),
                 defines=defs,
-				libtype=['blender'],
+				libtype=['core'],
                 priority = [25]
  )
 

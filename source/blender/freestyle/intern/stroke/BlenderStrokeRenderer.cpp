@@ -17,10 +17,6 @@ extern "C" {
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 
-#include "BIF_drawscene.h"
-#include "BIF_renderwin.h"
-#include "BIF_writeimage.h"
-
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_library.h" /* free_libblock */
@@ -28,9 +24,6 @@ extern "C" {
 #include "BKE_main.h" /* struct Main */
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BSE_sequence.h"	/* to clear_scene_in_allseqs */
-#include "BSE_node.h"	/* to clear_scene_in_nodes */
-#include "BSE_edit.h"	/* countall */
 
 #include "RE_pipeline.h"
 
@@ -39,9 +32,7 @@ extern "C" {
 #endif
 
 
-
-
-BlenderStrokeRenderer::BlenderStrokeRenderer()
+BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re)
 :StrokeRenderer(){
 	
 	// TEMPORARY - need a  texture manager
@@ -49,23 +40,23 @@ BlenderStrokeRenderer::BlenderStrokeRenderer()
 	_textureManager->load();
 
 	// Scene.New("FreestyleStrokes")
-	old_scene = G.scene;
+	old_scene = re->scene;
 
 	objects.first = objects.last = NULL;
 	
 	ListBase lb;
-	scene = add_scene("freestyle_strokes");
-	lb = scene->r.layers;
-	scene->r= old_scene->r;
-	scene->r.layers= lb;
-	set_scene_bg( scene );
+	freestyle_scene = add_scene("freestyle_strokes");
+	lb = freestyle_scene->r.layers;
+	freestyle_scene->r= old_scene->r;
+	freestyle_scene->r.layers= lb;
+	set_scene_bg( freestyle_scene );
 
 	// image dimensions
-	float width = scene->r.xsch;
-	float height = scene->r.ysch;
+	float width = freestyle_scene->r.xsch;
+	float height = freestyle_scene->r.ysch;
 
 	// Camera
-	Object* object_camera = add_object(OB_CAMERA);
+	Object* object_camera = add_object(freestyle_scene, OB_CAMERA);
 	
 	Camera* camera = (Camera *) object_camera->data;
 	camera->type = CAM_ORTHO;
@@ -75,7 +66,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer()
 	object_camera->loc[1] = 0.5 * height;
 	object_camera->loc[2] = 1.0;
 	
-	scene->camera = object_camera;
+	freestyle_scene->camera = object_camera;
 
 	store_object(object_camera);
 	
@@ -94,7 +85,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 	  }
 
 	// release scene
-	free_libblock( &G.main->scene, scene );
+	free_libblock( &G.main->scene, freestyle_scene );
 
 	// release objects and data blocks
 	LinkData *link = (LinkData *)objects.first;
@@ -154,7 +145,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 	  ++s){		
 		
 		// me = Mesh.New()
-		Object* object_mesh = add_object(OB_MESH);
+		Object* object_mesh = add_object(freestyle_scene, OB_MESH);
 		Mesh* mesh = (Mesh *) object_mesh->data;
 		MEM_freeN(mesh->bb);
 		mesh->bb= NULL;
@@ -270,13 +261,13 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 }
 
 Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
-	scene->r.mode &= ~( R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR );
-	scene->r.scemode &= ~( R_SINGLE_LAYER );
-	scene->r.planes = R_PLANES32;
-	scene->r.imtype = R_PNG;
+	freestyle_scene->r.mode &= ~( R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR );
+	freestyle_scene->r.scemode &= ~( R_SINGLE_LAYER );
+	freestyle_scene->r.planes = R_PLANES32;
+	freestyle_scene->r.imtype = R_PNG;
 	
-	Render* freestyle_render = RE_NewRender(scene->id.name);
+	Render* freestyle_render = RE_NewRender(freestyle_scene->id.name);
 	
-	RE_BlenderFrame( freestyle_render, scene, 1);
+	RE_BlenderFrame( freestyle_render, freestyle_scene, 1);
 	return freestyle_render;
 }

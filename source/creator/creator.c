@@ -821,6 +821,7 @@ int main(int argc, char **argv)
 			
 			if (G.background) {
 				int retval = BKE_read_file(C, argv[a], NULL, NULL);
+				FRS_initialize(C);
 				
 				/*we successfully loaded a blend file, get sure that
 				pointcache works */

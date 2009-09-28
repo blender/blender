@@ -11,6 +11,8 @@ extern "C" {
 	#include "DNA_listBase.h"
 	#include "DNA_scene_types.h"
 	
+	#include "BKE_context.h"
+	
 	extern short freestyle_is_initialized;
 	
 	extern float freestyle_viewpoint[3];
@@ -26,8 +28,8 @@ extern "C" {
 	extern float* freestyle_dkr_epsilon;
 	
 	// Rendering
-	void FRS_initialize();
-	void FRS_add_Freestyle(struct Render* re);
+	void FRS_initialize(bContext* C);
+	void FRS_add_Freestyle( struct Render* re);
 	void FRS_exit();
 	
 	// Panel configuration

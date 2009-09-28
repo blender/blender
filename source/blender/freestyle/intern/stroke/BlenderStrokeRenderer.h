@@ -23,7 +23,7 @@ extern "C" {
 class LIB_STROKE_EXPORT BlenderStrokeRenderer : public StrokeRenderer
 {
 public:
-  BlenderStrokeRenderer();
+  BlenderStrokeRenderer(Render *re);
   virtual ~BlenderStrokeRenderer();
 
   /*! Renders a stroke rep */
@@ -33,8 +33,8 @@ public:
 	Render* RenderScene(Render *re);
 
 protected:
-	Scene* scene;
 	Scene* old_scene;
+	Scene* freestyle_scene;
 	Material* material;
 	ListBase objects;
 

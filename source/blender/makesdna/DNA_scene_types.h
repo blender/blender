@@ -37,6 +37,7 @@ extern "C" {
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_freestyle_types.h"
 
 struct Object;
 struct World;
@@ -128,6 +129,9 @@ typedef struct SceneRenderLayer {
 	
 	int passflag;			/* pass_xor has to be after passflag */
 	int pass_xor;
+	
+	struct FreestyleConfig freestyleConfig;
+	
 } SceneRenderLayer;
 
 /* srl->layflag */
@@ -137,6 +141,7 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_EDGE	8
 #define SCE_LAY_SKY		16
 #define SCE_LAY_STRAND	32
+#define SCE_LAY_FRS		64
 	/* flags between 32 and 0x8000 are set to 1 already, for future options */
 
 #define SCE_LAY_ALL_Z		0x8000
@@ -727,6 +732,11 @@ typedef struct Scene {
 	
 	/* Grease Pencil */
 	struct bGPdata *gpd;
+	
+	/* Freestyle */
+	short freestyle_current_layer_number;
+	short pad[3];
+	
 } Scene;
 
 
@@ -770,6 +780,7 @@ typedef struct Scene {
 #define R_NO_OVERWRITE	0x400000 /* skip existing files */
 #define R_TOUCH			0x800000 /* touch files before rendering */
 #define R_SIMPLIFY		0x1000000
+#define R_EDGE_FRS		0x2000000 /* R_EDGE for Freestyle */
 
 /* displaymode */
 

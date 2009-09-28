@@ -25,7 +25,7 @@
 using namespace std;
 
 extern "C" {
-	#include "api2_2x/EXPP_interface.h"
+	#include "BLI_util.h"
 }
 
 namespace Config {
@@ -33,7 +33,7 @@ Path* Path::_pInstance = 0;
 Path::Path() {
 	// get the root directory
 	//soc
-	setRootDir( bpy_gethome(1) );
+	setRootDir( BLI_gethome_folder("scripts") );
 
 	_pInstance = this;
 }

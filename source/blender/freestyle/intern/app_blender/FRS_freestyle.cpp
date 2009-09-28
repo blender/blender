@@ -17,9 +17,8 @@ extern "C" {
 #include "DNA_camera_types.h"
 #include "DNA_freestyle_types.h"
 
-#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BLI_blenlib.h"
-#include "BIF_renderwin.h"
 #include "BPY_extern.h"
 
 #include "renderpipeline.h"
@@ -33,6 +32,7 @@ extern "C" {
 	static Config::Path *pathconfig = NULL;
 	static Controller *controller = NULL;
 	static AppView *view = NULL;
+	static Scene *current_scene = NULL;
 
 	// camera information
 	float freestyle_viewpoint[3];
@@ -55,7 +55,7 @@ extern "C" {
 	//   Initialization 
 	//=======================================================
 
-	void FRS_initialize(){
+	void FRS_initialize(bContext* C){
 		
 		if( !freestyle_is_initialized ) {
 
@@ -69,7 +69,11 @@ extern "C" {
 			freestyle_is_initialized = 1;
 		}
 		
-		FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
+		current_scene = CTX_data_scene(C);
+		if( !current_scene )
+			current_scene = (Scene*) CTX_data_main(C)->scene.first;
+		
+		FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&current_scene->r.layers, current_scene->r.actlay) );
 		
 	}
 	
@@ -212,7 +216,7 @@ extern "C" {
 		init_view(re);
 		init_camera(re);
 		
-		for(srl= (SceneRenderLayer *)G.scene->r.layers.first; srl; srl= srl->next) {
+		for(srl= (SceneRenderLayer *)current_scene->r.layers.first; srl; srl= srl->next) {
 			if( !(srl->layflag & SCE_LAY_DISABLE) &&
 			 	srl->layflag & SCE_LAY_FRS &&
 				displayed_layer_count(srl) > 0       )
@@ -277,7 +281,7 @@ extern "C" {
 		freestyle_dkr_epsilon = &config->dkr_epsilon;
 		
 		freestyle_current_layer = srl;
-		G.scene->freestyle_current_layer_number = BLI_findindex(&G.scene->r.layers, freestyle_current_layer);
+		current_scene->freestyle_current_layer_number = BLI_findindex(&current_scene->r.layers, freestyle_current_layer);
 	}
 	
 	void FRS_add_module()

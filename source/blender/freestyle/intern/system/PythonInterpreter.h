@@ -37,12 +37,14 @@
 
 //soc
 extern "C" {
+#include "MEM_guardedalloc.h"
 #include "BKE_main.h"
+#include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_text.h"
 #include "BKE_library.h"
 #include "BPY_extern.h"
-#include "BIF_drawtext.h"
 }
 
 class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
@@ -58,35 +60,32 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
     //Py_Finalize();
   }
 
-  int interpretCmd(const string& cmd) {
-    initPath();
-    char* c_cmd = strdup(cmd.c_str());
-    int err = PyRun_SimpleString(c_cmd);
-    free(c_cmd);
-    return err;
-  }
-
   int interpretFile(const string& filename) {
-    initPath();
 
-	char *fn = const_cast<char*>(filename.c_str());
-	struct Text *text = add_text( fn );
+	bContext* C = CTX_create();
+	ReportList* reports = (ReportList*) MEM_mallocN(sizeof(ReportList), "freestyleExecutionReportList");
 	
-	if (text == NULL) {
-		cout << "\nError in PythonInterpreter::interpretFile:" << endl;
-		cout << "couldn't create Blender text from" << fn << endl;
+	initPath(C);
+	
+	BKE_reports_init(reports, RPT_ERROR);
+	char *fn = const_cast<char*>(filename.c_str());
+
+	int status = BPY_run_python_script( C, fn, NULL, reports);
+
+	if (status != 1) {
+		cout << "\nError executing Python script from PythonInterpreter::interpretFile" << endl;
+		cout << "File: " << fn << endl;
+		cout << "Errors: " << endl;
+		BKE_reports_print(reports, RPT_ERROR);
+		return 1;
 	}
 
-	int status = BPY_txt_do_python_Text(text);
-
 	// cleaning up
-	unlink_text(text);
-	free_libblock(&G.main->text, text);
-	
-	if (status != 1) {
-		cout << "\nError executing Python script from PythonInterpreter::interpretFile:" << endl;
-		cout << fn << " (at line " <<  BPY_Err_getLinenumber() << ")" << endl;
-		return BPY_Err_getLinenumber();
+	CTX_free( C );
+	BKE_reports_clear(reports);
+	if ((reports->flag & RPT_FREE) == 0)
+	{
+		MEM_freeN(reports);
 	}
 	
 	return 0;
@@ -111,7 +110,7 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 
 private:
 
-  static void initPath() {
+  static void initPath(bContext* C) {
 	if (_initialized)
 		return;
 
@@ -130,10 +129,10 @@ private:
 		}
 	}
 	
-	BPY_txt_do_python_Text(text);
+	BPY_run_python_script( C, NULL, text, NULL);
 	
 	// cleaning up
-	unlink_text(text);
+	unlink_text(G.main, text);
 	free_libblock(&G.main->text, text);
 	
 	//PyRun_SimpleString("from Freestyle import *");
