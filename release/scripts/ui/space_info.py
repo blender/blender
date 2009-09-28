@@ -211,9 +211,6 @@ bpy.types.register(INFO_MT_help)
 
 # Help operators
 
-import bpy_ops # XXX - should not need to do this
-del bpy_ops
-
 class HelpOperator(bpy.types.Operator):
 	def execute(self, context):
 		try: import webbrowser
