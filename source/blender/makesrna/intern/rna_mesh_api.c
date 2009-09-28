@@ -109,9 +109,6 @@ static void rna_Mesh_calc_edges(Mesh *mesh)
 
 static void rna_Mesh_update(Mesh *mesh, bContext *C)
 {
-	Main *bmain= CTX_data_main(C);
-	Object *ob;
-
 	if(mesh->totface && mesh->totedge == 0)
 		rna_Mesh_calc_edges(mesh);
 

@@ -147,6 +147,17 @@ void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
 	}
 }
 
+static void bpy_import_test(char *modname)
+{
+	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
+	if(mod) {
+		Py_DECREF(mod);
+	}
+	else {
+		PyErr_Print();
+		PyErr_Clear();
+	}	
+}
 
 void BPY_free_compiled_text( struct Text *text )
 {
@@ -187,21 +198,8 @@ static void bpy_init_modules( void )
 			Py_DECREF(py_modpath);
 		}
 		
-		mod= PyImport_ImportModuleLevel("bpy_ops", NULL, NULL, NULL, 0); /* adds its self to bpy.ops */
-		if(mod) {
-			Py_DECREF(mod);
-		}
-		else {
-			PyErr_Clear();
-		}
-		
-		mod= PyImport_ImportModuleLevel("bpy_sys", NULL, NULL, NULL, 0); /* adds its self to bpy.sys */
-		if(mod) {
-			Py_DECREF(mod);
-		}
-		else {
-			PyErr_Clear();
-		}
+		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
+		bpy_import_test("bpy_sys"); /* adds its self to bpy.sys */
 	}
 	
 	/* stand alone utility modules not related to blender directly */
