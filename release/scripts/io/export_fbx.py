@@ -1211,13 +1211,13 @@ def write(filename, batch_objects = None, \
 			mat_colamb = world_amb
 # 			mat_colamb = tuple([c for c in world_amb])
 
-			mat_dif = mat.diffuse_reflection
+			mat_dif = mat.diffuse_intensity
 # 			mat_dif = mat.ref
 			mat_amb = mat.ambient
 # 			mat_amb = mat.amb
 			mat_hard = (float(mat.specular_hardness)-1)/5.10
 # 			mat_hard = (float(mat.hard)-1)/5.10
-			mat_spec = mat.specular_reflection/2.0
+			mat_spec = mat.specular_intensity/2.0
 # 			mat_spec = mat.spec/2.0
 			mat_alpha = mat.alpha
 			mat_emit = mat.emit
