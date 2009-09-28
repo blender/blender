@@ -254,12 +254,11 @@ class SCENE_PT_output(RenderButtonsPanel):
 			split = layout.split()
 			col = split.column()
 			col.itemL(text="Depth:")
-			col.row().itemR(rd, "jpeg_depth", expand=True)
+			col.row().itemR(rd, "jpeg2k_depth", expand=True)
 
 			col = split.column()
-			col.itemR(rd, "jpeg_preset", text="")
-			col.itemR(rd, "jpeg_ycc")
-			col.itemR(rd, "exr_preview")
+			col.itemR(rd, "jpeg2k_preset", text="")
+			col.itemR(rd, "jpeg2k_ycc")
 			
 		elif rd.file_format in ('CINEON', 'DPX'):
 			split = layout.split()
