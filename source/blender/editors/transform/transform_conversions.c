@@ -4825,7 +4825,7 @@ void special_aftertrans_update(TransInfo *t)
 		//	allqueue(REDRAWBUTSEDIT, 0);
 
 	}
-	else if(t->scene->basact && (ob = t->scene->basact->object) && ob->mode & OB_MODE_PARTICLE_EDIT) {
+	else if(t->scene->basact && (ob = t->scene->basact->object) && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, ob)) {
 		;
 	}
 	else {
