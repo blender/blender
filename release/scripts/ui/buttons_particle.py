@@ -502,7 +502,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		return psys.settings.physics_type=='BOIDS'
 	
 	def draw(self, context):
-		boids = context.particle_system.settings.boids
+		psys = context.particle_system
+		boids = psys.settings.boids
 		layout = self.layout
 		
 		layout.enabled = particle_panel_enabled(psys)
