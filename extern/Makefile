@@ -33,9 +33,9 @@ DIR = $(OCGDIR)/extern
 DIRS = glew/src
 
 # Cloth requires it
-#ifneq ($(NAN_NO_KETSJI), true)
-DIRS += bullet2
-#endif
+ifeq ($(NAN_USE_BULLET), true)
+	DIRS += bullet2
+endif
 
 ifeq ($(WITH_BINRELOC), true)
     DIRS += binreloc

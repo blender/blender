@@ -32,6 +32,8 @@
 
 #include "ED_transform.h"
 
+#include "BLI_editVert.h"
+
 /* ************************** Types ***************************** */
 
 struct TransInfo;
@@ -118,20 +120,9 @@ typedef struct TransCon {
                          /* Apply function pointer for rotation transformation */
 } TransCon;
 
-typedef struct TransDataIpokey {
-	int flag;					/* which keys */
-	float *locx, *locy, *locz;	/* channel pointers */
-	float *rotx, *roty, *rotz;
-	float *quatx, *quaty, *quatz, *quatw;
-	float *sizex, *sizey, *sizez;
-	float oldloc[9];			/* storage old values */
-	float oldrot[9];
-	float oldsize[9];
-	float oldquat[12];
-} TransDataIpokey;
-
 typedef struct TransDataExtension {
 	float drot[3];		 /* Initial object drot */
+	float dquat[4];		 /* Initial object dquat */
 	float dsize[3];		 /* Initial object dsize */
     float *rot;          /* Rotation of the data to transform (Faculative)                                 */
     float  irot[3];      /* Initial rotation                                                               */
@@ -179,6 +170,31 @@ typedef struct TransDataNla {
 	int handle;					/* handle-index: 0 for dummy entry, -1 for start, 1 for end, 2 for both ends */
 } TransDataNla;
 
+struct LinkNode;
+struct EditEdge;
+struct EditVert;
+struct GHash;
+typedef struct TransDataSlideUv {
+	float origuv[2];
+	float *uv_up, *uv_down;
+	//float *fuv[4];
+	struct LinkNode *fuv_list;
+} TransDataSlideUv;
+
+typedef struct TransDataSlideVert {
+	struct EditEdge *up, *down;
+	struct EditVert origvert;
+} TransDataSlideVert;
+
+typedef struct SlideData {
+	TransDataSlideUv *slideuv, *suv_last;
+	int totuv, uvlay_tot;
+	struct GHash *vhash, **uvhash;
+	struct EditVert *nearest;
+	struct LinkNode *edgelist, *vertlist;
+	short start[2], end[2];
+} SlideData;
+
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
 	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */
@@ -194,7 +210,6 @@ typedef struct TransData {
 	struct Object *ob;
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
-	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
 	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
     short  flag;         /* Various flags */
@@ -210,6 +225,7 @@ typedef struct MouseInput {
 	short	precision_mval[2];	/* mouse position when precision key was pressed */
 	int		center[2];
 	float	factor;
+	void 	*data; /* additional data, if needed by the particular function */
 } MouseInput;
 
 typedef struct TransInfo {
@@ -263,6 +279,7 @@ typedef struct TransInfo {
 	struct Object *poseobj;		/* if t->flag & T_POSE, this denotes pose object */
 
 	void       *customData;		/* Per Transform custom data */
+	void  	  (*customFree)(struct TransInfo *); /* if a special free function is needed */
 
 	/*************** NEW STUFF *********************/
 
@@ -466,6 +483,9 @@ int BoneEnvelope(TransInfo *t, short mval[2]);
 void initBoneRoll(TransInfo *t);
 int BoneRoll(TransInfo *t, short mval[2]);
 
+void initEdgeSlide(TransInfo *t);
+int EdgeSlide(TransInfo *t, short mval[2]);
+
 void initTimeTranslate(TransInfo *t);
 int TimeTranslate(TransInfo *t, short mval[2]);
 
@@ -575,13 +595,16 @@ typedef enum {
 	INPUT_HORIZONTAL_RATIO,
 	INPUT_HORIZONTAL_ABSOLUTE,
 	INPUT_VERTICAL_RATIO,
-	INPUT_VERTICAL_ABSOLUTE
+	INPUT_VERTICAL_ABSOLUTE,
+	INPUT_CUSTOM_RATIO
 } MouseInputMode;
 
 void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], short mval[2]);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, short mval[2], float output[3]);
+
+void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2]);
 
 /*********************** Generics ********************************/
 
@@ -662,6 +685,8 @@ void applyTransformOrientation(const struct bContext *C, TransInfo *t);
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
 int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
+
+void freeSlideVerts(TransInfo *t);
 
 #endif
 

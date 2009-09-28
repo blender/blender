@@ -113,6 +113,7 @@ static int edge_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiItemEnumO(layout, "Rotate Edge CCW", 0, "MESH_OT_edge_rotate", "direction", 2);
 	//uiItemO(layout, "Loopcut", 0, "MESH_OT_loop_cut"); // CutEdgeloop(em, 1);
 	//uiItemO(layout, "Edge Slide", 0, "MESH_OT_edge_slide"); // EdgeSlide(em, 0,0.0);
+	uiItemO(layout, "Edge Slide", 0, "TFM_OT_edge_slide");
 	uiItemO(layout, "Edge Loop", 0, "MESH_OT_loop_multi_select");
 	uiItemBooleanO(layout, "Edge Ring", 0, "MESH_OT_loop_multi_select", "ring", 1);
 	uiItemO(layout, NULL, 0, "MESH_OT_loop_to_region");
@@ -321,8 +322,17 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_specials);
 	
 	WM_operatortype_append(MESH_OT_edgering_select);
+	WM_operatortype_append(MESH_OT_loopcut);
 
 	/* macros */
+
+	/*combining operators with invoke and exec portions doesn't work yet.
+	
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut", "Loopcut", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MESH_OT_edgering_select");
+	WM_operatortype_macro_define(ot, "MESH_OT_subdivide");
+	*/
+
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TFM_OT_translate");
@@ -335,21 +345,18 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	WM_operatortype_macro_define(ot, "TFM_OT_translate");
 
-	/*combining operators with invoke and exec portions doesn't work yet.
-	
-	ot= WM_operatortype_append_macro("MESH_OT_loopcut", "Loopcut", OPTYPE_UNDO|OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "MESH_OT_edgering_select");
-	WM_operatortype_macro_define(ot, "MESH_OT_subdivide");
-	*/
 }
 
 /* note mesh keymap also for other space? */
 void ED_keymap_mesh(wmWindowManager *wm)
 {	
-	ListBase *keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
+	wmKeyMap *keymap;
 	wmKeymapItem *kmi;
 	
-	//WM_keymap_add_item(keymap, "MESH_OT_loopcut", RKEY, KM_PRESS, KM_CTRL, 0);
+	keymap= WM_keymap_find(wm, "EditMesh", 0, 0);
+	keymap->poll= ED_operator_editmesh;
+	
+	WM_keymap_add_item(keymap, "MESH_OT_loopcut", RKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */
@@ -422,7 +429,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_edge_face_add", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, 0, 0);
 						/* use KM_RELEASE because same key is used for tweaks */
 	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_RELEASE, KM_CTRL, 0);
 	
@@ -431,7 +438,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_fgon_make", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_fgon_clear", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, XKEY);
+	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, 0, KKEY);
 
 	/* menus */
 	WM_keymap_add_item(keymap, "MESH_OT_vertex_specials", VKEY, KM_PRESS, KM_CTRL, 0);

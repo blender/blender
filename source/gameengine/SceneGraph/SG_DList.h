@@ -89,6 +89,46 @@ public:
 		}
 	};
 
+	template<typename T> class const_iterator
+	{
+	private:
+		const SG_DList&	m_head;
+		const T*		m_current;
+	public:
+		typedef const_iterator<T> _myT;
+		const_iterator(const SG_DList& head) : m_head(head), m_current(NULL) {}
+		~const_iterator() {}
+
+		void begin()
+		{
+			m_current = (const T*)m_head.Peek();
+		}
+		void back()
+		{
+			m_current = (const T*)m_head.Back();
+		}
+		bool end()
+		{
+			return (m_current == (const T*)m_head.Self());
+		}
+		const T* operator*()
+		{
+			return m_current;
+		}
+		_myT& operator++()
+		{
+			// no check of NULL! make sure you don't try to increment beyond end
+			m_current = (const T*)m_current->Peek();
+			return *this;
+		}
+		_myT& operator--()
+		{
+			// no check of NULL! make sure you don't try to increment beyond end
+			m_current = (const T*)m_current->Back();
+			return *this;
+		}
+	};
+
     SG_DList() 
     { 
         m_flink = m_blink = this; 
@@ -159,6 +199,18 @@ public:
     { 
         return this; 
     }
+    inline const SG_DList *Peek() const			// Look at front without removing
+    { 
+        return (const SG_DList*)m_flink; 
+    }  
+    inline const SG_DList *Back() const			// Look at front without removing
+    { 
+        return (const SG_DList*)m_blink; 
+    }  
+    inline const SG_DList *Self() const 
+    { 
+        return this; 
+    }
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -166,6 +218,33 @@ public:
 	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_DList"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
+};
+
+/**
+ * SG_DListHead : Template class that implements copy constructor to duplicate list automatically
+ *                The elements of the list must have themselves a copy constructor.
+ */
+template<typename T> class SG_DListHead : public SG_DList
+{
+public:
+	typedef SG_DListHead<T> _myT;
+	SG_DListHead() : SG_DList() {}
+	SG_DListHead(const _myT& other) : SG_DList()
+	{
+		// copy the list, assuming objects of type T
+		const_iterator<T> eit(other);
+		T* elem;
+		for (eit.begin(); !eit.end(); ++eit) {
+			elem = (*eit)->GetReplica();
+			AddBack(elem);
+		}
+	}
+	virtual ~SG_DListHead() {}
+    T* Remove()
+    {
+		return static_cast<T*>(SG_DList::Remove());
+    }
+
 };
 
 #endif //__SG_DLIST

@@ -1140,7 +1140,7 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 		if(az->type==AZONE_AREA)
 			WM_cursor_set(win, CURSOR_EDIT);
 		else if(az->type==AZONE_REGION) {
-			if(az->x1==az->x2)
+			if(az->edge == 'l' || az->edge == 'r')
 				WM_cursor_set(win, CURSOR_X_MOVE);
 			else
 				WM_cursor_set(win, CURSOR_Y_MOVE);
@@ -1580,23 +1580,6 @@ void ED_screen_animation_timer_update(bContext *C, int redraws)
 	}
 }
 
-unsigned int ED_screen_view3d_layers(bScreen *screen)
-{
-	if(screen) {
-		unsigned int layer= screen->scene->lay;	/* as minimum this */
-		ScrArea *sa;
-		
-		/* get all used view3d layers */
-		for(sa= screen->areabase.first; sa; sa= sa->next) {
-			if(sa->spacetype==SPACE_VIEW3D)
-				layer |= ((View3D *)sa->spacedata.first)->lay;
-		}
-		return layer;
-	}
-	return 0;
-}
-
-
 /* results in fully updated anim system */
 void ED_update_for_newframe(const bContext *C, int mute)
 {
@@ -1607,7 +1590,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
-	scene_update_for_newframe(scene, ED_screen_view3d_layers(screen)); /* BKE_scene.h */
+	scene_update_for_newframe(scene, BKE_screen_visible_layers(screen)); /* BKE_scene.h */
 	
 	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );

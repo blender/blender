@@ -246,7 +246,13 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	if(but->func || but->funcN || block->handle_func || but->rename_func || (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
-		after->func= but->func;
+		if(but->func && ELEM(but, but->func_arg1, but->func_arg2)) {
+			/* exception, this will crash due to removed button otherwise */
+			but->func(C, but->func_arg1, but->func_arg2);
+		}
+		else
+			after->func= but->func;
+
 		after->func_arg1= but->func_arg1;
 		after->func_arg2= but->func_arg2;
 		after->func_arg3= but->func_arg3;
@@ -292,8 +298,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 	uiAfterFunc *after;
 	char *str= NULL;
 
-	if ELEM6(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX);
-	else {
+	if(but->flag & UI_BUT_UNDO) {
 		/* define which string to use for undo */
 		if ELEM(but->type, LINK, INLINK) str= "Add button link";
 		else if ELEM(but->type, MENU, ICONTEXTROW) str= but->drawstr;
@@ -850,6 +855,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_CHARTAB(C, but, data);
 			break;
 #endif
+		case KEYEVT:
 		case HOTKEYEVT:
 			ui_apply_but_BUT(C, but, data);
 			break;
@@ -1440,16 +1446,20 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 
 	for(but= actbut->next; but; but= but->next) {
 		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
-			data->postbut= but;
-			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
-			return;
+			if(!(but->flag & UI_BUT_DISABLED)) {
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
+				return;
+			}
 		}
 	}
 	for(but= block->buttons.first; but!=actbut; but= but->next) {
 		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
-			data->postbut= but;
-			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
-			return;
+			if(!(but->flag & UI_BUT_DISABLED)) {
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
+				return;
+			}
 		}
 	}
 }
@@ -1464,16 +1474,20 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 
 	for(but= actbut->prev; but; but= but->prev) {
 		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
-			data->postbut= but;
-			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
-			return;
+			if(!(but->flag & UI_BUT_DISABLED)) {
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
+				return;
+			}
 		}
 	}
 	for(but= block->buttons.last; but!=actbut; but= but->prev) {
 		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
-			data->postbut= but;
-			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
-			return;
+			if(!(but->flag & UI_BUT_DISABLED)) {
+				data->postbut= but;
+				data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
+				return;
+			}
 		}
 	}
 }
@@ -1646,7 +1660,7 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 			break;
 		}
 		case LEFTMOUSE:
-			if(event->val == 0)
+			if(event->val == KM_RELEASE)
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			retval= WM_UI_HANDLER_BREAK;
 			break;
@@ -2109,7 +2123,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				wmTabletData *wmtab= event->customdata;
 
 				/* de-sensitise based on tablet pressure */
-				if (ELEM(wmtab->Active, DEV_STYLUS, DEV_ERASER))
+				if (wmtab->Active != EVT_TABLET_NONE)
 				 	fac *= wmtab->Pressure;
 			}
 			
@@ -3647,11 +3661,11 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	if(!(but->block->handle && but->block->handle->popup)) {
 		if(button_modal_state(state)) {
 			if(!button_modal_state(data->state))
-				WM_event_add_ui_handler(C, &data->window->handlers, ui_handler_region_menu, NULL, data);
+				WM_event_add_ui_handler(C, &data->window->modalhandlers, ui_handler_region_menu, NULL, data);
 		}
 		else {
 			if(button_modal_state(data->state))
-				WM_event_remove_ui_handler(&data->window->handlers, ui_handler_region_menu, NULL, data);
+				WM_event_remove_ui_handler(&data->window->modalhandlers, ui_handler_region_menu, NULL, data);
 		}
 	}
 
@@ -4587,7 +4601,7 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 		uiPopupBlockHandle temp= *menu;
 		
 		ui_popup_block_free(C, menu);
-		WM_event_remove_ui_handler(&CTX_wm_window(C)->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
+		WM_event_remove_ui_handler(&CTX_wm_window(C)->modalhandlers, ui_handler_popup, ui_handler_remove_popup, menu);
 
 		if(temp.menuretval == UI_RETURN_OK) {
 			if(temp.popup_func)

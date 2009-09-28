@@ -41,6 +41,7 @@ struct Ipo;
 struct MVert;
 	
 typedef struct FluidsimSettings {
+	struct FluidsimModifierData *fmd; /* for fast RNA access */
 	/* domain,fluid or obstacle */
 	short type;
 	/* display advanced options in fluid sim tab (on=1,off=0)*/

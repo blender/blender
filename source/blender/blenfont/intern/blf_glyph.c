@@ -136,7 +136,7 @@ void blf_glyph_cache_free(GlyphCacheBLF *gc)
 	MEM_freeN(gc);
 }
 
-void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
+static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 {
 	int tot_mem, i;
 	unsigned char *buf;

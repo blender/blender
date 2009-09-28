@@ -54,23 +54,21 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res)
 	float yTotal = dx * res[1];
 	float zTotal = dx * res[2];
 
-  float heighMin = 0.05;
-  float heighMax = 0.10;
+	float heighMin = 0.05;
+	float heighMax = 0.10;
 
-  for (int y = 0; y < res[2]; y++)
-    for (int z = (int)(heighMin*res[2]); z <= (int)(heighMax * res[2]); z++)
-      for (int x = 0; x < res[0]; x++)
-      {
-        float xLength = x * dx - xTotal * 0.4f;
-        float yLength = y * dx - yTotal * 0.5f;
-        float radius = sqrtf(xLength * xLength + yLength * yLength);
+	for (int y = 0; y < res[2]; y++)
+		for (int z = (int)(heighMin*res[2]); z <= (int)(heighMax * res[2]); z++)
+			for (int x = 0; x < res[0]; x++) {
+				float xLength = x * dx - xTotal * 0.4f;
+				float yLength = y * dx - yTotal * 0.5f;
+				float radius = sqrtf(xLength * xLength + yLength * yLength);
 
-        if (radius < 0.075f * xTotal)
-        {
-          int index = x + y * res[0] + z * slabSize;
-          field[index] = 1.0f;
-        }
-      }
+				if (radius < 0.075f * xTotal) {
+					int index = x + y * res[0] + z * slabSize;
+					field[index] = 1.0f;
+				}
+			}
 }
 
 
@@ -98,7 +96,7 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 		for (int z = 0; z < res[2]; z++)
 		{
 			// top slab
-			int index = y * res[0] + z * slabSize;
+			index = y * res[0] + z * slabSize;
 			index += res[0] - 1;
 			if(field[index]<0.) field[index] = 0.;
 			index -= 1;
@@ -130,7 +128,7 @@ void FLUID_3D::setNeumannY(float* field, Vec3Int res)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// top slab
-			int index = x + z * slabSize;
+			index = x + z * slabSize;
 			index += slabSize - res[0];
 			if(field[index]<0.) field[index] = 0.;
 			index -= res[0];
@@ -164,7 +162,7 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// top slab
-			int index = x + y * res[0];
+			index = x + y * res[0];
 			index += totalCells - slabSize;
 			if(field[index]<0.) field[index] = 0.;
 			index -= slabSize;

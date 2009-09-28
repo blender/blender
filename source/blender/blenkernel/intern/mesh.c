@@ -542,7 +542,8 @@ void set_mesh(Object *ob, Mesh *me)
 	
 	if(ob->type==OB_MESH) {
 		old= ob->data;
-		old->id.us--;
+		if (old)
+			old->id.us--;
 		ob->data= me;
 		id_us_plus((ID *)me);
 	}

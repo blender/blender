@@ -437,7 +437,7 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		mat[8] = 1.0f;
 	} else if((strcmp(axis, "r") == 0) || (strcmp(axis, "R") == 0)) {
 		//arbitrary rotation
-		AxisAngleToMat3(vec->vec, angle, (float *)mat);
+		AxisAngleToMat3(vec->vec, angle, (float (*)[3])mat);
 
 	} else {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): unrecognizable axis of rotation type - expected x,y,z or r\n");
@@ -912,7 +912,7 @@ static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
 		return NULL;
 	}
-	if( vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec2->size) {
+	if( vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
 		PyErr_SetString( PyExc_TypeError,"vectors must be of the same size\n" );
 		return NULL;
 	}

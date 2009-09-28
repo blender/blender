@@ -95,6 +95,7 @@ char *ED_info_stats_string(struct Scene *scene){return NULL;}
 void ED_area_tag_redraw(struct ScrArea *sa){}
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op){}
 void ED_node_texture_default(struct Tex *tx){}
+void ED_node_changed_update(struct bContext *C, struct bNode *node);
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws){}

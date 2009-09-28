@@ -176,85 +176,6 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 
 /* -------------- BezTriple Insertion -------------------- */
 
-/* threshold for inserting keyframes - threshold here should be good enough for now, but should become userpref */
-#define BEZT_INSERT_THRESH 	0.00001f
-
-/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
- * Returns the index to insert at (data already at that index will be offset if replace is 0)
- */
-static int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short *replace)
-{
-	int start=0, end=arraylen;
-	int loopbreaker= 0, maxloop= arraylen * 2;
-	
-	/* initialise replace-flag first */
-	*replace= 0;
-	
-	/* sneaky optimisations (don't go through searching process if...):
-	 *	- keyframe to be added is to be added out of current bounds
-	 *	- keyframe to be added would replace one of the existing ones on bounds
-	 */
-	if ((arraylen <= 0) || (array == NULL)) {
-		printf("Warning: binarysearch_bezt_index() encountered invalid array \n");
-		return 0;
-	}
-	else {
-		/* check whether to add before/after/on */
-		float framenum;
-		
-		/* 'First' Keyframe (when only one keyframe, this case is used) */
-		framenum= array[0].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
-			*replace = 1;
-			return 0;
-		}
-		else if (frame < framenum)
-			return 0;
-			
-		/* 'Last' Keyframe */
-		framenum= array[(arraylen-1)].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
-			*replace= 1;
-			return (arraylen - 1);
-		}
-		else if (frame > framenum)
-			return arraylen;
-	}
-	
-	
-	/* most of the time, this loop is just to find where to put it
-	 * 'loopbreaker' is just here to prevent infinite loops 
-	 */
-	for (loopbreaker=0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
-		/* compute and get midpoint */
-		int mid = start + ((end - start) / 2);	/* we calculate the midpoint this way to avoid int overflows... */
-		float midfra= array[mid].vec[1][0];
-		
-		/* check if exactly equal to midpoint */
-		if (IS_EQT(frame, midfra, BEZT_INSERT_THRESH)) {
-			*replace = 1;
-			return mid;
-		}
-		
-		/* repeat in upper/lower half */
-		if (frame > midfra)
-			start= mid + 1;
-		else if (frame < midfra)
-			end= mid - 1;
-	}
-	
-	/* print error if loop-limit exceeded */
-	if (loopbreaker == (maxloop-1)) {
-		printf("Error: binarysearch_bezt_index() was taking too long \n");
-		
-		// include debug info 
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
-	}
-	
-	/* not found, so return where to place it */
-	return start;
-}
-
 /* This function adds a given BezTriple to an F-Curve. It will allocate 
  * memory for the array if needed, and will insert the BezTriple into a
  * suitable place in chronological order.
@@ -286,8 +207,13 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 					// TODO: perform some other operations?
 				}
 				else {
+					char oldKeyType= BEZKEYTYPE(fcu->bezt + i);
+					
 					/* just brutally replace the values */
 					*(fcu->bezt + i) = *bezt;
+					
+					/* special exception for keyframe type - copy value back so that this info isn't lost */
+					BEZKEYTYPE(fcu->bezt + i)= oldKeyType;
 				}
 			}
 		}
@@ -717,14 +643,14 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			else if (pchan->bone->parent == NULL)
 				return tmat[3][array_index];
 		}
-		else if (strstr(identifier, "euler_rotation")) {
+		else if (strstr(identifier, "rotation_euler")) {
 			float eul[3];
 			
 			/* euler-rotation test before standard rotation, as standard rotation does quats */
 			Mat4ToEulO(tmat, eul, pchan->rotmode);
 			return eul[array_index];
 		}
-		else if (strstr(identifier, "rotation")) {
+		else if (strstr(identifier, "rotation_quaternion")) {
 			float trimat[3][3], quat[4];
 			
 			Mat3CpyMat4(trimat, tmat);
@@ -732,6 +658,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			
 			return quat[array_index];
 		}
+		// TODO: axis-angle...
 	}
 	
 	/* as the function hasn't returned yet, read value from system in the default way */

@@ -163,7 +163,10 @@ void ED_operatortypes_curve(void)
 
 void ED_keymap_curve(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Font", 0, 0);
+	wmKeyMap *keymap;
+	
+	keymap= WM_keymap_find(wm, "Font", 0, 0);
+	keymap->poll= ED_operator_editfont;
 	
 	/* only set in editmode font, by space_view3d listener */
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_BOLD);
@@ -212,7 +215,8 @@ void ED_keymap_curve(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "FONT_OT_text_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 
 	/* only set in editmode curve, by space_view3d listener */
-	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
+	keymap= WM_keymap_find(wm, "Curve", 0, 0);
+	keymap->poll= ED_operator_editsurfcurve;
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);

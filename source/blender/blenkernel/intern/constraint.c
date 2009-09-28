@@ -685,9 +685,19 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 		ct->flag= CONSTRAINT_TAR_TEMP; \
 		 \
 		if (ct->tar) { \
-			if ((ct->tar->type==OB_ARMATURE) && (ct->subtarget[0])) ct->type = CONSTRAINT_OBTYPE_BONE; \
-			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) ct->type = CONSTRAINT_OBTYPE_VERT; \
-			else ct->type = CONSTRAINT_OBTYPE_OBJECT; \
+			if ((ct->tar->type==OB_ARMATURE) && (ct->subtarget[0])) { \
+				bPoseChannel *pchan= get_pose_channel(ct->tar->pose, ct->subtarget); \
+				ct->type = CONSTRAINT_OBTYPE_BONE; \
+				ct->rotOrder= (pchan) ? (pchan->rotmode) : EULER_ORDER_DEFAULT; \
+			}\
+			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) { \
+				ct->type = CONSTRAINT_OBTYPE_VERT; \
+				ct->rotOrder = EULER_ORDER_DEFAULT; \
+			} \
+			else {\
+				ct->type = CONSTRAINT_OBTYPE_OBJECT; \
+				ct->rotOrder= ct->tar->rotmode; \
+			} \
 		} \
 		 \
 		BLI_addtail(list, ct); \
@@ -1045,6 +1055,7 @@ static void kinematic_new_data (void *cdata)
 	data->weight= (float)1.0;
 	data->orientweight= (float)1.0;
 	data->iterations = 500;
+	data->dist= (float)1.0;
 	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_STRETCH|CONSTRAINT_IK_POS;
 }
 
@@ -1180,7 +1191,10 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		if (cu->path && cu->path->data) {
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) { 
 				/* animated position along curve depending on time */
-				curvetime= bsystem_time(cob->scene, ct->tar, ctime, 0.0) - data->offset;
+				if (cob->scene)
+					curvetime= bsystem_time(cob->scene, ct->tar, ctime, 0.0) - data->offset;
+				else	
+					curvetime= ctime - data->offset;
 				
 				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 				 * but this will only work if it actually is animated... 
@@ -1580,7 +1594,8 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		VECCOPY(loc, cob->matrix[3]);
 		Mat4ToSize(cob->matrix, size);
 		
-		Mat4ToEulO(ct->matrix, eul, ct->rotOrder);
+		/* to allow compatible rotations, must get both rotations in the order of the owner... */
+		Mat4ToEulO(ct->matrix, eul, cob->rotOrder);
 		Mat4ToEulO(cob->matrix, obeul, cob->rotOrder);
 		
 		if ((data->flag & ROTLIKE_X)==0)
@@ -3631,7 +3646,7 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		
 		/* these we can skip completely (invalid constraints...) */
 		if (cti == NULL) continue;
-		if (con->flag & CONSTRAINT_DISABLE) continue;
+		if (con->flag & (CONSTRAINT_DISABLE|CONSTRAINT_OFF)) continue;
 		/* these constraints can't be evaluated anyway */
 		if (cti->evaluate_constraint == NULL) continue;
 		/* influence == 0 should be ignored */

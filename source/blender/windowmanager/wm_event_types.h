@@ -40,7 +40,7 @@
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
 
-/* tablet active */
+/* tablet active, matches GHOST_TTabletMode */
 #define EVT_TABLET_NONE		0
 #define EVT_TABLET_STYLUS	1
 #define EVT_TABLET_ERASER	2
@@ -56,6 +56,9 @@
 		/* only use if you want user option switch possible */
 #define ACTIONMOUSE		0x005
 #define SELECTMOUSE		0x006
+/* Extra mouse buttons */
+#define BUTTON4MOUSE	0x007  
+#define BUTTON5MOUSE	0x008
 		/* defaults from ghost */
 #define WHEELUPMOUSE	0x00a	
 #define WHEELDOWNMOUSE	0x00b
@@ -191,10 +194,13 @@
 
 /* for event checks */
 	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
-#define ISKEYBOARD(event)	(event >=' ' && event <=255)
+#define ISTEXTINPUT(event)	(event >=' ' && event <=255)
+
+	/* test wether the event is a key on the keyboard */
+#define ISKEYBOARD(event)	(event >=' ' && event <=320)
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */
-#define ISHOTKEY(event)	(event >=' ' && event <=320 && !(event>=LEFTCTRLKEY && event<=ESCKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
+#define ISHOTKEY(event)	(ISKEYBOARD(event) && !(event>=LEFTCTRLKEY && event<=ESCKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
 
 
 /* **************** BLENDER GESTURE EVENTS ********************* */

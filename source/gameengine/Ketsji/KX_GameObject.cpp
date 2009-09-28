@@ -46,6 +46,7 @@ typedef unsigned long uint_ptr;
 
 
 #define KX_INERTIA_INFINITE 10000
+#include "BLI_arithb.h"
 #include "RAS_IPolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_GameObject.h"
@@ -452,6 +453,22 @@ double*	KX_GameObject::GetOpenGLMatrix()
 		GetSGNode()->ClearDirty();
 	}
 	return fl;
+}
+
+void KX_GameObject::UpdateBlenderObjectMatrix(Object* blendobj)
+{
+	if (!blendobj)
+		blendobj = m_pBlenderObject;
+	if (blendobj) {
+		const MT_Matrix3x3& rot = NodeGetWorldOrientation();
+		const MT_Vector3& scale = NodeGetWorldScaling();
+		const MT_Vector3& pos = NodeGetWorldPosition();
+		rot.getValue(blendobj->obmat[0]);
+		pos.getValue(blendobj->obmat[3]);
+		VecMulf(blendobj->obmat[0], scale[0]);
+		VecMulf(blendobj->obmat[1], scale[1]);
+		VecMulf(blendobj->obmat[2], scale[2]);
+	}
 }
 
 void KX_GameObject::AddMeshUser()

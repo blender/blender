@@ -102,6 +102,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_select_linked);
 	WM_operatortype_append(OBJECT_OT_select_grouped);
 	WM_operatortype_append(OBJECT_OT_select_mirror);
+	WM_operatortype_append(OBJECT_OT_select_name); /* XXX - weak, not compat with linked objects */
 
 	WM_operatortype_append(GROUP_OT_group_create);
 	WM_operatortype_append(GROUP_OT_objects_remove);
@@ -114,6 +115,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_text_add);
 	WM_operatortype_append(OBJECT_OT_surface_add);
 	WM_operatortype_append(OBJECT_OT_armature_add);
+	WM_operatortype_append(OBJECT_OT_lamp_add);
 	WM_operatortype_append(OBJECT_OT_add);
 	WM_operatortype_append(OBJECT_OT_primitive_add);
 	WM_operatortype_append(OBJECT_OT_mesh_add);
@@ -183,10 +185,18 @@ void ED_operatortypes_object(void)
 	}
 }
 
+static int object_mode_poll(bContext *C)
+{
+	Object *ob= CTX_data_active_object(C);
+	return (!ob || ob->mode == OB_MODE_OBJECT);
+}
+
 void ED_keymap_object(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
+	wmKeyMap *keymap;
 	wmKeymapItem *kmi;
+	
+	keymap= WM_keymap_find(wm, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
@@ -202,7 +212,8 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */
-	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
+	keymap= WM_keymap_find(wm, "Object Mode", 0, 0);
+	keymap->poll= object_mode_poll;
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
@@ -227,11 +238,13 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 	
-	WM_keymap_verify_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0)->ptr, "linked", 1);
 	WM_keymap_add_item(keymap, "OBJECT_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_convert", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
@@ -244,7 +257,8 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
 	/* Lattice */
-	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
+	keymap= WM_keymap_find(wm, "Lattice", 0, 0);
+	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 }

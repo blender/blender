@@ -55,7 +55,7 @@ static EnumPropertyItem texture_filter_items[] = {
 #include "BKE_texture.h"
 #include "ED_node.h"
 
-StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
+static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
 	Tex *tex= (Tex*)ptr->data;
 
@@ -202,7 +202,7 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
 		tex->coba= add_colorband(0);
 }
 
-void rna_Texture_use_nodes_set(PointerRNA *ptr, int v)
+static void rna_Texture_use_nodes_set(PointerRNA *ptr, int v)
 {
 	Tex *tex= (Tex*)ptr->data;
 	
@@ -835,6 +835,11 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 		{TEX_RAD, "RADIAL", 0, "Radial", "Creates a radial progression"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static const EnumPropertyItem prop_flip_axis_items[]= {
+		{0, "HORIZONTAL", 0, "Horizontal", "Flips the texture's X and Y axis"},
+		{TEX_FLIPBLEND, "VERTICAL", 0, "Vertical", "Flips the texture's X and Y axis"},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "BlendTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Blend Texture", "Procedural color blending texture.");
 	RNA_def_struct_sdna(srna, "Tex");
@@ -845,10 +850,12 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Progression", "Sets the style of the color blending");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "flip_axis", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_FLIPBLEND);
+	prop= RNA_def_property(srna, "flip_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_flip_axis_items);
 	RNA_def_property_ui_text(prop, "Flip Axis", "Flips the texture's X and Y axis");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
 }
 
 static void rna_def_texture_stucci(BlenderRNA *brna)
@@ -1066,6 +1073,11 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
 	/* filtering */
 	prop= RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texfilter");
@@ -1108,6 +1120,11 @@ static void rna_def_texture_environment_map(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Tex");
 
 	rna_def_environment_map_common(srna);
+
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "environment_map", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "env");
@@ -1634,9 +1651,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Contrast", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	/* XXX: would be nicer to have this as a color selector?
-	   but the values can go past [0,1]. */
-	prop= RNA_def_property(srna, "rgb_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "rgb_factor", PROP_FLOAT, PROP_RGB);
 	RNA_def_property_float_sdna(prop, NULL, "rfac");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0, 2);

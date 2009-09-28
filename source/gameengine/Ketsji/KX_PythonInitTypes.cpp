@@ -35,6 +35,10 @@
 /* Only for Class::Parents */
 #include "BL_BlenderShader.h"
 #include "BL_ShapeActionActuator.h"
+#include "BL_ArmatureActuator.h"
+#include "BL_ArmatureConstraint.h"
+#include "BL_ArmatureObject.h"
+#include "BL_ArmatureChannel.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_CameraActuator.h"
 #include "KX_ConstraintActuator.h"
@@ -86,7 +90,22 @@
 #include "SCA_RandomActuator.h"
 #include "SCA_IController.h"
 
-static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *attributes, int init_getset)
+static void PyType_Attr_Set(PyGetSetDef *attr_getset, PyAttributeDef *attr)
+{
+	attr_getset->name= (char *)attr->m_name;
+	attr_getset->doc= NULL;
+
+	attr_getset->get= reinterpret_cast<getter>(PyObjectPlus::py_get_attrdef);
+
+	if(attr->m_access==KX_PYATTRIBUTE_RO)
+		attr_getset->set= NULL;
+	else
+		attr_getset->set= reinterpret_cast<setter>(PyObjectPlus::py_set_attrdef);
+
+	attr_getset->closure= reinterpret_cast<void *>(attr);
+}
+
+static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *attributes, PyAttributeDef *attributesPtr, int init_getset)
 {
 	PyAttributeDef *attr;
 
@@ -97,29 +116,31 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 		//if(tp->tp_base==NULL)
 		//	printf("Debug: No Parents - '%s'\n" , tp->tp_name);
 
-		if(tp->tp_getset==NULL && attributes->m_name) {
+		if(tp->tp_getset==NULL && ((attributes && attributes->m_name) || (attributesPtr && attributesPtr->m_name))) {
 			PyGetSetDef *attr_getset;
 			int attr_tot= 0;
 
-			for(attr= attributes; attr->m_name; attr++, attr_tot++) {};
+			if (attributes) {
+				for(attr= attributes; attr->m_name; attr++, attr_tot++)
+					attr->m_usePtr = false;
+			}
+			if (attributesPtr) {
+				for(attr= attributesPtr; attr->m_name; attr++, attr_tot++)
+					attr->m_usePtr = true;
+			}
 
 			tp->tp_getset = attr_getset = reinterpret_cast<PyGetSetDef *>(PyMem_Malloc((attr_tot+1) * sizeof(PyGetSetDef))); // XXX - Todo, free
 
-
-			for(attr= attributes; attr->m_name; attr++, attr_getset++) {
-				attr_getset->name= (char *)attr->m_name;
-				attr_getset->doc= NULL;
-
-				attr_getset->get= reinterpret_cast<getter>(PyObjectPlus::py_get_attrdef);
-
-				if(attr->m_access==KX_PYATTRIBUTE_RO)
-					attr_getset->set= NULL;
-				else
-					attr_getset->set= reinterpret_cast<setter>(PyObjectPlus::py_set_attrdef);
-
-				attr_getset->closure= reinterpret_cast<void *>(attr);
+			if (attributes) {
+				for(attr= attributes; attr->m_name; attr++, attr_getset++) {
+					PyType_Attr_Set(attr_getset, attr);
+				}
 			}
-
+			if (attributesPtr) {
+				for(attr= attributesPtr; attr->m_name; attr++, attr_getset++) {
+					PyType_Attr_Set(attr_getset, attr);
+				}
+			}
 			memset(attr_getset, 0, sizeof(PyGetSetDef));
 		}
 	} else {
@@ -130,7 +151,8 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 }
 
 
-#define PyType_Ready_Attr(d, n, i)   PyType_Ready_ADD(d, &n::Type, n::Attributes, i)
+#define PyType_Ready_Attr(d, n, i)   PyType_Ready_ADD(d, &n::Type, n::Attributes, NULL, i)
+#define PyType_Ready_AttrPtr(d, n, i)   PyType_Ready_ADD(d, &n::Type, n::Attributes, n::AttributesPtr, i)
 
 void initPyTypes(void)
 {
@@ -151,6 +173,11 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, BL_ActionActuator, init_getset);
 		PyType_Ready_Attr(dict, BL_Shader, init_getset);
 		PyType_Ready_Attr(dict, BL_ShapeActionActuator, init_getset);
+		PyType_Ready_Attr(dict, BL_ArmatureObject, init_getset);
+		PyType_Ready_Attr(dict, BL_ArmatureActuator, init_getset);
+		PyType_Ready_Attr(dict, BL_ArmatureConstraint, init_getset);
+		PyType_Ready_AttrPtr(dict, BL_ArmatureBone, init_getset);
+		PyType_Ready_AttrPtr(dict, BL_ArmatureChannel, init_getset);
 		PyType_Ready_Attr(dict, CListValue, init_getset);
 		PyType_Ready_Attr(dict, CValue, init_getset);
 		PyType_Ready_Attr(dict, KX_BlenderMaterial, init_getset);

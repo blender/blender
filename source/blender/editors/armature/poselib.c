@@ -44,7 +44,6 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
@@ -61,8 +60,6 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
-
-#include "PIL_time.h"			/* sleep				*/
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -470,6 +467,7 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* remove relevant keyframes */
@@ -536,6 +534,7 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* get new name */
@@ -769,6 +768,10 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 					if (poselib_ks_locrotscale == NULL)
 						poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					
+					/* now insert the keyframe */
 					modify_keyframes(C, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
@@ -1411,7 +1414,7 @@ static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	poselib_preview_apply(C, op);
 	
 	/* add temp handler if we're running as a modal operator */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

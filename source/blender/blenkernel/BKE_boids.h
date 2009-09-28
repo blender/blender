@@ -35,9 +35,7 @@
 #include "DNA_boid_types.h"
 
 typedef struct BoidBrainData {
-	Scene *scene;
-	struct Object *ob;
-	struct ParticleSystem *psys;
+	struct ParticleSimulationData *sim;
 	struct ParticleSettings *part;
 	float timestep, cfra, dfra;
 	float wanted_co[3], wanted_speed;

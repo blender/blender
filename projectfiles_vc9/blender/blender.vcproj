@@ -43,6 +43,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\editors\include;..\..\source\blender\python;..\..\source\blender\windowmanager;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\makesrna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging;..\..\..\build\msvc_9\extern\glew\include;..\..\source\blender\gpu"
 				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;USE_SUMO_SOLID;FTGL_LIBRARY_STATIC"

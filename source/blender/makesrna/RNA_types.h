@@ -94,9 +94,10 @@ typedef enum PropertySubType {
 	/* numbers */
 	PROP_UNSIGNED = 13,
 	PROP_PERCENTAGE = 14,
-	PROP_ANGLE = 15|PROP_UNIT_ROTATION,
-	PROP_TIME = 16|PROP_UNIT_TIME,
-	PROP_DISTANCE = 17|PROP_UNIT_LENGTH,
+	PROP_FACTOR = 15,
+	PROP_ANGLE = 16|PROP_UNIT_ROTATION,
+	PROP_TIME = 17|PROP_UNIT_TIME,
+	PROP_DISTANCE = 18|PROP_UNIT_LENGTH,
 
 	/* number arrays */
 	PROP_COLOR = 20,
@@ -107,11 +108,9 @@ typedef enum PropertySubType {
 	PROP_MATRIX = 25,
 	PROP_EULER = 26|PROP_UNIT_ROTATION,
 	PROP_QUATERNION = 27,
-	PROP_XYZ = 28,
-	PROP_RGB = 29,
-
-	/* pointers */
-	PROP_NEVER_NULL = 30,
+	PROP_AXISANGLE = 28,
+	PROP_XYZ = 29,
+	PROP_RGB = 30,
 
 	/* booleans */
 	PROP_LAYER = 40,
@@ -149,6 +148,7 @@ typedef enum PropertyFlag {
 
 	/* pointers */
 	PROP_ID_REFCOUNT = 64,
+	PROP_NEVER_NULL = 262144,
 
 	/* internal flags */
 	PROP_BUILTIN = 128,

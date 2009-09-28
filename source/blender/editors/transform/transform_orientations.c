@@ -353,7 +353,8 @@ void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target) {
 
 void BIF_selectTransformOrientationValue(bContext *C, int orientation) {
 	View3D *v3d = CTX_wm_view3d(C);
-	v3d->twmode = orientation;
+	if(v3d) /* currently using generic poll */
+		v3d->twmode = orientation;
 }
 
 EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)

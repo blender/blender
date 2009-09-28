@@ -36,8 +36,7 @@
 
 
 SCA_ActuatorEventManager::SCA_ActuatorEventManager(class SCA_LogicManager* logicmgr)
-	: SCA_EventManager(ACTUATOR_EVENTMGR),
-	m_logicmgr(logicmgr)
+	: SCA_EventManager(logicmgr, ACTUATOR_EVENTMGR)
 {
 }
 

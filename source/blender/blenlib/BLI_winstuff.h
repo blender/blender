@@ -28,7 +28,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+ 
+#ifndef __WINSTUFF_H__
+#define __WINSTUFF_H__
+
+#ifndef FREE_WINDOWS
 #pragma warning(once: 4761 4305 4244 4018)
+#endif
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -56,10 +62,7 @@
 
 #undef small
 
-#ifndef __WINSTUFF_H__
-#define __WINSTUFF_H__
-
-	// These definitions are also in arithb for simplicity
+// These definitions are also in arithb for simplicity
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,6 +92,16 @@ extern "C" {
 
 #ifndef FREE_WINDOWS
 typedef unsigned int mode_t;
+#endif
+
+/* mingw using _SSIZE_T_ to declare ssize_t type */
+#ifndef _SSIZE_T_
+#define _SSIZE_T_
+/* python uses HAVE_SSIZE_T */
+#ifndef HAVE_SSIZE_T
+#define HAVE_SSIZE_T 1
+typedef long ssize_t;
+#endif
 #endif
 
 struct dirent {

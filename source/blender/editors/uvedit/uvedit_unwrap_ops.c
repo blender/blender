@@ -342,7 +342,7 @@ static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	minimize_stretch_iteration(C, op, 1);
 
 	ms= op->customdata;
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	ms->timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER, 0.01f);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -423,7 +423,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry.");
-	RNA_def_float_percentage(ot->srna, "blend", 0.0f, 0.0f, 1.0f, "Blend", "Blend factor between stretch minimized and original.", 0.0f, 1.0f);
+	RNA_def_float_factor(ot->srna, "blend", 0.0f, 0.0f, 1.0f, "Blend", "Blend factor between stretch minimized and original.", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "iterations", 0, 0, INT_MAX, "Iterations", "Number of iterations to run, 0 is unlimited when run interactively.", 0, 100);
 }
 

@@ -167,7 +167,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		// calc other res with max_res provided
 		VECSUB(size, max, min);
 
-		printf("size: %f, %f, %f\n", size[0], size[1], size[2]);
+		// printf("size: %f, %f, %f\n", size[0], size[1], size[2]);
 
 		// prevent crash when initializing a plane as domain
 		if((size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) || (size[2] < FLT_EPSILON))
@@ -212,7 +212,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			}
 		}
 
-		printf("smd->domain->dx: %f\n", smd->domain->dx);
+		// printf("smd->domain->dx: %f\n", smd->domain->dx);
 
 		// TODO: put in failsafe if res<=0 - dg
 
@@ -228,8 +228,8 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			smd->domain->res_wt[1] = smd->domain->res[1] * (smd->domain->amplify + 1);			
 			smd->domain->res_wt[2] = smd->domain->res[2] * (smd->domain->amplify + 1);			
 			smd->domain->dx_wt = smd->domain->dx / (smd->domain->amplify + 1);		
-			printf("smd->domain->amplify: %d\n",  smd->domain->amplify);
-			printf("(smd->domain->flags & MOD_SMOKE_HIGHRES)\n");
+			// printf("smd->domain->amplify: %d\n",  smd->domain->amplify);
+			// printf("(smd->domain->flags & MOD_SMOKE_HIGHRES)\n");
 		}
 
 		if(!smd->domain->shadow)
@@ -240,7 +240,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		if(smd->domain->wt)	
 		{
 			smoke_initWaveletBlenderRNA(smd->domain->wt, &(smd->domain->strength));
-			printf("smoke_initWaveletBlenderRNA\n");
+			// printf("smoke_initWaveletBlenderRNA\n");
 		}
 		return 1;
 	}
@@ -526,7 +526,7 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 	}
 }
 
-void smokeModifier_freeDomain(SmokeModifierData *smd)
+static void smokeModifier_freeDomain(SmokeModifierData *smd)
 {
 	if(smd->domain)
 	{
@@ -550,7 +550,7 @@ void smokeModifier_freeDomain(SmokeModifierData *smd)
 	}
 }
 
-void smokeModifier_freeFlow(SmokeModifierData *smd)
+static void smokeModifier_freeFlow(SmokeModifierData *smd)
 {
 	if(smd->flow)
 	{
@@ -567,7 +567,7 @@ void smokeModifier_freeFlow(SmokeModifierData *smd)
 	}
 }
 
-void smokeModifier_freeCollision(SmokeModifierData *smd)
+static void smokeModifier_freeCollision(SmokeModifierData *smd)
 {
 	if(smd->coll)
 	{
@@ -624,7 +624,7 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 
 			smd->time = -1;
 
-			printf("reset domain end\n");
+			// printf("reset domain end\n");
 		}
 		else if(smd->flow)
 		{
@@ -741,7 +741,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 }
 
 // forward decleration
-void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
+static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 static int get_lamp(Scene *scene, float *light)
 {	
@@ -1111,7 +1111,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		framenr = scene->r.cfra;
 
-		printf("time: %d\n", scene->r.cfra);
+		// printf("time: %d\n", scene->r.cfra);
 
 		if(framenr == smd->time)
 			return;
@@ -1123,17 +1123,22 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		cache_wt = sds->point_cache[1];
 		BKE_ptcache_id_from_smoke_turbulence(&pid_wt, ob, smd);
 
+		if(!smd->domain->fluid)
+		{
+			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+			BKE_ptcache_id_reset(scene, &pid_wt, PTCACHE_RESET_OUTDATED);
+		}
+
 		if(framenr < startframe)
 			return;
 
 		if(framenr > endframe)
 			return;
 
-		if(!smd->domain->fluid)
-		{
-			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-			BKE_ptcache_id_reset(scene, &pid_wt, PTCACHE_RESET_OUTDATED);
-		}
+		if(!smd->domain->fluid && (framenr != startframe))
+			return;
+
+		// printf("startframe: %d, framenr: %d\n", startframe, framenr);
 
 		if(!smokeModifier_init(smd, ob, scene, dm))
 		{
@@ -1143,7 +1148,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		/* try to read from cache */
 		cache_result =  BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
-		printf("cache_result: %d\n", cache_result);
+		// printf("cache_result: %d\n", cache_result);
 
 		if(cache_result == PTCACHE_READ_EXACT) 
 		{
@@ -1177,8 +1182,14 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		cache->simframe= framenr;
 
 		// simulate the actual smoke (c++ code in intern/smoke)
+		// DG: interesting commenting this line + deactivating loading of noise files
 		if(framenr!=startframe)
 			smoke_step(sds->fluid, smd->time);
+
+		// create shadows before writing cache so we get nice shadows for sstartframe, too
+		if(get_lamp(scene, light))
+			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
+	
 		BKE_ptcache_write_cache(&pid, framenr);
 
 		if(sds->wt)
@@ -1191,9 +1202,6 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			BKE_ptcache_write_cache(&pid_wt, framenr);
 		}
 
-		if(get_lamp(scene, light))
-			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
-		
 		tend();
 		printf ( "Frame: %d, Time: %f\n", (int)smd->time, ( float ) tval() );
 	}
@@ -1335,7 +1343,7 @@ static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int
 	}
 }
 
-void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct)
+static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct)
 {
 	int x, y, z;
 	float bv[6];

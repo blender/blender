@@ -276,12 +276,8 @@ typedef struct wmGesture {
 } wmGesture;
 
 /* ************** custom wmEvent data ************** */
-
-#define DEV_STYLUS	1
-#define DEV_ERASER  2
-
 typedef struct wmTabletData {
-	int Active;			/* 0=None, 1=Stylus, 2=Eraser */
+	int Active;			/* 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER */
 	float Pressure;		/* range 0.0 (not touching) to 1.0 (full pressure) */
 	float Xtilt;		/* range 0.0 (upright) to 1.0 (tilted fully against the tablet surface) */
 	float Ytilt;		/* as above */

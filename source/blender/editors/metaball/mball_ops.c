@@ -34,6 +34,8 @@
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_types.h"
 
+#include "ED_screen.h"
+
 #include "mball_intern.h"
 
 void ED_operatortypes_metaball(void)
@@ -51,7 +53,10 @@ void ED_operatortypes_metaball(void)
 
 void ED_keymap_metaball(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Metaball", 0, 0);
+	wmKeyMap *keymap;
+	
+	keymap= WM_keymap_find(wm, "Metaball", 0, 0);
+	keymap->poll= ED_operator_editmball;
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_metaball_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
@@ -60,6 +65,7 @@ void ED_keymap_metaball(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 	
 	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MBALL_OT_duplicate_metaelems", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "MBALL_OT_select_deselect_all_metaelems", AKEY, KM_PRESS, 0, 0);

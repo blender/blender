@@ -146,6 +146,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_DRIVEN		(1<<22)
 #define UI_BUT_INACTIVE		(1<<23)
 #define UI_BUT_LAST_ACTIVE	(1<<24)
+#define UI_BUT_UNDO			(1<<25)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -417,7 +418,8 @@ typedef void (*uiIDPoinFunc)(struct bContext *C, struct ID *id, int event);
 
 uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
 						short x1, short y1, short x2, short y2, void *idpp, char *tip);
-int uiDefIDPoinButs(uiBlock *block, struct Main *main, struct ID *parid, struct ID *id, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events);
+
+int uiIconFromID(struct ID *id);
 
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
@@ -429,7 +431,7 @@ uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, char *
 uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
-void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
+uiBut *uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip);
 
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip);
@@ -484,6 +486,7 @@ int		uiSearchBoxhHeight(void);
 void	uiBlockSetHandleFunc(uiBlock *block,	uiBlockHandleFunc func, void *arg);
 void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
 void	uiBlockSetFunc		(uiBlock *block,	uiButHandleFunc func, void *arg1, void *arg2);
+void	uiBlockSetNFunc		(uiBlock *block,	uiButHandleFunc func, void *argN, void *arg2);
 
 void	uiButSetRenameFunc	(uiBut *but,		uiButHandleRenameFunc func, void *arg1);
 void	uiButSetFunc		(uiBut *but,		uiButHandleFunc func, void *arg1, void *arg2);
@@ -526,29 +529,6 @@ void uiEndPanel(uiBlock *block, int width, int height);
 void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_area_handlers(struct ListBase *handlers);
 void UI_add_popup_handlers(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *menu);
-
-/* Legacy code
- * Callbacks and utils to get 2.48 work */
-
-void test_idbutton_cb(struct bContext *C, void *namev, void *arg2);
-void test_scriptpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_actionpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_obpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_meshobpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_meshpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_matpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_scenepoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_grouppoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_texpoin_but(struct bContext *C, char *name, struct ID **idpp);
-void test_imapoin_but(struct bContext *C, char *name, struct ID **idpp);
-void autocomplete_bone(struct bContext *C, char *str, void *arg_v);
-void autocomplete_vgroup(struct bContext *C, char *str, void *arg_v);
-
-struct rctf;
-void curvemap_buttons(uiBlock *block, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
-void curvemap_layout(uiLayout *layout, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
-void colorband_buttons(uiBlock *block, struct ColorBand *coba, struct rctf *rect, int small);
-
 
 /* Module
  *
@@ -593,7 +573,7 @@ void UI_exit(void);
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
-void uiBlockLayoutResolve(const struct bContext *C, uiBlock *block, int *x, int *y);
+void uiBlockLayoutResolve(uiBlock *block, int *x, int *y);
 
 uiBlock *uiLayoutGetBlock(uiLayout *layout);
 
@@ -638,10 +618,11 @@ void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, 
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
-void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
-void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type, int compact);
+void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
+void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
+void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);

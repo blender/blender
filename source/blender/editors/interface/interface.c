@@ -597,7 +597,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 			if(but->context)
 				CTX_store_set((bContext*)C, but->context);
 
-			if(ot==NULL || (ot->poll && ot->poll((bContext *)C)==0)) {
+			if(ot == NULL || WM_operator_poll((bContext*)C, ot)==0) {
 				but->flag |= UI_BUT_DISABLED;
 				but->lock = 1;
 			}
@@ -622,7 +622,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	}
 
 	/* handle pending stuff */
-	if(block->layouts.first) uiBlockLayoutResolve(C, block, NULL, NULL);
+	if(block->layouts.first) uiBlockLayoutResolve(block, NULL, NULL);
 	ui_block_do_align(block);
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
 	
@@ -1684,6 +1684,9 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 		ui_free_but(C, but);
 	}
 
+	if(block->func_argN)
+		MEM_freeN(block->func_argN);
+
 	CTX_store_free_list(&block->contexts);
 
 	BLI_freelistN(&block->saferct);
@@ -2232,6 +2235,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->func= block->func;
 	but->func_arg1= block->func_arg1;
 	but->func_arg2= block->func_arg2;
+
+	but->funcN= block->funcN;
+	if(block->func_argN)
+		but->func_argN= MEM_dupallocN(block->func_argN);
 	
 	but->pos= -1;	/* cursor invisible */
 
@@ -2263,6 +2270,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 			but->flag |= UI_BUT_DISABLED;
 		}
 	}
+
+	if(ELEM8(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, SEARCH_MENU, BUTM));
+	else if(ELEM5(but->type, SCROLL, SEPR, LINK, INLINK, FTPREVIEW));
+	else but->flag |= UI_BUT_UNDO;
 
 	BLI_addtail(&block->buttons, but);
 	
@@ -2942,6 +2953,16 @@ void uiBlockSetFunc(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2
 	block->func_arg2= arg2;
 }
 
+void uiBlockSetNFunc(uiBlock *block, uiButHandleFunc func, void *argN, void *arg2)
+{
+	if(block->func_argN)
+		MEM_freeN(block->func_argN);
+
+	block->funcN= func;
+	block->func_argN= argN;
+	block->func_arg2= arg2;
+}
+
 void uiButSetRenameFunc(uiBut *but, uiButHandleRenameFunc func, void *arg1)
 {
 	but->rename_func= func;
@@ -2964,6 +2985,9 @@ void uiButSetFunc(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)
 
 void uiButSetNFunc(uiBut *but, uiButHandleNFunc funcN, void *argN, void *arg2)
 {
+	if(but->func_argN)
+		MEM_freeN(but->func_argN);
+
 	but->funcN= funcN;
 	but->func_argN= argN;
 	but->func_arg2= arg2;
@@ -3000,6 +3024,8 @@ uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, char *
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, NULL, 0.0, 0.0, 0.0, 0.0, tip);
 	but->block_create_func= func;
+	if(but->func_argN)
+		MEM_freeN(but->func_argN);
 	but->func_argN= argN;
 	ui_check_but(but);
 	return but;
@@ -3073,10 +3099,11 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 	return but;
 }
 
-void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip)
+uiBut *uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip)
 {
 	uiBut *but= ui_def_but(block, KEYEVT|SHO, retval, str, x1, y1, x2, y2, spoin, 0.0, 0.0, 0.0, 0.0, tip);
 	ui_check_but(but);
+	return but;
 }
 
 /* short pointers hardcoded */

@@ -45,8 +45,6 @@ using namespace std;
 class SCA_KeyboardManager : public SCA_EventManager
 {
 	class	SCA_IInputDevice*				m_inputDevice;
-	class 	SCA_LogicManager*				m_logicmanager;
-
 	
 public:
 	SCA_KeyboardManager(class SCA_LogicManager* logicmgr,class SCA_IInputDevice* inputdev);

@@ -163,7 +163,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	
 	if(op==NULL)
 		return;
-	if(op->type->poll && op->type->poll((bContext *)C)==0)
+	if(WM_operator_poll((bContext*)C, op->type) == 0)
 		return;
 	
 	block= uiLayoutGetBlock(pa->layout);
@@ -208,7 +208,7 @@ static void operator_search_cb(const struct bContext *C, void *arg, char *str, u
 	for(; ot; ot= ot->next) {
 		
 		if(BLI_strcasestr(ot->name, str)) {
-			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+			if(WM_operator_poll((bContext*)C, ot)) {
 				
 				if(0==uiSearchItemAdd(items, ot->name, ot, 0))
 					break;
@@ -309,13 +309,9 @@ static int view3d_toolbar(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= view3d_has_tools_region(sa);
 	
-	if(ar) {
-		ar->flag ^= RGN_FLAG_HIDDEN;
-		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
-		
-		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-		ED_area_tag_redraw(sa);
-	}
+	if(ar)
+		ED_region_toggle_hidden(C, ar);
+
 	return OPERATOR_FINISHED;
 }
 

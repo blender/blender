@@ -47,6 +47,7 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../python
 CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../ikplugin
 
 # own include 
 

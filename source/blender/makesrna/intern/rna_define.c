@@ -66,7 +66,7 @@ void rna_addtail(ListBase *listbase, void *vlink)
 	listbase->last = link;
 }
 
-void rna_remlink(ListBase *listbase, void *vlink)
+static void rna_remlink(ListBase *listbase, void *vlink)
 {
 	Link *link= vlink;
 
@@ -134,7 +134,7 @@ PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 
 	if(!DefRNA.preprocess) {
 		/* we should never get here */
-		fprintf(stderr, "rna_find_property_def: only at preprocess time.\n");
+		fprintf(stderr, "rna_find_struct_property_def: only at preprocess time.\n");
 		return NULL;
 	}
 
@@ -155,7 +155,8 @@ PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 	return NULL;
 }
 
-PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
+#if 0
+static PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
 {
 	PropertyDefRNA *dprop;
 
@@ -175,6 +176,7 @@ PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
 
 	return NULL;
 }
+#endif
 
 FunctionDefRNA *rna_find_function_def(FunctionRNA *func)
 {
@@ -239,7 +241,7 @@ PropertyDefRNA *rna_find_parameter_def(PropertyRNA *parm)
 	return NULL;
 }
 
-ContainerDefRNA *rna_find_container_def(ContainerRNA *cont)
+static ContainerDefRNA *rna_find_container_def(ContainerRNA *cont)
 {
 	StructDefRNA *ds;
 	FunctionDefRNA *dfunc;
@@ -888,7 +890,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 				fprop->softmin= 0.0f;
 				fprop->softmax= 1.0f;
 			}
-			else if(subtype == PROP_PERCENTAGE) {
+			else if(subtype == PROP_FACTOR) {
 				fprop->softmin= fprop->hardmin= 0.0f;
 				fprop->softmax= fprop->hardmax= 1.0f;
 			}
@@ -1528,7 +1530,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 			iprop->softmax= 10000;
 		}
 
-		if(prop->subtype == PROP_UNSIGNED || prop->subtype == PROP_PERCENTAGE)
+		if(prop->subtype == PROP_UNSIGNED || prop->subtype == PROP_PERCENTAGE || prop->subtype == PROP_FACTOR)
 			iprop->hardmin= iprop->softmin= 0;
 	}
 }
@@ -2251,6 +2253,21 @@ PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont_, const char *id
 	PropertyRNA *prop;
 	
 	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_float_default(prop, default_value);
+	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
+
+	return prop;
+}
+
+PropertyRNA *RNA_def_float_factor(StructOrFunctionRNA *cont_, const char *identifier, float default_value,
+	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);

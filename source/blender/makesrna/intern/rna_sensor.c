@@ -48,6 +48,8 @@ static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
 			return &RNA_KeyboardSensor;
 		case SENS_PROPERTY:
 			return &RNA_PropertySensor;
+		case SENS_ARMATURE:
+			return &RNA_ArmatureSensor;
 		case SENS_MOUSE:
 			return &RNA_MouseSensor;
 		case SENS_COLLISION:
@@ -73,7 +75,7 @@ static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
 
 #else
 
-void rna_def_sensor(BlenderRNA *brna)
+static void rna_def_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -92,6 +94,7 @@ void rna_def_sensor(BlenderRNA *brna)
 		{SENS_JOYSTICK, "JOYSTICK", 0, "joystick", ""},
 		{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
 		{SENS_DELAY, "DELAY", 0, "Delay", ""},
+		{SENS_ARMATURE, "ARMATURE", 0, "Armature", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Sensor", NULL);
@@ -129,14 +132,14 @@ void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 10000);
 }
 
-void rna_def_always_sensor(BlenderRNA *brna)
+static void rna_def_always_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	srna= RNA_def_struct(brna, "AlwaysSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Always Sensor", "Sensor to generate continuous pulses.");
 }
 
-void rna_def_near_sensor(BlenderRNA *brna)
+static void rna_def_near_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -160,7 +163,7 @@ void rna_def_near_sensor(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 }
 
-void rna_def_mouse_sensor(BlenderRNA *brna)
+static void rna_def_mouse_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -186,7 +189,7 @@ void rna_def_mouse_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mouse Event", "Specify the type of event this mouse sensor should trigger on.");
 }
 
-void rna_def_touch_sensor(BlenderRNA *brna)
+static void rna_def_touch_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -201,7 +204,7 @@ void rna_def_touch_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Material", "Only look for floors with this material.");
 }
 
-void rna_def_keyboard_sensor(BlenderRNA *brna)
+static void rna_def_keyboard_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -240,7 +243,7 @@ void rna_def_keyboard_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "All Keys", "Trigger this sensor on any keystroke.");
 }
 
-void rna_def_property_sensor(BlenderRNA *brna)
+static void rna_def_property_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -278,7 +281,41 @@ void rna_def_property_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Maximum Value", "Specify maximum value in Interval type.");
 }
 
-void rna_def_actuator_sensor(BlenderRNA *brna)
+static void rna_def_armature_sensor(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_type_items[] ={
+		{SENS_ARM_STATE_CHANGED, "STATECHG", 0, "State Changed", ""},
+		{SENS_ARM_LIN_ERROR_BELOW, "LINERRORBELOW", 0, "Lin error below", ""},
+		{SENS_ARM_LIN_ERROR_ABOVE, "LINERRORABOVE", 0, "Lin error above", ""},
+		{SENS_ARM_ROT_ERROR_BELOW, "ROTERRORBELOW", 0, "Rot error below", ""},
+		{SENS_ARM_ROT_ERROR_ABOVE, "ROTERRORBELOW", 0, "Rot error above", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "ArmatureSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Armature Sensor", "Sensor to detect values and changes in values of IK solver.");
+	RNA_def_struct_sdna_from(srna, "bArmatureSensor", "data");
+
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_ui_text(prop, "Test Type", "Type of value and test.");
+
+	prop= RNA_def_property(srna, "channel_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "posechannel");
+	RNA_def_property_ui_text(prop, "Bone name", "Identify the bone to check value from");
+
+	prop= RNA_def_property(srna, "constraint_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "constraint");
+	RNA_def_property_ui_text(prop, "Constraint name", "Identify the bone constraint to check value from.");
+
+	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_ui_text(prop, "Compare Value", "Specify value to be used in comparison.");
+}
+
+static void rna_def_actuator_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -292,7 +329,7 @@ void rna_def_actuator_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Actuator", "Actuator name, actuator active state modifications will be detected.");
 }
 
-void rna_def_delay_sensor(BlenderRNA *brna)
+static void rna_def_delay_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -314,7 +351,7 @@ void rna_def_delay_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Repeat", "Toggle repeat option. If selected, the sensor restarts after Delay+Dur logic tics.");
 }
 
-void rna_def_collision_sensor(BlenderRNA *brna)
+static void rna_def_collision_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -341,7 +378,7 @@ void rna_def_collision_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Collision Type", "Toggle collision on material or property.");
 }
 
-void rna_def_radar_sensor(BlenderRNA *brna)
+static void rna_def_radar_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -376,7 +413,7 @@ void rna_def_radar_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Distance", "Depth of the radar cone.");
 }
 
-void rna_def_random_sensor(BlenderRNA *brna)
+static void rna_def_random_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -390,7 +427,7 @@ void rna_def_random_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Seed", "Initial seed of the generator. (Choose 0 for not random).");
 }
 
-void rna_def_ray_sensor(BlenderRNA *brna)
+static void rna_def_ray_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -438,7 +475,7 @@ void rna_def_ray_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis", "Specify along which axis the ray is cast.");
 }
 
-void rna_def_message_sensor(BlenderRNA *brna)
+static void rna_def_message_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -451,7 +488,7 @@ void rna_def_message_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Subject", "Optional subject filter: only accept messages with this subject, or empty for all.");
 }
 
-void rna_def_joystick_sensor(BlenderRNA *brna)
+static void rna_def_joystick_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -531,6 +568,7 @@ void RNA_def_sensor(BlenderRNA *brna)
 	rna_def_touch_sensor(brna);
 	rna_def_keyboard_sensor(brna);
 	rna_def_property_sensor(brna);
+	rna_def_armature_sensor(brna);
 	rna_def_actuator_sensor(brna);
 	rna_def_delay_sensor(brna);
 	rna_def_collision_sensor(brna);

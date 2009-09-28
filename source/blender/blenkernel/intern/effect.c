@@ -258,10 +258,10 @@ static void eff_tri_ray_hit(void *userdata, int index, const BVHTreeRay *ray, BV
 // get visibility of a wind ray
 static float eff_calc_visibility(Scene *scene, Object *ob, float *co, float *dir)
 {
-	CollisionModifierData **collobjs = NULL;
+	Object **collobjs = NULL;
 	int numcollobj = 0, i;
 	float norm[3], len = 0.0;
-	float visibility = 1.0;
+	float visibility = 1.0, absorption = 0.0;
 	
 	collobjs = get_collisionobjects(scene, ob, &numcollobj);
 	
@@ -275,7 +275,8 @@ static float eff_calc_visibility(Scene *scene, Object *ob, float *co, float *dir
 	// check all collision objects
 	for(i = 0; i < numcollobj; i++)
 	{
-		CollisionModifierData *collmd = collobjs[i];
+		Object *collob= collobjs[i];
+		CollisionModifierData *collmd = (CollisionModifierData*)modifiers_findByType(collob, eModifierType_Collision);
 		
 		if(collmd->bvhtree)
 		{
@@ -287,8 +288,10 @@ static float eff_calc_visibility(Scene *scene, Object *ob, float *co, float *dir
 			// check if the way is blocked
 			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0)
 			{
+				absorption= (collob->pd)? collob->pd->absorption: 0.0f;
+
 				// visibility is only between 0 and 1, calculated from 1-absorption
-				visibility *= MAX2(0.0, MIN2(1.0, (1.0-((float)collmd->absorption)*0.01)));
+				visibility *= CLAMPIS(1.0f-absorption, 0.0f, 1.0f);
 				
 				if(visibility <= 0.0f)
 					break;

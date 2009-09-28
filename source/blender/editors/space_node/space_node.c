@@ -245,12 +245,12 @@ static void node_channel_area_draw(const bContext *C, ARegion *ar)
 /* Initialise main area, setting handlers. */
 static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Node", SPACE_NODE, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm, "Node", SPACE_NODE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

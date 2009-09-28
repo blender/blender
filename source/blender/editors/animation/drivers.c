@@ -80,6 +80,10 @@
 
 /* Get (or add relevant data to be able to do so) F-Curve from the driver stack, 
  * for the given Animation Data block. This assumes that all the destinations are valid.
+ *	
+ *	- add:	0 - don't add anything if not found, 
+ *			1 - add new Driver FCurve, 
+ *			-1 - add new Driver FCurve without driver stuff (for pasting)
  */
 FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_index, short add)
 {
@@ -115,11 +119,14 @@ FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_ind
 		fcu->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
 		fcu->array_index= array_index;
 		
-		/* add some new driver data */
-		fcu->driver= MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
-		
-		/* add simple generator modifier for driver so that there is some visible representation */
-		add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
+		/* if add is negative, don't init this data yet, since it will be filled in by the pasted driver */
+		if (add > 0) {
+			/* add some new driver data */
+			fcu->driver= MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
+			
+			/* add simple generator modifier for driver so that there is some visible representation */
+			add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
+		}
 		
 		/* just add F-Curve to end of driver list */
 		BLI_addtail(&adt->drivers, fcu);
@@ -144,7 +151,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		printf("Insert Key: Could not add Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		printf("Add Driver: Could not add Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
 		return 0;
 	}
 	
@@ -163,7 +170,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 			float fval;
 			
 			if (proptype == PROP_BOOLEAN) {
-				if(!array) val= RNA_property_boolean_get(&ptr, prop);
+				if (!array) val= RNA_property_boolean_get(&ptr, prop);
 				else val= RNA_property_boolean_get_index(&ptr, prop, array_index);
 				
 				BLI_strncpy(expression, (val)? "True": "False", maxlen);
@@ -180,7 +187,6 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 				
 				BLI_snprintf(expression, maxlen, "%.3f", fval);
 			}
-
 		}
 	}
 	
@@ -218,6 +224,127 @@ short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index,
 	return 0;
 }
 
+/* ************************************************** */
+/* Driver Management API - Copy/Paste Drivers */
+
+/* Copy/Paste Buffer for Driver Data... */
+static FCurve *channeldriver_copypaste_buf = NULL;
+
+/* This function frees any MEM_calloc'ed copy/paste buffer data */
+// XXX find some header to put this in!
+void free_anim_drivers_copybuf (void)
+{
+	/* free the buffer F-Curve if it exists, as if it were just another F-Curve */
+	if (channeldriver_copypaste_buf)
+		free_fcurve(channeldriver_copypaste_buf);
+	channeldriver_copypaste_buf= NULL;
+}
+
+/* Checks if there is a driver in the copy/paste buffer */
+short ANIM_driver_can_paste (void)
+{
+	return (channeldriver_copypaste_buf != NULL);
+}
+
+/* ------------------- */
+
+/* Main Driver Management API calls:
+ * 	Make a copy of the driver for the specified property on the given ID block
+ */
+short ANIM_copy_driver (ID *id, const char rna_path[], int array_index, short flag)
+{
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	FCurve *fcu;
+	
+	/* validate pointer first - exit if failure */
+	RNA_id_pointer_create(id, &id_ptr);
+	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+		printf("Copy Driver: Could not find Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		return 0;
+	}
+	
+	/* try to get F-Curve with Driver */
+	fcu= verify_driver_fcurve(id, rna_path, array_index, 0);
+	
+	/* clear copy/paste buffer first (for consistency with other copy/paste buffers) */
+	free_anim_drivers_copybuf();
+	
+	/* copy this to the copy/paste buf if it exists */
+	if (fcu && fcu->driver) {
+		/* make copies of some info such as the rna_path, then clear this info from the F-Curve temporarily
+		 * so that we don't end up wasting memory storing the path which won't get used ever...
+		 */
+		char *tmp_path = fcu->rna_path;
+		fcu->rna_path= NULL;
+		
+		/* make a copy of the F-Curve with */
+		channeldriver_copypaste_buf= copy_fcurve(fcu);
+		
+		/* restore the path */
+		fcu->rna_path= tmp_path;
+		
+		/* copied... */
+		return 1;
+	}
+	
+	/* done */
+	return 0;
+}
+
+/* Main Driver Management API calls:
+ * 	Add a new driver for the specified property on the given ID block or replace an existing one
+ *	with the driver + driver-curve data from the buffer 
+ */
+short ANIM_paste_driver (ID *id, const char rna_path[], int array_index, short flag)
+{	
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	FCurve *fcu;
+	
+	/* validate pointer first - exit if failure */
+	RNA_id_pointer_create(id, &id_ptr);
+	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+		printf("Paste Driver: Could not add Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		return 0;
+	}
+	
+	/* if the buffer is empty, cannot paste... */
+	if (channeldriver_copypaste_buf == NULL) {
+		printf("Paste Driver: No Driver to paste. \n");
+		return 0;
+	}
+	
+	/* create Driver F-Curve, but without data which will be copied across... */
+	fcu= verify_driver_fcurve(id, rna_path, array_index, -1);
+
+	if (fcu) {
+		/* copy across the curve data from the buffer curve 
+		 * NOTE: this step needs care to not miss new settings
+		 */
+			/* keyframes/samples */
+		fcu->bezt= MEM_dupallocN(channeldriver_copypaste_buf->bezt);
+		fcu->fpt= MEM_dupallocN(channeldriver_copypaste_buf->fpt);
+		fcu->totvert= channeldriver_copypaste_buf->totvert;
+		
+			/* modifiers */
+		copy_fmodifiers(&fcu->modifiers, &channeldriver_copypaste_buf->modifiers);
+		
+			/* flags - on a per-relevant-flag basis */
+		if (channeldriver_copypaste_buf->flag & FCURVE_AUTO_HANDLES)
+			fcu->flag |= FCURVE_AUTO_HANDLES;
+		else
+			fcu->flag &= ~FCURVE_AUTO_HANDLES;
+			/* extrapolation mode */
+		fcu->extend= channeldriver_copypaste_buf->extend;
+			
+			/* the 'juicy' stuff - the driver */
+		fcu->driver= fcurve_copy_driver(channeldriver_copypaste_buf->driver);
+	}
+	
+	/* done */
+	return (fcu != NULL);
+}
 
 /* ************************************************** */
 /* UI-Button Interface */
@@ -272,10 +399,11 @@ void ANIM_OT_add_driver_button (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Driver";
 	ot->idname= "ANIM_OT_add_driver_button";
+	ot->description= "Add driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */
 	ot->exec= add_driver_button_exec; 
-	//op->poll= ???
+	//op->poll= ??? // TODO: need to have some animateable property to do this
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -335,16 +463,105 @@ void ANIM_OT_remove_driver_button (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Driver";
 	ot->idname= "ANIM_OT_remove_driver_button";
+	ot->description= "Remove the driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */
 	ot->exec= remove_driver_button_exec; 
-	//op->poll= ???
+	//op->poll= ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete drivers for all elements of the array.");
+}
+
+/* Copy Driver Button Operator ------------------------ */
+
+static int copy_driver_button_exec (bContext *C, wmOperator *op)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop= NULL;
+	char *path;
+	short success= 0;
+	int index;
+	
+	/* try to create driver using property retrieved from UI */
+	memset(&ptr, 0, sizeof(PointerRNA));
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+	
+	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			/* only copy the driver for the button that this was involved for */
+			success= ANIM_copy_driver(ptr.id.data, path, index, 0);
+			
+			MEM_freeN(path);
+		}
+	}
+	
+	/* since we're just copying, we don't really need to do anything else...*/
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_copy_driver_button (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Driver";
+	ot->idname= "ANIM_OT_copy_driver_button";
+	ot->description= "Copy the driver for the highlighted button.";
+	
+	/* callbacks */
+	ot->exec= copy_driver_button_exec; 
+	//op->poll= ??? // TODO: need to have some driver to be able to do this...
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* Paste Driver Button Operator ------------------------ */
+
+static int paste_driver_button_exec (bContext *C, wmOperator *op)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop= NULL;
+	char *path;
+	short success= 0;
+	int index;
+	
+	/* try to create driver using property retrieved from UI */
+	memset(&ptr, 0, sizeof(PointerRNA));
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+	
+	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			/* only copy the driver for the button that this was involved for */
+			success= ANIM_paste_driver(ptr.id.data, path, index, 0);
+			
+			MEM_freeN(path);
+		}
+	}
+	
+	/* since we're just copying, we don't really need to do anything else...*/
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_paste_driver_button (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste Driver";
+	ot->idname= "ANIM_OT_paste_driver_button";
+	ot->description= "Paste the driver in the copy/paste buffer for the highlighted button.";
+	
+	/* callbacks */
+	ot->exec= paste_driver_button_exec; 
+	//op->poll= ??? // TODO: need to have some driver to be able to do this...
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************** */

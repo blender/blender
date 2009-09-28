@@ -167,12 +167,10 @@ void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 		
 		if(smd->domain && smd->domain->fluid) {
-			//int big = (smd->domain->flags & MOD_SMOKE_HIGHRES);
-			int big=0;
 			
-			if (big) {
-				//smoke_turbulence_get_res(smd->domain->wt, vd->resol);
-				//vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
+			if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
+				smoke_turbulence_get_res(smd->domain->wt, vd->resol);
+				vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
 			} else {
 				VECCOPY(vd->resol, smd->domain->res);
 				vd->dataset = smoke_get_density(smd->domain->fluid);

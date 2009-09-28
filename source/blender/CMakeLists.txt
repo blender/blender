@@ -40,6 +40,7 @@ ADD_SUBDIRECTORY(makesrna)
 ADD_SUBDIRECTORY(readblenfile)
 ADD_SUBDIRECTORY(render)
 ADD_SUBDIRECTORY(blenfont)
+ADD_SUBDIRECTORY(ikplugin)
 
 IF(WITH_OPENEXR)
 	ADD_SUBDIRECTORY(imbuf/intern/openexr)

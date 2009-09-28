@@ -44,7 +44,7 @@
 
 KX_SCA_EndObjectActuator::KX_SCA_EndObjectActuator(SCA_IObject *gameobj,
 												   SCA_IScene* scene):
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_END_OBJECT),
 	m_scene(scene)
 {
     // intentionally empty 

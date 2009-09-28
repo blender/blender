@@ -458,7 +458,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		mm->event_type= evt->type;
 		
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 		
 		/* reset frs delta */
 		RNA_int_set(op->ptr, "frames", 0);
@@ -992,7 +992,7 @@ void ED_operatortypes_marker(void)
 /* called in screen_ops.c:ED_keymap_screen() */
 void ED_marker_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Markers", 0, 0);
 	
 	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_S, KM_ANY, 0, 0);

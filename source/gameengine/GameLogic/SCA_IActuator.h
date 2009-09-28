@@ -41,6 +41,7 @@ class SCA_IActuator : public SCA_ILogicBrick
 {
 	friend class SCA_LogicManager;
 protected:
+	int					 m_type;
 	int					 m_links;	// number of active links to controllers
 									// when 0, the actuator is automatically stopped
 	//std::vector<CValue*> m_events;
@@ -60,8 +61,33 @@ public:
 	/**
 	 * This class also inherits the default copy constructors
 	 */
+	enum KX_ACTUATOR_TYPE {
+		KX_ACT_OBJECT,
+		KX_ACT_IPO,
+		KX_ACT_CAMERA,
+		KX_ACT_SOUND,
+		KX_ACT_PROPERTY,
+		KX_ACT_ADD_OBJECT,
+		KX_ACT_END_OBJECT,
+		KX_ACT_DYNAMIC,
+		KX_ACT_REPLACE_MESH,
+		KX_ACT_TRACKTO,
+		KX_ACT_CONSTRAINT,
+		KX_ACT_SCENE,
+		KX_ACT_RANDOM,
+		KX_ACT_MESSAGE,
+		KX_ACT_ACTION,
+		KX_ACT_CD,
+		KX_ACT_GAME,
+		KX_ACT_VISIBILITY,
+		KX_ACT_2DFILTER,
+		KX_ACT_PARENT,
+		KX_ACT_SHAPEACTION,
+		KX_ACT_STATE,
+		KX_ACT_ARMATURE,
+	};
 
-	SCA_IActuator(SCA_IObject* gameobj); 
+	SCA_IActuator(SCA_IObject* gameobj, KX_ACTUATOR_TYPE type); 
 
 	/**
 	 * UnlinkObject(...)
@@ -127,7 +153,7 @@ public:
 	void IncLink() { m_links++; }
 	void DecLink();
 	bool IsNoLink() const { return !m_links; }
-	
+	bool IsType(KX_ACTUATOR_TYPE type) { return m_type == type; }
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

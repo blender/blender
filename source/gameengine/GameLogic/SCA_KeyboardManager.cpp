@@ -37,9 +37,8 @@
 
 SCA_KeyboardManager::SCA_KeyboardManager(SCA_LogicManager* logicmgr,
 										 SCA_IInputDevice* inputdev)
-	:	SCA_EventManager(KEYBOARD_EVENTMGR),
-		m_inputDevice(inputdev),
-		m_logicmanager(logicmgr)
+	:	SCA_EventManager(logicmgr, KEYBOARD_EVENTMGR),
+		m_inputDevice(inputdev)
 {
 }
 
@@ -65,7 +64,7 @@ void SCA_KeyboardManager::NextFrame()
 	SG_DList::iterator<SCA_ISensor> it(m_sensors);
 	for (it.begin();!it.end();++it)
 	{
-		(*it)->Activate(m_logicmanager);
+		(*it)->Activate(m_logicmgr);
 	}
 }
 

@@ -249,7 +249,6 @@ extern StructRNA RNA_LimitDistanceConstraint;
 extern StructRNA RNA_LimitLocationConstraint;
 extern StructRNA RNA_LimitRotationConstraint;
 extern StructRNA RNA_LimitScaleConstraint;
-extern StructRNA RNA_LocalLamp;
 extern StructRNA RNA_LockedTrackConstraint;
 extern StructRNA RNA_MagicTexture;
 extern StructRNA RNA_Main;
@@ -329,10 +328,12 @@ extern StructRNA RNA_PointCache;
 extern StructRNA RNA_PointDensity;
 extern StructRNA RNA_PointDensityTexture;
 extern StructRNA RNA_PointerProperty;
+extern StructRNA RNA_PointLamp;
 extern StructRNA RNA_Pose;
 extern StructRNA RNA_PoseChannel;
 extern StructRNA RNA_Property;
 extern StructRNA RNA_PropertySensor;
+extern StructRNA RNA_ArmatureSensor;
 extern StructRNA RNA_PythonConstraint;
 extern StructRNA RNA_PythonController;
 extern StructRNA RNA_RadarSensor;
@@ -586,6 +587,7 @@ PropertyUnit RNA_property_unit(PropertyRNA *prop);
 int RNA_property_flag(PropertyRNA *prop);
 
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_multi_array_length(PointerRNA *ptr, PropertyRNA *prop, int dimension);
 int RNA_property_array_dimension(PointerRNA *ptr, PropertyRNA *prop, int length[]);
 char RNA_property_array_item_char(PropertyRNA *prop, int index);
@@ -691,6 +693,7 @@ char *RNA_path_back(const char *path);
 int RNA_path_resolve(PointerRNA *ptr, const char *path,
 	PointerRNA *r_ptr, PropertyRNA **r_prop);
 
+char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
 
 #if 0

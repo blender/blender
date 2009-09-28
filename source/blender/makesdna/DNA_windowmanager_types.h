@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -80,6 +80,7 @@ typedef enum ReportType {
 enum ReportListFlags {
 	RPT_PRINT = 1,
 	RPT_STORE = 2,
+	RPT_FREE = 4,
 };
 typedef struct Report {
 	struct Report *next, *prev;
@@ -161,7 +162,8 @@ typedef struct wmWindow {
 	ListBase timers;
 	
 	ListBase queue;				/* all events (ghost level events were handled) */
-	ListBase handlers;			/* window+screen handlers, overriding all queues */
+	ListBase handlers;			/* window+screen handlers, handled last */
+	ListBase modalhandlers;		/* priority handlers, handled first */
 	
 	ListBase subwindows;	/* opengl stuff for sub windows, see notes in wm_subwindow.c */
 	ListBase gesture;		/* gesture stuff */
@@ -226,6 +228,7 @@ typedef struct wmOperatorType {
 	/* only used for operators defined with python
 	 * use to store pointers to python functions */
 	void *pyop_data;
+	int (*pyop_poll)(struct bContext *, struct wmOperatorType *ot);
 
 } wmOperatorType;
 
@@ -264,6 +267,9 @@ typedef struct wmKeyMap {
 	short pad;
 	
 	void *items;		/* struct EnumPropertyItem for now */
+
+	/* verify if the keymap is enabled in the current context */
+	int (*poll)(struct bContext *);
 } wmKeyMap;
 
 
@@ -297,7 +303,6 @@ typedef struct wmOperator {
 #define OPERATOR_PASS_THROUGH	8
 
 /* wmOperator flag */
-#define OPERATOR_REPORT_FREE	1
 
 
 /* ************** wmEvent ************************ */

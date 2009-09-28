@@ -770,7 +770,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	/* Keying Set - "Rotation" ---------- */
 	BI_KS_DEFINE_BEGIN("Rotation", 0)
 		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -786,7 +786,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("LocRot", 0)
 		BI_KS_PATHS_BEGIN(2)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -794,7 +794,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("LocRotScale", 0)
 		BI_KS_PATHS_BEGIN(3)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "scale", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
@@ -810,7 +810,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	/* Keying Set - "Rotation" ---------- */
 	BI_KS_DEFINE_BEGIN("VisualRot", INSERTKEY_MATRIX)
 		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -818,7 +818,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("VisualLocRot", INSERTKEY_MATRIX)
 		BI_KS_PATHS_BEGIN(2)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END
 };
@@ -1145,7 +1145,12 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				int arraylen, i;
 				
 				/* set initial group name */
-				groupname= (cks->id) ? cks->id->name+2 : NULL;
+				if (cks->id == NULL) {
+					printf("ERROR: Skipping 'Common-Key' Source. No valid ID present.\n");
+					continue;
+				}
+				else
+					groupname= cks->id->name+2;
 				
 				/* construct the path */
 				// FIXME: this currently only works with a few hardcoded cases
@@ -1173,14 +1178,24 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 						BLI_dynstr_append(pathds, ".");
 						
 					/* apply some further templates? */
-					if ((ksp->templates & KSP_TEMPLATE_PCHAN_ROT) && (cks->pchan)) {
-						/* if this path is exactly "rotation", and the rotation mode is set to eulers,
-						 * use "euler_rotation" instead so that rotations will be keyed correctly
+					if (ksp->templates & KSP_TEMPLATE_ROT) {
+						/* for builtin Keying Sets, this template makes the best fitting path for the 
+						 * current rotation mode of the Object / PoseChannel to be used
 						 */
-						if (strcmp(ksp->rna_path, "rotation")==0 && (cks->pchan->rotmode > 0))
-							BLI_dynstr_append(pathds, "euler_rotation");
-						else
-							BLI_dynstr_append(pathds, ksp->rna_path);
+						if (strcmp(ksp->rna_path, "rotation")==0) {
+							/* get rotation mode */
+							short rotmode= (cks->pchan)? (cks->pchan->rotmode) : 
+										   (GS(cks->id->name)==ID_OB)? ( ((Object *)cks->id)->rotmode ) :
+										   (0);
+							
+							/* determine path to build */
+							if (rotmode == ROT_MODE_QUAT)
+								BLI_dynstr_append(pathds, "rotation_quaternion");
+							else if (rotmode == ROT_MODE_AXISANGLE)
+								BLI_dynstr_append(pathds, "rotation_axis_angle");
+							else
+								BLI_dynstr_append(pathds, "rotation_euler");
+						}
 					}
 					else {
 						/* just directly use the path */

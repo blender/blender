@@ -112,6 +112,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\gameengine\Ketsji;..\..\..\source\gameengine\Expressions;..\..\..\source\gameengine\GameLogic;..\..\..\source\gameengine\SceneGraph;..\..\..\source\gameengine\Rasterizer;..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer;..\..\..\source\gameengine\BlenderRoutines;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf;..\..\..\source\blender\python;..\..\..\source\blender\gpu;..\..\..\source\kernel\gen_system;..\..\..\intern\string;..\..\..\intern\moto\include;..\..\..\intern\guardedalloc;..\..\..\intern\SoundSystem;..\..\..\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;WITH_FFMPEG;__STDC_CONSTANT_MACROS"

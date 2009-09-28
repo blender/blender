@@ -930,12 +930,14 @@ static void rna_def_modifier_softbody(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SoftbodyModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SOFT);
 
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SoftBodySettings");
 	RNA_def_property_pointer_funcs(prop, "rna_SoftBodyModifier_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Body Settings", "");
 
-	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_pointer_funcs(prop, "rna_SoftBodyModifier_point_cache_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Body Point Cache", "");
@@ -1551,15 +1553,18 @@ static void rna_def_modifier_cloth(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ClothModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_CLOTH);
 	
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "sim_parms");
 	RNA_def_property_ui_text(prop, "Cloth Settings", "");
 	
-	prop= RNA_def_property(srna, "collision_settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "collision_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_parms");
 	RNA_def_property_ui_text(prop, "Cloth Collision Settings", "");
 	
-	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 }
 
@@ -1609,16 +1614,11 @@ static void rna_def_modifier_collision(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "CollisionModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PHYSICS);
 
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "CollisionSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_CollisionModifier_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Settings", "");
-	
-	prop= RNA_def_property(srna, "absorption", PROP_INT, PROP_PERCENTAGE);
-	RNA_def_property_int_sdna(prop, NULL, "absorption");
-	RNA_def_property_ui_range(prop, 0, 100, 1, 2);
-	RNA_def_property_ui_text(prop, "Absorption %", "How much of effector force gets lost during collision with this object (in percent).");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_bevel(BlenderRNA *brna)
@@ -1780,7 +1780,8 @@ static void rna_def_modifier_fluidsim(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "FluidsimModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_FLUIDSIM);
 
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "fss");
 	RNA_def_property_ui_text(prop, "Settings", "Settings for how this object is used in the fluid simulation.");
 }

@@ -52,6 +52,7 @@ static void rna_Armature_update_data(bContext *C, PointerRNA *ptr)
 
 	DAG_id_flush_update(id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	//WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 }
 
 static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
@@ -59,6 +60,11 @@ static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
 	ID *id= ptr->id.data;
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+}
+
+static char *rna_Bone_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("bones[\"%s\"]", ((Bone*)ptr->data)->name);
 }
 
 static void rna_bone_layer_set(short *layer, const int *values)
@@ -430,6 +436,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Bone", NULL);
 	RNA_def_struct_ui_text(srna, "Bone", "Bone in an Armature datablock.");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
+	RNA_def_struct_path_func(srna, "rna_Bone_path");
 	
 	/* pointers/collections */
 		/* parent (pointer) */
@@ -457,6 +464,37 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+
+	/* XXX better matrix descriptions possible (Arystan) */
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "bone_mat");
+	RNA_def_property_array(prop, 9);
+	RNA_def_property_ui_text(prop, "Bone Matrix", "3x3 bone matrix.");
+
+	prop= RNA_def_property(srna, "armature_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "arm_mat");
+	RNA_def_property_array(prop, 16);
+	RNA_def_property_ui_text(prop, "Bone Armature-Relative Matrix", "4x4 bone matrix relative to armature.");
+
+	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "tail");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Tail", "Location of tail end of the bone.");
+
+	prop= RNA_def_property(srna, "armature_tail", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "arm_tail");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Armature-Relative Tail", "Location of tail end of the bone relative to armature.");
+
+	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "head");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Head", "Location of head end of the bone.");
+
+	prop= RNA_def_property(srna, "armature_head", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "arm_head");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Armature-Relative Head", "Location of head end of the bone relative to armature.");
 }
 
 static void rna_def_edit_bone(BlenderRNA *brna)
@@ -520,28 +558,42 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_define_verify_sdna(1);
 }
 
-void rna_def_armature(BlenderRNA *brna)
+static void rna_def_armature(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_drawtype_items[] = {
-		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Draw bones as octahedral shape (default)."},
-		{ARM_LINE, "STICK", 0, "Stick", "Draw bones as simple 2D lines with dots."},
-		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Draw bones as boxes, showing subdivision and B-Splines"},
-		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Draw bones as extruded spheres, showing defomation influence volume."},
+		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape (default)."},
+		{ARM_LINE, "STICK", 0, "Stick", "Display bones as simple 2D lines with dots."},
+		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Display bones as boxes, showing subdivision and B-Splines"},
+		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Display bones as extruded spheres, showing defomation influence volume."},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_ghost_type_items[] = {
-		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Current Frame", "Draw Ghosts of poses within a fixed number of frames around the current frame."},
-		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Draw Ghosts of poses within specified range."},
-		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Draw Ghosts of poses on Keyframes."},
+		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame", "Display Ghosts of poses within a fixed number of frames around the current frame."},
+		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Display Ghosts of poses within specified range."},
+		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Display Ghosts of poses on Keyframes."},
+		{0, NULL, 0, NULL, NULL}};
+	static const EnumPropertyItem prop_paths_type_items[]= {
+		{ARM_PATH_ACFRA, "CURRENT_FRAME", 0, "Around Frame", "Display Paths of poses within a fixed number of frames around the current frame."},
+		{0, "RANGE", 0, "In Range", "Display Paths of poses within specified range."},
+		{0, NULL, 0, NULL, NULL}};
+	static const EnumPropertyItem prop_paths_location_items[]= {
+		{ARM_PATH_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
+		{0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},
+		{0, NULL, 0, NULL, NULL}};
+	static const EnumPropertyItem prop_pose_position_items[]= {
+		{0, "POSE_POSITION", 0, "Pose Position", "Show armature in posed state."},
+		{ARM_RESTPOS, "REST_POSITION", 0, "Rest Position", "Show Armature in binding pose state. No posing possible."},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");
 	RNA_def_struct_ui_text(srna, "Armature", "Armature datablock containing a hierarchy of bones, usually used for rigging characters.");
 	RNA_def_struct_ui_icon(srna, ICON_ARMATURE_DATA);
-	
 	RNA_def_struct_sdna(srna, "bArmature");
+	
+	/* Animation Data */
+	rna_def_animdata_common(srna);
 	
 	/* Collections */
 	prop= RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
@@ -556,6 +608,17 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edit Bones", "");
 	
 	/* Enum values */
+//	prop= RNA_def_property(srna, "rest_position", PROP_BOOLEAN, PROP_NONE);
+//	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_RESTPOS);
+//	RNA_def_property_ui_text(prop, "Rest Position", "Show Armature in Rest Position. No posing possible.");
+//	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	
+	prop= RNA_def_property(srna, "pose_position", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_pose_position_items);
+	RNA_def_property_ui_text(prop, "Pose Position", "Show armature in binding pose or final posed state.");
+	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	
 	prop= RNA_def_property(srna, "drawtype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_drawtype_items);
 	RNA_def_property_ui_text(prop, "Draw Type", "");
@@ -564,7 +627,19 @@ void rna_def_armature(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ghost_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ghosttype");
 	RNA_def_property_enum_items(prop, prop_ghost_type_items);
-	RNA_def_property_ui_text(prop, "Ghost Drawing", "Method of Onion-skinning for active Action");
+	RNA_def_property_ui_text(prop, "Ghost Type", "Method of Onion-skinning for active Action");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
+	prop= RNA_def_property(srna, "paths_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "pathflag");
+	RNA_def_property_enum_items(prop, prop_paths_type_items);
+	RNA_def_property_ui_text(prop, "Paths Type", "Type of range to show for Bone Paths");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
+	prop= RNA_def_property(srna, "paths_location", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "pathflag");
+	RNA_def_property_enum_items(prop, prop_paths_location_items);
+	RNA_def_property_ui_text(prop, "Paths Location", "When calculating Bone Paths, use Head or Tips");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	/* Boolean values */
@@ -574,7 +649,7 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 		/* layer protection */
@@ -585,10 +660,7 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 		
 		/* flag */
-	prop= RNA_def_property(srna, "rest_position", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_RESTPOS);
-	RNA_def_property_ui_text(prop, "Rest Position", "Show Armature in Rest Position. No posing possible.");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	
 	
 	prop= RNA_def_property(srna, "draw_axes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWAXES);
@@ -626,8 +698,8 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	prop= RNA_def_property(srna, "ghost_only_selected", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ARM_GHOST_ONLYSEL);
-	RNA_def_property_ui_text(prop, "Draw Ghosts on Selected Keyframes Only", "");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_GHOST_ONLYSEL);
+	RNA_def_property_ui_text(prop, "Draw Ghosts on Selected Bones Only", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 		/* deformflag */
@@ -672,15 +744,6 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Paths Show Keyframe Numbers", "When drawing Armature in Pose Mode, show frame numbers of Keyframes on Bone Paths");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "paths_show_around_current_frame", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "pathflag", ARM_PATH_ACFRA);
-	RNA_def_property_ui_text(prop, "Paths Around Current Frame", "When drawing Armature in Pose Mode, only show section of Bone Paths that falls around current frame");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
-	prop= RNA_def_property(srna, "paths_calculate_head_positions", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "pathflag", ARM_PATH_HEADS);
-	RNA_def_property_ui_text(prop, "Paths Use Heads", "When calculating Bone Paths, use Head locations instead of Tips");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	/* Number fields */
 		/* ghost/onionskining settings */

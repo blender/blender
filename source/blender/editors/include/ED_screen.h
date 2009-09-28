@@ -58,6 +58,7 @@ void	ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
 void	ED_region_panels(const struct bContext *C, struct ARegion *ar, int vertical, char *context, int contextnr);
 void	ED_region_header_init(struct ARegion *ar);
 void	ED_region_header(const struct bContext *C, struct ARegion *ar);
+void	ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
 void	region_scissor_winrct(struct ARegion *ar, struct rcti *winrct);
 
 /* spaces */
@@ -104,7 +105,6 @@ void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 
 /* anim */
 void	ED_update_for_newframe(const struct bContext *C, int mute);
-unsigned int ED_screen_view3d_layers(struct bScreen *screen);
 
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmWindowManager *wm);

@@ -2716,7 +2716,6 @@ static void finishRetarget(RigGraph *rigg)
 
 static void adjustGraphs(bContext *C, RigGraph *rigg)
 {
-	Scene *scene = CTX_data_scene(C);
 	bArmature *arm= rigg->ob->data;
 	RigArc *arc;
 	
@@ -2739,7 +2738,6 @@ static void adjustGraphs(bContext *C, RigGraph *rigg)
 
 static void retargetGraphs(bContext *C, RigGraph *rigg)
 {
-	Scene *scene = CTX_data_scene(C);
 	bArmature *arm= rigg->ob->data;
 	ReebGraph *reebg = rigg->link_mesh;
 	RigNode *inode;

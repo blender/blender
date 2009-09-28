@@ -72,12 +72,12 @@
 
 static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OUTLINER, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm, "Outliner", SPACE_OUTLINER, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

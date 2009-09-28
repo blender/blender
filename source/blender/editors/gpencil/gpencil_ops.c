@@ -47,7 +47,7 @@
 
 void ED_keymap_gpencil(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Grease Pencil", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Grease Pencil", 0, 0);
 	wmKeymapItem *kmi;
 	
 	/* Draw */

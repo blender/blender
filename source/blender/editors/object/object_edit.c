@@ -1957,29 +1957,26 @@ static int object_mode_set_compat(bContext *C, wmOperator *op, Object *ob)
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
 
 	if(ob) {
+		if(mode == OB_MODE_OBJECT)
+			return 1;
+
 		switch(ob->type) {
-		case OB_EMPTY:
-		case OB_LAMP:
-		case OB_CAMERA:
-			if(mode & OB_MODE_OBJECT)
-				return 1;
-			return 0;
 		case OB_MESH:
-			if(mode & (	OB_MODE_OBJECT|OB_MODE_EDIT|OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_PARTICLE_EDIT))
+			if(mode & (OB_MODE_EDIT|OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_PARTICLE_EDIT))
 				return 1;
 			return 0;
 		case OB_CURVE:
 		case OB_SURF:
 		case OB_FONT:
 		case OB_MBALL:
-			if(mode & (OB_MODE_OBJECT|OB_MODE_EDIT))
+			if(mode & (OB_MODE_EDIT))
 				return 1;
 			return 0;
 		case OB_LATTICE:
-			if(mode & (OB_MODE_OBJECT|OB_MODE_EDIT|OB_MODE_WEIGHT_PAINT))
+			if(mode & (OB_MODE_EDIT|OB_MODE_WEIGHT_PAINT))
 				return 1;
 		case OB_ARMATURE:
-			if(mode & (OB_MODE_OBJECT|OB_MODE_EDIT|OB_MODE_POSE))
+			if(mode & (OB_MODE_EDIT|OB_MODE_POSE))
 				return 1;
 		}
 	}
@@ -2036,7 +2033,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, 0, "Mode", "");
+	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
 	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
 
 	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");

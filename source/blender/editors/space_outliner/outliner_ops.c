@@ -76,7 +76,7 @@ void outliner_operatortypes(void)
 
 void outliner_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OUTLINER, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Outliner", SPACE_OUTLINER, 0);
 	
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "extend", 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);

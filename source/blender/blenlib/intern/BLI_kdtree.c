@@ -337,7 +337,7 @@ int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTree
 	return found;
 }
 
-int range_compare(const void * a, const void * b)
+static int range_compare(const void * a, const void * b)
 {
 	const KDTreeNearest *kda = a;
 	const KDTreeNearest *kdb = b;

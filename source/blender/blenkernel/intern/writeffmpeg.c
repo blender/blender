@@ -148,7 +148,7 @@ static int write_audio_frame(void)
 #else
 	pkt.pts = c->coded_frame->pts;
 #endif
-	fprintf(stderr, "Audio Frame PTS: %lld\n", pkt.pts);
+	fprintf(stderr, "Audio Frame PTS: %d\n", (int)pkt.pts);
 
 	pkt.stream_index = audio_stream->index;
 	pkt.flags |= PKT_FLAG_KEY;
@@ -265,7 +265,7 @@ static void write_video_frame(RenderData *rd, AVFrame* frame)
 #else
 			packet.pts = c->coded_frame->pts;
 #endif
-			fprintf(stderr, "Video Frame PTS: %lld\n", packet.pts);
+			fprintf(stderr, "Video Frame PTS: %d\n", (int)packet.pts);
 		} else {
 			fprintf(stderr, "Video Frame PTS: not set\n");
 		}
@@ -559,7 +559,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->codec_id = codec_id;
 	c->codec_type = CODEC_TYPE_AUDIO;
 
-	c->sample_rate = rd->audio.mixrate;
+	c->sample_rate = rd->ffcodecdata.audio_mixrate;
 	c->bit_rate = ffmpeg_audio_bitrate*1000;
 	c->channels = 2;
 	codec = avcodec_find_encoder(c->codec_id);
@@ -613,7 +613,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 }
 /* essential functions -- start, append, end */
 
-void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
+static void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 {
 	/* Handle to the output file */
 	AVFormatContext* of;
@@ -734,7 +734,7 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
-		if (ffmpeg_multiplex_audio && rd->audio.mixrate != 48000) {
+		if (ffmpeg_multiplex_audio && rd->ffcodecdata.audio_mixrate != 48000) {
 			G.afbreek = 1;
 			//XXX error("FFMPEG only supports 48khz / stereo "
 			//      "audio for DV!");
@@ -831,7 +831,6 @@ static void makeffmpegstring(RenderData* rd, char* string) {
 	}
 }
 
-
 void start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty)
 {
 	ffmpeg_autosplit_count = 0;
@@ -844,8 +843,8 @@ void start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty)
 		AUD_Specs specs;
 		specs.channels = c->channels;
 		specs.format = AUD_FORMAT_S16;
-		specs.rate = rd->audio.mixrate;
-		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->efra);
+		specs.rate = rd->ffcodecdata.audio_mixrate;
+		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->efra, rd->ffcodecdata.audio_volume);
 	}
 }
 

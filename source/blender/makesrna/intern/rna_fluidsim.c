@@ -151,6 +151,14 @@ static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *ptr)
 	return 32;
 }
 
+static char *rna_FluidSettings_path(PointerRNA *ptr)
+{
+	FluidsimSettings *fss = (FluidsimSettings*)ptr->data;
+	ModifierData *md= (ModifierData *)fss->fmd;
+
+	return BLI_sprintfN("modifiers[%s].settings", md->name);
+}
+
 #else
 
 static void rna_def_fluidsim_slip(StructRNA *srna)
@@ -509,6 +517,7 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "FluidSettings", NULL);
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
 	RNA_def_struct_refine_func(srna, "rna_FluidSettings_refine");
+	RNA_def_struct_path_func(srna, "rna_FluidSettings_path");
 	RNA_def_struct_ui_text(srna, "Fluid Simulation Settings", "Fluid simulation settings for an object taking part in the simulation.");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

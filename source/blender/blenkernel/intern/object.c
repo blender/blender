@@ -127,8 +127,8 @@ void clear_workob(Object *workob)
 {
 	memset(workob, 0, sizeof(Object));
 	
-	workob->size[0]= workob->size[1]= workob->size[2]= 1.0;
-	
+	workob->size[0]= workob->size[1]= workob->size[2]= 1.0f;
+	workob->rotmode= ROT_MODE_EUL;
 }
 
 void copy_baseflags(struct Scene *scene)
@@ -1038,6 +1038,11 @@ Object *add_object(struct Scene *scene, int type)
 	ob->data= add_obdata_from_type(type);
 
 	ob->lay= scene->lay;
+	
+	/* objects should default to having Euler XYZ rotations, 
+	 * but rotations default to quaternions 
+	 */
+	ob->rotmode= ROT_MODE_EUL;
 
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
@@ -1406,7 +1411,7 @@ int object_data_is_libdata(Object *ob)
 /* *************** PROXY **************** */
 
 /* when you make proxy, ensure the exposed layers are extern */
-void armature_set_id_extern(Object *ob)
+static void armature_set_id_extern(Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -1553,13 +1558,11 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 	cfra+= bluroffs+fieldoffs;
 
 	/* global time */
-	cfra*= scene->r.framelen;	
+	if (scene)
+		cfra*= scene->r.framelen;	
 	
 #if 0 // XXX old animation system
 	if (ob) {
-		if (no_speed_curve==0 && ob->ipo)
-			cfra= calc_ipo_time(ob->ipo, cfra);
-		
 		/* ofset frames */
 		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) 
 			cfra-= give_timeoffset(ob);
@@ -1574,29 +1577,44 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	if(ob->ipo) {
-		vec[0]= ob->size[0]+ob->dsize[0];
-		vec[1]= ob->size[1]+ob->dsize[1];
-		vec[2]= ob->size[2]+ob->dsize[2];
-		SizeToMat3(vec, mat);
-	}
-	else {
-		SizeToMat3(ob->size, mat);
-	}
+	
+	vec[0]= ob->size[0]+ob->dsize[0];
+	vec[1]= ob->size[1]+ob->dsize[1];
+	vec[2]= ob->size[2]+ob->dsize[2];
+	SizeToMat3(vec, mat);
 }
 
+// TODO: this should take rotation orders into account later...
 void object_rot_to_mat3(Object *ob, float mat[][3])
 {
-	float vec[3];
-	if(ob->ipo) {
-		vec[0]= ob->rot[0]+ob->drot[0];
-		vec[1]= ob->rot[1]+ob->drot[1];
-		vec[2]= ob->rot[2]+ob->drot[2];
-		EulToMat3(vec, mat);
+	float rmat[3][3], dmat[3][3];
+	
+	/* initialise the delta-rotation matrix, which will get (pre)multiplied 
+	 * with the rotation matrix to yield the appropriate rotation
+	 */
+	Mat3One(dmat);
+	
+	/* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
+	if (ob->rotmode > 0) {
+		/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
+		EulOToMat3(ob->rot, ob->rotmode, rmat);
+		EulOToMat3(ob->drot, ob->rotmode, dmat);
+	}
+	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+		/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
+		AxisAngleToMat3(&ob->quat[1], ob->quat[0], rmat);
+		AxisAngleToMat3(&ob->dquat[1], ob->dquat[0], dmat);
 	}
 	else {
-		EulToMat3(ob->rot, mat);
+		/* quats are normalised before use to eliminate scaling issues */
+		NormalQuat(ob->quat);
+		QuatToMat3(ob->quat, rmat);
+		QuatToMat3(ob->dquat, dmat);
 	}
+	
+	/* combine these rotations */
+	// XXX is this correct? if errors, change the order of multiplication...
+	Mat3MulMat3(mat, dmat, rmat);
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -1609,19 +1627,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 	object_scale_to_mat3(ob, smat);
 
 	/* rot */
-	/* Quats arnt used yet */
-	/*if(ob->transflag & OB_QUAT) {
-		if(ob->ipo) {
-			QuatMul(q1, ob->quat, ob->dquat);
-			QuatToMat3(q1, rmat);
-		}
-		else {
-			QuatToMat3(ob->quat, rmat);
-		}
-	}
-	else {*/
-		object_rot_to_mat3(ob, rmat);
-	/*}*/
+	object_rot_to_mat3(ob, rmat);
 	Mat3MulMat3(mat, rmat, smat);
 }
 
@@ -1633,12 +1639,9 @@ void object_to_mat4(Object *ob, float mat[][4])
 	
 	Mat4CpyMat3(mat, tmat);
 	
-	VECCOPY(mat[3], ob->loc);
-	if(ob->ipo) {
-		mat[3][0]+= ob->dloc[0];
-		mat[3][1]+= ob->dloc[1];
-		mat[3][2]+= ob->dloc[2];
-	}
+	mat[3][0]= ob->loc[0] + ob->dloc[0];
+	mat[3][1]= ob->loc[1] + ob->dloc[1];
+	mat[3][2]= ob->loc[2] + ob->dloc[2];
 }
 
 int enable_cu_speed= 1;
@@ -2562,7 +2565,7 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 static int pc_cmp(void *a, void *b)
 {
 	LinkData *ad = a, *bd = b;
-	if((int)ad->data > (int)bd->data)
+	if(GET_INT_FROM_POINTER(ad->data) > GET_INT_FROM_POINTER(bd->data))
 		return 1;
 	else return 0;
 }
@@ -2576,14 +2579,14 @@ int object_insert_ptcache(Object *ob)
 
 	for(link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
 	{
-		int index =(int)link->data;
+		int index = GET_INT_FROM_POINTER(link->data);
 
 		if(i < index)
 			break;
 	}
 
 	link = MEM_callocN(sizeof(LinkData), "PCLink");
-	link->data = (void *)i;
+	link->data = SET_INT_IN_POINTER(i);
 	BLI_addtail(&ob->pc_ids, link);
 
 	return i;

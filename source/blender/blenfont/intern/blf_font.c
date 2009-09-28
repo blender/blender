@@ -353,8 +353,8 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 				pen_x += delta.x >> 6;
 		}
 
-		gbox.xmin= g->box.xmin + pen_x;
-		gbox.xmax= g->box.xmax + pen_x;
+		gbox.xmin= pen_x;
+		gbox.xmax= pen_x + g->advance;
 		gbox.ymin= g->box.ymin + pen_y;
 		gbox.ymax= g->box.ymax + pen_y;
 
@@ -453,7 +453,7 @@ void blf_font_free(FontBLF *font)
 	MEM_freeN(font);
 }
 
-void blf_font_fill(FontBLF *font)
+static void blf_font_fill(FontBLF *font)
 {
 	font->aspect= 1.0f;
 	font->pos[0]= 0.0f;

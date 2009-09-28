@@ -186,15 +186,6 @@ ARegion *text_has_properties_region(ScrArea *sa)
 	return arnew;
 }
 
-void text_toggle_properties_region(bContext *C, ScrArea *sa, ARegion *ar)
-{
-	ar->flag ^= RGN_FLAG_HIDDEN;
-	ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
-	
-	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-	ED_area_tag_redraw(sa);
-}
-
 static int properties_poll(bContext *C)
 {
 	return (CTX_wm_space_text(C) != NULL);
@@ -206,7 +197,7 @@ static int properties_exec(bContext *C, wmOperator *op)
 	ARegion *ar= text_has_properties_region(sa);
 	
 	if(ar)
-		text_toggle_properties_region(C, sa, ar);
+		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
 }

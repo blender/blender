@@ -52,6 +52,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
@@ -412,7 +413,9 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 		}\
 	}
 	
-
+/* quick macro to test if an anim-channel representing an AnimData block is suitably active */
+#define ANIMCHANNEL_ACTIVEOK(ale) \
+	( !(filter_mode & ANIMFILTER_ACTIVE) || !(ale->adt) || (ale->adt->flag & ADT_UI_ACTIVE) )
 
 /* quick macro to test if an anim-channel (F-Curve, Group, etc.) is selected in an acceptable way */
 #define ANIMCHANNEL_SELOK(test_func) \
@@ -979,10 +982,13 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			/* include material-expand widget? */
 			// hmm... do we need to store the index of this material in the array anywhere?
 			if (filter_mode & ANIMFILTER_CHANNELS) {
-				ale= make_new_animlistelem(ma, ANIMTYPE_DSMAT, base, ANIMTYPE_OBJECT, (ID *)ma);
-				if (ale) {
-					BLI_addtail(anim_data, ale);
-					items++;
+				/* check if filtering by active status */
+				if ANIMCHANNEL_ACTIVEOK(ma) {
+					ale= make_new_animlistelem(ma, ANIMTYPE_DSMAT, base, ANIMTYPE_OBJECT, (ID *)ma);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
 				}
 			}
 			
@@ -1036,11 +1042,14 @@ static int animdata_filter_dopesheet_particles (ListBase *anim_data, bDopeSheet 
 		
 		/* add particle settings? */
 		if (FILTER_PART_OBJC(ob) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-			if ((filter_mode & ANIMFILTER_CHANNELS)){
-				ale = make_new_animlistelem(psys->part, ANIMTYPE_DSPART, base, ANIMTYPE_OBJECT, (ID *)psys->part);
-				if (ale) {
-					BLI_addtail(anim_data, ale);
-					items++;
+			if ((filter_mode & ANIMFILTER_CHANNELS)) {
+				/* check if filtering by active status */
+				if ANIMCHANNEL_ACTIVEOK(psys->part) {
+					ale = make_new_animlistelem(psys->part, ANIMTYPE_DSPART, base, ANIMTYPE_OBJECT, (ID *)psys->part);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
 				}
 			}
 			
@@ -1101,6 +1110,14 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 			expanded= FILTER_MBALL_OBJD(mb);
 		}
 			break;
+		case OB_ARMATURE: /* ------- Armature ---------- */
+		{
+			bArmature *arm= (bArmature *)ob->data;
+			
+			type= ANIMTYPE_DSARM;
+			expanded= FILTER_ARM_OBJD(arm);
+		}
+			break;
 	}
 	
 	/* special exception for drivers instead of action */
@@ -1108,9 +1125,12 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 		expanded= EXPANDED_DRVD(adt);
 	
 	/* include data-expand widget? */
-	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {		
-		ale= make_new_animlistelem(iat, type, base, ANIMTYPE_OBJECT, (ID *)iat);
-		if (ale) BLI_addtail(anim_data, ale);
+	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {	
+		/* check if filtering by active status */
+		if ANIMCHANNEL_ACTIVEOK(iat) {
+			ale= make_new_animlistelem(iat, type, base, ANIMTYPE_OBJECT, (ID *)iat);
+			if (ale) BLI_addtail(anim_data, ale);
+		}
 	}
 	
 	/* add object-data animation channels? */
@@ -1140,10 +1160,13 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	if ((filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) == 0) {
 		/* check if filtering by selection */
 		if ANIMCHANNEL_SELOK((base->flag & SELECT)) {
-			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE, NULL);
-			if (ale) {
-				BLI_addtail(anim_data, ale);
-				items++;
+			/* check if filtering by active status */
+			if ANIMCHANNEL_ACTIVEOK(ob) {
+				ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE, (ID *)ob);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
+				}
 			}
 		}
 	}
@@ -1203,8 +1226,21 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		ANIMDATA_FILTER_CASES(key,
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
-				/* add NLA tracks */
-				items += animdata_filter_nla(anim_data, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+				/* include shapekey-expand widget? */
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+					/* check if filtering by active status */
+					if ANIMCHANNEL_ACTIVEOK(key) {
+						ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT, (ID *)ob);
+						if (ale) {
+							BLI_addtail(anim_data, ale);
+							items++;
+						}
+					}
+				}
+				
+				/* add NLA tracks - only if expanded or so */
+				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY))
+					items += animdata_filter_nla(anim_data, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 			},
 			{ /* drivers */
 				/* include shapekey-expand widget? */
@@ -1224,10 +1260,13 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			{ /* action (keyframes) */
 				/* include shapekey-expand widget? */
 				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-					ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT, (ID *)ob);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
+					/* check if filtering by active status */
+					if ANIMCHANNEL_ACTIVEOK(key) {
+						ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT, (ID *)ob);
+						if (ale) {
+							BLI_addtail(anim_data, ale);
+							items++;
+						}
 					}
 				}
 				
@@ -1290,6 +1329,19 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			
 			if ((ads->filterflag & ADS_FILTER_NOMBA) == 0) {
 				ANIMDATA_FILTER_CASES(mb,
+					{ /* AnimData blocks - do nothing... */ },
+					obdata_ok= 1;,
+					obdata_ok= 1;,
+					obdata_ok= 1;)
+			}
+		}
+			break;
+		case OB_ARMATURE: /* ------- Armature ---------- */
+		{
+			bArmature *arm= (bArmature *)ob->data;
+			
+			if ((ads->filterflag & ADS_FILTER_NOARM) == 0) {
+				ANIMDATA_FILTER_CASES(arm,
 					{ /* AnimData blocks - do nothing... */ },
 					obdata_ok= 1;,
 					obdata_ok= 1;,
@@ -1652,6 +1704,23 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOMBA);)
 					}
 						break;
+					case OB_ARMATURE: /* ------- Armature ---------- */
+					{
+						bArmature *arm= (bArmature *)ob->data;
+						dataOk= 0;
+						ANIMDATA_FILTER_CASES(arm, 
+							if ((ads->filterflag & ADS_FILTER_NOARM)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(arm);
+								dataOk=0;
+							},
+							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);)
+					}
+						break;
 					default: /* --- other --- */
 						dataOk= 0;
 						break;
@@ -1732,6 +1801,12 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					{
 						MetaBall *mb= (MetaBall *)ob->data;
 						dataOk= ANIMDATA_HAS_KEYS(mb);	
+					}
+						break;
+					case OB_ARMATURE: /* -------- Armature ---------- */
+					{
+						bArmature *arm= (bArmature *)ob->data;
+						dataOk= ANIMDATA_HAS_KEYS(arm);	
 					}
 						break;
 					default: /* --- other --- */

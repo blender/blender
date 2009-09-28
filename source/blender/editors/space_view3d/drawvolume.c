@@ -169,7 +169,6 @@ static int larger_pow2(int n)
 
 void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture *tex, float *min, float *max, int res[3], float dx, GPUTexture *tex_shadow)
 {
-	Object *ob = base->object;
 	RegionView3D *rv3d= ar->regiondata;
 
 	float viewnormal[3];
@@ -223,7 +222,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 					"MUL temp.b, temp.b, shadow.r;\n"
 					"MOV result.color, temp;\n"
 					"END\n";
-	unsigned int prog;
+	GLuint prog;
 
 	
 	float size[3];
@@ -328,10 +327,10 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	// printf("i: %d\n", i);
 
-	if(GLEW_ARB_fragment_program)
+	if (GL_TRUE == glewIsSupported("GL_ARB_fragment_program"))
 	{
-		glGenProgramsARB(1, &prog);
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
+		glGenProgramsARB(1, &prog);
 
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, prog);
 		glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(text), text);
@@ -342,11 +341,13 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		glProgramLocalParameter4fARB (GL_FRAGMENT_PROGRAM_ARB, 1, 7.0, 7.0, 7.0, 1.0);
 	}
 	else
-		printf("Your gfx card does not support 3dview smoke drawing.");
+		printf("Your gfx card does not support 3dview smoke drawing.\n");
 
 	GPU_texture_bind(tex, 0);
 	if(tex_shadow)
 		GPU_texture_bind(tex_shadow, 1);
+	else
+		printf("No volume shadow\n");
 
 	if (!GLEW_ARB_texture_non_power_of_two) {
 		cor[0] = (float)res[0]/(float)larger_pow2(res[0]);

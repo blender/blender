@@ -146,6 +146,7 @@ void wm_window_free(bContext *C, wmWindow *win)
 			CTX_wm_window_set(C, NULL);
 		
 		WM_event_remove_handlers(C, &win->handlers);
+		WM_event_remove_handlers(C, &win->modalhandlers);
 
 		/* end running jobs, a job end also removes its timer */
 		for(wt= win->timers.first; wt; wt= wtnext) {
@@ -331,7 +332,7 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 /* called in wm_check, also inits stuff after file read */
 void wm_window_add_ghostwindows(wmWindowManager *wm)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	wmWindow *win;
 	
 	/* no commandline prefsize? then we set this */
@@ -367,11 +368,14 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		   win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 		
 		/* add keymap handlers (1 handler for all keys in map!) */
-		keymap= WM_keymap_listbase(wm, "Window", 0, 0);
+		keymap= WM_keymap_find(wm, "Window", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
 		
-		keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
+		keymap= WM_keymap_find(wm, "Screen", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
+
+		keymap= WM_keymap_find(wm, "Screen Editing", 0, 0);
+		WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 		
 		wm_window_title(wm, win);
 	}
@@ -623,6 +627,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				if(state!=GHOST_kWindowStateMinimized) {
 					GHOST_RectangleHandle client_rect;
 					int l, t, r, b, scr_w, scr_h;
+					int sizex, sizey, posx, posy;
 					
 					client_rect= GHOST_GetClientBounds(win->ghostwin);
 					GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
@@ -630,37 +635,56 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					GHOST_DisposeRectangle(client_rect);
 					
 					wm_get_screensize(&scr_w, &scr_h);
-					win->sizex= r-l;
-					win->sizey= b-t;
-					win->posx= l;
-					win->posy= scr_h - t - win->sizey;
+					sizex= r-l;
+					sizey= b-t;
+					posx= l;
+					posy= scr_h - t - win->sizey;
 
-					/* debug prints */
-					if(0) {
-						state = GHOST_GetWindowState(win->ghostwin);
-
-						if(state==GHOST_kWindowStateNormal) {
-							if(G.f & G_DEBUG) printf("window state: normal\n");
+					/*
+					 * Ghost sometimes send size or move events when the window hasn't changed.
+					 * One case of this is using compiz on linux. To alleviate the problem
+					 * we ignore all such event here.
+					 * 
+					 * It might be good to eventually do that at Ghost level, but that is for 
+					 * another time.
+					 */
+					if (win->sizex != sizex ||
+							win->sizey != sizey ||
+							win->posx != posx ||
+							win->posy != posy)
+					{
+						win->sizex= sizex;
+						win->sizey= sizey;
+						win->posx= posx;
+						win->posy= posy;
+	
+						/* debug prints */
+						if(0) {
+							state = GHOST_GetWindowState(win->ghostwin);
+	
+							if(state==GHOST_kWindowStateNormal) {
+								if(G.f & G_DEBUG) printf("window state: normal\n");
+							}
+							else if(state==GHOST_kWindowStateMinimized) {
+								if(G.f & G_DEBUG) printf("window state: minimized\n");
+							}
+							else if(state==GHOST_kWindowStateMaximized) {
+								if(G.f & G_DEBUG) printf("window state: maximized\n");
+							}
+							else if(state==GHOST_kWindowStateFullScreen) {
+								if(G.f & G_DEBUG) printf("window state: fullscreen\n");
+							}
+							
+							if(type!=GHOST_kEventWindowSize) {
+								if(G.f & G_DEBUG) printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
+							}
+							
 						}
-						else if(state==GHOST_kWindowStateMinimized) {
-							if(G.f & G_DEBUG) printf("window state: minimized\n");
-						}
-						else if(state==GHOST_kWindowStateMaximized) {
-							if(G.f & G_DEBUG) printf("window state: maximized\n");
-						}
-						else if(state==GHOST_kWindowStateFullScreen) {
-							if(G.f & G_DEBUG) printf("window state: fullscreen\n");
-						}
-						
-						if(type!=GHOST_kEventWindowSize) {
-							if(G.f & G_DEBUG) printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
-						}
-						
+					
+						wm_window_make_drawable(C, win);
+						wm_draw_window_clear(win);
+						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 					}
-				
-					wm_window_make_drawable(C, win);
-					wm_draw_window_clear(win);
-					WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				}
 				break;
 			}

@@ -50,7 +50,7 @@ KX_SceneActuator::KX_SceneActuator(SCA_IObject *gameobj,
 								   KX_KetsjiEngine* ketsjiEngine,
 								   const STR_String& nextSceneName,
 								   KX_Camera* camera)
-								   : SCA_IActuator(gameobj)
+								   : SCA_IActuator(gameobj, KX_ACT_SCENE)
 {
 	m_mode = mode;
 	m_scene  = scene;

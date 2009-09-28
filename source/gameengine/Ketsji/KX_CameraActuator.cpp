@@ -55,7 +55,7 @@ KX_CameraActuator::KX_CameraActuator(
 	float maxhght,
 	bool  xytog
 ): 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_CAMERA),
 	m_ob (obj),
 	m_height (hght),
 	m_minHeight (minhght),

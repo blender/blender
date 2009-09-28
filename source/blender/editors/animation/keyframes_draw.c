@@ -316,7 +316,7 @@ static void set_touched_actkeyblock (ActKeyBlock *ab)
 /* *************************** Keyframe Drawing *************************** */
 
 /* helper function - find actkeycolumn that occurs on cframe */
-static ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
+ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
 {
 	/* sanity checks */
 	if (ak == NULL)
@@ -329,6 +329,29 @@ static ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
 		return cfra_find_actkeycolumn(ak->right, cframe);
 	else
 		return ak; /* match */
+}
+
+/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
+// FIXME: this is buggy... next() is ignored completely...
+ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
+{
+	ActKeyColumn *akn= NULL;
+	
+	/* sanity checks */
+	if (ak == NULL)
+		return NULL;
+	
+	/* check if this is a match, or whether it is in some subtree */
+	if (cframe < ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->left, cframe, next);
+	else if (cframe > ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->right, cframe, next);
+		
+	/* if no match found (or found match), just use the current one */
+	if (akn == NULL)
+		return ak;
+	else
+		return akn;
 }
 
 /* -------- */
@@ -393,6 +416,13 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 			{
 				if (sel) glColor3f(0.33f, 0.75f, 0.93f);
 				else glColor3f(0.70f, 0.86f, 0.91f);
+			}
+				break;
+				
+			case BEZT_KEYTYPE_EXTREME: /* redish frames for now */
+			{
+				if (sel) glColor3f(95.0f, 0.5f, 0.5f);
+				else glColor3f(0.91f, 0.70f, 0.80f);
 			}
 				break;
 				

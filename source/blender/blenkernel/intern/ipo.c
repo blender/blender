@@ -213,17 +213,17 @@ static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 2; return "delta_location";
 		
 		case OB_ROT_X:
-			*array_index= 0; return "rotation";
+			*array_index= 0; return "rotation_euler";
 		case OB_ROT_Y:
-			*array_index= 1; return "rotation";
+			*array_index= 1; return "rotation_euler";
 		case OB_ROT_Z:
-			*array_index= 2; return "rotation";
+			*array_index= 2; return "rotation_euler";
 		case OB_DROT_X:
-			*array_index= 0; return "delta_rotation";
+			*array_index= 0; return "delta_rotation_euler";
 		case OB_DROT_Y:
-			*array_index= 1; return "delta_rotation";
+			*array_index= 1; return "delta_rotation_euler";
 		case OB_DROT_Z:
-			*array_index= 2; return "delta_rotation";
+			*array_index= 2; return "delta_rotation_euler";
 			
 		case OB_SIZE_X:
 			*array_index= 0; return "scale";
@@ -281,23 +281,23 @@ static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 	/* result depends on adrcode */
 	switch (adrcode) {
 		case AC_QUAT_W:
-			*array_index= 0; return "rotation";
+			*array_index= 0; return "rotation_quaternion";
 		case AC_QUAT_X:
-			*array_index= 1; return "rotation";
+			*array_index= 1; return "rotation_quaternion";
 		case AC_QUAT_Y:
-			*array_index= 2; return "rotation";
+			*array_index= 2; return "rotation_quaternion";
 		case AC_QUAT_Z:
-			*array_index= 3; return "rotation";
+			*array_index= 3; return "rotation_quaternion";
 			
 		case AC_EUL_X:
-			*array_index= 0; return "euler_rotation";
+			*array_index= 0; return "rotation_euler";
 		case AC_EUL_Y:
-			*array_index= 1; return "euler_rotation";
+			*array_index= 1; return "rotation_euler";
 		case AC_EUL_Z:
-			*array_index= 2; return "euler_rotation";
+			*array_index= 2; return "rotation_euler";
 			
 		case -1: /* special case for euler-rotations used by old drivers */
-			*array_index= 0; return "euler_rotation";
+			*array_index= 0; return "rotation_euler";
 			
 		case AC_LOC_X:
 			*array_index= 0; return "location";
@@ -820,7 +820,7 @@ static char *particle_adrcodes_to_paths (int adrcode, int *array_index)
  *		- array_index			- index in property's array (if applicable) to use
  *		- return				- the allocated path...
  */
-char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], int *array_index)
+static char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], int *array_index)
 {
 	DynStr *path= BLI_dynstr_new();
 	char *propname=NULL, *rpath=NULL;
@@ -1214,6 +1214,9 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 					/* interpolation can only be constant... */
 					dst->ipo= BEZT_IPO_CONST;
 					
+					/* 'hide' flag is now used for keytype - only 'keyframes' existed before */
+					dst->hide= BEZT_KEYTYPE_KEYFRAME;
+					
 					/* correct values, by checking if the flag of interest is set */
 					if ( ((int)(dst->vec[1][1])) & (abp->bit) )
 						dst->vec[0][1]= dst->vec[1][1]= dst->vec[2][1] = 1.0f;
@@ -1263,6 +1266,9 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 				/* now copy interpolation from curve (if not already set) */
 				if (icu->ipo != IPO_MIXED)
 					dst->ipo= icu->ipo;
+					
+				/* 'hide' flag is now used for keytype - only 'keyframes' existed before */
+				dst->hide= BEZT_KEYTYPE_KEYFRAME;
 					
 				/* correct values for euler rotation curves - they were degrees/10 */
 				// XXX for now, just make them into radians as RNA sets/reads directly in that form

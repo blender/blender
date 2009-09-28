@@ -300,12 +300,31 @@ extern int AUD_setSoundPitch(AUD_Handle* handle, float pitch);
 extern AUD_Device* AUD_openReadDevice(AUD_Specs specs);
 
 /**
+ * Sets the main volume of a device.
+ * \param device The device.
+ * \param volume The new volume, must be between 0.0 and 1.0.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setDeviceVolume(AUD_Device* device, float volume);
+
+/**
  * Plays back a sound file through a read device.
  * \param device The read device.
  * \param sound The handle of the sound file.
- * \return Whether the sound could be played back.
+ * \return A handle to the played back sound.
  */
-extern int AUD_playDevice(AUD_Device* device, AUD_Sound* sound);
+extern AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound);
+
+/**
+ * Sets the volume of a played back sound of a read device.
+ * \param device The read device.
+ * \param handle The handle to the sound.
+ * \param volume The new volume, must be between 0.0 and 1.0.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setDeviceSoundVolume(AUD_Device* device,
+									AUD_Handle* handle,
+									float volume);
 
 /**
  * Reads the next samples into the supplied buffer.

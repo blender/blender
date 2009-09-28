@@ -94,51 +94,53 @@ void AUD_SoftwareDevice::mix(sample_t* buffer, int length)
 {
 	lock();
 
-	AUD_SoftwareHandle* sound;
-	int len;
-	sample_t* buf;
-	int sample_size = AUD_SAMPLE_SIZE(m_specs);
-	std::list<AUD_SoftwareHandle*> stopSounds;
-
-	// for all sounds
-	AUD_HandleIterator it = m_playingSounds->begin();
-	while(it != m_playingSounds->end())
 	{
-		sound = *it;
-		// increment the iterator to make sure it's valid,
-		// in case the sound gets deleted after stopping
-		++it;
+		AUD_SoftwareHandle* sound;
+		int len;
+		sample_t* buf;
+		int sample_size = AUD_SAMPLE_SIZE(m_specs);
+		std::list<AUD_SoftwareHandle*> stopSounds;
 
-		// get the buffer from the source
-		len = length;
-		sound->reader->read(len, buf);
-
-		m_mixer->add(buf, sound->reader->getSpecs(), len, sound->volume);
-
-		// in case the end of the sound is reached
-		if(len < length)
+		// for all sounds
+		AUD_HandleIterator it = m_playingSounds->begin();
+		while(it != m_playingSounds->end())
 		{
-			if(sound->keep)
-				pause(sound);
-			else
-				stopSounds.push_back(sound);
+			sound = *it;
+			// increment the iterator to make sure it's valid,
+			// in case the sound gets deleted after stopping
+			++it;
+
+			// get the buffer from the source
+			len = length;
+			sound->reader->read(len, buf);
+
+			m_mixer->add(buf, sound->reader->getSpecs(), len, sound->volume);
+
+			// in case the end of the sound is reached
+			if(len < length)
+			{
+				if(sound->keep)
+					pause(sound);
+				else
+					stopSounds.push_back(sound);
+			}
 		}
-	}
 
-	// fill with silence
-	if(m_specs.format == AUD_FORMAT_U8)
-		memset(buffer, 0x80, length * sample_size);
-	else
-		memset(buffer, 0, length * sample_size);
+		// fill with silence
+		if(m_specs.format == AUD_FORMAT_U8)
+			memset(buffer, 0x80, length * sample_size);
+		else
+			memset(buffer, 0, length * sample_size);
 
-	// superpose
-	m_mixer->superpose(buffer, length, m_volume);
+		// superpose
+		m_mixer->superpose(buffer, length, m_volume);
 
-	while(!stopSounds.empty())
-	{
-		sound = stopSounds.front();
-		stopSounds.pop_front();
-		stop(sound);
+		while(!stopSounds.empty())
+		{
+			sound = stopSounds.front();
+			stopSounds.pop_front();
+			stop(sound);
+		}
 	}
 
 	unlock();
@@ -201,8 +203,11 @@ AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
 
 bool AUD_SoftwareDevice::pause(AUD_Handle* handle)
 {
-	// only songs that are played can be paused
+	bool result = false;
+
 	lock();
+
+	// only songs that are played can be paused
 	for(AUD_HandleIterator i = m_playingSounds->begin();
 		i != m_playingSounds->end(); i++)
 	{
@@ -212,18 +217,23 @@ bool AUD_SoftwareDevice::pause(AUD_Handle* handle)
 			m_playingSounds->erase(i);
 			if(m_playingSounds->empty())
 				playing(m_playback = false);
-			unlock();
-			return true;
+			result = true;
+			break;
 		}
 	}
+
 	unlock();
-	return false;
+
+	return result;
 }
 
 bool AUD_SoftwareDevice::resume(AUD_Handle* handle)
 {
-	// only songs that are paused can be resumed
+	bool result = false;
+
 	lock();
+
+	// only songs that are paused can be resumed
 	for(AUD_HandleIterator i = m_pausedSounds->begin();
 		i != m_pausedSounds->end(); i++)
 	{
@@ -233,17 +243,22 @@ bool AUD_SoftwareDevice::resume(AUD_Handle* handle)
 			m_pausedSounds->erase(i);
 			if(!m_playback)
 				playing(m_playback = true);
-			unlock();
-			return true;
+			result = true;
+			break;
 		}
 	}
+
 	unlock();
-	return false;
+
+	return result;
 }
 
 bool AUD_SoftwareDevice::stop(AUD_Handle* handle)
 {
+	bool result = false;
+
 	lock();
+
 	for(AUD_HandleIterator i = m_playingSounds->begin();
 		i != m_playingSounds->end(); i++)
 	{
@@ -254,37 +269,46 @@ bool AUD_SoftwareDevice::stop(AUD_Handle* handle)
 			m_playingSounds->erase(i);
 			if(m_playingSounds->empty())
 				playing(m_playback = false);
-			unlock();
-			return true;
+			result = true;
+			break;
 		}
 	}
-	for(AUD_HandleIterator i = m_pausedSounds->begin();
-		i != m_pausedSounds->end(); i++)
+	if(!result)
 	{
-		if(*i == handle)
+		for(AUD_HandleIterator i = m_pausedSounds->begin();
+			i != m_pausedSounds->end(); i++)
 		{
-			delete (*i)->reader; AUD_DELETE("reader")
-			delete *i; AUD_DELETE("handle")
-			m_pausedSounds->erase(i);
-			unlock();
-			return true;
+			if(*i == handle)
+			{
+				delete (*i)->reader; AUD_DELETE("reader")
+				delete *i; AUD_DELETE("handle")
+				m_pausedSounds->erase(i);
+				result = true;
+				break;
+			}
 		}
 	}
+
 	unlock();
-	return false;
+
+	return result;
 }
 
 bool AUD_SoftwareDevice::setKeep(AUD_Handle* handle, bool keep)
 {
+	bool result = false;
+
 	lock();
+
 	if(isValid(handle))
 	{
 		((AUD_SoftwareHandle*)handle)->keep = keep;
-		unlock();
-		return true;
+		result = true;
 	}
+
 	unlock();
-	return false;
+
+	return result;
 }
 
 bool AUD_SoftwareDevice::sendMessage(AUD_Handle* handle, AUD_Message &message)
@@ -312,16 +336,18 @@ bool AUD_SoftwareDevice::seek(AUD_Handle* handle, float position)
 {
 	lock();
 
+	bool result = false;
+
 	if(isValid(handle))
 	{
 		AUD_IReader* reader = ((AUD_SoftwareHandle*)handle)->reader;
 		reader->seek((int)(position * reader->getSpecs().rate));
-		unlock();
-		return true;
+		result = true;
 	}
 
 	unlock();
-	return false;
+
+	return result;
 }
 
 float AUD_SoftwareDevice::getPosition(AUD_Handle* handle)
@@ -337,32 +363,41 @@ float AUD_SoftwareDevice::getPosition(AUD_Handle* handle)
 	}
 
 	unlock();
+
 	return position;
 }
 
 AUD_Status AUD_SoftwareDevice::getStatus(AUD_Handle* handle)
 {
+	AUD_Status status = AUD_STATUS_INVALID;
+
 	lock();
+
 	for(AUD_HandleIterator i = m_playingSounds->begin();
 		i != m_playingSounds->end(); i++)
 	{
 		if(*i == handle)
 		{
-			unlock();
-			return AUD_STATUS_PLAYING;
+			status = AUD_STATUS_PLAYING;
+			break;
 		}
 	}
-	for(AUD_HandleIterator i = m_pausedSounds->begin();
-		i != m_pausedSounds->end(); i++)
+	if(status == AUD_STATUS_INVALID)
 	{
-		if(*i == handle)
+		for(AUD_HandleIterator i = m_pausedSounds->begin();
+			i != m_pausedSounds->end(); i++)
 		{
-			unlock();
-			return AUD_STATUS_PAUSED;
+			if(*i == handle)
+			{
+				status = AUD_STATUS_PAUSED;
+				break;
+			}
 		}
 	}
+
 	unlock();
-	return AUD_STATUS_INVALID;
+
+	return status;
 }
 
 void AUD_SoftwareDevice::lock()
@@ -384,6 +419,8 @@ bool AUD_SoftwareDevice::checkCapability(int capability)
 
 bool AUD_SoftwareDevice::setCapability(int capability, void *value)
 {
+	bool result = false;
+
 	switch(capability)
 	{
 	case AUD_CAPS_VOLUME:
@@ -407,18 +444,20 @@ bool AUD_SoftwareDevice::setCapability(int capability, void *value)
 					handle->volume = 1.0;
 				else if(handle->volume < 0.0)
 					handle->volume = 0.0;
-				unlock();
-				return true;
+				result = true;
 			}
 			unlock();
 		}
 		break;
 	}
-	return false;
+
+	return result;;
 }
 
 bool AUD_SoftwareDevice::getCapability(int capability, void *value)
 {
+	bool result = false;
+
 	switch(capability)
 	{
 	case AUD_CAPS_VOLUME:
@@ -429,16 +468,19 @@ bool AUD_SoftwareDevice::getCapability(int capability, void *value)
 	case AUD_CAPS_SOURCE_VOLUME:
 		{
 			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
+
 			lock();
+
 			if(isValid(caps->handle))
 			{
 				caps->value = ((AUD_SoftwareHandle*)caps->handle)->volume;
-				unlock();
-				return true;
+				result = true;
 			}
+
 			unlock();
 		}
 		break;
 	}
-	return false;
+
+	return result;
 }

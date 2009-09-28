@@ -134,7 +134,7 @@ typedef struct Object {
 	float loc[3], dloc[3], orig[3];
 	float size[3], dsize[3];
 	float rot[3], drot[3];
-	/* float quat[4], dquat[4]; (not used yet) */
+	float quat[4], dquat[4];
 	float obmat[4][4];
 	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
 	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
@@ -176,9 +176,11 @@ typedef struct Object {
 	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float min_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float m_contactProcessingThreshold;
-
+	
+	short rotmode;		/* rotation mode - uses defines set out in DNA_action_types.h for PoseChannel rotations... */
+	
 	char dt, dtx;
-	char empty_drawtype, pad1[5];
+	char empty_drawtype, pad1[3];
 	float empty_drawsize;
 	float dupfacesca;	/* dupliface scale */
 	
@@ -243,6 +245,7 @@ typedef struct Object {
 
 	ListBase gpulamp;		/* runtime, for lamps only */
 	ListBase pc_ids;
+	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -263,6 +266,14 @@ typedef struct ObHook {
 	float force;
 } ObHook;
 
+typedef struct DupliObject {
+	struct DupliObject *next, *prev;
+	struct Object *ob;
+	unsigned int origlay;
+	int index, no_draw, type, animated;
+	float mat[4][4], omat[4][4];
+	float orco[3], uv[2];
+} DupliObject;
 
 /* this work object is defined in object.c */
 extern Object workob;
@@ -304,6 +315,7 @@ extern Object workob;
 
 /* (short) transflag */
 #define OB_OFFS_LOCAL		1
+	// XXX OB_QUAT was never used, but is now depreceated in favour of standard rotation handling...
 #define OB_QUAT				2
 #define OB_NEG_SCALE		4
 #define OB_DUPLI			(8+16+256+512+2048)
@@ -393,6 +405,7 @@ extern Object workob;
 #define BA_HAS_RECALC_OB	4
 #define BA_HAS_RECALC_DATA	8
 
+	// XXX DEPRECEATED SETTING...
 #define BA_DO_IPO			32
 
 #define BA_FROMSET			128

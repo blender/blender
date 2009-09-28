@@ -963,6 +963,7 @@ static void check_panel_overlap(ARegion *ar, Panel *panel)
 	}
 }
 
+#if 0 // XXX panel docking/tabbing code that's no longer used
 static void test_add_new_tabs(ARegion *ar)
 {
 	Panel *pa, *pasel=NULL, *palap=NULL;
@@ -990,6 +991,7 @@ static void test_add_new_tabs(ARegion *ar)
 	}
 	
 	if(pasel==NULL || palap==NULL) return;
+	if(palap->type && palap->type->flag & PNL_NO_HEADER) return;
 	
 	/* the overlapped panel becomes a tab */
 	palap->paneltab= pasel;
@@ -1015,6 +1017,7 @@ static void test_add_new_tabs(ARegion *ar)
 		pa= pa->next;
 	}
 }
+#endif
 
 /************************ panel dragging ****************************/
 
@@ -1381,7 +1384,12 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 
 	if(state == PANEL_STATE_EXIT || state == PANEL_STATE_ANIMATION) {
 		if(data && data->state != PANEL_STATE_ANIMATION) {
-			test_add_new_tabs(ar);   // also copies locations of tabs in dragged panel
+			/* XXX:
+			 *	- the panel tabbing function call below (test_add_new_tabs()) has been commented out
+			 *	  "It is too easy to do by accident when reordering panels, is very hard to control and use, and has no real benefit." - BillRey
+			 * Aligorith, 2009Sep
+			 */
+			//test_add_new_tabs(ar);   // also copies locations of tabs in dragged panel
 			check_panel_overlap(ar, NULL);  // clears
 		}
 
@@ -1399,14 +1407,14 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 		MEM_freeN(data);
 		pa->activedata= NULL;
 
-		WM_event_remove_ui_handler(&win->handlers, ui_handler_panel, ui_handler_remove_panel, pa);
+		WM_event_remove_ui_handler(&win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa);
 	}
 	else {
 		if(!data) {
 			data= MEM_callocN(sizeof(uiHandlePanelData), "uiHandlePanelData");
 			pa->activedata= data;
 
-			WM_event_add_ui_handler(C, &win->handlers, ui_handler_panel, ui_handler_remove_panel, pa);
+			WM_event_add_ui_handler(C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa);
 		}
 
 		if(ELEM(state, PANEL_STATE_ANIMATION, PANEL_STATE_DRAG))

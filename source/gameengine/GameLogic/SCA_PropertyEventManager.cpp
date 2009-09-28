@@ -35,8 +35,7 @@
 
 
 SCA_PropertyEventManager::SCA_PropertyEventManager(class SCA_LogicManager* logicmgr)
-	: SCA_EventManager(PROPERTY_EVENTMGR),
-	m_logicmgr(logicmgr)
+	: SCA_EventManager(logicmgr, PROPERTY_EVENTMGR)
 {
 }
 

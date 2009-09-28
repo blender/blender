@@ -81,6 +81,8 @@ ifndef CONFIG_GUESS
     endif
 
     export NAN_MOTO ?= $(LCGDIR)/moto
+	export NAN_ITASC ?= $(LCGDIR)/itasc
+	
     export BF_PROFILE ?= false
     export NAN_USE_BULLET ?= true
     export NAN_BULLET2 ?= $(LCGDIR)/bullet2
@@ -142,6 +144,9 @@ ifndef CONFIG_GUESS
     export NAN_FFMPEGLIBS = $(shell pkg-config --libs libavcodec libavdevice libavformat libswscale libavutil)
     export NAN_FFMPEGCFLAGS = $(shell pkg-config --cflags libavcodec libavdevice libavformat libswscale libavutil)
   endif
+
+    # Compare recreated .mo files with committed ones
+    export BF_VERIFY_MO_FILES ?= true
 
   # Platform Dependent settings go below:
   ifeq ($(OS),darwin)
@@ -308,6 +313,9 @@ ifndef CONFIG_GUESS
 
     # enable l10n
     export INTERNATIONAL ?= true
+
+    # Different endianess will make it fail, rely on other plataforms for checks
+    export BF_VERIFY_MO_FILES = false
 
   else
   ifeq ($(OS),linux)

@@ -415,7 +415,7 @@ static int passtype_from_name(char *str)
 
 static void render_unique_exr_name(Render *re, char *str, int sample)
 {
-	char di[FILE_MAX], name[FILE_MAXFILE], fi[FILE_MAXFILE];
+	char di[FILE_MAX], name[FILE_MAXFILE+MAX_ID_NAME+100], fi[FILE_MAXFILE];
 	
 	BLI_strncpy(di, G.sce, FILE_MAX);
 	BLI_splitdirstring(di, fi);
@@ -1537,7 +1537,7 @@ static void threaded_tile_processor(Render *re)
 	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
 		RE_FreeRenderResult(re->result);
 	
-		if(re->sss_points)
+		if(re->sss_points && render_display_draw_enabled(re))
 			re->result= new_render_result(re, &re->disprect, 0, 0);
 		else if(re->r.scemode & R_FULL_SAMPLE)
 			re->result= new_full_sample_buffers_exr(re);

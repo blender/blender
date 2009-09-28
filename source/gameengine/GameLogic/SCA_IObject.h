@@ -36,6 +36,7 @@
 #include "Value.h"
 #include <vector>
 
+class SCA_IObject;
 class SCA_ISensor;
 class SCA_IController;
 class SCA_IActuator;
@@ -45,6 +46,7 @@ template<class T> T PyVecTo(PyObject*);
 typedef std::vector<SCA_ISensor *>       SCA_SensorList;
 typedef std::vector<SCA_IController *>   SCA_ControllerList;
 typedef std::vector<SCA_IActuator *>     SCA_ActuatorList;
+typedef std::vector<SCA_IObject *>		 SCA_ObjectList;
 
 class SCA_IObject :	public CValue
 {
@@ -59,6 +61,7 @@ protected:
 	SCA_ControllerList     m_controllers;
 	SCA_ActuatorList       m_actuators;
 	SCA_ActuatorList       m_registeredActuators;	// actuators that use a pointer to this object
+	SCA_ObjectList		   m_registeredObjects;		// objects that hold reference to this object
 
 	// SG_Dlist: element of objects with active actuators
 	//           Head: SCA_LogicManager::m_activeActuators
@@ -143,13 +146,22 @@ public:
 	void RegisterActuator(SCA_IActuator* act);
 	void UnregisterActuator(SCA_IActuator* act);
 	
+	void RegisterObject(SCA_IObject* objs);
+	void UnregisterObject(SCA_IObject* objs);
+	/**
+	 * UnlinkObject(...)
+	 * this object is informed that one of the object to which it holds a reference is deleted
+	 * returns true if there was indeed a reference.
+	 */
+	virtual bool UnlinkObject(SCA_IObject* clientobj) { return false; }
+
 	SCA_ISensor* FindSensor(const STR_String& sensorname);
 	SCA_IActuator* FindActuator(const STR_String& actuatorname);
 	SCA_IController* FindController(const STR_String& controllername);
 
 	void SetCurrentTime(float currentTime) {}
 
-	void ReParentLogic();
+	virtual void ReParentLogic();
 	
 	/**
 	 * Set whether or not to ignore activity culling requests

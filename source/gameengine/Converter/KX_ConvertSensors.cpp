@@ -64,6 +64,7 @@ probably misplaced */
 #include "KX_NearSensor.h"
 #include "KX_RadarSensor.h"
 #include "KX_MouseFocusSensor.h"
+#include "KX_ArmatureSensor.h"
 #include "SCA_JoystickSensor.h"
 #include "KX_NetworkMessageSensor.h"
 #include "SCA_ActuatorSensor.h"
@@ -302,7 +303,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		case  SENS_ALWAYS:
 			{
 				
-				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::ALWAYS_EVENTMGR);
+				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::BASIC_EVENTMGR);
 				if (eventmgr)
 				{
 					gamesensor = new SCA_AlwaysSensor(eventmgr, gameobj);
@@ -314,7 +315,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		case  SENS_DELAY:
 			{
 				// we can reuse the Always event manager for the delay sensor
-				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::ALWAYS_EVENTMGR);
+				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::BASIC_EVENTMGR);
 				if (eventmgr)
 				{
 					bDelaySensor* delaysensor = (bDelaySensor*)sens->data;
@@ -550,7 +551,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			{
 				bPropertySensor* blenderpropsensor = (bPropertySensor*) sens->data;
 				SCA_EventManager* eventmgr 
-					= logicmgr->FindEventManager(SCA_EventManager::PROPERTY_EVENTMGR);
+					= logicmgr->FindEventManager(SCA_EventManager::BASIC_EVENTMGR);
 				if (eventmgr)
 				{
 					STR_String propname=blenderpropsensor->name;
@@ -601,6 +602,21 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				break;
 			}
 			
+		case SENS_ARMATURE:
+			{
+				bArmatureSensor* blenderarmsensor = (bArmatureSensor*) sens->data;
+				// we will reuse the property event manager, there is nothing special with this sensor
+				SCA_EventManager* eventmgr 
+					= logicmgr->FindEventManager(SCA_EventManager::BASIC_EVENTMGR);
+				if (eventmgr)
+				{
+					STR_String bonename=blenderarmsensor->posechannel;
+					STR_String constraintname=blenderarmsensor->constraint;
+					gamesensor = new KX_ArmatureSensor(eventmgr,gameobj,bonename,constraintname, blenderarmsensor->type, blenderarmsensor->value);
+				}
+				break;
+			}
+
 		case SENS_RADAR:
 			{
 				
@@ -659,7 +675,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				bRaySensor* blenderraysensor = (bRaySensor*) sens->data;
 				
 				//blenderradarsensor->angle;
-				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::RAY_EVENTMGR);
+				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::BASIC_EVENTMGR);
 				if (eventmgr)
 				{
 					bool bFindMaterial = (blenderraysensor->mode & SENS_COLLISION_MATERIAL);
@@ -691,7 +707,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				// some files didn't write randomsensor, avoid crash now for NULL ptr's
 				if (blenderrndsensor)
 				{
-					SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::RANDOM_EVENTMGR);
+					SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::BASIC_EVENTMGR);
 					if (eventmgr)
 					{
 						int randomSeed = blenderrndsensor->seed;

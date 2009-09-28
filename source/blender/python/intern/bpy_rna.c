@@ -345,13 +345,33 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	return result;
 }
 
+static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *prop, int *val, const char *error_prefix)
+{
+	char *param= _PyUnicode_AsString(item);
+
+	if (param==NULL) {
+		char *enum_str= pyrna_enum_as_string(ptr, prop);
+		PyErr_Format(PyExc_TypeError, "%.200s expected a string enum type in (%.200s)", error_prefix, enum_str);
+		MEM_freeN(enum_str);
+		return 0;
+	} else {
+		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, val)) {
+			char *enum_str= pyrna_enum_as_string(ptr, prop);
+			PyErr_Format(PyExc_TypeError, "%.200s enum \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
+			MEM_freeN(enum_str);
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(ptr, prop);
 
-	if (len > 0) {
+	if (RNA_property_array_check(ptr, prop)) {
 		return pyrna_py_from_array(ptr, prop);
 	}
 	
@@ -521,9 +541,10 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 {
 	/* XXX hard limits should be checked here */
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(ptr, prop);
 	
-	if (len > 0) {
+
+	if (RNA_property_array_check(ptr, prop)) {
+
 		/* char error_str[512]; */
 		int ok= 1;
 
@@ -603,42 +624,52 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		}
 		case PROP_ENUM:
 		{
-			char *param = _PyUnicode_AsString(value);
-			
-			if (param==NULL) {
-				char *enum_str= pyrna_enum_as_string(ptr, prop);
-				PyErr_Format(PyExc_TypeError, "%.200s expected a string enum type in (%.200s)", error_prefix, enum_str);
-				MEM_freeN(enum_str);
-				return -1;
-			} else {
-				int val;
-				if (RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, &val)) {
-					if(data)	*((int*)data)= val;
-					else		RNA_property_enum_set(ptr, prop, val);
-				} else {
-					char *enum_str= pyrna_enum_as_string(ptr, prop);
-					PyErr_Format(PyExc_TypeError, "%.200s enum \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
-					MEM_freeN(enum_str);
+			int val, i;
+
+			if (PyUnicode_Check(value)) {
+				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix))
 					return -1;
+			}
+			else if (PyTuple_Check(value)) {
+				/* tuple of enum items, concatenate all values with OR */
+				val= 0;
+				for (i= 0; i < PyTuple_Size(value); i++) {
+					int tmpval;
+
+					/* PyTuple_GET_ITEM returns a borrowed reference */
+					if (!pyrna_string_to_enum(PyTuple_GET_ITEM(value, i), ptr, prop, &tmpval, error_prefix))
+						return -1;
+
+					val |= tmpval;
 				}
 			}
+			else {
+				char *enum_str= pyrna_enum_as_string(ptr, prop);
+				PyErr_Format(PyExc_TypeError, "%.200s expected a string enum or a tuple of strings in (%.200s)", error_prefix, enum_str);
+				MEM_freeN(enum_str);
+				return -1;
+			}
+
+			if(data)	*((int*)data)= val;
+			else		RNA_property_enum_set(ptr, prop, val);
 			
 			break;
 		}
 		case PROP_POINTER:
 		{
 			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
+			int flag = RNA_property_flag(prop);
 
 			if(!BPy_StructRNA_Check(value) && value != Py_None) {
-				PointerRNA tmp;
-				RNA_pointer_create(NULL, ptype, NULL, &tmp);
-				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(tmp.type));
+				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptype));
+				return -1;
+			} else if((flag & PROP_NEVER_NULL) && value == Py_None) {
+				PyErr_Format(PyExc_TypeError, "property can't be assigned a None value");
 				return -1;
 			} else {
 				BPy_StructRNA *param= (BPy_StructRNA*)value;
 				int raise_error= FALSE;
 				if(data) {
-					int flag = RNA_property_flag(prop);
 
 					if(flag & PROP_RNAPTR) {
 						if(value == Py_None)
@@ -819,13 +850,11 @@ static Py_ssize_t pyrna_prop_len( BPy_PropertyRNA * self )
 	
 	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
 		len = RNA_property_collection_length(&self->ptr, self->prop);
-	} else {
+	} else if (RNA_property_array_check(&self->ptr, self->prop)) {
 		len = pyrna_prop_array_length(self);
-		
-		if (len==0) { /* not an array*/
-			PyErr_SetString(PyExc_AttributeError, "len() only available for collection and array RNA types");
-			return -1;
-		}
+	} else {
+		PyErr_SetString(PyExc_AttributeError, "len() only available for collection and array RNA types");
+		len = -1; /* error value */
 	}
 	
 	return len;
@@ -979,7 +1008,7 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
 {
 	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
 		return prop_subscript_collection(self, key);
-	} else if (RNA_property_array_length(&self->ptr, self->prop)) { /* zero length means its not an array */
+	} else if (RNA_property_array_check(&self->ptr, self->prop)) {
 		return prop_subscript_array(self, key);
 	} 
 
@@ -1681,32 +1710,32 @@ static  PyObject *pyrna_prop_foreach_set(BPy_PropertyRNA *self, PyObject *args)
 PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 {
 	/* Try get values from a collection */
-	PyObject *ret = pyrna_prop_values(self);
+	PyObject *ret;
+	PyObject *iter;
 	
-	if (ret==NULL) {
-		/* collection did not work, try array */
+	if(RNA_property_array_check(&self->ptr, self->prop)) {
 		int len = pyrna_prop_array_length(self);
+		int i;
+		PyErr_Clear();
+		ret = PyList_New(len);
 		
-		if (len) {
-			int i;
-			PyErr_Clear();
-			ret = PyList_New(len);
-			
-			for (i=0; i < len; i++) {
-				PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(self, i));
-			}
+		for (i=0; i < len; i++) {
+			PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(self, i));
 		}
 	}
-	
-	if (ret) {
-		/* we know this is a list so no need to PyIter_Check */
-		PyObject *iter = PyObject_GetIter(ret); 
-		Py_DECREF(ret);
-		return iter;
+	else if ((ret = pyrna_prop_values(self))) {
+		/* do nothing */
+	}
+	else {
+		PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not iterable" );
+		return NULL;
 	}
 	
-	PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not iterable" );
-	return NULL;
+	
+	/* we know this is a list so no need to PyIter_Check */
+	iter = PyObject_GetIter(ret);
+	Py_DECREF(ret);
+	return iter;
 }
 
 static struct PyMethodDef pyrna_struct_methods[] = {
@@ -1776,11 +1805,12 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 {
 	PyObject *ret;
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(ptr, prop);
 
 	int a;
 
-	if(len > 0) {
+	if(RNA_property_array_check(ptr, prop)) {
+		int len = RNA_property_array_length(ptr, prop);
+
 		/* resolve the array from a new pytype */
 		ret = PyTuple_New(len);
 
@@ -1994,8 +2024,10 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 
 	/* Check if we gave args that dont exist in the function
 	 * printing the error is slow but it should only happen when developing.
-	 * the if below is quick, checking if it passed less keyword args then we gave */
-	if(kw && (PyDict_Size(kw) > kw_tot)) {
+	 * the if below is quick, checking if it passed less keyword args then we gave.
+	 * (Dont overwrite the error if we have one, otherwise can skip important messages and confuse with args)
+	 */
+	if(err == 0 && kw && (PyDict_Size(kw) > kw_tot)) {
 		PyObject *key, *value;
 		Py_ssize_t pos = 0;
 

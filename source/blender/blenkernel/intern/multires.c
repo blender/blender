@@ -596,7 +596,7 @@ static void find_displacer_edges(MultiresDisplacer *d, DerivedMesh *dm, Displace
 }
 
 /* Returns in out the corners [0-3] that use v1 and v2 */
-void find_face_corners(MFace *f, int v1, int v2, int out[2])
+static void find_face_corners(MFace *f, int v1, int v2, int out[2])
 {
 	int i, end = f->v4 ? 4 : 3;
 
@@ -1259,7 +1259,7 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, i
 ***************************/
 
 /* Does not actually free lvl itself */
-void multires_free_level(MultiresLevel *lvl)
+static void multires_free_level(MultiresLevel *lvl)
 {
 	if(lvl) {
 		if(lvl->faces) MEM_freeN(lvl->faces);

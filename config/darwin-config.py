@@ -274,4 +274,3 @@ BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR='../build/darwin'
 BF_INSTALLDIR='../install/darwin'
-BF_DOCDIR='../install/doc'

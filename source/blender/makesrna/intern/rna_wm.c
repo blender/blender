@@ -46,6 +46,8 @@ EnumPropertyItem event_type_items[] = {
 	{LEFTMOUSE, "LEFTMOUSE", 0, "Left Mouse", ""},
 	{MIDDLEMOUSE, "MIDDLEMOUSE", 0, "Middle Mouse", ""},
 	{RIGHTMOUSE, "RIGHTMOUSE", 0, "Right Mouse", ""},
+	{BUTTON4MOUSE, "BUTTON4MOUSE", 0, "Button4 Mouse", ""},
+	{BUTTON5MOUSE, "BUTTON5MOUSE", 0, "Button5 Mouse", ""},
 	{ACTIONMOUSE, "ACTIONMOUSE", 0, "Action Mouse", ""},
 	{SELECTMOUSE, "SELECTMOUSE", 0, "Select Mouse", ""},
 
@@ -197,7 +199,7 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
 		return ptr->type;
 }
 
-IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
 {
 	if(create && !ptr->data) {
 		IDPropertyTemplate val = {0};
@@ -278,7 +280,8 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
 	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
@@ -404,7 +407,8 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Window", "Open window.");
 	RNA_def_struct_sdna(srna, "wmWindow");
 
-	prop= RNA_def_property(srna, "screen", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "screen", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Screen");
 	RNA_def_property_ui_text(prop, "Screen", "Active screen showing in the window.");
 	RNA_def_property_flag(prop, PROP_EDITABLE);

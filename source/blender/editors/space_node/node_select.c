@@ -140,7 +140,7 @@ static int node_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			printf("%d %d\n", event->x, event->y);
 			break;
 		case SELECTMOUSE:
-			//if (event->val==0) {
+			//if (event->val==KM_RELEASE) {
 				/* calculate overall delta mouse-movement for redo */
 				printf("done translating\n");
 				//WM_cursor_restore(CTX_wm_window(C));
@@ -224,12 +224,6 @@ void NODE_OT_select(wmOperatorType *ot)
 
 /* ****** Border Select ****** */
 
-static EnumPropertyItem prop_select_types[] = {
-	{NODE_EXCLUSIVE, "EXCLUSIVE", 0, "Exclusive", ""}, /* right mouse */
-	{NODE_EXTEND, "EXTEND", 0, "Extend", ""}, /* left mouse */
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int node_borderselect_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
@@ -288,8 +282,6 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-
-	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
 
 /* ****** Select/Deselect All ****** */

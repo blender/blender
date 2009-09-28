@@ -1,0 +1,154 @@
+#ifndef EIGEN_CORE_H
+#define EIGEN_CORE_H
+
+// first thing Eigen does: prevent MSVC from committing suicide
+#include "src/Core/util/DisableMSVCWarnings.h"
+
+#ifdef _MSC_VER
+  #include <malloc.h> // for _aligned_malloc -- need it regardless of whether vectorization is enabled
+  #if (_MSC_VER >= 1500) // 2008 or later
+    // Remember that usage of defined() in a #define is undefined by the standard.
+    // a user reported that in 64-bit mode, MSVC doesn't care to define _M_IX86_FP.
+    #if (defined(_M_IX86_FP) && (_M_IX86_FP >= 2)) || defined(_M_X64)
+      #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
+    #endif   
+  #endif
+#endif
+
+#ifdef __GNUC__
+  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
+#else
+  #define EIGEN_GNUC_AT_LEAST(x,y) 0
+#endif
+
+// Remember that usage of defined() in a #define is undefined by the standard
+#if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
+  #define EIGEN_SSE2_BUT_NOT_OLD_GCC
+#endif
+
+#ifndef EIGEN_DONT_VECTORIZE
+  #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_SSE
+    #include <emmintrin.h>
+    #include <xmmintrin.h>
+    #ifdef __SSE3__
+      #include <pmmintrin.h>
+    #endif
+    #ifdef __SSSE3__
+      #include <tmmintrin.h>
+    #endif
+  #elif defined __ALTIVEC__
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_ALTIVEC
+    #include <altivec.h>
+    // We need to #undef all these ugly tokens defined in <altivec.h>
+    // => use __vector instead of vector
+    #undef bool
+    #undef vector
+    #undef pixel
+  #endif
+#endif
+
+#include <cstdlib>
+#include <cmath>
+#include <complex>
+#include <cassert>
+#include <functional>
+#include <iostream>
+#include <cstring>
+#include <string>
+#include <limits>
+
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
+  #define EIGEN_EXCEPTIONS
+#endif
+
+#ifdef EIGEN_EXCEPTIONS
+  #include <new>
+#endif
+
+// this needs to be done after all possible windows C header includes and before any Eigen source includes
+// (system C++ includes are supposed to be able to deal with this already):
+// windows.h defines min and max macros which would make Eigen fail to compile.
+#if defined(min) || defined(max)
+#error The preprocessor symbols 'min' or 'max' are defined. If you are compiling on Windows, do #define NOMINMAX to prevent windows.h from defining these symbols.
+#endif
+
+namespace Eigen {
+
+/** \defgroup Core_Module Core module
+  * This is the main module of Eigen providing dense matrix and vector support
+  * (both fixed and dynamic size) with all the features corresponding to a BLAS library
+  * and much more...
+  *
+  * \code
+  * #include <Eigen/Core>
+  * \endcode
+  */
+
+#include "src/Core/util/Macros.h"
+#include "src/Core/util/Constants.h"
+#include "src/Core/util/ForwardDeclarations.h"
+#include "src/Core/util/Meta.h"
+#include "src/Core/util/XprHelper.h"
+#include "src/Core/util/StaticAssert.h"
+#include "src/Core/util/Memory.h"
+
+#include "src/Core/NumTraits.h"
+#include "src/Core/MathFunctions.h"
+#include "src/Core/GenericPacketMath.h"
+
+#if defined EIGEN_VECTORIZE_SSE
+  #include "src/Core/arch/SSE/PacketMath.h"
+#elif defined EIGEN_VECTORIZE_ALTIVEC
+  #include "src/Core/arch/AltiVec/PacketMath.h"
+#endif
+
+#ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
+#endif
+
+#include "src/Core/Functors.h"
+#include "src/Core/MatrixBase.h"
+#include "src/Core/Coeffs.h"
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN // work around Doxygen bug triggered by Assign.h r814874
+                                // at least confirmed with Doxygen 1.5.5 and 1.5.6
+  #include "src/Core/Assign.h"
+#endif
+
+#include "src/Core/MatrixStorage.h"
+#include "src/Core/NestByValue.h"
+#include "src/Core/Flagged.h"
+#include "src/Core/Matrix.h"
+#include "src/Core/Cwise.h"
+#include "src/Core/CwiseBinaryOp.h"
+#include "src/Core/CwiseUnaryOp.h"
+#include "src/Core/CwiseNullaryOp.h"
+#include "src/Core/Dot.h"
+#include "src/Core/Product.h"
+#include "src/Core/DiagonalProduct.h"
+#include "src/Core/SolveTriangular.h"
+#include "src/Core/MapBase.h"
+#include "src/Core/Map.h"
+#include "src/Core/Block.h"
+#include "src/Core/Minor.h"
+#include "src/Core/Transpose.h"
+#include "src/Core/DiagonalMatrix.h"
+#include "src/Core/DiagonalCoeffs.h"
+#include "src/Core/Sum.h"
+#include "src/Core/Redux.h"
+#include "src/Core/Visitor.h"
+#include "src/Core/Fuzzy.h"
+#include "src/Core/IO.h"
+#include "src/Core/Swap.h"
+#include "src/Core/CommaInitializer.h"
+#include "src/Core/Part.h"
+#include "src/Core/CacheFriendlyProduct.h"
+
+} // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
+
+#endif // EIGEN_CORE_H

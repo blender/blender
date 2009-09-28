@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BRE_render"
 	ProjectGUID="{106AE171-0083-41D6-A949-20DB0E8DC251}"
+	RootNamespace="BRE_render"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -41,6 +42,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\yafray;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR"

@@ -43,7 +43,7 @@ typedef struct wmEventHandler {
 	int type, flag;				/* type default=0, rest is custom */
 	
 	/* keymap handler */
-	ListBase *keymap;			/* pointer to builtin/custom keymaps */
+	wmKeyMap *keymap;			/* pointer to builtin/custom keymaps */
 	
 	rcti *bblocal, *bbwin;		/* optional local and windowspace bb */
 	

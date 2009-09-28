@@ -2187,21 +2187,38 @@ void VecMulVecf(float *v, float *v1, float *v2)
 	v[2] = v1[2] * v2[2];
 }
 
-void VecLerpf(float *target, float *a, float *b, float t)
+void VecLerpf(float *target, const float *a, const float *b, const float t)
 {
-	float s = 1.0f-t;
+	const float s = 1.0f-t;
 
 	target[0]= s*a[0] + t*b[0];
 	target[1]= s*a[1] + t*b[1];
 	target[2]= s*a[2] + t*b[2];
 }
 
-void Vec2Lerpf(float *target, float *a, float *b, float t)
+void Vec2Lerpf(float *target, const float *a, const float *b, const float t)
 {
-	float s = 1.0f-t;
+	const float s = 1.0f-t;
 
 	target[0]= s*a[0] + t*b[0];
 	target[1]= s*a[1] + t*b[1];
+}
+
+/* weight 3 vectors, (VecWeightf in 2.4x)
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void VecLerp3f(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
+	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2];
+}
+
+/* weight 3 2D vectors, (Vec2Weightf in 2.4x)
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void Vec2Lerp3f(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
 }
 
 void VecMidf(float *v, float *v1, float *v2)
@@ -3548,10 +3565,10 @@ float VecAngle3(float *v1, float *v2, float *v3)
 	Normalize(vec1);
 	Normalize(vec2);
 
-	return NormalizedVecAngle2(vec1, vec2) * (float)(180.0/M_PI);
+	return NormalizedVecAngle2(vec1, vec2);
 }
 
-float VecAngle3_2D(float *v1, float *v2, float *v3)
+float Vec2Angle3(float *v1, float *v2, float *v3)
 {
 	float vec1[2], vec2[2];
 
@@ -3564,7 +3581,7 @@ float VecAngle3_2D(float *v1, float *v2, float *v3)
 	Normalize2(vec1);
 	Normalize2(vec2);
 
-	return NormalizedVecAngle2_2D(vec1, vec2) * (float)(180.0/M_PI);
+	return NormalizedVecAngle2_2D(vec1, vec2);
 }
 
 /* Return the shortest angle in degrees between the 2 vectors */
@@ -3577,7 +3594,7 @@ float VecAngle2(float *v1, float *v2)
 	Normalize(vec1);
 	Normalize(vec2);
 
-	return NormalizedVecAngle2(vec1, vec2)* (float)(180.0/M_PI);
+	return NormalizedVecAngle2(vec1, vec2);
 }
 
 float NormalizedVecAngle2(float *v1, float *v2)
@@ -4093,19 +4110,19 @@ void spheremap(float x, float y, float z, float *u, float *v)
 /* proposed api by ton and zr, not used yet */
 #if 0
 /* *****************  m1 = m2 *****************  */
-void cpy_m3_m3(float m1[][3], float m2[][3]) 
+static void cpy_m3_m3(float m1[][3], float m2[][3]) 
 {	
 	memcpy(m1[0], m2[0], 9*sizeof(float));
 }
 
 /* *****************  m1 = m2 *****************  */
-void cpy_m4_m4(float m1[][4], float m2[][4]) 
+static void cpy_m4_m4(float m1[][4], float m2[][4]) 
 {	
 	memcpy(m1[0], m2[0], 16*sizeof(float));
 }
 
 /* ***************** identity matrix *****************  */
-void ident_m4(float m[][4])
+static void ident_m4(float m[][4])
 {
 	
 	m[0][0]= m[1][1]= m[2][2]= m[3][3]= 1.0;
@@ -4116,7 +4133,7 @@ void ident_m4(float m[][4])
 }
 
 /* *****************  m1 = m2 (pre) * m3 (post) ***************** */
-void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
+static void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
 {
 	float m[3][3];
 	
@@ -4136,7 +4153,7 @@ void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
 }
 
 /*  ***************** m1 = m2 (pre) * m3 (post) ***************** */
-void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
+static void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 {
 	float m[4][4];
 	
@@ -4164,7 +4181,7 @@ void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 }
 
 /*  ***************** m1 = inverse(m2)  *****************  */
-void inv_m3_m3(float m1[][3], float m2[][3])
+static void inv_m3_m3(float m1[][3], float m2[][3])
 {
 	short a,b;
 	float det;
@@ -4187,7 +4204,7 @@ void inv_m3_m3(float m1[][3], float m2[][3])
 }
 
 /*  ***************** m1 = inverse(m2)  *****************  */
-int inv_m4_m4(float inverse[][4], float mat[][4])
+static int inv_m4_m4(float inverse[][4], float mat[][4])
 {
 	int i, j, k;
 	double temp;
@@ -4240,7 +4257,7 @@ int inv_m4_m4(float inverse[][4], float mat[][4])
 }
 
 /*  ***************** v1 = v2 * mat  ***************** */
-void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
+static void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
 {
 	float x, y;
 	
@@ -4715,7 +4732,7 @@ int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float 
 		
 		VecSubf(c, v3t, v1);
 		VecSubf(a, v2, v1);
-		VecSubf(b, v4t, v3);
+		VecSubf(b, v4t, v3t);
 
 		Crossf(ab, a, b);
 		Crossf(cb, c, b);
@@ -4822,6 +4839,15 @@ static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 	return(Inpf(u,h)/Inpf(u,u));
 }
 #endif
+
+/* useful to calculate an even width shell, by taking the angle between 2 planes.
+ * The return value is a scale on the offset.
+ * no angle between planes is 1.0, as the angle between the 2 planes approches 180d
+ * the distance gets very high, 180d would be inf, but this case isn't valid */
+float AngleToLength(const float angle)
+{
+	return (angle < SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle * (M_PI/180.0f)));
+}
 
 /* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
 void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv)

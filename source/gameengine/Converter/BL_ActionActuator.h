@@ -50,7 +50,7 @@ public:
 						short	priority,
 						short	end_reset,
 						float	stride) 
-		: SCA_IActuator(gameobj),
+		: SCA_IActuator(gameobj, KX_ACT_ACTION),
 		
 		m_lastpos(0, 0, 0),
 		m_blendframe(0),

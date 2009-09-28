@@ -40,6 +40,7 @@ SET(INC ../windowmanager
 	../nodes
 	../gpu
 	../blenfont
+	../ikplugin
 )
 
 IF(WITH_GAMEENGINE)

@@ -51,6 +51,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_text.h" /* only for character utility funcs */
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -117,6 +118,48 @@ static int console_line_cursor_set(ConsoleLine *cl, int cursor)
 	
 	cl->cursor= cursor_new;
 	return 1;
+}
+
+static char cursor_char(ConsoleLine *cl)
+{
+	/* assume cursor is clamped */
+	return cl->line[cl->cursor];
+}
+
+static char cursor_char_prev(ConsoleLine *cl)
+{
+	/* assume cursor is clamped */
+	if(cl->cursor <= 0)
+		return '\0';
+
+	return cl->line[cl->cursor-1];
+}
+
+static char cursor_char_next(ConsoleLine *cl)
+{
+	/* assume cursor is clamped */
+	if(cl->cursor + 1 >= cl->len)
+		return '\0';
+
+	return cl->line[cl->cursor+1];
+}
+
+static void console_lb_debug__internal(ListBase *lb)
+{
+	ConsoleLine *cl;
+
+	printf("%d: ", BLI_countlist(lb));
+	for(cl= lb->first; cl; cl= cl->next)
+		printf("<%s> ", cl->line);
+	printf("\n");
+
+}
+
+static void console_history_debug(const bContext *C)
+{
+	SpaceConsole *sc= CTX_wm_space_console(C);
+
+	console_lb_debug__internal(&sc->history);
 }
 
 static ConsoleLine *console_lb_add__internal(ListBase *lb, ConsoleLine *from)
@@ -251,7 +294,7 @@ static EnumPropertyItem move_type_items[]= {
 	{PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
 	{NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
 	{0, NULL, 0, NULL, NULL}};
-	
+
 static int move_exec(bContext *C, wmOperator *op)
 {
 	ConsoleLine *ci= console_history_verify(C);
@@ -271,6 +314,37 @@ static int move_exec(bContext *C, wmOperator *op)
 		break;
 	case NEXT_CHAR:
 		done= console_line_cursor_set(ci, ci->cursor+1);
+		break;
+
+	/* - if the character is a delimiter then skip delimiters (including white space)
+	 * - when jump over the word */
+	case PREV_WORD:
+		while(text_check_delim(cursor_char_prev(ci)))
+			if(console_line_cursor_set(ci, ci->cursor-1)==FALSE)
+				break;
+
+		while(text_check_delim(cursor_char_prev(ci))==FALSE)
+			if(console_line_cursor_set(ci, ci->cursor-1)==FALSE)
+				break;
+
+		/* This isnt used for NEXT_WORD because when going back
+		 * its more useful to have the cursor directly after a word then whitespace */
+		while(text_check_whitespace(cursor_char_prev(ci))==TRUE)
+			if(console_line_cursor_set(ci, ci->cursor-1)==FALSE)
+				break;
+
+		done= 1; /* assume changed */
+		break;
+	case NEXT_WORD:
+		while(text_check_delim(cursor_char(ci))==TRUE)
+			if (console_line_cursor_set(ci, ci->cursor+1)==FALSE)
+				break;
+
+		while(text_check_delim(cursor_char(ci))==FALSE)
+			if (console_line_cursor_set(ci, ci->cursor+1)==FALSE)
+				break;
+
+		done= 1; /* assume changed */
 		break;
 	}
 	
@@ -466,7 +540,16 @@ static int history_cycle_exec(bContext *C, wmOperator *op)
 	ConsoleLine *ci= console_history_verify(C); /* TODO - stupid, just prevernts crashes when no command line */
 	
 	short reverse= RNA_boolean_get(op->ptr, "reverse"); /* assumes down, reverse is up */
-	
+
+	/* keep a copy of the line above so when history is cycled
+	 * this is the only function that needs to know about the double-up */
+	if(ci->prev) {
+		ConsoleLine *ci_prev= (ConsoleLine *)ci->prev;
+
+		if(strcmp(ci->line, ci_prev->line)==0)
+			console_history_free(sc, ci_prev);
+	}
+
 	if(reverse) { /* last item in mistory */
 		ci= sc->history.last;
 		BLI_remlink(&sc->history, ci);
@@ -477,9 +560,17 @@ static int history_cycle_exec(bContext *C, wmOperator *op)
 		BLI_remlink(&sc->history, ci);
 		BLI_addtail(&sc->history, ci);
 	}
-	
+
+	{	/* add a duplicate of the new arg and remove all other instances */
+		ConsoleLine *cl;
+		while((cl= console_history_find(sc, ci->line, ci)))
+			console_history_free(sc, cl);
+
+		console_history_add(C, (ConsoleLine *)sc->history.last);
+	}
+
 	ED_area_tag_redraw(CTX_wm_area(C));
-	
+
 	return OPERATOR_FINISHED;
 }
 

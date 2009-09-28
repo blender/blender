@@ -162,7 +162,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	change_frame_apply(C, op);
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -193,7 +193,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init 
 			 * the modal op) doesn't work for some reason
 			 */
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				change_frame_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -399,6 +399,8 @@ void ED_operatortypes_anim(void)
 	
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);
+	WM_operatortype_append(ANIM_OT_copy_driver_button);
+	WM_operatortype_append(ANIM_OT_paste_driver_button);
 	
 	WM_operatortype_append(ANIM_OT_add_keyingset_button);
 	WM_operatortype_append(ANIM_OT_remove_keyingset_button);
@@ -406,7 +408,7 @@ void ED_operatortypes_anim(void)
 
 void ED_keymap_anim(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "Animation", 0, 0);
 	
 	/* frame management */
 		/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons */

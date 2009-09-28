@@ -208,7 +208,9 @@ static void text_operatortypes(void)
 
 static void text_keymap(struct wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Text", SPACE_TEXT, 0);
+	wmKeyMap *keymap;
+	
+	keymap= WM_keymap_find(wm, "Text", SPACE_TEXT, 0);
 	
 	#ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
@@ -329,12 +331,12 @@ static int text_context(const bContext *C, const char *member, bContextDataResul
 /* add handlers, stuff you only do once or on area/region changes */
 static void text_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Text", SPACE_TEXT, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm, "Text", SPACE_TEXT, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

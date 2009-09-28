@@ -1406,6 +1406,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_DIRPATH: return "PROP_DIRPATH";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
+		case PROP_FACTOR: return "PROP_FACTOR";
 		case PROP_ANGLE: return "PROP_ANGLE";
 		case PROP_TIME: return "PROP_TIME";
 		case PROP_DISTANCE: return "PROP_DISTANCE";
@@ -1415,11 +1416,11 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_MATRIX: return "PROP_MATRIX";
 		case PROP_EULER: return "PROP_EULER";
 		case PROP_QUATERNION: return "PROP_QUATERNION";
+		case PROP_AXISANGLE: return "PROP_AXISANGLE";
 		case PROP_VELOCITY: return "PROP_VELOCITY";
 		case PROP_ACCELERATION: return "PROP_ACCELERATION";
 		case PROP_XYZ: return "PROP_XYZ";
 		case PROP_RGB: return "PROP_RGB";
-		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		default: {
@@ -1969,7 +1970,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_rna.c", NULL, RNA_def_rna},
 	{"rna_ID.c", NULL, RNA_def_ID},
 	{"rna_texture.c", NULL, RNA_def_texture},
-	{"rna_action.c", NULL, RNA_def_action},
+	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
 	{"rna_actuator.c", NULL, RNA_def_actuator},
 	{"rna_armature.c", NULL, RNA_def_armature},
@@ -1986,12 +1987,12 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_fluidsim.c", NULL, RNA_def_fluidsim},
 	{"rna_gpencil.c", NULL, RNA_def_gpencil},
 	{"rna_group.c", NULL, RNA_def_group},
-	{"rna_image.c", NULL, RNA_def_image},
+	{"rna_image.c", "rna_image_api.c", RNA_def_image},
 	{"rna_key.c", NULL, RNA_def_key},
 	{"rna_lamp.c", NULL, RNA_def_lamp},
 	{"rna_lattice.c", NULL, RNA_def_lattice},
 	{"rna_main.c", "rna_main_api.c", RNA_def_main},
-	{"rna_material.c", NULL, RNA_def_material},
+	{"rna_material.c", "rna_material_api.c", RNA_def_material},
 	{"rna_mesh.c", "rna_mesh_api.c", RNA_def_mesh},
 	{"rna_meta.c", NULL, RNA_def_meta},
 	{"rna_modifier.c", NULL, RNA_def_modifier},
@@ -2001,7 +2002,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_object_force.c", NULL, RNA_def_object_force},
 	{"rna_packedfile.c", NULL, RNA_def_packedfile},
 	{"rna_particle.c", NULL, RNA_def_particle},
-	{"rna_pose.c", NULL, RNA_def_pose},
+	{"rna_pose.c", "rna_pose_api.c", RNA_def_pose},
 	{"rna_property.c", NULL, RNA_def_gameproperty},
 	{"rna_render.c", NULL, RNA_def_render},
 	{"rna_scene.c", "rna_scene_api.c", RNA_def_scene},

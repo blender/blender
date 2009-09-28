@@ -52,7 +52,7 @@ EnumPropertyItem fmodifier_type_items[] = {
 
 /* --------- */
 
-StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
+static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 {
 	FModifier *fcm= (FModifier *)ptr->data;
 
@@ -460,7 +460,7 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 
 /* --------- */
 
-void rna_def_fmodifier(BlenderRNA *brna)
+static void rna_def_fmodifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -510,7 +510,7 @@ void rna_def_fmodifier(BlenderRNA *brna)
 
 /* *********************** */
 
-void rna_def_drivertarget(BlenderRNA *brna)
+static void rna_def_drivertarget(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -536,7 +536,7 @@ void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property used (if applicable)");
 }
 
-void rna_def_channeldriver(BlenderRNA *brna)
+static void rna_def_channeldriver(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -590,7 +590,7 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
 }
 
-void rna_def_fcurve(BlenderRNA *brna)
+static void rna_def_fcurve(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

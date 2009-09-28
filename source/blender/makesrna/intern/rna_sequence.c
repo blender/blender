@@ -228,7 +228,15 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	/* sequencer data comes from scene... 
 	 * TODO: would be nice to make SequenceEditor data a datablock of its own (for shorter paths)
 	 */
-	return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+	if (seq->name+2)
+		return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+	else {
+		/* compromise for the frequent sitation when strips don't have names... */
+		Scene *sce= (Scene*)ptr->id.data;
+		Editing *ed= seq_give_editing(sce, FALSE);
+		
+		return BLI_sprintfN("sequence_editor.sequences[%d]", BLI_findindex(&ed->seqbase, seq));
+	}
 }
 
 static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *iter)
@@ -237,6 +245,35 @@ static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *
 	MetaStack *ms= (MetaStack*)internal->link;
 
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, ms->parseq);
+}
+
+static void rna_MovieSequence_filename_set(PointerRNA *ptr, const char *value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	char dir[FILE_MAX], name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, dir, name);
+	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
+	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
+}
+
+static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	char dir[FILE_MAX], name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, dir, name);
+	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
+	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
+}
+
+static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
+{
+	StripElem *elem= (StripElem*)(ptr->data);
+	char name[FILE_MAX];
+
+	BLI_split_dirfile_basic(value, NULL, name);
+	BLI_strncpy(elem->name, name, sizeof(elem->name));
 }
 
 #else
@@ -253,6 +290,7 @@ static void rna_def_strip_element(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SequenceElement_filename_set");
 }
 
 static void rna_def_strip_crop(BlenderRNA *brna)
@@ -490,6 +528,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "machine");
+	RNA_def_property_range(prop, 0, MAXSEQ-1);
 	RNA_def_property_ui_text(prop, "Channel", "Y position of the sequence strip.");
 	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_channel_set",NULL); // overlap test
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
@@ -514,7 +553,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
 }
 
-void rna_def_editor(BlenderRNA *brna)
+static void rna_def_editor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -736,6 +775,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MovieSequence_filename_set");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");
@@ -762,6 +802,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
 	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoundSequence_filename_set");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");

@@ -48,9 +48,8 @@
 
 SCA_MouseManager::SCA_MouseManager(SCA_LogicManager* logicmgr,
 								   SCA_IInputDevice* mousedev)
-	:	SCA_EventManager(MOUSE_EVENTMGR),
-		m_mousedevice (mousedev),
-		m_logicmanager(logicmgr)
+	:	SCA_EventManager(logicmgr, MOUSE_EVENTMGR),
+		m_mousedevice (mousedev)
 {
 	m_xpos = 0;
 	m_ypos = 0;
@@ -93,7 +92,7 @@ void SCA_MouseManager::NextFrame()
 				mousesensor->setX(mx);
 				mousesensor->setY(my);
 				
-				mousesensor->Activate(m_logicmanager);
+				mousesensor->Activate(m_logicmgr);
 			}
 		}
 	}

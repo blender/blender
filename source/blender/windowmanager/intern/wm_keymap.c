@@ -96,17 +96,17 @@ static void keymap_properties_set(wmKeymapItem *kmi)
 }
 
 /* if item was added, then bail out */
-wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
+wmKeymapItem *WM_keymap_verify_item(wmKeyMap *keymap, char *idname, short type, short val, int modifier, short keymodifier)
 {
 	wmKeymapItem *kmi;
 	
-	for(kmi= lb->first; kmi; kmi= kmi->next)
+	for(kmi= keymap->keymap.first; kmi; kmi= kmi->next)
 		if(strncmp(kmi->idname, idname, OP_MAX_TYPENAME)==0)
 			break;
 	if(kmi==NULL) {
 		kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
 		
-		BLI_addtail(lb, kmi);
+		BLI_addtail(&keymap->keymap, kmi);
 		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 		
 		keymap_event_set(kmi, type, val, modifier, keymodifier);
@@ -116,11 +116,11 @@ wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, shor
 }
 
 /* always add item */
-wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
+wmKeymapItem *WM_keymap_add_item(wmKeyMap *keymap, char *idname, short type, short val, int modifier, short keymodifier)
 {
 	wmKeymapItem *kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
 	
-	BLI_addtail(lb, kmi);
+	BLI_addtail(&keymap->keymap, kmi);
 	BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
@@ -134,14 +134,14 @@ wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, short v
    space/region ids are same as DNA_space_types.h */
 /* gets free'd in wm.c */
 
-static wmKeyMap *wm_keymap_add(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
+wmKeyMap *WM_keymap_find(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
 {
 	wmKeyMap *km;
 	
 	for(km= wm->keymaps.first; km; km= km->next)
 		if(km->spaceid==spaceid && km->regionid==regionid)
 			if(0==strncmp(nameid, km->nameid, KMAP_MAX_NAME))
-				break;
+				return km;
 	
 	if(km==NULL) {
 		km= MEM_callocN(sizeof(struct wmKeyMap), "keymap list");
@@ -154,19 +154,13 @@ static wmKeyMap *wm_keymap_add(wmWindowManager *wm, const char *nameid, short sp
 	return km;
 }
 
-ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
-{
-	wmKeyMap *km= wm_keymap_add(wm, nameid, spaceid, regionid);
-	return &km->keymap;
-}
-
 /* ****************** modal keymaps ************ */
 
 /* modal maps get linked to a running operator, and filter the keys before sending to modal() callback */
 
 wmKeyMap *WM_modalkeymap_add(wmWindowManager *wm, const char *nameid, EnumPropertyItem *items)
 {
-	wmKeyMap *km= wm_keymap_add(wm, nameid, 0, 0);
+	wmKeyMap *km= WM_keymap_find(wm, nameid, 0, 0);
 	km->is_modal= 1;
 	km->items= items;
 	
@@ -242,15 +236,18 @@ static char *wm_keymap_item_to_string(wmKeymapItem *kmi, char *str, int len)
 	return str;
 }
 
-static wmKeymapItem *wm_keymap_item_find_handlers(ListBase *handlers, const char *opname, int opcontext, IDProperty *properties, int compare_props)
+static wmKeymapItem *wm_keymap_item_find_handlers(const bContext *C, ListBase *handlers, const char *opname, int opcontext, IDProperty *properties, int compare_props)
 {
 	wmEventHandler *handler;
+	wmKeyMap *keymap;
 	wmKeymapItem *kmi;
 
 	/* find keymap item in handlers */
 	for(handler=handlers->first; handler; handler=handler->next) {
-		if(handler->keymap) {
-			for(kmi=handler->keymap->first; kmi; kmi=kmi->next) {
+		keymap= handler->keymap;
+
+		if(keymap && (!keymap->poll || keymap->poll((bContext*)C))) {
+			for(kmi=keymap->keymap.first; kmi; kmi=kmi->next) {
 				if(strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0]) {
 					if(compare_props) {
 						if(kmi->ptr && IDP_EqualsProperties(properties, kmi->ptr->data))
@@ -272,11 +269,11 @@ static wmKeymapItem *wm_keymap_item_find(const bContext *C, const char *opname, 
 
 	/* look into multiple handler lists to find the item */
 	if(CTX_wm_window(C))
-		found= wm_keymap_item_find_handlers(&CTX_wm_window(C)->handlers, opname, opcontext, properties, compare_props);
+		found= wm_keymap_item_find_handlers(C, &CTX_wm_window(C)->handlers, opname, opcontext, properties, compare_props);
 	
 
 	if(CTX_wm_area(C) && found==NULL)
-		found= wm_keymap_item_find_handlers(&CTX_wm_area(C)->handlers, opname, opcontext, properties, compare_props);
+		found= wm_keymap_item_find_handlers(C, &CTX_wm_area(C)->handlers, opname, opcontext, properties, compare_props);
 
 	if(found==NULL) {
 		if(ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
@@ -287,12 +284,12 @@ static wmKeymapItem *wm_keymap_item_find(const bContext *C, const char *opname, 
 						break;
 
 				if(ar)
-					found= wm_keymap_item_find_handlers(&ar->handlers, opname, opcontext, properties, compare_props);
+					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, compare_props);
 			}
 		}
 		else {
 			if(CTX_wm_region(C))
-				found= wm_keymap_item_find_handlers(&CTX_wm_region(C)->handlers, opname, opcontext, properties, compare_props);
+				found= wm_keymap_item_find_handlers(C, &CTX_wm_region(C)->handlers, opname, opcontext, properties, compare_props);
 		}
 	}
 	

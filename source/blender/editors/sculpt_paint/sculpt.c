@@ -1039,7 +1039,7 @@ static int sculpt_mode_poll(bContext *C)
 	return ob && ob->mode & OB_MODE_SCULPT;
 }
 
-static int sculpt_poll(bContext *C)
+int sculpt_poll(bContext *C)
 {
 	return sculpt_mode_poll(C) && paint_poll(C);
 }
@@ -1091,8 +1091,11 @@ static int sculpt_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->sculpt->paint);
+	int ret = brush_radial_control_exec(op, brush, 1);
 
-	return brush_radial_control_exec(op, brush, 1);
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+
+	return ret;
 }
 
 static void SCULPT_OT_radial_control(wmOperatorType *ot)
@@ -1437,7 +1440,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 					  sculpt_stroke_done);
 
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	op->type->modal(C, op, event);
 	
@@ -1566,9 +1569,9 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 		
 		paint_cursor_start(C, sculpt_poll);
-
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
 }

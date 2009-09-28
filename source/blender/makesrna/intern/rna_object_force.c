@@ -617,6 +617,12 @@ static void rna_def_collision(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Collision from Stack", "Pick collision object from modifier stack (softbody only)");
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
 	*/
+
+	prop= RNA_def_property(srna, "absorption", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 2);
+	RNA_def_property_ui_text(prop, "Absorption", "How much of effector force gets lost during collision with this object (in percent).");
+	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
 }
 
 static void rna_def_field(BlenderRNA *brna)

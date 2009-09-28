@@ -62,6 +62,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BIK_api.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -212,6 +213,7 @@ bAction *copy_action (bAction *src)
 	return dst;
 }
 
+/* *************** Action Groups *************** */
 
 /* Get the active action-group for an Action */
 bActionGroup *get_active_actiongroup (bAction *act)
@@ -404,7 +406,7 @@ bActionGroup *action_groups_find_named (bAction *act, const char name[])
 	return NULL;
 }
 
-/* ************************ Pose channels *************** */
+/* *************** Pose channels *************** */
 
 /* usually used within a loop, so we got a N^2 slowdown */
 bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
@@ -450,7 +452,7 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	chan->limitmin[0]= chan->limitmin[1]= chan->limitmin[2]= -180.0f;
 	chan->limitmax[0]= chan->limitmax[1]= chan->limitmax[2]= 180.0f;
 	chan->stiffness[0]= chan->stiffness[1]= chan->stiffness[2]= 0.0f;
-	
+	chan->ikrotweight = chan->iklinweight = 0.0f;
 	Mat4One(chan->constinv);
 	
 	BLI_addtail(&pose->chanbase, chan);
@@ -476,7 +478,18 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	return NULL;
 }
 
-
+const char *get_ikparam_name(bPose *pose)
+{
+	if (pose) {
+		switch (pose->iksolver) {
+		case IKSOLVER_LEGACY:
+			return NULL;
+		case IKSOLVER_ITASC:
+			return "bItasc";
+		}
+	}
+	return NULL;
+}
 /* dst should be freed already, makes entire duplicate */
 void copy_pose (bPose **dst, bPose *src, int copycon)
 {
@@ -498,7 +511,10 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	outPose= MEM_callocN(sizeof(bPose), "pose");
 	
 	BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
-	
+	outPose->iksolver = src->iksolver;
+	outPose->ikdata = NULL;
+	outPose->ikparam = MEM_dupallocN(src->ikparam);
+
 	if (copycon) {
 		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
 			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
@@ -508,6 +524,39 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	}
 	
 	*dst=outPose;
+}
+
+void init_pose_itasc(bItasc *itasc)
+{
+	if (itasc) {
+		itasc->iksolver = IKSOLVER_ITASC;
+		itasc->minstep = 0.01f;
+		itasc->maxstep = 0.06f;
+		itasc->numiter = 100;
+		itasc->numstep = 4;
+		itasc->precision = 0.005f;
+		itasc->flag = ITASC_AUTO_STEP|ITASC_INITIAL_REITERATION|ITASC_SIMULATION;
+		itasc->feedback = 20.f;
+		itasc->maxvel = 50.f;
+		itasc->solver = ITASC_SOLVER_SDLS;
+		itasc->dampmax = 0.5;
+		itasc->dampeps = 0.15;
+	}
+}
+void init_pose_ikparam(bPose *pose)
+{
+	bItasc *itasc;
+	switch (pose->iksolver) {
+	case IKSOLVER_ITASC:
+		itasc = MEM_callocN(sizeof(bItasc), "itasc");
+		init_pose_itasc(itasc);
+		pose->ikparam = itasc;
+		break;
+	case IKSOLVER_LEGACY:
+	default:
+		pose->ikparam = NULL;
+		break;
+	}
 }
 
 void free_pose_channels(bPose *pose) 
@@ -533,133 +582,15 @@ void free_pose(bPose *pose)
 		/* free pose-groups */
 		if (pose->agroups.first)
 			BLI_freelistN(&pose->agroups);
-		
+
+		/* free IK solver state */
+		BIK_clear_data(pose);
+
+		/* free IK solver param */
+		if (pose->ikparam)
+			MEM_freeN(pose->ikparam);
+
 		/* free pose */
-		MEM_freeN(pose);
-	}
-}
-
-void game_copy_pose(bPose **dst, bPose *src)
-{
-	bPose *out;
-	bPoseChannel *pchan, *outpchan;
-	GHash *ghash;
-	
-	/* the game engine copies the current armature pose and then swaps
-	 * the object pose pointer. this makes it possible to change poses
-	 * without affecting the original blender data. */
-
-	if (!src) {
-		*dst=NULL;
-		return;
-	}
-	else if (*dst==src) {
-		printf("copy_pose source and target are the same\n");
-		*dst=NULL;
-		return;
-	}
-	
-	out= MEM_dupallocN(src);
-	out->agroups.first= out->agroups.last= NULL;
-	BLI_duplicatelist(&out->chanbase, &src->chanbase);
-
-	/* remap pointers */
-	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-
-	pchan= src->chanbase.first;
-	outpchan= out->chanbase.first;
-	for (; pchan; pchan=pchan->next, outpchan=outpchan->next)
-		BLI_ghash_insert(ghash, pchan, outpchan);
-
-	for (pchan=out->chanbase.first; pchan; pchan=pchan->next) {
-		pchan->parent= BLI_ghash_lookup(ghash, pchan->parent);
-		pchan->child= BLI_ghash_lookup(ghash, pchan->child);
-		pchan->path= NULL;
-	}
-
-	BLI_ghash_free(ghash, NULL, NULL);
-	
-	*dst=out;
-}
-
-
-/* Only allowed for Poses with identical channels */
-void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
-{
-	short mode= ACTSTRIPMODE_BLEND;
-	
-	bPoseChannel *dchan;
-	const bPoseChannel *schan;
-	bConstraint *dcon, *scon;
-	float dstweight;
-	int i;
-
-	switch (mode){
-	case ACTSTRIPMODE_BLEND:
-		dstweight = 1.0F - srcweight;
-		break;
-	case ACTSTRIPMODE_ADD:
-		dstweight = 1.0F;
-		break;
-	default :
-		dstweight = 1.0F;
-	}
-	
-	schan= src->chanbase.first;
-	for (dchan = dst->chanbase.first; dchan; dchan=dchan->next, schan= schan->next){
-		if (schan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE)) {
-			/* replaced quat->matrix->quat conversion with decent quaternion interpol (ton) */
-			
-			/* Do the transformation blend */
-			if (schan->flag & POSE_ROT) {
-				/* quat interpolation done separate */
-				if (schan->rotmode == PCHAN_ROT_QUAT) {
-					float dquat[4], squat[4];
-					
-					QUATCOPY(dquat, dchan->quat);
-					QUATCOPY(squat, schan->quat);
-					if (mode==ACTSTRIPMODE_BLEND)
-						QuatInterpol(dchan->quat, dquat, squat, srcweight);
-					else {
-						QuatMulFac(squat, srcweight);
-						QuatMul(dchan->quat, dquat, squat);
-					}
-					
-					NormalQuat(dchan->quat);
-				}
-			}
-
-			for (i=0; i<3; i++) {
-				/* blending for loc and scale are pretty self-explanatory... */
-				if (schan->flag & POSE_LOC)
-					dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
-				if (schan->flag & POSE_SIZE)
-					dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
-				
-				/* euler-rotation interpolation done here instead... */
-				// FIXME: are these results decent?
-				if ((schan->flag & POSE_ROT) && (schan->rotmode))
-					dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
-			}
-			dchan->flag |= schan->flag;
-		}
-		for(dcon= dchan->constraints.first, scon= schan->constraints.first; dcon && scon; dcon= dcon->next, scon= scon->next) {
-			/* no 'add' option for constraint blending */
-			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
-		}
-	}
-	
-	/* this pose is now in src time */
-	dst->ctime= src->ctime;
-}
-
-void game_free_pose(bPose *pose)
-{
-	if (pose) {
-		/* we don't free constraints, those are owned by the original pose */
-		if(pose->chanbase.first)
-			BLI_freelistN(&pose->chanbase);
-		
 		MEM_freeN(pose);
 	}
 }
@@ -818,7 +749,7 @@ void pose_remove_group (Object *ob)
 	}
 }
 
-/* ************** time ****************** */
+/* ************** F-Curve Utilities for Actions ****************** */
 
 /* Check if the given action has any keyframes */
 short action_has_motion(const bAction *act)
@@ -915,6 +846,98 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 		*end= 1.0f;
 	}
 }
+
+/* Return flags indicating which transforms the given object/posechannel has 
+ *	- if 'curves' is provided, a list of links to these curves are also returned
+ */
+short action_get_item_transforms (bAction *act, Object *ob, bPoseChannel *pchan, ListBase *curves)
+{
+	PointerRNA ptr;
+	FCurve *fcu;
+	char *basePath=NULL;
+	short flags=0;
+	
+	/* build PointerRNA from provided data to obtain the paths to use */
+	if (pchan)
+		RNA_pointer_create((ID *)ob, &RNA_PoseChannel, pchan, &ptr);
+	else if (ob)
+		RNA_id_pointer_create((ID *)ob, &ptr);
+	else	
+		return 0;
+		
+	/* get the basic path to the properties of interest */
+	basePath= RNA_path_from_ID_to_struct(&ptr);
+	if (basePath == NULL)
+		return 0;
+		
+	/* search F-Curves for the given properties 
+	 *	- we cannot use the groups, since they may not be grouped in that way...
+	 */
+	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+		char *bPtr=NULL, *pPtr=NULL;
+		
+		/* if enough flags have been found, we can stop checking unless we're also getting the curves */
+		if ((flags == ACT_TRANS_ALL) && (curves == NULL))
+			break;
+			
+		/* just in case... */
+		if (fcu->rna_path == NULL)
+			continue;
+		
+		/* step 1: check for matching base path */
+		bPtr= strstr(fcu->rna_path, basePath);
+		
+		if (bPtr) {
+			/* step 2: check for some property with transforms 
+			 *	- to speed things up, only check for the ones not yet found 
+			 * 	  unless we're getting the curves too
+			 *	- if we're getting the curves, the BLI_genericNodeN() creates a LinkData
+			 *	  node wrapping the F-Curve, which then gets added to the list
+			 *	- once a match has been found, the curve cannot possibly be any other one
+			 */
+			if ((curves) || (flags & ACT_TRANS_LOC) == 0) {
+				pPtr= strstr(fcu->rna_path, "location");
+				if ((pPtr) && (pPtr >= bPtr)) {
+					flags |= ACT_TRANS_LOC;
+					
+					if (curves) 
+						BLI_addtail(curves, BLI_genericNodeN(fcu));
+					continue;
+				}
+			}
+			
+			if ((curves) || (flags & ACT_TRANS_SCALE) == 0) {
+				pPtr= strstr(fcu->rna_path, "scale");
+				if ((pPtr) && (pPtr >= bPtr)) {
+					flags |= ACT_TRANS_SCALE;
+					
+					if (curves) 
+						BLI_addtail(curves, BLI_genericNodeN(fcu));
+					continue;
+				}
+			}
+			
+			if ((curves) || (flags & ACT_TRANS_ROT) == 0) {
+				pPtr= strstr(fcu->rna_path, "rotation");
+				if ((pPtr) && (pPtr >= bPtr)) {
+					flags |= ACT_TRANS_ROT;
+					
+					if (curves) 
+						BLI_addtail(curves, BLI_genericNodeN(fcu));
+					continue;
+				}
+			}
+		}
+	}
+	
+	/* free basePath */
+	MEM_freeN(basePath);
+	
+	/* return flags found */
+	return flags;
+}
+
+/* ************** Pose Management Tools ****************** */
 
 /* Copy the data from the action-pose (src) into the pose */
 /* both args are assumed to be valid */
@@ -1156,138 +1179,6 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 	}
 	
 	VecAddf(dst->cyclic_offset, dst->cyclic_offset, src->cyclic_offset);
-}
-
-typedef struct NlaIpoChannel {
-	struct NlaIpoChannel *next, *prev;
-	float val;
-	void *poin;
-	int type;
-} NlaIpoChannel;
-
-void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, const char *name, float ctime)
-{
-	bActionChannel *achan= get_action_channel(act, name);
-	IpoCurve *icu;
-	NlaIpoChannel *nic;
-	
-	if(achan==NULL) return;
-	
-	if(achan->ipo) {
-		calc_ipo(achan->ipo, ctime);
-		
-		for(icu= achan->ipo->curve.first; icu; icu= icu->next) {
-			/* skip IPO_BITS, is for layers and cannot be blended */
-			if(icu->vartype != IPO_BITS) {
-				nic= MEM_callocN(sizeof(NlaIpoChannel), "NlaIpoChannel");
-				BLI_addtail(lb, nic);
-				nic->val= icu->curval;
-				nic->poin= get_ipo_poin(id, icu, &nic->type);
-			}
-		}
-	}
-	
-	/* constraint channels only for objects */
-	if(GS(id->name)==ID_OB) {
-		Object *ob= (Object *)id;
-		bConstraint *con;
-		bConstraintChannel *conchan;
-		
-		for (con=ob->constraints.first; con; con=con->next) {
-			conchan = get_constraint_channel(&achan->constraintChannels, con->name);
-			
-			if(conchan && conchan->ipo) {
-				calc_ipo(conchan->ipo, ctime);
-				
-				icu= conchan->ipo->curve.first;	// only one ipo now
-				if(icu) {
-					nic= MEM_callocN(sizeof(NlaIpoChannel), "NlaIpoChannel constr");
-					BLI_addtail(lb, nic);
-					nic->val= icu->curval;
-					nic->poin= &con->enforce;
-					nic->type= IPO_FLOAT;
-				}
-			}
-		}
-	}
-}
-
-static NlaIpoChannel *find_nla_ipochannel(ListBase *lb, void *poin)
-{
-	NlaIpoChannel *nic;
-	
-	if(poin) {
-		for(nic= lb->first; nic; nic= nic->next) {
-			if(nic->poin==poin)
-				return nic;
-		}
-	}
-	return NULL;
-}
-
-
-static void blend_ipochannels(ListBase *dst, ListBase *src, float srcweight, int mode)
-{
-	NlaIpoChannel *snic, *dnic, *next;
-	float dstweight;
-	
-	switch (mode){
-		case ACTSTRIPMODE_BLEND:
-			dstweight = 1.0F - srcweight;
-			break;
-		case ACTSTRIPMODE_ADD:
-			dstweight = 1.0F;
-			break;
-		default :
-			dstweight = 1.0F;
-	}
-	
-	for(snic= src->first; snic; snic= next) {
-		next= snic->next;
-		
-		dnic= find_nla_ipochannel(dst, snic->poin);
-		if(dnic==NULL) {
-			/* remove from src list, and insert in dest */
-			BLI_remlink(src, snic);
-			BLI_addtail(dst, snic);
-		}
-		else {
-			/* we do the blend */
-			dnic->val= dstweight*dnic->val + srcweight*snic->val;
-		}
-	}
-}
-
-int execute_ipochannels(ListBase *lb)
-{
-	NlaIpoChannel *nic;
-	int count = 0;
-	
-	for(nic= lb->first; nic; nic= nic->next) {
-		if(nic->poin) {
-			write_ipo_poin(nic->poin, nic->type, nic->val);
-			count++;
-		}
-	}
-	return count;
-}
-
-/* nla timing */
-
-/* this now only used for repeating cycles, to enable fields and blur. */
-/* the whole time control in blender needs serious thinking... */
-static float nla_time(Scene *scene, float cfra, float unit)
-{
-	extern float bluroffs;	// bad construct, borrowed from object.c for now
-	extern float fieldoffs;
-	
-	/* motion blur & fields */
-	cfra+= unit*(bluroffs+fieldoffs);
-	
-	/* global time */
-	cfra*= scene->r.framelen;	
-	
-	return cfra;
 }
 
 /* added "sizecorr" here, to allow armatures to be scaled and still have striding.

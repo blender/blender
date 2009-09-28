@@ -33,7 +33,7 @@
 
 #ifdef RNA_RUNTIME
 
-PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
+static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 

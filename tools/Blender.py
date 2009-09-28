@@ -171,7 +171,7 @@ def setup_syslibs(lenv):
 
 	syslibs += Split(lenv['BF_FREETYPE_LIB'])
 	if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
-		if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+		if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 			syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
 		else:
 			syslibs.append(lenv['BF_PYTHON_LIB'])
@@ -405,8 +405,11 @@ def PyInstall(target=None, source=None, env=None):
 		print 'Install command:', cmd
 		commands.getoutput(cmd)
 	
+	if env['WITH_BF_FHS']:	dir = os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION']) # BLENDERPATH
+	else:					dir = os.path.join(env['BF_INSTALLDIR'], '.blender')
+	
 	py_src =	env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
-	py_target =	env.subst( env['BF_INSTALLDIR'] + '/.blender/python/lib/python'+env['BF_PYTHON_VERSION'] )
+	py_target =	env.subst( dir + '/python/lib/python'+env['BF_PYTHON_VERSION'] )
 	
 	# Copied from source/creator/CMakeLists.txt, keep in sync.
 	print 'Install python from:'

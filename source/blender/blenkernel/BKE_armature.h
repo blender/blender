@@ -89,6 +89,7 @@ void where_is_armature (struct bArmature *arm);
 void where_is_armature_bone(struct Bone *bone, struct Bone *prevbone);
 void armature_rebuild_pose(struct Object *ob, struct bArmature *arm);
 void where_is_pose (struct Scene *scene, struct Object *ob);
+void where_is_pose_bone(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime);
 
 /* get_objectspace_bone_matrix has to be removed still */
 void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed);
@@ -102,10 +103,8 @@ void armature_mat_pose_to_bone(struct bPoseChannel *pchan, float inmat[][4], flo
 void armature_loc_pose_to_bone(struct bPoseChannel *pchan, float *inloc, float *outloc);
 void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4]);
 
-/*	Animation functions */
-struct PoseTree *ik_tree_to_posetree(struct Object *ob, struct Bone *bone);
-void solve_posetree(PoseTree *tree);
-void free_posetree(PoseTree *tree);
+/* Rotation Mode Conversions - Used for PoseChannels + Objects... */
+void BKE_rotMode_change_values(float quat[4], float eul[3], short oldMode, short newMode);
 
 /* B-Bone support */
 typedef struct Mat4 {

@@ -102,7 +102,7 @@ void BLF_exit(void)
 	blf_font_exit();
 }
 
-int blf_search(char *name)
+static int blf_search(char *name)
 {
 	FontBLF *font;
 	int i;

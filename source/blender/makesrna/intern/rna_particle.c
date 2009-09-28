@@ -254,7 +254,7 @@ static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
 }
 static void rna_Particle_hair_dynamics(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
+	/* Scene *scene = CTX_data_scene(C); */
 	ParticleSystem *psys = (ParticleSystem*)ptr->data;
 	
 	if(psys && !psys->clmd) {
@@ -312,9 +312,10 @@ static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 	if(value > settings->end)
 		value = settings->end;
 
-	if(settings->type==PART_REACTOR && value < 1.0)
-		value = 1.0;
-	else if (value < MINAFRAMEF)
+	//if(settings->type==PART_REACTOR && value < 1.0)
+	//	value = 1.0;
+	//else 
+	if (value < MINAFRAMEF)
 		value = MINAFRAMEF;
 
 	settings->sta = value;
@@ -506,7 +507,7 @@ EnumPropertyItem reactor_from_items[] = {
 
 static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	ParticleSettings *part = ptr->id.data;
+	/* ParticleSettings *part = ptr->id.data; */
 
 	if(C==NULL) {
 		EnumPropertyItem *item= NULL;
@@ -522,9 +523,9 @@ static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, i
 		return item;
 	}
 	
-	if(part->type==PART_REACTOR)
-		return part_reactor_from_items;
-	else
+	//if(part->type==PART_REACTOR)
+	//	return part_reactor_from_items;
+	//else
 		return part_from_items;
 }
 
@@ -767,7 +768,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem type_items[] = {
 		{PART_EMITTER, "EMITTER", 0, "Emitter", ""},
-		{PART_REACTOR, "REACTOR", 0, "Reactor", ""},
+		//{PART_REACTOR, "REACTOR", 0, "Reactor", ""},
 		{PART_HAIR, "HAIR", 0, "Hair", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
@@ -986,10 +987,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Children", "Apply effectors to children.");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "child_seams", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_SEAMS);
-	RNA_def_property_ui_text(prop, "Use seams", "Use seams to determine parents");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+	//prop= RNA_def_property(srna, "child_seams", PROP_BOOLEAN, PROP_NONE);
+	//RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_SEAMS);
+	//RNA_def_property_ui_text(prop, "Use seams", "Use seams to determine parents");
+	//RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* TODO: used somewhere? */
 	prop= RNA_def_property(srna, "child_render", PROP_BOOLEAN, PROP_NONE);
@@ -1871,10 +1872,10 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	/* access to particle settings is redirected through functions */
 	/* to allow proper id-buttons functionality */
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
 	//RNA_def_property_pointer_sdna(prop, NULL, "part");
 	RNA_def_property_struct_type(prop, "ParticleSettings");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
 	RNA_def_property_pointer_funcs(prop, "rna_particle_settings_get", "rna_particle_settings_set", NULL);
 	RNA_def_property_ui_text(prop, "Settings", "Particle system settings.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1904,9 +1905,10 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hair Dynamics", "Enable hair dynamics using cloth simulation.");
 	RNA_def_property_update(prop, 0, "rna_Particle_hair_dynamics");
 
-	prop= RNA_def_property(srna, "cloth", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "cloth", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clmd");
 	RNA_def_property_struct_type(prop, "ClothModifier");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cloth", "Cloth dynamics for hair");
 
@@ -2082,7 +2084,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* pointcache */
-	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "pointcache");
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");

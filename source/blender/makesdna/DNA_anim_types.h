@@ -632,7 +632,7 @@ typedef enum eKSP_TemplateTypes {
 	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
 	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
 	
-	KSP_TEMPLATE_PCHAN_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Pose Channel */
+	KSP_TEMPLATE_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Object or Pose Channel */
 } eKSP_TemplateTypes;
 
 /* ---------------- */
@@ -762,6 +762,11 @@ typedef enum eAnimData_Flag {
 	ADT_DRIVERS_COLLAPSED	= (1<<10),
 		/* don't execute drivers */
 	ADT_DRIVERS_DISABLED	= (1<<11),
+	
+		/* AnimData block is selected in UI */
+	ADT_UI_SELECTED			= (1<<14),
+		/* AnimData block is active in UI */
+	ADT_UI_ACTIVE			= (1<<15),
 	
 		/* F-Curves from this AnimData block are not visible in the Graph Editor */
 	ADT_CURVES_NOT_VISIBLE	= (1<<16),

@@ -44,6 +44,7 @@ extern "C" {
  * This little block needed for linking to Blender... 
  */
 #ifdef WIN32
+#include <vector>
 #include "BLI_winstuff.h"
 #endif
 

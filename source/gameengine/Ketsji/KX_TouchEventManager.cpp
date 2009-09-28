@@ -40,8 +40,7 @@
 
 KX_TouchEventManager::KX_TouchEventManager(class SCA_LogicManager* logicmgr,
 	PHY_IPhysicsEnvironment* physEnv)
-	: SCA_EventManager(TOUCH_EVENTMGR),
-	  m_logicmgr(logicmgr),
+	: SCA_EventManager(logicmgr, TOUCH_EVENTMGR),
 	  m_physEnv(physEnv)
 {
 	//notm_scene->addTouchCallback(STATIC_RESPONSE, KX_TouchEventManager::collisionResponse, this);

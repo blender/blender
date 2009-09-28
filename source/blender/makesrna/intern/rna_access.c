@@ -225,6 +225,18 @@ static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 	}
 }
 
+static int rna_ensure_property_array_check(PointerRNA *ptr, PropertyRNA *prop)
+{
+	if(prop->magic == RNA_MAGIC) {
+		return (prop->getlength || prop->totarraylength) ? 1:0;
+	}
+	else {
+		IDProperty *idprop= (IDProperty*)prop;
+
+		return idprop->type == IDP_ARRAY ? 1:0;
+	}
+}
+
 static void rna_ensure_property_multi_array_length(PointerRNA *ptr, PropertyRNA *prop, int length[])
 {
 	if(prop->magic == RNA_MAGIC) {
@@ -574,6 +586,11 @@ int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 	return rna_ensure_property_array_length(ptr, prop);
 }
 
+int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop)
+{
+	return rna_ensure_property_array_check(ptr, prop);
+}
+
 /* used by BPY to make an array from the python object */
 int RNA_property_array_dimension(PointerRNA *ptr, PropertyRNA *prop, int length[])
 {
@@ -603,7 +620,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 	PropertySubType subtype= rna_ensure_property(prop)->subtype;
 
 	/* get string to use for array index */
-	if ((index < 4) && (subtype == PROP_QUATERNION))
+	if ((index < 4) && ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE))
 		return quatitem[index];
 	else if((index < 4) && ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION))
 		return vectoritem[index];
@@ -1392,10 +1409,17 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value)
 {
-	PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	if(pprop->set)
-		pprop->set(ptr, ptr_value);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		/* not supported */
+	}
+	else {
+		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+
+		if(pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL))
+			pprop->set(ptr, ptr_value);
+	}
 }
 
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
@@ -2363,12 +2387,11 @@ char *RNA_path_back(const char *path)
 	return result;
 }
 
-char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 {
-	char *ptrpath=NULL, *path;
-	const char *propname;
+	char *ptrpath=NULL;
 
-	if(!ptr->id.data || !ptr->data || !prop)
+	if(!ptr->id.data || !ptr->data)
 		return NULL;
 	
 	if(!RNA_struct_is_ID(ptr->type)) {
@@ -2394,6 +2417,20 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		else
 			return NULL;
 	}
+	
+	return ptrpath;
+}
+
+char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+{
+	const char *propname;
+	char *ptrpath, *path;
+
+	if(!ptr->id.data || !ptr->data || !prop)
+		return NULL;
+	
+	/* path from ID to the struct holding this property */
+	ptrpath= RNA_path_from_ID_to_struct(ptr);
 
 	propname= RNA_property_identifier(prop);
 

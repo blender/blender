@@ -30,12 +30,10 @@ SET(INC
 	. ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna
 	../render/extern/include ../../../intern/decimation/extern
 	../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
-	../../../intern/iksolver/extern ../blenloader
+	../../../intern/iksolver/extern ../blenloader ../ikplugin
 	../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/audaspace/intern
-	../../../extern/lzo/minilzo
-	../../../extern/lzma
 	${ZLIB_INC}
 )
 
@@ -75,6 +73,16 @@ ENDIF(WITH_PYTHON)
 IF(NOT WITH_ELBEEM)
 	ADD_DEFINITIONS(-DDISABLE_ELBEEM)
 ENDIF(NOT WITH_ELBEEM)
+
+IF(WITH_LZO)
+	SET(INC ${INC} ../../../extern/lzo/minilzo)
+	ADD_DEFINITIONS(-DWITH_LZO)
+ENDIF(WITH_LZO)
+
+IF(WITH_LZMA)
+	SET(INC ${INC} ../../../extern/lzma)
+	ADD_DEFINITIONS(-DWITH_LZMA)
+ENDIF(WITH_LZMA)
 
 IF(WIN32)
 	SET(INC ${INC} ${PTHREADS_INC})

@@ -161,7 +161,7 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->xof= sima->xof;
 	vpd->yof= sima->yof;
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 }
 
 static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
@@ -224,7 +224,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			view_pan_exec(C, op);
 			break;
 		case MIDDLEMOUSE:
-			if(event->val==0) {
+			if(event->val==KM_RELEASE) {
 				view_pan_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -280,7 +280,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->y= event->y;
 	vpd->zoom= sima->zoom;
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 }
 
 static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
@@ -339,7 +339,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ED_area_tag_redraw(CTX_wm_area(C));
 			break;
 		case MIDDLEMOUSE:
-			if(event->val==0) {
+			if(event->val==KM_RELEASE) {
 				view_zoom_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -628,9 +628,14 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	if(!ima)
 		return OPERATOR_CANCELLED;
+	
+	/* already set later */
+	ima->id.us--;
 
-	BKE_image_signal(ima, &sima->iuser, IMA_SIGNAL_RELOAD);
-	ED_space_image_set(C, sima, scene, obedit, ima);
+	// XXX other users?
+	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
+	if(sima)
+		ED_space_image_set(C, sima, scene, obedit, ima);
 
 	return OPERATOR_FINISHED;
 }
@@ -638,7 +643,7 @@ static int open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
-	char *path= (sima->image)? sima->image->name: U.textudir;
+	char *path= (sima && sima->image)? sima->image->name: U.textudir;
 
 	if(RNA_property_is_set(op->ptr, "path"))
 		return open_exec(C, op);
@@ -651,13 +656,12 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open Image";
+	ot->name= "Open";
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */
 	ot->exec= open_exec;
 	ot->invoke= open_invoke;
-	ot->poll= ED_operator_image_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1051,8 +1055,12 @@ static int new_exec(bContext *C, wmOperator *op)
 	color[3]= RNA_float_get(op->ptr, "alpha");
 
 	ima = BKE_add_image_size(width, height, name, floatbuf, uvtestgrid, color);
-	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
-	ED_space_image_set(C, sima, scene, obedit, ima);
+	ima->id.us--; /* already set later */
+
+	if(sima) { // XXX other users?
+		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+		ED_space_image_set(C, sima, scene, obedit, ima);
+	}
 	
 	return OPERATOR_FINISHED;
 }
@@ -1066,7 +1074,6 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= new_exec;
 	ot->invoke= WM_operator_props_popup;
-	ot->poll= ED_operator_image_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1446,7 +1453,7 @@ static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	sample_apply(C, op, event);
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1614,7 +1621,7 @@ static int record_composite_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	rcd= op->customdata;
 	rcd->timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER, 0.0f);
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	if(!record_composite_apply(C, op))
 		return OPERATOR_FINISHED;

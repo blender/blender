@@ -65,7 +65,7 @@ static FT_Library	library;
 static FT_Error		err;
 
 
-void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
+static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 {
 	// Blender
 	struct Nurb *nu;
@@ -275,7 +275,7 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 	}
 }
 
-int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
+static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 {
 	// Freetype2
 	FT_Face face;

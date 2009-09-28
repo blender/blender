@@ -1122,13 +1122,13 @@ static int snap_menu_invoke(bContext *C, wmOperator *unused, wmEvent *event)
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Snap", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_grid");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_cursor");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_center");
+	uiItemO(layout, "Selected to Grid", 0, "VIEW3D_OT_snap_selected_to_grid");
+	uiItemO(layout, "Selected to Cursor", 0, "VIEW3D_OT_snap_selected_to_cursor");
+	uiItemO(layout, "Selected to Center", 0, "VIEW3D_OT_snap_selected_to_center");
 	uiItemS(layout);
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_selected");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_grid");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_active");
+	uiItemO(layout, "Cursor to Selected", 0, "VIEW3D_OT_snap_cursor_to_selected");
+	uiItemO(layout, "Cursor to Grid", 0, "VIEW3D_OT_snap_cursor_to_grid");
+	uiItemO(layout, "Cursor to Active", 0, "VIEW3D_OT_snap_cursor_to_active");
 	
 	uiPupMenuEnd(C, pup);
 	

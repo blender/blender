@@ -269,6 +269,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\soundsystem\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\build\msvc_9\extern\solid\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\sdl\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\python\generic;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet;..\..\..\source\blender\python\api2_2x;..\..\..\source\blender\gpu;..\..\..\intern\audaspace\intern"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID;WITH_GLEXT"
@@ -718,6 +719,10 @@
 				Name="SensorsImp"
 				>
 				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_ArmatureSensor.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_MouseFocusSensor.cpp"
 					>
 				</File>
@@ -1026,6 +1031,10 @@
 			<Filter
 				Name="Sensors"
 				>
+				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_ArmatureSensor.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_MouseFocusSensor.h"
 					>

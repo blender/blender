@@ -461,6 +461,13 @@ static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 	return 0;	
 }
 
+static short snap_bezier_value(BeztEditData *bed, BezTriple *bezt)
+{
+	/* value to snap to is stored in the custom data -> first float value slot */
+	if (bezt->f2 & SELECT)
+		bezt->vec[1][1]= bed->f1;
+	return 0;
+}
 
 BeztEditFunc ANIM_editkeyframes_snap(short type)
 {
@@ -476,6 +483,8 @@ BeztEditFunc ANIM_editkeyframes_snap(short type)
 			return snap_bezier_nearestsec;
 		case SNAP_KEYS_HORIZONTAL: /* snap handles to same value */
 			return snap_bezier_horizontal;
+		case SNAP_KEYS_VALUE: /* snap to given value */
+			return snap_bezier_value;
 		default: /* just in case */
 			return snap_bezier_nearest;
 	}
@@ -685,12 +694,22 @@ static short set_keytype_breakdown(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+static short set_keytype_extreme(BeztEditData *bed, BezTriple *bezt) 
+{
+	if (bezt->f2 & SELECT) 
+		BEZKEYTYPE(bezt)= BEZT_KEYTYPE_EXTREME;
+	return 0;
+}
+
 /* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
 BeztEditFunc ANIM_editkeyframes_keytype(short code)
 {
 	switch (code) {
 		case BEZT_KEYTYPE_BREAKDOWN: /* breakdown */
 			return set_keytype_breakdown;
+			
+		case BEZT_KEYTYPE_EXTREME: /* extreme keyframe */
+			return set_keytype_extreme;
 			
 		case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */	
 		default:

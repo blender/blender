@@ -244,7 +244,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 				m_tablet = fpWTOpen( m_hWnd, &lc, TRUE );
 				if (m_tablet) {
 					m_tabletData = new GHOST_TabletData();
-					m_tabletData->Active = 0;
+					m_tabletData->Active = GHOST_kTabletModeNone;
 				}
 			}
 		}
@@ -704,7 +704,7 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
 				}
 			}
 
-			m_tabletData->Active = 0;
+			m_tabletData->Active = GHOST_kTabletModeNone;
 		}
 	}
 }
@@ -720,15 +720,15 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 					switch (pkt.pkCursor) {
 						case 0: /* first device */
 						case 3: /* second device */
-							m_tabletData->Active = 0; /* puck - not yet supported */
+							m_tabletData->Active = GHOST_kTabletModeNone; /* puck - not yet supported */
 							break;
 						case 1:
 						case 4:
-							m_tabletData->Active = 1; /* stylus */
+							m_tabletData->Active = GHOST_kTabletModeStylus; /* stylus */
 							break;
 						case 2:
 						case 5:
-							m_tabletData->Active = 2; /* eraser */
+							m_tabletData->Active = GHOST_kTabletModeEraser; /* eraser */
 							break;
 					}
 					if (m_maxPressure > 0) {

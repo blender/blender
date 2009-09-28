@@ -210,7 +210,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		WM_cursor_modal(window, BC_NSEW_SCROLLCURSOR);
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &window->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -237,7 +237,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				/* calculate overall delta mouse-movement for redo */
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
@@ -764,7 +764,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		WM_cursor_modal(window, BC_NSEW_SCROLLCURSOR);
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &window->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -836,7 +836,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				/* for redo, store the overall deltas - need to respect zoom-locks here... */
 				if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)
 					RNA_float_set(op->ptr, "deltax", vzd->dx);
@@ -1244,7 +1244,7 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
-			if (event->val==0) {
+			if (event->val==KM_RELEASE) {
 				scroller_activate_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -1292,7 +1292,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			v2d->scroll_ui |= V2D_SCROLL_V_ACTIVE;
 		
 		/* still ok, so can add */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
@@ -1409,7 +1409,7 @@ void ui_view2d_operatortypes(void)
 
 void UI_view2d_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm, "View2D", 0, 0);
 	
 	/* pan/scroll */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
@@ -1445,7 +1445,7 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	/* Alternative keymap for buttons listview */
-	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	keymap= WM_keymap_find(wm, "View2D Buttons List", 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);

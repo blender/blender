@@ -40,7 +40,7 @@ KX_StateActuator::KX_StateActuator(
 	int operation,
 	unsigned int mask
 	) 
-	: SCA_IActuator(gameobj),
+	: SCA_IActuator(gameobj, KX_ACT_STATE),
 	  m_operation(operation),
 	  m_mask(mask)
 {

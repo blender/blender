@@ -54,6 +54,7 @@ EnumPropertyItem beztriple_interpolation_mode_items[] = {
 EnumPropertyItem beztriple_keyframe_type_items[] = {
 		{BEZT_KEYTYPE_KEYFRAME, "KEYFRAME", 0, "Keyframe", ""},
 		{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", ""},
+		{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -66,7 +67,7 @@ EnumPropertyItem beztriple_keyframe_type_items[] = {
 
 #include "WM_api.h"
 
-StructRNA *rna_Curve_refine(PointerRNA *ptr)
+static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
 	short obtype= curve_type(cu);

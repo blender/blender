@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="NG_network"
 	ProjectGUID="{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}"
+	RootNamespace="NG_network"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -191,6 +192,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"

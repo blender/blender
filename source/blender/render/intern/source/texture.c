@@ -1631,7 +1631,7 @@ void do_material_tex(ShadeInput *shi)
 	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
-	float nu[3], nv[3], nn[3] = {0,0,0}, dudnu = 1.f, dudnv = 0.f, dvdnu = 0.f, dvdnv = 1.f; // bump mapping
+	float nu[3] = {0,0,0}, nv[3] = {0,0,0}, nn[3] = {0,0,0}, dudnu = 1.f, dudnv = 0.f, dvdnu = 0.f, dvdnv = 1.f; // bump mapping
 	int nunvdone= 0;
 
 	if (R.r.scemode & R_NO_TEX) return;

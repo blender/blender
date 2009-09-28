@@ -9,9 +9,13 @@ incs += ' #/extern/glew/include'
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_GETTEXT_INC']
 
-defs = ''
+defs = []
 
 if sys.platform == 'win32':
-	defs += ' _WIN32 USE_GETTEXT_DLL'
+	defs.append('_WIN32')
+	defs.append('USE_GETTEXT_DLL')
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('INTERNATIONAL')
 
 env.BlenderLib ( 'bf_blenfont', sources, Split(incs), Split(defs), libtype=['core','player'], priority=[210,210] )

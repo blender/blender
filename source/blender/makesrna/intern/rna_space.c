@@ -38,8 +38,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_paint.h"
-
+#include "WM_api.h"
 #include "WM_types.h"
 
 EnumPropertyItem space_type_items[] = {
@@ -80,11 +79,15 @@ static EnumPropertyItem dc_all_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_Z, DC_LC
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_paint.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
@@ -209,9 +212,18 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 		return dc_rgb_items;
 }
 
+static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+
+	curvemapping_do_ibuf(sima->cumap, ED_space_image_buffer(sima));
+	WM_event_add_notifier(C, NC_IMAGE, sima->image);
+}
+
+
 /* Space Text Editor */
 
-void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
+static void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
 {
 	SpaceText *st= (SpaceText*)(ptr->data);
 
@@ -219,7 +231,7 @@ void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
 	st->left= 0;
 }
 
-void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceText *st= (SpaceText*)(ptr->data);
 
@@ -227,16 +239,9 @@ void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 	st->top= 0;
 }
 
-void rna_SpaceFileBrowser_params_set(PointerRNA *ptr, PointerRNA value)
-{
-	SpaceFile *sfile= (SpaceFile*)(ptr->data);
-
-	sfile->params= value.data;
-}
-
 /* Space Properties */
 
-StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
+static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
 
@@ -246,7 +251,7 @@ StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 	return &RNA_ID;
 }
 
-void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
+static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
 
@@ -311,10 +316,34 @@ static void rna_View3D_display_background_image_set(PointerRNA *ptr, int value)
 }
 
 /* Space Time */
+
 static void rna_SpaceTime_redraw_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceTime *st= (SpaceTime*)ptr->data;
 	ED_screen_animation_timer_update(C, st->redraws);
+}
+
+/* Space Dopesheet */
+
+static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceAction *saction= (SpaceAction*)(ptr->data);
+	saction->action= value.data;
+}
+
+static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceAction *saction= (SpaceAction*)(ptr->data);
+	Object *obact= CTX_data_active_object(C);
+
+	/* we must set this action to be the one used by active object (if not pinned) */
+	if(obact && saction->pin == 0) {
+		AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+		
+		/* set action */
+		adt->action= saction->action;
+		id_us_plus(&adt->action->id);
+	}
 }
 
 #else
@@ -491,7 +520,8 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -572,11 +602,9 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "localview", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "localview", 0);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	prop= RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
 	RNA_def_property_ui_text(prop, "Local View", "Display an isolated sub-set of objects, apart from the scene visibility.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
@@ -717,10 +745,11 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{BCONTEXT_SCENE, "SCENE", ICON_SCENE, "Scene", "Scene"},
 		{BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
 		{BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
-		{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraint", "Constraint"},
-		{BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifier", "Modifier"},
+		{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraints", "Constraints"},
+		{BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifiers", "Modifiers"},
 		{BCONTEXT_DATA, "DATA", 0, "Data", "Data"},
 		{BCONTEXT_BONE, "BONE", ICON_BONE_DATA, "Bone", "Bone"},
+		{BCONTEXT_BONE_CONSTRAINT, "BONE_CONSTRAINT", ICON_CONSTRAINT, "Bone Constraints", "Bone Constraints"},
 		{BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
 		{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
 		{BCONTEXT_PARTICLE, "PARTICLE", ICON_PARTICLES, "Particle", "Particle"},
@@ -779,7 +808,8 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
-	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
@@ -787,7 +817,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "curves", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "cumap");
 	RNA_def_property_ui_text(prop, "Curves", "Color curve mapping to use for displaying the image.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_curves_update");
 
 	prop= RNA_def_property(srna, "image_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pin", 0);
@@ -808,7 +838,8 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* uv */
-	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SpaceUVEditor");
 	RNA_def_property_pointer_funcs(prop, "rna_SpaceImageEditor_uvedit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "UV Editor", "UV editor settings.");
@@ -1036,6 +1067,13 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SpaceDopeSheetEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceAction");
 	RNA_def_struct_ui_text(srna, "Space DopeSheet Editor", "DopeSheet space data.");
+
+	/* data */
+	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceDopeSheetEditor_action_set", NULL);
+	RNA_def_property_ui_text(prop, "Action", "Action displayed and edited in this space.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, "rna_SpaceDopeSheetEditor_action_update");
 	
 	/* mode */
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -1197,6 +1235,11 @@ static void rna_def_space_time(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "play_sequencer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_SEQ);
 	RNA_def_property_ui_text(prop, "Sequencer Windows", "");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
+	
+	prop= RNA_def_property(srna, "play_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_NODES);
+	RNA_def_property_ui_text(prop, "Node Windows", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	/* Other options */
@@ -1422,7 +1465,6 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "params", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "params");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceFileBrowser_params_set", NULL);
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser.");
 }
 

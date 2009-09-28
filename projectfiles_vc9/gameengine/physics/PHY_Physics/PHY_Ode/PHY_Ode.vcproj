@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="PHY_Ode"
 	ProjectGUID="{EC405272-28E3-4840-AAC2-53D6DE4E163D}"
+	RootNamespace="PHY_Ode"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -264,6 +265,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"

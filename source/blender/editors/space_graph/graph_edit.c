@@ -1296,8 +1296,7 @@ void GRAPH_OT_handle_type (wmOperatorType *ot)
 /* set of three euler-rotation F-Curves */
 typedef struct tEulerFilter {
 	ID *id;							/* ID-block which owns the channels */
-	FCurve *fcu1, *fcu2, *fcu3;		/* x,y,z rotation curves */
-	int i1, i2, i3;					/* current index for each curve */
+	FCurve (*fcurves)[3];			/* 3 Pointers to F-Curves */				
 } tEulerFilter;
  
 static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
@@ -1336,7 +1335,7 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 		if (ELEM(0, fcu->rna_path, strstr(fcu->rna_path, "rotation")))
 			continue;
 		if (strstr(fcu->rna_path, "pose.pose_channels")) {
-			if (strstr(fcu->rna_path, "euler_rotation") == 0)
+			if (strstr(fcu->rna_path, "rotation_euler") == 0)
 				continue;
 		}
 		
@@ -1345,12 +1344,30 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 		 *	- first check if id-blocks are compatible
 		 */
 		if ((euf) && (ale->id != euf->id)) {
+			/* if the paths match, add this curve to the set of curves */
+			// NOTE: simple string compare for now... could be a bit more fancy...
 			
 		}
+		else {
+			/* just add to a new block */
+			euf= MEM_callocN(sizeof(tEulerFilter), "tEulerFilter");
+			BLI_addtail(&eulers, euf);
+			
+			euf->id= ale->id;
+			euf->fcurves[fcu->array_index]= fcu;
+		}
 	}
+	BLI_freelistN(&anim_data);
 	
-	// XXX for now
-	return OPERATOR_CANCELLED;
+	/* step 2: go through each set of curves, processing the values at each keyframe 
+	 *	- it is assumed that there must be a full set of keyframes at each keyframe position
+	 */
+	for (euf= eulers.first; euf; euf= euf->next) {
+		
+	}
+	BLI_freelistN(&eulers);
+	
+	return OPERATOR_FINISHED;
 }
  
 void GRAPH_OT_euler_filter (wmOperatorType *ot)
@@ -1710,13 +1727,18 @@ static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *eve
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
 		FModifierTypeInfo *fmi= get_fmodifier_typeinfo(i);
+		PointerRNA props_ptr;
 		
 		/* check if modifier is valid for this context */
 		if (fmi == NULL)
 			continue;
 		
-		/* add entry to add this type of modifier */
-		uiItemEnumO(layout, fmi->name, 0, "GRAPH_OT_fmodifier_add", "type", i);
+		/* create operator menu item with relevant properties filled in */
+		props_ptr= uiItemFullO(layout, fmi->name, 0, "GRAPH_OT_fmodifier_add", NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+			/* the only thing that gets set from the menu is the type of F-Modifier to add */
+		RNA_enum_set(&props_ptr, "type", i);
+			/* the following properties are just repeats of existing ones... */
+		RNA_boolean_set(&props_ptr, "only_active", RNA_boolean_get(op->ptr, "only_active"));
 	}
 	uiItemS(layout);
 	
@@ -1728,36 +1750,41 @@ static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *eve
 static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	FCurve *fcu;
-	FModifier *fcm;
+	int filter;
 	short type;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-		
-		// xxx call the raw methods here instead?
-	ale= get_active_fcurve_channel(&ac);
-	if (ale == NULL) 
-		return OPERATOR_CANCELLED;
 	
-	fcu= (FCurve *)ale->data;
-	MEM_freeN(ale);
-	if (fcu == NULL) 
-		return OPERATOR_CANCELLED;
-		
 	/* get type of modifier to add */
 	type= RNA_enum_get(op->ptr, "type");
 	
-	/* add F-Modifier of specified type to active F-Curve, and make it the active one */
-	fcm= add_fmodifier(&fcu->modifiers, type);
-	if (fcm)
-		set_active_fmodifier(&fcu->modifiers, fcm);
-	else {
-		BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added. See console for details.");
-		return OPERATOR_CANCELLED;
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	if (RNA_boolean_get(op->ptr, "only_active"))
+		filter |= ANIMFILTER_ACTIVE;
+	else
+		filter |= ANIMFILTER_SEL;
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* smooth keyframes */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->data;
+		FModifier *fcm;
+		
+		/* add F-Modifier of specified type to active F-Curve, and make it the active one */
+		fcm= add_fmodifier(&fcu->modifiers, type);
+		if (fcm)
+			set_active_fmodifier(&fcu->modifiers, fcm);
+		else { // TODO: stop when this happens?
+			BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added. See console for details.");
+			break;
+		}
 	}
+	BLI_freelistN(&anim_data);
 	
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
@@ -1779,13 +1806,14 @@ void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= graph_fmodifier_add_invoke;
 	ot->exec= graph_fmodifier_add_exec;
-	ot->poll= graphop_active_fcurve_poll; 
+	ot->poll= graphop_selected_fcurve_poll; 
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve.");
 }
 
 /* ************************************************************************** */

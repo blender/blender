@@ -127,7 +127,7 @@ void new_tstripdata(Sequence *seq)
 
 /* free */
 
-void free_proxy_seq(Sequence *seq)
+static void free_proxy_seq(Sequence *seq)
 {
 	if (seq->strip && seq->strip->proxy && seq->strip->proxy->anim) {
 		IMB_free_anim(seq->strip->proxy->anim);
@@ -682,7 +682,7 @@ void clear_scene_in_allseqs(Scene *sce)
 	}
 }
 
-char *give_seqname_by_type(int type)
+static char *give_seqname_by_type(int type)
 {
 	switch(type) {
 	case SEQ_META:	     return "Meta";
@@ -949,7 +949,7 @@ static TStripElem* alloc_tstripdata(int len, const char * name)
 	return se;
 }
 
-TStripElem *give_tstripelem(Sequence *seq, int cfra)
+static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 {
 	TStripElem *se;
 	int nr;
@@ -1297,7 +1297,7 @@ static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int re
 	se->ibuf = 0;
 }
 
-void seq_proxy_rebuild(Scene *scene, Sequence * seq)
+static void seq_proxy_rebuild(Scene *scene, Sequence * seq)
 {
 	int cfra;
 	float rsize = seq->strip->proxy->size;
@@ -2623,7 +2623,7 @@ ImBuf *give_ibuf_seq(Scene *scene, int rectx, int recty, int cfra, int chanshown
 }
 
 /* check used when we need to change seq->blend_mode but not to effect or audio strips */
-int seq_can_blend(Sequence *seq)
+static int seq_can_blend(Sequence *seq)
 {
 	if (ELEM4(seq->type, SEQ_IMAGE, SEQ_META, SEQ_SCENE, SEQ_MOVIE)) {
 		return 1;
@@ -2749,7 +2749,7 @@ static void *seq_prefetch_thread(void * This_)
 	return 0;
 }
 
-void seq_start_threads(Scene *scene)
+static void seq_start_threads(Scene *scene)
 {
 	int i;
 
@@ -2782,7 +2782,7 @@ void seq_start_threads(Scene *scene)
 	BLI_init_threads(0, 0, 0);
 }
 
-void seq_stop_threads()
+static void seq_stop_threads()
 {
 	PrefetchThread *tslot;
 	PrefetchQueueElem *e;
@@ -2850,7 +2850,7 @@ void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown,
 	pthread_mutex_unlock(&wakeup_lock);
 }
 
-void seq_wait_for_prefetch_ready()
+static void seq_wait_for_prefetch_ready()
 {
 	PrefetchThread *tslot;
 
@@ -2984,7 +2984,7 @@ static void free_anim_seq(Sequence *seq)
 	}
 }
 
-void free_imbuf_seq_except(Scene *scene, int cfra)
+static void free_imbuf_seq_except(Scene *scene, int cfra)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
@@ -3178,7 +3178,7 @@ void free_imbuf_seq()
 }
 #endif 
 
-void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
+static void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 {
 	/* force update of all sequences with this ipo, on ipo changes */
 	Editing *ed= seq_give_editing(scene, FALSE);

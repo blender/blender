@@ -986,4 +986,3 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   
   _totalStepsBig++;
 }
-

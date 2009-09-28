@@ -35,8 +35,9 @@
 #endif
 
 
-SCA_EventManager::SCA_EventManager(EVENT_MANAGER_TYPE mgrtype)
-	:m_mgrtype(mgrtype)
+SCA_EventManager::SCA_EventManager(SCA_LogicManager* logicmgr, EVENT_MANAGER_TYPE mgrtype)
+	:m_logicmgr(logicmgr),
+	m_mgrtype(mgrtype)
 {
 }
 

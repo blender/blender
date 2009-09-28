@@ -463,6 +463,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_texture(C, path);
 			break;
 		case BCONTEXT_BONE:
+		case BCONTEXT_BONE_CONSTRAINT:
 			found= buttons_context_path_bone(path);
 			if(!found)
 				found= buttons_context_path_data(path, OB_ARMATURE);
@@ -553,7 +554,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			"world", "object", "mesh", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
 			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
-			"cloth", "soft_body", "fluid", "smoke", "smoke_hr", "collision", "brush", NULL};
+			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;

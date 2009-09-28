@@ -67,7 +67,7 @@ typedef struct ChildParticle {
 	int pa[4];			/* nearest particles to the child, used for the interpolation */
 	float w[4];			/* interpolation weights for the above particles */
 	float fuv[4], foffset; /* face vertex weights and offset */
-	float rand[3];
+	float rt;
 } ChildParticle;
 
 typedef struct ParticleTarget {
@@ -234,13 +234,17 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct ListBase ptcaches;
 
 	struct KDTree *tree;					/* used for interactions with self and other systems */
+
+	struct ParticleDrawData *pdd;
+
+	float *frand;							/* array of 1024 random floats for fast lookups */
 }ParticleSystem;
 
 /* part->type */
 /* hair is allways baked static in object/geometry space */
 /* other types (normal particles) are in global space and not static baked */
 #define PART_EMITTER		0
-#define PART_REACTOR		1
+//#define PART_REACTOR		1
 #define PART_HAIR			2
 #define PART_FLUID			3
 
@@ -325,7 +329,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_DRAW_EMITTER	8	/* render emitter also */
 #define PART_DRAW_HEALTH	16
 #define PART_ABS_PATH_TIME  32
-//#define PART_DRAW_TRAIL		64
+//#define PART_DRAW_TRAIL		64	/* deprecated */
 #define PART_DRAW_BB_LOCK	128
 #define PART_DRAW_PARENT	256
 #define PART_DRAW_NUM		512
@@ -422,13 +426,13 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024
 #define PSYS_EDITED			2048
-//#define PSYS_PROTECT_CACHE	4096
+//#define PSYS_PROTECT_CACHE	4096 /* deprecated */
 #define PSYS_DISABLED		8192
 
 /* pars->flag */
 #define PARS_UNEXIST		1
 #define PARS_NO_DISP		2
-//#define PARS_STICKY			4
+//#define PARS_STICKY			4 /* deprecated */
 #define PARS_REKEY			8
 
 /* pars->alive */

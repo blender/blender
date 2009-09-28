@@ -42,7 +42,7 @@ struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
 struct bNodeStack;
-struct uiBlock;
+struct uiLayout;
 struct rctf;
 struct ListBase;
 struct RenderData;
@@ -52,6 +52,7 @@ struct Tex;
 struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
+struct PointerRNA;
 
 /* ************** NODE TYPE DEFINITIONS ***** */
 
@@ -82,7 +83,7 @@ typedef struct bNodeType {
 	void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **);
 	
 	/* this line is set on startup of blender */
-	int (*butfunc)(struct uiBlock *, struct bNodeTree *, struct bNode *, struct rctf *);
+	void (*uifunc)(struct uiLayout *, struct PointerRNA *ptr);
 
 	void (*initfunc)(struct bNode *);
 	void (*freestoragefunc)(struct bNode *);

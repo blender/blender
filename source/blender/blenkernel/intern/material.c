@@ -159,9 +159,9 @@ void init_material(Material *ma)
 	ma->sss_radius[0]= 1.0f;
 	ma->sss_radius[1]= 1.0f;
 	ma->sss_radius[2]= 1.0f;
-	ma->sss_col[0]= 0.8f;
-	ma->sss_col[1]= 0.8f;
-	ma->sss_col[2]= 0.8f;
+	ma->sss_col[0]= 1.0f;
+	ma->sss_col[1]= 1.0f;
+	ma->sss_col[2]= 1.0f;
 	ma->sss_error= 0.05f;
 	ma->sss_scale= 0.1f;
 	ma->sss_ior= 1.3f;

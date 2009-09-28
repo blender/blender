@@ -56,6 +56,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
+#include "BIK_api.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -334,6 +335,7 @@ static void test_constraints (Object *owner, const char substring[])
 				 *		optional... otherwise poletarget must exist too or else
 				 *		the constraint is deemed invalid
 				 */
+				/* default IK check ... */
 				if (exist_object(data->tar) == 0) {
 					data->tar = NULL;
 					curcon->flag |= CONSTRAINT_DISABLE;
@@ -355,7 +357,8 @@ static void test_constraints (Object *owner, const char substring[])
 						}
 					}
 				}
-				
+				/* ... can be overwritten here */
+				BIK_test_constraint(owner, curcon);
 				/* targets have already been checked for this */
 				continue;
 			}
@@ -702,6 +705,25 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 	}
 }
 
+void ED_object_constraint_update(Object *ob)
+{
+
+	if(ob->pose) update_pose_constraint_flags(ob->pose);
+
+	object_test_constraints(ob);
+
+	if(ob->type==OB_ARMATURE) DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
+	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+}
+
+void ED_object_constraint_dependency_update(Scene *scene, Object *ob)
+{
+	ED_object_constraint_update(ob);
+
+	if(ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
+    DAG_scene_sort(scene);
+}
+
 static int constraint_poll(bContext *C)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
@@ -717,6 +739,10 @@ static int constraint_delete_exec (bContext *C, wmOperator *op)
 	
 	/* remove constraint itself */
 	lb= get_active_constraints(ob);
+	if (BLI_findindex(lb, con) == -1)
+		/* abnormal situation which happens on bone constraint when the armature is not in pose mode */
+		return OPERATOR_CANCELLED;
+
 	free_constraint_data(con);
 	BLI_freelinkN(lb, con);
 	
@@ -823,17 +849,22 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	/* free constraints for all selected bones */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
 	{
 		free_constraints(&pchan->constraints);
+		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_CONST);
 	}
 	CTX_DATA_END;
 	
+	/* force depsgraph to get recalculated since relationships removed */
+	DAG_scene_sort(scene);		/* sort order of objects */	
+	
 	/* do updates */
-	DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_CONSTRAINT|NA_REMOVED, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -854,14 +885,18 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 static int object_constraints_clear_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	/* do freeing */
 	// TODO: we should free constraints for all selected objects instead (to be more consistent with bones)
 	free_constraints(&ob->constraints);
 	
+	/* force depsgraph to get recalculated since relationships removed */
+	DAG_scene_sort(scene);		/* sort order of objects */	
+	
 	/* do updates */
 	DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -910,7 +945,6 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		/* restricted target-type constraints -------------- */
 		/* NOTE: for these, we cannot try to add a target object if no valid ones are found, since that doesn't work */
 			/* curve-based constraints - set the only_curve and only_ob flags */
-		case CONSTRAINT_TYPE_TRACKTO:
 		case CONSTRAINT_TYPE_CLAMPTO:
 		case CONSTRAINT_TYPE_FOLLOWPATH:
 			only_curve= 1;

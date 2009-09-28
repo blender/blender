@@ -34,7 +34,6 @@
 
 class KX_NetworkEventManager : public SCA_EventManager
 {
-	class SCA_LogicManager* m_logicmgr;
 	class NG_NetworkDeviceInterface* m_ndi;
 
 public:

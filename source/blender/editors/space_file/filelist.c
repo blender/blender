@@ -592,10 +592,12 @@ void filelist_loadimage_timer(struct FileList* filelist)
 		}
 		if (limg->done) {
 			FileImage *oimg = limg;
-			BLI_remlink(&filelist->loadimages, oimg);
 			BLI_remove_thread(&filelist->threads, oimg);
+			/* brecht: keep failed images in the list, otherwise
+			   it keeps trying to load them over and over?
+			BLI_remlink(&filelist->loadimages, oimg);
+			MEM_freeN(oimg);*/
 			limg = oimg->next;
-			MEM_freeN(oimg);
 			refresh = 1;
 		} else {
 			limg= limg->next;
@@ -802,6 +804,8 @@ static void filelist_read_library(struct FileList* filelist)
 	if(!filelist->libfiledata) {
 		int num;
 		struct direntry *file;
+
+		BLI_make_exist(filelist->dir);
 		filelist_read_dir(filelist);
 		file = filelist->filelist;
 		for(num=0; num<filelist->numfiles; num++, file++) {
@@ -1184,11 +1188,6 @@ void filelist_from_main(struct FileList *filelist)
 		id= lb->first;
 		filelist->numfiles= 0;
 		while(id) {
-			/* XXXXX TODO: the selection of the ipo blocktype might go somewhere else? 
-			if(filelist->has_func && idcode==ID_IP) {
-				if(filelist->ipotype== ((Ipo *)id)->blocktype) filelist->numfiles++;
-			}
-			else */
 			if (!filelist->hide_dot || id->name[2] != '.') {
 				filelist->numfiles++;
 			}
@@ -1214,14 +1213,6 @@ void filelist_from_main(struct FileList *filelist)
 		totlib= totbl= 0;
 		
 		while(id) {
-#if 0 
-			// XXXXX TODO: this is deprecated, checks for correct IPO block? 
-			ok= 0;
-			if(filelist->has_func && idcode==ID_IP) {
-				if(filelist->ipotype== ((Ipo *)id)->blocktype) ok= 1;
-			}
-			else ok= 1;
-#endif			
 			ok = 1;
 			if(ok) {
 				if (!filelist->hide_dot || id->name[2] != '.') {

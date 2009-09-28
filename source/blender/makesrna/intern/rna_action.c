@@ -38,7 +38,7 @@
 
 #else
 
-void rna_def_action_group(BlenderRNA *brna)
+static void rna_def_action_group(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -76,7 +76,7 @@ void rna_def_action_group(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Custom Color", "Index of custom color set.");
 }
 
-void rna_def_action(BlenderRNA *brna)
+static void rna_def_action(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -100,6 +100,8 @@ void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses.");
+
+	RNA_api_action(srna);
 }
 
 /* --------- */

@@ -49,7 +49,7 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 								   bool is3d,
 								   KX_3DSoundSettings settings,
 								   KX_SOUNDACT_TYPE type)//,
-								   : SCA_IActuator(gameobj)
+								   : SCA_IActuator(gameobj, KX_ACT_SOUND)
 {
 	m_sound = sound;
 	m_volume = volume;

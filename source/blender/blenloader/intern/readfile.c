@@ -2184,6 +2184,8 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data = ((bKinematicConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
 				data->poletar = newlibadr(fd, id->lib, data->poletar);
+				con->lin_error = 0.f;
+				con->rot_error = 0.f;
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -2331,6 +2333,7 @@ static void lib_link_armature(FileData *fd, Main *main)
 
 	while(arm) {
 		if(arm->id.flag & LIB_NEEDLINK) {
+			if (arm->adt) lib_link_animdata(fd, &arm->id, arm->adt);
 			arm->id.flag -= LIB_NEEDLINK;
 		}
 		arm= arm->id.next;
@@ -2357,6 +2360,7 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
 	arm->sketch = NULL;
+	arm->adt= newdataadr(fd, arm->adt);
 	
 	bone=arm->bonebase.first;
 	while (bone) {
@@ -3163,6 +3167,8 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->pathcachebufs.first = psys->pathcachebufs.last = 0;
 		psys->childcachebufs.first = psys->childcachebufs.last = 0;
 		psys->reactevents.first = psys->reactevents.last = 0;
+		psys->frand = NULL;
+		psys->pdd = NULL;
 
 		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache);
 
@@ -3611,6 +3617,11 @@ static void lib_link_object(FileData *fd, Main *main)
 				else if(act->type==ACT_STATE) {
 					/* bStateActuator *statea = act->data; */
 				}
+				else if(act->type==ACT_ARMATURE) {
+					bArmatureActuator *arma= act->data;
+					arma->target= newlibadr(fd, ob->id.lib, arma->target);
+					arma->subtarget= newlibadr(fd, ob->id.lib, arma->subtarget);
+				}
 				act= act->next;
 			}
 			
@@ -3671,6 +3682,10 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
+	}
+	pose->ikdata = NULL;
+	if (pose->ikparam != NULL) {
+		pose->ikparam= newdataadr(fd, pose->ikparam);
 	}
 }
 
@@ -4369,6 +4384,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->timers.first= win->timers.last= NULL;
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
+		win->modalhandlers.first= win->modalhandlers.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
 		win->gesture.first= win->gesture.last= NULL;
 
@@ -4683,7 +4699,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 							v3d->layact= v3d->localvd->layact;
 							MEM_freeN(v3d->localvd); 
 							v3d->localvd= NULL;
-							v3d->localview= 0;
 						}
 						*/
 					}
@@ -4826,7 +4841,6 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 			rv3d->ri= NULL;
 			rv3d->sms= NULL;
 			rv3d->smooth_timer= NULL;
-			rv3d->lastmode= 0;
 		}
 	}
 	
@@ -4861,6 +4875,10 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			QUATCOPY(rv3d->viewquat, v3d->viewquat);
 		}
 	}
+
+	/* this was not initialized correct always */
+	if(v3d->twtype == 0)
+		v3d->twtype= V3D_MANIP_TRANSLATE;
 }
 
 static void direct_link_screen(FileData *fd, bScreen *sc)
@@ -9346,10 +9364,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 */
 		//do_versions_ipos_to_animato(main);
 		
-		/* toolsettings */
-		for(scene= main->scene.first; scene; scene= scene->id.next)
-			scene->r.audio = scene->audio;
-		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
 		 */
@@ -9363,7 +9377,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
 
 			/* move to cameras */
-			if(sce->r.scemode & R_PANORAMA) {
+			if(sce->r.mode & R_PANORAMA) {
 				for(base=sce->base.first; base; base=base->next) {
 					ob= newlibadr(fd, lib, base->object);
 
@@ -9373,7 +9387,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 
-				sce->r.scemode &= ~R_PANORAMA;
+				sce->r.mode &= ~R_PANORAMA;
 			}
 		}
 		/* and texture trees */
@@ -9687,6 +9701,33 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		Scene *sce;
+		Object *ob;
+
+		for(sce = main->scene.first; sce; sce = sce->id.next)
+			if(sce->unit.scale_length == 0.0f)
+				sce->unit.scale_length= 1.0f;
+		
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			/* fluid-sim stuff */
+			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+			if (fluidmd) fluidmd->fss->fmd = fluidmd;
+			
+			/* rotation modes were added, but old objects would now default to being 'quaternion based' */
+			ob->rotmode= ROT_MODE_EUL;
+		}
+
+		for(sce= main->scene.first; sce; sce= sce->id.next)
+		{
+			if(sce->audio.main == 0.0)
+				sce->audio.main = 1.0;
+
+			sce->r.ffcodecdata.audio_mixrate = sce->audio.mixrate;
+			sce->r.ffcodecdata.audio_volume = sce->audio.main;
+			sce->audio.distance_model = 2.0;
+			sce->audio.doppler_factor = 1.0;
+			sce->audio.speed_of_sound = 343.3;
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10402,6 +10443,9 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 {
 	Bone *curBone;
 
+	if(arm->adt)
+		expand_animdata(fd, mainvar, arm->adt);
+
 	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
 		expand_bones(fd, mainvar, curBone);
 	}
@@ -10550,10 +10594,18 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 			bObjectActuator *oa= act->data;
 			expand_doit(fd, mainvar, oa->reference);
 		}
+		else if(act->type==ACT_ADD_OBJECT) {
+			bAddObjectActuator *aoa= act->data;
+			expand_doit(fd, mainvar, aoa->ob);
+		}
 		else if(act->type==ACT_SCENE) {
 			bSceneActuator *sa= act->data;
 			expand_doit(fd, mainvar, sa->camera);
 			expand_doit(fd, mainvar, sa->scene);
+		}
+		else if(act->type==ACT_2DFILTER) {
+			bTwoDFilterActuator *tdfa= act->data;
+			expand_doit(fd, mainvar, tdfa->text);
 		}
 		else if(act->type==ACT_ACTION) {
 			bActionActuator *aa= act->data;
@@ -10570,6 +10622,14 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		else if(act->type==ACT_MESSAGE) {
 			bMessageActuator *ma= act->data;
 			expand_doit(fd, mainvar, ma->toObject);
+		}
+		else if(act->type==ACT_PARENT) {
+			bParentActuator *pa= act->data;
+			expand_doit(fd, mainvar, pa->ob);
+		}
+		else if(act->type==ACT_ARMATURE) {
+			bArmatureActuator *arma= act->data;
+			expand_doit(fd, mainvar, arma->target);
 		}
 		act= act->next;
 	}

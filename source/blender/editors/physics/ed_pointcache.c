@@ -347,7 +347,7 @@ void ED_operatortypes_pointcache(void)
 
 //void ED_keymap_pointcache(wmWindowManager *wm)
 //{
-//	ListBase *keymap= WM_keymap_listbase(wm, "Pointcache", 0, 0);
+//	wmKeyMap *keymap= WM_keymap_find(wm, "Pointcache", 0, 0);
 //	
 //	WM_keymap_add_item(keymap, "PHYSICS_OT_bake_all", AKEY, KM_PRESS, 0, 0);
 //	WM_keymap_add_item(keymap, "PHYSICS_OT_free_all", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);

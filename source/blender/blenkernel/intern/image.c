@@ -277,7 +277,7 @@ static Image *image_alloc(const char *name, short source, short type)
 		
 		ima->xrep= ima->yrep= 1;
 		ima->aspx= ima->aspy= 1.0;
-		ima->gen_x= 256; ima->gen_y= 256;
+		ima->gen_x= 1024; ima->gen_y= 1024;
 		ima->gen_type= 1;	/* no defines yet? */
 		
 		ima->source= source;
@@ -1472,9 +1472,11 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			iuser->ok= 1;
 		break;
 	case IMA_SIGNAL_SRC_CHANGE:
-		if(ima->type==IMA_TYPE_MULTILAYER)
-			image_free_buffers(ima);
-		else if(ima->source==IMA_SRC_GENERATED) {
+		if(ima->type == IMA_TYPE_UV_TEST)
+			if(ima->source != IMA_SRC_GENERATED)
+				ima->type= IMA_TYPE_IMAGE;
+
+		if(ima->source==IMA_SRC_GENERATED) {
 			if(ima->gen_x==0 || ima->gen_y==0) {
 				ImBuf *ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
 				if(ibuf) {
@@ -1483,6 +1485,9 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 				}
 			}
 		}
+
+		image_free_buffers(ima);
+
 		ima->ok= 1;
 		if(iuser)
 			iuser->ok= 1;
@@ -2090,8 +2095,8 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 			else if(ima->source == IMA_SRC_GENERATED) {
 				/* generated is: ibuf is allocated dynamically */
 				/* UV testgrid or black or solid etc */
-				if(ima->gen_x==0) ima->gen_x= 256;
-				if(ima->gen_y==0) ima->gen_y= 256;
+				if(ima->gen_x==0) ima->gen_x= 1024;
+				if(ima->gen_y==0) ima->gen_y= 1024;
 				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;
@@ -2168,5 +2173,105 @@ void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
 		iuser->framenr= imanr;
 		if(iuser->ok==0) iuser->ok= 1;
 	}
+}
+
+/*
+  Produce image export path.
+
+  Fails returning 0 if image filename is empty or if destination path
+  matches image path (i.e. both are the same file).
+
+  Trailing slash in dest_dir is optional.
+
+  Logic:
+
+  - if an image is "below" current .blend file directory, rebuild the
+    same dir structure in dest_dir
+
+  For example //textures/foo/bar.png becomes
+  [dest_dir]/textures/foo/bar.png.
+
+  - if an image is not "below" current .blend file directory,
+  disregard it's path and copy it in the same directory where 3D file
+  goes.
+
+  For example //../foo/bar.png becomes [dest_dir]/bar.png.
+
+  This logic will help ensure that all image paths are relative and
+  that a user gets his images in one place. It'll also provide
+  consistent behaviour across exporters.
+ */
+int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size)
+{
+	char path[FILE_MAX];
+	char dir[FILE_MAX];
+	char base[FILE_MAX];
+	char blend_dir[FILE_MAX];	/* directory, where current .blend file resides */
+	char dest_path[FILE_MAX];
+	char rel_dir[FILE_MAX];
+	int len;
+
+	if (abs)
+		abs[0]= 0;
+
+	if (rel)
+		rel[0]= 0;
+
+	BLI_split_dirfile_basic(G.sce, blend_dir, NULL);
+
+	if (!strlen(im->name)) {
+		if (G.f & G_DEBUG) printf("Invalid image type.\n");
+		return 0;
+	}
+
+	BLI_strncpy(path, im->name, sizeof(path));
+
+	/* expand "//" in filename and get absolute path */
+	BLI_convertstringcode(path, G.sce);
+
+	/* get the directory part */
+	BLI_split_dirfile_basic(path, dir, base);
+
+	len= strlen(blend_dir);
+
+	rel_dir[0] = 0;
+
+	/* if image is "below" current .blend file directory */
+	if (!strncmp(path, blend_dir, len)) {
+
+		/* if image is _in_ current .blend file directory */
+		if (!strcmp(dir, blend_dir)) {
+			BLI_join_dirfile(dest_path, dest_dir, base);
+		}
+		/* "below" */
+		else {
+			/* rel = image_path_dir - blend_dir */
+			BLI_strncpy(rel_dir, dir + len, sizeof(rel_dir));
+
+			BLI_join_dirfile(dest_path, dest_dir, rel_dir);
+			BLI_join_dirfile(dest_path, dest_path, base);
+		}
+			
+	}
+	/* image is out of current directory */
+	else {
+		BLI_join_dirfile(dest_path, dest_dir, base);
+	}
+
+	if (abs)
+		BLI_strncpy(abs, dest_path, abs_size);
+
+	if (rel) {
+		strncat(rel, rel_dir, rel_size);
+		strncat(rel, base, rel_size);
+	}
+
+	/* return 2 if src=dest */
+	if (!strcmp(path, dest_path)) {
+		if (G.f & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
+		return 2;
+	}
+
+	return 1;
 }
 
