@@ -4069,7 +4069,12 @@ static int createSlideVerts(TransInfo *t)
 	//short mval[2], mvalo[2];
 	float labda = 0.0f, totvec=0.0;
 
-	view3d_get_object_project_mat(v3d, t->obedit, projectMat);
+	if (!v3d) {
+		/*ok, let's try to survive this*/
+		Mat4One(projectMat);
+	} else {
+		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
+	}
 
 	//mvalo[0] = -1; mvalo[1] = -1;
 	numsel =0;
@@ -4354,9 +4359,11 @@ static int createSlideVerts(TransInfo *t)
 					sv->down = swap;
 				}
 				
-				view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
-				view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
-				
+				if (v3d) {
+					view3d_project_float(t->ar, tempsv->up->v1->co, co, projectMat);
+					view3d_project_float(t->ar, tempsv->up->v2->co, co2, projectMat);
+				}
+
 				if (ev == tempsv->up->v1) {
 					VecSubf(vec, co, co2);
 				} else {
@@ -4365,9 +4372,11 @@ static int createSlideVerts(TransInfo *t)
 
 				VecAddf(start, start, vec);
 
-				view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
-				view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
-				
+				if (v3d) {
+					view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
+					view3d_project_float(t->ar, tempsv->down->v2->co, co2, projectMat);
+				}
+
 				if (ev == tempsv->down->v1) {
 					VecSubf(vec, co2, co);
 				} else {
@@ -4520,8 +4529,6 @@ void freeSlideVerts(TransInfo *t)
 		for (uvlay_idx=0; uvlay_idx<sld->uvlay_tot; uvlay_idx++) {
 			BLI_ghash_free(sld->uvhash[uvlay_idx], NULL, NULL);
 		}
-		MEM_freeN(sld->slideuv);
-		MEM_freeN(sld->uvhash);
 
 		suv = sld->suv_last-1;
 		while (suv >= sld->slideuv) {
@@ -4530,6 +4537,9 @@ void freeSlideVerts(TransInfo *t)
 			}
 			suv--;
 		}
+
+		MEM_freeN(sld->slideuv);
+		MEM_freeN(sld->uvhash);
 	}
 
 	MEM_freeN(sld);
@@ -4703,7 +4713,12 @@ int EdgeSlide(TransInfo *t, short mval[2])
 	CLAMP(final, -1.0f, 1.0f);
 
 	/*do stuff here*/
-	doEdgeSlide(t, final);
+	if (t->customData)
+		doEdgeSlide(t, final);
+	else {
+		strcpy(str, "Invalid Edge Selection");
+		t->state = TRANS_CANCEL;
+	}
 
 	recalcData(t);
 

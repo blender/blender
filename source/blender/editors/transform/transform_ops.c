@@ -554,8 +554,8 @@ void TFM_OT_mirror(struct wmOperatorType *ot)
 void TFM_OT_edge_slide(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Tilt";
-	ot->description= "Tilt selected control vertices of 3d curve."; 
+	ot->name   = "Edge Slide";
+	ot->description= "Slide an edge loop along a mesh."; 
 	ot->idname = OP_EDGE_SLIDE;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -566,7 +566,7 @@ void TFM_OT_edge_slide(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_editmesh;
 
-	RNA_def_float_factor(ot->srna, "value", 0, 0, 1, "Factor", "", 0, 1);
+	RNA_def_float_factor(ot->srna, "value", 0, -1.0f, 1.0f, "Factor", "", -1.0f, 1.0f);
 
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }

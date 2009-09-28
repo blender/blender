@@ -483,9 +483,8 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	/*char msg[100];
-
-	int cnt = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));*/
+	/*char msg[100];*/
+	int cnt = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));
 
 	/*XXX this messes up last operator panel
 	if(cnt)
@@ -515,7 +514,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "limit", 0.00001f, 0.000001f, 50.0f, "Merge Threshold", "Minimum distance between merged verts", 0.00001f, 10.0f);
+	RNA_def_float(ot->srna, "limit", 0.0001f, 0.000001f, 50.0f, "Merge Threshold", "Minimum distance between merged verts", 0.00001f, 2.0f);
 }
 
 // XXX is this needed?

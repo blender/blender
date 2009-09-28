@@ -265,7 +265,10 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			EditMesh *em = BKE_mesh_get_editmesh(lcd->ob->data);
 			esubdivideflag(lcd->ob, em, SELECT, 0.0f, 
 			               0.0f, 0, 1, SUBDIV_SELECT_LOOPCUT);
+			
+			DAG_id_flush_update(lcd->ob->data, OB_RECALC_DATA);
 		}
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, lcd->ob->data);
 	}
 }
 
