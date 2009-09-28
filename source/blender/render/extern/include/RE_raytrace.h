@@ -35,20 +35,31 @@
 extern "C" {
 #endif
 
-//#define RE_RAYCOUNTER			/* enable counters per ray, usefull for measuring raytrace structures performance */
+#define RE_RAYCOUNTER			/* enable counters per ray, usefull for measuring raytrace structures performance */
 
 #define RE_RAY_LCTS_MAX_SIZE	256
 #define RT_USE_LAST_HIT			/* last shadow hit is reused before raycasting on whole tree */
 //#define RT_USE_HINT			/* last hit object is reused before raycasting on whole tree */
 
+#ifdef RE_RAYCOUNTER
 
+typedef struct RayCounter RayCounter;
+struct RayCounter
+{
+
+	struct
+	{
+		unsigned long long test, hit;
+		
+	} faces, bb, simd_bb, raycast, raytrace_hint, rayshadow_last_hit;
+};
+#endif
 
 /* Internals about raycasting structures can be found on intern/raytree.h */
 typedef struct RayObject RayObject;
 typedef struct Isect Isect;
 typedef struct RayHint RayHint;
 typedef struct RayTraceHint RayTraceHint;
-typedef struct RayCounter RayCounter;
 
 struct DerivedMesh;
 struct Mesh;

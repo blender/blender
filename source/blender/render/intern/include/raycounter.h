@@ -34,17 +34,6 @@
 
 #ifdef RE_RAYCOUNTER
 
-typedef struct RayCounter RayCounter;
-struct RayCounter
-{
-
-	struct
-	{
-		unsigned long long test, hit;
-		
-	} faces, bb, simd_bb, raycast, raytrace_hint, rayshadow_last_hit;
-};
-
 /* #define RE_RC_INIT(isec, shi) (isec).count = re_rc_counter+(shi).thread */
 #define RE_RC_INIT(isec, shi) (isec).raycounter = &((shi).raycounter)
 void RE_RC_INFO (RayCounter *rc);

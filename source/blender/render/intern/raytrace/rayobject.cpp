@@ -189,6 +189,7 @@ static int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *is)
 	if(is->orig.ob == face->ob && is->orig.face == face->face)
 		return 0;
 		
+/*
 	if(is->skip & RE_SKIP_VLR_RENDER_CHECK)
 	{
 		if(vlr_check_intersect(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face ) == 0)
@@ -204,7 +205,7 @@ static int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *is)
 		if(rayface_check_cullface(face, is) == 0)
 			return 0;
 	}
-
+*/
 	RE_RC_COUNT(is->raycounter->faces.test);
 
 	//Load coords

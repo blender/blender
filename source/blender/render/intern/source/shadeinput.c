@@ -243,9 +243,9 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		shr->rayhits[1] = (float)shi->raycounter.bb.hit;
 		shr->rayhits[2] = 0.0;
 		shr->rayhits[3] = 1.0;
-		RE_RC_MERGE(&re_rc_counter[shi->thread], &shi->raycounter);
 	}
  */
+	RE_RC_MERGE(&re_rc_counter[shi->thread], &shi->raycounter);
 }
 
 /* **************************************************************************** */
