@@ -1602,7 +1602,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+			WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags & MAN_SCALE_C) {
 			switch(drawflags) {
@@ -1632,10 +1632,10 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TFM_OT_resize", WM_OP_INVOKE_REGION_WIN, op->ptr);
+			WM_operator_name_call(C, "TFM_OT_resize", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags == MAN_ROT_T) { /* trackball need special case, init is different */
-			WM_operator_name_call(C, "TFM_OT_trackball", WM_OP_INVOKE_REGION_WIN, op->ptr);
+			WM_operator_name_call(C, "TFM_OT_trackball", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags & MAN_ROT_C) {
 			switch(drawflags) {
@@ -1650,7 +1650,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TFM_OT_rotate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+			WM_operator_name_call(C, "TFM_OT_rotate", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 	}
 	/* after transform, restore drawflags */
