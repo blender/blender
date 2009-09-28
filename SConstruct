@@ -476,8 +476,8 @@ if  env['OURPLATFORM']!='darwin':
 			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
 		
 		if env['WITH_BF_PYTHON']:
-			#-- .blender/scripts, .blender/ui, .blender/io
-			scriptpaths=['release/scripts', 'release/ui', 'release/io']
+			#-- .blender/scripts
+			scriptpaths=['release/scripts']
 			for scriptpath in scriptpaths:
 				for dp, dn, df in os.walk(scriptpath):
 					if '.svn' in dn:

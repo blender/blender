@@ -139,8 +139,7 @@ IF(WITH_INSTALL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 				COMMENT "copying blender scripts..."
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/.blender/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/io ${TARGETDIR}/.blender/
+				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
 				COMMAND find ${TARGETDIR} -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
       
@@ -228,8 +227,7 @@ IF(WITH_INSTALL)
 		IF(WITH_PYTHON)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/io ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
 				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
 				COMMAND unzip -q ${LIBDIR}/release/python.zip -d ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
 				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
@@ -251,15 +249,12 @@ IF(WITH_INSTALL)
 			MAIN_DEPENDENCY blender
 			COMMAND if not exist \"${TARGETDIR}\\.blender\" mkdir \"${TARGETDIR}\\.blender\"
 			COMMAND if not exist \"${TARGETDIR}\\.blender\\locale\" mkdir \"${TARGETDIR}\\.blender\\locale\"
-			COMMAND if not exist \"${TARGETDIR}\\.blender\\ui\" mkdir \"${TARGETDIR}\\.blender\\ui\"
-			COMMAND if not exist \"${TARGETDIR}\\.blender\\io\" mkdir \"${TARGETDIR}\\.blender\\io\"
+			COMMAND if not exist \"${TARGETDIR}\\.blender\\scripts\" mkdir \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
-			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\ui\\*.*\" \"${TARGETDIR}\\.blender\\ui\"
-			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\io\\*.*\" \"${TARGETDIR}\\.blender\\io\"
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python26.zip\" \"${TARGETDIR}\\\"

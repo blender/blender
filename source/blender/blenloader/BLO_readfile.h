@@ -211,7 +211,7 @@ void BLO_library_append_named_part(const struct bContext *C, struct Main *mainl,
 void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag);
 
 /* deprecated */
-#if 0
+#if 1
 void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Main *mainvar, struct Scene *scene, struct ReportList *reports);
 #endif
 
