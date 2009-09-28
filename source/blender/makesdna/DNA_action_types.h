@@ -202,24 +202,25 @@ typedef enum ePchan_IkFlag {
 
 } ePchan_IkFlag;
 
-/* PoseChannel->rotmode */
-typedef enum ePchan_RotMode {
+/* PoseChannel->rotmode and Object->rotmode */
+typedef enum eRotationModes {
 		/* quaternion rotations (default, and for older Blender versions) */
-	PCHAN_ROT_QUAT	= 0,
+	ROT_MODE_QUAT	= 0,
 		/* euler rotations - keep in sync with enum in BLI_arithb.h */
-	PCHAN_ROT_XYZ = 1,		/* Blender 'default' (classic) - must be as 1 to sync with PoseChannel rotmode */
-	PCHAN_ROT_XZY,
-	PCHAN_ROT_YXZ,
-	PCHAN_ROT_YZX,
-	PCHAN_ROT_ZXY,
-	PCHAN_ROT_ZYX,
+	ROT_MODE_EUL = 1,		/* Blender 'default' (classic) - must be as 1 to sync with arithb defines */
+	ROT_MODE_XYZ = 1,		/* Blender 'default' (classic) - must be as 1 to sync with arithb defines */
+	ROT_MODE_XZY,
+	ROT_MODE_YXZ,
+	ROT_MODE_YZX,
+	ROT_MODE_ZXY,
+	ROT_MODE_ZYX,
 	/* NOTE: space is reserved here for 18 other possible 
 	 * euler rotation orders not implemented 
 	 */
-	PCHAN_ROT_MAX,	/* sentinel for Py API*/
+	ROT_MODE_MAX,	/* sentinel for Py API */
 		/* axis angle rotations */
-	PCHAN_ROT_AXISANGLE = -1
-} ePchan_RotMode;
+	ROT_MODE_AXISANGLE = -1
+} eRotationModes;
 
 /* Pose ------------------------------------ */
 
@@ -264,6 +265,8 @@ typedef enum ePose_Flags {
 	    /* set by game_copy_pose to indicate that this pose is used in the game engine */
 	POSE_GAME_ENGINE = (1<<6),
 } ePose_Flags;
+
+/* IK Solvers ------------------------------------ */
 
 /* bPose->iksolver and bPose->ikparam->iksolver */
 typedef enum {

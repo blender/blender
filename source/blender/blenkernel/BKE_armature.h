@@ -103,6 +103,9 @@ void armature_mat_pose_to_bone(struct bPoseChannel *pchan, float inmat[][4], flo
 void armature_loc_pose_to_bone(struct bPoseChannel *pchan, float *inloc, float *outloc);
 void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4]);
 
+/* Rotation Mode Conversions - Used for PoseChannels + Objects... */
+void BKE_rotMode_change_values(float quat[4], float eul[3], short oldMode, short newMode);
+
 /* B-Bone support */
 typedef struct Mat4 {
 	float mat[4][4];

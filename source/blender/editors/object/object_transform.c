@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 
+#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -115,13 +116,72 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			/* eulers can only get cleared if they are not protected */
-			if((ob->protectflag & OB_LOCK_ROTX)==0)
-				ob->rot[0]= ob->drot[0]= 0.0f;
-			if((ob->protectflag & OB_LOCK_ROTY)==0)
-				ob->rot[1]= ob->drot[1]= 0.0f;
-			if((ob->protectflag & OB_LOCK_ROTZ)==0)
-				ob->rot[2]= ob->drot[2]= 0.0f;
+			if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
+				/* check if convert to eulers for locking... */
+				if (ob->protectflag & OB_LOCK_ROT4D) {
+					/* perform clamping on a component by component basis */
+					if ((ob->protectflag & OB_LOCK_ROTW) == 0)
+						ob->quat[0]= (ob->rotmode == ROT_MODE_AXISANGLE) ? 0.0f : 1.0f;
+					if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+						ob->quat[1]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+						ob->quat[2]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+						ob->quat[3]= 0.0f;
+				}
+				else {
+					/* perform clamping using euler form (3-components) */
+					float eul[3], oldeul[3], quat1[4];
+					
+					if (ob->rotmode == ROT_MODE_QUAT) {
+						QUATCOPY(quat1, ob->quat);
+						QuatToEul(ob->quat, oldeul);
+					}
+					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+						AxisAngleToEulO(&ob->quat[1], ob->quat[0], oldeul, EULER_ORDER_DEFAULT);
+					}
+					else {
+						VECCOPY(oldeul, ob->rot);
+					}
+					
+					eul[0]= eul[1]= eul[2]= 0.0f;
+					
+					if (ob->protectflag & OB_LOCK_ROTX)
+						eul[0]= oldeul[0];
+					if (ob->protectflag & OB_LOCK_ROTY)
+						eul[1]= oldeul[1];
+					if (ob->protectflag & OB_LOCK_ROTZ)
+						eul[2]= oldeul[2];
+					
+					if (ob->rotmode == ROT_MODE_QUAT) {
+						EulToQuat(eul, ob->quat);
+						/* quaternions flip w sign to accumulate rotations correctly */
+						if ((quat1[0]<0.0f && ob->quat[0]>0.0f) || (quat1[0]>0.0f && ob->quat[0]<0.0f)) {
+							QuatMulf(ob->quat, -1.0f);
+						}
+					}
+					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+						AxisAngleToEulO(&ob->quat[1], ob->quat[0], oldeul, EULER_ORDER_DEFAULT);
+					}
+					else {
+						VECCOPY(ob->rot, eul);
+					}
+				}
+			}						
+			else { 
+				if (ob->rotmode == ROT_MODE_QUAT) {
+					ob->quat[1]=ob->quat[2]=ob->quat[3]= 0.0f; 
+					ob->quat[0]= 1.0f;
+				}
+				else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+					/* by default, make rotation of 0 radians around y-axis (roll) */
+					ob->quat[0]=ob->quat[1]=ob->quat[3]= 0.0f;
+					ob->quat[2]= 1.0f;
+				}
+				else {
+					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
+				}
+			}
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}

@@ -127,8 +127,8 @@ void clear_workob(Object *workob)
 {
 	memset(workob, 0, sizeof(Object));
 	
-	workob->size[0]= workob->size[1]= workob->size[2]= 1.0;
-	
+	workob->size[0]= workob->size[1]= workob->size[2]= 1.0f;
+	workob->rotmode= ROT_MODE_EUL;
 }
 
 void copy_baseflags(struct Scene *scene)
@@ -1038,6 +1038,11 @@ Object *add_object(struct Scene *scene, int type)
 	ob->data= add_obdata_from_type(type);
 
 	ob->lay= scene->lay;
+	
+	/* objects should default to having Euler XYZ rotations, 
+	 * but rotations default to quaternions 
+	 */
+	ob->rotmode= ROT_MODE_EUL;
 
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
@@ -1582,12 +1587,34 @@ void object_scale_to_mat3(Object *ob, float mat[][3])
 // TODO: this should take rotation orders into account later...
 void object_rot_to_mat3(Object *ob, float mat[][3])
 {
-	float vec[3];
+	float rmat[3][3], dmat[3][3];
 	
-	vec[0]= ob->rot[0]+ob->drot[0];
-	vec[1]= ob->rot[1]+ob->drot[1];
-	vec[2]= ob->rot[2]+ob->drot[2];
-	EulToMat3(vec, mat);
+	/* initialise the delta-rotation matrix, which will get (pre)multiplied 
+	 * with the rotation matrix to yield the appropriate rotation
+	 */
+	Mat3One(dmat);
+	
+	/* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
+	if (ob->rotmode > 0) {
+		/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
+		EulOToMat3(ob->rot, ob->rotmode, rmat);
+		EulOToMat3(ob->drot, ob->rotmode, dmat);
+	}
+	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+		/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
+		AxisAngleToMat3(&ob->quat[1], ob->quat[0], rmat);
+		AxisAngleToMat3(&ob->dquat[1], ob->dquat[0], dmat);
+	}
+	else {
+		/* quats are normalised before use to eliminate scaling issues */
+		NormalQuat(ob->quat);
+		QuatToMat3(ob->quat, rmat);
+		QuatToMat3(ob->dquat, dmat);
+	}
+	
+	/* combine these rotations */
+	// XXX is this correct? if errors, change the order of multiplication...
+	Mat3MulMat3(mat, dmat, rmat);
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -1600,14 +1627,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 	object_scale_to_mat3(ob, smat);
 
 	/* rot */
-	/* Quats arnt used yet */
-	/*if(ob->transflag & OB_QUAT) {
-		QuatMul(q1, ob->quat, ob->dquat);
-		QuatToMat3(q1, rmat);
-	}
-	else {*/
-		object_rot_to_mat3(ob, rmat);
-	/*}*/
+	object_rot_to_mat3(ob, rmat);
 	Mat3MulMat3(mat, rmat, smat);
 }
 

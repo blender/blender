@@ -57,20 +57,16 @@ class BONE_PT_transform(BoneButtonsPanel):
 
 			col = row.column()
 			if pchan.rotation_mode == 'QUATERNION':
-				col.itemR(pchan, "rotation", text="Rotation")
+				col.itemR(pchan, "rotation_quaternion", text="Rotation")
 			elif pchan.rotation_mode == 'AXIS_ANGLE':
-				col.itemL(text="Rotation")
-				col.itemR(pchan, "rotation_angle", text="Angle")
-				col.itemR(pchan, "rotation_axis", text="Axis")
+				#col.itemL(text="Rotation")
+				#col.itemR(pchan, "rotation_angle", text="Angle")
+				#col.itemR(pchan, "rotation_axis", text="Axis")
+				col.itemR(pchan, "rotation_axis_angle", text="Rotation")
 			else:
-				col.itemR(pchan, "euler_rotation", text="Rotation")
+				col.itemR(pchan, "rotation_euler", text="Rotation")
 
 			row.column().itemR(pchan, "scale")
-
-			if pchan.rotation_mode == 'QUATERNION':
-				col = layout.column(align=True)
-				col.itemL(text="Euler:")
-				col.row().itemR(pchan, "euler_rotation", text="")
 				
 class BONE_PT_transform_locks(BoneButtonsPanel):
 	__label__ = "Transform Locks"

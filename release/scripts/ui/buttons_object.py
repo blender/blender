@@ -25,11 +25,48 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 		layout = self.layout
 		
 		ob = context.object
+		
+		layout.itemR(ob, "rotation_mode")
 
 		row = layout.row()
+		
 		row.column().itemR(ob, "location")
-		row.column().itemR(ob, "rotation")
+		if ob.rotation_mode == 'QUATERNION':
+			row.column().itemR(ob, "rotation_quaternion", text="Rotation")
+		elif ob.rotation_mode == 'AXIS_ANGLE':
+			#row.column().itemL(text="Rotation")
+			#row.column().itemR(pchan, "rotation_angle", text="Angle")
+			#row.column().itemR(pchan, "rotation_axis", text="Axis")
+			row.column().itemR(ob, "rotation_axis_angle", text="Rotation")
+		else:
+			row.column().itemR(ob, "rotation_euler", text="Rotation")
+			
 		row.column().itemR(ob, "scale")
+		
+class OBJECT_PT_transform_locks(ObjectButtonsPanel):
+	__label__ = "Transform Locks"
+	__default_closed__ = True
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		
+		row = layout.row()
+		
+		col = row.column()
+		col.itemR(ob, "lock_location")
+		
+		col = row.column()
+		if ob.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
+			col.itemR(ob, "lock_rotations_4d", text="Lock Rotation")
+			if ob.lock_rotations_4d:
+				col.itemR(ob, "lock_rotation_w", text="W")
+			col.itemR(ob, "lock_rotation", text="")
+		else:
+			col.itemR(ob, "lock_rotation", text="Rotation")
+		
+		row.column().itemR(ob, "lock_scale")
 
 class OBJECT_PT_relations(ObjectButtonsPanel):
 	__label__ = "Relations"
@@ -178,6 +215,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 
 bpy.types.register(OBJECT_PT_context_object)
 bpy.types.register(OBJECT_PT_transform)
+bpy.types.register(OBJECT_PT_transform_locks)
 bpy.types.register(OBJECT_PT_relations)
 bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)

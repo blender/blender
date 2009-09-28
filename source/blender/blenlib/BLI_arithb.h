@@ -178,7 +178,7 @@ float power_of_2(float val);
  */
 
 /* Defines for rotation orders 
- * WARNING: must match the ePchan_RotMode in DNA_action_types.h
+ * WARNING: must match the eRotationModes in DNA_action_types.h
  *		   order matters - types are saved to file!
  */
 typedef enum eEulerRotationOrders {

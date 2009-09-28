@@ -814,14 +814,14 @@ void pose_copy_menu(Scene *scene)
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
 						
-						if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+						if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 							float tmp_quat[4];
 							
 							/* need to convert to quat first (in temp var)... */
 							Mat4ToQuat(delta_mat, tmp_quat);
 							QuatToAxisAngle(tmp_quat, &pchan->quat[1], &pchan->quat[0]);
 						}
-						else if (pchan->rotmode == PCHAN_ROT_QUAT)
+						else if (pchan->rotmode == ROT_MODE_QUAT)
 							Mat4ToQuat(delta_mat, pchan->quat);
 						else
 							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
@@ -1023,12 +1023,12 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				}
 				else if (pchan->rotmode > 0) {
 					/* quat/axis-angle to euler */
-					if (chan->rotmode == PCHAN_ROT_AXISANGLE)
+					if (chan->rotmode == ROT_MODE_AXISANGLE)
 						AxisAngleToEulO(&chan->quat[1], chan->quat[0], pchan->eul, pchan->rotmode);
 					else
 						QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
 				}
-				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					/* quat/euler to axis angle */
 					if (chan->rotmode > 0)
 						EulOToAxisAngle(chan->eul, chan->rotmode, &pchan->quat[1], &pchan->quat[0]);
@@ -1052,7 +1052,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 						pchan->eul[1] *= -1;
 						pchan->eul[2] *= -1;
 					}
-					else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 						float eul[3];
 						
 						AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], eul, EULER_ORDER_DEFAULT);

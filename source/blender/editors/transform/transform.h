@@ -120,20 +120,9 @@ typedef struct TransCon {
                          /* Apply function pointer for rotation transformation */
 } TransCon;
 
-typedef struct TransDataIpokey {
-	int flag;					/* which keys */
-	float *locx, *locy, *locz;	/* channel pointers */
-	float *rotx, *roty, *rotz;
-	float *quatx, *quaty, *quatz, *quatw;
-	float *sizex, *sizey, *sizez;
-	float oldloc[9];			/* storage old values */
-	float oldrot[9];
-	float oldsize[9];
-	float oldquat[12];
-} TransDataIpokey;
-
 typedef struct TransDataExtension {
 	float drot[3];		 /* Initial object drot */
+	float dquat[4];		 /* Initial object dquat */
 	float dsize[3];		 /* Initial object dsize */
     float *rot;          /* Rotation of the data to transform (Faculative)                                 */
     float  irot[3];      /* Initial rotation                                                               */
@@ -221,7 +210,6 @@ typedef struct TransData {
 	struct Object *ob;
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
-	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
 	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
     short  flag;         /* Various flags */

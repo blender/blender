@@ -213,17 +213,17 @@ static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 2; return "delta_location";
 		
 		case OB_ROT_X:
-			*array_index= 0; return "rotation";
+			*array_index= 0; return "rotation_euler";
 		case OB_ROT_Y:
-			*array_index= 1; return "rotation";
+			*array_index= 1; return "rotation_euler";
 		case OB_ROT_Z:
-			*array_index= 2; return "rotation";
+			*array_index= 2; return "rotation_euler";
 		case OB_DROT_X:
-			*array_index= 0; return "delta_rotation";
+			*array_index= 0; return "delta_rotation_euler";
 		case OB_DROT_Y:
-			*array_index= 1; return "delta_rotation";
+			*array_index= 1; return "delta_rotation_euler";
 		case OB_DROT_Z:
-			*array_index= 2; return "delta_rotation";
+			*array_index= 2; return "delta_rotation_euler";
 			
 		case OB_SIZE_X:
 			*array_index= 0; return "scale";
@@ -281,23 +281,23 @@ static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 	/* result depends on adrcode */
 	switch (adrcode) {
 		case AC_QUAT_W:
-			*array_index= 0; return "rotation";
+			*array_index= 0; return "rotation_quaternion";
 		case AC_QUAT_X:
-			*array_index= 1; return "rotation";
+			*array_index= 1; return "rotation_quaternion";
 		case AC_QUAT_Y:
-			*array_index= 2; return "rotation";
+			*array_index= 2; return "rotation_quaternion";
 		case AC_QUAT_Z:
-			*array_index= 3; return "rotation";
+			*array_index= 3; return "rotation_quaternion";
 			
 		case AC_EUL_X:
-			*array_index= 0; return "euler_rotation";
+			*array_index= 0; return "rotation_euler";
 		case AC_EUL_Y:
-			*array_index= 1; return "euler_rotation";
+			*array_index= 1; return "rotation_euler";
 		case AC_EUL_Z:
-			*array_index= 2; return "euler_rotation";
+			*array_index= 2; return "rotation_euler";
 			
 		case -1: /* special case for euler-rotations used by old drivers */
-			*array_index= 0; return "euler_rotation";
+			*array_index= 0; return "rotation_euler";
 			
 		case AC_LOC_X:
 			*array_index= 0; return "location";

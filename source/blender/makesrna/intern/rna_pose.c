@@ -156,105 +156,37 @@ static void rna_Pose_ik_solver_update(bContext *C, PointerRNA *ptr)
 }
 
 /* rotation - euler angles */
-static void rna_PoseChannel_euler_rotation_get(PointerRNA *ptr, float *value)
+static void rna_PoseChannel_rotation_euler_get(PointerRNA *ptr, float *value)
 {
 	bPoseChannel *pchan= ptr->data;
 	
-	if(pchan->rotmode == PCHAN_ROT_AXISANGLE) /* default XYZ eulers */
+	if(pchan->rotmode == ROT_MODE_AXISANGLE) /* default XYZ eulers */
 		AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], value, EULER_ORDER_DEFAULT);
-	else if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers  */
+	else if(pchan->rotmode == ROT_MODE_QUAT) /* default XYZ eulers  */
 		QuatToEul(pchan->quat, value);
 	else
 		VECCOPY(value, pchan->eul);
 }
 
 /* rotation - euler angles */
-static void rna_PoseChannel_euler_rotation_set(PointerRNA *ptr, const float *value)
+static void rna_PoseChannel_rotation_euler_set(PointerRNA *ptr, const float *value)
 {
 	bPoseChannel *pchan= ptr->data;
 	
-	if(pchan->rotmode == PCHAN_ROT_AXISANGLE) /* default XYZ eulers */
+	if(pchan->rotmode == ROT_MODE_AXISANGLE) /* default XYZ eulers */
 		EulOToAxisAngle((float *)value, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
-	else if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers */
+	else if(pchan->rotmode == ROT_MODE_QUAT) /* default XYZ eulers */
 		EulToQuat((float*)value, pchan->quat);
 	else
 		VECCOPY(pchan->eul, value);
-}
-
-/* rotation - axis angle only */
-static void rna_PoseChannel_rotation_axis_get(PointerRNA *ptr, float *value)
-{
-	bPoseChannel *pchan= ptr->data;
-	
-	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
-		/* axis is stord in quat for now */
-		VecCopyf(value, &pchan->quat[1]);
-	}
-}
-
-/* rotation - axis angle only */
-static void rna_PoseChannel_rotation_axis_set(PointerRNA *ptr, const float *value)
-{
-	bPoseChannel *pchan= ptr->data;
-	
-	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
-		/* axis is stored in quat for now */
-		VecCopyf(&pchan->quat[1], (float *)value);
-	}
 }
 
 static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
 {
 	bPoseChannel *pchan= ptr->data;
 	
-	/* check if any change - if so, need to convert data */
-	// TODO: this needs to be generalised at some point to work for objects too...
-	if (value > 0) { /* to euler */
-		if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
-			/* axis-angle to euler */
-			AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], pchan->eul, value);
-		}
-		else if (pchan->rotmode == PCHAN_ROT_QUAT) {
-			/* quat to euler */
-			QuatToEulO(pchan->quat, pchan->eul, value);
-		}
-		/* else { no conversion needed } */
-	}
-	else if (value == PCHAN_ROT_QUAT) { /* to quat */
-		if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
-			/* axis angle to quat */
-			float q[4];
-			
-			/* copy to temp var first, since quats and axis-angle are stored in same place */
-			QuatCopy(q, pchan->quat);
-			AxisAngleToQuat(q, &pchan->quat[1], pchan->quat[0]);
-		}
-		else if (pchan->rotmode > 0) {
-			/* euler to quat */
-			EulOToQuat(pchan->eul, pchan->rotmode, pchan->quat);
-		}
-		/* else { no conversion needed } */
-	}
-	else { /* to axis-angle */
-		if (pchan->rotmode > 0) {
-			/* euler to axis angle */
-			EulOToAxisAngle(pchan->eul, pchan->rotmode, &pchan->quat[1], &pchan->quat[0]);
-		}
-		else if (pchan->rotmode == PCHAN_ROT_QUAT) {
-			/* quat to axis angle */
-			float q[4];
-			
-			/* copy to temp var first, since quats and axis-angle are stored in same place */
-			QuatCopy(q, pchan->quat);
-			QuatToAxisAngle(q, &pchan->quat[1], &pchan->quat[0]);
-		}
-		
-		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
-		if (IS_EQ(pchan->quat[1], pchan->quat[2]) && IS_EQ(pchan->quat[2], pchan->quat[3])) {
-			/* for now, rotate around y-axis then (so that it simply becomes the roll) */
-			pchan->quat[2]= 1.0f;
-		}
-	}
+	/* use API Method for conversions... */
+	BKE_rotMode_change_values(pchan->quat, pchan->eul, pchan->rotmode, (short)value);
 	
 	/* finally, set the new rotation type */
 	pchan->rotmode= value;
@@ -559,15 +491,16 @@ static EnumPropertyItem prop_solver_items[] = {
 
 static void rna_def_pose_channel(BlenderRNA *brna)
 {
+	// XXX: this RNA enum define is currently duplicated for objects, since there is some text here which is not applicable
 	static EnumPropertyItem prop_rotmode_items[] = {
-		{PCHAN_ROT_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
-		{PCHAN_ROT_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order. Prone to Gimbal Lock"},
-		{PCHAN_ROT_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order. Prone to Gimbal Lock"},
-		{PCHAN_ROT_YXZ, "YXZ", 0, "YXZ Euler", "YXZ Rotation Order. Prone to Gimbal Lock"},
-		{PCHAN_ROT_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order. Prone to Gimbal Lock"},
-		{PCHAN_ROT_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order. Prone to Gimbal Lock"},
-		{PCHAN_ROT_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
-		{PCHAN_ROT_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector."},
+		{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
+		{ROT_MODE_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order. Prone to Gimbal Lock"},
+		{ROT_MODE_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order. Prone to Gimbal Lock"},
+		{ROT_MODE_YXZ, "YXZ", 0, "YXZ Euler", "YXZ Rotation Order. Prone to Gimbal Lock"},
+		{ROT_MODE_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order. Prone to Gimbal Lock"},
+		{ROT_MODE_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order. Prone to Gimbal Lock"},
+		{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
+		{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector."},
 		{0, NULL, 0, NULL, NULL}};
 	
 	StructRNA *srna;
@@ -635,32 +568,29 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scale", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_QUATERNION);
+	prop= RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
-	RNA_def_property_ui_text(prop, "Rotation", "Rotation in Quaternions.");
+	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
-	prop= RNA_def_property(srna, "rotation_angle", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "quat[0]");
-	RNA_def_property_ui_text(prop, "Rotation Angle", "Angle of Rotation for Axis-Angle rotation representation.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
-	
-	prop= RNA_def_property(srna, "rotation_axis", PROP_FLOAT, PROP_XYZ);
+		/* XXX: for axis-angle, it would have been nice to have 2 separate fields for UI purposes, but
+		 * having a single one is better for Keyframing and other property-management situations...
+		 */
+	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
-	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_axis_get", "rna_PoseChannel_rotation_axis_set", NULL);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Rotation Axis", "Axis for Axis-Angle rotation representation.");
+	// TODO: we may need some validation funcs
+	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
-	prop= RNA_def_property(srna, "euler_rotation", PROP_FLOAT, PROP_EULER);
+	prop= RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
-	RNA_def_property_float_funcs(prop, "rna_PoseChannel_euler_rotation_get", "rna_PoseChannel_euler_rotation_set", NULL);
-	RNA_def_property_ui_text(prop, "Rotation (Euler)", "Rotation in Eulers.");
+	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_euler_get", "rna_PoseChannel_rotation_euler_set", NULL);
+	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
-	RNA_def_property_enum_items(prop, prop_rotmode_items);
+	RNA_def_property_enum_items(prop, prop_rotmode_items); // XXX move to using a single define of this someday
 	RNA_def_property_enum_funcs(prop, NULL, "rna_PoseChannel_rotation_mode_set", NULL);
 	RNA_def_property_ui_text(prop, "Rotation Mode", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");

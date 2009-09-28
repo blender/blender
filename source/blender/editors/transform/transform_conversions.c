@@ -379,7 +379,6 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 			Mat3CpyMat3(td->mtx, mtx);
 
 			td->ext = NULL;
-			td->tdi = NULL;
 			if (t->mode == TFM_BWEIGHT) {
 				td->val = &(eed->bweight);
 				td->ival = eed->bweight;
@@ -509,7 +508,7 @@ static short apply_targetless_ik(Object *ob)
 					/* rotation */
 					if (parchan->rotmode > 0) 
 						Mat3ToEulO(rmat3, parchan->eul, parchan->rotmode);
-					else if (parchan->rotmode == PCHAN_ROT_AXISANGLE)
+					else if (parchan->rotmode == ROT_MODE_AXISANGLE)
 						Mat3ToAxisAngle(rmat3, &parchan->quat[1], &parchan->quat[0]);
 					else
 						Mat3ToQuat(rmat3, parchan->quat);
@@ -519,7 +518,7 @@ static short apply_targetless_ik(Object *ob)
 					if (data->flag & CONSTRAINT_IK_STRETCH) {
 						if (parchan->rotmode > 0)
 							EulOToMat3(parchan->eul, parchan->rotmode, qrmat);
-						else if (parchan->rotmode == PCHAN_ROT_AXISANGLE)
+						else if (parchan->rotmode == ROT_MODE_AXISANGLE)
 							AxisAngleToMat3(&parchan->quat[1], parchan->quat[0], qrmat);
 						else
 							QuatToMat3(parchan->quat, qrmat);
@@ -556,10 +555,6 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 	td->ob = ob;
 	td->flag = TD_SELECTED;
-	if (pchan->rotmode == PCHAN_ROT_QUAT) 
-	{
-		td->flag |= TD_USEQUAT;
-	}
 	if (bone->flag & BONE_HINGE_CHILD_TRANSFORM)
 	{
 		td->flag |= TD_NOCENTER;
@@ -584,15 +579,14 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		td->ext->quat= NULL;
 		
 		VECCOPY(td->ext->irot, pchan->eul);
-		td->rotOrder= pchan->rotmode;
 	}
 	else {
 		td->ext->rot= NULL;
 		td->ext->quat= pchan->quat;
 		
 		QUATCOPY(td->ext->iquat, pchan->quat);
-		td->rotOrder= pchan->rotmode;
 	}
+	td->rotOrder= pchan->rotmode;
 	
 
 	/* proper way to get parent transform + own transform + constraints transform */
@@ -1016,7 +1010,6 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
     tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
 	for(i=0; i<t->total; i++, td++, tdx++) {
 		td->ext= tdx;
-		td->tdi = NULL;
 		td->val = NULL;
 	}
 
@@ -1100,7 +1093,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->loc = NULL;
 					td->ext = NULL;
-					td->tdi = NULL;
 
 					td++;
 				}
@@ -1116,7 +1108,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->loc = NULL;
 					td->ext = NULL;
-					td->tdi = NULL;
 
 					td++;
 				}
@@ -1151,7 +1142,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					Mat3Ortho(td->axismtx);
 
 					td->ext = NULL;
-					td->tdi = NULL;
 
 					td++;
 				}
@@ -1168,7 +1158,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td->flag= TD_SELECTED;
 
 					td->ext = NULL;
-					td->tdi = NULL;
 
 					td++;
 				}
@@ -1196,7 +1185,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					}
 
 					td->ext = NULL;
-					td->tdi = NULL;
 					td->val = NULL;
 
 					td++;
@@ -1219,7 +1207,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td->extra = ebo; /* to fix roll */
 
 					td->ext = NULL;
-					td->tdi = NULL;
 					td->val = NULL;
 
 					td++;
@@ -1272,7 +1259,6 @@ static void createTransMBallVerts(bContext *C, TransInfo *t)
 			Mat3CpyMat3(td->mtx, mtx);
 
 			td->ext = tx;
-			td->tdi = NULL;
 
 			/* Radius of MetaElem (mass of MetaElem influence) */
 			if(ml->flag & MB_SCALE_RAD){
@@ -1437,7 +1423,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							else td->flag= 0;
 						}
 						td->ext = NULL;
-						td->tdi = NULL;
 						td->val = NULL;
 
 						hdata = initTransDataCurveHandes(td, bezt);
@@ -1458,7 +1443,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
-						td->tdi = NULL;
 
 						if (t->mode==TFM_CURVE_SHRINKFATTEN) { /* || t->mode==TFM_RESIZE) {*/ /* TODO - make points scale */
 							td->val = &(bezt->radius);
@@ -1498,7 +1482,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							else td->flag= 0;
 						}
 						td->ext = NULL;
-						td->tdi = NULL;
 						td->val = NULL;
 
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
@@ -1538,7 +1521,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
-						td->tdi = NULL;
 
 						if (t->mode==TFM_CURVE_SHRINKFATTEN || t->mode==TFM_RESIZE) {
 							td->val = &(bp->radius);
@@ -1614,7 +1596,6 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 				Mat3CpyMat3(td->mtx, mtx);
 
 				td->ext = NULL;
-				td->tdi = NULL;
 				td->val = NULL;
 
 				td++;
@@ -1725,7 +1706,6 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 			td->ob = ob;
 			td->ext = tx;
-			td->tdi = NULL;
 			if(t->mode == TFM_BAKE_TIME) {
 				td->val = key->time;
 				td->ival = *(key->time);
@@ -1949,7 +1929,6 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 		td->axismtx[1][2]	= 0.0f;
 
 	td->ext = NULL;
-	td->tdi = NULL;
 	td->val = NULL;
 	td->extra = NULL;
 	if (t->mode == TFM_BWEIGHT) {
@@ -2429,7 +2408,7 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 
-	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+	td->ext= NULL; td->val= NULL;
 
 	if(selected) {
 		td->flag |= TD_SELECTED;
@@ -2729,7 +2708,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								memset(td->axismtx, 0, sizeof(td->axismtx));
 								td->axismtx[2][2] = 1.0f;
 								
-								td->ext= NULL; td->tdi= NULL; td->val= NULL;
+								td->ext= NULL; td->val= NULL;
 								
 								td->flag |= TD_SELECTED;
 								td->dist= 0.0f;
@@ -2760,7 +2739,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								memset(td->axismtx, 0, sizeof(td->axismtx));
 								td->axismtx[2][2] = 1.0f;
 								
-								td->ext= NULL; td->tdi= NULL; td->val= NULL;
+								td->ext= NULL; td->val= NULL;
 								
 								td->flag |= TD_SELECTED;
 								td->dist= 0.0f;
@@ -3311,7 +3290,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 	
-	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+	td->ext= NULL; td->val= NULL;
 	
 	/* store AnimData info in td->extra, for applying mapping when flushing */
 	td->extra= adt;
@@ -3744,98 +3723,6 @@ void flushTransGraphData(TransInfo *t)
 	}
 }
 
-/* **************** IpoKey stuff, for Object TransData ********** */
-
-/* while transforming */
-void add_tdi_poin(float *poin, float *old, float delta)
-{
-	if(poin) {
-		poin[0]= old[0]+delta;
-		poin[-3]= old[3]+delta;
-		poin[3]= old[6]+delta;
-	}
-}
-
-#if 0 // TRANSFORM_FIX_ME
-/* storage of bezier triple. thats why -3 and +3! */
-static void set_tdi_old(float *old, float *poin)
-{
-	old[0]= *(poin);
-	old[3]= *(poin-3);
-	old[6]= *(poin+3);
-}
-
-/* fill ipokey transdata with old vals and pointers */
-static void ipokey_to_transdata(IpoKey *ik, TransData *td)
-{
-	extern int ob_ar[];		// blenkernel ipo.c
-	TransDataIpokey *tdi= td->tdi;
-	BezTriple *bezt;
-	int a, delta= 0;
-
-	td->val= NULL;	// is read on ESC
-
-	for(a=0; a<OB_TOTIPO; a++) {
-		if(ik->data[a]) {
-			bezt= ik->data[a];
-
-			switch( ob_ar[a] ) {
-				case OB_LOC_X:
-				case OB_DLOC_X:
-					tdi->locx= &(bezt->vec[1][1]); break;
-				case OB_LOC_Y:
-				case OB_DLOC_Y:
-					tdi->locy= &(bezt->vec[1][1]); break;
-				case OB_LOC_Z:
-				case OB_DLOC_Z:
-					tdi->locz= &(bezt->vec[1][1]); break;
-
-				case OB_DROT_X:
-					delta= 1;
-				case OB_ROT_X:
-					tdi->rotx= &(bezt->vec[1][1]); break;
-				case OB_DROT_Y:
-					delta= 1;
-				case OB_ROT_Y:
-					tdi->roty= &(bezt->vec[1][1]); break;
-				case OB_DROT_Z:
-					delta= 1;
-				case OB_ROT_Z:
-					tdi->rotz= &(bezt->vec[1][1]); break;
-
-				case OB_SIZE_X:
-				case OB_DSIZE_X:
-					tdi->sizex= &(bezt->vec[1][1]); break;
-				case OB_SIZE_Y:
-				case OB_DSIZE_Y:
-					tdi->sizey= &(bezt->vec[1][1]); break;
-				case OB_SIZE_Z:
-				case OB_DSIZE_Z:
-					tdi->sizez= &(bezt->vec[1][1]); break;
-			}
-		}
-	}
-
-	/* oldvals for e.g. undo */
-	if(tdi->locx) set_tdi_old(tdi->oldloc, tdi->locx);
-	if(tdi->locy) set_tdi_old(tdi->oldloc+1, tdi->locy);
-	if(tdi->locz) set_tdi_old(tdi->oldloc+2, tdi->locz);
-
-	/* remember, for mapping curves ('1'=10 degrees)  */
-	if(tdi->rotx) set_tdi_old(tdi->oldrot, tdi->rotx);
-	if(tdi->roty) set_tdi_old(tdi->oldrot+1, tdi->roty);
-	if(tdi->rotz) set_tdi_old(tdi->oldrot+2, tdi->rotz);
-
-	/* this is not allowed to be dsize! */
-	if(tdi->sizex) set_tdi_old(tdi->oldsize, tdi->sizex);
-	if(tdi->sizey) set_tdi_old(tdi->oldsize+1, tdi->sizey);
-	if(tdi->sizez) set_tdi_old(tdi->oldsize+2, tdi->sizez);
-
-	tdi->flag= TOB_IPO;
-	if(delta) tdi->flag |= TOB_IPODROT;
-}
-#endif
-
 /* *************************** Object Transform data ******************* */
 
 /* Little helper function for ObjectToTransData used to give certain
@@ -4053,7 +3940,7 @@ static TransData *SeqToTransData(TransInfo *t, TransData *td, TransData2D *td2d,
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 
-	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+	td->ext= NULL; td->val= NULL;
 
 	td->flag |= TD_SELECTED;
 	td->dist= 0.0;
@@ -4194,20 +4081,20 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 	if (skip_invert == 0 && (ob->track || constinv==0)) {
 		track= ob->track;
 		ob->track= NULL;
-
+		
 		if (constinv == 0) {
 			fakecons.first = ob->constraints.first;
 			fakecons.last = ob->constraints.last;
 			ob->constraints.first = ob->constraints.last = NULL;
 		}
-
+		
 		where_is_object(t->scene, ob);
-
+		
 		if (constinv == 0) {
 			ob->constraints.first = fakecons.first;
 			ob->constraints.last = fakecons.last;
 		}
-
+		
 		ob->track= track;
 	}
 	else
@@ -4221,6 +4108,10 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 	td->ext->rot = ob->rot;
 	VECCOPY(td->ext->irot, ob->rot);
 	VECCOPY(td->ext->drot, ob->drot);
+	
+	td->ext->quat = ob->quat;
+	QUATCOPY(td->ext->iquat, ob->quat);
+	QUATCOPY(td->ext->dquat, ob->dquat);
 
 	td->ext->size = ob->size;
 	VECCOPY(td->ext->isize, ob->size);
@@ -4516,15 +4407,16 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 					}
 					if (doRot) {
-						if (pchan->rotmode == PCHAN_ROT_QUAT) {
-							sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
+						// FIXME: better to just use the keyingsets for this instead...
+						if (pchan->rotmode == ROT_MODE_QUAT) {
+							sprintf(buf, "pose.pose_channels[\"%s\"].rotation_quaternion", pchan->name);
 							insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
 							insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
 							insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 							insert_keyframe(id, NULL, pchan->name, buf, 3, cfra, flag);
 						}
 						else {
-							sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
+							sprintf(buf, "pose.pose_channels[\"%s\"].rotation_euler", pchan->name);
 							insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
 							insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
 							insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
@@ -4544,7 +4436,8 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
 					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 					
-					if (pchan->rotmode == PCHAN_ROT_QUAT) {
+					// FIXME: better to just use the keyingsets for this instead...
+					if (pchan->rotmode == ROT_MODE_QUAT) {
 						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
 						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
 						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
@@ -4552,7 +4445,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 						insert_keyframe(id, NULL, pchan->name, buf, 3, cfra, flag);
 					}
 					else {
-						sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
+						sprintf(buf, "pose.pose_channels[\"%s\"].rotation_euler", pchan->name);
 						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
 						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
 						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
@@ -5001,30 +4894,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 	set_trans_object_base_flags(C, t);
 
 	/* count */
-#if 0 // TRANSFORM_FIX_ME
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects)
-	{
-		/* store ipo keys? */
-		if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
-			elems.first= elems.last= NULL;
-			make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
-
-			pushdata(&elems, sizeof(ListBase));
-
-			for(ik= elems.first; ik; ik= ik->next)
-				t->total++;
-
-			if(elems.first==NULL)
-				t->total++;
-		}
-//		else {
-			t->total++;
-//		}
-	}
-	CTX_DATA_END;
-#else
 	t->total= CTX_DATA_COUNT(C, selected_objects);
-#endif
 
 	if(!t->total) {
 		/* clear here, main transform function escapes too */
@@ -5038,92 +4908,27 @@ static void createTransObject(bContext *C, TransInfo *t)
 	CTX_DATA_BEGIN(C, Base*, base, selected_bases)
 	{
 		Object *ob= base->object;
-
+		
 		td->flag = TD_SELECTED;
 		td->protectflag= ob->protectflag;
 		td->ext = tx;
-
+		td->rotOrder= ob->rotmode;
+		
 		if (base->flag & BA_TRANSFORM_CHILD)
 		{
 			td->flag |= TD_NOCENTER;
 			td->flag |= TD_NO_LOC;
 		}
-
+		
 		/* select linked objects, but skip them later */
 		if (ob->id.lib != 0) {
 			td->flag |= TD_SKIP;
 		}
-
-		/* store ipo keys? */
-		// TRANSFORM_FIX_ME
-#if 0
-		if((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
-
-			popfirst(&elems);	// bring back pushed listbase
-
-			if(elems.first) {
-				int cfraont;
-				int ipoflag;
-
-				base->flag |= BA_DO_IPO+BA_WAS_SEL;
-				base->flag &= ~SELECT;
-
-				cfraont= CFRA;
-				set_no_parent_ipo(1);
-				ipoflag= ob->ipoflag;
-				ob->ipoflag &= ~OB_OFFS_OB;
-
-				/*
-				 * This is really EVIL code that pushes down Object values
-				 * (loc, dloc, orig, size, dsize, rot, drot)
-				 * */
-
-				pushdata((void*)ob->loc, 7 * 3 * sizeof(float)); // tsk! tsk!
-
-				for(ik= elems.first; ik; ik= ik->next) {
-
-					/* weak... this doesn't correct for floating values, giving small errors */
-					CFRA= (int)(ik->val/t->scene->r.framelen);
-
-					do_ob_ipo(ob);
-					ObjectToTransData(C, t, td, ob);	// does where_is_object()
-
-					td->flag= TD_SELECTED;
-
-					td->tdi= MEM_callocN(sizeof(TransDataIpokey), "TransDataIpokey");
-					/* also does tdi->flag and oldvals, needs to be after ob_to_transob()! */
-					ipokey_to_transdata(ik, td);
-
-					td++;
-					tx++;
-					if(ik->next) td->ext= tx;	// prevent corrupting mem!
-				}
-				free_ipokey(&elems);
-
-				poplast(ob->loc);
-				set_no_parent_ipo(0);
-
-				CFRA= cfraont;
-				ob->ipoflag= ipoflag;
-
-				where_is_object(t->scene, ob);	// restore
-			}
-			else {
-				ObjectToTransData(C, t, td, ob);
-				td->tdi = NULL;
-				td->val = NULL;
-				td++;
-				tx++;
-			}
-		}
-#endif
-//		else {
-			ObjectToTransData(C, t, td, ob);
-			td->tdi = NULL;
-			td->val = NULL;
-			td++;
-			tx++;
-//		}
+		
+		ObjectToTransData(C, t, td, ob);
+		td->val = NULL;
+		td++;
+		tx++;
 	}
 	CTX_DATA_END;
 }
@@ -5145,7 +4950,7 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 
-	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+	td->ext= NULL; td->val= NULL;
 
 	td->flag |= TD_SELECTED;
 	td->dist= 0.0;

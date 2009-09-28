@@ -517,13 +517,13 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 		return; 
 	}
 	
-	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+	if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 		float quat[4];
 		/* convert to euler, passing through quats... */
 		AxisAngleToQuat(quat, &pchan->quat[1], pchan->quat[0]);
 		QuatToEul(quat, tfp->ob_eul);
 	}
-	else if (pchan->rotmode == PCHAN_ROT_QUAT)
+	else if (pchan->rotmode == ROT_MODE_QUAT)
 		QuatToEul(pchan->quat, tfp->ob_eul);
 	else
 		VecCopyf(tfp->ob_eul, pchan->eul);
@@ -866,13 +866,13 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
 			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
 			
-			if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+			if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 				float quat[4];
 				/* convert to axis-angle, passing through quats  */
 				EulToQuat(eul, quat);
 				QuatToAxisAngle(quat, &pchan->quat[1], &pchan->quat[0]);
 			}
-			else if (pchan->rotmode == PCHAN_ROT_QUAT)
+			else if (pchan->rotmode == ROT_MODE_QUAT)
 				EulToQuat(eul, pchan->quat);
 			else
 				VecCopyf(pchan->eul, eul);

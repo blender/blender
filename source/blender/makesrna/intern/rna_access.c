@@ -620,7 +620,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 	PropertySubType subtype= rna_ensure_property(prop)->subtype;
 
 	/* get string to use for array index */
-	if ((index < 4) && (subtype == PROP_QUATERNION))
+	if ((index < 4) && ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE))
 		return quatitem[index];
 	else if((index < 4) && ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION))
 		return vectoritem[index];

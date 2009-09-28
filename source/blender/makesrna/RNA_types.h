@@ -108,8 +108,9 @@ typedef enum PropertySubType {
 	PROP_MATRIX = 25,
 	PROP_EULER = 26|PROP_UNIT_ROTATION,
 	PROP_QUATERNION = 27,
-	PROP_XYZ = 28,
-	PROP_RGB = 29,
+	PROP_AXISANGLE = 28,
+	PROP_XYZ = 29,
+	PROP_RGB = 30,
 
 	/* booleans */
 	PROP_LAYER = 40,

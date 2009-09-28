@@ -1416,6 +1416,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_MATRIX: return "PROP_MATRIX";
 		case PROP_EULER: return "PROP_EULER";
 		case PROP_QUATERNION: return "PROP_QUATERNION";
+		case PROP_AXISANGLE: return "PROP_AXISANGLE";
 		case PROP_VELOCITY: return "PROP_VELOCITY";
 		case PROP_ACCELERATION: return "PROP_ACCELERATION";
 		case PROP_XYZ: return "PROP_XYZ";

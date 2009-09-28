@@ -4862,7 +4862,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			if (pchan->protectflag & OB_LOCK_ROT4D) {
 				/* perform clamping on a component by component basis */
 				if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
-					pchan->quat[0]= (pchan->rotmode == PCHAN_ROT_AXISANGLE) ? 0.0f : 1.0f;
+					pchan->quat[0]= (pchan->rotmode == ROT_MODE_AXISANGLE) ? 0.0f : 1.0f;
 				if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
 					pchan->quat[1]= 0.0f;
 				if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
@@ -4874,11 +4874,11 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 				/* perform clamping using euler form (3-components) */
 				float eul[3], oldeul[3], quat1[4];
 				
-				if (pchan->rotmode == PCHAN_ROT_QUAT) {
+				if (pchan->rotmode == ROT_MODE_QUAT) {
 					QUATCOPY(quat1, pchan->quat);
 					QuatToEul(pchan->quat, oldeul);
 				}
-				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], oldeul, EULER_ORDER_DEFAULT);
 				}
 				else {
@@ -4894,14 +4894,14 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 				if (pchan->protectflag & OB_LOCK_ROTZ)
 					eul[2]= oldeul[2];
 				
-				if (pchan->rotmode == PCHAN_ROT_QUAT) {
+				if (pchan->rotmode == ROT_MODE_QUAT) {
 					EulToQuat(eul, pchan->quat);
 					/* quaternions flip w sign to accumulate rotations correctly */
 					if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
 						QuatMulf(pchan->quat, -1.0f);
 					}
 				}
-				else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], oldeul, EULER_ORDER_DEFAULT);
 				}
 				else {
@@ -4910,11 +4910,11 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			}
 		}						
 		else { 
-			if (pchan->rotmode == PCHAN_ROT_QUAT) {
+			if (pchan->rotmode == ROT_MODE_QUAT) {
 				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]= 0.0f; 
 				pchan->quat[0]= 1.0f;
 			}
-			else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 				/* by default, make rotation of 0 radians around y-axis (roll) */
 				pchan->quat[0]=pchan->quat[1]=pchan->quat[3]= 0.0f;
 				pchan->quat[2]= 1.0f;

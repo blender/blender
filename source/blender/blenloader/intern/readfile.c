@@ -9709,8 +9709,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->unit.scale_length= 1.0f;
 		
 		for(ob = main->object.first; ob; ob = ob->id.next) {
+			/* fluid-sim stuff */
 			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 			if (fluidmd) fluidmd->fss->fmd = fluidmd;
+			
+			/* rotation modes were added, but old objects would now default to being 'quaternion based' */
+			ob->rotmode= ROT_MODE_EUL;
 		}
 
 		for(sce= main->scene.first; sce; sce= sce->id.next)
