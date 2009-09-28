@@ -13,7 +13,7 @@ incs += ' #source/blender/blenlib #source/blender/blenkernel #source/blender'
 incs += ' #source/blender/editors/include #source/blender/makesdna #source/gameengine/Rasterizer'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer #source/gameengine/GameLogic'
 incs += ' #source/gameengine/Expressions #source/gameengine/Network #source/gameengine/SceneGraph'
-incs += ' #source/gameengine/Physics/common #source/gameengine/Physics/Bullet #source/gameengine/Physics/BlOde'
+incs += ' #source/gameengine/Physics/common #source/gameengine/Physics/Bullet'
 incs += ' #source/gameengine/Physics/Dummy'
 incs += ' #source/gameengine/Network/LoopBackNetwork'
 incs += ' #source/blender/misc #source/blender/blenloader #source/blender/gpu'
@@ -23,5 +23,9 @@ incs += ' #source/blender/ikplugin'
 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']
+
+if env['BF_DEBUG']:
+	if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc', 'win64-vc'):
+		defs.append('_DEBUG')
 
 env.BlenderLib ( 'bf_converter', sources, Split(incs), defs, libtype=['core','player'], priority=[305,40], cxx_compileflags=env['BGE_CXXFLAGS'])
