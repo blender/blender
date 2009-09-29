@@ -559,14 +559,15 @@ def extract_triangles(mesh):
 		uf = mesh.active_uv_texture.data[i] if do_uv else None
 		
 		if do_uv:
-			f_uv =  (uf.uv1, uf.uv2, uf.uv3, uf.uv4) if face.verts[3] else (uf.uv1, uf.uv2, uf.uv3)
+			f_uv = uf.uv
+			# f_uv =  (uf.uv1, uf.uv2, uf.uv3, uf.uv4) if face.verts[3] else (uf.uv1, uf.uv2, uf.uv3)
 # 			f_uv = face.uv
 			img = uf.image if uf else None
 # 			img = face.image
 			if img: img = img.name
 
-		if f_v[3] == 0:
-		# if len(f_v)==3:
+		# if f_v[3] == 0:
+		if len(f_v)==3:
 			new_tri = tri_wrapper((f_v[0], f_v[1], f_v[2]), face.material_index, img)
 # 			new_tri = tri_wrapper((f_v[0].index, f_v[1].index, f_v[2].index), face.mat, img)
 			if (do_uv): new_tri.faceuvs= uv_key(f_uv[0]), uv_key(f_uv[1]), uv_key(f_uv[2])
@@ -1109,11 +1110,12 @@ class EXPORT_OT_3ds(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 
 	__props__ = [
-		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
+		# bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= ""),
 	]
 	
 	def execute(self, context):
-		save_3ds(self.filename, context)
+		save_3ds(self.path, context)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):

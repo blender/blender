@@ -1528,7 +1528,8 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tPolygonVertexIndex: ')
 		i=-1
 		for f in me.faces:
-			fi = [v_index for j, v_index in enumerate(f.verts) if v_index != 0 or j != 3]
+			fi = f.verts
+			# fi = [v_index for j, v_index in enumerate(f.verts) if v_index != 0 or j != 3]
 # 			fi = [v.index for v in f]
 
 			# flip the last index, odd but it looks like
@@ -1637,10 +1638,7 @@ def write(filename, batch_objects = None, \
 		# returns a slice of data depending on number of face verts
 		# data is either a MeshTextureFace or MeshColor
 		def face_data(data, face):
-			if f.verts[3] == 0:
-				totvert = 3
-			else:
-				totvert = 4
+			totvert = len(f.verts)
 						
 			return data[:totvert]
 
@@ -1740,12 +1738,9 @@ def write(filename, batch_objects = None, \
 				i = -1
 				ii = 0 # Count how many UVs we write
 				
-				for f, uf in zip(me.faces, uvlayer.data):
+				for uf in uvlayer.data:
 # 				for f in me.faces:
-					uvs = [uf.uv1, uf.uv2, uf.uv3, uf.uv4]
-					uvs = face_data(uvs, f)
-					
-					for uv in uvs:
+					for uv in uf.uv:
 # 					for uv in f.uv:
 						if i==-1:
 							file.write('%.6f,%.6f' % tuple(uv))
@@ -3356,7 +3351,8 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 	
 	__props__ = [
-		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default=""),
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= ""),
+		
 		bpy.props.BoolProperty(attr="EXP_OBS_SELECTED", name="Selected Objects", description="Export selected objects on visible layers", default=True),
 # 		bpy.props.BoolProperty(attr="EXP_OBS_SCENE", name="Scene Objects", description="Export all objects in this scene", default=True),
 		bpy.props.FloatProperty(attr="_SCALE", name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0),
@@ -3389,8 +3385,8 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 		return context.active_object != None
 	
 	def execute(self, context):
-		if not self.filename:
-			raise Exception("filename not set")
+		if not self.path:
+			raise Exception("path not set")
 
 		GLOBAL_MATRIX = mtx4_identity
 		GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self._SCALE
@@ -3398,7 +3394,7 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 		if self._YROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
 		if self._ZROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
 			
-		write(self.filename,
+		write(self.path,
 			  None, # XXX
 			  context,
 			  self.EXP_OBS_SELECTED,

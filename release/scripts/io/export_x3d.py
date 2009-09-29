@@ -604,7 +604,8 @@ class x3d_class:
 
 		for face in mesh.active_uv_texture.data:
 		# for face in mesh.faces:
-			uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.verts[3] else [face.uv1, face.uv2, face.uv3]
+			uvs = face.uv
+			# uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.verts[3] else [face.uv1, face.uv2, face.uv3]
 
 			for uv in uvs:
 			# for uv in face.uv:
@@ -676,11 +677,11 @@ class x3d_class:
 
 		shininess = mat.specular_hardness/512.0
 		# shininess = mat.hard/512.0
-		specR = (mat.specular_color[0]+0.001)/(1.25/(mat.specular_reflection+0.001))
+		specR = (mat.specular_color[0]+0.001)/(1.25/(mat.specular_intensity+0.001))
 		# specR = (mat.specCol[0]+0.001)/(1.25/(mat.spec+0.001))
-		specG = (mat.specular_color[1]+0.001)/(1.25/(mat.specular_reflection+0.001))
+		specG = (mat.specular_color[1]+0.001)/(1.25/(mat.specular_intensity+0.001))
 		# specG = (mat.specCol[1]+0.001)/(1.25/(mat.spec+0.001))
-		specB = (mat.specular_color[2]+0.001)/(1.25/(mat.specular_reflection+0.001))
+		specB = (mat.specular_color[2]+0.001)/(1.25/(mat.specular_intensity+0.001))
 		# specB = (mat.specCol[2]+0.001)/(1.25/(mat.spec+0.001))
 		transp = 1-mat.alpha
 		# matFlags = mat.getMode()
@@ -1213,7 +1214,7 @@ class EXPORT_OT_x3d(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 
 	__props__ = [
-		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the X3D file", maxlen=1024, default=""),
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= ""),
 
 		bpy.props.BoolProperty(attr="apply_modifiers", name="Apply Modifiers", description="Use transformed mesh data from each object.", default=True),
 		bpy.props.BoolProperty(attr="triangulate", name="Triangulate", description="Triangulate quads.", default=False),
@@ -1221,7 +1222,7 @@ class EXPORT_OT_x3d(bpy.types.Operator):
 	]
 	
 	def execute(self, context):
-		x3d_export(self.filename, context, self.apply_modifiers, self.triangulate, self.compress)
+		x3d_export(self.path, context, self.apply_modifiers, self.triangulate, self.compress)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):

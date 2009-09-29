@@ -153,7 +153,7 @@ def write_mtl(scene, filename, copy_images):
 		
 		elif mat: # No face image. if we havea material search for MTex image.
 			for mtex in mat.textures:
-				if mtex and mtex.texure.type == 'IMAGE':
+				if mtex and mtex.texture.type == 'IMAGE':
 					try:
 						filename = copy_image(mtex.texture.image)
 # 						filename = mtex.texture.image.filename.split('\\')[-1].split('/')[-1]
@@ -330,7 +330,8 @@ def write(filename, objects, scene,
 		return round(v.x, 6), round(v.y, 6), round(v.z, 6)
 		
 	def veckey2d(v):
-		return round(v.x, 6), round(v.y, 6)
+		return round(v[0], 6), round(v[1], 6)
+		# return round(v.x, 6), round(v.y, 6)
 	
 	def findVertexGroupName(face, vWeightMap):
 		"""
@@ -376,7 +377,7 @@ def write(filename, objects, scene,
 #	scn = Scene.GetCurrent()
 
 	file = open(filename, "w")
-	
+
 	# Write Header
 	version = "2.5"
 	file.write('# Blender3D v%s OBJ File: %s\n' % (version, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
@@ -593,11 +594,12 @@ def write(filename, objects, scene,
 
 					tface = uv_layer.data[f_index]
 
-					uvs = [tface.uv1, tface.uv2, tface.uv3]
+					uvs = tface.uv
+					# uvs = [tface.uv1, tface.uv2, tface.uv3]
 
-					# add another UV if it's a quad
-					if f.verts[3] != 0:
-						uvs.append(tface.uv4)
+					# # add another UV if it's a quad
+					# if len(f.verts) == 4:
+					# 	uvs.append(tface.uv4)
 
 					for uv_index, uv in enumerate(uvs):
 						uvkey = veckey2d(uv)
@@ -661,8 +663,8 @@ def write(filename, objects, scene,
 			for f_index, f in enumerate(faces):
 				f_v = [{"index": index, "vertex": me.verts[index]} for index in f.verts]
 
-				if f.verts[3] == 0:
-					f_v.pop()
+				# if f.verts[3] == 0:
+				# 	f_v.pop()
 
 #				f_v= f.v
 				f_smooth= f.smooth
@@ -673,9 +675,10 @@ def write(filename, objects, scene,
 					tface = me.active_uv_texture.data[face_index_pairs[f_index][1]]
 
 					f_image = tface.image
-					f_uv= [tface.uv1, tface.uv2, tface.uv3]
-					if f.verts[3] != 0:
-						f_uv.append(tface.uv4)
+					f_uv = tface.uv
+					# f_uv= [tface.uv1, tface.uv2, tface.uv3]
+					# if len(f.verts) == 4:
+					# 	f_uv.append(tface.uv4)
 #					f_image = f.image
 #					f_uv= f.uv
 				
@@ -918,7 +921,7 @@ class EXPORT_OT_obj(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 
 	__props__ = [
-		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the OBJ file", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= ""),
 
 		# context group
 		bpy.props.BoolProperty(attr="use_selection", name="Selection Only", description="", default= False),
@@ -949,7 +952,7 @@ class EXPORT_OT_obj(bpy.types.Operator):
 	
 	def execute(self, context):
 
-		do_export(self.filename, context,
+		do_export(self.path, context,
 				  EXPORT_TRI=self.use_triangles,
 				  EXPORT_EDGES=self.use_edges,
 				  EXPORT_NORMALS=self.use_normals,
