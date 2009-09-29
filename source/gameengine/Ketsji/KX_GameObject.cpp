@@ -142,6 +142,8 @@ KX_GameObject::~KX_GameObject()
 			(*contit)->ClearObject();
 		}
 		m_pSGNode->SetSGClientObject(NULL);
+
+		/* m_pSGNode is freed in KX_Scene::RemoveNodeDestructObject */
 	}
 	if (m_pGraphicController)
 	{

@@ -838,8 +838,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			if (mface->v4)
 				tan3 = tangent[f*4 + 3];
 		}
-
- 		ma = give_current_material(blenderobj, mface->mat_nr+1);
+		if(blenderobj)
+			ma = give_current_material(blenderobj, mface->mat_nr+1);
+		else
+			ma = mesh->mat ? mesh->mat[mface->mat_nr]:NULL;
 
 		{
 			bool visible = true;
