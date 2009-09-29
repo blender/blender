@@ -697,7 +697,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 /* icons have been standardized... and this call draws in untransformed coordinates */
 #define ICON_HEIGHT		16.0f
 
-static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
+static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect)
 {
 	int xs=0, ys=0;
 	float aspect, height;
@@ -724,7 +724,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 	if ELEM4(but->type, TOG, ROW, TOGN, LISTROW) {
 		if(but->flag & UI_SELECT);
 		else if(but->flag & UI_ACTIVE);
-		else blend= -60;
+		else alpha= 0.5f;
 	}
 	
 	glEnable(GL_BLEND);
@@ -757,14 +757,14 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 			ys= (rect->ymin+rect->ymax- height)/2;
 		}
 	
-		UI_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
+		UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
 	
 	if(but->flag & UI_ICON_SUBMENU) {
 		xs= rect->xmax-17;
 		ys= (rect->ymin+rect->ymax- height)/2;
 		
-		UI_icon_draw_aspect_blended(xs, ys, ICON_RIGHTARROW_THIN, aspect, blend);
+		UI_icon_draw_aspect(xs, ys, ICON_RIGHTARROW_THIN, aspect, alpha);
 	}
 	
 	glDisable(GL_BLEND);
@@ -902,7 +902,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {
-		widget_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0, rect);
+		widget_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 1.0f, rect);
 	}
 	else {
 				
@@ -913,14 +913,14 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			else if(but->pointype==INT)
 				dualset= BTST( *(((int *)but->poin)+1), but->bitnr);
 			
-			widget_draw_icon(but, ICON_DOT, dualset?0:-100, rect);
+			widget_draw_icon(but, ICON_DOT, dualset?1.0f:0.25f, rect);
 		}
 		
 		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
 		and offset the text label to accomodate it */
 		
 		if (but->flag & UI_HAS_ICON) {
-			widget_draw_icon(but, but->icon+but->iconadd, 0, rect);
+			widget_draw_icon(but, but->icon+but->iconadd, 1.0f, rect);
 			
 			rect->xmin += UI_icon_get_width(but->icon+but->iconadd);
 			
@@ -2581,7 +2581,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, 
 		int xs= rect->xmin+4;
 		int ys= 1 + (rect->ymin+rect->ymax- ICON_HEIGHT)/2;
 		glEnable(GL_BLEND);
-		UI_icon_draw_aspect_blended(xs, ys, iconid, 1.2f, 0); /* XXX scale weak get from fstyle? */
+		UI_icon_draw_aspect(xs, ys, iconid, 1.2f, 0.5f); /* XXX scale weak get from fstyle? */
 		glDisable(GL_BLEND);
 	}
 }

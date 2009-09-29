@@ -57,7 +57,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_previewrender.h"
+#include "ED_render.h"
 
 #include "buttons_intern.h"	// own include
 
@@ -185,33 +185,6 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
 void buttons_operatortypes(void)
 {
-	WM_operatortype_append(OBJECT_OT_group_add);
-	WM_operatortype_append(OBJECT_OT_group_remove);
-
-	WM_operatortype_append(OBJECT_OT_material_slot_add);
-	WM_operatortype_append(OBJECT_OT_material_slot_remove);
-	WM_operatortype_append(OBJECT_OT_material_slot_assign);
-	WM_operatortype_append(OBJECT_OT_material_slot_select);
-	WM_operatortype_append(OBJECT_OT_material_slot_deselect);
-
-	WM_operatortype_append(MATERIAL_OT_new);
-	WM_operatortype_append(TEXTURE_OT_new);
-	WM_operatortype_append(WORLD_OT_new);
-
-	WM_operatortype_append(OBJECT_OT_particle_system_add);
-	WM_operatortype_append(OBJECT_OT_particle_system_remove);
-
-	WM_operatortype_append(PARTICLE_OT_new);
-	WM_operatortype_append(PARTICLE_OT_new_target);
-	WM_operatortype_append(PARTICLE_OT_remove_target);
-	WM_operatortype_append(PARTICLE_OT_target_move_up);
-	WM_operatortype_append(PARTICLE_OT_target_move_down);
-	WM_operatortype_append(PARTICLE_OT_connect_hair);
-	WM_operatortype_append(PARTICLE_OT_disconnect_hair);
-
-	WM_operatortype_append(SCENE_OT_render_layer_add);
-	WM_operatortype_append(SCENE_OT_render_layer_remove);
-
 	WM_operatortype_append(BUTTONS_OT_toolbox);
 	WM_operatortype_append(BUTTONS_OT_file_browse);
 }

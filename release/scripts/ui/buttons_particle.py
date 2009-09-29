@@ -513,11 +513,11 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		#row.template_list(boids, "states", boids, "active_boid_state_index", compact="True")
 		#col = row.row()
 		#subrow = col.row(align=True)
-		#subrow.itemO("boid.boidstate_add", icon='ICON_ZOOMIN', text="")
-		#subrow.itemO("boid.boidstate_del", icon='ICON_ZOOMOUT', text="")
+		#subrow.itemO("boid.state_add", icon='ICON_ZOOMIN', text="")
+		#subrow.itemO("boid.state_del", icon='ICON_ZOOMOUT', text="")
 		#subrow = row.row(align=True)
-		#subrow.itemO("boid.boidstate_move_up", icon='VICON_MOVE_UP', text="")
-		#subrow.itemO("boid.boidstate_move_down", icon='VICON_MOVE_DOWN', text="")
+		#subrow.itemO("boid.state_move_up", icon='VICON_MOVE_UP', text="")
+		#subrow.itemO("boid.state_move_down", icon='VICON_MOVE_DOWN', text="")
 		
 		state = boids.active_boid_state
 		
@@ -536,12 +536,12 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		col = row.column()
 		subrow = col.row()
 		subcol = subrow.column(align=True)
-		subcol.item_menu_enumO("boid.boidrule_add", "type", icon='ICON_ZOOMIN', text="")
-		subcol.itemO("boid.boidrule_del", icon='ICON_ZOOMOUT', text="")
+		subcol.item_menu_enumO("boid.rule_add", "type", icon='ICON_ZOOMIN', text="")
+		subcol.itemO("boid.rule_del", icon='ICON_ZOOMOUT', text="")
 		subrow = col.row()
 		subcol = subrow.column(align=True)
-		subcol.itemO("boid.boidrule_move_up", icon='VICON_MOVE_UP', text="")
-		subcol.itemO("boid.boidrule_move_down", icon='VICON_MOVE_DOWN', text="")
+		subcol.itemO("boid.rule_move_up", icon='VICON_MOVE_UP', text="")
+		subcol.itemO("boid.rule_move_down", icon='VICON_MOVE_DOWN', text="")
 		
 		rule = state.active_boid_rule
 		

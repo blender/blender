@@ -51,6 +51,9 @@ EnumPropertyItem brush_sculpt_tool_items[] = {
 
 #include "BKE_texture.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 static void rna_Brush_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Brush *brush= (Brush*)ptr->data;
@@ -87,6 +90,12 @@ static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+static void rna_Brush_update(bContext *C, PointerRNA *ptr)
+{
+	Brush *br= (Brush*)ptr->data;
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, br);
+}
+
 #else
 
 static void rna_def_brush(BlenderRNA *brna)
@@ -118,130 +127,157 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_blend_items);
 	RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, brush_sculpt_tool_items);
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_flip_direction_items);
 	RNA_def_property_ui_text(prop, "Direction", "Mapping type to use for this image in the game engine.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	/* number values */
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 200);
 	RNA_def_property_ui_text(prop, "Size", "Diameter of the brush.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "jitter", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "jitter");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Jitter", "Jitter the position of the brush while painting.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "spacing", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spacing");
 	RNA_def_property_range(prop, 1.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Spacing", "Spacing between brush stamps.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "smooth_stroke_radius", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 10, 200);
 	RNA_def_property_ui_text(prop, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "smooth_stroke_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.5, 0.99);
 	RNA_def_property_ui_text(prop, "Smooth Stroke Factor", "Higher values give a smoother stroke.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "rate", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rate");
 	RNA_def_property_range(prop, 0.010f, 1.0f);
 	RNA_def_property_ui_text(prop, "Rate", "Number of paints per second for Airbrush.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "rgb");
 	RNA_def_property_ui_text(prop, "Color", "");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Strength", "The amount of pressure on the brush.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	/* flag */
 	prop= RNA_def_property(srna, "use_airbrush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_AIRBRUSH);
 	RNA_def_property_ui_text(prop, "Airbrush", "Keep applying paint effect while holding mouse (spray).");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "use_wrap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_TORUS);
 	RNA_def_property_ui_text(prop, "Wrap", "Enable torus wrapping while painting.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "use_strength_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "use_size_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "use_jitter_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_JITTER_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Jitter Pressure", "Enable tablet pressure sensitivity for jitter.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "use_spacing_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACING_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Spacing Pressure", "Enable tablet pressure sensitivity for spacing.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "use_rake", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAKE);
 	RNA_def_property_ui_text(prop, "Rake", "Rotate the brush texture to match the stroke direction.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "use_anchor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ANCHORED);
 	RNA_def_property_ui_text(prop, "Anchored", "Keep the brush anchored to the initial location.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "use_space", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE);
 	RNA_def_property_ui_text(prop, "Space", "Limit brush application to the distance specified by spacing.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "use_smooth_stroke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SMOOTH_STROKE);
 	RNA_def_property_ui_text(prop, "Smooth Stroke", "Brush lags behind mouse and follows a smoother path.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "use_persistent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_PERSISTENT);
 	RNA_def_property_ui_text(prop, "Persistent", "Sculpts on a persistent layer of the mesh.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	/* not exposed in the interface yet
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FIXED_TEX);
-	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");*/
+	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update"); */
 
 	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	/* texture */
 	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get",
-		"rna_Brush_active_texture_set", "TextureSlot");
+		"rna_Brush_active_texture_set", "TextureSlot", "rna_Brush_update");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clone.image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Clone Image", "Image for clone tool.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "clone_opacity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clone.alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clone Opacity", "Opacity of clone image display.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "clone.offset");
 	RNA_def_property_ui_text(prop, "Clone Offset", "");
 	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3);
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
 }
 
 

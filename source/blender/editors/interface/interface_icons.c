@@ -59,7 +59,7 @@
 #include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
-#include "ED_previewrender.h"
+#include "ED_render.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -86,23 +86,45 @@ typedef struct IconImage {
 
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
+#define ICON_TYPE_PREVIEW	0
+#define ICON_TYPE_TEXTURE	1
+#define ICON_TYPE_BUFFER	2
+#define ICON_TYPE_VECTOR	3
+
 typedef struct DrawInfo {
+	int type;
+
+	union {
+		/* type specific data */
+		struct {
+			VectorDrawFunc func;
+		} vector;
+		struct {
+			IconImage* image;
+		} buffer;
+		struct {
+			int x, y, w, h;
+		} texture;
+	} data;
+} DrawInfo;
+
+typedef struct IconTexture {
+	GLuint id;
 	int w;
 	int h;
-	float aspect;
-	VectorDrawFunc drawFunc; /* If drawFunc is defined then it is a vector icon, otherwise use rect */		
-	IconImage* icon;
-} DrawInfo;
+	float invw;
+	float invh;
+} IconTexture;
 
 /* ******************* STATIC LOCAL VARS ******************* */
 /* static here to cache results of icon directory scan, so it's not 
  * scanning the filesystem each time the menu is drawn */
 static struct ListBase iconfilelist = {0, 0};
-
+static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
 /* **************************************************** */
 
-static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size)
+static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type)
 {
 	Icon *new_icon = NULL;
 	IconImage *iimg = NULL;
@@ -116,23 +138,28 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 	new_icon->type = 0;	
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
-	di->drawFunc = 0;
-	di->w = size;
-	di->h = size;
-	di->aspect = 1.0f;
-	
-	iimg = MEM_mallocN(sizeof(IconImage), "icon_img");
-	iimg->rect = MEM_mallocN(size*size*sizeof(unsigned int), "icon_rect");
-	iimg->w = size;
-	iimg->h = size;
+	di->type= type;
 
-	/* Here we store the rect in the icon - same as before */
-	imgsize = bbuf->x;
-	for (y=0; y<size; y++) {
-		memcpy(&iimg->rect[y*size], &bbuf->rect[(y+yofs)*imgsize+xofs], size*sizeof(int));
+	if(type == ICON_TYPE_TEXTURE) {
+		di->data.texture.x= xofs;
+		di->data.texture.y= yofs;
+		di->data.texture.w= size;
+		di->data.texture.h= size;
 	}
+	else if(type == ICON_TYPE_BUFFER) {
+		iimg = MEM_mallocN(sizeof(IconImage), "icon_img");
+		iimg->rect = MEM_mallocN(size*size*sizeof(unsigned int), "icon_rect");
+		iimg->w = size;
+		iimg->h = size;
 
-	di->icon = iimg;
+		/* Here we store the rect in the icon - same as before */
+		imgsize = bbuf->x;
+		for (y=0; y<size; y++) {
+			memcpy(&iimg->rect[y*size], &bbuf->rect[(y+yofs)*imgsize+xofs], size*sizeof(int));
+		}
+
+		di->data.buffer.image = iimg;
+	}
 
 	new_icon->drawinfo_free = UI_icons_free_drawinfo;
 	new_icon->drawinfo = di;
@@ -151,11 +178,8 @@ static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 	new_icon->type = 0;
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
-	di->drawFunc =drawFunc;
-	di->w = ICON_DEFAULT_HEIGHT;
-	di->h = ICON_DEFAULT_HEIGHT;
-	di->aspect = 1.0f;
-	di->icon = NULL;
+	di->type= ICON_TYPE_VECTOR;
+	di->data.vector.func =drawFunc;
 
 	new_icon->drawinfo_free = 0;
 	new_icon->drawinfo = di;
@@ -431,7 +455,7 @@ static void init_internal_icons()
 {
 	bTheme *btheme= U.themes.first;
 	ImBuf *bbuf= NULL;
-	int x, y;
+	int x, y, icontype;
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	char filenamestr[FILE_MAXFILE+16];	// 16 == strlen(".blender/icons/")+1
 	
@@ -451,17 +475,54 @@ static void init_internal_icons()
 				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
 				IMB_freeImBuf(bbuf);
 				bbuf= NULL;
+			}
 		}
-	}
 	}
 	if(bbuf==NULL)
 		bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
 
+	if(bbuf) {
+		/* free existing texture if any */
+		if(icongltex.id) {
+			glDeleteTextures(1, &icongltex.id);
+			icongltex.id= 0;
+		}
+
+		/* we only use a texture for cards with non-power of two */
+		if(GLEW_ARB_texture_non_power_of_two) {
+			glGenTextures(1, &icongltex.id);
+
+			if(icongltex.id) {
+				icongltex.w = bbuf->x;
+				icongltex.h = bbuf->y;
+				icongltex.invw = 1.0f/bbuf->x;
+				icongltex.invh = 1.0f/bbuf->y;
+
+				glBindTexture(GL_TEXTURE_2D, icongltex.id);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bbuf->x, bbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, bbuf->rect);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glBindTexture(GL_TEXTURE_2D, 0);
+
+				if(glGetError() == GL_OUT_OF_MEMORY) {
+					glDeleteTextures(1, &icongltex.id);
+					icongltex.id= 0;
+				}
+			}
+		}
+	}
+
+	if(icongltex.id)
+		icontype= ICON_TYPE_TEXTURE;
+	else
+		icontype= ICON_TYPE_BUFFER;
+	
 	for (y=0; y<ICON_GRID_ROWS; y++) {
 		for (x=0; x<ICON_GRID_COLS; x++) {
 			def_internal_icon(bbuf, BIFICONID_FIRST + y*ICON_GRID_COLS + x,
 				x*(ICON_GRID_W+ICON_GRID_MARGIN)+ICON_GRID_MARGIN,
-				y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN, ICON_GRID_W);
+				y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN, ICON_GRID_W,
+				icontype);
 		}
 	}
 
@@ -588,6 +649,11 @@ ListBase *UI_iconfile_list(void)
 
 void UI_icons_free()
 {
+	if(icongltex.id) {
+		glDeleteTextures(1, &icongltex.id);
+		icongltex.id= 0;
+	}
+
 	free_iconfile_list(&iconfilelist);
 	BKE_icons_free();
 }
@@ -596,12 +662,14 @@ void UI_icons_free_drawinfo(void *drawinfo)
 {
 	DrawInfo *di = drawinfo;
 
-	if (di)
-	{
-		if (di->icon) {
-			MEM_freeN(di->icon->rect);
-			MEM_freeN(di->icon);
+	if(di) {
+		if(di->type == ICON_TYPE_BUFFER) {
+			if(di->data.buffer.image) {
+				MEM_freeN(di->data.buffer.image->rect);
+				MEM_freeN(di->data.buffer.image);
+			}
 		}
+
 		MEM_freeN(di);
 	}
 }
@@ -611,12 +679,7 @@ static DrawInfo *icon_create_drawinfo()
 	DrawInfo *di = NULL;
 
 	di = MEM_callocN(sizeof(DrawInfo), "di_icon");
-	
-	di->drawFunc = 0;
-	di->w = ICON_DEFAULT_HEIGHT;
-	di->h = ICON_DEFAULT_HEIGHT;
-	di->icon = NULL;
-	di->aspect = 1.0f;
+	di->type= ICON_TYPE_PREVIEW;
 
 	return di;
 }
@@ -640,7 +703,7 @@ int UI_icon_get_width(int icon_id)
 	}
 
 	if (di)
-		return di->w;
+		return ICON_DEFAULT_HEIGHT;
 
 	return 0;
 }
@@ -665,7 +728,7 @@ int UI_icon_get_height(int icon_id)
 	}
 	
 	if (di)
-		return di->h;
+		return ICON_DEFAULT_HEIGHT;
 
 	return 0;
 }
@@ -718,12 +781,23 @@ static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, int miple
 		prv_img->w[miplevel], prv_img->h[miplevel]);
 }
 
-static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect)
+static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect, float alpha, float *rgb)
 {
-	
+	/* modulate color */
+	if(alpha != 1.0f)
+		glPixelTransferf(GL_ALPHA_SCALE, alpha);
+
+	if(rgb) {
+		glPixelTransferf(GL_RED_SCALE, rgb[0]);
+		glPixelTransferf(GL_GREEN_SCALE, rgb[1]);
+		glPixelTransferf(GL_BLUE_SCALE, rgb[2]);
+	}
+
+	/* position */
 	glRasterPos2f(x, y);
 	// XXX ui_rasterpos_safe(x, y, aspect);
 	
+	/* draw */
 	if((w<1 || h<1)) {
 		// XXX - TODO 2.5 verify whether this case can happen
 		// and only print in debug
@@ -731,23 +805,68 @@ static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw,
 	}
 	/* rect contains image in 'rendersize', we only scale if needed */
 	else if(rw!=w && rh!=h) {
-		ImBuf *ima;
 		if(w>2000 || h>2000) { /* something has gone wrong! */
 			printf("insane icon size w=%d h=%d\n",w,h);
-			return;
 		}
-		/* first allocate imbuf for scaling and copy preview into it */
-		ima = IMB_allocImBuf(rw, rh, 32, IB_rect, 0);
-		memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
-		
-		/* scale it */
-		IMB_scaleImBuf(ima, w, h);
-		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
-		
-		IMB_freeImBuf(ima);
+		else {
+			ImBuf *ima;
+
+			/* first allocate imbuf for scaling and copy preview into it */
+			ima = IMB_allocImBuf(rw, rh, 32, IB_rect, 0);
+			memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
+			
+			/* scale it */
+			IMB_scaleImBuf(ima, w, h);
+			glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
+			
+			IMB_freeImBuf(ima);
+		}
 	}
 	else
 		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+
+	/* restore color */
+	if(alpha != 0.0f)
+		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+	
+	if(rgb) {
+		glPixelTransferf(GL_RED_SCALE, 1.0f);
+		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+	}
+}
+
+static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy, int iw, int ih, float alpha, float *rgb)
+{
+	float x1, x2, y1, y2;
+
+	if(rgb) glColor4f(rgb[0], rgb[1], rgb[2], alpha);
+	else glColor4f(1.0f, 1.0f, 1.0f, alpha);
+
+	x1= ix*icongltex.invw;
+	x2= (ix + ih)*icongltex.invw;
+	y1= iy*icongltex.invh;
+	y2= (iy + ih)*icongltex.invh;
+
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, icongltex.id);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(x1, y1);
+	glVertex2f(x, y);
+
+	glTexCoord2f(x2, y1);
+	glVertex2f(x+w, y);
+
+	glTexCoord2f(x2, y2);
+	glVertex2f(x+w, y+h);
+
+	glTexCoord2f(x1, y2);
+	glVertex2f(x, y+h);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_TEXTURE_2D);
 }
 
 /* Drawing size for preview images at level miplevel */
@@ -760,10 +879,12 @@ static int preview_size(int miplevel)
 	return 0;
 }
 
-static void icon_draw_size(float x, float y, int icon_id, float aspect, int miplevel, int draw_size, int nocreate)
+static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, float *rgb, int miplevel, int draw_size, int nocreate)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
+	IconImage *iimg;
+	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
 	
@@ -771,7 +892,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, int mipl
 		printf("icon_draw_mipmap: Internal error, no icon for icon ID: %d\n", icon_id);
 		return;
 	}
-	
+
 	di = (DrawInfo*)icon->drawinfo;
 	
 	if (!di) {
@@ -781,31 +902,38 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, int mipl
 		icon->drawinfo_free = UI_icons_free_drawinfo;		
 	}
 	
-	di->aspect = aspect;
 	/* scale width and height according to aspect */
-	di->w = (int)(draw_size/di->aspect + 0.5f);
-	di->h = (int)(draw_size/di->aspect + 0.5f);
+	w = (int)(draw_size/aspect + 0.5f);
+	h = (int)(draw_size/aspect + 0.5f);
 	
-	if (di->drawFunc) {
+	if(di->type == ICON_TYPE_VECTOR) {
 		/* vector icons use the uiBlock transformation, they are not drawn
 		with untransformed coordinates like the other icons */
-		di->drawFunc(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
+		di->data.vector.func(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	} 
-	else if (di->icon) {
-		/* it is a builtin icon */		
-		if (!di->icon->rect) return; /* something has gone wrong! */
-
-		icon_draw_rect(x,y,di->w, di->h, di->aspect, di->icon->w, di->icon->h, di->icon->rect);
+	else if(di->type == ICON_TYPE_TEXTURE) {
+		icon_draw_texture(x, y, w, h, di->data.texture.x, di->data.texture.y,
+			di->data.texture.w, di->data.texture.h, alpha, rgb);
 	}
-	else {
+	else if(di->type == ICON_TYPE_BUFFER) {
+		/* it is a builtin icon */		
+		iimg= di->data.buffer.image;
+
+		if(!iimg->rect) return; /* something has gone wrong! */
+
+		icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb);
+	}
+	else if(di->type == ICON_TYPE_PREVIEW) {
 		PreviewImage* pi = BKE_previewimg_get((ID*)icon->obj); 
 
-		if (pi) {			
+		if(pi) {			
 			/* no create icon on this level in code */
+			if(!pi->rect[miplevel]) return; /* something has gone wrong! */
 			
-			if (!pi->rect[miplevel]) return; /* something has gone wrong! */
-			
-			icon_draw_rect(x,y,di->w, di->h, di->aspect, pi->w[miplevel], pi->h[miplevel], pi->rect[miplevel]);		
+			/* preview images use premul alpha ... */
+			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			icon_draw_rect(x, y, w, h, aspect, pi->w[miplevel], pi->h[miplevel], pi->rect[miplevel], 1.0f, NULL);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
 }
@@ -847,50 +975,35 @@ int ui_id_icon_get(bContext *C, ID *id)
 	return iconid;
 }
 
-static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int miplevel, int nocreate)
+static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, float alpha, int miplevel, int nocreate)
 {
 	int draw_size = preview_size(miplevel);
-	icon_draw_size(x,y,icon_id, aspect, miplevel, draw_size, nocreate);
+	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, miplevel, draw_size, nocreate);
 }
 
-
-void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect)
+void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alpha)
 {
-	icon_draw_mipmap(x,y,icon_id, aspect, PREVIEW_MIPMAP_ZERO, 0);
+	icon_draw_mipmap(x, y, icon_id, aspect, alpha, PREVIEW_MIPMAP_ZERO, 0);
+}
+
+void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, float *rgb)
+{
+	int draw_size = preview_size(PREVIEW_MIPMAP_ZERO);
+	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, PREVIEW_MIPMAP_ZERO, draw_size, 0);
 }
 
 void UI_icon_draw(float x, float y, int icon_id)
 {
-	UI_icon_draw_aspect(x, y, icon_id, 1.0f);
+	UI_icon_draw_aspect(x, y, icon_id, 1.0f, 1.0f);
 }
 
-void UI_icon_draw_size_blended(float x, float y, int size, int icon_id, int shade)
+void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
 {
-	if(shade < 0) {
-		float r= (128+shade)/128.0f;
-		glPixelTransferf(GL_ALPHA_SCALE, r);
-	}
-
-	icon_draw_size(x,y,icon_id, 1.0f, 0, size, 1);
-
-	if(shade < 0)
-		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, 0, size, 1);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate)
 {
-	icon_draw_mipmap(x,y,icon_id, 1.0f, PREVIEW_MIPMAP_LARGE, nocreate);
+	icon_draw_mipmap(x, y, icon_id, 1.0f, 1.0f, PREVIEW_MIPMAP_LARGE, nocreate);
 }
 
-void UI_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade)
-{
-	if(shade < 0) {
-		float r= (128+shade)/128.0f;
-		glPixelTransferf(GL_ALPHA_SCALE, r);
-	}
-
-	UI_icon_draw_aspect(x, y, icon_id, aspect);
-
-	if(shade < 0)
-		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-}

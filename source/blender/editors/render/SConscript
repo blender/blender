@@ -9,4 +9,4 @@ incs += ' #/intern/guardedalloc ../../gpu'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
 incs += ' ../../blenloader'
 
-env.BlenderLib ( 'bf_editors_preview', sources, Split(incs), [], libtype=['core'], priority=[45] )
+env.BlenderLib ( 'bf_editors_render', sources, Split(incs), [], libtype=['core'], priority=[45] )

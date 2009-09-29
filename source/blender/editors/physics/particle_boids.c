@@ -25,35 +25,21 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-//#include <stdlib.h>
-//#include <string.h>
-//
+#include <stdlib.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_boid_types.h"
 #include "DNA_particle_types.h"
-//#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-//#include "DNA_material_types.h"
-//#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
-//#include "DNA_world_types.h"
 
 #include "BKE_boids.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-//#include "BKE_font.h"
-//#include "BKE_library.h"
-//#include "BKE_main.h"
-//#include "BKE_material.h"
 #include "BKE_particle.h"
-//#include "BKE_texture.h"
-//#include "BKE_utildefines.h"
-//#include "BKE_world.h"
 
-//#include "BLI_editVert.h"
 #include "BLI_listbase.h"
-//
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 #include "RNA_define.h"
@@ -61,13 +47,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-//#include "ED_curve.h"
-//#include "ED_mesh.h"
-//
-//#include "buttons_intern.h"	// own include
+#include "physics_intern.h"
 
 /************************ add/del boid rule operators *********************/
-static int boidrule_add_exec(bContext *C, wmOperator *op)
+static int rule_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
@@ -101,23 +84,23 @@ static int boidrule_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BOID_OT_boidrule_add(wmOperatorType *ot)
+void BOID_OT_rule_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Boid Rule";
 	ot->description = "Add a boid rule to the current boid state.";
-	ot->idname= "BOID_OT_boidrule_add";
+	ot->idname= "BOID_OT_rule_add";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= boidrule_add_exec;
+	ot->exec= rule_add_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", boidrule_type_items, 0, "Type", "");
 }
-static int boidrule_del_exec(bContext *C, wmOperator *op)
+static int rule_del_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
@@ -153,21 +136,21 @@ static int boidrule_del_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BOID_OT_boidrule_del(wmOperatorType *ot)
+void BOID_OT_rule_del(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Boid Rule";
-	ot->idname= "BOID_OT_boidrule_del";
+	ot->idname= "BOID_OT_rule_del";
 	
 	/* api callbacks */
-	ot->exec= boidrule_del_exec;
+	ot->exec= rule_del_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ move up/down boid rule operators *********************/
-static int boidrule_move_up_exec(bContext *C, wmOperator *op)
+static int rule_move_up_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
@@ -194,19 +177,19 @@ static int boidrule_move_up_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BOID_OT_boidrule_move_up(wmOperatorType *ot)
+void BOID_OT_rule_move_up(wmOperatorType *ot)
 {
 	ot->name= "Move Up Boid Rule";
 	ot->description= "Move boid rule up in the list.";
-	ot->idname= "BOID_OT_boidrule_move_up";
+	ot->idname= "BOID_OT_rule_move_up";
 
-	ot->exec= boidrule_move_up_exec;
+	ot->exec= rule_move_up_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int boidrule_move_down_exec(bContext *C, wmOperator *op)
+static int rule_move_down_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
@@ -233,13 +216,13 @@ static int boidrule_move_down_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BOID_OT_boidrule_move_down(wmOperatorType *ot)
+void BOID_OT_rule_move_down(wmOperatorType *ot)
 {
 	ot->name= "Move Down Boid Rule";
 	ot->description= "Move boid rule down in the list.";
-	ot->idname= "BOID_OT_boidrule_move_down";
+	ot->idname= "BOID_OT_rule_move_down";
 
-	ot->exec= boidrule_move_down_exec;
+	ot->exec= rule_move_down_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -247,7 +230,7 @@ void BOID_OT_boidrule_move_down(wmOperatorType *ot)
 
 
 /************************ add/del boid state operators *********************/
-static int boidstate_add_exec(bContext *C, wmOperator *op)
+static int state_add_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -273,20 +256,20 @@ static int boidstate_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BOID_OT_boidstate_add(wmOperatorType *ot)
+void BOID_OT_state_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Boid State";
 	ot->description = "Add a boid state to the particle system.";
-	ot->idname= "BOID_OT_boidstate_add";
+	ot->idname= "BOID_OT_state_add";
 	
 	/* api callbacks */
-	ot->exec= boidstate_add_exec;
+	ot->exec= state_add_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-static int boidstate_del_exec(bContext *C, wmOperator *op)
+static int state_del_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
@@ -327,21 +310,21 @@ static int boidstate_del_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BOID_OT_boidstate_del(wmOperatorType *ot)
+void BOID_OT_state_del(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Boid State";
-	ot->idname= "BOID_OT_boidstate_del";
+	ot->idname= "BOID_OT_state_del";
 	
 	/* api callbacks */
-	ot->exec= boidstate_del_exec;
+	ot->exec= state_del_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ move up/down boid state operators *********************/
-static int boidstate_move_up_exec(bContext *C, wmOperator *op)
+static int state_move_up_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -366,19 +349,19 @@ static int boidstate_move_up_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BOID_OT_boidstate_move_up(wmOperatorType *ot)
+void BOID_OT_state_move_up(wmOperatorType *ot)
 {
 	ot->name= "Move Up Boid State";
 	ot->description= "Move boid state up in the list.";
-	ot->idname= "BOID_OT_boidstate_move_up";
+	ot->idname= "BOID_OT_state_move_up";
 
-	ot->exec= boidstate_move_up_exec;
+	ot->exec= state_move_up_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int boidstate_move_down_exec(bContext *C, wmOperator *op)
+static int state_move_down_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
@@ -403,28 +386,15 @@ static int boidstate_move_down_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BOID_OT_boidstate_move_down(wmOperatorType *ot)
+void BOID_OT_state_move_down(wmOperatorType *ot)
 {
 	ot->name= "Move Down Boid State";
 	ot->description= "Move boid state down in the list.";
-	ot->idname= "BOID_OT_boidstate_move_down";
+	ot->idname= "BOID_OT_state_move_down";
 
-	ot->exec= boidstate_move_down_exec;
+	ot->exec= state_move_down_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/*******************************************************************************/
-void ED_operatortypes_boids(void)
-{
-	WM_operatortype_append(BOID_OT_boidrule_add);
-	WM_operatortype_append(BOID_OT_boidrule_del);
-	WM_operatortype_append(BOID_OT_boidrule_move_up);
-	WM_operatortype_append(BOID_OT_boidrule_move_down);
-
-	WM_operatortype_append(BOID_OT_boidstate_add);
-	WM_operatortype_append(BOID_OT_boidstate_del);
-	WM_operatortype_append(BOID_OT_boidstate_move_up);
-	WM_operatortype_append(BOID_OT_boidstate_move_down);
-}

@@ -88,12 +88,12 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_previewrender.h"
+#include "ED_render.h"
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
 
-#include "previewrender_intern.h"
+#include "render_intern.h"
 
 #define PR_XMIN		10
 #define PR_YMIN		5
@@ -294,6 +294,14 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		}
 		
 		sce->r.color_mgt_flag = scene->r.color_mgt_flag;
+		/* exception: don't color manage texture previews or icons */
+		if((sp && sp->pr_method==PR_ICON_RENDER) || id_type == ID_TE)
+			sce->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT;
+		if((sp && sp->pr_method==PR_ICON_RENDER) && id_type != ID_WO)
+			sce->r.alphamode= R_ALPHAPREMUL;
+		else
+			sce->r.alphamode= R_ADDSKY;
+
 		sce->r.cfra= scene->r.cfra;
 		
 		if(id_type==ID_MA) {
@@ -363,9 +371,6 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			Tex *tex= (Tex *)id;
 			
 			sce->lay= 1<<MA_TEXTURE;
-			
-			/* exception: don't color manage texture previews */
-			sce->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT;
 			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='t') {
@@ -1081,12 +1086,9 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	ShaderPreview *sp;
 
 	/* XXX ugly global still, but we can't do preview while rendering */
-	if(G.rendering)
+	if(G.rendering) {
+		printf("abort icon because rendering\n");
 		return;
-	
-	/* XXX this is not correct, can't work with threads */
-	if(GS(id->name) == ID_TE) {
-		ntreeTexSetPreviewFlag(1);
 	}
 	
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
@@ -1094,7 +1096,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 
 	/* customdata for preview thread */
 	sp->scene= CTX_data_scene(C);
-	sp->owner= owner;
+	sp->owner= id;
 	sp->sizex= sizex;
 	sp->sizey= sizey;
 	sp->pr_method= PR_ICON_RENDER;
@@ -1107,9 +1109,6 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
-	
-	/* signal to rerender icon in menus */
-	BKE_icon_changed(BKE_icon_getid(id));
 }
 
 void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, MTex *slot, int sizex, int sizey)
@@ -1118,12 +1117,9 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	ShaderPreview *sp;
 
 	/* XXX ugly global still, but we can't do preview while rendering */
-	if(G.rendering)
+	if(G.rendering) {
+		printf("abort shader because rendering\n");
 		return;
-	
-	/* XXX this is not correct, can't work with threads */
-	if(GS(id->name) == ID_TE) {
-		ntreeTexSetPreviewFlag(1);
 	}
 	
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
@@ -1145,9 +1141,6 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	WM_jobs_callbacks(steve, common_preview_startjob, NULL, shader_preview_updatejob);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
-	
-	/* signal to rerender icon in menus */
-	BKE_icon_changed(BKE_icon_getid(id));
 }
 
 

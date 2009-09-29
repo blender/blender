@@ -40,7 +40,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
-#include "ED_previewrender.h"
+#include "ED_render.h"
 
 #include "RNA_access.h"
 

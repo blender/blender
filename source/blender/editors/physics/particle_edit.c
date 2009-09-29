@@ -106,7 +106,7 @@ static void PTCacheUndo_clear(PTCacheEdit *edit);
 
 /**************************** utilities *******************************/
 
-static int PE_poll(bContext *C)
+int PE_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -120,7 +120,7 @@ static int PE_poll(bContext *C)
 	return (edit && (ob->mode & OB_MODE_PARTICLE_EDIT));
 }
 
-static int PE_hair_poll(bContext *C)
+int PE_hair_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -134,7 +134,7 @@ static int PE_hair_poll(bContext *C)
 	return (edit && edit->psys && (ob->mode & OB_MODE_PARTICLE_EDIT));
 }
 
-static int PE_poll_3dview(bContext *C)
+int PE_poll_3dview(bContext *C)
 {
 	return PE_poll(C) && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
 		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
@@ -3946,63 +3946,5 @@ void PARTICLE_OT_specials_menu(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= specials_menu_invoke;
 	ot->poll= PE_hair_poll;
-}
-
-/**************************** registration **********************************/
-
-void ED_operatortypes_particle(void)
-{
-	WM_operatortype_append(PARTICLE_OT_select_all_toggle);
-	WM_operatortype_append(PARTICLE_OT_select_first);
-	WM_operatortype_append(PARTICLE_OT_select_last);
-	WM_operatortype_append(PARTICLE_OT_select_linked);
-	WM_operatortype_append(PARTICLE_OT_select_less);
-	WM_operatortype_append(PARTICLE_OT_select_more);
-
-	WM_operatortype_append(PARTICLE_OT_hide);
-	WM_operatortype_append(PARTICLE_OT_reveal);
-
-	WM_operatortype_append(PARTICLE_OT_rekey);
-	WM_operatortype_append(PARTICLE_OT_subdivide);
-	WM_operatortype_append(PARTICLE_OT_remove_doubles);
-	WM_operatortype_append(PARTICLE_OT_delete);
-	WM_operatortype_append(PARTICLE_OT_mirror);
-
-	WM_operatortype_append(PARTICLE_OT_brush_set);
-	WM_operatortype_append(PARTICLE_OT_brush_edit);
-	WM_operatortype_append(PARTICLE_OT_brush_radial_control);
-
-	WM_operatortype_append(PARTICLE_OT_specials_menu);
-
-	WM_operatortype_append(PARTICLE_OT_particle_edit_toggle);
-	WM_operatortype_append(PARTICLE_OT_edited_clear);
-}
-
-void ED_keymap_particle(wmWindowManager *wm)
-{
-	wmKeyMap *keymap;
-	
-	keymap= WM_keymap_find(wm, "Particle", 0, 0);
-	keymap->poll= PE_poll;
-	
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
 }
 

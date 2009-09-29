@@ -62,7 +62,7 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
-#include "ED_previewrender.h"
+#include "ED_render.h"
 
 #include "BIF_gl.h"
 

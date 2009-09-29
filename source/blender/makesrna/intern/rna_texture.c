@@ -40,8 +40,6 @@
 
 #include "BKE_node.h"
 
-#include "WM_types.h"
-
 static EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
@@ -52,8 +50,14 @@ static EnumPropertyItem texture_filter_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_depsgraph.h"
 #include "BKE_texture.h"
+#include "BKE_main.h"
+
 #include "ED_node.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
@@ -95,6 +99,14 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 	}
 }
 
+static void rna_Texture_update(bContext *C, PointerRNA *ptr)
+{
+	Tex *tex= ptr->id.data;
+
+	DAG_id_flush_update(&tex->id, 0);
+	WM_event_add_notifier(C, NC_TEXTURE, tex);
+}
+
 static void rna_Texture_type_set(PointerRNA *ptr, int value)
 {
 	Tex *tex= (Tex*)ptr->data;
@@ -110,6 +122,28 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 	}
 	
 	tex->type = value;
+}
+
+static void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
+{
+	ID *id= ptr->id.data;
+
+	DAG_id_flush_update(id, 0);
+
+	switch(GS(id->name)) {
+		case ID_MA: 
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, id);
+			break;
+		case ID_WO: 
+			WM_event_add_notifier(C, NC_WORLD, id);
+			break;
+		case ID_LA: 
+			WM_event_add_notifier(C, NC_LAMP|ND_LIGHTING, id);
+			break;
+		case ID_BR: 
+			WM_event_add_notifier(C, NC_BRUSH, id);
+			break;
+	}
 }
 
 static int rna_TextureSlot_name_length(PointerRNA *ptr)
@@ -271,13 +305,13 @@ static void rna_def_color_ramp_element(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Color", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Position", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_color_ramp(BlenderRNA *brna)
@@ -301,13 +335,13 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "data", "tot");
 	RNA_def_property_struct_type(prop, "ColorRampElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ipotype");
 	RNA_def_property_enum_items(prop, prop_interpolation_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texmapping(BlenderRNA *brna)
@@ -321,37 +355,37 @@ static void rna_def_texmapping(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Rotation", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Scale", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "min");
 	RNA_def_property_ui_text(prop, "Minimum", "Minimum value for clipping");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "max");
 	RNA_def_property_ui_text(prop, "Maximum", "Maximum value for clipping");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "has_minimum", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MIN);
 	RNA_def_property_ui_text(prop, "Has Minimum", "Whether to use minimum clipping value");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "has_maximum", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MAX);
 	RNA_def_property_ui_text(prop, "Has Maximum", "Whether to use maximum clipping value");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_mtex(BlenderRNA *brna)
@@ -398,60 +432,60 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture", "Texture datablock used by this texture slot.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_TextureSlot_name_get", "rna_TextureSlot_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Texture slot name.");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	/* mapping */
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "ofs");
 	RNA_def_property_ui_range(prop, -10, 10, 10, 2);
 	RNA_def_property_ui_text(prop, "Offset", "Fine tunes texture mapping X, Y and Z locations.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
 	RNA_def_property_ui_text(prop, "Size", "Sets scaling for the texture's X, Y and Z sizes.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "The default color for textures that don't return RGB.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "blendtype");
 	RNA_def_property_enum_items(prop, prop_blend_type_items);
 	RNA_def_property_ui_text(prop, "Blend Type", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "stencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_STENCIL);
 	RNA_def_property_ui_text(prop, "Stencil", "Use this texture as a blending value on the next texture.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "negate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_NEGATIVE);
 	RNA_def_property_ui_text(prop, "Negate", "Inverts the values of the texture to reverse its effect.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "rgb_to_intensity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_RGBTOINT);
 	RNA_def_property_ui_text(prop, "RGB to Intensity", "Converts texture RGB values to intensity (gray) values.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_range(prop, 0, 360);
 	RNA_def_property_float_funcs(prop, "rna_TextureSlot_angle_get", "rna_TextureSlot_angle_set", NULL);
 	RNA_def_property_ui_text(prop, "Angle", "Defines brush texture rotation.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "brush_map_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_map_mode_items);
@@ -461,26 +495,26 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "def_var");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Default Value", "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 	
 	prop= RNA_def_property(srna, "variable_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "varfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Variable Factor", "Amount texture affects other values.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 	
 	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "norfac");
 	RNA_def_property_ui_range(prop, 0, 5, 10, 3);
 	RNA_def_property_ui_text(prop, "Normal Factor", "Amount texture affects normal values.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 	
 	prop= RNA_def_property(srna, "output_node", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "which_output");
 	RNA_def_property_enum_items(prop, output_node_items);
 	RNA_def_property_enum_funcs(prop, "rna_TextureSlot_output_node_get", NULL, "rna_TextureSlot_output_node_itemf");
 	RNA_def_property_ui_text(prop, "Output Node", "Which output node to use, for node-based textures.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 }
 
 static void rna_def_filter_size_common(StructRNA *srna) 
@@ -491,14 +525,14 @@ static void rna_def_filter_size_common(StructRNA *srna)
 	prop= RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_FILTER_MIN);
 	RNA_def_property_ui_text(prop, "Use Filter", "Use Filter Size as a minimal filter value in pixels");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "filter_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "filtersize");
 	RNA_def_property_range(prop, 0.1, 50.0);
 	RNA_def_property_ui_range(prop, 0.1, 50.0, 1, 0.2);
 	RNA_def_property_ui_text(prop, "Filter Size", "Multiplies the filter size used by MIP Map and Interpolation");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_environment_map_common(StructRNA *srna)
@@ -515,14 +549,14 @@ static void rna_def_environment_map_common(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_source_items);
 	RNA_def_property_ui_text(prop, "Source", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	/* XXX: move this to specific types if needed */
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ima");
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_environment_map(BlenderRNA *brna)
@@ -545,28 +579,28 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.01, 50, 100, 2);
 	RNA_def_property_ui_text(prop, "Clip Start", "Objects nearer than this are not visible to map.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.10, 20000, 100, 2);
 	RNA_def_property_ui_text(prop, "Clip End", "Objects further than this are not visible to map.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "viewscale");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.5, 5, 100, 2);
 	RNA_def_property_ui_text(prop, "Zoom", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	/* XXX: EnvMap.notlay */
 	
@@ -574,12 +608,12 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "cuberes");
 	RNA_def_property_range(prop, 50, 4096);
 	RNA_def_property_ui_text(prop, "Resolution", "Pixel resolution of the rendered environment map.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 5);
 	RNA_def_property_ui_text(prop, "Depth", "Number of times a map will be rendered recursively (mirror effects.)");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static EnumPropertyItem prop_noise_basis_items[] = {
@@ -620,38 +654,38 @@ static void rna_def_texture_clouds(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Noise Size", "Sets scaling for noise input");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_depth", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "noisedepth");
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 6, 0, 2);
 	RNA_def_property_ui_text(prop, "Noise Depth", "Sets the depth of the cloud calculation");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisetype");
 	RNA_def_property_enum_items(prop, prop_noise_type);
 	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "stype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_clouds_stype);
 	RNA_def_property_ui_text(prop, "Color", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
 	RNA_def_property_ui_range(prop, 0.001, 0.1, 1, 2);
 	RNA_def_property_ui_text(prop, "Nabla", "Size of derivative offset used for calculating normal");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture_wood(BlenderRNA *brna)
@@ -681,44 +715,44 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Noise Size", "Sets scaling for noise input");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "turbulence", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "turbul");
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 200, 10, 2);
 	RNA_def_property_ui_text(prop, "Turbulence", "Sets the turbulence of the bandnoise and ringnoise types");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisetype");
 	RNA_def_property_enum_items(prop, prop_noise_type);
 	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "stype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_wood_stype);
 	RNA_def_property_ui_text(prop, "Pattern", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noisebasis2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_wood_noisebasis2);
 	RNA_def_property_ui_text(prop, "Noise Basis 2", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
 	RNA_def_property_ui_range(prop, 0.001, 0.1, 1, 2);
 	RNA_def_property_ui_text(prop, "Nabla", "Size of derivative offset used for calculating normal.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 }
 
@@ -748,51 +782,51 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Noise Size", "Sets scaling for noise input");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "turbulence", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "turbul");
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 200, 10, 2);
 	RNA_def_property_ui_text(prop, "Turbulence", "Sets the turbulence of the bandnoise and ringnoise types");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_depth", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "noisedepth");
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 6, 0, 2);
 	RNA_def_property_ui_text(prop, "Noise Depth", "Sets the depth of the cloud calculation");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisetype");
 	RNA_def_property_enum_items(prop, prop_noise_type);
 	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "stype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_marble_stype);
 	RNA_def_property_ui_text(prop, "Pattern", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noisebasis2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_marble_noisebasis2);
 	RNA_def_property_ui_text(prop, "Noise Basis 2", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
 	RNA_def_property_ui_range(prop, 0.001, 0.1, 1, 2);
 	RNA_def_property_ui_text(prop, "Nabla", "Size of derivative offset used for calculating normal.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 }
 
@@ -810,14 +844,14 @@ static void rna_def_texture_magic(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 200, 10, 2);
 	RNA_def_property_ui_text(prop, "Turbulence", "Sets the turbulence of the bandnoise and ringnoise types");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_depth", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "noisedepth");
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 6, 0, 2);
 	RNA_def_property_ui_text(prop, "Noise Depth", "Sets the depth of the cloud calculation");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture_blend(BlenderRNA *brna)
@@ -848,13 +882,13 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_blend_progression);
 	RNA_def_property_ui_text(prop, "Progression", "Sets the style of the color blending");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "flip_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_flip_axis_items);
 	RNA_def_property_ui_text(prop, "Flip Axis", "Flips the texture's X and Y axis");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 }
 
@@ -878,32 +912,32 @@ static void rna_def_texture_stucci(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 200, 10, 2);
 	RNA_def_property_ui_text(prop, "Turbulence", "Sets the turbulence of the bandnoise and ringnoise types");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noisesize");
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Noise Size", "Sets scaling for noise input");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisetype");
 	RNA_def_property_enum_items(prop, prop_noise_type);
 	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "stype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_stucci_stype);
 	RNA_def_property_ui_text(prop, "Pattern", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture_noise(BlenderRNA *brna)
@@ -936,45 +970,45 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_MIPMAP);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_ImageTexture_mipmap_set");
 	RNA_def_property_ui_text(prop, "MIP Map", "Uses auto-generated MIP maps for the image");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "mipmap_gauss", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_GAUSS_MIP);
 	RNA_def_property_ui_text(prop, "MIP Map Gauss", "Uses Gauss filter to sample down MIP maps");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "interpolation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_INTERPOL);
 	RNA_def_property_ui_text(prop, "Interpolation", "Interpolates pixels using Area filter");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	/* XXX: I think flip_axis should be a generic Texture property, enabled for all the texture types */
 	prop= RNA_def_property(srna, "flip_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_IMAROT);
 	RNA_def_property_ui_text(prop, "Flip Axis", "Flips the texture's X and Y axis");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_USEALPHA);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Uses the alpha channel information in the image");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "calculate_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_CALCALPHA);
 	RNA_def_property_ui_text(prop, "Calculate Alpha", "Calculates an alpha channel based on RGB values in the image");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "invert_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_NEGALPHA);
 	RNA_def_property_ui_text(prop, "Invert Alpha", "Inverts all the alpha values in the image");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	rna_def_filter_size_common(srna);
 
 	prop= RNA_def_property(srna, "normal_map", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_NORMALMAP);
 	RNA_def_property_ui_text(prop, "Normal Map", "Uses image RGB values for normal mapping");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	/* XXX: mtex->normapspace "Sets space of normal map image" "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3" 
 	 *			not sure why this goes in mtex instead of texture directly? */
@@ -983,46 +1017,46 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
 	RNA_def_property_enum_items(prop, prop_image_extension);
 	RNA_def_property_ui_text(prop, "Extension", "Sets how the image is stretched in the texture");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "repeat_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xrepeat");
 	RNA_def_property_range(prop, 1, 512);
 	RNA_def_property_ui_text(prop, "Repeat X", "Sets a repetition multiplier in the X direction");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "repeat_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "yrepeat");
 	RNA_def_property_range(prop, 1, 512);
 	RNA_def_property_ui_text(prop, "Repeat Y", "Sets a repetition multiplier in the Y direction");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "mirror_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_REPEAT_XMIR);
 	RNA_def_property_ui_text(prop, "Mirror X", "Mirrors the image repetition on the X direction");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "mirror_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_REPEAT_YMIR);
 	RNA_def_property_ui_text(prop, "Mirror Y", "Mirrors the image repetition on the Y direction");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "checker_odd", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_CHECKER_ODD);
 	RNA_def_property_ui_text(prop, "Checker Odd", "Sets odd checker tiles");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "checker_even", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_CHECKER_EVEN);
 	RNA_def_property_ui_text(prop, "Checker Even", "Sets even checker tiles");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "checker_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "checkerdist");
 	RNA_def_property_range(prop, 0.0, 0.99);
 	RNA_def_property_ui_range(prop, 0.0, 0.99, 0.1, 0.01);
 	RNA_def_property_ui_text(prop, "Checker Distance", "Sets distance between checker tiles");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 #if 0
 
@@ -1034,7 +1068,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_range(prop, -10, 10);
 	RNA_def_property_ui_text(prop, "Crop Rectangle", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 #endif
 
@@ -1043,40 +1077,40 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_range(prop, -10.0, 10.0);
 	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 0.2);
 	RNA_def_property_ui_text(prop, "Crop Minimum X", "Sets minimum X value to crop the image");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "crop_min_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropymin");
 	RNA_def_property_range(prop, -10.0, 10.0);
 	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 0.2);
 	RNA_def_property_ui_text(prop, "Crop Minimum Y", "Sets minimum Y value to crop the image");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "crop_max_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropxmax");
 	RNA_def_property_range(prop, -10.0, 10.0);
 	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 0.2);
 	RNA_def_property_ui_text(prop, "Crop Maximum X", "Sets maximum X value to crop the image");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "crop_max_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cropymax");
 	RNA_def_property_range(prop, -10.0, 10.0);
 	RNA_def_property_ui_range(prop, -10.0, 10.0, 1, 0.2);
 	RNA_def_property_ui_text(prop, "Crop Maximum Y", "Sets maximum Y value to crop the image");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ima");
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	/* filtering */
 	prop= RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
@@ -1084,19 +1118,19 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, texture_filter_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageTexture_filter_itemf");
 	RNA_def_property_ui_text(prop, "Filter", "Texture filter to use for sampling image.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "filter_probes", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "afmax");
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Filter Probes", "Maximum number of samples. Higher gives less blur at distant/oblique angles, but is also slower.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "filter_eccentricity", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "afmax");
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Filter Eccentricity", "Maximum eccentricity. Higher gives less blur at distant/oblique angles, but is also slower.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture_plugin(BlenderRNA *brna)
@@ -1124,13 +1158,13 @@ static void rna_def_texture_environment_map(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "environment_map", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "env");
 	RNA_def_property_struct_type(prop, "EnvironmentMap");
 	RNA_def_property_ui_text(prop, "Environment Map", "Gets the environment map associated with this texture");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	rna_def_filter_size_common(srna);
 }
@@ -1156,62 +1190,62 @@ static void rna_def_texture_musgrave(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_musgrave_type);
 	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "highest_dimension", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mg_H");
 	RNA_def_property_range(prop, 0.0001, 2);
 	RNA_def_property_ui_text(prop, "Highest Dimension", "Highest fractal dimension");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "lacunarity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mg_lacunarity");
 	RNA_def_property_range(prop, 0, 6);
 	RNA_def_property_ui_text(prop, "Lacunarity", "Gap between succesive frequencies");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "octaves", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mg_octaves");
 	RNA_def_property_range(prop, 0, 8);
 	RNA_def_property_ui_text(prop, "Octaves", "Number of frequencies used");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mg_offset");
 	RNA_def_property_range(prop, 0, 6);
 	RNA_def_property_ui_text(prop, "Offset", "The fractal offset");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "gain", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mg_gain");
 	RNA_def_property_range(prop, 0, 6);
 	RNA_def_property_ui_text(prop, "Gain", "The gain multiplier");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ns_outscale");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Noise Intensity", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noisesize");
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Noise Size", "Sets scaling for noise input");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
 	RNA_def_property_ui_range(prop, 0.001, 0.1, 1, 2);
 	RNA_def_property_ui_text(prop, "Nabla", "Size of derivative offset used for calculating normal");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture_voronoi(BlenderRNA *brna)
@@ -1245,62 +1279,62 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "vn_w1");
 	RNA_def_property_range(prop, -2, 2);
 	RNA_def_property_ui_text(prop, "Weight 1", "Voronoi feature weight 1");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "weight_2", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_w2");
 	RNA_def_property_range(prop, -2, 2);
 	RNA_def_property_ui_text(prop, "Weight 2", "Voronoi feature weight 2");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "weight_3", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_w3");
 	RNA_def_property_range(prop, -2, 2);
 	RNA_def_property_ui_text(prop, "Weight 3", "Voronoi feature weight 3");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "weight_4", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_w4");
 	RNA_def_property_range(prop, -2, 2);
 	RNA_def_property_ui_text(prop, "Weight 4", "Voronoi feature weight 4");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "minkovsky_exponent", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_mexp");
 	RNA_def_property_range(prop, 0.01, 10);
 	RNA_def_property_ui_text(prop, "Minkovsky Exponent", "Minkovsky exponent");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "distance_metric", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "vn_distm");
 	RNA_def_property_enum_items(prop, prop_distance_metric_items);
 	RNA_def_property_ui_text(prop, "Distance Metric", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "coloring", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "vn_coltype");
 	RNA_def_property_enum_items(prop, prop_coloring_items);
 	RNA_def_property_ui_text(prop, "Coloring", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ns_outscale");
 	RNA_def_property_range(prop, 0.01, 10);
 	RNA_def_property_ui_text(prop, "Noise Intensity", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noisesize");
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Noise Size", "Sets scaling for noise input");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
 	RNA_def_property_ui_range(prop, 0.001, 0.1, 1, 2);
 	RNA_def_property_ui_text(prop, "Nabla", "Size of derivative offset used for calculating normal");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture_distorted_noise(BlenderRNA *brna)
@@ -1316,32 +1350,32 @@ static void rna_def_texture_distorted_noise(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "dist_amount");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Distortion Amount", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noisesize");
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Noise Size", "Sets scaling for noise input");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "noise_distortion", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Distortion", "Sets the noise basis for the distortion");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
 	RNA_def_property_ui_range(prop, 0.001, 0.1, 1, 2);
 	RNA_def_property_ui_text(prop, "Nabla", "Size of derivative offset used for calculating normal");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture_pointdensity(BlenderRNA *brna)
@@ -1397,104 +1431,104 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "source");
 	RNA_def_property_enum_items(prop, point_source_items);
 	RNA_def_property_ui_text(prop, "Point Source", "Point data to use as renderable point density");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_ui_text(prop, "Object", "Object to take point data from");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "psys");
 	RNA_def_property_ui_text(prop, "Particle System", "Particle System to render as points");
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "particle_cache", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "psys_cache_space");
 	RNA_def_property_enum_items(prop, particle_cache_items);
 	RNA_def_property_ui_text(prop, "Particle Cache", "Co-ordinate system to cache particles in");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "vertices_cache", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ob_cache_space");
 	RNA_def_property_enum_items(prop, vertice_cache_items);
 	RNA_def_property_ui_text(prop, "Vertices Cache", "Co-ordinate system to cache vertices in");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "radius");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Radius", "Radius from the shaded sample to look for points within");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "falloff_type");
 	RNA_def_property_enum_items(prop, falloff_items);
 	RNA_def_property_ui_text(prop, "Falloff", "Method of attenuating density by distance from the point");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "falloff_softness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "falloff_softness");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Softness", "Softness of the 'soft' falloff option");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "color_source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "color_source");
 	RNA_def_property_enum_items(prop, color_source_items);
 	RNA_def_property_ui_text(prop, "Color Source", "Data to derive color results from");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "speed_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "speed_scale");
 	RNA_def_property_range(prop, 0.001, 100.0);
 	RNA_def_property_ui_text(prop, "Scale", "Multipler to bring particle speed within an acceptable range");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "coba");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Color Ramp", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	/* Turbulence */
 	prop= RNA_def_property(srna, "turbulence", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_PD_TURBULENCE);
 	RNA_def_property_ui_text(prop, "Turbulence", "Add directed noise to the density at render-time");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "turbulence_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noise_size");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Size", "Scale of the added turbulent noise");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "turbulence_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noise_fac");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Strength", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "turbulence_depth", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "noise_depth");
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_text(prop, "Depth", "Level of detail in the added turbulent noise");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "turbulence_influence", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noise_influence");
 	RNA_def_property_enum_items(prop, turbulence_influence_items);
 	RNA_def_property_ui_text(prop, "Turbulence Influence", "Method for driving added turbulent noise");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noise_basis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Noise formula used for tubulence");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 
 	srna= RNA_def_struct(brna, "PointDensityTexture", "Texture");
@@ -1505,7 +1539,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "PointDensity");
 	RNA_def_property_ui_text(prop, "Point Density", "The point density settings associated with this texture");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture_voxeldata(BlenderRNA *brna)
@@ -1537,46 +1571,46 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "interp_type");
 	RNA_def_property_enum_items(prop, interpolation_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "Method to interpolate/smooth values between voxel cells");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "int_multiplier");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Intensity", "Multiplier for intensity values");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "file_format");
 	RNA_def_property_enum_items(prop, file_format_items);
 	RNA_def_property_ui_text(prop, "File Format", "Format of the source data set to render	");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "source_path", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "source_path");
 	RNA_def_property_ui_text(prop, "Source Path", "The external source data file to use");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resol");
 	RNA_def_property_ui_text(prop, "Resolution", "Resolution of the voxel grid.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "still", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_VD_STILL);
 	RNA_def_property_ui_text(prop, "Still Frame Only", "Always render a still frame from the voxel data sequence");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "still_frame_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "still_frame");
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_text(prop, "Still Frame Number", "The frame number to always use");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "domain_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_ui_text(prop, "Domain Object", "Object used as the smoke simulation domain");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	
 	srna= RNA_def_struct(brna, "VoxelDataTexture", "Texture");
@@ -1587,7 +1621,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "vd");
 	RNA_def_property_struct_type(prop, "VoxelData");
 	RNA_def_property_ui_text(prop, "Voxel Data", "The voxel data associated with this texture");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture(BlenderRNA *brna)
@@ -1626,49 +1660,49 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Texture_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "use_color_ramp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_COLORBAND);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Texture_use_color_ramp_set");
 	RNA_def_property_ui_text(prop, "Use Color Ramp", "Toggle color ramp operations.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "coba");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Color Ramp", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "brightness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bright");
 	RNA_def_property_range(prop, 0, 2);
 	RNA_def_property_ui_text(prop, "Brightness", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 5);
 	RNA_def_property_ui_text(prop, "Contrast", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "rgb_factor", PROP_FLOAT, PROP_RGB);
 	RNA_def_property_float_sdna(prop, NULL, "rfac");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0, 2);
 	RNA_def_property_ui_text(prop, "RGB Factor", "");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	/* nodetree */
 	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Texture_use_nodes_set");
 	RNA_def_property_ui_text(prop, "Use Nodes", "Make this a node-based texture");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node-based textures");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	rna_def_animdata_common(srna);
 

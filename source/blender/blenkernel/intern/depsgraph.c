@@ -1607,6 +1607,21 @@ void graph_print_adj_list(void)
 
 /* ************************ API *********************** */
 
+/* mechanism to allow editors to be informed of depsgraph updates,
+   to do their own updates based on changes... */
+static void (*EditorsUpdateCb)(Main *bmain, ID *id)= NULL;
+
+void DAG_editors_update_cb(void (*func)(Main *bmain, ID *id))
+{
+	EditorsUpdateCb= func;
+}
+
+static void dag_editors_update(Main *bmain, ID *id)
+{
+	if(EditorsUpdateCb)
+		EditorsUpdateCb(bmain, id);
+}
+
 /* groups with objects in this scene need to be put in the right order as well */
 static void scene_sort_groups(Scene *sce)
 {
@@ -2239,6 +2254,9 @@ void DAG_id_flush_update(ID *id, short flag)
 				}
 			}
 		}
+
+		/* update editors */
+		dag_editors_update(bmain, id);
 	}
 
 	/* flush to other objects that depend on this one */
