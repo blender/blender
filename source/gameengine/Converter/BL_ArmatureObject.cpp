@@ -152,7 +152,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 	for (dchan = (bPoseChannel*)dst->chanbase.first; dchan; dchan=(bPoseChannel*)dchan->next, schan= (bPoseChannel*)schan->next){
 		// always blend on all channels since we don't know which one has been set
 		/* quat interpolation done separate */
-		if (schan->rotmode == PCHAN_ROT_QUAT) {
+		if (schan->rotmode == ROT_MODE_QUAT) {
 			float dquat[4], squat[4];
 			
 			QUATCOPY(dquat, dchan->quat);

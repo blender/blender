@@ -1259,13 +1259,13 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_SETWEIGHT, ACT_ARM_SETWEIGHT);
 
 	/* BL_Armature Channel rotation_mode */
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_QUAT, PCHAN_ROT_QUAT);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_XYZ, PCHAN_ROT_XYZ);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_XZY, PCHAN_ROT_XZY);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_YXZ, PCHAN_ROT_YXZ);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_YZX, PCHAN_ROT_YZX);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_ZXY, PCHAN_ROT_ZXY);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_ZYX, PCHAN_ROT_ZYX);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_QUAT, ROT_MODE_QUAT);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_XYZ, ROT_MODE_XYZ);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_XZY, ROT_MODE_XZY);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_YXZ, ROT_MODE_YXZ);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_YZX, ROT_MODE_YZX);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_ZXY, ROT_MODE_ZXY);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_ZYX, ROT_MODE_ZYX);
 
 	// Check for errors
 	if (PyErr_Occurred())
