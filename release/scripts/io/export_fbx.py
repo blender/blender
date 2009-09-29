@@ -36,11 +36,16 @@ http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-try:
-	import time
-	# import os # only needed for batch export, nbot used yet
-except:
-	time = None # use this to check if they have python modules installed
+import os
+import time
+import math # math.pi
+import shutil # for file copying
+
+# try:
+# 	import time
+# 	# import os # only needed for batch export, nbot used yet
+# except:
+# 	time = None # use this to check if they have python modules installed
 
 # for python 2.3 support
 try:
@@ -51,20 +56,21 @@ except:
 	except:
 		set = None # so it complains you dont have a !
 
-# os is only needed for batch 'own dir' option
-try:
-	import os
-except:
-	os = None
+# # os is only needed for batch 'own dir' option
+# try:
+# 	import os
+# except:
+# 	os = None
 
-import Blender
+# import Blender
 import bpy
-from Blender.Mathutils import Matrix, Vector, RotationMatrix
+import Mathutils
+# from Blender.Mathutils import Matrix, Vector, RotationMatrix
 
-import BPyObject
-import BPyMesh
-import BPySys
-import BPyMessages
+# import BPyObject
+# import BPyMesh
+# import BPySys
+# import BPyMessages
 
 ## This was used to make V, but faster not to do all that
 ##valid = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_,.()[]{}'
@@ -75,7 +81,7 @@ invalid = ''.join([chr(i) for i in v])
 def cleanName(name):
 	for ch in invalid:	name = name.replace(ch, '_')
 	return name
-del v, i
+# del v, i
 
 
 def copy_file(source, dest):
@@ -88,9 +94,10 @@ def copy_file(source, dest):
 	file.close()
 
 
+# XXX not used anymore, images are copied one at a time
 def copy_images(dest_dir, textures):
-	if not dest_dir.endswith(Blender.sys.sep):
-		dest_dir += Blender.sys.sep
+	if not dest_dir.endswith(os.sep):
+		dest_dir += os.sep
 	
 	image_paths = set()
 	for tex in textures:
@@ -103,19 +110,30 @@ def copy_images(dest_dir, textures):
 			# Make a name for the target path.
 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
 			if not Blender.sys.exists(dest_image_path): # Image isnt alredy there
-				print '\tCopying "%s" > "%s"' % (image_path, dest_image_path)
+				print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
 				try:
 					copy_file(image_path, dest_image_path)
 					copyCount+=1
 				except:
-					print '\t\tWarning, file failed to copy, skipping.'
+					print('\t\tWarning, file failed to copy, skipping.')
 	
-	print '\tCopied %d images' % copyCount
+	print('\tCopied %d images' % copyCount)
 
-mtx4_identity = Matrix()
+# I guess FBX uses degrees instead of radians (Arystan).
+# Call this function just before writing to FBX.
+def eulerRadToDeg(eul):
+	ret = Mathutils.Euler()
+
+	ret.x = 180 / math.pi * eul[0]
+	ret.y = 180 / math.pi * eul[1]
+	ret.z = 180 / math.pi * eul[2]
+
+	return ret
+
+mtx4_identity = Mathutils.Matrix()
 
 # testing
-mtx_x90		= RotationMatrix( 90, 3, 'x') # used
+mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'x') # used
 #mtx_x90n	= RotationMatrix(-90, 3, 'x')
 #mtx_y90	= RotationMatrix( 90, 3, 'y')
 #mtx_y90n	= RotationMatrix(-90, 3, 'y')
@@ -123,14 +141,14 @@ mtx_x90		= RotationMatrix( 90, 3, 'x') # used
 #mtx_z90n	= RotationMatrix(-90, 3, 'z')
 
 #mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= RotationMatrix(-90, 4, 'x') # used
+mtx4_x90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'x') # used
 #mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= RotationMatrix(-90, 4, 'y') # used
-mtx4_z90	= RotationMatrix( 90, 4, 'z') # used
-mtx4_z90n	= RotationMatrix(-90, 4, 'z') # used
+mtx4_y90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'y') # used
+mtx4_z90	= Mathutils.RotationMatrix( math.pi/2, 4, 'z') # used
+mtx4_z90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'z') # used
 
-def strip_path(p):
-	return p.split('\\')[-1].split('/')[-1]
+# def strip_path(p):
+# 	return p.split('\\')[-1].split('/')[-1]
 
 # Used to add the scene name into the filename without using odd chars	
 sane_name_mapping_ob = {}
@@ -186,7 +204,7 @@ def sane_name(data, dct):
 		#name = BPySys.cleanName(name)
 		name = cleanName(name) # use our own
 	
-	while name in dct.itervalues():	name = increment_string(name)
+	while name in iter(dct.values()):	name = increment_string(name)
 	
 	if use_other: # even if other is None - orig_name_other will be a string or None
 		dct[orig_name, orig_name_other] = name
@@ -201,27 +219,70 @@ def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
 def sane_takename(data):	return sane_name(data, sane_name_mapping_take)
 def sane_groupname(data):	return sane_name(data, sane_name_mapping_group)
 
-def derived_paths(fname_orig, basepath, FORCE_CWD=False):
-	'''
-	fname_orig - blender path, can be relative
-	basepath - fname_rel will be relative to this
-	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
-		use when we know the file will be in the basepath.
-	'''
-	fname = Blender.sys.expandpath(fname_orig)
-	fname_strip = strip_path(fname)
-	if FORCE_CWD:	fname_rel = '.' + Blender.sys.sep + fname_strip
-	else:				fname_rel = Blender.sys.relpath(fname, basepath)
-	if fname_rel.startswith('//'): fname_rel = '.' + Blender.sys.sep + fname_rel[2:]
-	return fname, fname_strip, fname_rel
+# def derived_paths(fname_orig, basepath, FORCE_CWD=False):
+# 	'''
+# 	fname_orig - blender path, can be relative
+# 	basepath - fname_rel will be relative to this
+# 	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
+# 		use when we know the file will be in the basepath.
+# 	'''
+# 	fname = bpy.sys.expandpath(fname_orig)
+# # 	fname = Blender.sys.expandpath(fname_orig)
+# 	fname_strip = os.path.basename(fname)
+# # 	fname_strip = strip_path(fname)
+# 	if FORCE_CWD:
+# 		fname_rel = '.' + os.sep + fname_strip
+# 	else:
+# 		fname_rel = bpy.sys.relpath(fname, basepath)
+# # 		fname_rel = Blender.sys.relpath(fname, basepath)
+# 	if fname_rel.startswith('//'): fname_rel = '.' + os.sep + fname_rel[2:]
+# 	return fname, fname_strip, fname_rel
 
 
 def mat4x4str(mat):
 	return '%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f' % tuple([ f for v in mat for f in v ])
 
+# XXX not used
+# duplicated in OBJ exporter
+def getVertsFromGroup(me, group_index):
+	ret = []
+
+	for i, v in enumerate(me.verts):
+		for g in v.groups:
+			if g.group == group_index:
+				ret.append((i, g.weight))
+
+		return ret
+
+# ob must be OB_MESH
+def BPyMesh_meshWeight2List(ob):
+	''' Takes a mesh and return its group names and a list of lists, one list per vertex.
+	aligning the each vert list with the group names, each list contains float value for the weight.
+	These 2 lists can be modified and then used with list2MeshWeight to apply the changes.
+	'''
+
+	me = ob.data
+
+	# Clear the vert group.
+	groupNames= [g.name for g in ob.vertex_groups]
+	len_groupNames= len(groupNames)
+	
+	if not len_groupNames:
+		# no verts? return a vert aligned empty list
+		return [[] for i in range(len(me.verts))], []
+	else:
+		vWeightList= [[0.0]*len_groupNames for i in range(len(me.verts))]
+
+	for i, v in enumerate(me.verts):
+		for g in v.groups:
+			vWeightList[i][g.group] = g.weight
+
+	return groupNames, vWeightList
+
 def meshNormalizedWeights(me):
 	try: # account for old bad BPyMesh
-		groupNames, vWeightList = BPyMesh.meshWeight2List(me)
+		groupNames, vWeightList = BPyMesh_meshWeight2List(me)
+# 		groupNames, vWeightList = BPyMesh.meshWeight2List(me)
 	except:
 		return [],[]
 	
@@ -249,23 +310,23 @@ header_comment = \
 
 # This func can be called with just the filename
 def write(filename, batch_objects = None, \
+		context = None,
 		EXP_OBS_SELECTED =			True,
 		EXP_MESH =					True,
 		EXP_MESH_APPLY_MOD =		True,
-		EXP_MESH_HQ_NORMALS =		False,
+# 		EXP_MESH_HQ_NORMALS =		False,
 		EXP_ARMATURE =				True,
 		EXP_LAMP =					True,
 		EXP_CAMERA =				True,
 		EXP_EMPTY =					True,
 		EXP_IMAGE_COPY =			False,
-		GLOBAL_MATRIX =				Matrix(),
+		GLOBAL_MATRIX =				Mathutils.Matrix(),
 		ANIM_ENABLE =				True,
 		ANIM_OPTIMIZE =				True,
 		ANIM_OPTIMIZE_PRECISSION =	6,
 		ANIM_ACTION_ALL =			False,
 		BATCH_ENABLE =				False,
 		BATCH_GROUP =				True,
-		BATCH_SCENE =				False,
 		BATCH_FILE_PREFIX =			'',
 		BATCH_OWN_DIR =				False
 	):
@@ -277,23 +338,31 @@ def write(filename, batch_objects = None, \
 		fbxpath = filename
 		
 		# get the path component of filename
-		tmp_exists = Blender.sys.exists(fbxpath)
+		tmp_exists = bpy.sys.exists(fbxpath)
+# 		tmp_exists = Blender.sys.exists(fbxpath)
 		
 		if tmp_exists != 2: # a file, we want a path
-			while fbxpath and fbxpath[-1] not in ('/', '\\'):
-				fbxpath = fbxpath[:-1]
-			if not filename:
-				Draw.PupMenu('Error%t|Directory does not exist!')
+			fbxpath = os.path.dirname(fbxpath)
+# 			while fbxpath and fbxpath[-1] not in ('/', '\\'):
+# 				fbxpath = fbxpath[:-1]
+			if not fbxpath:
+# 			if not filename:
+				# XXX
+				print('Error%t|Directory does not exist!')
+# 				Draw.PupMenu('Error%t|Directory does not exist!')
 				return
-			
-			tmp_exists = Blender.sys.exists(fbxpath)
+
+			tmp_exists = bpy.sys.exists(fbxpath)
+# 			tmp_exists = Blender.sys.exists(fbxpath)
 		
 		if tmp_exists != 2:
-			Draw.PupMenu('Error%t|Directory does not exist!')
+			# XXX
+			print('Error%t|Directory does not exist!')
+# 			Draw.PupMenu('Error%t|Directory does not exist!')
 			return
 		
-		if not fbxpath.endswith(Blender.sys.sep):
-			fbxpath += Blender.sys.sep
+		if not fbxpath.endswith(os.sep):
+			fbxpath += os.sep
 		del tmp_exists
 		
 		
@@ -303,27 +372,31 @@ def write(filename, batch_objects = None, \
 			data_seq = bpy.data.scenes
 		
 		# call this function within a loop with BATCH_ENABLE == False
-		orig_sce = bpy.data.scenes.active
+		orig_sce = context.scene
+# 		orig_sce = bpy.data.scenes.active
 		
 		
 		new_fbxpath = fbxpath # own dir option modifies, we need to keep an original
 		for data in data_seq: # scene or group
-			newname = BATCH_FILE_PREFIX + BPySys.cleanName(data.name)
+			newname = BATCH_FILE_PREFIX + cleanName(data.name)
+# 			newname = BATCH_FILE_PREFIX + BPySys.cleanName(data.name)
 			
 			
 			if BATCH_OWN_DIR:
-				new_fbxpath = fbxpath + newname + Blender.sys.sep
+				new_fbxpath = fbxpath + newname + os.sep
 				# path may alredy exist
 				# TODO - might exist but be a file. unlikely but should probably account for it.
-				
-				if Blender.sys.exists(new_fbxpath) == 0:
+
+				if bpy.sys.exists(new_fbxpath) == 0:
+# 				if Blender.sys.exists(new_fbxpath) == 0:
 					os.mkdir(new_fbxpath)
 				
 			
 			filename = new_fbxpath + newname + '.fbx'
 			
-			print '\nBatch exporting %s as...\n\t"%s"' % (data, filename)
-			
+			print('\nBatch exporting %s as...\n\t"%s"' % (data, filename))
+
+			# XXX don't know what to do with this, probably do the same? (Arystan)
 			if BATCH_GROUP: #group
 				# group, so objects update properly, add a dummy scene.
 				sce = bpy.data.scenes.new()
@@ -345,10 +418,11 @@ def write(filename, batch_objects = None, \
 			# Call self with modified args
 			# Dont pass batch options since we alredy usedt them
 			write(filename, data.objects,
+				context,
 				False,
 				EXP_MESH,
 				EXP_MESH_APPLY_MOD,
-				EXP_MESH_HQ_NORMALS,
+# 				EXP_MESH_HQ_NORMALS,
 				EXP_ARMATURE,
 				EXP_LAMP,
 				EXP_CAMERA,
@@ -363,7 +437,8 @@ def write(filename, batch_objects = None, \
 			
 			if BATCH_GROUP:
 				# remove temp group scene
-				bpy.data.scenes.unlink(sce)
+				bpy.data.remove_scene(sce)
+# 				bpy.data.scenes.unlink(sce)
 		
 		bpy.data.scenes.active = orig_sce
 		
@@ -372,7 +447,9 @@ def write(filename, batch_objects = None, \
 	# end batch support
 	
 	# Use this for working out paths relative to the export location
-	basepath = Blender.sys.dirname(filename)
+	basepath = os.path.dirname(filename) or '.'
+	basepath += os.sep
+# 	basepath = Blender.sys.dirname(filename)
 	
 	# ----------------------------------------------
 	# storage classes
@@ -398,7 +475,8 @@ def write(filename, batch_objects = None, \
 			self.blenBone =			blenBone
 			self.blenMeshes =		{}					# fbxMeshObName : mesh
 			self.fbxArm =			fbxArm
-			self.restMatrix =		blenBone.matrix['ARMATURESPACE']
+			self.restMatrix =		blenBone.armature_matrix
+# 			self.restMatrix =		blenBone.matrix['ARMATURESPACE']
 			
 			# not used yet
 			# self.restMatrixInv =	self.restMatrix.copy().invert()
@@ -407,8 +485,10 @@ def write(filename, batch_objects = None, \
 			self.parent =			None
 			
 			# not public
-			pose = fbxArm.blenObject.getPose()
-			self.__pose_bone =		pose.bones[self.blenName]
+			pose = fbxArm.blenObject.pose
+# 			pose = fbxArm.blenObject.getPose()
+			self.__pose_bone =		pose.pose_channels[self.blenName]
+# 			self.__pose_bone =		pose.bones[self.blenName]
 			
 			# store a list if matricies here, (poseMatrix, head, tail)
 			# {frame:posematrix, frame:posematrix, ...}
@@ -431,8 +511,9 @@ def write(filename, batch_objects = None, \
 				self.__pose_bone.head.copy(),\
 				self.__pose_bone.tail.copy() )
 			'''
-			
-			self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
+
+			self.__anim_poselist[f] = self.__pose_bone.pose_matrix.copy()
+# 			self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
 		
 		# get pose from frame.
 		def getPoseMatrix(self, f):# ----------------------------------------------
@@ -473,7 +554,8 @@ def write(filename, batch_objects = None, \
 			self.fbxGroupNames = []
 			self.fbxParent = None # set later on IF the parent is in the selection.
 			if matrixWorld:		self.matrixWorld = matrixWorld * GLOBAL_MATRIX
-			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
+			else:				self.matrixWorld = ob.matrix * GLOBAL_MATRIX
+# 			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
 			self.__anim_poselist = {} # we should only access this
 		
 		def parRelMatrix(self):
@@ -483,7 +565,8 @@ def write(filename, batch_objects = None, \
 				return self.matrixWorld
 		
 		def setPoseFrame(self, f):
-			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
+			self.__anim_poselist[f] =  self.blenObject.matrix.copy()
+# 			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
 		
 		def getAnimParRelMatrix(self, frame):
 			if self.fbxParent:
@@ -500,11 +583,12 @@ def write(filename, batch_objects = None, \
 				matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotationPart()
 			
 			# Lamps need to be rotated
-			if type =='Lamp':
+			if type =='LAMP':
 				matrix_rot = mtx_x90 * matrix_rot
-			elif ob and type =='Camera':
-				y = Vector(0,1,0) * matrix_rot
-				matrix_rot = matrix_rot * RotationMatrix(90, 3, 'r', y)
+			elif type =='CAMERA':
+# 			elif ob and type =='Camera':
+				y = Mathutils.Vector(0,1,0) * matrix_rot
+				matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
 			
 			return matrix_rot
 			
@@ -514,14 +598,16 @@ def write(filename, batch_objects = None, \
 	
 	
 	
-	print '\nFBX export starting...', filename
-	start_time = Blender.sys.time()
+	print('\nFBX export starting...', filename)
+	start_time = time.clock()
+# 	start_time = Blender.sys.time()
 	try:
 		file = open(filename, 'w')
 	except:
 		return False
-	
-	sce = bpy.data.scenes.active
+
+	sce = context.scene
+# 	sce = bpy.data.scenes.active
 	world = sce.world
 	
 	
@@ -553,7 +639,8 @@ def write(filename, batch_objects = None, \
 }''' % (curtime))
 	
 	file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
-	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
+	file.write('\nCreator: "Blender3D version 2.5"')
+# 	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
 	
 	pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
 	
@@ -562,16 +649,19 @@ def write(filename, batch_objects = None, \
 		'''
 		Matrix mod is so armature objects can modify their bone matricies
 		'''
-		if isinstance(ob, Blender.Types.BoneType):
+		if isinstance(ob, bpy.types.Bone):
+# 		if isinstance(ob, Blender.Types.BoneType):
 			
 			# we know we have a matrix
 			# matrix = mtx4_z90 * (ob.matrix['ARMATURESPACE'] * matrix_mod)
-			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
+			matrix = mtx4_z90 * ob.armature_matrix # dont apply armature matrix anymore
+# 			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 			
 			parent = ob.parent
 			if parent:
 				#par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
-				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
+				par_matrix = mtx4_z90 * parent.armature_matrix # dont apply armature matrix anymore
+# 				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 				matrix = matrix * par_matrix.copy().invert()
 				
 			matrix_rot =	matrix.rotationPart()
@@ -583,7 +673,7 @@ def write(filename, batch_objects = None, \
 		else:
 			# This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
 			#if ob and not matrix: matrix = ob.matrixWorld * GLOBAL_MATRIX
-			if ob and not matrix: raise "error: this should never happen!"
+			if ob and not matrix: raise Exception("error: this should never happen!")
 			
 			matrix_rot = matrix
 			#if matrix:
@@ -599,8 +689,8 @@ def write(filename, batch_objects = None, \
 					matrix_rot = mtx_x90 * matrix_rot
 					rot = tuple(matrix_rot.toEuler())
 				elif ob and ob.type =='Camera':
-					y = Vector(0,1,0) * matrix_rot
-					matrix_rot = matrix_rot * RotationMatrix(90, 3, 'r', y)
+					y = Mathutils.Vector(0,1,0) * matrix_rot
+					matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
 					rot = tuple(matrix_rot.toEuler())
 				else:
 					rot = tuple(matrix_rot.toEuler())
@@ -621,7 +711,8 @@ def write(filename, batch_objects = None, \
 		loc, rot, scale, matrix, matrix_rot = object_tx(ob, loc, matrix, matrix_mod)
 		
 		file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
-		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
+		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % tuple(eulerRadToDeg(rot)))
+# 		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
 		file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
 		return loc, rot, scale, matrix, matrix_rot
 	
@@ -708,7 +799,8 @@ def write(filename, batch_objects = None, \
 			Property: "Show", "bool", "",1
 			Property: "NegativePercentShapeSupport", "bool", "",1
 			Property: "DefaultAttributeIndex", "int", "",0''')
-		if ob and type(ob) != Blender.Types.BoneType:
+		if ob and not isinstance(ob, bpy.types.Bone):
+# 		if ob and type(ob) != Blender.Types.BoneType:
 			# Only mesh objects have color 
 			file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
 			file.write('\n\t\t\tProperty: "Size", "double", "",100')
@@ -738,8 +830,9 @@ def write(filename, batch_objects = None, \
 			((my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
 		"""
 		
-		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %\
-			(my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']).length)
+		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %
+				   (my_bone.blenBone.armature_head - my_bone.blenBone.armature_tail).length)
+# 			(my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']).length)
 		
 		#file.write('\n\t\t\tProperty: "LimbLength", "double", "",1')
 		file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8')
@@ -878,9 +971,12 @@ def write(filename, batch_objects = None, \
 		'''
 		Write a blender camera
 		'''
-		render = sce.render
-		width	= render.sizeX
-		height	= render.sizeY
+		render = sce.render_data
+		width	= render.resolution_x
+		height	= render.resolution_y
+# 		render = sce.render
+# 		width	= render.sizeX
+# 		height	= render.sizeY
 		aspect	= float(width)/height
 		
 		data = my_cam.blenObject.data
@@ -894,8 +990,10 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
 		file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
 		file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
-		file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shiftX) # not sure if this is in the correct units?
-		file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shiftY) # ditto 
+		file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shift_x) # not sure if this is in the correct units?
+# 		file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shiftX) # not sure if this is in the correct units?
+		file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shift_y) # ditto 
+# 		file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shiftY) # ditto 
 		file.write('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0,0,0')
 		file.write('\n\t\t\tProperty: "TurnTable", "Real", "A+",0')
 		file.write('\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1')
@@ -927,8 +1025,10 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0')
 		file.write('\n\t\t\tProperty: "ShowAzimut", "bool", "",1')
 		file.write('\n\t\t\tProperty: "ShowTimeCode", "bool", "",0')
-		file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clipStart)
-		file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clipStart)
+		file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clip_start)
+# 		file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clipStart)
+		file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clip_end)
+# 		file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clipStart)
 		file.write('\n\t\t\tProperty: "FilmWidth", "double", "",1.0')
 		file.write('\n\t\t\tProperty: "FilmHeight", "double", "",1.0')
 		file.write('\n\t\t\tProperty: "FilmAspectRatio", "double", "",%.6f' % aspect)
@@ -975,8 +1075,8 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tTypeFlags: "Camera"')
 		file.write('\n\t\tGeometryVersion: 124')
 		file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Vector(0,1,0) * matrix_rot) )
-		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Vector(0,0,-1)*matrix_rot) )
+		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Mathutils.Vector(0,1,0) * matrix_rot) )
+		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Mathutils.Vector(0,0,-1)*matrix_rot) )
 		
 		#file.write('\n\t\tUp: 0,0,0' )
 		#file.write('\n\t\tLookAt: 0,0,0' )
@@ -1001,16 +1101,20 @@ def write(filename, batch_objects = None, \
 		#ePOINT, 
 		#eDIRECTIONAL
 		#eSPOT
-		light_type = light.type
+		light_type_items = {'POINT': 0, 'SUN': 1, 'SPOT': 2, 'HEMI': 3, 'AREA': 4}
+		light_type = light_type_items[light.type]
+# 		light_type = light.type
 		if light_type > 2: light_type = 1 # hemi and area lights become directional
-		
-		mode = light.mode
-		if mode & Blender.Lamp.Modes.RayShadow or mode & Blender.Lamp.Modes.Shadows:
+
+# 		mode = light.mode
+		if light.shadow_method == 'RAY_SHADOW' or light.shadow_method == 'BUFFER_SHADOW':
+# 		if mode & Blender.Lamp.Modes.RayShadow or mode & Blender.Lamp.Modes.Shadows:
 			do_shadow = 1
 		else:
 			do_shadow = 0
-		
-		if mode & Blender.Lamp.Modes.OnlyShadow or (mode & Blender.Lamp.Modes.NoDiffuse and mode & Blender.Lamp.Modes.NoSpecular):
+
+		if light.only_shadow or (not light.diffuse and not light.specular):
+# 		if mode & Blender.Lamp.Modes.OnlyShadow or (mode & Blender.Lamp.Modes.NoDiffuse and mode & Blender.Lamp.Modes.NoSpecular):
 			do_light = 0
 		else:
 			do_light = 1
@@ -1025,11 +1129,16 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
 		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
-		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
+		if light.type == 'SPOT':
+			file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spot_size * scale))
+# 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
-		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.col))
+		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.color))
+# 		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.col))
 		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
-		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
+# 
+		# duplication? see ^ (Arystan)
+# 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
 		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",%i' % do_light)
@@ -1038,7 +1147,8 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
 		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
 		file.write('\n\t\t\tProperty: "DecayType", "enum", "",0')
-		file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.dist)
+		file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.distance)
+# 		file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.dist)
 		file.write('\n\t\t\tProperty: "EnableNearAttenuation", "bool", "",0')
 		file.write('\n\t\t\tProperty: "NearAttenuationStart", "double", "",0')
 		file.write('\n\t\t\tProperty: "NearAttenuationEnd", "double", "",0')
@@ -1084,7 +1194,8 @@ def write(filename, batch_objects = None, \
 	}''')
 	
 	# Material Settings
-	if world:	world_amb = world.getAmb()
+	if world:	world_amb = tuple(world.ambient_color)
+# 	if world:	world_amb = world.getAmb()
 	else:		world_amb = (0,0,0) # Default value
 	
 	def write_material(matname, mat):
@@ -1092,22 +1203,31 @@ def write(filename, batch_objects = None, \
 		
 		# Todo, add more material Properties.
 		if mat:
-			mat_cold = tuple(mat.rgbCol)
-			mat_cols = tuple(mat.specCol)
+			mat_cold = tuple(mat.diffuse_color)
+# 			mat_cold = tuple(mat.rgbCol)
+			mat_cols = tuple(mat.specular_color)
+# 			mat_cols = tuple(mat.specCol)
 			#mat_colm = tuple(mat.mirCol) # we wont use the mirror color
-			mat_colamb = tuple([c for c in world_amb])
-			
-			mat_dif = mat.ref
-			mat_amb = mat.amb
-			mat_hard = (float(mat.hard)-1)/5.10
-			mat_spec = mat.spec/2.0
+			mat_colamb = world_amb
+# 			mat_colamb = tuple([c for c in world_amb])
+
+			mat_dif = mat.diffuse_intensity
+# 			mat_dif = mat.ref
+			mat_amb = mat.ambient
+# 			mat_amb = mat.amb
+			mat_hard = (float(mat.specular_hardness)-1)/5.10
+# 			mat_hard = (float(mat.hard)-1)/5.10
+			mat_spec = mat.specular_intensity/2.0
+# 			mat_spec = mat.spec/2.0
 			mat_alpha = mat.alpha
 			mat_emit = mat.emit
-			mat_shadeless = mat.mode & Blender.Material.Modes.SHADELESS
+			mat_shadeless = mat.shadeless
+# 			mat_shadeless = mat.mode & Blender.Material.Modes.SHADELESS
 			if mat_shadeless:
 				mat_shader = 'Lambert'
 			else:
-				if mat.diffuseShader == Blender.Material.Shaders.DIFFUSE_LAMBERT:
+				if mat.diffuse_shader == 'LAMBERT':
+# 				if mat.diffuseShader == Blender.Material.Shaders.DIFFUSE_LAMBERT:
 					mat_shader = 'Lambert'
 				else:
 					mat_shader = 'Phong'
@@ -1159,7 +1279,20 @@ def write(filename, batch_objects = None, \
 
 		file.write('\n\t\t}')
 		file.write('\n\t}')
-	
+
+	def copy_image(image):
+
+		rel = image.get_export_path(basepath, True)
+		base = os.path.basename(rel)
+
+		if EXP_IMAGE_COPY:
+			absp = image.get_export_path(basepath, False)
+			if not os.path.exists(absp):
+				shutil.copy(image.get_abs_filename(), absp)
+
+		return (rel, base)
+
+	# tex is an Image (Arystan)
 	def write_video(texname, tex):
 		# Same as texture really!
 		file.write('\n\tVideo: "Video::%s", "Clip" {' % texname)
@@ -1172,7 +1305,8 @@ def write(filename, batch_objects = None, \
 			Property: "Width", "int", "",0
 			Property: "Height", "int", "",0''')
 		if tex:
-			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+			fname_rel, fname_strip = copy_image(tex)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
 			fname = fname_strip = fname_rel = ''
 		
@@ -1221,9 +1355,11 @@ def write(filename, batch_objects = None, \
 			Property: "UseMipMap", "bool", "",0
 			Property: "CurrentMappingType", "enum", "",0
 			Property: "UVSwap", "bool", "",0''')
-		
-		file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clampX)
-		file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clampY)
+
+		file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clamp_x)
+# 		file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clampX)
+		file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clamp_y)
+# 		file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clampY)
 		
 		file.write('''
 			Property: "TextureRotationPivot", "Vector3D", "",0,0,0
@@ -1234,7 +1370,8 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tMedia: "Video::%s"' % texname)
 		
 		if tex:
-			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+			fname_rel, fname_strip = copy_image(tex)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
 			fname = fname_strip = fname_rel = ''
 		
@@ -1290,7 +1427,7 @@ def write(filename, batch_objects = None, \
 				# TODO - this is a bit lazy, we could have a simple write loop
 				# for this case because all weights are 1.0 but for now this is ok
 				# Parent Bones arent used all that much anyway.
-				vgroup_data = [(j, 1.0) for j in xrange(len(my_mesh.blenData.verts))]
+				vgroup_data = [(j, 1.0) for j in range(len(my_mesh.blenData.verts))]
 			else:
 				# This bone is not a parent of this mesh object, no weights
 				vgroup_data = []
@@ -1358,7 +1495,8 @@ def write(filename, batch_objects = None, \
 		if my_mesh.blenTextures:	do_textures = True
 		else:						do_textures = False	
 		
-		do_uvs = me.faceUV
+		do_uvs = len(me.uv_textures) > 0
+# 		do_uvs = me.faceUV
 		
 		
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
@@ -1390,20 +1528,25 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tPolygonVertexIndex: ')
 		i=-1
 		for f in me.faces:
-			fi = [v.index for v in f]
+			fi = f.verts
+			# fi = [v_index for j, v_index in enumerate(f.verts) if v_index != 0 or j != 3]
+# 			fi = [v.index for v in f]
+
 			# flip the last index, odd but it looks like
 			# this is how fbx tells one face from another
 			fi[-1] = -(fi[-1]+1)
 			fi = tuple(fi)
 			if i==-1:
-				if len(f) == 3:		file.write('%i,%i,%i' % fi )
+				if len(fi) == 3:	file.write('%i,%i,%i' % fi )
+# 				if len(f) == 3:		file.write('%i,%i,%i' % fi )
 				else:				file.write('%i,%i,%i,%i' % fi )
 				i=0
 			else:
 				if i==13:
 					file.write('\n\t\t')
 					i=0
-				if len(f) == 3:		file.write(',%i,%i,%i' % fi )
+				if len(fi) == 3:	file.write(',%i,%i,%i' % fi )
+# 				if len(f) == 3:		file.write(',%i,%i,%i' % fi )
 				else:				file.write(',%i,%i,%i,%i' % fi )
 			i+=1
 		
@@ -1411,13 +1554,15 @@ def write(filename, batch_objects = None, \
 		i=-1
 		for ed in me.edges:
 				if i==-1:
-					file.write('%i,%i' % (ed.v1.index, ed.v2.index))
+					file.write('%i,%i' % (ed.verts[0], ed.verts[1]))
+# 					file.write('%i,%i' % (ed.v1.index, ed.v2.index))
 					i=0
 				else:
 					if i==13:
 						file.write('\n\t\t')
 						i=0
-					file.write(',%i,%i' % (ed.v1.index, ed.v2.index))
+					file.write(',%i,%i' % (ed.verts[0], ed.verts[1]))
+# 					file.write(',%i,%i' % (ed.v1.index, ed.v2.index))
 				i+=1
 		
 		file.write('\n\t\tGeometryVersion: 124')
@@ -1433,11 +1578,13 @@ def write(filename, batch_objects = None, \
 		i=-1
 		for v in me.verts:
 			if i==-1:
-				file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
+				file.write('%.15f,%.15f,%.15f' % tuple(v.normal));	i=0
+# 				file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
 			else:
 				if i==2:
 					file.write('\n			 ');	i=0
-				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
+				file.write(',%.15f,%.15f,%.15f' % tuple(v.normal))
+# 				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
 			i+=1
 		file.write('\n\t\t}')
 		
@@ -1464,39 +1611,53 @@ def write(filename, batch_objects = None, \
 		
 		# Write Edge Smoothing
 		file.write('''
-		LayerElementSmoothing: 1 {
+		LayerElementSmoothing: 0 {
 			Version: 101
 			Name: ""
 			MappingInformationType: "ByEdge"
 			ReferenceInformationType: "Direct"
 			Smoothing: ''')
 		
-		SHARP = Blender.Mesh.EdgeFlags.SHARP
+# 		SHARP = Blender.Mesh.EdgeFlags.SHARP
 		i=-1
 		for ed in me.edges:
 			if i==-1:
-				file.write('%i' % ((ed.flag&SHARP)!=0));	i=0
+				file.write('%i' % (ed.sharp));	i=0
+# 				file.write('%i' % ((ed.flag&SHARP)!=0));	i=0
 			else:
 				if i==54:
 					file.write('\n			 ');	i=0
-				file.write(',%i' % ((ed.flag&SHARP)!=0))
+				file.write(',%i' % (ed.sharp))
+# 				file.write(',%i' % ((ed.flag&SHARP)!=0))
 			i+=1
 		
 		file.write('\n\t\t}')
-		del SHARP
-		
+# 		del SHARP
+
+		# small utility function
+		# returns a slice of data depending on number of face verts
+		# data is either a MeshTextureFace or MeshColor
+		def face_data(data, face):
+			totvert = len(f.verts)
+						
+			return data[:totvert]
+
 		
 		# Write VertexColor Layers
 		# note, no programs seem to use this info :/
 		collayers = []
-		if me.vertexColors:
-			collayers = me.getColorLayerNames()
-			collayer_orig = me.activeColorLayer
+		if len(me.vertex_colors):
+# 		if me.vertexColors:
+			collayers = me.vertex_colors
+# 			collayers = me.getColorLayerNames()
+			collayer_orig = me.active_vertex_color
+# 			collayer_orig = me.activeColorLayer
 			for colindex, collayer in enumerate(collayers):
-				me.activeColorLayer = collayer
+# 				me.activeColorLayer = collayer
 				file.write('\n\t\tLayerElementColor: %i {' % colindex)
 				file.write('\n\t\t\tVersion: 101')
-				file.write('\n\t\t\tName: "%s"' % collayer)
+				file.write('\n\t\t\tName: "%s"' % collayer.name)
+# 				file.write('\n\t\t\tName: "%s"' % collayer)
 				
 				file.write('''
 			MappingInformationType: "ByPolygonVertex"
@@ -1505,23 +1666,41 @@ def write(filename, batch_objects = None, \
 			
 				i = -1
 				ii = 0 # Count how many Colors we write
-				
-				for f in me.faces:
-					for col in f.col:
+
+				for f, cf in zip(me.faces, collayer.data):
+					colors = [cf.color1, cf.color2, cf.color3, cf.color4]
+
+					# determine number of verts
+					colors = face_data(colors, f)
+
+					for col in colors:
 						if i==-1:
-							file.write('%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
+							file.write('%.4f,%.4f,%.4f,1' % tuple(col))
 							i=0
 						else:
 							if i==7:
 								file.write('\n\t\t\t\t')
 								i=0
-							file.write(',%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
+							file.write(',%.4f,%.4f,%.4f,1' % tuple(col))
 						i+=1
 						ii+=1 # One more Color
+
+# 				for f in me.faces:
+# 					for col in f.col:
+# 						if i==-1:
+# 							file.write('%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
+# 							i=0
+# 						else:
+# 							if i==7:
+# 								file.write('\n\t\t\t\t')
+# 								i=0
+# 							file.write(',%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
+# 						i+=1
+# 						ii+=1 # One more Color
 				
 				file.write('\n\t\t\tColorIndex: ')
 				i = -1
-				for j in xrange(ii):
+				for j in range(ii):
 					if i == -1:
 						file.write('%i' % j)
 						i=0
@@ -1539,13 +1718,17 @@ def write(filename, batch_objects = None, \
 		# Write UV and texture layers.
 		uvlayers = []
 		if do_uvs:
-			uvlayers = me.getUVLayerNames()
-			uvlayer_orig = me.activeUVLayer
-			for uvindex, uvlayer in enumerate(uvlayers):
-				me.activeUVLayer = uvlayer
+			uvlayers = me.uv_textures
+# 			uvlayers = me.getUVLayerNames()
+			uvlayer_orig = me.active_uv_texture
+# 			uvlayer_orig = me.activeUVLayer
+			for uvindex, uvlayer in enumerate(me.uv_textures):
+# 			for uvindex, uvlayer in enumerate(uvlayers):
+# 				me.activeUVLayer = uvlayer
 				file.write('\n\t\tLayerElementUV: %i {' % uvindex)
 				file.write('\n\t\t\tVersion: 101')
-				file.write('\n\t\t\tName: "%s"' % uvlayer)
+				file.write('\n\t\t\tName: "%s"' % uvlayer.name)
+# 				file.write('\n\t\t\tName: "%s"' % uvlayer)
 				
 				file.write('''
 			MappingInformationType: "ByPolygonVertex"
@@ -1555,8 +1738,10 @@ def write(filename, batch_objects = None, \
 				i = -1
 				ii = 0 # Count how many UVs we write
 				
-				for f in me.faces:
-					for uv in f.uv:
+				for uf in uvlayer.data:
+# 				for f in me.faces:
+					for uv in uf.uv:
+# 					for uv in f.uv:
 						if i==-1:
 							file.write('%.6f,%.6f' % tuple(uv))
 							i=0
@@ -1570,7 +1755,7 @@ def write(filename, batch_objects = None, \
 				
 				file.write('\n\t\t\tUVIndex: ')
 				i = -1
-				for j in xrange(ii):
+				for j in range(ii):
 					if i == -1:
 						file.write('%i'  % j)
 						i=0
@@ -1586,7 +1771,8 @@ def write(filename, batch_objects = None, \
 				if do_textures:
 					file.write('\n\t\tLayerElementTexture: %i {' % uvindex)
 					file.write('\n\t\t\tVersion: 101')
-					file.write('\n\t\t\tName: "%s"' % uvlayer)
+					file.write('\n\t\t\tName: "%s"' % uvlayer.name)
+# 					file.write('\n\t\t\tName: "%s"' % uvlayer)
 					
 					if len(my_mesh.blenTextures) == 1:
 						file.write('\n\t\t\tMappingInformationType: "AllSame"')
@@ -1610,7 +1796,8 @@ def write(filename, batch_objects = None, \
 								i+=1
 						
 						i=-1
-						for f in me.faces:
+						for f in uvlayer.data:
+# 						for f in me.faces:
 							img_key = f.image
 							
 							if i==-1:
@@ -1636,7 +1823,7 @@ def write(filename, batch_objects = None, \
 			TextureId: ''')
 				file.write('\n\t\t}')
 			
-			me.activeUVLayer = uvlayer_orig
+# 			me.activeUVLayer = uvlayer_orig
 			
 		# Done with UV/textures.
 		
@@ -1665,13 +1852,21 @@ def write(filename, batch_objects = None, \
 				len_material_mapping_local = len(material_mapping_local)
 				
 				mats = my_mesh.blenMaterialList
+
+				if me.active_uv_texture:
+					uv_faces = me.active_uv_texture.data
+				else:
+					uv_faces = [None] * len(me.faces)
 				
 				i=-1
-				for f in me.faces:
-					try:	mat = mats[f.mat]
+				for f, uf in zip(me.faces, uv_faces):
+# 				for f in me.faces:
+					try:	mat = mats[f.material_index]
+# 					try:	mat = mats[f.mat]
 					except:mat = None
 					
-					if do_uvs: tex = f.image # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
+					if do_uvs: tex = uf.image # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
+# 					if do_uvs: tex = f.image # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
 					else: tex = None
 					
 					if i==-1:
@@ -1710,7 +1905,8 @@ def write(filename, batch_objects = None, \
 				TypedIndex: 0
 			}''')
 		
-		if me.vertexColors:
+		if me.vertex_colors:
+# 		if me.vertexColors:
 			file.write('''
 			LayerElement:  {
 				Type: "LayerElementColor"
@@ -1728,7 +1924,7 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t}')
 		
 		if len(uvlayers) > 1:
-			for i in xrange(1, len(uvlayers)):
+			for i in range(1, len(uvlayers)):
 				
 				file.write('\n\t\tLayer: %i {' % i)
 				file.write('\n\t\t\tVersion: 100')
@@ -1756,7 +1952,7 @@ def write(filename, batch_objects = None, \
 			layer_offset = 0
 			if uvlayers: layer_offset = len(uvlayers)-1
 			
-			for i in xrange(layer_offset, len(collayers)+layer_offset):
+			for i in range(layer_offset, len(collayers)+layer_offset):
 				file.write('\n\t\tLayer: %i {' % i)
 				file.write('\n\t\t\tVersion: 100')
 				
@@ -1806,7 +2002,8 @@ def write(filename, batch_objects = None, \
 	
 	# if EXP_OBS_SELECTED is false, use sceens objects
 	if not batch_objects:
-		if EXP_OBS_SELECTED:	tmp_objects = sce.objects.context
+		if EXP_OBS_SELECTED:	tmp_objects = context.selected_objects
+# 		if EXP_OBS_SELECTED:	tmp_objects = sce.objects.context
 		else:					tmp_objects = sce.objects
 	else:
 		tmp_objects = batch_objects
@@ -1815,43 +2012,63 @@ def write(filename, batch_objects = None, \
 		# This is needed so applying modifiers dosnt apply the armature deformation, its also needed
 		# ...so mesh objects return their rest worldspace matrix when bone-parents are exported as weighted meshes.
 		# set every armature to its rest, backup the original values so we done mess up the scene
-		ob_arms_orig_rest = [arm.restPosition for arm in bpy.data.armatures]
+		ob_arms_orig_rest = [arm.rest_position for arm in bpy.data.armatures]
+# 		ob_arms_orig_rest = [arm.restPosition for arm in bpy.data.armatures]
 		
 		for arm in bpy.data.armatures:
-			arm.restPosition = True
+			arm.rest_position = True
+# 			arm.restPosition = True
 		
 		if ob_arms_orig_rest:
 			for ob_base in bpy.data.objects:
 				#if ob_base.type == 'Armature':
-				ob_base.makeDisplayList()
+				ob_base.make_display_list()
+# 				ob_base.makeDisplayList()
 					
 			# This causes the makeDisplayList command to effect the mesh
-			Blender.Set('curframe', Blender.Get('curframe'))
+			sce.set_frame(sce.current_frame)
+# 			Blender.Set('curframe', Blender.Get('curframe'))
 			
 	
 	for ob_base in tmp_objects:
-		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
-			#for ob in [ob_base,]:
+
+		# ignore dupli children
+		if ob_base.parent and ob_base.parent.dupli_type != 'NONE':
+			continue
+
+		obs = [(ob_base, ob_base.matrix)]
+		if ob_base.dupli_type != 'NONE':
+			ob_base.create_dupli_list()
+			obs = [(dob.object, dob.matrix) for dob in ob_base.dupli_list]
+
+		for ob, mtx in obs:
+# 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
 			tmp_ob_type = ob.type
-			if tmp_ob_type == 'Camera':
+			if tmp_ob_type == 'CAMERA':
+# 			if tmp_ob_type == 'Camera':
 				if EXP_CAMERA:
 					ob_cameras.append(my_object_generic(ob, mtx))
-			elif tmp_ob_type == 'Lamp':
+			elif tmp_ob_type == 'LAMP':
+# 			elif tmp_ob_type == 'Lamp':
 				if EXP_LAMP:
 					ob_lights.append(my_object_generic(ob, mtx))
-			elif tmp_ob_type == 'Armature':
+			elif tmp_ob_type == 'ARMATURE':
+# 			elif tmp_ob_type == 'Armature':
 				if EXP_ARMATURE:
 					# TODO - armatures dont work in dupligroups!
 					if ob not in ob_arms: ob_arms.append(ob)
 					# ob_arms.append(ob) # replace later. was "ob_arms.append(sane_obname(ob), ob)"
-			elif tmp_ob_type == 'Empty':
+			elif tmp_ob_type == 'EMPTY':
+# 			elif tmp_ob_type == 'Empty':
 				if EXP_EMPTY:
 					ob_null.append(my_object_generic(ob, mtx))
 			elif EXP_MESH:
 				origData = True
-				if tmp_ob_type != 'Mesh':
-					me = bpy.data.meshes.new()
-					try:	me.getFromObject(ob)
+				if tmp_ob_type != 'MESH':
+# 				if tmp_ob_type != 'Mesh':
+# 					me = bpy.data.meshes.new()
+					try:	me = ob.create_mesh(True, 'PREVIEW')
+# 					try:	me.getFromObject(ob)
 					except:	me = None
 					if me:
 						meshes_to_clear.append( me )
@@ -1860,63 +2077,71 @@ def write(filename, batch_objects = None, \
 				else:
 					# Mesh Type!
 					if EXP_MESH_APPLY_MOD:
-						me = bpy.data.meshes.new()
-						me.getFromObject(ob)
+# 						me = bpy.data.meshes.new()
+						me = ob.create_mesh(True, 'PREVIEW')
+# 						me.getFromObject(ob)
 						
 						# so we keep the vert groups
-						if EXP_ARMATURE:
-							orig_mesh = ob.getData(mesh=1)
-							if orig_mesh.getVertGroupNames():
-								ob.copy().link(me)
-								# If new mesh has no vgroups we can try add if verts are teh same
-								if not me.getVertGroupNames(): # vgroups were not kept by the modifier
-									if len(me.verts) == len(orig_mesh.verts):
-										groupNames, vWeightDict = BPyMesh.meshWeight2Dict(orig_mesh)
-										BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
+# 						if EXP_ARMATURE:
+# 							orig_mesh = ob.getData(mesh=1)
+# 							if orig_mesh.getVertGroupNames():
+# 								ob.copy().link(me)
+# 								# If new mesh has no vgroups we can try add if verts are teh same
+# 								if not me.getVertGroupNames(): # vgroups were not kept by the modifier
+# 									if len(me.verts) == len(orig_mesh.verts):
+# 										groupNames, vWeightDict = BPyMesh.meshWeight2Dict(orig_mesh)
+# 										BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
 						
 						# print ob, me, me.getVertGroupNames()
 						meshes_to_clear.append( me )
 						origData = False
 						mats = me.materials
 					else:
-						me = ob.getData(mesh=1)
+						me = ob.data
+# 						me = ob.getData(mesh=1)
 						mats = me.materials
 						
-						# Support object colors
-						tmp_colbits = ob.colbits
-						if tmp_colbits:
-							tmp_ob_mats = ob.getMaterials(1) # 1 so we get None's too.
-							for i in xrange(16):
-								if tmp_colbits & (1<<i):
-									mats[i] = tmp_ob_mats[i]
-							del tmp_ob_mats
-						del tmp_colbits
+# 						# Support object colors
+# 						tmp_colbits = ob.colbits
+# 						if tmp_colbits:
+# 							tmp_ob_mats = ob.getMaterials(1) # 1 so we get None's too.
+# 							for i in xrange(16):
+# 								if tmp_colbits & (1<<i):
+# 									mats[i] = tmp_ob_mats[i]
+# 							del tmp_ob_mats
+# 						del tmp_colbits
 							
 					
 				if me:
-					# This WILL modify meshes in blender if EXP_MESH_APPLY_MOD is disabled.
-					# so strictly this is bad. but only in rare cases would it have negative results
-					# say with dupliverts the objects would rotate a bit differently
-					if EXP_MESH_HQ_NORMALS:
-						BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
+# 					# This WILL modify meshes in blender if EXP_MESH_APPLY_MOD is disabled.
+# 					# so strictly this is bad. but only in rare cases would it have negative results
+# 					# say with dupliverts the objects would rotate a bit differently
+# 					if EXP_MESH_HQ_NORMALS:
+# 						BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
 					
 					texture_mapping_local = {}
 					material_mapping_local = {}
-					if me.faceUV:
-						uvlayer_orig = me.activeUVLayer
-						for uvlayer in me.getUVLayerNames():
-							me.activeUVLayer = uvlayer
-							for f in me.faces:
-								tex = f.image
+					if len(me.uv_textures) > 0:
+# 					if me.faceUV:
+						uvlayer_orig = me.active_uv_texture
+# 						uvlayer_orig = me.activeUVLayer
+						for uvlayer in me.uv_textures:
+# 						for uvlayer in me.getUVLayerNames():
+# 							me.activeUVLayer = uvlayer
+							for f, uf in zip(me.faces, uvlayer.data):
+# 							for f in me.faces:
+								tex = uf.image
+# 								tex = f.image
 								textures[tex] = texture_mapping_local[tex] = None
 								
-								try: mat = mats[f.mat]
+								try: mat = mats[f.material_index]
+# 								try: mat = mats[f.mat]
 								except: mat = None
 								
 								materials[mat, tex] = material_mapping_local[mat, tex] = None # should use sets, wait for blender 2.5
 									
 							
-							me.activeUVLayer = uvlayer_orig
+# 							me.activeUVLayer = uvlayer_orig
 					else:
 						for mat in mats:
 							# 2.44 use mat.lib too for uniqueness
@@ -1925,13 +2150,16 @@ def write(filename, batch_objects = None, \
 							materials[None, None] = None
 					
 					if EXP_ARMATURE:
-						armob = BPyObject.getObjectArmature(ob)
+						armob = ob.find_armature()
 						blenParentBoneName = None
 						
 						# parent bone - special case
-						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.BONE:
+						if (not armob) and ob.parent and ob.parent.type == 'ARMATURE' and \
+								ob.parent_type == 'BONE':
+# 						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.BONE:
 							armob = ob.parent
-							blenParentBoneName = ob.parentbonename
+							blenParentBoneName = ob.parent_bone
+# 							blenParentBoneName = ob.parentbonename
 						
 							
 						if armob and armob not in ob_arms:
@@ -1943,9 +2171,9 @@ def write(filename, batch_objects = None, \
 					my_mesh = my_object_generic(ob, mtx)
 					my_mesh.blenData =		me
 					my_mesh.origData = 		origData
-					my_mesh.blenMaterials =	material_mapping_local.keys()
+					my_mesh.blenMaterials =	list(material_mapping_local.keys())
 					my_mesh.blenMaterialList = mats
-					my_mesh.blenTextures =	texture_mapping_local.keys()
+					my_mesh.blenTextures =	list(texture_mapping_local.keys())
 					
 					# if only 1 null texture then empty the list
 					if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] == None:
@@ -1955,18 +2183,26 @@ def write(filename, batch_objects = None, \
 					my_mesh.fbxBoneParent = blenParentBoneName	# replace with my_bone instance later
 					
 					ob_meshes.append( my_mesh )
-	
+
+		# not forgetting to free dupli_list
+		if ob_base.dupli_list: ob_base.free_dupli_list()
+
+
 	if EXP_ARMATURE:
 		# now we have the meshes, restore the rest arm position
 		for i, arm in enumerate(bpy.data.armatures):
-			arm.restPosition = ob_arms_orig_rest[i]
+			arm.rest_position = ob_arms_orig_rest[i]
+# 			arm.restPosition = ob_arms_orig_rest[i]
 			
 		if ob_arms_orig_rest:
 			for ob_base in bpy.data.objects:
-				if ob_base.type == 'Armature':
-					ob_base.makeDisplayList()
+				if ob_base.type == 'ARMATURE':
+# 				if ob_base.type == 'Armature':
+					ob_base.make_display_list()
+# 					ob_base.makeDisplayList()
 			# This causes the makeDisplayList command to effect the mesh
-			Blender.Set('curframe', Blender.Get('curframe'))
+			sce.set_frame(sce.current_frame)
+# 			Blender.Set('curframe', Blender.Get('curframe'))
 	
 	del tmp_ob_type, tmp_objects
 	
@@ -1977,13 +2213,18 @@ def write(filename, batch_objects = None, \
 		
 		my_arm.fbxBones =		[]
 		my_arm.blenData =		ob.data
-		my_arm.blenAction =		ob.action
+		if ob.animation_data:
+			my_arm.blenAction =	ob.animation_data.action
+		else:
+			my_arm.blenAction = None
+# 		my_arm.blenAction =		ob.action
 		my_arm.blenActionList =	[]
 		
 		# fbxName, blenderObject, my_bones, blenderActions
 		#ob_arms[i] = fbxArmObName, ob, arm_my_bones, (ob.action, [])
 		
-		for bone in my_arm.blenData.bones.values():
+		for bone in my_arm.blenData.bones:
+# 		for bone in my_arm.blenData.bones.values():
 			my_bone = my_bone_class(bone, my_arm)
 			my_arm.fbxBones.append( my_bone )
 			ob_bones.append( my_bone )
@@ -2032,18 +2273,25 @@ def write(filename, batch_objects = None, \
 	
 	# Build blenObject -> fbxObject mapping
 	# this is needed for groups as well as fbxParenting
-	bpy.data.objects.tag = False
+# 	for ob in bpy.data.objects:	ob.tag = False
+# 	bpy.data.objects.tag = False
+
+	# using a list of object names for tagging (Arystan)
+	tagged_objects = []
+
 	tmp_obmapping = {}
 	for ob_generic in ob_all_typegroups:
 		for ob_base in ob_generic:
-			ob_base.blenObject.tag = True
+			tagged_objects.append(ob_base.blenObject.name)
+# 			ob_base.blenObject.tag = True
 			tmp_obmapping[ob_base.blenObject] = ob_base
 	
 	# Build Groups from objects we export
 	for blenGroup in bpy.data.groups:
 		fbxGroupName = None
 		for ob in blenGroup.objects:
-			if ob.tag:
+			if ob.name in tagged_objects:
+# 			if ob.tag:
 				if fbxGroupName == None:
 					fbxGroupName = sane_groupname(blenGroup)
 					groups.append((fbxGroupName, blenGroup))
@@ -2056,7 +2304,8 @@ def write(filename, batch_objects = None, \
 	for ob_generic in ob_all_typegroups:
 		for my_ob in ob_generic:
 			parent = my_ob.blenObject.parent
-			if parent and parent.tag: # does it exist and is it in the mapping
+			if parent and parent.name in tagged_objects: # does it exist and is it in the mapping
+# 			if parent and parent.tag: # does it exist and is it in the mapping
 				my_ob.fbxParent = tmp_obmapping[parent]
 	
 	
@@ -2064,8 +2313,8 @@ def write(filename, batch_objects = None, \
 	# Finished finding groups we use
 	
 	
-	materials =	[(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.iterkeys()]
-	textures =	[(sane_texname(tex), tex) for tex in textures.iterkeys()  if tex]
+	materials =	[(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.keys()]
+	textures =	[(sane_texname(tex), tex) for tex in textures.keys()  if tex]
 	materials.sort() # sort by name
 	textures.sort()
 	
@@ -2220,11 +2469,12 @@ Objects:  {''')
 			if my_mesh.fbxBoneParent:
 				weights = None
 			else:
-				weights = meshNormalizedWeights(my_mesh.blenData)
+				weights = meshNormalizedWeights(my_mesh.blenObject)
+# 				weights = meshNormalizedWeights(my_mesh.blenData)
 			
 			#for bonename, bone, obname, bone_mesh, armob in ob_bones:
 			for my_bone in ob_bones:
-				if me in my_bone.blenMeshes.itervalues():
+				if me in iter(my_bone.blenMeshes.values()):
 					write_sub_deformer_skin(my_mesh, my_bone, weights)
 	
 	# Write pose's really weired, only needed when an armature and mesh are used together
@@ -2426,7 +2676,8 @@ Connections:  {''')
 	
 	
 	# Needed for scene footer as well as animation
-	render = sce.render
+	render = sce.render_data
+# 	render = sce.render
 	
 	# from the FBX sdk
 	#define KTIME_ONE_SECOND        KTime (K_LONGLONG(46186158000))
@@ -2435,8 +2686,10 @@ Connections:  {''')
 		return int(0.5 + ((t/fps) * 46186158000))
 	
 	fps = float(render.fps)	
-	start =	render.sFrame
-	end =	render.eFrame
+	start =	sce.start_frame
+# 	start =	render.sFrame
+	end =	sce.end_frame
+# 	end =	render.eFrame
 	if end < start: start, end = end, start
 	if start==end: ANIM_ENABLE = False
 	
@@ -2445,7 +2698,8 @@ Connections:  {''')
 	
 	if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 		
-		frame_orig = Blender.Get('curframe')
+		frame_orig = sce.current_frame
+# 		frame_orig = Blender.Get('curframe')
 		
 		if ANIM_OPTIMIZE:
 			ANIM_OPTIMIZE_PRECISSION_FLOAT = 0.1 ** ANIM_OPTIMIZE_PRECISSION
@@ -2454,9 +2708,12 @@ Connections:  {''')
 		tmp_actions = [None] # None is the default action
 		blenActionDefault = None
 		action_lastcompat = None
+
+		# instead of tagging
+		tagged_actions = []
 		
 		if ANIM_ACTION_ALL:
-			bpy.data.actions.tag = False
+# 			bpy.data.actions.tag = False
 			tmp_actions = list(bpy.data.actions)
 			
 			
@@ -2472,12 +2729,14 @@ Connections:  {''')
 				arm_bone_names = set([my_bone.blenName for my_bone in my_arm.fbxBones])
 				
 				for action in tmp_actions:
-					
-					action_chan_names = arm_bone_names.intersection( set(action.getChannelNames()) )
+
+					action_chan_names = arm_bone_names.intersection( set([g.name for g in action.groups]) )
+# 					action_chan_names = arm_bone_names.intersection( set(action.getChannelNames()) )
 					
 					if action_chan_names: # at least one channel matches.
 						my_arm.blenActionList.append(action)
-						action.tag = True
+						tagged_actions.append(action.name)
+# 						action.tag = True
 						tmp_act_count += 1
 						
 						# incase there is no actions applied to armatures
@@ -2504,10 +2763,11 @@ Takes:  {''')
 		for blenAction in tmp_actions:
 			# we have tagged all actious that are used be selected armatures
 			if blenAction:
-				if blenAction.tag:
-					print '\taction: "%s" exporting...' % blenAction.name
+				if blenAction.name in tagged_actions:
+# 				if blenAction.tag:
+					print('\taction: "%s" exporting...' % blenAction.name)
 				else:
-					print '\taction: "%s" has no armature using it, skipping' % blenAction.name
+					print('\taction: "%s" has no armature using it, skipping' % blenAction.name)
 					continue
 			
 			if blenAction == None:
@@ -2521,17 +2781,18 @@ Takes:  {''')
 					file.write('\n\tTake: "%s" {' % sane_name_mapping_take[blenAction.name])
 				else:
 					file.write('\n\tTake: "%s" {' % sane_takename(blenAction))
-					
-				tmp = blenAction.getFrameNumbers()
-				if tmp:
-					act_start =	min(tmp)
-					act_end =	max(tmp)
-					del tmp
-				else:
-					# Fallback on this, theres not much else we can do? :/
-					# when an action has no length
-					act_start =	start
-					act_end =	end
+
+				act_start, act_end = blenAction.get_frame_range()
+# 				tmp = blenAction.getFrameNumbers()
+# 				if tmp:
+# 					act_start =	min(tmp)
+# 					act_end =	max(tmp)
+# 					del tmp
+# 				else:
+# 					# Fallback on this, theres not much else we can do? :/
+# 					# when an action has no length
+# 					act_start =	start
+# 					act_end =	end
 				
 				# Set the action active
 				for my_bone in ob_arms:
@@ -2558,7 +2819,8 @@ Takes:  {''')
 			'''
 			i = act_start
 			while i <= act_end:
-				Blender.Set('curframe', i)
+				sce.set_frame(i)
+# 				Blender.Set('curframe', i)
 				for ob_generic in ob_anim_lists:
 					for my_ob in ob_generic:
 						#Blender.Window.RedrawAll()
@@ -2585,7 +2847,7 @@ Takes:  {''')
 						file.write('\n\t\t\tVersion: 1.1')
 						file.write('\n\t\t\tChannel: "Transform" {')
 						
-						context_bone_anim_mats = [ (my_ob.getAnimParRelMatrix(frame), my_ob.getAnimParRelMatrixRot(frame)) for frame in xrange(act_start, act_end+1) ]
+						context_bone_anim_mats = [ (my_ob.getAnimParRelMatrix(frame), my_ob.getAnimParRelMatrixRot(frame)) for frame in range(act_start, act_end+1) ]
 						
 						# ----------------
 						# ----------------
@@ -2603,11 +2865,12 @@ Takes:  {''')
 								for mtx in context_bone_anim_mats:
 									if prev_eul:	prev_eul = mtx[1].toEuler(prev_eul)
 									else:			prev_eul = mtx[1].toEuler()
-									context_bone_anim_vecs.append(prev_eul)
+									context_bone_anim_vecs.append(eulerRadToDeg(prev_eul))
+# 									context_bone_anim_vecs.append(prev_eul)
 							
 							file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
 							
-							for i in xrange(3):
+							for i in range(3):
 								# Loop on each axis of the bone
 								file.write('\n\t\t\t\t\tChannel: "%s" {'% ('XYZ'[i])) # translation
 								file.write('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i] )
@@ -2694,8 +2957,9 @@ Takes:  {''')
 				my_bone.blenObject.action = my_bone.blenAction
 		
 		file.write('\n}')
-		
-		Blender.Set('curframe', frame_orig)
+
+		sce.set_frame(frame_orig)
+# 		Blender.Set('curframe', frame_orig)
 		
 	else:
 		# no animation
@@ -2713,15 +2977,21 @@ Takes:  {''')
 	
 	# Clear mesh data Only when writing with modifiers applied
 	for me in meshes_to_clear:
-		me.verts = None
-	
-	
+		bpy.data.remove_mesh(me)
+# 		me.verts = None
 	
 	# --------------------------- Footer
 	if world:
-		has_mist = world.mode & 1
-		mist_intense, mist_start, mist_end, mist_height = world.mist
-		world_hor = world.hor
+		m = world.mist
+		has_mist = m.enabled
+# 		has_mist = world.mode & 1
+		mist_intense = m.intensity
+		mist_start = m.start
+		mist_end = m.depth
+		mist_height = m.height
+# 		mist_intense, mist_start, mist_end, mist_height = world.mist
+		world_hor = world.horizon_color
+# 		world_hor = world.hor
 	else:
 		has_mist = mist_intense = mist_start = mist_end = mist_height = 0
 		world_hor = 0,0,0
@@ -2771,17 +3041,19 @@ Takes:  {''')
 	
 	
 	# copy images if enabled
-	if EXP_IMAGE_COPY:
-		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])	
+# 	if EXP_IMAGE_COPY:
+# # 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])
+# 		bpy.util.copy_images( [ tex[1] for tex in textures if tex[1] != None ], basepath)	
 	
-	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
+	print('export finished in %.4f sec.' % (time.clock() - start_time))
+# 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
 	return True
 	
 
 # --------------------------------------------
 # UI Function - not a part of the exporter.
 # this is to seperate the user interface from the rest of the exporter.
-from Blender import Draw, Window
+# from Blender import Draw, Window
 EVENT_NONE = 0
 EVENT_EXIT = 1
 EVENT_REDRAW = 2
@@ -2798,11 +3070,6 @@ def do_obs_sel(e,v):
 	GLOBALS['EVENT'] = e
 	GLOBALS['EXP_OBS_SCENE'].val = 0
 	GLOBALS['EXP_OBS_SELECTED'].val = 1
-
-def do_obs_sce(e,v):
-	GLOBALS['EVENT'] = e
-	GLOBALS['EXP_OBS_SCENE'].val = 1
-	GLOBALS['EXP_OBS_SELECTED'].val = 0
 
 def do_obs_sce(e,v):
 	GLOBALS['EVENT'] = e
@@ -2837,21 +3104,21 @@ def fbx_ui_exit(e,v):
 
 def do_help(e,v):
     url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
-    print 'Trying to open web browser with documentation at this address...'
-    print '\t' + url
+    print('Trying to open web browser with documentation at this address...')
+    print('\t' + url)
     
     try:
         import webbrowser
         webbrowser.open(url)
     except:
         Blender.Draw.PupMenu("Error%t|Opening a webbrowser requires a full python installation")
-        print '...could not open a browser window.'
+        print('...could not open a browser window.')
 
 	
 
 # run when export is pressed
 #def fbx_ui_write(e,v):
-def fbx_ui_write(filename):
+def fbx_ui_write(filename, context):
 	
 	# Dont allow overwriting files when saving normally
 	if not GLOBALS['BATCH_ENABLE'].val:
@@ -2874,6 +3141,7 @@ def fbx_ui_write(filename):
 	
 	ret = write(\
 		filename, None,\
+		context,
 		GLOBALS['EXP_OBS_SELECTED'].val,\
 		GLOBALS['EXP_MESH'].val,\
 		GLOBALS['EXP_MESH_APPLY_MOD'].val,\
@@ -3071,14 +3339,115 @@ def write_ui():
 	
 	
 	# GLOBALS.clear()
-#test = [write_ui]
-if __name__ == '__main__':
-	# Cant call the file selector first because of a bug in the interface that crashes it.
-	# Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
-	#write('/scratch/test.fbx')
-	#write_ui('/scratch/test.fbx')
+
+class EXPORT_OT_fbx(bpy.types.Operator):
+	'''
+	Operator documentation text, will be used for the operator tooltip and python docs.
+	'''
+	__idname__ = "export.fbx"
+	__label__ = "Export FBX"
 	
-	if not set:
-		Draw.PupMenu('Error%t|A full install of python2.3 or python 2.4+ is needed to run this script.')
-	else:
-		write_ui()
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = [
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default= ""),
+		
+		bpy.props.BoolProperty(attr="EXP_OBS_SELECTED", name="Selected Objects", description="Export selected objects on visible layers", default=True),
+# 		bpy.props.BoolProperty(attr="EXP_OBS_SCENE", name="Scene Objects", description="Export all objects in this scene", default=True),
+		bpy.props.FloatProperty(attr="_SCALE", name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0),
+		bpy.props.BoolProperty(attr="_XROT90", name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True),
+		bpy.props.BoolProperty(attr="_YROT90", name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False),
+		bpy.props.BoolProperty(attr="_ZROT90", name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False),
+		bpy.props.BoolProperty(attr="EXP_EMPTY", name="Empties", description="Export empty objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_CAMERA", name="Cameras", description="Export camera objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_LAMP", name="Lamps", description="Export lamp objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_ARMATURE", name="Armatures", description="Export armature objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_MESH", name="Meshes", description="Export mesh objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_MESH_APPLY_MOD", name="Modifiers", description="Apply modifiers to mesh objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_MESH_HQ_NORMALS", name="HQ Normals", description="Generate high quality normals", default=True),
+		bpy.props.BoolProperty(attr="EXP_IMAGE_COPY", name="Copy Image Files", description="Copy image files to the destination path", default=False),
+		# armature animation
+		bpy.props.BoolProperty(attr="ANIM_ENABLE", name="Enable Animation", description="Export keyframe animation", default=True),
+		bpy.props.BoolProperty(attr="ANIM_OPTIMIZE", name="Optimize Keyframes", description="Remove double keyframes", default=True),
+		bpy.props.FloatProperty(attr="ANIM_OPTIMIZE_PRECISSION", name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0),
+# 		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True),
+		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="All Actions", description="Use all actions for armatures, if false, use current action", default=False),
+		# batch
+		bpy.props.BoolProperty(attr="BATCH_ENABLE", name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False),
+		bpy.props.BoolProperty(attr="BATCH_GROUP", name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False),
+		bpy.props.BoolProperty(attr="BATCH_OWN_DIR", name="Own Dir", description="Create a dir for each exported file", default=True),
+		bpy.props.StringProperty(attr="BATCH_FILE_PREFIX", name="Prefix", description="Prefix each file with this name", maxlen= 1024, default=""),
+	]
+	
+	def poll(self, context):
+		print("Poll")
+		return context.active_object != None
+	
+	def execute(self, context):
+		if not self.path:
+			raise Exception("path not set")
+
+		GLOBAL_MATRIX = mtx4_identity
+		GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self._SCALE
+		if self._XROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
+		if self._YROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
+		if self._ZROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
+			
+		write(self.path,
+			  None, # XXX
+			  context,
+			  self.EXP_OBS_SELECTED,
+			  self.EXP_MESH,
+			  self.EXP_MESH_APPLY_MOD,
+# 			  self.EXP_MESH_HQ_NORMALS,
+			  self.EXP_ARMATURE,
+			  self.EXP_LAMP,
+			  self.EXP_CAMERA,
+			  self.EXP_EMPTY,
+			  self.EXP_IMAGE_COPY,
+			  GLOBAL_MATRIX,
+			  self.ANIM_ENABLE,
+			  self.ANIM_OPTIMIZE,
+			  self.ANIM_OPTIMIZE_PRECISSION,
+			  self.ANIM_ACTION_ALL,
+			  self.BATCH_ENABLE,
+			  self.BATCH_GROUP,
+			  self.BATCH_FILE_PREFIX,
+			  self.BATCH_OWN_DIR)		
+
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):	
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+
+
+bpy.ops.add(EXPORT_OT_fbx)
+
+# if __name__ == "__main__":
+# 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
+
+
+# NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
+# - Draw.PupMenu alternative in 2.5?, temporarily replaced PupMenu with print
+# - get rid of cleanName somehow
+# + fixed: isinstance(inst, bpy.types.*) doesn't work on RNA objects: line 565
+# + get rid of BPyObject_getObjectArmature, move it in RNA?
+# - BATCH_ENABLE and BATCH_GROUP options: line 327
+# - implement all BPyMesh_* used here with RNA
+# - getDerivedObjects is not fully replicated with .dupli* funcs
+# - talk to Campbell, this code won't work? lines 1867-1875
+# - don't know what those colbits are, do we need them? they're said to be deprecated in DNA_object_types.h: 1886-1893
+# - no hq normals: 1900-1901
+
+# TODO
+
+# - bpy.data.remove_scene: line 366
+# - bpy.sys.time move to bpy.sys.util?
+# - new scene creation, activation: lines 327-342, 368
+# - uses bpy.sys.expandpath, *.relpath - replace at least relpath
+
+# SMALL or COSMETICAL
+# - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')

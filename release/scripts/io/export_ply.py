@@ -1,16 +1,4 @@
-#!BPY
-
-"""
-Name: 'Stanford PLY (*.ply)...'
-Blender: 241
-Group: 'Export'
-Tooltip: 'Export active object to Stanford PLY format'
-"""
-
 import bpy
-import Blender
-from Blender import Mesh, Scene, Window, sys, Image, Draw
-import BPyMesh
 
 __author__ = "Bruce Merry"
 __version__ = "0.93"
@@ -62,84 +50,105 @@ Only one mesh can be exported at a time.
 def rvec3d(v):	return round(v[0], 6), round(v[1], 6), round(v[2], 6)
 def rvec2d(v):	return round(v[0], 6), round(v[1], 6)
 
-def file_callback(filename):
+def write(filename, scene, ob, \
+		EXPORT_APPLY_MODIFIERS= True,\
+		EXPORT_NORMALS= True,\
+		EXPORT_UV= True,\
+		EXPORT_COLORS= True\
+	):
 	
 	if not filename.lower().endswith('.ply'):
 		filename += '.ply'
 	
-	scn= bpy.data.scenes.active
-	ob= scn.objects.active
 	if not ob:
-		Blender.Draw.PupMenu('Error%t|Select 1 active object')
+		raise Exception("Error, Select 1 active object")
 		return
 	
-	file = open(filename, 'wb')
+	file = open(filename, 'w')
 	
-	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
-	EXPORT_NORMALS = Draw.Create(1)
-	EXPORT_UV = Draw.Create(1)
-	EXPORT_COLORS = Draw.Create(1)
+	
 	#EXPORT_EDGES = Draw.Create(0)
-	
-	pup_block = [\
-	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data.'),\
-	('Normals', EXPORT_NORMALS, 'Export vertex normal data.'),\
-	('UVs', EXPORT_UV, 'Export texface UV coords.'),\
-	('Colors', EXPORT_COLORS, 'Export vertex Colors.'),\
-	#('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
-	]
-	
-	if not Draw.PupBlock('Export...', pup_block):
-		return
-	
+	"""
 	is_editmode = Blender.Window.EditMode()
 	if is_editmode:
 		Blender.Window.EditMode(0, '', 0)
 	
 	Window.WaitCursor(1)
+	"""
 	
-	EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val
-	EXPORT_NORMALS = EXPORT_NORMALS.val
-	EXPORT_UV = EXPORT_UV.val
-	EXPORT_COLORS = EXPORT_COLORS.val
-	#EXPORT_EDGES = EXPORT_EDGES.val
-	
-	mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn)
+	#mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn) # XXX
+	if EXPORT_APPLY_MODIFIERS:
+		mesh = ob.create_mesh(True, 'PREVIEW')
+	else:
+		mesh = ob.data
 	
 	if not mesh:
-		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
+		raise ("Error, could not get mesh data from active object")
 		return
 	
-	mesh.transform(ob.matrixWorld)
+	# mesh.transform(ob.matrixWorld) # XXX
 	
-	faceUV = mesh.faceUV
-	vertexUV = mesh.vertexUV
-	vertexColors = mesh.vertexColors
+	faceUV = len(mesh.uv_textures) > 0
+	vertexUV = len(mesh.sticky) > 0
+	vertexColors = len(mesh.vertex_colors) > 0
 	
-	if (not faceUV) and (not vertexUV):		EXPORT_UV = False
+	if (not faceUV) and (not vertexUV):	EXPORT_UV = False
 	if not vertexColors:					EXPORT_COLORS = False
 	
 	if not EXPORT_UV:						faceUV = vertexUV = False
 	if not EXPORT_COLORS:					vertexColors = False
+		
+	if faceUV:
+		active_uv_layer = None
+		for lay in mesh.uv_textures:
+			if lay.active:
+				active_uv_layer= lay.data
+				break
+		if not active_uv_layer:
+			EXPORT_UV = False
+			faceUV = None
+	
+	if vertexColors:
+		active_col_layer = None
+		for lay in mesh.vertex_colors:
+			if lay.active:
+				active_col_layer= lay.data
+		if not active_col_layer:
+			EXPORT_COLORS = False
+			vertexColors = None
 	
 	# incase
 	color = uvcoord = uvcoord_key = normal = normal_key = None
 	
-	verts = [] # list of dictionaries
+	mesh_verts = mesh.verts # save a lookup
+	ply_verts = [] # list of dictionaries
 	# vdict = {} # (index, normal, uv) -> new index
-	vdict = [{} for i in xrange(len(mesh.verts))]
+	vdict = [{} for i in range(len(mesh_verts))]
+	ply_faces = [[] for f in range(len(mesh.faces))]
 	vert_count = 0
 	for i, f in enumerate(mesh.faces):
+		
+		
 		smooth = f.smooth
 		if not smooth:
-			normal = tuple(f.no)
+			normal = tuple(f.normal)
 			normal_key = rvec3d(normal)
+		
+		if faceUV:
+			uv = active_uv_layer[i]
+			uv = uv.uv1, uv.uv2, uv.uv3, uv.uv4 # XXX - crufty :/
+		if vertexColors:
+			col = active_col_layer[i]
+			col = col.color1, col.color2, col.color3, col.color4
+		
+		f_verts= f.verts
+		
+		pf= ply_faces[i]
+		for j, vidx in enumerate(f_verts):
+			v = mesh_verts[vidx]
 			
-		if faceUV:			uv = f.uv
-		if vertexColors:	col = f.col
-		for j, v in enumerate(f):
 			if smooth:
-				normal=		tuple(v.no)
+				normal=		tuple(v.normal)
 				normal_key = rvec3d(normal)
 			
 			if faceUV:
@@ -149,33 +158,41 @@ def file_callback(filename):
 				uvcoord=	v.uvco[0], 1.0-v.uvco[1]
 				uvcoord_key = rvec2d(uvcoord)
 			
-			if vertexColors:	color=		col[j].r, col[j].g, col[j].b
+			if vertexColors:
+				color=		col[j]
+				color= int(color[0]*255.0), int(color[1]*255.0), int(color[2]*255.0)
 			
 			
 			key = normal_key, uvcoord_key, color
 			
-			vdict_local = vdict[v.index]
+			vdict_local = vdict[vidx]
+			pf_vidx = vdict_local.get(key) # Will be None initially
 			
-			if (not vdict_local) or (not vdict_local.has_key(key)):
-				vdict_local[key] = vert_count;
-				verts.append( (tuple(v.co), normal, uvcoord, color) )
+			if pf_vidx == None: # same as vdict_local.has_key(key)
+				pf_vidx = vdict_local[key] = vert_count;
+				ply_verts.append((vidx, normal, uvcoord, color))
 				vert_count += 1
-	
+			
+			pf.append(pf_vidx)
 	
 	file.write('ply\n')
 	file.write('format ascii 1.0\n')
-	file.write('comment Created by Blender3D %s - www.blender.org, source file: %s\n' % (Blender.Get('version'), Blender.Get('filename').split('/')[-1].split('\\')[-1] ))
+	version = "2.5" # Blender.Get('version')
+	file.write('comment Created by Blender3D %s - www.blender.org, source file: %s\n' % (version, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
 	
-	file.write('element vertex %d\n' % len(verts))
+	file.write('element vertex %d\n' % len(ply_verts))
 	
 	file.write('property float x\n')
 	file.write('property float y\n')
 	file.write('property float z\n')
+	
+	# XXX 
+	"""
 	if EXPORT_NORMALS:
 		file.write('property float nx\n')
 		file.write('property float ny\n')
 		file.write('property float nz\n')
-	
+	"""
 	if EXPORT_UV:
 		file.write('property float s\n')
 		file.write('property float t\n')
@@ -188,41 +205,75 @@ def file_callback(filename):
 	file.write('property list uchar uint vertex_indices\n')
 	file.write('end_header\n')
 
-	for i, v in enumerate(verts):
-		file.write('%.6f %.6f %.6f ' % v[0]) # co
+	for i, v in enumerate(ply_verts):
+		file.write('%.6f %.6f %.6f ' % tuple(mesh_verts[v[0]].co)) # co
+		"""
 		if EXPORT_NORMALS:
 			file.write('%.6f %.6f %.6f ' % v[1]) # no
-		
-		if EXPORT_UV:
-			file.write('%.6f %.6f ' % v[2]) # uv
-		if EXPORT_COLORS:
-			file.write('%u %u %u' % v[3]) # col
+		"""
+		if EXPORT_UV:			file.write('%.6f %.6f ' % v[2]) # uv
+		if EXPORT_COLORS:		file.write('%u %u %u' % v[3]) # col
 		file.write('\n')
 	
-	for (i, f) in enumerate(mesh.faces):
-		file.write('%d ' % len(f))
-		smooth = f.smooth
-		if not smooth: no = rvec3d(f.no)
-		
-		if faceUV:			uv = f.uv
-		if vertexColors:	col = f.col
-		for j, v in enumerate(f):
-			if f.smooth:		normal=		rvec3d(v.no)
-			else:				normal=		no
-			if faceUV:			uvcoord=	rvec2d((uv[j][0], 1.0-uv[j][1]))
-			elif vertexUV:		uvcoord=	rvec2d((v.uvco[0], 1.0-v.uvco[1]))
-			if vertexColors:	color=		col[j].r, col[j].g, col[j].b
-			
-			file.write('%d ' % vdict[v.index][normal, uvcoord, color])
-			
-		file.write('\n')
+	for pf in ply_faces:
+		if len(pf)==3:		file.write('3 %d %d %d\n' % tuple(pf))
+		else:				file.write('4 %d %d %d %d\n' % tuple(pf))
+	
 	file.close()
+	print("writing", filename, "done")
 	
+	if EXPORT_APPLY_MODIFIERS:
+		bpy.data.remove_mesh(mesh)
+	
+	# XXX
+	"""
 	if is_editmode:
 		Blender.Window.EditMode(1, '', 0)
+	"""
 
-def main():
-	Blender.Window.FileSelector(file_callback, 'PLY Export', Blender.sys.makename(ext='.ply'))
+class EXPORT_OT_ply(bpy.types.Operator):
+	'''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
+	__idname__ = "export.ply"
+	__label__ = "Export PLY"
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = [
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= ""),
+		bpy.props.BoolProperty(attr="use_modifiers", name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True),
+		bpy.props.BoolProperty(attr="use_normals", name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True),
+		bpy.props.BoolProperty(attr="use_uvs", name="Export UVs", description="Exort the active UV layer", default= True),
+		bpy.props.BoolProperty(attr="use_colors", name="Export Vertex Colors", description="Exort the active vertex color layer", default= True)
+	]
+	
+	def poll(self, context):
+		return context.active_object != None
+	
+	def execute(self, context):
+		# print("Selected: " + context.active_object.name)
 
-if __name__=='__main__':
-	main()
+		if not self.path:
+			raise Exception("filename not set")
+			
+		write(self.path, context.scene, context.active_object,\
+			EXPORT_APPLY_MODIFIERS = self.use_modifiers,
+			EXPORT_NORMALS = self.use_normals,
+			EXPORT_UV = self.use_uvs,
+			EXPORT_COLORS = self.use_colors,
+		)
+
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):	
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+
+
+bpy.ops.add(EXPORT_OT_ply)
+
+if __name__ == "__main__":
+	bpy.ops.EXPORT_OT_ply(path="/tmp/test.ply")
+
+
