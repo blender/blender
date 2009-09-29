@@ -95,7 +95,7 @@ char *ED_info_stats_string(struct Scene *scene){return NULL;}
 void ED_area_tag_redraw(struct ScrArea *sa){}
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op){}
 void ED_node_texture_default(struct Tex *tx){}
-void ED_node_changed_update(struct bContext *C, struct bNode *node);
+void ED_node_changed_update(struct bContext *C, struct bNode *node){}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws){}
@@ -113,6 +113,18 @@ void uiLayoutSetEnabled(struct uiLayout *layout, int enabled){}
 void uiLayoutSetAlignment(struct uiLayout *layout, int alignment){}
 void uiLayoutSetScaleX(struct uiLayout *layout, float scale){}
 void uiLayoutSetScaleY(struct uiLayout *layout, float scale){}
+void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base){}
+void ED_mesh_calc_normals(struct Mesh *me){}
+void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces){}
+void ED_mesh_material_add(struct Mesh *me, struct Material *ma){}
+void ED_mesh_transform(struct Mesh *me, float *mat){}
+void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
+int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
+void ED_object_apply_obmat(struct Object *ob){}
+void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob){}
+void ED_object_constraint_update(struct Object *ob){}
+struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name){return (struct bDeformGroup *) NULL;}
+void ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum, float weight, int assignmode){}
 
 void uiItemR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int flag){}
 
@@ -155,6 +167,7 @@ void uiTemplateOperatorSearch(struct uiLayout *layout){}
 void uiTemplateHeader3D(struct uiLayout *layout, struct bContext *C){}
 void uiTemplate_view3d_select_faceselmenu(struct uiLayout *layout, struct bContext *C){}
 void uiTemplateTextureImage(struct uiLayout *layout, struct bContext *C, struct Tex *tex){}
+void uiTemplateImage(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}
@@ -171,11 +184,13 @@ struct wmOperatorType *WM_operatortype_first(){return (struct wmOperatorType *) 
 struct wmOperatorType *WM_operatortype_exists(const char *idname){return (struct wmOperatorType *) NULL;}
 int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports){return 0;}
 int WM_operatortype_remove(const char *idname){return 0;}
+int WM_operator_poll(struct bContext *C, struct wmOperatorType *ot){return 0;}
 void WM_operator_properties_free(struct PointerRNA *ptr){}
 void WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring){}
 void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType*, void*), void *userdata){}
 void WM_operator_bl_idname(char *to, const char *from){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
+char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return NULL;}
 
 /* smoke */
 void lzo1x_1_compress(void) {return;}
@@ -199,3 +214,5 @@ void smoke_get_velocity_z(void) {return;}
 void smoke_get_obstacle(void) {return;}
 void smoke_get_index(void) {return;}
 void smoke_step(void) {return;}
+
+char blender_path(){return NULL;}
