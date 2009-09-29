@@ -61,8 +61,13 @@ SET(INC
 	../../../source/blender/gpu
 	../../../source/blender/ikplugin
 	../../../extern/bullet2/src
-	${PYTHON_INC}
 )
+
+IF(WITH_PYTHON)
+	SET(INC ${INC} ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_converter "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_converter', sources, Split(incs), [], libtype=['game','player'], priority=[5,70] )

@@ -108,10 +108,14 @@ public:
 
 	virtual int GetGameObjectType() { return OBJ_ARMATURE; }
 
+#ifndef DISABLE_PYTHON
+
 	// PYTHON
 	static PyObject* pyattr_get_constraints(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_channels(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	KX_PYMETHOD_DOC_NOARGS(BL_ArmatureObject, update);
+
+#endif // DISABLE_PYTHON
 
 protected:
 	/* list element: BL_ArmatureConstraint. Use SG_DListHead to have automatic list replication */

@@ -34,8 +34,12 @@
 #include "SCA_ISensor.h"
 #include "SCA_IActuator.h"
 #include "PyObjectPlus.h"
+
+#ifndef DISABLE_PYTHON
 #include "compile.h"
 #include "eval.h"
+#endif // DISABLE_PYTHON
+
 #include <algorithm>
 
 
@@ -49,13 +53,18 @@ SCA_PythonController* SCA_PythonController::m_sCurrentController = NULL;
 
 SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj, int mode)
 	: SCA_IController(gameobj),
+#ifndef DISABLE_PYTHON
 	m_bytecode(NULL),
 	m_function(NULL),
+#endif
 	m_function_argc(0),
 	m_bModified(true),
 	m_debug(false),
-	m_mode(mode),
-	m_pythondictionary(NULL)
+	m_mode(mode)
+#ifndef DISABLE_PYTHON
+	, m_pythondictionary(NULL)
+#endif
+
 {
 	
 }
@@ -78,6 +87,8 @@ int			SCA_PythonController::Release()
 
 SCA_PythonController::~SCA_PythonController()
 {
+
+#ifndef DISABLE_PYTHON
 	//printf("released python byte script\n");
 	
 	Py_XDECREF(m_bytecode);
@@ -88,6 +99,7 @@ SCA_PythonController::~SCA_PythonController()
 		PyDict_Clear(m_pythondictionary);
 		Py_DECREF(m_pythondictionary);
 	}
+#endif
 }
 
 
@@ -95,7 +107,8 @@ SCA_PythonController::~SCA_PythonController()
 CValue* SCA_PythonController::GetReplica()
 {
 	SCA_PythonController* replica = new SCA_PythonController(*this);
-	
+
+#ifndef DISABLE_PYTHON
 	/* why is this needed at all??? - m_bytecode is NULL'd below so this doesnt make sense
 	 * but removing it crashes blender (with YoFrankie). so leave in for now - Campbell */
 	Py_XINCREF(replica->m_bytecode);
@@ -113,6 +126,7 @@ CValue* SCA_PythonController::GetReplica()
 	if (m_pythondictionary)
 		Py_INCREF(replica->m_pythondictionary);
 	*/
+#endif
 	
 	// this will copy properties and so on...
 	replica->ProcessReplica();
@@ -136,7 +150,7 @@ void SCA_PythonController::SetScriptName(const STR_String& name)
 }
 
 
-
+#ifndef DISABLE_PYTHON
 void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 {
 	if (m_pythondictionary)
@@ -151,6 +165,7 @@ void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 	PyDict_SetItemString(m_pythondictionary, "__file__", PyUnicode_FromString(m_scriptName.Ptr()));
 	
 }
+#endif
 
 int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 {
@@ -159,6 +174,8 @@ int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 		return 1;
 	return 0;
 }
+
+#ifndef DISABLE_PYTHON
 
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
 PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
@@ -360,6 +377,7 @@ bool SCA_PythonController::Import()
 	return true;
 }
 
+
 void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 {
 	m_sCurrentController = this;
@@ -514,5 +532,13 @@ int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_D
 	return PY_SET_ATTR_SUCCESS;
 }
 
+#else // DISABLE_PYTHON
+
+void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
+{
+	/* intentionally blank */
+}
+
+#endif // DISABLE_PYTHON
 
 /* eof */

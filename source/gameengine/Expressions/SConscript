@@ -4,6 +4,12 @@ Import ('env')
 sources = env.Glob('*.cpp')
 
 incs ='. #source/kernel/gen_system #intern/guardedalloc #intern/string #intern/moto/include #source/gameengine/SceneGraph #source/blender/blenloader'
-incs += ' ' + env['BF_PYTHON_INC']
 
-env.BlenderLib ( 'bf_expressions', sources, Split(incs), [], libtype=['core','player'], priority = [360,80], cxx_compileflags=env['BGE_CXXFLAGS'])
+defs = []
+
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
+
+env.BlenderLib ( 'bf_expressions', sources, Split(incs), defs, libtype=['core','player'], priority = [360,80], cxx_compileflags=env['BGE_CXXFLAGS'])

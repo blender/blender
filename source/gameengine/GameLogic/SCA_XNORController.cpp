@@ -95,7 +95,7 @@ CValue* SCA_XNORController::GetReplica()
 	return replica;
 }
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -131,5 +131,7 @@ PyMethodDef SCA_XNORController::Methods[] = {
 PyAttributeDef SCA_XNORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

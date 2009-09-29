@@ -29,13 +29,15 @@
 #ifndef PHY_PYTHON_CONSTRAINTBINDING
 #define PHY_PYTHON_CONSTRAINTBINDING
 
+#ifndef DISABLE_PYTHON
+
 #include <Python.h>
 
 PyObject*				initPythonConstraintBinding();
 void	PHY_RemovePythonConstraintBinding();
 void	PHY_SetActiveEnvironment(class	PHY_IPhysicsEnvironment* env);
 PHY_IPhysicsEnvironment*	PHY_GetActiveEnvironment();
-
+#endif // DISABLE_PYTHON
 
 #endif //PHY_PYTHON_CONSTRAINTBINDING
 

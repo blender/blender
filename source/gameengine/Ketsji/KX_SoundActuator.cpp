@@ -264,7 +264,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 }
 
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -416,3 +416,5 @@ int KX_SoundActuator::pyattr_set_rollOffFactor(void *self, const struct KX_PYATT
 
 	return PY_SET_ATTR_SUCCESS;
 }
+
+#endif // DISABLE_PYTHON

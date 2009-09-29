@@ -481,6 +481,7 @@ int KX_Camera::GetViewportTop() const
 	return m_camdata.m_viewporttop;
 }
 
+#ifndef DISABLE_PYTHON
 //----------------------------------------------------------------------------
 //Python
 
@@ -1030,4 +1031,4 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 
 	return NULL;
 }
-
+#endif

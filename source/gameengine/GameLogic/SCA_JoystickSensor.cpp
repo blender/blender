@@ -32,6 +32,7 @@
 
 #include "PyObjectPlus.h"
 
+#include <stdio.h>
 #include <iostream>
 
 
@@ -244,6 +245,7 @@ bool SCA_JoystickSensor::isValid(SCA_JoystickSensor::KX_JOYSENSORMODE m)
 	return res;
 }
 
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions 														 */
@@ -413,3 +415,5 @@ PyObject* SCA_JoystickSensor::pyattr_get_connected(void *self_v, const KX_PYATTR
 	SCA_Joystick *joy = ((SCA_JoystickManager *)self->m_eventmgr)->GetJoystickDevice(self->m_joyindex);
 	return PyBool_FromLong( joy ? joy->Connected() : 0 );
 }
+
+#endif

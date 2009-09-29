@@ -41,7 +41,9 @@ class SCA_ISensor;
 class SCA_IController;
 class SCA_IActuator;
 
+#ifndef DISABLE_PYTHON
 template<class T> T PyVecTo(PyObject*);
+#endif
 
 typedef std::vector<SCA_ISensor *>       SCA_SensorList;
 typedef std::vector<SCA_IController *>   SCA_ControllerList;

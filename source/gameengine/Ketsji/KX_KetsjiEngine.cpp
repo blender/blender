@@ -112,7 +112,9 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_rendertools(NULL),
 	m_sceneconverter(NULL),
 	m_networkdevice(NULL),
+#ifndef DISABLE_PYTHON
 	m_pythondictionary(NULL),
+#endif
 	m_keyboarddevice(NULL),
 	m_mousedevice(NULL),
 
@@ -231,7 +233,7 @@ void KX_KetsjiEngine::SetRasterizer(RAS_IRasterizer* rasterizer)
 	m_rasterizer = rasterizer;
 }
 
-
+#ifndef DISABLE_PYTHON
 /*
  * At the moment the GameLogic module is imported into 'pythondictionary' after this function is called.
  * if this function ever changes to assign a copy, make sure the game logic module is imported into this dictionary before hand.
@@ -241,7 +243,7 @@ void KX_KetsjiEngine::SetPythonDictionary(PyObject* pythondictionary)
 	MT_assert(pythondictionary);
 	m_pythondictionary = pythondictionary;
 }
-
+#endif
 
 
 void KX_KetsjiEngine::SetSceneConverter(KX_ISceneConverter* sceneconverter)
@@ -604,7 +606,9 @@ else
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS1);
 				// set Python hooks for each scene
+#ifndef DISABLE_PYTHON
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
+#endif
 				KX_SetActiveScene(scene);
 	
 				scene->GetPhysicsEnvironment()->endFrame();
@@ -706,7 +710,9 @@ else
 				m_suspendeddelta = scene->getSuspendedDelta();
 				
 				// set Python hooks for each scene
+#ifndef DISABLE_PYTHON
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
+#endif
 				KX_SetActiveScene(scene);
 				
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
@@ -1612,7 +1618,9 @@ KX_Scene* KX_KetsjiEngine::CreateScene(const STR_String& scenename)
 									  scene);
 
 	m_sceneconverter->ConvertScene(tmpscene,
+#ifndef DISABLE_PYTHON
 							  m_pythondictionary,
+#endif
 							  m_rendertools,
 							  m_canvas);
 

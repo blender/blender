@@ -21,11 +21,15 @@ incs += ' #source/blender/windowmanager'
 incs += ' #source/blender/makesrna'
 incs += ' #source/blender/ikplugin'
 
-incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']
 
 if env['BF_DEBUG']:
 	if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc', 'win64-vc'):
 		defs.append('_DEBUG')
+		
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
 
 env.BlenderLib ( 'bf_converter', sources, Split(incs), defs, libtype=['core','player'], priority=[305,40], cxx_compileflags=env['BGE_CXXFLAGS'])

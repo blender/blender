@@ -58,7 +58,9 @@ KX_PolygonMaterial::KX_PolygonMaterial()
 	m_tface(NULL),
 	m_mcol(NULL),
 	m_material(NULL),
+#ifndef DISABLE_PYTHON
 	m_pymaterial(NULL),
+#endif
 	m_pass(0)
 {
 }
@@ -92,21 +94,27 @@ void KX_PolygonMaterial::Initialize(
 	m_tface = tface;
 	m_mcol = mcol;
 	m_material = ma;
+#ifndef DISABLE_PYTHON
 	m_pymaterial = 0;
+#endif
 	m_pass = 0;
 }
 
 KX_PolygonMaterial::~KX_PolygonMaterial()
 {
+#ifndef DISABLE_PYTHON
 	if (m_pymaterial)
 	{
 		Py_DECREF(m_pymaterial);
 	}
+#endif // DISABLE_PYTHON
 }
 
 bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const 
 {
 	bool dopass = false;
+
+#ifndef DISABLE_PYTHON
 	if (m_pymaterial)
 	{
 		PyObject *pyRasty = PyCObject_FromVoidPtr((void*)rasty, NULL);	/* new reference */
@@ -126,6 +134,7 @@ bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingI
 		}
 	}
 	else
+#endif // DISABLE_PYTHON
 	{
 		switch (m_pass++)
 		{
@@ -196,6 +205,7 @@ void KX_PolygonMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
 		RAS_IPolyMaterial::GetMaterialRGBAColor(rgba);
 }
 
+#ifndef DISABLE_PYTHON
 
 //----------------------------------------------------------------------------
 //Python
@@ -386,3 +396,5 @@ int KX_PolygonMaterial::pyattr_set_specular(void *self_v, const KX_PYATTRIBUTE_D
 	self->m_specular= vec;
 	return PY_SET_ATTR_SUCCESS;
 }
+
+#endif // DISABLE_PYTHON

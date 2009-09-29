@@ -41,8 +41,10 @@
 #include "IntValue.h"
 #include "RAS_CameraData.h"
 
+#ifndef DISABLE_PYTHON
 /* utility conversion function */
 bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
+#endif
 
 class KX_Camera : public KX_GameObject
 {
@@ -267,6 +269,7 @@ public:
 
 	virtual int GetGameObjectType() { return OBJ_CAMERA; }
 
+#ifndef DISABLE_PYTHON
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, sphereInsideFrustum);
 	KX_PYMETHOD_DOC_O(KX_Camera, boxInsideFrustum);
 	KX_PYMETHOD_DOC_O(KX_Camera, pointInsideFrustum);
@@ -304,6 +307,7 @@ public:
 	static PyObject*	pyattr_get_INSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+#endif
 };
 
 #endif //__KX_CAMERA

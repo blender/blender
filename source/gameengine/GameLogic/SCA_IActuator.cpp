@@ -27,6 +27,7 @@
  */
 
 #include "SCA_IActuator.h"
+#include <stdio.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

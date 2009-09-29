@@ -25,7 +25,11 @@ incs += ' #source/blender/windowmanager'
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
 
-incs += ' ' + env['BF_PYTHON_INC']
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
+
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 

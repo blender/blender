@@ -104,8 +104,10 @@ KX_GameObject::KX_GameObject(
 	m_pGraphicController(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
-	m_isDeformable(false),
-	m_attr_dict(NULL)
+	m_isDeformable(false)
+#ifndef DISABLE_PYTHON
+	, m_attr_dict(NULL)
+#endif
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
@@ -149,11 +151,12 @@ KX_GameObject::~KX_GameObject()
 	{
 		delete m_pGraphicController;
 	}
-	
+#ifndef DISABLE_PYTHON
 	if (m_attr_dict) {
 		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weired cases */
 		Py_DECREF(m_attr_dict);
 	}
+#endif // DISABLE_PYTHON
 }
 
 KX_GameObject* KX_GameObject::GetClientObject(KX_ClientObjectInfo* info)
@@ -342,8 +345,11 @@ void KX_GameObject::ProcessReplica()
 	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	m_pClient_info->m_gameobject = this;
 	m_state = 0;
+
+#ifndef DISABLE_PYTHON
 	if(m_attr_dict)
 		m_attr_dict= PyDict_Copy(m_attr_dict);
+#endif
 		
 }
 
@@ -1201,6 +1207,28 @@ CListValue* KX_GameObject::GetChildrenRecursive()
 	return list;
 }
 
+/* ---------------------------------------------------------------------
+ * Some stuff taken from the header
+ * --------------------------------------------------------------------- */
+void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
+{
+	// we will relink the sensors and actuators that use object references
+	// if the object is part of the replicated hierarchy, use the new
+	// object reference instead
+	SCA_SensorList& sensorlist = GetSensors();
+	SCA_SensorList::iterator sit;
+	for (sit=sensorlist.begin(); sit != sensorlist.end(); sit++)
+	{
+		(*sit)->Relink(map_parameter);
+	}
+	SCA_ActuatorList& actuatorlist = GetActuators();
+	SCA_ActuatorList::iterator ait;
+	for (ait=actuatorlist.begin(); ait != actuatorlist.end(); ait++)
+	{
+		(*ait)->Relink(map_parameter);
+	}
+}
+
 #ifdef USE_MATHUTILS
 
 /* These require an SGNode */
@@ -1377,8 +1405,8 @@ void KX_GameObject_Mathutils_Callback_Init(void)
 
 #endif // USE_MATHUTILS
 
+#ifndef DISABLE_PYTHON
 /* ------- python stuff ---------------------------------------------------*/
-
 PyMethodDef KX_GameObject::Methods[] = {
 	{"applyForce", (PyCFunction)	KX_GameObject::sPyApplyForce, METH_VARARGS},
 	{"applyTorque", (PyCFunction)	KX_GameObject::sPyApplyTorque, METH_VARARGS},
@@ -1453,23 +1481,6 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("actuators",		KX_GameObject, pyattr_get_actuators),
 	{NULL} //Sentinel
 };
-
-
-/*
-bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
-											MT_Vector3& pos,
-											MT_Vector3& pos2)
-{
-	PyObject* pylist;
-	PyObject* pylist2;
-	bool error = (PyArg_ParseTuple(args,"OO",&pylist,&pylist2)) != 0;
-
-	pos = ConvertPythonPylist(pylist);
-	pos2 = ConvertPythonPylist(pylist2);
-		
-	return error;
-}
-*/
 
 PyObject* KX_GameObject::PyReplaceMesh(PyObject* args)
 {
@@ -2776,29 +2787,6 @@ PyObject* KX_GameObject::Pyget(PyObject *args)
 	return def;
 }
 
-/* --------------------------------------------------------------------- 
- * Some stuff taken from the header
- * --------------------------------------------------------------------- */
-void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)	
-{
-	// we will relink the sensors and actuators that use object references
-	// if the object is part of the replicated hierarchy, use the new
-	// object reference instead
-	SCA_SensorList& sensorlist = GetSensors();
-	SCA_SensorList::iterator sit;
-	for (sit=sensorlist.begin(); sit != sensorlist.end(); sit++)
-	{
-		(*sit)->Relink(map_parameter);
-	}
-	SCA_ActuatorList& actuatorlist = GetActuators();
-	SCA_ActuatorList::iterator ait;
-	for (ait=actuatorlist.begin(); ait != actuatorlist.end(); ait++)
-	{
-		(*ait)->Relink(map_parameter);
-	}
-}
-
-
 bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix)
 {
 	if (value==NULL) {
@@ -2854,3 +2842,4 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 	
 	return false;
 }
+#endif // DISABLE_PYTHON

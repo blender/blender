@@ -18,13 +18,16 @@ http://www.gnu.org/copyleft/lesser.txt.
 Contributor(s): Dalai Felinto
 
 This code is originally inspired on some of the ideas and codes from Paul Bourke.
-Developed as part of a Research and Development project for SAT - La Société des arts technologiques.
+Developed as part of a Research and Development project for SAT - La Sociï¿½tï¿½ des arts technologiques.
 -----------------------------------------------------------------------------
 */
 
 #include "KX_Dome.h"
 
+#ifndef DISABLE_PYTHON
 #include <structmember.h>
+#endif
+
 #include <float.h>
 #include <math.h>
 
@@ -558,7 +561,7 @@ void KX_Dome::CreateMeshDome180(void)
 
 	m_radangle = m_angle * M_PI/180.0;//calculates the radians angle, used for flattening
 
-	//creating faces for the env mapcube 180º Dome
+	//creating faces for the env mapcube 180ï¿½ Dome
 	// Top Face - just a triangle
 	cubetop[0].verts[0][0] = -sqrt_2 / 2.0;
 	cubetop[0].verts[0][1] = 0.0;
@@ -743,7 +746,7 @@ void KX_Dome::CreateMeshDome250(void)
 	m_radangle = m_angle * M_PI/180.0;//calculates the radians angle, used for flattening
 /*
 verts_height is the exactly needed height of the cube faces (not always 1.0).
-When we want some horizontal information (e.g. for horizontal 220º domes) we don't need to create and tesselate the whole cube.
+When we want some horizontal information (e.g. for horizontal 220ï¿½ domes) we don't need to create and tesselate the whole cube.
 Therefore the lateral cube faces could be small, and the tesselate mesh would be completely used.
 (if we always worked with verts_height = 1.0, we would be discarding a lot of the calculated and tesselated geometry).
 
@@ -760,7 +763,7 @@ Then we need to multiply it by sqrt(2.0) to get the coordinate of the verts on t
 	uv_height = uv_ratio * ((verts_height/2) + 0.5);
 	uv_base = uv_ratio * (1.0 - ((verts_height/2) + 0.5));
 	
-	//creating faces for the env mapcube 180º Dome
+	//creating faces for the env mapcube 180ï¿½ Dome
 	// Front Face - 2 triangles
 	cubefront[0].verts[0][0] =-1.0;
 	cubefront[0].verts[0][1] = 1.0;
@@ -1101,7 +1104,7 @@ void KX_Dome::CreateMeshPanorama(void)
 
 	nfacesbottom = 2;
 
-	/* Left Back (135º) face - two triangles */
+	/* Left Back (135ï¿½) face - two triangles */
 
 	cubeleftback[0].verts[0][0] = 0;
 	cubeleftback[0].verts[0][1] = -sqrt_2;
@@ -1223,7 +1226,7 @@ void KX_Dome::CreateMeshPanorama(void)
 
 	nfacesright = 2;
 	
-	/* Right Back  (-135º) face - two triangles */
+	/* Right Back  (-135ï¿½) face - two triangles */
 	cuberightback[0].verts[0][0] = sqrt_2;
 	cuberightback[0].verts[0][1] = 0;
 	cuberightback[0].verts[0][2] = -1.0;
@@ -1352,7 +1355,7 @@ void KX_Dome::FlattenDome(MT_Vector3 verts[3])
 
 void KX_Dome::FlattenPanorama(MT_Vector3 verts[3])
 {
-// it creates a full spherical panoramic (360º)
+// it creates a full spherical panoramic (360ï¿½)
 	int i;
 	double phi;
 	bool edge=false;
@@ -1445,7 +1448,7 @@ void KX_Dome::SplitFace(vector <DomeFace>& face, int *nfaces)
 void KX_Dome::CalculateFrustum(KX_Camera * cam)
 {
 	/*
-	// manually creating a 90º Field of View Frustum 
+	// manually creating a 90ï¿½ Field of View Frustum 
 
 	the original formula:
 	top = tan(fov*3.14159/360.0) * near [for fov in degrees]
@@ -1466,7 +1469,7 @@ void KX_Dome::CalculateFrustum(KX_Camera * cam)
 	m_frustrum.camfar = cam->GetCameraFar();
 
 //	float top = tan(90.0*MT_PI/360.0) * m_frustrum.camnear;
-	float top = m_frustrum.camnear; // for deg = 90º, tan = 1
+	float top = m_frustrum.camnear; // for deg = 90ï¿½, tan = 1
 
 	m_frustrum.x1 = -top;
 	m_frustrum.x2 = top;
@@ -1481,9 +1484,9 @@ void KX_Dome::CalculateFrustum(KX_Camera * cam)
 void KX_Dome::CalculateCameraOrientation()
 {
 /*
-Uses 4 cameras for angles up to 180º
-Uses 5 cameras for angles up to 250º
-Uses 6 cameras for angles up to 360º
+Uses 4 cameras for angles up to 180ï¿½
+Uses 5 cameras for angles up to 250ï¿½
+Uses 6 cameras for angles up to 360ï¿½
 */
 	int i;
 	float deg45 = MT_PI / 4;
@@ -1494,22 +1497,22 @@ Uses 6 cameras for angles up to 360º
 		|| m_mode == DOME_TRUNCATED_FRONT
 		|| m_mode == DOME_TRUNCATED_REAR)){
 
-		m_locRot[0] = MT_Matrix3x3( // 90º - Top
+		m_locRot[0] = MT_Matrix3x3( // 90ï¿½ - Top
 						c, -s, 0.0,
 						0.0,0.0, -1.0,
 						s, c, 0.0);
 
-		m_locRot[1] = MT_Matrix3x3( // 90º - Bottom
+		m_locRot[1] = MT_Matrix3x3( // 90ï¿½ - Bottom
 						-s, c, 0.0,
 						0.0,0.0, 1.0,
 						s, c, 0.0);
 
-		m_locRot[2] = MT_Matrix3x3( // 45º - Left
+		m_locRot[2] = MT_Matrix3x3( // 45ï¿½ - Left
 						c, 0.0, s,
 						0, 1.0, 0.0,
 						-s, 0.0, c);
 
-		m_locRot[3] = MT_Matrix3x3( // 45º - Right
+		m_locRot[3] = MT_Matrix3x3( // 45ï¿½ - Right
 						c, 0.0, -s,
 						0.0, 1.0, 0.0,
 						s, 0.0, c);
@@ -1518,32 +1521,32 @@ Uses 6 cameras for angles up to 360º
 		|| m_mode == DOME_TRUNCATED_FRONT 
 		|| m_mode == DOME_TRUNCATED_REAR))){
 
-		m_locRot[0] = MT_Matrix3x3( // 90º - Top
+		m_locRot[0] = MT_Matrix3x3( // 90ï¿½ - Top
 						 1.0, 0.0, 0.0,
 						 0.0, 0.0,-1.0,
 						 0.0, 1.0, 0.0);
 
-		m_locRot[1] = MT_Matrix3x3( // 90º - Bottom
+		m_locRot[1] = MT_Matrix3x3( // 90ï¿½ - Bottom
 						 1.0, 0.0, 0.0,
 						 0.0, 0.0, 1.0,
 						 0.0,-1.0, 0.0);
 
-		m_locRot[2] = MT_Matrix3x3( // -90º - Left
+		m_locRot[2] = MT_Matrix3x3( // -90ï¿½ - Left
 						 0.0, 0.0, 1.0,
 						 0.0, 1.0, 0.0,
 						 -1.0, 0.0, 0.0);
 
-		m_locRot[3] = MT_Matrix3x3( // 90º - Right
+		m_locRot[3] = MT_Matrix3x3( // 90ï¿½ - Right
 						 0.0, 0.0,-1.0,
 						 0.0, 1.0, 0.0,
 						 1.0, 0.0, 0.0);
 						
-		m_locRot[4] = MT_Matrix3x3( // 0º - Front
+		m_locRot[4] = MT_Matrix3x3( // 0ï¿½ - Front
 						1.0, 0.0, 0.0,
 						0.0, 1.0, 0.0,
 						0.0, 0.0, 1.0);
 
-		m_locRot[5] = MT_Matrix3x3( // 180º - Back - USED for ENVMAP only
+		m_locRot[5] = MT_Matrix3x3( // 180ï¿½ - Back - USED for ENVMAP only
 						-1.0, 0.0, 0.0,
 						 0.0, 1.0, 0.0,
 						 0.0, 0.0,-1.0);
@@ -1560,22 +1563,22 @@ Uses 6 cameras for angles up to 360º
 						0.0 ,0.0, 1.0,
 						s, -c, 0.0);
 
-		m_locRot[2] = MT_Matrix3x3( // 45º - Left
+		m_locRot[2] = MT_Matrix3x3( // 45ï¿½ - Left
 						-s, 0.0, c,
 						0, 1.0, 0.0,
 						-c, 0.0, -s);
 
-		m_locRot[3] = MT_Matrix3x3( // 45º - Right
+		m_locRot[3] = MT_Matrix3x3( // 45ï¿½ - Right
 						c, 0.0, s,
 						0, 1.0, 0.0,
 						-s, 0.0, c);
 
-		m_locRot[4] = MT_Matrix3x3( // 135º - LeftBack
+		m_locRot[4] = MT_Matrix3x3( // 135ï¿½ - LeftBack
 						-s, 0.0, -c,
 						0.0, 1.0, 0.0,
 						c, 0.0, -s);
 
-		m_locRot[5] = MT_Matrix3x3( // 135º - RightBack
+		m_locRot[5] = MT_Matrix3x3( // 135ï¿½ - RightBack
 						c, 0.0, -s,
 						0.0, 1.0, 0.0,
 						s, 0.0, c);
@@ -1734,7 +1737,7 @@ void KX_Dome::DrawEnvMap(void)
 		glVertex3f(-onebythree,-2 * onebythree, 3.0f);
 	glEnd();
 
-	// domefacesId[2] => -90º (left)
+	// domefacesId[2] => -90ï¿½ (left)
 	glBindTexture(GL_TEXTURE_2D, domefacesId[2]);
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
@@ -1747,7 +1750,7 @@ void KX_Dome::DrawEnvMap(void)
 		glVertex3f(-onebythree, 0.0f, 3.0f);
 	glEnd();
 
-	// domefacesId[3] => 90º (right)
+	// domefacesId[3] => 90ï¿½ (right)
 	glBindTexture(GL_TEXTURE_2D, domefacesId[3]);
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
@@ -1760,7 +1763,7 @@ void KX_Dome::DrawEnvMap(void)
 		glVertex3f(1.0f, 0.0f, 3.0f);
 	glEnd();
 
-	// domefacesId[4] => 0º (front)
+	// domefacesId[4] => 0ï¿½ (front)
 	glBindTexture(GL_TEXTURE_2D, domefacesId[4]);
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
@@ -1773,7 +1776,7 @@ void KX_Dome::DrawEnvMap(void)
 		glVertex3f(1.0f, -2 * onebythree, 3.0f);
 	glEnd();
 
-	// domefacesId[5] => 180º (back)
+	// domefacesId[5] => 180ï¿½ (back)
 	glBindTexture(GL_TEXTURE_2D, domefacesId[5]);
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
@@ -1950,19 +1953,19 @@ void KX_Dome::DrawPanorama(void)
 		glBindTexture(GL_TEXTURE_2D, domefacesId[1]);
 			GLDrawTriangles(cubebottom, nfacesbottom);
 
-		// domefacesId[1] => -45º (left)
+		// domefacesId[1] => -45ï¿½ (left)
 		glBindTexture(GL_TEXTURE_2D, domefacesId[2]);
 			GLDrawTriangles(cubeleft, nfacesleft);
 
-		// domefacesId[2] => 45º (right)
+		// domefacesId[2] => 45ï¿½ (right)
 		glBindTexture(GL_TEXTURE_2D, domefacesId[3]);
 			GLDrawTriangles(cuberight, nfacesright);
 
-		// domefacesId[0] => -135º (leftback)
+		// domefacesId[0] => -135ï¿½ (leftback)
 		glBindTexture(GL_TEXTURE_2D, domefacesId[4]);
 			GLDrawTriangles(cubeleftback, nfacesleftback);
 
-		// domefacesId[3] => 135º (rightback)
+		// domefacesId[3] => 135ï¿½ (rightback)
 		glBindTexture(GL_TEXTURE_2D, domefacesId[5]);
 			GLDrawTriangles(cuberightback, nfacesrightback);
 	}

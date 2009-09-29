@@ -42,8 +42,10 @@ class SCA_IObject;
 class SCA_PythonController : public SCA_IController
 {
 	Py_Header;
+#ifndef DISABLE_PYTHON
 	struct _object *		m_bytecode; /* SCA_PYEXEC_SCRIPT only */
 	PyObject*				m_function; /* SCA_PYEXEC_MODULE only */
+#endif
 	int						m_function_argc;
 	bool					m_bModified;
 	bool					m_debug;	/* use with SCA_PYEXEC_MODULE for reloading every logic run */
@@ -53,9 +55,10 @@ class SCA_PythonController : public SCA_IController
  protected:
 	STR_String				m_scriptText;
 	STR_String				m_scriptName;
+#ifndef DISABLE_PYTHON
 	PyObject*				m_pythondictionary;	/* for SCA_PYEXEC_SCRIPT only */
 	PyObject*				m_pythonfunction;	/* for SCA_PYEXEC_MODULE only */
- 
+#endif
 	std::vector<class SCA_ISensor*>		m_triggeredSensors;
  
  public:
@@ -80,7 +83,9 @@ class SCA_PythonController : public SCA_IController
   
 	void	SetScriptText(const STR_String& text);
 	void	SetScriptName(const STR_String& name);
+#ifndef DISABLE_PYTHON
 	void	SetDictionary(PyObject*	pythondictionary);
+#endif
 	void	SetDebug(bool debug) { m_debug = debug; }
 	void	AddTriggeredSensor(class SCA_ISensor* sensor)
 		{ m_triggeredSensors.push_back(sensor); }
@@ -89,7 +94,7 @@ class SCA_PythonController : public SCA_IController
 	bool	Import();
 	void	ErrorPrint(const char *error_msg);
 	
-
+#ifndef DISABLE_PYTHON
 	static const char* sPyGetCurrentController__doc__;
 	static PyObject* sPyGetCurrentController(PyObject* self);
 	static const char* sPyAddActiveActuator__doc__;
@@ -106,8 +111,7 @@ class SCA_PythonController : public SCA_IController
 	
 	static PyObject*	pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	
-
+#endif
 };
 
 #endif //KX_PYTHONCONTROLLER_H

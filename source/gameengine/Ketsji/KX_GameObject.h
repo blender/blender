@@ -60,8 +60,10 @@ class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
 struct Object;
 
+#ifndef DISABLE_PYTHON
 /* utility conversion function */
 bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix);
+#endif
 
 #ifdef USE_MATHUTILS
 void KX_GameObject_Mathutils_Callback_Init(void);
@@ -114,6 +116,7 @@ public:
 	 */
 	static KX_GameObject* GetClientObject(KX_ClientObjectInfo* info);
 
+#ifndef DISABLE_PYTHON
 	// Python attributes that wont convert into CValue
 	// 
 	// there are 2 places attributes can be stored, in the CValue,
@@ -130,6 +133,7 @@ public:
 	// * when assigning a value, first see if it can be a CValue, if it can remove the "m_attr_dict" and set the CValue
 	// 
 	PyObject*							m_attr_dict; 
+#endif
 
 	virtual void	/* This function should be virtual - derived classed override it */
 	Relink(
@@ -796,7 +800,8 @@ public:
 	
 	CListValue* GetChildren();
 	CListValue* GetChildrenRecursive();
-	
+
+#ifndef DISABLE_PYTHON
 	/**
 	 * @section Python interface functions.
 	 */
@@ -894,22 +899,7 @@ public:
 	/* getitem/setitem */
 	static PyMappingMethods	Mapping;
 	static PySequenceMethods	Sequence;
-	
-private :
-
-	/**	
-	 * Random internal function to convert python function arguments
-	 * to 2 vectors.
-	 * @return true if conversion was possible.
-	 */
-
-		bool						
-	ConvertPythonVectorArgs(
-		PyObject* args,
-		MT_Vector3& pos,
-		MT_Vector3& pos2
-	);	
-
+#endif
 };
 
 

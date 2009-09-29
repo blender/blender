@@ -48,7 +48,6 @@ SET(INC
 	../../../intern/moto/include
 	../../../intern/guardedalloc
 	../../../extern/glew/include
-	${PYTHON_INC}
 )
 
 IF(WITH_FFMPEG)
@@ -56,6 +55,12 @@ IF(WITH_FFMPEG)
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
 	ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
 ENDIF(WITH_FFMPEG)
+
+IF(WITH_PYTHON)
+	SET(INC ${INC} ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_videotex "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_videotex', sources, Split(incs), [], libtype=['game','player'], priority=[25, 72], compileflags = cflags )

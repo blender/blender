@@ -43,6 +43,8 @@
 #include "KX_IPhysicsController.h"
 #include "PHY_IPhysicsController.h"
 
+#include <stdio.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -311,7 +313,7 @@ bool KX_RaySensor::Evaluate()
 	return result;
 }
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -366,3 +368,5 @@ PyObject* KX_RaySensor::pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_
 
 	Py_RETURN_NONE;
 }
+
+#endif // DISABLE_PYTHON

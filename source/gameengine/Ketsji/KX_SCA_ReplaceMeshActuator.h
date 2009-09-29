@@ -74,6 +74,8 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 
 	void	InstantReplaceMesh();
 
+#ifndef DISABLE_PYTHON
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -82,6 +84,8 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 	static int pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	KX_PYMETHOD_DOC(KX_SCA_ReplaceMeshActuator,instantReplaceMesh);
+
+#endif // DISABLE_PYTHON
 
 }; 
 

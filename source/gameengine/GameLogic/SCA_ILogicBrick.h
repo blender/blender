@@ -125,6 +125,7 @@ public:
 	static class SCA_LogicManager*	m_sCurrentLogicManager;
 
 
+#ifndef DISABLE_PYTHON
 	// python methods
 	
 	static PyObject*	pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -147,8 +148,9 @@ protected:
 
 	/** Convert a a c++ value to KX_TRUE, KX_FALSE in Python. */
 	PyObject* BoolToPyArg(bool);
-
 	
+#endif // DISABLE_PYTHON
+
 };
 
 #endif

@@ -114,6 +114,7 @@ void SCA_ActuatorSensor::Update()
 	}
 }
 
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -162,5 +163,7 @@ int SCA_ActuatorSensor::CheckActuator(void *self, const PyAttributeDef*)
 	PyErr_SetString(PyExc_AttributeError, "string does not correspond to an actuator");
 	return 1;
 }
+
+#endif // DISABLE_PYTHON
 
 /* eof */

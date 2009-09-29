@@ -20,7 +20,6 @@ incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common #sourc
 incs += ' #source/gameengine/Physics/Dummy'
 incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include #source/blender/gpu'
 
-incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 
@@ -28,6 +27,11 @@ if  env['WITH_BF_SDL']:
     incs += ' ' + env['BF_SDL_INC']
 else:
 	defs.append('DISABLE_SDL')
+
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
 	
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 	if env['BF_DEBUG']:

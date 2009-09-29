@@ -590,6 +590,8 @@ float BL_ArmatureObject::GetBoneLength(Bone* bone) const
 	return (float)(MT_Point3(bone->head) - MT_Point3(bone->tail)).length();
 }
 
+#ifndef DISABLE_PYTHON
+
 // PYTHON
 
 PyTypeObject BL_ArmatureObject::Type = {
@@ -654,3 +656,5 @@ KX_PYMETHODDEF_DOC_NOARGS(BL_ArmatureObject, update,
 	SetActiveAction(NULL, 0, KX_GetActiveEngine()->GetFrameTime());
 	Py_RETURN_NONE;
 }
+
+#endif // DISABLE_PYTHON

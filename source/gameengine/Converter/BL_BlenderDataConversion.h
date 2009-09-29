@@ -40,7 +40,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  class KX_Scene* kxscene,
 							  class KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
+#ifndef DISABLE_PYTHON
 							  PyObject* pythondictionary,
+#endif
 							  class RAS_IRenderTools* rendertools,
 							  class RAS_ICanvas* canvas, 
 							  class KX_BlenderSceneConverter* sceneconverter, 

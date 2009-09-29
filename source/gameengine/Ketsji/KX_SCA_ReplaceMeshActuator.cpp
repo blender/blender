@@ -44,6 +44,8 @@
 #include <config.h>
 #endif
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -111,6 +113,8 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, instantReplaceMesh,
 	InstantReplaceMesh();
 	Py_RETURN_NONE;
 }
+
+#endif // DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

@@ -94,6 +94,8 @@
 
 #include "KX_Light.h"
 
+#include <stdio.h>
+
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
@@ -207,7 +209,9 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_bucketmanager=new RAS_BucketManager();
 	
+#ifndef DISABLE_PYTHON
 	m_attr_dict = PyDict_New(); /* new ref */
+#endif
 }
 
 
@@ -256,8 +260,11 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
+
+#ifndef DISABLE_PYTHON
 	PyDict_Clear(m_attr_dict);
 	Py_DECREF(m_attr_dict);
+#endif
 }
 
 RAS_BucketManager* KX_Scene::GetBucketManager()
@@ -1604,6 +1611,8 @@ double KX_Scene::getSuspendedDelta()
 	return m_suspendeddelta;
 }
 
+#ifndef DISABLE_PYTHON
+
 //----------------------------------------------------------------------------
 //Python
 
@@ -1867,3 +1876,5 @@ KX_PYMETHODDEF_DOC(KX_Scene, get, "")
 	Py_INCREF(def);
 	return def;
 }
+
+#endif // DISABLE_PYTHON

@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef DISABLE_PYTHON
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -271,3 +273,5 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
 		return mat->GetProxy();
 	}
 }
+
+#endif // DISABLE_PYTHON

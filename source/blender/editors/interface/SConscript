@@ -16,4 +16,7 @@ defs = []
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('INTERNATIONAL')
 
-env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), Split(defs), libtype=['core'], priority=[110] )
+if not env['WITH_BF_PYTHON']:
+	defs.append('DISABLE_PYTHON')
+	
+env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), defs, libtype=['core'], priority=[110] )

@@ -26,7 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include <Python.h>
+
 #include "PyObjectPlus.h"
 #include "KX_ConstraintWrapper.h"
 #include "PHY_IPhysicsEnvironment.h"
@@ -48,6 +48,8 @@ KX_ConstraintWrapper::KX_ConstraintWrapper(
 KX_ConstraintWrapper::~KX_ConstraintWrapper()
 {
 }
+
+#ifndef DISABLE_PYTHON
 
 PyObject* KX_ConstraintWrapper::PyGetConstraintId()
 {
@@ -115,3 +117,5 @@ PyAttributeDef KX_ConstraintWrapper::Attributes[] = {
 	//KX_PYATTRIBUTE_TODO("constraintId"),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

@@ -290,15 +290,17 @@ CValue* SCA_PropertySensor::FindIdentifier(const STR_String& identifiername)
 	return  GetParent()->FindIdentifier(identifiername);
 }
 
+#ifndef DISABLE_PYTHON
+
+/* ------------------------------------------------------------------------- */
+/* Python functions                                                          */
+/* ------------------------------------------------------------------------- */
+
 int SCA_PropertySensor::validValueForProperty(void *self, const PyAttributeDef*)
 {
 	/*  There is no type checking at this moment, unfortunately...           */
 	return 0;
 }
-
-/* ------------------------------------------------------------------------- */
-/* Python functions                                                          */
-/* ------------------------------------------------------------------------- */
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_PropertySensor::Type = {
@@ -333,5 +335,7 @@ PyAttributeDef SCA_PropertySensor::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW_CHECK("value",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForProperty),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

@@ -309,6 +309,8 @@ void SCA_RandomActuator::enforceConstraints() {
 	}
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -546,5 +548,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential,
 	enforceConstraints();
 	Py_RETURN_NONE;
 }
-	
+
+#endif
+
 /* eof */
