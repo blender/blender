@@ -749,14 +749,6 @@ public:
 	) { return m_bIsNegativeScaling; }
 
 	/**
-	 * Is this a light?
-	 */
-		virtual bool
-	IsLight(
-		void
-	) { return false; }
-
-	/**
 	 * @section Logic bubbling methods.
 	 */
 

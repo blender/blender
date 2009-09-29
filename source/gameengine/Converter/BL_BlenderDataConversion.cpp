@@ -1897,9 +1897,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  KX_Scene* kxscene,
 							  KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
-#ifndef DISABLE_PYTHON
-							  PyObject* pythondictionary,
-#endif
 							  RAS_IRenderTools* rendertools,
 							  RAS_ICanvas* canvas,
 							  KX_BlenderSceneConverter* converter,
@@ -2655,11 +2652,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertControllers(blenderobj,gameobj,logicmgr,
-#ifndef DISABLE_PYTHON
-				pythondictionary,
-#endif
-				layerMask,isInActiveLayer,converter);
+		BL_ConvertControllers(blenderobj,gameobj,logicmgr, layerMask,isInActiveLayer,converter);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{

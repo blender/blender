@@ -84,7 +84,7 @@ class SCA_PythonController : public SCA_IController
 	void	SetScriptText(const STR_String& text);
 	void	SetScriptName(const STR_String& name);
 #ifndef DISABLE_PYTHON
-	void	SetDictionary(PyObject*	pythondictionary);
+	void	SetNamespace(PyObject*	pythondictionary);
 #endif
 	void	SetDebug(bool debug) { m_debug = debug; }
 	void	AddTriggeredSensor(class SCA_ISensor* sensor)

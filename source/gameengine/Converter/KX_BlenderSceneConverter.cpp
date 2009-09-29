@@ -243,9 +243,6 @@ struct	BlenderDebugDraw : public btIDebugDraw
 #endif
 
 void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
-#ifndef DISABLE_PYTHON
-											PyObject* dictobj,
-#endif
 											class RAS_IRenderTools* rendertools,
 											class RAS_ICanvas* canvas)
 {
@@ -330,9 +327,6 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 		destinationscene,
 		m_ketsjiEngine,
 		physics_engine,
-#ifndef DISABLE_PYTHON
-		dictobj,
-#endif
 		rendertools,
 		canvas,
 		this,
@@ -924,3 +918,10 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 
 
 }
+
+#ifndef DISABLE_PYTHON
+PyObject *KX_BlenderSceneConverter::GetPyNamespace()
+{
+	return m_ketsjiEngine->GetPyNamespace();
+}
+#endif

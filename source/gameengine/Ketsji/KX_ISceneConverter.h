@@ -53,9 +53,6 @@ public:
 	*/
 	virtual void ConvertScene(
 		class KX_Scene* destinationscene,
-#ifndef DISABLE_PYTHON
-		PyObject* dictobj,
-#endif
 		class RAS_IRenderTools* rendertools, 
 		class RAS_ICanvas*  canvas)=0;
 	

@@ -35,9 +35,6 @@ void BL_ConvertControllers(
 	struct Object* blenderobject,
 	class KX_GameObject* gameobj,
 	class SCA_LogicManager* logicmgr,
-#ifndef DISABLE_PYTHON
-	PyObject* pythondictionary,
-#endif
 	int activeLayerBitInfo,
 	bool isInActiveLayer, 
 	class KX_BlenderSceneConverter* converter

@@ -375,7 +375,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 #ifndef DISABLE_PYTHON
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
-			ketsjiengine->SetPythonDictionary(dictionaryobject);
+			ketsjiengine->SetPyNamespace(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
@@ -406,9 +406,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 				// convert and add scene
 				sceneconverter->ConvertScene(
 					startscene,
-#ifndef DISABLE_PYTHON
-					dictionaryobject,
-#endif
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
@@ -702,7 +699,7 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 #ifndef DISABLE_PYTHON
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
-			ketsjiengine->SetPythonDictionary(dictionaryobject);
+			ketsjiengine->SetPyNamespace(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
@@ -721,9 +718,6 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 				// convert and add scene
 				sceneconverter->ConvertScene(
 					startscene,
-#ifndef DISABLE_PYTHON
-					dictionaryobject,
-#endif
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);

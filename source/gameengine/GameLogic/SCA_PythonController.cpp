@@ -151,7 +151,7 @@ void SCA_PythonController::SetScriptName(const STR_String& name)
 
 
 #ifndef DISABLE_PYTHON
-void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
+void SCA_PythonController::SetNamespace(PyObject*	pythondictionary)
 {
 	if (m_pythondictionary)
 	{

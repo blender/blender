@@ -92,9 +92,6 @@ void BL_ConvertControllers(
 	struct Object* blenderobject,
 	class KX_GameObject* gameobj,
 	SCA_LogicManager* logicmgr,
-#ifndef DISABLE_PYTHON
-	PyObject* pythondictionary,
-#endif
 	int activeLayerBitInfo,
 	bool isInActiveLayer,
 	KX_BlenderSceneConverter* converter
@@ -160,10 +157,9 @@ void BL_ConvertControllers(
 				bPythonCont* pycont = (bPythonCont*) bcontr->data;
 				SCA_PythonController* pyctrl = new SCA_PythonController(gameobj, pycont->mode);
 				gamecontroller = pyctrl;
-				
 #ifndef DISABLE_PYTHON
 
-				pyctrl->SetDictionary(pythondictionary);
+				pyctrl->SetNamespace(converter->GetPyNamespace());
 				
 				if(pycont->mode==SCA_PythonController::SCA_PYEXEC_SCRIPT) {
 					if (pycont->text)

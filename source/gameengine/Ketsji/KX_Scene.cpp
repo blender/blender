@@ -477,7 +477,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 
 	// this is the list of object that are send to the graphics pipeline
 	m_objectlist->Add(newobj->AddRef());
-	if (newobj->IsLight())
+	if (newobj->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		m_lightlist->Add(newobj->AddRef());
 	newobj->AddMeshUser();
 
@@ -753,7 +753,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// add the object in the layer of the parent
 		(*git)->SetLayer(groupobj->GetLayer());
 		// If the object was a light, we need to update it's RAS_LightObject as well
-		if ((*git)->IsLight())
+		if ((*git)->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		{
 			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
 			lightobj->GetLightData()->m_layer = groupobj->GetLayer();
@@ -861,7 +861,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// add the object in the layer of the parent
 		(*git)->SetLayer(parentobj->GetLayer());
 		// If the object was a light, we need to update it's RAS_LightObject as well
-		if ((*git)->IsLight())
+		if ((*git)->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		{
 			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
 			lightobj->GetLightData()->m_layer = parentobj->GetLayer();
@@ -982,7 +982,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	
 	newobj->RemoveMeshes();
 	ret = 1;
-	if (newobj->IsLight() && m_lightlist->RemoveValue(newobj))
+	if (newobj->GetGameObjectType()==SCA_IObject::OBJ_LIGHT && m_lightlist->RemoveValue(newobj))
 		ret = newobj->Release();
 	if (m_objectlist->RemoveValue(newobj))
 		ret = newobj->Release();

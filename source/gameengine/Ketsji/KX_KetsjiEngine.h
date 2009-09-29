@@ -204,7 +204,8 @@ public:
 	void			SetRenderTools(RAS_IRenderTools* rendertools);
 	void			SetRasterizer(RAS_IRasterizer* rasterizer);
 #ifndef DISABLE_PYTHON
-	void			SetPythonDictionary(PyObject* pythondictionary);
+	void			SetPyNamespace(PyObject* pythondictionary);
+	PyObject*		GetPyNamespace(){return m_pythondictionary;};
 #endif
 	void			SetSceneConverter(KX_ISceneConverter* sceneconverter);
 	void			SetGame2IpoMode(bool game2ipo,int startFrame);
