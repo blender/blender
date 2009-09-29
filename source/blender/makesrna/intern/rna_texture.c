@@ -955,11 +955,11 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_image_extension[] = {
-		{1, "EXTEND", 0, "Extend", "Extends by repeating edge pixels of the image"},
-		{2, "CLIP", 0, "Clip", "Clips to image size and sets exterior pixels as transparent"},
-		{4, "CLIP_CUBE", 0, "Clip Cube", "Clips to cubic-shaped area around the image and sets exterior pixels as transparent"},
-		{3, "REPEAT", 0, "Repeat", "Causes the image to repeat horizontally and vertically"},
-		{5, "CHECKER", 0, "Checker", "Causes the image to repeat in checker board pattern"},
+		{TEX_EXTEND, "EXTEND", 0, "Extend", "Extends by repeating edge pixels of the image"},
+		{TEX_CLIP, "CLIP", 0, "Clip", "Clips to image size and sets exterior pixels as transparent"},
+		{TEX_CLIPCUBE, "CLIP_CUBE", 0, "Clip Cube", "Clips to cubic-shaped area around the image and sets exterior pixels as transparent"},
+		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Causes the image to repeat horizontally and vertically"},
+		{TEX_CHECKER, "CHECKER", 0, "Checker", "Causes the image to repeat in checker board pattern"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ImageTexture", "Texture");
@@ -1016,7 +1016,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "extension", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
 	RNA_def_property_enum_items(prop, prop_image_extension);
-	RNA_def_property_ui_text(prop, "Extension", "Sets how the image is stretched in the texture");
+	RNA_def_property_ui_text(prop, "Extension", "Sets how the image is extrapolated past its original bounds");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "repeat_x", PROP_INT, PROP_NONE);
@@ -1562,6 +1562,12 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{TEX_VD_IMAGE_SEQUENCE, "IMAGE_SEQUENCE", 0, "Image Sequence", "Generate voxels from a sequence of image slices"},
 		{TEX_VD_SMOKE, "SMOKE", 0, "Smoke", "Render voxels from a Blender smoke simulation"},
 		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem voxeldata_extension[] = {
+		{TEX_EXTEND, "EXTEND", 0, "Extend", "Extends by repeating edge pixels of the image"},
+		{TEX_CLIP, "CLIP", 0, "Clip", "Clips to image size and sets exterior pixels as transparent"},
+		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Causes the image to repeat horizontally and vertically"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "VoxelData", NULL);
 	RNA_def_struct_sdna(srna, "VoxelData");
@@ -1571,6 +1577,12 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "interp_type");
 	RNA_def_property_enum_items(prop, interpolation_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "Method to interpolate/smooth values between voxel cells");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "extension", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "extend");
+	RNA_def_property_enum_items(prop, voxeldata_extension);
+	RNA_def_property_ui_text(prop, "Extension", "Sets how the texture is extrapolated past its original bounds");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);

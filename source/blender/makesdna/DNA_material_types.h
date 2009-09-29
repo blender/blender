@@ -50,26 +50,23 @@ struct Ipo;
 typedef struct VolumeSettings {
 	float density;
 	float emission;
-	float absorption;
 	float scattering;
+	float reflection;
 
 	float emission_col[3];
-	float absorption_col[3];
+	float transmission_col[3];
+	float reflection_col[3];
+
 	float density_scale;
 	float depth_cutoff;
-
-	short phasefunc_type;
-	short vpad[3];
-	float phasefunc_g;
-	
-	float stepsize;
-	float shade_stepsize;
+	float asymmetry;
 	
 	short stepsize_type;
 	short shadeflag;
 	short shade_type;
 	short precache_resolution;
-	
+
+	float stepsize;
 	float ms_diff;
 	float ms_intensity;
 	int ms_steps;
@@ -160,9 +157,8 @@ typedef struct Material {
 	float sss_front, sss_back;
 	short sss_flag, sss_preset;
 
-	/* yafray: absorption color, dispersion parameters and material preset menu */
-	float YF_ar, YF_ag, YF_ab, YF_dscale, YF_dpwr;
-	int YF_dsmp, YF_preset, YF_djit;
+	int mapto_textured;	/* render-time cache to optimise texture lookups */
+	int pad4;
 
 	ListBase gpumaterial;		/* runtime */
 } Material;
@@ -320,12 +316,14 @@ typedef struct Material {
 #define MAP_LAYER		16384
 
 /* volume mapto - reuse definitions for now - a bit naughty! */
-#define MAP_DENSITY			128
-#define MAP_EMISSION		64
-#define MAP_EMISSION_COL	1
-#define MAP_ABSORPTION		512
-#define MAP_ABSORPTION_COL	8
-#define MAP_SCATTERING		16
+#define MAP_DENSITY				128
+#define MAP_EMISSION			64
+#define MAP_EMISSION_COL		1
+#define MAP_SCATTERING			16
+#define MAP_TRANSMISSION_COL	8
+#define MAP_REFLECTION_COL		4
+#define MAP_REFLECTION			32
+
 
 /* mapto for halo */
 //#define MAP_HA_COL		1
@@ -385,14 +383,6 @@ typedef struct Material {
 #define MA_VOL_SHADE_SINGLE					1
 #define MA_VOL_SHADE_MULTIPLE				2
 #define MA_VOL_SHADE_SINGLEPLUSMULTIPLE		3
-
-/* vol_phasefunc_type */
-#define MA_VOL_PH_ISOTROPIC		0
-#define MA_VOL_PH_MIEHAZY		1
-#define MA_VOL_PH_MIEMURKY		2
-#define MA_VOL_PH_RAYLEIGH		3
-#define MA_VOL_PH_HG			4
-#define MA_VOL_PH_SCHLICK		5
 
 #endif
 

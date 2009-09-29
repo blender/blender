@@ -984,6 +984,7 @@ struct VoxelData *BKE_add_voxeldata(void)
 	vd->interp_type= TEX_VD_LINEAR;
 	vd->file_format= TEX_VD_SMOKE;
 	vd->int_multiplier = 1.0;
+	vd->extend = TEX_CLIP;
 	vd->object = NULL;
 	
 	return vd;

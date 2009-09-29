@@ -9573,15 +9573,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (ma->vol.stepsize < 0.0001f) {
 				ma->vol.density = 1.0f;
 				ma->vol.emission = 0.0f;
-				ma->vol.absorption = 1.0f;
 				ma->vol.scattering = 1.0f;
 				ma->vol.emission_col[0] = ma->vol.emission_col[1] = ma->vol.emission_col[2] = 1.0f;
-				ma->vol.absorption_col[0] = ma->vol.absorption_col[1] = ma->vol.absorption_col[2] = 0.0f;
 				ma->vol.density_scale = 1.0f;
 				ma->vol.depth_cutoff = 0.01f;
 				ma->vol.stepsize_type = MA_VOL_STEP_RANDOMIZED;
 				ma->vol.stepsize = 0.2f;
-				ma->vol.shade_stepsize = 0.2f;
 				ma->vol.shade_type = MA_VOL_SHADE_SINGLE;
 				ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
 				ma->vol.precache_resolution = 50;
@@ -9703,6 +9700,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		Scene *sce;
 		Object *ob;
+		Material *ma;
+		Tex *tex;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next)
 			if(sce->unit.scale_length == 0.0f)
@@ -9716,7 +9715,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* rotation modes were added, but old objects would now default to being 'quaternion based' */
 			ob->rotmode= ROT_MODE_EUL;
 		}
+		
+		for (ma = main->mat.first; ma; ma=ma->id.next) {
+			if (ma->vol.reflection == 0.f) {
+				ma->vol.reflection = 1.f;
+				ma->vol.transmission_col[0] = ma->vol.transmission_col[1] = ma->vol.transmission_col[2] = 1.0f;
+				ma->vol.reflection_col[0] = ma->vol.reflection_col[1] = ma->vol.reflection_col[2] = 1.0f;
+			}
+		}
 
+		for (tex = main->tex.first; tex; tex=tex->id.next) {
+			if (tex->vd) {
+				if (tex->vd->extend == 0) tex->vd->extend = TEX_CLIP;
+			}
+		}
+		
 		for(sce= main->scene.first; sce; sce= sce->id.next)
 		{
 			if(sce->audio.main == 0.0)

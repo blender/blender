@@ -246,13 +246,14 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 				col = split.column()
 				factor_but(col, tex.map_density, "map_density", "density_factor", "Density")
 				factor_but(col, tex.map_emission, "map_emission", "emission_factor", "Emission")
-				factor_but(col, tex.map_absorption, "map_absorption", "absorption_factor", "Absorption")
 				factor_but(col, tex.map_scattering, "map_scattering", "scattering_factor", "Scattering")
+				factor_but(col, tex.map_reflection, "map_reflection", "reflection_factor", "Reflection")
 				
 				col = split.column()
 				col.itemL(text=" ")
 				factor_but(col, tex.map_alpha, "map_coloremission", "coloremission_factor", "Emission Color")
-				factor_but(col, tex.map_colorabsorption, "map_colorabsorption", "colorabsorption_factor", "Absorption Color")
+				factor_but(col, tex.map_colortransmission, "map_colortransmission", "colortransmission_factor", "Transmission Color")
+				factor_but(col, tex.map_colorreflection, "map_colorreflection", "colorreflection_factor", "Reflection Color")
 
 		elif la:
 			row = layout.row()
@@ -642,6 +643,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
 		row.itemR(vd, "still_frame_number")
 		
 		layout.itemR(vd, "interpolation")
+		layout.itemR(vd, "extension")
 		layout.itemR(vd, "intensity")
 		
 class TEXTURE_PT_pointdensity(TextureButtonsPanel):

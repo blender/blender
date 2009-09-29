@@ -167,7 +167,8 @@ typedef struct VoxelData {
 	int interp_type;
 	short file_format;
 	short flag;
-	int pad;
+	short extend;
+	short pad;
 	
 	struct Object *object; /* for rendering smoke sims */
 	float int_multiplier;	

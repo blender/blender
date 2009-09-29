@@ -537,13 +537,18 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	/* volume material */
 	prop= RNA_def_property(srna, "map_coloremission", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_EMISSION_COL);
-	RNA_def_property_ui_text(prop, "Emission Color", "Causes the texture to affect the colour of emission");
+	RNA_def_property_ui_text(prop, "Emission Color", "Causes the texture to affect the color of emission");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "map_colorabsorption", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_ABSORPTION_COL);
-	RNA_def_property_ui_text(prop, "Absorption Color", "Causes the texture to affect the result colour after absorption");
+	prop= RNA_def_property(srna, "map_colorreflection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_REFLECTION_COL);
+	RNA_def_property_ui_text(prop, "Reflection Color", "Causes the texture to affect the color of scattered light");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	prop= RNA_def_property(srna, "map_colortransmission", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_TRANSMISSION_COL);
+	RNA_def_property_ui_text(prop, "Transmission Color", "Causes the texture to affect the result color after other light has been scattered/absorbed");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
 	prop= RNA_def_property(srna, "map_density", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_DENSITY);
@@ -555,15 +560,15 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Emission", "Causes the texture to affect the volume's emission");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "map_absorption", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_ABSORPTION);
-	RNA_def_property_ui_text(prop, "Absorption", "Causes the texture to affect the volume's absorption");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
-	
 	prop= RNA_def_property(srna, "map_scattering", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_SCATTERING);
 	RNA_def_property_ui_text(prop, "Scattering", "Causes the texture to affect the volume's scattering");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	prop= RNA_def_property(srna, "map_reflection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_REFLECTION);
+	RNA_def_property_ui_text(prop, "Reflection", "Causes the texture to affect the reflected light's brightness");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
 	prop= RNA_def_property(srna, "coloremission_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colfac");
@@ -571,11 +576,17 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Emission Color Factor", "Amount texture affects emission color.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "colorabsorption_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "colorreflection_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
-	RNA_def_property_ui_text(prop, "Absorpion Color Factor", "Amount texture affects diffuse color.");
+	RNA_def_property_ui_text(prop, "Reflection Color Factor", "Amount texture affects color of out-scattered light");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	prop= RNA_def_property(srna, "colortransmission_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Transmission Color Factor", "Amount texture affects result color after light has been scattered/absorbed.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
 	prop= RNA_def_property(srna, "density_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "varfac");
@@ -589,16 +600,16 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Emission Factor", "Amount texture affects emission.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "absorption_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "varfac");
-	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
-	RNA_def_property_ui_text(prop, "Absorption Factor", "Amount texture affects absorption.");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
-	
 	prop= RNA_def_property(srna, "scattering_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "varfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Scattering Factor", "Amount texture affects scattering.");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+								  
+	prop= RNA_def_property(srna, "reflection_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Reflection Factor", "Amount texture affects brightness of out-scattered light.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	/* end volume material */
@@ -955,15 +966,6 @@ static void rna_def_material_volume(BlenderRNA *brna)
 		//{MA_VOL_STEP_ADAPTIVE, "ADAPTIVE", 0, "Adaptive", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
-	static EnumPropertyItem prop_phasefunction_items[] = {
-		{MA_VOL_PH_ISOTROPIC, "ISOTROPIC", 0, "Isotropic", ""},
-		{MA_VOL_PH_MIEHAZY, "MIE_HAZY", 0, "Mie Hazy", ""},
-		{MA_VOL_PH_MIEMURKY, "MIE_MURKY", 0, "Mie Murky", ""},
-		{MA_VOL_PH_RAYLEIGH, "RAYLEIGH", 0, "Rayleigh", ""},
-		{MA_VOL_PH_HG, "HENYEY-GREENSTEIN", 0, "Henyey-Greenstein", ""},
-		{MA_VOL_PH_SCHLICK, "SCHLICK", 0, "Schlick", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "MaterialVolume", NULL);
 	RNA_def_struct_sdna(srna, "VolumeSettings");
 	RNA_def_struct_nested(brna, srna, "Material");
@@ -980,13 +982,6 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Step Size", "Distance between subsequent volume depth samples.");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
-	
-	prop= RNA_def_property(srna, "shading_step_size", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "shade_stepsize");
-	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 3);
-	RNA_def_property_ui_text(prop, "Shading Step Size", "Distance between subsequent volume shading samples.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "scattering_mode", PROP_ENUM, PROP_NONE);
@@ -1043,31 +1038,30 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Density Scale", "Multiplier for the material's density");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "absorption", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "absorption");
-	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
-	RNA_def_property_ui_text(prop, "Absorption", "Amount of light that gets absorbed by the volume - higher values mean light travels less distance");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
-	
-	prop= RNA_def_property(srna, "absorption_color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "absorption_col");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Absorption Color", "");
-	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
-	
 	prop= RNA_def_property(srna, "scattering", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scattering");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1 ,3);
-	RNA_def_property_ui_text(prop, "Scattering", "Amount of light that gets scattered by the volume - values > 1.0 are non-physical");
+	RNA_def_property_ui_text(prop, "Scattering", "Amount of light that gets scattered out by the volume - the more out-scattering, the shallower the light will penetrate ");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "emission", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "emission");
+	prop= RNA_def_property(srna, "transmission_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "transmission_col");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Transmission Color", "Result color of the volume, after other light has been scattered/absorbed");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+	
+	prop= RNA_def_property(srna, "reflection_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "reflection_col");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Reflection Color", "Colour of light scattered out of the volume (does not affect transmission)");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+	
+	prop= RNA_def_property(srna, "reflection", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "reflection");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
-	RNA_def_property_ui_text(prop, "Emission", "Amount of light that gets emitted by the volume");
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1 ,3);
+	RNA_def_property_ui_text(prop, "Reflection", "Multiplier to make out-scattered light brighter or darker (non-physically correct)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "emission_color", PROP_FLOAT, PROP_COLOR);
@@ -1076,16 +1070,17 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Emission Color", "");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
-	prop= RNA_def_property(srna, "phase_function", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "phasefunc_type");
-	RNA_def_property_enum_items(prop, prop_phasefunction_items);
-	RNA_def_property_ui_text(prop, "Phase Function", "Isotropic/Anisotropic scattering");
+	prop= RNA_def_property(srna, "emission", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "emission");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+	RNA_def_property_ui_text(prop, "Emission", "Amount of light that gets emitted by the volume");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
-	
+		
 	prop= RNA_def_property(srna, "asymmetry", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "phasefunc_g");
+	RNA_def_property_float_sdna(prop, NULL, "asymmetry");
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Asymmetry", "Continuum between forward scattering and back scattering");
+	RNA_def_property_ui_text(prop, "Asymmetry", "Back scattering (-1.0) to Forward scattering (1.0) and the range in between.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
