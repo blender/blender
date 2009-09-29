@@ -159,36 +159,30 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 {
 	EditMesh *em;
-	MCol *mcol;
 	int layernum;
 
 	if(me->edit_mesh) {
 		em= me->edit_mesh;
 
-		layernum= CustomData_number_of_layers(&em->fdata, CD_MCOL);
-		if(layernum >= MAX_MCOL)
-			return 0;
+		layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+		if(layernum >= MAX_MTFACE)
+			return OPERATOR_CANCELLED;
 
-		EM_add_data_layer(em, &em->fdata, CD_MCOL);
-		CustomData_set_layer_active(&em->fdata, CD_MCOL, layernum);
+		EM_add_data_layer(em, &em->fdata, CD_MTFACE);
+		CustomData_set_layer_active(&em->fdata, CD_MTFACE, layernum);
 	}
 	else {
-		layernum= CustomData_number_of_layers(&me->fdata, CD_MCOL);
-		if(layernum >= MAX_MCOL)
-			return 0;
+		layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+		if(layernum >= MAX_MTFACE)
+			return OPERATOR_CANCELLED;
 
-		mcol= me->mcol;
-
-		if(me->mcol)
-			CustomData_add_layer(&me->fdata, CD_MCOL, CD_DUPLICATE, me->mcol, me->totface);
+		if(me->mtface)
+			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface);
 		else
-			CustomData_add_layer(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface);
+			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface);
 
-		CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
+		CustomData_set_layer_active(&me->fdata, CD_MTFACE, layernum);
 		mesh_update_customdata_pointers(me);
-
-		if(!mcol && ob)
-			shadeMeshMCol(scene, ob, me);
 	}
 
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
