@@ -550,7 +550,7 @@ static int calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd
 	}
 	
 	/* options */
-	if(ELEM3(axis, OB_NEGX, OB_NEGY, OB_NEGZ)) {
+	if(ELEM3(axis, OB_NEGX+1, OB_NEGY+1, OB_NEGZ+1)) { /* OB_NEG# 0-5, MOD_CURVE_POS# 1-6 */
 		if(cu->flag & CU_STRETCH)
 			fac= (-co[index]-cd->dmax[index])/(cd->dmax[index] - cd->dmin[index]);
 		else
