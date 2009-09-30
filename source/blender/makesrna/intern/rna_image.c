@@ -84,8 +84,9 @@ static void rna_Image_fields_update(bContext *C, PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	ImBuf *ibuf;
+	void *lock;
 
-	ibuf= BKE_image_get_ibuf(ima, NULL);
+	ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if(ibuf) {
 		short nr= 0;
@@ -96,6 +97,8 @@ static void rna_Image_fields_update(bContext *C, PointerRNA *ptr)
 		if(nr)
 			BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
 	}
+
+	BKE_image_release_ibuf(ima, lock);
 }
 
 static void rna_Image_reload_update(bContext *C, PointerRNA *ptr)
@@ -157,14 +160,22 @@ static int rna_Image_has_data_get(PointerRNA *ptr)
 static int rna_Image_depth_get(PointerRNA *ptr)
 {
 	Image *im= (Image*)ptr->data;
-	ImBuf *ibuf= BKE_image_get_ibuf(im, NULL);
+	ImBuf *ibuf;
+	void *lock;
+	int depth;
+	
+	ibuf= BKE_image_acquire_ibuf(im, NULL, &lock);
 
-	if (!ibuf) return 0;
+	if(!ibuf)
+		depth= 0;
+	else if(ibuf->rect_float)
+		depth= 128;
+	else
+		depth= ibuf->depth;
 
-	if (ibuf->rect_float)
-		return 128;
+	BKE_image_release_ibuf(im, lock);
 
-	return ibuf->depth;
+	return depth;
 }
 
 #else

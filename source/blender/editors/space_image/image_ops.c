@@ -112,7 +112,7 @@ static int space_image_poll(bContext *C)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	if(sima && sima->spacetype==SPACE_IMAGE)
-		if(ED_space_image_buffer(sima))
+		if(ED_space_image_has_buffer(sima))
 			return 1;
 	return 0;
 }
@@ -121,10 +121,15 @@ static int space_image_file_exists_poll(bContext *C)
 {
 	if(space_image_poll(C)) {
 		SpaceImage *sima= CTX_wm_space_image(C);
-		ImBuf *ibuf= ED_space_image_buffer(sima);
+		ImBuf *ibuf;
+		void *lock;
+		int poll;
 		
-		if(ibuf && BLI_exists(ibuf->name) && BLI_is_writable(ibuf->name))
-			return 1;
+		ibuf= ED_space_image_acquire_buffer(sima, &lock);
+		poll= (ibuf && BLI_exists(ibuf->name) && BLI_is_writable(ibuf->name));
+		ED_space_image_release_buffer(sima, lock);
+
+		return poll;
 	}
 	return 0;
 }
@@ -388,7 +393,6 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	Scene *scene;
 	Object *obedit;
-	ImBuf *ibuf;
 	float aspx, aspy, zoomx, zoomy, w, h;
 	int width, height;
 
@@ -398,7 +402,6 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	scene= (Scene*)CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 
-	ibuf= ED_space_image_buffer(sima);
 	ED_space_image_size(sima, &width, &height);
 	ED_space_image_aspect(sima, &aspx, &aspy);
 
@@ -445,7 +448,6 @@ static int view_selected_exec(bContext *C, wmOperator *op)
 	Scene *scene;
 	Object *obedit;
 	Image *ima;
-	ImBuf *ibuf;
 	float size, min[2], max[2], d[2];
 	int width, height;
 
@@ -456,7 +458,6 @@ static int view_selected_exec(bContext *C, wmOperator *op)
 	obedit= CTX_data_edit_object(C);
 
 	ima= ED_space_image(sima);
-	ibuf= ED_space_image_buffer(sima);
 	ED_space_image_size(sima, &width, &height);
 
 	/* get bounds */
@@ -730,7 +731,8 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOperator *op, char *name)
 {
 	Image *ima= ED_space_image(sima);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
+	void *lock;
+	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	int len;
 
 	if (ibuf) {	
@@ -751,7 +753,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		WM_cursor_wait(1);
 
 		if(sima->imtypenr==R_MULTILAYER) {
-			RenderResult *rr= BKE_image_get_renderresult(scene, ima);
+			RenderResult *rr= BKE_image_acquire_renderresult(scene, ima);
 			if(rr) {
 				RE_WriteRenderResult(rr, name, scene->r.quality);
 				
@@ -765,6 +767,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			}
 			else
 				BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
+			BKE_image_release_renderresult(scene, ima);
 		}
 		else if (BKE_write_ibuf(scene, ibuf, name, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
 			BLI_strncpy(ima->name, name, sizeof(ima->name));
@@ -792,6 +795,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 
 		WM_cursor_wait(0);
 	}
+
+	ED_space_image_release_buffer(sima, lock);
 }
 
 static int save_as_exec(bContext *C, wmOperator *op)
@@ -816,8 +821,9 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
 	Scene *scene= CTX_data_scene(C);
+	ImBuf *ibuf;
+	void *lock;
 
 	if(RNA_property_is_set(op->ptr, "path"))
 		return save_as_exec(C, op);
@@ -826,6 +832,8 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	/* always opens fileselect */
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+
 	if(ibuf) {
 		/* cant save multilayer sequence, ima->rr isn't valid for a specific frame */
 		if(ima->rr && !(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER))
@@ -842,9 +850,13 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		// XXX note: we can give default menu enums to operator for this 
 		image_filesel(C, op, ibuf->name);
+
+		ED_space_image_release_buffer(sima, lock);
 		
 		return OPERATOR_RUNNING_MODAL;
 	}
+
+	ED_space_image_release_buffer(sima, lock);
 
 	return OPERATOR_CANCELLED;
 }
@@ -874,12 +886,16 @@ static int save_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
+	void *lock;
+	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	Scene *scene= CTX_data_scene(C);
+	RenderResult *rr;
 	char name[FILE_MAX];
 
-	if(!ima || !ibuf)
+	if(!ima || !ibuf) {
+		ED_space_image_release_buffer(sima, lock);
 		return OPERATOR_CANCELLED;
+	}
 
 	/* if exists, saves over without fileselect */
 	
@@ -888,14 +904,21 @@ static int save_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(name, G.ima, FILE_MAX);
 	
 	if(BLI_exists(name) && BLI_is_writable(name)) {
-		if(BKE_image_get_renderresult(scene, ima)) 
+		rr= BKE_image_acquire_renderresult(scene, ima);
+
+		if(rr)
 			sima->imtypenr= R_MULTILAYER;
 		else 
 			sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
+
+		BKE_image_release_renderresult(scene, ima);
+		ED_space_image_release_buffer(sima, lock);
 		
 		save_image_doit(C, sima, scene, op, name);
 	}
 	else {
+		ED_space_image_release_buffer(sima, lock);
+
 		BKE_report(op->reports, RPT_ERROR, "Can not save image.");
 		return OPERATOR_CANCELLED;
 	}
@@ -1110,9 +1133,8 @@ static int pack_test(bContext *C, wmOperator *op)
 
 static int pack_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	Image *ima= ED_space_image(sima);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
+	Image *ima= CTX_data_edit_image(C);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
 
 	if(!pack_test(C, op))
@@ -1133,8 +1155,8 @@ static int pack_exec(bContext *C, wmOperator *op)
 
 static int pack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
+	Image *ima= CTX_data_edit_image(C);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
@@ -1294,6 +1316,7 @@ typedef struct ImageSampleInfo {
 	ARegionType *art;
 	void *draw_handle;
 	int x, y;
+	int channels;
 
 	char col[4];
 	float colf[4];
@@ -1310,14 +1333,9 @@ typedef struct ImageSampleInfo {
 
 static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
 	ImageSampleInfo *info= arg_info;
 
-	if(ibuf == NULL)
-		return;
-	
-	draw_image_info(ar, ibuf->channels, info->x, info->y, info->colp,
+	draw_image_info(ar, info->channels, info->x, info->y, info->colp,
 		info->colfp, info->zp, info->zfp);
 }
 
@@ -1325,13 +1343,16 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
+	void *lock;
+	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	ImageSampleInfo *info= op->customdata;
 	float fx, fy;
 	int x, y;
 	
-	if(ibuf == NULL)
+	if(ibuf == NULL) {
+		ED_space_image_release_buffer(sima, lock);
 		return;
+	}
 
 	x= event->x - ar->winrct.xmin;
 	y= event->y - ar->winrct.ymin;
@@ -1348,6 +1369,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->x= x;
 		info->y= y;
 		info->draw= 1;
+		info->channels= ibuf->channels;
 
 		info->colp= NULL;
 		info->colfp= NULL;
@@ -1424,6 +1446,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	else
 		info->draw= 0;
 
+	ED_space_image_release_buffer(sima, lock);
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
@@ -1440,10 +1463,9 @@ static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
 	ImageSampleInfo *info;
 
-	if(ibuf == NULL)
+	if(!ED_space_image_has_buffer(sima))
 		return OPERATOR_CANCELLED;
 	
 	info= MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");

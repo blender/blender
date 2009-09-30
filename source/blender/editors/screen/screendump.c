@@ -284,7 +284,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 static int screencast_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen);
+	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen, 0);
 	ScreenshotJob *sj= MEM_callocN(sizeof(ScreenshotJob), "screenshot job");
 	
 	/* setup sj */

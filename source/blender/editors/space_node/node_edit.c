@@ -152,7 +152,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update)
 {
 	CompoJob *cj= cjv;
 	bNodeTree *ntree= cj->localtree;
-	
+
 	if(cj->scene->use_nodes==0)
 		return;
 	
@@ -176,8 +176,11 @@ static void compo_startjob(void *cjv, short *stop, short *do_update)
 void snode_composite_job(const bContext *C, ScrArea *sa)
 {
 	SpaceNode *snode= sa->spacedata.first;
-	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa);
-	CompoJob *cj= MEM_callocN(sizeof(CompoJob), "compo job");
+	wmJob *steve;
+	CompoJob *cj;
+
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, WM_JOB_EXCL_RENDER);
+	cj= MEM_callocN(sizeof(CompoJob), "compo job");
 	
 	/* customdata for preview thread */
 	cj->scene= CTX_data_scene(C);

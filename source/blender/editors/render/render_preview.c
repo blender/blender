@@ -446,6 +446,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 /* uses ROUNDBOX button in block to get the rect */
 static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int first, rcti *rect, rcti *newrect)
 {
+	Render *re;
 	RenderResult rres;
 	char name[32];
 	int gamma_correct=0;
@@ -470,7 +471,8 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		}
 	}
 
-	RE_GetResultImage(RE_GetRender(name), &rres);
+	re= RE_GetRender(name);
+	RE_AcquireResultImage(re, &rres);
 
 	if(rres.rectf) {
 		
@@ -482,10 +484,13 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 			glTranslatef(offx, 0, 0);
 			glaDrawPixelsSafe_to32(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
 			glPopMatrix();
+
+			RE_ReleaseResultImage(re);
 			return 1;
 		}
 	}
 
+	RE_ReleaseResultImage(re);
 	return 0;
 }
 
@@ -1100,13 +1105,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	wmJob *steve;
 	ShaderPreview *sp;
 
-	/* XXX ugly global still, but we can't do preview while rendering */
-	if(G.rendering) {
-		printf("abort icon because rendering\n");
-		return;
-	}
-	
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, WM_JOB_EXCL_RENDER);
 	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
 
 	/* customdata for preview thread */
@@ -1131,13 +1130,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	wmJob *steve;
 	ShaderPreview *sp;
 
-	/* XXX ugly global still, but we can't do preview while rendering */
-	if(G.rendering) {
-		printf("abort shader because rendering\n");
-		return;
-	}
-	
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, WM_JOB_EXCL_RENDER);
 	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
 
 	/* customdata for preview thread */

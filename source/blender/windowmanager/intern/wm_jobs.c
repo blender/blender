@@ -107,6 +107,7 @@ struct wmJob {
 	
 /* internal */
 	void *owner;
+	int flag;
 	short suspended, running, ready, do_update, stop;
 	
 	/* once running, we store this separately */
@@ -123,7 +124,7 @@ struct wmJob {
 /* returns current or adds new job, but doesnt run it */
 /* every owner only gets a single job, adding a new one will stop running stop and 
    when stopped it starts the new one */
-wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner)
+wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, int flag)
 {
 	wmJob *steve;
 	
@@ -137,6 +138,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner)
 		BLI_addtail(&wm->jobs, steve);
 		steve->win= win;
 		steve->owner= owner;
+		steve->flag= flag;
 	}
 	
 	return steve;
@@ -198,20 +200,25 @@ static void *do_job_thread(void *job_v)
 }
 
 /* dont allow same startjob to be executed twice */
-static void wm_jobs_test_suspend(wmWindowManager *wm, wmJob *test)
+static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 {
 	wmJob *steve;
+	int suspend= 0;
 	
-	for(steve= wm->jobs.first; steve; steve= steve->next)
-		if(steve!=test)
-			if(steve->running)
-				if(steve->startjob==test->startjob)
-					break;
-	
-	if(steve)
-		test->suspended= 1;
-	else
-		test->suspended= 0;
+	for(steve= wm->jobs.first; steve; steve= steve->next) {
+		if(steve==test || !steve->running) continue;
+		if(steve->startjob!=test->startjob && !(test->flag & WM_JOB_EXCL_RENDER)) continue;
+		if((test->flag & WM_JOB_EXCL_RENDER) && !(steve->flag & WM_JOB_EXCL_RENDER)) continue;
+
+		suspend= 1;
+
+		/* if this job has higher priority, stop others */
+		if(test->flag & WM_JOB_PRIORITY)
+			steve->stop= 1;
+	}
+
+	/* possible suspend ourselfs, waiting for other jobs, or de-suspend */
+	test->suspended= suspend;
 }
 
 /* if job running, the same owner gave it a new job */
@@ -225,7 +232,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 	else {
 		if(steve->customdata && steve->startjob) {
 			
-			wm_jobs_test_suspend(wm, steve);
+			wm_jobs_test_suspend_stop(wm, steve);
 			
 			if(steve->suspended==0) {
 				/* copy to ensure proper free in end */

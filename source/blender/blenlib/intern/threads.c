@@ -98,6 +98,7 @@ A sample loop can look like this (pseudo c);
  ************************************************ */
 static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _image_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _preview_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 static int thread_levels= 0;	/* threads can be invoked inside threads */
 
@@ -112,12 +113,12 @@ typedef struct ThreadSlot {
 	int avail;
 } ThreadSlot;
 
-void BLI_lock_malloc_thread(void)
+static void BLI_lock_malloc_thread(void)
 {
 	pthread_mutex_lock(&_malloc_lock);
 }
 
-void BLI_unlock_malloc_thread(void)
+static void BLI_unlock_malloc_thread(void)
 {
 	pthread_mutex_unlock(&_malloc_lock);
 }
@@ -143,7 +144,9 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 			tslot->avail= 1;
 		}
 		
-		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
+		if(thread_levels == 0)
+			MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
+
 		thread_levels++;
 	}
 }
@@ -252,21 +255,7 @@ void BLI_end_threads(ListBase *threadbase)
 	}
 }
 
-void BLI_lock_thread(int type)
-{
-	if (type==LOCK_IMAGE)
-		pthread_mutex_lock(&_image_lock);
-	else if (type==LOCK_CUSTOM1)
-		pthread_mutex_lock(&_custom1_lock);
-}
-
-void BLI_unlock_thread(int type)
-{
-	if (type==LOCK_IMAGE)
-		pthread_mutex_unlock(&_image_lock);
-	else if(type==LOCK_CUSTOM1)
-		pthread_mutex_unlock(&_custom1_lock);
-}
+/* System Information */
 
 /* how many threads are native on this system? */
 int BLI_system_thread_count( void )
@@ -298,6 +287,75 @@ int BLI_system_thread_count( void )
 		return 1;
 	
 	return t;
+}
+
+/* Global Mutex Locks */
+
+void BLI_lock_thread(int type)
+{
+	if (type==LOCK_IMAGE)
+		pthread_mutex_lock(&_image_lock);
+	else if (type==LOCK_PREVIEW)
+		pthread_mutex_lock(&_preview_lock);
+	else if (type==LOCK_CUSTOM1)
+		pthread_mutex_lock(&_custom1_lock);
+}
+
+void BLI_unlock_thread(int type)
+{
+	if (type==LOCK_IMAGE)
+		pthread_mutex_unlock(&_image_lock);
+	else if (type==LOCK_PREVIEW)
+		pthread_mutex_unlock(&_preview_lock);
+	else if(type==LOCK_CUSTOM1)
+		pthread_mutex_unlock(&_custom1_lock);
+}
+
+/* Mutex Locks */
+
+void BLI_mutex_init(ThreadMutex *mutex)
+{
+	pthread_mutex_init(mutex, NULL);
+}
+
+void BLI_mutex_lock(ThreadMutex *mutex)
+{
+	pthread_mutex_lock(mutex);
+}
+
+void BLI_mutex_unlock(ThreadMutex *mutex)
+{
+	pthread_mutex_unlock(mutex);
+}
+
+void BLI_mutex_end(ThreadMutex *mutex)
+{
+	pthread_mutex_destroy(mutex);
+}
+
+/* Read/Write Mutex Lock */
+
+void BLI_rw_mutex_init(ThreadRWMutex *mutex)
+{
+	pthread_rwlock_init(mutex, NULL);
+}
+
+void BLI_rw_mutex_lock(ThreadRWMutex *mutex, int mode)
+{
+	if(mode == THREAD_LOCK_READ)
+		pthread_rwlock_rdlock(mutex);
+	else
+		pthread_rwlock_wrlock(mutex);
+}
+
+void BLI_rw_mutex_unlock(ThreadRWMutex *mutex)
+{
+	pthread_rwlock_unlock(mutex);
+}
+
+void BLI_rw_mutex_end(ThreadRWMutex *mutex)
+{
+	pthread_rwlock_destroy(mutex);
 }
 
 /* ************************************************ */

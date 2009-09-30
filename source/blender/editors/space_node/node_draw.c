@@ -48,8 +48,9 @@
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_threads.h"
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
@@ -187,6 +188,8 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 	/* preview rect? */
 	if(node->flag & NODE_PREVIEW) {
 		/* only recalculate size when there's a preview actually, otherwise we use stored result */
+		BLI_lock_thread(LOCK_PREVIEW);
+
 		if(node->preview && node->preview->rect) {
 			float aspect= 1.0f;
 			
@@ -222,6 +225,8 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 			node->prvr.ymin= dy - oldh;
 			dy= node->prvr.ymin - NODE_DYS/2;
 		}
+
+		BLI_unlock_thread(LOCK_PREVIEW);
 	}
 
 	/* XXX ugly hack, typeinfo for group is generated */
@@ -836,9 +841,12 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	}
 	
 	/* preview */
-	if(node->flag & NODE_PREVIEW)
+	if(node->flag & NODE_PREVIEW) {
+		BLI_lock_thread(LOCK_PREVIEW);
 		if(node->preview && node->preview->rect)
 			node_draw_preview(node->preview, &node->prvr);
+		BLI_unlock_thread(LOCK_PREVIEW);
+	}
 		
 	uiEndBlock(C, node->block);
 	uiDrawBlock(C, node->block);

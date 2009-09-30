@@ -1564,13 +1564,20 @@ RenderPass *BKE_image_multilayer_index(RenderResult *rr, ImageUser *iuser)
 	return rpass;
 }
 
-RenderResult *BKE_image_get_renderresult(struct Scene *scene, Image *ima)
+RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, Image *ima)
 {
 	if(ima->rr)
 		return ima->rr;
-	if(ima->type==IMA_TYPE_R_RESULT)
-		return RE_GetResult(RE_GetRender(scene->id.name));
+	else if(ima->type==IMA_TYPE_R_RESULT)
+		return RE_AcquireResultRead(RE_GetRender(scene->id.name));
 	return NULL;
+}
+
+void BKE_image_release_renderresult(struct Scene *scene, Image *ima)
+{
+	if(ima->rr);
+	else if(ima->type==IMA_TYPE_R_RESULT)
+		RE_ReleaseResult(RE_GetRender(scene->id.name));
 }
 
 /* after imbuf load, openexr type can return with a exrhandle open */
@@ -1873,16 +1880,25 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 /* showing RGBA result itself (from compo/sequence) or
    like exr, using layers etc */
 /* always returns a single ibuf, also during render progress */
-static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
+static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_r)
 {
 	Render *re= NULL;
 	RenderResult *rr= NULL;
 	
+	/* if we the caller is not going to release the lock, don't give the image */
+	if(!lock_r)
+		return NULL;
+
 	if(iuser && iuser->scene) {
 		re= RE_GetRender(iuser->scene->id.name);
-		rr= RE_GetResult(re);
+		rr= RE_AcquireResultRead(re);
+
+		/* release is done in BKE_image_release_ibuf using lock_r */
+		*lock_r= re;
 	}
-	if(rr==NULL) return NULL;
+
+	if(rr==NULL)
+		return NULL;
 	
 	if(RE_RenderInProgress(re)) {
 		ImBuf *ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
@@ -1893,6 +1909,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 			ibuf= IMB_allocImBuf(rr->rectx, rr->recty, 32, IB_rect, 0);
 			image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		}
+
 		return ibuf;
 	}
 	else {
@@ -1907,7 +1924,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 		pass= (iuser)? iuser->pass: 0;
 		
 		/* this gives active layer, composite or seqence result */
-		RE_GetResultImage(RE_GetRender(iuser->scene->id.name), &rres);
+		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name), &rres);
 		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
 		dither= iuser->scene->r.dither_intensity;
@@ -1954,10 +1971,14 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 			ibuf->zbuf_float= rres.rectz;
 			ibuf->flags |= IB_zbuffloat;
 			ibuf->dither= dither;
-			
+
+			RE_ReleaseResultImage(re);
+
 			ima->ok= IMA_OK_LOADED;
 			return ibuf;
 		}
+
+		RE_ReleaseResultImage(re);
 	}
 	
 	return NULL;
@@ -2011,8 +2032,9 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 }
 
 /* Checks optional ImageUser and verifies/creates ImBuf. */
-/* returns ibuf */
-ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
+/* use this one if you want to get a render result in progress,
+ * if not, use BKE_image_get_ibuf which doesn't require a release */
+ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 {
 	ImBuf *ibuf= NULL;
 	float color[] = {0, 0, 0, 1};
@@ -2028,6 +2050,9 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	 * things in a threadsafe way for image_get_ibuf_threadsafe to work correct.
 	 * That means, the last two steps must be, 1) add the ibuf to the list and
 	 * 2) set ima/iuser->ok to 0 to IMA_OK_LOADED */
+	
+	if(lock_r)
+		*lock_r= NULL;
 
 	/* quick reject tests */
 	if(ima==NULL) 
@@ -2103,8 +2128,9 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 			}
 			else if(ima->source == IMA_SRC_VIEWER) {
 				if(ima->type==IMA_TYPE_R_RESULT) {
-					/* always verify entirely */
-					ibuf= image_get_render_result(ima, iuser);
+					/* always verify entirely, and potentially
+					   returns pointer to release later */
+					ibuf= image_get_render_result(ima, iuser, lock_r);
 				}
 				else if(ima->type==IMA_TYPE_COMPOSITE) {
 					/* Composite Viewer, all handled in compositor */
@@ -2126,6 +2152,17 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	return ibuf;
 }
 
+void BKE_image_release_ibuf(Image *ima, void *lock)
+{
+	/* for getting image during threaded render, need to release */
+	if(lock)
+		RE_ReleaseResult(lock);
+}
+
+ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
+{
+	return BKE_image_acquire_ibuf(ima, iuser, NULL);
+}
 
 void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
 {

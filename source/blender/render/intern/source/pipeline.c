@@ -213,11 +213,15 @@ static void free_render_result(ListBase *lb, RenderResult *rr)
 /* all layers except the active one get temporally pushed away */
 static void push_render_result(Render *re)
 {
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 	/* officially pushed result should be NULL... error can happen with do_seq */
 	RE_FreeRenderResult(re->pushedresult);
 	
 	re->pushedresult= re->result;
 	re->result= NULL;
+
+	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
 /* if scemode is R_SINGLE_LAYER, at end of rendering, merge the both render results */
@@ -229,6 +233,8 @@ static void pop_render_result(Render *re)
 		return;
 	}
 	if(re->pushedresult) {
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 		if(re->pushedresult->rectx==re->result->rectx && re->pushedresult->recty==re->result->recty) {
 			/* find which layer in pushedresult should be replaced */
 			SceneRenderLayer *srl;
@@ -255,6 +261,8 @@ static void pop_render_result(Render *re)
 		
 		RE_FreeRenderResult(re->pushedresult);
 		re->pushedresult= NULL;
+
+		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 }
 
@@ -920,6 +928,8 @@ static void read_render_result(Render *re, int sample)
 {
 	char str[FILE_MAX];
 
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 	RE_FreeRenderResult(re->result);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 
@@ -928,6 +938,8 @@ static void read_render_result(Render *re, int sample)
 
 	if(!read_render_result_from_file(str, re->result))
 		printf("cannot read: %s\n", str);
+
+	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
 /* *************************************************** */
@@ -946,11 +958,30 @@ Render *RE_GetRender(const char *name)
 }
 
 /* if you want to know exactly what has been done */
-RenderResult *RE_GetResult(Render *re)
+RenderResult *RE_AcquireResultRead(Render *re)
+{
+	if(re) {
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_READ);
+		return re->result;
+	}
+
+	return NULL;
+}
+
+RenderResult *RE_AcquireResultWrite(Render *re)
+{
+	if(re) {
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+		return re->result;
+	}
+
+	return NULL;
+}
+
+void RE_ReleaseResult(Render *re)
 {
 	if(re)
-		return re->result;
-	return NULL;
+		BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
 /* displist.c util.... */
@@ -973,30 +1004,40 @@ RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
 
 
 /* fill provided result struct with what's currently active or done */
-void RE_GetResultImage(Render *re, RenderResult *rr)
+void RE_AcquireResultImage(Render *re, RenderResult *rr)
 {
 	memset(rr, 0, sizeof(RenderResult));
 
-	if(re && re->result) {
-		RenderLayer *rl;
-		
-		rr->rectx= re->result->rectx;
-		rr->recty= re->result->recty;
-		
-		rr->rectf= re->result->rectf;
-		rr->rectz= re->result->rectz;
-		rr->rect32= re->result->rect32;
-		
-		/* active layer */
-		rl= render_get_active_layer(re, re->result);
+	if(re) {
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_READ);
 
-		if(rl) {
-			if(rr->rectf==NULL)
-				rr->rectf= rl->rectf;
-			if(rr->rectz==NULL)
-				rr->rectz= RE_RenderLayerGetPass(rl, SCE_PASS_Z);	
+		if(re->result) {
+			RenderLayer *rl;
+			
+			rr->rectx= re->result->rectx;
+			rr->recty= re->result->recty;
+			
+			rr->rectf= re->result->rectf;
+			rr->rectz= re->result->rectz;
+			rr->rect32= re->result->rect32;
+			
+			/* active layer */
+			rl= render_get_active_layer(re, re->result);
+
+			if(rl) {
+				if(rr->rectf==NULL)
+					rr->rectf= rl->rectf;
+				if(rr->rectz==NULL)
+					rr->rectz= RE_RenderLayerGetPass(rl, SCE_PASS_Z);	
+			}
 		}
 	}
+}
+
+void RE_ReleaseResultImage(Render *re)
+{
+	if(re)
+		BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
 /* caller is responsible for allocating rect in correct size! */
@@ -1004,7 +1045,8 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 {
 	RenderResult rres;
 	
-	RE_GetResultImage(re, &rres);
+	RE_AcquireResultImage(re, &rres);
+
 	if(rres.rect32) 
 		memcpy(rect, rres.rect32, sizeof(int)*rres.rectx*rres.recty);
 	else if(rres.rectf) {
@@ -1022,6 +1064,8 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	else
 		/* else fill with black */
 		memset(rect, 0, sizeof(int)*re->rectx*re->recty);
+
+	RE_ReleaseResultImage(re);
 }
 
 
@@ -1042,12 +1086,15 @@ Render *RE_NewRender(const char *name)
 		re= MEM_callocN(sizeof(Render), "new render");
 		BLI_addtail(&RenderList, re);
 		strncpy(re->name, name, RE_MAXNAME);
+		BLI_rw_mutex_init(&re->resultmutex);
 	}
 	
 	/* prevent UI to draw old results */
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	RE_FreeRenderResult(re->result);
 	re->result= NULL;
 	re->result_ok= 0;
+	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	/* set default empty callbacks */
 	re->display_init= result_nothing;
@@ -1072,6 +1119,7 @@ Render *RE_NewRender(const char *name)
 /* only call this while you know it will remove the link too */
 void RE_FreeRender(Render *re)
 {
+	BLI_rw_mutex_end(&re->resultmutex);
 	
 	free_renderdata_tables(re);
 	free_sample_tables(re);
@@ -1153,6 +1201,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		make_sample_tables(re);	
 		
 		/* if preview render, we try to keep old result */
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 		if(re->r.scemode & R_PREVIEWBUTS) {
 			if(re->result && re->result->rectx==re->rectx && re->result->recty==re->recty);
 			else {
@@ -1168,6 +1218,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 			re->result->rectx= re->rectx;
 			re->result->recty= re->recty;
 		}
+
+		BLI_rw_mutex_unlock(&re->resultmutex);
 		
 		/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
 		re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
@@ -1184,8 +1236,12 @@ void RE_SetDispRect (struct Render *re, rcti *disprect)
 	re->recty= disprect->ymax-disprect->ymin;
 	
 	/* initialize render result */
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 	RE_FreeRenderResult(re->result);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+
+	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
 void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
@@ -1345,11 +1401,15 @@ static void render_tile_processor(Render *re, int firsttile)
 	if(re->test_break(re->tbh))
 		return;
 
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 	/* hrmf... exception, this is used for preview render, re-entrant, so render result has to be re-used */
 	if(re->result==NULL || re->result->layers.first==NULL) {
 		if(re->result) RE_FreeRenderResult(re->result);
 		re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	}
+
+	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	re->stats_draw(re->sdh, &re->i);
  
@@ -1357,7 +1417,7 @@ static void render_tile_processor(Render *re, int firsttile)
 		return;
 	
 	initparts(re);
-	
+
 	/* assuming no new data gets added to dbase... */
 	R= *re;
 	
@@ -1384,7 +1444,7 @@ static void render_tile_processor(Render *re, int firsttile)
 				break;
 		}
 	}
-	
+
 	freeparts(re);
 }
 
@@ -1522,6 +1582,8 @@ static void threaded_tile_processor(Render *re)
 	rctf viewplane= re->viewplane;
 	int rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
 	
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
 	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
 		RE_FreeRenderResult(re->result);
@@ -1533,6 +1595,8 @@ static void threaded_tile_processor(Render *re)
 		else
 			re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE));
 	}
+
+	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	if(re->result==NULL)
 		return;
@@ -1540,7 +1604,7 @@ static void threaded_tile_processor(Render *re)
 	/* warning; no return here without closing exr file */
 	
 	initparts(re);
-	
+
 	if(re->result->exrhandle) {
 		RenderResult *rr;
 		char str[FILE_MAX];
@@ -1629,6 +1693,8 @@ static void threaded_tile_processor(Render *re)
 		
 	}
 	
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 	if(re->result->exrhandle) {
 		RenderResult *rr;
 
@@ -1644,6 +1710,8 @@ static void threaded_tile_processor(Render *re)
 		
 		read_render_result(re, 0);
 	}
+
+	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	/* unset threadsafety */
 	g_break= 0;
@@ -1823,8 +1891,10 @@ static void do_render_blur_3d(Render *re)
 	}
 	
 	/* swap results */
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	RE_FreeRenderResult(re->result);
 	re->result= rres;
+	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	set_mblur_offs(0.0f);
 	re->i.curblur= 0;	/* stats */
@@ -1894,8 +1964,11 @@ static void do_render_fields_3d(Render *re)
 		do_render_blur_3d(re);
 	else
 		do_render_3d(re);
+
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	rr1= re->result;
 	re->result= NULL;
+	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	/* second field */
 	if(!re->test_break(re->tbh)) {
@@ -1921,8 +1994,11 @@ static void do_render_fields_3d(Render *re)
 	re->recty *= 2;
 	re->disprect.ymin *= 2;
 	re->disprect.ymax *= 2;
+
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
-	
+	RE_FreeRenderResult(rr1);
+
 	if(rr2) {
 		if(re->r.mode & R_ODDFIELD)
 			merge_renderresult_fields(re->result, rr2, rr1);
@@ -1931,12 +2007,14 @@ static void do_render_fields_3d(Render *re)
 		
 		RE_FreeRenderResult(rr2);
 	}
-	RE_FreeRenderResult(rr1);
 	
 	re->i.curfield= 0;	/* stats */
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay= render_get_active_layer(re, re->result);
+
+	BLI_rw_mutex_unlock(&re->resultmutex);
+
 	re->display_draw(re->ddh, re->result, NULL);
 }
 
@@ -2000,6 +2078,8 @@ static void do_render_fields_blur_3d(Render *re)
 			if((re->r.mode & R_CROP)==0) {
 				RenderResult *rres;
 				
+				BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 				/* sub-rect for merge call later on */
 				re->result->tilerect= re->disprect;
 				
@@ -2020,6 +2100,8 @@ static void do_render_fields_blur_3d(Render *re)
 				/* weak... the display callback wants an active renderlayer pointer... */
 				re->result->renlay= render_get_active_layer(re, re->result);
 				
+				BLI_rw_mutex_unlock(&re->resultmutex);
+		
 				re->display_init(re->dih, re->result);
 				re->display_draw(re->ddh, re->result, NULL);
 			}
@@ -2176,7 +2258,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		}
 		
 		/* ensure we get either composited result or the active layer */
-		RE_GetResultImage(re, &rres);
+		RE_AcquireResultImage(re, &rres);
 		
 		/* accumulate with filter, and clip */
 		mask= (1<<sample);
@@ -2195,6 +2277,8 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			}
 		}
 		
+		RE_ReleaseResultImage(re);
+
 		/* show stuff */
 		if(sample!=re->osa-1) {
 			/* weak... the display callback wants an active renderlayer pointer... */
@@ -2206,9 +2290,11 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			break;
 	}
 	
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(re->result->rectf) 
 		MEM_freeN(re->result->rectf);
 	re->result->rectf= rectf;
+	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
 void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
@@ -2309,9 +2395,12 @@ static void do_render_composite_fields_blur_3d(Render *re)
 static void renderresult_stampinfo(Scene *scene)
 {
 	RenderResult rres;
+	Render *re= RE_GetRender(scene->id.name);
+
 	/* this is the basic trick to get the displayed float or char rect from render result */
-	RE_GetResultImage(RE_GetRender(scene->id.name), &rres);
+	RE_AcquireResultImage(re, &rres);
 	BKE_stamp_buf(scene, (unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
+	RE_ReleaseResultImage(re);
 }
 
 static void do_render_seq(Render * re)
@@ -2327,6 +2416,8 @@ static void do_render_seq(Render * re)
 
 	recurs_depth--;
 	
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
 	if(ibuf) {
 		if(ibuf->rect_float) {
 			if (!rr->rectf)
@@ -2369,6 +2460,8 @@ static void do_render_seq(Render * re)
 		else
 			rr->rect32= MEM_callocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
 	}
+
+	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -2388,14 +2481,15 @@ static void do_render_all_options(Render *re)
 		
 		re->stats_draw(re->sdh, &re->i);
 		re->display_draw(re->ddh, re->result, NULL);
-		
 	}
 	else {
 		do_render_composite_fields_blur_3d(re);
 	}
 	
 	/* for UI only */
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	renderresult_add_names(re->result);
+	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	
@@ -2622,7 +2716,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 	char name[FILE_MAX];
 	RenderResult rres;
 	
-	RE_GetResultImage(re, &rres);
+	RE_AcquireResultImage(re, &rres);
 
 	/* write movie or image */
 	if(BKE_imtype_is_movie(scene->r.imtype)) {
@@ -2686,6 +2780,8 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		}
 	}
 	
+	RE_ReleaseResultImage(re);
+
 	BLI_timestr(re->i.lastframetime, name);
 	printf(" Time: %s\n", name);
 	fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
@@ -2723,7 +2819,8 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 					do_write_image_or_movie(re, scene, mh);
 				}
 			} else {
-				re->test_break(re->tbh);
+				if(re->test_break(re->tbh))
+					G.afbreek= 1;
 			}
 		}
 	} else {
@@ -2769,9 +2866,10 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 			
 			do_render_all_options(re);
 			
-			if(re->test_break(re->tbh) == 0) {
+			if(re->test_break(re->tbh) == 0)
 				do_write_image_or_movie(re, scene, mh);
-			}
+			else
+				G.afbreek= 1;
 		
 			if(G.afbreek==1) {
 				/* remove touched file */
@@ -3006,6 +3104,7 @@ static void external_render_3d(Render *re, RenderEngineType *type)
 {
 	RenderEngine engine;
 
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
 		RE_FreeRenderResult(re->result);
 	
@@ -3014,6 +3113,7 @@ static void external_render_3d(Render *re, RenderEngineType *type)
 		else
 			re->result= new_render_result(re, &re->disprect, 0, 0); // XXX re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE));
 	}
+	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	if(re->result==NULL)
 		return;
@@ -3027,6 +3127,7 @@ static void external_render_3d(Render *re, RenderEngineType *type)
 
 	free_render_result(&engine.fullresult, engine.fullresult.first);
 
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(re->result->exrhandle) {
 		RenderResult *rr;
 
@@ -3042,5 +3143,6 @@ static void external_render_3d(Render *re, RenderEngineType *type)
 		
 		read_render_result(re, 0);
 	}
+	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
