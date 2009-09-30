@@ -187,8 +187,6 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	dadt= MEM_dupallocN(adt);
 	
 	/* make a copy of action - at worst, user has to delete copies... */
-	// XXX review this... it might not be optimal behaviour yet...
-	//id_us_plus((ID *)dadt->action);
 	dadt->action= copy_action(adt->action);
 	dadt->tmpact= copy_action(adt->tmpact);
 	
@@ -1466,7 +1464,11 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt, float ct
  *
  * Unresolved things:
  *	- Handling of multi-user settings (i.e. time-offset, group-instancing) -> big cache grids or nodal system? but stored where?
- *	- Multiple-block dependencies (i.e. drivers for settings are in both local and higher levels) -> split into separate lists?  
+ *	- Multiple-block dependencies (i.e. drivers for settings are in both local and higher levels) -> split into separate lists? 
+ *
+ * Current Status:
+ *	- Currently (as of September 2009), overrides we haven't needed to (fully) implement overrides. 
+ * 	  However, the code fo this is relatively harmless, so is left in the code for now.
  */
 
 /* Evaluation loop for evaluation animation data 
@@ -1623,9 +1625,10 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
-		 * this tagged by Depsgraph on framechange 
+		 * this tagged by Depsgraph on framechange. This optimisation means that objects
+		 * linked from other (not-visible) scenes will not need their data calculated.
 		 */
-	EVAL_ANIM_IDS(main->object.first, /*ADT_RECALC_ANIM*/0); 
+	EVAL_ANIM_IDS(main->object.first, 0); 
 	
 	/* worlds */
 	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);

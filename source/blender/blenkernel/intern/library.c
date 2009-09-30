@@ -640,42 +640,15 @@ void *alloc_libblock(ListBase *lb, short type, const char *name)
 }
 
 /* by spec, animdata is first item after ID */
-/* we still read ->adt itself, to ensure compiler warns when it doesnt exist */
+/* and, trust that BKE_animdata_from_id() will only find AnimData for valid ID-types */
 static void id_copy_animdata(ID *id)
 {
-	switch(GS(id->name)) {
-		case ID_OB:
-			((Object *)id)->adt= BKE_copy_animdata(((Object *)id)->adt);
-			break;
-		case ID_CU:
-			((Curve *)id)->adt= BKE_copy_animdata(((Curve *)id)->adt);
-			break;
-		case ID_CA:
-			((Camera *)id)->adt= BKE_copy_animdata(((Camera *)id)->adt);
-			break;
-		case ID_KE:
-			((Key *)id)->adt= BKE_copy_animdata(((Key *)id)->adt);
-			break;
-		case ID_LA:
-			((Lamp *)id)->adt= BKE_copy_animdata(((Lamp *)id)->adt);
-			break;
-		case ID_MA:
-			((Material *)id)->adt= BKE_copy_animdata(((Material *)id)->adt);
-			break;
-		case ID_NT:
-			((bNodeTree *)id)->adt= BKE_copy_animdata(((bNodeTree *)id)->adt);
-			break;
-		case ID_SCE:
-			((Scene *)id)->adt= BKE_copy_animdata(((Scene *)id)->adt);
-			break;
-		case ID_TE:
-			((Tex *)id)->adt= BKE_copy_animdata(((Tex *)id)->adt);
-			break;
-		case ID_WO:
-			((World *)id)->adt= BKE_copy_animdata(((World *)id)->adt);
-			break;
-	}
+	AnimData *adt= BKE_animdata_from_id(id);
 	
+	if (adt) {
+		IdAdtTemplate *iat = (IdAdtTemplate *)id;
+		iat->adt= BKE_copy_animdata(iat->adt);
+	}
 }
 
 /* used everywhere in blenkernel and text.c */
@@ -705,8 +678,9 @@ void *copy_libblock(void *rt)
 	id->newid= idn;
 	idn->flag |= LIB_NEW;
 	if (id->properties) idn->properties = IDP_CopyProperty(id->properties);
-
-	id_copy_animdata(id);
+	
+	/* the duplicate should get a copy of the animdata */
+	id_copy_animdata(idn);
 	
 	return idn;
 }

@@ -1047,10 +1047,6 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		}
 	}
 	
-	
-	/* free old driver */
-	MEM_freeN(idriver);
-	
 	/* return the new one */
 	return cdriver;
 }
@@ -1122,11 +1118,9 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 	/* allocate memory for a new F-Curve */
 	fcu= MEM_callocN(sizeof(FCurve), "FCurve");
 	
-	/* convert driver - will free the old one... */
-	if (icu->driver) {
+	/* convert driver */
+	if (icu->driver)
 		fcu->driver= idriver_to_cdriver(icu->driver);
-		icu->driver= NULL;
-	}
 	
 	/* copy flags */
 	if (icu->flag & IPO_VISIBLE) fcu->flag |= FCURVE_VISIBLE;
@@ -1233,10 +1227,6 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 			/* add new F-Curve to list */
 			fcurve_add_to_list(groups, list, fcurve, actname);
 		}
-		
-		/* free old data of curve now that it's no longer needed for converting any more curves */
-		if (icu->bezt) MEM_freeN(icu->bezt);
-		if (icu->bp) MEM_freeN(icu->bezt);
 	}
 	else {
 		/* get rna-path
@@ -1302,9 +1292,6 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 					}
 				}
 			}
-			
-			/* free this data now */
-			MEM_freeN(icu->bezt);
 		}
 		else if (icu->bp) {
 			/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
@@ -1325,7 +1312,7 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
  */
 static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase *animgroups, ListBase *anim, ListBase *drivers)
 {
-	IpoCurve *icu, *icn;
+	IpoCurve *icu;
 	
 	/* sanity check */
 	if (ELEM3(NULL, ipo, anim, drivers))
@@ -1347,25 +1334,44 @@ static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase
 	}
 	
 	/* loop over IPO-Curves, freeing as we progress */
-	for (icu= ipo->curve.first; icu; icu= icn) {
-		/* get link to next (for later) */
-		icn= icu->next;
-		
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
 		/* Since an IPO-Curve may end up being made into many F-Curves (i.e. bitflag curves), 
 		 * we figure out the best place to put the channel, then tell the curve-converter to just dump there
 		 */
 		if (icu->driver) {
 			/* Blender 2.4x allowed empty drivers, but we don't now, since they cause more trouble than they're worth */
-			if ((icu->driver->ob) || (icu->driver->type == IPO_DRIVER_TYPE_PYTHON))
+			if ((icu->driver->ob) || (icu->driver->type == IPO_DRIVER_TYPE_PYTHON)) {
 				icu_to_fcurves(NULL, drivers, icu, actname, constname);
-			else
+			}
+			else {
 				MEM_freeN(icu->driver);
+				icu->driver= NULL;
+			}
 		}
 		else
 			icu_to_fcurves(animgroups, anim, icu, actname, constname);
+	}
+	
+	/* if this IPO block doesn't have any users after this one, free... */
+	ipo->id.us--;
+	if ( (ipo->id.us == 0) || ((ipo->id.us == 1) && (ipo->id.flag & LIB_FAKEUSER)) ) 
+	{
+		IpoCurve *icn;
 		
-		/* free this IpoCurve now that it's been converted */
-		BLI_freelinkN(&ipo->curve, icu);
+		for (icu= ipo->curve.first; icu; icu= icn) {
+			icn= icu->next;
+			
+			/* free driver */
+			if (icu->driver)
+				MEM_freeN(icu->driver);
+				
+			/* free old data of curve now that it's no longer needed for converting any more curves */
+			if (icu->bezt) MEM_freeN(icu->bezt);
+			if (icu->bp) MEM_freeN(icu->bezt);
+			
+			/* free this IPO-Curve */
+			BLI_freelinkN(&ipo->curve, icu);
+		}
 	}
 }
 

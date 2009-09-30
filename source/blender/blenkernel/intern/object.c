@@ -1268,7 +1268,7 @@ Object *copy_object(Object *ob)
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->dup_group);
-	// FIXME: add this for animdata too...
+	
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
@@ -1922,31 +1922,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	
 	if(ob==NULL) return;
 	
-#if 0 // XXX old animation system
-	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
-	stime= bsystem_time(scene, ob, ctime, 0.0);
-	if(stime != ob->ctime) {
-		
-		ob->ctime= stime;
-		
-		if(ob->ipo) {
-			calc_ipo(ob->ipo, stime);
-			execute_ipo((ID *)ob, ob->ipo);
-		}
-		else 
-			do_all_object_actions(scene, ob);
-		
-		/* do constraint ipos ..., note it needs stime (0 = all ipos) */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 0);
-	}
-	else {
-		/* but, the drivers have to be done */
-		if(ob->ipo) do_ob_ipodrivers(ob, ob->ipo, stime);
-		/* do constraint ipos ..., note it needs stime (1 = only drivers ipos) */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 1);
-	}
-#endif // XXX old animation system
-
 	/* execute drivers only, as animation has already been done */
 	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
 	
