@@ -1,5 +1,5 @@
 /**
- * $Id: GHOST_DisplayManagerCocoa.mm 13161 2008-01-07 19:13:47Z hos $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,8 +27,6 @@
  */
 
 /**
-
- * $Id: GHOST_DisplayManagerCocoa.mm 13161 2008-01-07 19:13:47Z hos $
  * Copyright (C) 2001 NaN Technologies B.V.
  * @author	Maarten Gribnau
  * @date	September 21, 2001

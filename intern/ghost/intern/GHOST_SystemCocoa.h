@@ -1,5 +1,5 @@
 /**
- * $Id: GHOST_SystemCocoa.h 20741 2009-06-08 20:08:19Z blendix $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

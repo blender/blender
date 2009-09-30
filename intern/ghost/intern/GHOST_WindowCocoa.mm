@@ -1,5 +1,5 @@
 /**
- * $Id: GHOST_WindowCocoa.mm 23275 2009-09-16 15:55:00Z campbellbarton $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,8 +27,6 @@
  */
 
 /**
-
- * $Id: GHOST_WindowCocoa.mm 23275 2009-09-16 15:55:00Z campbellbarton $
  * Copyright (C) 2001 NaN Technologies B.V.
  * @author	Maarten Gribnau
  * @date	May 10, 2001

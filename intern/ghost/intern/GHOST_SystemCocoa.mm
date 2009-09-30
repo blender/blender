@@ -1,5 +1,5 @@
 /**
- * $Id: GHOST_SystemCocoa.cpp 23296 2009-09-16 22:27:27Z broken $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

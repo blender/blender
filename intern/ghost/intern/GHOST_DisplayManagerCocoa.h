@@ -1,5 +1,5 @@
 /**
- * $Id: GHOST_DisplayManagerCocoa.h 13161 2008-01-07 19:13:47Z hos $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
