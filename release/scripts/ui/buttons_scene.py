@@ -451,6 +451,23 @@ class SCENE_PT_unit(RenderButtonsPanel):
 		row.itemR(unit, "scale_length", text="Scale")
 		row.itemR(unit, "use_separate")
 
+class SCENE_PT_physics(RenderButtonsPanel):
+	__label__ = "Gravity"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+	def draw_header(self, context):
+		self.layout.itemR(context.scene, "use_gravity", text="")
+
+	def draw(self, context):
+		layout = self.layout
+		
+		scene = context.scene
+
+		layout.active = scene.use_gravity
+
+		layout.itemR(scene, "gravity", text="")
+
+		
 bpy.types.register(SCENE_PT_render)
 bpy.types.register(SCENE_PT_layers)
 bpy.types.register(SCENE_PT_dimensions)
@@ -462,3 +479,4 @@ bpy.types.register(SCENE_PT_performance)
 bpy.types.register(SCENE_PT_post_processing)
 bpy.types.register(SCENE_PT_stamp)
 bpy.types.register(SCENE_PT_unit)
+bpy.types.register(SCENE_PT_physics)

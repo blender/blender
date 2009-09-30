@@ -1,6 +1,9 @@
 
 import bpy
 
+from buttons_physics_common import basic_force_field_settings_ui
+from buttons_physics_common import basic_force_field_falloff_ui
+
 class PhysicButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
@@ -12,7 +15,6 @@ class PhysicButtonsPanel(bpy.types.Panel):
 		
 class PHYSICS_PT_field(PhysicButtonsPanel):
 	__label__ = "Force Fields"
-	__default_closed__ = True
 
 	def draw(self, context):
 		layout = self.layout
@@ -23,50 +25,21 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 		#layout.active = field.enabled
 		
 		split = layout.split(percentage=0.2)
-		
 		split.itemL(text="Type:")
 		split.itemR(field, "type",text="")
+		
+		if field.type not in ('NONE', 'GUIDE', 'TEXTURE'):
+			split = layout.split(percentage=0.2)
+			#split = layout.row()
+			split.itemL(text="Shape:")
+			split.itemR(field, "shape", text="")
 			
 		split = layout.split()
 		
-		if field.type == 'GUIDE':
+		if field.type == 'NONE':
+			return # nothing to draw
+		elif field.type == 'GUIDE':
 			layout.itemR(field, "guide_path_add")
-			
-		elif field.type == 'WIND':
-			split.itemR(field, "strength")
-			
-			col = split.column()
-			col.itemR(field, "noise")
-			col.itemR(field, "seed")
-
-		elif field.type == 'VORTEX':
-			split.itemR(field, "strength")
-			split.itemL()
-			
-		elif field.type in ('SPHERICAL', 'CHARGE', 'LENNARDJ'):
-			split.itemR(field, "strength")
-			
-			col = split.column()
-			col.itemR(field, "planar")
-			col.itemR(field, "surface")
-			
-		elif field.type == 'BOID':
-			split.itemR(field, "strength")
-			split.itemR(field, "surface")
-			
-		elif field.type == 'MAGNET':
-			split.itemR(field, "strength")
-			split.itemR(field, "planar")
-			
-		elif field.type == 'HARMONIC':
-			col = split.column()
-			col.itemR(field, "strength")
-			col.itemR(field, "harmonic_damping", text="Damping")
-			
-			col = split.column()
-			col.itemR(field, "planar")
-			col.itemR(field, "surface")
-			
 		elif field.type == 'TEXTURE':
 			col = split.column()
 			col.itemR(field, "strength")
@@ -78,29 +51,15 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 			col.itemR(field, "use_coordinates")
 			col.itemR(field, "root_coordinates")
 			col.itemR(field, "force_2d")
+		else :
+			basic_force_field_settings_ui(self, field)
 			
-		if field.type in ('HARMONIC', 'SPHERICAL', 'CHARGE', 'WIND', 'VORTEX', 'TEXTURE', 'MAGNET', 'BOID'):
+		if field.type not in ('NONE', 'GUIDE'):
 			
 			layout.itemL(text="Falloff:")
 			layout.itemR(field, "falloff_type", expand=True)
 
-			split = layout.split(percentage=0.35)
-			
-			col = split.column()
-			col.itemR(field, "positive_z", text="Positive Z")
-			col.itemR(field, "use_min_distance", text="Use Minimum")
-			col.itemR(field, "use_max_distance", text="Use Maximum")
-
-			col = split.column()
-			col.itemR(field, "falloff_power", text="Power")
-			
-			sub = col.column()
-			sub.active = field.use_min_distance
-			sub.itemR(field, "minimum_distance", text="Distance")
-			
-			sub = col.column()
-			sub.active = field.use_max_distance
-			sub.itemR(field, "maximum_distance", text="Distance")
+			basic_force_field_falloff_ui(self, field)
 			
 			if field.falloff_type == 'CONE':
 				layout.itemS()
@@ -157,7 +116,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 
 class PHYSICS_PT_collision(PhysicButtonsPanel):
 	__label__ = "Collision"
-	__default_closed__ = True
+	#__default_closed__ = True
 	
 	def poll(self, context):
 		ob = context.object
@@ -182,16 +141,18 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 			#row.itemR(md, "render", text="")
 			#row.itemR(md, "realtime", text="")
 			
-			settings = md.settings
+			coll = md.settings
 			
 		else:
 			# add modifier
 			split.item_enumO("object.modifier_add", "type", 'COLLISION', text="Add")
 			split.itemL()
 			
-			settings = None
+			coll = None
 		
-		if settings:
+		if coll:
+			settings = context.object.collision
+
 			layout.active = settings.enabled
 		
 			split = layout.split()

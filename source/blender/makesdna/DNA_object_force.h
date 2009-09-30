@@ -35,46 +35,90 @@ extern "C" {
 #endif
 
 #include "DNA_listBase.h"
+
+/* pd->forcefield:  Effector Fields types */
+typedef enum PFieldType {
+	PFIELD_NULL = 0,	/* (this is used for general effector weight)							*/
+	PFIELD_FORCE,		/* Force away/towards a point depending on force strength				*/
+	PFIELD_VORTEX,		/* Force around the effector normal										*/
+	PFIELD_MAGNET,		/* Force from the cross product of effector normal and point velocity	*/
+	PFIELD_WIND,		/* Force away and towards a point depending which side of the effector 	*/
+						/*	 normal the point is												*/
+	PFIELD_GUIDE,		/* Force along curve for dynamics, a shaping curve for hair paths		*/
+	PFIELD_TEXTURE,		/* Force based on texture values calculated at point coordinates		*/
+	PFIELD_HARMONIC,	/* Force of a harmonic (damped) oscillator								*/
+	PFIELD_CHARGE,		/* Force away/towards a point depending on point charge					*/
+	PFIELD_LENNARDJ,	/* Force due to a Lennard-Jones potential								*/
+	PFIELD_BOID,		/* Defines predator / goal for boids									*/
+	PFIELD_TURBULENCE,	/* Force defined by BLI_gTurbulence										*/
+	PFIELD_DRAG,		/* Linear & quadratic drag												*/
+	NUM_PFIELD_TYPES
+} PFieldType;
 	
 typedef struct PartDeflect {
-	short deflect;		/* Deflection flag - does mesh deflect particles*/
-	short forcefield;	/* Force field type, do the vertices attract / repel particles ? */
-	short flag;			/* general settings flag */
-	short falloff;		/* fall-off type*/
+	short deflect;		/* Deflection flag - does mesh deflect particles				*/
+	short forcefield;	/* Force field type, do the vertices attract / repel particles?	*/
+	short flag;			/* general settings flag										*/
+	short falloff;		/* fall-off type												*/
+	short shape;		/* point, plane or surface										*/
+	short tex_mode;		/* texture effector												*/
+	short kink, kink_axis; /* for curve guide											*/
+	short zdir, rt;
 	
+	/* Main effector values */
+	float f_strength;	/* The strength of the force (+ or - )					*/
+	float f_damp;		/* Damping ratio of the harmonic effector.				*/
+	float f_flow;		/* How much force is converted into "air flow", i.e.	*/
+						/* force used as the velocity of surrounding medium.	*/
+
+	float f_size;
+
+	/* fall-off */
+	float f_power;		/* The power law - real gravitation is 2 (square)	*/
+	float maxdist;		/* if indicated, use this maximum					*/
+	float mindist;		/* if indicated, use this minimum					*/
+	float f_power_r;	/* radial fall-off power							*/
+	float maxrad;		/* radial versions of above							*/
+	float minrad;
+
+	/* particle collisions */
 	float pdef_damp;	/* Damping factor for particle deflection       */
 	float pdef_rdamp;	/* Random element of damping for deflection     */
 	float pdef_perm;	/* Chance of particle passing through mesh      */
 	float pdef_frict;	/* Friction factor for particle deflection		*/
 	float pdef_rfrict;	/* Random element of friction for deflection	*/
 
-	float f_strength;	/* The strength of the force (+ or - )       */
-	float f_power;		/* The power law - real gravitation is 2 (square)  */
-	float f_dist;
-	float f_damp;		/* The dampening factor, currently only for harmonic force	*/
-	float maxdist;		/* if indicated, use this maximum */
-	float mindist;		/* if indicated, use this minimum */
-	float maxrad;		/* radial versions of above */
-	float minrad;
-	float f_power_r;	/* radial fall-off power*/
+	float absorption, pad;	/* used for forces */
 	
+	/* softbody collisions */
 	float pdef_sbdamp;	/* Damping factor for softbody deflection       */
 	float pdef_sbift;	/* inner face thickness for softbody deflection */
 	float pdef_sboft;	/* outer face thickness for softbody deflection */
 
-	float absorption, pad;	/* used for forces */
-
-	/* variables for guide curve */
+	/* guide curve, same as for particle child effects */
 	float clump_fac, clump_pow;
 	float kink_freq, kink_shape, kink_amp, free_end;
 
-	float tex_nabla;
-	short tex_mode, kink, kink_axis, rt2;
-	struct Tex *tex;	/* Texture of the texture effector */
-	struct RNG *rng; /* random noise generator for e.g. wind */
-	float f_noise; /* noise of force (currently used for wind) */
-	int seed; /* wind noise random seed */
+	/* texture effector */
+	float tex_nabla;	/* Used for calculating partial derivatives */
+	struct Tex *tex;	/* Texture of the texture effector			*/
+
+	/* effector noise */
+	struct RNG *rng;	/* random noise generator for e.g. wind */
+	float f_noise;		/* noise of force						*/
+	int seed;			/* noise random seed					*/
 } PartDeflect;
+
+typedef struct EffectorWeights {
+	struct Group *group;		/* only use effectors from this group of objects */
+	
+	float weight[13];			/* effector type specific weights */
+	float global_gravity;
+	short flag, rt[3];
+} EffectorWeights;
+
+/* EffectorWeights->flag */
+#define EFF_WEIGHT_DO_HAIR		1
 
 /* Point cache file data types:
  * - used as (1<<flag) so poke jahka if you reach the limit of 15
@@ -256,47 +300,50 @@ typedef struct SoftBody {
 	struct PointCache *pointcache;
 	struct ListBase ptcaches;
 
-} SoftBody;
+	struct EffectorWeights *effector_weights;
 
-/* pd->forcefield:  Effector Fields types */
-#define PFIELD_FORCE	1
-#define PFIELD_VORTEX	2
-#define PFIELD_MAGNET	3
-#define PFIELD_WIND		4
-#define PFIELD_GUIDE	5
-#define PFIELD_TEXTURE	6
-#define PFIELD_HARMONIC	7
-#define PFIELD_CHARGE	8
-#define PFIELD_LENNARDJ	9
-#define PFIELD_BOID		10
+} SoftBody;
 
 
 /* pd->flag: various settings */
 #define PFIELD_USEMAX			1
 #define PDEFLE_DEFORM			2
-#define PFIELD_GUIDE_PATH_ADD	4
-#define PFIELD_PLANAR			8
+#define PFIELD_GUIDE_PATH_ADD	4			/* TODO: do_versions for below */
+#define PFIELD_PLANAR			8			/* used for do_versions */
 #define PDEFLE_KILL_PART		16
-#define PFIELD_POSZ				32
+#define PFIELD_POSZ				32			/* used for do_versions */
 #define PFIELD_TEX_OBJECT		64
+#define PFIELD_GLOBAL_CO		64			/* used for turbulence */
 #define PFIELD_TEX_2D			128
 #define PFIELD_USEMIN			256
 #define PFIELD_USEMAXR			512
 #define PFIELD_USEMINR			1024
 #define PFIELD_TEX_ROOTCO		2048
-#define PFIELD_SURFACE			4096
+#define PFIELD_SURFACE			(1<<12)		/* used for do_versions */
+#define PFIELD_VISIBILITY		(1<<13)
+#define PFIELD_DO_LOCATION		(1<<14)
+#define PFIELD_DO_ROTATION		(1<<15)
 
 /* pd->falloff */
 #define PFIELD_FALL_SPHERE		0
 #define PFIELD_FALL_TUBE		1
 #define PFIELD_FALL_CONE		2
-//reserved for near future
-//#define PFIELD_FALL_INSIDE		3
+
+/* pd->shape */
+#define PFIELD_SHAPE_POINT		0
+#define PFIELD_SHAPE_PLANE		1
+#define PFIELD_SHAPE_SURFACE	2
+#define PFIELD_SHAPE_POINTS		3
 
 /* pd->tex_mode */
 #define PFIELD_TEX_RGB	0
 #define PFIELD_TEX_GRAD	1
 #define PFIELD_TEX_CURL	2
+
+/* pd->zdir */
+#define PFIELD_Z_BOTH	0
+#define PFIELD_Z_POS	1
+#define PFIELD_Z_NEG	2
 
 /* pointcache->flag */
 #define PTCACHE_BAKED				1

@@ -141,6 +141,15 @@ void interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3],
 /////////////////////////////////////////////////
 Object **get_collisionobjects(struct Scene *scene, Object *self, int *numcollobj);
 
+typedef struct ColliderCache {
+	struct ColliderCache *next, *prev;
+	struct Object *ob;
+	struct CollisionModifierData *collmd;
+} ColliderCache;
+
+struct ListBase *get_collider_cache(struct Scene *scene, Object *self);
+void free_collider_cache(struct ListBase **colliders);
+
 /////////////////////////////////////////////////
 
 

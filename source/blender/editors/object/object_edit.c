@@ -346,6 +346,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
 				pid->cache->flag |= PTCACHE_OUTDATED;
 		}
+		BLI_freelistN(&pidlist);
 		
 		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
 

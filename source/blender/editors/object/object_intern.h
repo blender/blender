@@ -91,6 +91,7 @@ void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
 void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
 void OBJECT_OT_primitive_add(struct wmOperatorType *ot); /* only used as menu */
+void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
 void OBJECT_OT_duplicate(struct wmOperatorType *ot);

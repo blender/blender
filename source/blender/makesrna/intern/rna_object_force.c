@@ -31,10 +31,39 @@
 
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+EnumPropertyItem effector_shape_items[] = {
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
+	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface", ""},
+	{PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem empty_shape_items[] = {
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem vortex_shape_items[] = {
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Old", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "New", ""},
+	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface falloff (New)", ""},
+	{PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point (New)", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem empty_vortex_shape_items[] = {
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Old", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "New", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
@@ -358,65 +387,115 @@ static void rna_SoftBodySettings_goal_vgroup_set(PointerRNA *ptr, const char *va
 	rna_object_vgroup_name_index_set(ptr, value, &sb->vertgroup);
 }
 
+static int particle_field_check(PointerRNA *ptr)
+{
+	ID *id= ptr->id.data;
+
+	return (GS(id->name) == ID_PA);
+}
 static void rna_FieldSettings_update(bContext *C, PointerRNA *ptr)
 {
-	Object *ob= (Object*)ptr->id.data;
+	if(particle_field_check(ptr)) {
+		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
 
-	if(ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
-		ob->pd->tex->id.us--;
-		ob->pd->tex= 0;
-	}
+		if(part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
+			part->pd->tex->id.us--;
+			part->pd->tex= 0;
+		}
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-}
+		if(part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
+			part->pd2->tex->id.us--;
+			part->pd2->tex= 0;
+		}
 
-static void rna_FieldSettings_surface_update(bContext *C, PointerRNA *ptr)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= (Object*)ptr->id.data;
-	PartDeflect *pd= ob->pd;
-	ModifierData *md= modifiers_findByType(ob, eModifierType_Surface);
+		DAG_id_flush_update(&part->id, OB_RECALC|PSYS_RECALC_RESET);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
 
-	/* add/remove modifier as needed */
-	if(!md) {
-		if(pd && (pd->flag & PFIELD_SURFACE))
-			if(ELEM6(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ,PFIELD_BOID))
-				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
-					ED_object_modifier_add(NULL, scene, ob, eModifierType_Surface);
 	}
 	else {
-		if(!pd || !(pd->flag & PFIELD_SURFACE))
-			ED_object_modifier_remove(NULL, scene, ob, md);
-	}
+		Object *ob = (Object*)ptr->id.data;
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		if(ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
+			ob->pd->tex->id.us--;
+			ob->pd->tex= 0;
+		}
+
+		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	}
+}
+
+static void rna_FieldSettings_shape_update(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	if(!particle_field_check(ptr)) {
+		Object *ob= (Object*)ptr->id.data;
+		PartDeflect *pd= ob->pd;
+		ModifierData *md= modifiers_findByType(ob, eModifierType_Surface);
+
+		/* add/remove modifier as needed */
+		if(!md) {
+			if(pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield,PFIELD_GUIDE,PFIELD_TEXTURE)==0)
+				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
+					ED_object_modifier_add(NULL, scene, ob, eModifierType_Surface);
+		}
+		else {
+			if(!pd || pd->shape != PFIELD_SHAPE_SURFACE)
+				ED_object_modifier_remove(NULL, scene, ob, md);
+		}
+
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	}
 }
 
 static void rna_FieldSettings_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= (Object*)ptr->id.data;
 
-	/* do this before scene sort, that one checks for CU_PATH */
-	/* XXX if(ob->type==OB_CURVE && ob->pd->forcefield==PFIELD_GUIDE) {
-		Curve *cu= ob->data;
-		cu->flag |= (CU_PATH|CU_3D);
-		do_curvebuts(B_CU3D);  // all curves too
-	}*/
+	if(particle_field_check(ptr)) {
+		DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC|PSYS_RECALC_RESET);
+	}
+	else {
+		Object *ob= (Object*)ptr->id.data;
 
-	rna_FieldSettings_surface_update(C, ptr);
+		/* do this before scene sort, that one checks for CU_PATH */
+		/* XXX if(ob->type==OB_CURVE && ob->pd->forcefield==PFIELD_GUIDE) {
+			Curve *cu= ob->data;
+			cu->flag |= (CU_PATH|CU_3D);
+			do_curvebuts(B_CU3D);  // all curves too
+		}*/
+
+		rna_FieldSettings_shape_update(C, ptr);
+
+		DAG_scene_sort(scene);
+
+		if(ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
+			DAG_id_flush_update(&ob->id, OB_RECALC);
+		else
+			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	}
+}
+
+static void rna_EffectorWeight_update(bContext *C, PointerRNA *ptr)
+{
+	DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+}
+
+static void rna_EffectorWeight_dependency_update(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene= CTX_data_scene(C);
 
 	DAG_scene_sort(scene);
 
-	if(ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
-		DAG_id_flush_update(&ob->id, OB_RECALC);
-	else
-		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+	DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
 }
-
 static void rna_CollisionSettings_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -447,6 +526,47 @@ static void rna_softbody_update(bContext *C, PointerRNA *ptr)
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 }
+
+
+static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Object *ob= NULL;
+
+	if(C==NULL) {
+		EnumPropertyItem *item= NULL;
+		int totitem= 0;
+		
+		/* needed for doc generation */
+		RNA_enum_items_add(&item, &totitem, effector_shape_items);
+		RNA_enum_items_add(&item, &totitem, empty_shape_items);
+		RNA_enum_items_add(&item, &totitem, vortex_shape_items);
+		RNA_enum_items_add(&item, &totitem, empty_shape_items);
+		RNA_enum_item_end(&item, &totitem);
+		
+		*free= 1;
+		
+		return item;
+	}
+
+	if(particle_field_check(ptr))
+		return empty_shape_items;
+	
+	ob= (Object*)ptr->id.data;
+	
+	if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
+		if(ob->pd->forcefield == PFIELD_VORTEX)
+			return vortex_shape_items;
+
+		return effector_shape_items;
+	}
+	else {
+		if(ob->pd->forcefield == PFIELD_VORTEX)
+			return empty_vortex_shape_items;
+
+		return empty_shape_items;
+	}
+}
+
 
 #else
 
@@ -625,6 +745,129 @@ static void rna_def_collision(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
 }
 
+static void rna_def_effector_weight(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "EffectorWeights", NULL);
+	RNA_def_struct_ui_text(srna, "Effector Weights", "Effector weights for physics simulation.");
+	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
+
+	/* Flags */
+	prop= RNA_def_property(srna, "do_growing_hair", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", EFF_WEIGHT_DO_HAIR);
+	RNA_def_property_ui_text(prop, "Use For Growing Hair", "Use force fields when growing hair.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+	
+	/* General */
+	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "group");
+	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Effector Group", "Limit effectors to this Group.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_dependency_update");
+
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "global_gravity");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Gravity", "Global gravity weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	/* Effector weights */
+	prop= RNA_def_property(srna, "all", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[0]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "All", "All effector's weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "spherical", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[1]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Spherical", "Spherical effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "vortex", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[2]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Vortex", "Vortex effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "magnetic", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[3]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Magnetic", "Magnetic effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "wind", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[4]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Wind", "Wind effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "curveguide", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[5]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Curve Guide", "Curve guide effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "texture", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[6]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Texture", "Texture effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "harmonic", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[7]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Harmonic", "Harmonic effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "charge", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[8]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Charge", "Charge effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "lennardjones", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[9]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Lennard-Jones", "Lennard-Jones effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "boid", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[10]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Boid", "Boid effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "turbulence", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[11]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Turbulence", "Turbulence effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop= RNA_def_property(srna, "drag", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[12]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Drag", "Drag effector weight.");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+}
+
 static void rna_def_field(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -632,18 +875,20 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	static EnumPropertyItem field_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{PFIELD_FORCE, "SPHERICAL", 0, "Spherical", ""},
+		{PFIELD_FORCE, "FORCE", 0, "Force", ""},
+		{PFIELD_WIND, "WIND", 0, "Wind", ""},
 		{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
 		{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
-		{PFIELD_WIND, "WIND", 0, "Wind", ""},
-		{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
-		{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
 		{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
 		{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
 		{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
+		{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
+		{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
 		{PFIELD_BOID, "BOID", 0, "Boid", ""},
+		{PFIELD_TURBULENCE, "TURBULENCE", 0, "Turbulence", ""},
+		{PFIELD_DRAG, "DRAG", 0, "Drag", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
+
 	static EnumPropertyItem falloff_items[] = {
 		{PFIELD_FALL_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{PFIELD_FALL_TUBE, "TUBE", 0, "Tube", ""},
@@ -654,6 +899,12 @@ static void rna_def_field(BlenderRNA *brna)
 		{PFIELD_TEX_RGB, "RGB", 0, "RGB", ""},
 		{PFIELD_TEX_GRAD, "GRADIENT", 0, "Gradient", ""},
 		{PFIELD_TEX_CURL, "CURL", 0, "Curl", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem zdirection_items[] = {
+		{PFIELD_Z_BOTH, "BOTH", 0, "Both Z", ""},
+		{PFIELD_Z_POS, "POSITIVE", 0, "+Z", ""},
+		{PFIELD_Z_NEG, "NEGATIVE", 0, "-Z", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FieldSettings", NULL);
@@ -668,6 +919,12 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, field_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of field.");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_dependency_update");
+
+	prop= RNA_def_property(srna, "shape", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, effector_shape_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Effector_shape_itemf");
+	RNA_def_property_ui_text(prop, "Shape", "Which direction is used to calculate the effector force.");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_shape_update");
 	
 	prop= RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "falloff");
@@ -680,6 +937,12 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, texture_items);
 	RNA_def_property_ui_text(prop, "Texture Mode", "How the texture effect is calculated (RGB & Curl need a RGB texture else Gradient will be used instead)");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "z_direction", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "zdir");
+	RNA_def_property_enum_items(prop, zdirection_items);
+	RNA_def_property_ui_text(prop, "Z Direction", "Effect in full or only positive/negative Z direction.");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/* Float */
 	
@@ -688,17 +951,50 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_range(prop, -1000.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Strength", "Strength of force field");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	/* different ui range to above */
+	prop= RNA_def_property(srna, "linear_drag", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_strength");
+	RNA_def_property_range(prop, -2.0f, 2.0f);
+	RNA_def_property_ui_text(prop, "Linear Drag", "Drag component proportional to velocity.");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "harmonic_damping", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_damp");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Harmonic Damping", "Damping of the harmonic force");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	/* different ui range to above */
+	prop= RNA_def_property(srna, "quadratic_drag", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_damp");
+	RNA_def_property_range(prop, -2.0f, 2.0f);
+	RNA_def_property_ui_text(prop, "Quadratic Drag", "Drag component proportional to the square of velocity.");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "flow", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_flow");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Flow", "Convert effector force into air flow velocity");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	/* different ui range to above */
+	prop= RNA_def_property(srna, "inflow", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_flow");
+	RNA_def_property_range(prop, -10.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Inflow", "Inwards component of the vortex force");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_size");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Size", "Size of the noise");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop= RNA_def_property(srna, "falloff_power", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "f_power");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Falloff Power", "Falloff power (real gravitational falloff = 2)");
-	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
-	
-	prop= RNA_def_property(srna, "harmonic_damping", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "f_damp");
-	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Harmonic Damping", "Damping of the harmonic force");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop= RNA_def_property(srna, "minimum_distance", PROP_FLOAT, PROP_NONE);
@@ -776,25 +1072,15 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_GUIDE_PATH_ADD);
 	RNA_def_property_ui_text(prop, "Additive", "Based on distance/falloff it adds a portion of the entire path");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
-	
-	prop= RNA_def_property(srna, "planar", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_PLANAR);
-	RNA_def_property_ui_text(prop, "Planar", "Create planar field");
-	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
-	
-	prop= RNA_def_property(srna, "surface", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_SURFACE);
-	RNA_def_property_ui_text(prop, "Surface", "Use closest point on surface");
-	RNA_def_property_update(prop, 0, "rna_FieldSettings_surface_update");
-	
-	prop= RNA_def_property(srna, "positive_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_POSZ);
-	RNA_def_property_ui_text(prop, "Positive", "Effect only in direction of positive Z axis");
-	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
-	
+
 	prop= RNA_def_property(srna, "use_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_OBJECT);
 	RNA_def_property_ui_text(prop, "Use Coordinates", "Use object/global coordinates for texture");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "global_coordinates", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_GLOBAL_CO);
+	RNA_def_property_ui_text(prop, "Use Global Coordinates", "Use effector/global coordinates for turbulence");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop= RNA_def_property(srna, "force_2d", PROP_BOOLEAN, PROP_NONE);
@@ -805,6 +1091,16 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "root_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_ROOTCO);
 	RNA_def_property_ui_text(prop, "Root Texture Coordinates", "Texture coordinates from root particle locations");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "do_location", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_DO_LOCATION);
+	RNA_def_property_ui_text(prop, "Location", "Effect particles' location");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "do_rotation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_DO_ROTATION);
+	RNA_def_property_ui_text(prop, "Rotation", "Effect particles' dynamic rotation");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/* Pointer */
@@ -1115,12 +1411,18 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_self_collision_get", "rna_SoftBodySettings_self_collision_set");
 	RNA_def_property_ui_text(prop, "Self Collision", "Enable naive vertex ball self collision.");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
+
+	prop= RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "EffectorWeights");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Effector Weights", "");
 }
 
 void RNA_def_object_force(BlenderRNA *brna)
 {
 	rna_def_pointcache(brna);
 	rna_def_collision(brna);
+	rna_def_effector_weight(brna);
 	rna_def_field(brna);
 	rna_def_game_softbody(brna);
 	rna_def_softbody(brna);

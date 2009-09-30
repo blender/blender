@@ -620,6 +620,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			if (part->adt) write_animdata(wd, part->adt);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
+			writestruct(wd, DATA, "EffectorWeights", 1, part->effector_weights);
 
 			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
 				BoidState *state = part->boids->states.first;
@@ -1140,6 +1141,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
+			writestruct(wd, DATA, "EffectorWeights", 1, clmd->sim_parms->effector_weights);
 			write_pointcaches(wd, &clmd->ptcaches);
 		} 
 		else if(md->type==eModifierType_Smoke) {
@@ -1227,7 +1229,10 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
-			if(ob->soft) write_pointcaches(wd, &ob->soft->ptcaches);
+			if(ob->soft) {
+				write_pointcaches(wd, &ob->soft->ptcaches);
+				writestruct(wd, DATA, "EffectorWeights", 1, ob->soft->effector_weights);
+			}
 			writestruct(wd, DATA, "BulletSoftBody", 1, ob->bsoft);
 			
 			write_particlesystems(wd, &ob->particlesystem);

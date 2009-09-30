@@ -4848,6 +4848,7 @@ void special_aftertrans_update(TransInfo *t)
 					if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
 						pid->cache->flag |= PTCACHE_OUTDATED;
 				}
+				BLI_freelistN(&pidlist);
 
 				/* pointcache refresh */
 				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))

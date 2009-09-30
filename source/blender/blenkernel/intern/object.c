@@ -91,6 +91,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
@@ -298,11 +299,8 @@ void free_object(Object *ob)
 	
 	free_constraints(&ob->constraints);
 	
-	if(ob->pd){
-		if(ob->pd->tex)
-			ob->pd->tex->id.us--;
-		MEM_freeN(ob->pd);
-	}
+	free_partdeflect(ob->pd);
+
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
@@ -1069,6 +1067,9 @@ SoftBody *copy_softbody(SoftBody *sb)
 
 	sbn->pointcache= BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches);
 
+	if(sb->effector_weights)
+		sbn->effector_weights = MEM_dupallocN(sb->effector_weights);
+
 	return sbn;
 }
 
@@ -1129,11 +1130,9 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
-	psysn->effectors.first= psysn->effectors.last= 0;
 	
 	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
 	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
-	psysn->reactevents.first = psysn->reactevents.last = NULL;
 	psysn->renderdata = NULL;
 	
 	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
@@ -1278,6 +1277,8 @@ Object *copy_object(Object *ob)
 		obn->pd= MEM_dupallocN(ob->pd);
 		if(obn->pd->tex)
 			id_us_plus(&(obn->pd->tex->id));
+		if(obn->pd->rng)
+			obn->pd->rng = MEM_dupallocN(ob->pd->rng);
 	}
 	obn->soft= copy_softbody(ob->soft);
 	obn->bsoft = copy_bulletsoftbody(ob->bsoft);

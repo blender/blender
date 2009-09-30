@@ -400,6 +400,10 @@ Scene *add_scene(char *name)
 
 	sce->toolsettings->proportional_size = 1.0f;
 
+	sce->physics_settings.gravity[0] = 0.0f;
+	sce->physics_settings.gravity[1] = 0.0f;
+	sce->physics_settings.gravity[2] = -9.81f;
+	sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
 
 	sce->unit.scale_length = 1.0f;
 

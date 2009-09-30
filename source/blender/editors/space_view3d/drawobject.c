@@ -3159,9 +3159,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		ma_g = ma->g;
 		ma_b = ma->b;
 
-		pdd->ma_r = &ma_r;
-		pdd->ma_g = &ma_g;
-		pdd->ma_b = &ma_b;
+		if(pdd) {
+			pdd->ma_r = &ma_r;
+			pdd->ma_g = &ma_g;
+			pdd->ma_b = &ma_b;
+		}
 
 		create_cdata = 1;
 	}

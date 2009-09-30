@@ -832,8 +832,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 							size_t i = 0;									
 							size_t index = 0;									
 							int badcell = 0;																		
-							if(pa->alive == PARS_KILLED) continue;									
-							else if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;									
+							if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;									
 							else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0) continue;									
 							else if(pa->flag & (PARS_UNEXIST+PARS_NO_DISP)) continue;																		
 							// VECCOPY(pos, pa->state.co);									

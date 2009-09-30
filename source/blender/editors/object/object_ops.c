@@ -117,6 +117,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_armature_add);
 	WM_operatortype_append(OBJECT_OT_lamp_add);
 	WM_operatortype_append(OBJECT_OT_add);
+	WM_operatortype_append(OBJECT_OT_effector_add);
 	WM_operatortype_append(OBJECT_OT_primitive_add);
 	WM_operatortype_append(OBJECT_OT_mesh_add);
 	WM_operatortype_append(OBJECT_OT_metaball_add);

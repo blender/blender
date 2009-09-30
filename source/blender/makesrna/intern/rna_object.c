@@ -741,7 +741,7 @@ static PointerRNA rna_Object_field_get(PointerRNA *ptr)
 
 	/* weak */
 	if(!ob->pd)
-		ob->pd= object_add_collision_fields();
+		ob->pd= object_add_collision_fields(0);
 	
 	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, ob->pd);
 }
@@ -752,7 +752,7 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 
 	/* weak */
 	if(!ob->pd)
-		ob->pd= object_add_collision_fields();
+		ob->pd= object_add_collision_fields(0);
 	
 	return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
 }

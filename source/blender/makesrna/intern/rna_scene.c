@@ -62,6 +62,7 @@ EnumPropertyItem prop_mode_items[] ={
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_node.h"
+#include "BKE_pointcache.h"
 
 #include "BLI_threads.h"
 
@@ -415,6 +416,14 @@ static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_composit_default(scene);
 }
 
+static void rna_Physics_update(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->id.data;
+	Base *base;
+
+	for(base = scene->base.first; base; base=base->next)
+		BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
+}
 #else
 
 static void rna_def_tool_settings(BlenderRNA  *brna)
@@ -595,7 +604,6 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
-
 
 void rna_def_render_layer_common(StructRNA *srna, int scene)
 {
@@ -2131,6 +2139,19 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "unit");
 	RNA_def_property_struct_type(prop, "UnitSettings");
 	RNA_def_property_ui_text(prop, "Unit Settings", "Unit editing settings");
+
+	/* Physics Settings */
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
+	RNA_def_property_float_sdna(prop, NULL, "physics_settings.gravity");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_text(prop, "Gravity", "Constant acceleration in a given direction");
+	RNA_def_property_update(prop, 0, "rna_Physics_update");
+
+	prop= RNA_def_property(srna, "use_gravity", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "physics_settings.flag", PHYS_GLOBAL_GRAVITY);
+	RNA_def_property_ui_text(prop, "Global Gravity", "Use global gravity for all dynamics.");
+	RNA_def_property_update(prop, 0, "rna_Physics_update");
 	
 	/* Render Data */
 	prop= RNA_def_property(srna, "render_data", PROP_POINTER, PROP_NONE);

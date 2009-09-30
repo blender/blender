@@ -99,6 +99,7 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_context.h"
 #include "BKE_cloth.h"
 #include "BKE_depsgraph.h"
+#include "BKE_effect.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -106,48 +107,43 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BLI_arithb.h"
 
 /* property update functions */
-static void rna_Particle_redo(bContext *C, PointerRNA *ptr)
+static void particle_recalc(bContext *C, PointerRNA *ptr, short flag)
 {
-	Scene *scene = CTX_data_scene(C);
-	ParticleSettings *part;
 	if(ptr->type==&RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
 		
-		psys->recalc = PSYS_RECALC_REDO;
+		psys->recalc = flag;
 
-		if(ob)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 	}
-	else {
-		part = ptr->id.data;
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_REDO);
-	}
+	else
+		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|flag);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+}
+static void rna_Particle_redo(bContext *C, PointerRNA *ptr)
+{
+	particle_recalc(C, ptr, PSYS_RECALC_REDO);
 }
 
 static void rna_Particle_reset(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
-	ParticleSettings *part;
+	particle_recalc(C, ptr, PSYS_RECALC_RESET);
+}
 
-	if(ptr->type==&RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
-		
-		psys->recalc = PSYS_RECALC_RESET;
+static void rna_Particle_change_type(bContext *C, PointerRNA *ptr)
+{
+	particle_recalc(C, ptr, PSYS_RECALC_RESET|PSYS_RECALC_TYPE);
+}
 
-		if(ob) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-		}
-	}
-	else {
-		part = ptr->id.data;
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET);
-	}
+static void rna_Particle_change_physics(bContext *C, PointerRNA *ptr)
+{
+	particle_recalc(C, ptr, PSYS_RECALC_RESET|PSYS_RECALC_PHYS);
+}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
+{
+	particle_recalc(C, ptr, PSYS_RECALC_CHILD);
 }
 
 static void rna_Particle_target_reset(bContext *C, PointerRNA *ptr)
@@ -199,59 +195,6 @@ static void rna_Particle_target_redo(bContext *C, PointerRNA *ptr)
 	}
 }
 
-static void rna_Particle_change_type(bContext *C, PointerRNA *ptr)
-{
-	Scene *scene = CTX_data_scene(C);
-	ParticleSettings *part;
-
-	if(ptr->type==&RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
-		
-		psys->recalc = PSYS_RECALC_RESET|PSYS_RECALC_TYPE;
-
-		if(ob) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-		}
-	}
-	else {
-		part = ptr->id.data;
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET|PSYS_RECALC_TYPE);
-	}
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
-}
-
-static void rna_Particle_change_physics(bContext *C, PointerRNA *ptr)
-{
-	Scene *scene = CTX_data_scene(C);
-	ParticleSettings *part = ptr->id.data;
-	psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET|PSYS_RECALC_PHYS);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
-}
-
-static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
-{
-	Scene *scene = CTX_data_scene(C);
-	ParticleSettings *part;
-
-	if(ptr->type==&RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
-		
-		psys->recalc = PSYS_RECALC_CHILD;
-
-		if(ob)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	}
-	else {
-		part = ptr->id.data;
-
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_CHILD);
-	}
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
-}
 static void rna_Particle_hair_dynamics(bContext *C, PointerRNA *ptr)
 {
 	/* Scene *scene = CTX_data_scene(C); */
@@ -577,6 +520,28 @@ static EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *C, PointerRNA *ptr,
 		return part_ren_as_items;
 }
 
+static PointerRNA rna_Particle_field1_get(PointerRNA *ptr)
+{
+	ParticleSettings *part= (ParticleSettings*)ptr->id.data;
+
+	/* weak */
+	if(!part->pd)
+		part->pd= object_add_collision_fields(0);
+	
+	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, part->pd);
+}
+
+static PointerRNA rna_Particle_field2_get(PointerRNA *ptr)
+{
+	ParticleSettings *part= (ParticleSettings*)ptr->id.data;
+
+	/* weak */
+	if(!part->pd2)
+		part->pd2= object_add_collision_fields(0);
+	
+	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, part->pd2);
+}
+
 
 #else
 
@@ -650,7 +615,7 @@ static void rna_def_particle(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem alive_items[] = {
-		{PARS_KILLED, "KILLED", 0, "Killed", ""},
+		//{PARS_KILLED, "KILLED", 0, "Killed", ""},
 		{PARS_DEAD, "DEAD", 0, "Dead", ""},
 		{PARS_UNBORN, "UNBORN", 0, "Unborn", ""},
 		{PARS_ALIVE, "ALIVE", 0, "Alive", ""},
@@ -1714,89 +1679,25 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Billboard Object", "Billboards face this object (default is active camera)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	/* effectors */
-	prop= RNA_def_property(srna, "effector_group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "eff_group");
-	RNA_def_property_struct_type(prop, "Group");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Effector Group", "Limit effectors to this Group.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_all", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[0]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "All", "All effector's weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_spherical", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[1]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Spherical", "Spherical effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_vortex", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[2]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Vortex", "Vortex effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_magnetic", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[3]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Magnetic", "Magnetic effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_wind", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[4]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Wind", "Wind effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_curveguide", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[5]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Curve Guide", "Curve guide effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_texture", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[6]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Texture", "Texture effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_harmonic", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[7]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Harmonic", "Harmonic effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_charge", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[8]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Charge", "Charge effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "eweight_lennardjones", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "effector_weight[9]");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Lennard-Jones", "Lennard-Jones effector weight.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+	prop= RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "EffectorWeights");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Effector Weights", "");
 	
 	/* animation here? */
 	rna_def_animdata_common(srna);
 
-//	struct PartDeflect *pd;
-//	struct PartDeflect *pd2;
+	prop= RNA_def_property(srna, "force_field_1", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "pd");
+	RNA_def_property_struct_type(prop, "FieldSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Particle_field1_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Force Field 1", "");
+
+	prop= RNA_def_property(srna, "force_field_2", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "pd2");
+	RNA_def_property_struct_type(prop, "FieldSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Particle_field2_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Force Field 2", "");
 }
 
 static void rna_def_particle_target(BlenderRNA *brna)

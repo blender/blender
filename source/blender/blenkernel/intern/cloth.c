@@ -153,6 +153,9 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->defgoal = 0.0f;
 	clmd->sim_parms->goalspring = 1.0f;
 	clmd->sim_parms->goalfrict = 0.0f;
+
+	if(!clmd->sim_parms->effector_weights)
+		clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 }
 
 static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
@@ -402,6 +405,8 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		VECCOPY(verts->xconst, mvert[i].co);
 		Mat4MulVecfl(ob->obmat, verts->xconst);
 	}
+
+	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights);
 	
 	tstart();
 
@@ -410,6 +415,8 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		ret = solvers[clmd->sim_parms->solver_type].solver(ob, framenr, clmd, effectors);
 
 	tend();
+
+	pdEndEffectors(&effectors);
 
 	// printf ( "%f\n", ( float ) tval() );
 	
