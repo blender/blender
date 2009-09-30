@@ -38,6 +38,7 @@
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
 #include "BoolValue.h"
+#include "FloatValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -190,6 +191,22 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 					m_checkpropval.Upper();
 				}
 				result = (testprop == m_checkpropval);
+				
+				/* Patch: floating point values cant use strings usefully since you can have "0.0" == "0.0000"
+				 * this could be made into a generic Value class function for comparing values with a string.
+				 */
+				if(result==false && dynamic_cast<CFloatValue *>(orgprop) != NULL) {
+					float f;
+					
+					if(EOF == sscanf(m_checkpropval.ReadPtr(), "%f", &f))
+					{
+						//error
+					} 
+					else {
+						result = (f == ((CFloatValue *)orgprop)->GetFloat());
+					}
+				}
+				/* end patch */
 			}
 			orgprop->Release();
 
