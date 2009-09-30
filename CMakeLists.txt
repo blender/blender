@@ -81,6 +81,10 @@ OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
+IF (APPLE)
+OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" OFF)
+ENDIF (APPLE)
+
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
@@ -402,6 +406,7 @@ IF(APPLE)
 		FIND_PACKAGE(OpenAL)
 		IF(OPENAL_FOUND)
 			SET(WITH_OPENAL ON)
+			SET(OPENAL_INCLUDE_DIR "${OPENAL_INCLUDE_DIR};${LIBDIR}/openal/include")
 		ELSE(OPENAL_FOUND)
 			SET(WITH_OPENAL OFF)
 		ENDIF(OPENAL_FOUND)
@@ -485,9 +490,13 @@ IF(APPLE)
 
 	SET(LLIBS stdc++ SystemStubs)
 
+	IF (WITH_COCOA)
+	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -DGHOST_COCOA")
+	SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
+	ELSE (WITH_COCOA)
 	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
-
+	ENDIF (WITH_COCOA)
 	IF(WITH_OPENMP)
 		SET(LLIBS "${LLIBS} -lgomp ")
 		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp ")
