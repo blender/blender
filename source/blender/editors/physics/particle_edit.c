@@ -110,14 +110,11 @@ int PE_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	PTCacheEdit *edit;
 
-	if(!scene || !ob)
+	if(!scene || !ob || !(ob->mode & OB_MODE_PARTICLE_EDIT))
 		return 0;
 	
-	edit= PE_get_current(scene, ob);
-
-	return (edit && (ob->mode & OB_MODE_PARTICLE_EDIT));
+	return (PE_get_current(scene, ob) != NULL);
 }
 
 int PE_hair_poll(bContext *C)
@@ -126,12 +123,12 @@ int PE_hair_poll(bContext *C)
 	Object *ob= CTX_data_active_object(C);
 	PTCacheEdit *edit;
 
-	if(!scene || !ob)
+	if(!scene || !ob || !(ob->mode & OB_MODE_PARTICLE_EDIT))
 		return 0;
 	
 	edit= PE_get_current(scene, ob);
 
-	return (edit && edit->psys && (ob->mode & OB_MODE_PARTICLE_EDIT));
+	return (edit && edit->psys);
 }
 
 int PE_poll_3dview(bContext *C)
@@ -675,6 +672,9 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 	psmd= psys_get_modifier(ob, psys);
 	totpart= psys->totpart;
 
+	if(!psmd->dm)
+		return;
+
 	tree= BLI_kdtree_new(totpart);
 
 	/* insert particles into kd tree */
@@ -803,6 +803,9 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
 	edit= psys->edit;
 	psmd= psys_get_modifier(ob, psys);
 
+	if(!edit->mirror_cache || !psmd->dm)
+		return;
+
 	/* we delay settings the PARS_EDIT_RECALC for mirrored particles
 	 * to avoid doing mirror twice */
 	LOOP_POINTS {
@@ -840,6 +843,9 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 
 	psys = edit->psys;
 	psmd = psys_get_modifier(ob,psys);
+
+	if(!psmd->dm)
+		return;
 
 	LOOP_EDITED_POINTS {
 		psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, psys->particles + p, hairmat);
@@ -994,6 +1000,9 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 	float *vec, *nor;
 	int i, totface, totvert;
 
+	if(!dm)
+		return;
+
 	if(edit->emitter_cosnos)
 		MEM_freeN(edit->emitter_cosnos);
 
@@ -1079,7 +1088,7 @@ static void update_world_cos(Object *ob, PTCacheEdit *edit)
 	POINT_P; KEY_K;
 	float hairmat[4][4];
 
-	if(psys==0 || psys->edit==0)
+	if(psys==0 || psys->edit==0 || psmd->dm==NULL)
 		return;
 
 	LOOP_POINTS {
@@ -2444,6 +2453,8 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 		return;
 
 	psmd= psys_get_modifier(ob, psys);
+	if(!psmd->dm)
+		return;
 
 	mirrorfaces= mesh_get_x_mirror_faces(ob, NULL);
 
