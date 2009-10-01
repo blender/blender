@@ -3271,7 +3271,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	retval= WM_UI_HANDLER_CONTINUE;
 
 	if(but->flag & UI_BUT_DISABLED)
-		return WM_UI_HANDLER_BREAK;
+		return WM_UI_HANDLER_CONTINUE;
 
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		/* handle copy-paste */
