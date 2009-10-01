@@ -85,29 +85,23 @@ ENDMACRO(SETUP_LIBDIRS)
 MACRO(SETUP_LIBLINKS
   target)
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS} ")
-  #TARGET_LINK_LIBRARIES(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${PYTHON_LIB} ${PYTHON_LINKFLAGS} ${JPEG_LIB} ${PNG_LIB} ${ZLIB_LIB} ${SDL_LIBRARY} ${LLIBS})
 
-  TARGET_LINK_LIBRARIES(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${PYTHON_LINKFLAGS} ${JPEG_LIBRARY} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
+  TARGET_LINK_LIBRARIES(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARY} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
 
   # since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
-  IF(WIN32)
-    TARGET_LINK_LIBRARIES(${target} debug ${PYTHON_LIB}_d)
-    TARGET_LINK_LIBRARIES(${target} optimized ${PYTHON_LIB})
-  ELSE(WIN32)
-    TARGET_LINK_LIBRARIES(${target} ${PYTHON_LIB})
-  ENDIF(WIN32)
+  IF(WITH_PYTHON)
+    TARGET_LINK_LIBRARIES(${target} ${PYTHON_LINKFLAGS})
   
-  TARGET_LINK_LIBRARIES(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${PYTHON_LINKFLAGS} ${JPEG_LIB} ${PNG_LIB} ${ZLIB_LIB} ${LLIBS})
+    IF(WIN32)
+      TARGET_LINK_LIBRARIES(${target} debug ${PYTHON_LIB}_d)
+      TARGET_LINK_LIBRARIES(${target} optimized ${PYTHON_LIB})
+    ELSE(WIN32)
+      TARGET_LINK_LIBRARIES(${target} ${PYTHON_LIB})
+    ENDIF(WIN32)
+  ENDIF(WITH_PYTHON)
+  
+  TARGET_LINK_LIBRARIES(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIB} ${PNG_LIB} ${ZLIB_LIB})
   TARGET_LINK_LIBRARIES(${target} ${FREETYPE_LIBRARY} ${LIBSAMPLERATE_LIB})
-
-  # since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
-
-  IF(WIN32)
-    TARGET_LINK_LIBRARIES(${target} debug ${PYTHON_LIB}_d)
-    TARGET_LINK_LIBRARIES(${target} optimized ${PYTHON_LIB})
-  ELSE(WIN32)
-    TARGET_LINK_LIBRARIES(${target} ${PYTHON_LIB})
-  ENDIF(WIN32)
 
   IF(WITH_INTERNATIONAL)
     TARGET_LINK_LIBRARIES(${target} ${GETTEXT_LIB})

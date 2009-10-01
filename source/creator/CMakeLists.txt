@@ -257,7 +257,8 @@ IF(WITH_INSTALL)
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
-			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python26.zip\" \"${TARGETDIR}\\\"
+			# TODO, copy python bundle
+			# COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python31.zip\" \"${TARGETDIR}\\\"
 		)
     
 		FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
