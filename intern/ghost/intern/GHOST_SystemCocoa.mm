@@ -49,27 +49,17 @@
 #include "GHOST_NDOFManager.h"
 #include "AssertMacros.h"
 
-#define GHOST_KEY_SWITCH(mac, ghost) { case (mac): ghostKey = (ghost); break; }
-
-/* blender class and types events */
-enum {
-  kEventClassBlender              = 'blnd'
-};
-
-enum {
-	kEventBlenderNdofAxis			= 1,
-	kEventBlenderNdofButtons		= 2
-};
-
 #pragma mark KeyMap, mouse converters
 
+//TODO: remove (kept as reminder to implement window events)
+/*
 const EventTypeSpec	kEvents[] =
 {
 	{ kEventClassAppleEvent, kEventAppleEvent },
-/*
-	{ kEventClassApplication, kEventAppActivated },
-	{ kEventClassApplication, kEventAppDeactivated },
-*/	
+
+//	{ kEventClassApplication, kEventAppActivated },
+//	{ kEventClassApplication, kEventAppDeactivated },
+	
 	{ kEventClassKeyboard, kEventRawKeyDown },
 	{ kEventClassKeyboard, kEventRawKeyRepeat },
 	{ kEventClassKeyboard, kEventRawKeyUp },
@@ -81,10 +71,10 @@ const EventTypeSpec	kEvents[] =
 	{ kEventClassMouse, kEventMouseDragged },
 	{ kEventClassMouse, kEventMouseWheelMoved },
 	
-	{ kEventClassWindow, kEventWindowClickZoomRgn } ,  /* for new zoom behaviour */ 
-	{ kEventClassWindow, kEventWindowZoom },  /* for new zoom behaviour */ 
-	{ kEventClassWindow, kEventWindowExpand } ,  /* for new zoom behaviour */ 
-	{ kEventClassWindow, kEventWindowExpandAll },  /* for new zoom behaviour */ 
+	{ kEventClassWindow, kEventWindowClickZoomRgn } ,  // for new zoom behaviour  
+	{ kEventClassWindow, kEventWindowZoom },  // for new zoom behaviour  
+	{ kEventClassWindow, kEventWindowExpand } ,  // for new zoom behaviour 
+	{ kEventClassWindow, kEventWindowExpandAll },  // for new zoom behaviour 
 
 	{ kEventClassWindow, kEventWindowClose },
 	{ kEventClassWindow, kEventWindowActivated },
@@ -97,7 +87,7 @@ const EventTypeSpec	kEvents[] =
 	
 	
 	
-};
+};*/
 
 static GHOST_TButtonMask convertButton(EventMouseButton button)
 {
@@ -117,103 +107,155 @@ static GHOST_TButtonMask convertButton(EventMouseButton button)
 	}
 }
 
-static GHOST_TKey convertKey(int rawCode, unsigned char asciiCharacter) 
+/**
+ * Converts Mac rawkey codes (same for Cocoa & Carbon)
+ * into GHOST key codes
+ * @param rawCode The raw physical key code
+ * @param recvChar the character ignoring modifiers (except for shift)
+ * @return Ghost key code
+ */
+static GHOST_TKey convertKey(int rawCode, unichar recvChar) 
 {	
-		/* This bit of magic converts the rawCode into a virtual
-		 * Mac key based on the current keyboard mapping, but
-		 * without regard to the modifiers (so we don't get 'a' 
-		 * and 'A' for example.
-		 */
-		/* Map numpad based on rawcodes first, otherwise they
-		 * look like non-numpad events.
-		 * Added too: mapping the number keys, for french keyboards etc (ton)
-		 */
-	// printf("GHOST: vk: %d %c raw: %d\n", asciiCharacter, asciiCharacter, rawCode);
-	//FIXME : check rawcodes	 
+	
+	//printf("\nrecvchar %c 0x%x",recvChar,recvChar);
 	switch (rawCode) {
-	case 18:	return GHOST_kKey1;
-	case 19:	return GHOST_kKey2;
-	case 20:	return GHOST_kKey3;
-	case 21:	return GHOST_kKey4;
-	case 23:	return GHOST_kKey5;
-	case 22:	return GHOST_kKey6;
-	case 26:	return GHOST_kKey7;
-	case 28:	return GHOST_kKey8;
-	case 25:	return GHOST_kKey9;
-	case 29:	return GHOST_kKey0;
+		/*Physical keycodes not used due to map changes in int'l keyboards
+		case kVK_ANSI_A:	return GHOST_kKeyA;
+		case kVK_ANSI_B:	return GHOST_kKeyB;
+		case kVK_ANSI_C:	return GHOST_kKeyC;
+		case kVK_ANSI_D:	return GHOST_kKeyD;
+		case kVK_ANSI_E:	return GHOST_kKeyE;
+		case kVK_ANSI_F:	return GHOST_kKeyF;
+		case kVK_ANSI_G:	return GHOST_kKeyG;
+		case kVK_ANSI_H:	return GHOST_kKeyH;
+		case kVK_ANSI_I:	return GHOST_kKeyI;
+		case kVK_ANSI_J:	return GHOST_kKeyJ;
+		case kVK_ANSI_K:	return GHOST_kKeyK;
+		case kVK_ANSI_L:	return GHOST_kKeyL;
+		case kVK_ANSI_M:	return GHOST_kKeyM;
+		case kVK_ANSI_N:	return GHOST_kKeyN;
+		case kVK_ANSI_O:	return GHOST_kKeyO;
+		case kVK_ANSI_P:	return GHOST_kKeyP;
+		case kVK_ANSI_Q:	return GHOST_kKeyQ;
+		case kVK_ANSI_R:	return GHOST_kKeyR;
+		case kVK_ANSI_S:	return GHOST_kKeyS;
+		case kVK_ANSI_T:	return GHOST_kKeyT;
+		case kVK_ANSI_U:	return GHOST_kKeyU;
+		case kVK_ANSI_V:	return GHOST_kKeyV;
+		case kVK_ANSI_W:	return GHOST_kKeyW;
+		case kVK_ANSI_X:	return GHOST_kKeyX;
+		case kVK_ANSI_Y:	return GHOST_kKeyY;
+		case kVK_ANSI_Z:	return GHOST_kKeyZ;*/
+		
+		/* Numbers keys mapped to handle some int'l keyboard (e.g. French)*/
+		case kVK_ISO_Section: return	GHOST_kKeyUnknown;
+		case kVK_ANSI_1:	return GHOST_kKey1;
+		case kVK_ANSI_2:	return GHOST_kKey2;
+		case kVK_ANSI_3:	return GHOST_kKey3;
+		case kVK_ANSI_4:	return GHOST_kKey4;
+		case kVK_ANSI_5:	return GHOST_kKey5;
+		case kVK_ANSI_6:	return GHOST_kKey6;
+		case kVK_ANSI_7:	return GHOST_kKey7;
+		case kVK_ANSI_8:	return GHOST_kKey8;
+		case kVK_ANSI_9:	return GHOST_kKey9;
+		case kVK_ANSI_0:	return GHOST_kKey0;
 	
-	case 82: 	return GHOST_kKeyNumpad0;
-	case 83: 	return GHOST_kKeyNumpad1;
-	case 84: 	return GHOST_kKeyNumpad2;
-	case 85: 	return GHOST_kKeyNumpad3;
-	case 86: 	return GHOST_kKeyNumpad4;
-	case 87: 	return GHOST_kKeyNumpad5;
-	case 88: 	return GHOST_kKeyNumpad6;
-	case 89: 	return GHOST_kKeyNumpad7;
-	case 91: 	return GHOST_kKeyNumpad8;
-	case 92: 	return GHOST_kKeyNumpad9;
-	case 65: 	return GHOST_kKeyNumpadPeriod;
-	case 76: 	return GHOST_kKeyNumpadEnter;
-	case 69: 	return GHOST_kKeyNumpadPlus;
-	case 78: 	return GHOST_kKeyNumpadMinus;
-	case 67: 	return GHOST_kKeyNumpadAsterisk;
-	case 75: 	return GHOST_kKeyNumpadSlash;
+		case kVK_ANSI_Keypad0:			return GHOST_kKeyNumpad0;
+		case kVK_ANSI_Keypad1:			return GHOST_kKeyNumpad1;
+		case kVK_ANSI_Keypad2:			return GHOST_kKeyNumpad2;
+		case kVK_ANSI_Keypad3:			return GHOST_kKeyNumpad3;
+		case kVK_ANSI_Keypad4:			return GHOST_kKeyNumpad4;
+		case kVK_ANSI_Keypad5:			return GHOST_kKeyNumpad5;
+		case kVK_ANSI_Keypad6:			return GHOST_kKeyNumpad6;
+		case kVK_ANSI_Keypad7:			return GHOST_kKeyNumpad7;
+		case kVK_ANSI_Keypad8:			return GHOST_kKeyNumpad8;
+		case kVK_ANSI_Keypad9:			return GHOST_kKeyNumpad9;
+		case kVK_ANSI_KeypadDecimal: 	return GHOST_kKeyNumpadPeriod;
+		case kVK_ANSI_KeypadEnter:		return GHOST_kKeyNumpadEnter;
+		case kVK_ANSI_KeypadPlus:		return GHOST_kKeyNumpadPlus;
+		case kVK_ANSI_KeypadMinus:		return GHOST_kKeyNumpadMinus;
+		case kVK_ANSI_KeypadMultiply: 	return GHOST_kKeyNumpadAsterisk;
+		case kVK_ANSI_KeypadDivide: 	return GHOST_kKeyNumpadSlash;
+		case kVK_ANSI_KeypadClear:		return GHOST_kKeyUnknown;
+
+		case kVK_F1:				return GHOST_kKeyF1;
+		case kVK_F2:				return GHOST_kKeyF2;
+		case kVK_F3:				return GHOST_kKeyF3;
+		case kVK_F4:				return GHOST_kKeyF4;
+		case kVK_F5:				return GHOST_kKeyF5;
+		case kVK_F6:				return GHOST_kKeyF6;
+		case kVK_F7:				return GHOST_kKeyF7;
+		case kVK_F8:				return GHOST_kKeyF8;
+		case kVK_F9:				return GHOST_kKeyF9;
+		case kVK_F10:				return GHOST_kKeyF10;
+		case kVK_F11:				return GHOST_kKeyF11;
+		case kVK_F12:				return GHOST_kKeyF12;
+		case kVK_F13:				return GHOST_kKeyF13;
+		case kVK_F14:				return GHOST_kKeyF14;
+		case kVK_F15:				return GHOST_kKeyF15;
+		case kVK_F16:				return GHOST_kKeyF16;
+		case kVK_F17:				return GHOST_kKeyF17;
+		case kVK_F18:				return GHOST_kKeyF18;
+		case kVK_F19:				return GHOST_kKeyF19;
+		case kVK_F20:				return GHOST_kKeyF20;
+			
+		case kVK_UpArrow:			return GHOST_kKeyUpArrow;
+		case kVK_DownArrow:			return GHOST_kKeyDownArrow;
+		case kVK_LeftArrow:			return GHOST_kKeyLeftArrow;
+		case kVK_RightArrow:		return GHOST_kKeyRightArrow;
+			
+		case kVK_Return:			return GHOST_kKeyEnter;
+		case kVK_Delete:			return GHOST_kKeyBackSpace;
+		case kVK_ForwardDelete:		return GHOST_kKeyDelete;
+		case kVK_Escape:			return GHOST_kKeyEsc;
+		case kVK_Tab:				return GHOST_kKeyTab;
+		case kVK_Space:				return GHOST_kKeySpace;
+			
+		case kVK_Home:				return GHOST_kKeyHome;
+		case kVK_End:				return GHOST_kKeyEnd;
+		case kVK_PageUp:			return GHOST_kKeyUpPage;
+		case kVK_PageDown:			return GHOST_kKeyDownPage;
+			
+		/*case kVK_ANSI_Minus:		return GHOST_kKeyMinus;
+		case kVK_ANSI_Equal:		return GHOST_kKeyEqual;
+		case kVK_ANSI_Comma:		return GHOST_kKeyComma;
+		case kVK_ANSI_Period:		return GHOST_kKeyPeriod;
+		case kVK_ANSI_Slash:		return GHOST_kKeySlash;
+		case kVK_ANSI_Semicolon: 	return GHOST_kKeySemicolon;
+		case kVK_ANSI_Quote:		return GHOST_kKeyQuote;
+		case kVK_ANSI_Backslash: 	return GHOST_kKeyBackslash;
+		case kVK_ANSI_LeftBracket: 	return GHOST_kKeyLeftBracket;
+		case kVK_ANSI_RightBracket:	return GHOST_kKeyRightBracket;
+		case kVK_ANSI_Grave:		return GHOST_kKeyAccentGrave;*/
+			
+		case kVK_VolumeUp:
+		case kVK_VolumeDown:
+		case kVK_Mute:
+			return GHOST_kKeyUnknown;
+			
+		default:
+			/*Then detect on character value for "remappable" keys in int'l keyboards*/
+			if ((recvChar >= 'A') && (recvChar <= 'Z')) {
+				return (GHOST_TKey) (recvChar - 'A' + GHOST_kKeyA);
+			} else if ((recvChar >= 'a') && (recvChar <= 'z')) {
+				return (GHOST_TKey) (recvChar - 'a' + GHOST_kKeyA);
+			} else
+			switch (recvChar) {
+				case '-': 	return GHOST_kKeyMinus;
+				case '=': 	return GHOST_kKeyEqual;
+				case ',': 	return GHOST_kKeyComma;
+				case '.': 	return GHOST_kKeyPeriod;
+				case '/': 	return GHOST_kKeySlash;
+				case ';': 	return GHOST_kKeySemicolon;
+				case '\'': 	return GHOST_kKeyQuote;
+				case '\\': 	return GHOST_kKeyBackslash;
+				case '[': 	return GHOST_kKeyLeftBracket;
+				case ']': 	return GHOST_kKeyRightBracket;
+				case '`': 	return GHOST_kKeyAccentGrave;
+				default:
+					return GHOST_kKeyUnknown;
+			}
 	}
-	
-	if ((asciiCharacter >= 'a') && (asciiCharacter <= 'z')) {
-		return (GHOST_TKey) (asciiCharacter - 'a' + GHOST_kKeyA);
-	} else if ((asciiCharacter >= '0') && (asciiCharacter <= '9')) {
-		return (GHOST_TKey) (asciiCharacter - '0' + GHOST_kKey0);
-	} else if (asciiCharacter==16) {
-		switch (rawCode) {
-		case 122: 	return GHOST_kKeyF1;
-		case 120: 	return GHOST_kKeyF2;
-		case 99: 	return GHOST_kKeyF3;
-		case 118: 	return GHOST_kKeyF4;
-		case 96: 	return GHOST_kKeyF5;
-		case 97: 	return GHOST_kKeyF6;
-		case 98: 	return GHOST_kKeyF7;
-		case 100: 	return GHOST_kKeyF8;
-		case 101: 	return GHOST_kKeyF9;
-		case 109: 	return GHOST_kKeyF10;
-		case 103: 	return GHOST_kKeyF11;
-		case 111: 	return GHOST_kKeyF12;  // FIXME : Never get, is used for ejecting the CD! 
-		}
-	} else {
-		switch (asciiCharacter) {
-		case kUpArrowCharCode: 		return GHOST_kKeyUpArrow;
-		case kDownArrowCharCode: 	return GHOST_kKeyDownArrow;
-		case kLeftArrowCharCode: 	return GHOST_kKeyLeftArrow;
-		case kRightArrowCharCode: 	return GHOST_kKeyRightArrow;
-
-		case kReturnCharCode: 		return GHOST_kKeyEnter;
-		case kBackspaceCharCode: 	return GHOST_kKeyBackSpace;
-		case kDeleteCharCode:		return GHOST_kKeyDelete;
-		case kEscapeCharCode: 		return GHOST_kKeyEsc;
-		case kTabCharCode: 			return GHOST_kKeyTab;
-		case kSpaceCharCode: 		return GHOST_kKeySpace;
-
-		case kHomeCharCode: 		return GHOST_kKeyHome;
-		case kEndCharCode:			return GHOST_kKeyEnd;
-		case kPageUpCharCode: 		return GHOST_kKeyUpPage;
-		case kPageDownCharCode: 	return GHOST_kKeyDownPage;
-
-		case '-': 	return GHOST_kKeyMinus;
-		case '=': 	return GHOST_kKeyEqual;
-		case ',': 	return GHOST_kKeyComma;
-		case '.': 	return GHOST_kKeyPeriod;
-		case '/': 	return GHOST_kKeySlash;
-		case ';': 	return GHOST_kKeySemicolon;
-		case '\'': 	return GHOST_kKeyQuote;
-		case '\\': 	return GHOST_kKeyBackslash;
-		case '[': 	return GHOST_kKeyLeftBracket;
-		case ']': 	return GHOST_kKeyRightBracket;
-		case '`': 	return GHOST_kKeyAccentGrave;
-		}
-	}
-	
-	// printf("GHOST: unknown key: %d %d\n", vk, rawCode);
-	
 	return GHOST_kKeyUnknown;
 }
 
@@ -349,6 +391,7 @@ static unsigned char convertRomanToLatin(unsigned char ascii)
 static bool g_hasFirstFile = false;
 static char g_firstFileBuf[512];
 
+//TODO:Need to investigate this. Function called too early in creator.c to have g_hasFirstFile == true
 extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) { 
 	if (g_hasFirstFile) {
 		strncpy(buf, g_firstFileBuf, FIRSTFILEBUFLG - 1);
@@ -375,6 +418,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 {
 	//Note that Cmd+Q is already handled by keyhandler
     //FIXME: Cocoa_SendQuit();
+	//sys->pushEvent( new GHOST_Event(sys->getMilliSeconds(), GHOST_kEventQuit, NULL) );
     return NSTerminateCancel;
 }
 @end
@@ -427,13 +471,12 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 			SetFrontProcess(&psn);
 		}*/
 		
-		autoReleasePool = [[NSAutoreleasePool alloc] init];
+		m_autoReleasePool = [[NSAutoreleasePool alloc] init];
 		if (NSApp == nil) {
 			[NSApplication sharedApplication];
 			
 			if ([NSApp mainMenu] == nil) {
 				//FIXME: CreateApplicationMenus();
-				printf("Creating main menu");
 			}
 			[NSApp finishLaunching];
 		}
@@ -467,8 +510,8 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 
 GHOST_TSuccess GHOST_SystemCocoa::exit()
 {
-	NSAutoreleasePool* pool = (NSAutoreleasePool *)autoReleasePool;
-	[pool release];
+	NSAutoreleasePool* pool = (NSAutoreleasePool *)m_autoReleasePool;
+	[pool drain];
     return GHOST_System::exit();
 }
 
@@ -476,7 +519,7 @@ GHOST_TSuccess GHOST_SystemCocoa::exit()
 
 GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
 {
-	//FIXME : replace by Cocoa equivalent
+	//Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
 	int mib[2];
 	struct timeval boottime;
 	size_t len;
@@ -587,16 +630,10 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
 GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
 {
 	float xf=(float)x, yf=(float)y;
-	//TODO:cocoatize this
+
 	CGAssociateMouseAndMouseCursorPosition(false);
-	CGSetLocalEventsSuppressionInterval(0);
 	CGWarpMouseCursorPosition(CGPointMake(xf, yf));
 	CGAssociateMouseAndMouseCursorPosition(true);
-
-//this doesn't work properly, see game engine mouse-look scripts
-//	CGWarpMouseCursorPosition(CGPointMake(xf, yf));
-	// this call below sends event, but empties other events (like shift)
-	// CGPostMouseEvent(CGPointMake(xf, yf), TRUE, 1, FALSE, 0);
 
     return GHOST_kSuccess;
 }
@@ -635,15 +672,22 @@ GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons& buttons) const
  */
 bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 {
-	bool anyProcessed = false;
+	NSAutoreleasePool* pool = (NSAutoreleasePool*)m_autoReleasePool;
+	//bool anyProcessed = false;
 	NSEvent *event;
+	
+	//Reinit the AutoReleasePool
+	//This is not done the typical Cocoa way (init at beginning of loop, and drain at the end)
+	//to allow pool to work with other function calls outside this loop (but in same thread)
+	[pool drain];
+	m_autoReleasePool = [[NSAutoreleasePool alloc] init];
 	
 	//	SetMouseCoalescingEnabled(false, NULL);
 	//TODO : implement timer ??
 	
-	do {
-		//GHOST_TimerManager* timerMgr = getTimerManager();
-		/*
+	/*do {
+		GHOST_TimerManager* timerMgr = getTimerManager();
+		
 		 if (waitForEvent) {
 		 GHOST_TUns64 next = timerMgr->nextFireTime();
 		 double timeOut;
@@ -681,7 +725,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 			if (event==nil)
 				break;
 			
-			anyProcessed = true;
+			//anyProcessed = true;
 			
 			switch ([event type]) {
 				case NSKeyDown:
@@ -689,7 +733,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				case NSFlagsChanged:
 					handleKeyEvent(event);
 					
-					/* Support system-wide keyboard shortcuts, like Exposé, ...) */
+					/* Support system-wide keyboard shortcuts, like Exposé, ...) =>included in always NSApp sendEvent */
 					/*		if (([event modifierFlags] & NSCommandKeyMask) || [event type] == NSFlagsChanged) {
 					 [NSApp sendEvent:event];
 					 }*/
@@ -738,15 +782,15 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 			//Resend event to NSApp to ensure Mac wide events are handled
 			[NSApp sendEvent:event];
 		} while (event!= nil);		
-	} while (waitForEvent && !anyProcessed);
+	//} while (waitForEvent && !anyProcessed); Needed only for timer implementation
 	
-    return anyProcessed;
+	
+    return true; //anyProcessed;
 }
 
 //TODO: To be called from NSWindow delegate
 int GHOST_SystemCocoa::handleWindowEvent(void *eventPtr)
 {
-	int err = eventNotHandledErr;
 	/*WindowRef windowRef;
 	GHOST_WindowCocoa *window;
 	
@@ -795,7 +839,7 @@ int GHOST_SystemCocoa::handleWindowEvent(void *eventPtr)
 		//::RemoveEventFromQueue(::GetMainEventQueue(), event);
 	//}
 	*/
-	return err;
+	return GHOST_kSuccess;
 }
 
 int GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
@@ -803,13 +847,27 @@ int GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	GHOST_TabletData& ct=((GHOST_WindowCocoa*)window)->GetCocoaTabletData();
+	NSUInteger tabletEvent;
 	
 	ct.Pressure = 0;
 	ct.Xtilt = 0;
 	ct.Ytilt = 0;
 	
+	//Handle tablet events combined with mouse events
+	switch ([event subtype]) {
+		case NX_SUBTYPE_TABLET_POINT:
+			tabletEvent = NSTabletPoint;
+			break;
+		case NX_SUBTYPE_TABLET_PROXIMITY:
+			tabletEvent = NSTabletProximity;
+			break;
+
+		default:
+			tabletEvent = [event type];
+			break;
+	}
 	
-	switch ([event type]) {
+	switch (tabletEvent) {
 		case NSTabletPoint:
 			ct.Pressure = [event tangentialPressure];
 			ct.Xtilt = [event tilt].x;
@@ -841,9 +899,10 @@ int GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 		
 		default:
 			GHOST_ASSERT(FALSE,"GHOST_SystemCocoa::handleTabletEvent : unknown event received");
+			return GHOST_kFailure;
 			break;
 	}
-	return noErr;
+	return GHOST_kSuccess;
 }
 
 
@@ -851,16 +910,16 @@ int GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
     GHOST_IWindow* window = m_windowManager->getActiveWindow();
-			
+	
 	switch ([event type])
     {
-			//TODO: check for tablet subtype events
 		case NSLeftMouseDown:
 		case NSRightMouseDown:
 		case NSOtherMouseDown:
 			if (m_windowManager->getActiveWindow()) {
 				pushEvent(new GHOST_EventButton([event timestamp], GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
 			}
+			handleTabletEvent(eventPtr);
 			break;
 						
 		case NSLeftMouseUp:
@@ -869,12 +928,14 @@ int GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			if (m_windowManager->getActiveWindow()) {
 				pushEvent(new GHOST_EventButton([event timestamp], GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
 			}
+			handleTabletEvent(eventPtr);
 			break;
 			
-		case NSMouseMoved:
 		case NSLeftMouseDragged:
 		case NSRightMouseDragged:
 		case NSOtherMouseDragged:				
+			handleTabletEvent(eventPtr);
+		case NSMouseMoved:
 			{
 				NSPoint mousePos = [event locationInWindow];
 				pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
@@ -889,46 +950,44 @@ int GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
 			}
 			break;
+			
+		default:
+			return GHOST_kFailure;
+			break;
 		}
 	
-	return noErr;
+	return GHOST_kSuccess;
 }
 
 
 int GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-	OSStatus err = eventNotHandledErr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	NSUInteger modifiers;
-	unsigned short rawCode;
-	GHOST_TKey key;
+	GHOST_TKey keyCode;
 	unsigned char ascii;
 
 	/* Can happen, very rarely - seems to only be when command-H makes
 	 * the window go away and we still get an HKey up. 
 	 */
 	if (!window) {
-		//::GetEventParameter(event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &rawCode);
-		//key = convertKey(rawCode);
-		return err;
+		return GHOST_kFailure;
 	}
 	
-	err = noErr;
 	switch ([event type]) {
 		case NSKeyDown:
 		case NSKeyUp:
-			rawCode = [event keyCode];
-			ascii = [[event characters] characterAtIndex:0];
-	
-			key = convertKey(rawCode,ascii);
-			ascii= convertRomanToLatin(ascii);
+			keyCode = convertKey([event keyCode],
+							 [[event charactersIgnoringModifiers] characterAtIndex:0]);
+			ascii= convertRomanToLatin((char)[[event characters] characterAtIndex:0]);
 			
 			if ([event type] == NSKeyDown) {
-				pushEvent( new GHOST_EventKey([event timestamp], GHOST_kEventKeyDown, window, key, ascii) );
-				} else {
-					pushEvent( new GHOST_EventKey([event timestamp], GHOST_kEventKeyUp, window, key, ascii) );
-				}
+				pushEvent( new GHOST_EventKey([event timestamp], GHOST_kEventKeyDown, window, keyCode, ascii) );
+				//printf("\nKey pressed keyCode=%u ascii=%i %c",keyCode,ascii,ascii);
+			} else {
+				pushEvent( new GHOST_EventKey([event timestamp], GHOST_kEventKeyUp, window, keyCode, ascii) );
+			}
 			break;
 	
 		case NSFlagsChanged: 
@@ -950,11 +1009,11 @@ int GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			break;
 			
 		default:
-			err = eventNotHandledErr;
+			return GHOST_kFailure;
 			break;
 	}
 	
-	return err;
+	return GHOST_kSuccess;
 }
 
 
@@ -1157,6 +1216,8 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	
 	[pasteBoard setString:textToCopy forType:@"public.utf8-plain-text"];
 	
+	printf("\nCopy");
+	
 }
 
 #pragma mark Carbon stuff to remove
@@ -1227,56 +1288,5 @@ OSErr GHOST_SystemCarbon::sAEHandlerQuit(const AppleEvent *event, AppleEvent *re
 	sys->pushEvent( new GHOST_Event(sys->getMilliSeconds(), GHOST_kEventQuit, NULL) );
 	
 	return noErr;
-}
-
-OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData)
-{
-	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) userData;
-    OSStatus err = eventNotHandledErr;
-	GHOST_IWindow* window;
-	GHOST_TEventNDOFData data;
-	UInt32 kind;
-	
-    switch (::GetEventClass(event))
-    {
-		case kEventClassAppleEvent:
-			EventRecord eventrec;
-			if (ConvertEventRefToEventRecord(event, &eventrec)) {
-				err = AEProcessAppleEvent(&eventrec);
-			}
-			break;
-        case kEventClassMouse:
-            err = sys->handleMouseEvent(event);
-            break;
-		case kEventClassWindow:
-			err = sys->handleWindowEvent(event);
-			break;
-		case kEventClassKeyboard:
-			err = sys->handleKeyEvent(event);
-			break;
- 		case kEventClassBlender :
-			window = sys->m_windowManager->getActiveWindow();
-			sys->m_ndofManager->GHOST_NDOFGetDatas(data);
-			kind = ::GetEventKind(event);
-			
-			switch (kind)
-		{
-			case 1:
-				sys->m_eventManager->pushEvent(new GHOST_EventNDOF(sys->getMilliSeconds(), GHOST_kEventNDOFMotion, window, data));
-				//				printf("motion\n");
-				break;
-			case 2:
-				sys->m_eventManager->pushEvent(new GHOST_EventNDOF(sys->getMilliSeconds(), GHOST_kEventNDOFButton, window, data));
-				//					printf("button\n");
-				break;
-		}
-			err = noErr;
-			break;
-		default : 
- 			;
-			break;
-	}
-	
-    return err;
 }
 #endif

@@ -252,7 +252,7 @@ protected:
     //static void s_timerCallback(TMTaskPtr tmTask);
     
 	/** Cocoa autoReleasePool (void*) used for enablign standard C++ compilation */
-	void* autoReleasePool;
+	void* m_autoReleasePool;
 	
     /** Event handler reference. */
     //EventHandlerRef m_handler;
