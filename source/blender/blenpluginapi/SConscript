@@ -11,4 +11,11 @@ if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
 	incs += ' ' + env['BF_QUICKTIME_INC']
 
+if env['OURPLATFORM'] == 'linux2':
+    cflags='-pthread'
+    incs += ' ../../../extern/binreloc/include'
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs += ' ' + env['BF_PTHREADS_INC']
+
 env.BlenderLib ( libname = 'bf_blenpluginapi', sources = sources, includes = Split(incs), defines = defs, libtype=['core'], priority = [170] )
