@@ -42,9 +42,10 @@ class MRenderSlave(netrender.model.RenderSlave):
 			self.job = None
 
 class MRenderJob(netrender.model.RenderJob):
-	def __init__(self, job_id, name, files, chunks = 1, priority = 1, blacklist = []):
+	def __init__(self, job_id, job_type, name, files, chunks = 1, priority = 1, blacklist = []):
 		super().__init__()
 		self.id = job_id
+		self.type = job_type
 		self.name = name
 		self.files = files
 		self.frames = []
@@ -53,6 +54,10 @@ class MRenderJob(netrender.model.RenderJob):
 		self.usage = 0.0
 		self.blacklist = blacklist
 		self.last_dispatched = time.time()
+		
+		# force one chunk for process jobs
+		if self.type == netrender.model.JOB_PROCESS:
+			self.chunks = 1
 	
 		# special server properties
 		self.last_update = 0
@@ -93,8 +98,8 @@ class MRenderJob(netrender.model.RenderJob):
 			if frame:
 				frame.log_path = log_path
 	
-	def addFrame(self, frame_number):
-		frame = MRenderFrame(frame_number)
+	def addFrame(self, frame_number, command):
+		frame = MRenderFrame(frame_number, command)
 		self.frames.append(frame)
 		return frame
 		
@@ -114,12 +119,14 @@ class MRenderJob(netrender.model.RenderJob):
 		return frames
 
 class MRenderFrame(netrender.model.RenderFrame):
-	def __init__(self, frame):
+	def __init__(self, frame, command):
 		super().__init__()
 		self.number = frame
 		self.slave = None
 		self.time = 0
 		self.status = QUEUED
+		self.command = command
+		
 		self.log_path = None
 		
 	def reset(self, all):
@@ -368,10 +375,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			
 			job_id = self.server.nextJobID()
 			
-			job = MRenderJob(job_id, job_info.name, job_info.files, chunks = job_info.chunks, priority = job_info.priority, blacklist = job_info.blacklist)
+			job = MRenderJob(job_id, job_info.type, job_info.name, job_info.files, chunks = job_info.chunks, priority = job_info.priority, blacklist = job_info.blacklist)
 			
 			for frame in job_info.frames:
-				frame = job.addFrame(frame.number)
+				frame = job.addFrame(frame.number, frame.command)
 			
 			self.server.addJob(job)
 			
@@ -538,17 +545,18 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 					frame = job[job_frame]
 					
 					if frame:
-						if job_result == DONE:
-							length = int(self.headers['content-length'])
-							buf = self.rfile.read(length)
-							f = open(job.save_path + "%04d" % job_frame + ".exr", 'wb')
-							f.write(buf)
-							f.close()
+						if job.type == netrender.model.JOB_BLENDER:
+							if job_result == DONE:
+								length = int(self.headers['content-length'])
+								buf = self.rfile.read(length)
+								f = open(job.save_path + "%04d" % job_frame + ".exr", 'wb')
+								f.write(buf)
+								f.close()
 							
-							del buf
-						elif job_result == ERROR:
-							# blacklist slave on this job on error
-							job.blacklist.append(slave.id)
+								del buf
+							elif job_result == ERROR:
+								# blacklist slave on this job on error
+								job.blacklist.append(slave.id)
 						
 						self.server.stats("", "Receiving result")
 						

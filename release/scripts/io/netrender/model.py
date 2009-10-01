@@ -72,9 +72,18 @@ class RenderSlave:
 			
 			return slave
 
+JOB_BLENDER = 1
+JOB_PROCESS = 2
+
+JOB_TYPES = {
+							JOB_BLENDER: "Blender",
+							JOB_PROCESS: "Process"
+						}
+
 class RenderJob:
 	def __init__(self):
 		self.id = ""
+		self.type = JOB_BLENDER
 		self.name = ""
 		self.files = []
 		self.frames = []
@@ -87,8 +96,8 @@ class RenderJob:
 	def addFile(self, file_path, start=-1, end=-1):
 		self.files.append((file_path, start, end))
 	
-	def addFrame(self, frame_number):
-		frame = RenderFrame(frame_number)
+	def addFrame(self, frame_number, command = ""):
+		frame = RenderFrame(frame_number, command)
 		self.frames.append(frame)
 		return frame
 	
@@ -138,6 +147,7 @@ class RenderJob:
 		max_frame = max((f.number for f in frames)) if frames else -1
 		return 	{
 							"id": self.id,
+							"type": self.type,
 							"name": self.name,
 							"files": [f for f in self.files if f[1] == -1 or not frames or (f[1] <= min_frame <= f[2] or f[1] <= max_frame <= f[2])],
 							"frames": [f.serialize() for f in self.frames if not frames or f in frames],
@@ -155,6 +165,7 @@ class RenderJob:
 		
 		job = RenderJob()
 		job.id = data["id"]
+		job.type = data["type"]
 		job.name = data["name"]
 		job.files = data["files"]
 		job.frames = [RenderFrame.materialize(f) for f in data["frames"]]
@@ -167,11 +178,12 @@ class RenderJob:
 		return job
 
 class RenderFrame:
-	def __init__(self, number = 0):
+	def __init__(self, number = 0, command = ""):
 		self.number = number
 		self.time = 0
 		self.status = QUEUED
 		self.slave = None
+		self.command = command
 
 	def statusText(self):
 		return STATUS_TEXT[self.status]
@@ -181,7 +193,8 @@ class RenderFrame:
 							"number": self.number,
 							"time": self.time,
 							"status": self.status,
-							"slave": None if not self.slave else self.slave.serialize()
+							"slave": None if not self.slave else self.slave.serialize(),
+							"command": self.command
 						}
 						
 	@staticmethod
@@ -194,5 +207,6 @@ class RenderFrame:
 		frame.time = data["time"]
 		frame.status = data["status"]
 		frame.slave = RenderSlave.materialize(data["slave"])
+		frame.command = data["command"]
 
 		return frame

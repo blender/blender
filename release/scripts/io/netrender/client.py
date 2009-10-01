@@ -3,12 +3,12 @@ import sys, os, re
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
 
+import netrender.model
 import netrender.slave as slave
 import netrender.master as master
 from netrender.utils import *
 
-
-def clientSendJob(conn, scene, anim = False, chunks = 5):
+def clientSendJob(conn, scene, anim = False):
 	netsettings = scene.network_render
 	job = netrender.model.RenderJob()
 	

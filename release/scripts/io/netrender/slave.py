@@ -99,37 +99,46 @@ def render_slave(engine, scene):
 				if not os.path.exists(JOB_PREFIX):
 					os.mkdir(JOB_PREFIX)
 				
-				job_path = job.files[0][0] # data in files have format (path, start, end)
-				main_path, main_file = os.path.split(job_path)
 				
-				job_full_path = testFile(conn, job.id, slave_id, JOB_PREFIX, job_path)
-				print("Fullpath", job_full_path)
-				print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
-				engine.update_stats("", "Render File", main_file, "for job", job.id)
-				
-				for file_path, start, end in job.files[1:]:
-					print("\t", file_path)
-					testFile(conn, job.id, slave_id, JOB_PREFIX, file_path, main_path)
-				
-				frame_args = []
-				
-				for frame in job.frames:
-					print("frame", frame.number)
-					frame_args += ["-f", str(frame.number)]
-				
+				if job.type == netrender.model.JOB_BLENDER:
+					job_path = job.files[0][0] # data in files have format (path, start, end)
+					main_path, main_file = os.path.split(job_path)
+					
+					job_full_path = testFile(conn, job.id, slave_id, JOB_PREFIX, job_path)
+					print("Fullpath", job_full_path)
+					print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
+					engine.update_stats("", "Render File", main_file, "for job", job.id)
+					
+					for file_path, start, end in job.files[1:]:
+						print("\t", file_path)
+						testFile(conn, job.id, slave_id, JOB_PREFIX, file_path, main_path)
+
 				# announce log to master
 				logfile = netrender.model.LogFile(job.id, [frame.number for frame in job.frames])
 				conn.request("POST", "/log", bytes(repr(logfile.serialize()), encoding='utf8'), headers={"slave-id":slave_id})
 				response = conn.getresponse()
 				
-				first_frame = job.frames[0].number
 				
+				first_frame = job.frames[0].number
+					
 				# start render
 				start_t = time.time()
-				
-				val = SetErrorMode()
-				process = subprocess.Popen([sys.argv[0], "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-				RestoreErrorMode(val)
+					
+				if job.type == netrender.model.JOB_BLENDER:
+					frame_args = []
+					
+					for frame in job.frames:
+						print("frame", frame.number)
+						frame_args += ["-f", str(frame.number)]
+					
+					val = SetErrorMode()
+					process = subprocess.Popen([sys.argv[0], "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+					RestoreErrorMode(val)
+				elif job.type == netrender.model.JOB_PROCESS:
+					command = job.frames[0].command
+					val = SetErrorMode()
+					process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+					RestoreErrorMode(val)
 				
 				headers = {"job-id":job.id, "slave-id":slave_id}
 				
@@ -154,6 +163,9 @@ def render_slave(engine, scene):
 						run_t = current_t
 						if testCancel(conn, job.id, first_frame):
 							cancelled = True
+				
+				# read leftovers if needed
+				stdout += process.stdout.read()
 				
 				if cancelled:
 					# kill process if needed
@@ -182,11 +194,16 @@ def render_slave(engine, scene):
 					headers["job-result"] = str(DONE)
 					for frame in job.frames:
 						headers["job-frame"] = str(frame.number)
-						# send result back to server
-						f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
-						conn.request("PUT", "/render", f, headers=headers)
-						f.close()
-						response = conn.getresponse()
+						
+						if job.type == netrender.model.JOB_BLENDER:
+							# send image back to server
+							f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
+							conn.request("PUT", "/render", f, headers=headers)
+							f.close()
+							response = conn.getresponse()
+						elif job.type == netrender.model.JOB_PROCESS:
+							conn.request("PUT", "/render", headers=headers)
+							response = conn.getresponse()
 				else:
 					headers["job-result"] = str(ERROR)
 					for frame in job.frames:
