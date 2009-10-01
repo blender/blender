@@ -559,6 +559,36 @@ void default_mtex(MTex *mtex)
 	mtex->norfac= 1.0;
 	mtex->varfac= 1.0;
 	mtex->dispfac=0.2;
+	mtex->colspecfac= 1.0f;
+	mtex->mirrfac= 1.0f;
+	mtex->alphafac= 1.0f;
+	mtex->difffac= 1.0f;
+	mtex->specfac= 1.0f;
+	mtex->emitfac= 1.0f;
+	mtex->hardfac= 1.0f;
+	mtex->raymirrfac= 1.0f;
+	mtex->translfac= 1.0f;
+	mtex->ambfac= 1.0f;
+	mtex->colemitfac= 1.0f;
+	mtex->colreflfac= 1.0f;
+	mtex->coltransfac= 1.0f;
+	mtex->densfac= 1.0f;
+	mtex->scatterfac= 1.0f;
+	mtex->reflfac= 1.0f;
+	mtex->shadowfac= 1.0f;
+	mtex->zenupfac= 1.0f;
+	mtex->zendownfac= 1.0f;
+	mtex->blendfac= 1.0f;
+	mtex->timefac= 1.0f;
+	mtex->lengthfac= 1.0f;
+	mtex->clumpfac= 1.0f;
+	mtex->kinkfac= 1.0f;
+	mtex->roughfac= 1.0f;
+	mtex->padensfac= 1.0f;
+	mtex->lifefac= 1.0f;
+	mtex->sizefac= 1.0f;
+	mtex->ivelfac= 1.0f;
+	mtex->pvelfac= 1.0f;
 	mtex->normapspace= MTEX_NSPACE_TANGENT;
 }
 

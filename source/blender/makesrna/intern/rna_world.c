@@ -174,7 +174,7 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "blend_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_float_sdna(prop, NULL, "blendfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Blend Factor", "Amount texture affects color progression of the background.");
 	RNA_def_property_update(prop, 0, "rna_World_update");
@@ -186,13 +186,13 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "zenith_up_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_float_sdna(prop, NULL, "zenupfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Zenith Up Factor", "Amount texture affects color of the zenith above.");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "zenith_down_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_float_sdna(prop, NULL, "zendownfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Zenith Down Factor", "Amount texture affects color of the zenith below.");
 	RNA_def_property_update(prop, 0, "rna_World_update");

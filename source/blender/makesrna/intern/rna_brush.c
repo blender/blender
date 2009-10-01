@@ -96,7 +96,50 @@ static void rna_Brush_update(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, br);
 }
 
+static float rna_BrushTextureSlot_angle_get(PointerRNA *ptr)
+{
+	MTex *tex= (MTex*)ptr->data;
+	const float conv = 57.295779506;
+	return tex->rot * conv;
+}
+
+static void rna_BrushTextureSlot_angle_set(PointerRNA *ptr, float v)
+{
+	MTex *tex= (MTex*)ptr->data;
+	const float conv = 0.017453293;
+	tex->rot = v * conv;
+}
+
 #else
+
+static void rna_def_brush_texture_slot(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_map_mode_items[] = {
+		{MTEX_MAP_MODE_FIXED, "FIXED", 0, "Fixed", ""},
+		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
+		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "BrushTextureSlot", "TextureSlot");
+	RNA_def_struct_sdna(srna, "MTex");
+	RNA_def_struct_ui_text(srna, "Brush Texture Slot", "Texture slot for textures in a Brush datablock.");
+
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_range(prop, 0, 360);
+	RNA_def_property_float_funcs(prop, "rna_BrushTextureSlot_angle_get", "rna_BrushTextureSlot_angle_set", NULL);
+	RNA_def_property_ui_text(prop, "Angle", "Defines brush texture rotation.");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
+
+	prop= RNA_def_property(srna, "map_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
+	RNA_def_property_enum_items(prop, prop_map_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
+}
 
 static void rna_def_brush(BlenderRNA *brna)
 {
@@ -258,7 +301,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	/* texture */
 	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get",
-		"rna_Brush_active_texture_set", "TextureSlot", "rna_Brush_update");
+		"rna_Brush_active_texture_set", "BrushTextureSlot", "rna_Brush_update");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);
@@ -329,6 +372,7 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 void RNA_def_brush(BlenderRNA *brna)
 {
 	rna_def_brush(brna);
+	rna_def_brush_texture_slot(brna);
 	rna_def_operator_stroke_element(brna);
 }
 

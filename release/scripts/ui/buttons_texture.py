@@ -175,14 +175,14 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 			row.itemR(tex, "z_mapping", text="")
 
 		if br:
-			layout.itemR(tex, "brush_map_mode", expand=True)
+			layout.itemR(tex, "map_mode", expand=True)
 			
 			row = layout.row()
-			row.active = tex.brush_map_mode in ('FIXED', 'TILED')
+			row.active = tex.map_mode in ('FIXED', 'TILED')
 			row.itemR(tex, "angle")
 
 			row = layout.row()
-			row.active = tex.brush_map_mode in ('TILED', '3D')
+			row.active = tex.map_mode in ('TILED', '3D')
 			row.column().itemR(tex, "size")
 		else:
 			row = layout.row()

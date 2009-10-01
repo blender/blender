@@ -124,7 +124,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 	tex->type = value;
 }
 
-static void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
+void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
@@ -276,20 +276,6 @@ static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *
 	return item;
 }
 
-static float rna_TextureSlot_angle_get(PointerRNA *ptr)
-{
-	MTex *tex= (MTex*)ptr->data;
-	const float conv = 57.295779506;
-	return tex->rot * conv;
-}
-
-static void rna_TextureSlot_angle_set(PointerRNA *ptr, float v)
-{
-	MTex *tex= (MTex*)ptr->data;
-	const float conv = 0.017453293;
-	tex->rot = v * conv;
-}
-
 #else
 
 static void rna_def_color_ramp_element(BlenderRNA *brna)
@@ -412,12 +398,6 @@ static void rna_def_mtex(BlenderRNA *brna)
         {MTEX_LIN_LIGHT    , "LINEAR LIGHT", 0, "Linear Light", ""}, 
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem prop_map_mode_items[] = {
-		{MTEX_MAP_MODE_FIXED, "FIXED", 0, "Fixed", ""},
-		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
-		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem output_node_items[] = {
 		{0, "DUMMY", 0, "Dummy", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -480,33 +460,10 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "RGB to Intensity", "Converts texture RGB values to intensity (gray) values.");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_range(prop, 0, 360);
-	RNA_def_property_float_funcs(prop, "rna_TextureSlot_angle_get", "rna_TextureSlot_angle_set", NULL);
-	RNA_def_property_ui_text(prop, "Angle", "Defines brush texture rotation.");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
-
-	prop= RNA_def_property(srna, "brush_map_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_map_mode_items);
-	RNA_def_property_ui_text(prop, "Mode", "");
-
 	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "def_var");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Default Value", "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard.");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
-	
-	prop= RNA_def_property(srna, "variable_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "varfac");
-	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
-	RNA_def_property_ui_text(prop, "Variable Factor", "Amount texture affects other values.");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
-	
-	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "norfac");
-	RNA_def_property_ui_range(prop, 0, 5, 10, 3);
-	RNA_def_property_ui_text(prop, "Normal Factor", "Amount texture affects normal values.");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 	
 	prop= RNA_def_property(srna, "output_node", PROP_ENUM, PROP_NONE);

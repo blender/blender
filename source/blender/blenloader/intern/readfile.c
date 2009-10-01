@@ -6186,7 +6186,70 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 	}		
 }
 
+static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
+{
+	MTex *mtex;
+	float varfac, colfac;
+	int a, neg;
 
+	if(!mtex_array)
+		return;
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(mtex_array[a]) {
+			mtex= mtex_array[a];
+
+			neg= mtex->maptoneg;
+			varfac= mtex->varfac;
+			colfac= mtex->colfac;
+
+			if(neg & MAP_DISP) mtex->dispfac= -mtex->dispfac;
+			if(neg & MAP_NORM) mtex->norfac= -mtex->norfac;
+			if(neg & MAP_WARP) mtex->warpfac= -mtex->warpfac;
+
+			mtex->colspecfac= (neg & MAP_COLSPEC)? -colfac: colfac;
+			mtex->mirrfac= (neg & MAP_COLMIR)? -colfac: colfac;
+			mtex->alphafac= (neg & MAP_ALPHA)? -varfac: varfac;
+			mtex->difffac= (neg & MAP_REF)? -varfac: varfac;
+			mtex->specfac= (neg & MAP_SPEC)? -varfac: varfac;
+			mtex->emitfac= (neg & MAP_EMIT)? -varfac: varfac;
+			mtex->hardfac= (neg & MAP_HAR)? -varfac: varfac;
+			mtex->raymirrfac= (neg & MAP_RAYMIRR)? -varfac: varfac;
+			mtex->translfac= (neg & MAP_TRANSLU)? -varfac: varfac;
+			mtex->ambfac= (neg & MAP_AMB)? -varfac: varfac;
+			mtex->colemitfac= (neg & MAP_EMISSION_COL)? -colfac: colfac;
+			mtex->colreflfac= (neg & MAP_REFLECTION_COL)? -colfac: colfac;
+			mtex->coltransfac= (neg & MAP_TRANSMISSION_COL)? -colfac: colfac;
+			mtex->densfac= (neg & MAP_DENSITY)? -varfac: varfac;
+			mtex->scatterfac= (neg & MAP_SCATTERING)? -varfac: varfac;
+			mtex->reflfac= (neg & MAP_REFLECTION)? -varfac: varfac;
+
+			mtex->timefac= (neg & MAP_PA_TIME)? -varfac: varfac;
+			mtex->lengthfac= (neg & MAP_PA_LENGTH)? -varfac: varfac;
+			mtex->clumpfac= (neg & MAP_PA_CLUMP)? -varfac: varfac;
+			mtex->kinkfac= (neg & MAP_PA_KINK)? -varfac: varfac;
+			mtex->roughfac= (neg & MAP_PA_ROUGH)? -varfac: varfac;
+			mtex->padensfac= (neg & MAP_PA_DENS)? -varfac: varfac;
+			mtex->lifefac= (neg & MAP_PA_LIFE)? -varfac: varfac;
+			mtex->sizefac= (neg & MAP_PA_SIZE)? -varfac: varfac;
+			mtex->ivelfac= (neg & MAP_PA_IVEL)? -varfac: varfac;
+			mtex->pvelfac= (neg & MAP_PA_PVEL)? -varfac: varfac;
+
+			mtex->shadowfac= (neg & LAMAP_SHAD)? -colfac: colfac;
+
+			mtex->zenupfac= (neg & WOMAP_ZENUP)? -colfac: colfac;
+			mtex->zendownfac= (neg & WOMAP_ZENDOWN)? -colfac: colfac;
+			mtex->blendfac= (neg & WOMAP_BLEND)? -varfac: varfac;
+
+			if(idtype == ID_MA)
+				mtex->colfac= (neg & MAP_COL)? -colfac: colfac;
+			else if(idtype == ID_LA)
+				mtex->colfac= (neg & LAMAP_COL)? -colfac: colfac;
+			else if(idtype == ID_WO)
+				mtex->colfac= (neg & WOMAP_HORIZ)? -colfac: colfac;
+		}
+	}
+}
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -9728,11 +9791,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 4)) {
 		Scene *sce;
 		Object *ob;
 		Material *ma;
+		Lamp *la;
+		World *wo;
 		Tex *tex;
 		ParticleSettings *part;
 		int do_gravity = 0;
@@ -9750,19 +9814,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ob->rotmode= ROT_MODE_EUL;
 		}
 		
-		for (ma = main->mat.first; ma; ma=ma->id.next) {
-			if (ma->vol.reflection == 0.f) {
+		for(ma = main->mat.first; ma; ma=ma->id.next) {
+			if(ma->vol.reflection == 0.f) {
 				ma->vol.reflection = 1.f;
 				ma->vol.transmission_col[0] = ma->vol.transmission_col[1] = ma->vol.transmission_col[2] = 1.0f;
 				ma->vol.reflection_col[0] = ma->vol.reflection_col[1] = ma->vol.reflection_col[2] = 1.0f;
 			}
+
+			do_version_mtex_factor_2_50(ma->mtex, ID_MA);
 		}
 
-		for (tex = main->tex.first; tex; tex=tex->id.next) {
-			if (tex->vd) {
-				if (tex->vd->extend == 0) tex->vd->extend = TEX_CLIP;
-			}
-		}
+		for(la = main->lamp.first; la; la=la->id.next)
+			do_version_mtex_factor_2_50(la->mtex, ID_LA);
+
+		for(wo = main->world.first; wo; wo=wo->id.next)
+			do_version_mtex_factor_2_50(wo->mtex, ID_WO);
+
+		for(tex = main->tex.first; tex; tex=tex->id.next)
+			if(tex->vd)
+				if(tex->vd->extend == 0)
+					tex->vd->extend = TEX_CLIP;
 		
 		for(sce= main->scene.first; sce; sce= sce->id.next)
 		{
@@ -9817,6 +9888,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ob->pd->shape = PFIELD_SHAPE_SURFACE;
 			}
 		}
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -2217,11 +2217,12 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
 			psys->tree = BLI_kdtree_new(psys->totpart);
 			
 			LOOP_SHOWN_PARTICLES {
-				if(pa->alive == PARS_ALIVE)
+				if(pa->alive == PARS_ALIVE) {
 					if(pa->state.time == cfra)
 						BLI_kdtree_insert(psys->tree, p, pa->prev_state.co, NULL);
 					else
 						BLI_kdtree_insert(psys->tree, p, pa->state.co, NULL);
+				}
 			}
 			BLI_kdtree_balance(psys->tree);
 
@@ -3134,7 +3135,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part=psys->part;
 	KDTree *tree=0;
-	IpoCurve *icu_esize= NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
+	//IpoCurve *icu_esize= NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
 /*	Material *ma=give_current_material(sim->ob, part->omat); */
 	BoidBrainData bbd;
 	PARTICLE_P;
@@ -3331,7 +3332,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-	IpoCurve *icu_esize = NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
+	//IpoCurve *icu_esize = NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
 /*	Material *ma = give_current_material(sim->ob,part->omat); */
 	PARTICLE_P;
 	float disp, birthtime, dietime, *vg_size= NULL; // XXX ipotime=cfra

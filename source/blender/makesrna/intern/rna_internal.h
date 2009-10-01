@@ -197,6 +197,7 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 void rna_Object_update(struct bContext *C, struct PointerRNA *ptr);
 void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
 void rna_Mesh_update_draw(struct bContext *C, struct PointerRNA *ptr);
+void rna_TextureSlot_update(struct bContext *C, struct PointerRNA *ptr);
 
 /* API functions */
 
