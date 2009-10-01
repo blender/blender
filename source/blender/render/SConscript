@@ -1,8 +1,8 @@
 #!/usr/bin/python
 Import ('env')
 
-cflags = ['-msse2','-mfpmath=sse']
-cxxflags = ['-msse2','-mfpmath=sse']
+cflags = ['-O2','-msse2','-mfpmath=sse']
+cxxflags = ['-O2','-msse2','-mfpmath=sse']
 sources = env.Glob('intern/source/*.c')
 raysources = env.Glob('intern/raytrace/*.cpp')
 

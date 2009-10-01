@@ -42,13 +42,26 @@ static void RE_rayobject_blibvh_done(RayObject *o);
 static void RE_rayobject_blibvh_free(RayObject *o);
 static void RE_rayobject_blibvh_bb(RayObject *o, float *min, float *max);
 
+static float RE_rayobject_blibvh_cost(RayObject *o)
+{
+	//TODO calculate the expected cost to raycast on this structure
+	return 1.0;
+}
+
+static void RE_rayobject_blibvh_hint_bb(RayObject *o, RayHint *hint, float *min, float *max)
+{
+	return;
+}
+
 static RayObjectAPI bvh_api =
 {
 	RE_rayobject_blibvh_intersect,
 	RE_rayobject_blibvh_add,
 	RE_rayobject_blibvh_done,
 	RE_rayobject_blibvh_free,
-	RE_rayobject_blibvh_bb
+	RE_rayobject_blibvh_bb,
+	RE_rayobject_blibvh_cost,
+	RE_rayobject_blibvh_hint_bb
 };
 
 typedef struct BVHObject

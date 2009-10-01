@@ -62,7 +62,6 @@
 #include "raycounter.h"
 
 
-#define USE_VLAK_PRIMITIVES 1
 #define RAY_TRA		1
 #define RAY_TRAFLIP	2
 
@@ -78,15 +77,12 @@ RayObject *  RE_rayobject_create(int type, int size)
 	if(type == R_RAYSTRUCTURE_AUTO)
 	{
 		//TODO
-//		if(detect_simd())
-//			type = R_RAYSTRUCTURE_SIMD_SVBVH;
-//		else
-//			type = R_RAYSTRUCTURE_VBVH;
-
-			type = R_RAYSTRUCTURE_SIMD_QBVH;
+		//if(detect_simd())
+			type = R_RAYSTRUCTURE_SIMD_SVBVH;
+		//else
+		//	type = R_RAYSTRUCTURE_VBVH;
 	}
-	
-	
+		
 	if(type == R_RAYSTRUCTURE_OCTREE)
 	{
 		//TODO dynamic ocres
@@ -108,10 +104,7 @@ RayObject *  RE_rayobject_create(int type, int size)
 	{
 		return RE_rayobject_qbvh_create(size);
 	}
-	if(type == R_RAYSTRUCTURE_BIH)
-	{
-//		return RE_rayobject_bih_create(size);
-	}
+	assert( NULL );
 	
 	return NULL;
 }
@@ -209,8 +202,8 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 	if(obr->raytree == NULL)
 	{
 		RayObject *raytree;
-		RayFace *face;
-		VlakPrimitive *vlakprimitive;
+		RayFace *face = NULL;
+		VlakPrimitive *vlakprimitive = NULL;
 		int v;
 		
 		//Count faces
@@ -224,8 +217,8 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		assert( faces > 0 );
 
 		//Create Ray cast accelaration structure		
-		raytree = obr->raytree = RE_rayobject_create( re->r.raytrace_tree_type, faces );
-		if(USE_VLAK_PRIMITIVES)
+		raytree = obr->raytree = RE_rayobject_create( re->r.raytrace_structure, faces );
+		if(  (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 			vlakprimitive = obr->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "ObjectRen primitives");
 		else
 			face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
@@ -237,7 +230,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 			if(is_raytraceable_vlr(re, vlr))
 			{
-				if(USE_VLAK_PRIMITIVES)
+				if(  (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 				{
 					RE_rayobject_add( raytree, RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr ) );
 					vlakprimitive++;
@@ -266,7 +259,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 
 static int has_special_rayobject(Render *re, ObjectInstanceRen *obi)
 {
-	if( (obi->flag & R_TRANSFORMED) )
+	if( (obi->flag & R_TRANSFORMED) && (re->r.raytrace_options & R_RAYTRACE_USE_INSTANCES) )
 	{
 		ObjectRen *obr = obi->obr;
 		int v, faces = 0;
@@ -291,8 +284,8 @@ static void makeraytree_single(Render *re)
 {
 	ObjectInstanceRen *obi;
 	RayObject *raytree;
-	RayFace *face;
-	VlakPrimitive *vlakprimitive;
+	RayFace *face = NULL;
+	VlakPrimitive *vlakprimitive = NULL;
 	int faces = 0, obs = 0, special = 0;
 
 	for(obi=re->instancetable.first; obi; obi=obi->next)
@@ -318,9 +311,9 @@ static void makeraytree_single(Render *re)
 	}
 	
 	//Create raytree
-	raytree = re->raytree = RE_rayobject_create( re->r.raytrace_tree_type, faces+special );
+	raytree = re->raytree = RE_rayobject_create( re->r.raytrace_structure, faces+special );
 
-	if(USE_VLAK_PRIMITIVES)
+	if( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 	{
 		vlakprimitive = re->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "Raytrace vlak-primitives");
 	}
@@ -352,7 +345,7 @@ static void makeraytree_single(Render *re)
 				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 				if(is_raytraceable_vlr(re, vlr))
 				{
-					if(USE_VLAK_PRIMITIVES)
+					if( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 					{
 						RayObject *obj = RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr );
 						RE_rayobject_add( raytree, obj );
@@ -391,6 +384,11 @@ void makeraytree(Render *re)
 	
 	re->i.infostr= "Raytree.. preparing";
 	re->stats_draw(re->sdh, &re->i);
+
+	/* disable options not yet suported by octree,
+	   they might actually never be supported (unless people really need it) */
+	if(re->r.raytrace_structure == R_RAYSTRUCTURE_OCTREE)
+		re->r.raytrace_options &= ~( R_RAYTRACE_USE_INSTANCES | R_RAYTRACE_USE_LOCAL_COORDS);
 
 	BENCH(makeraytree_single(re), tree_build);
 		

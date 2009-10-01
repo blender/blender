@@ -90,13 +90,28 @@ static void RE_rayobject_octree_done(RayObject *o);
 static void RE_rayobject_octree_free(RayObject *o);
 static void RE_rayobject_octree_bb(RayObject *o, float *min, float *max);
 
+/*
+ * This function is not expected to be called by current code state.
+ */
+static float RE_rayobject_octree_cost(RayObject *o)
+{
+	return 1.0;
+}
+
+static void RE_rayobject_octree_hint_bb(RayObject *o, RayHint *hint, float *min, float *max)
+{
+	return;
+}
+
 static RayObjectAPI octree_api =
 {
 	RE_rayobject_octree_intersect,
 	RE_rayobject_octree_add,
 	RE_rayobject_octree_done,
 	RE_rayobject_octree_free,
-	RE_rayobject_octree_bb
+	RE_rayobject_octree_bb,
+	RE_rayobject_octree_cost,
+	RE_rayobject_octree_hint_bb
 };
 
 /* **************** ocval method ******************* */

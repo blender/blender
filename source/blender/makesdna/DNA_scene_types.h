@@ -242,12 +242,23 @@ typedef struct RenderData {
 	 */
 	int mode;
 
-	/* render engine (deprecated), octree resolution */
-	short renderer, ocres;
-	short raystructure;
-	short raytrace_tree_type;
-	short pad4[2];
+	/**
+	 * Flags for raytrace settings. Use bit-masking to access the settings.
+	 */
+	int raytrace_options;
+	
+	/**
+	 * Raytrace acceleration structure
+	 */
+	short raytrace_structure;
 
+	/* renderer (deprecated) */
+	short renderer;
+
+	/* octree resolution */
+	short ocres;
+	short pad4;
+	
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
 	 * blending for the background
@@ -260,6 +271,7 @@ typedef struct RenderData {
 	short osa;
 
 	short frs_sec, edgeint;
+
 	
 	/* safety, border and display rect */
 	rctf safety, border;
@@ -808,7 +820,10 @@ typedef struct Scene {
 #define R_RAYSTRUCTURE_VBVH				3
 #define R_RAYSTRUCTURE_SIMD_SVBVH		4	/* needs SIMD */
 #define R_RAYSTRUCTURE_SIMD_QBVH		5	/* needs SIMD */
-#define R_RAYSTRUCTURE_BIH				6
+
+/* raytrace_options */
+#define R_RAYTRACE_USE_LOCAL_COORDS		0x0001
+#define R_RAYTRACE_USE_INSTANCES		0x0002
 
 /* scemode (int now) */
 #define R_DOSEQ				0x0001

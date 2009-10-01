@@ -44,17 +44,6 @@ struct QBVHTree
 };
 
 
-/*
- * Cost to test N childs
- */
-struct PackCost
-{
-	float operator()(int n)
-	{
-		return (n / 4) + ((n % 4) > 2 ? 1 : n%4);
-	}
-};
-
 template<>
 void bvh_done<QBVHTree>(QBVHTree *obj)
 {
@@ -68,21 +57,11 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 					   BLI_memarena_use_malloc(arena2);
 					   BLI_memarena_use_align(arena2, 16);
 
-	//Build and optimize the tree
-	
-	if(0)
-	{
-		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1).transform(obj->builder);	
-		pushup_simd<VBVHNode,4>(root);					   
-		obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
-	}
-	else
-	{
-		//Finds the optimal packing of this tree using a given cost model
-		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena1).transform(obj->builder);			
-		VBVH_optimalPackSIMD<OVBVHNode,PackCost>(PackCost()).transform(root);
-		obj->root = Reorganize_SVBVH<OVBVHNode>(arena2).transform(root);
-	}
+	//Build and optimize the tree	
+	//TODO do this in 1 pass (half memory usage during building)	
+	VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1).transform(obj->builder);	
+	pushup_simd<VBVHNode,4>(root);					   
+	obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
 	
 	//Cleanup
 	BLI_memarena_free(arena1);	

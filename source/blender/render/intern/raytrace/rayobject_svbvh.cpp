@@ -43,6 +43,17 @@ struct SVBVHTree
 	RTBuilder *builder;
 };
 
+/*
+ * Cost to test N childs
+ */
+struct PackCost
+{
+	float operator()(int n)
+	{
+		return (n / 4) + ((n % 4) > 2 ? 1 : n%4);
+	}
+};
+
 
 template<>
 void bvh_done<SVBVHTree>(SVBVHTree *obj)
@@ -58,16 +69,27 @@ void bvh_done<SVBVHTree>(SVBVHTree *obj)
 					   BLI_memarena_use_align(arena2, 16);
 
 	//Build and optimize the tree
-	VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1).transform(obj->builder);
-	reorganize(root);
-	remove_useless(root, &root);
-	bvh_refit(root);
+	if(0)
+	{
+		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1).transform(obj->builder);
+		reorganize(root);
+		remove_useless(root, &root);
+		bvh_refit(root);
 	
-	pushup(root);
-	pushdown(root);
-	pushup_simd<VBVHNode,4>(root);
+		pushup(root);
+		pushdown(root);
+		pushup_simd<VBVHNode,4>(root);
 	
-	obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
+		obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
+	}
+	else
+	{
+		//Finds the optimal packing of this tree using a given cost model
+		//TODO this uses quite a lot of memory, find ways to reduce memory usage during building
+		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena1).transform(obj->builder);			
+		VBVH_optimalPackSIMD<OVBVHNode,PackCost>(PackCost()).transform(root);
+		obj->root = Reorganize_SVBVH<OVBVHNode>(arena2).transform(root);
+	}
 
 	
 	//Free data

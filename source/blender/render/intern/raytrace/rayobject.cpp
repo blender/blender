@@ -142,7 +142,7 @@ static int intersection2(VlakRen *face, float r0, float r1, float r2, float rx1,
 	return 0;
 }
 
-static int vlr_check_intersect(Isect *is, ObjectInstanceRen *obi, VlakRen *vlr)
+static inline int vlr_check_intersect(Isect *is, ObjectInstanceRen *obi, VlakRen *vlr)
 {
 	/* for baking selected to active non-traceable materials might still
 	 * be in the raytree */
@@ -156,7 +156,7 @@ static int vlr_check_intersect(Isect *is, ObjectInstanceRen *obi, VlakRen *vlr)
 		return (is->lay & obi->lay);
 }
 
-static int vlr_check_intersect_solid(Isect *is, ObjectInstanceRen* obi, VlakRen *vlr)
+static inline int vlr_check_intersect_solid(Isect *is, ObjectInstanceRen* obi, VlakRen *vlr)
 {
 	/* solid material types only */
 	if (vlr->mat->material_type == MA_TYPE_SURFACE)
@@ -165,7 +165,7 @@ static int vlr_check_intersect_solid(Isect *is, ObjectInstanceRen* obi, VlakRen 
 		return 0;
 }
 
-static int rayface_check_cullface(RayFace *face, Isect *is)
+static inline int rayface_check_cullface(RayFace *face, Isect *is)
 {
 	float nor[3];
 	
@@ -189,7 +189,7 @@ static int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *is)
 	if(is->orig.ob == face->ob && is->orig.face == face->face)
 		return 0;
 		
-/*
+
 	if(is->skip & RE_SKIP_VLR_RENDER_CHECK)
 	{
 		if(vlr_check_intersect(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face ) == 0)
@@ -205,7 +205,7 @@ static int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *is)
 		if(rayface_check_cullface(face, is) == 0)
 			return 0;
 	}
-*/
+
 	RE_RC_COUNT(is->raycounter->faces.test);
 
 	//Load coords
