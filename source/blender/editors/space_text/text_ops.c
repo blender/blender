@@ -159,10 +159,24 @@ static int new_exec(bContext *C, wmOperator *op)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text;
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
 
 	text= add_empty_text("Text");
 
-	if(st) {
+	/* hook into UI */
+	uiIDContextProperty(C, &ptr, &prop);
+
+	if(prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		text->id.us--;
+
+		RNA_id_pointer_create(&text->id, &idptr);
+		RNA_property_pointer_set(&ptr, prop, idptr);
+		RNA_property_update(C, &ptr, prop);
+	}
+	else if(st) {
 		st->text= text;
 		st->top= 0;
 	}
@@ -186,22 +200,60 @@ void TEXT_OT_new(wmOperatorType *ot)
 
 /******************* open operator *********************/
 
+static void open_init(bContext *C, wmOperator *op)
+{
+	PropertyPointerRNA *pprop;
+
+	op->customdata= pprop= MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
+	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
+}
+
+static int open_cancel(bContext *C, wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	return OPERATOR_CANCELLED;
+}
+
 static int open_exec(bContext *C, wmOperator *op)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text;
+	PropertyPointerRNA *pprop;
+	PointerRNA idptr;
 	char str[FILE_MAX];
 
 	RNA_string_get(op->ptr, "path", str);
 
 	text= add_text(str, G.sce);
 
-	if(st) {
+	if(!text) {
+		if(op->customdata) MEM_freeN(op->customdata);
+		return OPERATOR_CANCELLED;
+	}
+
+	if(!op->customdata)
+		open_init(C, op);
+
+	/* hook into UI */
+	pprop= op->customdata;
+
+	if(pprop->prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		text->id.us--;
+
+		RNA_id_pointer_create(&text->id, &idptr);
+		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
+		RNA_property_update(C, &pprop->ptr, pprop->prop);
+	}
+	else if(st) {
 		st->text= text;
 		st->top= 0;
 	}
 
 	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
+
+	MEM_freeN(op->customdata);
 
 	return OPERATOR_FINISHED;
 }
@@ -214,6 +266,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(RNA_property_is_set(op->ptr, "path"))
 		return open_exec(C, op);
 	
+	open_init(C, op);
 	RNA_string_set(op->ptr, "path", path);
 	WM_event_add_fileselect(C, op); 
 
@@ -230,6 +283,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= open_exec;
 	ot->invoke= open_invoke;
+	ot->cancel= open_cancel;
 	ot->poll= text_new_poll;
 
 	/* properties */

@@ -298,6 +298,8 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			uiPupMenuReports(C, op->reports);
 	
 	if(retval & OPERATOR_FINISHED) {
+		op->customdata= NULL;
+
 		if(op->type->flag & OPTYPE_UNDO)
 			ED_undo_push_op(C, op);
 		
@@ -427,6 +429,8 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		}
 
 		if(retval & OPERATOR_FINISHED) {
+			op->customdata= NULL;
+
 			if(ot->flag & OPTYPE_UNDO)
 				ED_undo_push_op(C, op);
 			
@@ -813,6 +817,8 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			}			
 
 			if(retval & OPERATOR_FINISHED) {
+				op->customdata= NULL;
+
 				if(ot->flag & OPTYPE_UNDO)
 					ED_undo_push_op(C, op);
 				
@@ -936,9 +942,9 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				/* remlink now, for load file case */
 				BLI_remlink(handlers, handler);
 				
+				wm_handler_op_context(C, handler);
+
 				if(event->val==EVT_FILESELECT_EXEC) {
-					wm_handler_op_context(C, handler);
-				
 					/* a bit weak, might become arg for WM_event_fileselect? */
 					/* XXX also extension code in image-save doesnt work for this yet */
 					if(strncmp(handler->op->type->name, "Save", 4)==0) {
@@ -954,11 +960,15 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						
 						WM_operator_free(handler->op);
 					}
-					
-					CTX_wm_area_set(C, NULL);
 				}
-				else 
+				else {
+					if(handler->op->type->cancel)
+						handler->op->type->cancel(C, handler->op);
+
 					WM_operator_free(handler->op);
+				}
+
+				CTX_wm_area_set(C, NULL);
 				
 				wm_event_free_handler(handler);
 				if(path)

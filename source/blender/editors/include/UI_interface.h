@@ -670,6 +670,7 @@ void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *
 /* Helpers for Operators */
 void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
 void uiFileBrowseContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
+void uiIDContextProperty(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
 
 /* Styled text draw */
 void uiStyleFontSet(struct uiFontStyle *fs);

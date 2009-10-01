@@ -86,15 +86,20 @@ World *add_world(char *name)
 
 	wrld= alloc_libblock(&G.main->world, ID_WO, name);
 	
-	wrld->horb= 0.6f;
-	wrld->skytype= WO_SKYBLEND;
+	wrld->horr= 0.25f;
+	wrld->horg= 0.25f;
+	wrld->horb= 0.25f;
+	wrld->zenr= 0.1f;
+	wrld->zeng= 0.1f;
+	wrld->zenb= 0.1f;
+	wrld->skytype= 0;
 	wrld->stardist= 15.0f;
 	wrld->starsize= 2.0f;
 	
 	wrld->exp= 0.0f;
 	wrld->exposure=wrld->range= 1.0f;
 
-	wrld->aodist= 5.0f;
+	wrld->aodist= 10.0f;
 	wrld->aosamp= 5;
 	wrld->aoenergy= 1.0f;
 	wrld->aobias= 0.05f;

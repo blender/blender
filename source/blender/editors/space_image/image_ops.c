@@ -616,27 +616,61 @@ static void image_filesel(bContext *C, wmOperator *op, const char *path)
 
 /******************** open image operator ********************/
 
+static void open_init(bContext *C, wmOperator *op)
+{
+	PropertyPointerRNA *pprop;
+
+	op->customdata= pprop= MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
+	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
+}
+
+static int open_cancel(bContext *C, wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+	return OPERATOR_CANCELLED;
+}
+
 static int open_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
+	PropertyPointerRNA *pprop;
+	PointerRNA idptr;
 	Image *ima= NULL;
 	char str[FILE_MAX];
 
 	RNA_string_get(op->ptr, "path", str);
 	ima= BKE_add_image_file(str, scene->r.cfra);
 
-	if(!ima)
+	if(!ima) {
+		if(op->customdata) MEM_freeN(op->customdata);
 		return OPERATOR_CANCELLED;
+	}
 	
-	/* already set later */
-	ima->id.us--;
+	if(!op->customdata)
+		open_init(C, op);
+
+	/* hook into UI */
+	pprop= op->customdata;
+
+	if(pprop->prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		ima->id.us--;
+
+		RNA_id_pointer_create(&ima->id, &idptr);
+		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
+		RNA_property_update(C, &pprop->ptr, pprop->prop);
+	}
+	else if(sima)
+		ED_space_image_set(C, sima, scene, obedit, ima);
 
 	// XXX other users?
 	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
-	if(sima)
-		ED_space_image_set(C, sima, scene, obedit, ima);
+
+	MEM_freeN(op->customdata);
 
 	return OPERATOR_FINISHED;
 }
@@ -649,6 +683,8 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(RNA_property_is_set(op->ptr, "path"))
 		return open_exec(C, op);
 	
+	open_init(C, op);
+
 	image_filesel(C, op, path);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -663,6 +699,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= open_exec;
 	ot->invoke= open_invoke;
+	ot->cancel= open_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1060,6 +1097,8 @@ static int new_exec(bContext *C, wmOperator *op)
 	Scene *scene;
 	Object *obedit;
 	Image *ima;
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
 	char name[22];
 	float color[4];
 	int width, height, floatbuf, uvtestgrid;
@@ -1078,12 +1117,27 @@ static int new_exec(bContext *C, wmOperator *op)
 	color[3]= RNA_float_get(op->ptr, "alpha");
 
 	ima = BKE_add_image_size(width, height, name, floatbuf, uvtestgrid, color);
-	ima->id.us--; /* already set later */
 
-	if(sima) { // XXX other users?
-		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
-		ED_space_image_set(C, sima, scene, obedit, ima);
+	if(!ima)
+		return OPERATOR_CANCELLED;
+
+	/* hook into UI */
+	uiIDContextProperty(C, &ptr, &prop);
+
+	if(prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		ima->id.us--;
+
+		RNA_id_pointer_create(&ima->id, &idptr);
+		RNA_property_pointer_set(&ptr, prop, idptr);
+		RNA_property_update(C, &ptr, prop);
 	}
+	else if(sima)
+		ED_space_image_set(C, sima, scene, obedit, ima);
+
+	// XXX other users?
+	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 	
 	return OPERATOR_FINISHED;
 }

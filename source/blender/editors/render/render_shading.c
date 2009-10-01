@@ -436,9 +436,8 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 static int new_material_exec(bContext *C, wmOperator *op)
 {
 	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
-	Object *ob;
-	PointerRNA ptr;
-	int index;
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
 
 	/* add or copy material */
 	if(ma)
@@ -446,18 +445,17 @@ static int new_material_exec(bContext *C, wmOperator *op)
 	else
 		ma= add_material("Material");
 
-	ma->id.us--; /* compensating for us++ in assign_material */
+	/* hook into UI */
+	uiIDContextProperty(C, &ptr, &prop);
 
-	/* attempt to assign to material slot */
-	ptr= CTX_data_pointer_get_type(C, "material_slot", &RNA_MaterialSlot);
+	if(prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		ma->id.us--;
 
-	if(ptr.data) {
-		ob= ptr.id.data;
-		index= (Material**)ptr.data - ob->mat;
-
-		assign_material(ob, ma, index+1);
-
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		RNA_id_pointer_create(&ma->id, &idptr);
+		RNA_property_pointer_set(&ptr, prop, idptr);
+		RNA_property_update(C, &ptr, prop);
 	}
 
 	WM_event_add_notifier(C, NC_MATERIAL|NA_ADDED, ma);
@@ -484,9 +482,8 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 static int new_texture_exec(bContext *C, wmOperator *op)
 {
 	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-	ID *id;
-	MTex *mtex;
-	PointerRNA ptr;
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
 
 	/* add or copy texture */
 	if(tex)
@@ -494,23 +491,17 @@ static int new_texture_exec(bContext *C, wmOperator *op)
 	else
 		tex= add_texture("Texture");
 
-	id_us_min(&tex->id);
+	/* hook into UI */
+	uiIDContextProperty(C, &ptr, &prop);
 
-	/* attempt to assign to texture slot */
-	ptr= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot);
+	if(prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		tex->id.us--;
 
-	if(ptr.data) {
-		id= ptr.id.data;
-		mtex= ptr.data;
-
-		if(mtex) {
-			if(mtex->tex)
-				id_us_min(&mtex->tex->id);
-			mtex->tex= tex;
-			id_us_plus(&tex->id);
-		}
-
-		/* XXX nodes, notifier .. */
+		RNA_id_pointer_create(&tex->id, &idptr);
+		RNA_property_pointer_set(&ptr, prop, idptr);
+		RNA_property_update(C, &ptr, prop);
 	}
 
 	WM_event_add_notifier(C, NC_TEXTURE|NA_ADDED, tex);
@@ -536,8 +527,9 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 
 static int new_world_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	World *wo= CTX_data_pointer_get_type(C, "world", &RNA_World).data;
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
 
 	/* add or copy world */
 	if(wo)
@@ -545,10 +537,18 @@ static int new_world_exec(bContext *C, wmOperator *op)
 	else
 		wo= add_world("World");
 
-	/* assign to scene */
-	if(scene->world)
-		id_us_min(&scene->world->id);
-	scene->world= wo;
+	/* hook into UI */
+	uiIDContextProperty(C, &ptr, &prop);
+
+	if(prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		wo->id.us--;
+
+		RNA_id_pointer_create(&wo->id, &idptr);
+		RNA_property_pointer_set(&ptr, prop, idptr);
+		RNA_property_update(C, &ptr, prop);
+	}
 
 	WM_event_add_notifier(C, NC_WORLD|NA_ADDED, wo);
 	

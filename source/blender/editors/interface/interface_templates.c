@@ -153,6 +153,36 @@ static uiBlock *search_menu(bContext *C, ARegion *ar, void *arg_litem)
 
 /************************ ID Template ***************************/
 
+/* for new/open operators */
+void uiIDContextProperty(bContext *C, PointerRNA *ptr, PropertyRNA **prop)
+{
+	TemplateID *template;
+	ARegion *ar= CTX_wm_region(C);
+	uiBlock *block;
+	uiBut *but;
+
+	memset(ptr, 0, sizeof(*ptr));
+	*prop= NULL;
+
+	if(!ar)
+		return;
+
+	for(block=ar->uiblocks.first; block; block=block->next) {
+		for(but=block->buttons.first; but; but= but->next) {
+			/* find the button before the active one */
+			if((but->flag & (UI_BUT_LAST_ACTIVE|UI_ACTIVE))) {
+				if(but->func_argN) {
+					template= but->func_argN;
+					*ptr= template->ptr;
+					*prop= template->prop;
+					return;
+				}
+			}
+		}
+	}
+}
+
+
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
 	TemplateID *template= (TemplateID*)arg_litem;
@@ -167,11 +197,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_OPEN:
 		case UI_ID_ADD_NEW:
-			if(template->idlb->last) {
-				RNA_id_pointer_create(template->idlb->last, &idptr);
-				RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-				RNA_property_update(C, &template->ptr, template->prop);
-			}
+			/* these call uiIDContextPropertySet */
 			break;
 		case UI_ID_DELETE:
 			memset(&idptr, 0, sizeof(idptr));
@@ -291,7 +317,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 		int w= id?UI_UNIT_X: (flag & UI_ID_OPEN)? UI_UNIT_X*3: UI_UNIT_X*6;
 		
 		if(newop) {
-			but= uiDefIconTextButO(block, BUT, newop, WM_OP_EXEC_REGION_WIN, ICON_ZOOMIN, (id)? "": "New", 0, 0, w, UI_UNIT_Y, NULL);
+			but= uiDefIconTextButO(block, BUT, newop, WM_OP_EXEC_DEFAULT, ICON_ZOOMIN, (id)? "": "New", 0, 0, w, UI_UNIT_Y, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
@@ -307,7 +333,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 		int w= id?UI_UNIT_X: (flag & UI_ID_ADD_NEW)? UI_UNIT_X*3: UI_UNIT_X*6;
 		
 		if(openop) {
-			but= uiDefIconTextButO(block, BUT, openop, WM_OP_INVOKE_REGION_WIN, ICON_FILESEL, (id)? "": "Open", 0, 0, w, UI_UNIT_Y, NULL);
+			but= uiDefIconTextButO(block, BUT, openop, WM_OP_INVOKE_DEFAULT, ICON_FILESEL, (id)? "": "Open", 0, 0, w, UI_UNIT_Y, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_OPEN));
 		}
 		else {

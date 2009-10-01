@@ -52,7 +52,6 @@
 /************************ add/del boid rule operators *********************/
 static int rule_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob= ptr.id.data;
@@ -152,7 +151,6 @@ void BOID_OT_rule_del(wmOperatorType *ot)
 /************************ move up/down boid rule operators *********************/
 static int rule_move_up_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
@@ -191,7 +189,6 @@ void BOID_OT_rule_move_up(wmOperatorType *ot)
 
 static int rule_move_down_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
@@ -363,7 +360,6 @@ void BOID_OT_state_move_up(wmOperatorType *ot)
 
 static int state_move_down_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	BoidSettings *boids;
