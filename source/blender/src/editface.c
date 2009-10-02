@@ -125,6 +125,33 @@
 #define MENUSTRING(string, code) string " %x" STRING(code)
 #define MENUTITLE(string) string " %t|" 
 
+/* copy the face flags, most importantly selection from the mesh to the final derived mesh,
+ * use in object mode when selecting faces (while painting) */
+void object_facesel_flush_dm(Object *ob)
+{
+	Mesh *me= get_mesh(ob);
+	DerivedMesh *dm= ob->derivedFinal;
+	MFace *faces, *mf, *mf_orig;
+	int *index_array = NULL;
+	int totface;
+	int i;
+	
+	
+	if(me==NULL || dm==NULL || !CustomData_has_layer( &dm->faceData, CD_ORIGINDEX))
+		return;
+	
+	faces = dm->getFaceArray(dm);
+	totface = dm->getNumFaces(dm);
+	
+	index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+	
+	mf= faces;
+	
+	for (i= 0; i<totface; i++, mf++) { /* loop over derived mesh faces */
+		mf_orig= me->mface + index_array[i];
+		mf->flag= mf_orig->flag;;
+	}
+}
 
 /* returns 0 if not found, otherwise 1 */
 int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
@@ -678,7 +705,8 @@ void reveal_tface()
 	}
 
 	BIF_undo_push("Reveal face");
-
+	
+	object_facesel_flush_dm(OBACT);
 	object_tface_flags_changed(OBACT, 0);
 }
 
@@ -714,7 +742,8 @@ void hide_tface()
 	}
 
 	BIF_undo_push("Hide face");
-
+	
+	object_facesel_flush_dm(OBACT);
 	object_tface_flags_changed(OBACT, 0);
 }
 
@@ -754,7 +783,10 @@ void deselectall_tface()
 	sel= 0;
 	while(a--) {
 		if(mface->flag & ME_HIDE);
-		else if(mface->flag & ME_FACE_SEL) sel= 1;
+		else if(mface->flag & ME_FACE_SEL) {
+			sel= 1;
+			break;
+		}
 		mface++;
 	}
 	
@@ -770,7 +802,8 @@ void deselectall_tface()
 	}
 
 	BIF_undo_push("(De)select all faces");
-
+	
+	object_facesel_flush_dm(OBACT);
 	object_tface_flags_changed(OBACT, 0);
 }
 
@@ -796,6 +829,7 @@ void selectswap_tface(void)
 
 	BIF_undo_push("Select inverse face");
 
+	object_facesel_flush_dm(OBACT);
 	object_tface_flags_changed(OBACT, 0);
 }
 
@@ -1169,6 +1203,7 @@ void face_select()
 	
 	BIF_undo_push("Select UV face");
 
+	object_facesel_flush_dm(OBACT);
 	object_tface_flags_changed(OBACT, 1);
 }
 
@@ -1187,14 +1222,15 @@ void face_borderselect()
 	if(me->totface==0) return;
 	
 	val= get_border(&rect, 3);
-	
-	/* why readbuffer here? shouldn't be necessary (maybe a flush or so) */
-	glReadBuffer(GL_BACK);
-#ifdef __APPLE__
-	glReadBuffer(GL_AUX0); /* apple only */
-#endif
-	
+		
 	if(val) {
+		
+		/* without this border select often fails */
+		if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
+			check_backbuf();
+			persp(PERSP_VIEW);
+		}
+		
 		selar= MEM_callocN(me->totface+1, "selar");
 		
 		sx= (rect.xmax-rect.xmin+1);
@@ -1231,6 +1267,7 @@ void face_borderselect()
 
 		BIF_undo_push("Border Select UV face");
 
+		object_facesel_flush_dm(OBACT);
 		object_tface_flags_changed(OBACT, 0);
 	}
 #ifdef __APPLE__	
