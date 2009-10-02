@@ -906,6 +906,22 @@ static void rna_def_field(BlenderRNA *brna)
 		{PFIELD_Z_POS, "POSITIVE", 0, "+Z", ""},
 		{PFIELD_Z_NEG, "NEGATIVE", 0, "-Z", ""},
 		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem guide_kink_items[] = {
+		{0, "NONE", 0, "Nothing", ""},
+		{1, "CURL", 0, "Curl", ""},
+		{2, "RADIAL", 0, "Radial", ""},
+		{3, "WAVE", 0, "Wave", ""},
+		{4, "BRAID", 0, "Braid", ""},
+		{5, "ROTATION", 0, "Rotation", ""},
+		{6, "ROLL", 0, "Roll", ""},
+		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem guide_kink_axis_items[] = {
+		{0, "X", 0, "X", ""},
+		{1, "Y", 0, "Y", ""},
+		{2, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FieldSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");
@@ -1067,11 +1083,6 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Max", "Use a maximum radial distance for the field to work");
 	// "Use a maximum angle for the field to work"
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
-	
-	prop= RNA_def_property(srna, "guide_path_add", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_GUIDE_PATH_ADD);
-	RNA_def_property_ui_text(prop, "Additive", "Based on distance/falloff it adds a portion of the entire path");
-	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
 	prop= RNA_def_property(srna, "use_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_OBJECT);
@@ -1110,6 +1121,74 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture", "Texture to use as force");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+	
+	/********** Curve Guide Field Settings **********/
+	
+	prop= RNA_def_property(srna, "guide_minimum", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_strength");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "Minimum Distance", "The distance from which particles are affected fully.");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "guide_free", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "free_end");
+	RNA_def_property_range(prop, 0.0f, 0.99f);
+	RNA_def_property_ui_text(prop, "Free", "Guide-free time from particle life's end");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "guide_path_add", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_GUIDE_PATH_ADD);
+	RNA_def_property_ui_text(prop, "Additive", "Based on distance/falloff it adds a portion of the entire path");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+	
+	/* Clump Settings */
+	
+	prop= RNA_def_property(srna, "guide_clump_amount", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clump_fac");
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Amount", "Amount of clumpimg");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+	
+	prop= RNA_def_property(srna, "guide_clump_shape", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clump_pow");
+	RNA_def_property_range(prop, -0.999f, 0.999f);
+	RNA_def_property_ui_text(prop, "Shape", "Shape of clumpimg");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+	
+	/* Kink Settings */
+	
+	prop= RNA_def_property(srna, "guide_kink_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "kink");
+	RNA_def_property_enum_items(prop, guide_kink_items);
+	RNA_def_property_ui_text(prop, "Kink", "Type of periodic offset on the curve");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+	
+	prop= RNA_def_property(srna, "guide_kink_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "kink_axis");
+	RNA_def_property_enum_items(prop, guide_kink_axis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Which axis to use for offset");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "guide_kink_frequency", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kink_freq");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Frequency", "The frequency of the offset (1/total length)");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+	
+	prop= RNA_def_property(srna, "guide_kink_shape", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kink_shape");
+	RNA_def_property_range(prop, -0.999f, 0.999f);
+	RNA_def_property_ui_text(prop, "Shape", "djust the offset to the beginning/end");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+	
+	prop= RNA_def_property(srna, "guide_kink_amplitude", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kink_amp");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Amplitude", "The amplitude of the offset");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	/* Variables used for Curve Guide, allready wrapped, used for other fields too */
+	// falloff_power, use_max_distance, maximum_distance
 }
 
 static void rna_def_game_softbody(BlenderRNA *brna)
