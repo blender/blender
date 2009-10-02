@@ -735,19 +735,17 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
 	// enlarge timestep to match grid
 	const float dt = dtOrg * _amplify;
 	const float invAmp = 1.0f / _amplify;
-	float *tempBig1 = new float[_totalCellsBig];
-	float *tempBig2 = new float[_totalCellsBig];
-	float *bigUx = new float[_totalCellsBig];
-	float *bigUy = new float[_totalCellsBig];
-	float *bigUz = new float[_totalCellsBig]; 
-	float *_energy = new float[_totalCellsSm];
-	float *highFreqEnergy = new float[_totalCellsSm];
-	float *eigMin  = new float[_totalCellsSm];
-	float *eigMax  = new float[_totalCellsSm];
+	float *tempBig1 = (float *)calloc(_totalCellsBig, sizeof(float));
+	float *tempBig2 = (float *)calloc(_totalCellsBig, sizeof(float));
+	float *bigUx = (float *)calloc(_totalCellsBig, sizeof(float));
+	float *bigUy = (float *)calloc(_totalCellsBig, sizeof(float));
+	float *bigUz = (float *)calloc(_totalCellsBig, sizeof(float)); 
+	float *_energy = (float *)calloc(_totalCellsSm, sizeof(float));
+	float *highFreqEnergy = (float *)calloc(_totalCellsSm, sizeof(float));
+	float *eigMin  = (float *)calloc(_totalCellsSm, sizeof(float));
+	float *eigMax  = (float *)calloc(_totalCellsSm, sizeof(float));
 
-	memset(highFreqEnergy, 0, sizeof(float)*_totalCellsSm);
-	memset(eigMin, 0, sizeof(float)*_totalCellsSm);
-	memset(eigMax, 0, sizeof(float)*_totalCellsSm);
+	memset(_tcTemp, 0, sizeof(float)*_totalCellsSm);
 
 	// prepare textures
 	advectTextureCoordinates(dtOrg, xvel,yvel,zvel, tempBig1, tempBig2);
@@ -771,16 +769,16 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
 
   // parallel region setup
   float maxVelMagThreads[8] = { -1., -1., -1., -1., -1., -1., -1., -1. };
-#if PARALLEL==1
+#if PARALLEL==1 && !_WIN32
 #pragma omp parallel
 #endif
   { float maxVelMag1 = 0.;
-#if PARALLEL==1
+#if PARALLEL==1 && !_WIN32
     const int id  = omp_get_thread_num(); /*, num = omp_get_num_threads(); */
 #endif
 
   // vector noise main loop
-#if PARALLEL==1
+#if PARALLEL==1 && !_WIN32
 #pragma omp for  schedule(static)
 #endif
   for (int zSmall = 0; zSmall < _zResSm; zSmall++) 
@@ -912,7 +910,7 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
         bigUx[index] = bigUy[index] = bigUz[index] = 0.;
     } // xyz
 
-#if PARALLEL==1
+#if PARALLEL==1 && !_WIN32
     maxVelMagThreads[id] = maxVelMag1;
 #else
     maxVelMagThreads[0] = maxVelMag1;
@@ -922,7 +920,7 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   
   // compute maximum over threads
   float maxVelMag = maxVelMagThreads[0];
-#if PARALLEL==1
+#if PARALLEL==1 && !_WIN32
   for (int i = 1; i < 8; i++) 
     if (maxVelMag < maxVelMagThreads[i]) 
       maxVelMag = maxVelMagThreads[i];
@@ -957,13 +955,13 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
       SWAP_POINTERS(_densityBig, _densityBigOld);
   } // substep
 
-  delete[] tempBig1;
-  delete[] tempBig2;
-  delete[] bigUx;
-  delete[] bigUy;
-  delete[] bigUz;
-  delete[] _energy;
-  delete[] highFreqEnergy;
+  free(tempBig1);
+  free(tempBig2);
+  free(bigUx);
+  free(bigUy);
+  free(bigUz);
+  free(_energy);
+  free(highFreqEnergy);
   
   // wipe the density borders
   FLUID_3D::setZeroBorder(_densityBig, _resBig);
@@ -973,8 +971,8 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   // eigenvalues stored do not reflect the underlying texture coordinates
   resetTextureCoordinates(eigMin, eigMax);
 
-  delete[] eigMin;
-  delete[] eigMax;
+  free(eigMin);
+  free(eigMax);
   
   // output files
   // string prefix = string("./amplified.preview/density_bigxy_");

@@ -1183,7 +1183,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		// simulate the actual smoke (c++ code in intern/smoke)
 		// DG: interesting commenting this line + deactivating loading of noise files
 		if(framenr!=startframe)
+		{
+			if(sds->flags & MOD_SMOKE_DISSOLVE)
+				smoke_dissolve(sds->fluid, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
 			smoke_step(sds->fluid, smd->time);
+		}
 
 		// create shadows before writing cache so we get nice shadows for sstartframe, too
 		if(get_lamp(scene, light))
@@ -1194,7 +1198,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if(sds->wt)
 		{
 			if(framenr!=startframe)
+			{
+				if(sds->flags & MOD_SMOKE_DISSOLVE)
+					smoke_dissolve_wavelet(sds->wt, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
 				smoke_turbulence_step(sds->wt, sds->fluid);
+			}
 
 			cache_wt->flag |= PTCACHE_SIMULATION_VALID;
 			cache_wt->simframe= framenr;

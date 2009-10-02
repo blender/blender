@@ -399,16 +399,12 @@ void FLUID_3D::project()
 		for (y = 1; y < _yRes - 1; y++, index += 2)
 			for (x = 1; x < _xRes - 1; x++, index++)
 			{
-				// if(!_obstacles[index])
+				if(!_obstacles[index])
 				{
 					_xVelocity[index] -= 0.5f * (_pressure[index + 1]     - _pressure[index - 1]) * invDx;
 					_yVelocity[index] -= 0.5f * (_pressure[index + _xRes]  - _pressure[index - _xRes]) * invDx;
 					_zVelocity[index] -= 0.5f * (_pressure[index + _slabSize] - _pressure[index - _slabSize]) * invDx;
-				}/*
-				else
-				{
-					_xVelocity[index] = _yVelocity[index] = _zVelocity[index] = 0.0f;
-				}*/
+				}
 			}
 
 	if (_pressure) delete[] _pressure;
@@ -497,22 +493,14 @@ void FLUID_3D::setObstaclePressure(float *_pressure)
 				if (top && !bottom) {
 					_pressure[index] += _pressure[index - _slabSize];
 					pcnt += 1.;
-					// _zVelocity[index] +=  - _zVelocity[index - _slabSize];
-					// vp += 1.0;
 				}
 				if (!top && bottom) {
 					_pressure[index] += _pressure[index + _slabSize];
 					pcnt += 1.;
-					// _zVelocity[index] +=  - _zVelocity[index + _slabSize];
-					// vp += 1.0;
 				}
 				
 				if(pcnt > 0.000001f)
 				 	_pressure[index] /= pcnt;
-
-				// test - dg
-				// if(vp > 0.000001f)
-				//  	_zVelocity[index] /= vp;
 
 				// TODO? set correct velocity bc's
 				// velocities are only set to zero right now
