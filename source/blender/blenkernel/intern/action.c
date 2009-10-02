@@ -535,7 +535,7 @@ void init_pose_itasc(bItasc *itasc)
 		itasc->numiter = 100;
 		itasc->numstep = 4;
 		itasc->precision = 0.005f;
-		itasc->flag = ITASC_AUTO_STEP|ITASC_INITIAL_REITERATION|ITASC_SIMULATION;
+		itasc->flag = ITASC_AUTO_STEP|ITASC_INITIAL_REITERATION;
 		itasc->feedback = 20.f;
 		itasc->maxvel = 50.f;
 		itasc->solver = ITASC_SOLVER_SDLS;
