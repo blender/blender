@@ -126,6 +126,7 @@ struct SmokeModifierData;
 // forward declerations
 static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
 void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
+static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs);
 
 #define TRI_UVOFFSET (1./4.)
 
@@ -279,141 +280,12 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		{
 			// init collision points
 			SmokeCollSettings *scs = smd->coll;
-			MVert *mvert = dm->getVertArray(dm);
-			MFace *mface = dm->getFaceArray(dm);
-			int i = 0, divs = 0;
-			int *tridivs = NULL;
-			float cell_len = 1.0 / 50.0; // for res = 50
-			int newdivs = 0;
-			int quads = 0, facecounter = 0;
 
 			// copy obmat
 			Mat4CpyMat4(scs->mat, ob->obmat);
 			Mat4CpyMat4(scs->mat_old, ob->obmat);
 
-			// count quads
-			for(i = 0; i < dm->getNumFaces(dm); i++)
-			{
-				if(mface[i].v4)
-					quads++;
-			}
-
-			calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumFaces(dm), dm->getNumFaces(dm) + quads, &tridivs, cell_len);
-
-			// count triangle divisions
-			for(i = 0; i < dm->getNumFaces(dm) + quads; i++)
-			{
-				divs += (tridivs[3 * i] + 1) * (tridivs[3 * i + 1] + 1) * (tridivs[3 * i + 2] + 1);
-			}
-
-			// printf("divs: %d\n", divs);
-
-			scs->points = MEM_callocN(sizeof(float) * (dm->getNumVerts(dm) + divs) * 3, "SmokeCollPoints");
-
-			for(i = 0; i < dm->getNumVerts(dm); i++)
-			{
-				float tmpvec[3];
-				VECCOPY(tmpvec, mvert[i].co);
-				Mat4MulVecfl (ob->obmat, tmpvec);
-				VECCOPY(&scs->points[i * 3], tmpvec);
-			}
-			
-			for(i = 0, facecounter = 0; i < dm->getNumFaces(dm); i++)
-			{
-				int again = 0;
-				do
-				{
-					int j, k;
-					int divs1 = tridivs[3 * facecounter + 0];
-					int divs2 = tridivs[3 * facecounter + 1];
-					//int divs3 = tridivs[3 * facecounter + 2];
-					float side1[3], side2[3], trinormorg[3], trinorm[3];
-					
-					if(again == 1 && mface[i].v4)
-					{
-						VECSUB(side1,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
-						VECSUB(side2,  mvert[ mface[i].v4 ].co, mvert[ mface[i].v1 ].co);
-					}
-					else
-					{
-						VECSUB(side1,  mvert[ mface[i].v2 ].co, mvert[ mface[i].v1 ].co);
-						VECSUB(side2,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
-					}
-
-					Crossf(trinormorg, side1, side2);
-					Normalize(trinormorg);
-					VECCOPY(trinorm, trinormorg);
-					VecMulf(trinorm, 0.25 * cell_len);
-
-					for(j = 0; j <= divs1; j++)
-					{
-						for(k = 0; k <= divs2; k++)
-						{
-							float p1[3], p2[3], p3[3], p[3]={0,0,0}; 
-							const float uf = (float)(j + TRI_UVOFFSET) / (float)(divs1 + 0.0);
-							const float vf = (float)(k + TRI_UVOFFSET) / (float)(divs2 + 0.0);
-							float tmpvec[3];
-							
-							if(uf+vf > 1.0) 
-							{
-								// printf("bigger - divs1: %d, divs2: %d\n", divs1, divs2);
-								continue;
-							}
-
-							VECCOPY(p1, mvert[ mface[i].v1 ].co);
-							if(again == 1 && mface[i].v4)
-							{
-								VECCOPY(p2, mvert[ mface[i].v3 ].co);
-								VECCOPY(p3, mvert[ mface[i].v4 ].co);
-							}
-							else
-							{
-								VECCOPY(p2, mvert[ mface[i].v2 ].co);
-								VECCOPY(p3, mvert[ mface[i].v3 ].co);
-							}
-
-							VecMulf(p1, (1.0-uf-vf));
-							VecMulf(p2, uf);
-							VecMulf(p3, vf);
-							
-							VECADD(p, p1, p2);
-							VECADD(p, p, p3);
-
-							if(newdivs > divs)
-								printf("mem problem\n");
-
-							// mMovPoints.push_back(p + trinorm);
-							VECCOPY(tmpvec, p);
-							VECADD(tmpvec, tmpvec, trinorm);
-							Mat4MulVecfl (ob->obmat, tmpvec);
-							VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
-							newdivs++;
-
-							if(newdivs > divs)
-								printf("mem problem\n");
-
-							// mMovPoints.push_back(p - trinorm);
-							VECCOPY(tmpvec, p);
-							VECSUB(tmpvec, tmpvec, trinorm);
-							Mat4MulVecfl (ob->obmat, tmpvec);
-							VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
-							newdivs++;
-						}
-					}
-
-					if(again == 0 && mface[i].v4)
-						again++;
-					else
-						again = 0;
-
-					facecounter++;
-
-				} while(again!=0);
-			}
-
-			scs->numpoints = dm->getNumVerts(dm) + newdivs;
-
-			MEM_freeN(tridivs);
+			fill_scs_points(ob, dm, scs);
 		}
 
 		if(!smd->coll->bvhtree)
@@ -424,6 +296,141 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 	}
 
 	return 1;
+}
+
+static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
+{
+	MVert *mvert = dm->getVertArray(dm);
+	MFace *mface = dm->getFaceArray(dm);
+	int i = 0, divs = 0;
+	int *tridivs = NULL;
+	float cell_len = 1.0 / 50.0; // for res = 50
+	int newdivs = 0;
+	int quads = 0, facecounter = 0;
+
+	// count quads
+	for(i = 0; i < dm->getNumFaces(dm); i++)
+	{
+		if(mface[i].v4)
+			quads++;
+	}
+
+	calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumFaces(dm), dm->getNumFaces(dm) + quads, &tridivs, cell_len);
+
+	// count triangle divisions
+	for(i = 0; i < dm->getNumFaces(dm) + quads; i++)
+	{
+		divs += (tridivs[3 * i] + 1) * (tridivs[3 * i + 1] + 1) * (tridivs[3 * i + 2] + 1);
+	}
+
+	// printf("divs: %d\n", divs);
+
+	scs->points = MEM_callocN(sizeof(float) * (dm->getNumVerts(dm) + divs) * 3, "SmokeCollPoints");
+
+	for(i = 0; i < dm->getNumVerts(dm); i++)
+	{
+		float tmpvec[3];
+		VECCOPY(tmpvec, mvert[i].co);
+		Mat4MulVecfl (ob->obmat, tmpvec);
+		VECCOPY(&scs->points[i * 3], tmpvec);
+	}
+	
+	for(i = 0, facecounter = 0; i < dm->getNumFaces(dm); i++)
+	{
+		int again = 0;
+		do
+		{
+			int j, k;
+			int divs1 = tridivs[3 * facecounter + 0];
+			int divs2 = tridivs[3 * facecounter + 1];
+			//int divs3 = tridivs[3 * facecounter + 2];
+			float side1[3], side2[3], trinormorg[3], trinorm[3];
+			
+			if(again == 1 && mface[i].v4)
+			{
+				VECSUB(side1,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
+				VECSUB(side2,  mvert[ mface[i].v4 ].co, mvert[ mface[i].v1 ].co);
+			}
+			else
+			{
+				VECSUB(side1,  mvert[ mface[i].v2 ].co, mvert[ mface[i].v1 ].co);
+				VECSUB(side2,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
+			}
+
+			Crossf(trinormorg, side1, side2);
+			Normalize(trinormorg);
+			VECCOPY(trinorm, trinormorg);
+			VecMulf(trinorm, 0.25 * cell_len);
+
+			for(j = 0; j <= divs1; j++)
+			{
+				for(k = 0; k <= divs2; k++)
+				{
+					float p1[3], p2[3], p3[3], p[3]={0,0,0}; 
+					const float uf = (float)(j + TRI_UVOFFSET) / (float)(divs1 + 0.0);
+					const float vf = (float)(k + TRI_UVOFFSET) / (float)(divs2 + 0.0);
+					float tmpvec[3];
+					
+					if(uf+vf > 1.0) 
+					{
+						// printf("bigger - divs1: %d, divs2: %d\n", divs1, divs2);
+						continue;
+					}
+
+					VECCOPY(p1, mvert[ mface[i].v1 ].co);
+					if(again == 1 && mface[i].v4)
+					{
+						VECCOPY(p2, mvert[ mface[i].v3 ].co);
+						VECCOPY(p3, mvert[ mface[i].v4 ].co);
+					}
+					else
+					{
+						VECCOPY(p2, mvert[ mface[i].v2 ].co);
+						VECCOPY(p3, mvert[ mface[i].v3 ].co);
+					}
+
+					VecMulf(p1, (1.0-uf-vf));
+					VecMulf(p2, uf);
+					VecMulf(p3, vf);
+					
+					VECADD(p, p1, p2);
+					VECADD(p, p, p3);
+
+					if(newdivs > divs)
+						printf("mem problem\n");
+
+					// mMovPoints.push_back(p + trinorm);
+					VECCOPY(tmpvec, p);
+					VECADD(tmpvec, tmpvec, trinorm);
+					Mat4MulVecfl (ob->obmat, tmpvec);
+					VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
+					newdivs++;
+
+					if(newdivs > divs)
+						printf("mem problem\n");
+
+					// mMovPoints.push_back(p - trinorm);
+					VECCOPY(tmpvec, p);
+					VECSUB(tmpvec, tmpvec, trinorm);
+					Mat4MulVecfl (ob->obmat, tmpvec);
+					VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
+					newdivs++;
+				}
+			}
+
+			if(again == 0 && mface[i].v4)
+				again++;
+			else
+				again = 0;
+
+			facecounter++;
+
+		} while(again!=0);
+	}
+
+	scs->numpoints = dm->getNumVerts(dm) + newdivs;
+
+	MEM_freeN(tridivs);
 }
 
 /*! init triangle divisions */
