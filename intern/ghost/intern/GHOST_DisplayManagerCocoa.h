@@ -93,19 +93,12 @@ public:
 	 */
 	virtual GHOST_TSuccess setCurrentDisplaySetting(GHOST_TUns8 display, const GHOST_DisplaySetting& setting);
 
-protected:
-	/**
-	 * Returns a value from a dictionary.
-	 * @param	values	Dictionary to return value from.
-	 * @param	key	Key to return value for.
-	 * @return The value for this key.
-	 */
-	long getValue(CFDictionaryRef values, CFStringRef key) const;
-	
+protected:	
+	//Do not cache values as OS X supports screen hot plug
 	/** Cached number of displays. */
-	CGDisplayCount m_numDisplays;
+	//CGDisplayCount m_numDisplays;
 	/** Cached display id's for each display. */
-	CGDirectDisplayID* m_displayIDs;
+	//CGDirectDisplayID* m_displayIDs;
 };
 
 
