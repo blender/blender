@@ -2128,7 +2128,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 				xco+= XIC+10;
 			}
 			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
+			header_xco_step(ar, &xco, &yco, &maxco, 10);
 		}
 
 		/* Snap */
@@ -2147,7 +2147,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");
-				xco+= XIC+70;
+				xco+= XIC;
 			} else {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
 				xco+= XIC;
@@ -2169,10 +2169,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
 			xco+= XIC;
 			uiBlockEndAlign(block);
+			header_xco_step(ar, &xco, &yco, &maxco, 10);
 			if(v3d->drawtype > OB_WIRE) {
 				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
-				xco+= XIC;
 			}
+			xco+= XIC;
 			uiBlockEndAlign(block);
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 

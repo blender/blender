@@ -48,7 +48,7 @@ class BONE_PT_transform(BoneButtonsPanel):
 		else:
 			pchan = ob.pose.pose_channels[context.bone.name]
 
-			layout.itemR(pchan, "rotation_mode")
+			
 
 			row = layout.row()
 			col = row.column()
@@ -67,6 +67,8 @@ class BONE_PT_transform(BoneButtonsPanel):
 				col.itemR(pchan, "rotation_euler", text="Rotation")
 
 			row.column().itemR(pchan, "scale")
+			
+			layout.itemR(pchan, "rotation_mode")
 				
 class BONE_PT_transform_locks(BoneButtonsPanel):
 	__label__ = "Transform Locks"
@@ -98,8 +100,8 @@ class BONE_PT_transform_locks(BoneButtonsPanel):
 		
 		row.column().itemR(pchan, "lock_scale")
 
-class BONE_PT_bone(BoneButtonsPanel):
-	__label__ = "Bone"
+class BONE_PT_relations(BoneButtonsPanel):
+	__label__ = "Relations"
 
 	def draw(self, context):
 		layout = self.layout
@@ -115,7 +117,17 @@ class BONE_PT_bone(BoneButtonsPanel):
 			pchan = ob.pose.pose_channels[context.bone.name]
 
 		split = layout.split()
-
+		
+		col = split.column()
+		col.itemL(text="Layers:")
+		col.itemR(bone, "layer", text="")
+		
+		col.itemS()
+		
+		if ob and pchan:
+			col.itemL(text="Bone Group:")
+			col.item_pointerR(pchan, "bone_group", ob.pose, "bone_groups", text="")
+		
 		col = split.column()
 		col.itemL(text="Parent:")
 		if context.bone:
@@ -123,31 +135,46 @@ class BONE_PT_bone(BoneButtonsPanel):
 		else:
 			col.item_pointerR(bone, "parent", arm, "edit_bones", text="")
 		
-		row = col.row()
-		row.active = bone.parent != None
-		row.itemR(bone, "connected")
+		sub = col.column()
+		sub.active = bone.parent != None
+		sub.itemR(bone, "connected")
+		sub.itemR(bone, "hinge", text="Inherit Rotation")
+		sub.itemR(bone, "inherit_scale", text="Inherit Scale")
+
+			
+class BONE_PT_display(BoneButtonsPanel):
+	__label__ = "Display"
+	
+	def poll(self, context):
+		return context.bone
+	
+	def draw(self, context):
+		layout = self.layout
 		
-		col.itemL(text="Layers:")
-		col.itemR(bone, "layer", text="")
+		ob = context.object
+		bone = context.bone
+		arm = context.armature
 		
-		col = split.column()
-		col.itemL(text="Inherit:")
-		col.itemR(bone, "hinge", text="Rotation")
-		col.itemR(bone, "inherit_scale", text="Scale")
-		col.itemL(text="Display:")
-		col.itemR(bone, "draw_wire", text="Wireframe")
-		col.itemR(bone, "hidden", text="Hide")
+		if not bone:
+			bone = context.edit_bone
+			pchan = None
+		else:
+			pchan = ob.pose.pose_channels[context.bone.name]
 		
 		if ob and pchan:
+			
 			split = layout.split()
+		
+			col = split.column()
+			
+			col.itemR(bone, "draw_wire", text="Wireframe")
+			col.itemR(bone, "hidden", text="Hide")
 			
 			col = split.column()
-			col.itemL(text="Bone Group:")
-			col.item_pointerR(pchan, "bone_group", ob.pose, "bone_groups", text="")
 			
-			col = split.column()
 			col.itemL(text="Custom Shape:")
 			col.itemR(pchan, "custom_shape", text="")
+
 
 class BONE_PT_deform(BoneButtonsPanel):
 	__label__ = "Deform"
@@ -201,5 +228,6 @@ class BONE_PT_deform(BoneButtonsPanel):
 bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)
 bpy.types.register(BONE_PT_transform_locks)
-bpy.types.register(BONE_PT_bone)
+bpy.types.register(BONE_PT_relations)
+bpy.types.register(BONE_PT_display)
 bpy.types.register(BONE_PT_deform)
