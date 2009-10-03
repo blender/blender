@@ -3902,7 +3902,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	/* weak weak... this was only meant as draw flag, now is used in give_base too */
 	ob->flag &= ~OB_FROMGROUP;
-
+	
+	/* editmode doesn't get saved in files, so should get cleared when reloading... */
+	ob->mode &= ~OB_MODE_EDIT;
+	
 	ob->disp.first=ob->disp.last= NULL;
 	
 	ob->adt= newdataadr(fd, ob->adt);

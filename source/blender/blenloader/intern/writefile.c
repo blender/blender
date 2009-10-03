@@ -1102,7 +1102,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 
 	/* write IK param */
 	if (pose->ikparam) {
-		const char *structname = get_ikparam_name(pose);
+		char *structname = (char *)get_ikparam_name(pose);
 		if (structname)
 			writestruct(wd, DATA, structname, 1, pose->ikparam);
 	}
