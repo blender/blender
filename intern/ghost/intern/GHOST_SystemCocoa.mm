@@ -409,17 +409,30 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
  * CocoaAppDelegate
  * ObjC object to capture applicationShouldTerminate, and send quit event
  **/
-@interface CocoaAppDelegate : NSObject
+@interface CocoaAppDelegate : NSObject {
+	GHOST_SystemCocoa *systemCocoa;
+}
+-(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 @end
 
 @implementation CocoaAppDelegate : NSObject
+-(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa
+{
+	systemCocoa = sysCocoa;
+}
+
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
 	//Note that Cmd+Q is already handled by keyhandler
-    //FIXME: Cocoa_SendQuit();
-	//sys->pushEvent( new GHOST_Event(sys->getMilliSeconds(), GHOST_kEventQuit, NULL) );
-    return NSTerminateCancel;
+    //FIXME: Need an event "QuitRequest"
+	int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes may not have been saved. Do you really want to quit ?",
+									 @"No", @"Yes", nil);
+	
+	if (shouldQuit == NSAlertAlternateReturn)
+		systemCocoa->pushEvent( new GHOST_Event(systemCocoa->getMilliSeconds(), GHOST_kEventQuit, NULL) );
+    
+	return NSTerminateCancel;
 }
 @end
 
@@ -476,12 +489,57 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 			[NSApplication sharedApplication];
 			
 			if ([NSApp mainMenu] == nil) {
-				//FIXME: CreateApplicationMenus();
+				NSMenu *mainMenubar = [[NSMenu alloc] init];
+				NSMenuItem *menuItem;
+				
+				//Create the application menu
+				NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"Blender"];
+				
+				[appMenu addItemWithTitle:@"About Blender" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+				[appMenu addItem:[NSMenuItem separatorItem]];
+				
+				menuItem = [appMenu addItemWithTitle:@"Hide Blender" action:@selector(hide:) keyEquivalent:@"h"];
+				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+				 
+				menuItem = [appMenu addItemWithTitle:@"Hide others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
+				[menuItem setKeyEquivalentModifierMask:(NSAlternateKeyMask | NSCommandKeyMask)];
+				
+				[appMenu addItemWithTitle:@"Show All" action:@selector(unhideAllApplications:) keyEquivalent:@""];
+				
+				menuItem = [appMenu addItemWithTitle:@"Quit Blender" action:@selector(terminate:) keyEquivalent:@"q"];
+				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+				
+				menuItem = [[NSMenuItem alloc] init];
+				[menuItem setSubmenu:appMenu];
+				
+				[mainMenubar addItem:menuItem];
+				[menuItem release];
+				[appMenu release];
+				
+				//Create the window menu
+				NSMenu *windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
+				
+				menuItem = [windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
+				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+				
+				[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
+				
+				menuItem = [[NSMenuItem	alloc] init];
+				[menuItem setSubmenu:windowMenu];
+				
+				[mainMenubar addItem:menuItem];
+				[menuItem release];
+				
+				[NSApp setMainMenu:mainMenubar];
+				[NSApp setWindowsMenu:windowMenu];
+				[windowMenu release];
 			}
 			[NSApp finishLaunching];
 		}
 		if ([NSApp delegate] == nil) {
-			[NSApp setDelegate:[[CocoaAppDelegate alloc] init]];
+			CocoaAppDelegate *appDelegate = [[CocoaAppDelegate alloc] init];
+			[appDelegate setSystemCocoa:this];
+			[NSApp setDelegate:appDelegate];
 		}
 		
 		
@@ -981,6 +1039,9 @@ int GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			keyCode = convertKey([event keyCode],
 							 [[event charactersIgnoringModifiers] characterAtIndex:0]);
 			ascii= convertRomanToLatin((char)[[event characters] characterAtIndex:0]);
+			
+			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
+				break; //Cmd-Q is directly handled by Cocoa
 			
 			if ([event type] == NSKeyDown) {
 				pushEvent( new GHOST_EventKey([event timestamp], GHOST_kEventKeyDown, window, keyCode, ascii) );
