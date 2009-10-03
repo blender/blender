@@ -1571,7 +1571,7 @@ static void draw_dm_verts(DerivedMesh *dm, int sel, EditVert *eve_act)
 	data.eve_act = eve_act;
 
 	/* first come the unselected vertices, then the selected */
-	buffer = GPU_buffer_alloc( sizeof(float)*3*dm->getNumVerts(dm)*2, 0 );
+	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( sizeof(float)*3*dm->getNumVerts(dm)*2, 0 );
 
 	if( (varray = GPU_buffer_lock_stream( buffer )) && bglPointHack() == 0 ) {
 		EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
@@ -1698,7 +1698,7 @@ static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, un
 	cols[0] = baseCol;
 	cols[1] = selCol;
 
-	buffer = GPU_buffer_alloc( elemsize*em->totedge*2, 0 );
+	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( elemsize*em->totedge*2, 0 );
 	if( (varray = GPU_buffer_lock_stream( buffer )) ) {
 		EditEdge *eed;
 		int numedges = 0;
@@ -1804,7 +1804,7 @@ static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 	data.efa_act = efa_act;
 
 
-	buffer = GPU_buffer_alloc( elemsize*dm->getNumFaces(dm)*3*2, 0 );
+	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( elemsize*dm->getNumFaces(dm)*3*2, 0 );
 	if( dm->getVertCos == 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
 		int prevdraw = 0;
 		int numfaces = 0;
@@ -2433,7 +2433,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 		else {
 			/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
-			GPUBuffer *buffer = GPU_buffer_alloc( sizeof(float)*6*em->totface*3*2, 0 );
+			GPUBuffer *buffer = GPU_buffer_legacy(em->derivedFinal)?0:GPU_buffer_alloc( sizeof(float)*6*em->totface*3*2, 0 );
 			float *varray;
 			EditFace *efa;
 			int i, curmat = 0, draw = 0;
