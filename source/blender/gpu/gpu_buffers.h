@@ -1,5 +1,5 @@
 /**
- * $Id: gpu_buffers.h 20687 2009-06-07 11:26:46Z imbusy $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
