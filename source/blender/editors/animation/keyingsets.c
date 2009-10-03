@@ -78,6 +78,215 @@
 #include "anim_intern.h"
 
 /* ************************************************** */
+/* KEYING SETS - OPERATORS (for use in UI panels) */
+/* These operators are really duplication of existing functionality, but just for completeness,
+ * they're here too, and will give the basic data needed...
+ */
+
+/* poll callback for adding default KeyingSet */
+static int keyingset_poll_default_add (bContext *C)
+{
+	/* as long as there's an active Scene, it's fine */
+	return (CTX_data_scene(C) != NULL);
+}
+
+/* poll callback for editing active KeyingSet */
+static int keyingset_poll_active_edit (bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (scene == NULL)
+		return 0;
+	
+	/* there must be an active KeyingSet (and KeyingSets) */
+	return ((scene->active_keyingset > 0) && (scene->keyingsets.first));
+}
+
+/* poll callback for editing active KeyingSet Path */
+static int keyingset_poll_activePath_edit (bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	
+	if (scene == NULL)
+		return 0;
+	if (scene->active_keyingset <= 0)
+		return 0;
+	else
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* there must be an active KeyingSet and an active path */
+	return ((ks) && (ks->paths.first) && (ks->active_path > 0));
+}
+
+ 
+/* Add a Default (Empty) Keying Set ------------------------- */
+
+static int add_default_keyingset_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	short flag=0, keyingflag=0;
+	
+	/* validate flags 
+	 *	- absolute KeyingSets should be created by default
+	 */
+	flag |= KEYINGSET_ABSOLUTE;
+	
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
+		keyingflag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
+		keyingflag |= INSERTKEY_NEEDED;
+		
+	/* call the API func, and set the active keyingset index */
+	BKE_keyingset_add(&scene->keyingsets, NULL, flag, keyingflag);
+	
+	scene->active_keyingset= BLI_countlist(&scene->keyingsets);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keying_set_add (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Empty Keying Set";
+	ot->idname= "ANIM_OT_keying_set_add";
+	ot->description= "Add a new (empty) Keying Set to the active Scene.";
+	
+	/* callbacks */
+	ot->exec= add_default_keyingset_exec;
+	ot->poll= keyingset_poll_default_add;
+}
+
+/* Remove 'Active' Keying Set ------------------------- */
+
+static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	
+	/* verify the Keying Set to use:
+	 *	- use the active one
+	 *	- return error if it doesn't exist
+	 */
+	if (scene->active_keyingset == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* free KeyingSet's data, then remove it from the scene */
+	BKE_keyingset_free(ks);
+	
+	BLI_freelinkN(&scene->keyingsets, ks);
+	scene->active_keyingset= 0;
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keying_set_remove (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Removed Active Keying Set";
+	ot->idname= "ANIM_OT_keying_set_remove";
+	ot->description= "Remove the active Keying Set.";
+	
+	/* callbacks */
+	ot->exec= remove_active_keyingset_exec;
+	ot->poll= keyingset_poll_active_edit;
+}
+
+/* Add Empty Keying Set Path ------------------------- */
+
+static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	KS_Path *ksp;
+	
+	/* verify the Keying Set to use:
+	 *	- use the active one
+	 *	- return error if it doesn't exist
+	 */
+	if (scene->active_keyingset == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to add empty path to");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* don't use the API method for this, since that checks on values... */
+	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSetPath Empty");
+	BLI_addtail(&ks->paths, ksp);
+	ks->active_path= BLI_countlist(&ks->paths) + 1;
+	
+	ksp->groupmode= KSP_GROUP_KSNAME; // XXX?
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keying_set_path_add (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Empty Keying Set Path";
+	ot->idname= "ANIM_OT_keying_set_path_add";
+	ot->description= "Add empty path to active Keying Set";
+	
+	/* callbacks */
+	ot->exec= add_empty_ks_path_exec;
+	ot->poll= keyingset_poll_active_edit;
+}
+
+/* Remove Active Keying Set Path ------------------------- */
+
+static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* if there is a KeyingSet, find the nominated path to remove */
+	if (ks) {
+		KS_Path *ksp= BLI_findlink(&ks->paths, ks->active_path-1);
+		
+		if (ksp) {
+			/* NOTE: sync this code with BKE_keyingset_free() */
+			{
+				/* free RNA-path info */
+				MEM_freeN(ksp->rna_path);
+				
+				/* free path itself */
+				BLI_freelinkN(&ks->paths, ksp);
+			}
+			
+			/* fix active path index */
+			ks->active_path= 0;
+		}
+		else {
+			BKE_report(op->reports, RPT_ERROR, "No active Keying Set Path to remove");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove a path from");
+		return OPERATOR_CANCELLED;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Active Keying Set Path";
+	ot->idname= "ANIM_OT_keying_set_path_remove";
+	ot->description= "Remove active Path from active Keying Set.";
+	
+	/* callbacks */
+	ot->exec= remove_active_ks_path_exec;
+	ot->poll= keyingset_poll_activePath_edit;
+}
+
+/* ************************************************** */
 /* KEYING SETS - OPERATORS (for use in UI menus) */
 
 /* Add to KeyingSet Button Operator ------------------------ */

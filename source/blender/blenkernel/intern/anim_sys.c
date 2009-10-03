@@ -211,7 +211,7 @@ static void make_local_strips(ListBase *strips)
 
 	for (strip=strips->first; strip; strip=strip->next) {
 		if (strip->act) make_local_action(strip->act);
-		//if (strip->remap && strip->remap->target) make_local_action(strip->remap->target);
+		if (strip->remap && strip->remap->target) make_local_action(strip->remap->target);
 		
 		make_local_strips(&strip->strips);
 	}

@@ -654,8 +654,10 @@ typedef struct KeyingSet {
 	
 	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) */
 	
-	int flag;				/* settings for KeyingSet */
-	int keyingflag;			/* settings to supply insertkey() with */
+	short flag;				/* settings for KeyingSet */
+	short keyingflag;		/* settings to supply insertkey() with */
+	
+	int active_path;		/* index of the active path */
 } KeyingSet;
 
 /* KeyingSet settings */
