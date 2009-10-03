@@ -726,6 +726,10 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL},
 	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
+	 {sizeof(MCol)*4, "MCol", 4, "IDCol", NULL, NULL, layerInterp_mcol,
+	 layerSwap_mcol, layerDefault_mcol},
+	 {sizeof(MCol)*4, "MCol", 4, "TexturedCol", NULL, NULL, layerInterp_mcol,
+	 layerSwap_mcol, layerDefault_mcol},
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {

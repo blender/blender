@@ -434,7 +434,7 @@ static int wm_get_colordepth(void)
 
 /* apple seems to round colors to below and up on some configs */
 
-static unsigned int index_to_framebuffer(int index)
+unsigned int index_to_framebuffer(int index)
 {
 	unsigned int i= index;
 
@@ -464,7 +464,7 @@ static unsigned int index_to_framebuffer(int index)
 
 /* this is the old method as being in use for ages.... seems to work? colors are rounded to lower values */
 
-static unsigned int index_to_framebuffer(int index)
+unsigned int index_to_framebuffer(int index)
 {
 	unsigned int i= index;
 	

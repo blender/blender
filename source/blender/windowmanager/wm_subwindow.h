@@ -45,6 +45,7 @@ void	wm_subwindow_getsize(wmWindow *win, int swinid, int *x, int *y);
 void	wm_subwindow_getorigin(wmWindow *win, int swinid, int *x, int *y);
 void	wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4]);
 
+unsigned int index_to_framebuffer(int index);
 
 #endif /* WM_SUBWINDOW_H */
 
