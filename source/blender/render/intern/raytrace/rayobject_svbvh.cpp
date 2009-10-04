@@ -58,7 +58,7 @@ struct PackCost
 template<>
 void bvh_done<SVBVHTree>(SVBVHTree *obj)
 {
-	rtbuild_done(obj->builder);
+	rtbuild_done(obj->builder, &obj->rayobj.control);
 	
 	//TODO find a away to exactly calculate the needed memory
 	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
@@ -71,7 +71,14 @@ void bvh_done<SVBVHTree>(SVBVHTree *obj)
 	//Build and optimize the tree
 	if(0)
 	{
-		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1).transform(obj->builder);
+		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1,&obj->rayobj.control).transform(obj->builder);
+		if(RE_rayobjectcontrol_test_break(&obj->rayobj.control))
+		{
+			BLI_memarena_free(arena1);
+			BLI_memarena_free(arena2);
+			return;
+		}
+		
 		reorganize(root);
 		remove_useless(root, &root);
 		bvh_refit(root);
@@ -86,7 +93,14 @@ void bvh_done<SVBVHTree>(SVBVHTree *obj)
 	{
 		//Finds the optimal packing of this tree using a given cost model
 		//TODO this uses quite a lot of memory, find ways to reduce memory usage during building
-		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena1).transform(obj->builder);			
+		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena1,&obj->rayobj.control).transform(obj->builder);			
+		if(RE_rayobjectcontrol_test_break(&obj->rayobj.control))
+		{
+			BLI_memarena_free(arena1);
+			BLI_memarena_free(arena2);
+			return;
+		}
+
 		VBVH_optimalPackSIMD<OVBVHNode,PackCost>(PackCost()).transform(root);
 		obj->root = Reorganize_SVBVH<OVBVHNode>(arena2).transform(root);
 	}

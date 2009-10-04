@@ -107,10 +107,18 @@ template<class Node>
 struct BuildBinaryVBVH
 {
 	MemArena *arena;
+	RayObjectControl *control;
 
-	BuildBinaryVBVH(MemArena *a)
+	void test_break()
+	{
+		if(RE_rayobjectcontrol_test_break(control))
+			throw "Stop";
+	}
+
+	BuildBinaryVBVH(MemArena *a, RayObjectControl *c)
 	{
 		arena = a;
+		control = c;
 	}
 
 	Node *create_node()
@@ -131,6 +139,18 @@ struct BuildBinaryVBVH
 	
 	Node *transform(RTBuilder *builder)
 	{
+		try
+		{
+			return _transform(builder);
+			
+		} catch(...)
+		{
+		}
+		return NULL;
+	}
+	
+	Node *_transform(RTBuilder *builder)
+	{
 		
 		int size = rtbuild_size(builder);
 		if(size == 1)
@@ -143,6 +163,8 @@ struct BuildBinaryVBVH
 		}
 		else
 		{
+			test_break();
+			
 			Node *node = create_node();
 
 			INIT_MINMAX(node->bb, node->bb+3);
@@ -157,7 +179,7 @@ struct BuildBinaryVBVH
 				RTBuilder tmp;
 				rtbuild_get_child(builder, i, &tmp);
 				
-				*child = transform(&tmp);
+				*child = _transform(&tmp);
 				child = &((*child)->sibling);
 			}
 

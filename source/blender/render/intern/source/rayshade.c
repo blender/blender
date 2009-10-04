@@ -72,8 +72,26 @@
 /* only to be used here in this file, it's for speed */
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-RayObject *  RE_rayobject_create(int type, int size)
+static int test_break(void *data)
 {
+	Render *re = (Render*)data;
+	return re->test_break(re->tbh);
+}
+
+static RE_rayobject_config_control(RayObject *r, Render *re)
+{
+	if(RE_rayobject_isRayAPI(r))
+	{
+		r = RE_rayobject_align( r );
+		r->control.data = re;
+		r->control.test_break = test_break;
+	}
+}
+
+RayObject*  RE_rayobject_create(Render *re, int type, int size)
+{
+	RayObject * res = NULL;
+
 	if(type == R_RAYSTRUCTURE_AUTO)
 	{
 		//TODO
@@ -83,30 +101,21 @@ RayObject *  RE_rayobject_create(int type, int size)
 		//	type = R_RAYSTRUCTURE_VBVH;
 	}
 		
-	if(type == R_RAYSTRUCTURE_OCTREE)
-	{
-		//TODO dynamic ocres
-		return RE_rayobject_octree_create(R.r.ocres, size);
-	}
-	if(type == R_RAYSTRUCTURE_BLIBVH)
-	{
-		return RE_rayobject_blibvh_create(size);
-	}
-	if(type == R_RAYSTRUCTURE_VBVH)
-	{
-		return RE_rayobject_vbvh_create(size);
-	}
-	if(type == R_RAYSTRUCTURE_SIMD_SVBVH)
-	{
-		return RE_rayobject_svbvh_create(size);
-	}
-	if(type == R_RAYSTRUCTURE_SIMD_QBVH)
-	{
-		return RE_rayobject_qbvh_create(size);
-	}
-	assert( NULL );
+	if(type == R_RAYSTRUCTURE_OCTREE) //TODO dynamic ocres
+		res = RE_rayobject_octree_create(re->r.ocres, size);
+	else if(type == R_RAYSTRUCTURE_BLIBVH)
+		res = RE_rayobject_blibvh_create(size);
+	else if(type == R_RAYSTRUCTURE_VBVH)
+		res = RE_rayobject_vbvh_create(size);
+	else if(type == R_RAYSTRUCTURE_SIMD_SVBVH)
+		res = RE_rayobject_svbvh_create(size);
+	else if(type == R_RAYSTRUCTURE_SIMD_QBVH)
+		res = RE_rayobject_qbvh_create(size);
 	
-	return NULL;
+	if(res)
+		RE_rayobject_config_control( res, re );
+	
+	return res;
 }
 
 #ifdef RE_RAYCOUNTER
@@ -217,7 +226,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		assert( faces > 0 );
 
 		//Create Ray cast accelaration structure		
-		raytree = obr->raytree = RE_rayobject_create( re->r.raytrace_structure, faces );
+		raytree = obr->raytree = RE_rayobject_create( re,  re->r.raytrace_structure, faces );
 		if(  (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 			vlakprimitive = obr->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "ObjectRen primitives");
 		else
@@ -311,7 +320,7 @@ static void makeraytree_single(Render *re)
 	}
 	
 	//Create raytree
-	raytree = re->raytree = RE_rayobject_create( re->r.raytrace_structure, faces+special );
+	raytree = re->raytree = RE_rayobject_create( re, re->r.raytrace_structure, faces+special );
 
 	if( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 	{
@@ -325,6 +334,9 @@ static void makeraytree_single(Render *re)
 	for(obi=re->instancetable.first; obi; obi=obi->next)
 	if(is_raytraceable(re, obi))
 	{
+		if(test_break(re))
+			break;
+
 		if(has_special_rayobject(re, obi))
 		{
 			RayObject *obj = makeraytree_object(re, obi);
@@ -371,10 +383,13 @@ static void makeraytree_single(Render *re)
 		}
 	}
 	
-	re->i.infostr= "Raytree.. building";
-	re->stats_draw(re->sdh, &re->i);
+	if(!test_break(re))
+	{	
+		re->i.infostr= "Raytree.. building";
+		re->stats_draw(re->sdh, &re->i);
 
-	RE_rayobject_done( raytree );	
+		RE_rayobject_done( raytree );	
+	}
 }
 
 void makeraytree(Render *re)
@@ -391,20 +406,29 @@ void makeraytree(Render *re)
 		re->r.raytrace_options &= ~( R_RAYTRACE_USE_INSTANCES | R_RAYTRACE_USE_LOCAL_COORDS);
 
 	BENCH(makeraytree_single(re), tree_build);
-		
-	//Calculate raytree max_size
-	//This is ONLY needed to kept a bogus behaviour of SUN and HEMI lights
-	RE_rayobject_merge_bb( re->raytree, min, max );
-	for(i=0; i<3; i++)
+	if(test_break(re))
 	{
-		min[i] += 0.01f;
-		max[i] += 0.01f;
-		sub[i] = max[i]-min[i];
-	}
-	re->maxdist = sqrt( sub[0]*sub[0] + sub[1]*sub[1] + sub[2]*sub[2] );
+		freeraytree(re);
 
-	re->i.infostr= "Raytree finished";
-	re->stats_draw(re->sdh, &re->i);
+		re->i.infostr= "Raytree building canceled";
+		re->stats_draw(re->sdh, &re->i);
+	}
+	else
+	{
+		//Calculate raytree max_size
+		//This is ONLY needed to kept a bogus behaviour of SUN and HEMI lights
+		RE_rayobject_merge_bb( re->raytree, min, max );
+		for(i=0; i<3; i++)
+		{
+			min[i] += 0.01f;
+			max[i] += 0.01f;
+			sub[i] = max[i]-min[i];
+		}
+		re->maxdist = sqrt( sub[0]*sub[0] + sub[1]*sub[1] + sub[2]*sub[2] );
+
+		re->i.infostr= "Raytree finished";
+		re->stats_draw(re->sdh, &re->i);
+	}
 }
 
 void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)

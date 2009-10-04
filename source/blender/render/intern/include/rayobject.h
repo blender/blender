@@ -93,6 +93,21 @@ extern "C" {
 #define RE_rayobject_isVlakPrimitive(o)	((((intptr_t)o)&3) == 3)
 
 
+
+/*
+ * This class is intended as a place holder for control, configuration of the rayobject like:
+ *	- stop building (TODO maybe when porting build to threads this could be implemented with some thread_cancel function)
+ *  - max number of threads and threads callback to use during build
+ *	...
+ */	
+typedef int  (*RE_rayobjectcontrol_test_break_callback)(void *data);
+typedef struct RayObjectControl RayObjectControl;
+struct RayObjectControl
+{
+	void *data;
+	RE_rayobjectcontrol_test_break_callback test_break;	
+};
+
 /*
  * This rayobject represents a generic object. With it's own callbacks for raytrace operations.
  * It's suitable to implement things like LOD.
@@ -100,7 +115,11 @@ extern "C" {
 struct RayObject
 {
 	struct RayObjectAPI *api;
+
+	struct RayObjectControl control;
 };
+
+
 
 
 typedef int  (*RE_rayobject_raycast_callback)(RayObject *, Isect *);
@@ -144,6 +163,11 @@ int RE_rayobject_bb_intersect_test(const Isect *i, const float *bb); /* same as 
 float RE_rayobject_cost(RayObject *r);
 
 
+/*
+ * Returns true if for some reason a heavy processing function should stop
+ * (eg.: user asked to stop during a tree a build)
+ */
+int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 
 
 #define ISECT_EPSILON ((float)FLT_EPSILON)

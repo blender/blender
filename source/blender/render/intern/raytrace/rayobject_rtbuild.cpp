@@ -130,11 +130,14 @@ static void object_sort(Item *begin, Item *end, int axis)
 	assert(false);
 }
 
-void rtbuild_done(RTBuilder *b)
+void rtbuild_done(RTBuilder *b, RayObjectControl* ctrl)
 {
 	for(int i=0; i<3; i++)
 	if(b->sorted_begin[i])
+	{
+		if(RE_rayobjectcontrol_test_break(ctrl)) break;
 		object_sort( b->sorted_begin[i], b->sorted_end[i], i );
+	}
 }
 
 RayObject* rtbuild_get_primitive(RTBuilder *b, int index)

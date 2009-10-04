@@ -85,7 +85,7 @@ typedef struct RTBuilder
 RTBuilder* rtbuild_create(int size);
 void rtbuild_free(RTBuilder *b);
 void rtbuild_add(RTBuilder *b, RayObject *o);
-void rtbuild_done(RTBuilder *b);
+void rtbuild_done(RTBuilder *b, RayObjectControl *c);
 void rtbuild_merge_bb(RTBuilder *b, float *min, float *max);
 int rtbuild_size(RTBuilder *b);
 

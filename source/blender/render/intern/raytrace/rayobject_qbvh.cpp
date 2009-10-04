@@ -47,7 +47,7 @@ struct QBVHTree
 template<>
 void bvh_done<QBVHTree>(QBVHTree *obj)
 {
-	rtbuild_done(obj->builder);
+	rtbuild_done(obj->builder, &obj->rayobj.control);
 	
 	//TODO find a away to exactly calculate the needed memory
 	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
@@ -59,7 +59,15 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 
 	//Build and optimize the tree	
 	//TODO do this in 1 pass (half memory usage during building)	
-	VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1).transform(obj->builder);	
+	VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1, &obj->rayobj.control).transform(obj->builder);	
+	
+	if(RE_rayobjectcontrol_test_break(&obj->rayobj.control))
+	{
+		BLI_memarena_free(arena1);
+		BLI_memarena_free(arena2);
+		return;
+	}
+	
 	pushup_simd<VBVHNode,4>(root);					   
 	obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
 	

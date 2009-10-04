@@ -528,3 +528,10 @@ void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max)
 	else assert(0);
 }
 
+int RE_rayobjectcontrol_test_break(RayObjectControl *control)
+{
+	if(control->test_break)
+		return control->test_break( control->data );
+
+	return 0;
+}
