@@ -31,6 +31,8 @@
 #ifndef _adr_py_seq_h_				// only process once,
 #define _adr_py_seq_h_				// even if multiply included
 
+#ifndef DISABLE_PYTHON
+
 #include "PyObjectPlus.h"
 
 // -------------------------
@@ -58,5 +60,7 @@ typedef struct {
 } KX_PythonSeq;
 
 PyObject *KX_PythonSeq_CreatePyObject(PyObject *base, short type);
+
+#endif // DISABLE_PYTHON
 
 #endif // _adr_py_seq_h_

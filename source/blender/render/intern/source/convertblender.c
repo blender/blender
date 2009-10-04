@@ -889,6 +889,28 @@ static void free_mesh_orco_hash(Render *re)
 	}
 }
 
+static void check_material_mapto(Material *ma)
+{
+	int a;
+	ma->mapto_textured = 0;
+	
+	/* cache which inputs are actually textured.
+	 * this can avoid a bit of time spent iterating through all the texture slots, map inputs and map tos
+	 * every time a property which may or may not be textured is accessed */
+	
+	for(a=0; a<MAX_MTEX; a++) {
+		if(ma->mtex[a] && ma->mtex[a]->tex) {
+			/* currently used only in volume render, so we'll check for those flags */
+			if(ma->mtex[a]->mapto & MAP_DENSITY) ma->mapto_textured |= MAP_DENSITY;
+			if(ma->mtex[a]->mapto & MAP_EMISSION) ma->mapto_textured |= MAP_EMISSION;
+			if(ma->mtex[a]->mapto & MAP_EMISSION_COL) ma->mapto_textured |= MAP_EMISSION_COL;
+			if(ma->mtex[a]->mapto & MAP_SCATTERING) ma->mapto_textured |= MAP_SCATTERING;
+			if(ma->mtex[a]->mapto & MAP_TRANSMISSION_COL) ma->mapto_textured |= MAP_TRANSMISSION_COL;
+			if(ma->mtex[a]->mapto & MAP_REFLECTION) ma->mapto_textured |= MAP_REFLECTION;
+			if(ma->mtex[a]->mapto & MAP_REFLECTION_COL) ma->mapto_textured |= MAP_REFLECTION_COL;
+		}
+	}
+}
 static void flag_render_node_material(Render *re, bNodeTree *ntree)
 {
 	bNode *node;
@@ -929,6 +951,8 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 
 	if(ma->nodetree && ma->use_nodes)
 		flag_render_node_material(re, ma->nodetree);
+	
+	check_material_mapto(ma);
 	
 	return ma;
 }

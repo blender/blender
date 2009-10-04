@@ -114,6 +114,8 @@ typedef struct ParticleSettings {
 
 	struct BoidSettings *boids;
 
+	struct EffectorWeights *effector_weights;
+
 	int flag;
 	short type, from, distr;
 	/* physics modes */
@@ -176,10 +178,8 @@ typedef struct ParticleSettings {
 	/* keyed particles */
 	int keyed_loops;
 
-	float effector_weight[10];
-
 	struct Group *dup_group;
-	struct Group *eff_group;
+	struct Group *eff_group;		// deprecated
 	struct Object *dup_ob;
 	struct Object *bb_ob;
 	struct Ipo *ipo;				// xxx depreceated... old animation system
@@ -209,8 +209,6 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct Object *lattice;
 	struct Object *parent;					/* particles from global space -> parent space */
 
-	struct ListBase effectors, reactevents;	/* runtime */
-
 	struct ListBase targets;				/* used for keyed and boid physics */
 
 	char name[32];							/* particle system name */
@@ -232,6 +230,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	/* point cache */
 	struct PointCache *pointcache;
 	struct ListBase ptcaches;
+
+	struct ListBase *effectors;
 
 	struct KDTree *tree;					/* used for interactions with self and other systems */
 
@@ -270,7 +270,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_ROT_DYN		(1<<14)	/* dynamic rotation */
 #define PART_SIZEMASS		(1<<16)
 
-//#define PART_KEYED_TIMING	(1<<15)
+//#define PART_HAIR_GRAVITY	(1<<15)
 
 //#define PART_ABS_TIME		(1<<17)
 //#define PART_GLOB_TIME		(1<<18)
@@ -407,11 +407,13 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_CHILD_FACES		2
 
 /* psys->recalc */
-#define PSYS_RECALC_REDO	1	/* only do pathcache etc */
-#define PSYS_RECALC_RESET	2	/* reset everything including pointcache */
-#define PSYS_RECALC_TYPE	4	/* handle system type change */
-#define PSYS_RECALC_CHILD	16	/* only child settings changed */
-#define PSYS_RECALC_PHYS	32	/* physics type changed */
+/* starts from 8 so that the first bits can be ob->recalc */
+#define PSYS_RECALC_REDO	8	/* only do pathcache etc */
+#define PSYS_RECALC_RESET	16	/* reset everything including pointcache */
+#define PSYS_RECALC_TYPE	32	/* handle system type change */
+#define PSYS_RECALC_CHILD	64	/* only child settings changed */
+#define PSYS_RECALC_PHYS	128	/* physics type changed */
+#define PSYS_RECALC			248
 
 /* psys->flag */
 #define PSYS_CURRENT		1
@@ -436,7 +438,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PARS_REKEY			8
 
 /* pars->alive */
-#define PARS_KILLED			0
+//#define PARS_KILLED			0 /* deprecated */
 #define PARS_DEAD			1
 #define PARS_UNBORN			2
 #define PARS_ALIVE			3

@@ -777,6 +777,18 @@ void KX_BlenderMaterial::UpdateIPO(
 	mMaterial->ref			= (float)(ref);
 }
 
+void KX_BlenderMaterial::SetBlenderGLSLShader(int layer)
+{
+	if(!mBlenderShader)
+		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, layer);
+
+	if(!mBlenderShader->Ok()) {
+		delete mBlenderShader;
+		mBlenderShader = 0;
+	}
+}
+
+#ifndef DISABLE_PYTHON
 
 PyMethodDef KX_BlenderMaterial::Methods[] = 
 {
@@ -870,18 +882,6 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 	return NULL;
 }
 
-
-void KX_BlenderMaterial::SetBlenderGLSLShader(int layer)
-{
-	if(!mBlenderShader)
-		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, layer);
-
-	if(!mBlenderShader->Ok()) {
-		delete mBlenderShader;
-		mBlenderShader = 0;
-	}
-}
-
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 {
 	return PyLong_FromSsize_t( GetMaterialIndex() );
@@ -941,3 +941,4 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.sr
 	return NULL;
 }
 
+#endif // DISABLE_PYTHON

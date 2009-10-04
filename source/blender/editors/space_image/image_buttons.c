@@ -204,11 +204,7 @@ struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 /* this function gets the values for cursor and vertex number buttons */
 static void image_transform_but_attr(SpaceImage *sima, int *imx, int *imy, int *step, int *digits) /*, float *xcoord, float *ycoord)*/
 {
-	ImBuf *ibuf= ED_space_image_buffer(sima);
-	if(ibuf) {
-		*imx= ibuf->x;
-		*imy= ibuf->y;
-	}
+	ED_space_image_size(sima, imx, imy);
 	
 	if (sima->flag & SI_COORDFLOATS) {
 		*step= 1;
@@ -497,9 +493,8 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 static int image_panel_poll(const bContext *C, PanelType *pt)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
 	
-	return (ibuf != NULL);
+	return ED_space_image_has_buffer(sima);
 }
 
 static void image_panel_curves(const bContext *C, Panel *pa)
@@ -509,8 +504,9 @@ static void image_panel_curves(const bContext *C, Panel *pa)
 	ImBuf *ibuf;
 	PointerRNA simaptr;
 	int levels;
+	void *lock;
 	
-	ibuf= ED_space_image_buffer(sima);
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	
 	if(ibuf) {
 		if(sima->cumap==NULL)
@@ -522,6 +518,8 @@ static void image_panel_curves(const bContext *C, Panel *pa)
 		RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &simaptr);
 		uiTemplateCurveMapping(pa->layout, &simaptr, "curves", 'c', levels);
 	}
+
+	ED_space_image_release_buffer(sima, lock);
 }
 
 #if 0
@@ -923,6 +921,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	uiBlock *block;
 	uiBut *but;
 	char str[128];
+	void *lock;
 
 	if(!ptr->data)
 		return;
@@ -953,8 +952,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 		uiBlockSetNFunc(block, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 		if(ima->source == IMA_SRC_VIEWER) {
-			ibuf= BKE_image_get_ibuf(ima, iuser);
+			ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
 			image_info(ima, ibuf, str);
+			BKE_image_release_ibuf(ima, lock);
 
 			uiItemL(layout, ima->id.name+2, 0);
 			uiItemL(layout, str, 0);
@@ -981,7 +981,10 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 			}
 			else if(ima->type==IMA_TYPE_R_RESULT) {
 				/* browse layer/passes */
-				uiblock_layer_pass_arrow_buttons(layout, RE_GetResult(RE_GetRender(scene->id.name)), iuser);
+				Render *re= RE_GetRender(scene->id.name);
+				RenderResult *rr= RE_AcquireResultRead(re);
+				uiblock_layer_pass_arrow_buttons(layout, rr, iuser);
+				RE_ReleaseResult(re);
 			}
 		}
 		else {
@@ -1010,8 +1013,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				uiblock_layer_pass_arrow_buttons(layout, ima->rr, iuser);
 			}
 			else if(ima->source != IMA_SRC_GENERATED) {
-				ibuf= BKE_image_get_ibuf(ima, iuser);
+				ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
 				image_info(ima, ibuf, str);
+				BKE_image_release_ibuf(ima, lock);
 				uiItemL(layout, str, 0);
 			}
 			
@@ -1081,10 +1085,12 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 	/* render layers and passes */
 	if(ima && iuser) {
-		rr= BKE_image_get_renderresult(scene, ima);
+		rr= BKE_image_acquire_renderresult(scene, ima);
 
 		if(rr)
 			uiblock_layer_pass_buttons(layout, rr, iuser, 160);
+
+		BKE_image_release_renderresult(scene, ima);
 	}
 }
 

@@ -17,21 +17,38 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * 
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef PREVIEWRENDER_INTERN_H
-#define PREVIEWRENDER_INTERN_H
+#include <stdlib.h>
 
-/* internal exports only */
+#include "DNA_windowmanager_types.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
 
+#include "render_intern.h" // own include
 
-#endif /* PREVIEWRENDER_INTERN_H */
+/***************************** render ***********************************/
+
+void ED_operatortypes_render(void)
+{
+	WM_operatortype_append(OBJECT_OT_material_slot_add);
+	WM_operatortype_append(OBJECT_OT_material_slot_remove);
+	WM_operatortype_append(OBJECT_OT_material_slot_assign);
+	WM_operatortype_append(OBJECT_OT_material_slot_select);
+	WM_operatortype_append(OBJECT_OT_material_slot_deselect);
+
+	WM_operatortype_append(MATERIAL_OT_new);
+	WM_operatortype_append(TEXTURE_OT_new);
+	WM_operatortype_append(WORLD_OT_new);
+
+	WM_operatortype_append(SCENE_OT_render_layer_add);
+	WM_operatortype_append(SCENE_OT_render_layer_remove);
+}
 

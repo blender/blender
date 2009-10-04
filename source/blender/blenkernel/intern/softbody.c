@@ -1550,11 +1550,14 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 					float f,windfactor  = 0.25f;   
 					/*see if we have wind*/
 					if(do_effector) {
+						EffectedPoint epoint;
 						float speed[3]={0.0f,0.0f,0.0f};
 						float pos[3];
 						VecMidf(pos, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
 						VecMidf(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
-						pdDoEffectors(scene, do_effector, pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+						pd_point_from_soft(scene, pos, vel, -1, &epoint);
+						pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
+
 						VecMulf(speed,windfactor); 
 						VecAddf(vel,vel,speed);
 					}
@@ -1589,14 +1592,13 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 static void scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow)
 {
   SoftBody *sb = ob->soft;
-  ListBase *do_effector= NULL; 
+  ListBase *do_effector = NULL; 
   
-  do_effector= pdInitEffectors(scene, ob,NULL);
+  do_effector = pdInitEffectors(scene, ob, NULL, sb->effector_weights);
   if (sb){
 	  _scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
   }
-  if(do_effector)
-	  pdEndEffectors(do_effector);
+  pdEndEffectors(&do_effector);
 }
 
 static void *exec_scan_for_ext_spring_forces(void *data)
@@ -1614,7 +1616,7 @@ static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,
 	int i, totthread,left,dec;
 	int lowsprings =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
-	do_effector= pdInitEffectors(scene, ob,NULL);
+	do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
 	if(scene->r.mode & R_FIXED_THREADS)
@@ -1661,9 +1663,8 @@ static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,
 		exec_scan_for_ext_spring_forces(&sb_threads[0]);
     /* clean up */
 	MEM_freeN(sb_threads);
-
-	  if(do_effector)
-  pdEndEffectors(do_effector);
+	
+	pdEndEffectors(&do_effector);
 }
 
 
@@ -2226,19 +2227,22 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			/* done goal stuff */
 			
 			/* gravitation */
-			if (sb){ 
-			float gravity = sb->grav * sb_grav_force_scale(ob);	
-			bp->force[2]-= gravity*bp->mass; /* individual mass of node here */
+			if (sb && scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY){ 
+				float gravity[3];
+				VECCOPY(gravity, scene->physics_settings.gravity);
+				VecMulf(gravity, sb_grav_force_scale(ob)*bp->mass*sb->effector_weights->global_gravity); /* individual mass of node here */
+				VecAddf(bp->force, bp->force, gravity);
 			}
 			
 			/* particle field & vortex */
 			if(do_effector) {
+				EffectedPoint epoint;
 				float kd;
 				float force[3]= {0.0f, 0.0f, 0.0f};
 				float speed[3]= {0.0f, 0.0f, 0.0f};
 				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
-				
-				pdDoEffectors(scene, do_effector, bp->pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
+				pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
 				
 				/* apply forcefield*/
 				VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
@@ -2341,6 +2345,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 	left = totpoint;
 	dec = totpoint/totthread +1;
 	for(i=0; i<totthread; i++) {
+		sb_threads[i].scene = scene;
 		sb_threads[i].ob = ob; 
 		sb_threads[i].forcetime = forcetime; 
 		sb_threads[i].timenow = timenow; 
@@ -2381,7 +2386,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
  */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bproot;
-	ListBase *do_effector;
+	ListBase *do_effector = NULL;
 	float iks, gravity;
 	float fieldfactor = -1.0f, windfactor  = 0.25;   
 	int   do_deflector,do_selfcollision,do_springcollision,do_aero;
@@ -2401,7 +2406,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 	sb_sfesf_threads_run(scene, ob, timenow,sb->totspring,NULL);	
 	
 	/* after spring scan because it uses Effoctors too */
-	do_effector= pdInitEffectors(scene, ob,NULL);
+	do_effector= pdInitEffectors(scene, ob, NULL, sb->effector_weights);
 
 	if (do_deflector) {
 		float defforce[3];
@@ -2414,7 +2419,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 	if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
 	
 	/* finish matrix and solve */
-	if(do_effector) pdEndEffectors(do_effector);
+	pdEndEffectors(&do_effector);
 }
 
 
@@ -2443,8 +2448,8 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		BodyPoint  *bp;
 		BodyPoint *bproot;
 		BodySpring *bs;	
-		ListBase *do_effector;
-		float iks, ks, kd, gravity;
+		ListBase *do_effector = NULL;
+		float iks, ks, kd, gravity[3] = {0.0f,0.0f,0.0f};
 		float fieldfactor = -1.0f, windfactor  = 0.25f;   
 		float tune = sb->ballstiff;
 		int a, b,  do_deflector,do_selfcollision,do_springcollision,do_aero;
@@ -2460,7 +2465,10 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		*/
 
 
-		gravity = sb->grav * sb_grav_force_scale(ob);	
+		if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY){ 
+			VECCOPY(gravity, scene->physics_settings.gravity);
+			VecMulf(gravity, sb_grav_force_scale(ob)*sb->effector_weights->global_gravity);
+		}	
 
 		/* check conditions for various options */
 		do_deflector= query_external_colliders(scene, ob);
@@ -2473,7 +2481,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(scene, ob, timenow);
 		/* after spring scan because it uses Effoctors too */
-		do_effector= pdInitEffectors(scene, ob,NULL);
+		do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights);
 
 		if (do_deflector) {
 			float defforce[3];
@@ -2631,16 +2639,17 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 
 				/* gravitation */
-				bp->force[2]-= gravity*bp->mass; /* individual mass of node here */
+				VECADDFAC(bp->force, bp->force, gravity, bp->mass); /* individual mass of node here */
 
 
 				/* particle field & vortex */
 				if(do_effector) {
+					EffectedPoint epoint;
 					float force[3]= {0.0f, 0.0f, 0.0f};
 					float speed[3]= {0.0f, 0.0f, 0.0f};
 					float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
-
-					pdDoEffectors(scene, do_effector, bp->pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+					pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
+					pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
 
 					/* apply forcefield*/
 					VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
@@ -2819,7 +2828,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		}
 		/* cleanup */
 #endif
-		if(do_effector) pdEndEffectors(do_effector);
+		pdEndEffectors(&do_effector);
 	}
 }
 
@@ -3635,6 +3644,9 @@ SoftBody *sbNew(Scene *scene)
 
 	sb->pointcache = BKE_ptcache_add(&sb->ptcaches);
 
+	if(!sb->effector_weights)
+		sb->effector_weights = BKE_add_effector_weights(NULL);
+
 	return sb;
 }
 
@@ -3644,6 +3656,8 @@ void sbFree(SoftBody *sb)
 	free_softbody_intern(sb);
 	BKE_ptcache_free_list(&sb->ptcaches);
 	sb->pointcache = NULL;
+	if(sb->effector_weights)
+		MEM_freeN(sb->effector_weights);
 	MEM_freeN(sb);
 }
 
@@ -3683,6 +3697,9 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 {
 	BodyPoint *bp;
 	int a;
+
+	if(!sb || !sb->bpoint)
+		return;
 
 	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
 		/* store where goals are now */ 

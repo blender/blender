@@ -74,6 +74,14 @@ if env['WITH_BF_JACK']:
 if env['BF_UNIT_TEST']:
 	defs.append('UNIT_TEST')
 
+
+if env['OURPLATFORM'] == 'linux2':
+	cflags='-pthread'
+    	incs += ' ../../../extern/binreloc/include'
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+	incs += ' ' + env['BF_PTHREADS_INC']
+
 makesrna_tool.Append(CPPDEFINES=defs)
 
 makesrna_tool.Append (CPPPATH = Split(incs))
@@ -126,7 +134,7 @@ rna.Depends (generated_files, makesrna)
 
 # this seems bad, how to retrieve it from scons?
 build_dir = root_build_dir + os.sep +'source' + os.sep + 'blender' + os.sep + 'makesrna' + os.sep + 'intern' + os.sep
-
+	
 if env['OURPLATFORM'] != 'linuxcross':
 	if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 		rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna.exe\" \""  + build_dir )

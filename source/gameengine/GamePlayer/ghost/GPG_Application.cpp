@@ -679,7 +679,7 @@ bool GPG_Application::startEngine(void)
 		
 		// some python things
 		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest, m_maggie, m_argc, m_argv);
-		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
+		m_ketsjiengine->SetPyNamespace(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
 		PyObject *gameLogic = initGameLogic(m_ketsjiengine, startscene);
 		PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
@@ -702,7 +702,6 @@ bool GPG_Application::startEngine(void)
 		
 		m_sceneconverter->ConvertScene(
 			startscene,
-			dictionaryobject,
 			m_rendertools,
 			m_canvas);
 		m_ketsjiengine->AddScene(startscene);

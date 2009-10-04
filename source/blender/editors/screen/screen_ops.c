@@ -2703,18 +2703,13 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 }
 
 /* called inside thread! */
-static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
+static void image_buffer_rect_update(RenderJob *rj, RenderResult *rr, ImBuf *ibuf, volatile rcti *renrect)
 {
-	RenderJob *rj= rjv;
-	ImBuf *ibuf;
 	float x1, y1, *rectf= NULL;
 	int ymin, ymax, xmin, xmax;
 	int rymin, rxmin;
 	char *rectc;
 	
-	ibuf= BKE_image_get_ibuf(rj->image, &rj->iuser);
-	if(ibuf==NULL) return;
-
 	/* if renrect argument, we only refresh scanlines */
 	if(renrect) {
 		/* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
@@ -2814,6 +2809,18 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	*(rj->do_update)= 1;
 }
 
+static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
+{
+	RenderJob *rj= rjv;
+	ImBuf *ibuf;
+	void *lock;
+	
+	ibuf= BKE_image_acquire_ibuf(rj->image, &rj->iuser, &lock);
+	if(ibuf)
+		image_buffer_rect_update(rj, rr, ibuf, renrect);
+	BKE_image_release_ibuf(rj->image, lock);
+}
+
 static void render_startjob(void *rjv, short *stop, short *do_update)
 {
 	RenderJob *rj= rjv;
@@ -2897,7 +2904,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->iuser.ok= 1;
 	
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY);
 	WM_jobs_customdata(steve, rj, render_freejob);
 	WM_jobs_timer(steve, 0.2, NC_SCENE|ND_RENDER_RESULT, 0);
 	WM_jobs_callbacks(steve, render_startjob, NULL, NULL);

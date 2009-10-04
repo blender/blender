@@ -74,44 +74,33 @@ EnumPropertyItem boidruleset_type_items[] ={
 
 static void rna_Boids_reset(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
-	ParticleSettings *part;
-
 	if(ptr->type==&RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
-		if(ob)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 	}
-	else {
-		part = ptr->id.data;
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET);
-	}
+	else
+		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
 }
 static void rna_Boids_reset_deps(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene = CTX_data_scene(C);
-	ParticleSettings *part;
 
 	if(ptr->type==&RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
-		if(ob)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 	}
-	else {
-		part = ptr->id.data;
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET);
-		DAG_scene_sort(scene);
-	}
+	else
+		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+
+	DAG_scene_sort(scene);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
 }

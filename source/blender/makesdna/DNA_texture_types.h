@@ -61,9 +61,27 @@ typedef struct MTex {
 	float r, g, b, k;
 	float def_var, rt;
 	
-	float colfac, norfac, varfac;
-	float dispfac; 
-	float warpfac;
+	/* common */
+	float colfac, varfac;
+	
+	/* material */
+	float norfac, dispfac, warpfac;
+	float colspecfac, mirrfac, alphafac;
+	float difffac, specfac, emitfac, hardfac;
+	float raymirrfac, translfac, ambfac;
+	float colemitfac, colreflfac, coltransfac;
+	float densfac, scatterfac, reflfac;
+
+	/* particles */
+	float timefac, lengthfac, clumpfac;
+	float kinkfac, roughfac, padensfac;
+	float lifefac, sizefac, ivelfac, pvelfac;
+
+	/* lamp */
+	float shadowfac;
+
+	/* world */
+	float zenupfac, zendownfac, blendfac;
 } MTex;
 
 #ifndef DNA_USHORT_FIX
@@ -167,7 +185,8 @@ typedef struct VoxelData {
 	int interp_type;
 	short file_format;
 	short flag;
-	int pad;
+	short extend;
+	short pad;
 	
 	struct Object *object; /* for rendering smoke sims */
 	float int_multiplier;	

@@ -91,6 +91,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
@@ -127,8 +128,8 @@ void clear_workob(Object *workob)
 {
 	memset(workob, 0, sizeof(Object));
 	
-	workob->size[0]= workob->size[1]= workob->size[2]= 1.0;
-	
+	workob->size[0]= workob->size[1]= workob->size[2]= 1.0f;
+	workob->rotmode= ROT_MODE_EUL;
 }
 
 void copy_baseflags(struct Scene *scene)
@@ -298,11 +299,8 @@ void free_object(Object *ob)
 	
 	free_constraints(&ob->constraints);
 	
-	if(ob->pd){
-		if(ob->pd->tex)
-			ob->pd->tex->id.us--;
-		MEM_freeN(ob->pd);
-	}
+	free_partdeflect(ob->pd);
+
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
@@ -1038,6 +1036,11 @@ Object *add_object(struct Scene *scene, int type)
 	ob->data= add_obdata_from_type(type);
 
 	ob->lay= scene->lay;
+	
+	/* objects should default to having Euler XYZ rotations, 
+	 * but rotations default to quaternions 
+	 */
+	ob->rotmode= ROT_MODE_EUL;
 
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
@@ -1063,6 +1066,9 @@ SoftBody *copy_softbody(SoftBody *sb)
 	sbn->scratch= NULL;
 
 	sbn->pointcache= BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches);
+
+	if(sb->effector_weights)
+		sbn->effector_weights = MEM_dupallocN(sb->effector_weights);
 
 	return sbn;
 }
@@ -1124,11 +1130,9 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
-	psysn->effectors.first= psysn->effectors.last= 0;
 	
 	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
 	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
-	psysn->reactevents.first = psysn->reactevents.last = NULL;
 	psysn->renderdata = NULL;
 	
 	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
@@ -1263,7 +1267,7 @@ Object *copy_object(Object *ob)
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->dup_group);
-	// FIXME: add this for animdata too...
+	
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
@@ -1273,6 +1277,8 @@ Object *copy_object(Object *ob)
 		obn->pd= MEM_dupallocN(ob->pd);
 		if(obn->pd->tex)
 			id_us_plus(&(obn->pd->tex->id));
+		if(obn->pd->rng)
+			obn->pd->rng = MEM_dupallocN(ob->pd->rng);
 	}
 	obn->soft= copy_softbody(ob->soft);
 	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
@@ -1582,12 +1588,34 @@ void object_scale_to_mat3(Object *ob, float mat[][3])
 // TODO: this should take rotation orders into account later...
 void object_rot_to_mat3(Object *ob, float mat[][3])
 {
-	float vec[3];
+	float rmat[3][3], dmat[3][3];
 	
-	vec[0]= ob->rot[0]+ob->drot[0];
-	vec[1]= ob->rot[1]+ob->drot[1];
-	vec[2]= ob->rot[2]+ob->drot[2];
-	EulToMat3(vec, mat);
+	/* initialise the delta-rotation matrix, which will get (pre)multiplied 
+	 * with the rotation matrix to yield the appropriate rotation
+	 */
+	Mat3One(dmat);
+	
+	/* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
+	if (ob->rotmode > 0) {
+		/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
+		EulOToMat3(ob->rot, ob->rotmode, rmat);
+		EulOToMat3(ob->drot, ob->rotmode, dmat);
+	}
+	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+		/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
+		AxisAngleToMat3(&ob->quat[1], ob->quat[0], rmat);
+		AxisAngleToMat3(&ob->dquat[1], ob->dquat[0], dmat);
+	}
+	else {
+		/* quats are normalised before use to eliminate scaling issues */
+		NormalQuat(ob->quat);
+		QuatToMat3(ob->quat, rmat);
+		QuatToMat3(ob->dquat, dmat);
+	}
+	
+	/* combine these rotations */
+	// XXX is this correct? if errors, change the order of multiplication...
+	Mat3MulMat3(mat, dmat, rmat);
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -1600,14 +1628,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 	object_scale_to_mat3(ob, smat);
 
 	/* rot */
-	/* Quats arnt used yet */
-	/*if(ob->transflag & OB_QUAT) {
-		QuatMul(q1, ob->quat, ob->dquat);
-		QuatToMat3(q1, rmat);
-	}
-	else {*/
-		object_rot_to_mat3(ob, rmat);
-	/*}*/
+	object_rot_to_mat3(ob, rmat);
 	Mat3MulMat3(mat, rmat, smat);
 }
 
@@ -1902,31 +1923,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	
 	if(ob==NULL) return;
 	
-#if 0 // XXX old animation system
-	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
-	stime= bsystem_time(scene, ob, ctime, 0.0);
-	if(stime != ob->ctime) {
-		
-		ob->ctime= stime;
-		
-		if(ob->ipo) {
-			calc_ipo(ob->ipo, stime);
-			execute_ipo((ID *)ob, ob->ipo);
-		}
-		else 
-			do_all_object_actions(scene, ob);
-		
-		/* do constraint ipos ..., note it needs stime (0 = all ipos) */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 0);
-	}
-	else {
-		/* but, the drivers have to be done */
-		if(ob->ipo) do_ob_ipodrivers(ob, ob->ipo, stime);
-		/* do constraint ipos ..., note it needs stime (1 = only drivers ipos) */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 1);
-	}
-#endif // XXX old animation system
-
 	/* execute drivers only, as animation has already been done */
 	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
 	

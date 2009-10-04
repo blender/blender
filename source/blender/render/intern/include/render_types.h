@@ -121,6 +121,10 @@ struct Render
 	RenderResult *pushedresult;
 	/* a list of RenderResults, for fullsample */
 	ListBase fullresult;	
+	/* read/write mutex, all internal code that writes to re->result must use a
+	   write lock, all external code must use a read lock. internal code is assumed
+	   to not conflict with writes, so no lock used for that */
+	ThreadRWMutex resultmutex;
 	
 	/* window size, display rect, viewplane */
 	int winx, winy;

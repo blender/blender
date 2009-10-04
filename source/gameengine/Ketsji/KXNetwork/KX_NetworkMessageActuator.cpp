@@ -95,6 +95,8 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 	return replica;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* -------------------------------------------------------------------- */
 /* Python interface --------------------------------------------------- */
 /* -------------------------------------------------------------------- */
@@ -133,3 +135,5 @@ PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("body", 0, 16384, false, KX_NetworkMessageActuator, m_body),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

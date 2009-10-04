@@ -30,8 +30,6 @@
 #include <config.h>
 #endif
 
-#ifndef NO_EXP_PYTHON_EMBEDDING
-
 /*------------------------------
  * PyObjectPlus cpp
  *
@@ -52,6 +50,56 @@
 #include "STR_String.h"
 #include "MT_Vector3.h"
 #include "MEM_guardedalloc.h"
+
+PyObjectPlus::~PyObjectPlus()
+{
+#ifndef DISABLE_PYTHON
+	if(m_proxy) {
+		BGE_PROXY_REF(m_proxy)= NULL;
+		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
+	}
+//	assert(ob_refcnt==0);
+#endif
+}
+
+PyObjectPlus::PyObjectPlus() : SG_QList()				// constructor
+{
+#ifndef DISABLE_PYTHON
+	m_proxy= NULL;
+#endif
+};
+
+void PyObjectPlus::ProcessReplica()
+{
+#ifndef DISABLE_PYTHON
+	/* Clear the proxy, will be created again if needed with GetProxy()
+	 * otherwise the PyObject will point to the wrong reference */
+	m_proxy= NULL;
+#endif
+}
+
+/* Sometimes we might want to manually invalidate a BGE type even if
+ * it hasnt been released by the BGE, say for example when an object
+ * is removed from a scene, accessing it may cause problems.
+ *
+ * In this case the current proxy is made invalid, disowned,
+ * and will raise an error on access. However if python can get access
+ * to this class again it will make a new proxy and work as expected.
+ */
+void PyObjectPlus::InvalidateProxy()		// check typename of each parent
+{
+#ifndef DISABLE_PYTHON
+	if(m_proxy) {
+		BGE_PROXY_REF(m_proxy)=NULL;
+		Py_DECREF(m_proxy);
+		m_proxy= NULL;
+	}
+#endif
+}
+
+
+#ifndef DISABLE_PYTHON
+
 /*------------------------------
  * PyObjectPlus Type		-- Every class, even the abstract one should have a Type
 ------------------------------*/
@@ -77,17 +125,6 @@ PyTypeObject PyObjectPlus::Type = {
 	0,
 	NULL // no subtype
 };
-
-
-PyObjectPlus::~PyObjectPlus()
-{
-	if(m_proxy) {
-		BGE_PROXY_REF(m_proxy)= NULL;
-		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
-	}
-//	assert(ob_refcnt==0);
-}
-
 
 PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the entry in Type.
 {
@@ -200,11 +237,6 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 #else
 	Py_TYPE(self)->tp_free(self);
 #endif
-};
-
-PyObjectPlus::PyObjectPlus() : SG_QList()				// constructor
-{
-	m_proxy= NULL;
 };
 
 /*------------------------------
@@ -1067,30 +1099,6 @@ PyObject *PyObjectPlus::py_repr(void)
 	return NULL;
 }
 
-void PyObjectPlus::ProcessReplica()
-{
-	/* Clear the proxy, will be created again if needed with GetProxy()
-	 * otherwise the PyObject will point to the wrong reference */
-	m_proxy= NULL;
-}
-
-/* Sometimes we might want to manually invalidate a BGE type even if
- * it hasnt been released by the BGE, say for example when an object
- * is removed from a scene, accessing it may cause problems.
- * 
- * In this case the current proxy is made invalid, disowned,
- * and will raise an error on access. However if python can get access
- * to this class again it will make a new proxy and work as expected.
- */
-void PyObjectPlus::InvalidateProxy()		// check typename of each parent
-{
-	if(m_proxy) { 
-		BGE_PROXY_REF(m_proxy)=NULL;
-		Py_DECREF(m_proxy);
-		m_proxy= NULL;
-	}
-}
-
 PyObject *PyObjectPlus::GetProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, void *ptr)
 {
 	if (self->m_proxy==NULL)
@@ -1220,5 +1228,4 @@ void			PyObjectPlus::SetDeprecationWarningFirst(WarnLink* wlink) {m_base_wlink_f
 void			PyObjectPlus::SetDeprecationWarningLinkLast(WarnLink* wlink) {m_base_wlink_last= wlink;}
 void			PyObjectPlus::NullDeprecationWarning() {m_base_wlink_first= m_base_wlink_last= NULL;}
 
-#endif //NO_EXP_PYTHON_EMBEDDING
-
+#endif // DISABLE_PYTHON

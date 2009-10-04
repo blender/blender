@@ -38,6 +38,7 @@ struct EditFace;
 struct bContext;
 struct wmOperator;
 struct wmWindowManager;
+struct ReportList;
 struct EditSelection;
 struct ViewContext;
 struct bDeformGroup;
@@ -49,6 +50,8 @@ struct MCol;
 struct UvVertMap;
 struct UvMapVert;
 struct CustomData;
+struct Material;
+struct Object;
 
 #define EM_FGON_DRAW	1 // face flag
 #define EM_FGON			2 // edge and face flag both
@@ -89,9 +92,9 @@ void		ED_keymap_mesh(struct wmWindowManager *wm);
 void		ED_spacetypes_init(void);
 void		ED_keymap_mesh(struct wmWindowManager *wm);
 
-void		make_editMesh(struct Scene *scene, Object *ob);
-void		load_editMesh(struct Scene *scene, Object *ob);
-void		remake_editMesh(struct Scene *scene, Object *ob);
+void		make_editMesh(struct Scene *scene, struct Object *ob);
+void		load_editMesh(struct Scene *scene, struct Object *ob);
+void		remake_editMesh(struct Scene *scene, struct Object *ob);
 void		free_editMesh(struct EditMesh *em);
 
 void		recalc_editnormals(struct EditMesh *em);
@@ -183,6 +186,19 @@ int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
 int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
 int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 short sharesFace(struct EditMesh *em, struct EditEdge *e1, struct EditEdge *e2);
+
+/* mesh_data.c */
+
+void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
+void ED_mesh_transform(struct Mesh *me, float *mat);
+void ED_mesh_calc_normals(struct Mesh *me);
+void ED_mesh_material_add(struct Mesh *me, struct Material *ma);
+void ED_mesh_update(struct Mesh *mesh, struct bContext *C);
+
+int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
+int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
+int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
+int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 
 #endif /* ED_MESH_H */
 

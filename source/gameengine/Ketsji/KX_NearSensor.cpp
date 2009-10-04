@@ -245,12 +245,11 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 	return false; // was DT_CONTINUE; but this was defined in Sumo as false
 }
 
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python Functions															 */
 /* ------------------------------------------------------------------------- */
-
-//No methods
 
 /* ------------------------------------------------------------------------- */
 /* Python Integration Hooks                                                  */
@@ -288,3 +287,5 @@ PyAttributeDef KX_NearSensor::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("resetDistance", 0, 100, KX_NearSensor, m_ResetMargin, CheckResetDistance),
 	{NULL} //Sentinel
 };
+
+#endif // DISABLE_PYTHON

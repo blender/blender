@@ -43,7 +43,7 @@ DIRS = armature \
   metaball \
   gpencil \
   physics \
-  preview \
+  render \
   uvedit \
   space_outliner \
   space_time \

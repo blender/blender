@@ -540,6 +540,8 @@ int AUD_setDeviceVolume(AUD_Device* device, float volume)
 		return device->setCapability(AUD_CAPS_VOLUME, &volume);
 	}
 	catch(AUD_Exception) {}
+	
+	return false;
 }
 
 int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Handle* handle,

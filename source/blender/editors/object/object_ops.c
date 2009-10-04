@@ -117,6 +117,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_armature_add);
 	WM_operatortype_append(OBJECT_OT_lamp_add);
 	WM_operatortype_append(OBJECT_OT_add);
+	WM_operatortype_append(OBJECT_OT_effector_add);
 	WM_operatortype_append(OBJECT_OT_primitive_add);
 	WM_operatortype_append(OBJECT_OT_mesh_add);
 	WM_operatortype_append(OBJECT_OT_metaball_add);
@@ -176,6 +177,9 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(LATTICE_OT_select_all_toggle);
 	WM_operatortype_append(LATTICE_OT_make_regular);
+
+	WM_operatortype_append(OBJECT_OT_group_add);
+	WM_operatortype_append(OBJECT_OT_group_remove);
 	
 	/* macros */
 	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);

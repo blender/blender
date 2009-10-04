@@ -57,7 +57,7 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 	m_mousemode   = mousemode;
 	m_triggermode = true;
 
-	UpdateHotkey(this, NULL);
+	UpdateHotkey(this);
 	Init();
 }
 
@@ -72,7 +72,7 @@ SCA_MouseSensor::~SCA_MouseSensor()
     /* Nothing to be done here. */
 }
 
-int SCA_MouseSensor::UpdateHotkey(void *self, const PyAttributeDef*)
+void SCA_MouseSensor::UpdateHotkey(void *self)
 {
 	// gosh, this function is so damn stupid
 	// its here because of a design mistake in the mouse sensor, it should only
@@ -100,9 +100,6 @@ int SCA_MouseSensor::UpdateHotkey(void *self, const PyAttributeDef*)
 	default:
 		; /* ignore, no hotkey */
 	}
-	// return value is used in py_setattro(), 
-	// 0=attribute checked ok (see Attributes array definition)
-	return 0;
 }
 
 CValue* SCA_MouseSensor::GetReplica()
@@ -239,6 +236,8 @@ bool SCA_MouseSensor::isValid(SCA_MouseSensor::KX_MOUSESENSORMODE m)
 	return ((m > KX_MOUSESENSORMODE_NODEF) && (m < KX_MOUSESENSORMODE_MAX));
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -296,10 +295,20 @@ PyMethodDef SCA_MouseSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+int SCA_MouseSensor::UpdateHotkeyPy(void *self, const PyAttributeDef*)
+{
+	UpdateHotkey(self);
+	// return value is used in py_setattro(),
+	// 0=attribute checked ok (see Attributes array definition)
+	return 0;
+}
+
 PyAttributeDef SCA_MouseSensor::Attributes[] = {
-	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",KX_MOUSESENSORMODE_NODEF,KX_MOUSESENSORMODE_MAX-1,true,SCA_MouseSensor,m_mousemode,UpdateHotkey),
+	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",KX_MOUSESENSORMODE_NODEF,KX_MOUSESENSORMODE_MAX-1,true,SCA_MouseSensor,m_mousemode,UpdateHotkeyPy),
 	KX_PYATTRIBUTE_SHORT_LIST_RO("position",SCA_MouseSensor,m_x,2),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

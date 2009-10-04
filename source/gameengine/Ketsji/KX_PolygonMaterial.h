@@ -57,7 +57,10 @@ private:
 	MTFace*			m_tface;
 	unsigned int*	m_mcol;
 	Material*		m_material;
+
+#ifndef DISABLE_PYTHON
 	PyObject*		m_pymaterial;
+#endif
 
 	mutable int		m_pass;
 public:
@@ -114,6 +117,7 @@ public:
 	}
 	virtual void GetMaterialRGBAColor(unsigned char *rgba) const;
 
+#ifndef DISABLE_PYTHON
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, updateTexture);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, setTexture);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, activate);
@@ -133,6 +137,7 @@ public:
 	static int			pyattr_set_diffuse(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_specular(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
 	static int			pyattr_set_specular(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+#endif
 };
 
 #endif // __KX_POLYGONMATERIAL_H__

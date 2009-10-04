@@ -785,7 +785,7 @@ static bool joint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintV
 			/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
 			EulOToMat3(chan->eul, chan->rotmode, rmat);
 		}
-		else if (chan->rotmode == PCHAN_ROT_AXISANGLE) {
+		else if (chan->rotmode == ROT_MODE_AXISANGLE) {
 			/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
 			AxisAngleToMat3(&chan->quat[1], chan->quat[0], rmat);
 		}

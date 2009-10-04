@@ -614,7 +614,9 @@ void generate_preview(bNode *node, CompBuf *stackbuf)
 		if(stackbuf->rect==NULL && stackbuf->rect_procedural==NULL) return;
 		
 		stackbuf_use= typecheck_compbuf(stackbuf, CB_RGBA);
-		
+
+		BLI_lock_thread(LOCK_PREVIEW);
+
 		if(stackbuf->x > stackbuf->y) {
 			preview->xsize= 140;
 			preview->ysize= (140*stackbuf->y)/stackbuf->x;
@@ -628,14 +630,15 @@ void generate_preview(bNode *node, CompBuf *stackbuf)
 			cbuf= generate_procedural_preview(stackbuf_use, preview->xsize, preview->ysize);
 		else
 			cbuf= scalefast_compbuf(stackbuf_use, preview->xsize, preview->ysize);
-		
+
 		/* this ensures free-compbuf does the right stuff */
 		SWAP(float *, cbuf->rect, node->preview->rect);
+
+		BLI_unlock_thread(LOCK_PREVIEW);
 		
 		free_compbuf(cbuf);
 		if(stackbuf_use!=stackbuf)
 			free_compbuf(stackbuf_use);
-
 	}
 }
 

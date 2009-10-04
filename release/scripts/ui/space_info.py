@@ -144,6 +144,10 @@ class INFO_MT_add(bpy.types.Menu):
 
 		layout.item_enumO("object.add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
 		layout.item_menu_enumO("object.lamp_add", "type", 'LAMP', text="Lamp", icon='ICON_OUTLINER_OB_LAMP')
+		
+		layout.itemS()
+		
+		layout.item_menu_enumO("object.effector_add", "type", 'EMPTY', text="Force Field", icon='ICON_OUTLINER_OB_EMPTY')
 
 class INFO_MT_game(bpy.types.Menu):
 	__space_type__ = 'INFO'
@@ -210,9 +214,6 @@ bpy.types.register(INFO_MT_render)
 bpy.types.register(INFO_MT_help)
 
 # Help operators
-
-import bpy_ops # XXX - should not need to do this
-del bpy_ops
 
 class HelpOperator(bpy.types.Operator):
 	def execute(self, context):

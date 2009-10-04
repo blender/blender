@@ -533,11 +533,14 @@ void draw_image_grease_pencil(bContext *C, short onlyv2d)
 	if (onlyv2d) {
 		/* assume that UI_view2d_ortho(C) has been called... */
 		SpaceImage *sima= (SpaceImage *)CTX_wm_space_data(C);
-		ImBuf *ibuf= ED_space_image_buffer(sima);
+		void *lock;
+		ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 		
 		/* draw grease-pencil ('image' strokes) */
 		//if (sima->flag & SI_DISPGP)
 			draw_gpencil_2dimage(C, ibuf);
+
+		ED_space_image_release_buffer(sima, lock);
 	}
 	else {
 		/* assume that UI_view2d_restore(C) has been called... */
@@ -654,6 +657,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	ImBuf *ibuf;
 	float zoomx, zoomy;
 	int show_viewer, show_render;
+	void *lock;
 
 	/* XXX can we do this in refresh? */
 #if 0
@@ -675,11 +679,9 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	}
 #endif
 
-	/* put scene context variable in iuser */
-	sima->iuser.scene= scene;
 	/* retrieve the image and information about it */
 	ima= ED_space_image(sima);
-	ibuf= ED_space_image_buffer(sima);
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
 
 	show_viewer= (ima && ima->source == IMA_SRC_VIEWER);
@@ -718,5 +720,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 		}
 	}
 #endif
+
+	ED_space_image_release_buffer(sima, lock);
 }
 

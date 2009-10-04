@@ -902,16 +902,16 @@ static int gethome_path_local(char *targetpath, char *folder_name)
 	s = BLI_last_slash(bprogname);
 	i = s - bprogname + 1;
 	BLI_strncpy(bprogdir, bprogname, i);
-	
-	/* try ./.blender/folder_name */
-	if(test_data_path(targetpath, bprogdir, ".blender", folder_name))
-		return 1;
-	
-	if(test_data_path(targetpath, bprogdir, "release", folder_name))
-		return 1;
-	
+
 	/* try release/folder_name (CWD relative) */
 	if(test_data_path(targetpath, BLI_getwdN(cwd), "release", folder_name))
+		return 1;
+
+	if(test_data_path(targetpath, bprogdir, "release", folder_name))
+		return 1;
+
+	/* try ./.blender/folder_name */
+	if(test_data_path(targetpath, bprogdir, ".blender", folder_name))
 		return 1;
 	
 	return 0;

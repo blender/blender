@@ -523,9 +523,9 @@ static void pose_slide_apply (bContext *C, wmOperator *op, tPoseSlideOp *pso)
 			/* everything depends on the rotation mode */
 			if (pchan->rotmode > 0) {
 				/* eulers - so calculate these for the 'eul' vector, and use euler_rotation curves */
-				pose_slide_apply_vec3(pso, pfl, pchan->eul, "euler_rotation");
+				pose_slide_apply_vec3(pso, pfl, pchan->eul, "rotation_euler");
 			}
-			else if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 				// TODO: need to figure out how to do this!
 			}
 			else {

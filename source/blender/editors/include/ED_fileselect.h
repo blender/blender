@@ -51,21 +51,21 @@ typedef enum FileListColumns {
 typedef struct FileLayout
 {
 	/* view settings - XXX - move into own struct */
-	short prv_w;
-	short prv_h;
-	short tile_w;
-	short tile_h;
-	short tile_border_x;
-	short tile_border_y;
-	short prv_border_x;
-	short prv_border_y;
-	short rows;
-	short columns;
-	short width;
-	short height;
-	short flag;
-	short dirty;
-	short textheight;
+	int prv_w;
+	int prv_h;
+	int tile_w;
+	int tile_h;
+	int tile_border_x;
+	int tile_border_y;
+	int prv_border_x;
+	int prv_border_y;
+	int rows;
+	int columns;
+	int width;
+	int height;
+	int flag;
+	int dirty;
+	int textheight;
 	float column_widths[MAX_FILE_COLUMN];
 } FileLayout;
 
@@ -84,7 +84,7 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar);
 int ED_fileselect_layout_offset(FileLayout* layout, int x, int y);
 
-void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, short *x, short *y);
+void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y);
 
 
 #endif /* ED_FILES_H */

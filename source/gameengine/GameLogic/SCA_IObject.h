@@ -41,7 +41,9 @@ class SCA_ISensor;
 class SCA_IController;
 class SCA_IActuator;
 
+#ifndef DISABLE_PYTHON
 template<class T> T PyVecTo(PyObject*);
+#endif
 
 typedef std::vector<SCA_ISensor *>       SCA_SensorList;
 typedef std::vector<SCA_IController *>   SCA_ControllerList;
@@ -217,6 +219,7 @@ public:
 	typedef enum ObjectTypes {
 		OBJ_ARMATURE=0,
 		OBJ_CAMERA=1,
+		OBJ_LIGHT=2,
 	}ObjectTypes;
 
 };

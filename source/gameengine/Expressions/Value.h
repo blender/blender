@@ -197,19 +197,14 @@ public:
 
 
 
-#ifndef NO_EXP_PYTHON_EMBEDDING
 #include "PyObjectPlus.h"
+#ifndef DISABLE_PYTHON
 #include "object.h"
+#endif
 class CValue  : public PyObjectPlus
-#else
-class CValue  
-#endif //NO_EXP_PYTHON_EMBEDDING
-
 
 {
-#ifndef NO_EXP_PYTHON_EMBEDDING
 Py_Header;
-#endif //NO_EXP_PYTHON_EMBEDDING
 public:
 	enum AllocationTYPE {
 		STACKVALUE		= 0,
@@ -224,9 +219,9 @@ public:
 
 
 	// Construction / Destruction
-#ifndef NO_EXP_PYTHON_EMBEDDING
-
 	CValue();
+
+#ifndef DISABLE_PYTHON
 	//static PyObject*	PyMake(PyObject*,PyObject*);
 	virtual PyObject *py_repr(void)
 	{
@@ -242,10 +237,7 @@ public:
 	static PyObject * pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 	
 	virtual PyObject* ConvertKeysToPython( void );
-
-#else
-	CValue();
-#endif //NO_EXP_PYTHON_EMBEDDING
+#endif // DISABLE_PYTHON
 
 	
 	
@@ -416,12 +408,8 @@ public:																									\
 class CPropValue : public CValue
 {
 public:
-#ifndef NO_EXP_PYTHON_EMBEDDING	
 	CPropValue() :
 	  CValue(),
-#else
-	CPropValue() :
-#endif //NO_EXP_PYTHON_EMBEDDING
 		m_strNewName()
 
 	{

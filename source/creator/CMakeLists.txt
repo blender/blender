@@ -205,9 +205,9 @@ IF(WITH_INSTALL)
 
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND cp -R ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
-			COMMAND cp -R ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
-			COMMAND cp -R ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
+			COMMAND cp -Rf ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
+			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
+			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
 			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
 			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/.blender
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
@@ -218,8 +218,8 @@ IF(WITH_INSTALL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
 				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/Resources/
 			)
 		ENDIF(WITH_INTERNATIONAL)
@@ -257,7 +257,8 @@ IF(WITH_INSTALL)
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
-			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python26.zip\" \"${TARGETDIR}\\\"
+			# TODO, copy python bundle
+			# COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python31.zip\" \"${TARGETDIR}\\\"
 		)
     
 		FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)

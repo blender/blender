@@ -173,7 +173,7 @@ void RNA_def_world(struct BlenderRNA *brna);
 void rna_def_animdata_common(struct StructRNA *srna);
 
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
-void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname);
+void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *update);
 void rna_def_render_layer_common(struct StructRNA *srna, int scene);
 
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
@@ -197,6 +197,7 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 void rna_Object_update(struct bContext *C, struct PointerRNA *ptr);
 void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
 void rna_Mesh_update_draw(struct bContext *C, struct PointerRNA *ptr);
+void rna_TextureSlot_update(struct bContext *C, struct PointerRNA *ptr);
 
 /* API functions */
 

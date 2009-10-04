@@ -62,6 +62,7 @@ EnumPropertyItem prop_mode_items[] ={
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_node.h"
+#include "BKE_pointcache.h"
 
 #include "BLI_threads.h"
 
@@ -257,6 +258,41 @@ static void rna_SceneRenderData_file_format_set(PointerRNA *ptr, int value)
 #endif
 }
 
+void rna_SceneRenderData_jpeg2k_preset_update(RenderData *rd)
+{
+	rd->subimtype &= ~(R_JPEG2K_12BIT|R_JPEG2K_16BIT | R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS);
+	
+	switch(rd->jp2_depth) {
+	case 8:		break;
+	case 12:	rd->subimtype |= R_JPEG2K_12BIT; break;
+	case 16:	rd->subimtype |= R_JPEG2K_16BIT; break;
+	}
+	
+	switch(rd->jp2_preset) {
+	case 1: rd->subimtype |= R_JPEG2K_CINE_PRESET;						break;
+	case 2: rd->subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;	break;
+	case 3: rd->subimtype |= R_JPEG2K_CINE_PRESET;						break;
+	case 4: rd->subimtype |= R_JPEG2K_CINE_PRESET;						break;
+	case 5: rd->subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;	break;
+	case 6: rd->subimtype |= R_JPEG2K_CINE_PRESET;						break;
+	case 7: rd->subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;	break;
+	}
+}
+
+static void rna_SceneRenderData_jpeg2k_preset_set(PointerRNA *ptr, int value)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	rd->jp2_preset= value;
+	rna_SceneRenderData_jpeg2k_preset_update(rd);
+}
+
+static void rna_SceneRenderData_jpeg2k_depth_set(PointerRNA *ptr, int value)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	rd->jp2_depth= value;
+	rna_SceneRenderData_jpeg2k_preset_update(rd);
+}
+
 static int rna_SceneRenderData_active_layer_index_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -380,6 +416,14 @@ static void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_composit_default(scene);
 }
 
+static void rna_Physics_update(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->id.data;
+	Base *base;
+
+	for(base = scene->base.first; base; base=base->next)
+		BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
+}
 #else
 
 static void rna_def_tool_settings(BlenderRNA  *brna)
@@ -560,7 +604,6 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
-
 
 void rna_def_render_layer_common(StructRNA *srna, int scene)
 {
@@ -1229,19 +1272,19 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #ifdef WITH_OPENJPEG
 	static EnumPropertyItem jp2_preset_items[] = {
 		{0, "NO_PRESET", 0, "No Preset", ""},
-		{1, "R_JPEG2K_CINE_PRESET", 0, "Cinema 24fps 2048x1080", ""},
-		{2, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", 0, "Cinema 48fps 2048x1080", ""},
-		{3, "R_JPEG2K_CINE_PRESET", 0, "Cinema 24fps 4096x2160", ""},
-		{4, "R_JPEG2K_CINE_PRESET", 0, "Cine-Scope 24fps 2048x858", ""},
-		{5, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", 0, "Cine-Scope 48fps 2048x858", ""},
-		{6, "R_JPEG2K_CINE_PRESET", 0, "Cine-Flat 24fps 1998x1080", ""},
-		{7, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", 0, "Cine-Flat 48fps 1998x1080", ""},
+		{1, "CINE_24FPS", 0, "Cinema 24fps 2048x1080", ""},
+		{2, "CINE_48FPS", 0, "Cinema 48fps 2048x1080", ""},
+		{3, "CINE_24FPS_4K", 0, "Cinema 24fps 4096x2160", ""},
+		{4, "CINE_SCOPE_48FPS", 0, "Cine-Scope 24fps 2048x858", ""},
+		{5, "CINE_SCOPE_48FPS", 0, "Cine-Scope 48fps 2048x858", ""},
+		{6, "CINE_FLAT_24FPS", 0, "Cine-Flat 24fps 1998x1080", ""},
+		{7, "CINE_FLAT_48FPS", 0, "Cine-Flat 48fps 1998x1080", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem jp2_depth_items[] = {
-		{0, "8", 0, "8", ""},
-		{R_JPEG2K_12BIT, "16", 0, "16", ""},
-		{R_JPEG2K_16BIT, "32", 0, "32", ""},
+		{8, "8", 0, "8", "8 bit color channels"},
+		{12, "12", 0, "12", "12 bit color channels"},
+		{16, "16", 0, "16", "16 bit color channels"},
 		{0, NULL, 0, NULL, NULL}};
 #endif
 
@@ -1414,19 +1457,21 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #ifdef WITH_OPENJPEG
 	/* Jpeg 2000 */
 
-	prop= RNA_def_property(srna, "jpeg_preset", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "jp2_preset");
+	prop= RNA_def_property(srna, "jpeg2k_preset", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "jp2_preset");
 	RNA_def_property_enum_items(prop, jp2_preset_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SceneRenderData_jpeg2k_preset_set", NULL);
 	RNA_def_property_ui_text(prop, "Preset", "Use a DCI Standard preset for saving jpeg2000");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "jpeg_depth", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "jpeg2k_depth", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "jp2_depth");
 	RNA_def_property_enum_items(prop, jp2_depth_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SceneRenderData_jpeg2k_depth_set", NULL);
 	RNA_def_property_ui_text(prop, "Depth", "Bit depth per channel");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "jpeg_ycc", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "jpeg2k_ycc", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_JPEG2K_YCC);
 	RNA_def_property_ui_text(prop, "YCC", "Save luminance-chrominance-chrominance channels instead of RGB colors");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
@@ -2094,6 +2139,19 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "unit");
 	RNA_def_property_struct_type(prop, "UnitSettings");
 	RNA_def_property_ui_text(prop, "Unit Settings", "Unit editing settings");
+
+	/* Physics Settings */
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
+	RNA_def_property_float_sdna(prop, NULL, "physics_settings.gravity");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_text(prop, "Gravity", "Constant acceleration in a given direction");
+	RNA_def_property_update(prop, 0, "rna_Physics_update");
+
+	prop= RNA_def_property(srna, "use_gravity", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "physics_settings.flag", PHYS_GLOBAL_GRAVITY);
+	RNA_def_property_ui_text(prop, "Global Gravity", "Use global gravity for all dynamics.");
+	RNA_def_property_update(prop, 0, "rna_Physics_update");
 	
 	/* Render Data */
 	prop= RNA_def_property(srna, "render_data", PROP_POINTER, PROP_NONE);

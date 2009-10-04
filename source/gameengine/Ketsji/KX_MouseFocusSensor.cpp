@@ -340,6 +340,8 @@ const MT_Vector3& KX_MouseFocusSensor::HitNormal() const
 	return m_hitNormal;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -426,7 +428,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_hit_normal(void *self_v, const KX_PYAT
 	return PyObjectFrom(self->HitNormal());
 }
 
-
+#endif // DISABLE_PYTHON
 
 /* eof */
 

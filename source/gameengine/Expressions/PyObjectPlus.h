@@ -27,8 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef NO_EXP_PYTHON_EMBEDDING
-
 #ifndef _adr_py_lib_h_				// only process once,
 #define _adr_py_lib_h_				// even if multiply included
 
@@ -45,6 +43,7 @@
  * Python defines
 ------------------------------*/
 
+#ifndef DISABLE_PYTHON
 #ifdef USE_MATHUTILS
 extern "C" {
 #include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
@@ -463,6 +462,20 @@ typedef struct KX_PYATTRIBUTE_DEF {
 ------------------------------*/
 typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
 
+#else // DISABLE_PYTHON
+
+#define Py_Header \
+ public: \
+
+
+#define Py_HeaderPtr \
+ public: \
+
+
+#endif
+
+
+
 // By making SG_QList the ultimate parent for PyObjectPlus objects, it
 // allows to put them in 2 different dynamic lists at the same time
 // The use of these links is interesting because they free of memory allocation
@@ -480,11 +493,12 @@ class PyObjectPlus : public SG_QList
 	
 public:
 	PyObjectPlus();
-
-	PyObject *m_proxy; /* actually a PyObjectPlus_Proxy */
 	
 	virtual ~PyObjectPlus();					// destructor
 	
+#ifndef DISABLE_PYTHON
+	PyObject *m_proxy; /* actually a PyObjectPlus_Proxy */
+
 	/* These static functions are referenced by ALL PyObjectPlus_Proxy types
 	 * they take the C++ reference from the PyObjectPlus_Proxy and call
 	 * its own virtual py_repr, py_base_dealloc ,etc. functions.
@@ -514,16 +528,6 @@ public:
 					(assume object destructor takes care of it) */
 	static PyObject *NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, void *ptr, bool py_owns);
 
-	void	InvalidateProxy();
-	
-	/**
-	 * Makes sure any internal data owned by this class is deep copied.
-	 */
-	virtual void ProcessReplica();
-	
-	
-	static bool			m_ignore_deprecation_warnings;
-	
 	static	WarnLink*		GetDeprecationWarningLinkFirst(void);
 	static	WarnLink*		GetDeprecationWarningLinkLast(void);
 	static	void			SetDeprecationWarningFirst(WarnLink* wlink);
@@ -536,12 +540,20 @@ public:
 	static void			ShowDeprecationWarning_func(const char* method,const char* prop);
 	static void			ClearDeprecationWarning();
 	
+#endif
+
+	void	InvalidateProxy();
+
+	/**
+	 * Makes sure any internal data owned by this class is deep copied.
+	 */
+	virtual void ProcessReplica();
+
+	static bool			m_ignore_deprecation_warnings;
 };
 
-
+#ifndef DISABLE_PYTHON
 PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);
+#endif
 
 #endif //  _adr_py_lib_h_
-
-#endif //NO_EXP_PYTHON_EMBEDDING
-

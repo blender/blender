@@ -29,6 +29,8 @@
 #ifndef __KX_MESHPROXY
 #define __KX_MESHPROXY
 
+#ifndef DISABLE_PYTHON
+
 #include "SCA_IObject.h"
 
 /* utility conversion function */
@@ -71,6 +73,8 @@ public:
 	static PyObject * pyattr_get_numMaterials(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 	static PyObject * pyattr_get_numPolygons(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 };
+
+#endif // DISABLE_PYTHON
 
 #endif //__KX_MESHPROXY
 

@@ -643,14 +643,14 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			else if (pchan->bone->parent == NULL)
 				return tmat[3][array_index];
 		}
-		else if (strstr(identifier, "euler_rotation")) {
+		else if (strstr(identifier, "rotation_euler")) {
 			float eul[3];
 			
 			/* euler-rotation test before standard rotation, as standard rotation does quats */
 			Mat4ToEulO(tmat, eul, pchan->rotmode);
 			return eul[array_index];
 		}
-		else if (strstr(identifier, "rotation")) {
+		else if (strstr(identifier, "rotation_quaternion")) {
 			float trimat[3][3], quat[4];
 			
 			Mat3CpyMat4(trimat, tmat);
@@ -658,6 +658,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			
 			return quat[array_index];
 		}
+		// TODO: axis-angle...
 	}
 	
 	/* as the function hasn't returned yet, read value from system in the default way */

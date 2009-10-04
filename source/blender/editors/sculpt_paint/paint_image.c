@@ -223,6 +223,7 @@ typedef struct ProjPaintState {
 	DerivedMesh    *dm;
 	int 			dm_totface;
 	int 			dm_totvert;
+	int				dm_release;
 	
 	MVert 		   *dm_mvert;
 	MFace 		   *dm_mface;
@@ -2934,12 +2935,26 @@ static void project_paint_begin(ProjPaintState *ps)
 	/* ---- end defines ---- */
 	
 	/* paint onto the derived mesh */
-	ps->dm = mesh_get_derived_final(ps->scene, ps->ob, ps->v3d->customdata_mask);
+	
+	/* Workaround for subsurf selection, try the display mesh first */
+	if(ps->ob->derivedFinal && CustomData_has_layer( &ps->ob->derivedFinal->faceData, CD_MTFACE)) {
+		ps->dm = ps->ob->derivedFinal;
+		ps->dm_release= FALSE;
+	}
+	else {
+		ps->dm = mesh_get_derived_final(ps->scene, ps->ob, ps->v3d->customdata_mask);
+		ps->dm_release= TRUE;
+	}
 	
 	if ( !CustomData_has_layer( &ps->dm->faceData, CD_MTFACE) ) {
+		
+		if(ps->dm_release)
+			ps->dm->release(ps->dm);
+		
 		ps->dm = NULL;
 		return; 
 	}
+	
 	ps->dm_mvert = ps->dm->getVertArray(ps->dm);
 	ps->dm_mface = ps->dm->getFaceArray(ps->dm);
 	ps->dm_mtface= ps->dm->getFaceDataArray(ps->dm, CD_MTFACE);
@@ -3402,7 +3417,8 @@ static void project_paint_end(ProjPaintState *ps)
 		BLI_memarena_free(ps->arena_mt[a]);
 	}
 	
-	ps->dm->release(ps->dm);
+	if(ps->dm_release)
+		ps->dm->release(ps->dm);
 }
 
 /* 1= an undo, -1 is a redo. */

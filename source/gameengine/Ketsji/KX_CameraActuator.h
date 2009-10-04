@@ -114,6 +114,8 @@ private :
 	/** Methods inherited from SCA_ILogicBrick */
 	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
+#ifndef DISABLE_PYTHON
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -121,6 +123,8 @@ private :
 	/* set object to look at */
 	static PyObject*	pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
+#endif // DISABLE_PYTHON
 
 };
 

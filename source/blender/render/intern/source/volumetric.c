@@ -170,29 +170,6 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 	}
 }
 
-/* input shader data */
-
-float vol_get_stepsize(struct ShadeInput *shi, int context)
-{
-	if (shi->mat->vol.stepsize_type == MA_VOL_STEP_RANDOMIZED) {
-		/* range between 0.75 and 1.25 */
-		const float rnd = 0.5f * BLI_thread_frand(shi->thread) + 0.75f;
-	
-		if (context == STEPSIZE_VIEW)
-			return shi->mat->vol.stepsize * rnd;
-		else if (context == STEPSIZE_SHADE)
-			return shi->mat->vol.shade_stepsize * rnd;
-	}
-	else {	// MA_VOL_STEP_CONSTANT
-		
-		if (context == STEPSIZE_VIEW)
-			return shi->mat->vol.stepsize;
-		else if (context == STEPSIZE_SHADE)
-			return shi->mat->vol.shade_stepsize;
-	}
-	
-	return shi->mat->vol.stepsize;
-}
 
 /* trilinear interpolation */
 static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, float *co)
@@ -212,9 +189,9 @@ static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, fl
 	sample_co[1] = ((co[1] - bbmin[1]) / dim[1]);
 	sample_co[2] = ((co[2] - bbmin[2]) / dim[2]);
 
-	scatter_col[0] = voxel_sample_trilinear(vp->data_r, vp->res, sample_co);
-	scatter_col[1] = voxel_sample_trilinear(vp->data_g, vp->res, sample_co);
-	scatter_col[2] = voxel_sample_trilinear(vp->data_b, vp->res, sample_co);
+	scatter_col[0] = voxel_sample_triquadratic(vp->data_r, vp->res, sample_co);
+	scatter_col[1] = voxel_sample_triquadratic(vp->data_g, vp->res, sample_co);
+	scatter_col[2] = voxel_sample_triquadratic(vp->data_b, vp->res, sample_co);
 }
 
 /* Meta object density, brute force for now 
@@ -270,7 +247,8 @@ float vol_get_density(struct ShadeInput *shi, float *co)
 	float density = shi->mat->vol.density;
 	float density_scale = shi->mat->vol.density_scale;
 		
-	do_volume_tex(shi, co, MAP_DENSITY, NULL, &density);
+	if (shi->mat->mapto_textured & MAP_DENSITY)
+		do_volume_tex(shi, co, MAP_DENSITY, NULL, &density);
 	
 	// if meta-object, modulate by metadensity without increasing it
 	if (shi->obi->obr->ob->type == OB_MBALL) {
@@ -281,79 +259,110 @@ float vol_get_density(struct ShadeInput *shi, float *co)
 	return density * density_scale;
 }
 
-/* scattering multiplier, values above 1.0 are non-physical, 
- * but can be useful to tweak lighting */
-float vol_get_scattering_fac(ShadeInput *shi, float *co)
+
+/* Color of light that gets scattered out by the volume */
+/* Uses same physically based scattering parameter as in transmission calculations, 
+ * along with artificial reflection scale/reflection color tint */
+void vol_get_reflection_color(ShadeInput *shi, float *ref_col, float *co)
 {
 	float scatter = shi->mat->vol.scattering;
-	float col[3] = {0.0, 0.0, 0.0};
+	float reflection= shi->mat->vol.reflection;
+	VECCOPY(ref_col, shi->mat->vol.reflection_col);
 	
-	do_volume_tex(shi, co, MAP_SCATTERING, col, &scatter);
+	if (shi->mat->mapto_textured & (MAP_SCATTERING+MAP_REFLECTION_COL))
+		do_volume_tex(shi, co, MAP_SCATTERING+MAP_REFLECTION_COL, ref_col, &scatter);
 	
-	return scatter;
+	/* only one single float parameter at a time... :s */
+	if (shi->mat->mapto_textured & (MAP_REFLECTION))
+		do_volume_tex(shi, co, MAP_REFLECTION, NULL, &reflection);
+	
+	ref_col[0] = reflection * ref_col[0] * scatter;
+	ref_col[1] = reflection * ref_col[1] * scatter;
+	ref_col[2] = reflection * ref_col[2] * scatter;
 }
 
 /* compute emission component, amount of radiance to add per segment
  * can be textured with 'emit' */
-void vol_get_emission(ShadeInput *shi, float *emission_col, float *co, float density)
+void vol_get_emission(ShadeInput *shi, float *emission_col, float *co)
 {
 	float emission = shi->mat->vol.emission;
 	VECCOPY(emission_col, shi->mat->vol.emission_col);
 	
-	do_volume_tex(shi, co, MAP_EMISSION+MAP_EMISSION_COL, emission_col, &emission);
+	if (shi->mat->mapto_textured & (MAP_EMISSION+MAP_EMISSION_COL))
+		do_volume_tex(shi, co, MAP_EMISSION+MAP_EMISSION_COL, emission_col, &emission);
 	
-	emission_col[0] = emission_col[0] * emission * density;
-	emission_col[1] = emission_col[1] * emission * density;
-	emission_col[2] = emission_col[2] * emission * density;
+	emission_col[0] = emission_col[0] * emission;
+	emission_col[1] = emission_col[1] * emission;
+	emission_col[2] = emission_col[2] * emission;
 }
 
-void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
+
+/* A combination of scattering and absorption -> known as sigma T.
+ * This can possibly use a specific scattering colour, 
+ * and absorption multiplier factor too, but these parameters are left out for simplicity.
+ * It's easy enough to get a good wide range of results with just these two parameters. */
+void vol_get_sigma_t(ShadeInput *shi, float *sigma_t, float *co)
 {
-	float absorption = shi->mat->vol.absorption;
-	VECCOPY(absorb_col, shi->mat->vol.absorption_col);
+	/* technically absorption, but named transmission color 
+	 * since it describes the effect of the coloring *after* absorption */
+	float transmission_col[3] = {shi->mat->vol.transmission_col[0], shi->mat->vol.transmission_col[1], shi->mat->vol.transmission_col[2]};
+	float scattering = shi->mat->vol.scattering;
 	
-	do_volume_tex(shi, co, MAP_ABSORPTION+MAP_ABSORPTION_COL, absorb_col, &absorption);
+	if (shi->mat->mapto_textured & (MAP_SCATTERING+MAP_TRANSMISSION_COL))
+		do_volume_tex(shi, co, MAP_SCATTERING+MAP_TRANSMISSION_COL, transmission_col, &scattering);
 	
-	absorb_col[0] = (1.0f - absorb_col[0]) * absorption;
-	absorb_col[1] = (1.0f - absorb_col[1]) * absorption;
-	absorb_col[2] = (1.0f - absorb_col[2]) * absorption;
+	sigma_t[0] = (1.0f - transmission_col[0]) + scattering;
+	sigma_t[1] = (1.0f - transmission_col[1]) + scattering;
+	sigma_t[2] = (1.0f - transmission_col[2]) + scattering;
 }
 
 /* phase function - determines in which directions the light 
  * is scattered in the volume relative to incoming direction 
  * and view direction */
-float vol_get_phasefunc(ShadeInput *shi, short phasefunc_type, float g, float *w, float *wp)
+float vol_get_phasefunc(ShadeInput *shi, float g, float *w, float *wp)
 {
-	const float costheta = Inpf(w, wp);
-	const float scale = M_PI;
+	const float normalize = 0.25f; // = 1.f/4.f = M_PI/(4.f*M_PI)
 	
-	/*
-	 * Scale constant is required, since Blender's shading system doesn't normalise for
-	 * energy conservation - eg. scaling by 1/pi for a lambert shader.
-	 * This makes volumes darker than other solid objects, for the same lighting intensity.
-	 * To correct this, scale up the phase function values
+	/* normalization constant is 1/4 rather than 1/4pi, since
+	 * Blender's shading system doesn't normalise for
+	 * energy conservation - eg. multiplying by pdf ( 1/pi for a lambert brdf ).
+	 * This means that lambert surfaces in Blender are pi times brighter than they 'should be'
+	 * and therefore, with correct energy conservation, volumes will darker than other solid objects,
+	 * for the same lighting intensity.
+	 * To correct this, scale up the phase function values by pi
 	 * until Blender's shading system supports this better. --matt
 	 */
 	
+	if (g == 0.f) {	/* isotropic */
+		return normalize * 1.f;
+	} else {		/* schlick */
+		const float k = 1.55f * g - .55f * g * g * g;
+		const float kcostheta = k * Inpf(w, wp);
+		return normalize * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
+	}
+	
+	/*
+	 * not used, but here for reference:
 	switch (phasefunc_type) {
 		case MA_VOL_PH_MIEHAZY:
-			return scale * (0.5f + 4.5f * powf(0.5 * (1.f + costheta), 8.f)) / (4.f*M_PI);
+			return normalize * (0.5f + 4.5f * powf(0.5 * (1.f + costheta), 8.f));
 		case MA_VOL_PH_MIEMURKY:
-			return scale * (0.5f + 16.5f * powf(0.5 * (1.f + costheta), 32.f)) / (4.f*M_PI);
+			return normalize * (0.5f + 16.5f * powf(0.5 * (1.f + costheta), 32.f));
 		case MA_VOL_PH_RAYLEIGH:
-			return scale * 3.f/(16.f*M_PI) * (1 + costheta * costheta);
+			return normalize * 3.f/4.f * (1 + costheta * costheta);
 		case MA_VOL_PH_HG:
-			return scale * (1.f / (4.f * M_PI) * (1.f - g*g) / powf(1.f + g*g - 2.f * g * costheta, 1.5f));
+			return normalize * (1.f - g*g) / powf(1.f + g*g - 2.f * g * costheta, 1.5f));
 		case MA_VOL_PH_SCHLICK:
 		{
 			const float k = 1.55f * g - .55f * g * g * g;
 			const float kcostheta = k * costheta;
-			return scale * (1.f / (4.f * M_PI) * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta)));
+			return normalize * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
 		}
 		case MA_VOL_PH_ISOTROPIC:
 		default:
-			return scale * (1.f / (4.f * M_PI));
+			return normalize * 1.f;
 	}
+	*/
 }
 
 /* Compute transmittance = e^(-attenuation) */
@@ -361,15 +370,15 @@ void vol_get_transmittance_seg(ShadeInput *shi, float *tr, float stepsize, float
 {
 	/* input density = density at co */
 	float tau[3] = {0.f, 0.f, 0.f};
-	float absorb[3];
-	const float scatter_dens = vol_get_scattering_fac(shi, co) * density * stepsize;
-
-	vol_get_absorption(shi, absorb, co);
+	const float stepd = density * stepsize;
+	float sigma_t[3];
+	
+	vol_get_sigma_t(shi, sigma_t, co);
 	
 	/* homogenous volume within the sampled distance */
-	tau[0] += scatter_dens * absorb[0];
-	tau[1] += scatter_dens * absorb[1];
-	tau[2] += scatter_dens * absorb[2];
+	tau[0] += stepd * sigma_t[0];
+	tau[1] += stepd * sigma_t[1];
+	tau[2] += stepd * sigma_t[2];
 	
 	tr[0] *= exp(-tau[0]);
 	tr[1] *= exp(-tau[1]);
@@ -381,31 +390,29 @@ static void vol_get_transmittance(ShadeInput *shi, float *tr, float *co, float *
 {
 	float p[3] = {co[0], co[1], co[2]};
 	float step_vec[3] = {endco[0] - co[0], endco[1] - co[1], endco[2] - co[2]};
-	//const float ambtau = -logf(shi->mat->vol.depth_cutoff);	// never zero
 	float tau[3] = {0.f, 0.f, 0.f};
 
 	float t0 = 0.f;
 	float t1 = Normalize(step_vec);
 	float pt0 = t0;
 	
-	t0 += shi->mat->vol.shade_stepsize * ((shi->mat->vol.stepsize_type == MA_VOL_STEP_CONSTANT) ? 0.5f : BLI_thread_frand(shi->thread));
+	t0 += shi->mat->vol.stepsize * ((shi->mat->vol.stepsize_type == MA_VOL_STEP_CONSTANT) ? 0.5f : BLI_thread_frand(shi->thread));
 	p[0] += t0 * step_vec[0];
 	p[1] += t0 * step_vec[1];
 	p[2] += t0 * step_vec[2];
-	VecMulf(step_vec, shi->mat->vol.shade_stepsize);
+	VecMulf(step_vec, shi->mat->vol.stepsize);
 
-	for (; t0 < t1; pt0 = t0, t0 += shi->mat->vol.shade_stepsize) {
-		float absorb[3];
+	for (; t0 < t1; pt0 = t0, t0 += shi->mat->vol.stepsize) {
 		const float d = vol_get_density(shi, p);
 		const float stepd = (t0 - pt0) * d;
-		const float scatter_dens = vol_get_scattering_fac(shi, p) * stepd;
-		vol_get_absorption(shi, absorb, p);
+		float sigma_t[3];
 		
-		tau[0] += scatter_dens * absorb[0];
-		tau[1] += scatter_dens * absorb[1];
-		tau[2] += scatter_dens * absorb[2];
+		vol_get_sigma_t(shi, sigma_t, co);
 		
-		//if (luminance(tau) >= ambtau) break;
+		tau[0] += stepd * sigma_t[0];
+		tau[1] += stepd * sigma_t[1];
+		tau[2] += stepd * sigma_t[2];
+		
 		VecAddf(p, p, step_vec);
 	}
 	
@@ -420,8 +427,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	float visifac, lv[3], lampdist;
 	float tr[3]={1.0,1.0,1.0};
 	float hitco[3], *atten_co;
-	float p;
-	float scatter_fac;
+	float p, ref_col[3];
 	
 	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
@@ -475,15 +481,20 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		}
 	}
 	
-	p = vol_get_phasefunc(shi, shi->mat->vol.phasefunc_type, shi->mat->vol.phasefunc_g, shi->view, lv);
-	VecMulf(lacol, p);
+	if (luminance(lacol) < 0.001f) return;
 	
-	scatter_fac = vol_get_scattering_fac(shi, co);
-	VecMulf(lacol, scatter_fac);
+	p = vol_get_phasefunc(shi, shi->mat->vol.asymmetry, shi->view, lv);
+	
+	/* physically based scattering with non-physically based RGB gain */
+	vol_get_reflection_color(shi, ref_col, co);
+	
+	lacol[0] *= p * ref_col[0];
+	lacol[1] *= p * ref_col[1];
+	lacol[2] *= p * ref_col[2];
 }
 
 /* single scattering only for now */
-void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co, float stepsize, float density)
+void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co)
 {
 	ListBase *lights;
 	GroupObject *go;
@@ -515,71 +526,69 @@ outgoing radiance from behind surface * beam transmittance/attenuation
 	--> radiance for each segment = 
 		(radiance added by scattering + radiance added by emission) * beam transmittance/attenuation
 */
+
+/* For ease of use, I've also introduced a 'reflection' and 'reflection color' parameter, which isn't 
+ * physically correct. This works as an RGB tint/gain on out-scattered light, but doesn't affect the light 
+ * that is transmitted through the volume. While having wavelength dependent absorption/scattering is more correct,
+ * it also makes it harder to control the overall look of the volume since colouring the outscattered light results
+ * in the inverse colour being transmitted through the rest of the volume.
+ */
 static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float *endco)
 {
-	float tr[3] = {1.0f, 1.0f, 1.0f};
-	float radiance[3] = {0.f, 0.f, 0.f}, d_radiance[3] = {0.f, 0.f, 0.f};
-	float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
-	int nsteps, s;
-	float emit_col[3], scatter_col[3] = {0.0, 0.0, 0.0};
-	float stepvec[3], step_sta[3], step_end[3], step_mid[3];
-	float density;
-	const float depth_cutoff = shi->mat->vol.depth_cutoff;
-
-	/* ray marching */
-	nsteps = (int)((VecLenf(co, endco) / stepsize) + 0.5);
+	float radiance[3] = {0.f, 0.f, 0.f};
+	float tr[3] = {1.f, 1.f, 1.f};
+	float p[3] = {co[0], co[1], co[2]};
+	float step_vec[3] = {endco[0] - co[0], endco[1] - co[1], endco[2] - co[2]};
+	const float stepsize = shi->mat->vol.stepsize;
 	
-	VecSubf(stepvec, endco, co);
-	VecMulf(stepvec, 1.0f / nsteps);
-	VecCopyf(step_sta, co);
-	VecAddf(step_end, step_sta, stepvec);
+	float t0 = 0.f;
+	float pt0 = t0;
+	float t1 = Normalize(step_vec);	/* returns vector length */
 	
-	/* get radiance from all points along the ray due to participating media */
-	for (s = 0; s < nsteps; s++) {
-
-		density = vol_get_density(shi, step_sta);
+	t0 += stepsize * ((shi->mat->vol.stepsize_type == MA_VOL_STEP_CONSTANT) ? 0.5f : BLI_thread_frand(shi->thread));
+	p[0] += t0 * step_vec[0];
+	p[1] += t0 * step_vec[1];
+	p[2] += t0 * step_vec[2];
+	VecMulf(step_vec, stepsize);
+	
+	for (; t0 < t1; pt0 = t0, t0 += stepsize) {
+		const float density = vol_get_density(shi, p);
 		
-		/* there's only any use in shading here if there's actually some density to shade! */
 		if (density > 0.01f) {
-		
+			float scatter_col[3], emit_col[3];
+			const float stepd = (t0 - pt0) * density;
+			
 			/* transmittance component (alpha) */
 			vol_get_transmittance_seg(shi, tr, stepsize, co, density);
-
-			step_mid[0] = step_sta[0] + (stepvec[0] * 0.5);
-			step_mid[1] = step_sta[1] + (stepvec[1] * 0.5);
-			step_mid[2] = step_sta[2] + (stepvec[2] * 0.5);
-		
-			/* incoming light via emission or scattering (additive) */
-			vol_get_emission(shi, emit_col, step_mid, density);
 			
-			if (shi->obi->volume_precache)
-				vol_get_precached_scattering(shi, scatter_col, step_mid);
-			else
-				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);
+			if (luminance(tr) < shi->mat->vol.depth_cutoff) break;
 			
-			VecMulf(scatter_col, density);
-			VecAddf(d_radiance, emit_col, scatter_col);
+			vol_get_emission(shi, emit_col, p);
 			
-			/*   Lv += Tr * (Lve() + Ld) */
-			VecMulVecf(d_radiance, tr, d_radiance);
-			VecMulf(d_radiance, stepsize);
+			if (shi->obi->volume_precache) {
+				float p2[3];
+				
+				p2[0] = p[0] + (step_vec[0] * 0.5);
+				p2[1] = p[1] + (step_vec[1] * 0.5);
+				p2[2] = p[2] + (step_vec[2] * 0.5);
+				
+				vol_get_precached_scattering(shi, scatter_col, p2);
+			} else
+				vol_get_scattering(shi, scatter_col, p);
 			
-			VecAddf(radiance, radiance, d_radiance);	
+			radiance[0] += stepd * tr[0] * (emit_col[0] + scatter_col[0]);
+			radiance[1] += stepd * tr[1] * (emit_col[1] + scatter_col[1]);
+			radiance[2] += stepd * tr[2] * (emit_col[2] + scatter_col[2]);
 		}
-
-		VecCopyf(step_sta, step_end);
-		VecAddf(step_end, step_end, stepvec);
-		
-		/* luminance rec. 709 */
-		if ((0.2126*tr[0] + 0.7152*tr[1] + 0.0722*tr[2]) < depth_cutoff) break;	
+		VecAddf(p, p, step_vec);
 	}
 	
-	/* multiply original color (behind volume) with beam transmittance over entire distance */
-	VecMulVecf(col, tr, col);	
+	/* multiply original color (from behind volume) with transmittance over entire distance */
+	VecMulVecf(col, tr, col);
 	VecAddf(col, col, radiance);
 	
 	/* alpha <-- transmission luminance */
-	col[3] = 1.0f -(0.2126*tr[0] + 0.7152*tr[1] + 0.0722*tr[2]);
+	col[3] = 1.0f - luminance(tr);
 }
 
 /* the main entry point for volume shading */
@@ -606,7 +615,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 		/* don't render the backfaces of ztransp volume materials.
 		 
 		 * volume shading renders the internal volume from between the
-		 * near view intersection of the solid volume to the
+		 * ' view intersection of the solid volume to the
 		 * intersection on the other side, as part of the shading of
 		 * the front face.
 		 
@@ -709,8 +718,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	vol_get_transmittance(shi, tr, startco, endco);
 	
 	VecCopyf(shr->combined, tr);
-	shr->combined[3] = 1.0f -(0.2126*tr[0] + 0.7152*tr[1] + 0.0722*tr[2]);
-	shr->alpha = shr->combined[3];
+	shr->combined[3] = 1.0f - luminance(tr);
 }
 
 

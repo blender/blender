@@ -38,6 +38,7 @@ struct RadialControl;
 struct rcti;
 struct wmWindowManager;
 struct PTCacheEdit;
+struct Scene;
 
 /* particle edit mode */
 void PE_free_ptcache_edit(struct PTCacheEdit *edit);
@@ -46,7 +47,7 @@ int PE_start_edit(struct PTCacheEdit *edit);
 /* access */
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob);
 int PE_minmax(struct Scene *scene, float *min, float *max);
-struct ParticleEditSettings *PE_settings(Scene *scene);
+struct ParticleEditSettings *PE_settings(struct Scene *scene);
 
 /* update calls */
 void PE_hide_keys_time(struct Scene *scene, struct PTCacheEdit *edit, float cfra);
@@ -59,15 +60,11 @@ int PE_circle_select(struct bContext *C, int selecting, short *mval, float rad);
 int PE_lasso_select(struct bContext *C, short mcords[][2], short moves, short select);
 
 /* undo */
-void PE_undo_push(Scene *scene, char *str);
-void PE_undo_step(Scene *scene, int step);
-void PE_undo(Scene *scene);
-void PE_redo(Scene *scene);
-void PE_undo_menu(Scene *scene, Object *ob);
-
-/* operators */
-void ED_operatortypes_particle(void);
-void ED_keymap_particle(struct wmWindowManager *wm);
+void PE_undo_push(struct Scene *scene, char *str);
+void PE_undo_step(struct Scene *scene, int step);
+void PE_undo(struct Scene *scene);
+void PE_redo(struct Scene *scene);
+void PE_undo_menu(struct Scene *scene, struct Object *ob);
 
 #endif /* ED_PARTICLE_H */
 

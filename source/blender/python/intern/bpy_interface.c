@@ -149,6 +149,17 @@ void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
 	}
 }
 
+static void bpy_import_test(char *modname)
+{
+	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
+	if(mod) {
+		Py_DECREF(mod);
+	}
+	else {
+		PyErr_Print();
+		PyErr_Clear();
+	}	
+}
 
 void BPY_free_compiled_text( struct Text *text )
 {
@@ -178,7 +189,21 @@ static void bpy_init_modules( void )
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
 
-
+	/* add our own modules dir */
+	{
+		char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
+		
+		if(modpath) {
+			PyObject *sys_path= PySys_GetObject("path"); /* borrow */
+			PyObject *py_modpath= PyUnicode_FromString(modpath);
+			PyList_Insert(sys_path, 0, py_modpath); /* add first */
+			Py_DECREF(py_modpath);
+		}
+		
+		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
+		bpy_import_test("bpy_sys"); /* adds its self to bpy.sys */
+	}
+	
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();

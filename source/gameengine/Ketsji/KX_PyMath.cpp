@@ -36,6 +36,8 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#ifndef DISABLE_PYTHON
+
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"
 #include "MT_Matrix4x4.h"
@@ -191,3 +193,5 @@ PyObject* PyObjectFrom(const MT_Tuple2 &vec)
 	return list;
 #endif
 }
+
+#endif // DISABLE_PYTHON

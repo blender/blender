@@ -2067,7 +2067,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			if(rendering)
 				BLI_strncpy(sce->id.name+2, scenename, 64);
 			
-			RE_GetResultImage(re, &rres);
+			RE_AcquireResultImage(re, &rres);
 			
 			if(rres.rectf) {
 				se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
@@ -2080,6 +2080,8 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 				se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
 				memcpy(se->ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
 			}
+
+			RE_ReleaseResultImage(re);
 			
 			BIF_end_render_callbacks();
 			

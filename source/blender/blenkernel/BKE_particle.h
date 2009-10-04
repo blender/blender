@@ -76,39 +76,18 @@ typedef struct ParticleSimulationData {
 	struct Object *ob;
 	struct ParticleSystem *psys;
 	struct ParticleSystemModifierData *psmd;
-	float timestep;
+	struct ListBase *colliders;
 } ParticleSimulationData;
 
-typedef struct ParticleEffectorCache {
-	struct ParticleEffectorCache *next, *prev;
-	struct Object *ob;
-	
-	/* precalculated variables for guides */
-	float firstloc[4], firstdir[3];
-	float *distances;
-	float *locations;
-	/* precalculated variables for deflection */
-	float ob_minmax[6];
-	float *face_minmax;
-	float *vert_cos;
-	/* precalculated variables for boids */
-	struct KDTree *tree;
-
-	short type, psys_nbr;
-	
-	struct Object obcopy;	/* for restoring transformation data */
-	struct RNG *rng; /* random noise generator for e.g. wind */
-} ParticleEffectorCache;
-
-typedef struct ParticleReactEvent {
-	struct ParticleReactEvent *next, *prev;
-	int event, pa_num;
-	Object *ob;
-	struct ParticleSystem *psys;
-	struct ParticleKey state;
-
-	float time, size;
-}ParticleReactEvent;
+//typedef struct ParticleReactEvent {
+//	struct ParticleReactEvent *next, *prev;
+//	int event, pa_num;
+//	Object *ob;
+//	struct ParticleSystem *psys;
+//	struct ParticleKey state;
+//
+//	float time, size;
+//}ParticleReactEvent;
 
 typedef struct ParticleTexture{
 	float ivel;							/* used in reset */
@@ -185,8 +164,8 @@ typedef struct ParticleBillboardData
 /* container for moving data between deflet_particle and particle_intersect_face */
 typedef struct ParticleCollision
 {
-	struct Object *ob, *ob_t; // collided and current objects
-	struct CollisionModifierData *md; // collision modifier for ob_t;
+	struct Object *ob, *hit_ob; // collided and current objects
+	struct CollisionModifierData *md, *hit_md; // collision modifiers for current and hit object;
 	float nor[3]; // normal at collision point
 	float vel[3]; // velocity of collision point
 	float co1[3], co2[3]; // ray start and end points
@@ -244,7 +223,6 @@ void object_add_particle_system(struct Scene *scene, struct Object *ob);
 void object_remove_particle_system(struct Scene *scene, struct Object *ob);
 struct ParticleSettings *psys_new_settings(char *name, struct Main *main);
 struct ParticleSettings *psys_copy_settings(struct ParticleSettings *part);
-void psys_flush_particle_settings(struct Scene *scene, struct ParticleSettings *part, int recalc);
 void make_local_particlesettings(struct ParticleSettings *part);
 
 void psys_reset(struct ParticleSystem *psys, int mode);
@@ -254,7 +232,8 @@ void psys_find_parents(struct ParticleSimulationData *sim);
 void psys_cache_paths(struct ParticleSimulationData *sim, float cfra);
 void psys_cache_edit_paths(struct Scene *scene, struct Object *ob, struct PTCacheEdit *edit, float cfra);
 void psys_cache_child_paths(struct ParticleSimulationData *sim, float cfra, int editupdate);
-int do_guide(struct Scene *scene, struct ParticleKey *state, int pa_num, float time, struct ListBase *lb);
+int do_guides(struct ListBase *effectors, ParticleKey *state, int pa_num, float time);
+void precalc_guides(struct ParticleSimulationData *sim, struct ListBase *effectors);
 float psys_get_timestep(struct ParticleSimulationData *sim);
 float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *birthtime, float *dietime);
 float psys_get_child_size(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *pa_time);
@@ -273,9 +252,7 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 /* particle_system.c */
 struct ParticleSystem *psys_get_target_system(struct Object *ob, struct ParticleTarget *pt);
 void psys_count_keyed_targets(struct ParticleSimulationData *sim);
-//void psys_get_reactor_target(struct ParticleSimulationData *sim, struct Object **target_ob, struct ParticleSystem **target_psys);
-
-int psys_update_effectors(ParticleSimulationData *sim, float cfra, int precalc);
+void psys_update_particle_tree(struct ParticleSystem *psys, float cfra);
 
 void psys_make_temp_pointcache(struct Object *ob, struct ParticleSystem *psys);
 void psys_get_pointcache_start_end(struct Scene *scene, ParticleSystem *psys, int *sfra, int *efra);
@@ -316,28 +293,16 @@ void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_
 
 /* particle_system.c */
 void initialize_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, int p);
-
-int effector_find_co(struct Scene *scene, float *pco, struct SurfaceModifierData *sur, struct Object *ob, struct PartDeflect *pd, float *co, float *nor, float *vel, int *index);
-void do_effectors(struct ParticleSimulationData *sim, int pa_no, struct ParticleData *pa, struct ParticleKey *state, float *texco, float *force_field, float *vel,float framestep, float cfra);
-void psys_end_effectors(struct ParticleSystem *psys);
-
 void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
 int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, float *fw, struct LinkNode *node);
 
 void reset_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, float dtime, float cfra);
-
 
 /* psys_reset */
 #define PSYS_RESET_ALL			1
 #define PSYS_RESET_DEPSGRAPH 	2
 #define PSYS_RESET_CHILDREN 	3
 #define PSYS_RESET_CACHE_MISS	4
-
-/* ParticleEffectorCache->type */
-#define PSYS_EC_EFFECTOR	1
-#define PSYS_EC_DEFLECT		2
-#define PSYS_EC_PARTICLE	4
-#define PSYS_EC_REACTOR		8
 
 /* index_dmcache */
 #define DMCACHE_NOTFOUND	-1

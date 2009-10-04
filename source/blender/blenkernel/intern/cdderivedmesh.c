@@ -60,6 +60,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "gpu_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
@@ -176,10 +177,19 @@ static void cdDM_drawVerts(DerivedMesh *dm)
 	MVert *mv = cddm->mvert;
 	int i;
 
-	glBegin(GL_POINTS);
-	for(i = 0; i < dm->numVertData; i++, mv++)
-		glVertex3fv(mv->co);
-	glEnd();
+	if( GPU_buffer_legacy(dm) ) {
+		glBegin(GL_POINTS);
+		for(i = 0; i < dm->numVertData; i++, mv++)
+			glVertex3fv(mv->co);
+		glEnd();
+	}
+	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
+		GPU_vertex_setup(dm);
+		if( !GPU_buffer_legacy(dm) ) {
+			glDrawArrays(GL_POINTS,0,dm->drawObject->nelements);
+		}
+		GPU_buffer_unbind();
+	}
 }
 
 static void cdDM_drawUVEdges(DerivedMesh *dm)
@@ -190,28 +200,65 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 	int i;
 
 	if(mf) {
-		glBegin(GL_LINES);
-		for(i = 0; i < dm->numFaceData; i++, mf++, tf++) {
-			if(!(mf->flag&ME_HIDE)) {
-				glVertex2fv(tf->uv[0]);
-				glVertex2fv(tf->uv[1]);
-
-				glVertex2fv(tf->uv[1]);
-				glVertex2fv(tf->uv[2]);
-
-				if(!mf->v4) {
-					glVertex2fv(tf->uv[2]);
+		if( GPU_buffer_legacy(dm) ) {
+			glBegin(GL_LINES);
+			for(i = 0; i < dm->numFaceData; i++, mf++, tf++) {
+				if(!(mf->flag&ME_HIDE)) {
 					glVertex2fv(tf->uv[0]);
-				} else {
-					glVertex2fv(tf->uv[2]);
-					glVertex2fv(tf->uv[3]);
+					glVertex2fv(tf->uv[1]);
 
-					glVertex2fv(tf->uv[3]);
-					glVertex2fv(tf->uv[0]);
+					glVertex2fv(tf->uv[1]);
+					glVertex2fv(tf->uv[2]);
+
+					if(!mf->v4) {
+						glVertex2fv(tf->uv[2]);
+						glVertex2fv(tf->uv[0]);
+					} else {
+						glVertex2fv(tf->uv[2]);
+						glVertex2fv(tf->uv[3]);
+
+						glVertex2fv(tf->uv[3]);
+						glVertex2fv(tf->uv[0]);
+					}
 				}
 			}
+			glEnd();
 		}
-		glEnd();
+		else {
+			int prevstart = 0;
+			int prevdraw = 1;
+			int draw = 1;
+			int curpos = 0;
+
+			GPU_uvedge_setup(dm);
+			if( !GPU_buffer_legacy(dm) ) {
+				for(i = 0; i < dm->numFaceData; i++, mf++) {
+					if(mf->flag&ME_LOOSEEDGE) {
+						draw = 1;
+					} 
+					else {
+						draw = 0;
+					}
+					if( prevdraw != draw ) {
+						if( prevdraw > 0 && (curpos-prevstart) > 0) {
+							glDrawArrays(GL_LINES,prevstart,curpos-prevstart);
+						}
+						prevstart = curpos;
+					}
+					if( mf->v4 ) {
+						curpos += 8;
+					}
+					else {
+						curpos += 6;
+					}
+					prevdraw = draw;
+				}
+				if( prevdraw > 0 && (curpos-prevstart) > 0 ) {
+					glDrawArrays(GL_LINES,prevstart,curpos-prevstart);
+				}
+			}
+			GPU_buffer_unbind();
+		}
 	}
 }
 
@@ -221,16 +268,48 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 	MVert *mvert = cddm->mvert;
 	MEdge *medge = cddm->medge;
 	int i;
-		
-	glBegin(GL_LINES);
-	for(i = 0; i < dm->numEdgeData; i++, medge++) {
-		if((medge->flag&ME_EDGEDRAW)
-		   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
-			glVertex3fv(mvert[medge->v1].co);
-			glVertex3fv(mvert[medge->v2].co);
+	
+	if( GPU_buffer_legacy(dm) ) {
+		DEBUG_VBO( "Using legacy code. cdDM_drawEdges\n" );
+		glBegin(GL_LINES);
+		for(i = 0; i < dm->numEdgeData; i++, medge++) {
+			if((medge->flag&ME_EDGEDRAW)
+			   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
+				glVertex3fv(mvert[medge->v1].co);
+				glVertex3fv(mvert[medge->v2].co);
+			}
 		}
+		glEnd();
 	}
-	glEnd();
+	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
+		int prevstart = 0;
+		int prevdraw = 1;
+		int draw = 1;
+
+		GPU_edge_setup(dm);
+		if( !GPU_buffer_legacy(dm) ) {
+			for(i = 0; i < dm->numEdgeData; i++, medge++) {
+				if((medge->flag&ME_EDGEDRAW)
+				   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
+					draw = 1;
+				} 
+				else {
+					draw = 0;
+				}
+				if( prevdraw != draw ) {
+					if( prevdraw > 0 && (i-prevstart) > 0 ) {
+						GPU_buffer_draw_elements( dm->drawObject->edges, GL_LINES, prevstart*2, (i-prevstart)*2  );
+					}
+					prevstart = i;
+				}
+				prevdraw = draw;
+			}
+			if( prevdraw > 0 && (i-prevstart) > 0 ) {
+				GPU_buffer_draw_elements( dm->drawObject->edges, GL_LINES, prevstart*2, (i-prevstart)*2  );
+			}
+		}
+		GPU_buffer_unbind();
+	}
 }
 
 static void cdDM_drawLooseEdges(DerivedMesh *dm)
@@ -240,14 +319,45 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 	MEdge *medge = cddm->medge;
 	int i;
 
-	glBegin(GL_LINES);
-	for(i = 0; i < dm->numEdgeData; i++, medge++) {
-		if(medge->flag&ME_LOOSEEDGE) {
-			glVertex3fv(mvert[medge->v1].co);
-			glVertex3fv(mvert[medge->v2].co);
+	if( GPU_buffer_legacy(dm) ) {
+		DEBUG_VBO( "Using legacy code. cdDM_drawLooseEdges\n" );
+		glBegin(GL_LINES);
+		for(i = 0; i < dm->numEdgeData; i++, medge++) {
+			if(medge->flag&ME_LOOSEEDGE) {
+				glVertex3fv(mvert[medge->v1].co);
+				glVertex3fv(mvert[medge->v2].co);
+			}
 		}
+		glEnd();
 	}
-	glEnd();
+	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
+		int prevstart = 0;
+		int prevdraw = 1;
+		int draw = 1;
+
+		GPU_edge_setup(dm);
+		if( !GPU_buffer_legacy(dm) ) {
+			for(i = 0; i < dm->numEdgeData; i++, medge++) {
+				if(medge->flag&ME_LOOSEEDGE) {
+					draw = 1;
+				} 
+				else {
+					draw = 0;
+				}
+				if( prevdraw != draw ) {
+					if( prevdraw > 0 && (i-prevstart) > 0) {
+						GPU_buffer_draw_elements( dm->drawObject->edges, GL_LINES, prevstart*2, (i-prevstart)*2  );
+					}
+					prevstart = i;
+				}
+				prevdraw = draw;
+			}
+			if( prevdraw > 0 && (i-prevstart) > 0 ) {
+				GPU_buffer_draw_elements( dm->drawObject->edges, GL_LINES, prevstart*2, (i-prevstart)*2  );
+			}
+		}
+		GPU_buffer_unbind();
+	}
 }
 
 static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *attribs))
@@ -266,58 +376,73 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *a
 	glVertex3fv(mvert[index].co);	\
 }
 
-	glBegin(glmode = GL_QUADS);
-	for(a = 0; a < dm->numFaceData; a++, mface++) {
-		int new_glmode, new_matnr, new_shademodel;
+	if( GPU_buffer_legacy(dm) ) {
+		DEBUG_VBO( "Using legacy code. cdDM_drawFacesSolid\n" );
+		glBegin(glmode = GL_QUADS);
+		for(a = 0; a < dm->numFaceData; a++, mface++) {
+			int new_glmode, new_matnr, new_shademodel;
 
-		new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
-		new_matnr = mface->mat_nr + 1;
-		new_shademodel = (mface->flag & ME_SMOOTH)?GL_SMOOTH:GL_FLAT;
-		
-		if(new_glmode != glmode || new_matnr != matnr
-		   || new_shademodel != shademodel) {
-			glEnd();
+			new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
+			new_matnr = mface->mat_nr + 1;
+			new_shademodel = (mface->flag & ME_SMOOTH)?GL_SMOOTH:GL_FLAT;
+			
+			if(new_glmode != glmode || new_matnr != matnr
+			   || new_shademodel != shademodel) {
+				glEnd();
 
-			drawCurrentMat = setMaterial(matnr = new_matnr, NULL);
+				drawCurrentMat = setMaterial(matnr = new_matnr, NULL);
 
-			glShadeModel(shademodel = new_shademodel);
-			glBegin(glmode = new_glmode);
-		} 
-		
-		if(drawCurrentMat) {
-			if(shademodel == GL_FLAT) {
-				if (nors) {
-					glNormal3fv(nors);
-				}
-				else {
-					/* TODO make this better (cache facenormals as layer?) */
-					float nor[3];
-					if(mface->v4) {
-						CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
-									   mvert[mface->v3].co, mvert[mface->v4].co,
-									   nor);
-					} else {
-						CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
-									  mvert[mface->v3].co, nor);
+				glShadeModel(shademodel = new_shademodel);
+				glBegin(glmode = new_glmode);
+			} 
+			
+			if(drawCurrentMat) {
+				if(shademodel == GL_FLAT) {
+					if (nors) {
+						glNormal3fv(nors);
 					}
-					glNormal3fv(nor);
+					else {
+						/* TODO make this better (cache facenormals as layer?) */
+						float nor[3];
+						if(mface->v4) {
+							CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
+										   mvert[mface->v3].co, mvert[mface->v4].co,
+										   nor);
+						} else {
+							CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
+										  mvert[mface->v3].co, nor);
+						}
+						glNormal3fv(nor);
+					}
+				}
+
+				PASSVERT(mface->v1);
+				PASSVERT(mface->v2);
+				PASSVERT(mface->v3);
+				if(mface->v4) {
+					PASSVERT(mface->v4);
 				}
 			}
 
-			PASSVERT(mface->v1);
-			PASSVERT(mface->v2);
-			PASSVERT(mface->v3);
-			if(mface->v4) {
-				PASSVERT(mface->v4);
+			if(nors) nors += 3;
+		}
+		glEnd();
+	}
+	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
+		GPU_vertex_setup( dm );
+		GPU_normal_setup( dm );
+		if( !GPU_buffer_legacy(dm) ) {
+			glShadeModel(GL_SMOOTH);
+			for( a = 0; a < dm->drawObject->nmaterials; a++ ) {
+				if( setMaterial(dm->drawObject->materials[a].mat_nr+1, NULL) )
+					glDrawArrays(GL_TRIANGLES, dm->drawObject->materials[a].start, dm->drawObject->materials[a].end-dm->drawObject->materials[a].start);
 			}
 		}
-
-		if(nors) nors += 3;
+		GPU_buffer_unbind( );
 	}
-	glEnd();
 
-	glShadeModel(GL_FLAT);
 #undef PASSVERT
+	glShadeModel(GL_FLAT);
 }
 
 static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2)
@@ -341,43 +466,64 @@ static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 	/* we need that as mesh option builtin, next to double sided lighting */
 	if(col1 && col2)
 		glEnable(GL_CULL_FACE);
-	
-	glShadeModel(GL_SMOOTH);
-	glBegin(glmode = GL_QUADS);
-	for(a = 0; a < dm->numFaceData; a++, mface++, cp1 += 16) {
-		int new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
 
-		if(new_glmode != glmode) {
-			glEnd();
-			glBegin(glmode = new_glmode);
-		}
-			
-		glColor3ub(cp1[0], cp1[1], cp1[2]);
-		glVertex3fv(mvert[mface->v1].co);
-		glColor3ub(cp1[4], cp1[5], cp1[6]);
-		glVertex3fv(mvert[mface->v2].co);
-		glColor3ub(cp1[8], cp1[9], cp1[10]);
-		glVertex3fv(mvert[mface->v3].co);
-		if(mface->v4) {
-			glColor3ub(cp1[12], cp1[13], cp1[14]);
-			glVertex3fv(mvert[mface->v4].co);
-		}
-			
-		if(useTwoSided) {
-			glColor3ub(cp2[8], cp2[9], cp2[10]);
-			glVertex3fv(mvert[mface->v3].co );
-			glColor3ub(cp2[4], cp2[5], cp2[6]);
-			glVertex3fv(mvert[mface->v2].co );
-			glColor3ub(cp2[0], cp2[1], cp2[2]);
-			glVertex3fv(mvert[mface->v1].co );
+	if( GPU_buffer_legacy(dm) ) {
+		DEBUG_VBO( "Using legacy code. cdDM_drawFacesColored\n" );
+		glShadeModel(GL_SMOOTH);
+		glBegin(glmode = GL_QUADS);
+		for(a = 0; a < dm->numFaceData; a++, mface++, cp1 += 16) {
+			int new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
+
+			if(new_glmode != glmode) {
+				glEnd();
+				glBegin(glmode = new_glmode);
+			}
+				
+			glColor3ub(cp1[0], cp1[1], cp1[2]);
+			glVertex3fv(mvert[mface->v1].co);
+			glColor3ub(cp1[4], cp1[5], cp1[6]);
+			glVertex3fv(mvert[mface->v2].co);
+			glColor3ub(cp1[8], cp1[9], cp1[10]);
+			glVertex3fv(mvert[mface->v3].co);
 			if(mface->v4) {
-				glColor3ub(cp2[12], cp2[13], cp2[14]);
-				glVertex3fv(mvert[mface->v4].co );
+				glColor3ub(cp1[12], cp1[13], cp1[14]);
+				glVertex3fv(mvert[mface->v4].co);
+			}
+				
+			if(useTwoSided) {
+				glColor3ub(cp2[8], cp2[9], cp2[10]);
+				glVertex3fv(mvert[mface->v3].co );
+				glColor3ub(cp2[4], cp2[5], cp2[6]);
+				glVertex3fv(mvert[mface->v2].co );
+				glColor3ub(cp2[0], cp2[1], cp2[2]);
+				glVertex3fv(mvert[mface->v1].co );
+				if(mface->v4) {
+					glColor3ub(cp2[12], cp2[13], cp2[14]);
+					glVertex3fv(mvert[mface->v4].co );
+				}
+			}
+			if(col2) cp2 += 16;
+		}
+		glEnd();
+	}
+	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
+		GPU_color4_upload(dm,cp1);
+		GPU_vertex_setup(dm);
+		GPU_color_setup(dm);
+		if( !GPU_buffer_legacy(dm) ) {
+			glShadeModel(GL_SMOOTH);
+			glDrawArrays(GL_TRIANGLES, 0, dm->drawObject->nelements);
+
+			if( useTwoSided ) {
+				GPU_color4_upload(dm,cp2);
+				GPU_color_setup(dm);
+				glCullFace(GL_FRONT);
+				glDrawArrays(GL_TRIANGLES, 0, dm->drawObject->nelements);
+				glCullFace(GL_BACK);
 			}
 		}
-		if(col2) cp2 += 16;
+		GPU_buffer_unbind();
 	}
-	glEnd();
 
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
@@ -390,85 +536,172 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mv = cddm->mvert;
-	MFace *mf = cddm->mface;
-	MCol *mcol = dm->getFaceDataArray(dm, CD_MCOL);
+	MFace *mf = DM_get_face_data_layer(dm, CD_MFACE);
+	MCol *realcol = dm->getFaceDataArray(dm, CD_TEXTURE_MCOL);
 	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
 	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
-	int i, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+	int i, j, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+	int startFace = 0, lastFlag = 0xdeadbeef;
+	MCol *mcol = dm->getFaceDataArray(dm, CD_WEIGHT_MCOL);
+	if(!mcol)
+		mcol = dm->getFaceDataArray(dm, CD_MCOL);
 
-	for(i = 0; i < dm->numFaceData; i++, mf++) {
-		MVert *mvert;
-		int flag;
-		unsigned char *cp = NULL;
+	if( GPU_buffer_legacy(dm) ) {
+		DEBUG_VBO( "Using legacy code. cdDM_drawFacesTex_common\n" );
+		for(i = 0; i < dm->numFaceData; i++, mf++) {
+			MVert *mvert;
+			int flag;
+			unsigned char *cp = NULL;
 
-		if(drawParams) {
-			flag = drawParams(tf? &tf[i]: NULL, mcol? &mcol[i*4]: NULL, mf->mat_nr);
-		}
-		else {
-			if(index) {
-				orig = *index++;
-				if(orig == ORIGINDEX_NONE)		{ if(nors) nors += 3; continue; }
-				if(drawParamsMapped) flag = drawParamsMapped(userData, orig);
-				else	{ if(nors) nors += 3; continue; }
+			if(drawParams) {
+				flag = drawParams(tf? &tf[i]: NULL, mcol? &mcol[i*4]: NULL, mf->mat_nr);
 			}
-			else
-				if(drawParamsMapped) flag = drawParamsMapped(userData, i);
-				else	{ if(nors) nors += 3; continue; }
-		}
-		
-		if(flag != 0) { /* if the flag is 0 it means the face is hidden or invisible */
-			if (flag==1 && mcol)
-				cp= (unsigned char*) &mcol[i*4];
-
-			if(!(mf->flag&ME_SMOOTH)) {
-				if (nors) {
-					glNormal3fv(nors);
+			else {
+				if(index) {
+					orig = *index++;
+					if(orig == ORIGINDEX_NONE)		{ if(nors) nors += 3; continue; }
+					if(drawParamsMapped) flag = drawParamsMapped(userData, orig);
+					else	{ if(nors) nors += 3; continue; }
 				}
-				else {
-					/* TODO make this better (cache facenormals as layer?) */
-					float nor[3];
-					if(mf->v4) {
-						CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
-									   mv[mf->v3].co, mv[mf->v4].co,
-									   nor);
-					} else {
-						CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
-									  mv[mf->v3].co, nor);
+				else
+					if(drawParamsMapped) flag = drawParamsMapped(userData, i);
+					else	{ if(nors) nors += 3; continue; }
+			}
+			
+			if(flag != 0) {
+				if (flag==1 && mcol)
+					cp= (unsigned char*) &mcol[i*4];
+
+				if(!(mf->flag&ME_SMOOTH)) {
+					if (nors) {
+						glNormal3fv(nors);
 					}
-					glNormal3fv(nor);
+					else {
+						float nor[3];
+						if(mf->v4) {
+							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
+										   mv[mf->v3].co, mv[mf->v4].co,
+										   nor);
+						} else {
+							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
+										  mv[mf->v3].co, nor);
+						}
+						glNormal3fv(nor);
+					}
 				}
-			}
 
-			glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
-			if(tf) glTexCoord2fv(tf[i].uv[0]);
-			if(cp) glColor3ub(cp[3], cp[2], cp[1]);
-			mvert = &mv[mf->v1];
-			if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
-			glVertex3fv(mvert->co);
-				
-			if(tf) glTexCoord2fv(tf[i].uv[1]);
-			if(cp) glColor3ub(cp[7], cp[6], cp[5]);
-			mvert = &mv[mf->v2];
-			if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
-			glVertex3fv(mvert->co);
-
-			if(tf) glTexCoord2fv(tf[i].uv[2]);
-			if(cp) glColor3ub(cp[11], cp[10], cp[9]);
-			mvert = &mv[mf->v3];
-			if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
-			glVertex3fv(mvert->co);
-
-			if(mf->v4) {
-				if(tf) glTexCoord2fv(tf[i].uv[3]);
-				if(cp) glColor3ub(cp[15], cp[14], cp[13]);
-				mvert = &mv[mf->v4];
+				glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
+				if(tf) glTexCoord2fv(tf[i].uv[0]);
+				if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+				mvert = &mv[mf->v1];
 				if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
 				glVertex3fv(mvert->co);
+					
+				if(tf) glTexCoord2fv(tf[i].uv[1]);
+				if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+				mvert = &mv[mf->v2];
+				if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
+				glVertex3fv(mvert->co);
+
+				if(tf) glTexCoord2fv(tf[i].uv[2]);
+				if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+				mvert = &mv[mf->v3];
+				if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
+				glVertex3fv(mvert->co);
+
+				if(mf->v4) {
+					if(tf) glTexCoord2fv(tf[i].uv[3]);
+					if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+					mvert = &mv[mf->v4];
+					if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
+					glVertex3fv(mvert->co);
+				}
+				glEnd();
 			}
-			glEnd();
+			
+			if(nors) nors += 3;
 		}
-		
-		if(nors) nors += 3;
+	} else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
+		MCol *col = realcol;
+		if(!col)
+			col = mcol;
+
+		GPU_vertex_setup( dm );
+		GPU_normal_setup( dm );
+		GPU_uv_setup( dm );
+		if( col != 0 ) {
+			/*if( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL )  {
+				col = 0;
+			} else if( mcol && dm->drawObject->colType == CD_MCOL ) {
+				col = 0;
+			}
+			
+			if( col != 0 ) {*/
+				unsigned char *colors = MEM_mallocN(dm->getNumFaces(dm)*4*3*sizeof(unsigned char), "cdDM_drawFacesTex_common");
+				for( i=0; i < dm->getNumFaces(dm); i++ ) {
+					for( j=0; j < 4; j++ ) {
+						colors[i*12+j*3] = col[i*4+j].r;
+						colors[i*12+j*3+1] = col[i*4+j].g;
+						colors[i*12+j*3+2] = col[i*4+j].b;
+					}
+				}
+				GPU_color3_upload(dm,colors);
+				MEM_freeN(colors);
+				if(realcol)
+					dm->drawObject->colType = CD_TEXTURE_MCOL;
+				else if(mcol)
+					dm->drawObject->colType = CD_MCOL;
+			//}
+			GPU_color_setup( dm );
+		}
+
+		if( !GPU_buffer_legacy(dm) ) {
+			glShadeModel( GL_SMOOTH );
+			for(i = 0; i < dm->drawObject->nelements/3; i++) {
+				int actualFace = dm->drawObject->faceRemap[i];
+				int flag = 1;
+				unsigned char *cp = NULL;
+
+				if(drawParams) {
+					flag = drawParams(tf? &tf[actualFace]: NULL, mcol? &mcol[actualFace*4]: NULL, mf[actualFace].mat_nr);
+				}
+				else {
+					if(index) {
+						orig = index[actualFace];
+						if(drawParamsMapped)
+							flag = drawParamsMapped(userData, orig);
+					}
+					else
+						if(drawParamsMapped)
+							flag = drawParamsMapped(userData, actualFace);
+				}
+				if( flag != lastFlag ) {
+					if( startFace < i ) {
+						if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
+							if (lastFlag==1 && mcol)
+								GPU_color_switch(1);
+							else
+								GPU_color_switch(0);
+							glDrawArrays(GL_TRIANGLES,startFace*3,(i-startFace)*3);
+						}
+					}
+					lastFlag = flag;
+					startFace = i;
+				}
+			}
+			if( startFace < dm->drawObject->nelements/3 ) {
+				if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
+					if (lastFlag==1 && mcol)
+						GPU_color_switch(1);
+					else
+						GPU_color_switch(0);
+					glDrawArrays(GL_TRIANGLES,startFace*3,dm->drawObject->nelements-startFace*3);
+				}
+			}
+		}
+
+		GPU_buffer_unbind();
+		glShadeModel( GL_FLAT );
 	}
 }
 
@@ -486,79 +719,131 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
 	int i, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
 
-	mc = DM_get_face_data_layer(dm, CD_WEIGHT_MCOL);
+
+	mc = DM_get_face_data_layer(dm, CD_ID_MCOL);
+	if(!mc)
+		mc = DM_get_face_data_layer(dm, CD_WEIGHT_MCOL);
 	if(!mc)
 		mc = DM_get_face_data_layer(dm, CD_MCOL);
 
-	for(i = 0; i < dm->numFaceData; i++, mf++) {
-		int drawSmooth = (mf->flag & ME_SMOOTH);
+	if( GPU_buffer_legacy(dm) ) {
+		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFaces\n" );
+		for(i = 0; i < dm->numFaceData; i++, mf++) {
+			int drawSmooth = (mf->flag & ME_SMOOTH);
 
-		if(index) {
-			orig = *index++;
-			if(setDrawOptions && orig == ORIGINDEX_NONE)
-				{ if(nors) nors += 3; continue; }
+			if(index) {
+				orig = *index++;
+				if(setDrawOptions && orig == ORIGINDEX_NONE)
+					{ if(nors) nors += 3; continue; }
+			}
+			else
+				orig = i;
+
+			if(!setDrawOptions || setDrawOptions(userData, orig, &drawSmooth)) {
+				unsigned char *cp = NULL;
+
+				if(useColors && mc)
+					cp = (unsigned char *)&mc[i * 4];
+
+				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
+
+				if (!drawSmooth) {
+					if (nors) {
+						glNormal3fv(nors);
+					}
+					else {
+						float nor[3];
+						if(mf->v4) {
+							CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
+										   mv[mf->v3].co, mv[mf->v4].co,
+										   nor);
+						} else {
+							CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
+										  mv[mf->v3].co, nor);
+						}
+						glNormal3fv(nor);
+					}
+
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glVertex3fv(mv[mf->v1].co);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glVertex3fv(mv[mf->v2].co);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glVertex3fv(mv[mf->v3].co);
+					if(mf->v4) {
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glVertex3fv(mv[mf->v4].co);
+					}
+				} else {
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glNormal3sv(mv[mf->v1].no);
+					glVertex3fv(mv[mf->v1].co);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glNormal3sv(mv[mf->v2].no);
+					glVertex3fv(mv[mf->v2].co);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glNormal3sv(mv[mf->v3].no);
+					glVertex3fv(mv[mf->v3].co);
+					if(mf->v4) {
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glNormal3sv(mv[mf->v4].no);
+						glVertex3fv(mv[mf->v4].co);
+					}
+				}
+
+				glEnd();
+			}
+			
+			if (nors) nors += 3;
 		}
-		else
-			orig = i;
-
-		if(!setDrawOptions || setDrawOptions(userData, orig, &drawSmooth)) {
-			unsigned char *cp = NULL;
-
-			if(useColors && mc)
-				cp = (unsigned char *)&mc[i * 4];
-
-			glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-			glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
-
-			if (!drawSmooth) {
-				if (nors) {
-					glNormal3fv(nors);
+	}
+	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
+		int state = 1;
+		int prevstate = 1;
+		int prevstart = 0;
+		GPU_vertex_setup(dm);
+		GPU_normal_setup(dm);
+		if( useColors && mc )
+			GPU_color_setup(dm);
+		if( !GPU_buffer_legacy(dm) ) {
+			glShadeModel(GL_SMOOTH);
+			for( i = 0; i < dm->drawObject->nelements/3; i++ ) {
+				int actualFace = dm->drawObject->faceRemap[i];
+				int drawSmooth = (mf[actualFace].flag & ME_SMOOTH);
+				int dontdraw = 0;
+				if(index) {
+					orig = index[actualFace];
+					if(setDrawOptions && orig == ORIGINDEX_NONE)
+						dontdraw = 1;
+				}
+				else
+					orig = i;
+				if( dontdraw ) {
+					state = 0;
 				}
 				else {
-					/* TODO make this better (cache facenormals as layer?) */
-					float nor[3];
-					if(mf->v4) {
-						CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
-									   mv[mf->v3].co, mv[mf->v4].co,
-									   nor);
-					} else {
-						CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
-									  mv[mf->v3].co, nor);
+					if(!setDrawOptions || setDrawOptions(userData, orig, &drawSmooth)) {
+						state = 1;
 					}
-					glNormal3fv(nor);
+					else {
+						state = 0;
+					}
 				}
-
-				if(cp) glColor3ub(cp[3], cp[2], cp[1]);
-				glVertex3fv(mv[mf->v1].co);
-				if(cp) glColor3ub(cp[7], cp[6], cp[5]);
-				glVertex3fv(mv[mf->v2].co);
-				if(cp) glColor3ub(cp[11], cp[10], cp[9]);
-				glVertex3fv(mv[mf->v3].co);
-				if(mf->v4) {
-					if(cp) glColor3ub(cp[15], cp[14], cp[13]);
-					glVertex3fv(mv[mf->v4].co);
+				if( prevstate != state && prevstate == 1 ) {
+					if( i-prevstart > 0 ) {
+						glDrawArrays(GL_TRIANGLES,prevstart*3,(i-prevstart)*3);
+					}
+					prevstart = i;
 				}
-			} else {
-				if(cp) glColor3ub(cp[3], cp[2], cp[1]);
-				glNormal3sv(mv[mf->v1].no);
-				glVertex3fv(mv[mf->v1].co);
-				if(cp) glColor3ub(cp[7], cp[6], cp[5]);
-				glNormal3sv(mv[mf->v2].no);
-				glVertex3fv(mv[mf->v2].co);
-				if(cp) glColor3ub(cp[11], cp[10], cp[9]);
-				glNormal3sv(mv[mf->v3].no);
-				glVertex3fv(mv[mf->v3].co);
-				if(mf->v4) {
-					if(cp) glColor3ub(cp[15], cp[14], cp[13]);
-					glNormal3sv(mv[mf->v4].no);
-					glVertex3fv(mv[mf->v4].co);
-				}
+				prevstate = state;
 			}
-
-			glEnd();
+			if(state==1) {
+				glDrawArrays(GL_TRIANGLES,prevstart*3,dm->drawObject->nelements-prevstart*3);
+			}
+			glShadeModel(GL_FLAT);
 		}
-		
-		if (nors) nors += 3;
+		GPU_buffer_unbind();
 	}
 }
 
@@ -586,106 +871,309 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	transp = GPU_get_material_blend_mode();
 	orig_transp = transp;
 
-	memset(&attribs, 0, sizeof(attribs));
-
 	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
 
-	for(a = 0; a < dm->numFaceData; a++, mface++) {
-		new_matnr = mface->mat_nr + 1;
+	if( GPU_buffer_legacy(dm) || setDrawOptions != 0 ) {
+		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFacesGLSL\n" );
+		memset(&attribs, 0, sizeof(attribs));
 
-		if(new_matnr != matnr) {
-			glEnd();
+		glBegin(GL_QUADS);
 
-			dodraw = setMaterial(matnr = new_matnr, &gattribs);
-			if(dodraw)
-				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+		for(a = 0; a < dm->numFaceData; a++, mface++) {
+			new_matnr = mface->mat_nr + 1;
 
-			glBegin(GL_QUADS);
-		}
-
-		if(!dodraw) {
-			continue;
-		}
-		else if(setDrawOptions) {
-			orig = index[a];
-
-			if(orig == ORIGINDEX_NONE)
-				continue;
-			else if(!setDrawOptions(userData, orig))
-				continue;
-		}
-
-		if(tf) {
-			new_transp = tf[a].transp;
-
-			if(new_transp != transp) {
+			if(new_matnr != matnr) {
 				glEnd();
 
-				if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
-					GPU_set_material_blend_mode(orig_transp);
-				else
-					GPU_set_material_blend_mode(new_transp);
-				transp = new_transp;
+				dodraw = setMaterial(matnr = new_matnr, &gattribs);
+				if(dodraw)
+					DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 
 				glBegin(GL_QUADS);
 			}
-		}
 
-		smoothnormal = (mface->flag & ME_SMOOTH);
-
-		if(!smoothnormal) {
-			if(nors) {
-				glNormal3fv(nors[a]);
+			if(!dodraw) {
+				continue;
 			}
-			else {
-				/* TODO ideally a normal layer should always be available */
-				float nor[3];
-				if(mface->v4) {
-					CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
-								   mvert[mface->v3].co, mvert[mface->v4].co,
-								   nor);
-				} else {
-					CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
-								  mvert[mface->v3].co, nor);
+			else if(setDrawOptions) {
+				orig = index[a];
+
+				if(orig == ORIGINDEX_NONE)
+					continue;
+				else if(!setDrawOptions(userData, orig))
+					continue;
+			}
+
+			if(tf) {
+				new_transp = tf[a].transp;
+
+				if(new_transp != transp) {
+					glEnd();
+
+					if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
+						GPU_set_material_blend_mode(orig_transp);
+					else
+						GPU_set_material_blend_mode(new_transp);
+					transp = new_transp;
+
+					glBegin(GL_QUADS);
 				}
-				glNormal3fv(nor);
 			}
-		}
+
+			smoothnormal = (mface->flag & ME_SMOOTH);
+
+			if(!smoothnormal) {
+				if(nors) {
+					glNormal3fv(nors[a]);
+				}
+				else {
+					/* TODO ideally a normal layer should always be available */
+					float nor[3];
+					if(mface->v4) {
+						CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
+									   mvert[mface->v3].co, mvert[mface->v4].co,
+									   nor);
+					} else {
+						CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
+									  mvert[mface->v3].co, nor);
+					}
+					glNormal3fv(nor);
+				}
+			}
 
 #define PASSVERT(index, vert) {													\
-	if(attribs.totorco)															\
-		glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);	\
-	for(b = 0; b < attribs.tottface; b++) {										\
-		MTFace *tf = &attribs.tface[b].array[a];								\
-		glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);			\
-	}																			\
-	for(b = 0; b < attribs.totmcol; b++) {										\
-		MCol *cp = &attribs.mcol[b].array[a*4 + vert];							\
-		GLubyte col[4];															\
-		col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
-	}																			\
-	if(attribs.tottang) {														\
-		float *tang = attribs.tang.array[a*4 + vert];							\
-		glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
-	}																			\
-	if(smoothnormal)															\
-		glNormal3sv(mvert[index].no);											\
-	glVertex3fv(mvert[index].co);												\
-}
+		if(attribs.totorco)															\
+			glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);	\
+		for(b = 0; b < attribs.tottface; b++) {										\
+			MTFace *tf = &attribs.tface[b].array[a];								\
+			glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);			\
+		}																			\
+		for(b = 0; b < attribs.totmcol; b++) {										\
+			MCol *cp = &attribs.mcol[b].array[a*4 + vert];							\
+			GLubyte col[4];															\
+			col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
+			glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
+		}																			\
+		if(attribs.tottang) {														\
+			float *tang = attribs.tang.array[a*4 + vert];							\
+			glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
+		}																			\
+		if(smoothnormal)															\
+			glNormal3sv(mvert[index].no);											\
+		glVertex3fv(mvert[index].co);												\
+	}
 
-		PASSVERT(mface->v1, 0);
-		PASSVERT(mface->v2, 1);
-		PASSVERT(mface->v3, 2);
-		if(mface->v4)
-			PASSVERT(mface->v4, 3)
-		else
-			PASSVERT(mface->v3, 2)
+			PASSVERT(mface->v1, 0);
+			PASSVERT(mface->v2, 1);
+			PASSVERT(mface->v3, 2);
+			if(mface->v4)
+				PASSVERT(mface->v4, 3)
+			else
+				PASSVERT(mface->v3, 2)
 
 #undef PASSVERT
+		}
+		glEnd();
 	}
-	glEnd();
+	else {
+		GPUBuffer *buffer = 0;
+		char *varray = 0;
+		int numdata = 0, elementsize = 0, offset;
+		int start = 0, numfaces = 0, prevdraw = 0, curface = 0;
+		GPUAttrib datatypes[32];
+		memset(&attribs, 0, sizeof(attribs));
+
+		GPU_vertex_setup(dm);
+		GPU_normal_setup(dm);
+
+		if( !GPU_buffer_legacy(dm) ) {
+			for(a = 0; a < dm->numFaceData; a++, mface++) {
+				new_matnr = mface->mat_nr + 1;
+
+				if(new_matnr != matnr ) {
+					numfaces = curface - start;
+					if( numfaces > 0 ) {
+						if( prevdraw ) {
+							GPU_buffer_unlock(buffer);
+							GPU_interleaved_attrib_setup(buffer,datatypes,numdata);
+							glDrawArrays(GL_TRIANGLES,start*3,numfaces*3);
+							GPU_buffer_free(buffer,0);
+						}
+					}
+					start = curface;
+					prevdraw = dodraw;
+					dodraw = setMaterial(matnr = new_matnr, &gattribs);
+					if(dodraw) {
+						DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+
+						if(attribs.totorco) {
+							datatypes[numdata].index = attribs.orco.glIndex;
+							datatypes[numdata].size = 3;
+							datatypes[numdata].type = GL_FLOAT;
+							numdata++;
+						}
+						for(b = 0; b < attribs.tottface; b++) {
+							datatypes[numdata].index = attribs.tface[b].glIndex;
+							datatypes[numdata].size = 2;
+							datatypes[numdata].type = GL_FLOAT;
+							numdata++;
+						}	
+						for(b = 0; b < attribs.totmcol; b++) {
+							datatypes[numdata].index = attribs.mcol[b].glIndex;
+							datatypes[numdata].size = 4;
+							datatypes[numdata].type = GL_UNSIGNED_BYTE;
+							numdata++;
+						}	
+						if(attribs.tottang) {
+							datatypes[numdata].index = attribs.tang.glIndex;
+							datatypes[numdata].size = 3;
+							datatypes[numdata].type = GL_FLOAT;
+							numdata++;
+						}
+						if( numdata != 0 ) {
+							elementsize = GPU_attrib_element_size( datatypes, numdata );
+							buffer = GPU_buffer_alloc( elementsize*dm->drawObject->nelements, 0 );
+							if( buffer == 0 ) {
+								GPU_buffer_unbind();
+								dm->drawObject->legacy = 1;
+								return;
+							}
+							varray = GPU_buffer_lock_stream(buffer);
+							if( varray == 0 ) {
+								GPU_buffer_unbind();
+								GPU_buffer_free(buffer, 0);
+								dm->drawObject->legacy = 1;
+								return;
+							}
+						}
+					}
+				}
+				if(!dodraw) {
+					continue;
+				}
+
+				if(tf) {
+					new_transp = tf[a].transp;
+
+					if(new_transp != transp) {
+						numfaces = curface - start;
+						if( numfaces > 0 ) {
+							if( dodraw ) {
+								if( numdata != 0 ) {
+									GPU_buffer_unlock(buffer);
+									GPU_interleaved_attrib_setup(buffer,datatypes,numdata);
+								}
+								glDrawArrays(GL_TRIANGLES,start*3,(curface-start)*3);
+								if( numdata != 0 ) {
+									varray = GPU_buffer_lock_stream(buffer);
+								}
+							}
+						}
+						start = curface;
+
+						if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
+							GPU_set_material_blend_mode(orig_transp);
+						else
+							GPU_set_material_blend_mode(new_transp);
+						transp = new_transp;
+					}
+				}
+				
+				if( numdata != 0 ) {
+					offset = 0;
+					if(attribs.totorco) {
+						VECCOPY((float *)&varray[elementsize*curface*3],(float *)attribs.orco.array[mface->v1]);
+						VECCOPY((float *)&varray[elementsize*curface*3+elementsize],(float *)attribs.orco.array[mface->v2]);
+						VECCOPY((float *)&varray[elementsize*curface*3+elementsize*2],(float *)attribs.orco.array[mface->v3]);
+						offset += sizeof(float)*3;
+					}
+					for(b = 0; b < attribs.tottface; b++) {
+						MTFace *tf = &attribs.tface[b].array[a];
+						VECCOPY((float *)&varray[elementsize*curface*3+offset],tf->uv[0]);
+						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize],tf->uv[1]);
+						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2],tf->uv[2]);
+						offset += sizeof(float)*2;
+					}
+					for(b = 0; b < attribs.totmcol; b++) {
+						MCol *cp = &attribs.mcol[b].array[a*4 + 0];
+						GLubyte col[4];
+						col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;
+						QUATCOPY((unsigned char *)&varray[elementsize*curface*3+offset], col);
+						cp = &attribs.mcol[b].array[a*4 + 1];
+						col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;
+						QUATCOPY((unsigned char *)&varray[elementsize*curface*3+offset+elementsize], col);
+						cp = &attribs.mcol[b].array[a*4 + 2];
+						col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;
+						QUATCOPY((unsigned char *)&varray[elementsize*curface*3+offset+elementsize*2], col);
+						offset += sizeof(unsigned char)*4;
+					}	
+					if(attribs.tottang) {
+						float *tang = attribs.tang.array[a*4 + 0];
+						VECCOPY((float *)&varray[elementsize*curface*3+offset], tang);
+						tang = attribs.tang.array[a*4 + 1];
+						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
+						tang = attribs.tang.array[a*4 + 2];
+						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
+						offset += sizeof(float)*3;
+					}
+				}
+				curface++;
+				if(mface->v4) {
+					if( numdata != 0 ) {
+						offset = 0;
+						if(attribs.totorco) {
+							VECCOPY((float *)&varray[elementsize*curface*3],(float *)attribs.orco.array[mface->v3]);
+							VECCOPY((float *)&varray[elementsize*curface*3+elementsize],(float *)attribs.orco.array[mface->v4]);
+							VECCOPY((float *)&varray[elementsize*curface*3+elementsize*2],(float *)attribs.orco.array[mface->v1]);
+							offset += sizeof(float)*3;
+						}
+						for(b = 0; b < attribs.tottface; b++) {
+							MTFace *tf = &attribs.tface[b].array[a];
+							VECCOPY((float *)&varray[elementsize*curface*3+offset],tf->uv[2]);
+							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize],tf->uv[3]);
+							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2],tf->uv[0]);
+							offset += sizeof(float)*2;
+						}
+						for(b = 0; b < attribs.totmcol; b++) {
+							MCol *cp = &attribs.mcol[b].array[a*4 + 2];
+							GLubyte col[4];
+							col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;
+							QUATCOPY((unsigned char *)&varray[elementsize*curface*3+offset], col);
+							cp = &attribs.mcol[b].array[a*4 + 3];
+							col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;
+							QUATCOPY((unsigned char *)&varray[elementsize*curface*3+offset+elementsize], col);
+							cp = &attribs.mcol[b].array[a*4 + 0];
+							col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;
+							QUATCOPY((unsigned char *)&varray[elementsize*curface*3+offset+elementsize*2], col);
+							offset += sizeof(unsigned char)*4;
+						}	
+						if(attribs.tottang) {
+							float *tang = attribs.tang.array[a*4 + 2];
+							VECCOPY((float *)&varray[elementsize*curface*3+offset], tang);
+							tang = attribs.tang.array[a*4 + 3];
+							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
+							tang = attribs.tang.array[a*4 + 0];
+							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
+							offset += sizeof(float)*3;
+						}
+					}
+					curface++;
+				}
+			}
+			numfaces = curface - start;
+			if( numfaces > 0 ) {
+				if( dodraw ) {
+					if( numdata != 0 ) {
+						GPU_buffer_unlock(buffer);
+						GPU_interleaved_attrib_setup(buffer,datatypes,numdata);
+					}
+					glDrawArrays(GL_TRIANGLES,start*3,(curface-start)*3);
+				}
+			}
+			GPU_buffer_unbind();
+		}
+		GPU_buffer_free( buffer, 0 );
+	}
 
 	glShadeModel(GL_FLAT);
 }

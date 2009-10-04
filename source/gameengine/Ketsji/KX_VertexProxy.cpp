@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef DISABLE_PYTHON
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -442,3 +444,5 @@ PyObject* KX_VertexProxy::PySetUV2(PyObject* args)
 	m_mesh->SetMeshModified(true);
 	Py_RETURN_NONE;
 }
+
+#endif // DISABLE_PYTHON

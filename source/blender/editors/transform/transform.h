@@ -38,6 +38,7 @@
 
 struct TransInfo;
 struct TransData;
+struct TransformOrientation;
 struct TransSnap;
 struct NumInput;
 struct Object;
@@ -54,6 +55,7 @@ struct bContext;
 struct wmEvent;
 struct wmTimer;
 struct ARegion;
+struct ReportList;
 
 typedef struct NDofInput {
 	int		flag;
@@ -120,20 +122,9 @@ typedef struct TransCon {
                          /* Apply function pointer for rotation transformation */
 } TransCon;
 
-typedef struct TransDataIpokey {
-	int flag;					/* which keys */
-	float *locx, *locy, *locz;	/* channel pointers */
-	float *rotx, *roty, *rotz;
-	float *quatx, *quaty, *quatz, *quatw;
-	float *sizex, *sizey, *sizez;
-	float oldloc[9];			/* storage old values */
-	float oldrot[9];
-	float oldsize[9];
-	float oldquat[12];
-} TransDataIpokey;
-
 typedef struct TransDataExtension {
 	float drot[3];		 /* Initial object drot */
+	float dquat[4];		 /* Initial object dquat */
 	float dsize[3];		 /* Initial object dsize */
     float *rot;          /* Rotation of the data to transform (Faculative)                                 */
     float  irot[3];      /* Initial rotation                                                               */
@@ -221,7 +212,6 @@ typedef struct TransData {
 	struct Object *ob;
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
-	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
 	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
     short  flag;         /* Various flags */
@@ -675,18 +665,17 @@ int handleNDofInput(NDofInput *n, struct wmEvent *event);
 
 void initTransformOrientation(struct bContext *C, TransInfo *t);
 
-int manageObjectSpace(struct bContext *C, int confirm, int set);
-int manageMeshSpace(struct bContext *C, int confirm, int set);
-int manageBoneSpace(struct bContext *C, int confirm, int set);
+struct TransformOrientation *createObjectSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
+struct TransformOrientation *createMeshSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
+struct TransformOrientation *createBoneSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
 
 /* Those two fill in mat and return non-zero on success */
 int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 
-int addMatrixSpace(struct bContext *C, float mat[3][3], char name[]);
+struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3], char name[], int overwrite);
 int addObjectSpace(struct bContext *C, struct Object *ob);
-void applyTransformOrientation(const struct bContext *C, TransInfo *t);
-
+void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *name);
 
 #define ORIENTATION_NONE	0
 #define ORIENTATION_NORMAL	1

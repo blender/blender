@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -41,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
+#include "BKE_sound.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -52,11 +54,11 @@
 #include "WM_types.h"
 
 #include "ED_anim_api.h"
-#include "ED_keyframing.h" // XXX remove?
+#include "ED_keyframing.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
 
-#include "BKE_sound.h"
+#include "anim_intern.h"
 
 /* ********************** frame change operator ***************************/
 
@@ -395,15 +397,21 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_delete_keyframe_v3d);
 	WM_operatortype_append(ANIM_OT_insert_keyframe_button);
 	WM_operatortype_append(ANIM_OT_delete_keyframe_button);
-
+	
 	
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);
 	WM_operatortype_append(ANIM_OT_copy_driver_button);
 	WM_operatortype_append(ANIM_OT_paste_driver_button);
 	
+	
 	WM_operatortype_append(ANIM_OT_add_keyingset_button);
 	WM_operatortype_append(ANIM_OT_remove_keyingset_button);
+	
+	WM_operatortype_append(ANIM_OT_keying_set_add);
+	WM_operatortype_append(ANIM_OT_keying_set_remove);
+	WM_operatortype_append(ANIM_OT_keying_set_path_add);
+	WM_operatortype_append(ANIM_OT_keying_set_path_remove);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)

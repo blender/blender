@@ -30,6 +30,8 @@
 #ifndef _adr_py_init_types_h_				// only process once,
 #define _adr_py_init_types_h_				// even if multiply included
 
+#ifndef DISABLE_PYTHON
 void initPyTypes(void);
+#endif
 
 #endif

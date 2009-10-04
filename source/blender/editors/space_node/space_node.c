@@ -48,7 +48,7 @@
 #include "BKE_screen.h"
 #include "BKE_node.h"
 
-#include "ED_previewrender.h"
+#include "ED_render.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 

@@ -106,35 +106,32 @@ static void PTCacheUndo_clear(PTCacheEdit *edit);
 
 /**************************** utilities *******************************/
 
-static int PE_poll(bContext *C)
+int PE_poll(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+
+	if(!scene || !ob || !(ob->mode & OB_MODE_PARTICLE_EDIT))
+		return 0;
+	
+	return (PE_get_current(scene, ob) != NULL);
+}
+
+int PE_hair_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	PTCacheEdit *edit;
 
-	if(!scene || !ob)
+	if(!scene || !ob || !(ob->mode & OB_MODE_PARTICLE_EDIT))
 		return 0;
 	
 	edit= PE_get_current(scene, ob);
 
-	return (edit && (ob->mode & OB_MODE_PARTICLE_EDIT));
+	return (edit && edit->psys);
 }
 
-static int PE_hair_poll(bContext *C)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
-	PTCacheEdit *edit;
-
-	if(!scene || !ob)
-		return 0;
-	
-	edit= PE_get_current(scene, ob);
-
-	return (edit && edit->psys && (ob->mode & OB_MODE_PARTICLE_EDIT));
-}
-
-static int PE_poll_3dview(bContext *C)
+int PE_poll_3dview(bContext *C)
 {
 	return PE_poll(C) && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
 		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
@@ -675,6 +672,9 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 	psmd= psys_get_modifier(ob, psys);
 	totpart= psys->totpart;
 
+	if(!psmd->dm)
+		return;
+
 	tree= BLI_kdtree_new(totpart);
 
 	/* insert particles into kd tree */
@@ -803,6 +803,9 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
 	edit= psys->edit;
 	psmd= psys_get_modifier(ob, psys);
 
+	if(!edit->mirror_cache || !psmd->dm)
+		return;
+
 	/* we delay settings the PARS_EDIT_RECALC for mirrored particles
 	 * to avoid doing mirror twice */
 	LOOP_POINTS {
@@ -840,6 +843,9 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 
 	psys = edit->psys;
 	psmd = psys_get_modifier(ob,psys);
+
+	if(!psmd->dm)
+		return;
 
 	LOOP_EDITED_POINTS {
 		psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, psys->particles + p, hairmat);
@@ -994,6 +1000,9 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 	float *vec, *nor;
 	int i, totface, totvert;
 
+	if(!dm)
+		return;
+
 	if(edit->emitter_cosnos)
 		MEM_freeN(edit->emitter_cosnos);
 
@@ -1079,7 +1088,7 @@ static void update_world_cos(Object *ob, PTCacheEdit *edit)
 	POINT_P; KEY_K;
 	float hairmat[4][4];
 
-	if(psys==0 || psys->edit==0)
+	if(psys==0 || psys->edit==0 || psmd->dm==NULL)
 		return;
 
 	LOOP_POINTS {
@@ -2444,6 +2453,8 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 		return;
 
 	psmd= psys_get_modifier(ob, psys);
+	if(!psmd->dm)
+		return;
 
 	mirrorfaces= mesh_get_x_mirror_faces(ob, NULL);
 
@@ -3946,63 +3957,5 @@ void PARTICLE_OT_specials_menu(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= specials_menu_invoke;
 	ot->poll= PE_hair_poll;
-}
-
-/**************************** registration **********************************/
-
-void ED_operatortypes_particle(void)
-{
-	WM_operatortype_append(PARTICLE_OT_select_all_toggle);
-	WM_operatortype_append(PARTICLE_OT_select_first);
-	WM_operatortype_append(PARTICLE_OT_select_last);
-	WM_operatortype_append(PARTICLE_OT_select_linked);
-	WM_operatortype_append(PARTICLE_OT_select_less);
-	WM_operatortype_append(PARTICLE_OT_select_more);
-
-	WM_operatortype_append(PARTICLE_OT_hide);
-	WM_operatortype_append(PARTICLE_OT_reveal);
-
-	WM_operatortype_append(PARTICLE_OT_rekey);
-	WM_operatortype_append(PARTICLE_OT_subdivide);
-	WM_operatortype_append(PARTICLE_OT_remove_doubles);
-	WM_operatortype_append(PARTICLE_OT_delete);
-	WM_operatortype_append(PARTICLE_OT_mirror);
-
-	WM_operatortype_append(PARTICLE_OT_brush_set);
-	WM_operatortype_append(PARTICLE_OT_brush_edit);
-	WM_operatortype_append(PARTICLE_OT_brush_radial_control);
-
-	WM_operatortype_append(PARTICLE_OT_specials_menu);
-
-	WM_operatortype_append(PARTICLE_OT_particle_edit_toggle);
-	WM_operatortype_append(PARTICLE_OT_edited_clear);
-}
-
-void ED_keymap_particle(wmWindowManager *wm)
-{
-	wmKeyMap *keymap;
-	
-	keymap= WM_keymap_find(wm, "Particle", 0, 0);
-	keymap->poll= PE_poll;
-	
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
 }
 

@@ -50,6 +50,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_mesh.h"
@@ -249,22 +250,22 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	lcd->totedge = tot;
 }
 
-static void ringsel_find_edge(tringselOpData *lcd, const bContext *C, ARegion *ar)
+static void ringsel_find_edge(tringselOpData *lcd, const bContext *C, ARegion *ar, int cuts)
 {
 	if (lcd->eed)
-		edgering_sel(lcd, 1, 0);
+		edgering_sel(lcd, cuts, 0);
 }
 
 static void ringsel_finish(bContext *C, wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
+	int cuts= RNA_int_get(op->ptr,"number_cuts");
 
 	if (lcd->eed) {
-		edgering_sel(lcd, 0, 1);
+		edgering_sel(lcd, cuts, 1);
 		if (lcd->do_cut) {
 			EditMesh *em = BKE_mesh_get_editmesh(lcd->ob->data);
-			esubdivideflag(lcd->ob, em, SELECT, 0.0f, 
-			               0.0f, 0, 1, SUBDIV_SELECT_LOOPCUT);
+			esubdivideflag(lcd->ob, em, SELECT, 0.0f, 0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT);
 			
 			DAG_id_flush_update(lcd->ob->data, OB_RECALC_DATA);
 		}
@@ -340,7 +341,7 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	edge = findnearestedge(&lcd->vc, &dist);
 	if (edge != lcd->eed) {
 		lcd->eed = edge;
-		ringsel_find_edge(lcd, C, lcd->ar);
+		ringsel_find_edge(lcd, C, lcd->ar, 1);
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -368,7 +369,7 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	edge = findnearestedge(&lcd->vc, &dist);
 	if (edge != lcd->eed) {
 		lcd->eed = edge;
-		ringsel_find_edge(lcd, C, lcd->ar);
+		ringsel_find_edge(lcd, C, lcd->ar, 1);
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -376,9 +377,11 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
+	int cuts= RNA_int_get(op->ptr,"number_cuts");
 	tringselOpData *lcd= op->customdata;
 
 	view3d_operator_needs_opengl(C);
+
 
 	switch (event->type) {
 		case RIGHTMOUSE:
@@ -395,6 +398,20 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 			ED_region_tag_redraw(lcd->ar);
 			break;
+		case WHEELUPMOUSE:  /* change number of cuts */
+			cuts++;
+			RNA_int_set(op->ptr,"number_cuts",cuts);
+			ringsel_find_edge(lcd, C, lcd->ar, cuts);
+			
+			ED_region_tag_redraw(lcd->ar);
+			break;
+		case WHEELDOWNMOUSE:  /* change number of cuts */
+			cuts=MAX2(cuts-1,1);
+			RNA_int_set(op->ptr,"number_cuts",cuts);
+			ringsel_find_edge(lcd, C, lcd->ar,cuts);
+			
+			ED_region_tag_redraw(lcd->ar);
+			break;
 		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
 			int dist = 75;
 			EditEdge *edge;
@@ -405,12 +422,12 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 			if (edge != lcd->eed) {
 				lcd->eed = edge;
-				ringsel_find_edge(lcd, C, lcd->ar);
+				ringsel_find_edge(lcd, C, lcd->ar, cuts);
 			}
 
 			ED_region_tag_redraw(lcd->ar);
 			break;
-		}
+		}			
 	}
 	
 	/* keep going until the user confirms */
@@ -451,4 +468,7 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	/* properties */
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
 }

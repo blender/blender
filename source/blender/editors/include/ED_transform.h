@@ -111,10 +111,12 @@ int BIF_snappingSupported(struct Object *obedit);
 
 struct TransformOrientation;
 struct bContext;
+struct ReportList;
 
 void BIF_clearTransformOrientation(struct bContext *C);
 void BIF_removeTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
-void BIF_manageTransformOrientation(struct bContext *C, int confirm, int set);
+void BIF_removeTransformOrientationIndex(struct bContext *C, int index);
+void BIF_createTransformOrientation(struct bContext *C, struct ReportList *reports, char *name, int use, int overwrite);
 int BIF_menuselectTransformOrientation(void);
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
 void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);

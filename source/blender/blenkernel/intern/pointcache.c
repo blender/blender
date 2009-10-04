@@ -292,6 +292,9 @@ static void ptcache_interpolate_particle(int index, void *psys_v, void **data, f
 	else
 		BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
 
+	if(cfra > pa->time)
+		cfra1 = MAX2(cfra1, pa->time);
+
 	dfra = cfra2 - cfra1;
 
 	VecMulf(keys[1].vel, dfra / frs_sec);
@@ -2266,6 +2269,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 						}
 					}
 				}
+				BLI_freelistN(&pidlist2);
 			}
 
 			if(bake || cache->flag & PTCACHE_REDO_NEEDED)

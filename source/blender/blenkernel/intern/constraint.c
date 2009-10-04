@@ -692,9 +692,11 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			}\
 			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) { \
 				ct->type = CONSTRAINT_OBTYPE_VERT; \
+				ct->rotOrder = EULER_ORDER_DEFAULT; \
 			} \
 			else {\
 				ct->type = CONSTRAINT_OBTYPE_OBJECT; \
+				ct->rotOrder= ct->tar->rotmode; \
 			} \
 		} \
 		 \

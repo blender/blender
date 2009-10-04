@@ -4324,7 +4324,7 @@ static void outliner_draw_tree_element(bContext *C, Scene *scene, ARegion *ar, S
 	
 	tselem= TREESTORE(te);
 
-	if(*starty >= ar->v2d.cur.ymin && *starty<= ar->v2d.cur.ymax) {
+	if(*starty+2*OL_H >= ar->v2d.cur.ymin && *starty<= ar->v2d.cur.ymax) {
 	
 		glEnable(GL_BLEND);
 
@@ -4579,7 +4579,7 @@ static void outliner_back(ARegion *ar, SpaceOops *soops)
 	ystart= (int)ar->v2d.tot.ymax;
 	ystart= OL_H*(ystart/(OL_H));
 	
-	while(ystart > ar->v2d.cur.ymin) {
+	while(ystart+2*OL_H > ar->v2d.cur.ymin) {
 		glRecti(0, ystart, (int)ar->v2d.cur.xmax, ystart+OL_H);
 		ystart-= 2*OL_H;
 	}
@@ -4597,7 +4597,7 @@ static void outliner_draw_restrictcols(ARegion *ar, SpaceOops *soops)
 	ystart= (int)ar->v2d.tot.ymax;
 	ystart= OL_H*(ystart/(OL_H));
 	
-	while(ystart > ar->v2d.cur.ymin) {
+	while(ystart+2*OL_H > ar->v2d.cur.ymin) {
 		glRecti((int)ar->v2d.cur.xmax-OL_TOGW, ystart, (int)ar->v2d.cur.xmax, ystart+OL_H);
 		ystart-= 2*OL_H;
 	}
@@ -4812,7 +4812,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(te->ys >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {	
+		if(te->ys+2*OL_H >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {	
 			/* objects have toggle-able restriction flags */
 			if(tselem->type==0 && te->idcode==ID_OB) {
 				ob = (Object *)tselem->id;
@@ -4924,7 +4924,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(te->ys >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {	
+		if(te->ys+2*OL_H >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {	
 			if(tselem->type == TSE_RNA_PROPERTY) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
@@ -5139,7 +5139,7 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(te->ys >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
+		if(te->ys+2*OL_H >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
 			uiBut *but;
 			char *str;
 			int xstart= 240;
@@ -5217,7 +5217,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(te->ys >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
+		if(te->ys+2*OL_H >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
 			
 			if(tselem->flag & TSE_TEXTBUT) {
 				

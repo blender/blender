@@ -1343,7 +1343,8 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 			/* mix colors based on shadfac (rgb + amount of light factor) */
 			addAlphaLight(is->col, shr.diff, shr.alpha, d*shi.mat->filter);
 		} else if (shi.mat->material_type == MA_TYPE_VOLUME) {
-			addAlphaLight(is->col, shr.combined, shr.alpha, 1.0f);
+			QUATCOPY(is->col, shr.combined);
+			is->col[3] = 1.f;
 		}
 		
 		if(depth>0 && is->col[3]>0.0f) {

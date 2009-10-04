@@ -23,4 +23,12 @@ if env['WITH_BF_OPENEXR']:
 if env['OURPLATFORM']=='linux2':
     cflags='-pthread'
 
+
+if env['OURPLATFORM'] == 'linux2':
+    cflags='-pthread'
+    incs += ' ../../../extern/binreloc/include'
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs += ' ' + env['BF_PTHREADS_INC']
+
 env.BlenderLib ( libname = 'bf_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=145, compileflags=cflags )

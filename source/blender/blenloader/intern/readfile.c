@@ -3044,6 +3044,10 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
 			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
+
+			if(part->effector_weights)
+				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
+
 			if(part->boids) {
 				BoidState *state = part->boids->states.first;
 				BoidRule *rule;
@@ -3078,6 +3082,11 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
+
+	if(part->effector_weights)
+		part->effector_weights = newdataadr(fd, part->effector_weights);
+	else
+		part->effector_weights = BKE_add_effector_weights(part->eff_group);
 
 	part->boids= newdataadr(fd, part->boids);
 
@@ -3155,18 +3164,17 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		}
 
 
-		psys->child=newdataadr(fd,psys->child);
-		psys->effectors.first=psys->effectors.last=0;
+		psys->child = newdataadr(fd,psys->child);
+		psys->effectors = NULL;
 
 		link_list(fd, &psys->targets);
 
 		psys->edit = NULL;
 		psys->free_edit = NULL;
-		psys->pathcache = 0;
-		psys->childcache = 0;
-		psys->pathcachebufs.first = psys->pathcachebufs.last = 0;
-		psys->childcachebufs.first = psys->childcachebufs.last = 0;
-		psys->reactevents.first = psys->reactevents.last = 0;
+		psys->pathcache = NULL;
+		psys->childcache = NULL;
+		psys->pathcachebufs.first = psys->pathcachebufs.last = NULL;
+		psys->childcachebufs.first = psys->childcachebufs.last = NULL;
 		psys->frand = NULL;
 		psys->pdd = NULL;
 
@@ -3642,11 +3650,23 @@ static void lib_link_object(FileData *fd, Main *main)
 					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
 				}
 			}
+
+			{
+				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+				
+				if(clmd) 
+				{
+					clmd->sim_parms->effector_weights->group = newlibadr(fd, ob->id.lib, clmd->sim_parms->effector_weights->group);
+				}
+			}
 			
 			/* texture field */
 			if(ob->pd)
 				if(ob->pd->tex)
 					ob->pd->tex=newlibadr_us(fd, ob->id.lib, ob->pd->tex);
+
+			if(ob->soft)
+				ob->soft->effector_weights->group = newlibadr(fd, ob->id.lib, ob->soft->effector_weights->group);
 
 			lib_link_particlesystems(fd, ob, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
@@ -3727,6 +3747,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				if(clmd->sim_parms->presets > 10)
 					clmd->sim_parms->presets = 0;
 			}
+
+			if(clmd->sim_parms->effector_weights)
+				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
+			else
+				clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 			
 		}
 		else if (md->type==eModifierType_Fluidsim) {
@@ -3767,12 +3792,15 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			{
 				smd->flow = NULL;
 				smd->domain = NULL;
-				smd->coll = NULL;
-				/*
 				smd->coll = newdataadr(fd, smd->coll);
-				smd->coll->points = NULL;
-				smd->coll->numpoints = 0;
-				*/
+				if(smd->coll)
+				{
+					smd->coll->points = NULL;
+					smd->coll->numpoints = 0;
+				}
+				else
+					smd->type = 0;
+
 			}
 		}
 		else if (md->type==eModifierType_Collision) {
@@ -3874,7 +3902,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	/* weak weak... this was only meant as draw flag, now is used in give_base too */
 	ob->flag &= ~OB_FROMGROUP;
-
+	
+	/* editmode doesn't get saved in files, so should get cleared when reloading... */
+	ob->mode &= ~OB_MODE_EDIT;
+	
 	ob->disp.first=ob->disp.last= NULL;
 	
 	ob->adt= newdataadr(fd, ob->adt);
@@ -3948,6 +3979,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 
 	ob->pd= newdataadr(fd, ob->pd);
+	if(ob->pd)
+		ob->pd->rng=NULL;
 	ob->soft= newdataadr(fd, ob->soft);
 	if(ob->soft) {
 		SoftBody *sb= ob->soft;		
@@ -3964,6 +3997,11 @@ static void direct_link_object(FileData *fd, Object *ob)
 				sb->keys[a]= newdataadr(fd, sb->keys[a]);
 			}
 		}
+
+		if(sb->effector_weights)
+			sb->effector_weights = newdataadr(fd, sb->effector_weights);
+		else
+			sb->effector_weights = BKE_add_effector_weights(NULL);
 
 		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
 	}
@@ -6154,7 +6192,70 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 	}		
 }
 
+static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
+{
+	MTex *mtex;
+	float varfac, colfac;
+	int a, neg;
 
+	if(!mtex_array)
+		return;
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(mtex_array[a]) {
+			mtex= mtex_array[a];
+
+			neg= mtex->maptoneg;
+			varfac= mtex->varfac;
+			colfac= mtex->colfac;
+
+			if(neg & MAP_DISP) mtex->dispfac= -mtex->dispfac;
+			if(neg & MAP_NORM) mtex->norfac= -mtex->norfac;
+			if(neg & MAP_WARP) mtex->warpfac= -mtex->warpfac;
+
+			mtex->colspecfac= (neg & MAP_COLSPEC)? -colfac: colfac;
+			mtex->mirrfac= (neg & MAP_COLMIR)? -colfac: colfac;
+			mtex->alphafac= (neg & MAP_ALPHA)? -varfac: varfac;
+			mtex->difffac= (neg & MAP_REF)? -varfac: varfac;
+			mtex->specfac= (neg & MAP_SPEC)? -varfac: varfac;
+			mtex->emitfac= (neg & MAP_EMIT)? -varfac: varfac;
+			mtex->hardfac= (neg & MAP_HAR)? -varfac: varfac;
+			mtex->raymirrfac= (neg & MAP_RAYMIRR)? -varfac: varfac;
+			mtex->translfac= (neg & MAP_TRANSLU)? -varfac: varfac;
+			mtex->ambfac= (neg & MAP_AMB)? -varfac: varfac;
+			mtex->colemitfac= (neg & MAP_EMISSION_COL)? -colfac: colfac;
+			mtex->colreflfac= (neg & MAP_REFLECTION_COL)? -colfac: colfac;
+			mtex->coltransfac= (neg & MAP_TRANSMISSION_COL)? -colfac: colfac;
+			mtex->densfac= (neg & MAP_DENSITY)? -varfac: varfac;
+			mtex->scatterfac= (neg & MAP_SCATTERING)? -varfac: varfac;
+			mtex->reflfac= (neg & MAP_REFLECTION)? -varfac: varfac;
+
+			mtex->timefac= (neg & MAP_PA_TIME)? -varfac: varfac;
+			mtex->lengthfac= (neg & MAP_PA_LENGTH)? -varfac: varfac;
+			mtex->clumpfac= (neg & MAP_PA_CLUMP)? -varfac: varfac;
+			mtex->kinkfac= (neg & MAP_PA_KINK)? -varfac: varfac;
+			mtex->roughfac= (neg & MAP_PA_ROUGH)? -varfac: varfac;
+			mtex->padensfac= (neg & MAP_PA_DENS)? -varfac: varfac;
+			mtex->lifefac= (neg & MAP_PA_LIFE)? -varfac: varfac;
+			mtex->sizefac= (neg & MAP_PA_SIZE)? -varfac: varfac;
+			mtex->ivelfac= (neg & MAP_PA_IVEL)? -varfac: varfac;
+			mtex->pvelfac= (neg & MAP_PA_PVEL)? -varfac: varfac;
+
+			mtex->shadowfac= (neg & LAMAP_SHAD)? -colfac: colfac;
+
+			mtex->zenupfac= (neg & WOMAP_ZENUP)? -colfac: colfac;
+			mtex->zendownfac= (neg & WOMAP_ZENDOWN)? -colfac: colfac;
+			mtex->blendfac= (neg & WOMAP_BLEND)? -varfac: varfac;
+
+			if(idtype == ID_MA)
+				mtex->colfac= (neg & MAP_COL)? -colfac: colfac;
+			else if(idtype == ID_LA)
+				mtex->colfac= (neg & LAMAP_COL)? -colfac: colfac;
+			else if(idtype == ID_WO)
+				mtex->colfac= (neg & WOMAP_HORIZ)? -colfac: colfac;
+		}
+	}
+}
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -9573,15 +9674,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (ma->vol.stepsize < 0.0001f) {
 				ma->vol.density = 1.0f;
 				ma->vol.emission = 0.0f;
-				ma->vol.absorption = 1.0f;
 				ma->vol.scattering = 1.0f;
 				ma->vol.emission_col[0] = ma->vol.emission_col[1] = ma->vol.emission_col[2] = 1.0f;
-				ma->vol.absorption_col[0] = ma->vol.absorption_col[1] = ma->vol.absorption_col[2] = 0.0f;
 				ma->vol.density_scale = 1.0f;
 				ma->vol.depth_cutoff = 0.01f;
 				ma->vol.stepsize_type = MA_VOL_STEP_RANDOMIZED;
 				ma->vol.stepsize = 0.2f;
-				ma->vol.shade_stepsize = 0.2f;
 				ma->vol.shade_type = MA_VOL_SHADE_SINGLE;
 				ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
 				ma->vol.precache_resolution = 50;
@@ -9699,20 +9797,50 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 4)) {
 		Scene *sce;
 		Object *ob;
+		Material *ma;
+		Lamp *la;
+		World *wo;
+		Tex *tex;
+		ParticleSettings *part;
+		int do_gravity = 0;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next)
 			if(sce->unit.scale_length == 0.0f)
 				sce->unit.scale_length= 1.0f;
 		
 		for(ob = main->object.first; ob; ob = ob->id.next) {
+			/* fluid-sim stuff */
 			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 			if (fluidmd) fluidmd->fss->fmd = fluidmd;
+			
+			/* rotation modes were added, but old objects would now default to being 'quaternion based' */
+			ob->rotmode= ROT_MODE_EUL;
+		}
+		
+		for(ma = main->mat.first; ma; ma=ma->id.next) {
+			if(ma->vol.reflection == 0.f) {
+				ma->vol.reflection = 1.f;
+				ma->vol.transmission_col[0] = ma->vol.transmission_col[1] = ma->vol.transmission_col[2] = 1.0f;
+				ma->vol.reflection_col[0] = ma->vol.reflection_col[1] = ma->vol.reflection_col[2] = 1.0f;
+			}
+
+			do_version_mtex_factor_2_50(ma->mtex, ID_MA);
 		}
 
+		for(la = main->lamp.first; la; la=la->id.next)
+			do_version_mtex_factor_2_50(la->mtex, ID_LA);
+
+		for(wo = main->world.first; wo; wo=wo->id.next)
+			do_version_mtex_factor_2_50(wo->mtex, ID_WO);
+
+		for(tex = main->tex.first; tex; tex=tex->id.next)
+			if(tex->vd)
+				if(tex->vd->extend == 0)
+					tex->vd->extend = TEX_CLIP;
+		
 		for(sce= main->scene.first; sce; sce= sce->id.next)
 		{
 			if(sce->audio.main == 0.0)
@@ -9724,6 +9852,52 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->audio.doppler_factor = 1.0;
 			sce->audio.speed_of_sound = 343.3;
 		}
+
+		/* Add default gravity to scenes */
+		for(sce= main->scene.first; sce; sce= sce->id.next) {
+			if((sce->physics_settings.flag & PHYS_GLOBAL_GRAVITY) == 0
+				&& VecLength(sce->physics_settings.gravity) == 0.0f) {
+
+				sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
+				sce->physics_settings.gravity[2] = -9.81f;
+				sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
+				do_gravity = 1;
+			}
+		}
+
+		/* Assign proper global gravity weights for dynamics (only z-coordinate is taken into account) */
+		if(do_gravity) for(part= main->particle.first; part; part= part->id.next)
+			part->effector_weights->global_gravity = part->acc[2]/-9.81f;
+
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+
+			if(do_gravity) {
+				for(md= ob->modifiers.first; md; md= md->next) {
+					ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+					if(clmd)
+						clmd->sim_parms->effector_weights->global_gravity = clmd->sim_parms->gravity[2]/-9.81;
+				}
+
+				if(ob->soft)
+					ob->soft->effector_weights->global_gravity = ob->soft->grav/9.81;
+			}
+
+			/* Normal wind shape is plane */
+			if(ob->pd) {
+				if(ob->pd->forcefield == PFIELD_WIND)
+					ob->pd->shape = PFIELD_SHAPE_PLANE;
+				
+				if(ob->pd->flag & PFIELD_PLANAR)
+					ob->pd->shape = PFIELD_SHAPE_PLANE;
+				else if(ob->pd->flag & PFIELD_SURFACE)
+					ob->pd->shape = PFIELD_SHAPE_SURFACE;
+			}
+		}
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

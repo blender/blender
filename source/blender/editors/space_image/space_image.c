@@ -328,7 +328,7 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 /************************** main region ***************************/
 
 /* sets up the fields of the View2D from zoom and offset */
-static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *scene)
+static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 {
 	Image *ima= ED_space_image(sima);
 	float x1, y1, w, h;
@@ -336,24 +336,9 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	
 #if 0
 	if(image_preview_active(curarea, &width, &height));
-#endif
-	if(sima->image) {
-		ImBuf *ibuf= ED_space_image_buffer(sima);
-		
-		if(ibuf) {
-			width= ibuf->x;
-			height= ibuf->y;
-		}
-		else if(sima->image->type==IMA_TYPE_R_RESULT) {
-			/* not very important, just nice */
-			width= (scene->r.xsch*scene->r.size)/100;
-			height= (scene->r.ysch*scene->r.size)/100;
-		}
-		else
-			ED_space_image_size(sima, &width, &height);
-	}
 	else
-		ED_space_image_size(sima, &width, &height);
+#endif
+	ED_space_image_size(sima, &width, &height);
 
 	w= width;
 	h= height;
@@ -374,8 +359,8 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	ar->v2d.mask.ymax= winy;
 
 	/* which part of the image space do we see? */
-	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2;
-	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2;
+	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2.0f;
+	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2.0f;
 
 	x1-= sima->zoom*sima->xof;
 	y1-= sima->zoom*sima->yof;
@@ -431,20 +416,25 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
+	/* put scene context variable in iuser */
+	sima->iuser.scene= scene;
+
 	/* we set view2d from own zoom and offset each time */
-	image_main_area_set_view2d(sima, ar, scene);
+	image_main_area_set_view2d(sima, ar);
 	
 	/* we draw image in pixelspace */
 	draw_image_main(sima, ar, scene);
 
 	/* and uvs in 0.0-1.0 space */
 	UI_view2d_view_ortho(C, v2d);
-		draw_uvedit_main(sima, ar, scene, obedit);
-		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
+	draw_uvedit_main(sima, ar, scene, obedit);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
 		
-		/* Grease Pencil too (in addition to UV's) */
-		draw_image_grease_pencil((bContext *)C, 1); 
+	/* Grease Pencil too (in addition to UV's) */
+	draw_image_grease_pencil((bContext *)C, 1); 
+
 	UI_view2d_view_restore(C);
 	
 	/* draw Grease Pencil - screen space only */
@@ -619,7 +609,7 @@ void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obe
 	}
 }
 
-ImBuf *ED_space_image_buffer(SpaceImage *sima)
+ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
 {
 	ImBuf *ibuf;
 
@@ -629,7 +619,7 @@ ImBuf *ED_space_image_buffer(SpaceImage *sima)
 			return BIF_render_spare_imbuf();
 		else
 #endif
-			ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+			ibuf= BKE_image_acquire_ibuf(sima->image, &sima->iuser, lock_r);
 
 		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
@@ -638,11 +628,32 @@ ImBuf *ED_space_image_buffer(SpaceImage *sima)
 	return NULL;
 }
 
-void ED_image_size(Image *ima, int *width, int *height)
+void ED_space_image_release_buffer(SpaceImage *sima, void *lock)
+{
+	if(sima && sima->image)
+		BKE_image_release_ibuf(sima->image, lock);
+}
+
+int ED_space_image_has_buffer(SpaceImage *sima)
 {
 	ImBuf *ibuf;
+	void *lock;
+	int has_buffer;
 
-	ibuf= (ima)? BKE_image_get_ibuf(ima, NULL): NULL;
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	has_buffer= (ibuf != NULL);
+	ED_space_image_release_buffer(sima, lock);
+
+	return has_buffer;
+}
+
+void ED_image_size(Image *ima, int *width, int *height)
+{
+	ImBuf *ibuf= NULL;
+	void *lock;
+
+	if(ima)
+		ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		*width= ibuf->x;
@@ -652,17 +663,27 @@ void ED_image_size(Image *ima, int *width, int *height)
 		*width= 256;
 		*height= 256;
 	}
+
+	if(ima)
+		BKE_image_release_ibuf(ima, lock);
 }
 
 void ED_space_image_size(SpaceImage *sima, int *width, int *height)
 {
+	Scene *scene= sima->iuser.scene;
 	ImBuf *ibuf;
+	void *lock;
 
-	ibuf= ED_space_image_buffer(sima);
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 
 	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		*width= ibuf->x;
 		*height= ibuf->y;
+	}
+	else if(sima->image && sima->image->type==IMA_TYPE_R_RESULT && scene) {
+		/* not very important, just nice */
+		*width= (scene->r.xsch*scene->r.size)/100;
+		*height= (scene->r.ysch*scene->r.size)/100;
 	}
 	/* I know a bit weak... but preview uses not actual image size */
 	// XXX else if(image_preview_active(sima, width, height));
@@ -670,6 +691,8 @@ void ED_space_image_size(SpaceImage *sima, int *width, int *height)
 		*width= 256;
 		*height= 256;
 	}
+
+	ED_space_image_release_buffer(sima, lock);
 }
 
 void ED_image_aspect(Image *ima, float *aspx, float *aspy)

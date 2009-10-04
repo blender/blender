@@ -672,6 +672,11 @@ typedef struct UnitSettings {
 	short flag; /* imperial, metric etc */
 } UnitSettings;
 
+typedef struct PhysicsSettings {
+	float gravity[3];
+	int flag;
+} PhysicsSettings;
+
 typedef struct Scene {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -736,6 +741,9 @@ typedef struct Scene {
 	
 	/* Grease Pencil */
 	struct bGPdata *gpd;
+
+	/* Physics simulation settings */
+	struct PhysicsSettings physics_settings;
 	
 	/* Freestyle */
 	short freestyle_current_layer_number;
@@ -1137,6 +1145,9 @@ typedef enum SculptFlags {
 /* toolsettings->skgen_retarget_roll */
 #define	SK_RETARGET_ROLL_VIEW			1
 #define	SK_RETARGET_ROLL_JOINT			2
+
+/* physics_settings->flag */
+#define PHYS_GLOBAL_GRAVITY		1
 
 /* UnitSettings */
 

@@ -53,7 +53,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_kdtree.h"
-#include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
 
@@ -61,6 +61,7 @@
 
 #include "BKE_boids.h"
 #include "BKE_cloth.h"
+#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_lattice.h"
@@ -96,8 +97,7 @@ int count_particles(ParticleSystem *psys){
 	int tot=0;
 
 	LOOP_SHOWN_PARTICLES {
-		if(pa->alive == PARS_KILLED);
-		else if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0);
+		if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0);
 		else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0);
 		else tot++;
 	}
@@ -109,8 +109,7 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur){
 	int tot=0;
 
 	LOOP_SHOWN_PARTICLES {
-		if(pa->alive == PARS_KILLED);
-		else if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0);
+		if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0);
 		else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0);
 		else if(p%totgr==cur) tot++;
 	}
@@ -302,15 +301,11 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 /************************************************/
 void psys_free_settings(ParticleSettings *part)
 {
-	if(part->pd) {
-		MEM_freeN(part->pd);
-		part->pd = NULL;
-	}
-	
-	if(part->pd2) {
-		MEM_freeN(part->pd2);
-		part->pd2 = NULL;
-	}
+	free_partdeflect(part->pd);
+	free_partdeflect(part->pd2);
+
+	if(part->effector_weights)
+		MEM_freeN(part->effector_weights);
 
 	boid_free_settings(part->boids);
 }
@@ -428,21 +423,23 @@ void psys_free_particles(ParticleSystem *psys)
 }
 void psys_free_pdd(ParticleSystem *psys)
 {
-	if(psys->pdd->cdata)
-		MEM_freeN(psys->pdd->cdata);
-	psys->pdd->cdata = NULL;
+	if(psys->pdd) {
+		if(psys->pdd->cdata)
+			MEM_freeN(psys->pdd->cdata);
+		psys->pdd->cdata = NULL;
 
-	if(psys->pdd->vdata)
-		MEM_freeN(psys->pdd->vdata);
-	psys->pdd->vdata = NULL;
+		if(psys->pdd->vdata)
+			MEM_freeN(psys->pdd->vdata);
+		psys->pdd->vdata = NULL;
 
-	if(psys->pdd->ndata)
-		MEM_freeN(psys->pdd->ndata);
-	psys->pdd->ndata = NULL;
+		if(psys->pdd->ndata)
+			MEM_freeN(psys->pdd->ndata);
+		psys->pdd->ndata = NULL;
 
-	if(psys->pdd->vedata)
-		MEM_freeN(psys->pdd->vedata);
-	psys->pdd->vedata = NULL;
+		if(psys->pdd->vedata)
+			MEM_freeN(psys->pdd->vedata);
+		psys->pdd->vedata = NULL;
+	}
 }
 /* free everything */
 void psys_free(Object *ob, ParticleSystem * psys)
@@ -465,9 +462,6 @@ void psys_free(Object *ob, ParticleSystem * psys)
 			psys->child = 0;
 			psys->totchild = 0;
 		}
-
-		if(psys->effectors.first)
-			psys_end_effectors(psys);
 		
 		// check if we are last non-visible particle system
 		for(tpsys=ob->particlesystem.first; tpsys; tpsys=tpsys->next){
@@ -493,9 +487,10 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		psys->pointcache = NULL;
 		
 		BLI_freelistN(&psys->targets);
-		BLI_freelistN(&psys->reactevents);
 
 		BLI_kdtree_free(psys->tree);
+
+		pdEndEffectors(&psys->effectors);
 
 		if(psys->frand)
 			MEM_freeN(psys->frand);
@@ -1896,124 +1891,135 @@ static void do_clump(ParticleKey *state, ParticleKey *par, float time, float clu
 		VecLerpf(state->co,state->co,par->co,clump);
 	}
 }
-
-int do_guide(Scene *scene, ParticleKey *state, int pa_num, float time, ListBase *lb)
+void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 {
+	EffectedPoint point;
+	ParticleKey state;
+	EffectorData efd;
+	EffectorCache *eff;
+	ParticleSystem *psys = sim->psys;
+	EffectorWeights *weights = sim->psys->part->effector_weights;
+	GuideEffectorData *data;
+	PARTICLE_P;
+
+	if(!effectors)
+		return;
+
+	LOOP_PARTICLES {
+		psys_particle_on_emitter(sim->psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,state.co,0,0,0,0,0);
+		pd_point_from_particle(sim, pa, &state, &point);
+
+		for(eff = effectors->first; eff; eff=eff->next) {
+			if(eff->pd->forcefield != PFIELD_GUIDE)
+				continue;
+
+			if(!eff->guide_data)
+				eff->guide_data = MEM_callocN(sizeof(GuideEffectorData)*psys->totpart, "GuideEffectorData");
+
+			data = eff->guide_data + p;
+
+			VECSUB(efd.vec_to_point, state.co, eff->guide_loc);
+			VECCOPY(efd.nor, eff->guide_dir);
+			efd.distance = VecLength(efd.vec_to_point);
+
+			VECCOPY(data->vec_to_point, efd.vec_to_point);
+			data->strength = effector_falloff(eff, &efd, &point, weights);
+		}
+	}
+}
+int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
+{
+	EffectorCache *eff;
 	PartDeflect *pd;
-	ParticleEffectorCache *ec;
-	Object *eob;
 	Curve *cu;
 	ParticleKey key, par;
+	GuideEffectorData *data;
 
-	float effect[3]={0.0,0.0,0.0}, distance, f_force, mindist, totforce=0.0;
-	float guidevec[4], guidedir[3], rot2[4], radius, temp[3], angle, pa_loc[3], pa_zero[3]={0.0f,0.0f,0.0f};
-	float veffect[3]={0.0,0.0,0.0}, guidetime;
+	float effect[3] = {0.0f, 0.0f, 0.0f}, veffect[3] = {0.0f, 0.0f, 0.0f};
+	float guidevec[4], guidedir[3], rot2[4], temp[3];
+	float guidetime, radius, angle, totstrength = 0.0f;
+	float vec_to_point[3];
 
-	effect[0]=effect[1]=effect[2]=0.0;
+	if(effectors) for(eff = effectors->first; eff; eff=eff->next) {
+		pd = eff->pd;
 
-	if(lb->first){
-		for(ec = lb->first; ec; ec= ec->next){
-			eob= ec->ob;
-			if(ec->type & PSYS_EC_EFFECTOR){
-				pd=eob->pd;
-				if(pd->forcefield==PFIELD_GUIDE){
-					cu = (Curve*)eob->data;
+		if(pd->forcefield != PFIELD_GUIDE)
+			continue;
 
-					distance=ec->distances[pa_num];
-					mindist=pd->f_strength;
+		data = eff->guide_data + index;
 
-					VECCOPY(pa_loc, ec->locations+3*pa_num);
-					VECCOPY(pa_zero,pa_loc);
-					VECADD(pa_zero,pa_zero,ec->firstloc);
+		if(data->strength <= 0.0f)
+			continue;
 
-					guidetime=time/(1.0-pd->free_end);
+		guidetime = time / (1.0 - pd->free_end);
 
-					/* WARNING: bails out with continue here */
-					if(((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist) || guidetime>1.0f) continue;
+		if(guidetime>1.0f)
+			continue;
 
-					if(guidetime>1.0f) continue;
+		cu = (Curve*)eff->ob->data;
 
-					/* calculate contribution factor for this guide */
-					f_force=1.0f;
-					if(distance<=mindist);
-					else if(pd->flag & PFIELD_USEMAX) {
-						if(mindist>=pd->maxdist) f_force= 0.0f;
-						else if(pd->f_power!=0.0f){
-							f_force= 1.0f - (distance-mindist)/(pd->maxdist - mindist);
-							f_force = (float)pow(f_force, pd->f_power);
-						}
-					}
-					else if(pd->f_power!=0.0f){
-						f_force= 1.0f/(1.0f + distance-mindist);
-						f_force = (float)pow(f_force, pd->f_power);
-					}
+		if(pd->flag & PFIELD_GUIDE_PATH_ADD) {
+			if(where_on_path(eff->ob, data->strength * guidetime, guidevec, guidedir, NULL, &radius)==0)
+				return 0;
+		}
+		else {
+			if(where_on_path(eff->ob, guidetime, guidevec, guidedir, NULL, &radius)==0)
+				return 0;
+		}
 
-					if(pd->flag & PFIELD_GUIDE_PATH_ADD)
-						where_on_path(eob, f_force*guidetime, guidevec, guidedir, NULL, &radius);
-					else
-						where_on_path(eob, guidetime, guidevec, guidedir, NULL, &radius);
+		Mat4MulVecfl(eff->ob->obmat, guidevec);
+		Mat4Mul3Vecfl(eff->ob->obmat, guidedir);
 
-					Mat4MulVecfl(ec->ob->obmat,guidevec);
-					Mat4Mul3Vecfl(ec->ob->obmat,guidedir);
+		Normalize(guidedir);
 
-					Normalize(guidedir);
+		VECCOPY(vec_to_point, data->vec_to_point);
 
-					if(guidetime!=0.0){
-						/* curve direction */
-						Crossf(temp, ec->firstdir, guidedir);
-						angle=Inpf(ec->firstdir,guidedir)/(VecLength(ec->firstdir));
-						angle=saacos(angle);
-						VecRotToQuat(temp,angle,rot2);
-						QuatMulVecf(rot2,pa_loc);
+		if(guidetime != 0.0){
+			/* curve direction */
+			Crossf(temp, eff->guide_dir, guidedir);
+			angle = Inpf(eff->guide_dir, guidedir)/(VecLength(eff->guide_dir));
+			angle = saacos(angle);
+			VecRotToQuat(temp, angle, rot2);
+			QuatMulVecf(rot2, vec_to_point);
 
-						/* curve tilt */
-						VecRotToQuat(guidedir,guidevec[3]-ec->firstloc[3],rot2);
-						QuatMulVecf(rot2,pa_loc);
+			/* curve tilt */
+			VecRotToQuat(guidedir, guidevec[3] - eff->guide_loc[3], rot2);
+			QuatMulVecf(rot2, vec_to_point);
+		}
 
-						//vectoquat(guidedir, pd->kink_axis, (pd->kink_axis+1)%3, q);
-						//QuatMul(par.rot,rot2,q);
-					}
-					//else{
-					//	par.rot[0]=1.0f;
-					//	par.rot[1]=par.rot[2]=par.rot[3]=0.0f;
-					//}
+		/* curve taper */
+		if(cu->taperobj)
+			VecMulf(vec_to_point, calc_taper(eff->scene, cu->taperobj, (int)(data->strength*guidetime*100.0), 100));
 
-					/* curve taper */
-					if(cu->taperobj)
-						VecMulf(pa_loc, calc_taper(scene, cu->taperobj, (int)(f_force*guidetime*100.0), 100));
-
-					else{ /* curve size*/
-						if(cu->flag & CU_PATH_RADIUS) {
-							VecMulf(pa_loc, radius);
-						}
-					}
-					par.co[0]=par.co[1]=par.co[2]=0.0f;
-					VECCOPY(key.co,pa_loc);
-					do_prekink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, pd->kink, pd->kink_axis, 0);
-					do_clump(&key, &par, guidetime, pd->clump_fac, pd->clump_pow, 1.0f);
-					VECCOPY(pa_loc,key.co);
-
-					VECADD(pa_loc,pa_loc,guidevec);
-					VECSUB(pa_loc,pa_loc,pa_zero);
-					VECADDFAC(effect,effect,pa_loc,f_force);
-					VECADDFAC(veffect,veffect,guidedir,f_force);
-					totforce+=f_force;
-				}
+		else{ /* curve size*/
+			if(cu->flag & CU_PATH_RADIUS) {
+				VecMulf(vec_to_point, radius);
 			}
 		}
+		par.co[0] = par.co[1] = par.co[2] = 0.0f;
+		VECCOPY(key.co, vec_to_point);
+		do_prekink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, pd->kink, pd->kink_axis, 0);
+		do_clump(&key, &par, guidetime, pd->clump_fac, pd->clump_pow, 1.0f);
+		VECCOPY(vec_to_point, key.co);
 
-		if(totforce!=0.0){
-			if(totforce>1.0)
-				VecMulf(effect,1.0f/totforce);
-			CLAMP(totforce,0.0,1.0);
-			VECADD(effect,effect,pa_zero);
-			VecLerpf(state->co,state->co,effect,totforce);
+		VECADD(vec_to_point, vec_to_point, guidevec);
+		//VECSUB(pa_loc,pa_loc,pa_zero);
+		VECADDFAC(effect, effect, vec_to_point, data->strength);
+		VECADDFAC(veffect, veffect, guidedir, data->strength);
+		totstrength += data->strength;
+	}
 
-			Normalize(veffect);
-			VecMulf(veffect,VecLength(state->vel));
-			VECCOPY(state->vel,veffect);
-			return 1;
-		}
+	if(totstrength != 0.0){
+		if(totstrength > 1.0)
+			VecMulf(effect, 1.0f / totstrength);
+		CLAMP(totstrength, 0.0, 1.0);
+		//VECADD(effect,effect,pa_zero);
+		VecLerpf(state->co, state->co, effect, totstrength);
+
+		Normalize(veffect);
+		VecMulf(veffect, VecLength(state->vel));
+		VECCOPY(state->vel, veffect);
+		return 1;
 	}
 	return 0;
 }
@@ -2051,16 +2057,20 @@ static void do_rough_end(float *loc, float mat[4][4], float t, float fac, float 
 }
 static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheKey *ca, int k, int steps, float *rootco, float effector, float dfra, float cfra, float *length, float *vec)
 {
-	float force[3] = {0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f};
+	float force[3] = {0.0f,0.0f,0.0f};
 	ParticleKey eff_key;
-	ParticleData *pa;
+	EffectedPoint epoint;
+
+	/* Don't apply effectors for dynamic hair, otherwise the effectors don't get applied twice. */
+	if(sim->psys->flag & PSYS_HAIR_DYNAMICS)
+		return;
 
 	VECCOPY(eff_key.co,(ca-1)->co);
 	VECCOPY(eff_key.vel,(ca-1)->vel);
 	QUATCOPY(eff_key.rot,(ca-1)->rot);
 
-	pa= sim->psys->particles+i;
-	do_effectors(sim, i, pa, &eff_key, rootco, force, vel, dfra, cfra);
+	pd_point_from_particle(sim, sim->psys->particles+i, &eff_key, &epoint);
+	pdDoEffectors(sim->psys->effectors, sim->colliders, sim->psys->part->effector_weights, &epoint, force, NULL);
 
 	VecMulf(force, effector*pow((float)k / (float)steps, 100.0f * sim->psys->part->eff_hair) / (float)steps);
 
@@ -2777,9 +2787,9 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 					do_path_effectors(sim, p, ca, k, steps, cache[p]->co, effector, dfra, cfra, &length, vec);
 
 				/* apply guide curves to path data */
-				if(psys->effectors.first && (psys->part->flag & PART_CHILD_EFFECT)==0)
+				if(sim->psys->effectors && (psys->part->flag & PART_CHILD_EFFECT)==0)
 					/* ca is safe to cast, since only co and vel are used */
-					do_guide(sim->scene, (ParticleKey*)ca, p, (float)k/(float)steps, &psys->effectors);
+					do_guides(sim->psys->effectors, (ParticleKey*)ca, p, (float)k/(float)steps);
 
 				/* apply lattice */
 				if(psys->lattice)
@@ -3187,8 +3197,6 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 }
 static void default_particle_settings(ParticleSettings *part)
 {
-	int i;
-
 	part->type= PART_EMITTER;
 	part->distr= PART_DISTR_JIT;
 	part->draw_as = PART_DRAW_REND;
@@ -3199,7 +3207,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->flag=PART_REACT_MULTIPLE|PART_HAIR_GEOMETRY|PART_EDISTR|PART_TRAND;
 
 	part->sta= 1.0;
-	part->end= 100.0;
+	part->end= 200.0;
 	part->lifetime= 50.0;
 	part->jitfac= 1.0;
 	part->totpart= 1000;
@@ -3249,10 +3257,6 @@ static void default_particle_settings(ParticleSettings *part)
 
 	part->keyed_loops = 1;
 
-	for(i=0; i<10; i++)
-		part->effector_weight[i]=1.0f;
-
-
 #if 0 // XXX old animation system
 	part->ipo = NULL;
 #endif // XXX old animation system
@@ -3261,6 +3265,9 @@ static void default_particle_settings(ParticleSettings *part)
 	part->simplify_rate= 1.0f;
 	part->simplify_transition= 0.1f;
 	part->simplify_viewport= 0.8;
+
+	if(!part->effector_weights)
+		part->effector_weights = BKE_add_effector_weights(NULL);
 }
 
 
@@ -3348,24 +3355,6 @@ void make_local_particlesettings(ParticleSettings *part)
 		}
 	}
 }
-void psys_flush_particle_settings(Scene *scene, ParticleSettings *part, int recalc)
-{
-	Base *base = scene->base.first;
-	ParticleSystem *psys;
-	int flush;
-
-	for(base = scene->base.first; base; base = base->next) {
-		flush = 0;
-		for(psys = base->object->particlesystem.first; psys; psys=psys->next) {
-			if(psys->part == part) {
-				psys->recalc |= recalc;
-				flush++;
-			}
-		}
-		if(flush)
-			DAG_id_flush_update(&base->object->id, OB_RECALC_DATA);
-	}
-}
 
 /************************************************/
 /*			Textures							*/
@@ -3421,9 +3410,7 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 		mtex=ma->mtex[m];
 		if(mtex && (ma->septex & (1<<m))==0 && mtex->pmapto){
 			float def=mtex->def_var;
-			float var=mtex->varfac;
 			short blend=mtex->blendtype;
-			short neg=mtex->pmaptoneg;
 
 			if((mtex->texco & TEXCO_UV) && fw) {
 				if(!get_particle_uv(dm, NULL, face_index, fw, mtex->uvname, texco))
@@ -3438,18 +3425,18 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 					ptex->time=0.0;
 					setvars|=MAP_PA_TIME;
 				}
-				ptex->time= texture_value_blend(mtex->def_var,ptex->time,value,var,blend,neg & MAP_PA_TIME);
+				ptex->time= texture_value_blend(mtex->def_var,ptex->time,value,mtex->timefac,blend);
 			}
 			if((event & mtex->pmapto) & MAP_PA_LENGTH)
-				ptex->length= texture_value_blend(def,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
+				ptex->length= texture_value_blend(def,ptex->length,value,mtex->lengthfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_CLUMP)
-				ptex->clump= texture_value_blend(def,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->clump= texture_value_blend(def,ptex->clump,value,mtex->clumpfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_KINK)
-				ptex->kink= texture_value_blend(def,ptex->kink,value,var,blend,neg & MAP_PA_KINK);
+				ptex->kink= texture_value_blend(def,ptex->kink,value,mtex->kinkfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_ROUGH)
-				ptex->rough1= ptex->rough2= ptex->roughe= texture_value_blend(def,ptex->rough1,value,var,blend,neg & MAP_PA_ROUGH);
+				ptex->rough1= ptex->rough2= ptex->roughe= texture_value_blend(def,ptex->rough1,value,mtex->roughfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_DENS)
-				ptex->exist= texture_value_blend(def,ptex->exist,value,var,blend,neg & MAP_PA_DENS);
+				ptex->exist= texture_value_blend(def,ptex->exist,value,mtex->padensfac,blend);
 		}
 	}
 	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }
@@ -3473,10 +3460,8 @@ void psys_get_texture(ParticleSimulationData *sim, Material *ma, ParticleData *p
 	if(ma) for(m=0; m<MAX_MTEX; m++){
 		mtex=ma->mtex[m];
 		if(mtex && (ma->septex & (1<<m))==0 && mtex->pmapto){
-			float var=mtex->varfac;
 			float def=mtex->def_var;
 			short blend=mtex->blendtype;
-			short neg=mtex->pmaptoneg;
 
 			if((mtex->texco & TEXCO_UV) && ELEM(sim->psys->part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if(!get_particle_uv(sim->psmd->dm, pa, 0, pa->fuv, mtex->uvname, texco)) {
@@ -3493,29 +3478,31 @@ void psys_get_texture(ParticleSimulationData *sim, Material *ma, ParticleData *p
 			if((event & mtex->pmapto) & MAP_PA_TIME){
 				/* the first time has to set the base value for time regardless of blend mode */
 				if((setvars&MAP_PA_TIME)==0){
-					ptex->time *= 1.0f - var;
-					ptex->time += var * ((neg & MAP_PA_TIME)? 1.0f - value : value);
+					int flip= (mtex->timefac < 0.0f);
+					float timefac= fabsf(mtex->timefac);
+					ptex->time *= 1.0f - timefac;
+					ptex->time += timefac * ((flip)? 1.0f - value : value);
 					setvars |= MAP_PA_TIME;
 				}
 				else
-					ptex->time= texture_value_blend(def,ptex->time,value,var,blend,neg & MAP_PA_TIME);
+					ptex->time= texture_value_blend(def,ptex->time,value,mtex->timefac,blend);
 			}
 			if((event & mtex->pmapto) & MAP_PA_LIFE)
-				ptex->life= texture_value_blend(def,ptex->life,value,var,blend,neg & MAP_PA_LIFE);
+				ptex->life= texture_value_blend(def,ptex->life,value,mtex->lifefac,blend);
 			if((event & mtex->pmapto) & MAP_PA_DENS)
-				ptex->exist= texture_value_blend(def,ptex->exist,value,var,blend,neg & MAP_PA_DENS);
+				ptex->exist= texture_value_blend(def,ptex->exist,value,mtex->padensfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_SIZE)
-				ptex->size= texture_value_blend(def,ptex->size,value,var,blend,neg & MAP_PA_SIZE);
+				ptex->size= texture_value_blend(def,ptex->size,value,mtex->sizefac,blend);
 			if((event & mtex->pmapto) & MAP_PA_IVEL)
-				ptex->ivel= texture_value_blend(def,ptex->ivel,value,var,blend,neg & MAP_PA_IVEL);
+				ptex->ivel= texture_value_blend(def,ptex->ivel,value,mtex->ivelfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_PVEL)
-				texture_rgb_blend(ptex->pvel,rgba,ptex->pvel,value,var,blend);
+				texture_rgb_blend(ptex->pvel,rgba,ptex->pvel,value,mtex->pvelfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_LENGTH)
-				ptex->length= texture_value_blend(def,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
+				ptex->length= texture_value_blend(def,ptex->length,value,mtex->lengthfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_CLUMP)
-				ptex->clump= texture_value_blend(def,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->clump= texture_value_blend(def,ptex->clump,value,mtex->clumpfac,blend);
 			if((event & mtex->pmapto) & MAP_PA_KINK)
-				ptex->kink= texture_value_blend(def,ptex->kink,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->kink= texture_value_blend(def,ptex->kink,value,mtex->kinkfac,blend);
 		}
 	}
 	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }
@@ -3646,7 +3633,7 @@ static void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *pte
 
 	if(part->flag & PART_CHILD_EFFECT)
 		/* state is safe to cast, since only co and vel are used */
-		guided = do_guide(sim->scene, (ParticleKey*)state, cpa->parent, t, &(sim->psys->effectors));
+		guided = do_guides(sim->psys->effectors, (ParticleKey*)state, cpa->parent, t);
 
 	if(guided==0){
 		if(part->kink)
@@ -3716,8 +3703,8 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 				Mat4MulVecfl(hairmat, state->co);
 				Mat4Mul3Vecfl(hairmat, state->vel);
 
-				if(psys->effectors.first && (part->flag & PART_CHILD_GUIDE)==0) {
-					do_guide(sim->scene, state, p, state->time, &psys->effectors);
+				if(sim->psys->effectors && (part->flag & PART_CHILD_GUIDE)==0) {
+					do_guides(sim->psys->effectors, state, p, state->time);
 					/* TODO: proper velocity handling */
 				}
 
@@ -3905,8 +3892,6 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	}
 
 	if(pa) {
-		if(pa->alive == PARS_KILLED) return 0;
-
 		if(!always)
 			if((pa->alive==PARS_UNBORN && (part->flag & PART_UNBORN)==0)
 				|| (pa->alive==PARS_DEAD && (part->flag & PART_DIED)==0))

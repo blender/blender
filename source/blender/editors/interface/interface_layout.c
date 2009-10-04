@@ -492,7 +492,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		/* XXX UI_GetStringWidth is not accurate
 		labelw= UI_GetStringWidth(name);
 		CLAMP(labelw, w/4, 3*w/4);*/
-		labelw= w/2;
+		labelw= w/3;
 		uiDefBut(block, LABEL, 0, name, x, y, labelw, h, NULL, 0.0, 0.0, 0, 0, "");
 		w= w-labelw;
 	}
@@ -1021,7 +1021,6 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 
 static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, uiSearchItems *items)
 {
-	Scene *scene= CTX_data_scene(C);
 	uiBut *but= arg_but;
 	char *name;
 	int i, iconid;
@@ -1030,7 +1029,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 	RNA_PROP_BEGIN(&but->rnasearchpoin, itemptr, but->rnasearchprop) {
 		iconid= 0;
 		if(RNA_struct_is_ID(itemptr.type))
-			iconid= ui_id_icon_get(scene, itemptr.data);
+			iconid= ui_id_icon_get((bContext*)C, itemptr.data);
 
 		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
@@ -1183,8 +1182,10 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 	if(layout->root->type == UI_LAYOUT_HEADER) /* ugly .. */
 		w -= 10;
 
-	if(icon)
+	if(name[0] && icon)
 		but= uiDefIconTextMenuBut(block, func, arg, icon, (char*)name, 0, 0, w, h, "");
+	else if(icon)
+		but= uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, "");
 	else
 		but= uiDefMenuBut(block, func, arg, (char*)name, 0, 0, w, h, "");
 

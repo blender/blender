@@ -280,17 +280,27 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 	if (quat) {
 		float totfac, q1[4], q2[4];
 
+		/* checks for totfac are needed when 'fac' is 1.0 key_curve_position_weights can assign zero
+		 * to more then one index in data which can give divide by zero error */
+/*
 		totfac= data[0]+data[1];
-		QuatInterpol(q1, p0->quat, p1->quat, data[0] / totfac);
+		if(totfac>0.000001)	QuatInterpol(q1, p0->quat, p1->quat, data[0] / totfac);
+		else				QUATCOPY(q1, p1->quat);
+
 		NormalQuat(q1);
 
 		totfac= data[2]+data[3];
-		QuatInterpol(q2, p2->quat, p3->quat, data[2] / totfac);
+		if(totfac>0.000001)	QuatInterpol(q2, p2->quat, p3->quat, data[2] / totfac);
+		else				QUATCOPY(q1, p3->quat);
 		NormalQuat(q2);
 
 		totfac = data[0]+data[1]+data[2]+data[3];
-		QuatInterpol(quat, q1, q2, (data[0]+data[1]) / totfac);
+		if(totfac>0.000001)	QuatInterpol(quat, q1, q2, (data[0]+data[1]) / totfac);
+		else				QUATCOPY(quat, q2);
 		NormalQuat(quat);
+		*/
+		// XXX - find some way to make quat interpolation work correctly, above code fails in rare but nasty cases.
+		QUATCOPY(quat, p1->quat);
 	}
 
 	if(radius)

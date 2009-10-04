@@ -93,6 +93,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "physics_intern.h" // own include
+
 /* enable/disable overall compilation */
 #ifndef DISABLE_ELBEEM
 
@@ -1198,10 +1200,5 @@ void FLUID_OT_bake(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= fluid_bake_exec;
 	ot->poll= ED_operator_object_active;
-}
-
-void ED_operatortypes_fluid(void)
-{
-	WM_operatortype_append(FLUID_OT_bake);
 }
 

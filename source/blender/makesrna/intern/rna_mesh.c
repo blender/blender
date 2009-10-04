@@ -982,8 +982,13 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshFace_verts_get_length");
 	RNA_def_property_int_funcs(prop, "rna_MeshFace_verts_get", "rna_MeshFace_verts_set", NULL);
-
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
+
+	/* leaving this fixed size array for foreach_set used in import scripts */
+	prop= RNA_def_property(srna, "verts_raw", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "v1");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Vertices", "Fixed size vertex indices array");
 
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");

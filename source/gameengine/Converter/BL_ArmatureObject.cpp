@@ -152,7 +152,7 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 	for (dchan = (bPoseChannel*)dst->chanbase.first; dchan; dchan=(bPoseChannel*)dchan->next, schan= (bPoseChannel*)schan->next){
 		// always blend on all channels since we don't know which one has been set
 		/* quat interpolation done separate */
-		if (schan->rotmode == PCHAN_ROT_QUAT) {
+		if (schan->rotmode == ROT_MODE_QUAT) {
 			float dquat[4], squat[4];
 			
 			QUATCOPY(dquat, dchan->quat);
@@ -590,6 +590,8 @@ float BL_ArmatureObject::GetBoneLength(Bone* bone) const
 	return (float)(MT_Point3(bone->head) - MT_Point3(bone->tail)).length();
 }
 
+#ifndef DISABLE_PYTHON
+
 // PYTHON
 
 PyTypeObject BL_ArmatureObject::Type = {
@@ -654,3 +656,5 @@ KX_PYMETHODDEF_DOC_NOARGS(BL_ArmatureObject, update,
 	SetActiveAction(NULL, 0, KX_GetActiveEngine()->GetFrameTime());
 	Py_RETURN_NONE;
 }
+
+#endif // DISABLE_PYTHON

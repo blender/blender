@@ -609,6 +609,23 @@ class VolumeButtonsPanel(bpy.types.Panel):
 		mat = context.material
 		engine = context.scene.render_data.engine
 		return mat and (mat.type == 'VOLUME') and (engine in self.COMPAT_ENGINES)
+
+class MATERIAL_PT_volume_density(VolumeButtonsPanel):
+	__label__ = "Density"
+	__default_closed__ = False
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+	def draw(self, context):
+		layout = self.layout
+
+		mat = context.material
+		vol = context.material.volume
+		
+		split = layout.split()
+		row = split.row()
+		row.itemR(vol, "density")
+		row.itemR(vol, "density_scale")
+
 		
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
 	__label__ = "Shading"
@@ -620,22 +637,23 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
 
 		vol = context.material.volume
 		
-		row = layout.row()
-		row.itemR(vol, "density")
-		row.itemR(vol, "scattering")
-
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(vol, "absorption")
-		col.itemR(vol, "absorption_color", text="")
-
+		col.itemR(vol, "scattering")
+		col.itemR(vol, "asymmetry")
+		col.itemR(vol, "transmission_color")
+		
 		col = split.column()
-		col.itemR(vol, "emission")
-		col.itemR(vol, "emission_color", text="")
+		sub = col.column(align=True)
+		sub.itemR(vol, "emission")
+		sub.itemR(vol, "emission_color", text="")
+		sub = col.column(align=True)
+		sub.itemR(vol, "reflection")
+		sub.itemR(vol, "reflection_color", text="")	
 
-class MATERIAL_PT_volume_scattering(VolumeButtonsPanel):
-	__label__ = "Scattering"
+class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
+	__label__ = "Lighting"
 	__default_closed__ = False
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
@@ -648,24 +666,26 @@ class MATERIAL_PT_volume_scattering(VolumeButtonsPanel):
 		
 		col = split.column()
 		col.itemR(vol, "scattering_mode", text="")
+		
+		col = split.column()
+		
 		if vol.scattering_mode == 'SINGLE_SCATTERING':
 			col.itemR(vol, "light_cache")
 			sub = col.column()
 			sub.active = vol.light_cache
 			sub.itemR(vol, "cache_resolution")
 		elif vol.scattering_mode in ('MULTIPLE_SCATTERING', 'SINGLE_PLUS_MULTIPLE_SCATTERING'):
+			sub = col.column()
+			sub.enabled = True
+			sub.active = False
+			sub.itemR(vol, "light_cache")
 			col.itemR(vol, "cache_resolution")
 			
 			sub = col.column(align=True)
 			sub.itemR(vol, "ms_diffusion")
 			sub.itemR(vol, "ms_spread")
 			sub.itemR(vol, "ms_intensity")
-		
-		col = split.column()
-		# col.itemL(text="Anisotropic Scattering:")
-		col.itemR(vol, "phase_function", text="")
-		if vol.phase_function in ('SCHLICK', 'HENYEY-GREENSTEIN'):
-			col.itemR(vol, "asymmetry")
+
 
 class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
 	__label__= "Transparency"
@@ -693,16 +713,15 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
 		col = split.column()
 		col.itemL(text="Step Calculation:")
 		col.itemR(vol, "step_calculation", text="")
-		sub = col.column(align=True)
-		sub.itemR(vol, "step_size")
-		sub.itemR(vol, "shading_step_size")
+		col = col.column(align=True)
+		col.itemR(vol, "step_size")
 		
 		col = split.column()
 		col.itemL()
 		col.itemR(vol, "depth_cutoff")
-		col.itemR(vol, "density_scale")
 
+bpy.types.register(MATERIAL_PT_volume_density)
 bpy.types.register(MATERIAL_PT_volume_shading)
-bpy.types.register(MATERIAL_PT_volume_scattering)
+bpy.types.register(MATERIAL_PT_volume_lighting)
 bpy.types.register(MATERIAL_PT_volume_transp)
 bpy.types.register(MATERIAL_PT_volume_integration)

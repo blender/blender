@@ -1335,7 +1335,7 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 		if (ELEM(0, fcu->rna_path, strstr(fcu->rna_path, "rotation")))
 			continue;
 		if (strstr(fcu->rna_path, "pose.pose_channels")) {
-			if (strstr(fcu->rna_path, "euler_rotation") == 0)
+			if (strstr(fcu->rna_path, "rotation_euler") == 0)
 				continue;
 		}
 		

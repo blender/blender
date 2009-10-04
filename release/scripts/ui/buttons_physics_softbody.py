@@ -1,7 +1,8 @@
 
 import bpy
 
-from buttons_particle import point_cache_ui
+from buttons_physics_common import point_cache_ui
+from buttons_physics_common import effector_weights_ui
 
 def softbody_panel_enabled(md):
 	return md.point_cache.baked==False
@@ -55,7 +56,6 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 
 			col = split.column()
 			col.itemL(text="Simulation:")
-			col.itemR(softbody, "gravity")
 			col.itemR(softbody, "speed")
 			
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
@@ -222,6 +222,18 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 			
 		layout.itemL(text="Diagnostics:")
 		layout.itemR(softbody, "diagnose")
+
+class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):
+	__label__ = "Soft Body Field Weights"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		return (context.soft_body)
+	
+	def draw(self, context):
+		md = context.soft_body
+		softbody = md.settings
+		effector_weights_ui(self, softbody.effector_weights)
 	
 bpy.types.register(PHYSICS_PT_softbody)
 bpy.types.register(PHYSICS_PT_softbody_cache)
@@ -229,3 +241,4 @@ bpy.types.register(PHYSICS_PT_softbody_goal)
 bpy.types.register(PHYSICS_PT_softbody_edge)
 bpy.types.register(PHYSICS_PT_softbody_collision)
 bpy.types.register(PHYSICS_PT_softbody_solver)
+bpy.types.register(PHYSICS_PT_softbody_field_weights)
