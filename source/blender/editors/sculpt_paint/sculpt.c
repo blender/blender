@@ -1014,9 +1014,9 @@ static void update_damaged_vert(SculptSession *ss, ListBase *lb)
 						CalcNormFloat4(ss->mvert[ss->mface[i].v1].co, ss->mvert[ss->mface[i].v2].co, ss->mvert[ss->mface[i].v3].co, ss->mvert[ss->mface[i].v4].co, norm);
 					else
 						CalcNormFloat(ss->mvert[ss->mface[i].v1].co, ss->mvert[ss->mface[i].v2].co, ss->mvert[ss->mface[i].v3].co, norm);
-					VECCOPY(&buffer[cur->element*3],norm);
-					VECCOPY(&buffer[cur->element*3],norm);
-					VECCOPY(&buffer[cur->element*3],norm);
+					VECCOPY(&buffer[(cur->element-cur->element%3)*3],norm);
+					VECCOPY(&buffer[(cur->element-cur->element%3+1)*3],norm);
+					VECCOPY(&buffer[(cur->element-cur->element%3+2)*3],norm);
 				}
 
 				//VECCOPY(&buffer[cur->element*3],ss->mvert[vert->Index].no);
