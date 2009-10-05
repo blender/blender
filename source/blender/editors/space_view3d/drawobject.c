@@ -3788,7 +3788,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	psys->lattice= psys_get_lattice(&sim);
 
-	if(draw_as!=PART_DRAW_PATH){
+	if(pdd && draw_as!=PART_DRAW_PATH){
 /* 5. */
 		if((pdd->flag & PARTICLE_DRAW_DATA_UPDATED)
 			&& (pdd->vedata || part->draw & (PART_DRAW_SIZE|PART_DRAW_NUM|PART_DRAW_HEALTH))==0) {
@@ -4050,7 +4050,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 		glLineWidth(1.0f);
 	}
-	else if(ELEM(draw_as, 0, PART_DRAW_CIRC)==0){
+	else if(pdd && ELEM(draw_as, 0, PART_DRAW_CIRC)==0){
 		glDisableClientState(GL_COLOR_ARRAY);
 
 		/* enable point data array */
