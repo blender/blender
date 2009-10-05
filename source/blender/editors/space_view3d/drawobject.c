@@ -1552,6 +1552,12 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 		}
 	}
 }
+
+/* disabled because it crashes combined with e.g. subsurf modifier,
+ * the derivedmesh can't be assumed to be an EditMeshDerivedMesh,
+ * nor should this struct be copied around, it should be defined in
+ * a single place only to avoid them getting out of sync */
+#if 0
 /* originally defined in DerivedMesh.c */
 typedef struct {
 	DerivedMesh dm;
@@ -1561,15 +1567,17 @@ typedef struct {
 	float (*vertexNos)[3];
 	float (*faceNos)[3];
 } EditMeshDerivedMesh;
+#endif
 
 static void draw_dm_verts(DerivedMesh *dm, int sel, EditVert *eve_act)
 {
 	struct { int sel; EditVert *eve_act; } data;
-	GPUBuffer *buffer;
-	float *varray;
+	//GPUBuffer *buffer;
+	//float *varray;
 	data.sel = sel;
 	data.eve_act = eve_act;
 
+#if 0
 	/* first come the unselected vertices, then the selected */
 	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( sizeof(float)*3*dm->getNumVerts(dm)*2, 0 );
 
@@ -1612,12 +1620,15 @@ static void draw_dm_verts(DerivedMesh *dm, int sel, EditVert *eve_act)
 		UI_ThemeColor4(data.sel?TH_VERTEX_SELECT:TH_VERTEX);
 		GPU_buffer_unbind();
 	}
-	else {
+	{
+#endif
 		bglBegin(GL_POINTS);
 		dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
 		bglEnd();
+#if 0
 	}
 	GPU_buffer_free( buffer, 0 );
+#endif
 }
 
 	/* Draw edges with color set based on selection */
@@ -1688,15 +1699,14 @@ static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int i
 
 static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol)
 {
-	unsigned char *cols[2];
+	unsigned char *cols[2] = {baseCol, selCol};
+#if 0
 	int elemsize = sizeof(float)*3+sizeof(unsigned char)*4;
 	EditMeshDerivedMesh *emdm = (EditMeshDerivedMesh *)dm;
 	EditMesh *em= emdm->em;
 	unsigned char *varray;
 	int i;
 	GPUBuffer *buffer;
-	cols[0] = baseCol;
-	cols[1] = selCol;
 
 	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( elemsize*em->totedge*2, 0 );
 	if( (varray = GPU_buffer_lock_stream( buffer )) ) {
@@ -1733,9 +1743,12 @@ static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, un
 		GPU_buffer_unbind();
 	}
 	else {
+#endif
 		dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
+#if 0
 	}
 	GPU_buffer_free( buffer, 0 );
+#endif
 }
 
 	/* Draw only seam edges */
@@ -1792,11 +1805,10 @@ static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 	//EditMeshDerivedMesh *emdm = (EditMeshDerivedMesh *)dm;
 	EditFace *efa;
 	unsigned char *col;
-	unsigned char *colors;
 	GPUBuffer *buffer;
 	unsigned char *varray;
 	unsigned char black[] = { 0, 0, 0, 0 };
-	int i,j,draw=0;
+	int i, draw=0;
 	int elemsize = (sizeof(float)*6+sizeof(unsigned char)*4);
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
@@ -4039,7 +4051,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		glLineWidth(1.0f);
 	}
 	else if(ELEM(draw_as, 0, PART_DRAW_CIRC)==0){
-		int point_size = 1;
 		glDisableClientState(GL_COLOR_ARRAY);
 
 		/* enable point data array */
