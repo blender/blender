@@ -51,6 +51,7 @@
 #include "render_types.h"
 #include "pixelshading.h"
 #include "shading.h"
+#include "shadbuf.h"
 #include "texture.h"
 #include "volumetric.h"
 #include "volume_precache.h"
@@ -72,6 +73,61 @@ inline float luminance(float* col)
 }
 
 /* tracing */
+
+static int vlr_check_intersect_solid(Isect *is, int ob, RayFace *face)
+{
+	VlakRen *vlr = (VlakRen*)face;
+	
+	/* solid material types only */
+	if (vlr->mat->material_type == MA_TYPE_SURFACE)
+		return 1;
+	else
+		return 0;
+}
+
+static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
+{
+	float visibility = 1.f;
+	
+	if(lar->shb) {
+		float dot=1.f;
+		float dxco[3]={0.f, 0.f, 0.f}, dyco[3]={0.f, 0.f, 0.f};
+		
+		visibility = testshadowbuf(&R, lar->shb, co, dxco, dyco, 1.0, 0.0);		
+	} else if (lar->mode & LA_SHAD_RAY) {
+		/* trace shadow manually, no good lamp api atm */
+		Isect is;
+		const float maxsize = RE_ray_tree_max_size(R.raytree);
+		
+		
+		VecCopyf(is.start, co);
+		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
+			is.end[0] = co[0] - lar->vec[0] * maxsize;
+			is.end[1] = co[1] - lar->vec[1] * maxsize;
+			is.end[2] = co[2] - lar->vec[2] * maxsize;
+		} else {
+			VecCopyf(is.end, lar->co);
+		}
+
+		is.mode= RE_RAY_MIRROR;
+		if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
+			is.lay= lar->lay;	
+		else
+			is.lay= -1;
+		is.face_last= (RayFace*)lar->vlr_last[shi->thread];
+		is.ob_last= RAY_OBJECT_SET(&R, lar->obi_last[shi->thread]);
+		is.faceorig= NULL;
+		is.oborig= RAY_OBJECT_SET(&R, shi->obi);
+		
+		if(RE_ray_tree_intersect_check(R.raytree, &is, vlr_check_intersect_solid)) {
+			visibility = 0.f;
+		}
+		
+		lar->vlr_last[shi->thread]= (VlakRen*)is.face_last;
+		lar->obi_last[shi->thread]= RAY_OBJECT_GET(&R, is.ob_last);
+	}
+	return visibility;
+}
 
 static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type)
 {
@@ -448,8 +504,17 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		VECCOPY(lv, lar->vec);
 	VecMulf(lv, -1.0f);
 	
-	if (shi->mat->vol.shade_type != MA_VOL_SHADE_NONE) {
+	if (shi->mat->vol.shade_type == MA_VOL_SHADE_SHADOWED) {
+		VecMulf(lacol, vol_get_shadow(shi, lar, co));
+	}
+	else if (shi->mat->vol.shade_type == MA_VOL_SHADE_SHADED)
+	{
 		Isect is;
+		
+		if (shi->mat->vol.shadeflag & MA_VOL_RECV_EXT_SHADOW) {
+			VecMulf(lacol, vol_get_shadow(shi, lar, co));
+			if (luminance(lacol) < 0.001f) return;
+		}
 		
 		/* find minimum of volume bounds, or lamp coord */
 		if (vol_get_bounds(shi, co, lv, hitco, &is, VOL_BOUNDS_SS)) {

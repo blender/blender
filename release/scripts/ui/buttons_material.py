@@ -665,16 +665,17 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(vol, "scattering_mode", text="")
+		col.itemR(vol, "lighting_mode", text="")
 		
 		col = split.column()
 		
-		if vol.scattering_mode == 'SINGLE_SCATTERING':
+		if vol.lighting_mode == 'SHADED':
+			col.itemR(vol, "external_shadows")
 			col.itemR(vol, "light_cache")
 			sub = col.column()
 			sub.active = vol.light_cache
 			sub.itemR(vol, "cache_resolution")
-		elif vol.scattering_mode in ('MULTIPLE_SCATTERING', 'SINGLE_PLUS_MULTIPLE_SCATTERING'):
+		elif vol.lighting_mode in ('MULTIPLE_SCATTERING', 'SHADED_PLUS_MULTIPLE_SCATTERING'):
 			sub = col.column()
 			sub.enabled = True
 			sub.active = False

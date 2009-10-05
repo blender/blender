@@ -953,11 +953,12 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_scattering_items[] = {
-		{MA_VOL_SHADE_NONE, "NONE", 0, "None", ""},
-		{MA_VOL_SHADE_SINGLE, "SINGLE_SCATTERING", 0, "Single Scattering", ""},
+	static EnumPropertyItem prop_lighting_items[] = {
+		{MA_VOL_SHADE_SHADELESS, "SHADELESS", 0, "Shadeless", ""},
+		{MA_VOL_SHADE_SHADOWED, "SHADOWED", 0, "Shadowed", ""},
+		{MA_VOL_SHADE_SHADED, "SHADED", 0, "Shaded", ""},
 		{MA_VOL_SHADE_MULTIPLE, "MULTIPLE_SCATTERING", 0, "Multiple Scattering", ""},
-		{MA_VOL_SHADE_SINGLEPLUSMULTIPLE, "SINGLE_PLUS_MULTIPLE_SCATTERING", 0, "Single + Multiple Scattering", ""},
+		{MA_VOL_SHADE_SHADEDPLUSMULTIPLE, "SHADED_PLUS_MULTIPLE_SCATTERING", 0, "Shaded + Multiple Scattering", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_stepsize_items[] = {
@@ -984,10 +985,15 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Step Size", "Distance between subsequent volume depth samples.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "scattering_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "lighting_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shade_type");
-	RNA_def_property_enum_items(prop, prop_scattering_items);
-	RNA_def_property_ui_text(prop, "Scattering Mode", "Method of shading, attenuating, and scattering light through the volume");
+	RNA_def_property_enum_items(prop, prop_lighting_items);
+	RNA_def_property_ui_text(prop, "Lighting Mode", "Method of shading, attenuating, and scattering light through the volume");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	prop= RNA_def_property(srna, "external_shadows", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shadeflag", MA_VOL_RECV_EXT_SHADOW); /* use bitflags */
+	RNA_def_property_ui_text(prop, "External Shadows", "Receive shadows from sources outside the volume (temporary)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "light_cache", PROP_BOOLEAN, PROP_NONE);

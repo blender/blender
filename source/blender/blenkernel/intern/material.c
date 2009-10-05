@@ -181,7 +181,7 @@ void init_material(Material *ma)
 	ma->vol.depth_cutoff = 0.01f;
 	ma->vol.stepsize_type = MA_VOL_STEP_RANDOMIZED;
 	ma->vol.stepsize = 0.2f;
-	ma->vol.shade_type = MA_VOL_SHADE_SINGLE;
+	ma->vol.shade_type = MA_VOL_SHADE_SHADED;
 	ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
 	ma->vol.precache_resolution = 50;
 	

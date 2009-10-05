@@ -401,7 +401,7 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 	fac *= (energy_ss / energy_ms);
 	
 	/* blend multiple scattering back in the light cache */
-	if (shade_type == MA_VOL_SHADE_SINGLEPLUSMULTIPLE) {
+	if (shade_type == MA_VOL_SHADE_SHADEDPLUSMULTIPLE) {
 		/* conserve energy - half single, half multiple */
 		origf = 0.5f;
 		fac *= 0.5f;
@@ -713,7 +713,7 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	
 	lightcache_filter(obi->volume_precache);
 	
-	if (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE))
+	if (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE))
 	{
 		multiple_scattering_diffusion(re, vp, ma);
 	}
@@ -721,8 +721,8 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 
 static int using_lightcache(Material *ma)
 {
-	return (((ma->vol.shadeflag & MA_VOL_PRECACHESHADING) && (ma->vol.shade_type == MA_VOL_SHADE_SINGLE))
-		|| (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE)));
+	return (((ma->vol.shadeflag & MA_VOL_PRECACHESHADING) && (ma->vol.shade_type == MA_VOL_SHADE_SHADED))
+		|| (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE)));
 }
 
 /* loop through all objects (and their associated materials)
