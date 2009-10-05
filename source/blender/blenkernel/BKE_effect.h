@@ -138,6 +138,7 @@ int get_effector_data(struct EffectorCache *eff, struct EffectorData *efd, struc
 /* EffectedPoint->flag */
 #define PE_WIND_AS_SPEED		1
 #define PE_DYNAMIC_ROTATION		2
+#define PE_USE_NORMAL_DATA		4
 
 /* EffectorData->flag */
 #define PE_VELOCITY_TO_IMPULSE	1

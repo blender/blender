@@ -3033,6 +3033,7 @@ static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointC
 static void lib_link_particlesettings(FileData *fd, Main *main)
 {
 	ParticleSettings *part;
+	ParticleDupliWeight *dw;
 
 	part= main->particle.first;
 	while(part) {
@@ -3047,6 +3048,10 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 
 			if(part->effector_weights)
 				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
+
+			dw = part->dupliweights.first;
+			for(; dw; dw=dw->next)
+				dw->ob = newlibadr(fd, part->id.lib, dw->ob);
 
 			if(part->boids) {
 				BoidState *state = part->boids->states.first;
@@ -3087,6 +3092,8 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 		part->effector_weights = newdataadr(fd, part->effector_weights);
 	else
 		part->effector_weights = BKE_add_effector_weights(part->eff_group);
+
+	link_list(fd, &part->dupliweights);
 
 	part->boids= newdataadr(fd, part->boids);
 

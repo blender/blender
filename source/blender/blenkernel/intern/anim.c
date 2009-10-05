@@ -776,6 +776,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	GroupObject *go;
 	Object *ob=0, **oblist=0, obcopy, *obcopylist=0;
 	DupliObject *dob;
+	ParticleDupliWeight *dw;
 	ParticleSimulationData sim = {scene, par, psys, psys_get_modifier(par, psys)};
 	ParticleSettings *part;
 	ParticleData *pa;
@@ -783,7 +784,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	ParticleKey state;
 	ParticleCacheKey *cache;
 	float ctime, pa_time, scale = 1.0f;
-	float tmat[4][4], mat[4][4], pamat[4][4], size=0.0;
+	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size=0.0;
 	float (*obmat)[4], (*oldobmat)[4];
 	int lay, a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
@@ -813,6 +814,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		((part->ren_as == PART_DRAW_OB && part->dup_ob) ||
 		(part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first))) {
 
+		psys_check_group_weights(part);
+
 		/* if we have a hair particle system, use the path cache */
 		if(part->type == PART_HAIR) {
 			if(psys->flag & PSYS_HAIR_DONE)
@@ -831,18 +834,37 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		if(part->ren_as==PART_DRAW_GR) {
 			group_handle_recalc_and_update(scene, par, part->dup_group);
 
-			for(go=part->dup_group->gobject.first; go; go=go->next)
-				totgroup++;
+			if(part->draw & PART_DRAW_COUNT_GR) {
+				for(dw=part->dupliweights.first; dw; dw=dw->next)
+					totgroup += dw->count;
+			}
+			else {
+				for(go=part->dup_group->gobject.first; go; go=go->next)
+					totgroup++;
+			}
 
 			/* we also copy the actual objects to restore afterwards, since
 			 * where_is_object_time will change the object which breaks transform */
 			oblist = MEM_callocN(totgroup*sizeof(Object *), "dupgroup object list");
 			obcopylist = MEM_callocN(totgroup*sizeof(Object), "dupgroup copy list");
 
-			go = part->dup_group->gobject.first;
-			for(a=0; a<totgroup; a++, go=go->next) {
-				oblist[a] = go->ob;
-				obcopylist[a] = *go->ob;
+			
+			if(part->draw & PART_DRAW_COUNT_GR && totgroup) {
+				dw = part->dupliweights.first;
+
+				for(a=0; a<totgroup; dw=dw->next) {
+					for(b=0; b<dw->count; b++, a++) {
+						oblist[a] = dw->ob;
+						obcopylist[a] = *dw->ob;
+					}
+				}
+			}
+			else {
+				go = part->dup_group->gobject.first;
+				for(a=0; a<totgroup; a++, go=go->next) {
+					oblist[a] = go->ob;
+					obcopylist[a] = *go->ob;
+				}
 			}
 		}
 		else {
@@ -936,11 +958,18 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			else {
 				/* to give ipos in object correct offset */
 				where_is_object_time(scene, ob, ctime-pa_time);
+
+				VECCOPY(vec, obmat[3]);
+				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
 				
 				Mat4CpyMat4(mat, pamat);
 
 				Mat4MulMat4(tmat, obmat, mat);
 				Mat4MulFloat3((float *)tmat, size*scale);
+
+				if(part->draw & PART_DRAW_GLOBAL_OB)
+					VECADD(tmat[3], tmat[3], vec);
+
 				if(par_space_mat)
 					Mat4MulMat4(mat, tmat, par_space_mat);
 				else

@@ -73,13 +73,11 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 {
 	BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid*) rule;
 	BoidSettings *boids = bbd->part->boids;
-	Object *priority_ob = NULL;
 	BoidParticle *bpa = pa->boid;
 	EffectedPoint epoint;
 	ListBase *effectors = bbd->sim->psys->effectors;
 	EffectorCache *cur, *eff = NULL;
 	EffectorData efd, cur_efd;
-	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
 	float mul = (rule->type == eBoidRuleType_Avoid ? 1.0 : -1.0);
 	float priority = 0.0f, len = 0.0f;
 	int ret = 0;
@@ -1051,9 +1049,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	float wanted_dir[3];
 	float q[4], mat[3][3]; /* rotation */
 	float ground_co[3] = {0.0f, 0.0f, 0.0f}, ground_nor[3] = {0.0f, 0.0f, 1.0f};
-	float force[3] = {0.0f, 0.0f, 0.0f}, tvel[3] = {0.0f, 0.0f, 1.0f};
+	float force[3] = {0.0f, 0.0f, 0.0f};
 	float pa_mass=bbd->part->mass, dtime=bbd->dfra*bbd->timestep;
-	int p = pa - bbd->sim->psys->particles;
 
 	set_boid_values(&val, boids, pa);
 

@@ -228,6 +228,8 @@ static void precalculate_effector(EffectorCache *eff)
 	}
 	else if(eff->pd->shape == PFIELD_SHAPE_SURFACE) {
 		eff->surmd = (SurfaceModifierData *)modifiers_findByType ( eff->ob, eModifierType_Surface );
+		if(eff->ob->type == OB_CURVE)
+			eff->flag |= PE_USE_NORMAL_DATA;
 	}
 	else if(eff->psys)
 		psys_update_particle_tree(eff->psys, eff->scene->r.cfra);
@@ -518,7 +520,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *poi
 	float falloff = weights ? weights->weight[0] * weights->weight[eff->pd->forcefield] : 1.0f;
 	float fac, r_fac;
 
-	fac = Inpf(efd->nor, efd->vec_to_point);
+	fac = Inpf(efd->nor, efd->vec_to_point2);
 
 	if(eff->pd->zdir == PFIELD_Z_POS && fac < 0.0f)
 		falloff=0.0f;
@@ -691,10 +693,16 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		VecSubf(efd->vec_to_point, point->loc, efd->loc);
 		efd->distance = VecLength(efd->vec_to_point);
 
-		/* for some effectors we need the object center every time */
-		VecSubf(efd->vec_to_point2, point->loc, eff->ob->obmat[3]);
-		VECCOPY(efd->nor2, eff->ob->obmat[2]);
-		Normalize(efd->nor2);
+		if(eff->flag & PE_USE_NORMAL_DATA) {
+			VECCOPY(efd->vec_to_point2, efd->vec_to_point);
+			VECCOPY(efd->nor2, efd->nor);
+		}
+		else {
+			/* for some effectors we need the object center every time */
+			VecSubf(efd->vec_to_point2, point->loc, eff->ob->obmat[3]);
+			VECCOPY(efd->nor2, eff->ob->obmat[2]);
+			Normalize(efd->nor2);
+		}
 	}
 
 	return ret;
@@ -835,8 +843,7 @@ void do_physical_effector(EffectorCache *eff, EffectorData *efd, EffectedPoint *
 
 	switch(pd->forcefield){
 		case PFIELD_WIND:
-			Normalize(force);
-			strength *= (Inpf(force, efd->nor) >= 0.0f ? 1.0f : -1.0f);
+			VECCOPY(force, efd->nor);
 			VecMulf(force, strength * efd->falloff);
 			break;
 		case PFIELD_FORCE:

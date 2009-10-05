@@ -78,7 +78,7 @@ def effector_weights_ui(self, weights):
 		layout.itemS()
 		
 		flow = layout.column_flow()
-		flow.itemR(weights, "spherical", slider=True)
+		flow.itemR(weights, "force", slider=True)
 		flow.itemR(weights, "vortex", slider=True)
 		flow.itemR(weights, "magnetic", slider=True)
 		flow.itemR(weights, "wind", slider=True)
@@ -110,7 +110,7 @@ def basic_force_field_settings_ui(self, field):
 		col.itemR(field, "flow")
 	elif field.type == 'HARMONIC':
 		col.itemR(field, "harmonic_damping", text="Damping")
-	elif field.type == 'VORTEX' and field.shape == 'PLANE':
+	elif field.type == 'VORTEX' and field.shape != 'POINT':
 		col.itemR(field, "inflow")
 	elif field.type == 'DRAG':
 		col.itemR(field, "quadratic_drag", text="Quadratic")
@@ -140,6 +140,7 @@ def basic_force_field_falloff_ui(self, field):
 	col.itemR(field, "z_direction", text="")
 	col.itemR(field, "use_min_distance", text="Use Minimum")
 	col.itemR(field, "use_max_distance", text="Use Maximum")
+	col.itemR(field, "do_absorption")
 
 	col = split.column()
 	col.itemR(field, "falloff_power", text="Power")

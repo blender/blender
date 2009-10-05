@@ -56,14 +56,14 @@ typedef enum PFieldType {
 } PFieldType;
 	
 typedef struct PartDeflect {
+	int	  flag;			/* general settings flag										*/
 	short deflect;		/* Deflection flag - does mesh deflect particles				*/
 	short forcefield;	/* Force field type, do the vertices attract / repel particles?	*/
-	short flag;			/* general settings flag										*/
 	short falloff;		/* fall-off type												*/
 	short shape;		/* point, plane or surface										*/
 	short tex_mode;		/* texture effector												*/
 	short kink, kink_axis; /* for curve guide											*/
-	short zdir, rt;
+	short zdir;
 	
 	/* Main effector values */
 	float f_strength;	/* The strength of the force (+ or - )					*/

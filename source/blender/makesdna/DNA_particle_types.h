@@ -78,6 +78,13 @@ typedef struct ParticleTarget {
 	float time, duration;
 } ParticleTarget;
 
+typedef struct ParticleDupliWeight {
+	struct ParticleDupliWeight *next, *prev;
+	struct Object *ob;
+	short count;
+	short flag, rt[2];
+} ParticleDupliWeight;
+
 typedef struct ParticleData {
 	ParticleKey state;		/* current global coordinates */
 
@@ -148,6 +155,7 @@ typedef struct ParticleSettings {
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
+	float ob_vel[3], rt;
 	float avefac, phasefac, randrotfac, randphasefac;
 	/* physical properties */
 	float mass, size, randsize, reactshape;
@@ -179,6 +187,7 @@ typedef struct ParticleSettings {
 	int keyed_loops;
 
 	struct Group *dup_group;
+	struct ListBase dupliweights;
 	struct Group *eff_group;		// deprecated
 	struct Object *dup_ob;
 	struct Object *bb_ob;
@@ -324,12 +333,12 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 /* part->draw */
 #define PART_DRAW_VEL		1
-//#define PART_DRAW_PATH_LEN	2
+#define PART_DRAW_GLOBAL_OB	2
 #define PART_DRAW_SIZE		4
 #define PART_DRAW_EMITTER	8	/* render emitter also */
 #define PART_DRAW_HEALTH	16
 #define PART_ABS_PATH_TIME  32
-//#define PART_DRAW_TRAIL		64	/* deprecated */
+#define PART_DRAW_COUNT_GR	64
 #define PART_DRAW_BB_LOCK	128
 #define PART_DRAW_PARENT	256
 #define PART_DRAW_NUM		512
@@ -443,6 +452,9 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PARS_UNBORN			2
 #define PARS_ALIVE			3
 #define PARS_DYING			4
+
+/* ParticleDupliWeight->flag */
+#define PART_DUPLIW_CURRENT	1
 
 /* psys->vg */
 #define PSYS_TOT_VG			12
