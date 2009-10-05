@@ -2145,9 +2145,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 					xco+= XIC;
 				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
-				xco+= XIC;
+				xco+= XIC + 10;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");
-				xco+= XIC;
+				xco+= 70;
 			} else {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
 				xco+= XIC;
