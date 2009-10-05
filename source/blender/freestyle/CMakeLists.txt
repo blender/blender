@@ -34,4 +34,8 @@ SET(INC
   ${PNG_INC}
 )
 
+IF(WIN32)
+	SET(INC ${INC} ${PTHREADS_INC})
+ENDIF(WIN32)
+
 BLENDERLIB(bf_freestyle "${SRC}" "${INC}")
