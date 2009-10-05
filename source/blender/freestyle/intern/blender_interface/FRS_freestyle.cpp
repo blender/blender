@@ -1,7 +1,7 @@
-#include "AppView.h"
-#include "Controller.h"
-#include "AppConfig.h"
-#include "AppCanvas.h"
+#include "../application/AppView.h"
+#include "../application/Controller.h"
+#include "../application/AppConfig.h"
+#include "../application/AppCanvas.h"
 
 #include <iostream>
 #include <map>

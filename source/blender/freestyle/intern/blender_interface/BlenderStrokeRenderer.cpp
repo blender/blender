@@ -1,6 +1,6 @@
 # include "BlenderStrokeRenderer.h"
-# include "Canvas.h"
-# include "../app_blender/AppConfig.h"
+# include "../stroke/Canvas.h"
+# include "../application/AppConfig.h"
 
 # include "../rendering/GLStrokeRenderer.h"
 

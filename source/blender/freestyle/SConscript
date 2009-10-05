@@ -48,9 +48,13 @@ stroke_sources = env.Glob(prefix + '/*.cpp')
 prefix = 'intern/rendering'
 rendering_sources = env.Glob(prefix + '/GL*.cpp')
 
-# 	app / app_blender
-prefix = 'intern/app_blender'
-app_sources = env.Glob(prefix + '/*.cpp')
+# 	application
+prefix = 'intern/application'
+application_sources = env.Glob(prefix + '/*.cpp')
+
+# 	blender_interface
+prefix = 'intern/blender_interface'
+interface_sources = env.Glob(prefix + '/*.cpp')
 
 #	Python
 prefix = 'intern/python'
@@ -61,7 +65,7 @@ python_sources =  env.Glob(prefix + '/*.cpp') \
 
 sources = 	system_sources + image_sources + geometry_sources + scene_graph_sources \
 		  +	winged_edge_sources + view_map_sources + stroke_sources + rendering_sources \
-		  + app_sources + python_sources
+		  + application_sources + interface_sources + python_sources
 
 env.BlenderLib (libname="bf_freestyle",
 				sources=sources,

@@ -56,8 +56,8 @@
 
 #include "../system/StringUtils.h"
 
-#include "../scene_graph/BlenderFileLoader.h"
-#include "../stroke/BlenderStrokeRenderer.h"
+#include "../blender_interface/BlenderFileLoader.h"
+#include "../blender_interface/BlenderStrokeRenderer.h"
 
 #ifdef __cplusplus
 extern "C" {

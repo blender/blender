@@ -2,7 +2,7 @@
 # define BLENDERSTROKERENDERER_H
 
 # include "../system/FreestyleConfig.h"
-# include "StrokeRenderer.h"
+# include "../stroke/StrokeRenderer.h"
 
 #ifdef __cplusplus
 extern "C" {

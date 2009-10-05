@@ -5,10 +5,10 @@
 # include <float.h>
 
 # include "../system/FreestyleConfig.h"
-# include "NodeGroup.h"
-# include "NodeTransform.h"
-# include "NodeShape.h"
-# include "IndexedFaceSet.h"
+# include "../scene_graph/NodeGroup.h"
+# include "../scene_graph/NodeTransform.h"
+# include "../scene_graph/NodeShape.h"
+# include "../scene_graph/IndexedFaceSet.h"
 # include "../geometry/BBox.h"
 # include "../geometry/Geom.h"
 # include "../geometry/GeomCleaner.h"
