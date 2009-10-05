@@ -1179,12 +1179,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem raytrace_structure_items[] = {
-		{R_RAYSTRUCTURE_AUTO, "{R_RAYSTRUCTURE_AUTO", 0, "auto", ""},
-		{R_RAYSTRUCTURE_OCTREE, "R_RAYSTRUCTURE_OCTREE", 0, "octree", "Use old octree structure (no support for instances)"},
-		{R_RAYSTRUCTURE_BLIBVH, "R_RAYSTRUCTURE_BLIBVH", 0, "blibvh", "Use BLI_kdopbvh.c"},
-		{R_RAYSTRUCTURE_VBVH, "R_RAYSTRUCTURE_VBVH", 0, "vBVH", ""},
-		{R_RAYSTRUCTURE_SIMD_SVBVH, "R_RAYSTRUCTURE_SIMD_SVBVH", 0, "SIMD SVBVH", "Requires SIMD"},
-		{R_RAYSTRUCTURE_SIMD_QBVH, "R_RAYSTRUCTURE_SIMD_QBVH", 0, "SIMD QBVH", "Requires SIMD"},
+		{R_RAYSTRUCTURE_AUTO, "AUTO", 0, "Auto", ""},
+		{R_RAYSTRUCTURE_OCTREE, "OCTREE", 0, "Octree", "Use old Octree structure."},
+		{R_RAYSTRUCTURE_BLIBVH, "BLIBVH", 0, "BLI BVH", "Use BLI K-Dop BVH.c"},
+		{R_RAYSTRUCTURE_VBVH, "VBVH", 0, "vBVH", ""},
+		{R_RAYSTRUCTURE_SIMD_SVBVH, "SIMD_SVBVH", 0, "SIMD SVBVH", ""},
+		{R_RAYSTRUCTURE_SIMD_QBVH, "SIMD_QBVH", 0, "SIMD QBVH", ""},
 		{0, NULL, 0, NULL, NULL}
 		};
 
@@ -1631,7 +1631,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "raytrace_options", R_RAYTRACE_USE_LOCAL_COORDS);
 	RNA_def_property_ui_text(prop, "Use Local Coords", "Vertex coordinates are stored localy on each primitive. Increases memory usage, but may have impact on speed.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
 
 	prop= RNA_def_property(srna, "antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_OSA);
