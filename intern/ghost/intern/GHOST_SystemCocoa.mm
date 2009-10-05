@@ -1271,7 +1271,7 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	
 	NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
 	
-	if (pasteBoard = nil) {
+	if (pasteBoard == nil) {
 		[pool drain];
 		return NULL;
 	}
@@ -1289,11 +1289,19 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	
 	NSString * textPasted = [pasteBoard stringForType:@"public.utf8-plain-text"];
 
+	if (textPasted == nil) {
+		[pool drain];
+		return NULL;
+	}
+	
 	pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 	
 	temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 
-	if (temp_buff == NULL) return NULL;
+	if (temp_buff == NULL) {
+		[pool drain];
+		return NULL;
+	}
 	
 	strncpy((char*)temp_buff, [textPasted UTF8String], pastedTextSize);
 	
@@ -1318,12 +1326,12 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 		
 	NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
 	
-	if (pasteBoard = nil) {
+	if (pasteBoard == nil) {
 		[pool drain];
 		return;
 	}
 	
-	NSArray *supportedTypes = [NSArray arrayWithObjects: @"public.utf8-plain-text",nil];
+	NSArray *supportedTypes = [NSArray arrayWithObject:@"public.utf8-plain-text"];
 	
 	[pasteBoard declareTypes:supportedTypes owner:nil];
 	
