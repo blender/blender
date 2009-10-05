@@ -133,11 +133,13 @@ public:
 	 * this vector. Please do not destroy or add windows use the 
 	 * interface above for this,
 	 */
+	std::vector<GHOST_IWindow *> & getWindows();
 
-		std::vector<GHOST_IWindow *> &
-	getWindows(
-	);
-
+	/**
+	 * Return true if any windows has a modified status
+	 * @return True if any window has unsaved changes
+	 */
+	bool getAnyModifiedState();
 
 protected:
 	/** The list of windows managed */

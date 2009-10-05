@@ -598,6 +598,16 @@ extern GHOST_TWindowState GHOST_GetWindowState(GHOST_WindowHandle windowhandle);
 extern GHOST_TSuccess GHOST_SetWindowState(GHOST_WindowHandle windowhandle,
 										   GHOST_TWindowState state);
 
+	
+/**
+ * Sets the window "modified" status, indicating unsaved changes
+ * @param windowhandle The handle to the window
+ * @param isUnsavedChanges Unsaved changes or not
+ * @return Indication of success.
+ */
+extern GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle,
+												   GHOST_TUns8 isUnsavedChanges);
+	
 /**
  * Sets the order of the window (bottom, top).
  * @param windowhandle The handle to the window

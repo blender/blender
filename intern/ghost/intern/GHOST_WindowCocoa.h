@@ -144,6 +144,13 @@ public:
 	virtual GHOST_TWindowState getState() const;
 
 	/**
+	 * Sets the window "modified" status, indicating unsaved changes
+	 * @param isUnsavedChanges Unsaved changes or not
+	 * @return Indication of success.
+	 */
+	virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges);
+	
+	/**
 	 * Converts a point in screen coordinates to client rectangle coordinates
 	 * @param inX	The x-coordinate on the screen.
 	 * @param inY	The y-coordinate on the screen.

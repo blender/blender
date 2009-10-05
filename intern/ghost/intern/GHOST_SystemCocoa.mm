@@ -414,6 +414,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 }
 -(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
+- (void)applicationWillTerminate:(NSNotification *)aNotification;
 @end
 
 @implementation CocoaAppDelegate : NSObject
@@ -424,15 +425,21 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
+	//TODO: implement graceful termination through Cocoa mechanism to avoid session log off to be cancelled
 	//Note that Cmd+Q is already handled by keyhandler
-    //FIXME: Need an event "QuitRequest"
-	int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes may not have been saved. Do you really want to quit ?",
-									 @"No", @"Yes", nil);
-	
-	if (shouldQuit == NSAlertAlternateReturn)
-		systemCocoa->pushEvent( new GHOST_Event(systemCocoa->getMilliSeconds(), GHOST_kEventQuit, NULL) );
-    
-	return NSTerminateCancel;
+    if (systemCocoa->handleQuitRequest() == GHOST_kExitNow)
+		return NSTerminateCancel;//NSTerminateNow;
+	else
+		return NSTerminateCancel;
+}
+
+// To avoid cancelling a log off process, we must use Cocoa termination process
+// And this function is the only chance to perform clean up
+// So WM_exit needs to be called directly, as the event loop will never run before termination
+- (void)applicationWillTerminate:(NSNotification *)aNotification
+{
+	/*G.afbreek = 0; //Let Cocoa perform the termination at the end
+	WM_exit(C);*/
 }
 @end
 
@@ -440,7 +447,6 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 
 #pragma mark initialization/finalization
 
-/***/
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
@@ -468,6 +474,8 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 
 GHOST_SystemCocoa::~GHOST_SystemCocoa()
 {
+	NSAutoreleasePool* pool = (NSAutoreleasePool *)m_autoReleasePool;
+	[pool drain];
 }
 
 
@@ -478,7 +486,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
     if (success) {
 		//ProcessSerialNumber psn;
 		
-		//FIXME: Carbon stuff to move window & menu to foreground
+		//Carbon stuff to move window & menu to foreground
 		/*if (!GetCurrentProcess(&psn)) {
 			TransformProcessType(&psn, kProcessTransformToForegroundApplication);
 			SetFrontProcess(&psn);
@@ -566,13 +574,6 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 }
 
 
-GHOST_TSuccess GHOST_SystemCocoa::exit()
-{
-	NSAutoreleasePool* pool = (NSAutoreleasePool *)m_autoReleasePool;
-	[pool drain];
-    return GHOST_System::exit();
-}
-
 #pragma mark window management
 
 GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
@@ -602,11 +603,15 @@ GHOST_TUns8 GHOST_SystemCocoa::getNumDisplays() const
 
 void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const
 {
-	//TODO: Provide visible frame or total frame, check for consistency with rest of code
+	//Get visible frame, that is frame excluding dock and top menu bar
 	NSRect frame = [[NSScreen mainScreen] visibleFrame];
 	
-	width = frame.size.width;
-	height = frame.size.height;
+	//Returns max window contents (excluding title bar...)
+	NSRect contentRect = [NSWindow contentRectForFrameRect:frame
+												 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)];
+	
+	width = contentRect.size.width;
+	height = contentRect.size.height;
 }
 
 
@@ -623,7 +628,16 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 )
 {
     GHOST_IWindow* window = 0;
-
+	
+	//Get the available rect for including window contents
+	NSRect frame = [[NSScreen mainScreen] visibleFrame];
+	NSRect contentRect = [NSWindow contentRectForFrameRect:frame
+												 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)];
+	
+	//Ensures window top left is inside this available rect
+	left = left > contentRect.origin.x ? left : contentRect.origin.x;
+	top = top > contentRect.origin.y ? top : contentRect.origin.y;
+	
 	window = new GHOST_WindowCocoa (title, left, top, width, height, state, type);
 
     if (window) {
@@ -847,7 +861,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 }
 
 //TODO: To be called from NSWindow delegate
-int GHOST_SystemCocoa::handleWindowEvent(void *eventPtr)
+GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(void *eventPtr)
 {
 	/*WindowRef windowRef;
 	GHOST_WindowCocoa *window;
@@ -900,7 +914,29 @@ int GHOST_SystemCocoa::handleWindowEvent(void *eventPtr)
 	return GHOST_kSuccess;
 }
 
-int GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
+GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
+{
+	//Check open windows if some changes are not saved
+	if (m_windowManager->getAnyModifiedState())
+	{
+		int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes have not been saved. Do you really want to quit ?",
+										 @"Cancel", @"Quit anyway", nil);
+		if (shouldQuit == NSAlertAlternateReturn)
+		{
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
+			return GHOST_kExitNow;
+		}
+	}
+	else {
+		pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
+		return GHOST_kExitNow;
+	}
+	
+	return GHOST_kExitCancel;
+}
+
+
+GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
@@ -964,7 +1000,7 @@ int GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 }
 
 
-int GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
+GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
     GHOST_IWindow* window = m_windowManager->getActiveWindow();
@@ -1018,11 +1054,12 @@ int GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 }
 
 
-int GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
+GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	NSUInteger modifiers;
+	NSString *characters;
 	GHOST_TKey keyCode;
 	unsigned char ascii;
 
@@ -1036,9 +1073,16 @@ int GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	switch ([event type]) {
 		case NSKeyDown:
 		case NSKeyUp:
-			keyCode = convertKey([event keyCode],
-							 [[event charactersIgnoringModifiers] characterAtIndex:0]);
-			ascii= convertRomanToLatin((char)[[event characters] characterAtIndex:0]);
+			characters = [event characters];
+			if ([characters length]) { //Check for dead keys
+				keyCode = convertKey([event keyCode],
+									 [[event charactersIgnoringModifiers] characterAtIndex:0]);
+				ascii= convertRomanToLatin((char)[characters characterAtIndex:0]);
+			} else {
+				keyCode = convertKey([event keyCode],0);
+				ascii= 0;
+			}
+			
 			
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa
@@ -1223,9 +1267,12 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	GHOST_TUns8 * temp_buff;
 	size_t pastedTextSize;	
 	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
 	NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
 	
 	if (pasteBoard = nil) {
+		[pool drain];
 		return NULL;
 	}
 	
@@ -1235,7 +1282,10 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	NSString *bestType = [[NSPasteboard generalPasteboard]
 						  availableTypeFromArray:supportedTypes];
 	
-	if (bestType == nil) { return NULL; }
+	if (bestType == nil) {
+		[pool drain];
+		return NULL;
+	}
 	
 	NSString * textPasted = [pasteBoard stringForType:@"public.utf8-plain-text"];
 
@@ -1249,6 +1299,8 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	
 	temp_buff[pastedTextSize] = '\0';
 	
+	[pool drain];
+
 	if(temp_buff) {
 		return temp_buff;
 	} else {
@@ -1262,10 +1314,12 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	
 	if(selection) {return;} // for copying the selection, used on X11
 
-	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		
 	NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
 	
 	if (pasteBoard = nil) {
+		[pool drain];
 		return;
 	}
 	
@@ -1277,8 +1331,7 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	
 	[pasteBoard setString:textToCopy forType:@"public.utf8-plain-text"];
 	
-	printf("\nCopy");
-	
+	[pool drain];
 }
 
 #pragma mark Carbon stuff to remove

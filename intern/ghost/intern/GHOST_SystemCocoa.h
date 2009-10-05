@@ -133,6 +133,12 @@ public:
 	 */
 	virtual bool processEvents(bool waitForEvent);
 	
+	/**
+	 * Handle User request to quit, from Menu bar Quit, and Cmd+Q
+	 * Display alert panel if changes performed since last save
+	 */
+	GHOST_TUns8 handleQuitRequest();
+	
 	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/
@@ -193,39 +199,33 @@ protected:
 	 */
 	virtual GHOST_TSuccess init();
 
-	/**
-	 * Closes the system down.
-	 * @return A success value.
-	 */
-	virtual GHOST_TSuccess exit();
-
-	
     /**
      * Handles a tablet event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
      * @return Indication whether the event was handled. 
      */
-    int handleTabletEvent(void *eventPtr);
-    /**
+    GHOST_TSuccess handleTabletEvent(void *eventPtr);
+    
+	/**
      * Handles a mouse event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
      * @return Indication whether the event was handled. 
      */
-    int handleMouseEvent(void *eventPtr);
+    GHOST_TSuccess handleMouseEvent(void *eventPtr);
 
     /**
      * Handles a key event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
      * @return Indication whether the event was handled. 
      */
-    int handleKeyEvent(void *eventPtr);
+    GHOST_TSuccess handleKeyEvent(void *eventPtr);
 
    /**
      * Handles a window event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
      * @return Indication whether the event was handled. 
      */
-    int handleWindowEvent(void *eventPtr);
+    GHOST_TSuccess handleWindowEvent(void *eventPtr);
 
     /**
      * Handles all basic Mac application stuff for a mouse down event.

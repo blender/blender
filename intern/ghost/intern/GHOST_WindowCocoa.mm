@@ -378,12 +378,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 	case GHOST_kWindowStateMinimized:
             ::HideWindow(m_windowRef);
             break;
-	case GHOST_kWindowStateModified:
-		SetWindowModified(m_windowRef, 1);
-		break;
-	case GHOST_kWindowStateUnModified:
-		SetWindowModified(m_windowRef, 0);
-		break;
 	case GHOST_kWindowStateMaximized:
 	case GHOST_kWindowStateNormal:
         default:
@@ -392,6 +386,18 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
     }
     return GHOST_kSuccess;
 }
+
+GHOST_TSuccess GHOST_WindowCocoa::setModifiedState(bool isUnsavedChanges)
+{
+	if (isUnsavedChanges) {
+		SetWindowModified(m_windowRef, 1);
+	} else {
+		SetWindowModified(m_windowRef, 0);
+	}
+	
+	return GHOST_Window::setModifiedState(isUnsavedChanges);
+}
+
 
 
 GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
