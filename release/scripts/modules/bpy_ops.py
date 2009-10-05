@@ -139,3 +139,20 @@ class bpy_ops_submodule_op(object):
 
 import bpy
 bpy.ops = bpy_ops()
+
+# TODO, C macro's cant define settings :|
+
+class MESH_OT_delete_edgeloop(bpy.types.Operator):
+	'''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
+	__idname__ = "mesh.delete_edgeloop"
+	__label__ = "Export PLY"
+	
+	def execute(self, context):
+		bpy.ops.tfm.edge_slide(value=1.0)
+		bpy.ops.mesh.select_more()
+		bpy.ops.mesh.remove_doubles()
+		return ('FINISHED',)
+
+
+bpy.ops.add(MESH_OT_delete_edgeloop)
+
