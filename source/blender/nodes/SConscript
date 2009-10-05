@@ -27,17 +27,6 @@ if env['WITH_BF_PYTHON']:
 else:
 	defs.append('DISABLE_PYTHON')
 
-if env['WITH_BF_OPENEXR']:
-	defs.append('WITH_OPENEXR')
-
-if env['WITH_BF_FFMPEG']:
-	defs.append('WITH_FFMPEG')
-	incs += ' ' + env['BF_FFMPEG_INC']
-
-if env['WITH_BF_QUICKTIME']:
-	defs.append('WITH_QUICKTIME')
-	incs += ' ' + env['BF_QUICKTIME_INC']
-
 if env['OURPLATFORM'] == 'linux2':
 	cflags='-pthread'
     	incs += ' ../../../extern/binreloc/include'

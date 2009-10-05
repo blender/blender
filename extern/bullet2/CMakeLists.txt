@@ -32,14 +32,12 @@ FILE(GLOB SRC
 	src/BulletCollision/CollisionShapes/*.cpp
 	src/BulletCollision/NarrowPhaseCollision/*.cpp
 	src/BulletCollision/Gimpact/*.cpp
-	src/BulletCollision//CollisionDispatch/*.cpp
+	src/BulletCollision/CollisionDispatch/*.cpp
 	src/BulletDynamics/ConstraintSolver/*.cpp
 	src/BulletDynamics/Vehicle/*.cpp
 	src/BulletDynamics/Dynamics/*.cpp
 	src/BulletSoftBody/*.cpp
 )
 
-ADD_DEFINITIONS(-D_LIB)
-
 BLENDERLIB(extern_bullet "${SRC}" "${INC}")
-#, libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
+
