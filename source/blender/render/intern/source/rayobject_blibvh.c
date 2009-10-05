@@ -67,6 +67,7 @@ static RayObjectAPI bvh_api =
 typedef struct BVHObject
 {
 	RayObject rayobj;
+	RayObject **leafs, **next_leaf;
 	BVHTree *bvh;
 	float bb[2][3];
 
@@ -80,15 +81,23 @@ RayObject *RE_rayobject_blibvh_create(int size)
 	
 	obj->rayobj.api = &bvh_api;
 	obj->bvh = BLI_bvhtree_new(size, 0.0, 4, 6);
+	obj->next_leaf = obj->leafs = (RayObject**)MEM_callocN(size*sizeof(RayObject*), "BVHObject leafs");
 	
 	INIT_MINMAX(obj->bb[0], obj->bb[1]);
 	return RE_rayobject_unalignRayAPI((RayObject*) obj);
 }
 
+struct BVHCallbackUserData
+{
+	Isect *isec;
+	RayObject **leafs;
+};
+
 static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-	Isect *isec = (Isect*)userdata;
-	RayObject *face = (RayObject*)index;
+	struct BVHCallbackUserData *data = (struct BVHCallbackUserData*)userdata;
+	Isect *isec = data->isec;
+	RayObject *face = data->leafs[index];
 	
 	if(RE_rayobject_intersect(face,isec))
 	{
@@ -106,6 +115,9 @@ static int  RE_rayobject_blibvh_intersect(RayObject *o, Isect *isec)
 	BVHObject *obj = (BVHObject*)o;
 	BVHTreeRayHit hit;
 	float dir[3];
+	struct BVHCallbackUserData data;
+	data.isec = isec;
+	data.leafs = obj->leafs;
 
 	VECCOPY(dir, isec->vec);
 	Normalize(dir);
@@ -113,7 +125,7 @@ static int  RE_rayobject_blibvh_intersect(RayObject *o, Isect *isec)
 	hit.index = 0;
 	hit.dist = isec->labda*isec->dist;
 	
-	return BLI_bvhtree_ray_cast(obj->bvh, isec->start, dir, 0.0, &hit, bvh_callback, isec);
+	return BLI_bvhtree_ray_cast(obj->bvh, isec->start, dir, 0.0, &hit, bvh_callback, (void*)&data);
 }
 
 static void RE_rayobject_blibvh_add(RayObject *o, RayObject *ob)
@@ -126,7 +138,8 @@ static void RE_rayobject_blibvh_add(RayObject *o, RayObject *ob)
 	DO_MIN(min_max  , obj->bb[0]);
 	DO_MAX(min_max+3, obj->bb[1]);
 	
-	BLI_bvhtree_insert(obj->bvh, (int)ob, min_max, 2 );	
+	BLI_bvhtree_insert(obj->bvh, obj->next_leaf - obj->leafs, min_max, 2 );	
+	*(obj->next_leaf++) = ob;
 }
 
 static void RE_rayobject_blibvh_done(RayObject *o)
@@ -141,6 +154,9 @@ static void RE_rayobject_blibvh_free(RayObject *o)
 
 	if(obj->bvh)
 		BLI_bvhtree_free(obj->bvh);
+
+	if(obj->leafs)
+		MEM_freeN(obj->leafs);
 
 	MEM_freeN(obj);
 }
