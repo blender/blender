@@ -139,12 +139,16 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	*/
 	
 	isect->mode= RE_RAY_MIRROR;
-	isect->orig.ob = (void*)shi->obi;
 	isect->last_hit = NULL;
 	isect->lay= -1;
 	
-	if (intersect_type == VOL_BOUNDS_DEPTH) isect->orig.face = (void*)shi->vlr;
-	else if (intersect_type == VOL_BOUNDS_SS) isect->orig.face= NULL;
+	if (intersect_type == VOL_BOUNDS_DEPTH) {
+		isect->orig.face = (void*)shi->vlr;
+		isect->orig.ob = (void*)shi->obi;
+	} else if (intersect_type == VOL_BOUNDS_SS) {
+		isect->orig.face= NULL;
+		isect->orig.ob = NULL;
+	}
 	
 	if(RE_rayobject_raycast(R.raytree, isect))
 	{
