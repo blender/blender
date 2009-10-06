@@ -30,6 +30,8 @@
 #include "svbvh.h"
 #include "reorganize.h"
 
+#ifdef __SSE__
+
 #define DFS_STACK_SIZE	256
 
 struct QBVHTree
@@ -134,3 +136,14 @@ RayObject *RE_rayobject_qbvh_create(int size)
 {
 	return bvh_create_tree<QBVHTree,DFS_STACK_SIZE>(size);
 }
+
+
+#else
+
+RayObject *RE_rayobject_qbvh_create(int size)
+{
+	puts("WARNING: SSE disabled at compile time\n");
+	return NULL;
+}
+
+#endif

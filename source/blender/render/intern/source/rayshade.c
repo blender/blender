@@ -78,7 +78,7 @@ static int test_break(void *data)
 	return re->test_break(re->tbh);
 }
 
-static RE_rayobject_config_control(RayObject *r, Render *re)
+static void RE_rayobject_config_control(RayObject *r, Render *re)
 {
 	if(RE_rayobject_isRayAPI(r))
 	{
@@ -96,10 +96,21 @@ RayObject*  RE_rayobject_create(Render *re, int type, int size)
 	{
 		//TODO
 		//if(detect_simd())
-			type = R_RAYSTRUCTURE_SIMD_SVBVH;
-		//else
-		//	type = R_RAYSTRUCTURE_VBVH;
+#ifdef __SSE__
+		type = R_RAYSTRUCTURE_SIMD_SVBVH;
+#else
+		type = R_RAYSTRUCTURE_VBVH;
+#endif
 	}
+	
+#ifndef __SSE__
+	if(type == R_RAYSTRUCTURE_SIMD_SVBVH || type == R_RAYSTRUCTURE_SIMD_QBVH)
+	{
+		puts("Warning: Using VBVH (SSE was disabled at compile time)");
+		type = R_RAYSTRUCTURE_VBVH;
+	}
+#endif
+	
 		
 	if(type == R_RAYSTRUCTURE_OCTREE) //TODO dynamic ocres
 		res = RE_rayobject_octree_create(re->r.ocres, size);
@@ -111,6 +122,9 @@ RayObject*  RE_rayobject_create(Render *re, int type, int size)
 		res = RE_rayobject_svbvh_create(size);
 	else if(type == R_RAYSTRUCTURE_SIMD_QBVH)
 		res = RE_rayobject_qbvh_create(size);
+	else
+		res = RE_rayobject_vbvh_create(size);	//Fallback
+	
 	
 	if(res)
 		RE_rayobject_config_control( res, re );

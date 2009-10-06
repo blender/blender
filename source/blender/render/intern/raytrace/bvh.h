@@ -33,11 +33,15 @@
 #include "rayobject_hint.h"
 
 #include <assert.h>
+
+#ifdef __SSE__
 #include <xmmintrin.h>
+#endif
 
 #ifndef RE_RAYTRACE_BVH_H
 #define RE_RAYTRACE_BVH_H
 
+#ifdef __SSE__
 inline int test_bb_group4(__m128 *bb_group, const Isect *isec)
 {
 	
@@ -53,6 +57,7 @@ inline int test_bb_group4(__m128 *bb_group, const Isect *isec)
 	
 	return _mm_movemask_ps(_mm_cmpge_ps(tmax3, tmin3));
 }
+#endif
 
 
 /* bvh tree generics */
@@ -159,6 +164,7 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 }
 
 
+#ifdef __SSE__
 /*
  * Generic SIMD bvh recursion
  * this was created to be able to use any simd (with the cost of some memmoves)
@@ -287,6 +293,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 	}
 	return hit;
 }
+#endif
 
 /*
  * recursively transverse a BVH looking for a rayhit using system stack

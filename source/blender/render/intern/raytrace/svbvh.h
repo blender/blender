@@ -26,6 +26,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifdef __SSE__
+ 
 #ifndef RE_RAYTRACE_SVBVH_H
 #define RE_RAYTRACE_SVBVH_H
 
@@ -243,3 +245,5 @@ struct Reorganize_SVBVH
 };
 
 #endif
+
+#endif //__SSE__
