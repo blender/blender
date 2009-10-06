@@ -54,6 +54,8 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_node_types.h"
+
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
@@ -150,6 +152,31 @@ static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 		MEM_freeN(ma->mtex[act]);
 		ma->mtex[act]= NULL;
 	}
+}
+
+static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)
+{
+	Material *ma= (Material*)ptr->data;
+	Material *ma_node= NULL;
+
+	/* used in buttons to check context, also checks for edited groups */
+
+	if(ma && ma->use_nodes && ma->nodetree) {
+		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);
+
+		if(node)
+			ma_node= (Material *)node->id;
+	}
+
+	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma_node);
+}
+
+static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA value)
+{
+	Material *ma= (Material*)ptr->data;
+	Material *ma_act= value.data;
+
+	nodeSetActiveID(ma->nodetree, ID_MA, ma_act);
 }
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
@@ -1688,6 +1715,13 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_nodes_set");
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the material.");
+	RNA_def_property_update(prop, NC_MATERIAL, NULL);
+
+	prop= RNA_def_property(srna, "active_node_material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_active_node_material_get", "rna_Material_active_node_material_set", NULL);
+	RNA_def_property_ui_text(prop, "Material", "Active node material.");
 	RNA_def_property_update(prop, NC_MATERIAL, NULL);
 
 	/* common */

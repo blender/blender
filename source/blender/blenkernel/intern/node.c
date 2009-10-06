@@ -1575,6 +1575,37 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 	return node;
 }
 
+int nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
+{
+	bNode *node;
+	int ok= FALSE;
+
+	if(ntree==NULL) return ok;
+
+	/* check for group edit */
+    for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+
+	if(node)
+		ntree= (bNodeTree*)node->id;
+
+	/* now find active node with this id */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->id && GS(node->id->name)==idtype) {
+			if(id && ok==FALSE && node->id==id) {
+				node->flag |= NODE_ACTIVE_ID;
+				ok= TRUE;
+			} else {
+				node->flag &= ~NODE_ACTIVE_ID;
+			}
+		}
+	}
+
+	return ok;
+}
+
+
 /* two active flags, ID nodes have special flag for buttons display */
 void nodeClearActiveID(bNodeTree *ntree, short idtype)
 {
