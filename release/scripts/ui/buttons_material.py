@@ -8,6 +8,8 @@ def active_node_mat(mat):
 		mat_node = mat.active_node_material
 		if mat_node:
 			return mat_node
+		else:
+			return mat
 
 	return None
 
