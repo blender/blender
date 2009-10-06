@@ -83,6 +83,7 @@ GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
+GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender_raytrace.a
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
