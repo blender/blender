@@ -643,7 +643,6 @@ if env['WITH_BF_DOCS']:
 	except:	epydoc = None
 	
 	if epydoc:
-		SConscript('source/blender/python/api2_2x/doc/SConscript')
 		SConscript('source/gameengine/PyDoc/SConscript')
 	else:
 		print "No epydoc install detected, Python API and Gameengine API Docs will not be generated "

@@ -86,6 +86,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
+
 #include "action_intern.h"
 
 /* ************************************************************************** */
@@ -96,14 +98,25 @@
 static int act_new_exec(bContext *C, wmOperator *op)
 {
 	bAction *action;
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
 
 	// XXX need to restore behaviour to copy old actions...
 	action= add_empty_action("Action");
 
-	/* combined with RNA property, this will assign & increase user,
-	   so decrease here to compensate for that */
-	action->id.us--;
-	
+	/* hook into UI */
+	uiIDContextProperty(C, &ptr, &prop);
+
+	if(prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		action->id.us--;
+
+		RNA_id_pointer_create(&action->id, &idptr);
+		RNA_property_pointer_set(&ptr, prop, idptr);
+		RNA_property_update(C, &ptr, prop);
+	}
+
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	

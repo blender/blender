@@ -801,6 +801,16 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 
 static void rna_def_pose_itasc(BlenderRNA *brna)
 {
+	static const EnumPropertyItem prop_itasc_mode_items[]= {
+		{0, "ANIMATION", 0, "Animation", "Stateless solver computing pose starting from current action and non-IK constraints."},
+		{ITASC_SIMULATION, "SIMULATION", 0, "Simulation", "Statefull solver running in real-time context and ignoring actions and non-IK constraints."},
+		{0, NULL, 0, NULL, NULL}};
+	static const EnumPropertyItem prop_itasc_reiteration_items[]= {
+		{0, "NEVER", 0, "Never", "The solver does not reiterate, not even on first frame (starts from rest pose)."},
+		{ITASC_INITIAL_REITERATION, "INITIAL", 0, "Initial", "The solver reiterates (converges) on the first frame but not on subsequent frame."},
+		{ITASC_INITIAL_REITERATION|ITASC_REITERATION, "ALWAYS", 0, "Always", "The solver reiterates (converges) on all frames."},
+		{0, NULL, 0, NULL, NULL}};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -826,19 +836,16 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Num steps", "Divides the frame interval into this many steps.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
-	prop= RNA_def_property(srna, "simulation", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_SIMULATION);
-	RNA_def_property_ui_text(prop, "Simulation", "Simulation mode: solver is statefull, runs in real-time context and ignores actions and non-IK constraints (i.e. solver is in full charge of the IK chain).");
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_itasc_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", NULL);
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update_rebuild");
 
-	prop= RNA_def_property(srna, "initial_reiteration", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_INITIAL_REITERATION);
-	RNA_def_property_ui_text(prop, "Initial Reiteration", "Allow reiteration for initial frame.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
-
-	prop= RNA_def_property(srna, "reiteration", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_REITERATION);
-	RNA_def_property_ui_text(prop, "Reiteration", "Allow reiteration for all frames.");
+	prop= RNA_def_property(srna, "reiteration", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_itasc_reiteration_items);
+	RNA_def_property_ui_text(prop, "Reiteration", "Defines if the solver is allowed to reiterate (converges until precision is met) on none, first or all frames");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop= RNA_def_property(srna, "auto_step", PROP_BOOLEAN, PROP_NONE);

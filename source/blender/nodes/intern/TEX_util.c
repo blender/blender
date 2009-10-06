@@ -47,8 +47,6 @@
 
 #define PREV_RES 128 /* default preview resolution */
 
-int preview_flag = 0;
-
 void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
 	if(dg->node->need_exec)
@@ -217,7 +215,8 @@ void ntreeTexExecTree(
 	short thread, 
 	Tex *tex, 
 	short which_output, 
-	int cfra
+	int cfra,
+	int preview
 ){
 	TexResult dummy_texres;
 	TexCallData data;
@@ -231,19 +230,12 @@ void ntreeTexExecTree(
 	data.dxt = dxt;
 	data.dyt = dyt;
 	data.target = texres;
-	data.do_preview = preview_flag;
+	data.do_preview = preview;
 	data.thread = thread;
 	data.which_output = which_output;
 	data.cfra= cfra;
 	
-	preview_flag = 0;
-	
 	ntreeExecTree(nodes, &data, thread);
-}
-
-void ntreeTexSetPreviewFlag(int doit)
-{
-	preview_flag = doit;
 }
 
 char* ntreeTexOutputMenu(bNodeTree *ntree)

@@ -115,15 +115,18 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 	
 	if(overwrite) {
 		if(scene->r.imtype==R_MULTILAYER) {
-			RenderResult *rr= RE_GetResult(RE_GetRender(scene->id.name));
+			Render *re= RE_GetRender(scene->id.name);
+			RenderResult *rr= RE_AcquireResultRead(re);
 			if(rr) 
 				RE_WriteRenderResult(rr, str, scene->r.quality);
+			RE_ReleaseResult(re);
 		}
 		else {
+			Render *re= RE_GetRender(scene->id.name);
 			RenderResult rres;
 			ImBuf *ibuf;
 			
-			RE_GetResultImage(RE_GetRender(scene->id.name), &rres);
+			RE_AcquireResultImage(re, &rres);
 
 			waitcursor(1); /* from screen.c */
 
@@ -137,6 +140,8 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 			
 			BKE_write_ibuf(scene, ibuf, str, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			IMB_freeImBuf(ibuf);	/* imbuf knows rects are not part of ibuf */
+
+			RE_ReleaseResultImage(re);
 		}
 		
 		strcpy(G.ima, name);
@@ -231,9 +236,10 @@ void BIF_save_rendered_image(char *name)
 /* calls fileselect */
 void BIF_save_rendered_image_fs(Scene *scene)
 {
+	Render *re= RE_GetRender(scene->id.name);
 	RenderResult rres;
 	
-	RE_GetResultImage(RE_GetRender(scene->id.name), &rres);
+	RE_AcquireResultImage(re, &rres);
 
 	if(!rres.rectf && !rres.rect32) {
 		error("No image rendered");
@@ -250,6 +256,8 @@ void BIF_save_rendered_image_fs(Scene *scene)
 		save_image_filesel_str(scene, str);
 		activate_fileselect(FILE_SPECIAL, str, G.ima, save_rendered_image_cb);
 	}
+
+	RE_ReleaseResultImage(re);
 }
 
 

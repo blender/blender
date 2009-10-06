@@ -66,10 +66,14 @@ public:
 	virtual bool Update(double curtime, bool frame);
 	virtual void ReParent(SCA_IObject* parent);
 	
+#ifndef DISABLE_PYTHON
+
 	/* These are used to get and set m_target */
 	static PyObject* pyattr_get_constraint(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
+#endif // DISABLE_PYTHON
 
 private:
 	// identify the constraint that this actuator controls

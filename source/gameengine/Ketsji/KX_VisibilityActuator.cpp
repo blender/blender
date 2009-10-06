@@ -83,6 +83,8 @@ KX_VisibilityActuator::Update()
 	return false;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -122,3 +124,5 @@ PyAttributeDef KX_VisibilityActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("useRecursion", KX_VisibilityActuator, m_recursive),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

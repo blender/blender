@@ -19,7 +19,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win64-vc','win32-mingw'):
 	if env['BF_DEBUG']:
 		defs.append('_DEBUG')
 
-incs += ' ' + env['BF_PYTHON_INC']
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')

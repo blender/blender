@@ -1,7 +1,8 @@
 
 import bpy
 
-from buttons_particle import point_cache_ui
+from buttons_physics_common import point_cache_ui
+from buttons_physics_common import effector_weights_ui
 
 def cloth_panel_enabled(md):
 	return md.point_cache.baked==False
@@ -49,10 +50,11 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 			split = layout.split()
 			
 			col = split.column()
-			col.itemL(text="Quality:")
-			col.itemR(cloth, "quality", text="Steps",slider=True)
-			col.itemL(text="Gravity:")
-			col.itemR(cloth, "gravity", text="")
+			col.itemL(text="Material:")
+			sub = col.column(align=True)
+			sub.itemR(cloth, "mass")
+			sub.itemR(cloth, "structural_stiffness", text="Structural")
+			sub.itemR(cloth, "bending_stiffness", text="Bending")
 
 			col.itemR(cloth, "pin_cloth", text="Pin")
 			sub = col.column(align=True)
@@ -61,17 +63,17 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 			sub.item_pointerR(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
 			
 			col = split.column()
-			col.itemL(text="Presets...")
-			col.itemL(text="TODO!")
-			col.itemL(text="Material:")
-			sub = col.column(align=True)
-			sub.itemR(cloth, "mass")
-			sub.itemR(cloth, "structural_stiffness", text="Structural")
-			sub.itemR(cloth, "bending_stiffness", text="Bending")
+
 			col.itemL(text="Damping:")
 			sub = col.column(align=True)
 			sub.itemR(cloth, "spring_damping", text="Spring")
 			sub.itemR(cloth, "air_damping", text="Air")
+			
+			col.itemL(text="Presets...")
+			col.itemL(text="TODO!")
+			
+			col.itemL(text="Quality:")
+			col.itemR(cloth, "quality", text="Steps",slider=True)
 			
 			# Disabled for now
 			"""
@@ -165,8 +167,20 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 		sub = col.column(align=True)
 		sub.itemR(cloth, "bending_stiffness_max", text="Max")
 		sub.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
+
+class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel):
+	__label__ = "Cloth Field Weights"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		return (context.cloth)
+	
+	def draw(self, context):
+		cloth = context.cloth.settings
+		effector_weights_ui(self, cloth.effector_weights)
 		
 bpy.types.register(PHYSICS_PT_cloth)
 bpy.types.register(PHYSICS_PT_cloth_cache)
 bpy.types.register(PHYSICS_PT_cloth_collision)
 bpy.types.register(PHYSICS_PT_cloth_stiffness)
+bpy.types.register(PHYSICS_PT_cloth_field_weights)

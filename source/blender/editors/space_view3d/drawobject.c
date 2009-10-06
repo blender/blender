@@ -102,6 +102,7 @@
 #include "GPU_draw.h"
 #include "GPU_material.h"
 #include "GPU_extensions.h"
+#include "gpu_buffers.h"
 
 #include "ED_mesh.h"
 #include "ED_particle.h"
@@ -113,6 +114,7 @@
 #include "UI_interface_icons.h"
 
 #include "WM_api.h"
+#include "wm_subwindow.h"
 #include "BLF_api.h"
 
 #include "view3d_intern.h"	// own include
@@ -1550,15 +1552,83 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 		}
 	}
 }
+
+/* disabled because it crashes combined with e.g. subsurf modifier,
+ * the derivedmesh can't be assumed to be an EditMeshDerivedMesh,
+ * nor should this struct be copied around, it should be defined in
+ * a single place only to avoid them getting out of sync */
+#if 0
+/* originally defined in DerivedMesh.c */
+typedef struct {
+	DerivedMesh dm;
+
+	EditMesh *em;
+	float (*vertexCos)[3];
+	float (*vertexNos)[3];
+	float (*faceNos)[3];
+} EditMeshDerivedMesh;
+#endif
+
 static void draw_dm_verts(DerivedMesh *dm, int sel, EditVert *eve_act)
 {
 	struct { int sel; EditVert *eve_act; } data;
+	//GPUBuffer *buffer;
+	//float *varray;
 	data.sel = sel;
 	data.eve_act = eve_act;
-	
-	bglBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
-	bglEnd();
+
+#if 0
+	/* first come the unselected vertices, then the selected */
+	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( sizeof(float)*3*dm->getNumVerts(dm)*2, 0 );
+
+	if( (varray = GPU_buffer_lock_stream( buffer )) && bglPointHack() == 0 ) {
+		EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+		EditVert *eve;
+		int i;
+		int numverts = 0, numselected = 0;
+		int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_END };
+		GPU_buffer_unlock( buffer );
+		GPU_interleaved_setup( buffer, datatype );
+		varray = GPU_buffer_lock_stream( buffer );
+
+		glBegin(GL_POINTS);
+		for (i=0,eve= emdm->em->verts.first; eve; i++,eve=eve->next) {
+			if (eve->h==0 && (eve->f&SELECT)==data.sel) {
+				if (eve==data.eve_act) {
+					if (emdm->vertexCos) {
+						VECCOPY(&varray[3*(dm->getNumVerts(dm)+numselected)],emdm->vertexCos[i]);
+					}
+					else {
+						VECCOPY(&varray[3*(dm->getNumVerts(dm)+numselected)],eve->co);
+					}
+					numselected++;
+				} else {
+					if (emdm->vertexCos) {
+						VECCOPY(&varray[3*numverts],emdm->vertexCos[i]);
+					} else {
+						VECCOPY(&varray[3*numverts],eve->co);
+					}
+					numverts++;
+				}
+			}
+		}
+		glEnd();
+		GPU_buffer_unlock( buffer );
+		glDrawArrays(GL_POINTS,0,numverts);
+		UI_ThemeColor4(TH_EDITMESH_ACTIVE);
+		glDrawArrays(GL_POINTS,dm->getNumVerts(dm),numselected);
+		UI_ThemeColor4(data.sel?TH_VERTEX_SELECT:TH_VERTEX);
+		GPU_buffer_unbind();
+	}
+	{
+#endif
+		bglBegin(GL_POINTS);
+		dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
+		bglEnd();
+#if 0
+	}
+	GPU_buffer_free( buffer, 0 );
+#endif
 }
 
 	/* Draw edges with color set based on selection */
@@ -1626,12 +1696,59 @@ static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int i
 				col0[2] + (col1[2]-col0[2])*t,
 				col0[3] + (col1[3]-col0[3])*t);
 }
+
 static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol)
 {
-	unsigned char *cols[2];
-	cols[0] = baseCol;
-	cols[1] = selCol;
-	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
+	unsigned char *cols[2] = {baseCol, selCol};
+#if 0
+	int elemsize = sizeof(float)*3+sizeof(unsigned char)*4;
+	EditMeshDerivedMesh *emdm = (EditMeshDerivedMesh *)dm;
+	EditMesh *em= emdm->em;
+	unsigned char *varray;
+	int i;
+	GPUBuffer *buffer;
+
+	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( elemsize*em->totedge*2, 0 );
+	if( (varray = GPU_buffer_lock_stream( buffer )) ) {
+		EditEdge *eed;
+		int numedges = 0;
+		int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_C4UB, GPU_BUFFER_INTER_END };
+		GPU_buffer_unlock( buffer );
+		GPU_interleaved_setup( buffer, datatype );
+		varray = GPU_buffer_lock_stream( buffer );
+		for (i=0,eed= em->edges.first; eed; i++,eed= eed->next) {
+			if(eed->h==0) {
+				unsigned char *col0 = cols[(eed->v1->f&SELECT)?1:0];
+				unsigned char *col1 = cols[(eed->v2->f&SELECT)?1:0];
+
+				if( emdm->vertexCos ) {
+					VECCOPY(((float *)&varray[elemsize*numedges*2]),emdm->vertexCos[(int) eed->v1->tmp.l]);
+				}
+				else {
+					VECCOPY(((float *)&varray[elemsize*numedges*2]),eed->v1->co);
+				}
+				QUATCOPY(&varray[elemsize*numedges*2+sizeof(float)*3],col0);
+				if( emdm->vertexCos ) {
+					VECCOPY(((float *)&varray[elemsize*numedges*2+elemsize]),emdm->vertexCos[(int) eed->v2->tmp.l]);
+				}
+				else {
+					VECCOPY(((float *)&varray[elemsize*numedges*2+elemsize]),eed->v2->co);
+				}
+				QUATCOPY(&varray[elemsize*numedges*2+elemsize+sizeof(float)*3],col1);
+				numedges++;
+			}
+		}
+		GPU_buffer_unlock( buffer );
+		glDrawArrays(GL_LINES,0,numedges*2);
+		GPU_buffer_unbind();
+	}
+	else {
+#endif
+		dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
+#if 0
+	}
+	GPU_buffer_free( buffer, 0 );
+#endif
 }
 
 	/* Draw only seam edges */
@@ -1685,12 +1802,236 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *dra
 static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditFace *efa_act) 
 {
 	struct { unsigned char *cols[3]; EditFace *efa_act; } data;
+	//EditMeshDerivedMesh *emdm = (EditMeshDerivedMesh *)dm;
+	EditFace *efa;
+	unsigned char *col;
+	GPUBuffer *buffer;
+	unsigned char *varray;
+	unsigned char black[] = { 0, 0, 0, 0 };
+	int i, draw=0;
+	int elemsize = (sizeof(float)*6+sizeof(unsigned char)*4);
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
 	data.cols[2] = actCol;
 	data.efa_act = efa_act;
-	
-	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0);
+
+
+	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( elemsize*dm->getNumFaces(dm)*3*2, 0 );
+	if( dm->getVertCos == 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
+		int prevdraw = 0;
+		int numfaces = 0;
+		int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_N3F, GPU_BUFFER_INTER_C4UB, GPU_BUFFER_INTER_END };
+		GPU_buffer_unlock( buffer );
+		GPU_interleaved_setup( buffer, datatype );
+		glShadeModel(GL_SMOOTH);
+		varray = GPU_buffer_lock_stream( buffer );
+		for (i=0,efa= efa_act; efa; i++,efa= efa->next) {
+			int drawSmooth = (efa->flag & ME_SMOOTH);
+			if (efa->h==0) {
+				if (efa == data.efa_act) {
+					draw = 2;
+				} else {
+					col = data.cols[(efa->f&SELECT)?1:0];
+					if (col[3]==0) draw = 0;
+					else draw = 1;
+				}
+			}
+			else {
+				draw = 0;
+			}
+			if( prevdraw != draw && prevdraw != 0 && numfaces > 0) {
+				if( prevdraw==2 ) {
+					glEnable(GL_POLYGON_STIPPLE);
+	  				glPolygonStipple(stipple_quarttone);
+				}
+				GPU_buffer_unlock( buffer );
+				glDrawArrays(GL_TRIANGLES,0,numfaces*3);
+				if( prevdraw==2 ) {
+					glDisable(GL_POLYGON_STIPPLE);
+				}
+				varray = GPU_buffer_lock_stream( buffer );
+				numfaces = 0;
+			}
+
+			if( draw != 0 ) {
+				if(!drawSmooth) {
+					/*if (emdm->vertexCos) {
+						VECCOPY((float *)&varray[elemsize*3*numfaces],emdm->vertexCos[(int) efa->v1->tmp.l]);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],emdm->faceNos[i]);
+
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],emdm->vertexCos[(int) efa->v2->tmp.l]);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],emdm->faceNos[i]);
+
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],emdm->vertexCos[(int) efa->v3->tmp.l]);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],emdm->faceNos[i]);
+					}
+					else {*/
+						VECCOPY((float *)&varray[elemsize*3*numfaces],efa->v1->co);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],efa->n);
+
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],efa->v2->co);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],efa->n);
+
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],efa->v3->co);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],efa->n);
+					/*}*/
+					if( draw == 2 ) {
+						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[2]);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[2]);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[2]);
+					}
+					else if( draw == 1 ) {
+						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+					}
+					else {
+						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],black);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],black);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],black);
+					}
+
+					numfaces++;
+					if( efa->v4 ) {
+						/*if (emdm->vertexCos) {
+							VECCOPY((float *)&varray[elemsize*3*numfaces],emdm->vertexCos[(int) efa->v3->tmp.l]);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],emdm->faceNos[i]);
+
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],emdm->vertexCos[(int) efa->v4->tmp.l]);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],emdm->faceNos[i]);
+
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],emdm->vertexCos[(int) efa->v1->tmp.l]);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],emdm->faceNos[i]);
+						}
+						else {*/
+							VECCOPY((float *)&varray[elemsize*3*numfaces],efa->v3->co);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],efa->n);
+
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],efa->v4->co);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],efa->n);
+
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],efa->v1->co);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],efa->n);
+						/*}*/
+
+						if( draw == 2 ) {
+							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[2]);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[2]);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[2]);
+						}
+						else if( draw == 1 ) {
+							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+						}
+						else {
+							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],black);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],black);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],black);
+						}
+
+						numfaces++;
+					}
+				}
+				else {
+					/*if (emdm->vertexCos) {
+						VECCOPY((float *)&varray[elemsize*3*numfaces],emdm->vertexCos[(int) efa->v1->tmp.l]);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],emdm->vertexNos[(int) efa->v1->tmp.l]);
+
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],emdm->vertexCos[(int) efa->v2->tmp.l]);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],emdm->vertexNos[(int) efa->v2->tmp.l]);
+
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],emdm->vertexCos[(int) efa->v3->tmp.l]);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],emdm->vertexNos[(int) efa->v3->tmp.l]);
+					}
+					else {*/
+						VECCOPY((float *)&varray[elemsize*3*numfaces],efa->v1->co);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],efa->v1->no);
+
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],efa->v2->co);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],efa->v2->no);
+
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],efa->v3->co);
+						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],efa->v3->no);
+					/*}*/
+
+					if( draw == 2 ) {
+						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[2]);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[2]);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[2]);
+					}
+					else if( draw == 1 ) {
+						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+					}
+					else {
+						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],black);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],black);
+						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],black);
+					}
+
+					numfaces++;
+					if( efa->v4 ) {
+						/*if (emdm->vertexCos) {
+							VECCOPY((float *)&varray[elemsize*3*numfaces],emdm->vertexCos[(int) efa->v3->tmp.l]);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],emdm->vertexNos[(int) efa->v1->tmp.l]);
+
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],emdm->vertexCos[(int) efa->v4->tmp.l]);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],emdm->vertexNos[(int) efa->v2->tmp.l]);
+
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],emdm->vertexCos[(int) efa->v1->tmp.l]);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],emdm->vertexNos[(int) efa->v3->tmp.l]);
+						}
+						else {*/
+							VECCOPY((float *)&varray[elemsize*3*numfaces],efa->v3->co);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],efa->v3->no);
+
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],efa->v4->co);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],efa->v4->no);
+
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],efa->v1->co);
+							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],efa->v1->no);
+						/*}*/
+
+						if( draw == 2 ) {
+							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[2]);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[2]);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[2]);
+						}
+						else if( draw == 1 ) {
+							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
+						}
+						else {
+							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],black);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],black);
+							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],black);
+						}
+
+						numfaces++;
+					}
+				}
+			}
+			prevdraw = draw;
+		}
+		GPU_buffer_unlock( buffer );
+		if( prevdraw != 0 && numfaces > 0) {
+			if( prevdraw==2 ) {
+				glEnable(GL_POLYGON_STIPPLE);
+  				glPolygonStipple(stipple_quarttone);
+			}
+			glDrawArrays(GL_TRIANGLES,0,numfaces*3);
+			if( prevdraw==2 ) {
+				glDisable(GL_POLYGON_STIPPLE);
+			}
+		}
+		GPU_buffer_unbind();
+	} else {
+		dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0);
+	}
+	GPU_buffer_free( buffer, 0 );
 }
 
 static int draw_dm_creases__setDrawOptions(void *userData, int index)
@@ -2103,12 +2444,115 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			}
 		}
 		else {
+			/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
+			GPUBuffer *buffer = GPU_buffer_legacy(em->derivedFinal)?0:GPU_buffer_alloc( sizeof(float)*6*em->totface*3*2, 0 );
+			float *varray;
+			EditFace *efa;
+			int i, curmat = 0, draw = 0;
+
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0);
+			if( finalDM->getVertCos == 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
+				int prevdraw = 0, prevmat = 0;
+				int numfaces = 0;
+				int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_N3F, GPU_BUFFER_INTER_END };
+				GPU_buffer_unlock( buffer );
+				GPU_interleaved_setup( buffer, datatype );
+				glShadeModel(GL_SMOOTH);
+				varray = GPU_buffer_lock_stream( buffer );
+				for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
+					int drawSmooth = (efa->flag & ME_SMOOTH);
+					if( efa->h == 0 ) {
+						curmat = efa->mat_nr+1;
+						draw = 1;
+					} 
+					else {
+						draw = 0;
+					}
+					if( ((prevdraw != draw) || (curmat != prevmat)) && prevdraw != 0 && numfaces > 0) {
+						if( prevdraw==2 ) {
+							glEnable(GL_POLYGON_STIPPLE);
+		  					glPolygonStipple(stipple_quarttone);
+						}
+						GPU_buffer_unlock( buffer );
+						GPU_enable_material(prevmat, NULL);
+						glDrawArrays(GL_TRIANGLES,0,numfaces*3);
+						if( prevdraw==2 ) {
+							glDisable(GL_POLYGON_STIPPLE);
+						}
+						varray = GPU_buffer_lock_stream( buffer );
+						numfaces = 0;
+					}
+					if( draw != 0 ) {
+						if(!drawSmooth) {
+							VECCOPY(&varray[numfaces*18],efa->v1->co);
+							VECCOPY(&varray[numfaces*18+3],efa->n);
+
+							VECCOPY(&varray[numfaces*18+6],efa->v2->co);
+							VECCOPY(&varray[numfaces*18+9],efa->n);
+
+							VECCOPY(&varray[numfaces*18+12],efa->v3->co);
+							VECCOPY(&varray[numfaces*18+15],efa->n);
+							numfaces++;
+							if( efa->v4 ) {
+								VECCOPY(&varray[numfaces*18],efa->v3->co);
+								VECCOPY(&varray[numfaces*18+3],efa->n);
+
+								VECCOPY(&varray[numfaces*18+6],efa->v4->co);
+								VECCOPY(&varray[numfaces*18+9],efa->n);
+
+								VECCOPY(&varray[numfaces*18+12],efa->v1->co);
+								VECCOPY(&varray[numfaces*18+15],efa->n);
+								numfaces++;
+							}
+						}
+						else {
+							VECCOPY(&varray[numfaces*18],efa->v1->co);
+							VECCOPY(&varray[numfaces*18+3],efa->v1->no);
+
+							VECCOPY(&varray[numfaces*18+6],efa->v2->co);
+							VECCOPY(&varray[numfaces*18+9],efa->v2->no);
+
+							VECCOPY(&varray[numfaces*18+12],efa->v3->co);
+							VECCOPY(&varray[numfaces*18+15],efa->v3->no);
+							numfaces++;
+							if( efa->v4 ) {
+								VECCOPY(&varray[numfaces*18],efa->v3->co);
+								VECCOPY(&varray[numfaces*18+3],efa->v3->no);
+
+								VECCOPY(&varray[numfaces*18+6],efa->v4->co);
+								VECCOPY(&varray[numfaces*18+9],efa->v4->no);
+
+								VECCOPY(&varray[numfaces*18+12],efa->v1->co);
+								VECCOPY(&varray[numfaces*18+15],efa->v1->no);
+								numfaces++;
+							}
+						}
+					}
+					prevdraw = draw;
+					prevmat = curmat;
+				}
+				GPU_buffer_unlock( buffer );
+				if( prevdraw != 0 && numfaces > 0) {
+					if( prevdraw==2 ) {
+						glEnable(GL_POLYGON_STIPPLE);
+	  					glPolygonStipple(stipple_quarttone);
+					}
+					GPU_enable_material(prevmat, NULL);
+					glDrawArrays(GL_TRIANGLES,0,numfaces*3);
+					if( prevdraw==2 ) {
+						glDisable(GL_POLYGON_STIPPLE);
+					}
+				}
+				GPU_buffer_unbind();
+			}
+			else {
+				finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0);
+			}
+			GPU_buffer_free(buffer,0);
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -2926,7 +3370,30 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 }
 
 /* *********** drawing for particles ************* */
+static void draw_particle_arrays(int draw_as, int totpoint, int ob_dt, int select)
+{
+	/* draw created data arrays */
+	switch(draw_as){
+		case PART_DRAW_AXIS:
+		case PART_DRAW_CROSS:
+			glDrawArrays(GL_LINES, 0, 6*totpoint);
+			break;
+		case PART_DRAW_LINE:
+			glDrawArrays(GL_LINES, 0, 2*totpoint);
+			break;
+		case PART_DRAW_BB:
+			if(ob_dt<=OB_WIRE || select)
+				glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+			else
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
 
+			glDrawArrays(GL_QUADS, 0, 4*totpoint);
+			break;
+		default:
+			glDrawArrays(GL_POINTS, 0, totpoint);
+			break;
+	}
+}
 static void draw_particle(ParticleKey *state, int draw_as, short draw, float pixsize, float imat[4][4], float *draw_line, ParticleBillboardData *bb, ParticleDrawData *pdd)
 {
 	float vec[3], vec2[3];
@@ -2969,7 +3436,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 				cd[7]=cd[10]=1.0;
 				cd[13]=cd[12]=cd[15]=cd[16]=0.0;
 				cd[14]=cd[17]=1.0;
-				cd+=18;
+				pdd->cd+=18;
 
 				VECCOPY(vec2,state->co);
 			}
@@ -3120,7 +3587,13 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	if(psys_in_edit_mode(scene, psys) && (pset->flag & PE_DRAW_PART)==0)
 		return;
 		
-	if(part->draw_as==PART_DRAW_NOT) return;
+	if(part->draw_as == PART_DRAW_REND)
+		draw_as = part->ren_as;
+	else
+		draw_as = part->draw_as;
+
+	if(draw_as == PART_DRAW_NOT)
+		return;
 
 /* 2. */
 	sim.psmd = psmd = psys_get_modifier(ob,psys);
@@ -3150,23 +3623,21 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(v3d->zbuf) glDepthMask(1);
 
-	if(select)
-		cpack(0xFFFFFF);
-	else if((ma) && (part->draw&PART_DRAW_MAT_COL)) {
+	if((ma) && (part->draw&PART_DRAW_MAT_COL)) {
 		glColor3f(ma->r,ma->g,ma->b);
 
 		ma_r = ma->r;
 		ma_g = ma->g;
 		ma_b = ma->b;
-
-		pdd->ma_r = &ma_r;
-		pdd->ma_g = &ma_g;
-		pdd->ma_b = &ma_b;
-
-		create_cdata = 1;
 	}
 	else
 		cpack(0);
+
+	if(pdd) {
+		pdd->ma_r = &ma_r;
+		pdd->ma_g = &ma_g;
+		pdd->ma_b = &ma_b;
+	}
 
 	timestep= psys_get_timestep(&sim);
 
@@ -3177,11 +3648,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 
 	totpart=psys->totpart;
-
-	if(part->draw_as==PART_DRAW_REND)
-		draw_as = part->ren_as;
-	else
-		draw_as = part->draw_as;
 
 	//if(part->flag&PART_GLOB_TIME)
 	cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
@@ -3212,6 +3678,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				pixsize*=2.0;
 			else
 				pixsize*=part->draw_size;
+
+			if(draw_as==PART_DRAW_AXIS)
+				create_cdata = 1;
 			break;
 		case PART_DRAW_OB:
 			if(part->dup_ob==0)
@@ -3259,9 +3728,15 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		Normalize(imat[1]);
 	}
 
+	if(!create_cdata && pdd && pdd->cdata) {
+		MEM_freeN(pdd->cdata);
+		pdd->cdata = pdd->cd = NULL;
+	}
+
 /* 4. */
-	if(draw_as && draw_as!=PART_DRAW_PATH) {
+	if(draw_as && ELEM(draw_as, PART_DRAW_PATH, PART_DRAW_CIRC)==0) {
 		int tot_vec_size = (totpart + totchild) * 3 * sizeof(float);
+		int create_ndata = 0;
 
 		if(!pdd)
 			pdd = psys->pdd = MEM_callocN(sizeof(ParticleDrawData), "ParticlDrawData");
@@ -3271,37 +3746,36 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			psys_make_temp_pointcache(ob, psys);
 		}
 
+		switch(draw_as) {
+			case PART_DRAW_AXIS:
+			case PART_DRAW_CROSS:
+				tot_vec_size *= 6;
+				if(draw_as != PART_DRAW_CROSS)
+					create_cdata = 1;
+				break;
+			case PART_DRAW_LINE:
+				tot_vec_size *= 2;
+				break;
+			case PART_DRAW_BB:
+				tot_vec_size *= 4;
+				create_ndata = 1;
+				break;
+		}
+
 		if(pdd->tot_vec_size != tot_vec_size)
 			psys_free_pdd(psys);
 
-		if(draw_as!=PART_DRAW_CIRC) {
-			switch(draw_as) {
-				case PART_DRAW_AXIS:
-				case PART_DRAW_CROSS:
-					if(draw_as != PART_DRAW_CROSS || create_cdata)
-						if(!pdd->cdata) pdd->cdata = MEM_callocN(tot_vec_size * 6, "particle_cdata");
-					if(!pdd->vdata) pdd->vdata = MEM_callocN(tot_vec_size * 6, "particle_vdata");
-					break;
-				case PART_DRAW_LINE:
-					if(create_cdata)
-						if(!pdd->cdata) pdd->cdata = MEM_callocN(tot_vec_size * 2, "particle_cdata");
-					if(!pdd->vdata) pdd->vdata = MEM_callocN(tot_vec_size * 2, "particle_vdata");
-					break;
-				case PART_DRAW_BB:
-					if(create_cdata)
-						if(!pdd->cdata) pdd->cdata = MEM_callocN(tot_vec_size * 4, "particle_cdata");
-					if(!pdd->vdata) pdd->vdata = MEM_callocN(tot_vec_size * 4, "particle_vdata");
-					if(!pdd->ndata) pdd->ndata = MEM_callocN(tot_vec_size * 4, "particle_vdata");
-					break;
-				default:
-					if(create_cdata)
-						if(!pdd->cdata) pdd->cdata=MEM_callocN(tot_vec_size, "particle_cdata");
-					if(!pdd->vdata) pdd->vdata=MEM_callocN(tot_vec_size, "particle_vdata");
-			}
-		}
+		if(!pdd->vdata)
+			pdd->vdata = MEM_callocN(tot_vec_size, "particle_vdata");
+		if(create_cdata && !pdd->cdata)
+			pdd->cdata = MEM_callocN(tot_vec_size, "particle_cdata");
+		if(create_ndata && !pdd->ndata)
+			pdd->ndata = MEM_callocN(tot_vec_size, "particle_vdata");
 
 		if(part->draw & PART_DRAW_VEL && draw_as != PART_DRAW_LINE) {
-			if(!pdd->vedata) pdd->vedata = MEM_callocN(tot_vec_size * 2, "particle_vedata");
+			if(!pdd->vedata)
+				pdd->vedata = MEM_callocN(2 * (totpart + totchild) * 3 * sizeof(float), "particle_vedata");
+
 			need_v = 1;
 		}
 
@@ -3310,11 +3784,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		pdd->cd= pdd->cdata;
 		pdd->nd= pdd->ndata;
 		pdd->tot_vec_size= tot_vec_size;
-
-		psys->lattice= psys_get_lattice(&sim);
 	}
 
-	if(draw_as){
+	psys->lattice= psys_get_lattice(&sim);
+
+	if(pdd && draw_as!=PART_DRAW_PATH){
 /* 5. */
 		if((pdd->flag & PARTICLE_DRAW_DATA_UPDATED)
 			&& (pdd->vedata || part->draw & (PART_DRAW_SIZE|PART_DRAW_NUM|PART_DRAW_HEALTH))==0) {
@@ -3402,156 +3876,139 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				r_length = PSYS_FRAND(a + 22);
 			}
 
-			if(draw_as!=PART_DRAW_PATH){
-				drawn = 0;
-				if(part->draw_as == PART_DRAW_REND && part->trail_count > 1) {
-					float length = part->path_end * (1.0 - part->randlength * r_length);
-					int trail_count = part->trail_count * (1.0 - part->randlength * r_length);
-					float ct = ((part->draw & PART_ABS_PATH_TIME) ? cfra : pa_time) - length;
-					float dt = length / (trail_count ? (float)trail_count : 1.0f);
-					int i=0;
+			drawn = 0;
+			if(part->draw_as == PART_DRAW_REND && part->trail_count > 1) {
+				float length = part->path_end * (1.0 - part->randlength * r_length);
+				int trail_count = part->trail_count * (1.0 - part->randlength * r_length);
+				float ct = ((part->draw & PART_ABS_PATH_TIME) ? cfra : pa_time) - length;
+				float dt = length / (trail_count ? (float)trail_count : 1.0f);
+				int i=0;
 
-					ct+=dt;
-					for(i=0; i < trail_count; i++, ct += dt) {
-						if(part->draw & PART_ABS_PATH_TIME) {
-							if(ct < pa_birthtime || ct > pa_dietime)
-								continue;
-						}
-						else if(ct < 0.0f || ct > 1.0f)
+				ct+=dt;
+				for(i=0; i < trail_count; i++, ct += dt) {
+					if(part->draw & PART_ABS_PATH_TIME) {
+						if(ct < pa_birthtime || ct > pa_dietime)
 							continue;
-
-						state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : -(pa_birthtime + ct * (pa_dietime - pa_birthtime));
-						psys_get_particle_on_path(&sim,a,&state,need_v);
-						
-						if(psys->parent)
-							Mat4MulVecfl(psys->parent->obmat, state.co);
-
-						/* create actiual particle data */
-						if(draw_as == PART_DRAW_BB) {
-							bb.size = pa_size;
-							bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
-							bb.time = ct;
-						}
-
-						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, psys->pdd);
-
-						totpoint++;
-						drawn = 1;
 					}
+					else if(ct < 0.0f || ct > 1.0f)
+						continue;
+
+					state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : -(pa_birthtime + ct * (pa_dietime - pa_birthtime));
+					psys_get_particle_on_path(&sim,a,&state,need_v);
+					
+					if(psys->parent)
+						Mat4MulVecfl(psys->parent->obmat, state.co);
+
+					/* create actiual particle data */
+					if(draw_as == PART_DRAW_BB) {
+						bb.size = pa_size;
+						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
+						bb.time = ct;
+					}
+
+					draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, psys->pdd);
+
+					totpoint++;
+					drawn = 1;
 				}
-				else
-				{
-					state.time=cfra;
-					if(psys_get_particle_state(&sim,a,&state,0)){
-						if(psys->parent)
-							Mat4MulVecfl(psys->parent->obmat, state.co);
+			}
+			else
+			{
+				state.time=cfra;
+				if(psys_get_particle_state(&sim,a,&state,0)){
+					if(psys->parent)
+						Mat4MulVecfl(psys->parent->obmat, state.co);
 
-						/* create actiual particle data */
-						if(draw_as == PART_DRAW_BB) {
-							bb.size = pa_size;
-							bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
-							bb.time = pa_time;
-						}
-
-						draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, pdd);
-
-						totpoint++;
-						drawn = 1;
+					/* create actiual particle data */
+					if(draw_as == PART_DRAW_BB) {
+						bb.size = pa_size;
+						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
+						bb.time = pa_time;
 					}
+
+					draw_particle(&state, draw_as, part->draw, pixsize, imat, part->draw_line, &bb, pdd);
+
+					totpoint++;
+					drawn = 1;
+				}
+			}
+
+			if(drawn) {
+				/* additional things to draw for each particle	*/
+				/* (velocity, size and number)					*/
+				if(pdd->vedata){
+					VECCOPY(pdd->ved,state.co);
+					pdd->ved+=3;
+					VECCOPY(vel,state.vel);
+					VecMulf(vel,timestep);
+					VECADD(pdd->ved,state.co,vel);
+					pdd->ved+=3;
+
+					totve++;
 				}
 
-				if(drawn) {
-					/* additional things to draw for each particle	*/
-					/* (velocity, size and number)					*/
-					if(pdd->vedata){
-						VECCOPY(pdd->ved,state.co);
-						pdd->ved+=3;
-						VECCOPY(vel,state.vel);
-						VecMulf(vel,timestep);
-						VECADD(pdd->ved,state.co,vel);
-						pdd->ved+=3;
+				if(part->draw & PART_DRAW_SIZE){
+					setlinestyle(3);
+					drawcircball(GL_LINE_LOOP, state.co, pa_size, imat);
+					setlinestyle(0);
+				}
 
-						totve++;
-					}
+				if((part->draw&PART_DRAW_NUM || part->draw&PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
+					val[0]= '\0';
+					
+					if(part->draw&PART_DRAW_NUM)
+						sprintf(val, " %i", a);
 
-					if(part->draw & PART_DRAW_SIZE){
-						setlinestyle(3);
-						drawcircball(GL_LINE_LOOP, state.co, pa_size, imat);
-						setlinestyle(0);
-					}
+					if(part->draw&PART_DRAW_NUM && part->draw&PART_DRAW_HEALTH)
+						sprintf(val, "%s:", val);
 
-					if((part->draw&PART_DRAW_NUM || part->draw&PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
-						val[0]= '\0';
-						
-						if(part->draw&PART_DRAW_NUM)
-							sprintf(val, " %i", a);
+					if(part->draw&PART_DRAW_HEALTH && a < totpart && part->phystype==PART_PHYS_BOIDS)
+						sprintf(val, "%s %.2f", val, pa_health);
 
-						if(part->draw&PART_DRAW_NUM && part->draw&PART_DRAW_HEALTH)
-							sprintf(val, "%s:", val);
-
-						if(part->draw&PART_DRAW_HEALTH && a < totpart && part->phystype==PART_PHYS_BOIDS)
-							sprintf(val, "%s %.2f", val, pa_health);
-
-						/* in path drawing state.co is the end point */
-						view3d_cached_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0);
-					}
+					/* in path drawing state.co is the end point */
+					view3d_cached_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0);
 				}
 			}
 		}
+	}
 /* 6. */
 
-		glGetIntegerv(GL_POLYGON_MODE, polygonmode);
-		glDisableClientState(GL_NORMAL_ARRAY);
+	glGetIntegerv(GL_POLYGON_MODE, polygonmode);
+	glDisableClientState(GL_NORMAL_ARRAY);
 
-		if(draw_as==PART_DRAW_PATH){
-			ParticleCacheKey **cache, *path;
-			float *cd2=0,*cdata2=0;
+	if(draw_as==PART_DRAW_PATH){
+		ParticleCacheKey **cache, *path;
+		float *cd2=0,*cdata2=0;
 
-			glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_VERTEX_ARRAY);
 
-			/* setup gl flags */
-			if(ob_dt > OB_WIRE) {
-				glEnableClientState(GL_NORMAL_ARRAY);
+		/* setup gl flags */
+		if(ob_dt > OB_WIRE) {
+			glEnableClientState(GL_NORMAL_ARRAY);
 
-				if(part->draw&PART_DRAW_MAT_COL)
-					glEnableClientState(GL_COLOR_ARRAY);
+			if(part->draw&PART_DRAW_MAT_COL)
+				glEnableClientState(GL_COLOR_ARRAY);
 
-				glEnable(GL_LIGHTING);
-				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-				glEnable(GL_COLOR_MATERIAL);
-			}
-			else {
-				glDisableClientState(GL_NORMAL_ARRAY);
+			glEnable(GL_LIGHTING);
+			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+			glEnable(GL_COLOR_MATERIAL);
+		}
+		else {
+			glDisableClientState(GL_NORMAL_ARRAY);
 
-				glDisable(GL_COLOR_MATERIAL);
-				glDisable(GL_LIGHTING);
-				UI_ThemeColor(TH_WIRE);
-			}
+			glDisable(GL_COLOR_MATERIAL);
+			glDisable(GL_LIGHTING);
+			UI_ThemeColor(TH_WIRE);
+		}
 
-			if(totchild && (part->draw&PART_DRAW_PARENT)==0)
-				totpart=0;
+		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+			totpart=0;
 
-			/* draw actual/parent particles */
-			cache=psys->pathcache;
-			for(a=0, pa=psys->particles; a<totpart; a++, pa++){
-				path=cache[a];
-				if(path->steps > 0) {
-					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
-
-					if(ob_dt > OB_WIRE) {
-						glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-						if(part->draw&PART_DRAW_MAT_COL)
-							glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
-					}
-
-					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
-				}
-			}
-			
-			/* draw child particles */
-			cache=psys->childcache;
-			for(a=0; a<totchild; a++){
-				path=cache[a];
+		/* draw actual/parent particles */
+		cache=psys->pathcache;
+		for(a=0, pa=psys->particles; a<totpart; a++, pa++){
+			path=cache[a];
+			if(path->steps > 0) {
 				glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 
 				if(ob_dt > OB_WIRE) {
@@ -3562,85 +4019,102 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 				glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 			}
+		}
+		
+		/* draw child particles */
+		cache=psys->childcache;
+		for(a=0; a<totchild; a++){
+			path=cache[a];
+			glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 
-
-			/* restore & clean up */
 			if(ob_dt > OB_WIRE) {
+				glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
 				if(part->draw&PART_DRAW_MAT_COL)
-					glDisable(GL_COLOR_ARRAY);
-				glDisable(GL_COLOR_MATERIAL);
+					glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
 			}
 
-			if(cdata2)
-				MEM_freeN(cdata2);
-			cd2=cdata2=0;
-
-			glLineWidth(1.0f);
-		}
-		else if(draw_as!=PART_DRAW_CIRC){
-			glDisableClientState(GL_COLOR_ARRAY);
-
-			/* setup created data arrays */
-			if(pdd->vdata){
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(3, GL_FLOAT, 0, pdd->vdata);
-			}
-			else
-				glDisableClientState(GL_VERTEX_ARRAY);
-
-			/* billboards are drawn this way */
-			if(pdd->ndata && ob_dt>OB_WIRE){
-				glEnableClientState(GL_NORMAL_ARRAY);
-				glNormalPointer(GL_FLOAT, 0, pdd->ndata);
-				glEnable(GL_LIGHTING);
-			}
-			else{
-				glDisableClientState(GL_NORMAL_ARRAY);
-				glDisable(GL_LIGHTING);
-			}
-
-			if(pdd->cdata){
-				glEnableClientState(GL_COLOR_ARRAY);
-				glColorPointer(3, GL_FLOAT, 0, pdd->cdata);
-			}
-
-			/* draw created data arrays */
-			switch(draw_as){
-				case PART_DRAW_AXIS:
-				case PART_DRAW_CROSS:
-					glDrawArrays(GL_LINES, 0, 6*totpoint);
-					break;
-				case PART_DRAW_LINE:
-					glDrawArrays(GL_LINES, 0, 2*totpoint);
-					break;
-				case PART_DRAW_BB:
-					if(ob_dt<=OB_WIRE)
-						glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-
-					glDrawArrays(GL_QUADS, 0, 4*totpoint);
-					break;
-				default:
-					glDrawArrays(GL_POINTS, 0, totpoint);
-					break;
-			}
-
-			pdd->flag |= PARTICLE_DRAW_DATA_UPDATED;
-			pdd->totpoint = totpoint;
+			glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 		}
 
-		if(pdd->vedata){
-			glDisableClientState(GL_COLOR_ARRAY);
-			cpack(0xC0C0C0);
-			
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, pdd->vedata);
-			
-			glDrawArrays(GL_LINES, 0, 2*totve);
+
+		/* restore & clean up */
+		if(ob_dt > OB_WIRE) {
+			if(part->draw&PART_DRAW_MAT_COL)
+				glDisable(GL_COLOR_ARRAY);
+			glDisable(GL_COLOR_MATERIAL);
 		}
 
-		glPolygonMode(GL_FRONT, polygonmode[0]);
-		glPolygonMode(GL_BACK, polygonmode[1]);
+		if(cdata2)
+			MEM_freeN(cdata2);
+		cd2=cdata2=0;
+
+		glLineWidth(1.0f);
 	}
+	else if(pdd && ELEM(draw_as, 0, PART_DRAW_CIRC)==0){
+		glDisableClientState(GL_COLOR_ARRAY);
+
+		/* enable point data array */
+		if(pdd->vdata){
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, pdd->vdata);
+		}
+		else
+			glDisableClientState(GL_VERTEX_ARRAY);
+
+		if(select) {
+			UI_ThemeColor(TH_ACTIVE);
+			
+			if(part->draw_size)
+				glPointSize(part->draw_size + 2);
+			else
+				glPointSize(4.0);
+
+			glLineWidth(3.0);
+
+			draw_particle_arrays(draw_as, totpoint, ob_dt, 1);
+		}
+
+		/* restore from select */
+		glColor3f(ma_r,ma_g,ma_b);
+		glPointSize(part->draw_size ? part->draw_size : 2.0);
+		glLineWidth(1.0);
+
+		/* enable other data arrays */
+
+		/* billboards are drawn this way */
+		if(pdd->ndata && ob_dt>OB_WIRE){
+			glEnableClientState(GL_NORMAL_ARRAY);
+			glNormalPointer(GL_FLOAT, 0, pdd->ndata);
+			glEnable(GL_LIGHTING);
+		}
+		else{
+			glDisableClientState(GL_NORMAL_ARRAY);
+			glDisable(GL_LIGHTING);
+		}
+
+		if(pdd->cdata){
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer(3, GL_FLOAT, 0, pdd->cdata);
+		}
+
+		draw_particle_arrays(draw_as, totpoint, ob_dt, 0);
+
+		pdd->flag |= PARTICLE_DRAW_DATA_UPDATED;
+		pdd->totpoint = totpoint;
+	}
+
+	if(pdd && pdd->vedata){
+		glDisableClientState(GL_COLOR_ARRAY);
+		cpack(0xC0C0C0);
+		
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, pdd->vedata);
+		
+		glDrawArrays(GL_LINES, 0, 2*totve);
+	}
+
+	glPolygonMode(GL_FRONT, polygonmode[0]);
+	glPolygonMode(GL_BACK, polygonmode[1]);
 
 /* 7. */
 	
@@ -3652,6 +4126,12 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		MEM_freeN(states);
 
 	psys->flag &= ~PSYS_DRAWING;
+
+	/* draw data can't be saved for billboards as they must update to target changes */
+	if(draw_as == PART_DRAW_BB) {
+		psys_free_pdd(psys);
+		pdd->flag &= ~PARTICLE_DRAW_DATA_UPDATED;
+	}
 
 	if(psys->lattice){
 		end_latt_deform(psys->lattice);
@@ -5606,6 +6086,16 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 	Mesh *me = userData;
 
 	if (!(me->mface[index].flag&ME_HIDE)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+static int bbs_mesh_solid__setDrawOpts_legacy(void *userData, int index, int *drawSmooth_r)
+{
+	Mesh *me = userData;
+
+	if (!(me->mface[index].flag&ME_HIDE)) {
 		WM_set_framebuffer_index_color(index+1);
 		return 1;
 	} else {
@@ -5618,9 +6108,41 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
+	MCol *colors;
+	int i,j;
 	
 	glColor3ub(0, 0, 0);
-	dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0);
+		
+	if( !GPU_buffer_legacy(dm) ) {
+		int *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+		int ind;
+		colors = MEM_mallocN(dm->getNumFaces(dm)*sizeof(MCol)*4,"bbs_mesh_solid");
+		for(i=0;i<dm->getNumFaces(dm);i++) {
+			if( index != 0 )
+				ind = index[i];
+			else
+				ind = i;
+			if (!(me->mface[ind].flag&ME_HIDE)) {
+				unsigned int fbindex = index_to_framebuffer(ind+1);
+				for(j=0;j<4;j++) {
+					colors[i*4+j].b = ((fbindex)&0xFF);
+					colors[i*4+j].g = (((fbindex)>>8)&0xFF);
+					colors[i*4+j].r = (((fbindex)>>16)&0xFF);
+				}
+			}
+			else {
+				memset(&colors[i*4],0,sizeof(MCol)*4);
+			}
+		}
+
+		CustomData_add_layer( &dm->faceData, CD_ID_MCOL, CD_ASSIGN, colors, dm->numFaceData );
+		GPU_buffer_free(dm->drawObject->colors,0);
+		dm->drawObject->colors = 0;
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 1);
+	}
+	else {
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts_legacy, me, 0);
+	}
 
 	dm->release(dm);
 }

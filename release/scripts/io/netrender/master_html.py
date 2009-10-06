@@ -32,9 +32,8 @@ def get(handler):
 	def endTable():
 		output("</table>")
 	
-	handler.send_head(content = "text/html")
-	
 	if handler.path == "/html" or handler.path == "/":
+		handler.send_head(content = "text/html")
 		output("<html><head><title>NetRender</title></head><body>")
 	
 		output("<h2>Master</h2>")
@@ -86,6 +85,7 @@ def get(handler):
 		output("</body></html>")
 	
 	elif handler.path.startswith("/html/job"):
+		handler.send_head(content = "text/html")
 		job_id = handler.path[9:]
 		
 		output("<html><head><title>NetRender</title></head><body>")
@@ -108,9 +108,8 @@ def get(handler):
 		output("</body></html>")
 	
 	elif handler.path.startswith("/html/log"):
+		handler.send_head(content = "text/plain")
 		pattern = re.compile("([a-zA-Z0-9]+)_([0-9]+)")
-		
-		output("<html><head><title>NetRender</title></head><body>")
 		
 		match = pattern.match(handler.path[9:])
 		if match:
@@ -125,11 +124,7 @@ def get(handler):
 				if frame:
 						f = open(frame.log_path, 'rb')
 						
-						output("<pre>")
-						
 						shutil.copyfileobj(f, handler.wfile)
-						
-						output("</pre>")
 						
 						f.close()
 				else:
@@ -138,5 +133,3 @@ def get(handler):
 				output("no such job")
 		else:
 			output("malformed url")
-		
-		output("</body></html>")

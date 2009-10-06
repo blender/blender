@@ -97,26 +97,6 @@ short insert_keyframe(struct ID *id, struct bAction *act, const char group[], co
  */
 short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag);
 
-/* -------- */
-
-/* Main Keyframe Management operators: 
- *	These handle keyframes management from various spaces. They only make use of
- * 	Keying Sets.
- */
-void ANIM_OT_insert_keyframe(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
-
-/* Main Keyframe Management operators: 
- *	These handle keyframes management from various spaces. They will handle the menus 
- * 	required for each space.
- */
-void ANIM_OT_insert_keyframe_menu(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe_v3d(struct wmOperatorType *ot);
-
-/* Keyframe managment operators for UI buttons. */
-void ANIM_OT_insert_keyframe_button(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe_button(struct wmOperatorType *ot);
-
 /* ************ Keying Sets ********************** */
 
 /* temporary struct to gather data combos to keyframe
@@ -155,12 +135,6 @@ struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, cha
 /* Initialise builtin KeyingSets on startup */
 void init_builtin_keyingsets(void);
 
-/* -------- */
-
-/* KeyingSet managment operators for UI buttons. */
-void ANIM_OT_add_keyingset_button(struct wmOperatorType *ot);
-void ANIM_OT_remove_keyingset_button(struct wmOperatorType *ot);
-
 /* ************ Drivers ********************** */
 
 /* Returns whether there is a driver in the copy/paste buffer to paste */
@@ -186,12 +160,6 @@ short ANIM_copy_driver(struct ID *id, const char rna_path[], int array_index, sh
  *	with the driver + driver-curve data from the buffer 
  */
 short ANIM_paste_driver(struct ID *id, const char rna_path[], int array_index, short flag);
-
-/* Driver management operators for UI buttons */
-void ANIM_OT_add_driver_button(struct wmOperatorType *ot);
-void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
-void ANIM_OT_copy_driver_button(struct wmOperatorType *ot);
-void ANIM_OT_paste_driver_button(struct wmOperatorType *ot);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

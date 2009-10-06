@@ -54,6 +54,11 @@ typedef struct PointerRNA {
 	void *data;
 } PointerRNA;
 
+typedef struct PropertyPointerRNA {
+	PointerRNA ptr;
+	struct PropertyRNA *prop;
+} PropertyPointerRNA;
+
 /* Property */
 
 typedef enum PropertyType {

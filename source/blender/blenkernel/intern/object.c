@@ -91,6 +91,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
@@ -298,11 +299,8 @@ void free_object(Object *ob)
 	
 	free_constraints(&ob->constraints);
 	
-	if(ob->pd){
-		if(ob->pd->tex)
-			ob->pd->tex->id.us--;
-		MEM_freeN(ob->pd);
-	}
+	free_partdeflect(ob->pd);
+
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
@@ -1069,6 +1067,9 @@ SoftBody *copy_softbody(SoftBody *sb)
 
 	sbn->pointcache= BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches);
 
+	if(sb->effector_weights)
+		sbn->effector_weights = MEM_dupallocN(sb->effector_weights);
+
 	return sbn;
 }
 
@@ -1129,11 +1130,9 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
-	psysn->effectors.first= psysn->effectors.last= 0;
 	
 	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
 	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
-	psysn->reactevents.first = psysn->reactevents.last = NULL;
 	psysn->renderdata = NULL;
 	
 	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
@@ -1268,7 +1267,7 @@ Object *copy_object(Object *ob)
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->dup_group);
-	// FIXME: add this for animdata too...
+	
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
@@ -1278,6 +1277,8 @@ Object *copy_object(Object *ob)
 		obn->pd= MEM_dupallocN(ob->pd);
 		if(obn->pd->tex)
 			id_us_plus(&(obn->pd->tex->id));
+		if(obn->pd->rng)
+			obn->pd->rng = MEM_dupallocN(ob->pd->rng);
 	}
 	obn->soft= copy_softbody(ob->soft);
 	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
@@ -1922,31 +1923,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	
 	if(ob==NULL) return;
 	
-#if 0 // XXX old animation system
-	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
-	stime= bsystem_time(scene, ob, ctime, 0.0);
-	if(stime != ob->ctime) {
-		
-		ob->ctime= stime;
-		
-		if(ob->ipo) {
-			calc_ipo(ob->ipo, stime);
-			execute_ipo((ID *)ob, ob->ipo);
-		}
-		else 
-			do_all_object_actions(scene, ob);
-		
-		/* do constraint ipos ..., note it needs stime (0 = all ipos) */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 0);
-	}
-	else {
-		/* but, the drivers have to be done */
-		if(ob->ipo) do_ob_ipodrivers(ob, ob->ipo, stime);
-		/* do constraint ipos ..., note it needs stime (1 = only drivers ipos) */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 1);
-	}
-#endif // XXX old animation system
-
 	/* execute drivers only, as animation has already been done */
 	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
 	

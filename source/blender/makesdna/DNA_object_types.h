@@ -419,7 +419,7 @@ extern Object workob;
 
 #define OB_FROMDUPLI		512
 #define OB_DONE				1024
-#define OB_RADIO			2048
+#define OB_RADIO			2048	/* deprecated */
 #define OB_FROMGROUP		4096
 
 /* ob->recalc (flag bits!) */

@@ -38,6 +38,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -56,6 +57,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_lattice.h"
@@ -188,6 +190,90 @@ void OBJECT_OT_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", object_type_items, 0, "Type", "");
+}
+
+/********************* Add Effector Operator ********************/
+/* copy from rna_object_force.c*/
+static EnumPropertyItem field_type_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{PFIELD_FORCE, "FORCE", 0, "Force", ""},
+	{PFIELD_WIND, "WIND", 0, "Wind", ""},
+	{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
+	{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
+	{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
+	{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
+	{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
+	{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
+	{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
+	{PFIELD_BOID, "BOID", 0, "Boid", ""},
+	{PFIELD_TURBULENCE, "TURBULENCE", 0, "Turbulence", ""},
+	{PFIELD_DRAG, "DRAG", 0, "Drag", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+void add_effector_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
+{
+	/* keep here to get things compile, remove later */
+}
+
+/* for effector add primitive operators */
+static Object *effector_add_type(bContext *C, int type)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	
+	/* for as long scene has editmode... */
+	if (CTX_data_edit_object(C)) 
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+	
+	/* deselects all, sets scene->basact */
+	if(type==PFIELD_GUIDE) {
+		ob = add_object(scene, OB_CURVE);
+		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
+		ED_object_enter_editmode(C, 0);
+		BLI_addtail(curve_get_editcurve(ob), add_nurbs_primitive(C, CU_NURBS|CU_PRIM_PATH, 1));
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	else
+		ob=	add_object(scene, OB_EMPTY);
+
+	ob->pd= object_add_collision_fields(type);
+
+	/* editor level activate, notifiers */
+	ED_base_object_activate(C, BASACT);
+
+	/* more editor stuff */
+	ED_object_base_init_from_view(C, BASACT);
+
+	DAG_scene_sort(scene);
+
+	return ob;
+}
+
+/* for object add operator */
+static int effector_add_exec(bContext *C, wmOperator *op)
+{
+	effector_add_type(C, RNA_int_get(op->ptr, "type"));
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_effector_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Effector";
+	ot->description = "Add an empty object with a physics effector to the scene.";
+	ot->idname= "OBJECT_OT_effector_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= effector_add_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
 }
 
 /* ***************** add primitives *************** */
@@ -616,6 +702,8 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiItemS(layout);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_add", "type", OB_CAMERA);
 	uiItemMenuEnumO(layout, "Lamp", ICON_OUTLINER_OB_LAMP, "OBJECT_OT_lamp_add", "type");
+	uiItemS(layout);
+	uiItemMenuEnumO(layout, "Force Field", ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_effector_add", "type");
 	
 	uiPupMenuEnd(C, pup);
 	

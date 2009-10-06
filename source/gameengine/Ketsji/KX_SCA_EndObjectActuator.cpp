@@ -84,7 +84,7 @@ CValue* KX_SCA_EndObjectActuator::GetReplica()
 	return replica;
 };
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions : integration hooks                                      */
@@ -119,5 +119,7 @@ PyMethodDef KX_SCA_EndObjectActuator::Methods[] = {
 PyAttributeDef KX_SCA_EndObjectActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

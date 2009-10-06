@@ -539,7 +539,6 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		float no[3];
 		int found = 0;
 		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
-		SnapMode mode;
 		
 		if (t->settings->snap_mode == SCE_SNAP_MODE_VOLUME)
 		{
@@ -634,16 +633,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		}
 		else
 		{
-			if (t->obedit == NULL)
-			{
-				mode = SNAP_NOT_SELECTED;
-			}
-			else
-			{
-				mode = SNAP_NOT_OBEDIT;
-			}
-				
-			found = snapObjectsTransform(t, t->mval, &dist, loc, no, mode);
+			found = snapObjectsTransform(t, t->mval, &dist, loc, no, t->tsnap.mode);
 		}
 		
 		if (found == 1)

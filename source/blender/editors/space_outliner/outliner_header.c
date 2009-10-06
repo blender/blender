@@ -228,7 +228,7 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 		xco += xmax;
 		
 		/* header text */
-		xco += XIC*2;
+		xco += XIC;
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}

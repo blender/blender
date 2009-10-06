@@ -420,7 +420,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 # 	 			bmesh_verts.extend( [myContextMesh_vertls[i] for i in vertsToUse] )
 
 				# +1 because of DUMMYVERT
-				bmesh.faces.foreach_set("verts", unpack_face_list([[myVertMapping[vindex] for vindex in myContextMesh_facels[fIdx]] for fIdx in faces]))
+				bmesh.faces.foreach_set("verts_raw", unpack_face_list([[myVertMapping[vindex] for vindex in myContextMesh_facels[fIdx]] for fIdx in faces]))
 # 	 			face_mapping = bmesh.faces.extend( [ [ bmesh_verts[ myVertMapping[vindex]+1] for vindex in myContextMesh_facels[fIdx]] for fIdx in faces ], indexList=True )
 
 				if bmesh.faces and (contextMeshUV or img):
@@ -1140,14 +1140,15 @@ class IMPORT_OT_3ds(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 
 	__props__ = [
-		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for importing the 3DS file", maxlen=1024, default= ""),
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= ""),
+
 # 		bpy.props.FloatProperty(attr="size_constraint", name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
 # 		bpy.props.BoolProperty(attr="search_images", name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),
 # 		bpy.props.BoolProperty(attr="apply_matrix", name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
 	]
 	
 	def execute(self, context):
-		load_3ds(self.filename, context, 0.0, False, False)
+		load_3ds(self.path, context, 0.0, False, False)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):

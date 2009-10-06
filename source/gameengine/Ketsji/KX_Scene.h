@@ -90,7 +90,10 @@ struct KX_ClientObjectInfo;
 class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
 	Py_Header;
+
+#ifndef DISABLE_PYTHON
 	PyObject*	m_attr_dict;
+#endif
 
 	struct CullingInfo {
 		int m_layer;
@@ -517,6 +520,7 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
+#ifndef DISABLE_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -538,6 +542,8 @@ public:
 	/* getitem/setitem */
 	static PyMappingMethods	Mapping;
 	static PySequenceMethods	Sequence;
+
+#endif
 
 	/**
 	 * Sets the time the scene was suspended

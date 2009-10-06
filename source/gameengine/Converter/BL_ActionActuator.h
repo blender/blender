@@ -84,6 +84,8 @@ public:
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
 
+#ifndef DISABLE_PYTHON
+
 	KX_PYMETHOD_O(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel);
 
@@ -129,6 +131,7 @@ public:
 				return 1;
 		}
 	}
+#endif // DISABLE_PYTHON
 	
 protected:
 

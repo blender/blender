@@ -86,8 +86,6 @@ class SCA_MouseSensor : public SCA_ISensor
 
 	bool isValid(KX_MOUSESENSORMODE);
 	
-	static int UpdateHotkey(void *self, const PyAttributeDef*);
-	
 	SCA_MouseSensor(class SCA_MouseManager* keybdmgr,
 					int startx,int starty,
 				   short int mousemode,
@@ -102,14 +100,20 @@ class SCA_MouseSensor : public SCA_ISensor
 	SCA_IInputDevice::KX_EnumInputs GetHotKey();
 	void setX(short x);
 	void setY(short y);
-	
+
+	static void UpdateHotkey(void *self);
+
+
+#ifndef DISABLE_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	
+	static int UpdateHotkeyPy(void *self, const PyAttributeDef *);
+
 	// get button status
 	KX_PYMETHOD_DOC_O(SCA_MouseSensor,getButtonStatus);
-
+#endif
 };
 
 #endif //__KX_MOUSESENSOR

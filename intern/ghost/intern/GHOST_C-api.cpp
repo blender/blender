@@ -629,6 +629,13 @@ GHOST_TSuccess GHOST_SetWindowState(GHOST_WindowHandle windowhandle,
 }
 
 
+GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle, GHOST_TUns8 isUnsavedChanges)
+{
+	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+	
+	return window->setModifiedState(isUnsavedChanges);
+}	
+
 
 GHOST_TSuccess GHOST_SetWindowOrder(GHOST_WindowHandle windowhandle,
 									GHOST_TWindowOrder order)

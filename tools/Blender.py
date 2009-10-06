@@ -327,6 +327,59 @@ def set_quiet_output(env):
 	env['BUILDERS']['Library'] = static_lib
 	env['BUILDERS']['Program'] = program
 
+
+def unzip_pybundle(from_zip,to_dir,exclude_re):
+	import zipfile
+	
+	zip= zipfile.ZipFile(from_zip, mode='r')
+	exclude_re= list(exclude_re) #single re object or list of re objects
+	debug= 0 #list files instead of unpacking
+	good= []
+	if debug: print '\nFiles not being unpacked:\n'
+	for name in zip.namelist():
+		is_bad= 0
+		for r in exclude_re:
+			if r.match(name):
+				is_bad=1
+				if debug: print name
+				break
+		if not is_bad:
+			good.append(name)
+	if debug:
+		print '\nFiles being unpacked:\n'
+		for g in good:
+			print g
+	else:
+		zip.extractall(to_dir, good)
+
+def my_winpybundle_print(target, source, env):
+	pass
+
+def WinPyBundle(target=None, source=None, env=None):
+	import shutil, re
+	py_zip= env.subst( env['LCGDIR'] )
+	if py_zip[0]=='#':
+		py_zip= py_zip[1:]
+	py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.zip'
+
+	py_target = env.subst( env['BF_INSTALLDIR'] )
+	if py_target[0]=='#':
+		py_target=py_target[1:]
+	py_target+= '/.blender/python/lib/' 
+	def printexception(func,path,ex):
+		if os.path.exists(path): #do not report if path does not exist. eg on a fresh build.
+			print str(func) + ' failed on ' + str(path)
+	print "Trying to remove existing py bundle."
+	shutil.rmtree(py_target, False, printexception)
+	exclude_re=[re.compile('.*/test/.*'),
+				re.compile('^config/.*'),
+				re.compile('^distutils/.*'),
+				re.compile('^idlelib/.*'),
+				re.compile('^lib2to3/.*'),
+				re.compile('^tkinter/.*')]
+	print "Unpacking '" + py_zip + "' to '" + py_target + "'"
+	unzip_pybundle(py_zip,py_target,exclude_re)
+
 def  my_appit_print(target, source, env):
 	a = '%s' % (target[0])
 	d, f = os.path.split(a)
@@ -392,10 +445,10 @@ def AppIt(target=None, source=None, env=None):
 
 # extract copy system python, be sure to update other build systems
 # when making changes to the files that are copied.
-def my_pyinst_print(target, source, env):
+def my_unixpybundle_print(target, source, env):
 	pass
 
-def PyInstall(target=None, source=None, env=None):
+def UnixPyBundle(target=None, source=None, env=None):
 	# Any Unix except osx
 	#-- .blender/python/lib/python3.1
 	
@@ -522,6 +575,9 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.Append(CCFLAGS = lenv['CC_WARN'])
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
 
+			if lenv['OURPLATFORM'] == 'win64-vc':
+				lenv.Append(LINKFLAGS = ['/MACHINE:X64'])
+
 			if lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 				if lenv['BF_DEBUG']:
 					lenv.Append(CCFLAGS = ['/MTd'])
@@ -602,8 +658,11 @@ class BlenderEnvironment(SConsEnvironment):
 		elif os.sep == '/': # any unix
 			if lenv['WITH_BF_PYTHON']:
 				if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL']:
-					lenv.AddPostAction(prog,Action(PyInstall,strfunction=my_pyinst_print))
-		
+					lenv.AddPostAction(prog,Action(UnixPyBundle,strfunction=my_unixpybundle_print))
+		elif lenv['OURPLATFORM'].startswith('win'): # windows
+			if lenv['WITH_BF_PYTHON']:
+				if not lenv['WITHOUT_BF_PYTHON_INSTALL']:
+					lenv.AddPostAction(prog,Action(WinPyBundle,strfunction=my_winpybundle_print))
 		return prog
 
 	def Glob(lenv, pattern):

@@ -178,6 +178,18 @@ StructRNA* rna_IDPropertyGroup_refine(PointerRNA *ptr)
 	return ptr->type;
 }
 
+ID *rna_ID_copy(ID *id)
+{
+	ID *newid;
+
+	if(id_copy(id, &newid, 0)) {
+		if(newid) newid->us--;
+		return newid;
+	}
+	
+	return NULL;
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -243,7 +255,8 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 static void rna_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
+	FunctionRNA *func;
+	PropertyRNA *prop, *parm;
 
 	srna= RNA_def_struct(brna, "ID", NULL);
 	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection.");
@@ -271,6 +284,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from.");
+
+	/* functions */
+	func= RNA_def_function(srna, "copy", "rna_ID_copy");
+	RNA_def_function_ui_description(func, "Create a copy of this datablock (not supported for all datablocks).");
+	parm= RNA_def_pointer(func, "id", "ID", "", "New copy of the ID.");
+	RNA_def_function_return(func, parm);
 }
 
 static void rna_def_library(BlenderRNA *brna)

@@ -29,6 +29,8 @@
 #ifndef __KX_POLYROXY
 #define __KX_POLYPROXY
 
+#ifndef DISABLE_PYTHON
+
 #include "SCA_IObject.h"
 
 class KX_PolyProxy	: public CValue
@@ -64,6 +66,8 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(KX_PolyProxy,getMaterial)
 
 };
+
+#endif // DISABLE_PYTHON
 
 #endif //__KX_POLYPROXY
 

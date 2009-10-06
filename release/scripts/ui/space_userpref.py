@@ -314,6 +314,7 @@ class USERPREF_PT_system(bpy.types.Panel):
 		sub1.itemL(text="OpenGL:")
 		sub1.itemR(system, "clip_alpha", slider=True)
 		sub1.itemR(system, "use_mipmaps")
+		sub1.itemR(system, "use_vbos")
 		sub1.itemL(text="Window Draw Method:")
 		sub1.row().itemR(system, "window_draw_method", expand=True)
 		sub1.itemL(text="Textures:")

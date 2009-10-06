@@ -115,5 +115,8 @@ void	DAG_ids_flush_update(int time);
 
 		/* (re)-create dependency graph for armature pose */
 void	DAG_pose_sort(struct Object *ob);
+
+		/* callback for editors module to do updates */
+void	DAG_editors_update_cb(void (*func)(struct Main *bmain, struct ID *id));
 		
 #endif

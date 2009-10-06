@@ -553,13 +553,4 @@ typedef enum ACHAN_FLAG {
 	ACHAN_MOVED     = (1<<31),
 } ACHAN_FLAG; 
 
-// XXX Incorrect, Temp for building
-#define PCHAN_ROT_QUAT -1
-#define PCHAN_ROT_XYZ -1 
-#define PCHAN_ROT_XZY -1 
-#define PCHAN_ROT_YXZ -1 
-#define PCHAN_ROT_YZX -1 
-#define PCHAN_ROT_ZXY -1 
-#define PCHAN_ROT_ZYX -1 
-
 #endif

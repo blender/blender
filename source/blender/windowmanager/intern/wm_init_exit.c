@@ -78,7 +78,7 @@
 #include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_node.h"
-#include "ED_previewrender.h"
+#include "ED_render.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -86,9 +86,11 @@
 #include "UI_interface.h"
 #include "BLF_api.h"
 
+#include "gpu_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_sound.h"
 
 static void wm_init_reports(bContext *C)
@@ -112,6 +114,7 @@ void WM_init(bContext *C)
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
 	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
+	DAG_editors_update_cb(ED_render_id_flush_update); /* depsgraph.c */
 	
 	ED_spacetypes_init();	/* editors/space_api/spacetype.c */
 	
@@ -128,6 +131,8 @@ void WM_init(bContext *C)
 	
 	wm_init_reports(C); /* reports cant be initialized before the wm */
 	
+	GPU_extensions_init();
+
 	UI_init();
 	
 	//	clear_matcopybuf(); /* XXX */
@@ -137,8 +142,6 @@ void WM_init(bContext *C)
 //	init_node_butfuncs();
 	
 	ED_preview_init_dbase();
-	
-	GPU_extensions_init();
 	
 	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
 	
@@ -253,6 +256,7 @@ void WM_exit(bContext *C)
 // XXX		UI_filelist_free_icons();
 	}
 	
+	GPU_buffer_pool_free(0);
 	GPU_extensions_exit();
 	
 //	if (copybuf) MEM_freeN(copybuf);

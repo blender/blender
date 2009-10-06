@@ -163,6 +163,7 @@ void KX_SCA_AddObjectActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 	}
 }
 
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -242,6 +243,14 @@ PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, con
 		return actuator->m_lastCreatedObject->GetProxy();
 }
 
+PyObject* KX_SCA_AddObjectActuator::PyInstantAddObject()
+{
+	InstantAddObject();
+
+	Py_RETURN_NONE;
+}
+
+#endif // DISABLE_PYTHON
 
 void	KX_SCA_AddObjectActuator::InstantAddObject()
 {
@@ -276,11 +285,4 @@ void	KX_SCA_AddObjectActuator::InstantAddObject()
 		// finished using replica? then release it
 		replica->Release();
 	}
-}
-
-PyObject* KX_SCA_AddObjectActuator::PyInstantAddObject()
-{
-	InstantAddObject();
-
-	Py_RETURN_NONE;
 }

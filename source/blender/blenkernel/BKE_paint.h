@@ -88,6 +88,8 @@ typedef struct SculptSession {
 
 	struct SculptStroke *stroke;
 	struct StrokeCache *cache;
+
+	struct GPUDrawObject *drawobject;
 } SculptSession;
 
 void free_sculptsession(SculptSession **);

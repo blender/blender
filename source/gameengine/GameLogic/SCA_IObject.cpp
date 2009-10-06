@@ -307,7 +307,7 @@ void SCA_IObject::SetState(unsigned int state)
 	}
 }
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -345,3 +345,5 @@ PyMethodDef SCA_IObject::Methods[] = {
 PyAttributeDef SCA_IObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

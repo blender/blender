@@ -7,6 +7,11 @@ incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/
 incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions'
 incs += ' #source/gameengine/Network #source/gameengine/SceneGraph'
 
-incs += ' ' + env['BF_PYTHON_INC']
+defs = []
 
-env.BlenderLib ( 'bf_network', Split(sources), Split(incs), defines=[],libtype=['core','player'], priority=[400,125], cxx_compileflags=env['BGE_CXXFLAGS'])
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
+
+env.BlenderLib ( 'bf_network', Split(sources), Split(incs), defines=defs,libtype=['core','player'], priority=[400,125], cxx_compileflags=env['BGE_CXXFLAGS'])

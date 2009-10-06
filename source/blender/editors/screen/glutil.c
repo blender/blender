@@ -720,6 +720,18 @@ void bglBegin(int mode)
 	}
 }
 
+int bglPointHack() {
+	float value[4];
+	int pointhack;
+	glGetFloatv(GL_POINT_SIZE_RANGE, value);
+	if(value[1]<2.0) {
+		glGetFloatv(GL_POINT_SIZE, value);
+		pointhack= floor(value[0]+0.5);
+		if(pointhack>4) pointhack= 4;
+		return pointhack;
+	}
+	return 0;
+}
 
 void bglVertex3fv(float *vec)
 {

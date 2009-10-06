@@ -193,9 +193,9 @@ static float get_avg_surrounds(float *cache, int *res, int xx, int yy, int zz)
 		}
 	}
 	
-	tot /= added;
+	if (added > 0) tot /= added;
 	
-	return ((added>0)?tot:0.0f);
+	return tot;
 }
 
 /* function to filter the edges of the light cache, where there was no volume originally.
@@ -210,15 +210,52 @@ static void lightcache_filter(VolumePrecache *vp)
 		for (y=0; y < vp->res[1]; y++) {
 			for (x=0; x < vp->res[0]; x++) {
 				/* trigger for outside mesh */
-				if (vp->data_r[ V_I(x, y, z, vp->res) ] < -0.5f)
+				if (vp->data_r[ V_I(x, y, z, vp->res) ] < -0.f)
 					vp->data_r[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
-				if (vp->data_g[ V_I(x, y, z, vp->res) ] < -0.5f)
+				if (vp->data_g[ V_I(x, y, z, vp->res) ] < -0.f)
 					vp->data_g[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_g, vp->res, x, y, z);
-				if (vp->data_b[ V_I(x, y, z, vp->res) ] < -0.5f)
+				if (vp->data_b[ V_I(x, y, z, vp->res) ] < -0.f)
 					vp->data_b[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_b, vp->res, x, y, z);
 			}
 		}
 	}
+}
+
+static void lightcache_filter2(VolumePrecache *vp)
+{
+	int x, y, z;
+	float *new_r, *new_g, *new_b;
+	int field_size = vp->res[0]*vp->res[1]*vp->res[2]*sizeof(float);
+	
+	new_r = MEM_mallocN(field_size, "temp buffer for light cache filter r channel");
+	new_g = MEM_mallocN(field_size, "temp buffer for light cache filter g channel");
+	new_b = MEM_mallocN(field_size, "temp buffer for light cache filter b channel");
+	
+	memcpy(new_r, vp->data_r, field_size);
+	memcpy(new_g, vp->data_g, field_size);
+	memcpy(new_b, vp->data_b, field_size);
+	
+	for (z=0; z < vp->res[2]; z++) {
+		for (y=0; y < vp->res[1]; y++) {
+			for (x=0; x < vp->res[0]; x++) {
+				/* trigger for outside mesh */
+				if (vp->data_r[ V_I(x, y, z, vp->res) ] < -0.f)
+					new_r[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
+				if (vp->data_g[ V_I(x, y, z, vp->res) ] < -0.f)
+					new_g[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_g, vp->res, x, y, z);
+				if (vp->data_b[ V_I(x, y, z, vp->res) ] < -0.f)
+					new_b[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_b, vp->res, x, y, z);
+			}
+		}
+	}
+	
+	SWAP(float *, vp->data_r, new_r);
+	SWAP(float *, vp->data_g, new_g);
+	SWAP(float *, vp->data_b, new_b);
+	
+	if (new_r) { MEM_freeN(new_r); new_r=NULL; }
+	if (new_g) { MEM_freeN(new_g); new_g=NULL; }
+	if (new_b) { MEM_freeN(new_b); new_b=NULL; }
 }
 
 static inline int ms_I(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
@@ -372,7 +409,7 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 	fac *= (energy_ss / energy_ms);
 	
 	/* blend multiple scattering back in the light cache */
-	if (shade_type == MA_VOL_SHADE_SINGLEPLUSMULTIPLE) {
+	if (shade_type == MA_VOL_SHADE_SHADEDPLUSMULTIPLE) {
 		/* conserve energy - half single, half multiple */
 		origf = 0.5f;
 		fac *= 0.5f;
@@ -431,11 +468,10 @@ static void *vol_precache_part(void *data)
 	ObjectInstanceRen *obi = pa->obi;
 	RayObject *tree = pa->tree;
 	ShadeInput *shi = pa->shi;
-	float density, scatter_col[3] = {0.f, 0.f, 0.f};
+	float scatter_col[3] = {0.f, 0.f, 0.f};
 	float co[3];
 	int x, y, z;
 	const int res[3]= {pa->res[0], pa->res[1], pa->res[2]};
-	const float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
 
 	for (z= pa->minz; z < pa->maxz; z++) {
 		co[2] = pa->bbmin[2] + (pa->voxel[2] * (z + 0.5f));
@@ -456,8 +492,7 @@ static void *vol_precache_part(void *data)
 				
 				VecCopyf(shi->view, co);
 				Normalize(shi->view);
-				density = vol_get_density(shi, co);
-				vol_get_scattering(shi, scatter_col, co, stepsize, density);
+				vol_get_scattering(shi, scatter_col, co);
 			
 				obi->volume_precache->data_r[ V_I(x, y, z, res) ] = scatter_col[0];
 				obi->volume_precache->data_g[ V_I(x, y, z, res) ] = scatter_col[1];
@@ -690,7 +725,7 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	
 	lightcache_filter(obi->volume_precache);
 	
-	if (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE))
+	if (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE))
 	{
 		multiple_scattering_diffusion(re, vp, ma);
 	}
@@ -698,8 +733,8 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 
 static int using_lightcache(Material *ma)
 {
-	return (((ma->vol.shadeflag & MA_VOL_PRECACHESHADING) && (ma->vol.shade_type == MA_VOL_SHADE_SINGLE))
-		|| (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE)));
+	return (((ma->vol.shadeflag & MA_VOL_PRECACHESHADING) && (ma->vol.shade_type == MA_VOL_SHADE_SHADED))
+		|| (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE)));
 }
 
 /* loop through all objects (and their associated materials)

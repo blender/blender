@@ -128,6 +128,7 @@ void KX_StateActuator::Activate(SG_DList& head)
 	}
 }
 
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -167,3 +168,5 @@ PyAttributeDef KX_StateActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mask",0,0x3FFFFFFF,false,KX_StateActuator,m_mask),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

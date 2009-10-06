@@ -84,6 +84,8 @@ public:
 	virtual bool	IsPositiveTrigger();
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
 
+#ifndef DISABLE_PYTHON
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -92,6 +94,8 @@ public:
 	 * Test whether this is a sensible value (type check)
 	 */
 	static int validValueForProperty(void* self, const PyAttributeDef*);
+
+#endif
 };
 
 #endif

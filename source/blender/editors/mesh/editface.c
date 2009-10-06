@@ -89,6 +89,34 @@ static int pupmenu() {return 0;}
 /* ***************** XXX **************** */
 
 
+/* copy the face flags, most importantly selection from the mesh to the final derived mesh,
+ * use in object mode when selecting faces (while painting) */
+void object_facesel_flush_dm(Object *ob)
+{
+	Mesh *me= get_mesh(ob);
+	DerivedMesh *dm= ob->derivedFinal;
+	MFace *faces, *mf, *mf_orig;
+	int *index_array = NULL;
+	int totface;
+	int i;
+	
+	
+	if(me==NULL || dm==NULL || !CustomData_has_layer( &dm->faceData, CD_ORIGINDEX))
+		return;
+	
+	faces = dm->getFaceArray(dm);
+	totface = dm->getNumFaces(dm);
+	
+	index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+	
+	mf= faces;
+	
+	for (i= 0; i<totface; i++, mf++) { /* loop over derived mesh faces */
+		mf_orig= me->mface + index_array[i];
+		mf->flag= mf_orig->flag;;
+	}
+}
+
 /* returns 0 if not found, otherwise 1 */
 int facesel_face_pick(View3D *v3d, Mesh *me, short *mval, unsigned int *index, short rect)
 {
@@ -163,6 +191,7 @@ void reveal_tface(Scene *scene)
 		mface++;
 	}
 
+	object_facesel_flush_dm(OBACT);
 // XXX notifier!	object_tface_flags_changed(OBACT, 0);
 }
 
@@ -197,7 +226,8 @@ void hide_tface(Scene *scene)
 		
 		mface++;
 	}
-
+	
+	object_facesel_flush_dm(OBACT);
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
@@ -237,7 +267,10 @@ void deselectall_tface(Scene *scene)
 	sel= 0;
 	while(a--) {
 		if(mface->flag & ME_HIDE);
-		else if(mface->flag & ME_FACE_SEL) sel= 1;
+		else if(mface->flag & ME_FACE_SEL) {
+			sel= 1;
+			break;
+		}
 		mface++;
 	}
 	
@@ -252,6 +285,7 @@ void deselectall_tface(Scene *scene)
 		mface++;
 	}
 
+	object_facesel_flush_dm(OBACT);
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
@@ -274,7 +308,8 @@ void selectswap_tface(Scene *scene)
 		}
 		mface++;
 	}
-
+	
+	object_facesel_flush_dm(OBACT);
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
@@ -655,11 +690,11 @@ void face_select(Scene *scene, View3D *v3d)
 	
 	/* image window redraw */
 	
-
+	object_facesel_flush_dm(OBACT);
 // XXX notifier!		object_tface_flags_changed(OBACT, 1);
 }
 
-void face_borderselect(Scene *scene, ARegion *ar)
+void face_borderselect(Scene *scene, ScrArea *sa, ARegion *ar)
 {
 	Mesh *me;
 	MFace *mface;
@@ -675,13 +710,18 @@ void face_borderselect(Scene *scene, ARegion *ar)
 	
 // XXX	val= get_border(&rect, 3);
 	
-	/* why readbuffer here? shouldn't be necessary (maybe a flush or so) */
-	glReadBuffer(GL_BACK);
-#ifdef __APPLE__
-	glReadBuffer(GL_AUX0); /* apple only */
-#endif
-	
 	if(val) {
+		View3D *v3d= sa->spacedata.first;
+		RegionView3D *rv3d= ar->regiondata;
+
+		/* without this border select often fails */
+#if 0 /* XXX untested in 2.5 */
+		if (v3d->flag & V3D_NEEDBACKBUFDRAW) {
+			check_backbuf();
+			persp(PERSP_VIEW);
+		}
+#endif
+		
 		selar= MEM_callocN(me->totface+1, "selar");
 		
 		sx= (rect.xmax-rect.xmin+1);
@@ -722,6 +762,8 @@ void face_borderselect(Scene *scene, ARegion *ar)
 #ifdef __APPLE__	
 	glReadBuffer(GL_BACK);
 #endif
+	
+	object_facesel_flush_dm(OBACT);
 }
 
 

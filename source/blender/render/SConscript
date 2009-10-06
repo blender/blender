@@ -16,14 +16,19 @@ if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']
 
-if env['WITH_BF_FFMPEG']:
-    defs.append('WITH_FFMPEG')
-
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 
 if env['OURPLATFORM']=='linux2':
     cflags += ['-pthread']
+
+
+if env['OURPLATFORM'] == 'linux2':
+    cflags='-pthread'
+    incs += ' ../../../extern/binreloc/include'
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+    incs += ' ' + env['BF_PTHREADS_INC']
 
 env.BlenderLib ( libname = 'bf_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=145, compileflags=cflags )
 env.BlenderLib ( libname = 'bf_render_raytrace', sources = raysources, includes = Split(incs), defines=defs, libtype='core', priority=145, compileflags=cflags, cxx_compileflags=cxxflags )

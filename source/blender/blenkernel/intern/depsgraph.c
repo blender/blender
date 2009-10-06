@@ -521,8 +521,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
     
 	/* softbody collision  */
 	if((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE))
-		if(modifiers_isSoftbodyEnabled(ob) || modifiers_isClothEnabled(ob))
-			dag_add_collision_field_relation(dag, scene, ob, node);
+		if(modifiers_isSoftbodyEnabled(ob) || modifiers_isClothEnabled(ob) || ob->particlesystem.first)
+			dag_add_collision_field_relation(dag, scene, ob, node); /* TODO: use effectorweight->group */
 		
 	if (ob->type==OB_MBALL) {
 		Object *mom= find_basis_mball(scene, ob);
@@ -554,14 +554,14 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	
 	psys= ob->particlesystem.first;
 	if(psys) {
-		ParticleEffectorCache *nec;
 		GroupObject *go;
 
 		for(; psys; psys=psys->next) {
 			BoidRule *rule = NULL;
 			BoidState *state = NULL;
-			ParticleSimulationData sim = {scene, ob, psys, NULL};
 			ParticleSettings *part= psys->part;
+			ListBase *effectors = NULL;
+			EffectorCache *eff;
 
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
 
@@ -593,32 +593,16 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				}
 			}
 
-			psys_update_effectors(&sim, 0.0, 0);
+			effectors = pdInitEffectors(scene, ob, psys, part->effector_weights);
 
-			for(nec= psys->effectors.first; nec; nec= nec->next) {
-				Object *ob1= nec->ob;
-
-				if(nec->type & PSYS_EC_EFFECTOR) {
-					node2 = dag_get_node(dag, ob1);
-					if(ob1->pd->forcefield==PFIELD_GUIDE)
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
-					else
-						dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Particle Field");
-				}
-				else if(nec->type & PSYS_EC_DEFLECT) {
-					node2 = dag_get_node(dag, ob1);
-					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Collision");
-				}
-				else if(nec->type & PSYS_EC_PARTICLE) {
-					node2 = dag_get_node(dag, ob1);
-					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Field");
-				}
-				
-				if(nec->type & PSYS_EC_REACTOR) {
-					node2 = dag_get_node(dag, ob1);
-					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Reactor");
+			if(effectors) for(eff = effectors->first; eff; eff=eff->next) {
+				if(eff->psys) {
+					node2 = dag_get_node(dag, eff->ob);
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
 				}
 			}
+
+			pdEndEffectors(&effectors);
 
 			if(part->boids) {
 				for(state = part->boids->states.first; state; state=state->next) {
@@ -1607,6 +1591,21 @@ void graph_print_adj_list(void)
 
 /* ************************ API *********************** */
 
+/* mechanism to allow editors to be informed of depsgraph updates,
+   to do their own updates based on changes... */
+static void (*EditorsUpdateCb)(Main *bmain, ID *id)= NULL;
+
+void DAG_editors_update_cb(void (*func)(Main *bmain, ID *id))
+{
+	EditorsUpdateCb= func;
+}
+
+static void dag_editors_update(Main *bmain, ID *id)
+{
+	if(EditorsUpdateCb)
+		EditorsUpdateCb(bmain, id);
+}
+
 /* groups with objects in this scene need to be put in the right order as well */
 static void scene_sort_groups(Scene *sce)
 {
@@ -2202,7 +2201,7 @@ void DAG_id_flush_update(ID *id, short flag)
 	/* set flags & pointcache for object */
 	if(GS(id->name) == ID_OB) {
 		ob= (Object*)id;
-		ob->recalc |= flag;
+		ob->recalc |= (flag & OB_RECALC);
 		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
 
 		if(flag & OB_RECALC_DATA) {
@@ -2239,6 +2238,23 @@ void DAG_id_flush_update(ID *id, short flag)
 				}
 			}
 		}
+
+		/* set flags based on particle settings */
+		if(idtype == ID_PA) {
+			ParticleSystem *psys;
+			for(obt=bmain->object.first; obt; obt= obt->id.next) {
+				for(psys=obt->particlesystem.first; psys; psys=psys->next) {
+					if(&psys->part->id == id) {
+						BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+						obt->recalc |= (flag & OB_RECALC);
+						psys->recalc |= (flag & PSYS_RECALC);
+					}
+				}
+			}
+		}
+
+		/* update editors */
+		dag_editors_update(bmain, id);
 	}
 
 	/* flush to other objects that depend on this one */

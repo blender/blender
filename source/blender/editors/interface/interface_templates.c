@@ -40,7 +40,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
-#include "ED_previewrender.h"
+#include "ED_render.h"
 
 #include "RNA_access.h"
 
@@ -94,7 +94,6 @@ static void id_search_call_cb(bContext *C, void *arg_template, void *item)
 static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSearchItems *items)
 {
 	TemplateID *template= (TemplateID*)arg_template;
-	Scene *scene= CTX_data_scene(C);
 	ListBase *lb= template->idlb;
 	ID *id;
 	int iconid;
@@ -102,7 +101,7 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 	/* ID listbase */
 	for(id= lb->first; id; id= id->next) {
 		if(BLI_strcasestr(id->name+2, str)) {
-			iconid= ui_id_icon_get(scene, id);
+			iconid= ui_id_icon_get((bContext*)C, id);
 
 			if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
@@ -154,6 +153,36 @@ static uiBlock *search_menu(bContext *C, ARegion *ar, void *arg_litem)
 
 /************************ ID Template ***************************/
 
+/* for new/open operators */
+void uiIDContextProperty(bContext *C, PointerRNA *ptr, PropertyRNA **prop)
+{
+	TemplateID *template;
+	ARegion *ar= CTX_wm_region(C);
+	uiBlock *block;
+	uiBut *but;
+
+	memset(ptr, 0, sizeof(*ptr));
+	*prop= NULL;
+
+	if(!ar)
+		return;
+
+	for(block=ar->uiblocks.first; block; block=block->next) {
+		for(but=block->buttons.first; but; but= but->next) {
+			/* find the button before the active one */
+			if((but->flag & (UI_BUT_LAST_ACTIVE|UI_ACTIVE))) {
+				if(but->func_argN) {
+					template= but->func_argN;
+					*ptr= template->ptr;
+					*prop= template->prop;
+					return;
+				}
+			}
+		}
+	}
+}
+
+
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
 	TemplateID *template= (TemplateID*)arg_litem;
@@ -168,11 +197,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_OPEN:
 		case UI_ID_ADD_NEW:
-			if(template->idlb->last) {
-				RNA_id_pointer_create(template->idlb->last, &idptr);
-				RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-				RNA_property_update(C, &template->ptr, template->prop);
-			}
+			/* these call uiIDContextPropertySet */
 			break;
 		case UI_ID_DELETE:
 			memset(&idptr, 0, sizeof(idptr));
@@ -292,7 +317,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 		int w= id?UI_UNIT_X: (flag & UI_ID_OPEN)? UI_UNIT_X*3: UI_UNIT_X*6;
 		
 		if(newop) {
-			but= uiDefIconTextButO(block, BUT, newop, WM_OP_EXEC_REGION_WIN, ICON_ZOOMIN, (id)? "": "New", 0, 0, w, UI_UNIT_Y, NULL);
+			but= uiDefIconTextButO(block, BUT, newop, WM_OP_EXEC_DEFAULT, ICON_ZOOMIN, (id)? "": "New", 0, 0, w, UI_UNIT_Y, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
@@ -308,7 +333,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 		int w= id?UI_UNIT_X: (flag & UI_ID_ADD_NEW)? UI_UNIT_X*3: UI_UNIT_X*6;
 		
 		if(openop) {
-			but= uiDefIconTextButO(block, BUT, openop, WM_OP_INVOKE_REGION_WIN, ICON_FILESEL, (id)? "": "Open", 0, 0, w, UI_UNIT_Y, NULL);
+			but= uiDefIconTextButO(block, BUT, openop, WM_OP_INVOKE_DEFAULT, ICON_FILESEL, (id)? "": "Open", 0, 0, w, UI_UNIT_Y, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_OPEN));
 		}
 		else {
@@ -1842,6 +1867,36 @@ static void list_item_add(ListBase *lb, ListBase *itemlb, uiLayout *layout, Poin
 }
 #endif
 
+static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon)
+{
+	ID *id= NULL;
+	int icon;
+
+	if(!itemptr->data)
+		return rnaicon;
+
+	/* try ID, material or texture slot */
+	if(RNA_struct_is_ID(itemptr->type)) {
+		id= itemptr->id.data;
+	}
+	else if(RNA_struct_is_a(itemptr->type, &RNA_MaterialSlot)) {
+		id= RNA_pointer_get(itemptr, "material").data;
+	}
+	else if(RNA_struct_is_a(itemptr->type, &RNA_TextureSlot)) {
+		id= RNA_pointer_get(itemptr, "texture").data;
+	}
+
+	/* get icon from ID */
+	if(id) {
+		icon= ui_id_icon_get(C, id);
+
+		if(icon)
+			return icon;
+	}
+
+	return rnaicon;
+}
+
 ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int listtype)
 {
 	//Scene *scene= CTX_data_scene(C);
@@ -1854,7 +1909,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 	Panel *pa;
 	ListBase lb, *itemlb;
 	char *name, str[32];
-	int icon=0, i= 0, activei= 0, len= 0, items, found, min, max;
+	int rnaicon=0, icon=0, i= 0, activei= 0, len= 0, items, found, min, max;
 
 	lb.first= lb.last= NULL;
 	
@@ -1901,7 +1956,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 	/* get icon */
 	if(ptr->data && prop) {
 		ptype= RNA_property_pointer_type(ptr, prop);
-		icon= RNA_struct_ui_icon(ptype);
+		rnaicon= RNA_struct_ui_icon(ptype);
 	}
 
 	/* get active data */
@@ -1921,15 +1976,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 				if(i == 9)
 					row= uiLayoutRow(col, 0);
 
-				if(RNA_struct_is_a(itemptr.type, &RNA_TextureSlot)) {
-#if 0
-					MTex *mtex= itemptr.data;
-
-					if(mtex && mtex->tex)
-						icon= ui_id_icon_get(scene, &mtex->tex->id);
-#endif
-				}
-
+				icon= list_item_icon_get(C, &itemptr, rnaicon);
 				uiDefIconButR(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
 
 				//list_item_add(&lb, itemlb, uiLayoutRow(row, 1), &itemptr);
@@ -1953,6 +2000,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 				if(found) {
 					/* create button */
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
+					icon= list_item_icon_get(C, &itemptr, rnaicon);
 					uiItemL(row, (name)? name: "", icon);
 
 					if(name)
@@ -2006,6 +2054,8 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
 					subrow= uiLayoutRow(col, 0);
+		
+					icon= list_item_icon_get(C, &itemptr, rnaicon);
 
 					/* create button */
 					if(!icon || icon == ICON_DOT)

@@ -92,6 +92,7 @@
 #include "ED_markers.h"
 #include "ED_mesh.h"
 #include "ED_retopo.h"
+#include "ED_particle.h"
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
@@ -346,7 +347,7 @@ void recalcData(TransInfo *t)
 
 	if (t->obedit) {
 	}
-	else if(base && base->object->mode & OB_MODE_PARTICLE_EDIT) {
+	else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
 		flushTransParticles(t);
 	}
 	if (t->spacetype==SPACE_NODE) {

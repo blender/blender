@@ -71,7 +71,8 @@ static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0;
 
 /* ******** win open & close ************ */
 
-/* XXX this one should correctly check for apple top header... */
+/* XXX this one should correctly check for apple top header...
+ done for Cocoa : returns window contents (and not frame) max size*/
 static void wm_get_screensize(int *width_r, int *height_r) 
 {
 	unsigned int uiwidth;
@@ -90,7 +91,7 @@ static void wm_window_check_position(rcti *rect)
 	
 	wm_get_screensize(&width, &height);
 	
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(GHOST_COCOA)
 	height -= 70;
 #endif
 	
@@ -269,7 +270,12 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 		else
 			GHOST_SetTitle(win->ghostwin, "Blender");
 
-#ifdef __APPLE__
+		/* Informs GHOST of unsaved changes, to set window modified visual indicator (MAC OS X)
+		 and to give hint of unsaved changes for a user warning mechanism
+		 in case of OS application terminate request (e.g. OS Shortcut Alt+F4, Cmd+Q, (...), or session end) */
+		GHOST_SetWindowModifiedState(win->ghostwin, (GHOST_TUns8)!wm->file_saved);
+		
+#if defined(__APPLE__) && !defined(GHOST_COCOA)
 		if(wm->file_saved)
 			GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateUnModified);
 		else
@@ -292,7 +298,7 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 	//		inital_state = GHOST_kWindowStateMaximized;
 	inital_state = GHOST_kWindowStateNormal;
 	
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(GHOST_COCOA)
 	{
 		extern int macPrefState; /* creator.c */
 		inital_state += macPrefState;
@@ -339,7 +345,8 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 	if (!prefsizx) {
 		wm_get_screensize(&prefsizx, &prefsizy);
 		
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(GHOST_COCOA)
+//Cocoa provides functions to get correct max window size
 		{
 			extern void wm_set_apple_prefsize(int, int);	/* wm_apple.c */
 			

@@ -1285,6 +1285,26 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 			col.itemR(bg, "offset_x", text="X")
 			col.itemR(bg, "offset_y", text="Y")
 
+class VIEW3D_PT_transform_orientations(bpy.types.Panel):
+	__space_type__ = 'VIEW_3D'
+	__region_type__ = 'UI'
+	__label__ = "Transform Orientations"
+	__default_closed__ = True
+
+	def poll(self, context):
+		view = context.space_data
+		return (view)
+
+	def draw(self, context):
+		layout = self.layout
+		
+		view = context.space_data
+
+		col = layout.column()
+		col.itemO("TFM_OT_select_orientation", text="Select")
+		col.itemO("TFM_OT_create_orientation", text="Create")
+		col.itemO("TFM_OT_delete_orientation", text="Delete")
+			
 bpy.types.register(VIEW3D_HT_header) # Header
 
 bpy.types.register(VIEW3D_MT_view) #View Menus
@@ -1360,3 +1380,4 @@ bpy.types.register(VIEW3D_PT_3dview_display)
 bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
 bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
 bpy.types.register(VIEW3D_PT_background_image)
+bpy.types.register(VIEW3D_PT_transform_orientations)

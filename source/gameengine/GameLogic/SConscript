@@ -7,15 +7,17 @@ incs = '. #/source/kernel/gen_system #/intern/string'
 incs += ' #/source/gameengine/Expressions #/intern/moto/include'
 incs += ' #/source/gameengine/Rasterizer #/source/gameengine/SceneGraph'
 
-incs += ' ' + env['BF_PYTHON_INC']
-
-
 defs = []
 
 if env['WITH_BF_SDL']:
 	incs += ' ' + env['BF_SDL_INC']
 else:
 	defs.append('DISABLE_SDL')
+
+if env['WITH_BF_PYTHON']:
+	incs += ' ' + env['BF_PYTHON_INC']
+else:
+	defs.append('DISABLE_PYTHON')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 	if env['BF_DEBUG']:

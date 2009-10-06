@@ -37,12 +37,17 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#ifndef DISABLE_PYTHON
+
 extern "C" {
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
 	#include "BGL.h"
+
+	#include "marshal.h" /* python header for loading/saving dicts */
 }
+#endif
 
 #include "KX_PythonInit.h"
 //python physics binding
@@ -89,17 +94,7 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
 
-
-#include "marshal.h" /* python header for loading/saving dicts */
-
 #include "PHY_IPhysicsEnvironment.h"
-// FIXME: Enable for access to blender python modules.  This is disabled because
-// python has dependencies on a lot of other modules and is a pain to link.
-//#define USE_BLENDER_PYTHON
-#ifdef USE_BLENDER_PYTHON
-//#include "BPY_extern.h"
-#endif 
-
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -122,14 +117,33 @@ static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
 static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super happy about this, but we need to remember the first loaded file for the global/dict load save
-static PyObject *gp_OrigPythonSysPath= NULL;
-static PyObject *gp_OrigPythonSysModules= NULL;
 
+void KX_SetActiveScene(class KX_Scene* scene)
+{
+	gp_KetsjiScene = scene;
+}
+
+class KX_Scene* KX_GetActiveScene()
+{
+	return gp_KetsjiScene;
+}
+
+class KX_KetsjiEngine* KX_GetActiveEngine()
+{
+	return gp_KetsjiEngine;
+}
+
+/* why is this in python? */
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 {
 	if (gp_Rasterizer)
 		gp_Rasterizer->DrawDebugLine(from,to,color);
 }
+
+#ifndef DISABLE_PYTHON
+
+static PyObject *gp_OrigPythonSysPath= NULL;
+static PyObject *gp_OrigPythonSysModules= NULL;
 
 /* Macro for building the keyboard translation */
 //#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyLong_FromSsize_t(SCA_IInputDevice::KX_##name))
@@ -1259,13 +1273,13 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_SETWEIGHT, ACT_ARM_SETWEIGHT);
 
 	/* BL_Armature Channel rotation_mode */
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_QUAT, PCHAN_ROT_QUAT);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_XYZ, PCHAN_ROT_XYZ);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_XZY, PCHAN_ROT_XZY);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_YXZ, PCHAN_ROT_YXZ);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_YZX, PCHAN_ROT_YZX);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_ZXY, PCHAN_ROT_ZXY);
-	KX_MACRO_addTypesToDict(d, PCHAN_ROT_ZYX, PCHAN_ROT_ZYX);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_QUAT, ROT_MODE_QUAT);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_XYZ, ROT_MODE_XYZ);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_XZY, ROT_MODE_XZY);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_YXZ, ROT_MODE_YXZ);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_YZX, ROT_MODE_YZX);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_ZXY, ROT_MODE_ZXY);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_ZYX, ROT_MODE_ZYX);
 
 	// Check for errors
 	if (PyErr_Occurred())
@@ -1950,21 +1964,6 @@ PyObject* initBGL()
 	return BGL_Init();
 }
 
-void KX_SetActiveScene(class KX_Scene* scene)
-{
-	gp_KetsjiScene = scene;
-}
-
-class KX_Scene* KX_GetActiveScene()
-{
-	return gp_KetsjiScene;
-}
-
-class KX_KetsjiEngine* KX_GetActiveEngine()
-{
-	return gp_KetsjiEngine;
-}
-
 // utility function for loading and saving the globalDict
 int saveGamePythonConfig( char **marshal_buffer)
 {
@@ -2065,3 +2064,5 @@ void resetGamePythonPath()
 {
 	gp_GamePythonPathOrig[0] = '\0';
 }
+
+#endif // DISABLE_PYTHON

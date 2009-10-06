@@ -191,7 +191,8 @@ static EnumPropertyItem dc_z_items[] = {DC_RGB, DC_Z, DC_LCMS, DC_ZERO};
 static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
-	ImBuf *ibuf= ED_space_image_buffer(sima);
+	ImBuf *ibuf;
+	void *lock;
 	int zbuf, alpha;
 
 	if(C==NULL) {
@@ -199,8 +200,12 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 		return dc_all_items;
 	}
 	
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	
 	alpha= ibuf && (ibuf->channels == 4);
 	zbuf= ibuf && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1));
+
+	ED_space_image_release_buffer(sima, lock);
 
 	if(alpha && zbuf)
 		return dc_all_items;
@@ -215,8 +220,13 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
+	ImBuf *ibuf;
+	void *lock;
 
-	curvemapping_do_ibuf(sima->cumap, ED_space_image_buffer(sima));
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	curvemapping_do_ibuf(sima->cumap, ibuf);
+	ED_space_image_release_buffer(sima, lock);
+
 	WM_event_add_notifier(C, NC_IMAGE, sima->image);
 }
 

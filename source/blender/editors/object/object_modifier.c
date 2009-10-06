@@ -110,7 +110,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 		}
 		else if(type == eModifierType_Collision) {
 			if(!ob->pd)
-				ob->pd= object_add_collision_fields();
+				ob->pd= object_add_collision_fields(0);
 
 			ob->pd->deflect= 1;
 			DAG_scene_sort(scene);
@@ -159,8 +159,8 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
         DAG_scene_sort(scene);
 	}
 	else if(md->type == eModifierType_Surface) {
-		if(ob->pd)
-			ob->pd->flag &= ~PFIELD_SURFACE;
+		if(ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
+			ob->pd->shape = PFIELD_SHAPE_PLANE;
 
         DAG_scene_sort(scene);
 	}

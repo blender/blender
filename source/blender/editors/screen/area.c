@@ -958,17 +958,22 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	/* Note; SPACE_EMPTY is possible on new screens */
 	
 	/* regions */
-	if(swap_space<2) {
-		st= BKE_spacetype_from_id(sa1->spacetype);
-		for(ar= sa1->regionbase.first; ar; ar= ar->next)
-			BKE_area_region_free(st, ar);
-		BLI_freelistN(&sa1->regionbase);
+	if(swap_space == 1) {
+		SWAP(ListBase, sa1->regionbase, sa2->regionbase);
 	}
-	
-	st= BKE_spacetype_from_id(sa2->spacetype);
-	for(ar= sa2->regionbase.first; ar; ar= ar->next) {
-		ARegion *newar= BKE_area_region_copy(st, ar);
-		BLI_addtail(&sa1->regionbase, newar);
+	else {
+		if(swap_space<2) {
+			st= BKE_spacetype_from_id(sa1->spacetype);
+			for(ar= sa1->regionbase.first; ar; ar= ar->next)
+				BKE_area_region_free(st, ar);
+			BLI_freelistN(&sa1->regionbase);
+		}
+		
+		st= BKE_spacetype_from_id(sa2->spacetype);
+		for(ar= sa2->regionbase.first; ar; ar= ar->next) {
+			ARegion *newar= BKE_area_region_copy(st, ar);
+			BLI_addtail(&sa1->regionbase, newar);
+		}
 	}
 }
 

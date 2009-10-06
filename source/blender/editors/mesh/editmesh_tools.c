@@ -1305,8 +1305,12 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	int type= RNA_enum_get(op->ptr, "type");
 
-	delete_mesh(obedit, em, op, RNA_enum_get(op->ptr, "type"));
+	if(type==6)
+		return WM_operator_name_call(C, "MESH_OT_delete_edgeloop", WM_OP_EXEC_DEFAULT, NULL);
+
+	delete_mesh(obedit, em, op, type);
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);

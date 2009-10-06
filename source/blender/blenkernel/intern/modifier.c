@@ -5971,6 +5971,8 @@ static void clothModifier_copyData(ModifierData *md, ModifierData *target)
 	tclmd->point_cache = NULL;
 	
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
+	if(clmd->sim_parms->effector_weights)
+		tclmd->sim_parms->effector_weights = MEM_dupallocN(clmd->sim_parms->effector_weights);
 	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
 	tclmd->point_cache = BKE_ptcache_copy_list(&tclmd->ptcaches, &clmd->ptcaches);
 	tclmd->clothObject = NULL;
@@ -5992,8 +5994,11 @@ static void clothModifier_freeData(ModifierData *md)
 		
 		cloth_free_modifier_extern (clmd);
 		
-		if(clmd->sim_parms)
+		if(clmd->sim_parms) {
+			if(clmd->sim_parms->effector_weights)
+				MEM_freeN(clmd->sim_parms->effector_weights);
 			MEM_freeN(clmd->sim_parms);
+		}
 		if(clmd->coll_parms)
 			MEM_freeN(clmd->coll_parms);	
 		
@@ -6206,7 +6211,8 @@ static void surfaceModifier_freeData(ModifierData *md)
 			MEM_freeN(surmd->bvhtree);
 		}
 
-		surmd->dm->release(surmd->dm);
+		if(surmd->dm)
+			surmd->dm->release(surmd->dm);
 
 		if(surmd->x)
 			MEM_freeN(surmd->x);
@@ -6293,7 +6299,10 @@ static void surfaceModifier_deformVerts(
 		else
 			surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
 
-		bvhtree_from_mesh_faces(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
+		if(surmd->dm->getNumFaces(surmd->dm))
+			bvhtree_from_mesh_faces(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
+		else
+			bvhtree_from_mesh_edges(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
 	}
 }
 

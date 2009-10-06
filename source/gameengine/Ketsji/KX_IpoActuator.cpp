@@ -404,10 +404,11 @@ int KX_IpoActuator::string2mode(char* modename) {
 	return res;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
-
 
 
 /* Integration hooks ------------------------------------------------------- */
@@ -450,5 +451,7 @@ PyAttributeDef KX_IpoActuator::Attributes[] = {
 	
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* eof */

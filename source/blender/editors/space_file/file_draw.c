@@ -313,16 +313,16 @@ static int get_file_icon(struct direntry *file)
 static void file_draw_icon(int sx, int sy, int icon, int width, int height)
 {
 	float x,y;
-	int blend=0;
+	float alpha=1.0f;
 	
 	x = (float)(sx);
 	y = (float)(sy-height);
 	
-	if (icon == ICON_FILE_BLANK) blend = -80;
+	if (icon == ICON_FILE_BLANK) alpha = 0.375f;
 	
 	glEnable(GL_BLEND);
 	
-	UI_icon_draw_aspect_blended(x, y, icon, 1.f, blend);
+	UI_icon_draw_aspect(x, y, icon, 1.f, alpha);
 }
 
 

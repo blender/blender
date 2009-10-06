@@ -35,6 +35,8 @@
 // needed for IsTriggered()
 #include "SCA_PythonController.h"
 
+#include <stdio.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -288,6 +290,9 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 		}
 	} 
 }
+
+#ifndef DISABLE_PYTHON
+
 /* ----------------------------------------------- */
 /* Python Functions						           */
 /* ----------------------------------------------- */
@@ -379,5 +384,6 @@ int SCA_ISensor::pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrde
 		self->m_level = false;
 	return 0;
 }
+#endif // DISABLE_PYTHON
 
 /* eof */

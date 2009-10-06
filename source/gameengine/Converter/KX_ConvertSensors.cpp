@@ -28,6 +28,7 @@
  * Conversion of Blender data blocks to KX sensor system
  */
 
+#include <stdio.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

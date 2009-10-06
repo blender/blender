@@ -57,6 +57,7 @@ typedef struct BVHTreeFromMesh
 
 	/* Vertex array, so that callbacks have instante access to data */
 	struct MVert *vert;
+	struct MEdge *edge;		/* only used for BVHTreeFromMeshEdges */
 	struct MFace *face;
 
 	/* radius for raycast */
@@ -96,6 +97,8 @@ BVHTree* bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct DerivedMes
  */
 BVHTree* bvhtree_from_mesh_faces(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
 
+BVHTree* bvhtree_from_mesh_edges(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
+
 /*
  * Frees data allocated by a call to bvhtree_from_mesh_*.
  */
@@ -109,6 +112,7 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
 //Using local coordinates
 #define BVHTREE_FROM_FACES		0
 #define BVHTREE_FROM_VERTICES	1
+#define BVHTREE_FROM_EDGES		2
 
 typedef LinkNode* BVHCache;
 

@@ -448,12 +448,21 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_WORLD:
+			switch(wmn->data) {
+				case ND_WORLD_DRAW:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_LAMP:
 			switch(wmn->data) {
 				case ND_LIGHTING_DRAW:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
 		case NC_IMAGE:	
 			/* this could be more fine grained checks if we had
 			 * more context than just the region */

@@ -86,6 +86,8 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	const MT_Point3& HitPosition() const;
 	const MT_Vector3& HitNormal() const;
 	
+#ifndef DISABLE_PYTHON
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -98,6 +100,8 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	static PyObject*	pyattr_get_hit_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_hit_normal(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 		
+#endif // DISABLE_PYTHON
+
 	/* --------------------------------------------------------------------- */
 	SCA_IObject*	m_hitObject;
 	void*			m_hitObject_Last; /* only use for comparison, never access */

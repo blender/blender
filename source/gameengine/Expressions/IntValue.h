@@ -47,7 +47,10 @@ public:
 	void			Configure(CValue* menuvalue);
 	void			AddConfigurationData(CValue* menuvalue);
 	virtual CValue*	GetReplica();
+
+#ifndef DISABLE_PYTHON
 	virtual PyObject*	ConvertValueToPython();
+#endif
 
 protected:
 	virtual			~CIntValue();

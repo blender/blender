@@ -27,6 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stdlib.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -332,26 +334,4 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-/**************************** registration **********************************/
-
-void ED_operatortypes_pointcache(void)
-{
-	WM_operatortype_append(PTCACHE_OT_bake_all);
-	WM_operatortype_append(PTCACHE_OT_free_bake_all);
-	WM_operatortype_append(PTCACHE_OT_bake);
-	WM_operatortype_append(PTCACHE_OT_free_bake);
-	WM_operatortype_append(PTCACHE_OT_bake_from_cache);
-	WM_operatortype_append(PTCACHE_OT_add_new);
-	WM_operatortype_append(PTCACHE_OT_remove);
-}
-
-//void ED_keymap_pointcache(wmWindowManager *wm)
-//{
-//	wmKeyMap *keymap= WM_keymap_find(wm, "Pointcache", 0, 0);
-//	
-//	WM_keymap_add_item(keymap, "PHYSICS_OT_bake_all", AKEY, KM_PRESS, 0, 0);
-//	WM_keymap_add_item(keymap, "PHYSICS_OT_free_all", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-//	WM_keymap_add_item(keymap, "PHYSICS_OT_bake_particle_system", PADMINUS, KM_PRESS, KM_CTRL, 0);
-//	WM_keymap_add_item(keymap, "PHYSICS_OT_free_particle_system", LKEY, KM_PRESS, 0, 0);
-//}
 

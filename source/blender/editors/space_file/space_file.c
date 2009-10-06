@@ -377,6 +377,7 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "FILE_OT_next", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);  /* XXX needs button */
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	/* keys for main area */
 	keymap= WM_keymap_find(wm, "FileMain", SPACE_FILE, 0);

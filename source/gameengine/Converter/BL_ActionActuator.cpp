@@ -432,6 +432,8 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	return keepgoing;
 };
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -675,3 +677,5 @@ PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 	
 	return ret;
 }
+
+#endif // DISABLE_PYTHON

@@ -226,8 +226,10 @@ void		WM_set_framebuffer_index_color(int index);
 int			WM_framebuffer_to_index(unsigned int col);
 
 			/* threaded Jobs Manager */
+#define WM_JOB_PRIORITY		1
+#define WM_JOB_EXCL_RENDER	2
 
-struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner);
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, int flag);
 
 int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
 

@@ -1326,6 +1326,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		if ((t->options & CTX_NO_PET) == 0)
 		{
 			ts->proportional = proportional;
+			ts->proportional_size = t->prop_size;
 		}
 
 		if(t->spacetype == SPACE_VIEW3D)

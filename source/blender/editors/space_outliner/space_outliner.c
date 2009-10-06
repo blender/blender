@@ -137,10 +137,15 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* all actions now, todo: check outliner view mode? */
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_LAMP:
+			/* For updating lamp icons, when changing lamp type */
+			if(wmn->data == ND_LIGHTING_DRAW)
+				ED_region_tag_redraw(ar);
+				break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_OUTLINER)
 				ED_region_tag_redraw(ar);
-			break;
+				break;
 	}
 	
 }

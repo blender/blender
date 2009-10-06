@@ -38,7 +38,10 @@ struct uiBlock;
 struct Image *ED_space_image(struct SpaceImage *sima);
 void ED_space_image_set(struct bContext *C, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
 
-struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima);
+struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r);
+void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock);
+int ED_space_image_has_buffer(struct SpaceImage *sima);
+
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height);
 void ED_space_image_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 void ED_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy);

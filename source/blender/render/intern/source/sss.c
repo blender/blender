@@ -862,6 +862,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	   setting them back, maybe we need to create our own Render? */
 
 	/* do SSS preprocessing render */
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	rr= re->result;
 	osa= re->osa;
 	osaflag= re->r.mode & R_OSA;
@@ -875,13 +876,16 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 
 	if(!(re->r.scemode & R_PREVIEWBUTS))
 		re->result= NULL;
+	BLI_rw_mutex_unlock(&re->resultmutex);
 
 	RE_TileProcessor(re, 0, 1);
 	
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(!(re->r.scemode & R_PREVIEWBUTS)) {
 		RE_FreeRenderResult(re->result);
 		re->result= rr;
 	}
+	BLI_rw_mutex_unlock(&re->resultmutex);
 
 	re->i.partsdone= partsdone;
 	re->sss_mat= NULL;

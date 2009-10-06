@@ -38,6 +38,7 @@
 
 struct TransInfo;
 struct TransData;
+struct TransformOrientation;
 struct TransSnap;
 struct NumInput;
 struct Object;
@@ -54,6 +55,7 @@ struct bContext;
 struct wmEvent;
 struct wmTimer;
 struct ARegion;
+struct ReportList;
 
 typedef struct NDofInput {
 	int		flag;
@@ -663,18 +665,17 @@ int handleNDofInput(NDofInput *n, struct wmEvent *event);
 
 void initTransformOrientation(struct bContext *C, TransInfo *t);
 
-int manageObjectSpace(struct bContext *C, int confirm, int set);
-int manageMeshSpace(struct bContext *C, int confirm, int set);
-int manageBoneSpace(struct bContext *C, int confirm, int set);
+struct TransformOrientation *createObjectSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
+struct TransformOrientation *createMeshSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
+struct TransformOrientation *createBoneSpace(struct bContext *C, struct ReportList *reports, char *name, int overwrite);
 
 /* Those two fill in mat and return non-zero on success */
 int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 
-int addMatrixSpace(struct bContext *C, float mat[3][3], char name[]);
+struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3], char name[], int overwrite);
 int addObjectSpace(struct bContext *C, struct Object *ob);
-void applyTransformOrientation(const struct bContext *C, TransInfo *t);
-
+void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *name);
 
 #define ORIENTATION_NONE	0
 #define ORIENTATION_NORMAL	1

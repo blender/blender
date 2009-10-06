@@ -38,6 +38,8 @@
 #include "KX_RayCast.h"
 #include "KX_PythonInit.h" // KX_GetActiveScene
 
+#include <stdio.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -559,6 +561,8 @@ bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE
 	return res;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -617,5 +621,7 @@ int KX_ConstraintActuator::pyattr_check_direction(void *self, const struct KX_PY
 	act->m_refDirVector = dir/len;
 	return 0;	
 }
+
+#endif
 
 /* eof */

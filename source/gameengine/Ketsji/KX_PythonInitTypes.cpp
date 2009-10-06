@@ -32,6 +32,8 @@
 #ifndef _adr_py_init_types_h_				// only process once,
 #define _adr_py_init_types_h_				// even if multiply included
 
+#ifndef DISABLE_PYTHON
+
 /* Only for Class::Parents */
 #include "BL_BlenderShader.h"
 #include "BL_ShapeActionActuator.h"
@@ -249,5 +251,7 @@ void initPyTypes(void)
 	KX_ObjectActuator_Mathutils_Callback_Init();
 #endif
 }
+
+#endif // DISABLE_PYTHON
 
 #endif

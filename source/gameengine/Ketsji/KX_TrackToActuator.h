@@ -69,12 +69,16 @@ class KX_TrackToActuator : public SCA_IActuator
 	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 	virtual bool Update(double curtime, bool frame);
 
+#ifndef DISABLE_PYTHON
+
 	/* Python part */
 
 	/* These are used to get and set m_ob */
 	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
+#endif // DISABLE_PYTHON
+
 }; /* end of class KX_TrackToActuator : public KX_EditObjectActuator */
 
 #endif

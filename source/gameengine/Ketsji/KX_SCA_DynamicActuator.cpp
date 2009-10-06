@@ -41,6 +41,8 @@
 #include <config.h>
 #endif
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -78,6 +80,8 @@ PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("mass",0.0,FLT_MAX,KX_SCA_DynamicActuator,m_setmass),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

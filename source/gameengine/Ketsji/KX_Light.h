@@ -64,15 +64,17 @@ public:
 	void BindShadowBuffer(class RAS_IRasterizer *ras, class KX_Camera *cam, class MT_Transform& camtrans);
 	void UnbindShadowBuffer(class RAS_IRasterizer *ras);
 	void Update();
+	
+	virtual int GetGameObjectType() { return OBJ_LIGHT; }
 
+#ifndef DISABLE_PYTHON
 	/* attributes */
 	static PyObject*	pyattr_get_color(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_color(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value);
 	static PyObject*	pyattr_get_typeconst(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value);
-
-	virtual bool IsLight(void) { return true; }
+#endif
 };
 
 #endif //__KX_LIGHT

@@ -292,7 +292,6 @@ int graphop_selected_fcurve_poll (bContext *C)
 	ListBase anim_data = {NULL, NULL};
 	ScrArea *sa= CTX_wm_area(C);
 	int filter, items;
-	short found = 0;
 	
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
@@ -311,7 +310,7 @@ int graphop_selected_fcurve_poll (bContext *C)
 	
 	/* cleanup and return findings */
 	BLI_freelistN(&anim_data);
-	return found;
+	return 1;
 }
 
 /* ************************************************************** */

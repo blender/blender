@@ -107,6 +107,11 @@ struct RenderResult;
 /* always call to make signals work */
 struct ImBuf *BKE_image_get_ibuf(struct Image *ima, struct ImageUser *iuser);
 
+/* same as above, but can be used to retrieve images being rendered in
+ * a thread safe way, always call both acquire and release */
+struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **lock_r);
+void BKE_image_release_ibuf(struct Image *ima, void *lock);
+
 /* returns existing Image when filename/type is same (frame optional) */
 struct Image *BKE_add_image_file(const char *name, int frame);
 
@@ -135,7 +140,8 @@ void BKE_image_user_new_image(struct Image *ima, struct ImageUser *iuser);
 struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct ImageUser *iuser);
 
 /* for multilayer images as well as for render-viewer */
-struct RenderResult *BKE_image_get_renderresult(struct Scene *scene, struct Image *ima);
+struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
+void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
 
 /* goes over all textures that use images */
 void	BKE_image_free_all_textures(void);

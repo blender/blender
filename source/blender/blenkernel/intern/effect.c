@@ -48,12 +48,15 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
+#include "BLI_listbase.h"
+#include "BLI_noise.h"
 #include "BLI_rand.h"
 
 #include "PIL_time.h"
@@ -68,6 +71,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
@@ -79,11 +83,13 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "RE_render_ext.h"
+#include "RE_shader_ext.h"
 
 /* fluid sim particle import */
 #ifndef DISABLE_ELBEEM
@@ -95,17 +101,46 @@
 
 //XXX #include "BIF_screen.h"
 
-PartDeflect *object_add_collision_fields(void)
+EffectorWeights *BKE_add_effector_weights(Group *group)
+{
+	EffectorWeights *weights = MEM_callocN(sizeof(EffectorWeights), "EffectorWeights");
+	int i;
+
+	for(i=0; i<NUM_PFIELD_TYPES; i++)
+		weights->weight[i] = 1.0f;
+
+	weights->global_gravity = 1.0f;
+
+	weights->group = group;
+
+	return weights;
+}
+PartDeflect *object_add_collision_fields(int type)
 {
 	PartDeflect *pd;
 
 	pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
 
+	pd->forcefield = type;
 	pd->pdef_sbdamp = 0.1f;
 	pd->pdef_sbift  = 0.2f;
 	pd->pdef_sboft  = 0.02f;
 	pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
 	pd->f_strength = 1.0f;
+	pd->f_damp = 1.0f;
+	pd->f_size = 1.0f;
+
+	/* set sensible defaults based on type */
+	switch(type) {
+		case PFIELD_VORTEX:
+			pd->shape = PFIELD_SHAPE_PLANE;
+			break;
+		case PFIELD_WIND:
+			pd->shape = PFIELD_SHAPE_PLANE;
+			pd->f_flow = 1.0f; /* realistic wind behavior */
+			break;
+	}
+	pd->flag = PFIELD_DO_LOCATION|PFIELD_DO_ROTATION;
 
 	return pd;
 }
@@ -156,93 +191,218 @@ void free_effects(ListBase *lb)
 }
 
 /* -------------------------- Effectors ------------------ */
-
-static void add_to_effectorcache(ListBase *lb, Scene *scene, Object *ob, Object *obsrc)
+void free_partdeflect(PartDeflect *pd)
 {
-	pEffectorCache *ec;
-	PartDeflect *pd= ob->pd;
-			
-	if(pd->forcefield == PFIELD_GUIDE) {
-		if(ob->type==OB_CURVE && obsrc->type==OB_MESH) {	/* guides only do mesh particles */
-			Curve *cu= ob->data;
-			if(cu->flag & CU_PATH) {
-				if(cu->path==NULL || cu->path->data==NULL)
-					makeDispListCurveTypes(scene, ob, 0);
-				if(cu->path && cu->path->data) {
-					ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
-					ec->ob= ob;
-					BLI_addtail(lb, ec);
-				}
+	if(!pd)
+		return;
+
+	if(pd->tex)
+		pd->tex->id.us--;
+
+	if(pd->rng)
+		rng_free(pd->rng);
+
+	MEM_freeN(pd);
+}
+
+static void precalculate_effector(EffectorCache *eff)
+{
+	unsigned int cfra = (unsigned int)(eff->scene->r.cfra >= 0 ? eff->scene->r.cfra : -eff->scene->r.cfra);
+	if(!eff->pd->rng)
+		eff->pd->rng = rng_new(eff->pd->seed + cfra);
+	else
+		rng_srandom(eff->pd->rng, eff->pd->seed + cfra);
+
+	if(eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type==OB_CURVE) {
+		Curve *cu= eff->ob->data;
+		if(cu->flag & CU_PATH) {
+			if(cu->path==NULL || cu->path->data==NULL)
+				makeDispListCurveTypes(eff->scene, eff->ob, 0);
+
+			if(cu->path && cu->path->data) {
+				where_on_path(eff->ob, 0.0, eff->guide_loc, eff->guide_dir, NULL, &eff->guide_radius);
+				Mat4MulVecfl(eff->ob->obmat, eff->guide_loc);
+				Mat4Mul3Vecfl(eff->ob->obmat, eff->guide_dir);
 			}
 		}
 	}
-	else if(pd->forcefield) {
-		
-		if(pd->forcefield == PFIELD_WIND)
-		{
-			pd->rng = rng_new(pd->seed);
-		}
-	
-		ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
-		ec->ob= ob;
-		BLI_addtail(lb, ec);
+	else if(eff->pd->shape == PFIELD_SHAPE_SURFACE) {
+		eff->surmd = (SurfaceModifierData *)modifiers_findByType ( eff->ob, eModifierType_Surface );
+		if(eff->ob->type == OB_CURVE)
+			eff->flag |= PE_USE_NORMAL_DATA;
+	}
+	else if(eff->psys)
+		psys_update_particle_tree(eff->psys, eff->scene->r.cfra);
+}
+static EffectorCache *new_effector_cache(Scene *scene, Object *ob, ParticleSystem *psys, PartDeflect *pd)
+{
+	EffectorCache *eff = MEM_callocN(sizeof(EffectorCache), "EffectorCache");
+	eff->scene = scene;
+	eff->ob = ob;
+	eff->psys = psys;
+	eff->pd = pd;
+	eff->frame = -1;
+
+	precalculate_effector(eff);
+
+	return eff;
+}
+static void add_object_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, Object *ob_src)
+{
+	EffectorCache *eff = NULL;
+
+	if( ob == ob_src || weights->weight[ob->pd->forcefield] == 0.0f )
+		return;
+
+	if (ob->pd->shape == PFIELD_SHAPE_POINTS && !ob->derivedFinal )
+		return;
+
+	if(*effectors == NULL)
+		*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
+
+	eff = new_effector_cache(scene, ob, NULL, ob->pd);
+
+	BLI_addtail(*effectors, eff);
+}
+static void add_particles_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src)
+{
+	ParticleSettings *part= psys->part;
+
+	if( !psys_check_enabled(ob, psys) )
+		return;
+
+	if( psys == psys_src && (part->flag & PART_SELF_EFFECT) == 0)
+		return;
+
+	if( part->pd && part->pd->forcefield && weights->weight[part->pd->forcefield] != 0.0f) {
+		if(*effectors == NULL)
+			*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
+
+		BLI_addtail(*effectors, new_effector_cache(scene, ob, psys, part->pd));
+	}
+
+	if (part->pd2 && part->pd2->forcefield && weights->weight[part->pd2->forcefield] != 0.0f) {
+		if(*effectors == NULL)
+			*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
+
+		BLI_addtail(*effectors, new_effector_cache(scene, ob, psys, part->pd2));
 	}
 }
 
 /* returns ListBase handle with objects taking part in the effecting */
-ListBase *pdInitEffectors(Scene *scene, Object *obsrc, Group *group)
+ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src, EffectorWeights *weights)
 {
-	static ListBase listb={NULL, NULL};
-	pEffectorCache *ec;
 	Base *base;
-	unsigned int layer= obsrc->lay;
+	unsigned int layer= ob_src->lay;
+	ListBase *effectors = NULL;
 	
-	if(group) {
+	if(weights->group) {
 		GroupObject *go;
 		
-		for(go= group->gobject.first; go; go= go->next) {
-			if( (go->ob->lay & layer) && go->ob->pd && go->ob!=obsrc) {
-				add_to_effectorcache(&listb, scene, go->ob, obsrc);
+		for(go= weights->group->gobject.first; go; go= go->next) {
+			if( (go->ob->lay & layer) ) {
+				if( go->ob->pd && go->ob->pd->forcefield )
+					add_object_to_effectors(&effectors, scene, weights, go->ob, ob_src);
+
+				if( go->ob->particlesystem.first ) {
+					ParticleSystem *psys= go->ob->particlesystem.first;
+
+					for( ; psys; psys=psys->next )
+						add_particles_to_effectors(&effectors, scene, weights, go->ob, psys, psys_src);
+				}
 			}
 		}
 	}
 	else {
 		for(base = scene->base.first; base; base= base->next) {
-			if( (base->lay & layer) && base->object->pd && base->object!=obsrc) {
-				add_to_effectorcache(&listb, scene, base->object, obsrc);
+			if( (base->lay & layer) ) {
+				if( base->object->pd && base->object->pd->forcefield )
+				add_object_to_effectors(&effectors, scene, weights, base->object, ob_src);
+
+				if( base->object->particlesystem.first ) {
+					ParticleSystem *psys= base->object->particlesystem.first;
+
+					for( ; psys; psys=psys->next )
+						add_particles_to_effectors(&effectors, scene, weights, base->object, psys, psys_src);
+				}
 			}
 		}
 	}
-	
-	/* make a full copy */
-	for(ec= listb.first; ec; ec= ec->next) {
-		ec->obcopy= *(ec->ob);
-	}
-
-	if(listb.first)
-		return &listb;
-	
-	return NULL;
+	return effectors;
 }
 
-void pdEndEffectors(ListBase *lb)
+void pdEndEffectors(ListBase **effectors)
 {
-	if(lb) {
-		pEffectorCache *ec;
-		/* restore full copy */
-		for(ec= lb->first; ec; ec= ec->next)
-		{
-			if(ec->ob->pd && (ec->ob->pd->forcefield == PFIELD_WIND))
-				rng_free(ec->ob->pd->rng);
-			
-			*(ec->ob)= ec->obcopy;
+	if(*effectors) {
+		EffectorCache *eff = (*effectors)->first;
+
+		for(; eff; eff=eff->next) {
+			if(eff->guide_data)
+				MEM_freeN(eff->guide_data);
 		}
 
-		BLI_freelistN(lb);
+		BLI_freelistN(*effectors);
+		MEM_freeN(*effectors);
+		*effectors = NULL;
 	}
 }
 
 
+void pd_point_from_particle(ParticleSimulationData *sim, ParticleData *pa, ParticleKey *state, EffectedPoint *point)
+{
+	point->loc = state->co;
+	point->vel = state->vel;
+	point->index = pa - sim->psys->particles;
+	point->size = pa->size;
+	/* TODO: point->charge */
+	point->charge = 1.0f;
+
+	point->vel_to_sec = 1.0f;
+	point->vel_to_frame = psys_get_timestep(sim);
+
+	point->flag = 0;
+
+	if(sim->psys->part->flag & PART_ROT_DYN) {
+		point->ave = state->ave;
+		point->rot = state->rot;
+	}
+	else
+		point->ave = point->rot = NULL;
+
+	point->psys = sim->psys;
+}
+
+void pd_point_from_loc(Scene *scene, float *loc, float *vel, int index, EffectedPoint *point)
+{
+	point->loc = loc;
+	point->vel = vel;
+	point->index = index;
+	point->size = 0.0f;
+
+	point->vel_to_sec = (float)scene->r.frs_sec;
+	point->vel_to_frame = 1.0f;
+
+	point->flag = 0;
+
+	point->ave = point->rot = NULL;
+	point->psys = NULL;
+}
+void pd_point_from_soft(Scene *scene, float *loc, float *vel, int index, EffectedPoint *point)
+{
+	point->loc = loc;
+	point->vel = vel;
+	point->index = index;
+	point->size = 0.0f;
+
+	point->vel_to_sec = (float)scene->r.frs_sec;
+	point->vel_to_frame = 1.0f;
+
+	point->flag = PE_WIND_AS_SPEED;
+
+	point->ave = point->rot = NULL;
+
+	point->psys = NULL;
+}
 /************************************************/
 /*			Effectors		*/
 /************************************************/
@@ -256,27 +416,33 @@ static void eff_tri_ray_hit(void *userdata, int index, const BVHTreeRay *ray, BV
 }
 
 // get visibility of a wind ray
-static float eff_calc_visibility(Scene *scene, Object *ob, float *co, float *dir)
+static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, EffectorData *efd, EffectedPoint *point)
 {
-	Object **collobjs = NULL;
-	int numcollobj = 0, i;
+	ListBase *colls = colliders;
+	ColliderCache *col;
 	float norm[3], len = 0.0;
 	float visibility = 1.0, absorption = 0.0;
 	
-	collobjs = get_collisionobjects(scene, ob, &numcollobj);
+	if(!(eff->pd->flag & PFIELD_VISIBILITY))
+		return visibility;
+
+	if(!colls)
+		colls = get_collider_cache(eff->scene, NULL);
+
+	if(!colls)
+		return visibility;
 	
-	if(!collobjs)
-		return 0;
-	
-	VECCOPY(norm, dir);
+	VECCOPY(norm, efd->vec_to_point);
 	VecNegf(norm);
 	len = Normalize(norm);
 	
 	// check all collision objects
-	for(i = 0; i < numcollobj; i++)
+	for(col = colls->first; col; col = col->next)
 	{
-		Object *collob= collobjs[i];
-		CollisionModifierData *collmd = (CollisionModifierData*)modifiers_findByType(collob, eModifierType_Collision);
+		CollisionModifierData *collmd = col->collmd;
+
+		if(col->ob == eff->ob)
+			continue;
 		
 		if(collmd->bvhtree)
 		{
@@ -286,9 +452,9 @@ static float eff_calc_visibility(Scene *scene, Object *ob, float *co, float *dir
 			hit.dist = len + FLT_EPSILON;
 			
 			// check if the way is blocked
-			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0)
+			if(BLI_bvhtree_ray_cast(collmd->bvhtree, point->loc, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0)
 			{
-				absorption= (collob->pd)? collob->pd->absorption: 0.0f;
+				absorption= col->ob->pd->absorption;
 
 				// visibility is only between 0 and 1, calculated from 1-absorption
 				visibility *= CLAMPIS(1.0f-absorption, 0.0f, 1.0f);
@@ -298,8 +464,9 @@ static float eff_calc_visibility(Scene *scene, Object *ob, float *co, float *dir
 			}
 		}
 	}
-	
-	MEM_freeN(collobjs);
+
+	if(!colliders)
+		free_collider_cache(&colls);
 	
 	return visibility;
 }
@@ -347,43 +514,39 @@ static float falloff_func_rad(PartDeflect *pd, float fac)
 	return falloff_func(fac, pd->flag&PFIELD_USEMINR, pd->minrad, pd->flag&PFIELD_USEMAXR, pd->maxrad, pd->f_power_r);
 }
 
-float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
+float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, EffectorWeights *weights)
 {
-	float eff_dir[3], temp[3];
-	float falloff=1.0, fac, r_fac;
+	float temp[3];
+	float falloff = weights ? weights->weight[0] * weights->weight[eff->pd->forcefield] : 1.0f;
+	float fac, r_fac;
 
-	if(pd->forcefield==PFIELD_LENNARDJ)
-		return falloff; /* Lennard-Jones field has it's own falloff built in */
+	fac = Inpf(efd->nor, efd->vec_to_point2);
 
-	VecCopyf(eff_dir,eff_velocity);
-	Normalize(eff_dir);
-
-	if(pd->flag & PFIELD_POSZ && Inpf(eff_dir,vec_to_part)<0.0f)
+	if(eff->pd->zdir == PFIELD_Z_POS && fac < 0.0f)
 		falloff=0.0f;
-	else switch(pd->falloff){
+	else if(eff->pd->zdir == PFIELD_Z_NEG && fac > 0.0f)
+		falloff=0.0f;
+	else switch(eff->pd->falloff){
 		case PFIELD_FALL_SPHERE:
-			fac=VecLength(vec_to_part);
-			falloff= falloff_func_dist(pd, fac);
+			falloff*= falloff_func_dist(eff->pd, efd->distance);
 			break;
 
 		case PFIELD_FALL_TUBE:
-			fac=Inpf(vec_to_part,eff_dir);
-			falloff= falloff_func_dist(pd, ABS(fac));
+			falloff*= falloff_func_dist(eff->pd, ABS(fac));
 			if(falloff == 0.0f)
 				break;
 
-			VECADDFAC(temp,vec_to_part,eff_dir,-fac);
-			r_fac=VecLength(temp);
-			falloff*= falloff_func_rad(pd, r_fac);
+			VECADDFAC(temp, efd->vec_to_point, efd->nor, -fac);
+			r_fac= VecLength(temp);
+			falloff*= falloff_func_rad(eff->pd, r_fac);
 			break;
 		case PFIELD_FALL_CONE:
-			fac=Inpf(vec_to_part,eff_dir);
-			falloff= falloff_func_dist(pd, ABS(fac));
+			falloff*= falloff_func_dist(eff->pd, ABS(fac));
 			if(falloff == 0.0f)
 				break;
 
-			r_fac=saacos(fac/VecLength(vec_to_part))*180.0f/(float)M_PI;
-			falloff*= falloff_func_rad(pd, r_fac);
+			r_fac=saacos(fac/VecLength(efd->vec_to_point))*180.0f/(float)M_PI;
+			falloff*= falloff_func_rad(eff->pd, r_fac);
 
 			break;
 	}
@@ -391,126 +554,395 @@ float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 	return falloff;
 }
 
-void do_physical_effector(Scene *scene, Object *ob, float *opco, short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor, float charge, float pa_size)
+int closest_point_on_surface(SurfaceModifierData *surmd, float *co, float *surface_co, float *surface_nor, float *surface_vel)
 {
-	float mag_vec[3]={0,0,0};
-	float temp[3], temp2[3];
-	float eff_vel[3];
-	float noise = 0, visibility;
-	
-	// calculate visibility
-	visibility = eff_calc_visibility(scene, ob, opco, vec_to_part);
-	if(visibility <= 0.0)
+	BVHTreeNearest nearest;
+
+	nearest.index = -1;
+	nearest.dist = FLT_MAX;
+
+	BLI_bvhtree_find_nearest(surmd->bvhtree->tree, co, &nearest, surmd->bvhtree->nearest_callback, surmd->bvhtree);
+
+	if(nearest.index != -1) {
+		VECCOPY(surface_co, nearest.co);
+
+		if(surface_nor) {
+			VECCOPY(surface_nor, nearest.no);
+		}
+
+		if(surface_vel) {
+			MFace *mface = CDDM_get_face(surmd->dm, nearest.index);
+			
+			VECCOPY(surface_vel, surmd->v[mface->v1].co);
+			VecAddf(surface_vel, surface_vel, surmd->v[mface->v2].co);
+			VecAddf(surface_vel, surface_vel, surmd->v[mface->v3].co);
+			if(mface->v4)
+				VecAddf(surface_vel, surface_vel, surmd->v[mface->v4].co);
+
+			VecMulf(surface_vel, mface->v4 ? 0.25f : 0.333f);
+		}
+		return 1;
+	}
+
+	return 0;
+}
+int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, int real_velocity)
+{
+	float cfra = eff->scene->r.cfra;
+	int ret = 0;
+
+	if(eff->pd->shape==PFIELD_SHAPE_SURFACE && eff->surmd) {
+		/* closest point in the object surface is an effector */
+		float vec[3];
+
+		/* using velocity corrected location allows for easier sliding over effector surface */
+		VecCopyf(vec, point->vel);
+		VecMulf(vec, point->vel_to_frame);
+		VecAddf(vec, vec, point->loc);
+
+		ret = closest_point_on_surface(eff->surmd, vec, efd->loc, efd->nor, real_velocity ? efd->vel : NULL);
+
+		efd->size = 0.0f;
+	}
+	else if(eff->pd->shape==PFIELD_SHAPE_POINTS) {
+
+		if(eff->ob->derivedFinal) {
+			DerivedMesh *dm = eff->ob->derivedFinal;
+
+			dm->getVertCo(dm, *efd->index, efd->loc);
+			dm->getVertNo(dm, *efd->index, efd->nor);
+
+			Mat4MulVecfl(eff->ob->obmat, efd->loc);
+			Mat4Mul3Vecfl(eff->ob->obmat, efd->nor);
+
+			Normalize(efd->nor);
+
+			efd->size = 0.0f;
+
+			/**/
+			ret = 1;
+		}
+	}
+	else if(eff->psys) {
+		ParticleSimulationData sim = {eff->scene, eff->ob, eff->psys, NULL, NULL};
+		ParticleData *pa = eff->psys->particles + *efd->index;
+		ParticleKey state;
+
+		/* exclude the particle itself for self effecting particles */
+		if(eff->psys == point->psys && *efd->index == point->index)
+			;
+		else {
+			/* TODO: time from actual previous calculated frame (step might not be 1) */
+			state.time = cfra - 1.0;
+			ret = psys_get_particle_state(&sim, *efd->index, &state, 0);
+
+			/* TODO */
+			//if(eff->pd->forcefiled == PFIELD_HARMONIC && ret==0) {
+			//	if(pa->dietime < eff->psys->cfra)
+			//		eff->flag |= PE_VELOCITY_TO_IMPULSE;
+			//}
+
+			VECCOPY(efd->loc, state.co);
+			VECCOPY(efd->nor, state.vel);
+			if(real_velocity) {
+				VECCOPY(efd->vel, state.vel);
+			}
+
+			efd->size = pa->size;
+		}
+	}
+	else {
+		/* use center of object for distance calculus */
+		Object *ob = eff->ob;
+		Object obcopy = *ob;
+
+		where_is_object_time(eff->scene, ob, cfra);
+
+		/* use z-axis as normal*/
+		VECCOPY(efd->nor, ob->obmat[2]);
+		Normalize(efd->nor);
+
+		/* for vortex the shape chooses between old / new force */
+		if(eff->pd->shape == PFIELD_SHAPE_PLANE) {
+			/* efd->loc is closes point on effector xy-plane */
+			float temp[3];
+			VecSubf(temp, point->loc, ob->obmat[3]);
+			Projf(efd->loc, temp, efd->nor);
+			VecSubf(efd->loc, point->loc, efd->loc);
+		}
+		else {
+			VECCOPY(efd->loc, ob->obmat[3]);
+		}
+
+		if(real_velocity) {
+			VECCOPY(efd->vel, ob->obmat[3]);
+
+			where_is_object_time(eff->scene, ob, cfra - 1.0);
+
+			VecSubf(efd->vel, efd->vel, ob->obmat[3]);
+		}
+
+		*eff->ob = obcopy;
+
+		efd->size = 0.0f;
+
+		ret = 1;
+	}
+
+	if(ret) {
+		VecSubf(efd->vec_to_point, point->loc, efd->loc);
+		efd->distance = VecLength(efd->vec_to_point);
+
+		if(eff->flag & PE_USE_NORMAL_DATA) {
+			VECCOPY(efd->vec_to_point2, efd->vec_to_point);
+			VECCOPY(efd->nor2, efd->nor);
+		}
+		else {
+			/* for some effectors we need the object center every time */
+			VecSubf(efd->vec_to_point2, point->loc, eff->ob->obmat[3]);
+			VECCOPY(efd->nor2, eff->ob->obmat[2]);
+			Normalize(efd->nor2);
+		}
+	}
+
+	return ret;
+}
+static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, int *tot, int *p)
+{
+	if(eff->pd->shape == PFIELD_SHAPE_POINTS) {
+		efd->index = p;
+
+		*p = 0;
+		*tot = eff->ob->derivedFinal ? eff->ob->derivedFinal->numVertData : 1;
+
+		if(*tot && eff->pd->forcefield == PFIELD_HARMONIC && point->index >= 0) {
+			*p = point->index % *tot;
+			*tot = *p+1;
+		}
+	}
+	else if(eff->psys) {
+		efd->index = p;
+
+		*p = 0;
+		*tot = eff->psys->totpart;
+		
+		if(eff->pd->forcefield == PFIELD_CHARGE) {
+			/* Only the charge of the effected particle is used for 
+			interaction, not fall-offs. If the fall-offs aren't the	
+			same this will be unphysical, but for animation this		
+			could be the wanted behavior. If you want physical
+			correctness the fall-off should be spherical 2.0 anyways.
+			*/
+			efd->charge = eff->pd->f_strength;
+		}
+		else if(eff->pd->forcefield == PFIELD_HARMONIC) {
+			/* every particle is mapped to only one harmonic effector particle */
+			*p= point->index % eff->psys->totpart;
+			*tot= *p + 1;
+		}
+	}
+	else {
+		*p = 0;
+		*tot = 1;
+	}
+}
+static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, float *total_force)
+{
+	TexResult result[4];
+	float tex_co[3], strength, force[3];
+	float nabla = eff->pd->tex_nabla;
+	int hasrgb;
+	short mode = eff->pd->tex_mode;
+
+	if(!eff->pd->tex)
 		return;
-	falloff *= visibility;
 
-	VecCopyf(eff_vel,eff_velocity);
-	Normalize(eff_vel);
+	result[0].nor = result[1].nor = result[2].nor = result[3].nor = 0;
 
-	switch(type){
+	strength= eff->pd->f_strength * efd->falloff;
+
+	VECCOPY(tex_co,point->loc);
+
+	if(eff->pd->flag & PFIELD_TEX_2D) {
+		float fac=-Inpf(tex_co, efd->nor);
+		VECADDFAC(tex_co, tex_co, efd->nor, fac);
+	}
+
+	if(eff->pd->flag & PFIELD_TEX_OBJECT) {
+		Mat4Mul3Vecfl(eff->ob->obmat, tex_co);
+	}
+
+	hasrgb = multitex_ext(eff->pd->tex, tex_co, NULL,NULL, 1, result);
+
+	if(hasrgb && mode==PFIELD_TEX_RGB) {
+		force[0] = (0.5f - result->tr) * strength;
+		force[1] = (0.5f - result->tg) * strength;
+		force[2] = (0.5f - result->tb) * strength;
+	}
+	else {
+		strength/=nabla;
+
+		tex_co[0] += nabla;
+		multitex_ext(eff->pd->tex, tex_co, NULL, NULL, 1, result+1);
+
+		tex_co[0] -= nabla;
+		tex_co[1] += nabla;
+		multitex_ext(eff->pd->tex, tex_co, NULL, NULL, 1, result+2);
+
+		tex_co[1] -= nabla;
+		tex_co[2] += nabla;
+		multitex_ext(eff->pd->tex, tex_co, NULL, NULL, 1, result+3);
+
+		if(mode == PFIELD_TEX_GRAD || !hasrgb) { /* if we dont have rgb fall back to grad */
+			force[0] = (result[0].tin - result[1].tin) * strength;
+			force[1] = (result[0].tin - result[2].tin) * strength;
+			force[2] = (result[0].tin - result[3].tin) * strength;
+		}
+		else { /*PFIELD_TEX_CURL*/
+			float dbdy, dgdz, drdz, dbdx, dgdx, drdy;
+
+			dbdy = result[2].tb - result[0].tb;
+			dgdz = result[3].tg - result[0].tg;
+			drdz = result[3].tr - result[0].tr;
+			dbdx = result[1].tb - result[0].tb;
+			dgdx = result[1].tg - result[0].tg;
+			drdy = result[2].tr - result[0].tr;
+
+			force[0] = (dbdy - dgdz) * strength;
+			force[1] = (drdz - dbdx) * strength;
+			force[2] = (dgdx - drdy) * strength;
+		}
+	}
+
+	if(eff->pd->flag & PFIELD_TEX_2D){
+		float fac = -Inpf(force, efd->nor);
+		VECADDFAC(force, force, efd->nor, fac);
+	}
+
+	VecAddf(total_force, total_force, force);
+}
+void do_physical_effector(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, float *total_force)
+{
+	PartDeflect *pd = eff->pd;
+	RNG *rng = pd->rng;
+	float force[3]={0,0,0};
+	float temp[3];
+	float fac;
+	float strength = pd->f_strength;
+	float damp = pd->f_damp;
+	float noise_factor = pd->f_noise;
+
+	if(noise_factor > 0.0f) {
+		strength += wind_func(rng, noise_factor);
+
+		if(ELEM(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG))
+			damp += wind_func(rng, noise_factor);
+	}
+
+	VECCOPY(force, efd->vec_to_point);
+
+	switch(pd->forcefield){
 		case PFIELD_WIND:
-			VECCOPY(mag_vec,eff_vel);
-			
-			// add wind noise here, only if we have wind
-			if((noise_factor > 0.0f) && (force_val > FLT_EPSILON))
-				noise = wind_func(rng, noise_factor);
-			
-			VecMulf(mag_vec,(force_val+noise)*falloff);
-			VecAddf(field,field,mag_vec);
+			VECCOPY(force, efd->nor);
+			VecMulf(force, strength * efd->falloff);
 			break;
-
 		case PFIELD_FORCE:
-			if(planar)
-				Projf(mag_vec,vec_to_part,eff_vel);
-			else
-				VecCopyf(mag_vec,vec_to_part);
-
-			Normalize(mag_vec);
-
-			VecMulf(mag_vec,force_val*falloff);
-			VecAddf(field,field,mag_vec);
+			Normalize(force);
+			VecMulf(force, strength * efd->falloff);
 			break;
-
 		case PFIELD_VORTEX:
-			Crossf(mag_vec,eff_vel,vec_to_part);
-
-			Normalize(mag_vec);
-
-			VecMulf(mag_vec,force_val*distance*falloff);
-			VecAddf(field,field,mag_vec);
-
+			/* old vortex force */
+			if(pd->shape == PFIELD_SHAPE_POINT) {
+				Crossf(force, efd->nor, efd->vec_to_point);
+				Normalize(force);
+				VecMulf(force, strength * efd->distance * efd->falloff);
+			}
+			else {
+				/* new vortex force */
+				Crossf(temp, efd->nor2, efd->vec_to_point2);
+				VecMulf(temp, strength * efd->falloff);
+				
+				Crossf(force, efd->nor2, temp);
+				VecMulf(force, strength * efd->falloff);
+				
+				VECADDFAC(temp, temp, point->vel, -point->vel_to_sec);
+				VecAddf(force, force, temp);
+			}
 			break;
 		case PFIELD_MAGNET:
-			if(planar)
-				VecCopyf(temp,eff_vel);
-			else
+			if(eff->pd->shape == PFIELD_SHAPE_POINT)
 				/* magnetic field of a moving charge */
-				Crossf(temp,eff_vel,vec_to_part);
+				Crossf(temp, efd->nor, efd->vec_to_point);
+			else
+				VecCopyf(temp, efd->nor);
 
 			Normalize(temp);
-
-			Crossf(temp2,velocity,temp);
-			VecAddf(mag_vec,mag_vec,temp2);
-
-			VecMulf(mag_vec,force_val*falloff);
-			VecAddf(field,field,mag_vec);
+			VecMulf(temp, strength * efd->falloff);
+			Crossf(force, point->vel, temp);
+			VecMulf(force, point->vel_to_sec);
 			break;
 		case PFIELD_HARMONIC:
-			if(planar)
-				Projf(mag_vec,vec_to_part,eff_vel);
-			else
-				VecCopyf(mag_vec,vec_to_part);
-
-			VecMulf(mag_vec,force_val*falloff);
-			VecSubf(field,field,mag_vec);
-
-			VecCopyf(mag_vec,velocity);
-			VecMulf(mag_vec,damp*2.0f*(float)sqrt(force_val));
-			VecSubf(field,field,mag_vec);
+			VecMulf(force, -strength * efd->falloff);
+			VecCopyf(temp, point->vel);
+			VecMulf(temp, -damp * 2.0f * (float)sqrt(fabs(strength)) * point->vel_to_sec);
+			VecAddf(force, force, temp);
 			break;
 		case PFIELD_CHARGE:
-			if(planar)
-				Projf(mag_vec,vec_to_part,eff_vel);
-			else
-				VecCopyf(mag_vec,vec_to_part);
-
-			Normalize(mag_vec);
-
-			VecMulf(mag_vec,charge*force_val*falloff);
-			VecAddf(field,field,mag_vec);
+			VecMulf(force, point->charge * strength * efd->falloff);
 			break;
 		case PFIELD_LENNARDJ:
-		{
-			float fac;
-
-			if(planar) {
-				Projf(mag_vec,vec_to_part,eff_vel);
-				distance = VecLength(mag_vec);
-			}
-			else
-				VecCopyf(mag_vec,vec_to_part);
-
-			/* at this distance the field is 60 times weaker than maximum */
-			if(distance > 2.22 * (size+pa_size))
-				break;
-
-			fac = pow((size+pa_size)/distance,6.0);
+			fac = pow((efd->size + point->size) / efd->distance, 6.0);
 			
-			fac = - fac * (1.0 - fac) / distance;
+			fac = - fac * (1.0 - fac) / efd->distance;
 
 			/* limit the repulsive term drastically to avoid huge forces */
 			fac = ((fac>2.0) ? 2.0 : fac);
 
-			/* 0.003715 is the fac value at 2.22 times (size+pa_size),
-			   substracted to avoid discontinuity at the border
-			*/
-			VecMulf(mag_vec, force_val * (fac-0.0037315));
-			VecAddf(field,field,mag_vec);
+			VecMulf(force, strength * fac);
 			break;
-		}
 		case PFIELD_BOID:
 			/* Boid field is handled completely in boids code. */
+			return;
+		case PFIELD_TURBULENCE:
+			if(pd->flag & PFIELD_GLOBAL_CO) {
+				VECCOPY(temp, point->loc);
+			}
+			else {
+				VECADD(temp, efd->vec_to_point2, efd->nor2);
+			}
+			force[0] = -1.0f + 2.0f * BLI_gTurbulence(pd->f_size, temp[0], temp[1], temp[2], 2,0,2);
+			force[1] = -1.0f + 2.0f * BLI_gTurbulence(pd->f_size, temp[1], temp[2], temp[0], 2,0,2);
+			force[2] = -1.0f + 2.0f * BLI_gTurbulence(pd->f_size, temp[2], temp[0], temp[1], 2,0,2);
+			VecMulf(force, strength * efd->falloff);
 			break;
+		case PFIELD_DRAG:
+			VECCOPY(force, point->vel);
+			fac = Normalize(force) * point->vel_to_sec;
+
+			strength = MIN2(strength, 2.0f);
+			damp = MIN2(damp, 2.0f);
+
+			VecMulf(force, -efd->falloff * fac * (strength * fac + damp));
+			break;
+	}
+
+	if(pd->flag & PFIELD_DO_LOCATION) {
+		VECADDFAC(total_force, total_force, force, 1.0f/point->vel_to_sec);
+
+		if(ELEM(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG)==0 && pd->f_flow != 0.0f) {
+			VECADDFAC(total_force, total_force, point->vel, -pd->f_flow * efd->falloff);
+		}
+	}
+
+	if(pd->flag & PFIELD_DO_ROTATION && point->ave && point->rot) {
+		float xvec[3] = {1.0f, 0.0f, 0.0f};
+		float dave[3];
+		QuatMulVecf(point->rot, xvec);
+		Crossf(dave, xvec, force);
+		if(pd->f_flow != 0.0f) {
+			VECADDFAC(dave, dave, point->ave, -pd->f_flow * efd->falloff);
+		}
+		VecAddf(point->ave, point->ave, dave);
 	}
 }
 
@@ -528,7 +960,7 @@ void do_physical_effector(Scene *scene, Object *ob, float *opco, short type, flo
 	guide		= old speed of particle
 
 */
-void pdDoEffectors(Scene *scene, ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags)
+void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *weights, EffectedPoint *point, float *force, float *impulse)
 {
 /*
 	Modifies the force on a particle according to its
@@ -543,43 +975,45 @@ void pdDoEffectors(Scene *scene, ListBase *lb, float *opco, float *force, float 
 		(particles are guided along a curve bezier or old nurbs)
 		(is independent of other effectors)
 */
-	Object *ob;
-	pEffectorCache *ec;
-	PartDeflect *pd;
-	
-	float distance, vec_to_part[3];
-	float falloff;
+	EffectorCache *eff;
+	EffectorData efd;
+	int p=0, tot = 1;
 
 	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
 	
-	for(ec = lb->first; ec; ec= ec->next) {
+	if(effectors) for(eff = effectors->first; eff; eff=eff->next) {
 		/* object effectors were fully checked to be OK to evaluate! */
-		ob= ec->ob;
-		pd= ob->pd;
-			
-		/* Get IPO force strength and fall off values here */
-		where_is_object_time(scene, ob, cur_time);
-			
-		/* use center of object for distance calculus */
-		VecSubf(vec_to_part, opco, ob->obmat[3]);
-		distance = VecLength(vec_to_part);
 
-		falloff=effector_falloff(pd,ob->obmat[2],vec_to_part);		
-		
-		if(falloff<=0.0f)
-			;	/* don't do anything */
-		else {
-			float field[3]={0,0,0}, tmp[3];
-			VECCOPY(field, force);
-			do_physical_effector(scene, ob, opco, pd->forcefield,pd->f_strength,distance,
-								falloff, pd->f_dist, pd->f_damp, ob->obmat[2], vec_to_part,
-								speed,force, pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise, 0.0f, 0.0f);
-			
-			// for softbody backward compatibility
-			if(flags & PE_WIND_AS_SPEED){
-				VECSUB(tmp, force, field);
-				VECSUB(speed, speed, tmp);
+		get_effector_tot(eff, &efd, point, &tot, &p);
+
+		for(; p<tot; p++) {
+			if(get_effector_data(eff, &efd, point, 0)) {
+				efd.falloff= effector_falloff(eff, &efd, point, weights);
+				
+				if(efd.falloff > 0.0f)
+					efd.falloff *= eff_calc_visibility(colliders, eff, &efd, point);
+
+				if(efd.falloff <= 0.0f)
+					;	/* don't do anything */
+				else if(eff->pd->forcefield == PFIELD_TEXTURE)
+					do_texture_effector(eff, &efd, point, force);
+				else {
+					float temp1[3]={0,0,0}, temp2[3];
+					VECCOPY(temp1, force);
+
+					do_physical_effector(eff, &efd, point, force);
+					
+					// for softbody backward compatibility
+					if(point->flag & PE_WIND_AS_SPEED && impulse){
+						VECSUB(temp2, force, temp1);
+						VECSUB(impulse, impulse, temp2);
+					}
+				}
+			}
+			else if(eff->flag & PE_VELOCITY_TO_IMPULSE && impulse) {
+				/* special case for harmonic effector */
+				VECADD(impulse, impulse, efd.vel);
 			}
 		}
 	}

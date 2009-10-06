@@ -87,11 +87,19 @@ def unpack_face_list(list_of_tuples):
 	l = []
 	for t in list_of_tuples:
 		face = [i for i in t]
+
 		if len(face) != 3 and len(face) != 4:
 			raise RuntimeError("{0} vertices in face.".format(len(face)))
+		
+		# rotate indices if the 4th is 0
+		if len(face) == 4 and face[3] == 0:
+			face = [face[3], face[0], face[1], face[2]]
+
 		if len(face) == 3:
 			face.append(0)
+			
 		l.extend(face)
+
 	return l
 
 def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
@@ -709,9 +717,9 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 	me.verts.extend(verts_loc)
 
 	# faces is a list of (vert_indices, texco_indices, ...) tuples
-	# XXX faces should not contain edges
+	# XXX faces should contain either 3 or 4 verts
 	# XXX no check for valid face indices
-	me.faces.foreach_set("verts", unpack_face_list([f[0] for f in faces]))
+	me.faces.foreach_set("verts_raw", unpack_face_list([f[0] for f in faces]))
 # 	face_mapping= me.faces.extend([f[0] for f in faces], indexList=True)
 	
 	if verts_tex and me.faces:
@@ -1568,7 +1576,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 	
 	__props__ = [
-		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= ""),
 
 		bpy.props.BoolProperty(attr="CREATE_SMOOTH_GROUPS", name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True),
 		bpy.props.BoolProperty(attr="CREATE_FGONS", name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True),
@@ -1592,10 +1600,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
 
-		if not self.filename:
-			raise Exception("filename not set")
-
-		load_obj(self.filename,
+		load_obj(self.path,
 				 context,
 				 self.CLAMP_SIZE,
 				 self.CREATE_FGONS,

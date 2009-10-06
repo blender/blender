@@ -909,7 +909,6 @@ static int acf_fillmatd_setting_flag(int setting, short *neg)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			*neg= 1;
 			return OB_ADS_SHOWMATS;
 		
 		default: /* unsupported */
@@ -953,7 +952,6 @@ static int acf_fillpartd_setting_flag(int setting, short *neg)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			*neg= 1;
 			return OB_ADS_SHOWPARTS;
 		
 		default: /* unsupported */

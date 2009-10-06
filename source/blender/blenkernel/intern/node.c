@@ -1953,6 +1953,7 @@ static void composit_end_exec(bNodeTree *ntree, int is_group)
 			if(ns->data) {
 				printf("freed leftover buffer from stack\n");
 				free_compbuf(ns->data);
+				ns->data= NULL;
 			}
 		}
 	}

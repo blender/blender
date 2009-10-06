@@ -88,12 +88,12 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_previewrender.h"
+#include "ED_render.h"
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
 
-#include "previewrender_intern.h"
+#include "render_intern.h"
 
 #define PR_XMIN		10
 #define PR_YMIN		5
@@ -115,7 +115,7 @@ typedef struct ShaderPreview {
 	MTex *slot;
 	
 	int sizex, sizey;
-	int *pr_rect;
+	unsigned int *pr_rect;
 	int pr_method;
 	
 } ShaderPreview;
@@ -294,6 +294,14 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		}
 		
 		sce->r.color_mgt_flag = scene->r.color_mgt_flag;
+		/* exception: don't color manage texture previews or icons */
+		if((sp && sp->pr_method==PR_ICON_RENDER) || id_type == ID_TE)
+			sce->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT;
+		if((sp && sp->pr_method==PR_ICON_RENDER) && id_type != ID_WO)
+			sce->r.alphamode= R_ALPHAPREMUL;
+		else
+			sce->r.alphamode= R_ADDSKY;
+
 		sce->r.cfra= scene->r.cfra;
 		
 		if(id_type==ID_MA) {
@@ -326,6 +334,19 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 						}
 					}
 				}
+				
+				/* turn off bounce lights for volume, 
+				 * doesn't make much visual difference and slows it down too */
+				if(mat->material_type == MA_TYPE_VOLUME) {
+					for(base= sce->base.first; base; base= base->next) {
+						if(base->object->type == OB_LAMP) {
+							/* if doesn't match 'Lamp.002' --> main key light */
+							if( strcmp(base->object->id.name+2, "Lamp.002") != 0 ) {
+								base->object->restrictflag |= OB_RESTRICT_RENDER;
+							}
+						}
+					}
+				}
 
 				
 				if(sp->pr_method==PR_ICON_RENDER) {
@@ -355,6 +376,8 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 
 						if(matar && actcol < base->object->totcol)
 							(*matar)[actcol]= mat;
+					} else if (base->object->type == OB_LAMP) {
+						base->object->restrictflag &= ~OB_RESTRICT_RENDER;
 					}
 				}
 			}
@@ -363,9 +386,6 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			Tex *tex= (Tex *)id;
 			
 			sce->lay= 1<<MA_TEXTURE;
-			
-			/* exception: don't color manage texture previews */
-			sce->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT;
 			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='t') {
@@ -426,6 +446,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 /* uses ROUNDBOX button in block to get the rect */
 static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int first, rcti *rect, rcti *newrect)
 {
+	Render *re;
 	RenderResult rres;
 	char name[32];
 	int gamma_correct=0;
@@ -450,7 +471,8 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		}
 	}
 
-	RE_GetResultImage(RE_GetRender(name), &rres);
+	re= RE_GetRender(name);
+	RE_AcquireResultImage(re, &rres);
 
 	if(rres.rectf) {
 		
@@ -462,10 +484,13 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 			glTranslatef(offx, 0, 0);
 			glaDrawPixelsSafe_to32(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
 			glPopMatrix();
+
+			RE_ReleaseResultImage(re);
 			return 1;
 		}
 	}
 
+	RE_ReleaseResultImage(re);
 	return 0;
 }
 
@@ -507,6 +532,12 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy);
 		}
 	}	
+}
+
+/* ******************************** Icon Preview **************************** */
+
+void ED_preview_icon_draw(const bContext *C, void *idp, void *arg1, void *arg2, rcti *rect)
+{
 }
 
 /* *************************** Preview for 3d window *********************** */
@@ -819,7 +850,7 @@ void BIF_view3d_previewdraw(struct ScrArea *sa, struct uiBlock *block)
 }
 
 
-/* **************************** New preview system ****************** */
+/* **************************** new shader preview system ****************** */
 
 /* inside thread, called by renderer, sets job update value */
 static void shader_preview_draw(void *spv, RenderResult *rr, volatile struct rcti *rect)
@@ -906,7 +937,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	/* handle results */
 	if(sp->pr_method==PR_ICON_RENDER) {
 		if(sp->pr_rect)
-			RE_ResultGet32(re, (unsigned int *)sp->pr_rect);
+			RE_ResultGet32(re, sp->pr_rect);
 	}
 	else {
 		/* validate owner */
@@ -919,7 +950,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	preview_prepare_scene(sp->scene, NULL, GS(id->name), NULL);
 }
 
-/* runs inside thread for material, in foreground for icons */
+/* runs inside thread for material and icons */
 static void shader_preview_startjob(void *customdata, short *stop, short *do_update)
 {
 	ShaderPreview *sp= customdata;
@@ -944,20 +975,162 @@ static void shader_preview_free(void *customdata)
 	MEM_freeN(sp);
 }
 
+/* ************************* icon preview ********************** */
+
+static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned int *rect)
+{
+	struct ImBuf *ima;
+	unsigned int *drect, *srect;
+	float scaledx, scaledy;
+	short ex, ey, dx, dy;
+
+	/* paranoia test */
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
+		return;
+	
+	/* waste of cpu cyles... but the imbuf API has no other way to scale fast (ton) */
+	ima = IMB_dupImBuf(ibuf);
+	
+	if (!ima) 
+		return;
+	
+	if (ima->x > ima->y) {
+		scaledx = (float)w;
+		scaledy =  ( (float)ima->y/(float)ima->x )*(float)w;
+	}
+	else {			
+		scaledx =  ( (float)ima->x/(float)ima->y )*(float)h;
+		scaledy = (float)h;
+	}
+	
+	ex = (short)scaledx;
+	ey = (short)scaledy;
+	
+	dx = (w - ex) / 2;
+	dy = (h - ey) / 2;
+	
+	IMB_scalefastImBuf(ima, ex, ey);
+	
+	/* if needed, convert to 32 bits */
+	if(ima->rect==NULL)
+		IMB_rect_from_float(ima);
+
+	srect = ima->rect;
+	drect = rect;
+
+	drect+= dy*w+dx;
+	for (;ey > 0; ey--){		
+		memcpy(drect,srect, ex * sizeof(int));
+		drect += w;
+		srect += ima->x;
+	}
+
+	IMB_freeImBuf(ima);
+}
+
+static void set_alpha(char *cp, int sizex, int sizey, char alpha) 
+{
+	int a, size= sizex*sizey;
+
+	for(a=0; a<size; a++, cp+=4)
+		cp[3]= alpha;
+}
+
+static void icon_preview_startjob(void *customdata, short *stop, short *do_update)
+{
+	ShaderPreview *sp= customdata;
+	ID *id= sp->id;
+	short idtype= GS(id->name);
+
+	if(idtype == ID_IM) {
+		Image *ima= (Image*)id;
+		ImBuf *ibuf= NULL;
+		ImageUser iuser;
+
+		/* ima->ok is zero when Image cannot load */
+		if(ima==NULL || ima->ok==0)
+			return;
+
+		/* setup dummy image user */
+		memset(&iuser, 0, sizeof(ImageUser));
+		iuser.ok= iuser.framenr= 1;
+		iuser.scene= sp->scene;
+		
+		/* elubie: this needs to be changed: here image is always loaded if not
+		   already there. Very expensive for large images. Need to find a way to 
+		   only get existing ibuf */
+		ibuf = BKE_image_get_ibuf(ima, &iuser);
+		if(ibuf==NULL || ibuf->rect==NULL)
+			return;
+		
+		icon_copy_rect(ibuf, sp->sizex, sp->sizey, sp->pr_rect);
+
+		*do_update= 1;
+	}
+	else {
+		/* re-use shader job */
+		shader_preview_startjob(customdata, stop, do_update);
+
+		/* world is rendered with alpha=0, so it wasn't displayed 
+		   this could be render option for sky to, for later */
+		if(idtype == ID_WO) {
+			set_alpha((char*)sp->pr_rect, sp->sizex, sp->sizey, 255);
+		}
+		else if(idtype == ID_MA) {
+			Material* ma = (Material*)id;
+
+			if(ma->material_type == MA_TYPE_HALO)
+				set_alpha((char*)sp->pr_rect, sp->sizex, sp->sizey, 255);
+		}
+	}
+}
+
+/* use same function for icon & shader, so the job manager
+   does not run two of them at the same time. */
+
+static void common_preview_startjob(void *customdata, short *stop, short *do_update)
+{
+	ShaderPreview *sp= customdata;
+
+	if(sp->pr_method == PR_ICON_RENDER)
+		icon_preview_startjob(customdata, stop, do_update);
+	else
+		shader_preview_startjob(customdata, stop, do_update);
+}
+
+/* exported functions */
+
+void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *rect, int sizex, int sizey)
+{
+	wmJob *steve;
+	ShaderPreview *sp;
+
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, WM_JOB_EXCL_RENDER);
+	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
+
+	/* customdata for preview thread */
+	sp->scene= CTX_data_scene(C);
+	sp->owner= id;
+	sp->sizex= sizex;
+	sp->sizey= sizey;
+	sp->pr_method= PR_ICON_RENDER;
+	sp->pr_rect= rect;
+	sp->id = id;
+	
+	/* setup job */
+	WM_jobs_customdata(steve, sp, shader_preview_free);
+	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
+	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL);
+	
+	WM_jobs_start(CTX_wm_manager(C), steve);
+}
+
 void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, MTex *slot, int sizex, int sizey)
 {
 	wmJob *steve;
 	ShaderPreview *sp;
 
-	/* XXX ugly global still, but we can't do preview while rendering */
-	if(G.rendering)
-		return;
-	
-	if(GS(id->name) == ID_TE) {
-		ntreeTexSetPreviewFlag(1);
-	}
-	
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, WM_JOB_EXCL_RENDER);
 	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
 
 	/* customdata for preview thread */
@@ -973,34 +1146,9 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
-	WM_jobs_callbacks(steve, shader_preview_startjob, NULL, shader_preview_updatejob);
+	WM_jobs_callbacks(steve, common_preview_startjob, NULL, shader_preview_updatejob);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
-	
-	/* signal to rerender icon in menus */
-	BKE_icon_changed(BKE_icon_getid(id));
 }
-
-/* rect should be allocated, sizex/sizy pixels, 32 bits */
-void ED_preview_iconrender(Scene *scene, ID *id, unsigned int *rect, int sizex, int sizey)
-{
-	ShaderPreview *sp;
-	short stop=0, do_update=0;
-
-	sp= MEM_callocN(sizeof(ShaderPreview), "ShaderPreview");
-	
-	/* customdata for preview thread */
-	sp->scene= scene;
-	sp->sizex= sizex;
-	sp->sizey= sizey;
-	sp->pr_method= PR_ICON_RENDER;
-	sp->pr_rect= (int *)rect; /* shouldnt pr_rect be unsigned int also? - Campbell */
-	sp->id = id;
-
-	shader_preview_startjob(sp, &stop, &do_update);
-	
-	MEM_freeN(sp);
-}
-
 
 

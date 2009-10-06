@@ -271,7 +271,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\include\ED_previewrender.h"
+				RelativePath="..\..\..\source\blender\editors\include\ED_render.h"
 				>
 			</File>
 			<File
@@ -1220,11 +1220,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\mesh_intern.h"
+				RelativePath="..\..\..\source\blender\editors\mesh\mesh_data.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\mesh_layers.c"
+				RelativePath="..\..\..\source\blender\editors\mesh\mesh_intern.h"
 				>
 			</File>
 			<File
@@ -1421,38 +1421,34 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="preview"
-			>
-			<File
-				RelativePath="..\..\..\source\blender\editors\preview\previewrender.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\preview\previewrender_intern.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="physics"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\physics\ed_fluidsim.c"
+				RelativePath="..\..\..\source\blender\editors\physics\particle_boids.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\physics\ed_pointcache.c"
+				RelativePath="..\..\..\source\blender\editors\physics\particle_edit.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\physics\editparticle.c"
+				RelativePath="..\..\..\source\blender\editors\physics\particle_object.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\physics\physics_boids.c"
+				RelativePath="..\..\..\source\blender\editors\physics\physics_fluid.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\physics\physics_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\physics\physics_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\physics\physics_pointcache.c"
 				>
 			</File>
 		</Filter>
@@ -1545,6 +1541,26 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\sound\sound_ops.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="render"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_preview.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_shading.c"
 				>
 			</File>
 		</Filter>
