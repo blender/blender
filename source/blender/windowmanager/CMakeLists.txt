@@ -38,6 +38,7 @@ SET(INC .
 	../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
 	../nodes
 	../gpu
+	../freestyle
 	../blenfont
 	${OPENGL_INCLUDE_DIR}
 )
@@ -69,6 +70,10 @@ ENDIF(WITH_PYTHON)
 IF(WIN32)
 	SET(INC ${INC} ${PTHREADS_INC})
 ENDIF(WIN32)
+
+IF(WITH_COCOA)
+	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/wm_apple.c")
+ENDIF(WITH_COCOA)
 
 # TODO buildinfo
 IF(BF_BUILDINFO)

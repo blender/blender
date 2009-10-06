@@ -89,6 +89,8 @@
 
 #include "GPU_draw.h"
 
+#include "FRS_freestyle.h"
+
 // XXX #include "BPY_extern.h"
 
 #include "WM_api.h"
