@@ -2481,6 +2481,34 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	BLI_dynstr_free(ds);
 }
 
+void uiPupMenuInvoke(bContext *C, const char *idname, int spacetype)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	MenuType *mt= BKE_spacemenu_find(idname, spacetype);
+
+	if(mt==NULL) {
+		printf("uiPupMenuInvoke: named menu \"%s\" not found\n", idname);
+		return;
+	}
+
+	if(mt->poll && mt->poll(C, mt)==0)
+		return;
+
+	pup= uiPupMenuBegin(C, mt->label, 0);
+	layout= uiPupMenuLayout(pup);
+
+	Menu menu;
+
+	menu.layout= layout;
+	menu.type= mt;
+
+	mt->draw(C, &menu);
+
+	uiPupMenuEnd(C, pup);
+}
+
+
 /*************************** Popup Block API **************************/
 
 void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, int opcontext)

@@ -139,7 +139,7 @@ typedef struct SpaceSeq {
 	View2D v2d; /* deprecated, copied to region */
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb;
+	short mainb;	/* weird name for the sequencer subtype (seq, image, luma... etc) */
 	short render_size;
 	short chanshown;
 	short zebra;

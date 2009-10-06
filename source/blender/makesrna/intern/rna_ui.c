@@ -381,13 +381,9 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 		return NULL;
 
 	/* check if we have registered this menu type before, and remove it */
-	for(mt=art->menutypes.first; mt; mt=mt->next) {
-		if(strcmp(mt->idname, dummymt.idname) == 0) {
-			if(mt->ext.srna)
-				rna_Menu_unregister(C, mt->ext.srna);
-			break;
-		}
-	}
+	mt= BKE_spacemenu_find(dummymt.idname, dummymt.space_type);
+	if(mt && mt->ext.srna)
+		rna_Menu_unregister(C, mt->ext.srna);
 	
 	/* create a new menu type */
 	mt= MEM_callocN(sizeof(MenuType), "python buttons menu");
