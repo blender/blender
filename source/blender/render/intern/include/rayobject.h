@@ -35,6 +35,7 @@ extern "C" {
 
 #include "RE_raytrace.h"
 #include "render_types.h"
+#include <stdio.h>
 #include <float.h>
 
 
@@ -174,11 +175,10 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 
 
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_WIN64)
 
 #include <sys/time.h>
 #include <time.h>
-#include <stdio.h>
 
 #define BENCH(a,name)	\
 	do {			\
@@ -194,7 +194,7 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 	} while(0)
 #else
 
-#define BENCH(a)	(a)
+#define BENCH(a,name)	(a)
 
 #endif
 

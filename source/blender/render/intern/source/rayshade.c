@@ -25,6 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
