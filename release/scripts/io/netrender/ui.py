@@ -234,18 +234,21 @@ NetRenderSettings.BoolProperty( attr="server_broadcast",
 				description="broadcast server address on local network",
 				default = True)
 
-if os.name == 'nt':
-	NetRenderSettings.StringProperty( attr="path",
-					name="Path",
-					description="Path for temporary files",
-					maxlen = 128,
-					default = "C:/tmp/")
-else:
-	NetRenderSettings.StringProperty( attr="path",
-					name="Path",
-					description="Path for temporary files",
-					maxlen = 128,
-					default = "/tmp/")
+default_path = os.environ.get("TEMP", None)
+
+if not default_path:
+	if os.name == 'nt':
+		default_path = "c:/tmp/"
+	else:
+		default_path = "/tmp/"
+elif not default_path.endswith(os.sep):
+	default_path += os.sep
+
+NetRenderSettings.StringProperty( attr="path",
+				name="Path",
+				description="Path for temporary files",
+				maxlen = 128,
+				default = default_path)
 
 NetRenderSettings.StringProperty( attr="job_name",
 				name="Job name",
