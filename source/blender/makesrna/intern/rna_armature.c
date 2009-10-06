@@ -380,6 +380,11 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_CYCLICOFFSET);
 	RNA_def_property_ui_text(prop, "Cyclic Offset", "When bone doesn't have a parent, it receives cyclic offset effects.");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	
+	prop= RNA_def_property(srna, "selectable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_UNSELECTABLE);
+	RNA_def_property_ui_text(prop, "Selectable", "Bone is able to be selected");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* Number values */
 		/* envelope deform settings */

@@ -543,7 +543,7 @@ void pose_select_constraint_target(Scene *scene)
 						for (ct= targets.first; ct; ct= ct->next) {
 							if ((ct->tar == ob) && (ct->subtarget[0])) {
 								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-								if(pchanc)
+								if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE))
 									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 							}
 						}
@@ -582,7 +582,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *op)
 						for (ct= targets.first; ct; ct= ct->next) {
 							if ((ct->tar == ob) && (ct->subtarget[0])) {
 								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-								if(pchanc) {
+								if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
 									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 									found= 1;
 								}
@@ -634,7 +634,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		curbone= pchan->bone;
 		
-		if (arm->layer & curbone->layer) {
+		if ((arm->layer & curbone->layer) && (curbone->flag & BONE_UNSELECTABLE)==0) {
 			if (curbone->flag & (BONE_ACTIVE)) {
 				if (direction == BONE_SELECT_PARENT) {
 				
@@ -646,7 +646,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						curbone->flag &= ~BONE_ACTIVE;
 						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED);
-
+						
 						found= 1;
 						break;
 					}
@@ -660,7 +660,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						curbone->flag &= ~BONE_ACTIVE;
 						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED);
-
+						
 						found= 1;
 						break;
 					}
