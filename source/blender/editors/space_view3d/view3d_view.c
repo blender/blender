@@ -443,10 +443,12 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 	if(BASACT) {
 		rv3d->persp= V3D_CAMOB;
 		v3d->camera= OBACT;
+		if(v3d->scenelock)
+			scene->camera= OBACT;
 		smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT|ND_DRAW, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
