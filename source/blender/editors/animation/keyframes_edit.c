@@ -36,9 +36,15 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
@@ -46,6 +52,7 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
+#include "BKE_material.h"
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
@@ -195,14 +202,100 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 		return 0;
 	
 	/* firstly, Object's own AnimData */
-	if (ob->adt) 
-		adt_keys_bezier_loop(bed, ob->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	if (ob->adt) {
+		if (adt_keys_bezier_loop(bed, ob->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
 	
 	/* shapekeys */
-	if ((key && key->adt) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
-		adt_keys_bezier_loop(bed, key->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	if ((key && key->adt) && !(filterflag & ADS_FILTER_NOSHAPEKEYS)) {
+		if (adt_keys_bezier_loop(bed, key->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
 		
-	// FIXME: add materials, etc. (but drawing code doesn't do it yet too! :)
+	/* Add material keyframes */
+	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
+		int a;
+		
+		for (a=0; a < ob->totcol; a++) {
+			Material *ma= give_current_material(ob, a);
+			
+			/* there might not be a material */
+			if (ELEM(NULL, ma, ma->adt)) 
+				continue;
+			
+			/* add material's data */
+			if (adt_keys_bezier_loop(bed, ma->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				return 1;
+		}
+	}
+	
+	/* Add object data keyframes */
+	switch (ob->type) {
+		case OB_CAMERA: /* ------- Camera ------------ */
+		{
+			Camera *ca= (Camera *)ob->data;
+			
+			if ((ca->adt) && !(filterflag & ADS_FILTER_NOCAM)) {
+				if (adt_keys_bezier_loop(bed, ca->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_LAMP: /* ---------- Lamp ----------- */
+		{
+			Lamp *la= (Lamp *)ob->data;
+			
+			if ((la->adt) && !(filterflag & ADS_FILTER_NOLAM)) {
+				if (adt_keys_bezier_loop(bed, la->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_CURVE: /* ------- Curve ---------- */
+		{
+			Curve *cu= (Curve *)ob->data;
+			
+			if ((cu->adt) && !(filterflag & ADS_FILTER_NOCUR)) {
+				if (adt_keys_bezier_loop(bed, cu->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_MBALL: /* ------- MetaBall ---------- */
+		{
+			MetaBall *mb= (MetaBall *)ob->data;
+			
+			if ((mb->adt) && !(filterflag & ADS_FILTER_NOMBA)) {
+				if (adt_keys_bezier_loop(bed, mb->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_ARMATURE: /* ------- Armature ---------- */
+		{
+			bArmature *arm= (bArmature *)ob->data;
+			
+			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) {
+				if (adt_keys_bezier_loop(bed, arm->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+	}
+	
+	/* Add Particle System Keyframes */
+	if ((ob->particlesystem.first) && !(filterflag & ADS_FILTER_NOPART)) {
+		ParticleSystem *psys = ob->particlesystem.first;
+		
+		for(; psys; psys=psys->next) {
+			if (ELEM(NULL, psys->part, psys->part->adt))
+				continue;
+				
+			if (adt_keys_bezier_loop(bed, psys->part->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				return 1;
+		}
+	}
 	
 	return 0;
 }

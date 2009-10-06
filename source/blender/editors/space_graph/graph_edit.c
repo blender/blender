@@ -1332,12 +1332,8 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 		 *	- only rotation curves
 		 *	- for pchan curves, make sure we're only using the euler curves
 		 */
-		if (ELEM(0, fcu->rna_path, strstr(fcu->rna_path, "rotation")))
+		if (strstr(fcu->rna_path, "rotation_euler") == 0)
 			continue;
-		if (strstr(fcu->rna_path, "pose.pose_channels")) {
-			if (strstr(fcu->rna_path, "rotation_euler") == 0)
-				continue;
-		}
 		
 		/* check if current set of 3-curves is suitable to add this curve to 
 		 *	- things like whether the current set of curves is 'full' should be checked later only
