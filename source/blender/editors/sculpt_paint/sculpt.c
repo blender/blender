@@ -1099,8 +1099,18 @@ static struct MultiresModifierData *sculpt_multires_active(Object *ob)
 	ModifierData *md;
 	
 	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
-		if(md->type == eModifierType_Multires && !md->next) {
-			MultiresModifierData *mmd = (MultiresModifierData*)md;
+		if(md->type == eModifierType_Multires) {
+			MultiresModifierData *mmd;
+
+			/* Check if any of the modifiers after multires are active
+			 * if not it can use the multires struct */
+			ModifierData *md_next;
+			for (md_next= md->next; md_next; md_next= md_next->next) {
+				if(md_next->mode & eModifierMode_Realtime)
+					return NULL;
+			}
+
+			mmd = (MultiresModifierData*)md;
 			if(mmd->lvl != 1)
 				return mmd;
 		}
