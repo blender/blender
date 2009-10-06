@@ -434,6 +434,38 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	if(BASACT) {
+		rv3d->persp= V3D_CAMOB;
+		v3d->camera= OBACT;
+		smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Set Active Object as Camera";
+	ot->description= "Set the active object as the active camera for this view or scene.";
+	ot->idname= "VIEW3D_OT_object_as_camera";
+	
+	/* api callbacks */
+	ot->exec= view3d_setobjectascamera_exec;	
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 /* ********************************** */
 
 /* create intersection coordinates in view Z direction at mouse coordinates */
