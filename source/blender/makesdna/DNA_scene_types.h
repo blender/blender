@@ -167,6 +167,8 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
 #define SCE_PASS_MIST		16384
 
+#define SCE_PASS_RAYHITS	32768
+
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
 
@@ -240,9 +242,23 @@ typedef struct RenderData {
 	 */
 	int mode;
 
-	/* render engine (deprecated), octree resolution */
-	short renderer, ocres;
+	/**
+	 * Flags for raytrace settings. Use bit-masking to access the settings.
+	 */
+	int raytrace_options;
+	
+	/**
+	 * Raytrace acceleration structure
+	 */
+	short raytrace_structure;
 
+	/* renderer (deprecated) */
+	short renderer;
+
+	/* octree resolution */
+	short ocres;
+	short pad4;
+	
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
 	 * blending for the background
@@ -255,6 +271,7 @@ typedef struct RenderData {
 	short osa;
 
 	short frs_sec, edgeint;
+
 	
 	/* safety, border and display rect */
 	rctf safety, border;
@@ -803,6 +820,18 @@ typedef struct Scene {
 /* yafray: renderer flag (not only exclusive to yafray) */
 #define R_INTERN	0
 #define R_YAFRAY	1
+
+/* raytrace structure */
+#define R_RAYSTRUCTURE_AUTO				0
+#define R_RAYSTRUCTURE_OCTREE			1
+#define R_RAYSTRUCTURE_BLIBVH			2
+#define R_RAYSTRUCTURE_VBVH				3
+#define R_RAYSTRUCTURE_SIMD_SVBVH		4	/* needs SIMD */
+#define R_RAYSTRUCTURE_SIMD_QBVH		5	/* needs SIMD */
+
+/* raytrace_options */
+#define R_RAYTRACE_USE_LOCAL_COORDS		0x0001
+#define R_RAYTRACE_USE_INSTANCES		0x0002
 
 /* scemode (int now) */
 #define R_DOSEQ				0x0001

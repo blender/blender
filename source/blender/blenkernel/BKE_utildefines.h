@@ -75,6 +75,14 @@
 
 #define INIT_MINMAX2(min, max) { (min)[0]= (min)[1]= 1.0e30f; (max)[0]= (max)[1]= -1.0e30f; }
 
+#define DO_MIN(vec, min) { if( (min)[0]>(vec)[0] ) (min)[0]= (vec)[0];      \
+							  if( (min)[1]>(vec)[1] ) (min)[1]= (vec)[1];   \
+							  if( (min)[2]>(vec)[2] ) (min)[2]= (vec)[2]; } \
+
+#define DO_MAX(vec, max) { if( (max)[0]<(vec)[0] ) (max)[0]= (vec)[0];		\
+							  if( (max)[1]<(vec)[1] ) (max)[1]= (vec)[1];	\
+							  if( (max)[2]<(vec)[2] ) (max)[2]= (vec)[2]; } \
+
 #define DO_MINMAX(vec, min, max) { if( (min)[0]>(vec)[0] ) (min)[0]= (vec)[0]; \
 							  if( (min)[1]>(vec)[1] ) (min)[1]= (vec)[1]; \
 							  if( (min)[2]>(vec)[2] ) (min)[2]= (vec)[2]; \

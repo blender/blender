@@ -179,8 +179,13 @@ class SCENE_PT_performance(RenderButtonsPanel):
 		sub.itemR(rd, "free_image_textures")
 		sub = col.column()
 		sub.active = rd.render_raytracing
-		sub.itemL(text="Ray Tracing Octree:")
-		sub.itemR(rd, "octree_resolution", text="")
+		sub.itemL(text="Acceleration structure:")
+		sub.itemR(rd, "raytrace_structure", text="")
+		if rd.raytrace_structure == "OCTREE":
+			sub.itemR(rd, "octree_resolution", text="Resolution")
+		else:
+			sub.itemR(rd, "use_instances", text="Instances")
+		sub.itemR(rd, "use_local_coords", text="Local Coordinates")
 
 class SCENE_PT_post_processing(RenderButtonsPanel):
 	__label__ = "Post Processing"

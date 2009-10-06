@@ -358,6 +358,13 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==-1) return "Mist";
 		return "Mist.Z";
 	}
+	if(passtype == SCE_PASS_RAYHITS)
+	{
+		if(channel==-1) return "Rayhits";
+		if(channel==0) return "Rayhits.R";
+		if(channel==1) return "Rayhits.G";
+		return "Rayhits.B";
+	}
 	return "Unknown";
 }
 
@@ -409,6 +416,8 @@ static int passtype_from_name(char *str)
 	if(strcmp(str, "Mist")==0)
 		return SCE_PASS_MIST;
 	
+	if(strcmp(str, "RAYHITS")==0)
+		return SCE_PASS_RAYHITS;
 	return 0;
 }
 
@@ -536,7 +545,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl->lay= srl->lay;
 		rl->lay_zmask= srl->lay_zmask;
 		rl->layflag= srl->layflag;
-		rl->passflag= srl->passflag;
+		rl->passflag= srl->passflag | SCE_PASS_RAYHITS;
 		rl->pass_xor= srl->pass_xor;
 		rl->light_override= srl->light_override;
 		rl->mat_override= srl->mat_override;
@@ -580,6 +589,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		if(srl->passflag  & SCE_PASS_MIST)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST);
+		if(rl->passflag  & SCE_PASS_RAYHITS)
+			render_layer_add_pass(rr, rl, 4, SCE_PASS_RAYHITS);
 		
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */

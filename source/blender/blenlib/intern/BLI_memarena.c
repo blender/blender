@@ -45,6 +45,7 @@ struct MemArena {
 	int bufsize, cursize;
 	
 	int use_calloc;	
+	int align;
 	
 	LinkNode *bufs;
 };
@@ -52,6 +53,7 @@ struct MemArena {
 MemArena *BLI_memarena_new(int bufsize) {
 	MemArena *ma= MEM_callocN(sizeof(*ma), "memarena");
 	ma->bufsize= bufsize;
+	ma->align = 8;
 	
 	return ma;
 }
@@ -62,6 +64,11 @@ void BLI_memarena_use_calloc(MemArena *ma) {
 
 void BLI_memarena_use_malloc(MemArena *ma) {
 	ma->use_calloc= 0;
+}
+
+void BLI_memarena_use_align(struct MemArena *ma, int align) {
+	/* align should be a power of two */
+	ma->align = align;
 }
 
 void BLI_memarena_free(MemArena *ma) {
@@ -77,16 +84,28 @@ void *BLI_memarena_alloc(MemArena *ma, int size) {
 
 		/* ensure proper alignment by rounding
 		 * size up to multiple of 8 */	
-	size= PADUP(size, 8);
+	size= PADUP(size, ma->align);
 	
 	if (size>ma->cursize) {
-		ma->cursize= (size>ma->bufsize)?size:ma->bufsize;
+		unsigned char *tmp;
+		
+		if(size > ma->bufsize - (ma->align - 1))
+		{
+			ma->cursize = PADUP(size+1, ma->align);
+		}
+		else ma->cursize = ma->bufsize;
+
 		if(ma->use_calloc)
 			ma->curbuf= MEM_callocN(ma->cursize, "memarena calloc");
 		else
 			ma->curbuf= MEM_mallocN(ma->cursize, "memarena malloc");
 		
 		BLI_linklist_prepend(&ma->bufs, ma->curbuf);
+
+		/* align alloc'ed memory (needed if align > 8) */
+		tmp = (unsigned char*)PADUP( (intptr_t) ma->curbuf, ma->align);
+		ma->cursize -= (tmp - ma->curbuf);
+		ma->curbuf = tmp;		
 	}
 	
 	ptr= ma->curbuf;
@@ -95,3 +114,4 @@ void *BLI_memarena_alloc(MemArena *ma, int size) {
 	
 	return ptr;
 }
+

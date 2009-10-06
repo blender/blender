@@ -73,18 +73,6 @@ inline float luminance(float* col)
 }
 
 /* tracing */
-
-static int vlr_check_intersect_solid(Isect *is, int ob, RayFace *face)
-{
-	VlakRen *vlr = (VlakRen*)face;
-	
-	/* solid material types only */
-	if (vlr->mat->material_type == MA_TYPE_SURFACE)
-		return 1;
-	else
-		return 0;
-}
-
 static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 {
 	float visibility = 1.f;
@@ -97,42 +85,42 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 	} else if (lar->mode & LA_SHAD_RAY) {
 		/* trace shadow manually, no good lamp api atm */
 		Isect is;
-		const float maxsize = RE_ray_tree_max_size(R.raytree);
-		
 		
 		VecCopyf(is.start, co);
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
-			is.end[0] = co[0] - lar->vec[0] * maxsize;
-			is.end[1] = co[1] - lar->vec[1] * maxsize;
-			is.end[2] = co[2] - lar->vec[2] * maxsize;
+			is.vec[0] = -lar->vec[0];
+			is.vec[1] = -lar->vec[1];
+			is.vec[2] = -lar->vec[2];
+			is.labda = R.maxdist;
 		} else {
-			VecCopyf(is.end, lar->co);
+			VECSUB( is.vec, lar->co, is.start );
+			is.labda = VecLength( is.vec );
 		}
 
-		is.mode= RE_RAY_MIRROR;
+		is.mode = RE_RAY_MIRROR;
+		is.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK | RE_SKIP_VLR_NON_SOLID_MATERIAL;
+		
 		if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
 			is.lay= lar->lay;	
 		else
 			is.lay= -1;
-		is.face_last= (RayFace*)lar->vlr_last[shi->thread];
-		is.ob_last= RAY_OBJECT_SET(&R, lar->obi_last[shi->thread]);
-		is.faceorig= NULL;
-		is.oborig= RAY_OBJECT_SET(&R, shi->obi);
+			
+		is.last_hit = NULL;
+		is.orig.ob = (void*)shi->obi;
+		is.orig.face = NULL;
+		is.last_hit = lar->last_hit[shi->thread];
 		
-		if(RE_ray_tree_intersect_check(R.raytree, &is, vlr_check_intersect_solid)) {
+		if(RE_rayobject_raycast(R.raytree,&is)) {
 			visibility = 0.f;
 		}
 		
-		lar->vlr_last[shi->thread]= (VlakRen*)is.face_last;
-		lar->obi_last[shi->thread]= RAY_OBJECT_GET(&R, is.ob_last);
+		lar->last_hit[shi->thread]= is.last_hit;
 	}
 	return visibility;
 }
 
 static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type)
 {
-	float maxsize = RE_ray_tree_max_size(R.raytree);
-	
 	/* XXX TODO - get raytrace max distance from object instance's bounding box */
 	/* need to account for scaling only, but keep coords in camera space...
 	 * below code is WIP and doesn't work!
@@ -142,20 +130,23 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	*/
 	
 	VECCOPY(isect->start, co);
+	VECCOPY(isect->vec, vec );
+	isect->labda = FLT_MAX;
+	/*
 	isect->end[0] = co[0] + vec[0] * maxsize;
 	isect->end[1] = co[1] + vec[1] * maxsize;
 	isect->end[2] = co[2] + vec[2] * maxsize;
+	*/
 	
 	isect->mode= RE_RAY_MIRROR;
-	isect->oborig= RAY_OBJECT_SET(&R, shi->obi);
-	isect->face_last= NULL;
-	isect->ob_last= 0;
+	isect->orig.ob = (void*)shi->obi;
+	isect->last_hit = NULL;
 	isect->lay= -1;
 	
-	if (intersect_type == VOL_BOUNDS_DEPTH) isect->faceorig= (RayFace*)shi->vlr;
-	else if (intersect_type == VOL_BOUNDS_SS) isect->faceorig= NULL;
+	if (intersect_type == VOL_BOUNDS_DEPTH) isect->orig.face = (void*)shi->vlr;
+	else if (intersect_type == VOL_BOUNDS_SS) isect->orig.face= NULL;
 	
-	if(RE_ray_tree_intersect(R.raytree, isect))
+	if(RE_rayobject_raycast(R.raytree, isect))
 	{
 		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
 		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
@@ -202,23 +193,20 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *col)
 {
 	Isect isect;
-	float maxsize = RE_ray_tree_max_size(R.raytree);
 	
 	VECCOPY(isect.start, co);
-	isect.end[0] = isect.start[0] + shi->view[0] * maxsize;
-	isect.end[1] = isect.start[1] + shi->view[1] * maxsize;
-	isect.end[2] = isect.start[2] + shi->view[2] * maxsize;
-	
-	isect.faceorig= (RayFace *)vlr;
+	VECCOPY(isect.vec, shi->view);
+	isect.labda = FLT_MAX;
 	
 	isect.mode= RE_RAY_MIRROR;
-	isect.oborig= RAY_OBJECT_SET(&R, shi->obi);
-	isect.face_last= NULL;
-	isect.ob_last= 0;
+	isect.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
+	isect.orig.ob = (void*) shi->obi;
+	isect.orig.face = (void*)vlr;
+	isect.last_hit = NULL;
 	isect.lay= -1;
 	
 	/* check to see if there's anything behind the volume, otherwise shade the sky */
-	if(RE_ray_tree_intersect(R.raytree, &isect)) {
+	if(RE_rayobject_raycast(R.raytree, &isect)) {
 		shade_intersection(shi, col, &isect);
 	} else {
 		shadeSkyView(col, co, shi->view, NULL, shi->thread);
@@ -519,7 +507,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		/* find minimum of volume bounds, or lamp coord */
 		if (vol_get_bounds(shi, co, lv, hitco, &is, VOL_BOUNDS_SS)) {
 			float dist = VecLenf(co, hitco);
-			VlakRen *vlr = (VlakRen *)is.face;
+			VlakRen *vlr = (VlakRen *)is.hit.face;
 			
 			/* simple internal shadowing */
 			if (vlr->mat->material_type == MA_TYPE_SURFACE) {
@@ -719,7 +707,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	/* (ray intersect ignores front faces here) */
 	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH))
 	{
-		VlakRen *vlr = (VlakRen *)is.face;
+		VlakRen *vlr = (VlakRen *)is.hit.face;
 		
 		startco = shi->co;
 		endco = hitco;
@@ -728,7 +716,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 			/* if it's another face in the same material */
 			if (vlr->mat == shi->mat) {
 				/* trace behind the 2nd (raytrace) hit point */
-				vol_trace_behind(shi, (VlakRen *)is.face, endco, col);
+				vol_trace_behind(shi, (VlakRen *)is.hit.face, endco, col);
 			} else {
 				shade_intersection(shi, col, &is);
 			}

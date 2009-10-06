@@ -46,6 +46,7 @@
 #include "DNA_material_types.h"
 
 #include "render_types.h"
+#include "rendercore.h"
 #include "renderdatabase.h"
 #include "volumetric.h"
 #include "volume_precache.h"
@@ -66,11 +67,11 @@ extern struct Render R;
 
 /* Recursive test for intersections, from a point inside the mesh, to outside
  * Number of intersections (depth) determine if a point is inside or outside the mesh */
-int intersect_outside_volume(RayTree *tree, Isect *isect, float *offset, int limit, int depth)
+int intersect_outside_volume(RayObject *tree, Isect *isect, float *offset, int limit, int depth)
 {
 	if (limit == 0) return depth;
 	
-	if (RE_ray_tree_intersect(tree, isect)) {
+	if (RE_rayobject_raycast(tree, isect)) {
 		float hitco[3];
 		
 		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
@@ -85,9 +86,8 @@ int intersect_outside_volume(RayTree *tree, Isect *isect, float *offset, int lim
 }
 
 /* Uses ray tracing to check if a point is inside or outside an ObjectInstanceRen */
-int point_inside_obi(RayTree *tree, ObjectInstanceRen *obi, float *co)
+int point_inside_obi(RayObject *tree, ObjectInstanceRen *obi, float *co)
 {
-	float maxsize = RE_ray_tree_max_size(tree);
 	Isect isect;
 	float vec[3] = {0.0f,0.0f,1.0f};
 	int final_depth=0, depth=0, limit=20;
@@ -95,16 +95,21 @@ int point_inside_obi(RayTree *tree, ObjectInstanceRen *obi, float *co)
 	/* set up the isect */
 	memset(&isect, 0, sizeof(isect));
 	VECCOPY(isect.start, co);
+	VECCOPY(isect.vec, vec);
+	isect.labda = FLT_MAX;
+	
+	/*
 	isect.end[0] = co[0] + vec[0] * maxsize;
 	isect.end[1] = co[1] + vec[1] * maxsize;
 	isect.end[2] = co[2] + vec[2] * maxsize;
+	*/
 	
 	/* and give it a little offset to prevent self-intersections */
 	VecMulf(vec, 1e-5);
 	VecAddf(isect.start, isect.start, vec);
 	
 	isect.mode= RE_RAY_MIRROR;
-	isect.face_last= NULL;
+	isect.last_hit= NULL;
 	isect.lay= -1;
 	
 	final_depth = intersect_outside_volume(tree, &isect, vec, limit, depth);
@@ -115,10 +120,12 @@ int point_inside_obi(RayTree *tree, ObjectInstanceRen *obi, float *co)
 	else return 1;
 }
 
-static int inside_check_func(Isect *is, int ob, RayFace *face)
+/*
+static int inside_check_func(Isect *is, int ob, RayObject *face)
 {
 	return 1;
 }
+
 static void vlr_face_coords(RayFace *face, float **v1, float **v2, float **v3, float **v4)
 {
 	VlakRen *vlr= (VlakRen*)face;
@@ -129,16 +136,16 @@ static void vlr_face_coords(RayFace *face, float **v1, float **v2, float **v3, f
 	*v4 = (vlr->v4)? vlr->v4->co: NULL;
 }
 
-RayTree *create_raytree_obi(ObjectInstanceRen *obi, float *bbmin, float *bbmax)
+RayObject *create_raytree_obi(ObjectInstanceRen *obi, float *bbmin, float *bbmax)
 {
 	int v;
 	VlakRen *vlr= NULL;
 	
-	/* create empty raytree */
+	/ * create empty raytree * /
 	RayTree *tree = RE_ray_tree_create(64, obi->obr->totvlak, bbmin, bbmax,
 		vlr_face_coords, inside_check_func, NULL, NULL);
 	
-	/* fill it with faces */
+	/ * fill it with faces * /
 	for(v=0; v<obi->obr->totvlak; v++) {
 		if((v & 255)==0)
 			vlr= obi->obr->vlaknodes[v>>8].vlak;
@@ -152,6 +159,7 @@ RayTree *create_raytree_obi(ObjectInstanceRen *obi, float *bbmin, float *bbmax)
 	
 	return tree;
 }
+*/
 
 /* *** light cache filtering *** */
 
@@ -458,7 +466,7 @@ static void *vol_precache_part(void *data)
 {
 	VolPrecachePart *pa =  (VolPrecachePart *)data;
 	ObjectInstanceRen *obi = pa->obi;
-	RayTree *tree = pa->tree;
+	RayObject *tree = pa->tree;
 	ShadeInput *shi = pa->shi;
 	float scatter_col[3] = {0.f, 0.f, 0.f};
 	float co[3];
@@ -513,7 +521,7 @@ static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Materi
 	shi->lay = re->scene->lay;
 }
 
-static void precache_init_parts(Render *re, RayTree *tree, ShadeInput *shi, ObjectInstanceRen *obi, int totthread, int *parts)
+static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, ObjectInstanceRen *obi, int totthread, int *parts)
 {
 	VolumePrecache *vp = obi->volume_precache;
 	int i=0, x, y, z;
@@ -628,7 +636,7 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 {
 	VolumePrecache *vp;
 	VolPrecachePart *nextpa, *pa;
-	RayTree *tree;
+	RayObject *tree;
 	ShadeInput shi;
 	ListBase threads;
 	float *bbmin=obi->obr->boundbox[0], *bbmax=obi->obr->boundbox[1];
@@ -643,8 +651,11 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 
 	/* create a raytree with just the faces of the instanced ObjectRen, 
 	 * used for checking if the cached point is inside or outside. */
-	tree = create_raytree_obi(obi, bbmin, bbmax);
+	//tree = create_raytree_obi(obi, bbmin, bbmax);
+	tree = makeraytree_object(&R, obi);
 	if (!tree) return;
+	INIT_MINMAX(bbmin, bbmax);
+	RE_rayobject_merge_bb( tree, bbmin, bbmax);
 
 	vp = MEM_callocN(sizeof(VolumePrecache), "volume light cache");
 	
@@ -707,8 +718,9 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	BLI_freelistN(&re->volume_precache_parts);
 	
 	if(tree) {
-		RE_ray_tree_free(tree);
-		tree= NULL;
+		//TODO: makeraytree_object creates a tree and saves it on OBI, if we free this tree we should also clear other pointers to it
+		//RE_rayobject_free(tree);
+		//tree= NULL;
 	}
 	
 	lightcache_filter(obi->volume_precache);
@@ -765,16 +777,17 @@ void free_volume_precache(Render *re)
 
 int point_inside_volume_objectinstance(ObjectInstanceRen *obi, float *co)
 {
-	RayTree *tree;
+	RayObject *tree;
 	int inside=0;
 	
-	tree = create_raytree_obi(obi, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+	tree = makeraytree_object(&R, obi); //create_raytree_obi(obi, obi->obr->boundbox[0], obi->obr->boundbox[1]);
 	if (!tree) return 0;
 	
 	inside = point_inside_obi(tree, obi, co);
 	
-	RE_ray_tree_free(tree);
-	tree= NULL;
+	//TODO: makeraytree_object creates a tree and saves it on OBI, if we free this tree we should also clear other pointers to it
+	//RE_rayobject_free(tree);
+	//tree= NULL;
 	
 	return inside;
 }
