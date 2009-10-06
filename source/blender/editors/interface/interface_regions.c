@@ -2485,6 +2485,7 @@ void uiPupMenuInvoke(bContext *C, const char *idname, int spacetype)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
+	Menu menu;
 	MenuType *mt= BKE_spacemenu_find(idname, spacetype);
 
 	if(mt==NULL) {
@@ -2497,8 +2498,6 @@ void uiPupMenuInvoke(bContext *C, const char *idname, int spacetype)
 
 	pup= uiPupMenuBegin(C, mt->label, 0);
 	layout= uiPupMenuLayout(pup);
-
-	Menu menu;
 
 	menu.layout= layout;
 	menu.type= mt;
