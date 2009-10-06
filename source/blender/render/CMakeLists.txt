@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/source/*.c)
+FILE(GLOB SRC intern/source/*.c intern/raytrace/*.cpp)
 
 SET(INC 
 	intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
