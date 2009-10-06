@@ -362,8 +362,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				//Worst case heuristic (cost of each child is linear)
 				float hcost, left_side, right_side;
 				
-				left_side = bb_area(sweep_left.bb, sweep_left.bb+3)*(sweep_left.cost+logf(i));
-				right_side= bb_area(sweep[i].bb, sweep[i].bb+3)*(sweep[i].cost+logf(size-i));
+				left_side = bb_area(sweep_left.bb, sweep_left.bb+3)*(sweep_left.cost+logf((float)i));
+				right_side= bb_area(sweep[i].bb, sweep[i].bb+3)*(sweep[i].cost+logf((float)size-i));
 				hcost = left_side+right_side;
 
 				assert(left_side >= 0);
