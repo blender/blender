@@ -21,26 +21,18 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s):	Maarten Gribnau 05/2001
+					Damien Plisson 10/2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/**
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 10, 2001
- */
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include <Carbon/Carbon.h>
+#include <Cocoa/Cocoa.h>
 
 #include "GHOST_WindowCocoa.h"
+#include "GHOST_SystemCocoa.h"
 #include "GHOST_Debug.h"
-
+/*
 AGLContext GHOST_WindowCocoa::s_firstaglCtx = NULL;
 #ifdef GHOST_DRAW_CARBON_GUTTER
 const GHOST_TInt32 GHOST_WindowCocoa::s_sizeRectSize = 16;
@@ -68,7 +60,7 @@ AGL_NONE,
 WindowRef ugly_hack=NULL;
 
 const EventTypeSpec	kWEvents[] = {
-	{ kEventClassWindow, kEventWindowZoom },  /* for new zoom behaviour */ 
+	{ kEventClassWindow, kEventWindowZoom },  // for new zoom behaviour  
 };
 
 static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData) {
@@ -88,9 +80,86 @@ static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event,
 
 	}
 	return eventNotHandledErr;
+}*/
+
+#pragma mark Cocoa delegate object
+@interface CocoaWindowDelegate : NSObject
+{
+	GHOST_SystemCocoa *systemCocoa;
+	GHOST_WindowCocoa *associatedWindow;
 }
 
+- (void)setSystemAndWindowCocoa:(const GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
+- (void)windowWillClose:(NSNotification *)notification;
+- (void)windowDidBecomeKey:(NSNotification *)notification;
+- (void)windowDidResignKey:(NSNotification *)notification;
+- (void)windowDidUpdate:(NSNotification *)notification;
+- (void)windowDidResize:(NSNotification *)notification;
+@end
+
+@implementation CocoaWindowDelegate : NSObject
+- (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
+{
+	systemCocoa = sysCocoa;
+	associatedWindow = winCocoa;
+}
+
+- (void)windowWillClose:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowClose, associatedWindow);
+}
+
+- (void)windowDidBecomeKey:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowActivate, associatedWindow);
+}
+
+- (void)windowDidResignKey:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowDeactivate, associatedWindow);
+}
+
+- (void)windowDidUpdate:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
+}
+
+- (void)windowDidResize:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
+}
+@end
+
+#pragma mark NSOpenGLView subclass
+//We need to subclass it in order to give Cocoa the feeling key events are trapped
+@interface CocoaOpenGLView : NSOpenGLView
+{
+	
+}
+@end
+@implementation CocoaOpenGLView
+
+- (BOOL)acceptsFirstResponder
+{
+    return YES;
+}
+
+//The trick to prevent Cocoa from complaining (beeping)
+- (void)keyDown:(NSEvent *)theEvent
+{}
+
+- (BOOL)isOpaque
+{
+    return YES;
+}
+
+@end
+
+
+#pragma mark initialization / finalization
+
 GHOST_WindowCocoa::GHOST_WindowCocoa(
+	const GHOST_SystemCocoa *systemCocoa,
 	const STR_String& title,
 	GHOST_TInt32 left,
 	GHOST_TInt32 top,
@@ -101,17 +170,13 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	const bool stereoVisual
 ) :
 	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone),
-	m_windowRef(0),
-	m_grafPtr(0),
-	m_aglCtx(0),
 	m_customCursor(0),
 	m_fullScreenDirty(false)
 {
-    Str255 title255;
-	OSStatus err;
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	//fprintf(stderr," main screen top %i left %i height %i width %i\n", top, left, height, width);
-	
+	/*
 	if (state >= GHOST_kWindowState8Normal ) {
 		if(state == GHOST_kWindowState8Normal) state= GHOST_kWindowStateNormal;
 		else if(state == GHOST_kWindowState8Maximized) state= GHOST_kWindowStateMaximized;
@@ -123,26 +188,77 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		setMac_windowState(1);
 	} else 
 		setMac_windowState(0);
-
+*/
 	if (state != GHOST_kWindowStateFullScreen) {
-        Rect bnds = { top, left, top+height, left+width };
-        // Boolean visible = (state == GHOST_kWindowStateNormal) || (state == GHOST_kWindowStateMaximized); /*unused*/
-        gen2mac(title, title255);
+		
+		//Creates the window
+		NSRect rect;
+		
+		rect.origin.x = left;
+		rect.origin.y = top;
+		rect.size.width = width;
+		rect.size.height = height;
+		
+		m_window = [[NSWindow alloc] initWithContentRect:rect
+											   styleMask:NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask
+												 backing:NSBackingStoreBuffered defer:NO];
+		if (m_window == nil) {
+			[pool drain];
+			return;
+		}
+		
+		[m_window setTitle:[NSString stringWithUTF8String:title]];
+		
+				
+		//Creates the OpenGL View inside the window
+		NSOpenGLPixelFormatAttribute attributes[] =
+		{
+			NSOpenGLPFADoubleBuffer,
+			NSOpenGLPFAAccelerated,
+			NSOpenGLPFAAllowOfflineRenderers,   // NOTE: Needed to connect to secondary GPUs
+			NSOpenGLPFADepthSize, 32,
+			0
+		};
+		
+		NSOpenGLPixelFormat *pixelFormat =
+        [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
+		
+		m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect
+													 pixelFormat:pixelFormat];
+		
+		[pixelFormat release];
+		
+		m_openGLContext = [m_openGLView openGLContext];
+		
+		[m_window setContentView:m_openGLView];
+		[m_window setInitialFirstResponder:m_openGLView];
+		
+		[m_window setReleasedWhenClosed:NO]; //To avoid bad pointer exception in case of user closing the window
+		
+		[m_window makeKeyAndOrderFront:nil];
+		
+		setDrawingContextType(type);
+		updateDrawingContext();
+		activateDrawingContext();
+		
+		// Boolean visible = (state == GHOST_kWindowStateNormal) || (state == GHOST_kWindowStateMaximized); /*unused*/
+        /*gen2mac(title, title255);
         
+		
 		err =  ::CreateNewWindow( kDocumentWindowClass,
 								 kWindowStandardDocumentAttributes+kWindowLiveResizeAttribute,
 								 &bnds,
 								 &m_windowRef);
 		
 		if ( err != noErr) {
-			fprintf(stderr," error creating window %i \n",err);
+			fprintf(stderr," error creating window %i \n",(int)err);
 		} else {
 			
 			::SetWRefCon(m_windowRef,(SInt32)this);
 			setTitle(title);
 			err = InstallWindowEventHandler (m_windowRef, myWEventHandlerProc, GetEventTypeCount(kWEvents), kWEvents,NULL,NULL); 
 			if ( err != noErr) {
-				fprintf(stderr," error creating handler %i \n",err);
+				fprintf(stderr," error creating handler %i \n",(int)err);
 			} else {
 				//	::TransitionWindow (m_windowRef,kWindowZoomTransitionEffect,kWindowShowTransitionAction,NULL);
 				::ShowWindow(m_windowRef);
@@ -162,7 +278,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 			ProcessSerialNumber psn;
 			GetCurrentProcess(&psn);
 			SetFrontProcess(&psn);
-		}
+		}*/
     }
     else {
     /*
@@ -179,12 +295,20 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
             (SInt32)this);					// Store a pointer to the class in the refCon
     */
         //GHOST_PRINT("GHOST_WindowCocoa::GHOST_WindowCocoa(): creating full-screen OpenGL context\n");
-        setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);;installDrawingContext(GHOST_kDrawingContextTypeOpenGL);
+        setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);
+		installDrawingContext(GHOST_kDrawingContextTypeOpenGL);
         updateDrawingContext();
-        activateDrawingContext();        
-
-	m_tablet.Active = GHOST_kTabletModeNone;
+        activateDrawingContext();
     }
+	m_tablet.Active = GHOST_kTabletModeNone;
+	
+	CocoaWindowDelegate *windowDelegate = [[CocoaWindowDelegate alloc] init];
+	[windowDelegate setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
+	[m_window setDelegate:windowDelegate];
+	
+	[m_window setAcceptsMouseMovedEvents:YES];
+	
+	[pool drain];
 }
 
 
@@ -192,21 +316,26 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 {
 	if (m_customCursor) delete m_customCursor;
 
-	if(ugly_hack==m_windowRef) ugly_hack= NULL;
+	/*if(ugly_hack==m_windowRef) ugly_hack= NULL;
 	
-	// printf("GHOST_WindowCocoa::~GHOST_WindowCocoa(): removing drawing context\n");
-	if(ugly_hack==NULL) setDrawingContextType(GHOST_kDrawingContextTypeNone);
-    if (m_windowRef) {
-        ::DisposeWindow(m_windowRef);
-		m_windowRef = 0;
+	if(ugly_hack==NULL) setDrawingContextType(GHOST_kDrawingContextTypeNone);*/
+    
+	[m_openGLView release];
+	
+	if (m_window) {
+		[m_window close];
+		[m_window release];
+		m_window = nil;
 	}
 }
+
+#pragma mark accessors
 
 bool GHOST_WindowCocoa::getValid() const
 {
     bool valid;
     if (!m_fullScreen) {
-        valid = (m_windowRef != 0) && (m_grafPtr != 0) && ::IsValidWindowPtr(m_windowRef);
+        valid = (m_window != 0); //&& ::IsValidWindowPtr(m_windowRef);
     }
     else {
         valid = true;
@@ -218,57 +347,73 @@ bool GHOST_WindowCocoa::getValid() const
 void GHOST_WindowCocoa::setTitle(const STR_String& title)
 {
     GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid")
-    Str255 title255;
-    gen2mac(title, title255);
-	::SetWTitle(m_windowRef, title255);
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	NSString *windowTitle = [[NSString alloc] initWithUTF8String:title];
+	
+	[m_window setTitle:windowTitle];
+	
+	[windowTitle release];
+	[pool drain];
 }
 
 
 void GHOST_WindowCocoa::getTitle(STR_String& title) const
 {
     GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getTitle(): window invalid")
-    Str255 title255;
-    ::GetWTitle(m_windowRef, title255);
-    mac2gen(title255, title);
+
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	NSString *windowTitle = [m_window title];
+
+	if (windowTitle != nil) {
+		title = [windowTitle UTF8String];		
+	}
+	
+	[pool drain];
 }
 
 
 void GHOST_WindowCocoa::getWindowBounds(GHOST_Rect& bounds) const
 {
-	OSStatus success;
-	Rect rect;
+	NSRect rect;
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getWindowBounds(): window invalid")
-	success = ::GetWindowBounds(m_windowRef, kWindowStructureRgn, &rect);
-	bounds.m_b = rect.bottom;
-	bounds.m_l = rect.left;
-	bounds.m_r = rect.right;
-	bounds.m_t = rect.top;
+
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	NSRect screenSize = [[m_window screen] visibleFrame];
+
+	rect = [m_window frame];
+
+	bounds.m_b = screenSize.size.height - (rect.origin.y -screenSize.origin.y);
+	bounds.m_l = rect.origin.x -screenSize.origin.x;
+	bounds.m_r = rect.origin.x-screenSize.origin.x + rect.size.width;
+	bounds.m_t = screenSize.size.height - (rect.origin.y + rect.size.height -screenSize.origin.y);
+	
+	[pool drain];
 }
 
 
 void GHOST_WindowCocoa::getClientBounds(GHOST_Rect& bounds) const
 {
-	Rect rect;
+	NSRect rect;
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getClientBounds(): window invalid")
-	//::GetPortBounds(m_grafPtr, &rect);
-	::GetWindowBounds(m_windowRef, kWindowContentRgn, &rect);
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSRect screenSize = [[m_window screen] visibleFrame];
 
-	bounds.m_b = rect.bottom;
-	bounds.m_l = rect.left;
-	bounds.m_r = rect.right;
-	bounds.m_t = rect.top;
+	//Max window contents as screen size (excluding title bar...)
+	NSRect contentRect = [NSWindow contentRectForFrameRect:screenSize
+												 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)];
 
-	// Subtract gutter height from bottom
-#ifdef GHOST_DRAW_CARBON_GUTTER
-	if ((bounds.m_b - bounds.m_t) > s_sizeRectSize)
-	{
-		bounds.m_b -= s_sizeRectSize;
-	}
-	else
-	{
-		bounds.m_t = bounds.m_b;
-	}
-#endif //GHOST_DRAW_CARBON_GUTTER
+	rect = [m_window contentRectForFrameRect:[m_window frame]];
+	
+	bounds.m_b = contentRect.size.height - (rect.origin.y -contentRect.origin.y);
+	bounds.m_l = rect.origin.x -contentRect.origin.x;
+	bounds.m_r = rect.origin.x-contentRect.origin.x + rect.size.width;
+	bounds.m_t = contentRect.size.height - (rect.origin.y + rect.size.height -contentRect.origin.y);
+	
+	[pool drain];
 }
 
 
@@ -278,7 +423,10 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientWidth(GHOST_TUns32 width)
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
 	if (((GHOST_TUns32)cBnds.getWidth()) != width) {
-		::SizeWindow(m_windowRef, width, cBnds.getHeight(), true);
+		NSSize size;
+		size.width=width;
+		size.height=cBnds.getHeight();
+		[m_window setContentSize:size];
 	}
 	return GHOST_kSuccess;
 }
@@ -289,15 +437,12 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientHeight(GHOST_TUns32 height)
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setClientHeight(): window invalid")
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
-#ifdef GHOST_DRAW_CARBON_GUTTER
-	if (((GHOST_TUns32)cBnds.getHeight()) != height+s_sizeRectSize) {
-		::SizeWindow(m_windowRef, cBnds.getWidth(), height+s_sizeRectSize, true);
-	}
-#else //GHOST_DRAW_CARBON_GUTTER
 	if (((GHOST_TUns32)cBnds.getHeight()) != height) {
-		::SizeWindow(m_windowRef, cBnds.getWidth(), height, true);
+		NSSize size;
+		size.width=cBnds.getWidth();
+		size.height=height;
+		[m_window setContentSize:size];
 	}
-#endif //GHOST_DRAW_CARBON_GUTTER
 	return GHOST_kSuccess;
 }
 
@@ -307,17 +452,13 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientSize(GHOST_TUns32 width, GHOST_TUns32
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setClientSize(): window invalid")
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
-#ifdef GHOST_DRAW_CARBON_GUTTER
-	if ((((GHOST_TUns32)cBnds.getWidth()) != width) ||
-	    (((GHOST_TUns32)cBnds.getHeight()) != height+s_sizeRectSize)) {
-		::SizeWindow(m_windowRef, width, height+s_sizeRectSize, true);
-	}
-#else //GHOST_DRAW_CARBON_GUTTER
 	if ((((GHOST_TUns32)cBnds.getWidth()) != width) ||
 	    (((GHOST_TUns32)cBnds.getHeight()) != height)) {
-		::SizeWindow(m_windowRef, width, height, true);
+		NSSize size;
+		size.width=width;
+		size.height=height;
+		[m_window setContentSize:size];
 	}
-#endif //GHOST_DRAW_CARBON_GUTTER
 	return GHOST_kSuccess;
 }
 
@@ -325,16 +466,18 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientSize(GHOST_TUns32 width, GHOST_TUns32
 GHOST_TWindowState GHOST_WindowCocoa::getState() const
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getState(): window invalid")
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_TWindowState state;
-	if (::IsWindowVisible(m_windowRef) == false) {
+	if ([m_window isMiniaturized]) {
 		state = GHOST_kWindowStateMinimized;
 	}
-	else if (::IsWindowInStandardState(m_windowRef, nil, nil)) {
+	else if ([m_window isZoomed]) {
 		state = GHOST_kWindowStateMaximized;
 	}
 	else {
 		state = GHOST_kWindowStateNormal;
 	}
+	[pool drain];
 	return state;
 }
 
@@ -342,32 +485,34 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 void GHOST_WindowCocoa::screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::screenToClient(): window invalid")
-	Point point;
-	point.h = inX;
-	point.v = inY;
-    GrafPtr oldPort;
-    ::GetPort(&oldPort);
-    ::SetPort(m_grafPtr);
-	::GlobalToLocal(&point);
-    ::SetPort(oldPort);
-	outX = point.h;
-	outY = point.v;
+	
+	NSPoint screenCoord;
+	NSPoint baseCoord;
+	
+	screenCoord.x = inX;
+	screenCoord.y = inY;
+	
+	baseCoord = [m_window convertScreenToBase:screenCoord];
+	
+	outX = baseCoord.x;
+	outY = baseCoord.y;
 }
 
 
 void GHOST_WindowCocoa::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::clientToScreen(): window invalid")
-	Point point;
-	point.h = inX;
-	point.v = inY;
-    GrafPtr oldPort;
-    ::GetPort(&oldPort);
-    ::SetPort(m_grafPtr);
-	::LocalToGlobal(&point);
-    ::SetPort(oldPort);
-	outX = point.h;
-	outY = point.v;
+	
+	NSPoint screenCoord;
+	NSPoint baseCoord;
+	
+	baseCoord.x = inX;
+	baseCoord.y = inY;
+	
+	screenCoord = [m_window convertBaseToScreen:baseCoord];
+	
+	outX = screenCoord.x;
+	outY = screenCoord.y;
 }
 
 
@@ -376,12 +521,17 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setState(): window invalid")
     switch (state) {
 	case GHOST_kWindowStateMinimized:
-            ::HideWindow(m_windowRef);
+            [m_window miniaturize:nil];
             break;
 	case GHOST_kWindowStateMaximized:
+			[m_window zoom:nil];
+			break;
 	case GHOST_kWindowStateNormal:
         default:
-            ::ShowWindow(m_windowRef);
+            if ([m_window isMiniaturized])
+				[m_window deminiaturize:nil];
+			else if ([m_window isZoomed])
+				[m_window zoom:nil];
             break;
     }
     return GHOST_kSuccess;
@@ -389,11 +539,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 
 GHOST_TSuccess GHOST_WindowCocoa::setModifiedState(bool isUnsavedChanges)
 {
-	if (isUnsavedChanges) {
-		SetWindowModified(m_windowRef, 1);
-	} else {
-		SetWindowModified(m_windowRef, 0);
-	}
+	[m_window setDocumentEdited:isUnsavedChanges];
 	
 	return GHOST_Window::setModifiedState(isUnsavedChanges);
 }
@@ -404,61 +550,45 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setOrder(): window invalid")
     if (order == GHOST_kWindowOrderTop) {
-        //::BringToFront(m_windowRef); is wrong, front window should be active for input too
-		::SelectWindow(m_windowRef);
+		[m_window orderFront:nil];
     }
     else {
-		/* doesnt work if you do this with a mouseclick */
-        ::SendBehind(m_windowRef, nil);
+		[m_window orderBack:nil];
     }
     return GHOST_kSuccess;
 }
 
+#pragma mark Drawing context
+
 /*#define  WAIT_FOR_VSYNC 1*/
-#ifdef WAIT_FOR_VSYNC
-#include <OpenGL/OpenGL.h>
-#endif
 
 GHOST_TSuccess GHOST_WindowCocoa::swapBuffers()
 {
-#ifdef WAIT_FOR_VSYNC
-/* wait for vsync, to avoid tearing artifacts */
-long VBL = 1;
-CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &VBL);
-#endif
-
-    GHOST_TSuccess succeeded = GHOST_kSuccess;
     if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
-        if (m_aglCtx) {
-            ::aglSwapBuffers(m_aglCtx);
-        }
-        else {
-            succeeded = GHOST_kFailure;
+        if (m_openGLContext != nil) {
+			[m_openGLContext flushBuffer];
+            return GHOST_kSuccess;
         }
     }
-    return succeeded;
+    return GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::updateDrawingContext()
 {
-	GHOST_TSuccess succeeded = GHOST_kSuccess;
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
-		if (m_aglCtx) {
-			::aglUpdateContext(m_aglCtx);
-		}
-		else {
-			succeeded = GHOST_kFailure;
+		if (m_openGLContext != nil) {
+			[m_openGLContext update];
+			return GHOST_kSuccess;
 		}
 	}
-	return succeeded;
+	return GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 {
-	GHOST_TSuccess succeeded = GHOST_kSuccess;
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
-		if (m_aglCtx) {
-			::aglSetCurrentContext(m_aglCtx);
+		if (m_openGLContext != nil) {
+			[m_openGLContext makeCurrentContext];
 #ifdef GHOST_DRAW_CARBON_GUTTER
 			// Restrict drawing to non-gutter area
 			::aglEnable(m_aglCtx, AGL_BUFFER_RECT);
@@ -473,23 +603,44 @@ GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 			};
 			GLboolean result = ::aglSetInteger(m_aglCtx, AGL_BUFFER_RECT, b);
 #endif //GHOST_DRAW_CARBON_GUTTER
-		}
-		else {
-			succeeded = GHOST_kFailure;
+			return GHOST_kSuccess;
 		}
 	}
-	return succeeded;
+	return GHOST_kFailure;
 }
 
 
 GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextType type)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	NSOpenGLPixelFormat *pixelFormat;
+	NSOpenGLContext *tmpOpenGLContext;
+	
 	switch (type) {
 		case GHOST_kDrawingContextTypeOpenGL:
-			{
 			if (!getValid()) break;
-            
+            				
+			if(!m_fullScreen)
+			{
+				pixelFormat = [m_openGLView pixelFormat];
+				tmpOpenGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+															  shareContext:m_openGLContext];
+				if (tmpOpenGLContext == nil)
+					break;
+#ifdef WAIT_FOR_VSYNC
+				/* wait for vsync, to avoid tearing artifacts */
+				[tmpOpenGLContext setValues:1 forParameter:NSOpenGLCPSwapInterval];
+#endif
+				[m_openGLView setOpenGLContext:tmpOpenGLContext];
+				[tmpOpenGLContext setView:m_openGLView];
+				
+				//[m_openGLContext release];
+				m_openGLContext = tmpOpenGLContext;
+			}
+			/*	
             AGLPixelFormat pixelFormat;
             if (!m_fullScreen) {
                 pixelFormat = ::aglChoosePixelFormat(0, 0, sPreferredFormatWindow);
@@ -507,17 +658,16 @@ GDHandle device=::GetMainDevice();pixelFormat=::aglChoosePixelFormat(&device,1,s
                 //GHOST_PRINT("GHOST_WindowCocoa::installDrawingContext(): created OpenGL context\n");
                 //::CGGetActiveDisplayList(0, NULL, &m_numDisplays)
                 success = ::aglSetFullScreen(m_aglCtx, m_fullScreenWidth, m_fullScreenHeight, 75, 0) == GL_TRUE ? GHOST_kSuccess : GHOST_kFailure;
-                /*
+                
                 if (success == GHOST_kSuccess) {
                     GHOST_PRINT("GHOST_WindowCocoa::installDrawingContext(): init full-screen OpenGL succeeded\n");
                 }
                 else {
                     GHOST_PRINT("GHOST_WindowCocoa::installDrawingContext(): init full-screen OpenGL failed\n");
                 }
-                */
+                
             }
-            ::aglDestroyPixelFormat(pixelFormat);
-			}
+            ::aglDestroyPixelFormat(pixelFormat);*/
 			break;
 		
 		case GHOST_kDrawingContextTypeNone:
@@ -527,41 +677,34 @@ GDHandle device=::GetMainDevice();pixelFormat=::aglChoosePixelFormat(&device,1,s
 		default:
 			break;
 	}
+	[pool drain];
 	return success;
 }
 
 
 GHOST_TSuccess GHOST_WindowCocoa::removeDrawingContext()
 {
-	GHOST_TSuccess success = GHOST_kFailure;
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	switch (m_drawingContextType) {
 		case GHOST_kDrawingContextTypeOpenGL:
-			if (m_aglCtx) {
-                aglSetCurrentContext(NULL);
-                aglSetDrawable(m_aglCtx, NULL);
-                //aglDestroyContext(m_aglCtx);
-				if (s_firstaglCtx == m_aglCtx) s_firstaglCtx = NULL;
-				success = ::aglDestroyContext(m_aglCtx) == GL_TRUE ? GHOST_kSuccess : GHOST_kFailure;
-				m_aglCtx = 0;
-			}
-			break;
+			[m_openGLView clearGLContext];
+			return GHOST_kSuccess;
 		case GHOST_kDrawingContextTypeNone:
-			success = GHOST_kSuccess;
+			return GHOST_kSuccess;
 			break;
 		default:
-			break;
+			return GHOST_kFailure;
 	}
-	return success;
+	[pool drain];
 }
 
 
 GHOST_TSuccess GHOST_WindowCocoa::invalidate()
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::invalidate(): window invalid")
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     if (!m_fullScreen) {
-        Rect rect;
-        ::GetPortBounds(m_grafPtr, &rect);
-        ::InvalWindowRect(m_windowRef, &rect);
+		[m_openGLView setNeedsDisplay:YES];
     }
     else {
         //EventRef event;
@@ -574,77 +717,81 @@ GHOST_TSuccess GHOST_WindowCocoa::invalidate()
         //GHOST_PRINT("GHOST_WindowCocoa::invalidate(): added event to queue " << status << " \n");
         m_fullScreenDirty = true;
     }
+	[pool drain];
 	return GHOST_kSuccess;
 }
 
-
-void GHOST_WindowCocoa::gen2mac(const STR_String& in, Str255 out) const
-{
-	STR_String tempStr  = in;
-	int num = tempStr.Length();
-	if (num > 255) num = 255;
-	::memcpy(out+1, tempStr.Ptr(), num);
-	out[0] = num;
-}
-
-
-void GHOST_WindowCocoa::mac2gen(const Str255 in, STR_String& out) const
-{
-	char tmp[256];
-	::memcpy(tmp, in+1, in[0]);
-	tmp[in[0]] = '\0';
-	out = tmp;
-}
+#pragma mark Cursor handling
 
 void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) const
 {
 	static bool systemCursorVisible = true;
 	
+	NSAutoreleasePool *pool =[[NSAutoreleasePool alloc] init];
+
+	NSCursor *tmpCursor =nil;
+	
 	if (visible != systemCursorVisible) {
 		if (visible) {
-			::ShowCursor();
+			[NSCursor unhide];
 			systemCursorVisible = true;
 		}
 		else {
-			::HideCursor();
+			[NSCursor hide];
 			systemCursorVisible = false;
 		}
 	}
 
 	if (cursor == GHOST_kStandardCursorCustom && m_customCursor) {
-		::SetCursor( m_customCursor );
+		tmpCursor = m_customCursor;
 	} else {
-		int carbon_cursor;
-	
-#define GCMAP(ghostCursor, carbonCursor)	case ghostCursor: carbon_cursor = carbonCursor; break
 		switch (cursor) {
-		default:
-		GCMAP( GHOST_kStandardCursorDefault,				kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorRightArrow,				kThemeAliasArrowCursor);
-		GCMAP( GHOST_kStandardCursorLeftArrow,				kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorInfo, 					kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorDestroy,				kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorHelp,    				kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorCycle,					kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorSpray,					kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorWait,					kThemeWatchCursor);
-		GCMAP( GHOST_kStandardCursorText,					kThemeIBeamCursor);
-		GCMAP( GHOST_kStandardCursorCrosshair,				kThemeCrossCursor);
-		GCMAP( GHOST_kStandardCursorUpDown,					kThemeClosedHandCursor);
-		GCMAP( GHOST_kStandardCursorLeftRight,				kThemeClosedHandCursor);
-		GCMAP( GHOST_kStandardCursorTopSide,				kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorBottomSide,				kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorLeftSide,				kThemeResizeLeftCursor);
-		GCMAP( GHOST_kStandardCursorRightSide,				kThemeResizeRightCursor);
-		GCMAP( GHOST_kStandardCursorTopLeftCorner,			kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorTopRightCorner,			kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorBottomRightCorner,		kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorBottomLeftCorner,		kThemeArrowCursor);
+			case GHOST_kStandardCursorDestroy:
+				tmpCursor = [NSCursor disappearingItemCursor];
+				break;
+			case GHOST_kStandardCursorText:
+				tmpCursor = [NSCursor IBeamCursor];
+				break;
+			case GHOST_kStandardCursorCrosshair:
+				tmpCursor = [NSCursor crosshairCursor];
+				break;
+			case GHOST_kStandardCursorUpDown:
+				tmpCursor = [NSCursor resizeUpDownCursor];
+				break;
+			case GHOST_kStandardCursorLeftRight:
+				tmpCursor = [NSCursor resizeLeftRightCursor];
+				break;
+			case GHOST_kStandardCursorTopSide:
+				tmpCursor = [NSCursor resizeUpCursor];
+				break;
+			case GHOST_kStandardCursorBottomSide:
+				tmpCursor = [NSCursor resizeDownCursor];
+				break;
+			case GHOST_kStandardCursorLeftSide:
+				tmpCursor = [NSCursor resizeLeftCursor];
+				break;
+			case GHOST_kStandardCursorRightSide:
+				tmpCursor = [NSCursor resizeRightCursor];
+				break;
+			case GHOST_kStandardCursorRightArrow:
+			case GHOST_kStandardCursorInfo:
+			case GHOST_kStandardCursorLeftArrow:
+			case GHOST_kStandardCursorHelp:
+			case GHOST_kStandardCursorCycle:
+			case GHOST_kStandardCursorSpray:
+			case GHOST_kStandardCursorWait:
+			case GHOST_kStandardCursorTopLeftCorner:
+			case GHOST_kStandardCursorTopRightCorner:
+			case GHOST_kStandardCursorBottomRightCorner:
+			case GHOST_kStandardCursorBottomLeftCorner:
+			case GHOST_kStandardCursorDefault:
+			default:
+				tmpCursor = [NSCursor arrowCursor];
+				break;
 		};
-#undef GCMAP
-
-		::SetThemeCursor(carbon_cursor);
 	}
+	[tmpCursor set];
+	[pool drain];
 }
 
 
@@ -656,7 +803,7 @@ bool GHOST_WindowCocoa::getFullScreenDirty()
 
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)
 {
-	if (::FrontWindow() == m_windowRef) {
+	if ([m_window isVisible]) {
 		loadCursor(visible, getCursorShape());
 	}
 	
@@ -666,11 +813,11 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor shape)
 {
 	if (m_customCursor) {
-		delete m_customCursor;
-		m_customCursor = 0;
+		[m_customCursor release];
+		m_customCursor = nil;
 	}
 
-	if (::FrontWindow() == m_windowRef) {
+	if ([m_window isVisible]) {
 		loadCursor(getCursorVisibility(), shape);
 	}
 	
@@ -703,14 +850,15 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 					int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color)
 {
 	int y;
+	NSPoint hotSpotPoint;
+	NSImage *cursorImage;
 	
 	if (m_customCursor) {
-		delete m_customCursor;
-		m_customCursor = 0;
+		[m_customCursor release];
+		m_customCursor = nil;
 	}
-	
-	m_customCursor = new Cursor;
-	if (!m_customCursor) return GHOST_kFailure;
+	/*TODO: implement this (but unused inproject at present)
+	cursorImage = [[NSImage alloc] initWithData:bitmap];
 	
 	for (y=0; y<16; y++) {
 #if !defined(__LITTLE_ENDIAN__)
@@ -723,13 +871,21 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 			
 	}
 	
-	m_customCursor->hotSpot.h = hotX;
-	m_customCursor->hotSpot.v = hotY;
 	
-	if (::FrontWindow() == m_windowRef) {
+	hotSpotPoint.x = hotX;
+	hotSpotPoint.y = hotY;
+	
+	m_customCursor = [[NSCursor alloc] initWithImage:cursorImage
+								 foregroundColorHint:<#(NSColor *)fg#>
+								 backgroundColorHint:<#(NSColor *)bg#>
+											 hotSpot:hotSpotPoint];
+	
+	[cursorImage release];
+	
+	if ([m_window isVisible]) {
 		loadCursor(getCursorVisibility(), GHOST_kStandardCursorCustom);
 	}
-	
+	*/
 	return GHOST_kSuccess;
 }
 
@@ -739,7 +895,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 bitmap[
 	return setWindowCustomCursorShape((GHOST_TUns8*)bitmap, (GHOST_TUns8*) mask, 16, 16, hotX, hotY, 0, 1);
 }
 
+#pragma mark Old carbon stuff to remove
 
+#if 0
 void GHOST_WindowCocoa::setMac_windowState(short value)
 {
 	mac_windowState = value;
@@ -749,3 +907,23 @@ short GHOST_WindowCocoa::getMac_windowState()
 {
 	return mac_windowState;
 }
+
+void GHOST_WindowCocoa::gen2mac(const STR_String& in, Str255 out) const
+{
+	STR_String tempStr  = in;
+	int num = tempStr.Length();
+	if (num > 255) num = 255;
+	::memcpy(out+1, tempStr.Ptr(), num);
+	out[0] = num;
+}
+
+
+void GHOST_WindowCocoa::mac2gen(const Str255 in, STR_String& out) const
+{
+	char tmp[256];
+	::memcpy(tmp, in+1, in[0]);
+	tmp[in[0]] = '\0';
+	out = tmp;
+}
+
+#endif

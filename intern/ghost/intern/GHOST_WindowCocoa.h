@@ -40,8 +40,7 @@
 #include "GHOST_Window.h"
 #include "STR_String.h"
 
-#include <AGL/agl.h>
-
+class GHOST_SystemCocoa;
 
 /**
  * Window on Mac OSX/Cocoa.
@@ -60,6 +59,7 @@ public:
 	 * Constructor.
 	 * Creates a new window and opens it.
 	 * To check if the window was created properly, use the getValid() method.
+	 * @param systemCocoa The associated system class to forward events to
 	 * @param title		The text shown in the title bar of the window.
 	 * @param left		The coordinate of the left edge of the window.
 	 * @param top		The coordinate of the top edge of the window.
@@ -70,6 +70,7 @@ public:
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
 	 */
 	GHOST_WindowCocoa(
+		const GHOST_SystemCocoa *systemCocoa,
 		const STR_String& title,
 		GHOST_TInt32 left,
 		GHOST_TInt32 top,
@@ -210,8 +211,8 @@ public:
     virtual bool getFullScreenDirty();
 
 		/* accessor for fullscreen window */
-	virtual void setMac_windowState(short value);
-	virtual short getMac_windowState();
+	/*virtual void setMac_windowState(short value);
+	virtual short getMac_windowState();*/
 
 
 	const GHOST_TabletData* GetTabletData()
@@ -260,48 +261,28 @@ protected:
 					
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY);
     
-    /**
-     * Converts a string object to a Mac Pascal string.
-     * @param in	The string object to be converted.
-     * @param out	The converted string.
-     */
-    virtual void gen2mac(const STR_String& in, Str255 out) const;
-
-    /**
-     * Converts a Mac Pascal string to a string object.
-     * @param in	The string to be converted.
-     * @param out	The converted string object.
-     */
-    virtual void mac2gen(const Str255 in, STR_String& out) const;
+ 	/** The window containing the OpenGL view */
+    NSWindow *m_window;
 	
-    WindowRef m_windowRef;
-    CGrafPtr m_grafPtr;
-    AGLContext m_aglCtx;
+	/** The openGL view */
+	NSOpenGLView *m_openGLView; 
+    
+	/** The opgnGL drawing context */
+	NSOpenGLContext *m_openGLContext;
+	
+	//CGrafPtr m_grafPtr;
+    //AGLContext m_aglCtx;
 
 	/** The first created OpenGL context (for sharing display lists) */
-	static AGLContext s_firstaglCtx;
+	//static AGLContext s_firstaglCtx;
 		
-	Cursor*	m_customCursor;
+	NSCursor*	m_customCursor;
 
 	GHOST_TabletData m_tablet;
     
     /** When running in full-screen this tells whether to refresh the window. */
     bool m_fullScreenDirty;
-	
-	/** specific MacOs X full screen window setting as we use partially system mechanism 
-	    values :      0       not maximizable default
-		              1       normal state
-					  2		  maximized state
-	
-	     this will be reworked when rebuilding GHOST carbon to use new OS X apis 
-		in order to be unified with GHOST fullscreen/maximised settings
-		 
-		 (lukep)
-    **/
-		 
-	short mac_windowState;
-	
-
+			 
     /**
      * The width/height of the size rectangle in the lower right corner of a 
      * Mac/Carbon window. This is also the height of the gutter area.

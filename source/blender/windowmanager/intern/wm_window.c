@@ -608,7 +608,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				
 				GHOST_ScreenToClient(win->ghostwin, wx, wy, &cx, &cy);
 				win->eventstate->x= cx;
+
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+				//Cocoa already uses coordinates with y=0 at bottom
+				win->eventstate->y= cy;
+#else
 				win->eventstate->y= (win->sizey-1) - cy;
+#endif
 				
 				wm_window_make_drawable(C, win);
 				break;

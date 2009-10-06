@@ -1569,14 +1569,18 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 		case GHOST_kEventCursorMove: {
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
+				event.type= MOUSEMOVE;
+				event.x= evt->x = cd->x;
+				event.y = evt->y = cd->y;
+#else
 				int cx, cy;
-
 				GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
-				
 				event.type= MOUSEMOVE;
 				event.x= evt->x= cx;
 				event.y= evt->y= (win->sizey-1) - cy;
-				
+#endif
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
 			}

@@ -46,6 +46,7 @@
 class GHOST_EventCursor;
 class GHOST_EventKey;
 class GHOST_EventWindow;
+class GHOST_WindowCocoa;
 
 
 class GHOST_SystemCocoa : public GHOST_System {
@@ -191,6 +192,13 @@ public:
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
+	/**
+     * Handles a window event. Called by GHOST_WindowCocoa window delegate
+     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
+     * @return Indication whether the event was handled. 
+     */
+    GHOST_TSuccess handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa* window);
+	
 protected:
 	/**
 	 * Initializes the system.
@@ -220,13 +228,6 @@ protected:
      */
     GHOST_TSuccess handleKeyEvent(void *eventPtr);
 
-   /**
-     * Handles a window event.
-     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
-     * @return Indication whether the event was handled. 
-     */
-    GHOST_TSuccess handleWindowEvent(void *eventPtr);
-
     /**
      * Handles all basic Mac application stuff for a mouse down event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
@@ -250,10 +251,7 @@ protected:
      * @param tmTask Pointer to the timer task that expired.
      */
     //static void s_timerCallback(TMTaskPtr tmTask);
-    
-	/** Cocoa autoReleasePool (void*) used for enablign standard C++ compilation */
-	void* m_autoReleasePool;
-	
+    	
     /** Event handler reference. */
     //EventHandlerRef m_handler;
 	
