@@ -87,7 +87,7 @@ EnumPropertyItem constraint_ik_type_items[] ={
 	{0, NULL, 0, NULL, NULL},
 };
 
-static EnumPropertyItem constraint_distance_items[] = {
+EnumPropertyItem constraint_distance_items[] = {
 	{LIMITDIST_INSIDE, "LIMITDIST_INSIDE", 0, "Inside", ""},
 	{LIMITDIST_OUTSIDE, "LIMITDIST_OUTSIDE", 0, "Outside", ""},
 	{LIMITDIST_ONSURFACE, "LIMITDIST_ONSURFACE", 0, "On Surface", ""},
@@ -453,7 +453,7 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "pole_angle", PROP_FLOAT, PROP_ANGLE); // XXX - todo, convert to rad
 	RNA_def_property_float_sdna(prop, NULL, "poleangle");
-	RNA_def_property_range(prop, 0.0, 180.f);
+	RNA_def_property_range(prop, -180.0f, 180.f);
 	RNA_def_property_ui_text(prop, "Pole Angle", "Pole rotation offset.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
