@@ -456,7 +456,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, (spot)? prop_spot_shadow_items: prop_shadow_items);
 	RNA_def_property_ui_text(prop, "Shadow Method", "Method to compute lamp shadow with.");
-	RNA_def_property_update(prop, 0, "rna_Lamp_update");
+	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop= RNA_def_property(srna, "shadow_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "shdwr");
