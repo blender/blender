@@ -76,7 +76,7 @@ inline void bvh_node_push_childs<SVBVHNode>(SVBVHNode *node, Isect *isec, SVBVHN
 }
 
 template<>
-void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float *min, float *max)
+static void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float *min, float *max)
 {
 	if(is_leaf(node))
 	{

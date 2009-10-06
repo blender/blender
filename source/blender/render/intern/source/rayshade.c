@@ -134,7 +134,7 @@ RayObject*  RE_rayobject_create(Render *re, int type, int size)
 }
 
 #ifdef RE_RAYCOUNTER
-RayCounter re_rc_counter[BLENDER_MAX_THREADS] = {0};
+RayCounter re_rc_counter[BLENDER_MAX_THREADS];
 #endif
 
 
@@ -180,7 +180,7 @@ void freeraytree(Render *re)
 	
 #ifdef RE_RAYCOUNTER
 	{
-		RayCounter sum = {0};
+		RayCounter sum;
 		int i;
 		for(i=0; i<BLENDER_MAX_THREADS; i++)
 			RE_RC_MERGE(&sum, re_rc_counter+i);
