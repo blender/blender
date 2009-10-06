@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-#define RE_RAYCOUNTER			/* enable counters per ray, usefull for measuring raytrace structures performance */
+// #define RE_RAYCOUNTER			/* enable counters per ray, usefull for measuring raytrace structures performance */
 
 #define RE_RAY_LCTS_MAX_SIZE	256
 #define RT_USE_LAST_HIT			/* last shadow hit is reused before raycasting on whole tree */

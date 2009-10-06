@@ -112,7 +112,7 @@ template<class Node> static inline int bvh_node_hit_test(Node *node, Isect *isec
 
 
 template<class Node>
-static void bvh_node_merge_bb(Node *node, float *min, float *max)
+static inline void bvh_node_merge_bb(Node *node, float *min, float *max)
 {
 	if(is_leaf(node))
 	{

@@ -181,6 +181,7 @@ void freeraytree(Render *re)
 #ifdef RE_RAYCOUNTER
 	{
 		RayCounter sum;
+		memset( &sum, 0, sizeof(sum) );
 		int i;
 		for(i=0; i<BLENDER_MAX_THREADS; i++)
 			RE_RC_MERGE(&sum, re_rc_counter+i);
@@ -444,7 +445,13 @@ void makeraytree(Render *re)
 		re->i.infostr= "Raytree finished";
 		re->stats_draw(re->sdh, &re->i);
 	}
+
+#ifdef RE_RAYCOUNTER
+	memset( re_rc_counter, 0, sizeof(re_rc_counter) );
+#endif
 }
+
+
 
 void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
