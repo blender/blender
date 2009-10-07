@@ -767,6 +767,8 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct wmKeyMap *key
 			km = WM_keymap_add_item(keymap, "TFM_OT_create_orientation", SPACEKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 			RNA_boolean_set(km->ptr, "use", 1);
 
+			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
+
 			break;
 		case SPACE_ACTION:
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
@@ -837,7 +839,7 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct wmKeyMap *key
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 			break;
 		default:
 			break;

@@ -2334,7 +2334,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		if (t->flag & (T_OBJECT|T_TEXTURE|T_POSE)) {
 			float obsizemat[3][3];
 			// Reorient the size mat to fit the oriented object.
-			Mat3MulMat3(obsizemat, tmat, td->axismtx);
+			Mat3MulMat3(obsizemat, td->axismtx, tmat);
 			//printmatrix3("obsizemat", obsizemat);
 			TransMat3ToSize(obsizemat, td->axismtx, fsize);
 			//printvecf("fsize", fsize);
