@@ -700,7 +700,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 
 void UI_view2d_curRect_validate(View2D *v2d)
 {
-	return UI_view2d_curRect_validate_resize(v2d, 0);
+	UI_view2d_curRect_validate_resize(v2d, 0);
 }
 
 /* ------------------ */
