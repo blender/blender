@@ -176,10 +176,6 @@ void ntreeTexExecTree(
 	TexResult dummy_texres;
 	TexCallData data;
 	
-	/* 0 means don't care, so just use first */
-	if(which_output == 0)
-		which_output = 1;
-	
 	if(!texres) texres = &dummy_texres;
 	data.coord = coord;
 	data.dxt = dxt;

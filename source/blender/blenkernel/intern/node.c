@@ -1246,9 +1246,12 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y)
 	if(preview) {
 		if(x>=0 && y>=0) {
 			if(x<preview->xsize && y<preview->ysize) {
-				float *tar= preview->rect+ 4*((preview->xsize*y) + x);
+				unsigned char *tar= preview->rect+ 4*((preview->xsize*y) + x);
 				//if(tar[0]==0.0f) {
-				QUATCOPY(tar, col);
+				tar[0]= FTOCHAR(col[0]);
+				tar[1]= FTOCHAR(col[1]);
+				tar[2]= FTOCHAR(col[2]);
+				tar[3]= FTOCHAR(col[3]);
 				//}
 			}
 			//else printf("prv out bound x y %d %d\n", x, y);

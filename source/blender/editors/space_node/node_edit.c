@@ -62,8 +62,6 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
-#include "ED_render.h"
-
 #include "BIF_gl.h"
 
 #include "BLI_arithb.h"
@@ -74,8 +72,10 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "ED_space_api.h"
+#include "ED_node.h"
+#include "ED_render.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_transform.h"
 #include "ED_types.h"
 
@@ -581,13 +581,45 @@ void ED_node_texture_default(Tex *tx)
 	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
 }
 
+void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype)
+{
+	bNode *node;
+	short idtype= GS(id->name);
+
+	if(idtype == ID_MA) {
+		*ntree= ((Material*)id)->nodetree;
+		if(treetype) *treetype= NTREE_SHADER;
+	}
+	else if(idtype == ID_SCE) {
+		*ntree= ((Scene*)id)->nodetree;
+		if(treetype) *treetype= NTREE_COMPOSIT;
+	}
+	else if(idtype == ID_TE) {
+		*ntree= ((Tex*)id)->nodetree;
+		if(treetype) *treetype= NTREE_TEXTURE;
+	}
+
+	/* find editable group */
+	if(edittree) {
+		if(*ntree)
+			for(node= (*ntree)->nodes.first; node; node= node->next)
+				if(node->flag & NODE_GROUP_EDIT)
+					break;
+		
+		if(node && node->id)
+			*edittree= (bNodeTree *)node->id;
+		else
+			*edittree= *ntree;
+	}
+}
+
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
 void snode_set_context(SpaceNode *snode, Scene *scene)
 {
 	Object *ob= OBACT;
-	bNode *node= NULL;
 	
 	snode->nodetree= NULL;
+	snode->edittree= NULL;
 	snode->id= snode->from= NULL;
 	
 	if(snode->treetype==NTREE_SHADER) {
@@ -597,7 +629,6 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 			if(ma) {
 				snode->from= &ob->id;
 				snode->id= &ma->id;
-				snode->nodetree= ma->nodetree;
 			}
 		}
 	}
@@ -608,8 +639,6 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		/* bit clumsy but reliable way to see if we draw first time */
 		if(snode->nodetree==NULL)
 			ntreeCompositForceHidden(scene->nodetree, scene);
-		
-		snode->nodetree= scene->nodetree;
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
 		Tex *tx= NULL;
@@ -648,22 +677,11 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 				tx= mtex->tex;
 		}
 		
-		if(tx) {
-			snode->id= &tx->id;
-			snode->nodetree= tx->nodetree;
-		}
+		snode->id= &tx->id;
 	}
-	
-	/* find editable group */
-	if(snode->nodetree)
-		for(node= snode->nodetree->nodes.first; node; node= node->next)
-			if(node->flag & NODE_GROUP_EDIT)
-				break;
-	
-	if(node && node->id)
-		snode->edittree= (bNodeTree *)node->id;
-	else
-		snode->edittree= snode->nodetree;
+
+	if(snode->id)
+		node_tree_from_ID(snode->id, &snode->nodetree, &snode->edittree, NULL);
 }
 
 #if 0
@@ -691,15 +709,13 @@ static void node_active_image(Image *ima)
 
 void node_set_active(SpaceNode *snode, bNode *node)
 {
-	
 	nodeSetActive(snode->edittree, node);
 	
-	#if 0
-	// XXX
 	if(node->type!=NODE_GROUP) {
-		
 		/* tree specific activate calls */
 		if(snode->treetype==NTREE_SHADER) {
+			// XXX
+#if 0
 			
 			/* when we select a material, active texture is cleared, for buttons */
 			if(node->id && GS(node->id->name)==ID_MA)
@@ -709,8 +725,11 @@ void node_set_active(SpaceNode *snode, bNode *node)
 			
 			// allqueue(REDRAWBUTSSHADING, 1);
 			// allqueue(REDRAWIPO, 0);
+#endif
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
+			Scene *scene= (Scene*)snode->id;
+
 			/* make active viewer, currently only 1 supported... */
 			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				bNode *tnode;
@@ -731,31 +750,37 @@ void node_set_active(SpaceNode *snode, bNode *node)
 					if(gnode)
 						NodeTagIDChanged(snode->nodetree, gnode->id);
 					
-					// XXX			snode_handle_recalc(snode);
+					ED_node_changed_update(snode->id, node);
 				}
 				
 				/* addnode() doesnt link this yet... */
 				node->id= (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 			}
 			else if(node->type==CMP_NODE_IMAGE) {
+				// XXX
+#if 0
 				if(node->id)
 					node_active_image((Image *)node->id);
+#endif
 			}
 			else if(node->type==CMP_NODE_R_LAYERS) {
-				if(node->id==NULL || node->id==(ID *)G.scene) {
-					G.scene->r.actlay= node->custom1;
+				if(node->id==NULL || node->id==(ID *)scene) {
+					scene->r.actlay= node->custom1;
+					// XXX
 					// allqueue(REDRAWBUTSSCENE, 0);
 				}
 			}
 		}
 		else if(snode->treetype==NTREE_TEXTURE) {
+			// XXX
+#if 0
 			if(node->id)
 				; // XXX BIF_preview_changed(-1);
 			// allqueue(REDRAWBUTSSHADING, 1);
 			// allqueue(REDRAWIPO, 0);
+#endif
 		}
 	}
-	#endif /* 0 */
 }
 
 /* ***************** Edit Group operator ************* */

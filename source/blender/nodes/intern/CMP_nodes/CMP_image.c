@@ -254,7 +254,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 			if(out[1]->hasoutput)
 				out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
 
-			generate_preview(node, stackbuf);
+			generate_preview(data, node, stackbuf);
 		}
 	}	
 };
@@ -386,7 +386,7 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 
                node_composit_rlayers_out(rd, rl, out, rr->rectx, rr->recty);
 
-               generate_preview(node, stackbuf);
+               generate_preview(data, node, stackbuf);
             }
          }
       }

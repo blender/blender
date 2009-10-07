@@ -105,7 +105,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 		VECCOPY(prevbuf->procedural_size, in[1]->vec);
 		prevbuf->procedural_type= CB_RGBA;
 		composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
-		generate_preview(node, prevbuf);
+		generate_preview(data, node, prevbuf);
 		free_compbuf(prevbuf);
 		
 		if(out[0]->hasoutput) {

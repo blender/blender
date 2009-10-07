@@ -93,20 +93,23 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
 		tex_do_preview(node, params.coord, &target->tr);
 	}
-	else if(cdata->which_output == node->custom1) {
-		TexParams params;
-		params_from_cdata(&params, cdata);
+	else {
+		/* 0 means don't care, so just use first */
+		if(cdata->which_output == node->custom1 || (cdata->which_output == 0 && node->custom1 == 1)) {
+			TexParams params;
+			params_from_cdata(&params, cdata);
+			
+			osa(tex_input_rgba, &target->tr, in[0], &params, cdata->thread);
 		
-		osa(tex_input_rgba, &target->tr, in[0], &params, cdata->thread);
-	
-		target->tin = (target->tr + target->tg + target->tb) / 3.0f;
-		target->talpha = 1.0f;
-	
-		if(target->nor) {
-			if(in[1]->hasinput)
-				osa(tex_input_vec, target->nor, in[1], &params, cdata->thread);
-			else
-				target->nor = 0;
+			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
+			target->talpha = 1.0f;
+		
+			if(target->nor) {
+				if(in[1]->hasinput)
+					osa(tex_input_vec, target->nor, in[1], &params, cdata->thread);
+				else
+					target->nor = 0;
+			}
 		}
 	}
 }

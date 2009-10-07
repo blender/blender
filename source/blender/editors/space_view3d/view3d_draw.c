@@ -1961,6 +1961,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
+	else
+		v3d->zbuf= FALSE;
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	v3d->gridview= v3d->grid;

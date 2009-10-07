@@ -99,7 +99,7 @@ typedef struct bNodeSocket {
 #
 #
 typedef struct bNodePreview {
-	float *rect;
+	unsigned char *rect;
 	short xsize, ysize;
 } bNodePreview;
 

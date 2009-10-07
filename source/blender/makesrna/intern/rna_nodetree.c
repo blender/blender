@@ -31,10 +31,12 @@
 
 #include "rna_internal.h"
 
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_image.h"
 
@@ -140,11 +142,42 @@ static char *rna_Node_path(PointerRNA *ptr)
 	return BLI_sprintfN("nodes[%d]", index);
 }
 
+static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
+{
+	bNode *node;
+
+	if(ntree == lookup)
+		return 1;
+	
+	for(node=ntree->nodes.first; node; node=node->next)
+		if(node->type == NODE_GROUP && node->id)
+			if(has_nodetree((bNodeTree*)node->id, lookup))
+				return 1;
+	
+	return 0;
+}
+
 static void rna_Node_update(bContext *C, PointerRNA *ptr)
 {
+	Main *bmain= CTX_data_main(C);
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNode *node= (bNode*)ptr->data;
+	Material *ma;
+	Tex *tex;
+	Scene *sce;
 
-	ED_node_changed_update(C, node);
+	/* look through all datablocks, to support groups */
+	for(ma=bmain->mat.first; ma; ma=ma->id.next)
+		if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
+			ED_node_changed_update(&ma->id, node);
+
+	for(tex=bmain->tex.first; tex; tex=tex->id.next)
+		if(tex->nodetree && tex->use_nodes && has_nodetree(tex->nodetree, ntree))
+			ED_node_changed_update(&tex->id, node);
+
+	for(sce=bmain->scene.first; sce; sce=sce->id.next)
+		if(sce->nodetree && sce->use_nodes && has_nodetree(sce->nodetree, ntree))
+			ED_node_changed_update(&sce->id, node);
 }
 
 static void rna_Node_update_name(bContext *C, PointerRNA *ptr)

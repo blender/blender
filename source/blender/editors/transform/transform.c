@@ -322,7 +322,7 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	else if(t->spacetype == SPACE_NODE)
 	{
 		//ED_area_tag_redraw(t->sa);
-		WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_NODE, NULL);
 	}
 	else if(t->spacetype == SPACE_SEQ)
 	{

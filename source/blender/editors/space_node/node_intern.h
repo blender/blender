@@ -69,9 +69,10 @@ void NODE_OT_select_border(struct wmOperatorType *ot);
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
 void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int th_col2, int do_shaded);
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
-void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode);
+void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage);
 
 /* node_edit.c */
+void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
 void snode_handle_recalc(bContext *C, SpaceNode *snode);
 bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);

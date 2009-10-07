@@ -141,7 +141,7 @@ void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 									  int src1_type, int fac1_type, int src2_type, int fac2_type);
 
 CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel);
-void generate_preview(bNode *node, CompBuf *stackbuf);
+void generate_preview(void *data, bNode *node, CompBuf *stackbuf);
 
 void do_copy_rgba(bNode *node, float *out, float *in);
 void do_copy_rgb(bNode *node, float *out, float *in);

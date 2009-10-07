@@ -305,7 +305,7 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 	if(out[1]->hasoutput)
 			out[1]->vec[0]= std_dev;
 
-	generate_preview(node, histogram);
+	generate_preview(data, node, histogram);
 
 	if(cbuf!=in[0]->data)
 		free_compbuf(cbuf);

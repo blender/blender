@@ -95,19 +95,19 @@ extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 
-void ED_node_changed_update(bContext *C, bNode *node)
+void ED_node_changed_update(ID *id, bNode *node)
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeTree *nodetree, *edittree;
+	int treetype;
 
-	if(!snode)
-		return;
+	node_tree_from_ID(id, &nodetree, &edittree, &treetype);
 
-	if(snode->treetype==NTREE_SHADER) {
-		DAG_id_flush_update(snode->id, 0);
-		WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, snode->id);
+	if(treetype==NTREE_SHADER) {
+		DAG_id_flush_update(id, 0);
+		WM_main_add_notifier(NC_MATERIAL|ND_SHADING, id);
 	}
-	else if(snode->treetype==NTREE_COMPOSIT) {
-		NodeTagChanged(snode->edittree, node);
+	else if(treetype==NTREE_COMPOSIT) {
+		NodeTagChanged(edittree, node);
 		/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
 			
 		/* not the best implementation of the world... but we need it to work now :) */
@@ -122,23 +122,26 @@ void ED_node_changed_update(bContext *C, bNode *node)
 			//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 		}
 		else {
-			node= node_tree_get_editgroup(snode->nodetree);
+			node= node_tree_get_editgroup(nodetree);
 			if(node)
-				NodeTagIDChanged(snode->nodetree, node->id);
+				NodeTagIDChanged(nodetree, node->id);
 		}
-		WM_event_add_notifier(C, NC_SCENE|ND_NODES, CTX_data_scene(C));
-	}			
-	else if(snode->treetype==NTREE_TEXTURE) {
-		DAG_id_flush_update(snode->id, 0);
-		WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
-	}
 
+		WM_main_add_notifier(NC_SCENE|ND_NODES, id);
+	}			
+	else if(treetype==NTREE_TEXTURE) {
+		DAG_id_flush_update(id, 0);
+		WM_main_add_notifier(NC_TEXTURE|ND_NODES, id);
+	}
 }
 
 static void do_node_internal_buttons(bContext *C, void *node_v, int event)
 {
-	if(event==B_NODE_EXEC)
-		ED_node_changed_update(C, node_v);
+	if(event==B_NODE_EXEC) {
+		SpaceNode *snode= CTX_wm_space_node(C);
+		if(snode && snode->id)
+			ED_node_changed_update(snode->id, node_v);
+	}
 }
 
 
@@ -648,7 +651,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
 	
 	glColor4f(1.0, 1.0, 1.0, 1.0);
-	glaDrawPixelsTex(prv->xmin, prv->ymin, preview->xsize, preview->ysize, GL_FLOAT, preview->rect);
+	glaDrawPixelsTex(prv->xmin, prv->ymin, preview->xsize, preview->ysize, GL_UNSIGNED_BYTE, preview->rect);
 	
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glDisable(GL_BLEND);
@@ -1075,6 +1078,8 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	float col[3];
 	View2DScrollers *scrollers;
 	SpaceNode *snode= CTX_wm_space_node(C);
+	Scene *scene= CTX_data_scene(C);
+	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0);
@@ -1094,7 +1099,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 
 	UI_view2d_constant_grid_draw(C, v2d);
 	/* backdrop */
-	draw_nodespace_back_pix(ar, snode);
+	draw_nodespace_back_pix(ar, snode, color_manage);
 	
 	/* nodes */
 	snode_set_context(snode, CTX_data_scene(C));

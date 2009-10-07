@@ -111,7 +111,7 @@ static void node_composit_exec_distance_matte(void *data, bNode *node, bNodeStac
 	out[0]->data=workbuf;
 	if(out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(workbuf, CHAN_A);
-	generate_preview(node, workbuf);
+	generate_preview(data, node, workbuf);
 
 	if(inbuf!=in[0]->data)
 		free_compbuf(inbuf);

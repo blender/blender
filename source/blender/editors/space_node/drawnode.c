@@ -89,6 +89,7 @@
 #include "UI_resources.h"
 
 #include "RE_pipeline.h"
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "node_intern.h"
@@ -2106,12 +2107,13 @@ void node_rename_but(char *s)
 
 #endif
 
-void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode)
+void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 {
 	
 	if((snode->flag & SNODE_BACKDRAW) && snode->treetype==NTREE_COMPOSIT) {
 		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+		void *lock;
+		ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
 		if(ibuf) {
 			float x, y; 
 			
@@ -2126,13 +2128,21 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode)
 			x = (ar->winx-ibuf->x)/2 + snode->xof;
 			y = (ar->winy-ibuf->y)/2 + snode->yof;
 			
+			if(!ibuf->rect) {
+				if(color_manage)
+					ibuf->profile= IB_PROFILE_SRGB;
+				else
+					ibuf->profile = IB_PROFILE_NONE;
+				IMB_rect_from_float(ibuf);
+			}
+
 			if(ibuf->rect)
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-			else if(ibuf->channels==4)
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 			
 			wmPopMatrix();
 		}
+
+		BKE_image_release_ibuf(ima, lock);
 	}
 }
 
