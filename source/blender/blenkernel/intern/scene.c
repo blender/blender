@@ -240,7 +240,8 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 void free_scene(Scene *sce)
 {
 	Base *base;
-
+	SceneRenderLayer *srl;
+	
 	base= sce->base.first;
 	while(base) {
 		base->object->id.us--;
@@ -273,6 +274,10 @@ void free_scene(Scene *sce)
 		IDP_FreeProperty(sce->r.ffcodecdata.properties);
 		MEM_freeN(sce->r.ffcodecdata.properties);
 		sce->r.ffcodecdata.properties = NULL;
+	}
+	
+	for(srl= sce->r.layers.first; srl; srl= srl->next) {
+		BLI_freelistN( &srl->freestyleConfig.modules);
 	}
 	
 	BLI_freelistN(&sce->markers);

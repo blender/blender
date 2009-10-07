@@ -1731,6 +1731,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TimeMarker *marker;
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
+	FreestyleModuleConfig *fmc;
 	ToolSettings *tos;
 	
 	sce= scebase->first;
@@ -1855,8 +1856,14 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		for(ts = sce->transform_spaces.first; ts; ts = ts->next)
 			writestruct(wd, DATA, "TransformOrientation", 1, ts);
 		
-		for(srl= sce->r.layers.first; srl; srl= srl->next)
+		for(srl= sce->r.layers.first; srl; srl= srl->next) {
 			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);
+			
+			for(fmc= srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
+				writestruct(wd, DATA, "FreestyleModuleConfig", 1, fmc);
+			}
+			
+		}
 		
 		if(sce->nodetree) {
 			writestruct(wd, DATA, "bNodeTree", 1, sce->nodetree);
