@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -704,6 +705,8 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiItemMenuEnumO(layout, "Lamp", ICON_OUTLINER_OB_LAMP, "OBJECT_OT_lamp_add", "type");
 	uiItemS(layout);
 	uiItemMenuEnumO(layout, "Force Field", ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_effector_add", "type");
+	uiItemS(layout);
+	uiItemMenuEnumO(layout, "Group Instance", ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_group_instance_add", "type");
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -726,6 +729,81 @@ void OBJECT_OT_primitive_add(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= 0;
+}
+
+/* add dupligroup */
+static EnumPropertyItem *add_dupligroup_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem *item= NULL, item_tmp;
+	int totitem= 0;
+	int i= 0;
+	Group *group;
+
+	if(C==NULL)
+		return NULL;
+
+	memset(&item_tmp, 0, sizeof(item_tmp));
+
+	for(group= CTX_data_main(C)->group.first; group; group= group->id.next) {
+		item_tmp.identifier= item_tmp.name= group->id.name+2;
+		item_tmp.value= i++;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	if(i>0) {
+		*free= 1;
+		return item;
+	}
+	else {
+		return NULL;
+	}
+}
+
+static int group_instance_add_exec(bContext *C, wmOperator *op)
+{
+	/* XXX, using an enum for library lookups is a bit dodgy */
+	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "type"));
+
+	if(group) {
+		Object *ob= object_add_type(C, OB_EMPTY);
+		rename_id(&ob->id, group->id.name+2);
+		ob->dup_group= group;
+		ob->transflag |= OB_DUPLIGROUP;
+		id_us_plus(&group->id);
+
+
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+/* only used as menu */
+void OBJECT_OT_group_instance_add(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_group_dummy_types[] = {
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Add Group Instance";
+	ot->description = "Add a dupligroup instance.";
+	ot->idname= "OBJECT_OT_group_instance_add";
+
+	/* api callbacks */
+	ot->exec= group_instance_add_exec;
+
+	ot->poll= ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag= 0;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", prop_group_dummy_types, 0, "Type", "");
+	RNA_def_enum_funcs(prop, add_dupligroup_itemf);
 }
 
 /**************************** Delete Object *************************/
