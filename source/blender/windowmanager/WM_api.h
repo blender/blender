@@ -126,7 +126,8 @@ void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 void		WM_event_add_mousemove(struct bContext *C);
 int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
-void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *data);
+void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
+void		WM_main_add_notifier(unsigned int type, void *reference);
 
 void		wm_event_add		(struct wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 
