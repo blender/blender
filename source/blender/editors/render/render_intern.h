@@ -44,6 +44,10 @@ void WORLD_OT_new(struct wmOperatorType *ot);
 
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_module_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_module_remove(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_module_move_up(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_module_move_down(struct wmOperatorType *ot);
 
 #endif /* RENDER_INTERN_H */
 

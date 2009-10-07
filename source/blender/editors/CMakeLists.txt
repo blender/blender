@@ -39,6 +39,7 @@ SET(INC ../windowmanager
 	../../../intern/audaspace/intern
 	../nodes
 	../gpu
+	../freestyle
 	../blenfont
 	../ikplugin
 )

@@ -3,6 +3,9 @@
 
 #include "DNA_listBase.h"
 
+#define FREESTYLE_SUGGESTIVE_CONTOURS_FLAG  1
+#define FREESTYLE_RIDGES_AND_VALLEYS_FLAG   2
+
 typedef struct FreestyleModuleConfig {
 	struct FreestyleModuleConfig *next, *prev;
 	

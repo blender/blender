@@ -80,11 +80,12 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		col.itemR(rl, "solid")
 		col.itemR(rl, "halo")
 		col.itemR(rl, "ztransp")
+		col.itemR(rl, "sky")
 
 		col = split.column()
-		col.itemR(rl, "sky")
 		col.itemR(rl, "edge")
 		col.itemR(rl, "strand")
+		col.itemR(rl, "freestyle")
 
 		if rl.zmask:
 			split = layout.split()
@@ -124,6 +125,33 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		row = col.row()
 		row.itemR(rl, "pass_refraction")
 		row.itemR(rl, "pass_refraction_exclude", text="", icon='ICON_X')
+
+		if rl.freestyle:
+			layout.itemS()
+
+			split = layout.split()
+
+			col = split.column()
+			col.itemL(text="Freestyle:")
+			freestyle = rl.freestyle_settings
+			col.itemR(freestyle, "sphere_radius", text="Sphere Radius")
+			col.itemR(freestyle, "ridges_and_valleys", text="Ridges and Valleys")
+			col.itemR(freestyle, "suggestive_contours", text="Suggestive Contours")
+			col.itemR(freestyle, "dkr_epsilon", text="Dkr Epsilon")
+
+			col.itemO("scene.freestyle_module_add", text="Add Style Module")
+
+			for i, module in enumerate(freestyle.modules):
+				box = layout.box()
+				box.set_context_pointer("freestyle_module", module)
+				row = box.row(align=True)
+				row.itemR(module, "is_displayed", text="")
+				row.itemR(module, "module_path", text="")
+				row.itemO("scene.freestyle_module_remove", icon='ICON_X', text="")
+				props = row.itemO("scene.freestyle_module_move_up", icon='VICON_MOVE_UP', text="", properties=True)
+				props.active = (i > 0)
+				props = row.itemO("scene.freestyle_module_move_down", icon='VICON_MOVE_DOWN', text="", properties=True)
+				props.active = (i < len(freestyle.modules) - 1)
 
 class SCENE_PT_shading(RenderButtonsPanel):
 	__label__ = "Shading"
@@ -224,6 +252,13 @@ class SCENE_PT_post_processing(RenderButtonsPanel):
 		sub.itemR(rd, "edge_threshold", text="Threshold", slider=True)
 		sub.itemR(rd, "edge_color", text="")
 		
+		layout.itemS()
+
+		split = layout.split()
+		col = split.column()
+		col.itemR(rd, "freestyle", text="Freestyle")
+
+
 class SCENE_PT_output(RenderButtonsPanel):
 	__label__ = "Output"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])

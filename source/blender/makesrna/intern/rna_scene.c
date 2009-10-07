@@ -711,6 +711,12 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+	prop= RNA_def_property(srna, "freestyle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_FRS);
+	RNA_def_property_ui_text(prop, "Freestyle", "Render stylized strokes in this Layer.");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	/* passes */
 	prop= RNA_def_property(srna, "pass_combined", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_COMBINED);
@@ -825,6 +831,62 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	RNA_def_property_ui_text(prop, "Refraction Exclude", "Exclude ratraced refraction pass from combined.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+}
+
+static void rna_def_freestyle_settings(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	/* FreestyleModuleSettings */
+
+	srna= RNA_def_struct(brna, "FreestyleModuleSettings", NULL);
+	RNA_def_struct_sdna(srna, "FreestyleModuleConfig");
+	RNA_def_struct_ui_text(srna, "Freestyle Module", "Style module configuration for specifying a style module.");
+
+	prop= RNA_def_property(srna, "module_path", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "module_path");
+	RNA_def_property_ui_text(prop, "Module Path", "Path to a style module file.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "is_displayed", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "is_displayed", 1);
+	RNA_def_property_ui_text(prop, "Is Displayed", "Enable this style module during the rendering.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	/* FreestyleSettings */
+
+	srna= RNA_def_struct(brna, "FreestyleSettings", NULL);
+	RNA_def_struct_sdna(srna, "FreestyleConfig");
+	RNA_def_struct_nested(brna, srna, "SceneRenderLayer");
+	RNA_def_struct_ui_text(srna, "Frestyle Settings", "Freestyle settings for a SceneRenderLayer datablock.");
+
+	prop= RNA_def_property(srna, "modules", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "modules", NULL);
+	RNA_def_property_struct_type(prop, "FreestyleModuleSettings");
+	RNA_def_property_ui_text(prop, "Style modules", "A list of style modules (to be applied from top to bottom).");
+
+	prop= RNA_def_property(srna, "suggestive_contours", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_SUGGESTIVE_CONTOURS_FLAG);
+	RNA_def_property_ui_text(prop, "Suggestive Contours", "Enable suggestive contours.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "ridges_and_valleys", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_RIDGES_AND_VALLEYS_FLAG);
+	RNA_def_property_ui_text(prop, "Ridges and Valleys", "Enable ridges and valleys.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sphere_radius");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Sphere Radius", "*TBD*");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "dkr_epsilon", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dkr_epsilon");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Dkr Epsilon", "*TBD*");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 }
 
 static void rna_def_scene_game_data(BlenderRNA *brna)
@@ -1115,11 +1177,22 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 static void rna_def_scene_render_layer(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "SceneRenderLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Scene Render Layer", "Render layer.");
 
 	rna_def_render_layer_common(srna, 1);
+
+	/* Freestyle */
+
+	rna_def_freestyle_settings(brna);
+
+	prop= RNA_def_property(srna, "freestyle_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "freestyleConfig");
+	RNA_def_property_struct_type(prop, "FreestyleSettings");
+	RNA_def_property_ui_text(prop, "Freestyle Settings", "");
 }
 
 static void rna_def_scene_render_data(BlenderRNA *brna)
@@ -1714,6 +1787,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edge Color", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
+	prop= RNA_def_property(srna, "freestyle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_EDGE_FRS);
+	RNA_def_property_ui_text(prop, "Edge", "Draw stylized strokes using Freestyle.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
 	prop= RNA_def_property(srna, "threads", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "threads");
 	RNA_def_property_range(prop, 1, 8);
@@ -2244,6 +2322,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
+
+	/* Freestyle */
+	prop= RNA_def_property(srna, "freestyle_current_layer_number", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "freestyle_current_layer_number");
+	RNA_def_property_ui_text(prop, "Freestyle Current Layer Number", "Number of current layers in Freestyle.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);

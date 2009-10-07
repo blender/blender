@@ -58,6 +58,8 @@
 
 #include "GPU_material.h"
 
+#include "FRS_freestyle.h"
+
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
@@ -643,3 +645,122 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int freestyle_module_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	printf("freestyle_module_add_exec\n");
+	FRS_add_module();
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_module_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Freestyle Module";
+	ot->idname= "SCENE_OT_freestyle_module_add";
+	ot->description="Add a style module into the list of modules.";
+	
+	/* api callbacks */
+	ot->exec= freestyle_module_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int freestyle_module_remove_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
+	FreestyleModuleConfig *module= ptr.data;
+
+	printf("freestyle_module_remove_exec\n");
+	FRS_delete_module(module, NULL);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_module_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Freestyle Module";
+	ot->idname= "SCENE_OT_freestyle_module_remove";
+	ot->description="Remove the style module from the stack.";
+	
+	/* api callbacks */
+	ot->exec= freestyle_module_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int freestyle_module_move_up_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
+	FreestyleModuleConfig *module= ptr.data;
+	int active = RNA_boolean_get(op->ptr, "active");
+
+	printf("freestyle_module_move_up_exec\n");
+	if(active)
+		FRS_move_up_module(module, NULL);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_module_move_up(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Up Freestyle Module";
+	ot->idname= "SCENE_OT_freestyle_module_move_up";
+	ot->description="Move the style module up in the stack.";
+	
+	/* api callbacks */
+	ot->exec= freestyle_module_move_up_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "active", 0, "Active", "True if the operator is enabled.");
+}
+
+static int freestyle_module_move_down_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
+	FreestyleModuleConfig *module= ptr.data;
+	int active = RNA_boolean_get(op->ptr, "active");
+
+	printf("freestyle_module_move_down_exec\n");
+	if(active)
+		FRS_move_down_module(module, NULL);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_module_move_down(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Down Freestyle Module";
+	ot->idname= "SCENE_OT_freestyle_module_move_down";
+	ot->description="Move the style module down in the stack.";
+	
+	/* api callbacks */
+	ot->exec= freestyle_module_move_down_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "active", 0, "Active", "True if the operator is enabled.");
+}

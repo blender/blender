@@ -295,22 +295,22 @@ extern "C" {
 	
 	void FRS_delete_module(void *module_index_ptr, void *unused)
 	{
-		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
+		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) module_index_ptr;
 
 		BLI_freelinkN( freestyle_modules, module_conf);
 	}
 	
 	void FRS_move_up_module(void *module_index_ptr, void *unused)
 	{
-		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
-		
+		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) module_index_ptr;
+
 		BLI_remlink(freestyle_modules, module_conf);
 		BLI_insertlink(freestyle_modules, module_conf->prev->prev, module_conf);
 	}
 	
 	void FRS_move_down_module(void *module_index_ptr, void *unused)
 	{			
-		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
+		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) module_index_ptr;
 		
 		BLI_remlink(freestyle_modules, module_conf);
 		BLI_insertlink(freestyle_modules, module_conf->next, module_conf);
