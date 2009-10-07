@@ -9137,7 +9137,7 @@ int modifiers_isDeformed(Scene *scene, Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
-		if(ob==scene->obedit && (md->mode & eModifierMode_Editmode)==0);
+		if(ob->mode==OB_MODE_EDIT && (md->mode & eModifierMode_Editmode)==0);
 		else 
 			if(modifier_isDeformer(md))
 				return 1;

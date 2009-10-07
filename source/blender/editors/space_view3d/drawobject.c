@@ -5512,7 +5512,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(ob==OBACT && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		if(ob->type==OB_MESH) {
 
-			if(ob==scene->obedit);
+			if(ob->mode==OB_MODE_EDIT);
 			else {
 				if(dt<OB_SOLID)
 					zbufoff= 1;
@@ -5534,7 +5534,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(dt>=OB_BOUNDBOX ) {
 
 		dtx= ob->dtx;
-		if(scene->obedit==ob) {
+		if(ob->mode==OB_MODE_EDIT) {
 			// the only 2 extra drawtypes alowed in editmode
 			dtx= dtx & (OB_DRAWWIRE|OB_TEXSPACE);
 		}
@@ -5550,7 +5550,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	
 	/* draw outline for selected solid objects, mesh does itself */
 	if((v3d->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
-		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=scene->obedit && (flag && DRAW_SCENESET)==0) {
+		if(dt>OB_WIRE && dt<OB_TEXTURE && ob->mode!=OB_MODE_EDIT && (flag && DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
 				
 				drawSolidSelect(scene, v3d, ar, base);
@@ -6159,7 +6159,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	switch( ob->type) {
 	case OB_MESH:
 	{
-		if(ob == scene->obedit) {
+		if(ob->mode==OB_MODE_EDIT) {
 			Mesh *me= ob->data;
 			EditMesh *em= me->edit_mesh;
 
@@ -6215,7 +6215,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 	DerivedMesh *dm=NULL, *edm=NULL;
 	int glsl;
 	
-	if(ob == scene->obedit)
+	if(ob->mode == OB_MODE_EDIT)
 		edm= editmesh_get_derived_base(ob, me->edit_mesh);
 	else 
 		dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
