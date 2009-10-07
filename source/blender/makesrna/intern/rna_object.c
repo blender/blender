@@ -99,6 +99,8 @@ EnumPropertyItem object_type_items[] = {
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
+#include "BLI_editVert.h" /* for EditMesh->mat_nr */
+
 #include "ED_object.h"
 
 void rna_Object_update(bContext *C, PointerRNA *ptr)
@@ -404,6 +406,13 @@ static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
 {
 	Object *ob= (Object*)ptr->id.data;
 	ob->actcol= value+1;
+
+	if(ob->mode==OB_MODE_EDIT && ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+
+		if(me->edit_mesh)
+			me->edit_mesh->mat_nr= value;
+	}
 }
 
 static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, int *max)

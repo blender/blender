@@ -986,6 +986,8 @@ void load_editMesh(Scene *scene, Object *ob)
 	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
 	mesh_update_customdata_pointers(me);
 
+	em->mat_nr= ob->actcol-1;
+
 	/* the vertices, use ->tmp.l as counter */
 	eve= em->verts.first;
 	a= 0;
