@@ -175,7 +175,7 @@ public:
 	 * @param	grab The new grab state of the cursor.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(bool grab, bool warp);
+	virtual GHOST_TSuccess setCursorGrab(bool grab, bool warp, bool restore);
 
 	/**
 	 * Sets the window "modified" status, indicating unsaved changes
@@ -247,7 +247,7 @@ protected:
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCursorGrab(bool grab, bool warp) { return GHOST_kSuccess; };
+	virtual GHOST_TSuccess setWindowCursorGrab(bool grab, bool warp, bool restore) { return GHOST_kSuccess; };
 	
 	/**
 	 * Sets the cursor shape on the window using

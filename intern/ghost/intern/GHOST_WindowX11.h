@@ -256,7 +256,7 @@ protected:
 	 */
 		GHOST_TSuccess 
 	setWindowCursorGrab(
-		bool grab, bool warp
+		bool grab, bool warp, bool restore
 	);
 
 	/**

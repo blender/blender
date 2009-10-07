@@ -1400,7 +1400,7 @@ setWindowCursorVisibility(
 	GHOST_TSuccess
 GHOST_WindowX11::
 setWindowCursorGrab(
-	bool grab, bool warp
+	bool grab, bool warp, bool restore
 ){
 	if(grab) {
 		if(warp) {
@@ -1416,7 +1416,27 @@ setWindowCursorGrab(
 		if(m_cursorWarp) { /* are we exiting warp */
 			setWindowCursorVisibility(true);
 			/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
-			m_system->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+			if(restore) {
+				GHOST_Rect bounds;
+				GHOST_TInt32 x_new, y_new, x_rel, y_rel;
+
+				getClientBounds(bounds);
+
+				x_new= m_cursorWarpInitPos[0]+m_cursorWarpAccumPos[0];
+				y_new= m_cursorWarpInitPos[1]+m_cursorWarpAccumPos[1];
+
+				screenToClient(x_new, y_new, x_rel, y_rel);
+
+				if(x_rel < 0)		x_new = (x_new-x_rel) + 2;
+				if(y_rel < 0)		y_new = (y_new-y_rel) + 2;
+				if(x_rel > bounds.getWidth())	x_new -= (x_rel-bounds.getWidth()) + 2;
+				if(y_rel > bounds.getHeight())	y_new -= (y_rel-bounds.getHeight()) + 2;
+				m_system->setCursorPosition(x_new, y_new);
+
+			}
+			else {
+				m_system->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+			}
 
 			setCursorWarpAccum(0, 0);
 			m_cursorWarp= false;

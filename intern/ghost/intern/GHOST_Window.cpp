@@ -98,12 +98,12 @@ GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 	}
 }
 
-GHOST_TSuccess GHOST_Window::setCursorGrab(bool grab, bool warp)
+GHOST_TSuccess GHOST_Window::setCursorGrab(bool grab, bool warp, bool restore)
 {
 	if(m_cursorGrabbed == grab)
 		return GHOST_kSuccess;
 
-	if (setWindowCursorGrab(grab, warp)) {
+	if (setWindowCursorGrab(grab, warp, restore)) {
 		m_cursorGrabbed = grab;
 		return GHOST_kSuccess;
 	}

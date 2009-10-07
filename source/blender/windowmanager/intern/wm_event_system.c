@@ -442,7 +442,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		else if(retval & OPERATOR_RUNNING_MODAL) {
 			/* grab cursor during blocking modal ops (X11) */
 			if(ot->flag & OPTYPE_BLOCKING)
-				WM_cursor_grab(CTX_wm_window(C), 1, (U.uiflag & USER_CONTINUOUS_MOUSE));
+				WM_cursor_grab(CTX_wm_window(C), (U.uiflag & USER_CONTINUOUS_MOUSE));
 		}
 		else
 			WM_operator_free(op);
@@ -637,7 +637,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 				CTX_wm_region_set(C, region);
 			}
 
-			WM_cursor_grab(CTX_wm_window(C), 0, -1);
+			WM_cursor_ungrab(CTX_wm_window(C), TRUE);
 			WM_operator_free(handler->op);
 		}
 		else if(handler->ui_remove) {
@@ -835,7 +835,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			/* remove modal handler, operator itself should have been cancelled and freed */
 			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
-				WM_cursor_grab(CTX_wm_window(C), 0, -1);
+				WM_cursor_ungrab(CTX_wm_window(C), TRUE);
 
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
