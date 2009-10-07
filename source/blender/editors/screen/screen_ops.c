@@ -512,6 +512,7 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Handle area action zones";
+	ot->description= "Handle area action zones for mouse actions/gestures.";
 	ot->idname= "SCREEN_OT_actionzone";
 	
 	ot->invoke= actionzone_invoke;
@@ -628,6 +629,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_swap(wmOperatorType *ot)
 {
 	ot->name= "Swap areas";
+	ot->description= "Swap selected areas screen positions.";
 	ot->idname= "SCREEN_OT_area_swap";
 
 	ot->invoke= area_swap_invoke;
@@ -692,6 +694,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Area into New Window";
+	ot->description= "Duplicate selected area into new window.";
 	ot->idname= "SCREEN_OT_area_dupli";
 	
 	ot->invoke= area_dupli_invoke;
@@ -931,6 +934,7 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move area edges";
+	ot->description= "Move selected area edges.";
 	ot->idname= "SCREEN_OT_area_move";
 
 	ot->exec= area_move_exec;
@@ -1246,6 +1250,7 @@ static EnumPropertyItem prop_direction_items[] = {
 static void SCREEN_OT_area_split(wmOperatorType *ot)
 {
 	ot->name = "Split area";
+	ot->description= "Split selected area into new windows.";
 	ot->idname = "SCREEN_OT_area_split";
 	
 	ot->exec= area_split_exec;
@@ -1372,6 +1377,7 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scale Region Size";
+	ot->description= "Scale selected area.";
 	ot->idname= "SCREEN_OT_region_scale";
 	
 	ot->invoke= region_scale_invoke;
@@ -1432,6 +1438,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 {
 	ot->name = "Jump to Endpoint";
+	ot->description= "Jump to first/last frame in frame range.";
 	ot->idname = "SCREEN_OT_frame_jump";
 
 	ot->exec= frame_jump_exec;
@@ -1497,6 +1504,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 {
 	ot->name = "Jump to Keyframe";
+	ot->description= "Jump to previous/next keyframe.";
 	ot->idname = "SCREEN_OT_keyframe_jump";
 
 	ot->exec= keyframe_jump_exec;
@@ -1553,6 +1561,7 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_screen_set(wmOperatorType *ot)
 {
 	ot->name = "Set Screen";
+	ot->description= "Cycle through available screens.";
 	ot->idname = "SCREEN_OT_screen_set";
 	
 	ot->exec= screen_set_exec;
@@ -1575,6 +1584,7 @@ static int screen_full_area_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 {
 	ot->name = "Toggle Full Screen";
+	ot->description= "Toggle display selected area as fullscreen.";
 	ot->idname = "SCREEN_OT_screen_full_area";
 	
 	ot->exec= screen_full_area_exec;
@@ -1848,6 +1858,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Join area";
+	ot->description= "Join selected areas into new window.";
 	ot->idname= "SCREEN_OT_area_join";
 	
 	/* api callbacks */
@@ -1881,6 +1892,7 @@ static void SCREEN_OT_repeat_last(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Repeat Last";
+	ot->description= "Repeat last action.";
 	ot->idname= "SCREEN_OT_repeat_last";
 	
 	/* api callbacks */
@@ -1933,6 +1945,7 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Repeat History";
+	ot->description= "Display menu for previous actions performed.";
 	ot->idname= "SCREEN_OT_repeat_history";
 	
 	/* api callbacks */
@@ -1966,6 +1979,7 @@ static void SCREEN_OT_redo_last(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Redo Last";
+	ot->description= "Display menu for last action performed.";
 	ot->idname= "SCREEN_OT_redo_last";
 	
 	/* api callbacks */
@@ -2009,6 +2023,7 @@ static void SCREEN_OT_region_split(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Split Region";
+	ot->description= "Split area by directional position.";
 	ot->idname= "SCREEN_OT_region_split";
 	
 	/* api callbacks */
@@ -2098,6 +2113,7 @@ static void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Quad View";
+	ot->description= "Split selected area into camera, front, right & top views.";
 	ot->idname= "SCREEN_OT_region_foursplit";
 	
 	/* api callbacks */
@@ -2292,6 +2308,7 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Animation Step";
+	ot->description= "Step through animation by position.";
 	ot->idname= "SCREEN_OT_animation_step";
 	
 	/* api callbacks */
@@ -2348,6 +2365,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Play Animation";
+	ot->description= "Play animation.";
 	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */
@@ -2945,6 +2963,7 @@ static void SCREEN_OT_render(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Render";
+	ot->description= "Render active scene.";
 	ot->idname= "SCREEN_OT_render";
 	
 	/* api callbacks */
@@ -2992,6 +3011,7 @@ static void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cancel Render View";
+	ot->description= "Cancel show render view.";
 	ot->idname= "SCREEN_OT_render_view_cancel";
 	
 	/* api callbacks */
@@ -3037,6 +3057,7 @@ static void SCREEN_OT_render_view_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Show/Hide Render View";
+	ot->description= "Toggle show render view.";
 	ot->idname= "SCREEN_OT_render_view_show";
 	
 	/* api callbacks */
@@ -3075,6 +3096,7 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Show/Hide User Preferences";
+	ot->description= "Show/hide user preferences.";
 	ot->idname= "SCREEN_OT_userpref_show";
 	
 	/* api callbacks */
@@ -3099,6 +3121,7 @@ void SCREEN_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "New Screen";
+	ot->description= "Add a new screen.";
 	ot->idname= "SCREEN_OT_new";
 	
 	/* api callbacks */
@@ -3122,7 +3145,8 @@ static int screen_delete_exec(bContext *C, wmOperator *op)
 void SCREEN_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Scene";
+	ot->name= "Delete Screen"; //was scene
+	ot->description= "Delete active screen.";
 	ot->idname= "SCREEN_OT_delete";
 	
 	/* api callbacks */
@@ -3164,6 +3188,7 @@ void SCENE_OT_new(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "New Scene";
+	ot->description= "Add new scene by type.";
 	ot->idname= "SCENE_OT_new";
 	
 	/* api callbacks */
@@ -3192,6 +3217,7 @@ void SCENE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Scene";
+	ot->description= "Delete active scene.";
 	ot->idname= "SCENE_OT_delete";
 	
 	/* api callbacks */
