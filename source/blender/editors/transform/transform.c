@@ -773,10 +773,11 @@ void transformEvent(TransInfo *t, wmEvent *event)
 							stopConstraint(t);
 						}
 						else {
+							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-								setUserConstraint(t, (CON_AXIS0), "along %s X");
+								setUserConstraint(t, orientation, (CON_AXIS0), "along %s X");
 							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-								setUserConstraint(t, (CON_AXIS1|CON_AXIS2), "locking %s X");
+								setUserConstraint(t, orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
 						}
 					}
 				}
@@ -805,10 +806,11 @@ void transformEvent(TransInfo *t, wmEvent *event)
 							stopConstraint(t);
 						}
 						else {
+							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-								setUserConstraint(t, (CON_AXIS1), "along %s Y");
+								setUserConstraint(t, orientation, (CON_AXIS1), "along %s Y");
 							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-								setUserConstraint(t, (CON_AXIS0|CON_AXIS2), "locking %s Y");
+								setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 						}
 					}
 				}
@@ -833,10 +835,11 @@ void transformEvent(TransInfo *t, wmEvent *event)
 						stopConstraint(t);
 					}
 					else {
+						short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setUserConstraint(t, (CON_AXIS2), "along %s Z");
+							setUserConstraint(t, orientation, (CON_AXIS2), "along %s Z");
 						else if ((t->modifiers & MOD_CONSTRAINT_PLANE) && ((t->flag & T_2D_EDIT)==0))
-							setUserConstraint(t, (CON_AXIS0|CON_AXIS1), "locking %s Z");
+							setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 					}
 				}
 				else if ((t->flag & T_2D_EDIT)==0) {
@@ -1511,7 +1514,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 				t->con.mode |= CON_AXIS2;
 			}
 
-			setUserConstraint(t, t->con.mode, "%s");
+			setUserConstraint(t, t->current_orientation, t->con.mode, "%s");
 		}
 	}
 
