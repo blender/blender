@@ -74,11 +74,15 @@ int intersect_outside_volume(RayObject *tree, Isect *isect, float *offset, int l
 	if (RE_rayobject_raycast(tree, isect)) {
 		float hitco[3];
 		
-		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
-		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
-		hitco[2] = isect->start[2] + isect->labda*isect->vec[2];
-		VecAddf(isect->start, hitco, offset);
-
+		isect->start[0] = isect->start[0] + isect->labda*isect->vec[0];
+		isect->start[1] = isect->start[1] + isect->labda*isect->vec[1];
+		isect->start[2] = isect->start[2] + isect->labda*isect->vec[2];
+		
+		isect->labda = FLT_MAX;
+		isect->skip = RE_SKIP_VLR_NEIGHBOUR;
+		isect->orig.face= isect->hit.face;
+		isect->orig.ob= isect->hit.ob;
+		
 		return intersect_outside_volume(tree, isect, offset, limit-1, depth+1);
 	} else {
 		return depth;
@@ -96,22 +100,14 @@ int point_inside_obi(RayObject *tree, ObjectInstanceRen *obi, float *co)
 	memset(&isect, 0, sizeof(isect));
 	VECCOPY(isect.start, co);
 	VECCOPY(isect.vec, vec);
-	isect.labda = FLT_MAX;
-	
-	/*
-	isect.end[0] = co[0] + vec[0] * maxsize;
-	isect.end[1] = co[1] + vec[1] * maxsize;
-	isect.end[2] = co[2] + vec[2] * maxsize;
-	*/
-	
-	/* and give it a little offset to prevent self-intersections */
-	VecMulf(vec, 1e-5);
-	VecAddf(isect.start, isect.start, vec);
-	
 	isect.mode= RE_RAY_MIRROR;
 	isect.last_hit= NULL;
 	isect.lay= -1;
 	
+	isect.labda = FLT_MAX;
+	isect.orig.face= NULL;
+	isect.orig.ob = NULL;
+
 	final_depth = intersect_outside_volume(tree, &isect, vec, limit, depth);
 	
 	/* even number of intersections: point is outside
@@ -119,47 +115,6 @@ int point_inside_obi(RayObject *tree, ObjectInstanceRen *obi, float *co)
 	if (final_depth % 2 == 0) return 0;
 	else return 1;
 }
-
-/*
-static int inside_check_func(Isect *is, int ob, RayObject *face)
-{
-	return 1;
-}
-
-static void vlr_face_coords(RayFace *face, float **v1, float **v2, float **v3, float **v4)
-{
-	VlakRen *vlr= (VlakRen*)face;
-
-	*v1 = (vlr->v1)? vlr->v1->co: NULL;
-	*v2 = (vlr->v2)? vlr->v2->co: NULL;
-	*v3 = (vlr->v3)? vlr->v3->co: NULL;
-	*v4 = (vlr->v4)? vlr->v4->co: NULL;
-}
-
-RayObject *create_raytree_obi(ObjectInstanceRen *obi, float *bbmin, float *bbmax)
-{
-	int v;
-	VlakRen *vlr= NULL;
-	
-	/ * create empty raytree * /
-	RayTree *tree = RE_ray_tree_create(64, obi->obr->totvlak, bbmin, bbmax,
-		vlr_face_coords, inside_check_func, NULL, NULL);
-	
-	/ * fill it with faces * /
-	for(v=0; v<obi->obr->totvlak; v++) {
-		if((v & 255)==0)
-			vlr= obi->obr->vlaknodes[v>>8].vlak;
-		else
-			vlr++;
-	
-		RE_ray_tree_add_face(tree, 0, vlr);
-	}
-	
-	RE_ray_tree_done(tree);
-	
-	return tree;
-}
-*/
 
 /* *** light cache filtering *** */
 

@@ -98,15 +98,14 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 		}
 
 		is.mode = RE_RAY_MIRROR;
-		is.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK | RE_SKIP_VLR_NON_SOLID_MATERIAL;
+		is.skip = RE_SKIP_VLR_RENDER_CHECK | RE_SKIP_VLR_NON_SOLID_MATERIAL;
 		
 		if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
 			is.lay= lar->lay;	
 		else
 			is.lay= -1;
 			
-		is.last_hit = NULL;
-		is.orig.ob = (void*)shi->obi;
+		is.orig.ob = NULL;
 		is.orig.face = NULL;
 		is.last_hit = lar->last_hit[shi->thread];
 		
@@ -132,12 +131,6 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	VECCOPY(isect->start, co);
 	VECCOPY(isect->vec, vec );
 	isect->labda = FLT_MAX;
-	/*
-	isect->end[0] = co[0] + vec[0] * maxsize;
-	isect->end[1] = co[1] + vec[1] * maxsize;
-	isect->end[2] = co[2] + vec[2] * maxsize;
-	*/
-	
 	isect->mode= RE_RAY_MIRROR;
 	isect->last_hit = NULL;
 	isect->lay= -1;
