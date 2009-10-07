@@ -59,6 +59,7 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
+#include "BKE_node.h"
 
 #include "ED_node.h"
 
@@ -176,7 +177,7 @@ static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA va
 	Material *ma= (Material*)ptr->data;
 	Material *ma_act= value.data;
 
-	nodeSetActiveID(ma->nodetree, ID_MA, ma_act);
+	nodeSetActiveID(ma->nodetree, ID_MA, &ma_act->id);
 }
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
