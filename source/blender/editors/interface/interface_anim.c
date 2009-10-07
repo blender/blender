@@ -310,6 +310,9 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 			}
 		}
 
+		uiItemS(layout);
+		uiItemBooleanO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button", "all", 1);
+
 		uiPupMenuEnd(C, pup);
 	}
 }
