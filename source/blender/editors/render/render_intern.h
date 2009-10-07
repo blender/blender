@@ -37,6 +37,7 @@ void OBJECT_OT_material_slot_remove(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_assign(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_select(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_deselect(struct wmOperatorType *ot);
+void OBJECT_OT_material_slot_copy(struct wmOperatorType *ot);
 
 void MATERIAL_OT_new(struct wmOperatorType *ot);
 void TEXTURE_OT_new(struct wmOperatorType *ot);

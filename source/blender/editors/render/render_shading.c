@@ -431,6 +431,44 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
+static int material_slot_copy_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Material ***matar;
+
+	if(!ob || !(matar= give_matarar(ob)))
+		return OPERATOR_CANCELLED;
+
+	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+		if(ob != ob_iter && give_matarar(ob_iter)) {
+			assign_matarar(ob_iter, matar, ob->totcol);
+			if(ob_iter->totcol==ob->totcol) {
+				ob_iter->actcol= ob->actcol;
+				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);
+			}
+		}
+	}
+	CTX_DATA_END;
+
+	return OPERATOR_FINISHED;
+}
+
+
+void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Material to Others";
+	ot->idname= "OBJECT_OT_material_slot_copy";
+	ot->description="Copies materials to other selected objects.";
+
+	/* api callbacks */
+	ot->exec= material_slot_copy_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /********************** new material operator *********************/
 
 static int new_material_exec(bContext *C, wmOperator *op)

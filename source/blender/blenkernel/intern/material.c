@@ -625,6 +625,25 @@ void assign_material(Object *ob, Material *ma, int act)
 	test_object_materials(ob->data);
 }
 
+/* XXX - this calls many more update calls per object then are needed, could be optimized */
+void assign_matarar(struct Object *ob, struct Material ***matar, int totcol)
+{
+	int i, actcol_orig= ob->actcol;
+
+	while(ob->totcol)
+		object_remove_material_slot(ob);
+
+	/* now we have the right number of slots */
+	for(i=0; i<totcol; i++)
+		assign_material(ob, (*matar)[i], i+1);
+
+	if(actcol_orig > ob->totcol)
+		actcol_orig= ob->totcol;
+
+	ob->actcol= actcol_orig;
+}
+
+
 int find_material_index(Object *ob, Material *ma)
 {
 	Material ***matarar;
