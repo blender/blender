@@ -1413,8 +1413,13 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshSticky");
 	RNA_def_property_ui_text(prop, "Sticky", "Sticky texture coordinates.");
 
-	/* UV textures */
+	/* TODO, should this be allowed to be its self? */
+	prop= RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Texture Mesh", "Use another mesh for texture indicies (vertex indicies must be aligned).");
 
+	/* UV textures */
 	prop= RNA_def_property(srna, "uv_textures", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_uv_textures_begin", 0, 0, 0, "rna_Mesh_uv_textures_length", 0, 0, 0, 0);

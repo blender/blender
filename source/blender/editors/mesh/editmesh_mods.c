@@ -78,6 +78,8 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_resources.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -3614,9 +3616,9 @@ static void mesh_selection_type(ToolSettings *ts, EditMesh *em, int val)
 }
 
 static EnumPropertyItem prop_mesh_edit_types[] = {
-	{1, "VERT", 0, "Vertices", ""},
-	{2, "EDGE", 0, "Edges", ""},
-	{3, "FACE", 0, "Faces", ""},
+	{1, "VERT", ICON_VERTEXSEL, "Vertices", ""},
+	{2, "EDGE", ICON_EDGESEL, "Edges", ""},
+	{3, "FACE", ICON_FACESEL, "Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

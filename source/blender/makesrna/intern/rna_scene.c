@@ -279,6 +279,7 @@ void rna_SceneRenderData_jpeg2k_preset_update(RenderData *rd)
 	}
 }
 
+#ifdef WITH_OPENJPEG
 static void rna_SceneRenderData_jpeg2k_preset_set(PointerRNA *ptr, int value)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -292,6 +293,7 @@ static void rna_SceneRenderData_jpeg2k_depth_set(PointerRNA *ptr, int value)
 	rd->jp2_depth= value;
 	rna_SceneRenderData_jpeg2k_preset_update(rd);
 }
+#endif
 
 static int rna_SceneRenderData_active_layer_index_get(PointerRNA *ptr)
 {

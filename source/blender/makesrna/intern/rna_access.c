@@ -2226,6 +2226,9 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 	prop= NULL;
 	curptr= *ptr;
 
+	if(path)
+		return 0;
+
 	while(*path) {
 		/* look up property name in current struct */
 		token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
