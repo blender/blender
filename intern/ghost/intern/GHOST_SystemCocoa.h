@@ -46,6 +46,7 @@
 class GHOST_EventCursor;
 class GHOST_EventKey;
 class GHOST_EventWindow;
+class GHOST_WindowCocoa;
 
 
 class GHOST_SystemCocoa : public GHOST_System {
@@ -133,6 +134,12 @@ public:
 	 */
 	virtual bool processEvents(bool waitForEvent);
 	
+	/**
+	 * Handle User request to quit, from Menu bar Quit, and Cmd+Q
+	 * Display alert panel if changes performed since last save
+	 */
+	GHOST_TUns8 handleQuitRequest();
+	
 	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/
@@ -185,6 +192,13 @@ public:
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
+	/**
+     * Handles a window event. Called by GHOST_WindowCocoa window delegate
+     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
+     * @return Indication whether the event was handled. 
+     */
+    GHOST_TSuccess handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa* window);
+	
 protected:
 	/**
 	 * Initializes the system.
@@ -193,39 +207,26 @@ protected:
 	 */
 	virtual GHOST_TSuccess init();
 
-	/**
-	 * Closes the system down.
-	 * @return A success value.
-	 */
-	virtual GHOST_TSuccess exit();
-
-	
     /**
      * Handles a tablet event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
      * @return Indication whether the event was handled. 
      */
-    int handleTabletEvent(void *eventPtr);
-    /**
+    GHOST_TSuccess handleTabletEvent(void *eventPtr);
+    
+	/**
      * Handles a mouse event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
      * @return Indication whether the event was handled. 
      */
-    int handleMouseEvent(void *eventPtr);
+    GHOST_TSuccess handleMouseEvent(void *eventPtr);
 
     /**
      * Handles a key event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
      * @return Indication whether the event was handled. 
      */
-    int handleKeyEvent(void *eventPtr);
-
-   /**
-     * Handles a window event.
-     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
-     * @return Indication whether the event was handled. 
-     */
-    int handleWindowEvent(void *eventPtr);
+    GHOST_TSuccess handleKeyEvent(void *eventPtr);
 
     /**
      * Handles all basic Mac application stuff for a mouse down event.
@@ -250,10 +251,7 @@ protected:
      * @param tmTask Pointer to the timer task that expired.
      */
     //static void s_timerCallback(TMTaskPtr tmTask);
-    
-	/** Cocoa autoReleasePool (void*) used for enablign standard C++ compilation */
-	void* m_autoReleasePool;
-	
+    	
     /** Event handler reference. */
     //EventHandlerRef m_handler;
 	

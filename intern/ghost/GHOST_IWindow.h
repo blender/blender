@@ -162,6 +162,19 @@ public:
 	virtual GHOST_TSuccess setState(GHOST_TWindowState state) = 0;
 
 	/**
+	 * Sets the window "modified" status, indicating unsaved changes
+	 * @param isUnsavedChanges Unsaved changes or not
+	 * @return Indication of success.
+	 */
+	virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges) = 0;
+	
+	/**
+	 * Gets the window "modified" status, indicating unsaved changes
+	 * @return True if there are unsaved changes
+	 */
+	virtual bool getModifiedState() = 0;
+	
+	/**
 	 * Sets the order of the window (bottom, top).
 	 * @param order The order of the window.
 	 * @return Indication of success.

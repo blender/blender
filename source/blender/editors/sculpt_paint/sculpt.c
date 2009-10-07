@@ -1014,9 +1014,9 @@ static void update_damaged_vert(SculptSession *ss, ListBase *lb)
 						CalcNormFloat4(ss->mvert[ss->mface[i].v1].co, ss->mvert[ss->mface[i].v2].co, ss->mvert[ss->mface[i].v3].co, ss->mvert[ss->mface[i].v4].co, norm);
 					else
 						CalcNormFloat(ss->mvert[ss->mface[i].v1].co, ss->mvert[ss->mface[i].v2].co, ss->mvert[ss->mface[i].v3].co, norm);
-					VECCOPY(&buffer[cur->element*3],norm);
-					VECCOPY(&buffer[cur->element*3],norm);
-					VECCOPY(&buffer[cur->element*3],norm);
+					VECCOPY(&buffer[(cur->element-cur->element%3)*3],norm);
+					VECCOPY(&buffer[(cur->element-cur->element%3+1)*3],norm);
+					VECCOPY(&buffer[(cur->element-cur->element%3+2)*3],norm);
 				}
 
 				//VECCOPY(&buffer[cur->element*3],ss->mvert[vert->Index].no);
@@ -1099,8 +1099,16 @@ static struct MultiresModifierData *sculpt_multires_active(Object *ob)
 	ModifierData *md;
 	
 	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
-		if(md->type == eModifierType_Multires && !md->next) {
-			MultiresModifierData *mmd = (MultiresModifierData*)md;
+		if(md->type == eModifierType_Multires) {
+			MultiresModifierData *mmd= (MultiresModifierData*)md;
+
+			/* Check if any of the modifiers after multires are active
+			 * if not it can use the multires struct */
+			for (md= md->next; md; md= md->next) {
+				if(md->mode & eModifierMode_Realtime)
+					return NULL;
+			}
+
 			if(mmd->lvl != 1)
 				return mmd;
 		}

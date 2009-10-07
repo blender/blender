@@ -54,6 +54,8 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_node_types.h"
+
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
@@ -150,6 +152,31 @@ static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 		MEM_freeN(ma->mtex[act]);
 		ma->mtex[act]= NULL;
 	}
+}
+
+static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)
+{
+	Material *ma= (Material*)ptr->data;
+	Material *ma_node= NULL;
+
+	/* used in buttons to check context, also checks for edited groups */
+
+	if(ma && ma->use_nodes && ma->nodetree) {
+		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);
+
+		if(node)
+			ma_node= (Material *)node->id;
+	}
+
+	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma_node);
+}
+
+static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA value)
+{
+	Material *ma= (Material*)ptr->data;
+	Material *ma_act= value.data;
+
+	nodeSetActiveID(ma->nodetree, ID_MA, ma_act);
 }
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
@@ -953,11 +980,12 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_scattering_items[] = {
-		{MA_VOL_SHADE_NONE, "NONE", 0, "None", ""},
-		{MA_VOL_SHADE_SINGLE, "SINGLE_SCATTERING", 0, "Single Scattering", ""},
+	static EnumPropertyItem prop_lighting_items[] = {
+		{MA_VOL_SHADE_SHADELESS, "SHADELESS", 0, "Shadeless", ""},
+		{MA_VOL_SHADE_SHADOWED, "SHADOWED", 0, "Shadowed", ""},
+		{MA_VOL_SHADE_SHADED, "SHADED", 0, "Shaded", ""},
 		{MA_VOL_SHADE_MULTIPLE, "MULTIPLE_SCATTERING", 0, "Multiple Scattering", ""},
-		{MA_VOL_SHADE_SINGLEPLUSMULTIPLE, "SINGLE_PLUS_MULTIPLE_SCATTERING", 0, "Single + Multiple Scattering", ""},
+		{MA_VOL_SHADE_SHADEDPLUSMULTIPLE, "SHADED_PLUS_MULTIPLE_SCATTERING", 0, "Shaded + Multiple Scattering", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_stepsize_items[] = {
@@ -984,10 +1012,15 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Step Size", "Distance between subsequent volume depth samples.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "scattering_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "lighting_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shade_type");
-	RNA_def_property_enum_items(prop, prop_scattering_items);
-	RNA_def_property_ui_text(prop, "Scattering Mode", "Method of shading, attenuating, and scattering light through the volume");
+	RNA_def_property_enum_items(prop, prop_lighting_items);
+	RNA_def_property_ui_text(prop, "Lighting Mode", "Method of shading, attenuating, and scattering light through the volume");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	prop= RNA_def_property(srna, "external_shadows", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shadeflag", MA_VOL_RECV_EXT_SHADOW); /* use bitflags */
+	RNA_def_property_ui_text(prop, "External Shadows", "Receive shadows from sources outside the volume (temporary)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "light_cache", PROP_BOOLEAN, PROP_NONE);
@@ -1682,6 +1715,13 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_nodes_set");
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the material.");
+	RNA_def_property_update(prop, NC_MATERIAL, NULL);
+
+	prop= RNA_def_property(srna, "active_node_material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_active_node_material_get", "rna_Material_active_node_material_set", NULL);
+	RNA_def_property_ui_text(prop, "Material", "Active node material.");
 	RNA_def_property_update(prop, NC_MATERIAL, NULL);
 
 	/* common */

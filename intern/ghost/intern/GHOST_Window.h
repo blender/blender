@@ -174,6 +174,19 @@ public:
 	virtual GHOST_TSuccess setCursorGrab(bool grab);
 
 	/**
+	 * Sets the window "modified" status, indicating unsaved changes
+	 * @param isUnsavedChanges Unsaved changes or not
+	 * @return Indication of success.
+	 */
+	virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges);
+	
+	/**
+	 * Gets the window "modified" status, indicating unsaved changes
+	 * @return True if there are unsaved changes
+	 */
+	virtual bool getModifiedState();
+	
+	/**
 	 * Returns the type of drawing context used in this window.
 	 * @return The current type of drawing context.
 	 */
@@ -262,6 +275,9 @@ protected:
 	/** The current shape of the cursor */
 	GHOST_TStandardCursor m_cursorShape;
     
+	/** Modified state : are there unsaved changes */
+	bool m_isUnsavedChanges;
+	
 	/** Stores wether this is a full screen window. */
 	bool m_fullScreen;
 

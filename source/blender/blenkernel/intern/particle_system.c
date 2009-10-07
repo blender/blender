@@ -183,6 +183,8 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 
 	if(totpart && totpart != psys->totpart) {
 		newpars= MEM_callocN(totpart*sizeof(ParticleData), "particles");
+		if(psys->part->phystype == PART_PHYS_BOIDS)
+			newboids= MEM_callocN(totpart*sizeof(BoidParticle), "boid particles");
 	
 		if(psys->particles) {
 			totsaved=MIN2(psys->totpart,totpart);
@@ -215,13 +217,12 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 		}
 		
 		psys->particles=newpars;
+		psys->totpart=totpart;
 
 		if(newboids) {
 			LOOP_PARTICLES
 				pa->boid = newboids++;
 		}
-		
-		psys->totpart=totpart;
 	}
 
 	if(psys->child) {
@@ -1660,7 +1661,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	ParticleKey state;
 	//IpoCurve *icu=0; // XXX old animation system
 	float fac, phasefac, nor[3]={0,0,0},loc[3],vel[3]={0.0,0.0,0.0},rot[4],q2[4];
-	float r_vel[3],r_ave[3],r_rot[4],p_vel[3]={0.0,0.0,0.0};
+	float r_vel[3],r_ave[3],r_rot[4],vec[3],p_vel[3]={0.0,0.0,0.0};
 	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0}, rot_vec[3]={0.0,0.0,0.0};
 	float q_phase[4], r_phase;
 	int p = pa - psys->particles;
@@ -1773,7 +1774,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		}
 	}
 
-	if(part->phystype==PART_PHYS_BOIDS) {
+	if(part->phystype==PART_PHYS_BOIDS && pa->boid) {
 		BoidParticle *bpa = pa->boid;
 		float dvec[3], q[4], mat[3][3];
 
@@ -1838,6 +1839,23 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		if(sim->psmd && part->tanfac!=0.0)
 			VECADDFAC(vel,vel,vtan,part->tanfac);
 			//VECADDFAC(vel,vel,vtan,part->tanfac*(vg_tan?psys_particle_value_from_verts(sim->psmd->dm,part->from,pa,vg_tan):1.0f));
+
+		/*		*emitter object orientation		*/
+		if(part->ob_vel[0]!=0.0) {
+			VECCOPY(vec, ob->obmat[0]);
+			Normalize(vec);
+			VECADDFAC(vel, vel, vec, part->ob_vel[0]);
+		}
+		if(part->ob_vel[1]!=0.0) {
+			VECCOPY(vec, ob->obmat[1]);
+			Normalize(vec);
+			VECADDFAC(vel, vel, vec, part->ob_vel[1]);
+		}
+		if(part->ob_vel[2]!=0.0) {
+			VECCOPY(vec, ob->obmat[2]);
+			Normalize(vec);
+			VECADDFAC(vel, vel, vec, part->ob_vel[2]);
+		}
 
 		/*		*texture						*/
 		/* TODO	*/
@@ -3135,7 +3153,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part=psys->part;
 	KDTree *tree=0;
-	//IpoCurve *icu_esize= NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
+	//IpoCurve *icu_esize=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
 /*	Material *ma=give_current_material(sim->ob, part->omat); */
 	BoidBrainData bbd;
 	PARTICLE_P;

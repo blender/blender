@@ -1202,24 +1202,21 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 
 void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname)
 {
-	ARegion *ar= CTX_wm_region(C);
 	MenuType *mt;
 
-	if(!menuname)
-		return;
+	mt= BKE_spacemenu_find(menuname, CTX_wm_area(C)->spacetype);
 
-	for(mt=ar->type->menutypes.first; mt; mt=mt->next) {
-		if(strcmp(menuname, mt->idname) == 0) {
-			if(!name)
-				name= mt->label;
-			if(layout->root->type == UI_LAYOUT_MENU && !icon)
-				icon= ICON_BLANK1;
-			ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL);
-			return;
-		}
+	if(mt==NULL) {
+		printf("uiItemM: not found %s\n", menuname);
+		return;
 	}
 
-	printf("uiItemM: not found %s\n", menuname);
+	if(!name)
+		name= mt->label;
+	if(layout->root->type == UI_LAYOUT_MENU && !icon)
+		icon= ICON_BLANK1;
+
+	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL);
 }
 
 /* label item */

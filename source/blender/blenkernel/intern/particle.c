@@ -37,6 +37,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_boid_types.h"
+#include "DNA_group_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_lattice.h"
 #include "BKE_utildefines.h"
@@ -296,6 +298,60 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 	return 1;
 }
 
+void psys_check_group_weights(ParticleSettings *part)
+{
+	ParticleDupliWeight *dw, *tdw;
+	GroupObject *go;
+	int current = 0;
+
+	if(part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first) {
+		/* first remove all weights that don't have an object in the group */
+		dw = part->dupliweights.first;
+		while(dw) {
+			if(!object_in_group(dw->ob, part->dup_group)) {
+				tdw = dw->next;
+				BLI_freelinkN(&part->dupliweights, dw);
+				dw = tdw;
+			}
+			else
+				dw = dw->next;
+		}
+
+		/* then add objects in the group to new list */
+		go = part->dup_group->gobject.first;
+		while(go) {
+			dw = part->dupliweights.first;
+			while(dw && dw->ob != go->ob)
+				dw = dw->next;
+			
+			if(!dw) {
+				dw = MEM_callocN(sizeof(ParticleDupliWeight), "ParticleDupliWeight");
+				dw->ob = go->ob;
+				dw->count = 1;
+				BLI_addtail(&part->dupliweights, dw);
+			}
+
+			go = go->next;	
+		}
+
+		dw = part->dupliweights.first;
+		for(; dw; dw=dw->next) {
+			if(dw->flag & PART_DUPLIW_CURRENT) {
+				current = 1;
+				break;
+			}
+		}
+
+		if(!current) {
+			dw = part->dupliweights.first;
+			if(dw)
+				dw->flag |= PART_DUPLIW_CURRENT;
+		}
+	}
+	else {
+		BLI_freelistN(&part->dupliweights);
+	}
+}
 /************************************************/
 /*			Freeing stuff						*/
 /************************************************/
@@ -306,6 +362,8 @@ void psys_free_settings(ParticleSettings *part)
 
 	if(part->effector_weights)
 		MEM_freeN(part->effector_weights);
+
+	BLI_freelistN(&part->dupliweights);
 
 	boid_free_settings(part->boids);
 }
@@ -439,6 +497,9 @@ void psys_free_pdd(ParticleSystem *psys)
 		if(psys->pdd->vedata)
 			MEM_freeN(psys->pdd->vedata);
 		psys->pdd->vedata = NULL;
+
+		psys->pdd->totpoint = 0;
+		psys->pdd->tot_vec_size = 0;
 	}
 }
 /* free everything */
@@ -2047,10 +2108,10 @@ static void do_rough_end(float *loc, float mat[4][4], float t, float fac, float 
 	float roughfac;
 
 	roughfac=fac*(float)pow((double)t,shape);
-	VECCOPY(rough,loc);
+	Vec2Copyf(rough,loc);
 	rough[0]=-1.0f+2.0f*rough[0];
 	rough[1]=-1.0f+2.0f*rough[1];
-	VecMulf(rough,roughfac);
+	Vec2Mulf(rough,roughfac);
 
 	VECADDFAC(state->co,state->co,mat[0],rough[0]);
 	VECADDFAC(state->co,state->co,mat[1],rough[1]);
@@ -3235,6 +3296,9 @@ static void default_particle_settings(ParticleSettings *part)
 	part->size=0.05;
 	part->childsize=1.0;
 
+	part->rotmode = PART_ROT_VEL;
+	part->avemode = PART_AVE_SPIN;
+
 	part->child_nbr=10;
 	part->ren_child_nbr=100;
 	part->childrad=0.2f;
@@ -3788,6 +3852,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 		
 		/* get different child parameters from textures & vgroups */
 		memset(&ctx, 0, sizeof(ParticleThreadContext));
+		ctx.sim = *sim;
 		ctx.dm = psmd->dm;
 		ctx.ma = ma;
 		/* TODO: assign vertex groups */
@@ -3856,6 +3921,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	ChildParticle *cpa = NULL;
 	float cfra;
 	int totpart = psys->totpart;
+	float timestep = psys_get_timestep(sim);
 
 	/* negative time means "use current time" */
 	cfra = state->time > 0 ? state->time : bsystem_time(sim->scene, 0, (float)sim->scene->r.cfra, 0.0);
@@ -3924,13 +3990,14 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 				calc_latt_deform(sim->psys->lattice, state->co,1.0f);
 		}
 		else{
-			if(pa->state.time==state->time || ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED))
+			if(pa->state.time==state->time || ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED)
+				|| pa->prev_state.time <= 0.0f)
 				copy_particle_key(state, &pa->state, 1);
 			else if(pa->prev_state.time==state->time)
 				copy_particle_key(state, &pa->prev_state, 1);
 			else {
 				/* let's interpolate to try to be as accurate as possible */
-				if(pa->state.time + 1.0f > state->time && pa->prev_state.time - 1.0f < state->time) {
+				if(pa->state.time + 2.0f > state->time && pa->prev_state.time - 2.0f < state->time) {
 					ParticleKey keys[4];
 					float dfra, keytime, frs_sec = sim->scene->r.frs_sec;
 
@@ -3949,13 +4016,13 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 						keytime = (state->time - keys[1].time) / dfra;
 
 						/* convert velocity to timestep size */
-						VecMulf(keys[1].vel, dfra / frs_sec);
-						VecMulf(keys[2].vel, dfra / frs_sec);
+						VecMulf(keys[1].vel, dfra * timestep);
+						VecMulf(keys[2].vel, dfra * timestep);
 						
 						psys_interpolate_particle(-1, keys, keytime, state, 1);
 						
 						/* convert back to real velocity */
-						VecMulf(state->vel, frs_sec / dfra);
+						VecMulf(state->vel, 1.0f / (dfra * timestep));
 
 						VecLerpf(state->ave, keys[1].ave, keys[2].ave, keytime);
 						QuatInterpol(state->rot, keys[1].rot, keys[2].rot, keytime);

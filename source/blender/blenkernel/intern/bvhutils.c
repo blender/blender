@@ -479,6 +479,32 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	} while(t2);
 }
 
+// Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_edges.
+// userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
+static void mesh_edges_nearest_point(void *userdata, int index, const float *co, BVHTreeNearest *nearest)
+{
+	const BVHTreeFromMesh *data = (BVHTreeFromMesh*) userdata;
+	MVert *vert	= data->vert;
+	MEdge *edge = data->edge + index;
+	float nearest_tmp[3], dist;
+
+	float *t0, *t1;
+	t0 = vert[ edge->v1 ].co;
+	t1 = vert[ edge->v2 ].co;
+	
+	PclosestVL3Dfl(nearest_tmp, co, t0, t1);
+	dist = VecLenf(nearest_tmp, co);
+	
+	if(dist < nearest->dist)
+	{
+		nearest->index = index;
+		nearest->dist = dist;
+		VECCOPY(nearest->co, nearest_tmp);
+		VecSubf(nearest->no, t0, t1);
+		Normalize(nearest->no);
+	}
+}
+
 /*
  * BVH builders
  */
@@ -598,6 +624,68 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 		data->mesh = mesh;
 		data->vert = mesh->getVertDataArray(mesh, CD_MVERT);
 		data->face = mesh->getFaceDataArray(mesh, CD_MFACE);
+
+		data->sphere_radius = epsilon;
+	}
+	return data->tree;
+
+}
+
+// Builds a bvh tree.. where nodes are the faces of the given mesh.
+BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
+{
+	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_EDGES);
+
+	//Not in cache
+	if(tree == NULL)
+	{
+		int i;
+		int numEdges= mesh->getNumEdges(mesh);
+		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
+		MEdge *edge = mesh->getEdgeDataArray(mesh, CD_MEDGE);
+
+		if(vert != NULL && edge != NULL)
+		{
+			/* Create a bvh-tree of the given target */
+			tree = BLI_bvhtree_new(numEdges, epsilon, tree_type, axis);
+			if(tree != NULL)
+			{
+				for(i = 0; i < numEdges; i++)
+				{
+					float co[4][3];
+					VECCOPY(co[0], vert[ edge[i].v1 ].co);
+					VECCOPY(co[1], vert[ edge[i].v2 ].co);
+			
+					BLI_bvhtree_insert(tree, i, co[0], 2);
+				}
+				BLI_bvhtree_balance(tree);
+
+				//Save on cache for later use
+//				printf("BVHTree built and saved on cache\n");
+				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_EDGES);
+			}
+		}
+	}
+	else
+	{
+//		printf("BVHTree is already build, using cached tree\n");
+	}
+
+
+	//Setup BVHTreeFromMesh
+	memset(data, 0, sizeof(*data));
+	data->tree = tree;
+
+	if(data->tree)
+	{
+		data->cached = TRUE;
+
+		data->nearest_callback = mesh_edges_nearest_point;
+		data->raycast_callback = NULL;
+
+		data->mesh = mesh;
+		data->vert = mesh->getVertDataArray(mesh, CD_MVERT);
+		data->edge = mesh->getEdgeDataArray(mesh, CD_MEDGE);
 
 		data->sphere_radius = epsilon;
 	}

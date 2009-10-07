@@ -1,8 +1,16 @@
 #!/usr/bin/python
 Import ('env')
 
-cflags=''
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+	# FIXME: need to set the appropriate flags for msvc, otherwise we get warnings
+	cflags = []
+	cxxflags = []
+else:
+	cflags = ['-O2','-msse2','-mfpmath=sse']
+	cxxflags = ['-O2','-msse2','-mfpmath=sse']
+
 sources = env.Glob('intern/source/*.c')
+raysources = env.Glob('intern/raytrace/*.cpp')
 
 incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
 incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf'
@@ -14,14 +22,11 @@ if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']
 
-if env['WITH_BF_FFMPEG']:
-    defs.append('WITH_FFMPEG')
-
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 
 if env['OURPLATFORM']=='linux2':
-    cflags='-pthread'
+    cflags += ['-pthread']
 
 
 if env['OURPLATFORM'] == 'linux2':
@@ -32,3 +37,4 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
 env.BlenderLib ( libname = 'bf_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=145, compileflags=cflags )
+env.BlenderLib ( libname = 'bf_render_raytrace', sources = raysources, includes = Split(incs), defines=defs, libtype='core', priority=145, compileflags=cflags, cxx_compileflags=cxxflags )

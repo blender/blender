@@ -82,7 +82,7 @@ void ED_base_object_select(Base *base, short mode)
 	if (base) {
 		if (mode==BA_SELECT) {
 			if (!(base->object->restrictflag & OB_RESTRICT_SELECT))
-				if (mode==BA_SELECT) base->flag |= SELECT;
+				base->flag |= SELECT;
 		}
 		else if (mode==BA_DESELECT) {
 			base->flag &= ~SELECT;

@@ -78,6 +78,9 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_target_move_down);
 	WM_operatortype_append(PARTICLE_OT_connect_hair);
 	WM_operatortype_append(PARTICLE_OT_disconnect_hair);
+
+	WM_operatortype_append(PARTICLE_OT_dupliob_move_up);
+	WM_operatortype_append(PARTICLE_OT_dupliob_move_down);
 }
 
 static void keymap_particle(wmWindowManager *wm)

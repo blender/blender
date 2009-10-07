@@ -1259,6 +1259,9 @@ void init_userdef_do_versions(void)
 		if(U.audiorate == 0)
 			U.audiorate = 44100;
 	}
+
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 5))
+		U.gameflags |= USER_DISABLE_VBO;
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

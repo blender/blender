@@ -1185,7 +1185,17 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{256, "OCTREE_RES_256", 0, "256", ""},
 		{512, "OCTREE_RES_512", 0, "512", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
+
+	static EnumPropertyItem raytrace_structure_items[] = {
+		{R_RAYSTRUCTURE_AUTO, "AUTO", 0, "Auto", ""},
+		{R_RAYSTRUCTURE_OCTREE, "OCTREE", 0, "Octree", "Use old Octree structure."},
+		{R_RAYSTRUCTURE_BLIBVH, "BLIBVH", 0, "BLI BVH", "Use BLI K-Dop BVH.c"},
+		{R_RAYSTRUCTURE_VBVH, "VBVH", 0, "vBVH", ""},
+		{R_RAYSTRUCTURE_SIMD_SVBVH, "SIMD_SVBVH", 0, "SIMD SVBVH", ""},
+		{R_RAYSTRUCTURE_SIMD_QBVH, "SIMD_QBVH", 0, "SIMD QBVH", ""},
+		{0, NULL, 0, NULL, NULL}
+		};
+
 	static EnumPropertyItem fixed_oversample_items[] = {
 		{5, "OVERSAMPLE_5", 0, "5", ""},
 		{8, "OVERSAMPLE_8", 0, "8", ""},
@@ -1613,7 +1623,23 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, octree_resolution_items);
 	RNA_def_property_ui_text(prop, "Octree Resolution", "Resolution of raytrace accelerator. Use higher resolutions for larger scenes.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
+	prop= RNA_def_property(srna, "raytrace_structure", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "raytrace_structure");
+	RNA_def_property_enum_items(prop, raytrace_structure_items);
+	RNA_def_property_ui_text(prop, "Raytrace Acceleration Structure", "Type of raytrace accelerator structure.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "use_instances", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "raytrace_options", R_RAYTRACE_USE_INSTANCES);
+	RNA_def_property_ui_text(prop, "Use Instances", "Instance support leads to effective memory reduction when using duplicates.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "use_local_coords", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "raytrace_options", R_RAYTRACE_USE_LOCAL_COORDS);
+	RNA_def_property_ui_text(prop, "Use Local Coords", "Vertex coordinates are stored localy on each primitive. Increases memory usage, but may have impact on speed.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
 	prop= RNA_def_property(srna, "antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_OSA);
 	RNA_def_property_ui_text(prop, "Anti-Aliasing", "Render and combine multiple samples per pixel to prevent jagged edges.");

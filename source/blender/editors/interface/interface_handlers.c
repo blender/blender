@@ -4230,28 +4230,20 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 						if(event->val==KM_PRESS) {
 							but= ui_but_find_activated(ar);
 							if(but) {
-								if(ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) {
-									if(block->direction & UI_TOP) but= ui_but_prev(but);
-									else but= ui_but_next(but);
-								}
-								else {
-									if(block->direction & UI_TOP) but= ui_but_next(but);
-									else but= ui_but_prev(but);
-								}
+								if(ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) 
+									but= ui_but_next(but);
+								else
+									but= ui_but_prev(but);
 
 								if(but)
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
 							}
 
 							if(!but) {
-								if(ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) {
-									if(block->direction & UI_TOP) bt= ui_but_first(block);
-									else bt= ui_but_last(block);
-								}
-								else {
-									if(block->direction & UI_TOP) bt= ui_but_last(block);
-									else bt= ui_but_first(block);
-								}
+								if(ELEM(event->type, UPARROWKEY, WHEELUPMOUSE))
+									bt= ui_but_last(block);
+								else
+									bt= ui_but_first(block);
 
 								if(bt)
 									ui_handle_button_activate(C, ar, bt, BUTTON_ACTIVATE);

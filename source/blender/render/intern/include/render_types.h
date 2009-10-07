@@ -53,6 +53,8 @@ struct VlakTableNode;
 struct GHash;
 struct RenderBuckets;
 struct ObjectInstanceRen;
+struct RayObject;
+struct RayFace;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -172,7 +174,10 @@ struct Render
 	ListBase parts;
 	
 	/* octree tables and variables for raytrace */
-	void *raytree;
+	struct RayObject *raytree;
+	struct RayFace *rayfaces;
+	struct VlakPrimitive *rayprimitives;
+	float maxdist; /* needed for keeping an incorrect behaviour of SUN and HEMI lights (avoid breaking old scenes) */
 
 	/* occlusion tree */
 	void *occlusiontree;
@@ -285,6 +290,13 @@ typedef struct ObjectRen {
 	int  actmtface, actmcol, bakemtface;
 
 	float obmat[4][4];	/* only used in convertblender.c, for instancing */
+
+	/* used on makeraytree */
+	struct RayObject *raytree;
+	struct RayFace *rayfaces;
+	struct VlakPrimitive *rayprimitives;
+	struct ObjectInstanceRen *rayobi;
+	
 } ObjectRen;
 
 typedef struct ObjectInstanceRen {
@@ -304,6 +316,11 @@ typedef struct ObjectInstanceRen {
 	
 	float *vectors;
 	int totvector;
+	
+	/* used on makeraytree */
+	struct RayObject *raytree;
+	int transform_primitives;
+
 } ObjectInstanceRen;
 
 /* ------------------------------------------------------------------------- */
@@ -429,7 +446,7 @@ typedef struct MatInside {
 typedef struct VolPrecachePart
 {
 	struct VolPrecachePart *next, *prev;
-	struct RayTree *tree;
+	struct RayObject *tree;
 	struct ShadeInput *shi;
 	struct ObjectInstanceRen *obi;
 	int num;
@@ -540,8 +557,7 @@ typedef struct LampRen {
 	short YF_glowtype;
 	
 	/* ray optim */
-	VlakRen *vlr_last[BLENDER_MAX_THREADS];
-	ObjectInstanceRen *obi_last[BLENDER_MAX_THREADS];
+	struct RayObject *last_hit[BLENDER_MAX_THREADS];
 	
 	struct MTex *mtex[MAX_MTEX];
 

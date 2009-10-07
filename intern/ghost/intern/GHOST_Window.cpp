@@ -52,6 +52,8 @@ GHOST_Window::GHOST_Window(
 	m_cursorShape(GHOST_kStandardCursorDefault),
 	m_stereoVisual(stereoVisual)
 {
+	m_isUnsavedChanges = false;
+	
     m_fullScreen = state == GHOST_kWindowStateFullScreen;
     if (m_fullScreen) {
         m_fullScreenWidth = width;
@@ -137,3 +139,15 @@ GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUn
 	}
 }
 
+
+GHOST_TSuccess GHOST_Window::setModifiedState(bool isUnsavedChanges)
+{
+	m_isUnsavedChanges = isUnsavedChanges;
+	
+	return GHOST_kSuccess;
+}
+
+bool GHOST_Window::getModifiedState()
+{
+	return m_isUnsavedChanges;
+}

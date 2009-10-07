@@ -256,6 +256,7 @@ void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, char *filename
 void uiPupMenuNotice(struct bContext *C, char *str, ...);
 void uiPupMenuError(struct bContext *C, char *str, ...);
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
+void uiPupMenuInvoke(struct bContext *C, const char *idname, int spacetype); /* popup registered menu */
 
 /* Popup Blocks
  *

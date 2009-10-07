@@ -38,6 +38,7 @@
 #include "BKE_context.h"
 #include "BKE_node.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_rect.h"
 
@@ -55,7 +56,7 @@
  
 #include "node_intern.h"
  
-static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
+static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
 {
 	bNode *node;
 	float mx, my;
@@ -101,7 +102,10 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 			;//	node_link_viewer(snode, node);
 		
 		//std_rmouse_transform(node_transform_ext);	/* does undo push for select */
+
 	}
+
+	return node;
 }
 
 static int node_select_exec(bContext *C, wmOperator *op)
@@ -112,6 +116,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	int select_type;
 	short mval[2];
 	short extend;
+	bNode *node= NULL;
 
 	select_type = RNA_enum_get(op->ptr, "select_type");
 	
@@ -120,12 +125,20 @@ static int node_select_exec(bContext *C, wmOperator *op)
 			mval[0] = RNA_int_get(op->ptr, "mouse_x");
 			mval[1] = RNA_int_get(op->ptr, "mouse_y");
 			extend = RNA_boolean_get(op->ptr, "extend");
-			node_mouse_select(snode, ar, mval, extend);
+			node= node_mouse_select(snode, ar, mval, extend);
 			break;
 	}
 
 	/* need refresh/a notifier vs compo notifier */
 	// XXX WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+
+	/* WATCH THIS, there are a few other ways to change the active material */
+	if(node) {
+		if (node->id && GS(node->id->name)== ID_MA) {
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, node->id);
+		}
+	}
+
 	ED_region_tag_redraw(ar);
 	
 	/* allow tweak event to work too */

@@ -181,6 +181,7 @@ int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
+int				nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 
 void			NodeTagChanged(struct bNodeTree *ntree, struct bNode *node);

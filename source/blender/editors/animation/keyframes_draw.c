@@ -54,10 +54,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
@@ -656,25 +657,90 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	Key *key= ob_get_key(ob);
-
-	if (ob) {
-		int filterflag;
+	int filterflag= (ads)? ads->filterflag : 0;
+	
+	/* sanity check */
+	if (ob == NULL)
+		return;
 		
-		/* get filterflag */
-		if (ads)
-			filterflag= ads->filterflag;
-		else
-			filterflag= 0;
+	/* Add action keyframes */
+	if (ob->adt && ob->adt->action)
+		action_to_keylist(ob->adt, ob->adt->action, keys, blocks);
+	
+	/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
+	if ((key && key->adt && key->adt->action) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
+		action_to_keylist(key->adt, key->adt->action, keys, blocks);
+	
+	/* Add material keyframes */
+	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
+		int a;
 		
-		/* Add action keyframes */
-		if (ob->adt && ob->adt->action)
-			action_to_keylist(ob->adt, ob->adt->action, keys, blocks);
-		
-		/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
-		if ((key && key->adt && key->adt->action) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
-			action_to_keylist(key->adt, key->adt->action, keys, blocks);
+		for (a=0; a < ob->totcol; a++) {
+			Material *ma= give_current_material(ob, a);
 			
-		// TODO: restore materials, and object data, etc.
+			/* there might not be a material */
+			if (ELEM(NULL, ma, ma->adt)) 
+				continue;
+			
+			/* add material's data */
+			action_to_keylist(ma->adt, ma->adt->action, keys, blocks);
+		}
+	}
+	
+	/* Add object data keyframes */
+	switch (ob->type) {
+		case OB_CAMERA: /* ------- Camera ------------ */
+		{
+			Camera *ca= (Camera *)ob->data;
+			
+			if ((ca->adt) && !(filterflag & ADS_FILTER_NOCAM)) 
+				action_to_keylist(ca->adt, ca->adt->action, keys, blocks);
+		}
+			break;
+		case OB_LAMP: /* ---------- Lamp ----------- */
+		{
+			Lamp *la= (Lamp *)ob->data;
+			
+			if ((la->adt) && !(filterflag & ADS_FILTER_NOLAM)) 
+				action_to_keylist(la->adt, la->adt->action, keys, blocks);
+		}
+			break;
+		case OB_CURVE: /* ------- Curve ---------- */
+		{
+			Curve *cu= (Curve *)ob->data;
+			
+			if ((cu->adt) && !(filterflag & ADS_FILTER_NOCUR)) 
+				action_to_keylist(cu->adt, cu->adt->action, keys, blocks);
+		}
+			break;
+		case OB_MBALL: /* ------- MetaBall ---------- */
+		{
+			MetaBall *mb= (MetaBall *)ob->data;
+			
+			if ((mb->adt) && !(filterflag & ADS_FILTER_NOMBA)) 
+				action_to_keylist(mb->adt, mb->adt->action, keys, blocks);
+		}
+			break;
+		case OB_ARMATURE: /* ------- Armature ---------- */
+		{
+			bArmature *arm= (bArmature *)ob->data;
+			
+			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) 
+				action_to_keylist(arm->adt, arm->adt->action, keys, blocks);
+		}
+			break;
+	}
+	
+	/* Add Particle System Keyframes */
+	if ((ob->particlesystem.first) && !(filterflag & ADS_FILTER_NOPART)) {
+		ParticleSystem *psys = ob->particlesystem.first;
+		
+		for(; psys; psys=psys->next) {
+			if (ELEM(NULL, psys->part, psys->part->adt))
+				continue;
+			else
+				action_to_keylist(psys->part->adt, psys->part->adt->action, keys, blocks);
+		}
 	}
 }
 

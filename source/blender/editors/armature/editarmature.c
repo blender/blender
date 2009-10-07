@@ -110,17 +110,20 @@ void ED_armature_sync_selection(ListBase *edbo)
 	EditBone *ebo;
 	
 	for (ebo=edbo->first; ebo; ebo= ebo->next) {
-		if ((ebo->flag & BONE_CONNECTED) && (ebo->parent)) {
-			if (ebo->parent->flag & BONE_TIPSEL)
-				ebo->flag |= BONE_ROOTSEL;
+		/* if bone is not selectable, we shouldn't alter this setting... */
+		if ((ebo->flag & BONE_UNSELECTABLE) == 0) {
+			if ((ebo->flag & BONE_CONNECTED) && (ebo->parent)) {
+				if (ebo->parent->flag & BONE_TIPSEL)
+					ebo->flag |= BONE_ROOTSEL;
+				else
+					ebo->flag &= ~BONE_ROOTSEL;
+			}
+			
+			if ((ebo->flag & BONE_TIPSEL) && (ebo->flag & BONE_ROOTSEL))
+				ebo->flag |= BONE_SELECTED;
 			else
-				ebo->flag &= ~BONE_ROOTSEL;
+				ebo->flag &= ~BONE_SELECTED;
 		}
-		
-		if ((ebo->flag & BONE_TIPSEL) && (ebo->flag & BONE_ROOTSEL))
-			ebo->flag |= BONE_SELECTED;
-		else
-			ebo->flag &= ~BONE_SELECTED;
 	}				
 }
 
@@ -1127,7 +1130,7 @@ static void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *
 					/* no singular posemode, so check for correct object */
 					if(base->selcol == (hitresult & 0xFFFF)) {
 						bone = get_indexed_bone(base->object, hitresult);
-
+						
 						if (findunsel)
 							sel = (bone->flag & BONE_SELECTED);
 						else
@@ -1347,45 +1350,42 @@ void POSE_OT_flags_set (wmOperatorType *ot)
 /* **************** Posemode stuff ********************** */
 
 
-static void selectconnected_posebonechildren (Object *ob, Bone *bone)
+static void selectconnected_posebonechildren (Object *ob, Bone *bone, int extend)
 {
 	Bone *curBone;
-	int shift= 0; // XXX
 	
-	if (!(bone->flag & BONE_CONNECTED))
+	/* stop when unconnected child is encontered, or when unselectable bone is encountered */
+	if (!(bone->flag & BONE_CONNECTED) || (bone->flag & BONE_UNSELECTABLE))
 		return;
 	
 		// XXX old cruft! use notifiers instead
 	//select_actionchannel_by_name (ob->action, bone->name, !(shift));
 	
-	if (shift)
+	if (extend)
 		bone->flag &= ~BONE_SELECTED;
 	else
 		bone->flag |= BONE_SELECTED;
 	
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		selectconnected_posebonechildren (ob, curBone);
-	}
+	for (curBone=bone->childbase.first; curBone; curBone=curBone->next)
+		selectconnected_posebonechildren(ob, curBone, extend);
 }
 
 /* within active object context */
 /* previously known as "selectconnected_posearmature" */
 static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {  
-	Bone *bone, *curBone, *next= NULL;
-	int shift= 0; // XXX in pose mode, Shift+L is bound to another command
-				  // named "PoseLib Add Current Pose"
-	int x, y;
-	ARegion *ar;
+	ARegion *ar= CTX_wm_region(C);
 	Object *ob= CTX_data_edit_object(C);
-	ar= CTX_wm_region(C);
-
+	Bone *bone, *curBone, *next= NULL;
+	int extend= RNA_boolean_get(op->ptr, "extend");
+	int x, y;
+	
 	x= event->x - ar->winrct.xmin;
 	y= event->y - ar->winrct.ymin;
 
 	view3d_operator_needs_opengl(C);
 	
-	if (shift)
+	if (extend)
 		bone= get_nearest_bone(C, 0, x, y);
 	else
 		bone= get_nearest_bone(C, 1, x, y);
@@ -1395,26 +1395,29 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	
 	/* Select parents */
 	for (curBone=bone; curBone; curBone=next){
-			// XXX old cruft! use notifiers instead
-		//select_actionchannel_by_name (ob->action, curBone->name, !(shift));
-		if (shift)
-			curBone->flag &= ~BONE_SELECTED;
+		/* ignore bone if cannot be selected */
+		if ((curBone->flag & BONE_UNSELECTABLE) == 0) { 
+				// XXX old cruft! use notifiers instead
+			//select_actionchannel_by_name (ob->action, curBone->name, !(shift));
+			
+			if (extend)
+				curBone->flag &= ~BONE_SELECTED;
+			else
+				curBone->flag |= BONE_SELECTED;
+			
+			if (curBone->flag & BONE_CONNECTED)
+				next=curBone->parent;
+			else
+				next=NULL;
+		}
 		else
-			curBone->flag |= BONE_SELECTED;
-		
-		if (curBone->flag & BONE_CONNECTED)
-			next=curBone->parent;
-		else
-			next=NULL;
+			next= NULL;
 	}
 	
 	/* Select children */
-	for (curBone=bone->childbase.first; curBone; curBone=next){
-		selectconnected_posebonechildren (ob, curBone);
-	}
+	for (curBone=bone->childbase.first; curBone; curBone=next)
+		selectconnected_posebonechildren(ob, curBone, extend);
 	
-	// XXX this only counted the number of pose channels selected
-	//countall(); // flushes selection!
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 
 	return OPERATOR_FINISHED;
@@ -1435,6 +1438,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */	
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 /* **************** END Posemode stuff ********************** */
@@ -1446,7 +1450,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 {
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;
-	int shift= 0; // XXX
+	int extend= RNA_boolean_get(op->ptr, "extend");
 	int x, y;
 	ARegion *ar;
 	Object *obedit= CTX_data_edit_object(C);
@@ -1458,7 +1462,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 
 	view3d_operator_needs_opengl(C);
 
-	if (shift)
+	if (extend)
 		bone= get_nearest_bone(C, 0, x, y);
 	else
 		bone= get_nearest_bone(C, 1, x, y);
@@ -1467,14 +1471,16 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 		return OPERATOR_CANCELLED;
 
 	/* Select parents */
-	for (curBone=bone; curBone; curBone=next){
-		if (shift){
-			curBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+	for (curBone=bone; curBone; curBone=next) {
+		if ((curBone->flag & BONE_UNSELECTABLE) == 0) {
+			if (extend) {
+				curBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			}
+			else{
+				curBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			}
 		}
-		else{
-			curBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-		}
-
+		
 		if (curBone->flag & BONE_CONNECTED)
 			next=curBone->parent;
 		else
@@ -1482,19 +1488,19 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 	}
 
 	/* Select children */
-	while (bone){
-		for (curBone=arm->edbo->first; curBone; curBone=next){
+	while (bone) {
+		for (curBone=arm->edbo->first; curBone; curBone=next) {
 			next = curBone->next;
-			if (curBone->parent == bone){
-				if (curBone->flag & BONE_CONNECTED){
-					if (shift)
+			if ((curBone->parent == bone) && (curBone->flag & BONE_UNSELECTABLE)==0) {
+				if (curBone->flag & BONE_CONNECTED) {
+					if (extend)
 						curBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 					else
 						curBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 					bone=curBone;
 					break;
 				}
-				else{ 
+				else { 
 					bone=NULL;
 					break;
 				}
@@ -1502,15 +1508,12 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 		}
 		if (!curBone)
 			bone=NULL;
-
 	}
-
+	
 	ED_armature_sync_selection(arm->edbo);
-
-	/* BIF_undo_push("Select connected"); */
-
+	
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
-
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -1527,6 +1530,9 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties s*/
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 /* does bones and points */
@@ -3966,9 +3972,12 @@ static int armature_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
-		/* select bone */
-		ebone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-		ebone->flag &= ~BONE_ACTIVE;
+		/* ignore bone if selection can't change */
+		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
+			/* select bone */
+			ebone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			ebone->flag &= ~BONE_ACTIVE;
+		}
 	}
 	CTX_DATA_END;	
 
@@ -3979,7 +3988,6 @@ static int armature_select_inverse_exec(bContext *C, wmOperator *op)
 
 void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Select Inverse";
 	ot->idname= "ARMATURE_OT_select_inverse";
@@ -4002,15 +4010,18 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
-		if (sel==1) {
-			/* select bone */
-			ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			if(ebone->parent)
-				ebone->parent->flag |= (BONE_TIPSEL);
-		}
-		else {
-			/* deselect bone */
-			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
+		/* ignore bone if selection can't change */
+		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
+			if (sel==1) {
+				/* select bone */
+				ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				if(ebone->parent)
+					ebone->parent->flag |= (BONE_TIPSEL);
+			}
+			else {
+				/* deselect bone */
+				ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
+			}
 		}
 	}
 	CTX_DATA_END;	
@@ -4051,7 +4062,8 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 	arm= (bArmature *)ob->data;
 	
 	for (curbone= arm->edbo->first; curbone; curbone= curbone->next) {
-		if (EBONE_VISIBLE(arm, curbone)) {
+		/* only work on bone if it is visible and its selection can change */
+		if (EBONE_VISIBLE(arm, curbone) && (curbone->flag & BONE_UNSELECTABLE)==0) {
 			if (curbone->flag & (BONE_ACTIVE)) {
 				if (direction == BONE_SELECT_PARENT) {
 					if (curbone->parent == NULL) continue;
@@ -4071,7 +4083,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 					chbone = editbone_get_child(arm, curbone, 1);
 					if (chbone == NULL) continue;
 					
-					if (EBONE_VISIBLE(arm, chbone)) {
+					if (EBONE_VISIBLE(arm, chbone) && (chbone->flag & BONE_UNSELECTABLE)==0) {
 						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 						
 						if (!add_to_sel) {
@@ -4301,8 +4313,9 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 	if (!ob || !ob->pose) return 0;
 
 	nearBone= get_bone_from_selectbuffer(scene, base, buffer, hits, 1);
-
-	if (nearBone) {
+	
+	/* if the bone cannot be affected, don't do anything */
+	if ((nearBone) && !(nearBone->flag & BONE_UNSELECTABLE)) {
 		bArmature *arm= ob->data;
 		
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
@@ -4381,7 +4394,8 @@ void ED_pose_deselectall (Object *ob, int test, int doundo)
 	
 	/*	Set the flags accordingly	*/
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+		/* ignore the pchan if it isn't visible or if its selection cannot be changed */
+		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & (BONE_HIDDEN_P|BONE_UNSELECTABLE))) {
 			if (test==3) {
 				pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 				pchan->bone->flag &= ~BONE_ACTIVE;
@@ -4960,8 +4974,10 @@ static int pose_select_inverse_exec(bContext *C, wmOperator *op)
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
-		pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-		pchan->bone->flag &= ~BONE_ACTIVE;
+		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
+			pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			pchan->bone->flag &= ~BONE_ACTIVE;
+		}
 	}	
 	CTX_DATA_END;
 	
@@ -4995,9 +5011,11 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
-		/* select pchan */
-		if (sel==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-		else pchan->bone->flag |= BONE_SELECTED;
+		/* select pchan, only if selectable */
+		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
+			if (sel==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
+			else pchan->bone->flag |= BONE_SELECTED;
+		}
 	}
 	CTX_DATA_END;	
 
@@ -5031,7 +5049,7 @@ static int pose_select_parent_exec(bContext *C, wmOperator *op)
 	pchan=CTX_data_active_pchan(C);
 	if (pchan) {
 		parent=pchan->parent;
-		if ((parent) && !(parent->bone->flag & BONE_HIDDEN_P)) {
+		if ((parent) && !(parent->bone->flag & (BONE_HIDDEN_P|BONE_UNSELECTABLE))) {
 			parent->bone->flag |= BONE_SELECTED;
 			parent->bone->flag |= BONE_ACTIVE;
 			pchan->bone->flag &= ~BONE_ACTIVE;

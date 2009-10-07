@@ -45,6 +45,13 @@ EnumPropertyItem effector_shape_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem curve_shape_items[] = {
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
+	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 EnumPropertyItem empty_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
@@ -56,6 +63,13 @@ EnumPropertyItem vortex_shape_items[] = {
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "New", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface falloff (New)", ""},
 	{PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point (New)", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem curve_vortex_shape_items[] = {
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Old", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "New", ""},
+	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve (New)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -538,9 +552,11 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, 
 		
 		/* needed for doc generation */
 		RNA_enum_items_add(&item, &totitem, effector_shape_items);
+		RNA_enum_items_add(&item, &totitem, curve_shape_items);
 		RNA_enum_items_add(&item, &totitem, empty_shape_items);
 		RNA_enum_items_add(&item, &totitem, vortex_shape_items);
-		RNA_enum_items_add(&item, &totitem, empty_shape_items);
+		RNA_enum_items_add(&item, &totitem, curve_vortex_shape_items);
+		RNA_enum_items_add(&item, &totitem, empty_vortex_shape_items);
 		RNA_enum_item_end(&item, &totitem);
 		
 		*free= 1;
@@ -553,7 +569,13 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, 
 	
 	ob= (Object*)ptr->id.data;
 	
-	if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
+	if(ob->type == OB_CURVE) {
+		if(ob->pd->forcefield == PFIELD_VORTEX)
+			return curve_vortex_shape_items;
+
+		return curve_shape_items;
+	}
+	else if(ELEM3(ob->type, OB_MESH, OB_SURF, OB_FONT)) {
 		if(ob->pd->forcefield == PFIELD_VORTEX)
 			return vortex_shape_items;
 
@@ -783,11 +805,11 @@ static void rna_def_effector_weight(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "All", "All effector's weight.");
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
 
-	prop= RNA_def_property(srna, "spherical", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "force", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "weight[1]");
 	RNA_def_property_range(prop, -200.0f, 200.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Spherical", "Spherical effector weight.");
+	RNA_def_property_ui_text(prop, "Force", "Force effector weight.");
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
 
 	prop= RNA_def_property(srna, "vortex", PROP_FLOAT, PROP_NONE);
@@ -1112,6 +1134,11 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "do_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_DO_ROTATION);
 	RNA_def_property_ui_text(prop, "Rotation", "Effect particles' dynamic rotation");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "do_absorption", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_VISIBILITY);
+	RNA_def_property_ui_text(prop, "Absorption", "Force gets absorbed by collision objects");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/* Pointer */

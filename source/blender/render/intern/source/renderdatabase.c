@@ -75,6 +75,7 @@
 #include "BKE_DerivedMesh.h"
 
 #include "RE_render_ext.h"	/* externtex */
+#include "RE_raytrace.h"
 
 #include "renderpipeline.h"
 #include "render_types.h"
@@ -872,12 +873,33 @@ void free_renderdata_tables(Render *re)
 			MEM_freeN(obr->mtface);
 		if(obr->mcol)
 			MEM_freeN(obr->mcol);
+			
+		if(obr->rayfaces)
+		{
+			MEM_freeN(obr->rayfaces);
+			obr->rayfaces = NULL;
+		}
+		if(obr->rayprimitives)
+		{
+			MEM_freeN(obr->rayprimitives);
+			obr->rayprimitives = NULL;
+		}
+		if(obr->raytree)
+		{
+			RE_rayobject_free(obr->raytree);
+			obr->raytree = NULL;
+		}
 	}
 
 	if(re->objectinstance) {
 		for(obi=re->instancetable.first; obi; obi=obi->next)
+		{
 			if(obi->vectors)
 				MEM_freeN(obi->vectors);
+
+			if(obi->raytree)
+				RE_rayobject_free(obi->raytree);
+		}
 
 		MEM_freeN(re->objectinstance);
 		re->objectinstance= NULL;

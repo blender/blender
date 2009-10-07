@@ -374,15 +374,15 @@ typedef struct Material {
 #define MA_VOL_STEP_ADAPTIVE	2
 
 /* vol_shadeflag */
-#define MA_VOL_SHADED		1
-#define MA_VOL_RECVSHADOW	4
+#define MA_VOL_RECV_EXT_SHADOW	1
 #define MA_VOL_PRECACHESHADING	8
 
 /* vol_shading_type */
-#define MA_VOL_SHADE_NONE					0
-#define MA_VOL_SHADE_SINGLE					1
-#define MA_VOL_SHADE_MULTIPLE				2
-#define MA_VOL_SHADE_SINGLEPLUSMULTIPLE		3
+#define MA_VOL_SHADE_SHADELESS					0
+#define MA_VOL_SHADE_SHADOWED					2
+#define MA_VOL_SHADE_SHADED						1
+#define MA_VOL_SHADE_MULTIPLE					3
+#define MA_VOL_SHADE_SHADEDPLUSMULTIPLE			4
 
 #endif
 

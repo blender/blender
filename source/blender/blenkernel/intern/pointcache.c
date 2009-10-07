@@ -269,7 +269,7 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 
 	/* determine rotation from velocity */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		vectoquat(pa->state.vel, OB_POSX, OB_POSZ, pa->state.rot);
+		vectoquat(pa->state.vel, OB_NEGX, OB_POSZ, pa->state.rot);
 	}
 }
 static void ptcache_interpolate_particle(int index, void *psys_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
@@ -292,6 +292,23 @@ static void ptcache_interpolate_particle(int index, void *psys_v, void **data, f
 	else
 		BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
 
+	/* determine velocity from previous location */
+	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
+		if(keys[1].time > keys[2].time) {
+			VecSubf(keys[2].vel, keys[1].co, keys[2].co);
+			VecMulf(keys[2].vel, (keys[1].time - keys[2].time) / frs_sec);
+		}
+		else {
+			VecSubf(keys[2].vel, keys[2].co, keys[1].co);
+			VecMulf(keys[2].vel, (keys[2].time - keys[1].time) / frs_sec);
+		}
+	}
+
+	/* determine rotation from velocity */
+	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
+		vectoquat(keys[2].vel, OB_NEGX, OB_POSZ, keys[2].rot);
+	}
+
 	if(cfra > pa->time)
 		cfra1 = MAX2(cfra1, pa->time);
 
@@ -301,7 +318,7 @@ static void ptcache_interpolate_particle(int index, void *psys_v, void **data, f
 	VecMulf(keys[2].vel, dfra / frs_sec);
 
 	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
-	QuatInterpol(pa->state.rot, keys[1].rot,keys[2].rot, (cfra - cfra1) / dfra);
+	QuatInterpol(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 
 	VecMulf(pa->state.vel, frs_sec / dfra);
 
@@ -594,7 +611,8 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	if(psys->part->phystype == PART_PHYS_BOIDS)
 		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION) | (1<<BPHYS_DATA_BOIDS);
 
-	if(psys->part->rotmode || psys->part->avemode)
+	if(psys->part->rotmode!=PART_ROT_VEL
+		|| psys->part->avemode!=PART_AVE_SPIN || psys->part->avefac!=0.0f)
 		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION);
 
 	if(psys->part->flag & PART_ROT_DYN)

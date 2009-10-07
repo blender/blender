@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/source/*.c)
+FILE(GLOB SRC intern/source/*.c intern/raytrace/*.cpp)
 
 SET(INC 
 	intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
@@ -46,10 +46,6 @@ IF(WITH_QUICKTIME)
 	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
-
-IF(WITH_FFMPEG)
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
 
 #TODO
 #if env['OURPLATFORM']=='linux2':

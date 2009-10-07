@@ -222,6 +222,8 @@ const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
 void BKE_spacetypes_free(void);	/* only for quitting blender */
 
+MenuType *BKE_spacemenu_find(const char *idname, int spacetype);
+
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);

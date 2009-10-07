@@ -58,6 +58,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h" /* BKE_ST_MAXNAME */
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -766,6 +767,25 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 	ot->poll= wm_search_menu_poll;
 }
 
+static int wm_call_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	char idname[BKE_ST_MAXNAME];
+	RNA_string_get(op->ptr, "name", idname);
+
+	uiPupMenuInvoke(C, idname, CTX_wm_area(C)->spacetype);
+
+	return OPERATOR_CANCELLED;
+}
+
+static void WM_OT_call_menu(wmOperatorType *ot)
+{
+	ot->name= "Call Menu";
+	ot->idname= "WM_OT_call_menu";
+
+	ot->invoke= wm_call_menu_invoke;
+
+	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the new sequence strip");
+}
 
 /* ************ window / screen operator definitions ************** */
 
@@ -2122,6 +2142,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_search_menu);
+	WM_operatortype_append(WM_OT_call_menu);
 }
 
 /* default keymap for windows and screens, only call once per WM */

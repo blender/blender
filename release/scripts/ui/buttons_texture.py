@@ -99,8 +99,13 @@ class TEXTURE_PT_colors(TextureButtonsPanel):
 			layout.template_color_ramp(tex, "color_ramp", expand=True)
 
 		split = layout.split()
-		
-		split.itemR(tex, "rgb_factor", text="Multiply RGB")
+
+		col = split.column()
+		col.itemL(text="RGB Multiply:")
+		sub = col.column(align=True)
+		sub.itemR(tex, "factor_red", text="R")
+		sub.itemR(tex, "factor_green", text="G")
+		sub.itemR(tex, "factor_blue", text="B")
 
 		col = split.column()
 		col.itemL(text="Adjust:")

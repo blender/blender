@@ -156,6 +156,8 @@ class VIEW3D_MT_view_cameras(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		
+		layout.itemO("view3d.object_as_camera")
 
 # ********** Select menus, suffix from context.mode **********
 

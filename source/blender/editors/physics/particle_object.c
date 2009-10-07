@@ -348,6 +348,82 @@ void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/************************ move up particle dupliweight operator *********************/
+
+static int dupliob_move_up_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+	ParticleSettings *part;
+	ParticleDupliWeight *dw;
+
+	if(!psys)
+		return OPERATOR_CANCELLED;
+
+	part = psys->part;
+	for(dw=part->dupliweights.first; dw; dw=dw->next) {
+		if(dw->flag & PART_DUPLIW_CURRENT && dw->prev) {
+			BLI_remlink(&part->dupliweights, dw);
+			BLI_insertlink(&part->dupliweights, dw->prev->prev, dw);
+
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+			break;
+		}
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_dupliob_move_up(wmOperatorType *ot)
+{
+	ot->name= "Move Up Dupli Object";
+	ot->idname= "PARTICLE_OT_dupliob_move_up";
+	ot->description= "Move dupli object up in the list.";
+	
+	ot->exec= dupliob_move_up_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ move down particle dupliweight operator *********************/
+
+static int dupliob_move_down_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+	ParticleSettings *part;
+	ParticleDupliWeight *dw;
+
+	if(!psys)
+		return OPERATOR_CANCELLED;
+
+	part = psys->part;
+	for(dw=part->dupliweights.first; dw; dw=dw->next) {
+		if(dw->flag & PART_DUPLIW_CURRENT && dw->next) {
+			BLI_remlink(&part->dupliweights, dw);
+			BLI_insertlink(&part->dupliweights, dw->next, dw);
+
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+			break;
+		}
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_dupliob_move_down(wmOperatorType *ot)
+{
+	ot->name= "Move Down Dupli Object";
+	ot->idname= "PARTICLE_OT_dupliob_move_down";
+	ot->description= "Move dupli object down in the list.";
+	
+	ot->exec= dupliob_move_down_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /************************ connect/disconnect hair operators *********************/
 
 static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
