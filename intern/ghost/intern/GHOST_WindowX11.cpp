@@ -1400,12 +1400,29 @@ setWindowCursorVisibility(
 	GHOST_TSuccess
 GHOST_WindowX11::
 setWindowCursorGrab(
-	bool grab
+	bool grab, bool warp
 ){
-	if(grab)
+	if(grab) {
+		if(warp) {
+			m_system->getCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+
+			setCursorWarpAccum(0, 0);
+			setWindowCursorVisibility(false);
+			m_cursorWarp= true;
+		}
 		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-	else
+	}
+	else {
+		if(m_cursorWarp) { /* are we exiting warp */
+			setWindowCursorVisibility(true);
+			/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+			m_system->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+
+			setCursorWarpAccum(0, 0);
+			m_cursorWarp= false;
+		}
 		XUngrabPointer(m_display, CurrentTime);
+	}
 
 	XFlush(m_display);
 	

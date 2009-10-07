@@ -158,6 +158,10 @@ public:
 	 * @return	The visibility state of the cursor.
 	 */
 	inline virtual bool getCursorVisibility() const;
+	inline virtual bool getCursorWarp() const;
+	inline virtual bool getCursorWarpPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
+	inline virtual bool getCursorWarpAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
+	inline virtual bool setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y);
 
 	/**
 	 * Shows or hides the cursor.
@@ -171,7 +175,7 @@ public:
 	 * @param	grab The new grab state of the cursor.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(bool grab);
+	virtual GHOST_TSuccess setCursorGrab(bool grab, bool warp);
 
 	/**
 	 * Sets the window "modified" status, indicating unsaved changes
@@ -243,7 +247,7 @@ protected:
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCursorGrab(bool grab) { return GHOST_kSuccess; };
+	virtual GHOST_TSuccess setWindowCursorGrab(bool grab, bool warp) { return GHOST_kSuccess; };
 	
 	/**
 	 * Sets the cursor shape on the window using
@@ -272,6 +276,15 @@ protected:
 	/** The current grabbed state of the cursor */
 	bool m_cursorGrabbed;
 	
+	/** The current warped state of the cursor */
+	bool m_cursorWarp;
+
+	/** Initial grab location. */
+	GHOST_TInt32 m_cursorWarpInitPos[2];
+
+	/** Accumulated offset from m_cursorWarpInitPos. */
+	GHOST_TInt32 m_cursorWarpAccumPos[2];
+
 	/** The current shape of the cursor */
 	GHOST_TStandardCursor m_cursorShape;
     
@@ -302,6 +315,42 @@ inline GHOST_TDrawingContextType GHOST_Window::getDrawingContextType()
 inline bool GHOST_Window::getCursorVisibility() const
 {
 	return m_cursorVisible;
+}
+
+inline bool GHOST_Window::getCursorWarp() const
+{
+	return m_cursorWarp;
+}
+
+inline bool GHOST_Window::getCursorWarpPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+{
+	if(m_cursorWarp==false)
+		return GHOST_kFailure;
+
+	x= m_cursorWarpInitPos[0];
+	y= m_cursorWarpInitPos[1];
+	return GHOST_kSuccess;
+}
+
+inline bool GHOST_Window::getCursorWarpAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+{
+	if(m_cursorWarp==false)
+		return GHOST_kFailure;
+
+	x= m_cursorWarpAccumPos[0];
+	y= m_cursorWarpAccumPos[1];
+	return GHOST_kSuccess;
+}
+
+inline bool GHOST_Window::setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y)
+{
+	if(m_cursorWarp==false)
+		return GHOST_kFailure;
+
+	m_cursorWarpAccumPos[0]= x;
+	m_cursorWarpAccumPos[1]= y;
+
+	return GHOST_kSuccess;
 }
 
 inline GHOST_TStandardCursor GHOST_Window::getCursorShape() const

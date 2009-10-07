@@ -75,7 +75,7 @@ void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(int val);
-void		WM_cursor_grab		(struct wmWindow *win, int val);
+void		WM_cursor_grab		(struct wmWindow *win, int val, int warp);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
