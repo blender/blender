@@ -2226,7 +2226,7 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 	prop= NULL;
 	curptr= *ptr;
 
-	if(path)
+	if(path==NULL)
 		return 0;
 
 	while(*path) {
