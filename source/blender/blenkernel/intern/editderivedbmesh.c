@@ -882,32 +882,50 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 					
 					bmdm_get_tri_tex(bm, ls, luv, lcol, has_uv, has_vcol);
 					
-					glTexCoord2fv(luv[0]->uv);
-					glColor3ub(lcol[0]->r, lcol[0]->g, lcol[0]->b);
+					if (luv[0])
+						glTexCoord2fv(luv[0]->uv);
+					if (lcol[0])
+						glColor3ub(lcol[0]->r, lcol[0]->g, lcol[0]->b);
+					else glColor3ub(0, 0, 0);
 					glVertex3fv(ls[0]->v->co);
 
-					glTexCoord2fv(luv[1]->uv);
-					glColor3ub(lcol[1]->r, lcol[1]->g, lcol[1]->b);
+					if (luv[1])
+						glTexCoord2fv(luv[1]->uv);
+					if (lcol[1])
+						glColor3ub(lcol[1]->r, lcol[1]->g, lcol[1]->b);
+					else glColor3ub(0, 0, 0);
 					glVertex3fv(ls[1]->v->co);
 
-					glTexCoord2fv(luv[2]->uv);
-					glColor3ub(lcol[2]->r, lcol[2]->g, lcol[2]->b);
+					if (luv[2])
+						glTexCoord2fv(luv[2]->uv);
+					if (lcol[2])
+						glColor3ub(lcol[2]->r, lcol[2]->g, lcol[2]->b);
+					else glColor3ub(0, 0, 0);
 					glVertex3fv(ls[2]->v->co);
 				} else {
 					bmdm_get_tri_tex(bm, ls, luv, lcol, has_uv, has_vcol);
 					
-					glTexCoord2fv(luv[0]->uv);
-					glColor3ub(lcol[0]->r, lcol[0]->g, lcol[0]->b);
+					if (luv[0])
+						glTexCoord2fv(luv[0]->uv);
+					if (lcol[0])
+						glColor3ub(lcol[0]->r, lcol[0]->g, lcol[0]->b);
+					else glColor3ub(0, 0, 0);
 					glNormal3fv(ls[0]->v->no);
 					glVertex3fv(ls[0]->v->co);
 
-					glTexCoord2fv(luv[1]->uv);
-					glColor3ub(lcol[1]->r, lcol[1]->g, lcol[1]->b);
+					if (luv[1])
+						glTexCoord2fv(luv[1]->uv);
+					if (lcol[1])
+						glColor3ub(lcol[1]->r, lcol[1]->g, lcol[1]->b);
+					else glColor3ub(0, 0, 0);
 					glNormal3fv(ls[1]->v->no);
 					glVertex3fv(ls[1]->v->co);
 
-					glTexCoord2fv(luv[2]->uv);
-					glColor3ub(lcol[2]->r, lcol[2]->g, lcol[2]->b);
+					if (luv[2])
+						glTexCoord2fv(luv[2]->uv);
+					if (lcol[2])
+						glColor3ub(lcol[2]->r, lcol[2]->g, lcol[2]->b);
+					else glColor3ub(0, 0, 0);
 					glNormal3fv(ls[2]->v->no);
 					glVertex3fv(ls[2]->v->co);
 				}

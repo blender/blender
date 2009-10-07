@@ -89,6 +89,8 @@
 #include "mesh_intern.h"
 #include "bmesh.h"
 
+#include "editbmesh_bvh.h"
+
 static void add_normal_aligned(float *nor, float *add)
 {
 	if( INPR(nor, add) < -0.9999f)
@@ -2047,12 +2049,24 @@ static int bm_test_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
+	RegionView3D *r3d = CTX_wm_region_view3d(C);		
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-#if 1
-	if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_SELECT))
-		return OPERATOR_CANCELLED;
+	BMBVHTree *tree = BMBVH_NewBVH(em);
+	BMIter iter;
+	BMEdge *e;
 
-#else //uv island walker test
+	/*hide all back edges*/
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (!BM_TestHFlag(e, BM_SELECT))
+			continue;
+
+		if (!BMBVH_EdgeVisible(tree, e, r3d, obedit))
+			BM_Select(em->bm, e, 0);
+	}
+
+	BMBVH_FreeBVH(tree);
+	
+#if 0 //uv island walker test
 	BMIter iter, liter;
 	BMFace *f;
 	BMLoop *l, *l2;
@@ -2907,4 +2921,397 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "type", type_items, VPATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
+}
+/********************** Rip Operator *************************/
+
+#if 0
+/* helper for below */
+static void mesh_rip_setface(EditMesh *em, EditFace *sefa)
+{
+	/* put new vertices & edges in best face */
+	if(sefa->v1->tmp.v) sefa->v1= sefa->v1->tmp.v;
+	if(sefa->v2->tmp.v) sefa->v2= sefa->v2->tmp.v;
+	if(sefa->v3->tmp.v) sefa->v3= sefa->v3->tmp.v;
+	if(sefa->v4 && sefa->v4->tmp.v) sefa->v4= sefa->v4->tmp.v;
+
+	sefa->e1= addedgelist(em, sefa->v1, sefa->v2, sefa->e1);
+	sefa->e2= addedgelist(em, sefa->v2, sefa->v3, sefa->e2);
+	if(sefa->v4) {
+		sefa->e3= addedgelist(em, sefa->v3, sefa->v4, sefa->e3);
+		sefa->e4= addedgelist(em, sefa->v4, sefa->v1, sefa->e4);
+	}
+	else
+		sefa->e3= addedgelist(em, sefa->v3, sefa->v1, sefa->e3);
+
+}
+#endif
+
+/* helper to find edge for edge_rip */
+static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, short *mval)
+{
+	float vec1[3], vec2[3], mvalf[2];
+
+	view3d_project_float(ar, co1, vec1, mat);
+	view3d_project_float(ar, co2, vec2, mat);
+	mvalf[0]= (float)mval[0];
+	mvalf[1]= (float)mval[1];
+
+	return PdistVL2Dfl(mvalf, vec1, vec2);
+}
+
+/* based on mouse cursor position, it defines how is being ripped */
+static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMOperator bmop;
+	BMBVHTree *bvhtree;
+	BMOIter siter;
+	BMIter iter, eiter, liter;
+	BMLoop *l;
+	BMEdge *e, *e2, *closest = NULL;
+	BMVert *v;
+	int side = 0, i;
+	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1], 0.0f};
+	float dist = FLT_MAX, d;
+
+	view3d_get_object_project_mat(rv3d, obedit, projectMat);
+
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(e, BM_SELECT))
+			BMINDEX_SET(e, 1);
+		else BMINDEX_SET(e, 0);
+	}
+
+	/*expand edge selection*/
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		e2 = NULL;
+		i = 0;
+		BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
+			if (BMINDEX_GET(e)) {
+				e2 = e;
+				i++;
+			}
+		}
+		
+		if (i == 1 && e2->loop) {
+			l = BM_OtherFaceLoop(e2, e2->loop->f, v);
+			l = (BMLoop*)l->radial.next->data;
+			l = BM_OtherFaceLoop(l->e, l->f, v);
+
+			if (l)
+				BM_Select(em->bm, l->e, 1);
+		}
+	}
+
+	if (!EDBM_InitOpf(em, &bmop, op, "edgesplit edges=%he", BM_SELECT)) {
+		return OPERATOR_CANCELLED;
+	}
+	
+	BMO_Exec_Op(em->bm, &bmop);
+
+	/*build bvh tree for edge visibility tests*/
+	bvhtree = BMBVH_NewBVH(em);
+
+	for (i=0; i<2; i++) {
+		BMO_ITER(e, &siter, em->bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
+			float cent[3] = {0, 0, 0}, mid[4], vec[3];
+
+			if (!BMBVH_EdgeVisible(bvhtree, e, rv3d, obedit))
+				continue;
+
+			/*method for calculating distance:
+			
+			  for each edge: calculate face center, then made a vector
+			  from edge midpoint to face center.  offset edge midpoint
+			  by a small amount along this vector.*/
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, e->loop->f) {
+				VecAddf(cent, cent, l->v->co);
+			}
+			VecMulf(cent, 1.0f/(float)e->loop->f->len);
+
+			VecAddf(mid, e->v1->co, e->v2->co);
+			VecMulf(mid, 0.5f);
+			VecSubf(vec, cent, mid);
+			Normalize(vec);
+			VecMulf(vec, 0.01f);
+			VecAddf(mid, mid, vec);
+
+			/*yay we have our comparison point, now project it*/
+			view3d_project_float(ar, mid, mid, projectMat);
+
+			vec[0] = fmval[0] - mid[0];
+			vec[1] = fmval[1] - mid[1];
+			d = vec[0]*vec[0] + vec[1]*vec[1];
+
+			if (d < dist) {
+				side = i;
+				closest = e;
+				dist = d;
+			}
+		}
+	}
+
+	EDBM_clear_flag_all(em, BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, side?"edgeout2":"edgeout1", BM_SELECT, BM_EDGE);
+
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(e, BM_SELECT))
+			BMINDEX_SET(e, 1);
+		else BMINDEX_SET(e, 0);
+	}
+
+	/*constrict edge selection again*/
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		e2 = NULL;
+		i = 0;
+		BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
+			if (BMINDEX_GET(e)) {
+				e2 = e;
+				i++;
+			}
+		}
+		
+		if (i == 1) 
+			BM_Select(em->bm, e2, 0);
+	}
+
+	EDBM_selectmode_flush(em);
+	
+	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
+		BMBVH_FreeBVH(bvhtree);
+		return OPERATOR_CANCELLED;
+	}
+	
+	BMBVH_FreeBVH(bvhtree);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+#if 0 //BMESH_TODO
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= ar->regiondata;
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	EditVert *eve, *nextve;
+	EditEdge *eed, *seed= NULL;
+	EditFace *efa, *sefa= NULL;
+	float projectMat[4][4], vec[3], dist, mindist;
+	short doit= 1, *mval= event->mval;
+
+	/* select flush... vertices are important */
+	EM_selectmode_set(em);
+
+	view3d_get_object_project_mat(rv3d, obedit, projectMat);
+
+	/* find best face, exclude triangles and break on face select or faces with 2 edges select */
+	mindist= 1000000.0f;
+	for(efa= em->faces.first; efa; efa=efa->next) {
+		if( efa->f & 1)
+			break;
+		if(efa->v4 && faceselectedOR(efa, SELECT) ) {
+			int totsel=0;
+
+			if(efa->e1->f & SELECT) totsel++;
+			if(efa->e2->f & SELECT) totsel++;
+			if(efa->e3->f & SELECT) totsel++;
+			if(efa->e4->f & SELECT) totsel++;
+
+			if(totsel>1)
+				break;
+			view3d_project_float(ar, efa->cent, vec, projectMat);
+			dist= sqrt( (vec[0]-mval[0])*(vec[0]-mval[0]) + (vec[1]-mval[1])*(vec[1]-mval[1]) );
+			if(dist<mindist) {
+				mindist= dist;
+				sefa= efa;
+			}
+		}
+	}
+
+	if(efa) {
+		BKE_report(op->reports, RPT_ERROR, "Can't perform ripping with faces selected this way");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+	if(sefa==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No proper selection or faces included");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+
+	/* duplicate vertices, new vertices get selected */
+	for(eve = em->verts.last; eve; eve= eve->prev) {
+		eve->tmp.v = NULL;
+		if(eve->f & SELECT) {
+			eve->tmp.v = addvertlist(em, eve->co, eve);
+			eve->f &= ~SELECT;
+			eve->tmp.v->f |= SELECT;
+		}
+	}
+
+	/* find the best candidate edge */
+	/* or one of sefa edges is selected... */
+	if(sefa->e1->f & SELECT) seed= sefa->e2;
+	if(sefa->e2->f & SELECT) seed= sefa->e1;
+	if(sefa->e3->f & SELECT) seed= sefa->e2;
+	if(sefa->e4 && sefa->e4->f & SELECT) seed= sefa->e3;
+
+	/* or we do the distance trick */
+	if(seed==NULL) {
+		mindist= 1000000.0f;
+		if(sefa->e1->v1->tmp.v || sefa->e1->v2->tmp.v) {
+			dist = mesh_rip_edgedist(ar, projectMat,
+									 sefa->e1->v1->co,
+									 sefa->e1->v2->co, mval);
+			if(dist<mindist) {
+				seed= sefa->e1;
+				mindist= dist;
+			}
+		}
+		if(sefa->e2->v1->tmp.v || sefa->e2->v2->tmp.v) {
+			dist = mesh_rip_edgedist(ar, projectMat,
+									 sefa->e2->v1->co,
+									 sefa->e2->v2->co, mval);
+			if(dist<mindist) {
+				seed= sefa->e2;
+				mindist= dist;
+			}
+		}
+		if(sefa->e3->v1->tmp.v || sefa->e3->v2->tmp.v) {
+			dist= mesh_rip_edgedist(ar, projectMat,
+									sefa->e3->v1->co,
+									sefa->e3->v2->co, mval);
+			if(dist<mindist) {
+				seed= sefa->e3;
+				mindist= dist;
+			}
+		}
+		if(sefa->e4 && (sefa->e4->v1->tmp.v || sefa->e4->v2->tmp.v)) {
+			dist= mesh_rip_edgedist(ar, projectMat,
+									sefa->e4->v1->co,
+									sefa->e4->v2->co, mval);
+			if(dist<mindist) {
+				seed= sefa->e4;
+				mindist= dist;
+			}
+		}
+	}
+
+	if(seed==NULL) {	// never happens?
+		BKE_report(op->reports, RPT_ERROR, "No proper edge found to start");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+	faceloop_select(em, seed, 2);	// tmp abuse for finding all edges that need duplicated, returns OK faces with f1
+
+	/* duplicate edges in the loop, with at least 1 vertex selected, needed for selection flip */
+	for(eed = em->edges.last; eed; eed= eed->prev) {
+		eed->tmp.v = NULL;
+		if((eed->v1->tmp.v) || (eed->v2->tmp.v)) {
+			EditEdge *newed;
+
+			newed= addedgelist(em, eed->v1->tmp.v?eed->v1->tmp.v:eed->v1,
+							   eed->v2->tmp.v?eed->v2->tmp.v:eed->v2, eed);
+			if(eed->f & SELECT) {
+				EM_select_edge(eed, 0);
+				EM_remove_selection(em, eed, EDITEDGE);
+				EM_select_edge(newed, 1);
+			}
+			eed->tmp.v = (EditVert *)newed;
+		}
+	}
+
+	/* first clear edges to help finding neighbours */
+	for(eed = em->edges.last; eed; eed= eed->prev) eed->f1= 0;
+
+	/* put new vertices & edges && flag in best face */
+	mesh_rip_setface(em, sefa);
+
+	/* starting with neighbours of best face, we loop over the seam */
+	sefa->f1= 2;
+	doit= 1;
+	while(doit) {
+		doit= 0;
+
+		for(efa= em->faces.first; efa; efa=efa->next) {
+			/* new vert in face */
+			if (efa->v1->tmp.v || efa->v2->tmp.v ||
+				efa->v3->tmp.v || (efa->v4 && efa->v4->tmp.v)) {
+				/* face is tagged with loop */
+				if(efa->f1==1) {
+					mesh_rip_setface(em, efa);
+					efa->f1= 2;
+					doit= 1;
+				}
+			}
+		}
+	}
+
+	/* remove loose edges, that were part of a ripped face */
+	for(eve = em->verts.first; eve; eve= eve->next) eve->f1= 0;
+	for(eed = em->edges.last; eed; eed= eed->prev) eed->f1= 0;
+	for(efa= em->faces.first; efa; efa=efa->next) {
+		efa->e1->f1= 1;
+		efa->e2->f1= 1;
+		efa->e3->f1= 1;
+		if(efa->e4) efa->e4->f1= 1;
+	}
+
+	for(eed = em->edges.last; eed; eed= seed) {
+		seed= eed->prev;
+		if(eed->f1==0) {
+			if(eed->v1->tmp.v || eed->v2->tmp.v ||
+			   (eed->v1->f & SELECT) || (eed->v2->f & SELECT)) {
+				remedge(em, eed);
+				free_editedge(em, eed);
+				eed= NULL;
+			}
+		}
+		if(eed) {
+			eed->v1->f1= 1;
+			eed->v2->f1= 1;
+		}
+	}
+
+	/* and remove loose selected vertices, that got duplicated accidentally */
+	for(eve = em->verts.first; eve; eve= nextve) {
+		nextve= eve->next;
+		if(eve->f1==0 && (eve->tmp.v || (eve->f & SELECT))) {
+			BLI_remlink(&em->verts,eve);
+			free_editvert(em, eve);
+		}
+	}
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+//	RNA_enum_set(op->ptr, "proportional", 0);
+//	RNA_boolean_set(op->ptr, "mirror", 0);
+//	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+#endif
+}
+
+void MESH_OT_rip(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rip";
+	ot->idname= "MESH_OT_rip";
+
+	/* api callbacks */
+	ot->invoke= mesh_rip_invoke;
+	ot->poll= EM_view3d_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* to give to transform */
+	Properties_Proportional(ot);
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }

@@ -571,8 +571,8 @@ void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
 {
 	float vec4[4];
 	
-	adr[0]= IS_CLIPPED;
 	VECCOPY(vec4, vec);
+	adr[0]= IS_CLIPPED;
 	vec4[3]= 1.0;
 	
 	Mat4MulVec4fl(mat, vec4);

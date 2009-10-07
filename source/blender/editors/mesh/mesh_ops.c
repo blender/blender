@@ -458,7 +458,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	//WM_keymap_add_item(keymap, "MESH_OT_colors_mirror",EIGHTKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_colors_reverse",EIGHTKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_add_item(keymap, "MESH_OT_rip_move",VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_rip_move",VKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
 
 	/* add/remove */

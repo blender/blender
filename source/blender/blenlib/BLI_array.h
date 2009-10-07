@@ -30,9 +30,15 @@
 
 /*
 this library needs to be changed to not use macros quite so heavily,
-and to be more of a complete vector array API.  The way arrays are
+and to be more of a complete array API.  The way arrays are
 exposed to client code as normal C arrays is very useful though, imho.
-it does require some use of macros, however.
+it does require some use of macros, however.  
+
+anyway, it's used a bit too heavily to simply rewrite as a 
+more "correct" solution without macros entirely.  I originally wrote this
+to be very easy to use, without the normal pain of most array libraries.
+This was especially helpful when it came to the massive refactors necessary for
+bmesh, and really helped to speed the process up. - joeedh
   
 little array macro library.  example of usage:
 
@@ -51,28 +57,35 @@ the array size is doubled).  supposedly this should give good Big Oh
 behaviour, though it may not be the best in practice.
 */
 
-#define BLI_array_declare(vec) int _##vec##_count=0; void *_##vec##_tmp
+#define BLI_array_declare(arr) int _##arr##_count=0; void *_##arr##_tmp
 
 /*this returns the entire size of the array, including any buffering.*/
-#define BLI_array_totalsize(vec) ((signed int)((vec)==NULL ? 0 : MEM_allocN_len(vec) / sizeof(*vec)))
+#define BLI_array_totalsize(arr) ((signed int)((arr)==NULL ? 0 : MEM_allocN_len(arr) / sizeof(*arr)))
 
 /*this returns the logical size of the array, not including buffering.*/
-#define BLI_array_count(vec) _##vec##_count
+#define BLI_array_count(arr) _##arr##_count
 
 /*grow the array by one.  zeroes the new elements.*/
-#define BLI_array_growone(vec) \
-	BLI_array_totalsize(vec) > _##vec##_count ? _##vec##_count++ : \
-	((_##vec##_tmp = MEM_callocN(sizeof(*vec)*(_##vec##_count*2+2), #vec " " __FILE__ " ")),\
-	(vec && memcpy(_##vec##_tmp, vec, sizeof(*vec) * _##vec##_count)),\
-	(vec && (MEM_freeN(vec),1)),\
-	(vec = _##vec##_tmp),\
-	_##vec##_count++)
+#define BLI_array_growone(arr) \
+	BLI_array_totalsize(arr) > _##arr##_count ? _##arr##_count++ : \
+	((_##arr##_tmp = MEM_callocN(sizeof(*arr)*(_##arr##_count*2+2), #arr " " __FILE__ " ")),\
+	(arr && memcpy(_##arr##_tmp, arr, sizeof(*arr) * _##arr##_count)),\
+	(arr && (MEM_freeN(arr),1)),\
+	(arr = _##arr##_tmp),\
+	_##arr##_count++)
 
-#define BLI_array_free(vec) if (vec) MEM_freeN(vec);
+/*appends an item to the array and returns a pointer to the item in the array.
+  item is not a pointer, but actual data value.*/
+#define BLI_array_append(arr, item) (BLI_array_growone(arr), arr[_##arr##_count] = item, (arr+_##arr##_count))
+
+/*grow an array by a specified number of items.*/
+#define BLI_array_growitems(arr, num) {int _i; for (_i=0; _i<(num); _i++) {BLI_array_growone(arr);}}
+#define BLI_array_free(arr) if (arr) MEM_freeN(arr)
 
 /*resets the logical size of an array to zero, but doesn't
   free the memory.*/
-#define BLI_array_empty(vec) _##vec##_count=0
+#define BLI_array_empty(arr) _##arr##_count=0
 
-/*set the count of the array*/
-#define BLI_array_set_length(vec, count) _##vec##_count = (count)
+/*set the count of the array, doesn't actually increase the allocated array
+  size.  don't use this unless you know what your doing.*/
+#define BLI_array_set_length(arr, count) _##arr##_count = (count)

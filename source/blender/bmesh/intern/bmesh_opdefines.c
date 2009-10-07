@@ -154,12 +154,13 @@ BMOpDefine def_reversefaces = {
 };
 
 /*
-  Edge Split
+  Edge Bisect
 
   Splits input edges (but doesn't do anything else).
+  This creates a 2-valence vert.
 */
-BMOpDefine def_edgesplit = {
-	"edgesplit",
+BMOpDefine def_edgebisect = {
+	"edgebisect",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
 	{BMOP_OPSLOT_INT, "numcuts"}, //number of cuts
 	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"}, //newly created vertices and edges
@@ -802,6 +803,21 @@ BMOpDefine def_vertexshortestpath = {
 	0
 };
 
+/*
+  Edge Split
+
+  Disconnects faces along input edges.
+ */
+BMOpDefine def_edgesplit = {
+	"edgesplit",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /* input edges */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout1"}, /* old output disconnected edges */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout2"}, /* new output disconnected edges */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_edgesplitop_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -831,7 +847,7 @@ BMOpDefine *opdefines[] = {
 	&def_removedoubles,
 	&def_finddoubles,
 	&def_mirror,
-	&def_edgesplit,
+	&def_edgebisect,
 	&def_reversefaces,
 	&def_edgerotate,
 	&def_regionextend,
@@ -855,6 +871,7 @@ BMOpDefine *opdefines[] = {
 	&def_meshreversecolors,
 	&def_vertexshortestpath,
 	&def_scale,
+	&def_edgesplit,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

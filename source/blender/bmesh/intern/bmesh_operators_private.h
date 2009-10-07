@@ -59,4 +59,5 @@ void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op);
 void bmesh_reversecolors_exec(BMesh *bm, BMOperator *op);
 void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op);
 void bmesh_scale_exec(BMesh *bm, BMOperator *op);
+void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op);
 #endif

@@ -184,6 +184,9 @@ BMEdge *BM_Edge_Exist(BMVert *v1, BMVert *v2)
 	BMEdge *curedge;
 	int i, len=0;
 	
+	if (!v1 || !v2 || v1 == v2)
+		return NULL;
+	
 	if(v1->edge){
 		diskbase = bmesh_disk_getpointer(v1->edge,v1);
 		len = bmesh_cycle_length(diskbase);
