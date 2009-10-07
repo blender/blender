@@ -54,6 +54,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -102,6 +103,7 @@ void ED_node_changed_update(bContext *C, bNode *node)
 		return;
 
 	if(snode->treetype==NTREE_SHADER) {
+		DAG_id_flush_update(snode->id, 0);
 		WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, snode->id);
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
@@ -127,6 +129,7 @@ void ED_node_changed_update(bContext *C, bNode *node)
 		WM_event_add_notifier(C, NC_SCENE|ND_NODES, CTX_data_scene(C));
 	}			
 	else if(snode->treetype==NTREE_TEXTURE) {
+		DAG_id_flush_update(snode->id, 0);
 		WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
 	}
 

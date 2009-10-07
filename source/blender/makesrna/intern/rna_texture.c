@@ -107,6 +107,14 @@ static void rna_Texture_update(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_TEXTURE, tex);
 }
 
+static void rna_Texture_nodes_update(bContext *C, PointerRNA *ptr)
+{
+	Tex *tex= ptr->id.data;
+
+	DAG_id_flush_update(&tex->id, 0);
+	WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, tex);
+}
+
 static void rna_Texture_type_set(PointerRNA *ptr, int value)
 {
 	Tex *tex= (Tex*)ptr->data;
@@ -1678,12 +1686,12 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Texture_use_nodes_set");
 	RNA_def_property_ui_text(prop, "Use Nodes", "Make this a node-based texture");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 	
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node-based textures");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 	
 	rna_def_animdata_common(srna);
 

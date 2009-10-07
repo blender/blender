@@ -87,6 +87,7 @@ typedef struct TexParams {
 typedef void(*TexFn) (float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);
 
 typedef struct TexDelegate {
+	TexCallData *cdata;
 	TexFn fn;
 	bNode *node;
 	bNodeStack *in[MAX_SOCKET];
@@ -99,8 +100,8 @@ void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread)
 void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread);
 float tex_input_value(bNodeStack *in, TexParams *params, short thread);
 
-void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn);
-void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata);
+void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *data);
+void tex_do_preview(bNode *node, float *coord, float *col);
 
 void params_from_cdata(TexParams *out, TexCallData *in);
 

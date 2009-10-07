@@ -1306,7 +1306,7 @@ void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, in
 	
 	shi->sample= sample;
 	shi->thread= pa->thread;
-	shi->do_preview= R.r.scemode & R_NODE_PREVIEW;
+	shi->do_preview= (R.r.scemode & R_MATNODE_PREVIEW) != 0;
 	shi->lay= rl->lay;
 	shi->layflag= rl->layflag;
 	shi->passflag= rl->passflag;

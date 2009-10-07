@@ -50,7 +50,7 @@ static void valtorgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack *
 
 static void valtorgb_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out) 
 {
-	tex_output(node, in, out[0], &valtorgb_colorfn);
+	tex_output(node, in, out[0], &valtorgb_colorfn, data);
 }
 
 static void valtorgb_init(bNode *node)
@@ -97,9 +97,7 @@ static void rgbtobw_valuefn(float *out, TexParams *p, bNode *node, bNodeStack **
 
 static void rgbtobw_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	tex_output(node, in, out[0], &rgbtobw_valuefn);
-	
-	tex_do_preview(node, out[0], data);
+	tex_output(node, in, out[0], &rgbtobw_valuefn, data);
 }
 
 bNodeType tex_node_rgbtobw= {

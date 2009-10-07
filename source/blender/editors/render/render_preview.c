@@ -359,7 +359,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 				else {
 					sce->lay= 1<<mat->pr_type;
-					if(mat->nodetree)
+					if(mat->nodetree && sp->pr_method==PR_NODE_RENDER)
 						ntreeInitPreview(mat->nodetree, sp->sizex, sp->sizey);
 				}
 			}
@@ -408,6 +408,9 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					}
 				}
 			}
+
+			if(tex && tex->nodetree && sp->pr_method==PR_NODE_RENDER)
+				ntreeInitPreview(tex->nodetree, sp->sizex, sp->sizey);
 		}
 		else if(id_type==ID_LA) {
 			Lamp *la= (Lamp *)id;
@@ -529,7 +532,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		}
 		
 		if(ok==0) {
-			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy);
+			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy, PR_BUTS_RENDER);
 		}
 	}	
 }
@@ -880,11 +883,12 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	Render *re;
 	Scene *sce;
 	float oldlens;
+	short idtype= GS(id->name);
 	char name[32];
 	int sizex;
 
 	/* get the stuff from the builtin preview dbase */
-	sce= preview_prepare_scene(sp->scene, id, GS(id->name), sp); // XXX sizex
+	sce= preview_prepare_scene(sp->scene, id, idtype, sp); // XXX sizex
 	if(sce==NULL) return;
 	
 	if(!split || first) sprintf(name, "Preview %p", sp->owner);
@@ -896,14 +900,19 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		re= RE_NewRender(name);
 		
 	/* sce->r gets copied in RE_InitState! */
-	if(sp->pr_method==PR_DO_RENDER) {
-		sce->r.scemode |= R_NODE_PREVIEW;
-		sce->r.scemode &= ~R_NO_IMAGE_LOAD;
+	sce->r.scemode &= ~(R_MATNODE_PREVIEW|R_TEXNODE_PREVIEW);
+	sce->r.scemode &= ~R_NO_IMAGE_LOAD;
+
+	if(sp->pr_method==PR_ICON_RENDER) {
+		sce->r.scemode |= R_NO_IMAGE_LOAD;
+	}
+	else if(sp->pr_method==PR_NODE_RENDER) {
+		if(idtype == ID_MA) sce->r.scemode |= R_MATNODE_PREVIEW;
+		else if(idtype == ID_TE) sce->r.scemode |= R_TEXNODE_PREVIEW;
 		sce->r.mode |= R_OSA;
 	}
-	else {	/* PR_ICON_RENDER */
-		sce->r.scemode &= ~R_NODE_PREVIEW;
-		sce->r.scemode |= R_NO_IMAGE_LOAD;
+	else {	/* PR_BUTS_RENDER */
+		sce->r.mode |= R_OSA;
 	}
 
 	/* in case of split preview, use border render */
@@ -917,7 +926,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	RE_InitState(re, NULL, &sce->r, sizex, sp->sizey, NULL);
 
 	/* callbacs are cleared on GetRender() */
-	if(sp->pr_method==PR_DO_RENDER) {
+	if(sp->pr_method==PR_BUTS_RENDER) {
 		RE_display_draw_cb(re, sp, shader_preview_draw);
 		RE_test_break_cb(re, sp, shader_preview_break);
 	}
@@ -1125,7 +1134,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }
 
-void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, MTex *slot, int sizex, int sizey)
+void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, MTex *slot, int sizex, int sizey, int method)
 {
 	wmJob *steve;
 	ShaderPreview *sp;
@@ -1138,7 +1147,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->owner= owner;
 	sp->sizex= sizex;
 	sp->sizey= sizey;
-	sp->pr_method= PR_DO_RENDER;
+	sp->pr_method= method;
 	sp->id = id;
 	sp->parent= parent;
 	sp->slot= slot;

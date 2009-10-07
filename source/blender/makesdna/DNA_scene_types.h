@@ -840,7 +840,7 @@ typedef struct Scene {
 #define R_PASSEPARTOUT		0x0004
 #define R_PREVIEWBUTS		0x0008
 #define R_EXTENSION			0x0010
-#define R_NODE_PREVIEW		0x0020
+#define R_MATNODE_PREVIEW	0x0020
 #define R_DOCOMP			0x0040
 #define R_COMP_CROP			0x0080
 #define R_FREE_IMAGE		0x0100
@@ -852,7 +852,8 @@ typedef struct Scene {
 #define R_STAMP_INFO		0x4000	/* deprecated */
 #define R_FULL_SAMPLE		0x8000
 #define R_COMP_RERENDER		0x10000
-#define R_RECURS_PROTECTION     0x20000
+#define R_RECURS_PROTECTION	0x20000
+#define R_TEXNODE_PREVIEW	0x40000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001

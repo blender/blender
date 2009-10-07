@@ -67,10 +67,10 @@ static void valuefn_a(float *out, TexParams *p, bNode *node, bNodeStack **in, sh
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	tex_output(node, in, out[0], &valuefn_r);
-	tex_output(node, in, out[1], &valuefn_g);
-	tex_output(node, in, out[2], &valuefn_b);
-	tex_output(node, in, out[3], &valuefn_a);
+	tex_output(node, in, out[0], &valuefn_r, data);
+	tex_output(node, in, out[1], &valuefn_g, data);
+	tex_output(node, in, out[2], &valuefn_b, data);
+	tex_output(node, in, out[3], &valuefn_a, data);
 }
 
 bNodeType tex_node_decompose= {

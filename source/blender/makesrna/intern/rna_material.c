@@ -1716,7 +1716,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_nodes_set");
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the material.");
-	RNA_def_property_update(prop, NC_MATERIAL, NULL);
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "active_node_material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");

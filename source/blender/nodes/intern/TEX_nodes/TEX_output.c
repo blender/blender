@@ -83,28 +83,30 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	TexCallData *cdata = (TexCallData *)data;
 	TexResult *target = cdata->target;
 	
-	if(in[1]->hasinput && !in[0]->hasinput)
-		tex_do_preview(node, in[1], data);
-	else
-		tex_do_preview(node, in[0], data);
+	if(cdata->do_preview) {
+		TexParams params;
+		params_from_cdata(&params, cdata);
+
+		if(in[1]->hasinput && !in[0]->hasinput)
+			tex_input_rgba(&target->tr, in[1], &params, cdata->thread);
+		else
+			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
+		tex_do_preview(node, params.coord, &target->tr);
+	}
+	else if(cdata->which_output == node->custom1) {
+		TexParams params;
+		params_from_cdata(&params, cdata);
+		
+		osa(tex_input_rgba, &target->tr, in[0], &params, cdata->thread);
 	
-	if(!cdata->do_preview) {
-		if(cdata->which_output == node->custom1)
-		{
-			TexParams params;
-			params_from_cdata(&params, cdata);
-			
-			osa(tex_input_rgba, &target->tr, in[0], &params, cdata->thread);
-		
-			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
-			target->talpha = 1.0f;
-		
-			if(target->nor) {
-				if(in[1]->hasinput)
-					osa(tex_input_vec, target->nor, in[1], &params, cdata->thread);
-				else
-					target->nor = 0;
-			}
+		target->tin = (target->tr + target->tg + target->tb) / 3.0f;
+		target->talpha = 1.0f;
+	
+		if(target->nor) {
+			if(in[1]->hasinput)
+				osa(tex_input_vec, target->nor, in[1], &params, cdata->thread);
+			else
+				target->nor = 0;
 		}
 	}
 }
