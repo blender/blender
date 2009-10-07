@@ -29,6 +29,6 @@
 # Bounces make to subdirectories.
 
 SOURCEDIR = source/blender/render/intern
-DIRS = source
+DIRS = source raytrace
 
 include nan_subdirs.mk
