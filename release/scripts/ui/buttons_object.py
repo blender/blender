@@ -26,8 +26,6 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 		
 		ob = context.object
 		
-		
-
 		row = layout.row()
 		
 		row.column().itemR(ob, "location")

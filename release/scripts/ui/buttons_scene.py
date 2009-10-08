@@ -474,7 +474,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
 		scene = context.scene
 		
 		row = layout.row()
-		row.itemL(text="Keying Sets")
+		row.itemL(text="Keying Sets:")
 		
 		row = layout.row()
 		
@@ -512,7 +512,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 		ks = scene.active_keying_set
 		
 		row = layout.row()
-		row.itemL(text="Paths")
+		row.itemL(text="Paths:")
 		
 		row = layout.row()
 		

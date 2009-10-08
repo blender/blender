@@ -309,10 +309,11 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
 			}
 		}
-
+		
 		uiItemS(layout);
-		uiItemBooleanO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button", "all", 1);
-
+		
+		uiItemO(layout, "Copy Data Path", 0, "ANIM_OT_copy_clipboard_button");
+		
 		uiPupMenuEnd(C, pup);
 	}
 }

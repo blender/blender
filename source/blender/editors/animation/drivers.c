@@ -565,7 +565,7 @@ void ANIM_OT_paste_driver_button (wmOperatorType *ot)
 }
 
 
-/* Paste Driver Button Operator ------------------------ */
+/* Copy to Clipboard Button Operator ------------------------ */
 
 static int copy_clipboard_button_exec(bContext *C, wmOperator *op)
 {
@@ -579,9 +579,9 @@ static int copy_clipboard_button_exec(bContext *C, wmOperator *op)
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 
-	if (ptr.data && prop) { // && RNA_property_animateable(ptr.data, prop)
+	if (ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
-
+		
 		if (path) {
 			WM_clipboard_text_set(path, FALSE);
 			MEM_freeN(path);
@@ -597,15 +597,14 @@ void ANIM_OT_copy_clipboard_button(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Data Path";
 	ot->idname= "ANIM_OT_copy_clipboard_button";
-	ot->description= "Copy the rna data path to the clipboard.";
+	ot->description= "Copy the RNA data path for this property to the clipboard.";
 
 	/* callbacks */
 	ot->exec= copy_clipboard_button_exec;
-	//op->poll= ??? // TODO: need to have some driver to be able to do this...
+	//op->poll= ??? // TODO: need to have some valid property before this can be done
 
 	/* flags */
-	ot->flag= 0;
+	ot->flag= OPTYPE_REGISTER;
 }
-
 
 /* ************************************************** */

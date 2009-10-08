@@ -100,7 +100,7 @@ class TIME_MT_frame(bpy.types.Menu):
 		layout.itemS()
 		
 		sub = layout.row()
-		sub.active = tools.enable_auto_key
+		#sub.active = tools.enable_auto_key
 		sub.itemM("TIME_MT_autokey")
 
 class TIME_MT_playback(bpy.types.Menu):

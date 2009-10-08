@@ -3939,6 +3939,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 						/* add a new path with the information obtained (only if valid) */
 						// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
 						BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag, groupmode);
+						ks->active_path= BLI_countlist(&ks->paths);
 					}
 						break;
 					case KEYINGSET_EDITMODE_REMOVE:
@@ -3950,6 +3951,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 							/* free path's data */
 							// TODO: we probably need an API method for this 
 							if (ksp->rna_path) MEM_freeN(ksp->rna_path);
+							ks->active_path= 0;
 							
 							/* remove path from set */
 							BLI_freelinkN(&ks->paths, ksp);

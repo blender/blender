@@ -9912,6 +9912,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		Object *ob;
+		
+		/* New variables for axis-angle rotations and/or quaternion rotations were added, and need proper initialisation */
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			/* new variables for all objects */
+			ob->quat[0]= 1.0f;
+			ob->rotAxis[1]= 1.0f;
+			
+			/* bones */
+			if (ob->pose) {
+				bPoseChannel *pchan;
+				
+				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					/* just need to initalise rotation axis properly... */
+					pchan->rotAxis[1]= 1.0f;
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

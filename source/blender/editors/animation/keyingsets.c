@@ -349,6 +349,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 				
 			/* add path to this setting */
 			BKE_keyingset_add_destination(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
+			ks->active_path= BLI_countlist(&ks->paths);
 			success= 1;
 			
 			/* free the temp path created */
@@ -1354,6 +1355,9 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 					}
 						break;
 				}
+				
+				/* send notifiers for updates (this doesn't require context to work!) */
+				WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 			}
 		}
 	}
@@ -1484,6 +1488,9 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 					}
 						break;
 				}
+				
+				/* send notifiers for updates (this doesn't require context to work!) */
+				WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 			}
 		}
 	}
