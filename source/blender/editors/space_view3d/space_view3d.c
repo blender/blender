@@ -620,10 +620,10 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"selected_objects", "selected_bases" "selected_editable_objects",
-			"selected_editable_bases" "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
+			"selected_objects", "selected_bases", "selected_editable_objects",
+			"selected_editable_bases", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
 			"active_base", "active_object", "visible_bones", "editable_bones",
-			"selected_bones", "selected_editable_bones" "visible_pchans",
+			"selected_bones", "selected_editable_bones", "visible_pchans",
 			"selected_pchans", "active_bone", "active_pchan", NULL};
 
 		CTX_data_dir_set(result, dir);

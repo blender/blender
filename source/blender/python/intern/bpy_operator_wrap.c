@@ -47,6 +47,7 @@
 #define PYOP_ATTR_IDNAME_BL		"__idname_bl__"	/* our own name converted into blender syntax, users wont see this */
 #define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
 #define PYOP_ATTR_REGISTER		"__register__"	/* True/False. if this python operator should be registered */
+#define PYOP_ATTR_UNDO			"__undo__"	/* True/False. if this python operator should be undone */
 
 static struct BPY_flag_def pyop_ret_flags[] = {
 	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
@@ -277,16 +278,27 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	ot->pyop_data= userdata;
 	
 	/* flags */
+	ot->flag= 0;
+
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_REGISTER);
 	if (item) {
-		ot->flag= PyObject_IsTrue(item)!=0 ? OPTYPE_REGISTER:0;
+		ot->flag |= PyObject_IsTrue(item)!=0 ? OPTYPE_REGISTER:0;
 		Py_DECREF(item);
 	}
 	else {
-		ot->flag= OPTYPE_REGISTER; /* unspesified, leave on for now to help debug */
 		PyErr_Clear();
 	}
-	
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_UNDO);
+	if (item) {
+		ot->flag |= PyObject_IsTrue(item)!=0 ? OPTYPE_UNDO:0;
+		Py_DECREF(item);
+	}
+	else {
+		PyErr_Clear();
+	}
+
+
+
 	props= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
 	
 	if (props) {

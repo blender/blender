@@ -762,7 +762,10 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			break;
 		}
 	}
-	
+
+	/* Run rna property functions */
+	RNA_property_update(BPy_GetContext(), ptr, prop);
+
 	return 0;
 }
 

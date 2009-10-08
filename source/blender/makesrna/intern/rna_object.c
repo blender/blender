@@ -126,6 +126,14 @@ static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
 	DAG_scene_sort(CTX_data_scene(C));
 }
 
+/* when changing the selection flag the scene needs updating */
+static void rna_Object_select_update(bContext *C, PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
+	ED_base_object_select(object_in_scene(ob, CTX_data_scene(C)), mode);
+}
+
 static void rna_Object_layer_update(bContext *C, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -1145,9 +1153,8 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Selected", "Object selection state.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_select_update");
 
 	/* parent and track */
 

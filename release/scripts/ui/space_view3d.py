@@ -179,6 +179,7 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
 		layout.itemO("object.select_by_layer", text="Select All by Layer")
 		layout.item_enumO("object.select_by_type", "type", "", text="Select All by Type...")
 		layout.itemO("object.select_grouped", text="Select Grouped...")
+		layout.itemO("object.select_pattern", text="Select Pattern...")
 
 class VIEW3D_MT_select_pose(bpy.types.Menu):
 	__space_type__ = 'VIEW_3D'
@@ -1306,7 +1307,42 @@ class VIEW3D_PT_transform_orientations(bpy.types.Panel):
 		col.itemO("TFM_OT_select_orientation", text="Select")
 		col.itemO("TFM_OT_create_orientation", text="Create")
 		col.itemO("TFM_OT_delete_orientation", text="Delete")
-			
+
+# Operators 
+
+class OBJECT_OT_select_pattern(bpy.types.Operator):
+	'''Select object matching a naming pattern.'''
+	__idname__ = "object.select_pattern"
+	__label__ = "Select Pattern"
+	__register__ = True
+	__undo__ = True
+	__props__ = [
+		bpy.props.StringProperty(attr="pattern", name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen= 32, default= "*"),
+		bpy.props.BoolProperty(attr="case_sensitive", name="Case Sensitive", description="Do a case sensitive compare", default= False),
+	]
+	
+	def execute(self, context):
+	
+		import fnmatch
+		if self.case_sensitive:	pattern_match = fnmatch.fnmatchcase
+		else:					pattern_match = lambda a, b: fnmatch.fnmatchcase(a.upper(), b.upper())
+
+		for ob in context.visible_objects:
+			if pattern_match(ob.name, self.pattern):
+				ob.selected = True
+
+		return ('FINISHED',)
+		
+		# TODO - python cant do popups yet
+	'''
+	def invoke(self, context, event):	
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+	'''
+
+
+
 bpy.types.register(VIEW3D_HT_header) # Header
 
 bpy.types.register(VIEW3D_MT_view) #View Menus
@@ -1383,3 +1419,6 @@ bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
 bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
 bpy.types.register(VIEW3D_PT_background_image)
 bpy.types.register(VIEW3D_PT_transform_orientations)
+
+bpy.ops.add(OBJECT_OT_select_pattern)
+
