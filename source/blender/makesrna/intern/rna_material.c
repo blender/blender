@@ -1730,6 +1730,13 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
 		"rna_Material_active_texture_set", "MaterialTextureSlot", "rna_Material_update");
 	
+	/* only material has this one */
+	prop= RNA_def_property(srna, "use_textures", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "septex", 1);
+	RNA_def_property_array(prop, 18);
+	RNA_def_property_ui_text(prop, "Use Textures", "Enable/Disable each texture.");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
 	rna_def_material_colors(srna);
 	rna_def_material_diffuse(srna);
 	rna_def_material_specularity(srna);

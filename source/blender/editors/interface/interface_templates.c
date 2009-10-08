@@ -2070,6 +2070,10 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 						uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, &itemptr, "active_render", 0, 0, 0, 0, 0, NULL);
 						uiBlockSetEmboss(block, UI_EMBOSS);
 					}
+					else if (itemptr.type == &RNA_MaterialTextureSlot) {
+						uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, ptr, "use_textures", i, 0, 0, 0, 0,  NULL);
+					}
+					/* XXX - end hardcoded cruft */
 
 					if(name)
 						MEM_freeN(name);
