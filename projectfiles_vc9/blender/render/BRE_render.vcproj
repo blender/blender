@@ -215,11 +215,23 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\render\intern\source\rayshade.c"
+				RelativePath="..\..\..\source\blender\render\intern\source\rayobject_blibvh.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\render\intern\source\raytrace.c"
+				RelativePath="..\..\..\source\blender\render\intern\source\rayobject_instance.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\rayobject_octree.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\rayobject_raycounter.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\rayshade.c"
 				>
 			</File>
 			<File

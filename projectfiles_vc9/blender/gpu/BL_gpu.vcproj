@@ -475,6 +475,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\gpu\intern\gpu_buffers.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\gpu\intern\gpu_codegen.c"
 				>
 			</File>
