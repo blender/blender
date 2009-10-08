@@ -135,6 +135,12 @@ struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, cha
 /* Initialise builtin KeyingSets on startup */
 void init_builtin_keyingsets(void);
 
+
+/* -------- */
+
+/* Get the active KeyingSet for the given scene */
+struct KeyingSet *ANIM_scene_get_active_keyingset(struct Scene *scene);
+
 /* ************ Drivers ********************** */
 
 /* Returns whether there is a driver in the copy/paste buffer to paste */

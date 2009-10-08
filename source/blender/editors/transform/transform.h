@@ -216,7 +216,7 @@ typedef struct TransData {
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
-	int    rotOrder;	/* rotation order (for eulers), as defined in BLI_arithb.h */
+	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransData;
 
 typedef struct MouseInput {

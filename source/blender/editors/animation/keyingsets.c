@@ -337,8 +337,15 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			/* set flags */
-			if (all) 
+			if (all) {
 				pflag |= KSP_FLAG_WHOLE_ARRAY;
+				
+				/* we need to set the index for this to 0, even though it may break in some cases, this is 
+				 * necessary if we want the entire array for most cases to get included without the user
+				 * having to worry about where they clicked
+				 */
+				index= 0;
+			}
 				
 			/* add path to this setting */
 			BKE_keyingset_add_destination(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
@@ -1107,6 +1114,24 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, char name[])
 	
 	/* no matches found */
 	return NULL;
+}
+
+
+/* Get the active Keying Set for the Scene provided */
+KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
+{
+	if (ELEM(NULL, scene, scene->keyingsets.first))
+		return NULL;
+	
+	/* currently, there are several possibilities here:
+	 *	-   0: no active keying set
+	 *	- > 0: one of the user-defined Keying Sets, but indices start from 0 (hence the -1)
+	 *	- < 0: a builtin keying set (XXX this isn't enabled yet so that we don't get errors on reading back files)
+	 */
+	if (scene->active_keyingset > 0)
+		return BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	else // for now...
+		return NULL; 
 }
 
 /* ******************************************* */

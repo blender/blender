@@ -4242,6 +4242,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
+		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
 		bCommonKeySrc cks;
 		ListBase dsources = {&cks, &cks};
 		float cfra= (float)CFRA; // xxx this will do for now
@@ -4258,7 +4259,12 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
 			flag |= INSERTKEY_REPLACE;
 			
-		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+		
+		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
+			/* only insert into active keyingset */
+			modify_keyframes(scene, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+		}
+		else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 			AnimData *adt= ob->adt;
 			
 			/* only key on available channels */
@@ -4337,6 +4343,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
+		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
 		bCommonKeySrc cks;
 		ListBase dsources = {&cks, &cks};
 		float cfra= (float)CFRA;
@@ -4363,8 +4370,14 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 				/* clear any 'unkeyed' flag it may have */
 				pchan->bone->flag &= ~BONE_UNKEYED;
 				
+				/* only insert into active keyingset? */
+				if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					modify_keyframes(scene, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+				}
 				/* only insert into available channels? */
-				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+				else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					if (act) {
 						for (fcu= act->curves.first; fcu; fcu= fcu->next)
 							insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
