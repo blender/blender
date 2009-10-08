@@ -319,7 +319,7 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 	/*if(ugly_hack==m_windowRef) ugly_hack= NULL;
 	
 	if(ugly_hack==NULL) setDrawingContextType(GHOST_kDrawingContextTypeNone);*/
-    
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	[m_openGLView release];
 	
 	if (m_window) {
@@ -327,6 +327,7 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 		[m_window release];
 		m_window = nil;
 	}
+	[pool drain];
 }
 
 #pragma mark accessors
@@ -566,7 +567,9 @@ GHOST_TSuccess GHOST_WindowCocoa::swapBuffers()
 {
     if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
         if (m_openGLContext != nil) {
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext flushBuffer];
+			[pool drain];
             return GHOST_kSuccess;
         }
     }
@@ -577,7 +580,9 @@ GHOST_TSuccess GHOST_WindowCocoa::updateDrawingContext()
 {
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
 		if (m_openGLContext != nil) {
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext update];
+			[pool drain];
 			return GHOST_kSuccess;
 		}
 	}
@@ -588,6 +593,8 @@ GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 {
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
 		if (m_openGLContext != nil) {
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+			
 			[m_openGLContext makeCurrentContext];
 #ifdef GHOST_DRAW_CARBON_GUTTER
 			// Restrict drawing to non-gutter area
@@ -603,6 +610,7 @@ GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 			};
 			GLboolean result = ::aglSetInteger(m_aglCtx, AGL_BUFFER_RECT, b);
 #endif //GHOST_DRAW_CARBON_GUTTER
+			[pool drain];
 			return GHOST_kSuccess;
 		}
 	}

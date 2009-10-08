@@ -806,7 +806,10 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
             GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
             m_windowManager->addWindow(window);
             m_windowManager->setActiveWindow(window);
-            pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
+			//Need to tell window manager the new window is the active one (Cocoa does not send the event activate upon window creation)
+            pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window));
+			pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
+
         }
         else {
 			GHOST_PRINT("GHOST_SystemCocoa::createWindow(): window invalid\n");
@@ -1156,7 +1159,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
     GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	
 	if (!window) {
-		printf("\nM invalid window");
 		return GHOST_kFailure;
 	}
 	
