@@ -1153,7 +1153,10 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
 			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
+			{
 				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
+				writestruct(wd, DATA, "EffectorWeights", 1, smd->domain->effector_weights);
+			}
 			else if(smd->type & MOD_SMOKE_TYPE_FLOW)
 				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
 			else if(smd->type & MOD_SMOKE_TYPE_COLL)

@@ -1,7 +1,8 @@
 
 import bpy
 
-from buttons_particle import point_cache_ui
+from buttons_physics_common import point_cache_ui
+from buttons_physics_common import effector_weights_ui
 
 class PhysicButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
@@ -171,8 +172,20 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
 		cache = md.point_cache_high
 			
 		point_cache_ui(self, cache, cache.baked==False, 0, 1)
+		
+class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
+	__label__ = "Smoke Field Weights"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		return (context.smoke)
+	
+	def draw(self, context):
+		domain = context.smoke.domain_settings
+		effector_weights_ui(self, domain.effector_weights)
 					
 bpy.types.register(PHYSICS_PT_smoke)
+bpy.types.register(PHYSICS_PT_smoke_field_weights)
 bpy.types.register(PHYSICS_PT_smoke_cache)
 bpy.types.register(PHYSICS_PT_smoke_highres)
 bpy.types.register(PHYSICS_PT_smoke_groups)

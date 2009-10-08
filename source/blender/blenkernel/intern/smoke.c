@@ -53,6 +53,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_effect.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -547,6 +548,10 @@ static void smokeModifier_freeDomain(SmokeModifierData *smd)
 		if(smd->domain->wt)
 			smoke_turbulence_free(smd->domain->wt);
 
+		if(smd->domain->effector_weights)
+				MEM_freeN(smd->domain->effector_weights);
+		smd->domain->effector_weights = NULL;
+
 		BKE_ptcache_free_list(&(smd->domain->ptcaches[0]));
 		smd->domain->point_cache[0] = NULL;
 		BKE_ptcache_free_list(&(smd->domain->ptcaches[1]));
@@ -714,6 +719,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->diss_speed = 5;
 			// init 3dview buffer
 			smd->domain->viewsettings = 0;
+			smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 		}
 		else if(smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
@@ -938,21 +944,53 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 	}
 
 	// do effectors
-	/*
-	if(sds->eff_group)
 	{
-		for(go = sds->eff_group->gobject.first; go; go = go->next) 
+		ListBase *effectors = pdInitEffectors(scene, ob, NULL, sds->effector_weights);
+
+		if(effectors)
 		{
-			if(go->ob)
-			{
-				if(ob->pd)
-				{
-					
-				}					
+			float *density = smoke_get_density(sds->fluid);
+			float *force_x = smoke_get_force_x(sds->fluid);
+			float *force_y = smoke_get_force_y(sds->fluid);
+			float *force_z = smoke_get_force_z(sds->fluid);
+			float *velocity_x = smoke_get_velocity_x(sds->fluid);
+			float *velocity_y = smoke_get_velocity_y(sds->fluid);
+			float *velocity_z = smoke_get_velocity_z(sds->fluid);
+			int x, y, z;
+
+			// precalculate wind forces
+			for(x = 0; x < sds->res[0]; x++)
+				for(y = 0; y < sds->res[1]; y++)
+					for(z = 0; z < sds->res[2]; z++)
+			{	
+				EffectedPoint epoint;
+				float voxelCenter[3], vel[3], retvel[3];
+
+				unsigned int index = smoke_get_index(x, sds->res[0], y, sds->res[1], z);
+
+				if(density[index] < FLT_EPSILON)					
+					continue;	
+
+				vel[0] = velocity_x[index];
+				vel[1] = velocity_y[index];
+				vel[2] = velocity_z[index];
+
+				voxelCenter[0] = sds->p0[0] + sds->dx *  x + sds->dx * 0.5;
+				voxelCenter[1] = sds->p0[1] + sds->dx *  y + sds->dx * 0.5;
+				voxelCenter[2] = sds->p0[2] + sds->dx *  z + sds->dx * 0.5;
+
+				pd_point_from_loc(scene, voxelCenter, vel, index, &epoint);
+				pdDoEffectors(effectors, NULL, sds->effector_weights, &epoint, retvel, NULL);
+
+				// TODO dg - do in force!
+				force_x[index] += MIN2(MAX2(-1.0, retvel[0] * 0.002), 1.0); 
+				force_y[index] += MIN2(MAX2(-1.0, retvel[1] * 0.002), 1.0); 
+				force_z[index] += MIN2(MAX2(-1.0, retvel[2] * 0.002), 1.0);
 			}
 		}
+
+		pdEndEffectors(&effectors);
 	}
-	*/
 
 	// do collisions	
 	if(1)

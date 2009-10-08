@@ -3655,6 +3655,8 @@ static void lib_link_object(FileData *fd, Main *main)
 					smd->domain->coll_group = newlibadr_us(fd, ob->id.lib, smd->domain->coll_group);
 					smd->domain->eff_group = newlibadr_us(fd, ob->id.lib, smd->domain->eff_group);
 					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
+
+					smd->domain->effector_weights->group = newlibadr(fd, ob->id.lib, smd->domain->effector_weights->group);
 				}
 			}
 
@@ -3783,6 +3785,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->tex = NULL;
 				smd->domain->tex_shadow = NULL;
 				smd->domain->tex_wt = NULL;
+
+				if(smd->domain->effector_weights)
+					smd->domain->effector_weights = newdataadr(fd, smd->domain->effector_weights);
+				else
+					smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]));
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[1]), &(smd->domain->point_cache[1]));

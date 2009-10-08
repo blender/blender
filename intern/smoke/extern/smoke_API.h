@@ -50,6 +50,10 @@ float *smoke_get_velocity_x(struct FLUID_3D *fluid);
 float *smoke_get_velocity_y(struct FLUID_3D *fluid);
 float *smoke_get_velocity_z(struct FLUID_3D *fluid);
 
+float *smoke_get_force_x(struct FLUID_3D *fluid);
+float *smoke_get_force_y(struct FLUID_3D *fluid);
+float *smoke_get_force_z(struct FLUID_3D *fluid);
+
 unsigned char *smoke_get_obstacle(struct FLUID_3D *fluid);
 
 size_t smoke_get_index(int x, int max_x, int y, int max_y, int z);
