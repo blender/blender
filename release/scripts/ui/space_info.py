@@ -98,6 +98,7 @@ class INFO_MT_file_export(bpy.types.Menu):
 		layout.itemO("export.3ds", text="3DS")
 		layout.itemO("export.fbx", text="FBX")
 		layout.itemO("export.obj", text="OBJ")
+		layout.itemO("export.mdd", text="MDD")
 		layout.itemO("export.ply", text="PLY")
 		layout.itemO("export.x3d", text="X3D")
 
