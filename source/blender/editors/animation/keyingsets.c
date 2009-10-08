@@ -1252,9 +1252,8 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
  * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
  * Returns the number of channels that keyframes were added to
  */
-int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
+int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
-	Scene *scene= CTX_data_scene(C);
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
@@ -1319,23 +1318,15 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					success+= delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 			}
 			
-			/* send notifiers and set recalc-flags */
-			// TODO: hopefully this doesn't result in execessive flooding of the notifier stack
-			if (C && ksp->id) {
+			/* set recalc-flags */
+			if (ksp->id) {
 				switch (GS(ksp->id->name)) {
 					case ID_OB: /* Object (or Object-Related) Keyframes */
 					{
 						Object *ob= (Object *)ksp->id;
 						
 						ob->recalc |= OB_RECALC;
-						WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, ksp->id);
 					}
-						break;
-					case ID_MA: /* Material Keyframes */
-						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, ksp->id);
-						break;
-					default: /* Any keyframes */
-						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 						break;
 				}
 			}
@@ -1457,23 +1448,15 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				MEM_freeN(path);
 			}
 			
-			/* send notifiers and set recalc-flags */
-			// TODO: hopefully this doesn't result in execessive flooding of the notifier stack
-			if (C && cks->id) {
+			/* set recalc-flags */
+			if (cks->id) {
 				switch (GS(cks->id->name)) {
 					case ID_OB: /* Object (or Object-Related) Keyframes */
 					{
 						Object *ob= (Object *)cks->id;
 						
 						ob->recalc |= OB_RECALC;
-						WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, cks->id);
 					}
-						break;
-					case ID_MA: /* Material Keyframes */
-						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, cks->id);
-						break;
-					default: /* Any keyframes */
-						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 						break;
 				}
 			}

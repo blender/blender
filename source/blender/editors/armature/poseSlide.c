@@ -560,11 +560,11 @@ static void pose_slide_autoKeyframe (bContext *C, tPoseSlideOp *pso)
 			
 			/* insert keyframes */
 			if (pchan->flag & POSE_LOC)
-				modify_keyframes(C, &dsources, NULL, pso->ks_loc, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
+				modify_keyframes(pso->scene, &dsources, NULL, pso->ks_loc, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
 			if (pchan->flag & POSE_ROT)
-				modify_keyframes(C, &dsources, NULL, pso->ks_rot, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
+				modify_keyframes(pso->scene, &dsources, NULL, pso->ks_rot, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
 			if (pchan->flag & POSE_SIZE)
-				modify_keyframes(C, &dsources, NULL, pso->ks_scale, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
+				modify_keyframes(pso->scene, &dsources, NULL, pso->ks_scale, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
 		}
 	}
 }

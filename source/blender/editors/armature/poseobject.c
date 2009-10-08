@@ -1089,7 +1089,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
 					cks.pchan= pchan;
 					
-					modify_keyframes(C, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+					modify_keyframes(scene, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
 					if (chan->bone)
@@ -1118,6 +1118,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL); // XXX not really needed, but here for completeness...
 
 	return OPERATOR_FINISHED;
 }

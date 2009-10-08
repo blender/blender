@@ -329,6 +329,7 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int poselib_add_exec (bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bAction *act = poselib_validate(ob);
 	bArmature *arm= (ob) ? ob->data : NULL;
@@ -385,7 +386,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 				/* KeyingSet to use depends on rotation mode (but that's handled by the templates code)  */
 				if (poselib_ks_locrotscale == NULL)
 					poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-				modify_keyframes(C, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
+				modify_keyframes(scene, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
 			}
 		}
 	}
@@ -772,7 +773,7 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 					cks.pchan= pchan;
 					
 					/* now insert the keyframe */
-					modify_keyframes(C, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+					modify_keyframes(scene, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
 					if (pchan->bone)
@@ -783,10 +784,12 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 					if (pchan->bone)
 						pchan->bone->flag |= BONE_UNKEYED;
 				}
-		
 			}
 		}
 	}
+	
+	/* send notifiers for this */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 }
 
 /* Apply the relevant changes to the pose */

@@ -122,7 +122,7 @@ enum {
 } eModifyKey_Modes;
 
 /* Keyframing Helper Call - use the provided Keying Set to Add/Remove Keyframes */
-int modify_keyframes(struct bContext *C, struct ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
+int modify_keyframes(struct Scene *scene, struct ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
 
 /* -------- */
 
