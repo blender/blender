@@ -199,9 +199,17 @@
 	/* test wether the event is a key on the keyboard */
 #define ISKEYBOARD(event)	(event >=' ' && event <=320)
 
-/* test whether event type is acceptable as hotkey, excluding modifiers */
-#define ISHOTKEY(event)	(ISKEYBOARD(event) && !(event>=LEFTCTRLKEY && event<=ESCKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
+	/* test wether the event is a mouse button */
+#define ISMOUSE(event)	(event >= LEFTMOUSE && event <= WHEELOUTMOUSE)
 
+	/* test wether the event is timer event */
+#define ISTIMER(event)	(event >= TIMER && event <= TIMERJOBS)
+
+	/* test wether the event is tweak event */
+#define ISTWEAK(event)	(event >= EVT_TWEAK_L && event <= EVT_GESTURE)
+
+/* test whether event type is acceptable as hotkey, excluding modifiers */
+#define ISHOTKEY(event)	((ISKEYBOARD(event) || ISMOUSE(event)) && !(event>=LEFTCTRLKEY && event<=ESCKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
 
 /* **************** BLENDER GESTURE EVENTS ********************* */
 

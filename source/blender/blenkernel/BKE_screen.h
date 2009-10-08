@@ -44,6 +44,7 @@ struct SpaceType;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
+struct wmKeyConfig;
 struct uiLayout;
 struct uiMenuItem;
 
@@ -81,7 +82,7 @@ typedef struct SpaceType {
 	/* register operator types on startup */
 	void		(*operatortypes)(void);
 	/* add default items to WM keymap */
-	void		(*keymap)(struct wmWindowManager *);
+	void		(*keymap)(struct wmKeyConfig *);
 
 	/* return context data */
 	int			(*context)(const struct bContext *, const char*, struct bContextDataResult *);
@@ -122,7 +123,7 @@ typedef struct ARegionType {
 	/* register operator types on startup */
 	void		(*operatortypes)(void);
 	/* add own items to keymap */
-	void		(*keymap)(struct wmWindowManager *);
+	void		(*keymap)(struct wmKeyConfig *);
 	/* allows default cursor per region */
 	void		(*cursor)(struct wmWindow *, struct ScrArea *, struct ARegion *ar);
 

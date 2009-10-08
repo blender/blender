@@ -371,7 +371,7 @@ enum {
 
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
-void viewrotate_modal_keymap(wmWindowManager *wm)
+void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Cancel", ""},
@@ -381,12 +381,12 @@ void viewrotate_modal_keymap(wmWindowManager *wm)
 
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "View3D Rotate Modal");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Rotate Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(wm, "View3D Rotate Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Rotate Modal", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -630,19 +630,19 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
-void viewmove_modal_keymap(wmWindowManager *wm)
+void viewmove_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
 
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "View3D Move Modal");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Move Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(wm, "View3D Move Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Move Modal", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -749,19 +749,19 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 /* ************************ viewzoom ******************************** */
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
-void viewzoom_modal_keymap(wmWindowManager *wm)
+void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
 
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "View3D Zoom Modal");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Zoom Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(wm, "View3D Zoom Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Zoom Modal", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);

@@ -124,7 +124,10 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (op) {
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 
-		params->type = RNA_int_get(op->ptr, "filemode");
+		if(RNA_struct_find_property(op->ptr, "filename"))
+			params->type = RNA_int_get(op->ptr, "filemode");
+		else
+			params->type = FILE_SPECIAL;
 
 		if (RNA_property_is_set(op->ptr, "path")) {
 			RNA_string_get(op->ptr, "path", name);
@@ -140,15 +143,24 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			}
 		}
 		params->filter = 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_movie") ? MOVIEFILE : 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_python") ? PYSCRIPTFILE : 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_font") ? FTFONTFILE : 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_sound") ? SOUNDFILE : 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_blender"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_image"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_movie"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_movie") ? MOVIEFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_text"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_python"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_python") ? PYSCRIPTFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_font"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_font") ? FTFONTFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_sound"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_sound") ? SOUNDFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_text"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_folder"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
 		if (params->filter != 0)
 			params->flag |= FILE_FILTER;
 

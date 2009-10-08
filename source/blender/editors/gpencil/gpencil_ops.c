@@ -45,10 +45,10 @@
 /* ****************************************** */
 /* Generic Editing Keymap */
 
-void ED_keymap_gpencil(wmWindowManager *wm)
+void ED_keymap_gpencil(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Grease Pencil", 0, 0);
-	wmKeymapItem *kmi;
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Grease Pencil", 0, 0);
+	wmKeyMapItem *kmi;
 	
 	/* Draw */
 		/* draw */

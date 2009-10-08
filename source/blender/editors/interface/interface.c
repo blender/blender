@@ -1958,7 +1958,10 @@ void ui_check_but(uiBut *but)
 		if (but->flag & UI_SELECT) {
 			short *sp= (short *)but->func_arg3;
 			
-			strcpy(but->drawstr, but->str);
+			if(but->flag & UI_BUT_IMMEDIATE)
+				strcpy(but->drawstr, but->str);
+			else
+				strcpy(but->drawstr, "");
 			
 			if(*sp) {
 				char *str= but->drawstr;
@@ -1974,10 +1977,10 @@ void ui_check_but(uiBut *but)
 			}
 			else
 				strcat(but->drawstr, "Press a key  ");
-		} else {
-			/* XXX todo, button currently only used temporarily */
-			strcpy(but->drawstr, WM_key_event_string((short) ui_get_but_val(but)));
 		}
+		else
+			strcpy(but->drawstr, but->str);
+
 		break;
 		
 	case BUT_TOGDUAL:

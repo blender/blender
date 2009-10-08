@@ -12,6 +12,10 @@ class USERPREF_HT_header(bpy.types.Header):
 	
 		layout.operator_context = "EXEC_AREA"
 		layout.itemO("wm.save_homefile", text="Save As Default")
+
+		if userpref.active_section == 'INPUT':
+			layout.operator_context = "INVOKE_DEFAULT"
+			layout.itemO("wm.keyconfig_save", "Save Key Configuration...")
 			
 class USERPREF_MT_view(bpy.types.Menu):
 	__space_type__ = 'USER_PREFERENCES'
@@ -31,14 +35,14 @@ class USERPREF_PT_tabs(bpy.types.Panel):
 
 		layout.itemR(userpref, "active_section", expand=True)
 
-class USERPREF_PT_view(bpy.types.Panel):
+class USERPREF_PT_interface(bpy.types.Panel):
 	__space_type__ = 'USER_PREFERENCES'
-	__label__ = "View"
+	__label__ = "Interface"
 	__show_header__ = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
-		return (userpref.active_section == 'VIEW_CONTROLS')
+		return (userpref.active_section == 'INTERFACE')
 
 	def draw(self, context):
 		layout = self.layout
@@ -87,36 +91,26 @@ class USERPREF_PT_view(bpy.types.Panel):
 		sub1.itemR(view, "perspective_orthographic_switch")
 		sub1.itemR(view, "smooth_view")
 		sub1.itemR(view, "rotation_angle")
-		sub1.itemS()
-		sub1.itemL(text="NDOF Device:")
-		sub1.itemR(view, "ndof_pan_speed", text="Pan Speed")
-		sub1.itemR(view, "ndof_rotate_speed", text="Orbit Speed")
 		
 		col = split.column()
 		sub = col.split(percentage=0.85)
 		
 		sub1 = sub.column()
-		sub1.itemL(text="Mouse Buttons:")
-		
-		sub2 = sub1.column()
-		sub2.enabled = (view.select_mouse == 'RIGHT')
-		sub2.itemR(view, "emulate_3_button_mouse")
-		sub1.itemL(text="Select With:")
-		sub1.row().itemR(view, "select_mouse", expand=True)
-		sub1.itemL(text="Middle Mouse:")
-		sub1.row().itemR(view, "middle_mouse", expand=True)
-		sub1.itemR(view, "use_middle_mouse_paste")
-		sub1.itemL(text="Mouse Wheel:")
-		sub1.itemR(view, "wheel_invert_zoom", text="Invert Zoom")
-		sub1.itemR(view, "wheel_scroll_lines", text="Scroll Lines")
-		sub1.itemL(text="Mouse Motion:")
-		sub1.itemR(view, "continuous_mouse", text="Continuous Grab")
-		sub1.itemS()
 		sub1.itemL(text="Menus:")
 		sub1.itemR(view, "open_mouse_over")
 		sub1.itemL(text="Menu Open Delay:")
 		sub1.itemR(view, "open_toplevel_delay", text="Top Level")
 		sub1.itemR(view, "open_sublevel_delay", text="Sub Level")
+
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()			
+
+		sub1.itemL(text="Toolbox:")
+		sub1.itemR(view, "use_column_layout")
+		sub1.itemL(text="Open Toolbox Delay:")
+		sub1.itemR(view, "open_left_mouse_delay", text="Hold LMB")
+		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
 
 		col = split.column()
 		sub = col.split(percentage=0.85)
@@ -129,14 +123,6 @@ class USERPREF_PT_view(bpy.types.Panel):
 		sub2.itemR(view, "manipulator_size", text="Size")
 		sub2.itemR(view, "manipulator_handle_size", text="Handle Size")
 		sub2.itemR(view, "manipulator_hotspot", text="Hotspot")	
-		sub1.itemS()
-		sub1.itemS()
-		sub1.itemS()			
-		sub1.itemL(text="Toolbox:")
-		sub1.itemR(view, "use_column_layout")
-		sub1.itemL(text="Open Toolbox Delay:")
-		sub1.itemR(view, "open_left_mouse_delay", text="Hold LMB")
-		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
 
 class USERPREF_PT_edit(bpy.types.Panel):
 	__space_type__ = 'USER_PREFERENCES'
@@ -145,7 +131,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
 
 	def poll(self, context):
 		userpref = context.user_preferences
-		return (userpref.active_section == 'EDIT_METHODS')
+		return (userpref.active_section == 'EDITING')
 
 	def draw(self, context):
 		layout = self.layout
@@ -248,7 +234,7 @@ class USERPREF_PT_system(bpy.types.Panel):
 
 	def poll(self, context):
 		userpref = context.user_preferences
-		return (userpref.active_section == 'SYSTEM_OPENGL')
+		return (userpref.active_section == 'SYSTEM')
 
 	def draw(self, context):
 		layout = self.layout
@@ -276,7 +262,7 @@ class USERPREF_PT_system(bpy.types.Panel):
 		sub1.itemL(text="Sound:")
 		sub1.row().itemR(system, "audio_device", expand=True)
 		sub2 = sub1.column()
-		sub2.active = system.audio_device != 'AUDIO_DEVICE_NULL'
+		sub2.active = system.audio_device != 'NONE'
 		sub2.itemR(system, "enable_all_codecs")
 		sub2.itemR(system, "game_sound")
 		sub2.itemR(system, "audio_channels", text="Channels")
@@ -332,14 +318,14 @@ class USERPREF_PT_system(bpy.types.Panel):
 		sub1.itemR(system, "prefetch_frames")
 		sub1.itemR(system, "memory_cache_limit")
 		
-class USERPREF_PT_filepaths(bpy.types.Panel):
+class USERPREF_PT_file(bpy.types.Panel):
 	__space_type__ = 'USER_PREFERENCES'
-	__label__ = "File Paths"
+	__label__ = "Files"
 	__show_header__ = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
-		return (userpref.active_section == 'FILE_PATHS')
+		return (userpref.active_section == 'FILES')
 
 	def draw(self, context):
 		layout = self.layout
@@ -398,11 +384,314 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub3.enabled = paths.auto_save_temporary_files
 		sub3.itemR(paths, "auto_save_time", text="Timer (mins)")
 
+class USERPREF_PT_input(bpy.types.Panel):
+	__space_type__ = 'USER_PREFERENCES'
+	__label__ = "Input"
+	__show_header__ = False
+
+	def poll(self, context):
+		userpref = context.user_preferences
+		return (userpref.active_section == 'INPUT')
+
+	def draw(self, context):
+		layout = self.layout
+		
+		userpref = context.user_preferences
+		wm = context.manager
+		#input = userpref.input
+		input = userpref
+		view = userpref.view
+
+		split = layout.split(percentage=0.25)
+
+		# General settings
+		row = split.row()
+		col = row.column()
+
+		sub = col.column()
+		sub.itemL(text="Configuration:")
+		sub.item_pointerR(wm, "active_keyconfig", wm, "keyconfigs", text="")
+
+		col.itemS()
+
+		sub = col.column()
+		sub.itemL(text="Mouse:")
+		sub1 = sub.column()
+		sub1.enabled = (view.select_mouse == 'RIGHT')
+		sub1.itemR(view, "emulate_3_button_mouse")
+		sub.itemR(view, "continuous_mouse", text="Continuous Grab")
+
+		sub.itemL(text="Select With:")
+		sub.row().itemR(view, "select_mouse", expand=True)
+		#sub.itemL(text="Middle Mouse:")
+		#sub.row().itemR(view, "middle_mouse", expand=True)
+		#sub.itemR(view, "use_middle_mouse_paste")
+
+		#col.itemS()
+
+		#sub = col.column()
+		#sub.itemL(text="Mouse Wheel:")
+		#sub.itemR(view, "wheel_invert_zoom", text="Invert Zoom")
+		#sub.itemR(view, "wheel_scroll_lines", text="Scroll Lines")
+
+		col.itemS()
+
+		sub = col.column()
+		sub.itemL(text="NDOF Device:")
+		sub.itemR(view, "ndof_pan_speed", text="Pan Speed")
+		sub.itemR(view, "ndof_rotate_speed", text="Orbit Speed")
+
+		row.itemS()
+
+		# Keymap Settings
+		col = split.column()
+
+		kc = wm.active_keyconfig
+		defkc = wm.default_keyconfig
+		km = wm.active_keymap
+
+		subsplit = col.split()
+		subsplit.item_pointerR(wm, "active_keymap", defkc, "keymaps", text="Map:")
+		if km.user_defined:
+			row = subsplit.row()
+			row.itemO("WM_OT_keymap_restore", text="Restore")
+			row.item_booleanO("WM_OT_keymap_restore", "all", True, text="Restore All")
+		else:
+			row = subsplit.row()
+			row.itemO("WM_OT_keymap_edit", text="Edit")
+			row.itemL()
+
+		col.itemS()
+		
+		for kmi in km.items:
+			subcol = col.column()
+			subcol.set_context_pointer("keyitem", kmi)
+
+			row = subcol.row()
+
+			if kmi.expanded:
+				row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_DOWN")
+			else:
+				row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_RIGHT")
+
+			itemrow = row.row()
+			itemrow.enabled = km.user_defined
+			itemrow.itemR(kmi, "active", text="", icon="ICON_DOT")
+
+			itemcol = itemrow.column()
+			itemcol.active = kmi.active
+			row = itemcol.row()
+			row.itemR(kmi, "idname", text="")
+
+			sub = row.row()
+			sub.scale_x = 0.6
+			sub.itemR(kmi, "map_type", text="")
+
+			sub = row.row(align=True)
+			if kmi.map_type == 'KEYBOARD':
+				sub.itemR(kmi, "type", text="", full_event=True)
+			elif kmi.map_type == 'MOUSE':
+				sub.itemR(kmi, "type", text="", full_event=True)
+			elif kmi.map_type == 'TWEAK':
+				sub.scale_x = 0.5
+				sub.itemR(kmi, "type", text="")
+				sub.itemR(kmi, "value", text="")
+			elif kmi.map_type == 'TIMER':
+				sub.itemR(kmi, "type", text="")
+			else:
+				sub.itemL()
+
+			if kmi.expanded:
+				if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
+					sub = itemcol.row(align=True)
+
+					if kmi.map_type == 'KEYBOARD':
+						sub.itemR(kmi, "type", text="", event=True)
+						sub.itemR(kmi, "value", text="")
+					elif kmi.map_type == 'MOUSE':
+						sub.itemR(kmi, "type", text="")
+						sub.itemR(kmi, "value", text="")
+					else:
+						sub.itemL()
+						sub.itemL()
+
+					subrow = sub.row()
+					subrow.scale_x = 0.75
+					subrow.itemR(kmi, "shift")
+					subrow.itemR(kmi, "ctrl")
+					subrow.itemR(kmi, "alt")
+					subrow.itemR(kmi, "oskey")
+					sub.itemR(kmi, "key_modifier", text="", event=True)
+
+				flow = itemcol.column_flow(columns=2)
+				props = kmi.properties
+
+				if props != None:
+					for pname in dir(props):
+						if not props.is_property_hidden(pname):
+							flow.itemR(props, pname)
+
+				itemcol.itemS()
+
+			itemrow.itemO("wm.keyitem_remove", text="", icon="ICON_ZOOMOUT")
+
+		itemrow = col.row()
+		itemrow.itemL()
+		itemrow.itemO("wm.keyitem_add", text="", icon="ICON_ZOOMIN")
+		itemrow.enabled = km.user_defined
+
 bpy.types.register(USERPREF_HT_header)
 bpy.types.register(USERPREF_MT_view)
 bpy.types.register(USERPREF_PT_tabs)
-bpy.types.register(USERPREF_PT_view)
+bpy.types.register(USERPREF_PT_interface)
 bpy.types.register(USERPREF_PT_edit)
 bpy.types.register(USERPREF_PT_system)
-bpy.types.register(USERPREF_PT_filepaths)
+bpy.types.register(USERPREF_PT_file)
+bpy.types.register(USERPREF_PT_input)
+
+class WM_OT_keyconfig_save(bpy.types.Operator):
+	"Save key configuration to a python script."
+	__idname__ = "wm.keyconfig_save"
+	__label__ = "Save Key Configuration..."
+	__props__ = [
+		bpy.props.StringProperty(attr="path", name="File Path", description="File path to write file to.")]
+
+	def _string_value(self, value):
+		result = ""
+		if isinstance(value, str):
+			if value != "":
+				result = "\'%s\'" % value
+		elif isinstance(value, bool):
+			if value:
+				result = "True"
+			else:
+				result = "False"
+		elif isinstance(value, float):
+			result = "%.10f" % value
+		elif isinstance(value, int):
+			result = "%d" % value
+		elif getattr(value, '__len__', False):
+			if len(value):
+				result = "["
+				for i in range(0, len(value)):
+					result += self._string_value(value[i])
+					if i != len(value)-1:
+						result += ", "
+				result += "]"
+		else:
+			print("Save key configuration: can't write ", value)
+
+		return result
+
+	def execute(self, context):
+		if not self.path:
+			raise Exception("File path not set.")
+
+		f = open(self.path, "w")
+		if not f:
+			raise Exception("Could not open file.")
+
+		wm = context.manager
+		kc = wm.active_keyconfig
+
+		f.write('# Configuration %s\n' % kc.name)
+
+		f.write("wm = bpy.data.windowmanagers[0]\n");
+		f.write("kc = wm.add_keyconfig(\'%s\')\n\n" % kc.name)
+
+		for km in kc.keymaps:
+			f.write("# Map %s\n" % km.name)
+			f.write("km = kc.add_keymap(\'%s\', space_type=\'%s\', region_type=\'%s\')\n\n" % (km.name, km.space_type, km.region_type))
+			for kmi in km.items:
+				f.write("kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value))
+				if kmi.shift:
+					f.write(", shift=True")
+				if kmi.ctrl:
+					f.write(", ctrl=True")
+				if kmi.alt:
+					f.write(", alt=True")
+				if kmi.oskey:
+					f.write(", oskey=True")
+				if kmi.key_modifier and kmi.key_modifier != 'NONE':
+					f.write(", key_modifier=\'%s\'" % kmi.key_modifier)
+				f.write(")\n")
+
+				props = kmi.properties
+
+				if props != None:
+					for pname in dir(props):
+						if props.is_property_set(pname) and not props.is_property_hidden(pname):
+							value = eval("props.%s" % pname)
+							value = self._string_value(value)
+							if value != "":
+								f.write("kmi.properties.%s = %s\n" % (pname, value))
+
+			f.write("\n")
+
+		f.close()
+
+		return ('FINISHED',)
+
+	def invoke(self, context, event):	
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+
+class WM_OT_keymap_edit(bpy.types.Operator):
+	"Edit key map."
+	__idname__ = "wm.keymap_edit"
+	__label__ = "Edit Key Map"
+
+	def execute(self, context):
+		wm = context.manager
+		km = wm.active_keymap
+		km.copy_to_user()
+		return ('FINISHED',)
+
+class WM_OT_keymap_restore(bpy.types.Operator):
+	"Restore key map"
+	__idname__ = "wm.keymap_restore"
+	__label__ = "Restore Key Map"
+	__props__ = [bpy.props.BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")]
+
+	def execute(self, context):
+		wm = context.manager
+
+		if self.all:
+			for km in wm.default_keyconfig.keymaps:
+				km.restore_to_default()
+		else:
+			km = wm.active_keymap
+			km.restore_to_default()
+
+		return ('FINISHED',)
+	
+class WM_OT_keyitem_add(bpy.types.Operator):
+	"Add key map item."
+	__idname__ = "wm.keyitem_add"
+	__label__ = "Add Key Map Item"
+
+	def execute(self, context):
+		wm = context.manager
+		km = wm.active_keymap
+		kmi = km.add_item("", "A", "PRESS")
+		return ('FINISHED',)
+	
+class WM_OT_keyitem_remove(bpy.types.Operator):
+	"Remove key map item."
+	__idname__ = "wm.keyitem_remove"
+	__label__ = "Remove Key Map Item"
+
+	def execute(self, context):
+		wm = context.manager
+		kmi = context.keyitem
+		km = wm.active_keymap
+		km.remove_item(kmi)
+		return ('FINISHED',)
+
+bpy.ops.add(WM_OT_keyconfig_save)
+bpy.ops.add(WM_OT_keymap_edit)
+bpy.ops.add(WM_OT_keymap_restore)
+bpy.ops.add(WM_OT_keyitem_add)
+bpy.ops.add(WM_OT_keyitem_remove)
 

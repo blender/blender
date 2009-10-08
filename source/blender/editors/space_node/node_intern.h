@@ -53,7 +53,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
 
 /* node_ops.c */
 void node_operatortypes(void);
-void node_keymap(wmWindowManager *wm);
+void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.c */
 void NODE_OT_select(struct wmOperatorType *ot);

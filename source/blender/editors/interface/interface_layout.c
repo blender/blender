@@ -476,8 +476,20 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 		MEM_freeN(item);
 }
 
+/* callback for keymap item change button */
+static void ui_keymap_but_cb(bContext *C, void *but_v, void *key_v)
+{
+	uiBut *but= but_v;
+	short modifier= *((short*)key_v);
+
+	RNA_boolean_set(&but->rnapoin, "shift", (modifier & KM_SHIFT) != 0);
+	RNA_boolean_set(&but->rnapoin, "ctrl", (modifier & KM_CTRL) != 0);
+	RNA_boolean_set(&but->rnapoin, "alt", (modifier & KM_ALT) != 0);
+	RNA_boolean_set(&but->rnapoin, "oskey", (modifier & KM_OSKEY) != 0);
+}
+
 /* create label + button for RNA property */
-static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h, int icon_only)
+static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h, int flag)
 {
 	uiLayout *sub;
 	uiBut *but=NULL;
@@ -507,10 +519,26 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
 		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
 	}
-	else if(subtype == PROP_DIRECTION)
-		uiDefButR(block, BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
+	else if(subtype == PROP_DIRECTION) {
+		uiDefButR(block, BUT_NORMAL, 0, name, x, y, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
+	}
+	else if(flag & UI_ITEM_R_EVENT) {
+		uiDefButR(block, KEYEVT, 0, name, x, y, w, h, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
+	}
+	else if(flag & UI_ITEM_R_FULL_EVENT) {
+		if(RNA_struct_is_a(ptr->type, &RNA_KeyMapItem)) {
+			static short dummy = 0;
+			char buf[128];
+
+			WM_keymap_item_to_string(ptr->data, buf, sizeof(buf));
+
+			but= uiDefButR(block, HOTKEYEVT, 0, buf, x, y, w, h, ptr, RNA_property_identifier(prop), 0, 0, 0, -1, -1, NULL);
+			but->func_arg3= &dummy; // XXX abuse
+			uiButSetFunc(but, ui_keymap_but_cb, but, &dummy);
+		}
+	}
 	else
-		but= uiDefAutoButR(block, ptr, prop, index, (type == PROP_ENUM && !icon_only)? NULL: "", icon, x, y, w, h);
+		but= uiDefAutoButR(block, ptr, prop, index, (type == PROP_ENUM && !(flag & UI_ITEM_R_ICON_ONLY))? NULL: "", icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
 	return but;
@@ -897,7 +925,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 		ui_item_enum_row(layout, block, ptr, prop, name, 0, 0, w, h, icon_only);
 	/* property with separate label */
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
-		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, icon_only);
+		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
 		ui_but_add_search(but, ptr, prop, NULL, NULL);
 	}
 	/* single button */

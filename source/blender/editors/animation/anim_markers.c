@@ -990,9 +990,9 @@ void ED_operatortypes_marker(void)
 }
 
 /* called in screen_ops.c:ED_keymap_screen() */
-void ED_marker_keymap(wmWindowManager *wm)
+void ED_marker_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Markers", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Markers", 0, 0);
 	
 	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_S, KM_ANY, 0, 0);

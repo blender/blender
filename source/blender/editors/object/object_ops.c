@@ -196,12 +196,12 @@ static int object_mode_poll(bContext *C)
 	return (!ob || ob->mode == OB_MODE_OBJECT);
 }
 
-void ED_keymap_object(wmWindowManager *wm)
+void ED_keymap_object(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-	wmKeymapItem *kmi;
+	wmKeyMapItem *kmi;
 	
-	keymap= WM_keymap_find(wm, "Object Non-modal", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
@@ -217,7 +217,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */
-	keymap= WM_keymap_find(wm, "Object Mode", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Object Mode", 0, 0);
 	keymap->poll= object_mode_poll;
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
@@ -264,7 +264,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
 	/* Lattice */
-	keymap= WM_keymap_find(wm, "Lattice", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);
 	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);

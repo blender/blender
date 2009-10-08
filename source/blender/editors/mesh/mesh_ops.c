@@ -348,12 +348,12 @@ void ED_operatortypes_mesh(void)
 }
 
 /* note mesh keymap also for other space? */
-void ED_keymap_mesh(wmWindowManager *wm)
+void ED_keymap_mesh(wmKeyConfig *keyconf)
 {	
 	wmKeyMap *keymap;
-	wmKeymapItem *kmi;
+	wmKeyMapItem *kmi;
 	
-	keymap= WM_keymap_find(wm, "EditMesh", 0, 0);
+	keymap= WM_keymap_find(keyconf, "EditMesh", 0, 0);
 	keymap->poll= ED_operator_editmesh;
 	
 	WM_keymap_add_item(keymap, "MESH_OT_loopcut", RKEY, KM_PRESS, KM_CTRL, 0);

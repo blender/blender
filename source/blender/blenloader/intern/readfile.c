@@ -4446,10 +4446,12 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	}
 	
 	wm->operators.first= wm->operators.last= NULL;
-	wm->keymaps.first= wm->keymaps.last= NULL;
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
 	BKE_reports_init(&wm->reports, RPT_STORE);
+
+	wm->keyconfigs.first= wm->keyconfigs.last= NULL;
+	wm->defaultconf= NULL;
 
 	wm->jobs.first= wm->jobs.last= NULL;
 	
@@ -5276,6 +5278,33 @@ static char *dataname(short id_code)
 	
 }
 
+static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocname)
+{
+	bhead = blo_nextbhead(fd, bhead);
+
+	while(bhead && bhead->code==DATA) {
+		void *data;
+#if 0		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
+		short *sp= fd->filesdna->structs[bhead->SDNAnr];
+		char *allocname = fd->filesdna->types[ sp[0] ];
+		char *tmp= malloc(100);
+		
+		strcpy(tmp, allocname);
+		data= read_struct(fd, bhead, tmp);
+#endif
+		data= read_struct(fd, bhead, allocname);
+		
+		if (data) {
+			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
+		}
+
+		bhead = blo_nextbhead(fd, bhead);
+	}
+
+	return bhead;
+}
+
 static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID **id_r)
 {
 	/* this routine reads a libblock and its direct data. Use link functions
@@ -5317,32 +5346,11 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		return blo_nextbhead(fd, bhead);
 	}
 
-	bhead = blo_nextbhead(fd, bhead);
-
 	/* need a name for the mallocN, just for debugging and sane prints on leaks */
 	allocname= dataname(GS(id->name));
 	
-		/* read all data */
-	
-	while(bhead && bhead->code==DATA) {
-		void *data;
-#if 0		
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
-		short *sp= fd->filesdna->structs[bhead->SDNAnr];
-		char *allocname = fd->filesdna->types[ sp[0] ];
-		char *tmp= malloc(100);
-		
-		strcpy(tmp, allocname);
-		data= read_struct(fd, bhead, tmp);
-#endif
-		data= read_struct(fd, bhead, allocname);
-		
-		if (data) {
-			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
-		}
-
-		bhead = blo_nextbhead(fd, bhead);
-	}
+	/* read all data into fd->datamap */
+	bhead= read_data_into_oldnewmap(fd, bhead, allocname);
 
 	/* init pointers direct data */
 	switch( GS(id->name) ) {
@@ -9975,22 +9983,38 @@ static void lib_link_all(FileData *fd, Main *main)
 
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
-	Link *link;
+	UserDef *user;
+	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 
-	bfd->user= read_struct(fd, bhead, "user def");
-	bfd->user->themes.first= bfd->user->themes.last= NULL;
-	// XXX
-	bfd->user->uifonts.first= bfd->user->uifonts.last= NULL;
-	bfd->user->uistyles.first= bfd->user->uistyles.last= NULL;
+	bfd->user= user= read_struct(fd, bhead, "user def");
 
-	bhead = blo_nextbhead(fd, bhead);
+	/* read all data into fd->datamap */
+	bhead= read_data_into_oldnewmap(fd, bhead, "user def");
 
-		/* read all attached data */
-	while(bhead && bhead->code==DATA) {
-		link= read_struct(fd, bhead, "user def data");
-		BLI_addtail(&bfd->user->themes, link);
-		bhead = blo_nextbhead(fd, bhead);
+	link_list(fd, &user->themes);
+	link_list(fd, &user->keymaps);
+
+	for(keymap=user->keymaps.first; keymap; keymap=keymap->next) {
+		keymap->modal_items= NULL;
+		keymap->poll= NULL;
+
+		link_list(fd, &keymap->items);
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
+			kmi->properties= newdataadr(fd, kmi->properties);
+			if(kmi->properties)
+				IDP_DirectLinkProperty(kmi->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			kmi->ptr= NULL;
+		}
 	}
+
+	// XXX
+	user->uifonts.first= user->uifonts.last= NULL;
+	user->uistyles.first= user->uistyles.last= NULL;
+
+	/* free fd->datamap again */
+	oldnewmap_free_unused(fd->datamap);
+	oldnewmap_clear(fd->datamap);
 
 	return bhead;
 }

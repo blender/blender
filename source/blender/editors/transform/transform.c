@@ -515,7 +515,7 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_SNAP_GEARS_OFF	7
 
 /* called in transform_ops.c, on each regeneration of keymaps */
-void transform_modal_keymap(wmWindowManager *wm)
+void transform_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
@@ -527,12 +527,12 @@ void transform_modal_keymap(wmWindowManager *wm)
 	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "Transform Modal Map");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
 	
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 	
-	keymap= WM_modalkeymap_add(wm, "Transform Modal Map", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
 	
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);

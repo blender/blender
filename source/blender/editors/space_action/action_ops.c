@@ -91,9 +91,9 @@ void action_operatortypes(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void action_keymap_keyframes (wmWindowManager *wm, wmKeyMap *keymap)
+static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 {
-	wmKeymapItem *kmi;
+	wmKeyMapItem *kmi;
 	
 	/* action_select.c - selection tools */
 		/* click-select */
@@ -156,7 +156,7 @@ static void action_keymap_keyframes (wmWindowManager *wm, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	
 	/* transform system */
-	transform_keymap_for_space(wm, keymap, SPACE_ACTION);
+	transform_keymap_for_space(keyconf, keymap, SPACE_ACTION);
 	
 		/* test */
 	/* WM_keymap_add_item(keymap, "ACT_OT_test", QKEY, KM_PRESS, 0, 0); */
@@ -164,7 +164,7 @@ static void action_keymap_keyframes (wmWindowManager *wm, wmKeyMap *keymap)
 
 /* --------------- */
 
-void action_keymap(wmWindowManager *wm)
+void action_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
@@ -175,7 +175,7 @@ void action_keymap(wmWindowManager *wm)
 	 */
 	
 	/* keyframes */
-	keymap= WM_keymap_find(wm, "Action_Keys", SPACE_ACTION, 0);
-	action_keymap_keyframes(wm, keymap);
+	keymap= WM_keymap_find(keyconf, "Action_Keys", SPACE_ACTION, 0);
+	action_keymap_keyframes(keyconf, keymap);
 }
 

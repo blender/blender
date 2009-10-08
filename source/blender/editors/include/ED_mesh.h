@@ -38,6 +38,7 @@ struct EditFace;
 struct bContext;
 struct wmOperator;
 struct wmWindowManager;
+struct wmKeyConfig;
 struct ReportList;
 struct EditSelection;
 struct ViewContext;
@@ -84,13 +85,13 @@ int			join_mesh_exec(struct bContext *C, struct wmOperator *op);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
-void		ED_keymap_mesh(struct wmWindowManager *wm);
+void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
 
 /* editmesh.c */
 
 void		ED_spacetypes_init(void);
-void		ED_keymap_mesh(struct wmWindowManager *wm);
+void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
 void		make_editMesh(struct Scene *scene, struct Object *ob);
 void		load_editMesh(struct Scene *scene, struct Object *ob);

@@ -110,7 +110,7 @@ typedef struct TreeElement {
 
 /* outliner_ops.c */
 void outliner_operatortypes(void);
-void outliner_keymap(struct wmWindowManager *wm);
+void outliner_keymap(struct wmKeyConfig *keyconf);
 
 /* outliner_header.c */
 void outliner_header_buttons(const struct bContext *C, struct ARegion *ar);

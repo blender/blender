@@ -30,9 +30,11 @@
 #ifndef ED_PHYSICS_H
 #define ED_PHYSICS_H
 
+struct wmKeyConfig;
+
 /* operators */
 void ED_operatortypes_physics(void);
-void ED_keymap_physics(struct wmWindowManager *wm);
+void ED_keymap_physics(struct wmKeyConfig *keyconf);
 
 #endif /* ED_PHYSICS_H */
 

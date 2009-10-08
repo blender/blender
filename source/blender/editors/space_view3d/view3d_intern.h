@@ -62,7 +62,7 @@ void VIEW3D_OT_layers(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
 void view3d_operatortypes(void);
-void view3d_keymap(struct wmWindowManager *wm);
+void view3d_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_edit.c */
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
@@ -137,10 +137,10 @@ void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
-void fly_modal_keymap(struct wmWindowManager *wm);
-void viewrotate_modal_keymap(struct wmWindowManager *wm);
-void viewmove_modal_keymap(struct wmWindowManager *wm);
-void viewzoom_modal_keymap(struct wmWindowManager *wm);
+void fly_modal_keymap(struct wmKeyConfig *keyconf);
+void viewrotate_modal_keymap(struct wmKeyConfig *keyconf);
+void viewmove_modal_keymap(struct wmKeyConfig *keyconf);
+void viewzoom_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);

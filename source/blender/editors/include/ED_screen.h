@@ -37,6 +37,7 @@ struct wmWindowManager;
 struct wmWindow;
 struct wmNotifier;
 struct wmEvent;
+struct wmKeyConfig;
 struct bContext;
 struct SpaceType;
 struct Scene;
@@ -63,7 +64,7 @@ void	region_scissor_winrct(struct ARegion *ar, struct rcti *winrct);
 
 /* spaces */
 void	ED_spacetypes_init(void);
-void	ED_spacetypes_keymap(struct wmWindowManager *wm);
+void	ED_spacetypes_keymap(struct wmKeyConfig *keyconf);
 int		ED_area_header_switchbutton(const struct bContext *C, struct uiBlock *block, int yco);
 int		ED_area_header_standardbuttons(const struct bContext *C, struct uiBlock *block, int yco);
 void	ED_area_overdraw(struct bContext *C);
@@ -107,7 +108,7 @@ void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 void	ED_update_for_newframe(const struct bContext *C, int mute);
 
 void	ED_operatortypes_screen(void);
-void	ED_keymap_screen(struct wmWindowManager *wm);
+void	ED_keymap_screen(struct wmKeyConfig *keyconf);
 
 /* operators; context poll callbacks */
 int		ED_operator_screenactive(struct bContext *C);

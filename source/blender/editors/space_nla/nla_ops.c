@@ -167,7 +167,7 @@ void nla_operatortypes(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void nla_keymap_channels (wmWindowManager *wm, wmKeyMap *keymap)
+static void nla_keymap_channels (wmKeyConfig *keyconf, wmKeyMap *keymap)
 {
 	/* NLA-specific (different to standard channels keymap) -------------------------- */
 	/* selection */
@@ -210,9 +210,9 @@ static void nla_keymap_channels (wmWindowManager *wm, wmKeyMap *keymap)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, KM_CTRL, 0)->ptr, "all", 1);
 }
 
-static void nla_keymap_main (wmWindowManager *wm, wmKeyMap *keymap)
+static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 {
-	wmKeymapItem *kmi;
+	wmKeyMapItem *kmi;
 	
 	/* selection */
 		/* click select */
@@ -277,17 +277,17 @@ static void nla_keymap_main (wmWindowManager *wm, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	
 	/* transform system */
-	transform_keymap_for_space(wm, keymap, SPACE_NLA);
+	transform_keymap_for_space(keyconf, keymap, SPACE_NLA);
 }
 
 /* --------------- */
 
-void nla_keymap(wmWindowManager *wm)
+void nla_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
 	/* keymap for all regions */
-	keymap= WM_keymap_find(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(keyconf, "NLA Generic", SPACE_NLA, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	/* channels */
@@ -297,11 +297,11 @@ void nla_keymap(wmWindowManager *wm)
 	 *
 	 * However, those operations which involve clicking on channels and/or the placement of them in the view are implemented here instead
 	 */
-	keymap= WM_keymap_find(wm, "NLA Channels", SPACE_NLA, 0);
-	nla_keymap_channels(wm, keymap);
+	keymap= WM_keymap_find(keyconf, "NLA Channels", SPACE_NLA, 0);
+	nla_keymap_channels(keyconf, keymap);
 	
 	/* data */
-	keymap= WM_keymap_find(wm, "NLA Data", SPACE_NLA, 0);
-	nla_keymap_main(wm, keymap);
+	keymap= WM_keymap_find(keyconf, "NLA Data", SPACE_NLA, 0);
+	nla_keymap_main(keyconf, keymap);
 }
 

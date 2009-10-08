@@ -1977,68 +1977,68 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	StructRNA *srna;
 
 	static EnumPropertyItem gl_texture_clamp_items[] = {
-		{0, "GL_CLAMP_OFF", 0, "Off", ""},
-		{8192, "GL_CLAMP_8192", 0, "8192", ""},
-		{4096, "GL_CLAMP_4096", 0, "4096", ""},
-		{2048, "GL_CLAMP_2048", 0, "2048", ""},
-		{1024, "GL_CLAMP_1024", 0, "1024", ""},
-		{512, "GL_CLAMP_512", 0, "512", ""},
-		{256, "GL_CLAMP_256", 0, "256", ""},
-		{128, "GL_CLAMP_128", 0, "128", ""},
+		{0, "CLAMP_OFF", 0, "Off", ""},
+		{8192, "CLAMP_8192", 0, "8192", ""},
+		{4096, "CLAMP_4096", 0, "4096", ""},
+		{2048, "CLAMP_2048", 0, "2048", ""},
+		{1024, "CLAMP_1024", 0, "1024", ""},
+		{512, "CLAMP_512", 0, "512", ""},
+		{256, "CLAMP_256", 0, "256", ""},
+		{128, "CLAMP_128", 0, "128", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_mixing_samples_items[] = {
-		{256, "AUDIO_SAMPLES_256", 0, "256", "Set audio mixing buffer size to 256 samples"},
-		{512, "AUDIO_SAMPLES_512", 0, "512", "Set audio mixing buffer size to 512 samples"},
-		{1024, "AUDIO_SAMPLES_1024", 0, "1024", "Set audio mixing buffer size to 1024 samples"},
-		{2048, "AUDIO_SAMPLES_2048", 0, "2048", "Set audio mixing buffer size to 2048 samples"},
-		{4096, "AUDIO_SAMPLES_4096", 0, "4096", "Set audio mixing buffer size to 4096 samples"},
-		{8192, "AUDIO_SAMPLES_8192", 0, "8192", "Set audio mixing buffer size to 8192 samples"},
-		{16384, "AUDIO_SAMPLES_16384", 0, "16384", "Set audio mixing buffer size to 16384 samples"},
-		{32768, "AUDIO_SAMPLES_32768", 0, "32768", "Set audio mixing buffer size to 32768 samples"},
+		{256, "SAMPLES_256", 0, "256", "Set audio mixing buffer size to 256 samples"},
+		{512, "SAMPLES_512", 0, "512", "Set audio mixing buffer size to 512 samples"},
+		{1024, "SAMPLES_1024", 0, "1024", "Set audio mixing buffer size to 1024 samples"},
+		{2048, "SAMPLES_2048", 0, "2048", "Set audio mixing buffer size to 2048 samples"},
+		{4096, "SAMPLES_4096", 0, "4096", "Set audio mixing buffer size to 4096 samples"},
+		{8192, "SAMPLES_8192", 0, "8192", "Set audio mixing buffer size to 8192 samples"},
+		{16384, "SAMPLES_16384", 0, "16384", "Set audio mixing buffer size to 16384 samples"},
+		{32768, "SAMPLES_32768", 0, "32768", "Set audio mixing buffer size to 32768 samples"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_device_items[] = {
-		{0, "AUDIO_DEVICE_NULL", 0, "No Audio", "Null device - there will be no audio output."},
+		{0, "NONE", 0, "None", "Null device - there will be no audio output."},
 #ifdef WITH_SDL
-		{1, "AUDIO_DEVICE_SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage."},
+		{1, "SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage."},
 #endif
 #ifdef WITH_OPENAL
-		{2, "AUDIO_DEVICE_OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage."},
+		{2, "OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage."},
 #endif
 #ifdef WITH_JACK
-		{3, "AUDIO_DEVICE_JACK", 0, "Jack", "Jack device - open source pro audio, recommended for pro audio users."},
+		{3, "JACK", 0, "Jack", "Jack device - open source pro audio, recommended for pro audio users."},
 #endif
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_rate_items[] = {
-//		{8000, "AUDIO_RATE_8000", 0, "8 kHz", "Set audio sampling rate to 8000 samples per second."},
-//		{11025, "AUDIO_RATE_11025", 0, "11.025 kHz", "Set audio sampling rate to 11025 samples per second."},
-//		{16000, "AUDIO_RATE_16000", 0, "16 kHz", "Set audio sampling rate to 16000 samples per second."},
-//		{22050, "AUDIO_RATE_22050", 0, "22.05 kHz", "Set audio sampling rate to 22050 samples per second."},
-//		{32000, "AUDIO_RATE_32000", 0, "32 kHz", "Set audio sampling rate to 32000 samples per second."},
-		{44100, "AUDIO_RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second."},
-		{48000, "AUDIO_RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second."},
-//		{88200, "AUDIO_RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second."},
-		{96000, "AUDIO_RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second."},
-		{192000, "AUDIO_RATE_192000", 0, "192 kHz", "Set audio sampling rate to 192000 samples per second."},
+//		{8000, "RATE_8000", 0, "8 kHz", "Set audio sampling rate to 8000 samples per second."},
+//		{11025, "RATE_11025", 0, "11.025 kHz", "Set audio sampling rate to 11025 samples per second."},
+//		{16000, "RATE_16000", 0, "16 kHz", "Set audio sampling rate to 16000 samples per second."},
+//		{22050, "RATE_22050", 0, "22.05 kHz", "Set audio sampling rate to 22050 samples per second."},
+//		{32000, "RATE_32000", 0, "32 kHz", "Set audio sampling rate to 32000 samples per second."},
+		{44100, "RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second."},
+		{48000, "RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second."},
+//		{88200, "RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second."},
+		{96000, "RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second."},
+		{192000, "RATE_192000", 0, "192 kHz", "Set audio sampling rate to 192000 samples per second."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_format_items[] = {
-		{0x01, "AUDIO_FORMAT_U8", 0, "8-bit Unsigned", "Set audio sample format to 8 bit unsigned integer."},
-		{0x12, "AUDIO_FORMAT_S16", 0, "16-bit Signed", "Set audio sample format to 16 bit signed integer."},
-		{0x13, "AUDIO_FORMAT_S24", 0, "24-bit Signed", "Set audio sample format to 24 bit signed integer."},
-		{0x14, "AUDIO_FORMAT_S32", 0, "32-bit Signed", "Set audio sample format to 32 bit signed integer."},
-		{0x24, "AUDIO_FORMAT_FLOAT", 0, "32-bit Float", "Set audio sample format to 32 bit float."},
-		{0x28, "AUDIO_FORMAT_DOUBLE", 0, "64-bit Float", "Set audio sample format to 64 bit float."},
+		{0x01, "U8", 0, "8-bit Unsigned", "Set audio sample format to 8 bit unsigned integer."},
+		{0x12, "S16", 0, "16-bit Signed", "Set audio sample format to 16 bit signed integer."},
+		{0x13, "S24", 0, "24-bit Signed", "Set audio sample format to 24 bit signed integer."},
+		{0x14, "S32", 0, "32-bit Signed", "Set audio sample format to 32 bit signed integer."},
+		{0x24, "FLOAT", 0, "32-bit Float", "Set audio sample format to 32 bit float."},
+		{0x28, "DOUBLE", 0, "64-bit Float", "Set audio sample format to 64 bit float."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_channel_items[] = {
-		{1, "AUDIO_CHANNELS_MONO", 0, "Mono", "Set audio channels to mono."},
-		{2, "AUDIO_CHANNELS_STEREO", 0, "Stereo", "Set audio channels to stereo."},
-		{4, "AUDIO_CHANNELS_SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels."},
-		{6, "AUDIO_CHANNELS_SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound."},
-		{8, "AUDIO_CHANNELS_SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound."},
+		{1, "MONO", 0, "Mono", "Set audio channels to mono."},
+		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo."},
+		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels."},
+		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound."},
+		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem draw_method_items[] = {
@@ -2340,11 +2340,12 @@ void RNA_def_userdef(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem user_pref_sections[] = {
-		{0, "VIEW_CONTROLS", 0, "View", ""},
-		{1, "EDIT_METHODS", 0, "Editing", ""},
-		{2, "FILE_PATHS", 0, "File", ""},
-		{3, "SYSTEM_OPENGL", 0, "System", ""},
-//		{4, "THEMES", 0, "Themes", ""}, // Leave this out until we figure out a way to manage themes in the prefs.
+		{USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
+		{USER_SECTION_EDIT, "EDITING", 0, "Editing", ""},
+		{USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
+//		{USER_SECTION_THEME, "THEMES", 0, "Themes", ""}, // Leave this out until we figure out a way to manage themes in the prefs.
+		{USER_SECTION_FILE, "FILES", 0, "File", ""},
+		{USER_SECTION_SYSTEM, "SYSTEM", 0, "System", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	rna_def_userdef_dothemes(brna);
@@ -2358,6 +2359,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "userpref");
 	RNA_def_property_enum_items(prop, user_pref_sections);
 	RNA_def_property_ui_text(prop, "Active Section", "Active section of the user preferences shown in the user interface.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "themes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "themes", NULL);

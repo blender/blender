@@ -83,11 +83,11 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_dupliob_move_down);
 }
 
-static void keymap_particle(wmWindowManager *wm)
+static void keymap_particle(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
-	keymap= WM_keymap_find(wm, "Particle", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Particle", 0, 0);
 	keymap->poll= PE_poll;
 	
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
@@ -166,10 +166,10 @@ void ED_operatortypes_physics(void)
 	operatortypes_pointcache();
 }
 
-void ED_keymap_physics(wmWindowManager *wm)
+void ED_keymap_physics(wmKeyConfig *keyconf)
 {
-	keymap_particle(wm);
-	//keymap_pointcache(wm);
+	keymap_particle(keyconf);
+	//keymap_pointcache(keyconf);
 }
 
 

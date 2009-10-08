@@ -37,7 +37,7 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle, int icon_only)
+static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle, int icon_only, int event, int full_event)
 {
 	int flag= 0;
 
@@ -45,6 +45,8 @@ static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr,
 	flag |= (expand)? UI_ITEM_R_EXPAND: 0;
 	flag |= (toggle)? UI_ITEM_R_TOGGLE: 0;
 	flag |= (icon_only)? UI_ITEM_R_ICON_ONLY: 0;
+	flag |= (event)? UI_ITEM_R_EVENT: 0;
+	flag |= (full_event)? UI_ITEM_R_FULL_EVENT: 0;
 	
 	uiItemR(layout, name, icon, ptr, propname, flag);
 }
@@ -147,6 +149,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "slider", 0, "", "Use slider widget for numeric values.");
 	RNA_def_boolean(func, "toggle", 0, "", "Use toggle widget for boolean values.");
 	RNA_def_boolean(func, "icon_only", 0, "", "Draw only icons in buttons, no text.");
+	RNA_def_boolean(func, "event", 0, "", "Use button to input key events.");
+	RNA_def_boolean(func, "full_event", 0, "", "Use button to input full events including modifiers.");
 
 	func= RNA_def_function(srna, "items_enumR", "uiItemsEnumR");
 	api_ui_item_rna_common(func);

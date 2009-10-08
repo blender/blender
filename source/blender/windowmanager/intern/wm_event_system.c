@@ -725,16 +725,16 @@ static int wm_userdef_event_map(int kmitype)
 	return kmitype;
 }
 
-static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
+static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 {
 	int kmitype= wm_userdef_event_map(kmi->type);
 
-	if(kmi->inactive) return 0;
+	if(kmi->flag & KMI_INACTIVE) return 0;
 
 	/* exception for middlemouse emulation */
 	if((U.flag & USER_TWOBUTTONMOUSE) && (kmi->type == MIDDLEMOUSE)) {
 		if(winevent->type == LEFTMOUSE && winevent->alt) {
-			wmKeymapItem tmp= *kmi;
+			wmKeyMapItem tmp= *kmi;
 
 			tmp.type= winevent->type;
 			tmp.alt= winevent->alt;
@@ -784,9 +784,9 @@ static int wm_event_always_pass(wmEvent *event)
 static void wm_event_modalkeymap(wmOperator *op, wmEvent *event)
 {
 	if(op->type->modalkeymap) {
-		wmKeymapItem *kmi;
+		wmKeyMapItem *kmi;
 		
-		for(kmi= op->type->modalkeymap->keymap.first; kmi; kmi= kmi->next) {
+		for(kmi= op->type->modalkeymap->items.first; kmi; kmi= kmi->next) {
 			if(wm_eventmatch(event, kmi)) {
 					
 				event->type= EVT_MODAL_MAP;
@@ -1031,6 +1031,7 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmEventHandler *handler, *nexthandler;
 	int action= WM_HANDLER_CONTINUE;
 	int always_pass;
@@ -1051,11 +1052,11 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				action= WM_HANDLER_BREAK;
 
 			if(handler->keymap) {
-				wmKeyMap *keymap= handler->keymap;
-				wmKeymapItem *kmi;
+				wmKeyMap *keymap= WM_keymap_active(wm, handler->keymap);
+				wmKeyMapItem *kmi;
 				
 				if(!keymap->poll || keymap->poll(C)) {
-					for(kmi= keymap->keymap.first; kmi; kmi= kmi->next) {
+					for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
 						if(wm_eventmatch(event, kmi)) {
 							
 							event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */

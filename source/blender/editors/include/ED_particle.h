@@ -36,7 +36,7 @@ struct ParticleEditSettings;
 struct ParticleSystem;
 struct RadialControl;
 struct rcti;
-struct wmWindowManager;
+struct wmKeyConfig;
 struct PTCacheEdit;
 struct Scene;
 

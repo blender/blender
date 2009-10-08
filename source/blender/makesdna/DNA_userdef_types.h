@@ -308,6 +308,8 @@ typedef struct UserDef {
 	struct ListBase themes;
 	struct ListBase uifonts;
 	struct ListBase uistyles;
+	struct ListBase keymaps;
+	char keyconfigstr[64];
 	
 	short undosteps;
 	short undomemory;
@@ -344,6 +346,14 @@ typedef struct UserDef {
 extern UserDef U; /* from blenkernel blender.c */
 
 /* ***************** USERDEF ****************** */
+
+/* userpref/section */
+#define USER_SECTION_INTERFACE	0
+#define USER_SECTION_EDIT		1
+#define USER_SECTION_FILE		2
+#define USER_SECTION_SYSTEM		3
+#define USER_SECTION_THEME		4
+#define USER_SECTION_INPUT		5
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)

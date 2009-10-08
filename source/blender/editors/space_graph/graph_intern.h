@@ -159,7 +159,7 @@ int graphop_selected_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */
 /* graph_ops.c */
-void graphedit_keymap(struct wmWindowManager *wm);
+void graphedit_keymap(struct wmKeyConfig *keyconf);
 void graphedit_operatortypes(void);
 
 

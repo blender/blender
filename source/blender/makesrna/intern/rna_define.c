@@ -667,6 +667,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		}
 
 		prop= RNA_def_property(&srna->cont, "rna_type", PROP_POINTER, PROP_NONE);
+		RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
 
 		if(DefRNA.preprocess) {

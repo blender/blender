@@ -35,7 +35,7 @@ struct wmWindowManager;
 
 /* time_ops.c */
 void time_operatortypes(void);
-void time_keymap(struct wmWindowManager *wm);
+void time_keymap(struct wmKeyConfig *keyconf);
 
 /* time_header.c */
 void time_header_buttons(const bContext *C, ARegion *ar);

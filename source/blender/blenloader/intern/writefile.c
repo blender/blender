@@ -537,13 +537,23 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 static void write_userdef(WriteData *wd)
 {
 	bTheme *btheme;
+	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 
 	writestruct(wd, USER, "UserDef", 1, &U);
 
-	btheme= U.themes.first;
-	while(btheme) {
+	for(btheme= U.themes.first; btheme; btheme=btheme->next)
 		writestruct(wd, DATA, "bTheme", 1, btheme);
-		btheme= btheme->next;
+
+	for(keymap= U.keymaps.first; keymap; keymap=keymap->next) {
+		writestruct(wd, DATA, "wmKeyMap", 1, keymap);
+
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
+			writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
+
+			if(kmi->properties)
+				IDP_WriteProperty(kmi->properties, wd);
+		}
 	}
 }
 

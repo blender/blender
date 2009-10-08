@@ -734,12 +734,12 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TFM_OT_delete_orientation);
 }
 
-void transform_keymap_for_space(struct wmWindowManager *wm, struct wmKeyMap *keymap, int spaceid)
+void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid)
 {
-	wmKeymapItem *km;
+	wmKeyMapItem *km;
 	
 	/* transform.c, only adds modal map once, checks if it's there */
-	transform_modal_keymap(wm);
+	transform_modal_keymap(keyconf);
 	
 	switch(spaceid)
 	{

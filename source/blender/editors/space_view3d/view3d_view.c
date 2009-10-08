@@ -1633,7 +1633,7 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 #define FLY_MODAL_PRECISION_DISABLE	16
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
-void fly_modal_keymap(wmWindowManager *wm)
+void fly_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{FLY_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
@@ -1659,12 +1659,12 @@ void fly_modal_keymap(wmWindowManager *wm)
 
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "View3D Fly Modal");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Fly Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(wm, "View3D Fly Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Fly Modal", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, FLY_MODAL_CANCEL);

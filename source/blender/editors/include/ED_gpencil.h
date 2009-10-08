@@ -41,7 +41,7 @@ struct bGPDframe;
 struct PointerRNA;
 struct Panel;
 struct ImBuf;
-struct wmWindowManager;
+struct wmKeyConfig;
 
 
 /* ------------- Grease-Pencil Helpers ---------------- */
@@ -62,7 +62,7 @@ struct bGPdata *gpencil_data_get_active(struct bContext *C);
 
 /* ----------- Grease Pencil Operators ----------------- */
 
-void ED_keymap_gpencil(struct wmWindowManager *wm);
+void ED_keymap_gpencil(struct wmKeyConfig *keyconf);
 void ED_operatortypes_gpencil(void);
 
 /* ------------ Grease-Pencil Drawing API ------------------ */

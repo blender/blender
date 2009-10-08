@@ -203,7 +203,9 @@ void rna_TextureSlot_update(struct bContext *C, struct PointerRNA *ptr);
 
 void RNA_api_action(StructRNA *srna);
 void RNA_api_image(struct StructRNA *srna);
+void RNA_api_keyconfig(struct StructRNA *srna);
 void RNA_api_keyingset(struct StructRNA *srna);
+void RNA_api_keymap(struct StructRNA *srna);
 void RNA_api_main(struct StructRNA *srna);
 void RNA_api_material(StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
@@ -212,7 +214,6 @@ void RNA_api_scene(struct StructRNA *srna);
 void RNA_api_text(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
-
 
 /* ID Properties */
 

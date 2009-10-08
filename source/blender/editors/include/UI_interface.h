@@ -147,6 +147,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_INACTIVE		(1<<23)
 #define UI_BUT_LAST_ACTIVE	(1<<24)
 #define UI_BUT_UNDO			(1<<25)
+#define UI_BUT_IMMEDIATE	(1<<26)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -572,6 +573,8 @@ void UI_exit(void);
 #define UI_ITEM_R_SLIDER		4
 #define UI_ITEM_R_TOGGLE		8
 #define UI_ITEM_R_ICON_ONLY		16
+#define UI_ITEM_R_EVENT			32
+#define UI_ITEM_R_FULL_EVENT	64
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);

@@ -202,9 +202,9 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_properties);
 }
 
-void image_keymap(struct wmWindowManager *wm)
+void image_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Image Generic", SPACE_IMAGE, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
@@ -212,7 +212,7 @@ void image_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
-	keymap= WM_keymap_find(wm, "Image", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
@@ -389,16 +389,16 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* image paint polls for mode */
-	keymap= WM_keymap_find(wm, "Image Paint", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_find(wm, "UVEdit", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "UVEdit", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* own keymaps */
-	keymap= WM_keymap_find(wm, "Image Generic", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	keymap= WM_keymap_find(wm, "Image", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -463,7 +463,7 @@ static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm, "Image Generic", SPACE_IMAGE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 

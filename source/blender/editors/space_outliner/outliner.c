@@ -1113,16 +1113,16 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 	else if(type == TSE_KEYMAP) {
 		wmKeyMap *km= (wmKeyMap *)idv;
-		wmKeymapItem *kmi;
+		wmKeyMapItem *kmi;
 		char opname[OP_MAX_TYPENAME];
 		
 		te->directdata= idv;
-		te->name= km->nameid;
+		te->name= km->idname;
 		
 		if(!(tselem->flag & TSE_CLOSED)) {
 			a= 0;
 			
-			for (kmi= km->keymap.first; kmi; kmi= kmi->next, a++) {
+			for (kmi= km->items.first; kmi; kmi= kmi->next, a++) {
 				const char *key= WM_key_event_string(kmi->type);
 				
 				if(key[0]) {
@@ -1408,7 +1408,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		wmWindowManager *wm= mainvar->wm.first;
 		wmKeyMap *km;
 		
-		for(km= wm->keymaps.first; km; km= km->next) {
+		for(km= wm->defaultconf->keymaps.first; km; km= km->next) {
 			ten= outliner_add_element(soops, &soops->tree, (void*)km, NULL, TSE_KEYMAP, 0);
 		}
 	}
@@ -2229,14 +2229,14 @@ static int tree_element_active_sequence_dup(bContext *C, Scene *scene, TreeEleme
 
 static int tree_element_active_keymap_item(bContext *C, TreeElement *te, TreeStoreElem *tselem, int set)
 {
-	wmKeymapItem *kmi= te->directdata;
+	wmKeyMapItem *kmi= te->directdata;
 	
 	if(set==0) {
-		if(kmi->inactive) return 0;
+		if(kmi->flag & KMI_INACTIVE) return 0;
 		return 1;
 	}
 	else {
-		kmi->inactive= !kmi->inactive;
+		kmi->flag ^= KMI_INACTIVE;
 	}
 	return 0;
 }
@@ -4957,7 +4957,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 static void operator_call_cb(struct bContext *C, void *arg_kmi, void *arg2)
 {
 	wmOperatorType *ot= arg2;
-	wmKeymapItem *kmi= arg_kmi;
+	wmKeyMapItem *kmi= arg_kmi;
 	
 	if(ot)
 		BLI_strncpy(kmi->idname, ot->idname, OP_MAX_TYPENAME);
@@ -4987,7 +4987,7 @@ static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
 	static char search[OP_MAX_TYPENAME];
 	wmEvent event;
 	wmWindow *win= CTX_wm_window(C);
-	wmKeymapItem *kmi= arg_kmi;
+	wmKeyMapItem *kmi= arg_kmi;
 	wmOperatorType *ot= WM_operatortype_find(kmi->idname, 0);
 	uiBlock *block;
 	uiBut *but;
@@ -5026,8 +5026,8 @@ static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
 static short keymap_menu_type(short type)
 {
 	if(ISKEYBOARD(type)) return OL_KM_KEYBOARD;
-	if(WM_key_event_is_tweak(type)) return OL_KM_TWEAK;
-	if(type >= LEFTMOUSE && type <= WHEELOUTMOUSE) return OL_KM_MOUSE;
+	if(ISTWEAK(type)) return OL_KM_TWEAK;
+	if(ISMOUSE(type)) return OL_KM_MOUSE;
 //	return OL_KM_SPECIALS;
 	return 0;
 }
@@ -5083,8 +5083,6 @@ static char *keymap_tweak_menu(void)
 	str += sprintf(str, formatstr, "Left Mouse", EVT_TWEAK_L);
 	str += sprintf(str, formatstr, "Middle Mouse", EVT_TWEAK_M);
 	str += sprintf(str, formatstr, "Right Mouse", EVT_TWEAK_R);
-	str += sprintf(str, formatstr, "Button4 Mouse ", BUTTON4MOUSE);
-	str += sprintf(str, formatstr, "Button5 Mouse ", BUTTON5MOUSE);
 	str += sprintf(str, formatstr, "Action Mouse", EVT_TWEAK_A);
 	str += sprintf(str, formatstr, "Select Mouse", EVT_TWEAK_S);
 	
@@ -5115,7 +5113,7 @@ static char *keymap_tweak_dir_menu(void)
 
 static void keymap_type_cb(bContext *C, void *kmi_v, void *unused_v)
 {
-	wmKeymapItem *kmi= kmi_v;
+	wmKeyMapItem *kmi= kmi_v;
 	short maptype= keymap_menu_type(kmi->type);
 	
 	if(maptype!=kmi->maptype) {
@@ -5158,7 +5156,7 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 			int butw3= 43; /* modifiers */
 
 			if(tselem->type == TSE_KEYMAP_ITEM) {
-				wmKeymapItem *kmi= te->directdata;
+				wmKeyMapItem *kmi= te->directdata;
 				
 				/* modal map? */
 				if(kmi->propvalue);

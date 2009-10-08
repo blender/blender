@@ -42,6 +42,7 @@ struct wmGesture;
 struct wmOperatorType;
 struct wmOperator;
 struct wmKeyMap;
+struct wmKeyConfig;
 
 /* forwards */
 struct bContext;
@@ -120,9 +121,9 @@ typedef struct wmWindowManager {
 	
 	ListBase paintcursors;	/* extra overlay cursors to draw, like circles */
 	
-	/* used keymaps, optionally/partially saved */
-	ListBase keymaps;
-	
+	ListBase keyconfigs;				/* known key configurations */
+	struct wmKeyConfig *defaultconf;	/* default configuration, not saved */
+	int defaultactmap, pad2;			/* active keymap from default for editing */
 } wmWindowManager;
 
 /* wmWindowManager.initialized */
@@ -234,44 +235,70 @@ typedef struct wmOperatorType {
 
 
 /* partial copy of the event, for matching by eventhandler */
-typedef struct wmKeymapItem {
-	struct wmKeymapItem *next, *prev;
+typedef struct wmKeyMapItem {
+	struct wmKeyMapItem *next, *prev;
 	
+	/* operator */
 	char idname[64];				/* used to retrieve operator type pointer */
-	struct PointerRNA *ptr;			/* rna pointer to access properties */
+	IDProperty *properties;			/* operator properties */
 	
+	/* modal */
+	short propvalue;				/* if used, the item is from modal map */
+
+	/* event */
 	short type;						/* event code itself */
 	short val;						/* 0=any, 1=click, 2=release, or wheelvalue, or... */
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;				/* rawkey modifier */
 	
-	short propvalue;				/* if used, the item is from modal map */
-	
-	short inactive;					/* if set, deactivated item */
-	short maptype;						/* keymap editor */
-	short pad2, pad3;
-} wmKeymapItem;
+	/* flag: inactive, expanded */
+	short flag;
 
+	/* runtime */
+	short maptype, pad[2];			/* keymap editor */
+	struct PointerRNA *ptr;			/* rna pointer to access properties */
+} wmKeyMapItem;
+
+/* wmKeyMapItem.flag */
+#define KMI_INACTIVE	1
+#define KMI_EXPANDED	2
 
 /* stored in WM, the actively used keymaps */
 typedef struct wmKeyMap {
 	struct wmKeyMap *next, *prev;
 	
-	ListBase keymap;
+	ListBase items;
 	
-	char nameid[64];	/* global editor keymaps, or for more per space/region */
+	char idname[64];	/* global editor keymaps, or for more per space/region */
 	short spaceid;		/* same IDs as in DNA_space_types.h */
 	short regionid;		/* see above */
 	
-	short is_modal;		/* modal map, not using operatornames */
+	short flag;			/* general flags */
 	short pad;
 	
-	void *items;		/* struct EnumPropertyItem for now */
-
-	/* verify if the keymap is enabled in the current context */
-	int (*poll)(struct bContext *);
+	/* runtime */
+	int (*poll)(struct bContext *);	/* verify if enabled in the current context */
+	void *modal_items;				/* for modal, EnumPropertyItem for now */
 } wmKeyMap;
 
+/* wmKeyMap.flag */
+#define KEYMAP_MODAL		1	/* modal map, not using operatornames */
+#define KEYMAP_USER			2	/* user created keymap */
+
+typedef struct wmKeyConfig {
+	struct wmKeyConfig *next, *prev;
+
+	char idname[64];		/* unique name */
+	char basename[64];		/* idname of configuration this is derives from, "" if none */
+
+	ListBase keymaps;
+	int actkeymap, flag;
+} wmKeyConfig;
+
+/* wmKeyConfig.flag */
+#define KEYCONF_TWOBUTTONMOUSE	(1 << 1)
+#define KEYCONF_LMOUSESELECT	(1 << 2)
+#define KEYCONF_NONUMPAD		(1 << 3)
 
 /* this one is the operator itself, stored in files for macros etc */
 /* operator + operatortype should be able to redo entirely, but for different contextes */

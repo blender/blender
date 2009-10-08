@@ -2550,7 +2550,7 @@ static ScrArea *find_empty_image_area(bContext *C)
 static void screen_set_image_output(bContext *C, int mx, int my)
 {
 	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa;
+	ScrArea *sa= NULL;
 	SpaceImage *sima;
 	
 	if(scene->r.displaymode==R_OUTPUT_WINDOW) {
@@ -2580,8 +2580,8 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
 		sa= CTX_wm_area(C);
 	}
-	else {
 	
+	if(!sa) {
 		sa= find_area_showing_r_result(C);
 		if(sa==NULL)
 			sa= find_area_image_empty(C);
@@ -3286,7 +3286,7 @@ void ED_operatortypes_screen(void)
 	
 }
 
-static void keymap_modal_set(wmWindowManager *wm)
+static void keymap_modal_set(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 		{KM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
@@ -3297,7 +3297,7 @@ static void keymap_modal_set(wmWindowManager *wm)
 	wmKeyMap *keymap;
 	
 	/* Standard Modal keymap ------------------------------------------------ */
-	keymap= WM_modalkeymap_add(wm, "Standard Modal Map", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Standard Modal Map", modal_items);
 	
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KM_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, KM_MODAL_APPLY);
@@ -3312,12 +3312,12 @@ static void keymap_modal_set(wmWindowManager *wm)
 }
 
 /* called in spacetypes.c */
-void ED_keymap_screen(wmWindowManager *wm)
+void ED_keymap_screen(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
 	/* Screen Editing ------------------------------------------------ */
-	keymap= WM_keymap_find(wm, "Screen Editing", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Screen Editing", 0, 0);
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "modifier", 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", 1);
@@ -3334,7 +3334,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 
 
 	/* Screen General ------------------------------------------------ */
-	keymap= WM_keymap_find(wm, "Screen", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Screen", 0, 0);
 	
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
@@ -3389,7 +3389,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	
 	
 	/* Anim Playback ------------------------------------------------ */
-	keymap= WM_keymap_find(wm, "Frames", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Frames", 0, 0);
 	
 	/* frame offsets */
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
@@ -3409,6 +3409,6 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", KKEY, KM_PRESS, 0, LKEY);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
 
-	keymap_modal_set(wm);
+	keymap_modal_set(keyconf);
 }
 

@@ -34,7 +34,7 @@ struct ListBase;
 struct AnimData;
 
 struct bContext;
-struct wmWindowManager;
+struct wmKeyConfig;
 struct ScrArea;
 struct ARegion;
 struct View2D;
@@ -487,11 +487,11 @@ void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);
 	
 	/* generic animation channels */
 void ED_operatortypes_animchannels(void);
-void ED_keymap_animchannels(struct wmWindowManager *wm);
+void ED_keymap_animchannels(struct wmKeyConfig *keyconf);
 
 	/* generic time editing */
 void ED_operatortypes_anim(void);
-void ED_keymap_anim(struct wmWindowManager *wm);
+void ED_keymap_anim(struct wmKeyConfig *keyconf);
 
 /* ************************************************ */
 

@@ -508,7 +508,7 @@ int Align(TransInfo *t, short mval[2]);
 
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 
-void transform_modal_keymap(struct wmWindowManager *wm);
+void transform_modal_keymap(struct wmKeyConfig *keyconf);
 
 
 /*********************** transform_conversions.c ********** */

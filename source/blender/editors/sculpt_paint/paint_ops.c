@@ -134,12 +134,12 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_vertex_color_set);
 }
 
-void ED_keymap_paint(wmWindowManager *wm)
+void ED_keymap_paint(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
 	/* Sculpt mode */
-	keymap= WM_keymap_find(wm, "Sculpt", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Sculpt", 0, 0);
 	keymap->poll= sculpt_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
@@ -150,7 +150,7 @@ void ED_keymap_paint(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 
 	/* Vertex Paint mode */
-	keymap= WM_keymap_find(wm, "Vertex Paint", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Vertex Paint", 0, 0);
 	keymap->poll= vertex_paint_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_vertex_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
@@ -159,7 +159,7 @@ void ED_keymap_paint(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
 
 	/* Weight Paint mode */
-	keymap= WM_keymap_find(wm, "Weight Paint", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Weight Paint", 0, 0);
 	keymap->poll= weight_paint_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_weight_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
@@ -168,7 +168,7 @@ void ED_keymap_paint(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_paint", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	/* Image/Texture Paint mode */
-	keymap= WM_keymap_find(wm, "Image Paint", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Image Paint", 0, 0);
 	keymap->poll= image_texture_paint_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_texture_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);

@@ -82,22 +82,30 @@ void		WM_timecursor		(struct wmWindow *win, int nr);
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
-			/* keymap */
+			/* keyconfig and keymap */
+wmKeyConfig *WM_keyconfig_add	(struct wmWindowManager *wm, char *idname);
+void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
+void		WM_keyconfig_userdef(struct wmWindowManager *wm);
+
 void		WM_keymap_init		(struct bContext *C);
-wmKeymapItem *WM_keymap_verify_item(wmKeyMap *keymap, char *idname, short type, 
-								 short val, int modifier, short keymodifier);
-wmKeymapItem *WM_keymap_add_item(wmKeyMap *keymap, char *idname, short type, 
-								 short val, int modifier, short keymodifier);
-void		WM_keymap_tweak	(wmKeyMap *keymap, short type, short val, int modifier, short keymodifier);
-wmKeyMap	*WM_keymap_find (struct wmWindowManager *wm, const char *nameid,
-								 short spaceid, short regionid);
+void		WM_keymap_free		(struct wmKeyMap *keymap);
 
-wmKeyMap	*WM_modalkeymap_add(struct wmWindowManager *wm, const char *nameid, struct EnumPropertyItem *items);
-wmKeyMap	*WM_modalkeymap_get(struct wmWindowManager *wm, const char *nameid);
-void		WM_modalkeymap_add_item(wmKeyMap *km, short type, short val, int modifier, short keymodifier, short value);
-void		WM_modalkeymap_assign(wmKeyMap *km, const char *opname);
+wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, char *idname, int type, 
+								 int val, int modifier, int keymodifier);
+wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type, 
+								 int val, int modifier, int keymodifier);
+void         WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
+char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 
-int			WM_key_event_is_tweak(short type);
+wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
+wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
+void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
+
+wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, struct EnumPropertyItem *items);
+wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, char *idname);
+void		WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
+void		WM_modalkeymap_assign(struct wmKeyMap *km, char *opname);
 
 const char	*WM_key_event_string(short type);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);

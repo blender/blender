@@ -1858,6 +1858,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
 			but->drawstr[0]= 0;
+			*(short *)but->func_arg3= 0;
 			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -1868,9 +1869,12 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		if(event->type == MOUSEMOVE)
 			return WM_UI_HANDLER_CONTINUE;
 		
-		if(ELEM(event->type, ESCKEY, LEFTMOUSE)) {
+		if(event->type == ESCKEY) {
 			/* data->cancel doesnt work, this button opens immediate */
-			ui_set_but_val(but, 0);
+			if(but->flag & UI_BUT_IMMEDIATE)
+				ui_set_but_val(but, 0);
+			else
+				data->cancel= 1;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -3325,6 +3329,7 @@ static uiBlock *menu_change_hotkey(bContext *C, ARegion *ar, void *arg_but)
 	strcat(buf, " |");
 	
 	but= uiDefHotKeyevtButS(block, 0, buf, 0, 0, 200, 20, dummy, dummy+1, "");
+	uiButSetFlag(but, UI_BUT_IMMEDIATE);
 	uiButSetFunc(but, do_menu_change_hotkey, arg_but, dummy);
 
 	uiPopupBoundsBlock(block, 6.0f, 50, -10);
@@ -3782,8 +3787,11 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 	
 	/* activate right away */
-	if(but->type==HOTKEYEVT)
-		button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
+	if(but->flag & UI_BUT_IMMEDIATE) {
+		if(but->type==HOTKEYEVT)
+			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
+		/* .. more to be added here */
+	}
 	
 	if(type == BUTTON_ACTIVATE_OPEN) {
 		button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);

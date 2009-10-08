@@ -517,22 +517,33 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 /* default properties for fileselect */
 void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 {
-	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "FilePath", "Path to file.");
-	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "FileName", "Name of the file.");
+	PropertyRNA *prop;
+
+	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "File Path", "Path to file.");
+	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file.");
 	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
 
-	RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
-	RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
-	RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
-	RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
-	RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
-	RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
-	RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
-	RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+	prop= RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 
-	RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
+	prop= RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
 		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
 		FILE_LOADLIB, FILE_SPECIAL);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* op->poll */
@@ -1103,6 +1114,8 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	ot->exec= wm_link_append_exec;
 	ot->poll= WM_operator_winactive;
 	
+	ot->flag |= OPTYPE_UNDO;
+
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
@@ -1382,7 +1395,7 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 
 int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(WM_key_event_is_tweak(event->type))
+	if(ISTWEAK(event->type))
 		op->customdata= WM_gesture_new(C, event, WM_GESTURE_RECT);
 	else
 		op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
@@ -2146,9 +2159,9 @@ void wm_operatortype_init(void)
 }
 
 /* default keymap for windows and screens, only call once per WM */
-void wm_window_keymap(wmWindowManager *wm)
+void wm_window_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Window", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
 	
 	/* items to make WM work */
 	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);

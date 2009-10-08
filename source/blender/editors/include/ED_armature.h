@@ -35,7 +35,7 @@ struct Bone;
 struct bArmature;
 struct bPoseChannel;
 struct wmOperator;
-struct wmWindowManager;
+struct wmKeyConfig;
 struct ListBase;
 struct View3D;
 struct ViewContext;
@@ -92,7 +92,7 @@ typedef struct EditBone
 
 /* armature_ops.c */
 void ED_operatortypes_armature(void);
-void ED_keymap_armature(struct wmWindowManager *wm);
+void ED_keymap_armature(struct wmKeyConfig *keyconf);
 
 /* editarmature.c */
 void ED_armature_from_edit(struct Object *obedit);
