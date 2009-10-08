@@ -1343,6 +1343,7 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	
 	/* 2 */
 	basenew->object->data= menew= add_mesh(me->id.name);	/* empty */
+	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 	me->id.us--;
 	make_editMesh(scene, basenew->object);
 	emnew= menew->edit_mesh;

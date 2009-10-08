@@ -1233,6 +1233,7 @@ Object *copy_object(Object *ob)
 	if(ob->totcol) {
 		obn->mat= MEM_dupallocN(ob->mat);
 		obn->matbits= MEM_dupallocN(ob->matbits);
+		obn->totcol= ob->totcol;
 	}
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);

@@ -62,8 +62,8 @@ void assign_matarar(struct Object *ob, struct Material ***matar, int totcol);
 
 int find_material_index(struct Object *ob, struct Material *ma);
 
-void object_add_material_slot(struct Object *ob);
-void object_remove_material_slot(struct Object *ob);
+int object_add_material_slot(struct Object *ob);
+int object_remove_material_slot(struct Object *ob);
 
 /* rendering */
 
