@@ -1314,7 +1314,7 @@ void BKE_rotMode_change_values (float quat[4], float eul[3], float *axis, float 
 	else if (newMode == ROT_MODE_AXISANGLE) { /* to axis-angle */
 		if (oldMode > 0) {
 			/* euler to axis angle */
-			EulOToAxisAngle(eul, oldMode, &quat[1], &quat[0]);
+			EulOToAxisAngle(eul, oldMode, axis, angle);
 		}
 		else if (oldMode == ROT_MODE_QUAT) {
 			/* quat to axis angle */

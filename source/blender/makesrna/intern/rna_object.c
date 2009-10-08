@@ -458,32 +458,6 @@ static void rna_Object_active_particle_system_index_set(struct PointerRNA *ptr, 
 	psys_set_current_num(ob, value);
 }
 
-/* rotation - euler angles */
-static void rna_Object_rotation_euler_get(PointerRNA *ptr, float *value)
-{
-	Object *ob= ptr->data;
-	
-	if(ob->rotmode == ROT_MODE_AXISANGLE) /* default XYZ eulers */
-		AxisAngleToEulO(&ob->quat[1], ob->quat[0], value, EULER_ORDER_DEFAULT);
-	else if(ob->rotmode == ROT_MODE_QUAT) /* default XYZ eulers  */
-		QuatToEul(ob->quat, value);
-	else
-		VECCOPY(value, ob->rot);
-}
-
-/* rotation - euler angles */
-static void rna_Object_rotation_euler_set(PointerRNA *ptr, const float *value)
-{
-	Object *ob= ptr->data;
-	
-	if(ob->rotmode == ROT_MODE_AXISANGLE) /* default XYZ eulers */
-		EulOToAxisAngle((float *)value, EULER_ORDER_DEFAULT, &ob->quat[1], &ob->quat[0]);
-	else if(ob->rotmode == ROT_MODE_QUAT) /* default XYZ eulers */
-		EulToQuat((float*)value, ob->quat);
-	else
-		VECCOPY(ob->rot, value);
-}
-
 /* rotation - axis-angle */
 static void rna_Object_rotation_axis_angle_get(PointerRNA *ptr, float *value)
 {
@@ -1271,7 +1245,6 @@ static void rna_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_float_funcs(prop, "rna_Object_rotation_euler_get", "rna_Object_rotation_euler_set", NULL);
 	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	

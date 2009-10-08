@@ -520,7 +520,7 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 		float quat[4];
 		/* convert to euler, passing through quats... */
-		AxisAngleToQuat(quat, &pchan->quat[1], pchan->quat[0]);
+		AxisAngleToQuat(quat, pchan->rotAxis, pchan->rotAngle);
 		QuatToEul(quat, tfp->ob_eul);
 	}
 	else if (pchan->rotmode == ROT_MODE_QUAT)
@@ -689,10 +689,24 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		
 	case B_OBJECTPANELROT:
 		if(ob) {
-			// TODO: need to support roation modes
-			ob->rot[0]= M_PI*tfp->ob_eul[0]/180.0;
-			ob->rot[1]= M_PI*tfp->ob_eul[1]/180.0;
-			ob->rot[2]= M_PI*tfp->ob_eul[2]/180.0;
+			float eul[3];
+			
+			/* make a copy to eul[3], to allow TAB on buttons to work */
+			eul[0]= M_PI*tfp->ob_eul[0]/180.0;
+			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
+			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
+			
+			if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				float quat[4];
+				/* convert to axis-angle, passing through quats  */
+				EulToQuat(eul, quat);
+				QuatToAxisAngle(quat, ob->rotAxis, &ob->rotAngle);
+			}
+			else if (ob->rotmode == ROT_MODE_QUAT)
+				EulToQuat(eul, ob->quat);
+			else
+				VecCopyf(ob->rot, eul);
+				
 			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 		}
 		break;
@@ -1130,9 +1144,19 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,		125, 240, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Location value from being Transformed");
 		uiBlockEndAlign(block);
 		
-		tfp->ob_eul[0]= 180.0*ob->rot[0]/M_PI;
-		tfp->ob_eul[1]= 180.0*ob->rot[1]/M_PI;
-		tfp->ob_eul[2]= 180.0*ob->rot[2]/M_PI;
+		if (ob->rotmode == ROT_MODE_AXISANGLE) {
+			float quat[4];
+			/* convert to euler, passing through quats... */
+			AxisAngleToQuat(quat, ob->rotAxis, ob->rotAngle);
+			QuatToEul(quat, tfp->ob_eul);
+		}
+		else if (ob->rotmode == ROT_MODE_QUAT)
+			QuatToEul(ob->quat, tfp->ob_eul);
+		else
+			VecCopyf(tfp->ob_eul, ob->rot);
+		tfp->ob_eul[0]*= 180.0/M_PI;
+		tfp->ob_eul[1]*= 180.0/M_PI;
+		tfp->ob_eul[2]*= 180.0/M_PI;
 		
 		uiBlockBeginAlign(block);
 		if ((ob->parent) && (ob->partype == PARBONE)) {
