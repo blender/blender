@@ -1319,6 +1319,7 @@ class OBJECT_OT_select_pattern(bpy.types.Operator):
 	__props__ = [
 		bpy.props.StringProperty(attr="pattern", name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen= 32, default= "*"),
 		bpy.props.BoolProperty(attr="case_sensitive", name="Case Sensitive", description="Do a case sensitive compare", default= False),
+		bpy.props.BoolProperty(attr="extend", name="Extend", description="Extend the existing selection", default= True),
 	]
 	
 	def execute(self, context):
@@ -1330,6 +1331,8 @@ class OBJECT_OT_select_pattern(bpy.types.Operator):
 		for ob in context.visible_objects:
 			if pattern_match(ob.name, self.pattern):
 				ob.selected = True
+			elif not self.extend:
+				ob.selected = False
 
 		return ('FINISHED',)
 		
