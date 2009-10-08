@@ -456,7 +456,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
 	SETCOL(btheme->tv3d.active, 255, 140, 25, 255);
-	SETCOL(btheme->tv3d.group,      16, 64, 16, 255);
+	SETCOL(btheme->tv3d.group,      8, 48, 8, 255);
 	SETCOL(btheme->tv3d.group_active, 85, 187, 85, 255);
 	SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
 	SETCOL(btheme->tv3d.vertex, 0, 0, 0, 255);
@@ -1018,7 +1018,7 @@ void init_userdef_do_versions(void)
 			}
 			/* Group theme colors */
 			if(btheme->tv3d.group[3]==0) {
-				SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
+				SETCOL(btheme->tv3d.group, 0x0C, 0x30, 0x0C, 255);
 				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
 			}
 			/* Sequence editor theme*/
