@@ -964,8 +964,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 					for(z = 0; z < sds->res[2]; z++)
 			{	
 				EffectedPoint epoint;
-				float voxelCenter[3], vel[3], retvel[3];
-
+				float voxelCenter[3] = {0,0,0} , vel[3] = {0,0,0} , retvel[3] = {0,0,0};
 				unsigned int index = smoke_get_index(x, sds->res[0], y, sds->res[1], z);
 
 				if(density[index] < FLT_EPSILON)					
@@ -983,9 +982,9 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 				pdDoEffectors(effectors, NULL, sds->effector_weights, &epoint, retvel, NULL);
 
 				// TODO dg - do in force!
-				force_x[index] += MIN2(MAX2(-1.0, retvel[0] * 0.002), 1.0); 
-				force_y[index] += MIN2(MAX2(-1.0, retvel[1] * 0.002), 1.0); 
-				force_z[index] += MIN2(MAX2(-1.0, retvel[2] * 0.002), 1.0);
+				force_x[index] = MIN2(MAX2(-1.0, retvel[0] * 0.2), 1.0); 
+				force_y[index] = MIN2(MAX2(-1.0, retvel[1] * 0.2), 1.0); 
+				force_z[index] = MIN2(MAX2(-1.0, retvel[2] * 0.2), 1.0);
 			}
 		}
 
