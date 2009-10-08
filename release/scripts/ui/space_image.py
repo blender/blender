@@ -2,7 +2,6 @@
 import bpy
 
 class IMAGE_MT_view(bpy.types.Menu):
-	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "View"
 
 	def draw(self, context):
@@ -44,7 +43,6 @@ class IMAGE_MT_view(bpy.types.Menu):
 		layout.itemO("screen.screen_full_area")
 
 class IMAGE_MT_select(bpy.types.Menu):
-	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Select"
 
 	def draw(self, context):
@@ -65,7 +63,6 @@ class IMAGE_MT_select(bpy.types.Menu):
 		layout.itemO("uv.select_linked")
 
 class IMAGE_MT_image(bpy.types.Menu):
-	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Image"
 
 	def draw(self, context):
@@ -109,7 +106,6 @@ class IMAGE_MT_image(bpy.types.Menu):
 			layout.itemR(sima, "image_painting")
 
 class IMAGE_MT_uvs_showhide(bpy.types.Menu):
-	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Show/Hide Faces"
 
 	def draw(self, context):
@@ -120,7 +116,6 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
 		layout.item_booleanO("uv.hide", "unselected", True)
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):
-	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Transform"
 
 	def draw(self, context):
@@ -131,7 +126,6 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
 		layout.itemO("tfm.resize")
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
-	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Mirror"
 
 	def draw(self, context):
@@ -145,7 +139,6 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 		props.constraint_axis[1]= True
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
-	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Weld/Align"
 
 	def draw(self, context):
@@ -155,7 +148,6 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 		layout.items_enumO("uv.align", "axis") # W, 2/3/4
 
 class IMAGE_MT_uvs(bpy.types.Menu):
-	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "UVs"
 
 	def draw(self, context):

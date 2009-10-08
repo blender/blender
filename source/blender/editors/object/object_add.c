@@ -686,51 +686,6 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
 }
 
-static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
-	uiLayout *layout= uiPupMenuLayout(pup);
-	
-	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
-	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
-	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemMenuEnumO(layout, "Metaball", ICON_OUTLINER_OB_META, "OBJECT_OT_metaball_add", "type");
-	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
-	uiItemS(layout);
-	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_add", "type", OB_LATTICE);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_add", "type", OB_EMPTY);
-	uiItemS(layout);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_add", "type", OB_CAMERA);
-	uiItemMenuEnumO(layout, "Lamp", ICON_OUTLINER_OB_LAMP, "OBJECT_OT_lamp_add", "type");
-	uiItemS(layout);
-	uiItemMenuEnumO(layout, "Force Field", ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_effector_add", "type");
-	uiItemS(layout);
-	uiItemMenuEnumO(layout, "Group Instance", ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_group_instance_add", "type");
-	
-	uiPupMenuEnd(C, pup);
-	
-	/* this operator is only for a menu, not used further */
-	return OPERATOR_CANCELLED;
-}
-
-/* only used as menu */
-void OBJECT_OT_primitive_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Add Primitive";
-	ot->description = "Add a primitive object.";
-	ot->idname= "OBJECT_OT_primitive_add";
-	
-	/* api callbacks */
-	ot->invoke= object_primitive_add_invoke;
-	
-	ot->poll= ED_operator_scene_editable;
-	
-	/* flags */
-	ot->flag= 0;
-}
-
 /* add dupligroup */
 static EnumPropertyItem *add_dupligroup_itemf(bContext *C, PointerRNA *ptr, int *free)
 {

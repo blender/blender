@@ -38,7 +38,6 @@ class CONSOLE_HT_header(bpy.types.Header):
 			row.itemO("console.autocomplete", text="Autocomplete")
 
 class CONSOLE_MT_console(bpy.types.Menu):
-	__space_type__ = 'CONSOLE'
 	__label__ = "Console"
 
 	def draw(self, context):
@@ -51,7 +50,6 @@ class CONSOLE_MT_console(bpy.types.Menu):
 		layout.itemO("console.paste")
 
 class CONSOLE_MT_report(bpy.types.Menu):
-	__space_type__ = 'CONSOLE'
 	__label__ = "Report"
 
 	def draw(self, context):

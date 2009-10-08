@@ -18,7 +18,6 @@ class USERPREF_HT_header(bpy.types.Header):
 			layout.itemO("wm.keyconfig_save", "Save Key Configuration...")
 			
 class USERPREF_MT_view(bpy.types.Menu):
-	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "View"
 
 	def draw(self, context):

@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "string.h"
+
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -39,6 +41,7 @@
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_screen.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -124,6 +127,49 @@ void WM_operator_stack_clear(bContext *C)
 		WM_operator_free(op);
 	}
 	
+}
+
+/* ****************************************** */
+
+static ListBase menutypes = {NULL, NULL}; /* global menutype list */
+
+MenuType *WM_menutype_find(const char *idname, int quiet)
+{
+	MenuType* mt;
+
+	if (idname[0]) {
+		for(mt=menutypes.first; mt; mt=mt->next)
+			if(strcmp(idname, mt->idname)==0)
+				return mt;
+	}
+
+	if(!quiet)
+		printf("search for unknown menutype %s\n", idname);
+
+	return NULL;
+}
+
+int WM_menutype_add(MenuType* mt)
+{
+	BLI_addtail(&menutypes, mt);
+	return 1;
+}
+
+void WM_menutype_freelink(MenuType* mt)
+{
+	BLI_freelinkN(&menutypes, mt);
+}
+
+void WM_menutype_free(void)
+{
+	MenuType* mt;
+
+	for(mt= menutypes.first; mt; mt= mt->next) {
+		if(mt->ext.free) {
+			mt->ext.free(mt->ext.data);
+		}
+		WM_menutype_freelink(mt);
+	}
 }
 
 /* ****************************************** */

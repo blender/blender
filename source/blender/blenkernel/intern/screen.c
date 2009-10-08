@@ -70,13 +70,8 @@ static void spacetype_free(SpaceType *st)
 			if(ht->ext.free)
 				ht->ext.free(ht->ext.data);
 
-		for(mt= art->menutypes.first; mt; mt= mt->next)
-			if(mt->ext.free)
-				mt->ext.free(mt->ext.data);
-
 		BLI_freelistN(&art->paneltypes);
 		BLI_freelistN(&art->headertypes);
-		BLI_freelistN(&art->menutypes);
 	}
 	
 	BLI_freelistN(&st->regiontypes);
@@ -341,27 +336,5 @@ unsigned int BKE_screen_visible_layers(bScreen *screen)
 		return screen->scene->lay;
 
 	return layer;
-}
-
-MenuType *BKE_spacemenu_find(const char *idname, int spacetype)
-{
-	SpaceType *st= BKE_spacetype_from_id(spacetype);
-	ARegionType *art;
-	MenuType* mt;
-
-	if(st==NULL) {
-		printf("space type %d is invalid\n", spacetype);
-		return NULL;
-	}
-
-	if(idname==NULL)
-		return NULL;
-
-	for(art= st->regiontypes.first; art; art= art->next)
-		for(mt=art->menutypes.first; mt; mt=mt->next)
-			if(strcmp(idname, mt->idname)==0)
-				return mt;
-
-	return NULL;
 }
 

@@ -138,9 +138,6 @@ typedef struct ARegionType {
 
 	/* header type definitions */
 	ListBase headertypes;
-
-	/* menu type definitions */
-	ListBase menutypes;
 	
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
@@ -200,7 +197,6 @@ typedef struct MenuType {
 
 	char		idname[BKE_ST_MAXNAME];	/* unique name */
 	char		label[BKE_ST_MAXNAME];	/* for button text */
-	int 		space_type;
 
 	/* verify if the menu should draw or not */
 	int			(*poll)(const struct bContext *, struct MenuType *);
@@ -223,7 +219,7 @@ const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
 void BKE_spacetypes_free(void);	/* only for quitting blender */
 
-MenuType *BKE_spacemenu_find(const char *idname, int spacetype);
+// MenuType *BKE_spacemenu_find(const char *idname, int spacetype);
 
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);

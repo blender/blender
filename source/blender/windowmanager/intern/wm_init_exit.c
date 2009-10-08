@@ -195,6 +195,7 @@ void WM_exit(bContext *C)
 		}
 	}
 	wm_operatortype_free();
+	WM_menutype_free();
 	
 	/* all non-screen and non-space stuff editors did, like editmode */
 	if(C)

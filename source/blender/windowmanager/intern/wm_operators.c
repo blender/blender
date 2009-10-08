@@ -783,7 +783,7 @@ static int wm_call_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
 
-	uiPupMenuInvoke(C, idname, CTX_wm_area(C)->spacetype);
+	uiPupMenuInvoke(C, idname);
 
 	return OPERATOR_CANCELLED;
 }

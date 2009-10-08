@@ -41,6 +41,7 @@ struct wmNotifier;
 struct rcti;
 struct PointerRNA;
 struct EnumPropertyItem;
+struct MenuType;
 
 typedef struct wmJob wmJob;
 
@@ -186,6 +187,12 @@ void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, shor
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
+
+/* *************** menu types ******************** */
+struct MenuType		*WM_menutype_find(const char *idname, int quiet);
+int					WM_menutype_add(struct MenuType* mt);
+void				WM_menutype_freelink(struct MenuType* mt);
+void				WM_menutype_free(void);
 
 			/* default operator callbacks for border/circle/lasso */
 int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);

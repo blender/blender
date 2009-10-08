@@ -199,7 +199,7 @@ void node_menus_register(ARegionType *art)
 	strcpy(mt->idname, "NODE_MT_add");
 	strcpy(mt->label, "Add");
 	mt->draw= node_menu_add;
-	BLI_addtail(&art->menutypes, mt);
+	WM_menutype_add(mt);
 }
 
 #if 0

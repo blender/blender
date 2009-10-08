@@ -1232,7 +1232,7 @@ void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname
 {
 	MenuType *mt;
 
-	mt= BKE_spacemenu_find(menuname, CTX_wm_area(C)->spacetype);
+	mt= WM_menutype_find(menuname, FALSE);
 
 	if(mt==NULL) {
 		printf("uiItemM: not found %s\n", menuname);

@@ -119,7 +119,7 @@ void EM_select_mirrored(Object *obedit, EditMesh *em)
 
 void EM_automerge(Scene *scene, Object *obedit, int update)
 {
-	Mesh *me= (Mesh*)obedit->data; /* can be NULL */
+	Mesh *me= obedit ? obedit->data : NULL; /* can be NULL */
 	int len;
 
 	if ((scene->toolsettings->automerge) &&

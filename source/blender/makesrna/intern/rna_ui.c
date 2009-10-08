@@ -348,12 +348,11 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 
 	if(!mt)
 		return;
-	if(!(art=region_type_find(NULL, mt->space_type, RGN_TYPE_HEADER)))
-		return;
 	
 	RNA_struct_free_extension(type, &mt->ext);
 
-	BLI_freelinkN(&art->menutypes, mt);
+	WM_menutype_freelink(mt);
+
 	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
@@ -376,12 +375,9 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 	/* validate the python class */
 	if(validate(&dummymtr, data, have_function) != 0)
 		return NULL;
-	
-	if(!(art=region_type_find(reports, dummymt.space_type, RGN_TYPE_HEADER)))
-		return NULL;
 
 	/* check if we have registered this menu type before, and remove it */
-	mt= BKE_spacemenu_find(dummymt.idname, dummymt.space_type);
+	mt= WM_menutype_find(dummymt.idname, TRUE);
 	if(mt && mt->ext.srna)
 		rna_Menu_unregister(C, mt->ext.srna);
 	
@@ -398,7 +394,7 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 	mt->poll= (have_function[0])? menu_poll: NULL;
 	mt->draw= (have_function[1])? menu_draw: NULL;
 
-	BLI_addtail(&art->menutypes, mt);
+	WM_menutype_add(mt);
 
 	/* update while blender is running */
 	if(C)
@@ -732,11 +728,6 @@ static void rna_def_menu(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
-	RNA_def_property_flag(prop, PROP_REGISTER);
-
-	prop= RNA_def_property(srna, "space_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
-	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
 	RNA_define_verify_sdna(1);

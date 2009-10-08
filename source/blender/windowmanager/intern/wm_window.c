@@ -68,7 +68,6 @@ GHOST_SystemHandle g_system= NULL;
 /* set by commandline */
 static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0;
 
-
 /* ******** win open & close ************ */
 
 /* XXX this one should correctly check for apple top header...
