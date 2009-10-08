@@ -555,7 +555,7 @@ def UnixPyBundle(target=None, source=None, env=None):
 	run('rm -rf "%s/site-packages"' % py_target)
 	run('mkdir "%s/site-packages"' % py_target)    # python needs it.'
 
-	run('rm "%s/lib-dynload/_tkinter.so"' % py_target)
+	run('rm -f "%s/lib-dynload/_tkinter.so"' % py_target)
 	run('find "%s" -name "test" -prune -exec rm -rf {} \;' % py_target)
 	run('find "%s" -name "*.py?" -exec rm -rf {} \;' % py_target)
 	run('find "%s" -name "*.so"-exec strip -s {} \;' % py_target)
