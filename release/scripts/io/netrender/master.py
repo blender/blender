@@ -744,7 +744,7 @@ def runMaster(address, broadcast, path, update_stats, test_break):
 			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 			s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-			start_time = time.time()
+		start_time = time.time()
 			
 		while not test_break():
 			httpd.handle_request()
