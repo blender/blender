@@ -4477,8 +4477,8 @@ void special_aftertrans_update(TransInfo *t)
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
+				EM_automerge(t->scene, t->obedit, 1);
 #if 0 // TRANSFORM_FIX_ME
-				EM_automerge(1);
 				/* when snapping, delay retopo until after automerge */
 				if (G.qual & LR_CTRLKEY) {
 					retopo_do_all();

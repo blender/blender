@@ -117,22 +117,26 @@ void EM_select_mirrored(Object *obedit, EditMesh *em)
 	}
 }
 
-void EM_automerge(int update) 
+void EM_automerge(Scene *scene, Object *obedit, int update)
 {
-// XXX	int len;
-	
-//	if ((scene->automerge) &&
-//		(obedit && obedit->type==OB_MESH) &&
-//		(((Mesh*)obedit->data)->mr==NULL)
-//	  ) {
-//		len = removedoublesflag(1, 1, scene->toolsettings->doublimit);
-//		if (len) {
-//			em->totvert -= len; /* saves doing a countall */
-//			if (update) {
-//				DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-//			}
-//		}
-//	}
+	Mesh *me= (Mesh*)obedit->data; /* can be NULL */
+	int len;
+
+	if ((scene->toolsettings->automerge) &&
+		(obedit && obedit->type==OB_MESH && obedit->mode==OB_MODE_EDIT) &&
+		(me->mr==NULL)
+	  ) {
+		Mesh *me= (Mesh*)obedit->data;
+		EditMesh *em= me->edit_mesh;
+
+		len = removedoublesflag(em, 1, 1, scene->toolsettings->doublimit);
+		if (len) {
+			em->totvert -= len; /* saves doing a countall */
+			if (update) {
+				DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+			}
+		}
+	}
 }
 
 /* ****************************** SELECTION ROUTINES **************** */
