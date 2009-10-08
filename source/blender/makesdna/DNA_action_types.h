@@ -128,12 +128,15 @@ typedef struct bPoseChannel {
 	void				*dual_quat;
 	void				*b_bone_dual_quats;
 	
-	float		loc[3];				/* transforms - written in by actions or transform */
+		/* transforms - written in by actions or transform */
+	float		loc[3];				
 	float		size[3];
 	
-	float 		eul[3];				/* rotations - written in by actions or transform (but only euler/quat in use at any one time!) */
-	float		quat[4];
-	short 		rotmode;			/* for now either quat (0), or xyz-euler (1) */
+		/* rotations - written in by actions or transform (but only one representation gets used at any time) */
+	float 		eul[3];					/* euler rotation */
+	float		quat[4];				/* quaternion rotation */
+	float 		rotAxis[3], rotAngle;	/* axis-angle rotation */
+	short 		rotmode;				/* eRotationModes - rotation representation to use */
 	short 		pad;
 	
 	float		chan_mat[4][4];		/* matrix result of loc/quat/size , and where we put deform in, see next line */

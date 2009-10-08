@@ -1285,16 +1285,14 @@ void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float
 /* Called from RNA when rotation mode changes 
  *	- the result should be that the rotations given in the provided pointers have had conversions 
  *	  applied (as appropriate), such that the rotation of the element hasn't 'visually' changed 
- *
- *	- as in SDNA data, quat is used to store quaternions AND axis-angle rotations...
  */
-void BKE_rotMode_change_values (float quat[4], float eul[3], short oldMode, short newMode)
+void BKE_rotMode_change_values (float quat[4], float eul[3], float *axis, float angle[3], short oldMode, short newMode)
 {
 	/* check if any change - if so, need to convert data */
 	if (newMode > 0) { /* to euler */
 		if (oldMode == ROT_MODE_AXISANGLE) {
 			/* axis-angle to euler */
-			AxisAngleToEulO(&quat[1], quat[0], eul, newMode);
+			AxisAngleToEulO(axis, *angle, eul, newMode);
 		}
 		else if (oldMode == ROT_MODE_QUAT) {
 			/* quat to euler */
@@ -1305,11 +1303,7 @@ void BKE_rotMode_change_values (float quat[4], float eul[3], short oldMode, shor
 	else if (newMode == ROT_MODE_QUAT) { /* to quat */
 		if (oldMode == ROT_MODE_AXISANGLE) {
 			/* axis angle to quat */
-			float q[4];
-			
-			/* copy to temp var first, since quats and axis-angle are stored in same place */
-			QuatCopy(q, quat);
-			AxisAngleToQuat(q, &quat[1], quat[0]);
+			AxisAngleToQuat(quat, axis, *angle);
 		}
 		else if (oldMode > 0) {
 			/* euler to quat */
@@ -1317,24 +1311,20 @@ void BKE_rotMode_change_values (float quat[4], float eul[3], short oldMode, shor
 		}
 		/* else { no conversion needed } */
 	}
-	else { /* to axis-angle */
+	else if (newMode == ROT_MODE_AXISANGLE) { /* to axis-angle */
 		if (oldMode > 0) {
 			/* euler to axis angle */
 			EulOToAxisAngle(eul, oldMode, &quat[1], &quat[0]);
 		}
 		else if (oldMode == ROT_MODE_QUAT) {
 			/* quat to axis angle */
-			float q[4];
-			
-			/* copy to temp var first, since quats and axis-angle are stored in same place */
-			QuatCopy(q, quat);
-			QuatToAxisAngle(q, &quat[1], &quat[0]);
+			QuatToAxisAngle(quat, axis, angle);
 		}
 		
 		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
-		if (IS_EQ(quat[1], quat[2]) && IS_EQ(quat[2], quat[3])) {
+		if (IS_EQ(axis[0], axis[1]) && IS_EQ(axis[1], axis[2])) {
 			/* for now, rotate around y-axis then (so that it simply becomes the roll) */
-			quat[2]= 1.0f;
+			axis[1]= 1.0f;
 		}
 	}
 }
@@ -1651,8 +1641,8 @@ void chan_calc_mat(bPoseChannel *chan)
 		EulOToMat3(chan->eul, chan->rotmode, rmat);
 	}
 	else if (chan->rotmode == ROT_MODE_AXISANGLE) {
-		/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
-		AxisAngleToMat3(&chan->quat[1], chan->quat[0], rmat);
+		/* axis-angle - not really that great for 3D-changing orientations */
+		AxisAngleToMat3(chan->rotAxis, chan->rotAngle, rmat);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */

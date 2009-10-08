@@ -689,6 +689,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		
 	case B_OBJECTPANELROT:
 		if(ob) {
+			// TODO: need to support roation modes
 			ob->rot[0]= M_PI*tfp->ob_eul[0]/180.0;
 			ob->rot[1]= M_PI*tfp->ob_eul[1]/180.0;
 			ob->rot[2]= M_PI*tfp->ob_eul[2]/180.0;
@@ -870,13 +871,12 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 				float quat[4];
 				/* convert to axis-angle, passing through quats  */
 				EulToQuat(eul, quat);
-				QuatToAxisAngle(quat, &pchan->quat[1], &pchan->quat[0]);
+				QuatToAxisAngle(quat, pchan->rotAxis, &pchan->rotAngle);
 			}
 			else if (pchan->rotmode == ROT_MODE_QUAT)
 				EulToQuat(eul, pchan->quat);
 			else
 				VecCopyf(pchan->eul, eul);
-			
 		}
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:

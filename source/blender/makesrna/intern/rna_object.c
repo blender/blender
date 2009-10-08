@@ -484,12 +484,34 @@ static void rna_Object_rotation_euler_set(PointerRNA *ptr, const float *value)
 		VECCOPY(ob->rot, value);
 }
 
+/* rotation - axis-angle */
+static void rna_Object_rotation_axis_angle_get(PointerRNA *ptr, float *value)
+{
+	Object *ob= ptr->data;
+	
+	/* for now, assume that rotation mode is axis-angle */
+	value[0]= ob->rotAngle;
+	VecCopyf(&value[1], ob->rotAxis);
+}
+
+/* rotation - axis-angle */
+static void rna_Object_rotation_axis_angle_set(PointerRNA *ptr, const float *value)
+{
+	Object *ob= ptr->data;
+	
+	/* for now, assume that rotation mode is axis-angle */
+	ob->rotAngle= value[0];
+	VecCopyf(ob->rotAxis, (float *)&value[1]);
+	
+	// TODO: validate axis?
+}
+
 static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 {
 	Object *ob= ptr->data;
 	
 	/* use API Method for conversions... */
-	BKE_rotMode_change_values(ob->quat, ob->rot, ob->rotmode, (short)value);
+	BKE_rotMode_change_values(ob->quat, ob->rot, ob->rotAxis, &ob->rotAngle, ob->rotmode, (short)value);
 	
 	/* finally, set the new rotation type */
 	ob->rotmode= value;
@@ -1242,8 +1264,8 @@ static void rna_def_object(BlenderRNA *brna)
 		 * having a single one is better for Keyframing and other property-management situations...
 		 */
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "quat");
-	// TODO: we may need some validation funcs
+	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
+	RNA_def_property_float_funcs(prop, "rna_Object_rotation_axis_angle_get", "rna_Object_rotation_axis_angle_set", NULL);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
@@ -1283,7 +1305,7 @@ static void rna_def_object(BlenderRNA *brna)
 	
 #if 0 // XXX not supported well yet...
 	prop= RNA_def_property(srna, "delta_rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "dquat");
+	RNA_def_property_float_sdna(prop, NULL, "dquat"); // FIXME: this is not a single field any more! (drotAxis and drotAngle)
 	RNA_def_property_ui_text(prop, "Delta Rotation (Axis Angle)", "Extra added rotation to the rotation of the object (when using Axis-Angle rotations).");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 #endif

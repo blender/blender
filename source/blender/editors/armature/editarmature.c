@@ -4875,14 +4875,39 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			/* check if convert to eulers for locking... */
 			if (pchan->protectflag & OB_LOCK_ROT4D) {
 				/* perform clamping on a component by component basis */
-				if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
-					pchan->quat[0]= (pchan->rotmode == ROT_MODE_AXISANGLE) ? 0.0f : 1.0f;
-				if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
-					pchan->quat[1]= 0.0f;
-				if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
-					pchan->quat[2]= 0.0f;
-				if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
-					pchan->quat[3]= 0.0f;
+				if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+					if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
+						pchan->rotAngle= 0.0f;
+					if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+						pchan->rotAxis[0]= 0.0f;
+					if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+						pchan->rotAxis[1]= 0.0f;
+					if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+						pchan->rotAxis[2]= 0.0f;
+						
+					/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
+					if (IS_EQ(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQ(pchan->rotAxis[1], pchan->rotAxis[2]))
+						pchan->rotAxis[1] = 1.0f;
+				}
+				else if (pchan->rotmode == ROT_MODE_QUAT) {
+					if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
+						pchan->quat[0]= 1.0f;
+					if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+						pchan->quat[1]= 0.0f;
+					if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+						pchan->quat[2]= 0.0f;
+					if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+						pchan->quat[3]= 0.0f;
+				}
+				else {
+					/* the flag may have been set for the other modes, so just ignore the extra flag... */
+					if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+						pchan->eul[0]= 0.0f;
+					if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+						pchan->eul[1]= 0.0f;
+					if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+						pchan->eul[2]= 0.0f;
+				}
 			}
 			else {
 				/* perform clamping using euler form (3-components) */
@@ -4893,7 +4918,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 					QuatToEul(pchan->quat, oldeul);
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-					AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], oldeul, EULER_ORDER_DEFAULT);
+					AxisAngleToEulO(pchan->rotAxis, pchan->rotAngle, oldeul, EULER_ORDER_DEFAULT);
 				}
 				else {
 					VECCOPY(oldeul, pchan->eul);
@@ -4916,7 +4941,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 					}
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-					AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], oldeul, EULER_ORDER_DEFAULT);
+					EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, &pchan->rotAngle);
 				}
 				else {
 					VECCOPY(pchan->eul, eul);
@@ -4930,8 +4955,8 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 				/* by default, make rotation of 0 radians around y-axis (roll) */
-				pchan->quat[0]=pchan->quat[1]=pchan->quat[3]= 0.0f;
-				pchan->quat[2]= 1.0f;
+				pchan->rotAxis[0]=pchan->rotAxis[2]=pchan->rotAngle= 0.0f;
+				pchan->rotAxis[1]= 1.0f;
 			}
 			else {
 				pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;

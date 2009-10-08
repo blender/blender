@@ -819,7 +819,7 @@ void pose_copy_menu(Scene *scene)
 							
 							/* need to convert to quat first (in temp var)... */
 							Mat4ToQuat(delta_mat, tmp_quat);
-							QuatToAxisAngle(tmp_quat, &pchan->quat[1], &pchan->quat[0]);
+							QuatToAxisAngle(tmp_quat, pchan->rotAxis, &pchan->rotAngle);
 						}
 						else if (pchan->rotmode == ROT_MODE_QUAT)
 							Mat4ToQuat(delta_mat, pchan->quat);
@@ -1024,23 +1024,23 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				else if (pchan->rotmode > 0) {
 					/* quat/axis-angle to euler */
 					if (chan->rotmode == ROT_MODE_AXISANGLE)
-						AxisAngleToEulO(&chan->quat[1], chan->quat[0], pchan->eul, pchan->rotmode);
+						AxisAngleToEulO(chan->rotAxis, chan->rotAngle, pchan->eul, pchan->rotmode);
 					else
 						QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					/* quat/euler to axis angle */
 					if (chan->rotmode > 0)
-						EulOToAxisAngle(chan->eul, chan->rotmode, &pchan->quat[1], &pchan->quat[0]);
+						EulOToAxisAngle(chan->eul, chan->rotmode, pchan->rotAxis, &pchan->rotAngle);
 					else	
-						QuatToAxisAngle(chan->quat, &pchan->quat[1], &pchan->quat[0]);
+						QuatToAxisAngle(chan->quat, pchan->rotAxis, &pchan->rotAngle);
 				}
 				else {
 					/* euler/axis-angle to quat */
 					if (chan->rotmode > 0)
 						EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
 					else
-						AxisAngleToQuat(pchan->quat, &chan->quat[1], chan->quat[0]);
+						AxisAngleToQuat(pchan->quat, chan->rotAxis, pchan->rotAngle);
 				}
 				
 				/* paste flipped pose? */
@@ -1055,10 +1055,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 						float eul[3];
 						
-						AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], eul, EULER_ORDER_DEFAULT);
+						AxisAngleToEulO(pchan->rotAxis, pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
 						eul[1]*= -1;
 						eul[2]*= -1;
-						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
+						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, &pchan->rotAngle);
 						
 						// experimental method (uncomment to test):
 #if 0

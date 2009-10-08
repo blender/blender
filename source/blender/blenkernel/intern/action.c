@@ -446,7 +446,7 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	
 	strncpy(chan->name, name, 31);
 	/* init vars to prevent math errors */
-	chan->quat[0] = 1.0f;
+	chan->quat[0] = chan->rotAxis[1]= 1.0f;
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0f;
 	
 	chan->limitmin[0]= chan->limitmin[1]= chan->limitmin[2]= -180.0f;
@@ -607,6 +607,8 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	VECCOPY(pchan->loc, chan->loc);
 	VECCOPY(pchan->size, chan->size);
 	VECCOPY(pchan->eul, chan->eul);
+	VECCOPY(pchan->rotAxis, chan->rotAxis);
+	pchan->rotAngle= chan->rotAngle;
 	QUATCOPY(pchan->quat, chan->quat);
 	pchan->rotmode= chan->rotmode;
 	Mat4CpyMat4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
@@ -975,14 +977,16 @@ void rest_pose(bPose *pose)
 	memset(pose->stride_offset, 0, sizeof(pose->stride_offset));
 	memset(pose->cyclic_offset, 0, sizeof(pose->cyclic_offset));
 	
-	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next){
+	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next) {
 		for (i=0; i<3; i++) {
 			pchan->loc[i]= 0.0f;
 			pchan->quat[i+1]= 0.0f;
 			pchan->eul[i]= 0.0f;
 			pchan->size[i]= 1.0f;
+			pchan->rotAxis[i]= 0.0f;
 		}
-		pchan->quat[0]= 1.0f;
+		pchan->quat[0]= pchan->rotAxis[1]= 1.0f;
+		pchan->rotAngle= 0.0f;
 		
 		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
 	}

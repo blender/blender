@@ -1041,6 +1041,8 @@ Object *add_object(struct Scene *scene, int type)
 	 * but rotations default to quaternions 
 	 */
 	ob->rotmode= ROT_MODE_EUL;
+	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
+	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
 
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
@@ -1602,9 +1604,9 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 		EulOToMat3(ob->drot, ob->rotmode, dmat);
 	}
 	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-		/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
-		AxisAngleToMat3(&ob->quat[1], ob->quat[0], rmat);
-		AxisAngleToMat3(&ob->dquat[1], ob->dquat[0], dmat);
+		/* axis-angle -  not really that great for 3D-changing orientations */
+		AxisAngleToMat3(ob->rotAxis, ob->rotAngle, rmat);
+		AxisAngleToMat3(ob->drotAxis, ob->drotAngle, dmat);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */

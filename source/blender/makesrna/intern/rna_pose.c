@@ -162,7 +162,7 @@ static void rna_PoseChannel_rotation_euler_get(PointerRNA *ptr, float *value)
 	bPoseChannel *pchan= ptr->data;
 	
 	if(pchan->rotmode == ROT_MODE_AXISANGLE) /* default XYZ eulers */
-		AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], value, EULER_ORDER_DEFAULT);
+		AxisAngleToEulO(pchan->rotAxis, pchan->rotAngle, value, EULER_ORDER_DEFAULT);
 	else if(pchan->rotmode == ROT_MODE_QUAT) /* default XYZ eulers  */
 		QuatToEul(pchan->quat, value);
 	else
@@ -175,11 +175,33 @@ static void rna_PoseChannel_rotation_euler_set(PointerRNA *ptr, const float *val
 	bPoseChannel *pchan= ptr->data;
 	
 	if(pchan->rotmode == ROT_MODE_AXISANGLE) /* default XYZ eulers */
-		EulOToAxisAngle((float *)value, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
+		EulOToAxisAngle((float *)value, EULER_ORDER_DEFAULT, pchan->rotAxis, &pchan->rotAngle);
 	else if(pchan->rotmode == ROT_MODE_QUAT) /* default XYZ eulers */
 		EulToQuat((float*)value, pchan->quat);
 	else
 		VECCOPY(pchan->eul, value);
+}
+
+/* rotation - axis-angle */
+static void rna_PoseChannel_rotation_axis_angle_get(PointerRNA *ptr, float *value)
+{
+	bPoseChannel *pchan= ptr->data;
+	
+	/* for now, assume that rotation mode is axis-angle */
+	value[0]= pchan->rotAngle;
+	VecCopyf(&value[1], pchan->rotAxis);
+}
+
+/* rotation - axis-angle */
+static void rna_PoseChannel_rotation_axis_angle_set(PointerRNA *ptr, const float *value)
+{
+	bPoseChannel *pchan= ptr->data;
+	
+	/* for now, assume that rotation mode is axis-angle */
+	pchan->rotAngle= value[0];
+	VecCopyf(pchan->rotAxis, (float *)&value[1]);
+	
+	// TODO: validate axis?
 }
 
 static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
@@ -187,7 +209,7 @@ static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
 	bPoseChannel *pchan= ptr->data;
 	
 	/* use API Method for conversions... */
-	BKE_rotMode_change_values(pchan->quat, pchan->eul, pchan->rotmode, (short)value);
+	BKE_rotMode_change_values(pchan->quat, pchan->eul, pchan->rotAxis, &pchan->rotAngle, pchan->rotmode, (short)value);
 	
 	/* finally, set the new rotation type */
 	pchan->rotmode= value;
@@ -578,8 +600,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 		 * having a single one is better for Keyframing and other property-management situations...
 		 */
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "quat");
-	// TODO: we may need some validation funcs
+	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
+	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_axis_angle_get", "rna_PoseChannel_rotation_axis_angle_set", NULL);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	

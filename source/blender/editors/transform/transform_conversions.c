@@ -509,7 +509,7 @@ static short apply_targetless_ik(Object *ob)
 					if (parchan->rotmode > 0) 
 						Mat3ToEulO(rmat3, parchan->eul, parchan->rotmode);
 					else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-						Mat3ToAxisAngle(rmat3, &parchan->quat[1], &parchan->quat[0]);
+						Mat3ToAxisAngle(rmat3, parchan->rotAxis, &pchan->rotAngle);
 					else
 						Mat3ToQuat(rmat3, parchan->quat);
 					
@@ -519,7 +519,7 @@ static short apply_targetless_ik(Object *ob)
 						if (parchan->rotmode > 0)
 							EulOToMat3(parchan->eul, parchan->rotmode, qrmat);
 						else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-							AxisAngleToMat3(&parchan->quat[1], parchan->quat[0], qrmat);
+							AxisAngleToMat3(parchan->rotAxis, parchan->rotAngle, qrmat);
 						else
 							QuatToMat3(parchan->quat, qrmat);
 						
