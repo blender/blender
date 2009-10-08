@@ -2347,7 +2347,14 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 			ED_screen_animation_timer_update(C, stime->redraws);
 		}
 		else {
-			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, sync, mode);
+			int redraws = TIME_REGION|TIME_ALL_3D_WIN;
+
+			/* XXX - would like a better way to deal with this situation - Campbell */
+			if((sa) && (sa->spacetype == SPACE_SEQ)) {
+				redraws |= TIME_SEQ;
+			}
+
+			ED_screen_animation_timer(C, redraws, sync, mode);
 			
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;
