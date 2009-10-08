@@ -1098,7 +1098,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 	NSUInteger tabletEvent;
 	
 	//Handle tablet events combined with mouse events
-	switch ([event subtype]) {
+	@try {
+		switch ([event subtype]) {
 		case NX_SUBTYPE_TABLET_POINT:
 			tabletEvent = NSTabletPoint;
 			break;
@@ -1109,7 +1110,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 		default:
 			tabletEvent = [event type];
 			break;
+		}
 	}
+	@catch (NSException * e) {
+		//FIXME: check why we get such exceptions when using a tablet
+		return GHOST_kFailure;
+	}
+	
 	
 	switch (tabletEvent) {
 		case NSTabletPoint:
