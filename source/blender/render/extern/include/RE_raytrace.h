@@ -83,6 +83,7 @@ void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max);
 /* RayObject constructors */
 RayObject* RE_rayobject_octree_create(int ocres, int size);
 RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
+RayObject* RE_rayobject_empty_create();
 
 RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
 RayObject* RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */

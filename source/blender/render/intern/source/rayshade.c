@@ -335,6 +335,12 @@ static void makeraytree_single(Render *re)
 		}
 	}
 	
+	if(faces + special == 0)
+	{
+		re->raytree = RE_rayobject_empty_create();
+		return;
+	}
+	
 	//Create raytree
 	raytree = re->raytree = RE_rayobject_create( re, re->r.raytrace_structure, faces+special );
 
