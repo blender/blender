@@ -384,18 +384,28 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 
 	switch (event->type) {
-		case RIGHTMOUSE:
 		case LEFTMOUSE: /* confirm */ // XXX hardcoded
 			if (event->val == KM_RELEASE) {
 				/* finish */
 				ED_region_tag_redraw(lcd->ar);
-
+				
 				ringsel_finish(C, op);
 				ringsel_exit(C, op);
 				
 				return OPERATOR_FINISHED;
 			}
-
+			
+			ED_region_tag_redraw(lcd->ar);
+			break;
+		case RIGHTMOUSE: /* abort */ // XXX hardcoded
+		case ESCKEY:
+			if (event->val == KM_RELEASE) {
+				/* cancel */
+				ED_region_tag_redraw(lcd->ar);
+				
+				return ringsel_cancel(C, op);
+			}
+			
 			ED_region_tag_redraw(lcd->ar);
 			break;
 		case WHEELUPMOUSE:  /* change number of cuts */

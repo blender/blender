@@ -39,6 +39,12 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
 		
 		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		
+		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
@@ -86,6 +92,12 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col.itemO("mesh.uvs_mirror")
 		
 		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		
+		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
@@ -127,6 +139,12 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 		col.itemO("curve.subdivide")
 		
 		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		
+		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
@@ -158,6 +176,12 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 		col.itemL(text="Modeling:")
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
+		
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -217,6 +241,12 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 		col.itemO("armature.extrude")
 		
 		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		
+		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
@@ -238,6 +268,12 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 		col.itemO("tfm.resize", text="Scale")
 		
 		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
+		
+		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
 		col.itemO("screen.repeat_last")
 		col.itemO("screen.repeat_history", text="History...")
@@ -257,6 +293,12 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
+		
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
@@ -301,6 +343,12 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 		col.itemO("pose.relax", text="Relax")
 		col.itemO("pose.push", text="Push")
 		col.itemO("pose.breakdown", text="Breakdowner")
+		
+		col = layout.column(align=True)
+		col.itemL(text="Grease Pencil:")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW', text="Draw Freehand")
+		col.item_enumO("gpencil.draw", "mode", 'DRAW_STRAIGHT', text="Straight Line")
+		col.item_enumO("gpencil.draw", "mode", 'ERASER', text="Eraser")
 		
 		col = layout.column(align=True)
 		col.itemL(text="Repeat:")
