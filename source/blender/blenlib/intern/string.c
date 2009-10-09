@@ -100,6 +100,77 @@ char *BLI_sprintfN(const char *format, ...)
 	return n;
 }
 
+/* Replaces all occurances of oldText with newText in str, returning a new string that doesn't 
+ * contain the 'replaced' occurances.
+ */
+// A rather wasteful string-replacement utility, though this shall do for now...
+// Feel free to replace this with an even safe + nicer alternative 
+char *BLI_replacestr(char *str, const char *oldText, const char *newText)
+{
+	DynStr *ds= NULL;
+	int lenOld= strlen(oldText);
+	char *match;
+	
+	/* sanity checks */
+	if ((str == NULL) || (str[0]==0))
+		return NULL;
+	else if ((oldText == NULL) || (newText == NULL) || (oldText[0]==0))
+		return BLI_strdup(str);
+	
+	/* while we can still find a match for the old substring that we're searching for, 
+	 * keep dicing and replacing
+	 */
+	while ( (match = strstr(str, oldText)) ) {
+		/* the assembly buffer only gets created when we actually need to rebuild the string */
+		if (ds == NULL)
+			ds= BLI_dynstr_new();
+			
+		/* if the match position does not match the current position in the string, 
+		 * copy the text up to this position and advance the current position in the string
+		 */
+		if (str != match) {
+			/* replace the token at the 'match' position with \0 so that the copied string will be ok,
+			 * add the segment of the string from str to match to the buffer, then restore the value at match
+			 */
+			match[0]= 0;
+			BLI_dynstr_append(ds, str);
+			match[0]= oldText[0];
+			
+			/* now our current position should be set on the start of the match */
+			str= match;
+		}
+		
+		/* add the replacement text to the accumulation buffer */
+		BLI_dynstr_append(ds, newText);
+		
+		/* advance the current position of the string up to the end of the replaced segment */
+		str += lenOld;
+	}
+	
+	/* finish off and return a new string that has had all occurances of */
+	if (ds) {
+		char *newStr;
+		
+		/* add what's left of the string to the assembly buffer 
+		 *	- we've been adjusting str to point at the end of the replaced segments
+		 */
+		if (str != NULL)
+			BLI_dynstr_append(ds, str);
+		
+		/* convert to new c-string (MEM_malloc'd), and free the buffer */
+		newStr= BLI_dynstr_get_cstring(ds);
+		BLI_dynstr_free(ds);
+		
+		return newStr;
+	}
+	else {
+		/* just create a new copy of the entire string - we avoid going through the assembly buffer 
+		 * for what should be a bit more efficiency...
+		 */
+		return BLI_strdup(str);
+	}
+} 
+
 int BLI_streq(const char *a, const char *b) 
 {
 	return (strcmp(a, b)==0);

@@ -68,6 +68,18 @@ char *BLI_strdupn(const char *str, int len);
 	 */
 char *BLI_strncpy(char *dst, const char *src, int maxncpy);
 
+	/**
+	 * Returns a copy of the cstring @a str into a newly mallocN'd
+	 * string with all instances of oldText replaced with newText,
+	 * and returns it.
+	 * 
+	 * @param str The string to replace occurances of oldText in
+	 * @param oldText The text in the string to find and replace
+	 * @param newText The text in the string to find and replace
+	 * @retval Returns the duplicated string
+	 */
+char *BLI_replacestr(char *str, const char *oldText, const char *newText);
+
 	/* 
 	 * Replacement for snprintf
 	 */
