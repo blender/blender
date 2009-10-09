@@ -178,7 +178,8 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
 	__default_closed__ = True
 	
 	def poll(self, context):
-		return (context.smoke)
+		smoke = context.smoke
+		return (smoke and smoke.smoke_type == 'TYPE_DOMAIN')
 	
 	def draw(self, context):
 		domain = context.smoke.domain_settings
