@@ -162,13 +162,17 @@ void WM_menutype_freelink(MenuType* mt)
 
 void WM_menutype_free(void)
 {
-	MenuType* mt;
+	MenuType* mt= menutypes.first, *mt_next;
 
-	for(mt= menutypes.first; mt; mt= mt->next) {
-		if(mt->ext.free) {
+	while(mt) {
+		mt_next= mt->next;
+
+		if(mt->ext.free)
 			mt->ext.free(mt->ext.data);
-		}
+
 		WM_menutype_freelink(mt);
+
+		mt= mt_next;
 	}
 }
 

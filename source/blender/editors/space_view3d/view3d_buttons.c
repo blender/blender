@@ -1135,7 +1135,6 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	}
 	else {
 		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0) {
-			strcpy(ob->parsubstr, "");
 			uiBlockEndAlign(block);
 		}
 	}
