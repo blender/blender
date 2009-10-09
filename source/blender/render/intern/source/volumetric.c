@@ -136,6 +136,7 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	isect->lay= -1;
 	
 	if (intersect_type == VOL_BOUNDS_DEPTH) {
+		isect->skip = RE_SKIP_VLR_NEIGHBOUR;
 		isect->orig.face = (void*)shi->vlr;
 		isect->orig.ob = (void*)shi->obi;
 	} else if (intersect_type == VOL_BOUNDS_SS) {
