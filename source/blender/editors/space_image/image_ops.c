@@ -813,12 +813,25 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 			
 			/* change type? */
+			if(ima->type==IMA_TYPE_R_RESULT) {
+				ima->type= IMA_TYPE_IMAGE;
+
+				/* workaround to ensure the render result buffer is no longer used
+				 * by this image, otherwise can crash when a new render result is
+				 * created. */
+				if(ibuf->rect && !(ibuf->mall & IB_rect))
+					imb_freerectImBuf(ibuf);
+				if(ibuf->rect_float && !(ibuf->mall & IB_rectfloat))
+					imb_freerectfloatImBuf(ibuf);
+				if(ibuf->zbuf && !(ibuf->mall & IB_zbuf))
+					IMB_freezbufImBuf(ibuf);
+				if(ibuf->zbuf_float && !(ibuf->mall & IB_zbuffloat))
+					IMB_freezbuffloatImBuf(ibuf);
+			}
 			if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
 				ima->source= IMA_SRC_FILE;
 				ima->type= IMA_TYPE_IMAGE;
 			}
-			if(ima->type==IMA_TYPE_R_RESULT)
-				ima->type= IMA_TYPE_IMAGE;
 			
 			/* name image as how we saved it */
 			len= strlen(name);
