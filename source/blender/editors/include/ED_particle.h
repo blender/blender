@@ -46,6 +46,8 @@ int PE_start_edit(struct PTCacheEdit *edit);
 
 /* access */
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob);
+struct PTCacheEdit *PE_create_current(struct Scene *scene, struct Object *ob);
+void PE_current_changed(struct Scene *scene, struct Object *ob);
 int PE_minmax(struct Scene *scene, float *min, float *max);
 struct ParticleEditSettings *PE_settings(struct Scene *scene);
 

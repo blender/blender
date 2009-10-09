@@ -194,7 +194,7 @@ ParticleEditSettings *PE_settings(Scene *scene)
 }
 
 /* always gets atleast the first particlesystem even if PSYS_CURRENT flag is not set */
-PTCacheEdit *PE_get_current(Scene *scene, Object *ob)
+static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 {
 	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit = NULL;
@@ -232,18 +232,18 @@ PTCacheEdit *PE_get_current(Scene *scene, Object *ob)
 			if(psys->flag & PSYS_CURRENT) {
 				if(psys->part && psys->part->type == PART_HAIR) {
 					if(psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED) {
-						if(!psys->pointcache->edit)
+						if(create && !psys->pointcache->edit)
 							PE_create_particle_edit(scene, ob, pid->cache, NULL);
 						edit = pid->cache->edit;
 					}
 					else {
-						if(!psys->edit && psys->flag & PSYS_HAIR_DONE)
+						if(create && !psys->edit && psys->flag & PSYS_HAIR_DONE)
 							PE_create_particle_edit(scene, ob, NULL, psys);
 						edit = psys->edit;
 					}
 				}
 				else {
-					if(pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
+					if(create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
 						PE_create_particle_edit(scene, ob, pid->cache, psys);
 					edit = pid->cache->edit;
 				}
@@ -252,13 +252,13 @@ PTCacheEdit *PE_get_current(Scene *scene, Object *ob)
 			}
 		}
 		else if(pset->edittype == PE_TYPE_SOFTBODY && pid->type == PTCACHE_TYPE_SOFTBODY) {
-			if(pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
+			if(create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
 				PE_create_particle_edit(scene, ob, pid->cache, NULL);
 			edit = pid->cache->edit;
 			break;
 		}
 		else if(pset->edittype == PE_TYPE_CLOTH && pid->type == PTCACHE_TYPE_CLOTH) {
-			if(pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
+			if(create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
 				PE_create_particle_edit(scene, ob, pid->cache, NULL);
 			edit = pid->cache->edit;
 			break;
@@ -271,6 +271,22 @@ PTCacheEdit *PE_get_current(Scene *scene, Object *ob)
 	BLI_freelistN(&pidlist);
 
 	return edit;
+}
+
+PTCacheEdit *PE_get_current(Scene *scene, Object *ob)
+{
+	return pe_get_current(scene, ob, 0);
+}
+
+PTCacheEdit *PE_create_current(Scene *scene, Object *ob)
+{
+	return pe_get_current(scene, ob, 1);
+}
+
+void PE_current_changed(Scene *scene, Object *ob)
+{
+	if(ob->mode == OB_MODE_PARTICLE_EDIT)
+		PE_create_current(scene, ob);
 }
 
 void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
@@ -1195,8 +1211,6 @@ void PE_update_object(Scene *scene, Object *ob, int useflag)
 
 	if(edit->psys)
 		edit->psys->flag &= ~PSYS_HAIR_UPDATED;
-
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 
 /************************************************/
@@ -2409,7 +2423,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 	}
 
 	PE_update_object(data.scene, data.ob, 0);
-
 	DAG_id_flush_update(&data.ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
 
@@ -3734,13 +3747,15 @@ int PE_minmax(Scene *scene, float *min, float *max)
 /* initialize needed data for bake edit */
 static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys)
 {
-	PTCacheEdit *edit= psys ? psys->edit : cache->edit;
+	PTCacheEdit *edit= (psys)? psys->edit : cache->edit;
+	ParticleSystemModifierData *psmd= (psys)? psys_get_modifier(ob, psys): NULL;
 	POINT_P; KEY_K;
 	ParticleData *pa = NULL;
 	HairKey *hkey;
 	int totpoint;
 
-	if(!psys && !cache)
+	/* no psmd->dm happens in case particle system modifier is not enabled */
+	if(!(psys && psmd && psmd->dm) && !cache)
 		return;
 
 	if(cache && cache->flag & PTCACHE_DISK_CACHE)
@@ -3850,10 +3865,12 @@ static int particle_edit_toggle_poll(bContext *C)
 
 static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 
 	if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ob->mode |= OB_MODE_PARTICLE_EDIT;
+		PE_create_current(scene, ob);
 		toggle_particle_cursor(C, 1);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_PARTICLE, NULL);
 	}

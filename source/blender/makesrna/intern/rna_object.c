@@ -102,6 +102,7 @@ EnumPropertyItem object_type_items[] = {
 #include "BLI_editVert.h" /* for EditMesh->mat_nr */
 
 #include "ED_object.h"
+#include "ED_particle.h"
 
 void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
@@ -460,10 +461,18 @@ static int rna_Object_active_particle_system_index_get(PointerRNA *ptr)
 	return psys_get_current_num(ob);
 }
 
-static void rna_Object_active_particle_system_index_set(struct PointerRNA *ptr, int value)
+static void rna_Object_active_particle_system_index_set(PointerRNA *ptr, int value)
 {
 	Object *ob= (Object*)ptr->id.data;
 	psys_set_current_num(ob, value);
+}
+
+static void rna_Object_particle_update(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= (Object*)ptr->id.data;
+
+	PE_current_changed(scene, ob);
 }
 
 /* rotation - axis-angle */
@@ -1418,7 +1427,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_particle_system_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Object_active_particle_system_index_get", "rna_Object_active_particle_system_index_set", "rna_Object_active_particle_system_index_range");
 	RNA_def_property_ui_text(prop, "Active Particle System Index", "Index of active particle system slot.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_particle_update");
 
 	/* restrict */
 	prop= RNA_def_property(srna, "restrict_view", PROP_BOOLEAN, PROP_NONE);

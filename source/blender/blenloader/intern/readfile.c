@@ -3918,7 +3918,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->flag &= ~OB_FROMGROUP;
 	
 	/* editmode doesn't get saved in files, so should get cleared when reloading... */
-	ob->mode &= ~OB_MODE_EDIT;
+	ob->mode &= ~(OB_MODE_EDIT|OB_MODE_PARTICLE_EDIT);
 	
 	ob->disp.first=ob->disp.last= NULL;
 	
