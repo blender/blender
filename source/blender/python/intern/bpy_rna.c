@@ -433,7 +433,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	{
 		PointerRNA newptr;
 		newptr= RNA_property_pointer_get(ptr, prop);
-		if (newptr.type) {
+		if (newptr.data) {
 			ret = pyrna_struct_CreatePyObject(&newptr);
 		} else {
 			ret = Py_None;
@@ -1297,7 +1297,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 
 		CTX_data_get(self->ptr.data, name, &newptr, &newlb);
 
-        if (newptr.type) {
+        if (newptr.data) {
             ret = pyrna_struct_CreatePyObject(&newptr);
 		}
 		else if (newlb.first) {
