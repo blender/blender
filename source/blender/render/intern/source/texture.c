@@ -1182,7 +1182,8 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	texres->talpha= 0;	/* is set when image texture returns alpha (considered premul) */
 	
 	if(tex->use_nodes && tex->nodetree) {
-		retval = evalnodes(tex, texvec, dxt, dyt, texres, thread, which_output);
+		if(osatex) retval = evalnodes(tex, texvec, dxt, dyt, texres, thread, which_output);
+		else retval = evalnodes(tex, texvec, NULL, NULL, texres, thread, which_output);
 	}
 	else
 	switch(tex->type) {
