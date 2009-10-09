@@ -114,6 +114,7 @@ static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
 			sprintf(psmd->modifier.name, "FluidParticleSystem" );
 			psmd->psys= psys;
 			BLI_addtail(&ob->modifiers, psmd);
+			modifier_unique_name(&ob->modifiers, psmd);
 		}
 	}
 	else {

@@ -177,9 +177,10 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 	
 	/* free KeyingSet's data, then remove it from the scene */
 	BKE_keyingset_free(ks);
-	
 	BLI_freelinkN(&scene->keyingsets, ks);
-	scene->active_keyingset= 0;
+	
+	/* the active one should now be the previously second-to-last one */
+	scene->active_keyingset--;
 	
 	return OPERATOR_FINISHED;
 }
@@ -258,8 +259,8 @@ static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
 				BLI_freelinkN(&ks->paths, ksp);
 			}
 			
-			/* fix active path index */
-			ks->active_path= 0;
+			/* the active path should now be the previously second-to-last active one */
+			ks->active_path--;
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "No active Keying Set Path to remove");

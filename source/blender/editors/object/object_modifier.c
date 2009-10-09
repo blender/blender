@@ -76,7 +76,7 @@
 
 int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
 {
-	ModifierData *md;
+	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
 
 	if(mti->flags&eModifierTypeFlag_Single) {
@@ -87,19 +87,28 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 	}
 
 	if(type == eModifierType_ParticleSystem) {
+		/* don't need to worry about the new modifier's name, since that is set to the number
+		 * of particle systems which shouldn't have too many duplicates 
+		 */
 		object_add_particle_system(scene, ob);
 	}
 	else {
+		/* get new modifier data to add */
+		new_md= modifier_new(type);
+		
 		if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
 			md = ob->modifiers.first;
-
+			
 			while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
 				md = md->next;
-
-			BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
+			
+			BLI_insertlinkbefore(&ob->modifiers, md, new_md);
 		}
 		else
-			BLI_addtail(&ob->modifiers, modifier_new(type));
+			BLI_addtail(&ob->modifiers, new_md);
+		
+		/* make sure modifier data has unique name */
+		modifier_unique_name(&ob->modifiers, new_md);
 		
 		/* special cases */
 		if(type == eModifierType_Softbody) {
@@ -111,7 +120,7 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 		else if(type == eModifierType_Collision) {
 			if(!ob->pd)
 				ob->pd= object_add_collision_fields(0);
-
+			
 			ob->pd->deflect= 1;
 			DAG_scene_sort(scene);
 		}
@@ -400,6 +409,7 @@ int ED_object_modifier_copy(ReportList *reports, Object *ob, ModifierData *md)
 	nmd = modifier_new(md->type);
 	modifier_copyData(md, nmd);
 	BLI_insertlink(&ob->modifiers, md, nmd);
+	modifier_unique_name(&ob->modifiers, nmd);
 
 	return 1;
 }

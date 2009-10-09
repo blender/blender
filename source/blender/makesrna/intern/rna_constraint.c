@@ -87,13 +87,6 @@ EnumPropertyItem constraint_ik_type_items[] ={
 	{0, NULL, 0, NULL, NULL},
 };
 
-EnumPropertyItem constraint_distance_items[] = {
-	{LIMITDIST_INSIDE, "LIMITDIST_INSIDE", 0, "Inside", ""},
-	{LIMITDIST_OUTSIDE, "LIMITDIST_OUTSIDE", 0, "Outside", ""},
-	{LIMITDIST_ONSURFACE, "LIMITDIST_ONSURFACE", 0, "On Surface", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 #ifdef RNA_RUNTIME
 
 #include "BKE_action.h"
@@ -150,6 +143,24 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_ShrinkwrapConstraint;
 		default:
 			return &RNA_UnknownType;
+	}
+}
+
+static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
+{
+	bConstraint *con= ptr->data;
+	
+	/* copy the new name into the name slot */
+	BLI_strncpy(con->name, value, sizeof(con->name));
+	
+	/* make sure name is unique */
+	if (ptr->id.data) {
+		Object *ob= ptr->id.data;
+		ListBase *list= get_active_constraints(ob);
+		
+		/* if we have the list, check for unique name, otherwise give up */
+		if (list)
+			unique_constraint_name(con, list); 
 	}
 }
 
@@ -290,6 +301,14 @@ static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float
 
 
 #else
+
+EnumPropertyItem constraint_distance_items[] = {
+	{LIMITDIST_INSIDE, "LIMITDIST_INSIDE", 0, "Inside", ""},
+	{LIMITDIST_OUTSIDE, "LIMITDIST_OUTSIDE", 0, "Outside", ""},
+	{LIMITDIST_ONSURFACE, "LIMITDIST_ONSURFACE", 0, "On Surface", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 
 static void rna_def_constrainttarget(BlenderRNA *brna)
 {
@@ -1606,6 +1625,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	
 	/* strings */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Constraint_name_set");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 	

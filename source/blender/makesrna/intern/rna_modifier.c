@@ -85,6 +85,7 @@ EnumPropertyItem modifier_type_items[] ={
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
+#include "BKE_modifier.h"
 
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -164,9 +165,23 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 	}
 }
 
+void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
+{
+	ModifierData *md= ptr->data;
+	
+	/* copy the new name into the name slot */
+	BLI_strncpy(md->name, value, sizeof(md->name));
+	
+	/* make sure the name is truly unique */
+	if (ptr->id.data) {
+		Object *ob= ptr->id.data;
+		modifier_unique_name(&ob->modifiers, md);
+	}
+}
+
 static char *rna_Modifier_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("modifiers[%s]", ((ModifierData*)ptr->data)->name);  // XXX not unique
+	return BLI_sprintfN("modifiers[\"%s\"]", ((ModifierData*)ptr->data)->name);
 }
 
 static void rna_Modifier_update(bContext *C, PointerRNA *ptr)
@@ -1911,6 +1926,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	
 	/* strings */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Modifier_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Modifier name.");
 	RNA_def_struct_name_property(srna, prop);
 	

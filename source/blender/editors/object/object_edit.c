@@ -848,6 +848,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 								BooleanModifierData *bmd = NULL;
 								bmd = (BooleanModifierData *)modifier_new(eModifierType_Boolean);
 								BLI_addtail(&ob->modifiers, bmd);
+								modifier_unique_name(&ob->modifiers, bmd);
 								bmd->object = base_select->object;
 								bmd->modifier.mode |= eModifierMode_Realtime;
 								switch(nr){
@@ -978,9 +979,10 @@ static void object_flip_subdivison_particles(Scene *scene, Object *ob, int *set,
 			} 
 			else if(depth == 0 && *set != 0) {
 				SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
-
+				
 				BLI_addtail(&ob->modifiers, smd);
-
+				modifier_unique_name(&ob->modifiers, smd);
+				
 				if (level!=-1) {
 					smd->levels = level;
 				}
@@ -1197,6 +1199,7 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 							nmd = modifier_new(md->type);
 							modifier_copyData(md, nmd);
 							BLI_addtail(&base->object->modifiers, nmd);
+							modifier_unique_name(&base->object->modifiers, nmd);
 						}
 
 						copy_object_particlesystems(base->object, ob);
@@ -1220,6 +1223,7 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 								
 								mdn = modifier_new(event);
 								BLI_addtail(&base->object->modifiers, mdn);
+								modifier_unique_name(&base->object->modifiers, mdn);
 
 								modifier_copyData(md, mdn);
 							}

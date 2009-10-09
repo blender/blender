@@ -4095,6 +4095,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 		BLI_addhead(&ob->modifiers, hmd);
 		BLI_remlink(&ob->hooks, hook);
+		
+		modifier_unique_name(&ob->modifiers, hmd);
 
 		MEM_freeN(hook);
 	}
@@ -7659,6 +7661,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						smd->flags |= eSubsurfModifierFlag_ControlEdges;
 					
 					BLI_addtail(&ob->modifiers, smd);
+					
+					modifier_unique_name(&ob->modifiers, smd);
 				}
 			}
 			

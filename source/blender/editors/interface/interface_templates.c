@@ -458,6 +458,8 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 	nmd->mode &= ~eModifierMode_Virtual;
 
 	BLI_addhead(&ob->modifiers, nmd);
+	
+	modifier_unique_name(&ob->modifiers, nmd);
 
 	ob->partype = PAROBJECT;
 
