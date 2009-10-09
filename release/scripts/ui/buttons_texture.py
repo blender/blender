@@ -1,6 +1,16 @@
 
 import bpy
 
+def active_node_mat(mat):
+	if mat:
+		mat_node = mat.active_node_material
+		if mat_node:
+			return mat_node
+		else:
+			return mat
+
+	return None
+
 class TextureButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
@@ -18,7 +28,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 		
 		tex = context.texture
 		slot = context.texture_slot
-		ma = context.material
+		ma = active_node_mat(context.material)
 		la = context.lamp
 		wo = context.world
 		br = context.brush
@@ -45,7 +55,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 
 		tex = context.texture
 		
-		id = context.material
+		id = active_node_mat(context.material)
 		if not id: id =	context.lamp
 		if not id: id =	context.world
 		if not id: id =	context.brush
@@ -129,7 +139,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		ma = context.material
+		ma = active_node_mat(context.material)
 		la = context.lamp
 		wo = context.world
 		br = context.brush
@@ -202,7 +212,7 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		ma = context.material
+		ma = active_node_mat(context.material)
 		la = context.lamp
 		wo = context.world
 		br = context.brush

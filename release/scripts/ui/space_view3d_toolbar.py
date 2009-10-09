@@ -676,9 +676,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 		pe = context.tool_settings.particle_edit
 		ob = pe.object
 
-		row = layout.row()
-		row.itemL(text="Edit:")
-		row.itemR(pe, "type", text="")
+		layout.itemR(pe, "type", text="")
 		
 		if pe.type == 'PARTICLES':
 			if ob.particle_systems:
