@@ -812,9 +812,9 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 	//Quartz Display Services uses the old coordinates (top left origin)
 	yf = [[NSScreen mainScreen] frame].size.height -yf;
 	
-	CGAssociateMouseAndMouseCursorPosition(false);
+	//CGAssociateMouseAndMouseCursorPosition(false);
 	CGWarpMouseCursorPosition(CGPointMake(xf, yf));
-	CGAssociateMouseAndMouseCursorPosition(true);
+	//CGAssociateMouseAndMouseCursorPosition(true);
 
     return GHOST_kSuccess;
 }
@@ -1151,7 +1151,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					
 					window->getCursorWarpAccum(x_accum, y_accum);
 					x_accum += [event deltaX];
-					y_accum += [event deltaY];
+					y_accum += -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
 					window->setCursorWarpAccum(x_accum, y_accum);
 					
 					pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
@@ -1159,6 +1159,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				else { //Normal cursor operation: send mouse position in window
 					NSPoint mousePos = [event locationInWindow];
 					pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
+					window->setCursorWarpAccum(0, 0); //Mouse motion occured between two cursor warps, so we can reset the delta counter
 				}
 				break;
 			}

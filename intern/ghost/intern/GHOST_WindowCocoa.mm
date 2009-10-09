@@ -712,18 +712,33 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)
 	return GHOST_kSuccess;
 }
 
+
+//Override this method to provide set feature even if not in warp
+inline bool GHOST_WindowCocoa::setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y)
+{
+	m_cursorWarpAccumPos[0]= x;
+	m_cursorWarpAccumPos[1]= y;
+	
+	return GHOST_kSuccess;
+}
+
+
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(bool grab, bool warp, bool restore)
 {
+	printf("\ncursor grab %i",grab);
 	if (grab)
 	{
+		//No need to perform grab without warp as it is always on in OS X
 		if(warp) {
-			m_systemCocoa->getCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
-			
-			setCursorWarpAccum(0, 0);
-			setWindowCursorVisibility(false);
+			GHOST_TInt32 x_old,y_old;
+
 			m_cursorWarp= true;
+			m_systemCocoa->getCursorPosition(x_old,y_old);
+			screenToClient(x_old, y_old, m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+			//Warp position is stored in client (window base) coordinates
+			setWindowCursorVisibility(false);
+			return CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
 		}
-		return CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
 	}
 	else {
 		if(m_cursorWarp)
@@ -732,34 +747,37 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(bool grab, bool warp, bool
 			/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 			if(restore) {
 				GHOST_Rect bounds;
-				GHOST_TInt32 x_new, y_new, x_rel, y_rel;
+				GHOST_TInt32 x_new, y_new, x_cur, y_cur;
 				
 				getClientBounds(bounds);
-				printf("\ncursor ungrab with restore");
 				x_new= m_cursorWarpInitPos[0]+m_cursorWarpAccumPos[0];
 				y_new= m_cursorWarpInitPos[1]+m_cursorWarpAccumPos[1];
 				
-				screenToClient(x_new, y_new, x_rel, y_rel);
+				if(x_new < 0)		x_new = 0;
+				if(y_new < 0)		y_new = 0;
+				if(x_new > bounds.getWidth())	x_new = bounds.getWidth();
+				if(y_new > bounds.getHeight())	y_new = bounds.getHeight();
 				
-				if(x_rel < 0)		x_new = (x_new-x_rel) + 2;
-				if(y_rel < 0)		y_new = (y_new-y_rel) + 2;
-				if(x_rel > bounds.getWidth())	x_new -= (x_rel-bounds.getWidth()) + 2;
-				if(y_rel > bounds.getHeight())	y_new -= (y_rel-bounds.getHeight()) + 2;
+				//get/set cursor position works in screen coordinates
+				clientToScreen(x_new, y_new, x_cur, y_cur);
+				m_systemCocoa->setCursorPosition(x_cur, y_cur);
 				
-				clientToScreen(x_new, y_new, x_rel, y_rel);
-				m_systemCocoa->setCursorPosition(x_rel, y_rel);
-				
+				//As Cocoa will give as first deltaX,deltaY this change in cursor position, we need to compensate for it
+				//Issue appearing in case of two transform operations conducted w/o mouse motion in between
+				x_new=m_cursorWarpAccumPos[0];
+				y_new=m_cursorWarpAccumPos[1];
+				setCursorWarpAccum(-x_new, -y_new);
 			}
 			else {
 				m_systemCocoa->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+				setCursorWarpAccum(0, 0);
 			}
 			
-			setCursorWarpAccum(0, 0);
 			m_cursorWarp= false;
+			return CGAssociateMouseAndMouseCursorPosition(true) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
 		}
-		return CGAssociateMouseAndMouseCursorPosition(true) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
 	}
-	
+	return GHOST_kSuccess;
 }
 	
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor shape)

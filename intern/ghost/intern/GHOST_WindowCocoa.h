@@ -237,6 +237,11 @@ protected:
 	virtual GHOST_TSuccess setWindowCursorVisibility(bool visible);
 	
 	/**
+	 * Sets the cursor warp accumulator. Overriden for workaround due to Cocoa next event after cursor set giving delta values non zero
+	 */
+	inline virtual bool setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y);
+	
+	/**
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 * @param warp	Only used when grab is enabled, hides the mouse and allows gragging outside the screen.
