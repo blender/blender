@@ -943,6 +943,8 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	cb->prop= prop;
 	cb->iuser= iuser;
 
+	uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
+
 	if(!compact)
 		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
 
@@ -992,9 +994,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 			uiItemR(row, NULL, 0, &imaptr, "source", (compact)? 0: UI_ITEM_R_EXPAND);
 
 			if(ima->source != IMA_SRC_GENERATED) {
-				row= uiLayoutRow(layout, 0);
+				row= uiLayoutRow(layout, 1);
 				uiItemR(row, "", 0, &imaptr, "filename", 0);
-				//uiItemO(row, "Reload", 0, "image.reload");
+				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 			}
 
 			// XXX what was this for?

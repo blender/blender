@@ -108,6 +108,11 @@ static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac)
 	sima_zoom_set(sima, ar, sima->zoom*zoomfac);
 }
 
+static int image_poll(bContext *C)
+{
+	return (CTX_data_edit_image(C) != NULL);
+}
+
 static int space_image_poll(bContext *C)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
@@ -1070,19 +1075,16 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 
 static int reload_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima;
+	Image *ima= CTX_data_edit_image(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 
-	/* retrieve state */
-	sima= CTX_wm_space_image(C);
-
-	if(!sima->image)
+	if(!ima)
 		return OPERATOR_CANCELLED;
 
-	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
-	/* ED_space_image_set(C, sima, scene, obedit, NULL); - do we really need this? */
+	// XXX other users?
+	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
 
-	// XXX BIF_preview_changed(ID_TE);
-	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -1096,7 +1098,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= reload_exec;
-	ot->poll= space_image_poll;
+	ot->poll= image_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
