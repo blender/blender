@@ -418,7 +418,7 @@ class USERPREF_PT_input(bpy.types.Panel):
 		sub1 = sub.column()
 		sub1.enabled = (view.select_mouse == 'RIGHT')
 		sub1.itemR(view, "emulate_3_button_mouse")
-		sub.itemR(view, "continuous_mouse", text="Continuous Grab")
+		sub.itemR(view, "continuous_mouse")
 
 		sub.itemL(text="Select With:")
 		sub.row().itemR(view, "select_mouse", expand=True)
