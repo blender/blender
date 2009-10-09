@@ -2384,6 +2384,29 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate and stay in sync with audio.");
 }
 
+static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	
+	if(screen->animtimer)
+		return screen_animation_play(C, op, event);
+	
+	return OPERATOR_PASS_THROUGH;
+}
+
+static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Cancel Animation";
+	ot->description= "Cancel animation.";
+	ot->idname= "SCREEN_OT_animation_cancel";
+	
+	/* api callbacks */
+	ot->invoke= screen_animation_cancel;
+	
+	ot->poll= ED_operator_screenactive;
+}
+
 /* ************** border select operator (template) ***************************** */
 
 /* operator state vars used: (added by default WM callbacks)   
@@ -2994,6 +3017,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 	/* test if we have a temp screen in front */
 	if(CTX_wm_window(C)->screen->full==SCREENTEMP) {
 		wm_window_lower(CTX_wm_window(C));
+		return OPERATOR_FINISHED;
 	}
 	/* determine if render already shows */
 	else if(sima->flag & SI_PREVSPACE) {
@@ -3005,13 +3029,16 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 		}
 		else
 			ED_area_prevspace(C);
+
+		return OPERATOR_FINISHED;
 	}
 	else if(sima->flag & SI_FULLWINDOW) {
 		sima->flag &= ~SI_FULLWINDOW;
 		ed_screen_fullarea(C, sa);
-	}		
-	
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_PASS_THROUGH;
 }
 
 static void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
@@ -3268,6 +3295,7 @@ void ED_operatortypes_screen(void)
 	
 	WM_operatortype_append(SCREEN_OT_animation_step);
 	WM_operatortype_append(SCREEN_OT_animation_play);
+	WM_operatortype_append(SCREEN_OT_animation_cancel);
 	
 	/* render */
 	WM_operatortype_append(SCREEN_OT_render);
@@ -3408,6 +3436,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", KKEY, KM_PRESS, 0, LKEY);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_cancel", ESCKEY, KM_PRESS, 0, 0);
 
 	keymap_modal_set(keyconf);
 }
