@@ -614,7 +614,7 @@ uiLayout *uiLayoutListBox(uiLayout *layout);
 uiLayout *uiLayoutFree(uiLayout *layout, int align);
 uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
 
-uiBlock *uiLayoutFreeBlock(uiLayout *layout);
+uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);

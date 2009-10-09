@@ -1105,7 +1105,7 @@ static void image_panel_uv(const bContext *C, Panel *pa)
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 
 	image_editvertex_buts(C, block);

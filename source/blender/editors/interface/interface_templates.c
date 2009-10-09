@@ -61,7 +61,7 @@ void uiTemplateHeader(uiLayout *layout, bContext *C, int menus)
 {
 	uiBlock *block;
 	
-	block= uiLayoutFreeBlock(layout);
+	block= uiLayoutAbsoluteBlock(layout);
 	if(menus) ED_area_header_standardbuttons(C, block, 0);
 	else ED_area_header_switchbutton(C, block, 0);
 }
@@ -603,7 +603,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		}
 
 		result= uiLayoutColumn(box, 0);
-		block= uiLayoutFreeBlock(box);
+		block= uiLayoutAbsoluteBlock(box);
 	}
 
 	if(md->error) {
@@ -948,7 +948,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	}
 	else {
 		box= uiLayoutBox(col);
-		block= uiLayoutFreeBlock(box);
+		block= uiLayoutAbsoluteBlock(box);
 
 		switch (con->type) {
 #ifndef DISABLE_PYTHON
@@ -1459,7 +1459,7 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 	rect.xmin= 0; rect.xmax= 200;
 	rect.ymin= 0; rect.ymax= 190;
 
-	block= uiLayoutFreeBlock(layout);
+	block= uiLayoutAbsoluteBlock(layout);
 	colorband_buttons_layout(block, cptr.data, &rect, !expand, cb);
 
 	MEM_freeN(cb);

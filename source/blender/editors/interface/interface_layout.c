@@ -96,7 +96,7 @@ typedef enum uiItemType {
 	ITEM_LAYOUT_COLUMN_FLOW,
 	ITEM_LAYOUT_ROW_FLOW,
 	ITEM_LAYOUT_BOX,
-	ITEM_LAYOUT_FREE,
+	ITEM_LAYOUT_ABSOLUTE,
 	ITEM_LAYOUT_SPLIT,
 
 	ITEM_LAYOUT_ROOT
@@ -290,7 +290,7 @@ static int ui_layout_local_dir(uiLayout *layout)
 		case ITEM_LAYOUT_COLUMN:
 		case ITEM_LAYOUT_COLUMN_FLOW:
 		case ITEM_LAYOUT_SPLIT:
-		case ITEM_LAYOUT_FREE:
+		case ITEM_LAYOUT_ABSOLUTE:
 		case ITEM_LAYOUT_BOX:
 		default:
 			return UI_LAYOUT_VERTICAL;
@@ -1731,7 +1731,7 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 }
 
 /* free layout */
-static void ui_litem_estimate_free(uiLayout *litem)
+static void ui_litem_estimate_absolute(uiLayout *litem)
 {
 	uiItem *item;
 	int itemx, itemy, itemw, itemh, minx, miny;
@@ -1756,7 +1756,7 @@ static void ui_litem_estimate_free(uiLayout *litem)
 	litem->h -= miny;
 }
 
-static void ui_litem_layout_free(uiLayout *litem)
+static void ui_litem_layout_absolute(uiLayout *litem)
 {
 	uiItem *item;
 	float scalex=1.0f, scaley=1.0f;
@@ -1962,7 +1962,7 @@ uiLayout *uiLayoutFree(uiLayout *layout, int align)
 	uiLayout *litem;
 
 	litem= MEM_callocN(sizeof(uiLayout), "uiLayoutFree");
-	litem->item.type= ITEM_LAYOUT_FREE;
+	litem->item.type= ITEM_LAYOUT_ABSOLUTE;
 	litem->root= layout->root;
 	litem->align= align;
 	litem->active= 1;
@@ -1975,7 +1975,7 @@ uiLayout *uiLayoutFree(uiLayout *layout, int align)
 	return litem;
 }
 
-uiBlock *uiLayoutFreeBlock(uiLayout *layout)
+uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout)
 {
 	uiBlock *block;
 
@@ -2136,8 +2136,8 @@ static void ui_item_estimate(uiItem *item)
 			case ITEM_LAYOUT_ROOT:
 				ui_litem_estimate_root(litem);
 				break;
-			case ITEM_LAYOUT_FREE:
-				ui_litem_estimate_free(litem);
+			case ITEM_LAYOUT_ABSOLUTE:
+				ui_litem_estimate_absolute(litem);
 				break;
 			case ITEM_LAYOUT_SPLIT:
 				ui_litem_estimate_split(litem);
@@ -2161,7 +2161,7 @@ static void ui_item_align(uiLayout *litem, int nr)
 				if(!bitem->but->alignnr)
 					bitem->but->alignnr= nr;
 		}
-		else if(item->type == ITEM_LAYOUT_FREE);
+		else if(item->type == ITEM_LAYOUT_ABSOLUTE);
 		else if(item->type == ITEM_LAYOUT_BOX) {
 			box= (uiLayoutItemBx*)item;
 			box->roundbox->alignnr= nr;
@@ -2221,8 +2221,8 @@ static void ui_item_layout(uiItem *item)
 			case ITEM_LAYOUT_ROOT:
 				ui_litem_layout_root(litem);
 				break;
-			case ITEM_LAYOUT_FREE:
-				ui_litem_layout_free(litem);
+			case ITEM_LAYOUT_ABSOLUTE:
+				ui_litem_layout_absolute(litem);
 				break;
 			case ITEM_LAYOUT_SPLIT:
 				ui_litem_layout_split(litem);

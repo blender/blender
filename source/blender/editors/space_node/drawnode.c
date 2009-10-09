@@ -173,7 +173,7 @@ static void node_group_alone_cb(bContext *C, void *node_v, void *unused_v)
 
 static void node_buts_group(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 
@@ -207,7 +207,7 @@ static void node_buts_group(uiLayout *layout, PointerRNA *ptr)
 
 static void node_buts_value(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
@@ -219,7 +219,7 @@ static void node_buts_value(uiLayout *layout, PointerRNA *ptr)
 
 static void node_buts_rgb(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
@@ -279,7 +279,7 @@ static void node_buts_time(uiLayout *layout, PointerRNA *ptr)
 
 static void node_buts_valtorgb(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 
@@ -316,7 +316,7 @@ static void node_buts_curvecol(uiLayout *layout, PointerRNA *ptr)
 
 static void node_buts_normal(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	bNodeSocket *sock= node->outputs.first;		/* first socket stores normal */
@@ -389,7 +389,7 @@ static void node_dynamic_update_cb(bContext *C, void *ntree_v, void *node_v)
 
 static void node_buts_texture(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	bNodeTree *ntree= ptr->id.data;
 	rctf *butr= &node->butr;
@@ -432,7 +432,7 @@ static void node_buts_texture(uiLayout *layout, PointerRNA *ptr)
 
 static void node_buts_math(uiLayout *layout, PointerRNA *ptr)
 { 
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	uiBut *bt; 
@@ -544,7 +544,7 @@ static void node_texmap_cb(bContext *C, void *texmap_v, void *unused_v)
 
 static void node_shader_buts_material(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	bNodeTree *ntree= ptr->id.data;
 	rctf *butr= &node->butr;
@@ -616,7 +616,7 @@ static void node_shader_buts_material(uiLayout *layout, PointerRNA *ptr)
 
 static void node_shader_buts_mapping(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	TexMapping *texmap= node->storage;
@@ -664,7 +664,7 @@ static void node_shader_buts_mapping(uiLayout *layout, PointerRNA *ptr)
 
 static void node_shader_buts_vect_math(uiLayout *layout, PointerRNA *ptr)
 { 
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	uiBut *bt; 
@@ -675,7 +675,7 @@ static void node_shader_buts_vect_math(uiLayout *layout, PointerRNA *ptr)
 
 static void node_shader_buts_geometry(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	uiBut *but;
@@ -694,7 +694,7 @@ static void node_shader_buts_geometry(uiLayout *layout, PointerRNA *ptr)
 
 static void node_shader_buts_dynamic(uiLayout *layout, PointerRNA *ptr)
 { 
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	bNodeTree *ntree= ptr->id.data;
 	rctf *butr= &node->butr;
@@ -867,7 +867,7 @@ static void image_layer_cb(bContext *C, void *ima_v, void *iuser_v)
 
 static void node_composit_buts_image(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	bNodeTree *ntree= ptr->id.data;
 	rctf *butr= &node->butr;
@@ -1035,7 +1035,7 @@ static void node_browse_scene_cb(bContext *C, void *ntree_v, void *node_v)
 
 static void node_composit_buts_renderlayers(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	bNodeTree *ntree= ptr->id.data;
 	rctf *butr= &node->butr;
@@ -1402,7 +1402,7 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(col, NULL, 0, ptr, "gain", UI_ITEM_R_SLIDER);
 	uiItemR(col, NULL, 0, ptr, "shadow_adjust", UI_ITEM_R_SLIDER);
 
-//	uiBlock *block= uiLayoutFreeBlock(layout);
+//	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 //	bNode *node= ptr->data;
 //	rctf *butr= &node->butr;
 //	short dx=(butr->xmax-butr->xmin)/2;
@@ -1435,7 +1435,7 @@ static void node_composit_buts_color_matte(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	short sx= (butr->xmax-butr->xmin)/4;
@@ -1492,7 +1492,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_luma_matte(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	NodeChroma *c=node->storage;
@@ -1519,7 +1519,7 @@ static void node_composit_buts_map_uv(uiLayout *layout, PointerRNA *ptr)
 
 static void node_composit_buts_id_mask(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 
@@ -1554,7 +1554,7 @@ static void node_set_image_cb(bContext *C, void *ntree_v, void *node_v)
 
 static void node_composit_buts_file_output(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	bNodeTree *ntree= ptr->id.data;
 	rctf *butr= &node->butr;
@@ -1626,7 +1626,7 @@ static void node_scale_cb(bContext *C, void *node_v, void *unused_v)
 
 static void node_composit_buts_scale(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	uiBut *bt= uiDefButS(block, MENU, B_NODE_EXEC, "Relative %x0|Absolute %x1|Scene Size % %x2|",
@@ -1799,7 +1799,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 
 static void node_texture_buts_bricks(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	short w = butr->xmax-butr->xmin;
@@ -1848,7 +1848,7 @@ static char* noisebasis_menu()
 
 static void node_texture_buts_proc(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	Tex *tex = (Tex *)node->storage;
@@ -1927,7 +1927,7 @@ static void node_texture_buts_proc(uiLayout *layout, PointerRNA *ptr)
 
 static void node_texture_buts_image(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	bNodeTree *ntree= ptr->id.data;
 	rctf *butr= &node->butr;
@@ -1966,7 +1966,7 @@ static void node_texture_buts_image(uiLayout *layout, PointerRNA *ptr)
 
 static void node_texture_buts_output(uiLayout *layout, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutFreeBlock(layout);
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	rctf *butr= &node->butr;
 	uiBut *bt;

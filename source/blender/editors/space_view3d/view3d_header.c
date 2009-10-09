@@ -1964,7 +1964,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlock *block;
 	int a, xco=0, maxco=0, yco= 0;
 	
-	block= uiLayoutFreeBlock(layout);
+	block= uiLayoutAbsoluteBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) 
