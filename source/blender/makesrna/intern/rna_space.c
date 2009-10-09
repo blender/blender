@@ -593,6 +593,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
 	
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "camera");
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used in this view (when unlocked from the scene's active camera).");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);

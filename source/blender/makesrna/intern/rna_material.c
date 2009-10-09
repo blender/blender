@@ -763,6 +763,17 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Specular Ramp Input", "");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
+	prop= RNA_def_property(srna, "diffuse_ramp_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "rampfac_col");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Factor", "Blending factor (also uses alpha in Colorband).");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop= RNA_def_property(srna, "specular_ramp_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "rampfac_spec");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Specular Ramp Factor", "Blending factor (also uses alpha in Colorband).");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
 static void rna_def_material_diffuse(StructRNA *srna)

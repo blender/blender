@@ -306,6 +306,8 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 			split = row.split(percentage=0.3)
 			split.itemL(text="Blend:")
 			split.itemR(mat, "diffuse_ramp_blend", text="")
+			row = layout.row()
+			row.itemR(mat, "diffuse_ramp_factor", text="Factor")
 
 class MATERIAL_PT_specular(MaterialButtonsPanel):
 	__label__ = "Specular"
@@ -358,6 +360,8 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 			split = row.split(percentage=0.3)
 			split.itemL(text="Blend:")
 			split.itemR(mat, "specular_ramp_blend", text="")
+			row = layout.row()
+			row.itemR(mat, "specular_ramp_factor", text="Factor")
 		
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__label__ = "Subsurface Scattering"

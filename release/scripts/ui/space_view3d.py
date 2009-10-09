@@ -422,6 +422,8 @@ class VIEW3D_MT_object(bpy.types.Menu):
 		
 		layout.itemM("VIEW3D_MT_object_showhide")
 		
+		layout.item_menu_enumO("object.convert", "target")
+		
 class VIEW3D_MT_object_clear(bpy.types.Menu):
 	__label__ = "Clear"
 
