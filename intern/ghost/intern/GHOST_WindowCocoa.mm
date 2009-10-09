@@ -711,6 +711,56 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)
 	
 	return GHOST_kSuccess;
 }
+
+GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(bool grab, bool warp, bool restore)
+{
+	if (grab)
+	{
+		if(warp) {
+			m_systemCocoa->getCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+			
+			setCursorWarpAccum(0, 0);
+			setWindowCursorVisibility(false);
+			m_cursorWarp= true;
+		}
+		return CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+	}
+	else {
+		if(m_cursorWarp)
+		{/* are we exiting warp */
+			setWindowCursorVisibility(true);
+			/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+			if(restore) {
+				GHOST_Rect bounds;
+				GHOST_TInt32 x_new, y_new, x_rel, y_rel;
+				
+				getClientBounds(bounds);
+				printf("\ncursor ungrab with restore");
+				x_new= m_cursorWarpInitPos[0]+m_cursorWarpAccumPos[0];
+				y_new= m_cursorWarpInitPos[1]+m_cursorWarpAccumPos[1];
+				
+				screenToClient(x_new, y_new, x_rel, y_rel);
+				
+				if(x_rel < 0)		x_new = (x_new-x_rel) + 2;
+				if(y_rel < 0)		y_new = (y_new-y_rel) + 2;
+				if(x_rel > bounds.getWidth())	x_new -= (x_rel-bounds.getWidth()) + 2;
+				if(y_rel > bounds.getHeight())	y_new -= (y_rel-bounds.getHeight()) + 2;
+				
+				clientToScreen(x_new, y_new, x_rel, y_rel);
+				m_systemCocoa->setCursorPosition(x_rel, y_rel);
+				
+			}
+			else {
+				m_systemCocoa->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+			}
+			
+			setCursorWarpAccum(0, 0);
+			m_cursorWarp= false;
+		}
+		return CGAssociateMouseAndMouseCursorPosition(true) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+	}
+	
+}
 	
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor shape)
 {

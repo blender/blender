@@ -798,7 +798,7 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
 {
     NSPoint mouseLoc = [NSEvent mouseLocation];
 	
-    // Convert the coordinates to screen coordinates
+    // Returns the mouse location in screen coordinates
     x = (GHOST_TInt32)mouseLoc.x;
     y = (GHOST_TInt32)mouseLoc.y;
     return GHOST_kSuccess;
@@ -808,7 +808,10 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
 GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
 {
 	float xf=(float)x, yf=(float)y;
-
+	
+	//Quartz Display Services uses the old coordinates (top left origin)
+	yf = [[NSScreen mainScreen] frame].size.height -yf;
+	
 	CGAssociateMouseAndMouseCursorPosition(false);
 	CGWarpMouseCursorPosition(CGPointMake(xf, yf));
 	CGAssociateMouseAndMouseCursorPosition(true);
@@ -1080,7 +1083,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-    GHOST_IWindow* window = m_windowManager->getActiveWindow();
+    GHOST_Window* window = (GHOST_Window*)m_windowManager->getActiveWindow();
 	
 	if (!window) {
 		return GHOST_kFailure;
@@ -1141,8 +1144,22 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			}
 		case NSMouseMoved:
 			{
-				NSPoint mousePos = [event locationInWindow];
-				pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
+				if(window->getCursorWarp()) {
+					GHOST_TInt32 x_warp, y_warp, x_accum, y_accum;
+					
+					window->getCursorWarpPos(x_warp, y_warp);
+					
+					window->getCursorWarpAccum(x_accum, y_accum);
+					x_accum += [event deltaX];
+					y_accum += [event deltaY];
+					window->setCursorWarpAccum(x_accum, y_accum);
+					
+					pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
+				} 
+				else { //Normal cursor operation: send mouse position in window
+					NSPoint mousePos = [event locationInWindow];
+					pushEvent(new GHOST_EventCursor([event timestamp], GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
+				}
 				break;
 			}
 			

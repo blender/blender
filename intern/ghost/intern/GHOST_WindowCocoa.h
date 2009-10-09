@@ -237,6 +237,13 @@ protected:
 	virtual GHOST_TSuccess setWindowCursorVisibility(bool visible);
 	
 	/**
+	 * Sets the cursor grab on the window using
+	 * native window system calls.
+	 * @param warp	Only used when grab is enabled, hides the mouse and allows gragging outside the screen.
+	 */
+	virtual GHOST_TSuccess setWindowCursorGrab(bool grab, bool warp, bool restore);
+	
+	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */
