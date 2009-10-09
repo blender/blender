@@ -809,69 +809,87 @@ void autotexname(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *give_current_texture(Object *ob, int act)
+Tex *give_current_object_texture(Object *ob)
 {
-	Material ***matarar, *ma;
-	Lamp *la = 0;
-	MTex *mtex = 0;
-	Tex *tex = 0;
-	bNode *node;
+	Material *ma;
+	Tex *tex= NULL;
 	
 	if(ob==0) return 0;
 	if(ob->totcol==0 && !(ob->type==OB_LAMP)) return 0;
 	
 	if(ob->type==OB_LAMP) {
-		la=(Lamp *)ob->data;
-		if(la) {
-			mtex= la->mtex[(int)(la->texact)];
-			if(mtex) tex= mtex->tex;
-		}
+		tex= give_current_lamp_texture(ob->data);
 	} else {
-		if(act>ob->totcol) act= ob->totcol;
-		else if(act==0) act= 1;
-		
-		if(ob->matbits[act-1]) {	/* in object */
-			ma= ob->mat[act-1];
-		}
-		else {								/* in data */
-			matarar= give_matarar(ob);
-			
-			if(matarar && *matarar) ma= (*matarar)[act-1];
-			else ma= 0;
-		}
-
-		if(ma && ma->use_nodes && ma->nodetree) {
-			node= nodeGetActiveID(ma->nodetree, ID_TE);
-
-			if(node) {
-				tex= (Tex *)node->id;
-				ma= NULL;
-			}
-			else {
-				node= nodeGetActiveID(ma->nodetree, ID_MA);
-				if(node)
-					ma= (Material*)node->id;
-			}
-		}
-		if(ma) {
-			mtex= ma->mtex[(int)(ma->texact)];
-			if(mtex) tex= mtex->tex;
-		}
+		ma= give_current_material(ob, ob->actcol);
+		tex= give_current_material_texture(ma);
 	}
 	
 	return tex;
 }
 
-Tex *give_current_world_texture(Scene *scene)
+Tex *give_current_lamp_texture(Lamp *la)
 {
-	MTex *mtex = 0;
-	Tex *tex = 0;
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+
+	if(la) {
+		mtex= la->mtex[(int)(la->texact)];
+		if(mtex) tex= mtex->tex;
+	}
+
+	return tex;
+}
+
+Tex *give_current_material_texture(Material *ma)
+{
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+	bNode *node;
 	
-	if(!(scene->world)) return 0;
+	if(ma && ma->use_nodes && ma->nodetree) {
+		node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+		if(node) {
+			tex= (Tex *)node->id;
+			ma= NULL;
+		}
+		else {
+			node= nodeGetActiveID(ma->nodetree, ID_MA);
+			if(node)
+				ma= (Material*)node->id;
+		}
+	}
+	if(ma) {
+		mtex= ma->mtex[(int)(ma->texact)];
+		if(mtex) tex= mtex->tex;
+	}
 	
-	mtex= scene->world->mtex[(int)(scene->world->texact)];
+	return tex;
+}
+
+Tex *give_current_world_texture(World *world)
+{
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+	
+	if(!world) return 0;
+	
+	mtex= world->mtex[(int)(world->texact)];
 	if(mtex) tex= mtex->tex;
 	
+	return tex;
+}
+
+Tex *give_current_brush_texture(Brush *br)
+{
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+
+	if(br) {
+		mtex= br->mtex[(int)(br->texact)];
+		if(mtex) tex= mtex->tex;
+	}
+
 	return tex;
 }
 

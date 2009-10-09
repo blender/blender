@@ -52,6 +52,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_screen.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 
@@ -342,7 +343,6 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 	Lamp *la;
 	Brush *br;
 	World *wo;
-	MTex *mtex;
 	Tex *tex;
 	PointerRNA *ptr= &path->ptr[path->len-1];
 
@@ -355,8 +355,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		br= path->ptr[path->len-1].data;
 
 		if(br) {
-			mtex= br->mtex[(int)br->texact];
-			tex= (mtex)? mtex->tex: NULL;
+			tex= give_current_brush_texture(br);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
@@ -368,8 +367,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		wo= path->ptr[path->len-1].data;
 
 		if(wo) {
-			mtex= wo->mtex[(int)wo->texact];
-			tex= (mtex)? mtex->tex: NULL;
+			give_current_world_texture(wo);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
@@ -381,8 +379,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		ma= path->ptr[path->len-1].data;
 
 		if(ma) {
-			mtex= ma->mtex[(int)ma->texact];
-			tex= (mtex)? mtex->tex: NULL;
+			tex= give_current_material_texture(ma);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
@@ -394,8 +391,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		la= path->ptr[path->len-1].data;
 
 		if(la) {
-			mtex= la->mtex[(int)la->texact];
-			tex= (mtex)? mtex->tex: NULL;
+			tex= give_current_lamp_texture(la);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;

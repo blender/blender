@@ -31,17 +31,20 @@
 #ifndef BKE_TEXTURE_H
 #define BKE_TEXTURE_H
 
-struct Scene;
-struct Tex;
+struct Brush;
+struct ColorBand;
+struct EnvMap;
+struct HaloRen;
+struct Lamp;
+struct LampRen;
+struct Material;
 struct MTex;
 struct PluginTex;
-struct LampRen;
-struct ColorBand;
-struct HaloRen;
-struct TexMapping;
-struct EnvMap;
 struct PointDensity;
+struct Tex;
+struct TexMapping;
 struct VoxelData;
+struct World;
 
 /*  in ColorBand struct */
 #define MAXCOLORBAND 32
@@ -65,8 +68,12 @@ struct MTex *add_mtex(void);
 struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);
-struct Tex *give_current_texture(struct Object *ob, int act);
-struct Tex *give_current_world_texture(struct Scene *scene);
+
+struct Tex *give_current_object_texture(struct Object *ob);
+struct Tex *give_current_material_texture(struct Material *ma);
+struct Tex *give_current_lamp_texture(struct Lamp *la);
+struct Tex *give_current_world_texture(struct World *world);
+struct Tex *give_current_brush_texture(struct Brush *br);
 
 struct TexMapping *add_mapping(void);
 void init_mapping(struct TexMapping *texmap);

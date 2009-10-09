@@ -645,7 +645,7 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 
 		if(snode->texfrom==SNODE_TEX_OBJECT) {
 			if(ob) {
-				tx= give_current_texture(ob, ob->actcol);
+				tx= give_current_object_texture(ob);
 
 				if(ob->type == OB_LAMP)
 					snode->from= (ID*)ob->data;
@@ -656,11 +656,10 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 			}
 		}
 		else if(snode->texfrom==SNODE_TEX_WORLD) {
-			tx= give_current_world_texture(scene);
+			tx= give_current_world_texture(scene->world);
 			snode->from= (ID *)scene->world;
 		}
 		else {
-			MTex *mtex= NULL;
 			Brush *brush= NULL;
 			
 			if(ob && (ob->mode & OB_MODE_SCULPT))
@@ -668,13 +667,8 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 			else
 				brush= paint_brush(&scene->toolsettings->imapaint.paint);
 
-			if(brush && brush->texact != -1)
-				mtex= brush->mtex[brush->texact];
-
 			snode->from= (ID *)brush;
-
-			if(mtex)
-				tx= mtex->tex;
+			tx= give_current_brush_texture(brush);
 		}
 		
 		snode->id= &tx->id;

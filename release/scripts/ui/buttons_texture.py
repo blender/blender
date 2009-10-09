@@ -75,11 +75,13 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 			layout.itemR(tex, "use_nodes")
 			
 			split = layout.split(percentage=0.2)
-			
+
 			if tex.use_nodes:
 				slot = context.texture_slot
-				split.itemL(text="Output:")
-				split.itemR(slot, "output_node", text="")
+
+				if slot:
+					split.itemL(text="Output:")
+					split.itemR(slot, "output_node", text="")
 
 			else:
 				split.itemL(text="Type:")
