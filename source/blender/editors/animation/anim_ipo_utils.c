@@ -35,6 +35,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -92,6 +93,30 @@ int geticon_anim_blocktype(short blocktype)
 	}
 }
 
+/* helper function for getname_*() - grabs the text within the "" that starts with 'blahblah'
+ * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
+ * 
+ * 	- str: is the entire string to chop
+ *	- prefix: is the part of the string to leave out 
+ *
+ * Assume that the strings returned must be freed afterwards, and that the inputs will contain 
+ * data we want...
+ */
+static char *grab_quoted_text (const char *str, const char *prefix)
+{
+	int prefixLen = strlen(prefix);
+	char *startMatch, *endMatch;
+	
+	/* get the starting point (i.e. where prefix starts, and add prefixLen+1 to it to get be after the first " */
+	startMatch= strstr(str, prefix) + prefixLen + 1;
+	
+	/* get the end point (i.e. where the next occurance of " is after the starting point) */
+	endMatch= strchr(startMatch, '"'); // "  NOTE: this comment here is just so that my text editor still shows the functions ok...
+	
+	/* return the slice indicated */
+	return BLI_strdupn(startMatch, (int)(endMatch-startMatch));
+}
+
 /* Write into "name" buffer, the name of the property (retrieved using RNA from the curve's settings) 
  * WARNING: name buffer we're writing to cannot exceed 256 chars (check anim_channels_defines.c for details)
  */
@@ -118,7 +143,7 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 		/* try to resolve the path */
 		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
 			char *structname=NULL, *propname=NULL, *arrayname=NULL, arrayindbuf[16];
-			PropertyRNA *nameprop;
+			short free_structname = 0;
 			
 			/* For now, name will consist of 3 parts: struct-name, property name, array index
 			 * There are several options possible:
@@ -132,16 +157,34 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 * hierarchy though, which isn't so clear with option 2.
 			 */
 			
-			/* for structname, we use a custom name if one is available */
-				// xxx we might want an icon from types?
-				// xxx it is hard to differentiate between object and bone channels then, if ob + bone motion occur together...
-			nameprop= RNA_struct_name_property(ptr.type);
-			if (nameprop) {
-				/* this gets a string which will need to be freed */
-				structname= RNA_property_string_get_alloc(&ptr, nameprop, NULL, 0);
+			/* for structname
+			 *	- as base, we use a custom name from the structs if one is available 
+			 *	- however, if we're showing subdata of bones (probably there will be other exceptions later)
+			 *	  need to include that info too since it gets confusing otherwise
+			 */
+			if (strstr(fcu->rna_path, "pose_channels") && strstr(fcu->rna_path, "constraints")) {
+				/* perform string 'chopping' to get "Bone Name : Constraint Name" */
+				char *pchanName= grab_quoted_text(fcu->rna_path, "pose_channels[");
+				char *constName= grab_quoted_text(fcu->rna_path, "constraints[");
+				
+				/* assemble the string to display in the UI... */
+				structname= BLI_sprintfN("%s : %s", pchanName, constName);
+				free_structname= 1;
+				
+				/* free the temp names */
+				if (pchanName) MEM_freeN(pchanName);
+				if (constName) MEM_freeN(constName);
 			}
-			else
-				structname= (char *)RNA_struct_ui_name(ptr.type);
+			else {
+				PropertyRNA *nameprop= RNA_struct_name_property(ptr.type);
+				if (nameprop) {
+					/* this gets a string which will need to be freed */
+					structname= RNA_property_string_get_alloc(&ptr, nameprop, NULL, 0);
+					free_structname= 1;
+				}
+				else
+					structname= (char *)RNA_struct_ui_name(ptr.type);
+			}
 			
 			/* Property Name is straightforward */
 			propname= (char *)RNA_property_ui_name(prop);
@@ -151,9 +194,9 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 				char c= RNA_property_array_item_char(prop, fcu->array_index);
 				
 				/* we need to write the index to a temp buffer (in py syntax) */
-				if(c) sprintf(arrayindbuf, "%c ", c);
+				if (c) sprintf(arrayindbuf, "%c ", c);
 				else sprintf(arrayindbuf, "[%d]", fcu->array_index);
-
+				
 				arrayname= &arrayindbuf[0];
 			}
 			else {
@@ -166,7 +209,7 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			BLI_snprintf(name, 128, "%s%s (%s)", arrayname, propname, structname); 
 			
 			/* free temp name if nameprop is set */
-			if (nameprop)
+			if (free_structname)
 				MEM_freeN(structname);
 		}
 		else {
