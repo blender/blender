@@ -42,6 +42,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_curve_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_image_types.h"
@@ -70,6 +71,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
+#include "BLI_edgehash.h"
 
 
 EditMesh *BKE_mesh_get_editmesh(Mesh *me)
@@ -950,6 +952,179 @@ void nurbs_to_mesh(Object *ob)
 		ob1= ob1->id.next;
 	}
 
+}
+
+typedef struct EdgeLink {
+	Link *next, *prev;
+	void *edge;
+} EdgeLink;
+
+typedef struct VertLink {
+	Link *next, *prev;
+	int index;
+} VertLink;
+
+static void prependPolyLineVert(ListBase *lb, int index)
+{
+	VertLink *vl= MEM_callocN(sizeof(VertLink), "VertLink");
+	vl->index = index;
+	BLI_addhead(lb, vl);
+}
+
+static void appendPolyLineVert(ListBase *lb, int index)
+{
+	VertLink *vl= MEM_callocN(sizeof(VertLink), "VertLink");
+	vl->index = index;
+	BLI_addtail(lb, vl);
+}
+
+void mesh_to_curve(Scene *scene, Object *ob)
+{
+	/* make new mesh data from the original copy */
+	DerivedMesh *dm= mesh_get_derived_final(scene, ob, CD_MASK_MESH);
+
+	MVert *mv, *mverts= dm->getVertArray(dm);
+	MEdge *med, *medge= dm->getEdgeArray(dm);
+	MFace *mf,  *mface= dm->getFaceArray(dm);
+
+	int totvert = dm->getNumVerts(dm);
+	int totedge = dm->getNumEdges(dm);
+	int totface = dm->getNumFaces(dm);
+	int totedges = 0;
+	int i;
+
+	EdgeHash *eh = BLI_edgehash_new();
+	EdgeHash *eh_edge = BLI_edgehash_new();
+
+	mf= mface;
+	for (i = 0; i < totface; i++, mf++) {
+		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
+			BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
+		if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
+			BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
+
+		if (mf->v4) {
+			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v4))
+				BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
+			if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
+				BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
+		} else {
+			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
+				BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
+		}
+	}
+
+	ListBase edges = {NULL, NULL};
+	EdgeLink *edl;
+
+	med= medge;
+	for(i=0; i<totedge; i++, med++) {
+		if (!BLI_edgehash_haskey(eh, med->v1, med->v2)) {
+			BLI_edgehash_insert(eh_edge, med->v1, med->v2, NULL);
+
+			edl= MEM_callocN(sizeof(EdgeLink), "EdgeLink");
+			edl->edge= med;
+
+			BLI_addtail(&edges, edl);	totedges++;
+		}
+	}
+	BLI_edgehash_free(eh_edge, NULL);
+	BLI_edgehash_free(eh, NULL);
+
+	if(edges.first) {
+		Curve *cu = add_curve(ob->id.name+2, OB_CURVE);
+		cu->flag |= CU_3D;
+
+		while(edges.first) {
+			ListBase polyline = {NULL, NULL};
+			int closed = FALSE;
+			int totpoly= 0;
+			MEdge *med_current= ((EdgeLink *)edges.last)->edge;
+			int startVert= med_current->v1;
+			int endVert= med_current->v2;
+
+			appendPolyLineVert(&polyline, startVert);	totpoly++;
+			appendPolyLineVert(&polyline, endVert);		totpoly++;
+			BLI_freelinkN(&edges, edges.last);			totedges--;
+
+			int ok= TRUE;
+
+			while(ok) {
+				ok = FALSE;
+				i= totedges;
+				while(i) {
+					i-=1;
+					edl= BLI_findlink(&edges, i);
+					MEdge *ed= edl->edge;
+
+					if(ed->v1==endVert) {
+						endVert = ed->v2;
+						appendPolyLineVert(&polyline, ed->v2);	totpoly++;
+						BLI_freelinkN(&edges, edl);				totedges--;
+						ok= TRUE;
+					}
+					else if(ed->v2==endVert) {
+						endVert = ed->v1;
+						appendPolyLineVert(&polyline, endVert);	totpoly++;
+						BLI_freelinkN(&edges, edl);				totedges--;
+						ok= TRUE;
+					}
+					else if(ed->v1==startVert) {
+						startVert = ed->v2;
+						prependPolyLineVert(&polyline, startVert);	totpoly++;
+						BLI_freelinkN(&edges, edl);					totedges--;
+						ok= TRUE;
+					}
+					else if(ed->v2==startVert) {
+						startVert = ed->v1;
+						prependPolyLineVert(&polyline, startVert);	totpoly++;
+						BLI_freelinkN(&edges, edl);					totedges--;
+						ok= TRUE;
+					}
+				}
+			}
+
+			/* Now we have a polyline, make into a curve */
+			if(startVert==endVert) {
+				BLI_freelinkN(&polyline, polyline.last);
+				totpoly--;
+				closed = TRUE;
+			}
+
+			/* --- nurbs --- */
+			Nurb *nu;
+			BPoint *bp;
+
+			/* create new 'nurb' within the curve */
+			nu = (Nurb *)MEM_callocN(sizeof(Nurb), "MeshNurb");
+
+			nu->pntsu= totpoly;
+			nu->pntsv= 1;
+			nu->orderu= 4;
+			nu->flagu= 2 | (closed ? CU_CYCLIC:0);	/* endpoint */
+			nu->resolu= 12;
+
+			nu->bp= (BPoint *)MEM_callocN(sizeof(BPoint)*totpoly, "bpoints");
+
+			/* add points */
+			VertLink *vl= polyline.first;
+			for (i=0, bp=nu->bp; i < totpoly; i++, bp++, vl=vl->next) {
+				VecCopyf(bp->vec, mverts[vl->index].co);
+				bp->f1= SELECT;
+				bp->radius = bp->weight = 1.0;
+			}
+			BLI_freelistN(&polyline);
+
+			/* add nurb to curve */
+			BLI_addtail(&cu->nurb, nu);
+			/* --- done with nurbs --- */
+		}
+
+		ob->data= cu;
+		ob->type= OB_CURVE;
+	}
+
+	dm->release(dm);
 }
 
 void mesh_delete_material_index(Mesh *me, int index)

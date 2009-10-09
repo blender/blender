@@ -1035,6 +1035,14 @@ static void curvetomesh(Scene *scene, Object *ob)
 		object_free_modifiers(ob);
 }
 
+static void meshtocurve(Scene *scene, Object *ob)
+{
+	mesh_to_curve(scene, ob);
+
+	if(ob->type == OB_CURVE)
+		object_free_modifiers(ob);
+}
+
 static int convert_poll(bContext *C)
 {
 	Object *obact= CTX_data_active_object(C);
@@ -1071,6 +1079,11 @@ static int convert_exec(bContext *C, wmOperator *op)
 		
 		if(ob->flag & OB_DONE)
 			continue;
+		else if (ob->type==OB_MESH && target == OB_CURVE) {
+			ob->flag |= OB_DONE;
+			meshtocurve(scene, ob);
+			ob->recalc |= OB_RECALC;
+		}
 		else if(ob->type==OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 			ob->flag |= OB_DONE;
 			basedel = base;
@@ -1096,7 +1109,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			/* make new mesh data from the original copy */
 			dm= mesh_get_derived_final(scene, ob1, CD_MASK_MESH);
 			/* dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton) */
-			
+
 			DM_to_mesh(dm, ob1->data);
 
 			dm->release(dm);
