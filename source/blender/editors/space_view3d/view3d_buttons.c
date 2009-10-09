@@ -1130,7 +1130,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	tfp= v3d->properties_storage;
 	
 // XXX	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-	
+	/*
 	if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
 	}
 	else {
@@ -1138,6 +1138,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 			uiBlockEndAlign(block);
 		}
 	}
+	*/
 
 	lim= 10000.0f*MAX2(1.0, v3d->grid);
 
