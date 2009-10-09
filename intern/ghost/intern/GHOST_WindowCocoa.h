@@ -70,7 +70,7 @@ public:
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
 	 */
 	GHOST_WindowCocoa(
-		const GHOST_SystemCocoa *systemCocoa,
+		GHOST_SystemCocoa *systemCocoa,
 		const STR_String& title,
 		GHOST_TInt32 left,
 		GHOST_TInt32 top,
@@ -204,16 +204,6 @@ public:
 
 	virtual void loadCursor(bool visible, GHOST_TStandardCursor cursor) const;
     
-    /**
-     * Returns the dirty state of the window when in full-screen mode.
-     * @return Whether it is dirty.
-     */
-    virtual bool getFullScreenDirty();
-
-		/* accessor for fullscreen window */
-	/*virtual void setMac_windowState(short value);
-	virtual short getMac_windowState();*/
-
 
 	const GHOST_TabletData* GetTabletData()
 	{ return &m_tablet; }
@@ -270,19 +260,13 @@ protected:
 	/** The opgnGL drawing context */
 	NSOpenGLContext *m_openGLContext;
 	
-	//CGrafPtr m_grafPtr;
-    //AGLContext m_aglCtx;
-
-	/** The first created OpenGL context (for sharing display lists) */
-	//static AGLContext s_firstaglCtx;
-		
+	/** The mother SystemCocoa class to send events */
+	GHOST_SystemCocoa *m_systemCocoa;
+			
 	NSCursor*	m_customCursor;
 
 	GHOST_TabletData m_tablet;
     
-    /** When running in full-screen this tells whether to refresh the window. */
-    bool m_fullScreenDirty;
-			 
     /**
      * The width/height of the size rectangle in the lower right corner of a 
      * Mac/Carbon window. This is also the height of the gutter area.

@@ -51,43 +51,6 @@
 
 #pragma mark KeyMap, mouse converters
 
-//TODO: remove (kept as reminder to implement window events)
-/*
-const EventTypeSpec	kEvents[] =
-{
-	{ kEventClassAppleEvent, kEventAppleEvent },
-
-//	{ kEventClassApplication, kEventAppActivated },
-//	{ kEventClassApplication, kEventAppDeactivated },
-	
-	{ kEventClassKeyboard, kEventRawKeyDown },
-	{ kEventClassKeyboard, kEventRawKeyRepeat },
-	{ kEventClassKeyboard, kEventRawKeyUp },
-	{ kEventClassKeyboard, kEventRawKeyModifiersChanged },
-	
-	{ kEventClassMouse, kEventMouseDown },
-	{ kEventClassMouse, kEventMouseUp },
-	{ kEventClassMouse, kEventMouseMoved },
-	{ kEventClassMouse, kEventMouseDragged },
-	{ kEventClassMouse, kEventMouseWheelMoved },
-	
-	{ kEventClassWindow, kEventWindowClickZoomRgn } ,  // for new zoom behaviour  
-	{ kEventClassWindow, kEventWindowZoom },  // for new zoom behaviour  
-	{ kEventClassWindow, kEventWindowExpand } ,  // for new zoom behaviour 
-	{ kEventClassWindow, kEventWindowExpandAll },  // for new zoom behaviour 
-
-	{ kEventClassWindow, kEventWindowClose },
-	{ kEventClassWindow, kEventWindowActivated },
-	{ kEventClassWindow, kEventWindowDeactivated },
-	{ kEventClassWindow, kEventWindowUpdate },
-	{ kEventClassWindow, kEventWindowBoundsChanged },
-	
-	{ kEventClassBlender, kEventBlenderNdofAxis },
-	{ kEventClassBlender, kEventBlenderNdofButtons }
-	
-	
-	
-};*/
 
 /* Keycodes from Carbon include file */
 /*  
@@ -701,25 +664,6 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 		}
 				
 		[pool drain];
-		
-		/*
-         * Initialize the cursor to the standard arrow shape (so that we can change it later on).
-         * This initializes the cursor's visibility counter to 0.
-         */
-        /*::InitCursor();
-		
-		MenuRef windMenu;
-		::CreateStandardWindowMenu(0, &windMenu);
-		::InsertMenu(windMenu, 0);
-		::DrawMenuBar();
-		
-        ::InstallApplicationEventHandler(sEventHandlerProc, GetEventTypeCount(kEvents), kEvents, this, &m_handler);
-		
-		::AEInstallEventHandler(kCoreEventClass, kAEOpenApplication, sAEHandlerLaunch, (SInt32) this, false);
-		::AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, sAEHandlerOpenDocs, (SInt32) this, false);
-		::AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments, sAEHandlerPrintDocs, (SInt32) this, false);
-		::AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, sAEHandlerQuit, (SInt32) this, false);
-		*/
     }
     return success;
 }
@@ -789,6 +733,13 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_IWindow* window = 0;
 	
+	//First check if we are in fullscreen mode
+	//If so, exit it before creating a new window
+	window = m_windowManager->getActiveWindow();
+	if (window && (window->getState() == GHOST_kWindowStateFullScreen))
+		window->setState(GHOST_kWindowStateNormal);
+	window = NULL;
+	
 	//Get the available rect for including window contents
 	NSRect frame = [[NSScreen mainScreen] visibleFrame];
 	NSRect contentRect = [NSWindow contentRectForFrameRect:frame
@@ -826,27 +777,18 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 
 GHOST_TSuccess GHOST_SystemCocoa::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window, const bool stereoVisual)
 {	
-	GHOST_TSuccess success = GHOST_kFailure;
+	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
 
-	//TODO: update this method
-	// need yo make this Carbon all on 10.5 for fullscreen to work correctly
-	CGCaptureAllDisplays();
+	*window = currentWindow;
 	
-	success = GHOST_System::beginFullScreen( setting, window, stereoVisual);
-	
-	if( success != GHOST_kSuccess ) {
-			// fullscreen failed for other reasons, release
-			CGReleaseAllDisplays();	
-	}
-
-	return success;
+	return currentWindow->setState(GHOST_kWindowStateFullScreen);
 }
 
 GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
 {	
-	//TODO: update this method
-	CGReleaseAllDisplays();
-	return GHOST_System::endFullScreen();
+	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
+	
+	return currentWindow->setState(GHOST_kWindowStateNormal);
 }
 
 
@@ -936,8 +878,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		 anyProcessed = true;
 		 }
 		 
-		 //TODO: check fullscreen redrawing issues
-		 if (getFullScreen()) {
+			 if (getFullScreen()) {
 		 // Check if the full-screen window is dirty
 		 GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
 		 if (((GHOST_WindowCarbon*)window)->getFullScreenDirty()) {
@@ -987,7 +928,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 					
 				case NSTabletPoint:
 				case NSTabletProximity:
-					handleTabletEvent(event);
+					handleTabletEvent(event,[event type]);
 					break;
 					
 					/* Trackpad features, will need OS X 10.6 for implementation
@@ -1028,8 +969,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 	if (!validWindow(window)) {
 		return GHOST_kFailure;
 	}
-
-	//if (!getFullScreen()) {
 		switch(eventType) 
 		{
 			case GHOST_kEventWindowClose:
@@ -1045,7 +984,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window) );
 				break;
 			case GHOST_kEventWindowUpdate:
-				//if (getFullScreen()) GHOST_PRINT("GHOST_SystemCarbon::handleWindowEvent(): full-screen update event\n");
 				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
 				break;
 			case GHOST_kEventWindowSize:
@@ -1059,12 +997,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 				return GHOST_kFailure;
 				break;
 		}
-//	}
-	//else {
-		//window = (GHOST_WindowCarbon*) m_windowManager->getFullScreenWindow();
-		//GHOST_PRINT("GHOST_SystemCarbon::handleWindowEvent(): full-screen window event, " << window << "\n");
-		//::RemoveEventFromQueue(::GetMainEventQueue(), event);
-	//}
 	return GHOST_kSuccess;
 }
 
@@ -1073,6 +1005,13 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	//Check open windows if some changes are not saved
 	if (m_windowManager->getAnyModifiedState())
 	{
+		//First check if we are in fullscreen mode
+		//If so, exit it before creating a new window
+		GHOST_IWindow *window = m_windowManager->getActiveWindow();
+		if (window && (window->getState() == GHOST_kWindowStateFullScreen))
+			window->setState(GHOST_kWindowStateNormal);
+		window = NULL;		
+		
 		int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes have not been saved. Do you really want to quit ?",
 										 @"Cancel", @"Quit anyway", nil);
 		if (shouldQuit == NSAlertAlternateReturn)
@@ -1090,35 +1029,13 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 }
 
 
-GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
+GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventType)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	GHOST_TabletData& ct=((GHOST_WindowCocoa*)window)->GetCocoaTabletData();
-	NSUInteger tabletEvent;
 	
-	//Handle tablet events combined with mouse events
-	@try {
-		switch ([event subtype]) {
-		case NX_SUBTYPE_TABLET_POINT:
-			tabletEvent = NSTabletPoint;
-			break;
-		case NX_SUBTYPE_TABLET_PROXIMITY:
-			tabletEvent = NSTabletProximity;
-			break;
-
-		default:
-			tabletEvent = [event type];
-			break;
-		}
-	}
-	@catch (NSException * e) {
-		//FIXME: check why we get such exceptions when using a tablet
-		return GHOST_kFailure;
-	}
-	
-	
-	switch (tabletEvent) {
+	switch (eventType) {
 		case NSTabletPoint:
 			ct.Pressure = [event tangentialPressure];
 			ct.Xtilt = [event tilt].x;
@@ -1175,20 +1092,53 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSRightMouseDown:
 		case NSOtherMouseDown:
 			pushEvent(new GHOST_EventButton([event timestamp], GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
-			handleTabletEvent(eventPtr);
+			//Handle tablet events combined with mouse events
+			switch ([event subtype]) {
+				case NX_SUBTYPE_TABLET_POINT:
+					handleTabletEvent(eventPtr, NSTabletPoint);
+					break;
+				case NX_SUBTYPE_TABLET_PROXIMITY:
+					handleTabletEvent(eventPtr, NSTabletProximity);
+					break;
+				default:
+					//No tablet event included : do nothing
+					break;
+			}
 			break;
 						
 		case NSLeftMouseUp:
 		case NSRightMouseUp:
 		case NSOtherMouseUp:
 			pushEvent(new GHOST_EventButton([event timestamp], GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
-			handleTabletEvent(eventPtr);
+			//Handle tablet events combined with mouse events
+			switch ([event subtype]) {
+				case NX_SUBTYPE_TABLET_POINT:
+					handleTabletEvent(eventPtr, NSTabletPoint);
+					break;
+				case NX_SUBTYPE_TABLET_PROXIMITY:
+					handleTabletEvent(eventPtr, NSTabletProximity);
+					break;
+				default:
+					//No tablet event included : do nothing
+					break;
+			}
 			break;
 			
 		case NSLeftMouseDragged:
 		case NSRightMouseDragged:
 		case NSOtherMouseDragged:				
-			handleTabletEvent(eventPtr);
+			//Handle tablet events combined with mouse events
+			switch ([event subtype]) {
+				case NX_SUBTYPE_TABLET_POINT:
+					handleTabletEvent(eventPtr, NSTabletPoint);
+					break;
+				case NX_SUBTYPE_TABLET_PROXIMITY:
+					handleTabletEvent(eventPtr, NSTabletProximity);
+					break;
+				default:
+					//No tablet event included : do nothing
+					break;
+			}
 		case NSMouseMoved:
 			{
 				NSPoint mousePos = [event locationInWindow];
@@ -1227,6 +1177,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	 * the window go away and we still get an HKey up. 
 	 */
 	if (!window) {
+		printf("\nW failure");
 		return GHOST_kFailure;
 	}
 	
@@ -1246,7 +1197,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa
-			
+
 			if ([event type] == NSKeyDown) {
 				pushEvent( new GHOST_EventKey([event timestamp], GHOST_kEventKeyDown, window, keyCode, ascii) );
 				//printf("\nKey pressed keyCode=%u ascii=%i %c",keyCode,ascii,ascii);
@@ -1280,143 +1231,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	
 	return GHOST_kSuccess;
 }
-
-
-/* System wide mouse clicks are handled directly through systematic event forwarding to Cocoa
-bool GHOST_SystemCarbon::handleMouseDown(void *eventPtr)
-{
-	NSEvent *event = (NSEvent *)eventPtr;
-	WindowPtr			window;
-	short				part;
-	BitMap 				screenBits;
-    bool 				handled = true;
-    GHOST_WindowCarbon* ghostWindow;
-    Point 				mousePos = {0 , 0};
-	
-	::GetEventParameter(event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &mousePos);
-	
-	part = ::FindWindow(mousePos, &window);
-	ghostWindow = (GHOST_WindowCarbon*) ::GetWRefCon(window);
-	
-	switch (part) {
-		case inMenuBar:
-			handleMenuCommand(::MenuSelect(mousePos));
-			break;
-			
-		case inDrag:
-			// *
-			// * The DragWindow() routine creates a lot of kEventWindowBoundsChanged
-			// * events. By setting m_ignoreWindowSizedMessages these are suppressed.
-			// * @see GHOST_SystemCarbon::handleWindowEvent(EventRef event)
-			// *
-			// even worse: scale window also generates a load of events, and nothing 
-			 //  is handled (read: client's event proc called) until you release mouse (ton) 
-			
-			GHOST_ASSERT(validWindow(ghostWindow), "GHOST_SystemCarbon::handleMouseDown: invalid window");
-			m_ignoreWindowSizedMessages = true;
-			::DragWindow(window, mousePos, &GetQDGlobalsScreenBits(&screenBits)->bounds);
-			m_ignoreWindowSizedMessages = false;
-			
-			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, ghostWindow) );
-
-			break;
-		
-		case inContent:
-			if (window != ::FrontWindow()) {
-				::SelectWindow(window);
-				//
-				// * We add a mouse down event on the newly actived window
-				// *		
-				//GHOST_PRINT("GHOST_SystemCarbon::handleMouseDown(): adding mouse down event, " << ghostWindow << "\n");
-				EventMouseButton button;
-				::GetEventParameter(event, kEventParamMouseButton, typeMouseButton, NULL, sizeof(button), NULL, &button);
-				pushEvent(new GHOST_EventButton(getMilliSeconds(), GHOST_kEventButtonDown, ghostWindow, convertButton(button)));
-			} else {
-				handled = false;
-			}
-			break;
-			
-		case inGoAway:
-			GHOST_ASSERT(ghostWindow, "GHOST_SystemCarbon::handleMouseEvent: ghostWindow==0");
-			if (::TrackGoAway(window, mousePos))
-			{
-				// todo: add option-close, because itÿs in the HIG
-				// if (event.modifiers & optionKey) {
-					// Close the clean documents, others will be confirmed one by one.
-				//}
-				// else {
-				pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, ghostWindow));
-				//}
-			}
-			break;
-			
-		case inGrow:
-			GHOST_ASSERT(ghostWindow, "GHOST_SystemCarbon::handleMouseEvent: ghostWindow==0");
-			::ResizeWindow(window, mousePos, NULL, NULL);
-			break;
-			
-		case inZoomIn:
-		case inZoomOut:
-			GHOST_ASSERT(ghostWindow, "GHOST_SystemCarbon::handleMouseEvent: ghostWindow==0");
-			if (::TrackBox(window, mousePos, part)) {
-				int macState;
-				
-				macState = ghostWindow->getMac_windowState();
-				if ( macState== 0)
-					::ZoomWindow(window, part, true);
-				else 
-					if (macState == 2) { // always ok
-							::ZoomWindow(window, part, true);
-							ghostWindow->setMac_windowState(1);
-					} else { // need to force size again
-					//	GHOST_TUns32 scr_x,scr_y; //unused
-						Rect outAvailableRect;
-						
-						ghostWindow->setMac_windowState(2);
-						::GetAvailableWindowPositioningBounds ( GetMainDevice(), &outAvailableRect);
-						
-						//this->getMainDisplayDimensions(scr_x,scr_y);
-						::SizeWindow (window, outAvailableRect.right-outAvailableRect.left,outAvailableRect.bottom-outAvailableRect.top-1,false);
-						::MoveWindow (window, outAvailableRect.left, outAvailableRect.top,true);
-					}
-				
-			}
-			break;
-
-		default:
-			handled = false;
-			break;
-	}
-	
-	return handled;
-}
-
-
-bool GHOST_SystemCarbon::handleMenuCommand(GHOST_TInt32 menuResult)
-{
-	short		menuID;
-	short		menuItem;
-	UInt32		command;
-	bool		handled;
-	OSErr		err;
-	
-	menuID = HiWord(menuResult);
-	menuItem = LoWord(menuResult);
-
-	err = ::GetMenuItemCommandID(::GetMenuHandle(menuID), menuItem, &command);
-
-	handled = false;
-	
-	if (err || command == 0) {
-	}
-	else {
-		switch(command) {
-		}
-	}
-
-	::HiliteMenu(0);
-    return handled;
-}*/
 
 
 
