@@ -480,7 +480,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
 				BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
 				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
-				modifier_unique_name(&obedit->modifiers, hmd);
+				modifier_unique_name(&obedit->modifiers, (ModifierData*)hmd);
 			}
 			else if (hmd->indexar) MEM_freeN(hmd->indexar); /* reassign, hook was set */
 		

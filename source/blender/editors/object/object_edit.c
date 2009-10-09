@@ -848,7 +848,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 								BooleanModifierData *bmd = NULL;
 								bmd = (BooleanModifierData *)modifier_new(eModifierType_Boolean);
 								BLI_addtail(&ob->modifiers, bmd);
-								modifier_unique_name(&ob->modifiers, bmd);
+								modifier_unique_name(&ob->modifiers, (ModifierData*)bmd);
 								bmd->object = base_select->object;
 								bmd->modifier.mode |= eModifierMode_Realtime;
 								switch(nr){
@@ -981,7 +981,7 @@ static void object_flip_subdivison_particles(Scene *scene, Object *ob, int *set,
 				SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
 				
 				BLI_addtail(&ob->modifiers, smd);
-				modifier_unique_name(&ob->modifiers, smd);
+				modifier_unique_name(&ob->modifiers, (ModifierData*)smd);
 				
 				if (level!=-1) {
 					smd->levels = level;
