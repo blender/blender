@@ -149,7 +149,7 @@ class RenderJob:
 							"id": self.id,
 							"type": self.type,
 							"name": self.name,
-							"files": [f for f in self.files if f[1] == -1 or not frames or (f[1] <= min_frame <= f[2] or f[1] <= max_frame <= f[2])],
+							"files": [f for f in self.files if f[1] == -1 or not frames or (f[1] <= max_frame and f[2] >= min_frame)],
 							"frames": [f.serialize() for f in self.frames if not frames or f in frames],
 							"chunks": self.chunks,
 							"priority": self.priority,
