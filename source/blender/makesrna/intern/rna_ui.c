@@ -343,7 +343,6 @@ static void menu_draw(const bContext *C, Menu *hdr)
 
 static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 {
-	ARegionType *art;
 	MenuType *mt= RNA_struct_blender_type_get(type);
 
 	if(!mt)
@@ -362,7 +361,6 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 
 static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	ARegionType *art;
 	MenuType *mt, dummymt = {0};
 	Menu dummymenu= {0};
 	PointerRNA dummymtr;

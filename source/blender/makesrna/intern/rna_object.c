@@ -508,6 +508,32 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 	ob->rotmode= value;
 }
 
+/* not called directly */
+static void rna_Object_scale_linked_set(Object *ob, float value, int axis)
+{
+	if(ob->size[axis]==0.0f || value==0.0f) {
+		ob->size[0]= ob->size[1]= ob->size[2]= value;
+	}
+	else {
+		VecMulf(ob->size, value / ob->size[axis]);
+	}
+}
+
+static void rna_Object_scale_x_linked_set(PointerRNA *ptr, float value)
+{
+	rna_Object_scale_linked_set(ptr->data, value, 0);
+}
+static void rna_Object_scale_y_linked_set(PointerRNA *ptr, float value)
+{
+	rna_Object_scale_linked_set(ptr->data, value, 1);
+}
+static void rna_Object_scale_z_linked_set(PointerRNA *ptr, float value)
+{
+	rna_Object_scale_linked_set(ptr->data, value, 2);
+}
+
+
+
 static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -1276,6 +1302,26 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scale", "Scaling of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
+	/* linked scale for the transform panel */
+	prop= RNA_def_property(srna, "scale_linked_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "size[0]");
+	RNA_def_property_float_funcs(prop, NULL, "rna_Object_scale_x_linked_set", NULL);
+	RNA_def_property_ui_text(prop, "Scale X", "Scaling of the objects X axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
+
+	prop= RNA_def_property(srna, "scale_linked_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "size[1]");
+	RNA_def_property_float_funcs(prop, NULL, "rna_Object_scale_y_linked_set", NULL);
+	RNA_def_property_ui_text(prop, "Scale Y", "Scaling of the objects X axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
+
+	prop= RNA_def_property(srna, "scale_linked_z", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "size[2]");
+	RNA_def_property_float_funcs(prop, NULL, "rna_Object_scale_z_linked_set", NULL);
+	RNA_def_property_ui_text(prop, "Scale Z", "Scaling of the objects Z axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
+
+
 	/* delta transforms */
 	prop= RNA_def_property(srna, "delta_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dloc");
@@ -1494,25 +1540,27 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "dupli_frames_start", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupsta");
-	RNA_def_property_range(prop, 1, 32767);
+	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Dupli Frames Start", "Start frame for DupliFrames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "dupli_frames_end", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupend");
-	RNA_def_property_range(prop, 1, 32767);
+	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Dupli Frames End", "End frame for DupliFrames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "dupli_frames_on", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupon");
-	RNA_def_property_range(prop, 1, 1500);
+	RNA_def_property_range(prop, 1, MAXFRAME);
+	RNA_def_property_ui_range(prop, 1, 1500, 1, 0);
 	RNA_def_property_ui_text(prop, "Dupli Frames On", "Number of frames to use between DupOff frames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "dupli_frames_off", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupoff");
-	RNA_def_property_range(prop, 0, 1500);
+	RNA_def_property_range(prop, 0, MAXFRAME);
+	RNA_def_property_ui_range(prop, 0, 1500, 1, 0);
 	RNA_def_property_ui_text(prop, "Dupli Frames Off", "Recurring frames to exclude from the Dupliframes.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
