@@ -1184,14 +1184,14 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		/* center vertices */
 		/* type PRIM_CONE can only have 1 one side filled
 		 * if the cone has no capping, dont add vtop */
-		if((fill && type>1) || type == PRIM_CONE) {
+		if(type == PRIM_CONE || (fill && !ELEM(type, PRIM_PLANE, PRIM_CUBE))) {
 			vec[0]= vec[1]= 0.0f;
-			vec[2]= -depth;
+			vec[2]= type==PRIM_CONE ? depth : -depth;
 			Mat4MulVecfl(mat, vec);
 			vdown= addvertlist(em, vec, NULL);
 			if((ext || type==PRIM_CONE) && fill) {
 				vec[0]= vec[1]= 0.0f;
-				vec[2]= depth;
+				vec[2]= type==PRIM_CONE ? -depth : depth;
 				Mat4MulVecfl(mat,vec);
 				vtop= addvertlist(em, vec, NULL);
 			}
@@ -1204,7 +1204,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	
 		/* top and bottom face */
 		if(fill || type==PRIM_CONE) {
-			if(tot==4 && (type==0 || type==1)) {
+			if(tot==4 && ELEM(type, PRIM_PLANE, PRIM_CUBE)) {
 				v3= v1->next->next;
 				if(ext) v4= v2->next->next;
 				
@@ -1223,7 +1223,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 						v4= v4->next;
 					}
 				}
-				if(type>1) {
+				if(!ELEM(type, PRIM_PLANE, PRIM_CUBE)) {
 					addfacelist(em, vdown, v3, v1, 0, NULL, NULL);
 					if(ext) addfacelist(em, vtop, v4, v2, 0, NULL, NULL);
 				}
@@ -1248,7 +1248,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			}
 			addfacelist(em, v3, v1, v2, v4, NULL, NULL);
 		}
-		else if(type==PRIM_CONE && fill) {
+		else if(fill && type==PRIM_CONE) {
 			/* add the bottom flat area of the cone
 			 * if capping is disabled dont bother */
 			v3= v1;
@@ -1264,7 +1264,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	/* simple selection flush OK, based on fact it's a single model */
 	EM_select_flush(em); /* flushes vertex -> edge -> face selection */
 	
-	if(type!=0 && type!=13)
+	if(type!=PRIM_PLANE && type!=PRIM_MONKEY)
 		righthandfaces(em, 1);	/* otherwise monkey has eyes in wrong direction */
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -1525,7 +1525,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, INT_MIN, INT_MAX, "X Subdivisions", "", 3, 1000);
-	RNA_def_int(ot->srna, "y_subdivisions", 10, INT_MIN, INT_MAX, "Y Subdivisons", "", 3, 1000);
+	RNA_def_int(ot->srna, "y_subdivisions", 10, INT_MIN, INT_MAX, "Y Subdivisions", "", 3, 1000);
 	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
 }
 
