@@ -411,11 +411,22 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	setcameratoview3d(v3d, rv3d, v3d->camera);
+	rv3d->persp = V3D_CAMOB;
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 
+}
+
+int view3d_setcameratoview_poll(bContext *C)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+	if (v3d==NULL || v3d->camera==NULL)	return 0;
+	if (rv3d && rv3d->viewlock != 0)		return 0;
+	return 1;
 }
 
 void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
@@ -428,7 +439,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= view3d_setcameratoview_exec;	
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= view3d_setcameratoview_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
