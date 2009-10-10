@@ -559,6 +559,9 @@ static float RE_rayobject_empty_cost(RayObject *o)
 	return 0.0;
 }
 
+static void RE_rayobject_empty_hint_bb(RayObject *o, RayHint *hint, float *min, float *max)
+{}
+
 static RayObjectAPI empty_api =
 {
 	RE_rayobject_empty_intersect,
@@ -566,7 +569,8 @@ static RayObjectAPI empty_api =
 	NULL, //static void RE_rayobject_instance_done(RayObject *o);
 	RE_rayobject_empty_free,
 	RE_rayobject_empty_bb,
-	RE_rayobject_empty_cost
+	RE_rayobject_empty_cost,
+	RE_rayobject_empty_hint_bb
 };
 
 static RayObject empty_raytree = { &empty_api, {0, 0} };

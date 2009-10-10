@@ -41,6 +41,9 @@ static void RE_rayobject_instance_free(RayObject *o);
 static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max);
 static float RE_rayobject_instance_cost(RayObject *o);
 
+static void RE_rayobject_instance_hint_bb(RayObject *o, RayHint *hint, float *min, float *max)
+{}
+
 static RayObjectAPI instance_api =
 {
 	RE_rayobject_instance_intersect,
@@ -48,7 +51,8 @@ static RayObjectAPI instance_api =
 	NULL, //static void RE_rayobject_instance_done(RayObject *o);
 	RE_rayobject_instance_free,
 	RE_rayobject_instance_bb,
-	RE_rayobject_instance_cost
+	RE_rayobject_instance_cost,
+	RE_rayobject_instance_hint_bb	
 };
 
 typedef struct InstanceRayObject
