@@ -325,9 +325,9 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	/* ghost curves */
 	// XXX these icons need to be changed
 	if (sipo->ghostCurves.first)
-		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_clear", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_DATA_CURVE, xco,yco,XIC,YIC, "Clear F-Curve snapshots (Ghosts) for this Graph Editor instance");
+		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_clear", WM_OP_INVOKE_REGION_WIN, ICON_GHOST_DISABLED, xco,yco,XIC,YIC, "Clear F-Curve snapshots (Ghosts) for this Graph Editor instance");
 	else 
-		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_create", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_OB_CURVE, xco,yco,XIC,YIC, "Create snapshot (Ghosts) of selected F-Curves as background aid for this Graph Editor instance");
+		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_create", WM_OP_INVOKE_REGION_WIN, ICON_GHOST_ENABLED, xco,yco,XIC,YIC, "Create snapshot (Ghosts) of selected F-Curves as background aid for this Graph Editor instance");
 	xco+= XIC;
 	
 	

@@ -183,15 +183,15 @@ class INFO_MT_help(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.itemO("help.manual")
-		layout.itemO("help.release_logs")
+		layout.itemO("help.manual", icon='ICON_URL')
+		layout.itemO("help.release_logs", icon='ICON_URL')
 
 		layout.itemS()
 
-		layout.itemO("help.blender_website")
-		layout.itemO("help.blender_eshop")
-		layout.itemO("help.developer_community")
-		layout.itemO("help.user_community")
+		layout.itemO("help.blender_website", icon='ICON_URL')
+		layout.itemO("help.blender_eshop", icon='ICON_URL')
+		layout.itemO("help.developer_community", icon='ICON_URL')
+		layout.itemO("help.user_community", icon='ICON_URL')
 		layout.itemS()
 		layout.itemO("help.operator_cheat_sheet")
 		

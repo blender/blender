@@ -29,7 +29,7 @@ class SCENE_PT_render(RenderButtonsPanel):
 		rd = context.scene.render_data
 
 		row = layout.row()
-		row.itemO("screen.render", text="Image", icon='ICON_RENDER_RESULT')
+		row.itemO("screen.render", text="Image", icon='ICON_RENDER_STILL')
 		row.item_booleanO("screen.render", "animation", True, text="Animation", icon='ICON_RENDER_ANIMATION')
 
 		layout.itemR(rd, "display_mode", text="Display")

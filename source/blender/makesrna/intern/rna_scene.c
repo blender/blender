@@ -1225,50 +1225,50 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	static EnumPropertyItem image_type_items[] = {
 		{0, "", 0, "Image", NULL},
-		{R_PNG, "PNG", 0, "PNG", ""},
-		{R_JPEG90, "JPEG", 0, "JPEG", ""},
+		{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", ""},
+		{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", ""},
 #ifdef WITH_OPENJPEG
-		{R_JP2, "JPEG2000", 0, "JPEG 2000", ""},
+		{R_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", ""},
 #endif		
-		{R_BMP, "BMP", 0, "BMP", ""},
-		{R_TARGA, "TARGA", 0, "Targa", ""},
-		{R_RAWTGA, "RAWTARGA", 0, "Targa Raw", ""},
-		//{R_DDS, "DDS", 0, "DDS", ""}, // XXX not yet implemented
-		{R_HAMX, "HAMX", 0, "HamX", ""},
-		{R_IRIS, "IRIS", 0, "Iris", ""},
+		{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
+		{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
+		{R_RAWTGA, "RAWTARGA", ICON_FILE_IMAGE, "Targa Raw", ""},
+		//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
+		{R_HAMX, "HAMX", ICON_FILE_IMAGE, "HamX", ""},
+		{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 		{0, "", 0, " ", NULL},
 #ifdef WITH_OPENEXR
-		{R_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
-		{R_MULTILAYER, "MULTILAYER", 0, "MultiLayer", ""},
+		{R_OPENEXR, "OPENEXR", ICON_FILE_IMAGE, "OpenEXR", ""},
+		{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
 #endif
-		{R_TIFF, "TIFF", 0, "TIFF", ""},	// XXX only with G.have_libtiff
-		{R_RADHDR, "RADHDR", 0, "Radiance HDR", ""},
-		{R_CINEON, "CINEON", 0, "Cineon", ""},
-		{R_DPX, "DPX", 0, "DPX", ""},
+		{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
+		{R_RADHDR, "RADHDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
+		{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
+		{R_DPX, "DPX", ICON_FILE_IMAGE, "DPX", ""},
 		{0, "", 0, "Movie", NULL},
-		{R_AVIRAW, "AVIRAW", 0, "AVI Raw", ""},
-		{R_AVIJPEG, "AVIJPEG", 0, "AVI JPEG", ""},
+		{R_AVIRAW, "AVIRAW", ICON_FILE_MOVIE, "AVI Raw", ""},
+		{R_AVIJPEG, "AVIJPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
 #ifdef _WIN32
-		{R_AVICODEC, "AVICODEC", 0, "AVI Codec", ""},
+		{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""},
 #endif
 #ifdef WITH_QUICKTIME
-		{R_QUICKTIME, "QUICKTIME", 0, "QuickTime", ""},
+		{R_QUICKTIME, "QUICKTIME", ICON_FILE_MOVIE, "QuickTime", ""},
 #endif
 #ifdef __sgi
-		{R_MOVIE, "MOVIE", 0, "Movie", ""},
+		{R_MOVIE, "MOVIE", ICON_FILE_MOVIE, "Movie", ""},
 #endif
 #ifdef WITH_FFMPEG
-		{R_H264, "H264", 0, "H.264", ""},
-		{R_XVID, "XVID", 0, "Xvid", ""},
+		{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
+		{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", ""},
 		// XXX broken
 #if 0
 #ifdef WITH_OGG
-		{R_THEORA, "THEORA", 0, "Ogg Theora", ""},
+		{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
 #endif
 #endif
-		{R_FFMPEG, "FFMPEG", 0, "FFMpeg", ""},
+		{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFMpeg", ""},
 #endif
-		{R_FRAMESERVER, "FRAMESERVER", 0, "Frame Server", ""},
+		{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 #ifdef WITH_OPENEXR	
