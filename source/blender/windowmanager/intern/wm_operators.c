@@ -488,18 +488,24 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
-/* op->invoke */
-int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
+/* Can't be used as an invoke directly, needs message arg (can be NULL) */
+int WM_operator_confirm_message(bContext *C, wmOperator *op, char *message)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
 	pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
-	uiItemO(layout, NULL, 0, op->type->idname);
+	uiItemO(layout, message, 0, op->type->idname);
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
+}
+
+
+int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_operator_confirm_message(C, op, NULL);
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */

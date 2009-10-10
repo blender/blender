@@ -978,8 +978,14 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 
 static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	move_to_layer_init(C, op);
-	return WM_operator_props_popup(C, op, event);
+	View3D *v3d= CTX_wm_view3d(C);
+	if(v3d && v3d->localvd) {
+		return WM_operator_confirm_message(C, op, "Move from localview");
+	}
+	else {
+		move_to_layer_init(C, op);
+		return WM_operator_props_popup(C, op, event);
+	}
 }
 
 static int move_to_layer_exec(bContext *C, wmOperator *op)
@@ -1023,7 +1029,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	
 	/* warning, active object may be hidden now */
 	
-	WM_event_add_notifier(C, NC_SCENE, scene);
+	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
 	DAG_scene_sort(scene);
 
 	return OPERATOR_FINISHED;

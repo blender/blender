@@ -1239,7 +1239,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	BASACT= basact;
 
 	DAG_scene_sort(scene);
-	WM_event_add_notifier(C, NC_SCENE|ND_DRAW, scene);
+	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
 
 
 

@@ -158,6 +158,8 @@ int			WM_operator_winactive	(struct bContext *C);
 int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 
+int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, char *message);
+
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct bContext *C);
