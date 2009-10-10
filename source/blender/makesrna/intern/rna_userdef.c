@@ -1657,7 +1657,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "continuous_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_CONTINUOUS_MOUSE);
-	RNA_def_property_ui_text(prop, "Continuous Grab", "Experimental option to allow moving the mouse outside the view (Linux only at the moment)");
+	RNA_def_property_ui_text(prop, "Continuous Grab", "Experimental option to allow moving the mouse outside the view");
 
 	prop= RNA_def_property(srna, "global_pivot", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_LOCKAROUND);

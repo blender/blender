@@ -85,7 +85,6 @@ class INFO_MT_file_import(bpy.types.Menu):
 		layout.itemO("import.3ds", text="3DS")
 		layout.itemO("import.obj", text="OBJ")
 
-
 class INFO_MT_file_export(bpy.types.Menu):
 	__label__ = "Export"
 
@@ -98,7 +97,6 @@ class INFO_MT_file_export(bpy.types.Menu):
 		layout.itemO("export.mdd", text="MDD")
 		layout.itemO("export.ply", text="PLY")
 		layout.itemO("export.x3d", text="X3D")
-
 
 class INFO_MT_file_external_data(bpy.types.Menu):
 	__label__ = "External Data"
@@ -170,8 +168,8 @@ class INFO_MT_render(bpy.types.Menu):
 		
 		rd = context.scene.render_data
 
-		layout.itemO("screen.render", text="Render Image")
-		layout.item_booleanO("screen.render", "animation", True, text="Render Animation")
+		layout.itemO("screen.render", text="Render Image", icon='ICON_RENDER_STILL')
+		layout.item_booleanO("screen.render", "animation", True, text="Render Animation", icon='ICON_RENDER_ANIMATION')
 
 		layout.itemS()
 
@@ -194,7 +192,6 @@ class INFO_MT_help(bpy.types.Menu):
 		layout.itemO("help.user_community", icon='ICON_URL')
 		layout.itemS()
 		layout.itemO("help.operator_cheat_sheet")
-		
 
 bpy.types.register(INFO_HT_header)
 bpy.types.register(INFO_MT_file)
@@ -221,31 +218,37 @@ class HelpOperator(bpy.types.Operator):
 		return ('FINISHED',)
 
 class HELP_OT_manual(HelpOperator):
+	'''The Blender Wiki manual'''
 	__idname__ = "help.manual"
 	__label__ = "Manual"
 	__URL__ = 'http://wiki.blender.org/index.php/Manual'
 
 class HELP_OT_release_logs(HelpOperator):
+	'''Information about the changes in this version of Blender'''
 	__idname__ = "help.release_logs"
 	__label__ = "Release Logs"
 	__URL__ = 'http://www.blender.org/development/release-logs/'
 
 class HELP_OT_blender_website(HelpOperator):
+	'''The official Blender website'''
 	__idname__ = "help.blender_website"
 	__label__ = "Blender Website"
 	__URL__ = 'http://www.blender.org/'
 
 class HELP_OT_blender_eshop(HelpOperator):
+	'''Buy official Blender resources and merchandise online'''
 	__idname__ = "help.blender_eshop"
 	__label__ = "Blender e-Shop"
 	__URL__ = 'http://www.blender3d.org/e-shop'
 
 class HELP_OT_developer_community(HelpOperator):
+	'''Get involved with Blender development'''
 	__idname__ = "help.developer_community"
 	__label__ = "Developer Community"
 	__URL__ = 'http://www.blender.org/community/get-involved/'
 
 class HELP_OT_user_community(HelpOperator):
+	'''Get involved with other Blender users'''
 	__idname__ = "help.user_community"
 	__label__ = "User Community"
 	__URL__ = 'http://www.blender.org/community/user-community/'
@@ -275,7 +278,6 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 		print("See OperatorList.txt textblock")
 		return ('FINISHED',)
 
-
 bpy.ops.add(HELP_OT_manual)
 bpy.ops.add(HELP_OT_release_logs)
 bpy.ops.add(HELP_OT_blender_website)
@@ -283,4 +285,3 @@ bpy.ops.add(HELP_OT_blender_eshop)
 bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
 bpy.ops.add(HELP_OT_operator_cheat_sheet)
-
