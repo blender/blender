@@ -462,8 +462,10 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
 			/* grab cursor during blocking modal ops (X11) */
-			if(ot->flag & OPTYPE_BLOCKING)
-				WM_cursor_grab(CTX_wm_window(C), (U.uiflag & USER_CONTINUOUS_MOUSE));
+			if(ot->flag & OPTYPE_BLOCKING) {
+				int warp = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				WM_cursor_grab(CTX_wm_window(C), warp);
+			}
 		}
 		else
 			WM_operator_free(op);

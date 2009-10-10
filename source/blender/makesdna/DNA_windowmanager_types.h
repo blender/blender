@@ -330,7 +330,7 @@ typedef struct wmOperator {
 #define OPERATOR_PASS_THROUGH	8
 
 /* wmOperator flag */
-
+#define OP_GRAB_POINTER			1
 
 /* ************** wmEvent ************************ */
 /* for read-only rna access, dont save this */
