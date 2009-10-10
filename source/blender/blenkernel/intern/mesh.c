@@ -996,6 +996,10 @@ void mesh_to_curve(Scene *scene, Object *ob)
 	EdgeHash *eh = BLI_edgehash_new();
 	EdgeHash *eh_edge = BLI_edgehash_new();
 
+	ListBase edges = {NULL, NULL};
+	EdgeLink *edl;
+
+
 	mf= mface;
 	for (i = 0; i < totface; i++, mf++) {
 		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
@@ -1013,9 +1017,6 @@ void mesh_to_curve(Scene *scene, Object *ob)
 				BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
 		}
 	}
-
-	ListBase edges = {NULL, NULL};
-	EdgeLink *edl;
 
 	med= medge;
 	for(i=0; i<totedge; i++, med++) {
@@ -1042,20 +1043,24 @@ void mesh_to_curve(Scene *scene, Object *ob)
 			MEdge *med_current= ((EdgeLink *)edges.last)->edge;
 			int startVert= med_current->v1;
 			int endVert= med_current->v2;
+			int ok= TRUE;
+
+			Nurb *nu;
+			BPoint *bp;
+			VertLink *vl;
 
 			appendPolyLineVert(&polyline, startVert);	totpoly++;
 			appendPolyLineVert(&polyline, endVert);		totpoly++;
 			BLI_freelinkN(&edges, edges.last);			totedges--;
 
-			int ok= TRUE;
 
 			while(ok) {
 				ok = FALSE;
 				i= totedges;
 				while(i) {
+					MEdge *ed= edl->edge;
 					i-=1;
 					edl= BLI_findlink(&edges, i);
-					MEdge *ed= edl->edge;
 
 					if(ed->v1==endVert) {
 						endVert = ed->v2;
@@ -1092,8 +1097,6 @@ void mesh_to_curve(Scene *scene, Object *ob)
 			}
 
 			/* --- nurbs --- */
-			Nurb *nu;
-			BPoint *bp;
 
 			/* create new 'nurb' within the curve */
 			nu = (Nurb *)MEM_callocN(sizeof(Nurb), "MeshNurb");
@@ -1107,7 +1110,7 @@ void mesh_to_curve(Scene *scene, Object *ob)
 			nu->bp= (BPoint *)MEM_callocN(sizeof(BPoint)*totpoly, "bpoints");
 
 			/* add points */
-			VertLink *vl= polyline.first;
+			vl= polyline.first;
 			for (i=0, bp=nu->bp; i < totpoly; i++, bp++, vl=vl->next) {
 				VecCopyf(bp->vec, mverts[vl->index].co);
 				bp->f1= SELECT;
