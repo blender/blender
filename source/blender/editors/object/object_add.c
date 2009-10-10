@@ -1018,8 +1018,8 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 /**************************** Convert **************************/
 
 static EnumPropertyItem convert_target_items[]= {
-	{OB_CURVE, "CURVE", 0, "Curve", ""},
-	{OB_MESH, "MESH", 0, "Mesh", ""},
+	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
+	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Mesh", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static void curvetomesh(Scene *scene, Object *ob) 
@@ -1032,14 +1032,6 @@ static void curvetomesh(Scene *scene, Object *ob)
 	nurbs_to_mesh(ob); /* also does users */
 
 	if(ob->type == OB_MESH)
-		object_free_modifiers(ob);
-}
-
-static void meshtocurve(Scene *scene, Object *ob)
-{
-	mesh_to_curve(scene, ob);
-
-	if(ob->type == OB_CURVE)
 		object_free_modifiers(ob);
 }
 
@@ -1081,8 +1073,22 @@ static int convert_exec(bContext *C, wmOperator *op)
 			continue;
 		else if (ob->type==OB_MESH && target == OB_CURVE) {
 			ob->flag |= OB_DONE;
-			meshtocurve(scene, ob);
-			ob->recalc |= OB_RECALC;
+
+			ob1= copy_object(ob);
+			ob1->recalc |= OB_RECALC;
+
+			basen= MEM_mallocN(sizeof(Base), "duplibase");
+			*basen= *base;
+			BLI_addhead(&scene->base, basen);	/* addhead: otherwise eternal loop */
+			basen->object= ob1;
+			basen->flag |= SELECT;
+			base->flag &= ~SELECT;
+			ob->flag &= ~SELECT;
+
+			mesh_to_curve(scene, ob1);
+
+			if(ob1->type==OB_CURVE)
+				object_free_modifiers(ob1);	/* after derivedmesh calls! */
 		}
 		else if(ob->type==OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 			ob->flag |= OB_DONE;
@@ -1233,47 +1239,13 @@ static int convert_exec(bContext *C, wmOperator *op)
 	BASACT= basact;
 
 	DAG_scene_sort(scene);
-	WM_event_add_notifier(C, NC_SCENE, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_DRAW, scene);
+
+
 
 	return OPERATOR_FINISHED;
 }
 
-static int convert_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obact= CTX_data_active_object(C);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	char *title;
-
-	if(obact->type==OB_FONT) {
-		pup= uiPupMenuBegin(C, "Convert Font to", 0);
-		layout= uiPupMenuLayout(pup);
-
-		uiItemEnumO(layout, "Curve", 0, op->type->idname, "target", OB_CURVE);
-	}
-	else {
-		if(obact->type == OB_MBALL)
-			title= "Convert Metaball to";
-		else if(obact->type == OB_CURVE)
-			title= "Convert Curve to";
-		else if(obact->type == OB_SURF)
-			title= "Convert Nurbs Surface to";
-		else if(obact->type == OB_MESH)
-			title= "Convert Modifiers to";
-		else
-			return OPERATOR_CANCELLED;
-
-		pup= uiPupMenuBegin(C, title, 0);
-		layout= uiPupMenuLayout(pup);
-	}
-
-	uiItemBooleanO(layout, "Mesh (keep original)", 0, op->type->idname, "keep_original", 1);
-	uiItemBooleanO(layout, "Mesh (delete original)", 0, op->type->idname, "keep_original", 0);
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
-}
 
 void OBJECT_OT_convert(wmOperatorType *ot)
 {
@@ -1283,7 +1255,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_convert";
 	
 	/* api callbacks */
-	ot->invoke= convert_invoke;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= convert_exec;
 	ot->poll= convert_poll;
 	
