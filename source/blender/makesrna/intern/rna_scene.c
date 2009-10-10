@@ -428,6 +428,24 @@ static void rna_Physics_update(bContext *C, PointerRNA *ptr)
 }
 #else
 
+static void rna_def_transform_orientation(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	int matrix_dimsize[]= {3, 3};
+	
+	srna= RNA_def_struct(brna, "TransformOrientation", NULL);
+	
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "mat");
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_struct_name_property(srna, prop);
+}
+
 static void rna_def_tool_settings(BlenderRNA  *brna)
 {
 	StructRNA *srna;
@@ -2247,12 +2265,19 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
 	
+	/* Transform Orientations */
+	prop= RNA_def_property(srna, "orientations", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "transform_spaces", NULL);
+	RNA_def_property_struct_type(prop, "TransformOrientation");
+	RNA_def_property_ui_text(prop, "Transform Orientations", "");
+
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);
 	rna_def_unit_settings(brna);
 	rna_def_scene_render_data(brna);
 	rna_def_scene_game_data(brna);
 	rna_def_scene_render_layer(brna);
+	rna_def_transform_orientation(brna);
 	
 	/* Scene API */
 	RNA_api_scene(srna);

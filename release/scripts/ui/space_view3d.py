@@ -1256,8 +1256,15 @@ class VIEW3D_PT_transform_orientations(bpy.types.Panel):
 		view = context.space_data
 
 		col = layout.column()
-		col.itemO("TFM_OT_select_orientation", text="Select")
+
+		col.itemR(view, "transform_orientation")
 		col.itemO("TFM_OT_create_orientation", text="Create")
+		
+#		orientation_index = view.__rna__.properties["transform_orientation"].items[view.transform_orientation].value
+#		
+#		if orientation_index >= 4:
+#			orientation = context.scene.orientations[orientation_index - 4]
+#			col.itemR(orientation, "name")
 		col.itemO("TFM_OT_delete_orientation", text="Delete")
 
 # Operators 

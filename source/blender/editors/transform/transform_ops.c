@@ -123,6 +123,8 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
 	int orientation = RNA_enum_get(op->ptr, "orientation");
 
 	BIF_selectTransformOrientationValue(C, orientation);
+	
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -138,12 +140,6 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 	uiPupMenuEnd(C, pup);
 
 	return OPERATOR_CANCELLED;
-}
-
-static EnumPropertyItem *select_orientation_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	*free= 1;
-	return BIF_enumTransformOrientation(C);
 }
 
 void TFM_OT_select_orientation(struct wmOperatorType *ot)
@@ -162,7 +158,7 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_areaactive;
 
 	prop= RNA_def_enum(ot->srna, "orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
-	RNA_def_enum_funcs(prop, select_orientation_itemf);
+	RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
 }
 
 
@@ -172,6 +168,8 @@ static int delete_orientation_exec(bContext *C, wmOperator *op)
 	int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
 
 	BIF_removeTransformOrientationIndex(C, selected_index);
+	
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -221,8 +219,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 
 	BIF_createTransformOrientation(C, op->reports, name, use, overwrite);
 
-	/* Do we need more refined tags? */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -393,7 +390,7 @@ void Properties_Constraints(struct wmOperatorType *ot)
 
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
 	prop= RNA_def_enum(ot->srna, "constraint_orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
-	RNA_def_enum_funcs(prop, select_orientation_itemf);
+	RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
 }
 
 void TFM_OT_translate(struct wmOperatorType *ot)
