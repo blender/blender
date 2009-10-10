@@ -2934,7 +2934,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	multires_force_update(CTX_data_active_object(C));
 	
 	/* get editmode results */
-	ED_object_exit_editmode(C, 0);	/* 0 = does not exit editmode */
+	ED_object_exit_editmode(C, EM_DO_UNDO);	/* 0 = does not exit editmode */
 	
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render

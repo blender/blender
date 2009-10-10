@@ -906,14 +906,16 @@ def do_export(filename, context,
 #	orig_scene.makeCurrent()
 #	Window.WaitCursor(0)
 
-
+	
+'''
+Currently the exporter lacks these features:
+* nurbs
+* multiple scene export (only active scene is written)
+* particles
+'''
 class EXPORT_OT_obj(bpy.types.Operator):
-	'''
-	Currently the exporter lacks these features:
-	* nurbs
-	* multiple scene export (only active scene is written)
-	* particles
-	'''
+	'''Save a Wavefront OBJ File'''
+	
 	__idname__ = "export.obj"
 	__label__ = 'Export OBJ'
 	
@@ -983,6 +985,10 @@ class EXPORT_OT_obj(bpy.types.Operator):
 		return context.active_object != None
 
 bpy.ops.add(EXPORT_OT_obj)
+
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("export.obj", text="Wavefront (.obj)...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 if __name__ == "__main__":
 	bpy.ops.EXPORT_OT_obj(filename="/tmp/test.obj")

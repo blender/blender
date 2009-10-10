@@ -273,7 +273,9 @@ class EXPORT_OT_ply(bpy.types.Operator):
 
 bpy.ops.add(EXPORT_OT_ply)
 
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("export.ply", text="Stanford (.ply)...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+
 if __name__ == "__main__":
 	bpy.ops.EXPORT_OT_ply(path="/tmp/test.ply")
-
-

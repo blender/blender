@@ -533,7 +533,7 @@ void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
 		packAll(G.main, reports);
 	}
 	
-	ED_object_exit_editmode(C, 0);
+	ED_object_exit_editmode(C, EM_DO_UNDO);
 
 	do_history(di, reports);
 	

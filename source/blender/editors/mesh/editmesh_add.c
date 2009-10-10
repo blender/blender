@@ -70,6 +70,7 @@
 #include "ED_transform.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
+#include "ED_object.h"
 
 #include "mesh_intern.h"
 
@@ -1306,20 +1307,41 @@ static float new_primitive_matrix(bContext *C, float primmat[][4])
 
 /* ********* add primitive operators ************* */
 
-static int add_primitive_plane_exec(bContext *C, wmOperator *op)
+static void make_prim_ext(bContext *C, int type, int tot, int seg,
+		int subdiv, float dia, float depth, int ext, int fill)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	/* plane (diameter of 1.41 makes it unit size) */
-	dia*= sqrt(2.0f);
-	
-	make_prim(obedit, PRIM_PLANE, mat, 4, 0, 0, dia, 0.0f, 0, 1);
-	
+	int newob;
+	float mat[4][4];
+
+	if(obedit==NULL || obedit->type!=OB_MESH) {
+		/* create editmode */
+		ED_object_add_type(C, OB_MESH);
+		ED_object_enter_editmode(C, EM_DO_UNDO);
+		obedit= CTX_data_edit_object(C);
+		newob = 1;
+	}
+	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+
+	dia *= new_primitive_matrix(C, mat);
+
+	make_prim(obedit, type, mat, tot, seg, subdiv, dia, depth, ext, fill);
+
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
+
+
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA); /* adding EM_DO_UNDO messes up operator redo */
+	}
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+}
+
+static int add_primitive_plane_exec(bContext *C, wmOperator *op)
+{
+	/* sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
+	make_prim_ext(C, PRIM_PLANE, 4, 0, 0, sqrt(2.0f), 0.0f, 0, 1);
 	return OPERATOR_FINISHED;	
 }
 
@@ -1332,7 +1354,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_plane_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1340,19 +1362,9 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 
 static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	/* plane (diameter of 1.41 makes it unit size) */
-	dia*= sqrt(2.0f);
-	
-	make_prim(obedit, PRIM_CUBE, mat, 4, 0, 0, dia, 1.0f, 1, 1);
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
-	return OPERATOR_FINISHED;	
+	/* sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
+	make_prim_ext(C, PRIM_CUBE, 4, 0, 0, sqrt(2.0f), 1.0f, 1, 1);
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_cube_add(wmOperatorType *ot)
@@ -1364,7 +1376,7 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_cube_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1372,18 +1384,10 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 
 static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	dia *= RNA_float_get(op->ptr,"radius");
-	
-	make_prim(obedit, PRIM_CIRCLE, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 0.0f, 0, 
-			  RNA_boolean_get(op->ptr, "fill"));
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
+	make_prim_ext(C, PRIM_CIRCLE, RNA_int_get(op->ptr, "vertices"), 0, 0,
+			RNA_float_get(op->ptr,"radius"), 0.0f, 0,
+			RNA_boolean_get(op->ptr, "fill"));
+
 	return OPERATOR_FINISHED;	
 }
 
@@ -1396,32 +1400,24 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_circle_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 3, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, -FLT_MAX, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "");
 }
 
 static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	dia *= RNA_float_get(op->ptr, "radius");
-	
-	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
-			  RNA_float_get(op->ptr, "depth"), 1, 1);
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
-	return OPERATOR_FINISHED;	
+	make_prim_ext(C, PRIM_CYLINDER, RNA_int_get(op->ptr, "vertices"), 0, 0,
+			RNA_float_get(op->ptr,"radius"),
+			RNA_float_get(op->ptr, "depth"), 1, 1);
+
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
@@ -1433,31 +1429,23 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_cylinder_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, -FLT_MAX, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 1.0f, -FLT_MAX, FLT_MAX, "Depth", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
 }
 
 static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	dia *= RNA_float_get(op->ptr, "radius");
-	
-	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
-			  RNA_float_get(op->ptr, "depth"), 1, 0);
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
+	make_prim_ext(C, PRIM_CYLINDER, RNA_int_get(op->ptr, "vertices"), 0, 0,
+			RNA_float_get(op->ptr,"radius"),
+			RNA_float_get(op->ptr, "depth"), 1, 0);
+
 	return OPERATOR_FINISHED;	
 }
 
@@ -1470,32 +1458,24 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_tube_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, -FLT_MAX, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 1.0f, -FLT_MAX, FLT_MAX, "Depth", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
 }
 
 static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	dia *= RNA_float_get(op->ptr, "radius");
-	
-	make_prim(obedit, PRIM_CONE, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
-			  RNA_float_get(op->ptr, "depth"), 0, RNA_boolean_get(op->ptr, "cap_end"));
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
-	return OPERATOR_FINISHED;	
+	make_prim_ext(C, PRIM_CONE, RNA_int_get(op->ptr, "vertices"), 0, 0,
+			RNA_float_get(op->ptr,"radius"), RNA_float_get(op->ptr, "depth"),
+			0, RNA_boolean_get(op->ptr, "cap_end"));
+
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_cone_add(wmOperatorType *ot)
@@ -1507,34 +1487,26 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_cone_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, -FLT_MAX, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 1.0f, -FLT_MAX, FLT_MAX, "Depth", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
 	RNA_def_boolean(ot->srna, "cap_end", 0, "Cap End", "");
 
 }
 
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	dia*= RNA_float_get(op->ptr, "size");
-	
-	make_prim(obedit, PRIM_GRID, mat, RNA_int_get(op->ptr, "x_subdivisions"), 
-			  RNA_int_get(op->ptr, "y_subdivisions"), 0, dia, 0.0f, 0, 1);
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
-	return OPERATOR_FINISHED;	
+	make_prim_ext(C, PRIM_GRID, RNA_int_get(op->ptr, "x_subdivisions"),
+			RNA_int_get(op->ptr, "y_subdivisions"), 0,
+			RNA_float_get(op->ptr,"size"), 0.0f, 0, 1);
+
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_grid_add(wmOperatorType *ot)
@@ -1546,7 +1518,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_grid_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1554,22 +1526,13 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, INT_MIN, INT_MAX, "X Subdivisions", "", 3, 1000);
 	RNA_def_int(ot->srna, "y_subdivisions", 10, INT_MIN, INT_MAX, "Y Subdivisons", "", 3, 1000);
-	RNA_def_float(ot->srna, "size", 1.0f, -FLT_MAX, FLT_MAX, "Size", "", 0.001, FLT_MAX);
+	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
 }
 
 static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float mat[4][4];
-	
-	new_primitive_matrix(C, mat);
-	
-	make_prim(obedit, PRIM_MONKEY, mat, 0, 0, 2, 0.0f, 0.0f, 0, 0);
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
-	return OPERATOR_FINISHED;	
+	make_prim_ext(C, PRIM_MONKEY, 0, 0, 2, 0.0f, 0.0f, 0, 0);
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
@@ -1581,7 +1544,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_monkey_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1589,18 +1552,10 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 
 static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	dia*= RNA_float_get(op->ptr, "size");
+	make_prim_ext(C, PRIM_UVSPHERE, RNA_int_get(op->ptr, "rings"),
+			RNA_int_get(op->ptr, "segments"), 0,
+			RNA_float_get(op->ptr,"size"), 0.0f, 0, 0);
 
-	make_prim(obedit, PRIM_UVSPHERE, mat, RNA_int_get(op->ptr, "rings"), 
-			  RNA_int_get(op->ptr, "segments"), 0, dia, 0.0f, 0, 0);
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
 	return OPERATOR_FINISHED;	
 }
 
@@ -1613,7 +1568,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_uvsphere_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1621,23 +1576,14 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "segments", 32, INT_MIN, INT_MAX, "Segments", "", 3, 500);
 	RNA_def_int(ot->srna, "rings", 24, INT_MIN, INT_MAX, "Rings", "", 3, 500);
-	RNA_def_float(ot->srna, "size", 1.0f, -FLT_MAX, FLT_MAX, "Size", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, 100.00);
 }
 
 static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
-	
-	dia= new_primitive_matrix(C, mat);
-	dia*= RNA_float_get(op->ptr, "size");
-	
-	make_prim(obedit, PRIM_ICOSPHERE, mat, 0, 0, 
-			  RNA_int_get(op->ptr, "subdivisions"), dia, 0.0f, 0, 0);
-	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
+	make_prim_ext(C, PRIM_ICOSPHERE, 0, 0, RNA_int_get(op->ptr, "subdivisions"),
+			RNA_float_get(op->ptr,"size"), 0.0f, 0, 0);
+
 	return OPERATOR_FINISHED;	
 }
 
@@ -1650,7 +1596,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_icosphere_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

@@ -70,6 +70,7 @@ void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 
 void ED_object_base_init_from_view(struct bContext *C, struct Base *base);
+struct Object *ED_object_add_type(struct bContext *C, int type);
 
 void ED_object_single_users(struct Scene *scene, int full);
 

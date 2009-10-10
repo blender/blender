@@ -1,11 +1,3 @@
-#!BPY
- 
-"""
-Name: 'Wavefront (.obj)...'
-Blender: 249
-Group: 'Import'
-Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
-"""
 
 __author__= "Campbell Barton", "Jiri Hnidek", "Paolo Ciccone"
 __url__= ['http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj', 'blender.org', 'blenderartists.org']
@@ -1560,15 +1552,9 @@ else:
 
 	print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
 '''
-#load_obj('/test.obj')
-#load_obj('/fe/obj/mba1.obj')
-
-
 
 class IMPORT_OT_obj(bpy.types.Operator):
-	'''
-	Operator documentation text, will be used for the operator tooltip and python docs.
-	'''
+	'''Load a Wavefront OBJ File.'''
 	__idname__ = "import.obj"
 	__label__ = "Import OBJ"
 	
@@ -1592,10 +1578,6 @@ class IMPORT_OT_obj(bpy.types.Operator):
 		bpy.props.BoolProperty(attr="POLYGROUPS", name="Poly Groups", description="Import OBJ groups as vertex groups.", default= True),
 		bpy.props.BoolProperty(attr="IMAGE_SEARCH", name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default= True),
 	]
-	
-	'''
-	def poll(self, context):
-		return True '''
 	
 	def execute(self, context):
 		# print("Selected: " + context.active_object.name)
@@ -1622,6 +1604,11 @@ class IMPORT_OT_obj(bpy.types.Operator):
 
 
 bpy.ops.add(IMPORT_OT_obj)
+
+
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("import.obj", text="Wavefront (.obj)...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 
 # NOTES (all line numbers refer to 2.4x import_obj.py, not this file)

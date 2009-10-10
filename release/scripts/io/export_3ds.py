@@ -1,12 +1,4 @@
-#!BPY
 # coding: utf-8
-""" 
-Name: '3D Studio (.3ds)...'
-Blender: 243
-Group: 'Export'
-Tooltip: 'Export to 3DS file format (.3ds).'
-"""
-
 __author__ = ["Campbell Barton", "Bob Holcomb", "Richard Lärkäng", "Damien McGinnes", "Mark Stijnman"]
 __url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
 __version__ = "0.90a"
@@ -1100,9 +1092,7 @@ def save_3ds(filename, context):
 # # save_3ds('/test_b.3ds')
 
 class EXPORT_OT_3ds(bpy.types.Operator):
-	'''
-	3DS Exporter
-	'''
+	'''Export to 3DS file format (.3ds).'''
 	__idname__ = "export.3ds"
 	__label__ = 'Export 3DS'
 	
@@ -1128,3 +1118,8 @@ class EXPORT_OT_3ds(bpy.types.Operator):
 		return context.active_object != None
 
 bpy.ops.add(EXPORT_OT_3ds)
+
+# Add to a menu
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("export.3ds", text="Autodesk 3DS...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)

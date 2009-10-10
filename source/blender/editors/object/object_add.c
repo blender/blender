@@ -144,14 +144,14 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 }
 
 /* for object add primitive operators */
-static Object *object_add_type(bContext *C, int type)
+Object *ED_object_add_type(bContext *C, int type)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO); /* freedata, and undo */
 	
 	/* deselects all, sets scene->basact */
 	ob= add_object(scene, type);
@@ -169,7 +169,7 @@ static Object *object_add_type(bContext *C, int type)
 /* for object add operator */
 static int object_add_exec(bContext *C, wmOperator *op)
 {
-	object_add_type(C, RNA_enum_get(op->ptr, "type"));
+	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"));
 	
 	return OPERATOR_FINISHED;
 }
@@ -224,7 +224,7 @@ static Object *effector_add_type(bContext *C, int type)
 	
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO); /* freedata, and undo */
 	
 	/* deselects all, sets scene->basact */
 	if(type==PFIELD_GUIDE) {
@@ -232,7 +232,7 @@ static Object *effector_add_type(bContext *C, int type)
 		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
 		ED_object_enter_editmode(C, 0);
 		BLI_addtail(curve_get_editcurve(ob), add_nurbs_primitive(C, CU_NURBS|CU_PRIM_PATH, 1));
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	else
 		ob=	add_object(scene, OB_EMPTY);
@@ -278,92 +278,6 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 }
 
 /* ***************** add primitives *************** */
-/* ******  work both in and outside editmode ****** */
-
-static EnumPropertyItem prop_mesh_types[] = {
-	{0, "PLANE", ICON_MESH_PLANE, "Plane", ""},
-	{1, "CUBE", ICON_MESH_CUBE, "Cube", ""},
-	{2, "CIRCLE", ICON_MESH_CIRCLE, "Circle", ""},
-	{3, "UVSPHERE", ICON_MESH_UVSPHERE, "UVsphere", ""},
-	{4, "ICOSPHERE", ICON_MESH_ICOSPHERE, "Icosphere", ""},
-	{5, "CYLINDER", ICON_MESH_TUBE, "Cylinder", ""},
-	{6, "CONE", ICON_MESH_CONE, "Cone", ""},
-	{0, "", 0, NULL, NULL},
-	{7, "GRID", ICON_MESH_GRID, "Grid", ""},
-	{8, "MONKEY", ICON_MESH_MONKEY, "Monkey", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int object_add_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	int newob= 0;
-	
-	if(obedit==NULL || obedit->type!=OB_MESH) {
-		object_add_type(C, OB_MESH);
-		ED_object_enter_editmode(C, EM_DO_UNDO);
-		newob = 1;
-	}
-	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
-
-	switch(RNA_enum_get(op->ptr, "type")) {
-		case 0:
-			WM_operator_name_call(C, "MESH_OT_primitive_plane_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 1:
-			WM_operator_name_call(C, "MESH_OT_primitive_cube_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 2:
-			WM_operator_name_call(C, "MESH_OT_primitive_circle_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 3:
-			WM_operator_name_call(C, "MESH_OT_primitive_uv_sphere_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 4:
-			WM_operator_name_call(C, "MESH_OT_primitive_ico_sphere_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 5:
-			WM_operator_name_call(C, "MESH_OT_primitive_cylinder_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 6:
-			WM_operator_name_call(C, "MESH_OT_primitive_cone_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 7:
-			WM_operator_name_call(C, "MESH_OT_primitive_grid_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 8:
-			WM_operator_name_call(C, "MESH_OT_primitive_monkey_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-	}
-	/* userdef */
-	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
-	}
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
-	
-	return OPERATOR_FINISHED;
-}
-
-
-void OBJECT_OT_mesh_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Add Mesh";
-	ot->description = "Add a mesh object to the scene.";
-	ot->idname= "OBJECT_OT_mesh_add";
-	
-	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= object_add_mesh_exec;
-	
-	ot->poll= ED_operator_scene_editable;
-	
-	/* flags: no register or undo, this operator calls operators */
-	ot->flag= 0; //OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	RNA_def_enum(ot->srna, "type", prop_mesh_types, 0, "Primitive", "");
-}
 
 static EnumPropertyItem prop_curve_types[] = {
 	{CU_BEZIER|CU_PRIM_CURVE, "BEZIER_CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", ""},
@@ -382,7 +296,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		object_add_type(C, OB_CURVE);
+		ED_object_add_type(C, OB_CURVE);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -395,7 +309,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -457,7 +371,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
-		object_add_type(C, OB_SURF);
+		ED_object_add_type(C, OB_SURF);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -470,7 +384,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -514,7 +428,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
-		object_add_type(C, OB_MBALL);
+		ED_object_add_type(C, OB_MBALL);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -527,7 +441,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -576,7 +490,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	if(obedit && obedit->type==OB_FONT)
 		return OPERATOR_CANCELLED;
 
-	object_add_type(C, OB_FONT);
+	ED_object_add_type(C, OB_FONT);
 	obedit= CTX_data_active_object(C);
 
 	if(U.flag & USER_ADD_EDITMODE)
@@ -610,7 +524,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		object_add_type(C, OB_ARMATURE);
+		ED_object_add_type(C, OB_ARMATURE);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -624,7 +538,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -652,7 +566,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	Object *ob;
 	int type= RNA_enum_get(op->ptr, "type");
 
-	ob= object_add_type(C, OB_LAMP);
+	ob= ED_object_add_type(C, OB_LAMP);
 	if(ob && ob->data)
 		((Lamp*)ob->data)->type= type;
 	
@@ -720,7 +634,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "type"));
 
 	if(group) {
-		Object *ob= object_add_type(C, OB_EMPTY);
+		Object *ob= ED_object_add_type(C, OB_EMPTY);
 		rename_id(&ob->id, group->id.name+2);
 		ob->dup_group= group;
 		ob->transflag |= OB_DUPLIGROUP;

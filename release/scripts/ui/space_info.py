@@ -1,6 +1,9 @@
 
 import bpy
 
+import dynamic_menu
+# reload(dynamic_menu)
+
 class INFO_HT_header(bpy.types.Header):
 	__space_type__ = 'INFO'
 
@@ -36,8 +39,9 @@ class INFO_HT_header(bpy.types.Header):
 		layout.template_running_jobs()
 
 		layout.itemL(text=scene.statistics())
-			
-class INFO_MT_file(bpy.types.Menu):
+
+
+class INFO_MT_file(dynamic_menu.DynMenu):
 	__label__ = "File"
 
 	def draw(self, context):
@@ -76,27 +80,31 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.operator_context = "EXEC_AREA"
 		layout.itemO("wm.exit_blender", text="Quit")
 
-class INFO_MT_file_import(bpy.types.Menu):
+
+# test for expanding menus
+'''
+class INFO_MT_file_more(INFO_MT_file):
+	__label__ = "File"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("wm.read_homefile", text="TESTING ")
+
+dynamic_menu.setup(INFO_MT_file_more)
+'''
+
+class INFO_MT_file_import(dynamic_menu.DynMenu):
 	__label__ = "Import"
 
 	def draw(self, context):
-		layout = self.layout
-		
-		layout.itemO("import.3ds", text="3DS")
-		layout.itemO("import.obj", text="OBJ")
+		pass # dynamic menu
 
-class INFO_MT_file_export(bpy.types.Menu):
+class INFO_MT_file_export(dynamic_menu.DynMenu):
 	__label__ = "Export"
 
 	def draw(self, context):
-		layout = self.layout
-
-		layout.itemO("export.3ds", text="3DS")
-		layout.itemO("export.fbx", text="FBX")
-		layout.itemO("export.obj", text="OBJ")
-		layout.itemO("export.mdd", text="MDD")
-		layout.itemO("export.ply", text="PLY")
-		layout.itemO("export.x3d", text="X3D")
+		pass # dynamic menu
 
 class INFO_MT_file_external_data(bpy.types.Menu):
 	__label__ = "External Data"
@@ -114,6 +122,23 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 		layout.itemO("file.report_missing_files")
 		layout.itemO("file.find_missing_files")
 
+
+class INFO_MT_mesh_add(dynamic_menu.DynMenu):
+	__label__ = "Add Mesh"
+	def draw(self, context):
+		layout = self.layout
+		layout.operator_context = 'INVOKE_REGION_WIN'
+		layout.itemO("mesh.primitive_plane_add", icon='ICON_MESH_PLANE')
+		layout.itemO("mesh.primitive_cube_add", icon='ICON_MESH_CUBE')
+		layout.itemO("mesh.primitive_circle_add", icon='ICON_MESH_CIRCLE')
+		layout.itemO("mesh.primitive_uv_sphere_add", icon='ICON_MESH_UVSPHERE')
+		layout.itemO("mesh.primitive_ico_sphere_add", icon='ICON_MESH_ICOSPHERE')
+		layout.itemO("mesh.primitive_cylinder_add", icon='ICON_MESH_TUBE')
+		layout.itemO("mesh.primitive_cone_add", icon='ICON_MESH_CONE')
+		layout.itemS()
+		layout.itemO("mesh.primitive_grid_add", icon='ICON_MESH_GRID')
+		layout.itemO("mesh.primitive_monkey_add", icon='ICON_MESH_MONKEY')
+
 class INFO_MT_add(bpy.types.Menu):
 	__label__ = "Add"
 
@@ -122,7 +147,9 @@ class INFO_MT_add(bpy.types.Menu):
 
 		layout.operator_context = "EXEC_SCREEN"
 
-		layout.item_menu_enumO("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+		# layout.item_menu_enumO("object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+		layout.itemM("INFO_MT_mesh_add", icon='ICON_OUTLINER_OB_MESH')
+		
 		layout.item_menu_enumO("object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
 		layout.item_menu_enumO("object.surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
 		layout.item_menu_enumO("object.metaball_add", "type", 'META', text="Metaball", icon='ICON_OUTLINER_OB_META')
@@ -142,6 +169,10 @@ class INFO_MT_add(bpy.types.Menu):
 		layout.itemS()
 		
 		layout.item_menu_enumO("object.effector_add", "type", 'EMPTY', text="Force Field", icon='ICON_OUTLINER_OB_EMPTY')
+
+		layout.itemS()		
+		
+		layout.item_menu_enumO("object.group_instance_add", "type", text="Group Instance", icon='ICON_OUTLINER_OB_EMPTY')
 
 class INFO_MT_game(bpy.types.Menu):
 	__label__ = "Game"
@@ -199,6 +230,7 @@ bpy.types.register(INFO_MT_file_import)
 bpy.types.register(INFO_MT_file_export)
 bpy.types.register(INFO_MT_file_external_data)
 bpy.types.register(INFO_MT_add)
+bpy.types.register(INFO_MT_mesh_add)
 bpy.types.register(INFO_MT_game)
 bpy.types.register(INFO_MT_render)
 bpy.types.register(INFO_MT_help)

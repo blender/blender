@@ -280,6 +280,8 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 
 void ED_object_exit_editmode(bContext *C, int flag)
 {
+	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
+
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	int freedata = flag & EM_FREEDATA;
@@ -353,7 +355,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
 		DAG_id_flush_update(&obedit->id, OB_RECALC_OB|OB_RECALC_DATA);
 	
-		ED_undo_push(C, "Editmode");
+		if(flag & EM_DO_UNDO)
+			ED_undo_push(C, "Editmode");
 	
 		if(flag & EM_WAITCURSOR) waitcursor(0);
 	
@@ -481,7 +484,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	if(!CTX_data_edit_object(C))
 		ED_object_enter_editmode(C, EM_WAITCURSOR);
 	else
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 	
 	return OPERATOR_FINISHED;
 }
@@ -521,7 +524,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 	
 	if(base->object->type==OB_ARMATURE) {
 		if(base->object==CTX_data_edit_object(C)) {
-			ED_object_exit_editmode(C, EM_FREEDATA);
+			ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 			ED_armature_enter_posemode(C, base);
 		}
 		else if(base->object->mode & OB_MODE_POSE)
@@ -558,7 +561,7 @@ void check_editmode(int type)
 	
 	if (obedit==NULL || obedit->type==type) return;
 
-// XXX	ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+// XXX	ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO); /* freedata, and undo */
 }
 
 #if 0

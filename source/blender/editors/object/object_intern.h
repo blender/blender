@@ -83,7 +83,6 @@ void OBJECT_OT_select_name(struct wmOperatorType *ot);
 
 /* object_add.c */
 void OBJECT_OT_add(struct wmOperatorType *ot);
-void OBJECT_OT_mesh_add(struct wmOperatorType *ot);
 void OBJECT_OT_curve_add(struct wmOperatorType *ot);
 void OBJECT_OT_surface_add(struct wmOperatorType *ot);
 void OBJECT_OT_metaball_add(struct wmOperatorType *ot);

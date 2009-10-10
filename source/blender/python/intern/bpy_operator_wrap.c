@@ -270,6 +270,9 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	/* api callbacks, detailed checks dont on adding */ 
 	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
+	//else
+	//	ot->invoke= WM_operator_props_popup; /* could have an option for standard invokes */
+
 	if (PyObject_HasAttrString(py_class, "execute"))
 		ot->exec= PYTHON_OT_execute;
 	if (PyObject_HasAttrString(py_class, "poll"))

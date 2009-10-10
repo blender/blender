@@ -428,7 +428,10 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	/* add/remove */
 	WM_keymap_add_item(keymap, "MESH_OT_edge_face_add", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "name", "INFO_MT_mesh_add");
+	
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, 0, 0);
 						/* use KM_RELEASE because same key is used for tweaks */
 	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_RELEASE, KM_CTRL, 0);

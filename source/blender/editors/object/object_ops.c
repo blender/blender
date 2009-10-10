@@ -110,7 +110,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
 
 	WM_operatortype_append(OBJECT_OT_delete);
-	WM_operatortype_append(OBJECT_OT_mesh_add);
 	WM_operatortype_append(OBJECT_OT_curve_add);
 	WM_operatortype_append(OBJECT_OT_text_add);
 	WM_operatortype_append(OBJECT_OT_surface_add);
@@ -119,7 +118,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_add);
 	WM_operatortype_append(OBJECT_OT_effector_add);
 	WM_operatortype_append(OBJECT_OT_group_instance_add);
-	WM_operatortype_append(OBJECT_OT_mesh_add);
 	WM_operatortype_append(OBJECT_OT_metaball_add);
 	WM_operatortype_append(OBJECT_OT_duplicates_make_real);
 	WM_operatortype_append(OBJECT_OT_duplicate);

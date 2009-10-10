@@ -1824,7 +1824,7 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	}
 	
 	if(ob!=scene->obedit) 
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
@@ -2173,7 +2173,7 @@ static int tree_element_active_pose(bContext *C, Scene *scene, TreeElement *te, 
 	
 	if(set) {
 		if(scene->obedit) 
-			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 		
 		if(ob->mode & OB_MODE_POSE) 
 			ED_armature_exit_posemode(C, base);
@@ -2327,7 +2327,7 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 				else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
 					Object *obedit= CTX_data_edit_object(C);
 					if(obedit) 
-						ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+						ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 					else {
 						ED_object_enter_editmode(C, EM_WAITCURSOR);
 						// XXX extern_set_butspace(F9KEY, 0);
@@ -3057,7 +3057,7 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 	if(base) {
 		// check also library later
 		if(scene->obedit==base->object) 
-			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 		
 		ED_base_object_free_and_unlink(scene, base);
 		te->directdata= NULL;

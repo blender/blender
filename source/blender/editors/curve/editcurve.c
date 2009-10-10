@@ -4681,7 +4681,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(scene);	// because we removed object(s), call before editmode!
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
-	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR);
+	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 

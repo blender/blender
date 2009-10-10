@@ -58,9 +58,11 @@ EnumPropertyItem prop_mode_items[] ={
 
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
 
@@ -78,6 +80,22 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	/* we are actually iterating a Base list, so override get */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
+
+static PointerRNA rna_Scene_active_object_get(PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_Object, scene->basact ? scene->basact->object : NULL);
+}
+
+static void rna_Scene_active_object_set(PointerRNA *ptr, PointerRNA value)
+{
+	Scene *scene= (Scene*)ptr->data;
+	if(value.data)
+		scene->basact= object_in_scene((Object*)value.data, scene);
+	else
+		scene->basact= NULL;
+}
+
 
 static int layer_set(int lay, const int *values)
 {
@@ -2051,6 +2069,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene.");
 
+	prop= RNA_def_property(srna, "active_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object", "Object to use as projector transform.");
+
+
 	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene.");
@@ -2081,7 +2106,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
-	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
+	RNA_def_property_range(prop, -MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
@@ -2089,6 +2114,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
+	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
@@ -2096,12 +2122,15 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
+	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "frame_step");
+	RNA_def_property_range(prop, 0, MAXFRAME);
+	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
 	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames to skip forward while rendering/playing back each frame");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	

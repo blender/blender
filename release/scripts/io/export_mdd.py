@@ -1,11 +1,3 @@
-#!BPY
-
-"""
- Name: 'Vertex Keyframe Animation (.mdd)...'
- Blender: 242
- Group: 'Export'
- Tooltip: 'Animated mesh to MDD vertex keyframe file.'
-"""
 
 __author__ = "Bill L.Nieuwendorp"
 __bpydoc__ = """\
@@ -180,9 +172,13 @@ class EXPORT_OT_mdd(bpy.types.Operator):
 
 bpy.ops.add(EXPORT_OT_mdd)
 
+# Add to a menu
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("export.mdd", text="Vertex Keyframe Animation (.mdd)...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+
 if __name__=='__main__':
 	#if not pack:
 #		Draw.PupMenu('Error%t|This script requires a full python install')
 	#Blender.Window.FileSelector(mdd_export_ui, 'EXPORT MDD', sys.makename(ext='.mdd'))
 	bpy.ops.EXPORT_OT_mdd(path="/tmp/test.mdd")
-
