@@ -1796,6 +1796,14 @@ void undo_push_mesh(bContext *C, char *name)
 
 /* *************** END UNDO *************/
 
+void EM_init_viewmats(Object *ob, RegionView3D *rv3d)
+{
+	wmMultMatrix(ob->obmat);
+	/* local viewmat and persmat, to calculate projections */
+	wmGetMatrix(rv3d->viewmatob);
+	wmGetSingleMatrix(rv3d->persmatob);
+}
+
 static EditVert **g_em_vert_array = NULL;
 static EditEdge **g_em_edge_array = NULL;
 static EditFace **g_em_face_array = NULL;

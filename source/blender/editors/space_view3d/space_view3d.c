@@ -158,6 +158,24 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 	return rv3d;
 }
 
+/* Most of the time this isn't needed since you could assume the view matrix was
+ * set while drawing, however when functions like mesh_foreachScreenVert are
+ * called by selection tools, we can't be sure this object was the last.
+ *
+ * for example, transparent objects are drawn after editmode and will cause
+ * the rv3d mat's to change and break selection.
+ *
+ * 'ED_view3d_init_mats_rv3d' should be called before
+ * view3d_project_short_clip and view3d_project_short_noclip in cases where
+ * these functions are not used during draw_object
+ */
+void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
+{
+	wmMultMatrix(ob->obmat);
+	/* local viewmat and persmat, to calculate projections */
+	wmGetMatrix(rv3d->viewmatob);
+	wmGetSingleMatrix(rv3d->persmatob);
+}
 
 /* ******************** default callbacks for view3d space ***************** */
 

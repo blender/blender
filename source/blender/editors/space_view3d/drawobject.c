@@ -139,7 +139,9 @@ static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
 
 
-/* ************* only use while object drawing ************** */
+/* ************* only use while object drawing **************
+ * or after running ED_view3d_init_mats_rv3d
+ * */
 static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
 {
 	RegionView3D *rv3d= ar->regiondata;
@@ -1205,6 +1207,8 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* so view3d_project_short works */
+
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
 			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s);
@@ -1328,6 +1332,7 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* so view3d_project_short works */
 	EM_init_index_arrays(vc->em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1370,6 +1375,7 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEd
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* so view3d_project_short works */
 	EM_init_index_arrays(vc->em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1399,6 +1405,7 @@ void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFa
 	data.func = func;
 	data.userData = userData;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* so view3d_project_short works */
 	EM_init_index_arrays(vc->em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
 	EM_free_index_arrays();
@@ -1412,6 +1419,8 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
+
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* so view3d_project_short works */
 
 	for (nu= cu->editnurb->first; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER) {
@@ -5451,11 +5460,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* draw paths... */
 	// TODO...
 
-	/* multiply view with object matrix */
-	wmMultMatrix(ob->obmat);
-	/* local viewmat and persmat, to calculate projections */
-	wmGetMatrix(rv3d->viewmatob);
-	wmGetSingleMatrix(rv3d->persmatob);
+	/* multiply view with object matrix.
+	 * local viewmat and persmat, to calculate projections */
+	ED_view3d_init_mats_rv3d(ob, rv3d);
 
 	/* which wire color */
 	if((flag & DRAW_CONSTCOLOR) == 0) {

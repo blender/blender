@@ -134,5 +134,7 @@ int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, in
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
 
+void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
+
 #endif /* ED_VIEW3D_H */
 
