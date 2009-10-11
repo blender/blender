@@ -1017,6 +1017,18 @@ static void update_damaged_vert(SculptSession *ss, ListBase *lb)
 					VECCOPY(&buffer[(cur->element-cur->element%3)*3],norm);
 					VECCOPY(&buffer[(cur->element-cur->element%3+1)*3],norm);
 					VECCOPY(&buffer[(cur->element-cur->element%3+2)*3],norm);
+
+					/* maybe this was a quad - need to update the other triangle of the quad */
+					if( ss->drawobject->faceRemap[cur->element/3-1] == i ) {
+						VECCOPY(&buffer[(cur->element-cur->element%3-3)*3],norm);
+						VECCOPY(&buffer[(cur->element-cur->element%3-2)*3],norm);
+						VECCOPY(&buffer[(cur->element-cur->element%3-1)*3],norm);
+					}
+					if( ss->drawobject->faceRemap[cur->element/3+1] == i ) {
+						VECCOPY(&buffer[(cur->element-cur->element%3+3)*3],norm);
+						VECCOPY(&buffer[(cur->element-cur->element%3+4)*3],norm);
+						VECCOPY(&buffer[(cur->element-cur->element%3+5)*3],norm);
+					}
 				}
 
 				//VECCOPY(&buffer[cur->element*3],ss->mvert[vert->Index].no);
