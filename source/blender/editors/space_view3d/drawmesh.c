@@ -350,7 +350,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	int istex, solidtex= 0;
 
 	// XXX scene->obedit warning
-	if(v3d->drawtype==OB_SOLID || (ob->mode==OB_MODE_EDIT && v3d->drawtype!=OB_TEXTURE)) {
+	if(v3d->drawtype==OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype!=OB_TEXTURE)) {
 		/* draw with default lights in solid draw mode and edit mode */
 		solidtex= 1;
 		Gtexdraw.islit= -1;
@@ -561,7 +561,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 		return;
 
 	/* don't draw when editing */
-	if(ob->mode==OB_MODE_EDIT)
+	if(ob->mode & OB_MODE_EDIT)
 		return;
 	else if(ob==OBACT)
 		if(paint_facesel_test(ob))
@@ -641,7 +641,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	/* draw the textured mesh */
 	draw_textured_begin(scene, v3d, rv3d, ob);
 
-	if(ob->mode==OB_MODE_EDIT) {
+	if(ob->mode & OB_MODE_EDIT) {
 		glColor4f(1.0f,1.0f,1.0f,1.0f);
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
 	} else if(faceselect) {

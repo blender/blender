@@ -2370,7 +2370,7 @@ void object_handle_update(Scene *scene, Object *ob)
 				EditMesh *em = BKE_mesh_get_editmesh(ob->data);
 
 					// here was vieweditdatamask? XXX
-				if(ob->mode==OB_MODE_EDIT) {
+				if(ob->mode & OB_MODE_EDIT) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
 					BKE_mesh_end_editmesh(ob->data, em);
 				} else

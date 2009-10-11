@@ -2004,7 +2004,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 
 	/* Irritating workaround! disallow paint modes from editmode since a number of shortcuts conflict
 	 * XXX - would be much better to handle this on a keymap level */
-	if(ob->mode == OB_MODE_EDIT && ELEM6(mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT, OB_MODE_PARTICLE_EDIT, OB_MODE_POSE)) {
+	if((ob->mode & OB_MODE_EDIT) && ELEM6(mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT, OB_MODE_PARTICLE_EDIT, OB_MODE_POSE)) {
 		return OPERATOR_PASS_THROUGH;
 	}
 

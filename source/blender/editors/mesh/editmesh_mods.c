@@ -123,7 +123,7 @@ void EM_automerge(Scene *scene, Object *obedit, int update)
 	int len;
 
 	if ((scene->toolsettings->automerge) &&
-		(obedit && obedit->type==OB_MESH && obedit->mode==OB_MODE_EDIT) &&
+		(obedit && obedit->type==OB_MESH && (obedit->mode & OB_MODE_EDIT)) &&
 		(me->mr==NULL)
 	  ) {
 		Mesh *me= (Mesh*)obedit->data;
