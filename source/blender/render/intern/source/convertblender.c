@@ -3026,7 +3026,7 @@ static void init_camera_inside_volumes(Render *re)
 	for(vo= re->volumes.first; vo; vo= vo->next) {
 		for(obi= re->instancetable.first; obi; obi= obi->next) {
 			if (obi->obr == vo->obr) {
-				if (point_inside_volume_objectinstance(obi, co)) {
+				if (point_inside_volume_objectinstance(re, obi, co)) {
 					MatInside *mi;
 					
 					mi = MEM_mallocN(sizeof(MatInside), "camera inside material");
@@ -4850,8 +4850,6 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	/* MAKE RENDER DATA */
 	database_init_objects(re, lay, 0, 0, 0, 0);
 	
-	init_camera_inside_volumes(re);
-
 	if(!re->test_break(re->tbh)) {
 		int tothalo;
 
@@ -4875,6 +4873,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			if(re->wrld.mode & WO_STARS)
 				RE_make_stars(re, NULL, NULL, NULL, NULL);
 		sort_halos(re, tothalo);
+		
+		init_camera_inside_volumes(re);
 		
 		re->i.infostr= "Creating Shadowbuffers";
 		re->stats_draw(re->sdh, &re->i);

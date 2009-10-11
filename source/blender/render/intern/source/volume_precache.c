@@ -72,7 +72,6 @@ int intersect_outside_volume(RayObject *tree, Isect *isect, float *offset, int l
 	if (limit == 0) return depth;
 	
 	if (RE_rayobject_raycast(tree, isect)) {
-		float hitco[3];
 		
 		isect->start[0] = isect->start[0] + isect->labda*isect->vec[0];
 		isect->start[1] = isect->start[1] + isect->labda*isect->vec[1];
@@ -730,12 +729,12 @@ void free_volume_precache(Render *re)
 	BLI_freelistN(&re->volumes);
 }
 
-int point_inside_volume_objectinstance(ObjectInstanceRen *obi, float *co)
+int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float *co)
 {
 	RayObject *tree;
 	int inside=0;
 	
-	tree = makeraytree_object(&R, obi); //create_raytree_obi(obi, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+	tree = makeraytree_object(re, obi); //create_raytree_obi(obi, obi->obr->boundbox[0], obi->obr->boundbox[1]);
 	if (!tree) return 0;
 	
 	inside = point_inside_obi(tree, obi, co);
