@@ -332,6 +332,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\raycounter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\rayobject.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\extern\include\RE_pipeline.h"
 				>
 			</File>
