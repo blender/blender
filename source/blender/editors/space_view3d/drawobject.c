@@ -5567,10 +5567,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	switch( ob->type) {
 		case OB_MESH:
-			if (!(base->flag&OB_RADIO)) {
-				empty_object= draw_mesh_object(scene, v3d, rv3d, base, dt, flag);
-				if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
-			}
+			empty_object= draw_mesh_object(scene, v3d, rv3d, base, dt, flag);
+			if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
 
 			break;
 		case OB_FONT:
@@ -5913,7 +5911,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(zbufoff) glDisable(GL_DEPTH_TEST);
 
 	if(warning_recursive) return;
-	if(base->flag & (OB_FROMDUPLI|OB_RADIO)) return;
+	if(base->flag & OB_FROMDUPLI) return;
 	if(G.f & G_RENDER_SHADOW) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
