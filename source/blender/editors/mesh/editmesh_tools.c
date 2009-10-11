@@ -543,7 +543,9 @@ void xsortvert_flag(bContext *C, int flag)
 		if(eve->f & flag)
 			sortblock[i].v1 = eve;
 
+	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, 0);
+
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 
 		/* make temporal listbase */

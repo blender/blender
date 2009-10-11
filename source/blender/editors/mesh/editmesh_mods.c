@@ -422,6 +422,9 @@ EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 		data.closestIndex = 0;
 
 		data.pass = 0;
+
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+
 		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, 1);
 
 		if (data.dist>3) {
@@ -511,6 +514,7 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 		data.dist = *dist;
 		data.closest = NULL;
 
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, 2);
 
 		*dist = data.dist;
@@ -566,6 +570,7 @@ static EditFace *findnearestface(ViewContext *vc, int *dist)
 			data.dist = 0x7FFF;		/* largest short */
 			data.toFace = efa;
 
+			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data);
 
 			if(vc->em->selectmode == SCE_SELECT_FACE || data.dist<*dist) {	/* only faces, no dist check */
@@ -594,6 +599,8 @@ static EditFace *findnearestface(ViewContext *vc, int *dist)
 		data.closestIndex = 0;
 
 		data.pass = 0;
+
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
 
 		if (data.dist>3) {
