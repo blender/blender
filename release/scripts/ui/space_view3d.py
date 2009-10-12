@@ -1125,6 +1125,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 	def draw(self, context):
 		layout = self.layout
 		view = context.space_data
+		gs = context.scene.game_data
 		
 		col = layout.column()
 		col.itemR(view, "display_floor", text="Grid Floor")
@@ -1134,16 +1135,21 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		col.itemR(view, "outline_selected")
 		col.itemR(view, "all_object_centers")
 		col.itemR(view, "relationship_lines")
-		col.itemR(view, "textured_solid")
-		
-		layout.itemS()
-		
-		layout.itemO("screen.region_foursplit", text="Toggle Quad View")
 		
 		col = layout.column()
-		col.itemR(view, "lock_rotation")
-		col.itemR(view, "box_preview")
-		col.itemR(view, "box_clip")
+		col.itemL(text="Shading:")
+		col.itemR(gs, "material_mode", text="")
+		col.itemR(view, "textured_solid")
+
+
+# XXX - the Quad View options don't work yet		
+#		layout.itemS()
+#		
+#		layout.itemO("screen.region_foursplit", text="Toggle Quad View")
+#		col = layout.column()
+#		col.itemR(view, "lock_rotation")
+#		col.itemR(view, "box_preview")
+#		col.itemR(view, "box_clip")
 
 class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
 	__space_type__ = 'VIEW_3D'
