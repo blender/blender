@@ -80,7 +80,7 @@ class SCENE_PT_network_job(RenderButtonsPanel):
 		
 		col = split.column()
 		
-		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animaton on network")
+		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animation on network")
 		col.itemO("render.netclientsend", icon="ICON_FILE_BLEND", text="Send job")
 		col.itemO("render.netclientweb", icon="ICON_QUESTION", text="Open Master Monitor")
 		col.itemR(scene.network_render, "job_name")
