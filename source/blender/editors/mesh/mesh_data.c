@@ -504,9 +504,9 @@ static void mesh_calc_edges(Mesh *mesh)
 	BLI_edgehash_free(eh, NULL);
 }
 
-void ED_mesh_update(Mesh *mesh, bContext *C)
+void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 {
-	if(mesh->totface && mesh->totedge == 0)
+	if(calc_edges || (mesh->totface && mesh->totedge == 0))
 		mesh_calc_edges(mesh);
 
 	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mface, mesh->totface, NULL);

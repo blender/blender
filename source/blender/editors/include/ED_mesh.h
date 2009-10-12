@@ -195,7 +195,7 @@ void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int ver
 void ED_mesh_transform(struct Mesh *me, float *mat);
 void ED_mesh_calc_normals(struct Mesh *me);
 void ED_mesh_material_add(struct Mesh *me, struct Material *ma);
-void ED_mesh_update(struct Mesh *mesh, struct bContext *C);
+void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges);
 
 int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
 int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh *me);

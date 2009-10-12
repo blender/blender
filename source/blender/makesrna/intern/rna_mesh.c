@@ -732,6 +732,27 @@ static void rna_MeshFace_verts_set(PointerRNA *ptr, const int *values)
 	memcpy(&face->v1, values, (face->v4 ? 4 : 3) * sizeof(int));
 }
 
+static int rna_MeshVertex_index_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MVert *vert= (MVert*)ptr->data;
+	return (int)(vert - me->mvert);
+}
+
+static int rna_MeshEdge_index_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MEdge *edge= (MEdge*)ptr->data;
+	return (int)(edge - me->medge);
+}
+
+static int rna_MeshFace_index_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MFace *face= (MFace*)ptr->data;
+	return (int)(face - me->mface);
+}
+
 /* path construction */
 
 static char *rna_VertexGroupElement_path(PointerRNA *ptr)
@@ -905,6 +926,11 @@ static void rna_def_mvert(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_MeshVertex_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "VertexGroupElement");
 	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this vertex is member of.");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_MeshVertex_index_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
 }
 
 static void rna_def_medge(BlenderRNA *brna)
@@ -963,6 +989,11 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FGON);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Fgon", "Fgon edge");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_MeshEdge_index_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
 }
 
 static void rna_def_mface(BlenderRNA *brna)
@@ -1017,6 +1048,11 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_MeshFace_normal_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "face normal", "local space unit length normal vector for this face");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_MeshFace_index_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
 }
 
 static void rna_def_mtface(BlenderRNA *brna)
