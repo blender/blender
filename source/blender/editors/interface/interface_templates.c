@@ -560,14 +560,14 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	if(!isVirtual) {
 		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
 		uiBlockBeginAlign(block);
-		uiItemO(row, "", VICON_MOVE_UP, "OBJECT_OT_modifier_move_up");
-		uiItemO(row, "", VICON_MOVE_DOWN, "OBJECT_OT_modifier_move_down");
+		uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
+		uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
 		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 
 		if(modifier_can_delete(md))
-			uiItemO(row, "", VICON_X, "OBJECT_OT_modifier_remove");
+			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
 
 		/* XXX uiBlockSetCol(block, TH_AUTO); */
 	}
@@ -923,10 +923,10 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
 				if (show_upbut)
-					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_up", WM_OP_INVOKE_DEFAULT, VICON_MOVE_UP, xco+width-50, yco, 16, 18, "Move constraint up in constraint stack");
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_up", WM_OP_INVOKE_DEFAULT, ICON_TRIA_UP, xco+width-50, yco, 16, 18, "Move constraint up in constraint stack");
 				
 				if (show_downbut)
-					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, ICON_TRIA_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
 			uiBlockEndAlign(block);
 		}
 	
@@ -1184,7 +1184,7 @@ uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
 	
 	xco = 290;
 	if(group->id.lib==0) { /* cant remove objects from linked groups */
-		but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
+		but = uiDefIconBut(block, BUT, B_NOP, ICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
 		uiButSetFunc(but, group_ob_rem, group, ob);
 	}
 }
