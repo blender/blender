@@ -41,7 +41,7 @@ class INFO_HT_header(bpy.types.Header):
 		layout.itemL(text=scene.statistics())
 
 
-class INFO_MT_file(dynamic_menu.DynMenu):
+class INFO_MT_file(bpy.types.Menu):
 	__label__ = "File"
 
 	def draw(self, context):
