@@ -44,6 +44,7 @@ struct ModifierData;
 
 /* object_edit.c */
 void ED_operatortypes_object(void);
+void ED_operatormacros_object(void);
 void ED_keymap_object(struct wmKeyConfig *keyconf);
 
 	/* send your own notifier for select! */

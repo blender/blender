@@ -85,6 +85,7 @@ int			join_mesh_exec(struct bContext *C, struct wmOperator *op);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
+void		ED_operatormacros_mesh(void);
 void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
 

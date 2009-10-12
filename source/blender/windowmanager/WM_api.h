@@ -181,6 +181,7 @@ int			WM_operator_repeat		(struct bContext *C, struct wmOperator *op);
 int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
 int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports);
 
+void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);

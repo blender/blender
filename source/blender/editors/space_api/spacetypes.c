@@ -105,6 +105,12 @@ void ED_spacetypes_init(void)
 	spacetypes = BKE_spacetypes_list();
 	for(type=spacetypes->first; type; type=type->next)
 		type->operatortypes();
+
+
+	/* Macros's must go last since they reference other operators
+	 * maybe we'll need to have them go after python operators too? */
+	ED_operatormacros_mesh();
+	ED_operatormacros_object();
 }
 
 /* called in wm.c */

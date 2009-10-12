@@ -178,8 +178,12 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_group_add);
 	WM_operatortype_append(OBJECT_OT_group_remove);
+}
+
+void ED_operatormacros_object(void)
+{
+	wmOperatorType *ot;
 	
-	/* macros */
 	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");

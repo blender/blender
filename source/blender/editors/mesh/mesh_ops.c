@@ -235,8 +235,6 @@ static void MESH_OT_specials(wmOperatorType *ot)
 
 void ED_operatortypes_mesh(void)
 {
-	wmOperatorType *ot;
-	
 	WM_operatortype_append(MESH_OT_select_all_toggle);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
@@ -323,8 +321,12 @@ void ED_operatortypes_mesh(void)
 	
 	WM_operatortype_append(MESH_OT_edgering_select);
 	WM_operatortype_append(MESH_OT_loopcut);
+}
 
-	/* macros */
+void ED_operatormacros_mesh(void)
+{
+	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
 
 	/*combining operators with invoke and exec portions doesn't work yet.
 	
@@ -335,16 +337,18 @@ void ED_operatortypes_mesh(void)
 
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
-	WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_rip");
-	WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
-	WM_operatortype_macro_define(ot, "TFM_OT_translate");
-
+	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
 }
 
 /* note mesh keymap also for other space? */

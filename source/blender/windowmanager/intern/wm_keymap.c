@@ -57,17 +57,7 @@
 
 static void keymap_properties_set(wmKeyMapItem *kmi)
 {
-	if(!kmi->properties) {
-		IDPropertyTemplate val = {0};
-		kmi->properties= IDP_New(IDP_GROUP, val, "wmKeyMapItemProperties");
-	}
-
-	if(!kmi->ptr) {
-		kmi->ptr= MEM_callocN(sizeof(PointerRNA), "wmKeyMapItemPtr");
-		WM_operator_properties_create(kmi->ptr, kmi->idname);
-	}
-
-	kmi->ptr->data= kmi->properties;
+	WM_operator_properties_alloc(&(kmi->ptr), &(kmi->properties), kmi->idname);
 }
 
 wmKeyConfig *WM_keyconfig_add(wmWindowManager *wm, char *idname)

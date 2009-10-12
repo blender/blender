@@ -181,6 +181,7 @@ typedef struct wmOperatorTypeMacro {
 	/* operator id */
 	char idname[MAX_ID_NAME];
 	/* rna pointer to access properties, like keymap */
+	struct IDProperty *properties;	/* operator properties, assigned to ptr->data and can be written to a file */
 	struct PointerRNA *ptr;	
 
 } wmOperatorTypeMacro;
@@ -240,14 +241,14 @@ typedef struct wmKeyMapItem {
 	
 	/* operator */
 	char idname[64];				/* used to retrieve operator type pointer */
-	IDProperty *properties;			/* operator properties */
+	IDProperty *properties;			/* operator properties, assigned to ptr->data and can be written to a file */
 	
 	/* modal */
 	short propvalue;				/* if used, the item is from modal map */
 
 	/* event */
 	short type;						/* event code itself */
-	short val;						/* 0=any, 1=click, 2=release, or wheelvalue, or... */
+	short val;						/* KM_ANY, KM_PRESS, KM_NOTHING etc */
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;				/* rawkey modifier */
 	

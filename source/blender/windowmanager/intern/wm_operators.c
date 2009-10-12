@@ -270,8 +270,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 	BLI_strncpy(otmacro->idname, idname, OP_MAX_TYPENAME);
 
 	/* do this on first use, since operatordefinitions might have been not done yet */
-//	otmacro->ptr= MEM_callocN(sizeof(PointerRNA), "optype macro ItemPtr");
-//	WM_operator_properties_create(otmacro->ptr, idname);
+	WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
 	
 	BLI_addtail(&ot->macro, otmacro);
 	
@@ -440,6 +439,25 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 	else
 		RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
 }
+
+/* similar to the function above except its uses ID properties
+ * used for keymaps and macros */
+void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
+{
+	if(*properties==NULL) {
+		IDPropertyTemplate val = {0};
+		*properties= IDP_New(IDP_GROUP, val, "wmOpItemProp");
+	}
+
+	if(*ptr==NULL) {
+		*ptr= MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr");
+		WM_operator_properties_create(*ptr, opstring);
+	}
+
+	(*ptr)->data= *properties;
+
+}
+
 
 void WM_operator_properties_free(PointerRNA *ptr)
 {
