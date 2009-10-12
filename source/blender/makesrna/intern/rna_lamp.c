@@ -480,7 +480,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop= RNA_def_property(srna, "shadow_soft_size", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "soft");
+	RNA_def_property_float_sdna(prop, NULL, "area_size");
 	RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Shadow Soft Size", "Light size for ray shadow sampling (Raytraced shadows).");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
