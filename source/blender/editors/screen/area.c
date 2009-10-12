@@ -193,7 +193,7 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 
 static void region_draw_azone(ScrArea *sa, AZone *az)
 {
-	GLUquadricObj *qobj = gluNewQuadric(); 
+	GLUquadricObj *qobj = NULL; 
 	short midx = az->x1 + (az->x2 - az->x1)/2;
 	short midy = az->y1 + (az->y2 - az->y1)/2;
 	
@@ -201,6 +201,8 @@ static void region_draw_azone(ScrArea *sa, AZone *az)
 	
 	/* only display action zone icons when the region is hidden */
 	if (!(az->ar->flag & RGN_FLAG_HIDDEN)) return;
+	
+	qobj = gluNewQuadric();
 	
 	glPushMatrix(); 	
 	glTranslatef(midx, midy, 0.); 

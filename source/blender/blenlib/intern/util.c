@@ -1527,6 +1527,8 @@ char* BLI_getbundle(void) {
 	bundleURL = CFBundleCopyBundleURL(mainBundle);
 	pathStr = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
 	CFStringGetCString(pathStr, path, MAXPATHLEN, kCFStringEncodingASCII);
+	CFRelease(pathStr);
+	CFRelease(bundleURL);
 	return path;
 }
 #endif
