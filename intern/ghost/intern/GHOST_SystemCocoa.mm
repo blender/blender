@@ -733,13 +733,6 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_IWindow* window = 0;
 	
-	//First check if we are in fullscreen mode
-	//If so, exit it before creating a new window
-	window = m_windowManager->getActiveWindow();
-	if (window && (window->getState() == GHOST_kWindowStateFullScreen))
-		window->setState(GHOST_kWindowStateNormal);
-	window = NULL;
-	
 	//Get the available rect for including window contents
 	NSRect frame = [[NSScreen mainScreen] visibleFrame];
 	NSRect contentRect = [NSWindow contentRectForFrameRect:frame
@@ -1008,13 +1001,6 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	//Check open windows if some changes are not saved
 	if (m_windowManager->getAnyModifiedState())
 	{
-		//First check if we are in fullscreen mode
-		//If so, exit it before creating a new window
-		GHOST_IWindow *window = m_windowManager->getActiveWindow();
-		if (window && (window->getState() == GHOST_kWindowStateFullScreen))
-			window->setState(GHOST_kWindowStateNormal);
-		window = NULL;		
-		
 		int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes have not been saved. Do you really want to quit ?",
 										 @"Cancel", @"Quit anyway", nil);
 		if (shouldQuit == NSAlertAlternateReturn)

@@ -29,6 +29,11 @@
 
 #include <Cocoa/Cocoa.h>
 
+#ifndef MAC_OS_X_VERSION_10_6
+//Use of the SetSystemUIMode function (64bit compatible)
+#include <Carbon/Carbon.h>
+#endif
+
 #include "GHOST_WindowCocoa.h"
 #include "GHOST_SystemCocoa.h"
 #include "GHOST_Debug.h"
@@ -44,7 +49,7 @@ static const NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
 	0
 };
 
-#pragma mark Cocoa delegate object
+#pragma mark Cocoa window delegate object
 
 @interface CocoaWindowDelegate : NSObject
 {
@@ -95,6 +100,26 @@ static const NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
 }
 @end
+
+#pragma mark NSWindow subclass
+//We need to subclass it to tell that even borderless (fullscreen), it can become key (receive user events)
+@interface CocoaWindow: NSWindow
+{
+
+}
+-(BOOL)canBecomeKeyWindow;
+
+@end
+@implementation CocoaWindow
+
+-(BOOL)canBecomeKeyWindow
+{
+	return YES;
+}
+
+@end
+
+
 
 #pragma mark NSOpenGLView subclass
 //We need to subclass it in order to give Cocoa the feeling key events are trapped
@@ -152,7 +177,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	rect.size.width = width;
 	rect.size.height = height;
 	
-	m_window = [[NSWindow alloc] initWithContentRect:rect
+	m_window = [[CocoaWindow alloc] initWithContentRect:rect
 										   styleMask:NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask
 											 backing:NSBackingStoreBuffered defer:NO];
 	if (m_window == nil) {
@@ -212,8 +237,15 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 	
 	if (m_window) {
 		[m_window close];
+		[[m_window delegate] release];
 		[m_window release];
 		m_window = nil;
+	}
+	
+	//Check for other blender opened windows and make the frontmost key
+	NSArray *windowsList = [NSApp orderedWindows];
+	if ([windowsList count]) {
+		[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
 	}
 	[pool drain];
 }
@@ -295,8 +327,8 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect& bounds) const
 		NSRect screenSize = [[m_window screen] visibleFrame];
 
 		//Max window contents as screen size (excluding title bar...)
-		NSRect contentRect = [NSWindow contentRectForFrameRect:screenSize
-													 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)];
+		NSRect contentRect = [CocoaWindow contentRectForFrameRect:screenSize
+													 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
 
 		rect = [m_window contentRectForFrameRect:[m_window frame]];
 		
@@ -418,7 +450,11 @@ void GHOST_WindowCocoa::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST
 	outY = screenCoord.y;
 }
 
-
+/**
+ * @note Fullscreen switch is not actual fullscreen with display capture. As this capture removes all OS X window manager features.
+ * Instead, the menu bar and the dock are hidden, and the window is made borderless and enlarged.
+ * Thus, process switch, exposé, spaces, ... still work in fullscreen mode
+ */
 GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setState(): window invalid")
@@ -439,9 +475,50 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//to give window delegate hint not to forward its deactivation to ghost wm that doesn't know view/window difference
 				m_fullScreen = true;
 
-				//Only 10.6 API will enable to manage several display in fullscreen mode, and topmenu autoshow
-				[m_openGLView enterFullScreenMode:[m_window screen] withOptions:nil];
+#ifdef MAC_OS_X_VERSION_10_6
+				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
+				//Hide menu & dock if needed
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				{
+					[NSApp setPresentationOptions:(NSApplicationPresentationHideDock | NSApplicationPresentationAutoHideMenuBar)];
+				}
+				//Make window borderless and enlarge it
+				[m_window setStyleMask:NSBorderlessWindowMask];
+				[m_window setFrame:[[m_window screen] frame] display:YES];
+#else
+				//With 10.5, we need to create a new window to change its style to borderless
+				//Hide menu & dock if needed
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				{
+					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:NO];
+					//One of the very few 64bit compatible Carbon function
+					SetSystemUIMode(kUIModeAllHidden,kUIOptionAutoShowMenuBar);
+				}
+				//Create a fullscreen borderless window
+				CocoaWindow *tmpWindow = [[CocoaWindow alloc]
+										  initWithContentRect:[[m_window screen] frame]
+										  styleMask:NSBorderlessWindowMask
+										  backing:NSBackingStoreBuffered
+										  defer:YES];
+				//Copy current window parameters
+				[tmpWindow setTitle:[m_window title]];
+				[tmpWindow setRepresentedURL:[m_window representedURL]];
+				[tmpWindow setReleasedWhenClosed:NO];
+				[tmpWindow setAcceptsMouseMovedEvents:YES];
+				[tmpWindow setDelegate:[m_window delegate]];
 				
+				//Assign the openGL view to the new window
+				[tmpWindow setContentView:m_openGLView];
+				
+				//Show the new window
+				[tmpWindow makeKeyAndOrderFront:nil];
+				//Close and release old window
+				[m_window setDelegate:nil]; // To avoid the notification of "window closed" event
+				[m_window close];
+				[m_window release];
+				m_window = tmpWindow;
+#endif
+			
 				//Tell WM of view new size
 				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
 				
@@ -456,11 +533,48 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				m_fullScreen = false;
 
 				//Exit fullscreen
-				[m_openGLView exitFullScreenModeWithOptions:nil];
+#ifdef MAC_OS_X_VERSION_10_6
+				//Show again menu & dock if needed
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				{
+					[NSApp setPresentationOptions:NSApplicationPresentationDefault];
+				}
+				//Make window normal and resize it
+				[m_window setStyleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
+				[m_window setFrame:[[m_window screen] visibleFrame] display:YES];
+#else
+				//With 10.5, we need to create a new window to change its style to borderless
+				//Show menu & dock if needed
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				{
+					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:YES];
+					SetSystemUIMode(kUIModeNormal, 0); //One of the very few 64bit compatible Carbon function
+				}
+				//Create a fullscreen borderless window
+				CocoaWindow *tmpWindow = [[CocoaWindow alloc]
+										  initWithContentRect:[[m_window screen] frame]
+													styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
+													  backing:NSBackingStoreBuffered
+														defer:YES];
+				//Copy current window parameters
+				[tmpWindow setTitle:[m_window title]];
+				[tmpWindow setRepresentedURL:[m_window representedURL]];
+				[tmpWindow setReleasedWhenClosed:NO];
+				[tmpWindow setAcceptsMouseMovedEvents:YES];
+				[tmpWindow setDelegate:[m_window delegate]];
 				
-				[m_window makeKeyAndOrderFront:nil];
-				[m_window makeFirstResponder:m_openGLView];
+				//Assign the openGL view to the new window
+				[tmpWindow setContentView:m_openGLView];
 				
+				//Show the new window
+				[tmpWindow makeKeyAndOrderFront:nil];
+				//Close and release old window
+				[m_window setDelegate:nil]; // To avoid the notification of "window closed" event
+				[m_window close];
+				[m_window release];
+				m_window = tmpWindow;
+#endif
+			
 				//Tell WM of view new size
 				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
 				
@@ -534,22 +648,7 @@ GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
 		if (m_openGLContext != nil) {
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-			
 			[m_openGLContext makeCurrentContext];
-#ifdef GHOST_DRAW_CARBON_GUTTER
-			// Restrict drawing to non-gutter area
-			::aglEnable(m_aglCtx, AGL_BUFFER_RECT);
-			GHOST_Rect bnds;
-			getClientBounds(bnds);
-			GLint b[4] =
-			{
-				bnds.m_l,
-				bnds.m_t+s_sizeRectSize,
-				bnds.m_r-bnds.m_l,
-				bnds.m_b-bnds.m_t
-			};
-			GLboolean result = ::aglSetInteger(m_aglCtx, AGL_BUFFER_RECT, b);
-#endif //GHOST_DRAW_CARBON_GUTTER
 			[pool drain];
 			return GHOST_kSuccess;
 		}
@@ -725,7 +824,6 @@ inline bool GHOST_WindowCocoa::setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y
 
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(bool grab, bool warp, bool restore)
 {
-	printf("\ncursor grab %i",grab);
 	if (grab)
 	{
 		//No need to perform grab without warp as it is always on in OS X
