@@ -130,29 +130,15 @@ static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)
 	Material *ma= (Material*)ptr->data;
 	Tex *tex;
 
-	tex= (ma->mtex[(int)ma->texact])? ma->mtex[(int)ma->texact]->tex: NULL;
+	tex= give_current_material_texture(ma);
 	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
 static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Material *ma= (Material*)ptr->data;
-	int act= ma->texact;
 
-	if(ma->mtex[act] && ma->mtex[act]->tex)
-		id_us_min(&ma->mtex[act]->tex->id);
-
-	if(value.data) {
-		if(!ma->mtex[act])
-			ma->mtex[act]= add_mtex();
-		
-		ma->mtex[act]->tex= value.data;
-		id_us_plus(&ma->mtex[act]->tex->id);
-	}
-	else if(ma->mtex[act]) {
-		MEM_freeN(ma->mtex[act]);
-		ma->mtex[act]= NULL;
-	}
+	set_current_material_texture(ma, value.data);
 }
 
 static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)

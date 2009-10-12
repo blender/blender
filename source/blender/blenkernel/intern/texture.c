@@ -840,6 +840,28 @@ Tex *give_current_lamp_texture(Lamp *la)
 	return tex;
 }
 
+void set_current_lamp_texture(Lamp *la, Tex *newtex)
+{
+	int act= la->texact;
+
+	if(la->mtex[act] && la->mtex[act]->tex)
+		id_us_min(&la->mtex[act]->tex->id);
+
+	if(newtex) {
+		if(!la->mtex[act]) {
+			la->mtex[act]= add_mtex();
+			la->mtex[act]->texco= TEXCO_GLOB;
+		}
+		
+		la->mtex[act]->tex= newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if(la->mtex[act]) {
+		MEM_freeN(la->mtex[act]);
+		la->mtex[act]= NULL;
+	}
+}
+
 Tex *give_current_material_texture(Material *ma)
 {
 	MTex *mtex= NULL;
@@ -867,6 +889,47 @@ Tex *give_current_material_texture(Material *ma)
 	return tex;
 }
 
+void set_current_material_texture(Material *ma, Tex *newtex)
+{
+	Tex *tex= NULL;
+	bNode *node;
+	
+	if(ma && ma->use_nodes && ma->nodetree) {
+		node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+		if(node) {
+			tex= (Tex *)node->id;
+			id_us_min(&tex->id);
+			node->id= &newtex->id;
+			id_us_plus(&newtex->id);
+			ma= NULL;
+		}
+		else {
+			node= nodeGetActiveID(ma->nodetree, ID_MA);
+			if(node)
+				ma= (Material*)node->id;
+		}
+	}
+	if(ma) {
+		int act= (int)ma->texact;
+
+		tex= (ma->mtex[act])? ma->mtex[act]->tex: NULL;
+		id_us_min(&tex->id);
+
+		if(newtex) {
+			if(!ma->mtex[act])
+				ma->mtex[act]= add_mtex();
+			
+			ma->mtex[act]->tex= newtex;
+			id_us_plus(&newtex->id);
+		}
+		else if(ma->mtex[act]) {
+			MEM_freeN(ma->mtex[act]);
+			ma->mtex[act]= NULL;
+		}
+	}
+}
+
 Tex *give_current_world_texture(World *world)
 {
 	MTex *mtex= NULL;
@@ -880,6 +943,28 @@ Tex *give_current_world_texture(World *world)
 	return tex;
 }
 
+void set_current_world_texture(World *wo, Tex *newtex)
+{
+	int act= wo->texact;
+
+	if(wo->mtex[act] && wo->mtex[act]->tex)
+		id_us_min(&wo->mtex[act]->tex->id);
+
+	if(newtex) {
+		if(!wo->mtex[act]) {
+			wo->mtex[act]= add_mtex();
+			wo->mtex[act]->texco= TEXCO_VIEW;
+		}
+		
+		wo->mtex[act]->tex= newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if(wo->mtex[act]) {
+		MEM_freeN(wo->mtex[act]);
+		wo->mtex[act]= NULL;
+	}
+}
+
 Tex *give_current_brush_texture(Brush *br)
 {
 	MTex *mtex= NULL;
@@ -891,6 +976,26 @@ Tex *give_current_brush_texture(Brush *br)
 	}
 
 	return tex;
+}
+
+void set_current_brush_texture(Brush *br, Tex *newtex)
+{
+	int act= br->texact;
+
+	if(br->mtex[act] && br->mtex[act]->tex)
+		id_us_min(&br->mtex[act]->tex->id);
+
+	if(newtex) {
+		if(!br->mtex[act])
+			br->mtex[act]= add_mtex();
+		
+		br->mtex[act]->tex= newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if(br->mtex[act]) {
+		MEM_freeN(br->mtex[act]);
+		br->mtex[act]= NULL;
+	}
 }
 
 /* ------------------------------------------------------------------------- */

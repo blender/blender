@@ -69,31 +69,15 @@ static PointerRNA rna_Lamp_active_texture_get(PointerRNA *ptr)
 	Lamp *la= (Lamp*)ptr->data;
 	Tex *tex;
 
-	tex= (la->mtex[(int)la->texact])? la->mtex[(int)la->texact]->tex: NULL;
+	tex= give_current_lamp_texture(la);
 	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
 static void rna_Lamp_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Lamp *la= (Lamp*)ptr->data;
-	int act= la->texact;
 
-	if(la->mtex[act] && la->mtex[act]->tex)
-		id_us_min(&la->mtex[act]->tex->id);
-
-	if(value.data) {
-		if(!la->mtex[act]) {
-			la->mtex[act]= add_mtex();
-			la->mtex[act]->texco= TEXCO_GLOB;
-		}
-		
-		la->mtex[act]->tex= value.data;
-		id_us_plus(&la->mtex[act]->tex->id);
-	}
-	else if(la->mtex[act]) {
-		MEM_freeN(la->mtex[act]);
-		la->mtex[act]= NULL;
-	}
+	set_current_lamp_texture(la, value.data);
 }
 
 static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)

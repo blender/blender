@@ -65,29 +65,15 @@ static PointerRNA rna_Brush_active_texture_get(PointerRNA *ptr)
 	Brush *br= (Brush*)ptr->data;
 	Tex *tex;
 
-	tex= (br->mtex[(int)br->texact])? br->mtex[(int)br->texact]->tex: NULL;
+	tex= give_current_brush_texture(br);
 	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
 static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Brush *br= (Brush*)ptr->data;
-	int act= br->texact;
 
-	if(br->mtex[act] && br->mtex[act]->tex)
-		id_us_min(&br->mtex[act]->tex->id);
-
-	if(value.data) {
-		if(!br->mtex[act])
-			br->mtex[act]= add_mtex();
-		
-		br->mtex[act]->tex= value.data;
-		id_us_plus(&br->mtex[act]->tex->id);
-	}
-	else if(br->mtex[act]) {
-		MEM_freeN(br->mtex[act]);
-		br->mtex[act]= NULL;
-	}
+	set_current_brush_texture(br, value.data);
 }
 
 static void rna_Brush_update(bContext *C, PointerRNA *ptr)

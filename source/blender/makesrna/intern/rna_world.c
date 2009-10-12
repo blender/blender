@@ -71,31 +71,15 @@ static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)
 	World *wo= (World*)ptr->data;
 	Tex *tex;
 
-	tex= (wo->mtex[(int)wo->texact])? wo->mtex[(int)wo->texact]->tex: NULL;
+	tex= give_current_world_texture(wo);
 	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
 static void rna_World_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	World *wo= (World*)ptr->data;
-	int act= wo->texact;
 
-	if(wo->mtex[act] && wo->mtex[act]->tex)
-		id_us_min(&wo->mtex[act]->tex->id);
-
-	if(value.data) {
-		if(!wo->mtex[act]) {
-			wo->mtex[act]= add_mtex();
-			wo->mtex[act]->texco= TEXCO_VIEW;
-		}
-		
-		wo->mtex[act]->tex= value.data;
-		id_us_plus(&wo->mtex[act]->tex->id);
-	}
-	else if(wo->mtex[act]) {
-		MEM_freeN(wo->mtex[act]);
-		wo->mtex[act]= NULL;
-	}
+	set_current_world_texture(wo, value.data);
 }
 
 static void rna_World_update(bContext *C, PointerRNA *ptr)
