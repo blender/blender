@@ -6161,7 +6161,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	switch( ob->type) {
 	case OB_MESH:
 	{
-		if((ob->mode & OB_MODE_EDIT)==0) {
+		if(ob->mode & OB_MODE_EDIT) {
 			Mesh *me= ob->data;
 			EditMesh *em= me->edit_mesh;
 
