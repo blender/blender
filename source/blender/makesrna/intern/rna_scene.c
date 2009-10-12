@@ -43,7 +43,14 @@
 
 #include "WM_types.h"
 
-/* prop_mode needs to be accessible from transform operator */
+
+EnumPropertyItem snap_mode_items[] = {
+	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
+	{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target."},
+	{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
+	{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
+	{0, NULL, 0, NULL, NULL}};
+	
 EnumPropertyItem prop_mode_items[] ={
 	{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
 	{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
@@ -54,6 +61,7 @@ EnumPropertyItem prop_mode_items[] ={
 	{PROP_RANDOM, "RANDOM", 0, "Random", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+	
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -489,13 +497,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume."},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem snap_mode_items[] = {
-		{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
-		{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target."},
-		{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
-		{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
-		{0, NULL, 0, NULL, NULL}};
-		
 	static EnumPropertyItem auto_key_items[] = {
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
@@ -570,6 +571,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Snap Peel Object", "Consider objects as whole when finding volume center.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_PEEL_OBJECT, 0);
 	
+	prop= RNA_def_property(srna, "snap_project", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
+	RNA_def_property_ui_text(prop, "Project Individual Elements", "DOC_BROKEN");
+	RNA_def_property_ui_icon(prop, ICON_ROTATECOLLECTION, 0);
+
 	/* Auto Keying */
 	prop= RNA_def_property(srna, "enable_auto_key", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);

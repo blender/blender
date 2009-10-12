@@ -63,32 +63,6 @@ EnumPropertyItem proportional_mode_types[] = {
 		{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem snap_mode_types[] = {
-		{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", ""},
-		{SCE_SNAP_TARGET_CENTER,  "CENTER", 0, "Center", ""},
-		{SCE_SNAP_TARGET_MEDIAN,  "MEDIAN", 0, "Median", ""},
-		{SCE_SNAP_TARGET_ACTIVE,  "ACTIVE", 0, "Active", ""},
-		{0, NULL, 0, NULL, NULL}
-};
-
-EnumPropertyItem proportional_falloff_types[] = {
-		{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
-		{PROP_ROOT, "ROOT", 0, "Root", ""},
-		{PROP_SHARP, "SHARP", 0, "Sharp", ""},
-		{PROP_LIN, "LINEAR", 0, "Linear", ""},
-		{PROP_CONST, "CONSTANT", 0, "Constant", ""},
-		{PROP_RANDOM, "RANDOM", 0, "Random", ""},
-		{0, NULL, 0, NULL, NULL}
-};
-
-EnumPropertyItem orientation_items[]= {
-	{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""},
-	{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""},
-	{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""},
-	{V3D_MANIP_VIEW, "VIEW", 0, "View", ""},
-	{0, NULL, 0, NULL, NULL}};
-
 char OP_TRANSLATION[] = "TFM_OT_translate";
 char OP_ROTATION[] = "TFM_OT_rotate";
 char OP_TOSPHERE[] = "TFM_OT_tosphere";
@@ -157,7 +131,8 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 	ot->exec   = select_orientation_exec;
 	ot->poll   = ED_operator_areaactive;
 
-	prop= RNA_def_enum(ot->srna, "orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
+	prop= RNA_def_property(ot->srna, "orientation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation.");
 	RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
 }
 
@@ -374,7 +349,7 @@ void Properties_Proportional(struct wmOperatorType *ot)
 void Properties_Snapping(struct wmOperatorType *ot, short align)
 {
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap to Point", "");
-	RNA_def_enum(ot->srna, "snap_mode", snap_mode_types, 0, "Mode", "");
+	RNA_def_enum(ot->srna, "snap_mode", snap_mode_items, 0, "Mode", "");
 	RNA_def_float_vector(ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
 
 	if (align)
@@ -389,7 +364,8 @@ void Properties_Constraints(struct wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
-	prop= RNA_def_enum(ot->srna, "constraint_orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
+	prop= RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation.");
 	RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
 }
 

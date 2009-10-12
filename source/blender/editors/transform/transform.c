@@ -2605,7 +2605,6 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			center = td->center;
 		}
 		else {
-			/* !TODO! Make this if not rely on G */
 			if(around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
 				center = td->center;
 			}

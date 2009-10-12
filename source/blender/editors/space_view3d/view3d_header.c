@@ -2144,6 +2144,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
 					xco+= XIC;
 				}
+				if (ts->snap_mode == SCE_SNAP_MODE_FACE) {
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_ROTATECOLLECTION,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
+					xco+= XIC;
+				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC + 10;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");

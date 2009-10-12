@@ -125,7 +125,6 @@
 #include "ED_object.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
-#include "ED_retopo.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -4478,12 +4477,6 @@ void special_aftertrans_update(TransInfo *t)
 		if (t->obedit) {
 			if (cancelled==0) {
 				EM_automerge(t->scene, t->obedit, 1);
-#if 0 // TRANSFORM_FIX_ME
-				/* when snapping, delay retopo until after automerge */
-				if (G.qual & LR_CTRLKEY) {
-					retopo_do_all();
-				}
-#endif
 			}
 		}
 	}

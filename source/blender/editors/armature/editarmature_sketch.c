@@ -1174,6 +1174,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 		SK_Stroke *snap_stk;
 		float vec[3];
 		float no[3];
+		float mval[2];
 		int found = 0;
 		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
 
@@ -1197,9 +1198,12 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 				point_added = 1;
 			}
 		}
+		
+		mval[0] = dd->mval[0];
+		mval[1] = dd->mval[1];
 
 		/* try to snap to closer object */
-		found = snapObjectsContext(C, dd->mval, &dist, vec, no, SNAP_NOT_SELECTED);
+		found = snapObjectsContext(C, mval, &dist, vec, no, SNAP_NOT_SELECTED);
 		if (found == 1)
 		{
 			pt->type = dd->type;

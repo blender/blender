@@ -87,6 +87,7 @@ typedef struct TransSnap {
 	short	modeTarget;
 	short	mode;
 	short	align;
+	short	project;
 	short  	status;
 	float	snapPoint[3]; /* snapping from this point */
 	float	snapTarget[3]; /* to this point */
@@ -578,6 +579,7 @@ void snapGrid(TransInfo *t, float *val);
 void snapGridAction(TransInfo *t, float *val, GearsType action);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
+void applyProject(TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 int  handleSnapping(TransInfo *t, struct wmEvent *event);

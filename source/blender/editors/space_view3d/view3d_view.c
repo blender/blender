@@ -482,7 +482,7 @@ void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
 /* ********************************** */
 
 /* create intersection coordinates in view Z direction at mouse coordinates */
-void viewline(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_end[3])
+void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float vec[4];
@@ -517,7 +517,7 @@ void viewline(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float
 }
 
 /* create intersection ray in view Z direction at mouse coordinates */
-void viewray(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_normal[3])
+void viewray(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3])
 {
 	float ray_end[3];
 	

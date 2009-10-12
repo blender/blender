@@ -91,7 +91,6 @@
 #include "ED_keyframing.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
-#include "ED_retopo.h"
 #include "ED_particle.h"
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
@@ -617,201 +616,201 @@ void recalcData(TransInfo *t)
 			}
 		}
 	}
-	else if (t->obedit) {
-		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
-			Curve *cu= t->obedit->data;
-			Nurb *nu= cu->editnurb->first;
-			
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			if (t->state == TRANS_CANCEL) {
-				while(nu) {
-					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
-					nu= nu->next;
-				}
-			} else {
-				/* Normal updating */
-				while(nu) {
-					test2DNurb(nu);
-					calchandlesNurb(nu);
-					nu= nu->next;
-				}
-				/* TRANSFORM_FIX_ME */
-				// retopo_do_all();
-			}
+	else if (t->spacetype == SPACE_VIEW3D) {
+		
+		/* project */
+		if(t->state != TRANS_CANCEL) {
+			applyProject(t);
 		}
-		else if(t->obedit->type==OB_LATTICE) {
-			Lattice *la= t->obedit->data;
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-
-			if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
-		}
-		else if (t->obedit->type == OB_MESH) {
-			if(t->spacetype==SPACE_IMAGE) {
-				SpaceImage *sima= t->sa->spacedata.first;
+		
+		if (t->obedit) {
+			if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+				Curve *cu= t->obedit->data;
+				Nurb *nu= cu->editnurb->first;
 				
-				flushTransUVs(t);
-				if(sima->flag & SI_LIVE_UNWRAP)
-					ED_uvedit_live_unwrap_re_solve();
-				
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
-			} else {
-				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
-				/* mirror modifier clipping? */
-				if(t->state != TRANS_CANCEL) {
-					/* TRANSFORM_FIX_ME */
-//					if ((G.qual & LR_CTRLKEY)==0) {
-//						/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
-//						retopo_do_all();
-//					}
-					clipMirrorModifier(t, t->obedit);
-				}
-				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
-					editmesh_apply_to_mirror(t);
-					
 				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 				
-				recalc_editnormals(em);
-			}
-		}
-		else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
-			bArmature *arm= t->obedit->data;
-			ListBase *edbo = arm->edbo;
-			EditBone *ebo;
-			TransData *td = t->data;
-			int i;
-			
-			/* Ensure all bones are correctly adjusted */
-			for (ebo = edbo->first; ebo; ebo = ebo->next){
-				
-				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
-					/* If this bone has a parent tip that has been moved */
-					if (ebo->parent->flag & BONE_TIPSEL){
-						VECCOPY (ebo->head, ebo->parent->tail);
-						if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
+				if (t->state == TRANS_CANCEL) {
+					while(nu) {
+						calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+						nu= nu->next;
 					}
-					/* If this bone has a parent tip that has NOT been moved */
-					else{
-						VECCOPY (ebo->parent->tail, ebo->head);
-						if(t->mode==TFM_BONE_ENVELOPE) ebo->parent->rad_tail= ebo->rad_head;
-					}
-				}
-				
-				/* on extrude bones, oldlength==0.0f, so we scale radius of points */
-				ebo->length= VecLenf(ebo->head, ebo->tail);
-				if(ebo->oldlength==0.0f) {
-					ebo->rad_head= 0.25f*ebo->length;
-					ebo->rad_tail= 0.10f*ebo->length;
-					ebo->dist= 0.25f*ebo->length;
-					if(ebo->parent) {
-						if(ebo->rad_head > ebo->parent->rad_tail)
-							ebo->rad_head= ebo->parent->rad_tail;
-					}
-				}
-				else if(t->mode!=TFM_BONE_ENVELOPE) {
-					/* if bones change length, lets do that for the deform distance as well */
-					ebo->dist*= ebo->length/ebo->oldlength;
-					ebo->rad_head*= ebo->length/ebo->oldlength;
-					ebo->rad_tail*= ebo->length/ebo->oldlength;
-					ebo->oldlength= ebo->length;
-				}
-			}
-			
-			
-			if (t->mode != TFM_BONE_ROLL)
-			{
-				/* fix roll */
-				for(i = 0; i < t->total; i++, td++)
-				{
-					if (td->extra)
-					{
-						float vec[3], up_axis[3];
-						float qrot[4];
-						
-						ebo = td->extra;
-						VECCOPY(up_axis, td->axismtx[2]);
-						
-						if (t->mode != TFM_ROTATION)
-						{
-							VecSubf(vec, ebo->tail, ebo->head);
-							Normalize(vec);
-							RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
-							QuatMulVecf(qrot, up_axis);
-						}
-						else
-						{
-							Mat3MulVecfl(t->mat, up_axis);
-						}
-						
-						ebo->roll = ED_rollBoneToVector(ebo, up_axis);
+				} else {
+					/* Normal updating */
+					while(nu) {
+						test2DNurb(nu);
+						calchandlesNurb(nu);
+						nu= nu->next;
 					}
 				}
 			}
-			
-			if(arm->flag & ARM_MIRROR_EDIT)
-				transform_armature_mirror_update(t->obedit);
-			
-		}
-		else
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-	}
-	else if( (t->flag & T_POSE) && t->poseobj) {
-		Object *ob= t->poseobj;
-		bArmature *arm= ob->data;
-		
-		/* if animtimer is running, and the object already has animation data,
-		 * check if the auto-record feature means that we should record 'samples'
-		 * (i.e. uneditable animation values)
-		 */
-		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-			int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
-			
-			animrecord_check_state(t->scene, &ob->id, t->animtimer);
-			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
-		}
-		
-		/* old optimize trick... this enforces to bypass the depgraph */
-		if (!(arm->flag & ARM_DELAYDEFORM)) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-		}
-		else
-			where_is_pose(scene, ob);
-	}
-	else {
-		for(base= FIRSTBASE; base; base= base->next) {
-			Object *ob= base->object;
-			
-			/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
-			if(base->flag & BA_HAS_RECALC_OB)
-				ob->recalc |= OB_RECALC_OB;
-			if(base->flag & BA_HAS_RECALC_DATA)
-				ob->recalc |= OB_RECALC_DATA;
-			
-			/* if object/base is selected */
-			if ((base->flag & SELECT) || (ob->flag & SELECT)) {
-				/* if animtimer is running, and the object already has animation data,
-				 * check if the auto-record feature means that we should record 'samples'
-				 * (i.e. uneditable animation values)
-				 */
-				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-					animrecord_check_state(t->scene, &ob->id, t->animtimer);
-					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
-				}
-			}
-			
-			/* proxy exception */
-			if(ob->proxy)
-				ob->proxy->recalc |= ob->recalc;
-			if(ob->proxy_group)
-				group_tag_recalc(ob->proxy_group->dup_group);
-		}
-	}
+			else if(t->obedit->type==OB_LATTICE) {
+				Lattice *la= t->obedit->data;
+				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 	
-	/* update shaded drawmode while transform */
-	if(t->spacetype==SPACE_VIEW3D && ((View3D*)t->view)->drawtype == OB_SHADED)
-		reshadeall_displist(t->scene);
+				if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
+			}
+			else if (t->obedit->type == OB_MESH) {
+				if(t->spacetype==SPACE_IMAGE) {
+					SpaceImage *sima= t->sa->spacedata.first;
+					
+					flushTransUVs(t);
+					if(sima->flag & SI_LIVE_UNWRAP)
+						ED_uvedit_live_unwrap_re_solve();
+					
+					DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
+				} else {
+					EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
+					/* mirror modifier clipping? */
+					if(t->state != TRANS_CANCEL) {
+						clipMirrorModifier(t, t->obedit);
+					}
+					if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
+						editmesh_apply_to_mirror(t);
+						
+					DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+					
+					recalc_editnormals(em);
+				}
+			}
+			else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
+				bArmature *arm= t->obedit->data;
+				ListBase *edbo = arm->edbo;
+				EditBone *ebo;
+				TransData *td = t->data;
+				int i;
+				
+				/* Ensure all bones are correctly adjusted */
+				for (ebo = edbo->first; ebo; ebo = ebo->next){
+					
+					if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
+						/* If this bone has a parent tip that has been moved */
+						if (ebo->parent->flag & BONE_TIPSEL){
+							VECCOPY (ebo->head, ebo->parent->tail);
+							if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
+						}
+						/* If this bone has a parent tip that has NOT been moved */
+						else{
+							VECCOPY (ebo->parent->tail, ebo->head);
+							if(t->mode==TFM_BONE_ENVELOPE) ebo->parent->rad_tail= ebo->rad_head;
+						}
+					}
+					
+					/* on extrude bones, oldlength==0.0f, so we scale radius of points */
+					ebo->length= VecLenf(ebo->head, ebo->tail);
+					if(ebo->oldlength==0.0f) {
+						ebo->rad_head= 0.25f*ebo->length;
+						ebo->rad_tail= 0.10f*ebo->length;
+						ebo->dist= 0.25f*ebo->length;
+						if(ebo->parent) {
+							if(ebo->rad_head > ebo->parent->rad_tail)
+								ebo->rad_head= ebo->parent->rad_tail;
+						}
+					}
+					else if(t->mode!=TFM_BONE_ENVELOPE) {
+						/* if bones change length, lets do that for the deform distance as well */
+						ebo->dist*= ebo->length/ebo->oldlength;
+						ebo->rad_head*= ebo->length/ebo->oldlength;
+						ebo->rad_tail*= ebo->length/ebo->oldlength;
+						ebo->oldlength= ebo->length;
+					}
+				}
+				
+				
+				if (t->mode != TFM_BONE_ROLL)
+				{
+					/* fix roll */
+					for(i = 0; i < t->total; i++, td++)
+					{
+						if (td->extra)
+						{
+							float vec[3], up_axis[3];
+							float qrot[4];
+							
+							ebo = td->extra;
+							VECCOPY(up_axis, td->axismtx[2]);
+							
+							if (t->mode != TFM_ROTATION)
+							{
+								VecSubf(vec, ebo->tail, ebo->head);
+								Normalize(vec);
+								RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
+								QuatMulVecf(qrot, up_axis);
+							}
+							else
+							{
+								Mat3MulVecfl(t->mat, up_axis);
+							}
+							
+							ebo->roll = ED_rollBoneToVector(ebo, up_axis);
+						}
+					}
+				}
+				
+				if(arm->flag & ARM_MIRROR_EDIT)
+					transform_armature_mirror_update(t->obedit);
+				
+			}
+			else
+				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+		}
+		else if( (t->flag & T_POSE) && t->poseobj) {
+			Object *ob= t->poseobj;
+			bArmature *arm= ob->data;
+			
+			/* if animtimer is running, and the object already has animation data,
+			 * check if the auto-record feature means that we should record 'samples'
+			 * (i.e. uneditable animation values)
+			 */
+			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+			if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+				int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
+				
+				animrecord_check_state(t->scene, &ob->id, t->animtimer);
+				autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+			}
+			
+			/* old optimize trick... this enforces to bypass the depgraph */
+			if (!(arm->flag & ARM_DELAYDEFORM)) {
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+			}
+			else
+				where_is_pose(scene, ob);
+		}
+		else {
+			for(base= FIRSTBASE; base; base= base->next) {
+				Object *ob= base->object;
+				
+				/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
+				if(base->flag & BA_HAS_RECALC_OB)
+					ob->recalc |= OB_RECALC_OB;
+				if(base->flag & BA_HAS_RECALC_DATA)
+					ob->recalc |= OB_RECALC_DATA;
+				
+				/* if object/base is selected */
+				if ((base->flag & SELECT) || (ob->flag & SELECT)) {
+					/* if animtimer is running, and the object already has animation data,
+					 * check if the auto-record feature means that we should record 'samples'
+					 * (i.e. uneditable animation values)
+					 */
+					// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+					if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+						animrecord_check_state(t->scene, &ob->id, t->animtimer);
+						autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
+					}
+				}
+				
+				/* proxy exception */
+				if(ob->proxy)
+					ob->proxy->recalc |= ob->recalc;
+				if(ob->proxy_group)
+					group_tag_recalc(ob->proxy_group->dup_group);
+			}
+		}
+		
+		if(t->spacetype==SPACE_VIEW3D && ((View3D*)t->view)->drawtype == OB_SHADED)
+			reshadeall_displist(t->scene);
+	}
 }
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
