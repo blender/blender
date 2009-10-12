@@ -1288,6 +1288,36 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		proportional = 0;
 	}
 
+	// If modal, save settings back in scene if not set as operator argument
+	if (t->flag & T_MODAL)
+	{
+		/* save settings if not set in operator */
+		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional"))
+		{
+			ts->proportional = proportional;
+		}
+
+		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size"))
+		{
+			ts->proportional_size = t->prop_size;
+		}
+			
+		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
+		{
+			ts->prop_mode = t->prop_mode;
+		}
+		
+		if(t->spacetype == SPACE_VIEW3D)
+		{
+			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation"))
+			{
+				View3D *v3d = t->view;
+	
+				v3d->twmode = t->current_orientation;
+			}
+		}
+	}
+	
 	if (RNA_struct_find_property(op->ptr, "proportional"))
 	{
 		RNA_enum_set(op->ptr, "proportional", proportional);
@@ -1318,26 +1348,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 
 		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-	}
-
-	// XXX If modal, save settings back in scene
-	if (t->flag & T_MODAL)
-	{
-		ts->prop_mode = t->prop_mode;
-		
-		/* only save back if it wasn't automatically disabled */
-		if ((t->options & CTX_NO_PET) == 0)
-		{
-			ts->proportional = proportional;
-			ts->proportional_size = t->prop_size;
-		}
-
-		if(t->spacetype == SPACE_VIEW3D)
-		{
-			View3D *v3d = t->view;
-
-			v3d->twmode = t->current_orientation;
-		}
 	}
 }
 

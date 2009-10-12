@@ -934,7 +934,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		if(v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
 		
-		if (op && RNA_struct_find_property(op->ptr, "constraint_axis") && RNA_property_is_set(op->ptr, "constraint_orientation"))
+		if (op && RNA_struct_find_property(op->ptr, "constraint_orientation") && RNA_property_is_set(op->ptr, "constraint_orientation"))
 		{
 			t->current_orientation = RNA_enum_get(op->ptr, "constraint_orientation");
 			
