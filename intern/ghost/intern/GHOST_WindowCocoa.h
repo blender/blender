@@ -275,6 +275,9 @@ protected:
 	/** The mother SystemCocoa class to send events */
 	GHOST_SystemCocoa *m_systemCocoa;
 			
+	/** The first created OpenGL context (for sharing display lists) */
+	static NSOpenGLContext *s_firstOpenGLcontext;
+	
 	NSCursor*	m_customCursor;
 
 	GHOST_TabletData m_tablet;

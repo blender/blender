@@ -149,6 +149,8 @@ static const NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
 
 #pragma mark initialization / finalization
 
+NSOpenGLContext* GHOST_WindowCocoa::s_firstOpenGLcontext = nil;
+
 GHOST_WindowCocoa::GHOST_WindowCocoa(
 	GHOST_SystemCocoa *systemCocoa,
 	const STR_String& title,
@@ -197,7 +199,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	[pixelFormat release];
 	
-	m_openGLContext = [m_openGLView openGLContext];
+	m_openGLContext = [m_openGLView openGLContext]; //This context will be replaced by the proper one just after
 	
 	[m_window setContentView:m_openGLView];
 	[m_window setInitialFirstResponder:m_openGLView];
@@ -229,9 +231,6 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 {
 	if (m_customCursor) delete m_customCursor;
 
-	/*if(ugly_hack==m_windowRef) ugly_hack= NULL;
-	
-	if(ugly_hack==NULL) setDrawingContextType(GHOST_kDrawingContextTypeNone);*/
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	[m_openGLView release];
 	
@@ -670,12 +669,15 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 		case GHOST_kDrawingContextTypeOpenGL:
 			if (!getValid()) break;
             				
-				pixelFormat = [m_openGLView pixelFormat];
-				tmpOpenGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
-															  shareContext:m_openGLContext];
-				if (tmpOpenGLContext == nil)
-					success = GHOST_kFailure;
-					break;
+			pixelFormat = [m_openGLView pixelFormat];
+			tmpOpenGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+															  shareContext:s_firstOpenGLcontext];
+			if (tmpOpenGLContext == nil) {
+				success = GHOST_kFailure;
+				break;
+			}
+			
+			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;
 #ifdef WAIT_FOR_VSYNC
 				/* wait for vsync, to avoid tearing artifacts */
 				[tmpOpenGLContext setValues:1 forParameter:NSOpenGLCPSwapInterval];
@@ -683,7 +685,6 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 				[m_openGLView setOpenGLContext:tmpOpenGLContext];
 				[tmpOpenGLContext setView:m_openGLView];
 				
-				[m_openGLContext release];
 				m_openGLContext = tmpOpenGLContext;
 			break;
 		
@@ -704,7 +705,12 @@ GHOST_TSuccess GHOST_WindowCocoa::removeDrawingContext()
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	switch (m_drawingContextType) {
 		case GHOST_kDrawingContextTypeOpenGL:
-			[m_openGLView clearGLContext];
+			if (m_openGLContext)
+			{
+				[m_openGLView clearGLContext];
+				if (s_firstOpenGLcontext == m_openGLContext) s_firstOpenGLcontext = nil;
+				m_openGLContext = nil;
+			}
 			[pool drain];
 			return GHOST_kSuccess;
 		case GHOST_kDrawingContextTypeNone:
