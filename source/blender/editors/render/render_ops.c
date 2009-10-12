@@ -51,5 +51,7 @@ void ED_operatortypes_render(void)
 
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
+
+	WM_operatortype_append(TEXTURE_OT_slot_move);
 }
 

@@ -889,6 +889,55 @@ Tex *give_current_material_texture(Material *ma)
 	return tex;
 }
 
+int give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
+{
+	switch(GS(id->name)) {
+	case ID_MA:
+		*mtex_ar=		((Material *)id)->mtex;
+		if(act) *act=	(((Material *)id)->texact);
+		break;
+	case ID_WO:
+		*mtex_ar=		((World *)id)->mtex;
+		if(act) *act=	(((World *)id)->texact);
+		break;
+	case ID_LA:
+		*mtex_ar=		((Lamp *)id)->mtex;
+		if(act) *act=	(((Lamp *)id)->texact);
+		break;
+	case ID_BR:
+		*mtex_ar=		((Brush *)id)->mtex;
+		if(act) *act=	(((Brush *)id)->texact);
+		break;
+	default:
+		*mtex_ar = NULL;
+		if(act) *act=	0;
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+void set_active_mtex(ID *id, short act)
+{
+	if(act<0)				act= 0;
+	else if(act>=MAX_MTEX)	act= MAX_MTEX-1;
+
+	switch(GS(id->name)) {
+	case ID_MA:
+		((Material *)id)->texact= act;
+		break;
+	case ID_WO:
+		((World *)id)->texact= act;
+		break;
+	case ID_LA:
+		((Lamp *)id)->texact= act;
+		break;
+	case ID_BR:
+		((Brush *)id)->texact= act;
+		break;
+	}
+}
+
 void set_current_material_texture(Material *ma, Tex *newtex)
 {
 	Tex *tex= NULL;

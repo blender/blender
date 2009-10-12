@@ -46,5 +46,8 @@ void WORLD_OT_new(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
 
+void TEXTURE_OT_slot_move(struct wmOperatorType *ot);
+
+
 #endif /* RENDER_INTERN_H */
 

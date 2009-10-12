@@ -681,3 +681,58 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int texture_slot_move(bContext *C, wmOperator *op)
+{
+	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+
+	if(id) {
+		MTex **mtex_ar, *mtexswap;
+		short act;
+		int type= RNA_enum_get(op->ptr, "type");
+
+		give_active_mtex(id, &mtex_ar, &act);
+
+		if(type == -1) { /* Up */
+			if(act > 0) {
+				mtexswap = mtex_ar[act];
+				mtex_ar[act] = mtex_ar[act-1];
+				mtex_ar[act-1] = mtexswap;
+				set_active_mtex(id, act-1);
+			}
+		}
+		else { /* Down */
+			if(act < MAX_MTEX-1) {
+				mtexswap = mtex_ar[act];
+				mtex_ar[act] = mtex_ar[act+1];
+				mtex_ar[act+1] = mtexswap;
+				set_active_mtex(id, act+1);
+			}
+		}
+
+		WM_event_add_notifier(C, NC_TEXTURE, CTX_data_scene(C));
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void TEXTURE_OT_slot_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem slot_move[] = {
+		{-1, "UP", 0, "Up", ""},
+		{1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Move Texture Slot";
+	ot->idname= "TEXTURE_OT_slot_move";
+	ot->description="Move texture slots up and down.";
+
+	/* api callbacks */
+	ot->exec= texture_slot_move;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
+}

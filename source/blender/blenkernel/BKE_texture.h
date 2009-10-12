@@ -75,6 +75,9 @@ struct Tex *give_current_lamp_texture(struct Lamp *la);
 struct Tex *give_current_world_texture(struct World *world);
 struct Tex *give_current_brush_texture(struct Brush *br);
 
+int			 give_active_mtex(struct ID *id, struct MTex ***mtex_ar, short *act);
+void		 set_active_mtex(struct ID *id, short act);
+
 void set_current_brush_texture(struct Brush *br, struct Tex *tex);
 void set_current_world_texture(struct World *wo, struct Tex *tex);
 void set_current_material_texture(struct Material *ma, struct Tex *tex);

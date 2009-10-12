@@ -75,6 +75,10 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 			split.template_ID(idblock, "active_texture", new="texture.new")
 		elif tex:
 			split.template_ID(space, "pin_id")
+		
+		row = split.row(align=True)
+		row.item_enumO("texture.slot_move", "type", 'UP', text="", icon='ICON_TRIA_UP')
+		row.item_enumO("texture.slot_move", "type", 'DOWN', text="", icon='ICON_TRIA_DOWN')
 
 		if (not space.pin_id) and (
 			context.sculpt_object or
