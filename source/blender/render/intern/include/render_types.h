@@ -245,10 +245,17 @@ struct Render
 
 struct ISBData;
 
+typedef struct DeepSample {
+	int z;
+	float v;
+} DeepSample;
+ 
 typedef struct ShadSampleBuf {
 	struct ShadSampleBuf *next, *prev;
 	intptr_t *zbuf;
 	char *cbuf;
+	DeepSample **deepbuf;
+	int *totbuf;
 } ShadSampleBuf;
 
 typedef struct ShadBuf {
@@ -258,7 +265,7 @@ typedef struct ShadBuf {
 	float viewmat[4][4];
 	float winmat[4][4];
 	float *jit, *weight;
-	float d, clipend, pixsize, soft;
+	float d, clipend, pixsize, soft, compressthresh;
 	int co[3];
 	int size, bias;
 	ListBase buffers;
@@ -527,6 +534,8 @@ typedef struct LampRen {
 	float clipend;
 	/** A small depth offset to prevent self-shadowing. */
 	float bias;
+	/* Compression threshold for deep shadow maps */
+	float compressthresh;
 	
 	short ray_samp, ray_sampy, ray_sampz, ray_samp_method, ray_samp_type, area_shape, ray_totsamp;
 	short xold[BLENDER_MAX_THREADS], yold[BLENDER_MAX_THREADS];	/* last jitter table for area lights */

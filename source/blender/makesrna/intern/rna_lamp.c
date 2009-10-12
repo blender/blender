@@ -570,6 +570,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 		{LA_SHADBUF_REGULAR	, "REGULAR", 0, "Classical", "Classic shadow buffer."},
 		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifaces."},
 		{LA_SHADBUF_IRREGULAR, "IRREGULAR", 0, "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing."},
+		{LA_SHADBUF_DEEP, "DEEP", 0, "Deep", "Deep shadow buffer supports transparency and better filtering, at the cost of more memory usage and processing time."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadbuffiltertype_items[] = {
@@ -690,6 +691,12 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "bufflag", LA_SHADBUF_AUTO_END);
 	RNA_def_property_ui_text(prop, "Autoclip End", "Automatic calculation of clipping-end, based on visible vertices.");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
+
+	prop= RNA_def_property(srna, "compression_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "compressthresh");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Compress", "Deep shadow map compression threshold.");
+	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 }
 
 static void rna_def_sun_lamp(BlenderRNA *brna)

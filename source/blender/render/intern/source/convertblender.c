@@ -3402,9 +3402,10 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	shb->bias= shb->bias*(100/re->r.size);
 	
 	/* halfway method (average of first and 2nd z) reduces bias issues */
-	if(lar->buftype==LA_SHADBUF_HALFWAY)
+	if(ELEM(lar->buftype, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP))
 		shb->bias= 0.1f*shb->bias;
 	
+	shb->compressthresh= lar->compressthresh;
 }
 
 static void area_lamp_vectors(LampRen *lar)
@@ -3486,6 +3487,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->clipend = la->clipend;
 	
 	lar->bias = la->bias;
+	lar->compressthresh = la->compressthresh;
 
 	lar->type= la->type;
 	lar->mode= la->mode;

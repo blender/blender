@@ -9920,8 +9920,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 6)) {
 		Object *ob;
+		Lamp *la;
 		
 		/* New variables for axis-angle rotations and/or quaternion rotations were added, and need proper initialisation */
 		for (ob= main->object.first; ob; ob= ob->id.next) {
@@ -9939,6 +9940,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		for(la = main->lamp.first; la; la=la->id.next)
+			la->compressthresh= 0.05f;
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

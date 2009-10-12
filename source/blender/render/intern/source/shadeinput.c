@@ -1232,7 +1232,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			s3= RE_vertren_get_sticky(obr, v3, 0);
 			
 			if(s1 && s2 && s3) {
-				float winmat[4][4], ho1[4], ho2[4], ho3[4];
+				float obwinmat[4][4], winmat[4][4], ho1[4], ho2[4], ho3[4];
 				float Zmulx, Zmuly;
 				float hox, hoy, l, dl, u, v;
 				float s00, s01, s10, s11, detsh;
@@ -1240,14 +1240,15 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				/* old globals, localized now */
 				Zmulx=  ((float)R.winx)/2.0f; Zmuly=  ((float)R.winy)/2.0f;
 
+				zbuf_make_winmat(&R, winmat);
 				if(shi->obi->flag & R_TRANSFORMED)
-					zbuf_make_winmat(&R, shi->obi->mat, winmat);
+					Mat4MulMat4(obwinmat, obi->mat, winmat);
 				else
-					zbuf_make_winmat(&R, NULL, winmat);
+					Mat4CpyMat4(obwinmat, winmat);
 
-				zbuf_render_project(winmat, v1->co, ho1);
-				zbuf_render_project(winmat, v2->co, ho2);
-				zbuf_render_project(winmat, v3->co, ho3);
+				zbuf_render_project(obwinmat, v1->co, ho1);
+				zbuf_render_project(obwinmat, v2->co, ho2);
+				zbuf_render_project(obwinmat, v3->co, ho3);
 				
 				s00= ho3[0]/ho3[3] - ho1[0]/ho1[3];
 				s01= ho3[1]/ho3[3] - ho1[1]/ho1[3];

@@ -772,6 +772,7 @@ void *add_lamp(char *name)
 	la->samp= 3;
 	la->bias= 1.0f;
 	la->soft= 3.0f;
+	la->compressthresh= 0.05f;
 	la->ray_samp= la->ray_sampy= la->ray_sampz= 1; 
 	la->area_size=la->area_sizey=la->area_sizez= 1.0f; 
 	la->buffers= 1;

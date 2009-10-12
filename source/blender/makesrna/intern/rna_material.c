@@ -1559,7 +1559,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "shadow_casting_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "shad_alpha");
 	RNA_def_property_range(prop, 0.001, 1);
-	RNA_def_property_ui_text(prop, "Shadow Casting Alpha", "Shadow casting alpha, only in use for Irregular Shadowbuffer.");
+	RNA_def_property_ui_text(prop, "Shadow Casting Alpha", "Shadow casting alpha, in use for Irregular and Deep shadow buffer.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "light_group", PROP_POINTER, PROP_NONE);
