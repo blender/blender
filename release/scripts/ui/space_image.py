@@ -32,7 +32,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
 		for a, b in ratios:
 			text = "Zoom %d:%d" % (a, b)
-			layout.item_floatO("image.view_zoom_ratio", "ratio", a/float(b), text=text)
+			layout.item_floatO("image.view_zoom_ratio", "ratio", a/b, text=text)
 
 		layout.itemS()
 

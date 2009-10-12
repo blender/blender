@@ -10,6 +10,20 @@ def active_node_mat(mat):
 			return mat
 
 	return None
+	
+def context_tex_datablock(context):
+		
+		idblock = active_node_mat(context.material)
+		if idblock: return idblock
+		
+		idblock =	context.lamp
+		if idblock: return idblock
+		
+		idblock =	context.world
+		if idblock: return idblock
+		
+		idblock =	context.brush
+		return idblock
 
 class TextureButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
@@ -28,19 +42,11 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 		
 		tex = context.texture
 		slot = context.texture_slot
-		ma = active_node_mat(context.material)
-		la = context.lamp
-		wo = context.world
-		br = context.brush
 		
-		if ma:
-			layout.template_preview(tex, parent=ma, slot=slot)
-		elif la:
-			layout.template_preview(tex, parent=la, slot=slot)
-		elif wo:
-			layout.template_preview(tex, parent=wo, slot=slot)
-		elif br:
-			layout.template_preview(tex, parent=br, slot=slot)
+		idblock = context_tex_datablock(context)
+		
+		if idblock:
+			layout.template_preview(tex, parent=idblock, slot=slot)
 		else:
 			layout.template_preview(tex, slot=slot)
 			
@@ -54,22 +60,19 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		layout = self.layout
 
 		tex = context.texture
-		
-		id = active_node_mat(context.material)
-		if not id: id =	context.lamp
-		if not id: id =	context.world
-		if not id: id =	context.brush
+
+		idblock = context_tex_datablock(context)
 		
 		space = context.space_data
 
-		if id:
+		if idblock:
 			row = layout.row()
-			row.template_list(id, "textures", id, "active_texture_index", rows=2)
+			row.template_list(idblock, "textures", idblock, "active_texture_index", rows=2)
 			
 		split = layout.split(percentage=0.65)
 
-		if id:
-			split.template_ID(id, "active_texture", new="texture.new")
+		if idblock:
+			split.template_ID(idblock, "active_texture", new="texture.new")
 		elif tex:
 			split.template_ID(space, "pin_id")
 
@@ -139,14 +142,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		ma = active_node_mat(context.material)
-		la = context.lamp
-		wo = context.world
-		br = context.brush
+		idblock = context_tex_datablock(context)
+		
 		tex = context.texture_slot
 		textype = context.texture
 
-		if not br:
+		if type(idblock) != bpy.types.Brush:
 			split = layout.split(percentage=0.3)
 			col = split.column()
 			col.itemL(text="Coordinates:")
@@ -170,7 +171,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 				split.itemL(text="Object:")
 				split.itemR(tex, "object", text="")
 			
-		if ma:
+		if type(idblock) == bpy.types.Material:
 			split = layout.split(percentage=0.3)
 			split.itemL(text="Projection:")
 			split.itemR(tex, "mapping", text="")
@@ -191,7 +192,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 			row.itemR(tex, "y_mapping", text="")
 			row.itemR(tex, "z_mapping", text="")
 
-		if br:
+		elif type(idblock) == bpy.types.Brush:
 			layout.itemR(tex, "map_mode", expand=True)
 			
 			row = layout.row()
@@ -212,10 +213,8 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		ma = active_node_mat(context.material)
-		la = context.lamp
-		wo = context.world
-		br = context.brush
+		idblock = context_tex_datablock(context)
+		
 		textype = context.texture
 		tex = context.texture_slot
 
@@ -226,8 +225,8 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 			sub.active = active
 			sub.itemR(tex, factor, text=name, slider=True)
 		
-		if ma:
-			if ma.type in ['SURFACE', 'HALO', 'WIRE']:
+		if type(idblock) == bpy.types.Material:
+			if idblock.type in ('SURFACE', 'HALO', 'WIRE'):
 				split = layout.split()
 				
 				col = split.column()
@@ -272,11 +271,12 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 				factor_but(col, tex.map_colortransmission, "map_colortransmission", "colortransmission_factor", "Transmission Color")
 				factor_but(col, tex.map_colorreflection, "map_colorreflection", "colorreflection_factor", "Reflection Color")
 
-		elif la:
+		elif type(idblock) == bpy.types.Lamp:
 			row = layout.row()
 			factor_but(row, tex.map_color, "map_color", "color_factor", "Color")
 			factor_but(row, tex.map_shadow, "map_shadow", "shadow_factor", "Shadow")
-		elif wo:
+			
+		elif type(idblock) == bpy.types.World:
 			split = layout.split()
 			
 			col = split.column()
@@ -301,7 +301,8 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 		col = split.column()
 		col.itemR(tex, "negate", text="Negative")
 		col.itemR(tex, "stencil")
-		if ma or wo:
+		
+		if type(idblock) in (bpy.types.Material, bpy.types.World):
 			col.itemR(tex, "default_value", text="DVar", slider=True)
 
 # Texture Type Panels #
@@ -775,3 +776,4 @@ bpy.types.register(TEXTURE_PT_pointdensity_turbulence)
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)
+
