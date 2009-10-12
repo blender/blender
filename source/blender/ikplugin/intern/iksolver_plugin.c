@@ -210,7 +210,7 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 
 /* called from within the core where_is_pose loop, all animsystems and constraints
 were executed & assigned. Now as last we do an IK pass */
-static void execute_posetree(Object *ob, PoseTree *tree)
+static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 {
 	float R_parmat[3][3], identity[3][3];
 	float iR_parmat[3][3];
@@ -347,7 +347,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
 		 * strictly speaking, it is a posechannel)
 		 */
-		get_constraint_target_matrix(target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+		get_constraint_target_matrix(scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 		
 		/* and set and transform goal */
 		Mat4MulMat4(goal, rootmat, goalinv);
@@ -357,7 +357,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		
 		/* same for pole vector target */
 		if(data->poletar) {
-			get_constraint_target_matrix(target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+			get_constraint_target_matrix(scene, target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 			
 			if(data->flag & CONSTRAINT_IK_SETANGLE) {
 				/* don't solve IK when we are setting the pole angle */
@@ -511,7 +511,7 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 			tree->pchan[a]->flag |= POSE_CHAIN;
 		}
 		/* 5. execute the IK solver */
-		execute_posetree(ob, tree);
+		execute_posetree(scene, ob, tree);
 		
 		/* 6. apply the differences to the channels, 
 			  we need to calculate the original differences first */
