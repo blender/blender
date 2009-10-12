@@ -1,71 +1,22 @@
-#!BPY
-
-"""
-Name: 'Skin Faces/Edge-Loops'
-Blender: 243
-Group: 'MeshFaceKey'
-Tooltip: 'Select 2 vert loops, then run this script.'
-"""
-
-__author__ = "Campbell Barton AKA Ideasman"
-__url__ = ["blenderartists.org", "www.blender.org"]
-__version__ = "1.1 2006/12/26"
-
-__bpydoc__ = """\
-With this script vertex loops can be skinned: faces are created to connect the
-selected loops of vertices.
-
-Usage:
-
-In mesh Edit mode select the vertices of the loops (closed paths / curves of
-vertices: circles, for example) that should be skinned, then run this script.
-A pop-up will provide further options, if the results of a method are not adequate try one of the others.
-"""
-
-
-# $Id$
-#
-# -------------------------------------------------------------------------- 
-# Skin Selected edges 1.0 By Campbell Barton (AKA Ideasman)
-# -------------------------------------------------------------------------- 
-# ***** BEGIN GPL LICENSE BLOCK ***** 
-# 
-# This program is free software; you can redistribute it and/or 
-# modify it under the terms of the GNU General Public License 
-# as published by the Free Software Foundation; either version 2 
-# of the License, or (at your option) any later version. 
-# 
-# This program is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-# GNU General Public License for more details. 
-# 
-# You should have received a copy of the GNU General Public License 
-# along with this program; if not, write to the Free Software Foundation, 
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. 
-# 
-# ***** END GPL LICENCE BLOCK ***** 
-# -------------------------------------------------------------------------- 
-
-# Made by Ideasman/Campbell 2005/06/15 - cbarton@metavr.com
-
-import Blender
+# import Blender
+import time, functools
 import bpy
-from Blender import Window
-from Blender.Mathutils import MidpointVecs, Vector
-from Blender.Mathutils import AngleBetweenVecs as _AngleBetweenVecs_
-import BPyMessages
+# from Blender import Window
+from Mathutils import MidpointVecs, Vector
+from Mathutils import AngleBetweenVecs as _AngleBetweenVecs_
+# import BPyMessages
 
-from Blender.Draw import PupMenu
+# from Blender.Draw import PupMenu
 
 BIG_NUM = 1<<30
 
 global CULL_METHOD
-CULL_METHOD = 0
+CULL_METHOD = 0 
 
 def AngleBetweenVecs(a1,a2):
+	import math
 	try:
-		return _AngleBetweenVecs_(a1,a2)
+		return math.degrees(_AngleBetweenVecs_(a1,a2))
 	except:
 		return 180.0
 
@@ -95,10 +46,10 @@ class edgeLoop(object):
 		# Get Loops centre.
 		fac= len(loop)
 		verts = me.verts
-		self.centre= reduce(lambda a,b: a+verts[b].co/fac, loop, Vector())
+		self.centre= functools.reduce(lambda a,b: a+verts[b].co/fac, loop, Vector())
 		
 		# Convert Vert loop to Edges.
-		self.edges = [edge(verts[loop[vIdx-1]], verts[loop[vIdx]]) for vIdx in xrange(len(loop))]
+		self.edges = [edge(verts[loop[vIdx-1]], verts[loop[vIdx]]) for vIdx in range(len(loop))]
 		
 		if not closed:
 			self.edges[0].fake = True # fake edge option
@@ -107,7 +58,7 @@ class edgeLoop(object):
 			
 		
 		# Assign linked list
-		for eIdx in xrange(len(self.edges)-1):
+		for eIdx in range(len(self.edges)-1):
 			self.edges[eIdx].next = self.edges[eIdx+1]
 			self.edges[eIdx].prev = self.edges[eIdx-1]
 		# Now last
@@ -254,34 +205,61 @@ class edgeLoop(object):
 # Returns face edges.
 # face must have edge data.
 
-def getSelectedEdges(me, ob):	
-	MESH_MODE= Blender.Mesh.Mode()
+# Utility funcs for 2.5, make into a module??
+def ord_ind(i1,i2):
+	if i1<i2: return i1,i2
+	return i2,i1
 	
-	if MESH_MODE & Blender.Mesh.SelectModes.EDGE or MESH_MODE & Blender.Mesh.SelectModes.VERTEX:
-		Blender.Mesh.Mode(Blender.Mesh.SelectModes.EDGE)
-		edges= [ ed for ed in me.edges if ed.sel ]
+def edge_key(ed):
+	v1,v2 = tuple(ed.verts)
+	return ord_ind(v1, v2)
+
+def face_edge_keys(f):
+	verts  = tuple(f.verts)
+	if len(verts)==3:
+		return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[0])
+	
+	return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
+	
+def mesh_faces_extend(me, faces):
+	orig_facetot = len(me.faces)
+	new_facetot = len(faces)
+	me.add_geometry(0, 0, new_facetot)
+	tot = orig_facetot+new_facetot
+	me_faces = me.faces
+	i= orig_facetot
+	while i < tot:
+		
+		f = [v.index for v in faces[i]]
+		if len(f)==4 and f[3]==0:
+			f = f[1], f[2], f[3], f[0]
+			
+		me_faces[orig_facetot+i].verts_raw =  f
+		i+=1
+# end utils
+
+
+def getSelectedEdges(context, me, ob):
+	MESH_MODE= context.scene.tool_settings.mesh_selection_mode
+	
+	if MESH_MODE in ('EDGE', 'VERTEX'):
+		context.scene.tool_settings.mesh_selection_mode = 'EDGE'
+		edges= [ ed for ed in me.edges if ed.selected ]
 		# print len(edges), len(me.edges)
-		Blender.Mesh.Mode(MESH_MODE)
+		context.scene.tool_settings.mesh_selection_mode = MESH_MODE
 		return edges
 	
-	elif MESH_MODE & Blender.Mesh.SelectModes.FACE:
-		Blender.Mesh.Mode(Blender.Mesh.SelectModes.EDGE)
-		
+	if MESH_MODE == 'FACE':
+		context.scene.tool_settings.mesh_selection_mode = 'EDGE'
 		# value is [edge, face_sel_user_in]
-		'''
-		try: # Python 2.4 only
-			edge_dict=  dict((ed.key, [ed, 0]) for ed in me.edges)
-		except:
-		'''
-		# Cant try 2.4 syntax because python 2.3 will complain still
-		edge_dict=  dict([(ed.key, [ed, 0]) for ed in me.edges])
+		edge_dict=  dict((edge_key(ed), [ed, 0]) for ed in me.edges)
 		
 		for f in me.faces:
 			if f.sel:
-				for edkey in f.edge_keys:
+				for edkey in face_edge_keys(f):
 					edge_dict[edkey][1] += 1
 		
-		Blender.Mesh.Mode(MESH_MODE)
+		context.scene.tool_settings.mesh_selection_mode = MESH_MODE
 		return [ ed_data[0] for ed_data in edge_dict.itervalues() if ed_data[1] == 1 ]
 	
 	
@@ -294,16 +272,16 @@ def getVertLoops(selEdges, me):
 	mainVertLoops = []
 	# second method
 	tot = len(me.verts)
-	vert_siblings = [[] for i in xrange(tot)]
+	vert_siblings = [[] for i in range(tot)]
 	vert_used = [False] * tot
 	
 	for ed in selEdges:
-		i1, i2 = ed.key
+		i1, i2 = edge_key(ed)
 		vert_siblings[i1].append(i2)
 		vert_siblings[i2].append(i1)
 	
 	# find the first used vert and keep looping.
-	for i in xrange(tot):
+	for i in range(tot):
 		if vert_siblings[i] and not vert_used[i]:
 			sbl = vert_siblings[i] # siblings
 			
@@ -398,8 +376,8 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 		bestEloopDist = BIG_NUM
 		bestOffset = 0
 		# Loop rotation offset to test.1
-		eLoopIdxs = range(len(eloop1.edges))
-		for offset in xrange(len(eloop1.edges)):
+		eLoopIdxs = list(range(len(eloop1.edges)))
+		for offset in range(len(eloop1.edges)):
 			totEloopDist = 0 # Measure this total distance for thsi loop.
 			
 			offsetIndexLs = eLoopIdxs[offset:] + eLoopIdxs[:offset] # Make offset index list
@@ -477,7 +455,7 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	
 	
 	
-	for loopIdx in xrange(len(eloop2.edges)):
+	for loopIdx in range(len(eloop2.edges)):
 		e1 = eloop1.edges[loopIdx]
 		e2 = eloop2.edges[loopIdx]
 		
@@ -515,28 +493,25 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	
 	return new_faces
 
-def main():
+def main(context):
 	global CULL_METHOD
 	
-	is_editmode = Window.EditMode()
-	if is_editmode: Window.EditMode(0)
-	ob = bpy.data.scenes.active.objects.active
-	if ob == None or ob.type != 'Mesh':
-		BPyMessages.Error_NoMeshActive()
+	ob = context.object
+	
+	is_editmode = (ob.mode=='EDIT')
+	if is_editmode: bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+	if ob == None or ob.type != 'MESH':
+		raise Exception("BPyMessages.Error_NoMeshActive()")
 		return
 	
-	me = ob.getData(mesh=1)
+	me = ob.data
 	
-	if me.multires:
-		BPyMessages.Error_NoMeshMultiresEdit()
-		return
-	
-	time1 = Blender.sys.time()
-	selEdges = getSelectedEdges(me, ob)
+	time1 = time.time()
+	selEdges = getSelectedEdges(context, me, ob)
 	vertLoops = getVertLoops(selEdges, me) # list of lists of edges.
 	if vertLoops == None:
-		PupMenu('Error%t|Selection includes verts that are a part of more then 1 loop')
-		if is_editmode: Window.EditMode(1)
+		raise Exception('Error%t|Selection includes verts that are a part of more then 1 loop')
+		if is_editmode: bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 		return
 	# print len(vertLoops)
 	
@@ -544,11 +519,12 @@ def main():
 	if len(vertLoops) > 2:
 		choice = PupMenu('Loft '+str(len(vertLoops))+' edge loops%t|loop|segment')
 		if choice == -1:
-			if is_editmode: Window.EditMode(1)
+			if is_editmode: bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 			return
+		
 	elif len(vertLoops) < 2:
-		PupMenu('Error%t|No Vertloops found!')
-		if is_editmode: Window.EditMode(1)	
+		raise Exception('Error%t|No Vertloops found!')
+		if is_editmode: bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 		return
 	else:
 		choice = 2
@@ -567,7 +543,7 @@ def main():
 			CULL_METHOD = 1 # even
 	
 	
-	time1 = Blender.sys.time()
+	time1 = time.time()
 	# Convert to special edge data.
 	edgeLoops = []
 	for vloop, closed in vertLoops:
@@ -616,24 +592,54 @@ def main():
 	
 	faces = []
 	
-	for i in xrange(len(edgeOrderedList)-1):
+	for i in range(len(edgeOrderedList)-1):
 		faces.extend( skin2EdgeLoops(edgeOrderedList[i], edgeOrderedList[i+1], me, ob, 0) )
 	if choice == 1 and len(edgeOrderedList) > 2: # Loop
 		faces.extend( skin2EdgeLoops(edgeOrderedList[0], edgeOrderedList[-1], me, ob, 0) )
 	
 	# REMOVE SELECTED FACES.
-	MESH_MODE= Blender.Mesh.Mode()
-	if MESH_MODE & Blender.Mesh.SelectModes.EDGE or MESH_MODE & Blender.Mesh.SelectModes.VERTEX: pass
-	elif MESH_MODE & Blender.Mesh.SelectModes.FACE:
+	MESH_MODE= ob.mode
+	if MESH_MODE == 'EDGE' or MESH_MODE == 'VERTEX': pass
+	elif MESH_MODE == 'FACE':
 		try: me.faces.delete(1, [ f for f in me.faces if f.sel ])
 		except: pass
 	
-	me.faces.extend(faces, smooth = True)
+	if 1: # 2.5
+		mesh_faces_extend(me, faces)
+		me.update(calc_edges=True)
+	else:
+		me.faces.extend(faces, smooth = True)
 	
-	print '\nSkin done in %.4f sec.' % (Blender.sys.time()-time1)
-	
-	
-	if is_editmode: Window.EditMode(1)
+	print('\nSkin done in %.4f sec.' % (time.time()-time1))
+		
+	if is_editmode: bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
-if __name__ == '__main__':
-	main()
+
+class MESH_OT_skin(bpy.types.Operator):
+	'''Bridge face loops.'''
+	
+	__idname__ = "mesh.skin"
+	__label__ = "Add Torus"
+	__register__ = True
+	__undo__ = True
+	
+	'''
+	__props__ = [
+		bpy.props.EnumProperty(attr="loft_method", items=[(), ()], description="", default= True),
+	]
+	'''
+	
+	def execute(self, context):
+		main(context)
+		return ('FINISHED',)
+
+
+# Register the operator
+bpy.ops.add(MESH_OT_skin)
+
+# Add to a menu
+import dynamic_menu
+menu_item = dynamic_menu.add(bpy.types.VIEW3D_MT_edit_mesh_faces, (lambda self, context: self.layout.itemO("mesh.skin", text="Bridge Faces")) )
+
+if __name__ == "__main__":
+	bpy.ops.mesh.skin()
