@@ -93,30 +93,6 @@ int geticon_anim_blocktype(short blocktype)
 	}
 }
 
-/* helper function for getname_*() - grabs the text within the "" that starts with 'blahblah'
- * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
- * 
- * 	- str: is the entire string to chop
- *	- prefix: is the part of the string to leave out 
- *
- * Assume that the strings returned must be freed afterwards, and that the inputs will contain 
- * data we want...
- */
-static char *grab_quoted_text (const char *str, const char *prefix)
-{
-	int prefixLen = strlen(prefix);
-	char *startMatch, *endMatch;
-	
-	/* get the starting point (i.e. where prefix starts, and add prefixLen+1 to it to get be after the first " */
-	startMatch= strstr(str, prefix) + prefixLen + 1;
-	
-	/* get the end point (i.e. where the next occurance of " is after the starting point) */
-	endMatch= strchr(startMatch, '"'); // "  NOTE: this comment here is just so that my text editor still shows the functions ok...
-	
-	/* return the slice indicated */
-	return BLI_strdupn(startMatch, (int)(endMatch-startMatch));
-}
-
 /* Write into "name" buffer, the name of the property (retrieved using RNA from the curve's settings) 
  * WARNING: name buffer we're writing to cannot exceed 256 chars (check anim_channels_defines.c for details)
  */
@@ -164,8 +140,8 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 */
 			if (strstr(fcu->rna_path, "pose_channels") && strstr(fcu->rna_path, "constraints")) {
 				/* perform string 'chopping' to get "Bone Name : Constraint Name" */
-				char *pchanName= grab_quoted_text(fcu->rna_path, "pose_channels[");
-				char *constName= grab_quoted_text(fcu->rna_path, "constraints[");
+				char *pchanName= BLI_getQuotedStr(fcu->rna_path, "pose_channels[");
+				char *constName= BLI_getQuotedStr(fcu->rna_path, "constraints[");
 				
 				/* assemble the string to display in the UI... */
 				structname= BLI_sprintfN("%s : %s", pchanName, constName);

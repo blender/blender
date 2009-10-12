@@ -100,6 +100,30 @@ char *BLI_sprintfN(const char *format, ...)
 	return n;
 }
 
+/* Makes a copy of the text within the "" that appear after some text 'blahblah'
+ * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
+ * 
+ * 	- str: is the entire string to chop
+ *	- prefix: is the part of the string to leave out 
+ *
+ * Assume that the strings returned must be freed afterwards, and that the inputs will contain 
+ * data we want...
+ */
+char *BLI_getQuotedStr (const char *str, const char *prefix)
+{
+	int prefixLen = strlen(prefix);
+	char *startMatch, *endMatch;
+	
+	/* get the starting point (i.e. where prefix starts, and add prefixLen+1 to it to get be after the first " */
+	startMatch= strstr(str, prefix) + prefixLen + 1;
+	
+	/* get the end point (i.e. where the next occurance of " is after the starting point) */
+	endMatch= strchr(startMatch, '"'); // "  NOTE: this comment here is just so that my text editor still shows the functions ok...
+	
+	/* return the slice indicated */
+	return BLI_strdupn(startMatch, (int)(endMatch-startMatch));
+}
+
 /* Replaces all occurances of oldText with newText in str, returning a new string that doesn't 
  * contain the 'replaced' occurances.
  */

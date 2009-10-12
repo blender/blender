@@ -68,6 +68,17 @@ char *BLI_strdupn(const char *str, int len);
 	 */
 char *BLI_strncpy(char *dst, const char *src, int maxncpy);
 
+	/* Makes a copy of the text within the "" that appear after some text 'blahblah'
+	 * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
+	 * 
+	 * 	- str: is the entire string to chop
+	 *	- prefix: is the part of the string to leave out 
+	 *
+	 * Assume that the strings returned must be freed afterwards, and that the inputs will contain 
+	 * data we want...
+	 */
+char *BLI_getQuotedStr(const char *str, const char *prefix);
+
 	/**
 	 * Returns a copy of the cstring @a str into a newly mallocN'd
 	 * string with all instances of oldText replaced with newText,
