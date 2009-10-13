@@ -280,6 +280,12 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 
 /* Settings ------------------------------------------- */
 
+/* channel type has no settings */
+static short acf_generic_none_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+{
+	return 0;
+}
+
 /* check if some setting exists for this object-based data-expander (category only) */
 static short acf_generic_dsexpand_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
@@ -334,6 +340,52 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 
 /* *********************************************** */
 /* Type Specific Functions + Defines */
+
+/* Animation Summary ----------------------------------- */
+
+/* backdrop for summary widget */
+static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+{
+	View2D *v2d= &ac->ar->v2d;
+	
+	// FIXME: hardcoded color - same as the 'action' line in NLA
+	glColor3f(0.8f, 0.2f, 0.0f);	// reddish color 
+	
+	/* rounded corners on LHS only 
+	 *	- top and bottom 
+	 *	- special hack: make the top a bit higher, since we are first... 
+	 */
+	uiSetRoundBox((1|8));
+	gl_round_box(GL_POLYGON, 0,  yminc-2, v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc, 8);
+}
+
+/* name for summary entries */
+static void acf_summary_name(bAnimListElem *ale, char *name)
+{
+	if (name)
+		strcpy(name, "DopeSheet Summary");
+}
+
+// TODO: this is really a temp icon I think
+static int acf_summary_icon(bAnimListElem *ale)
+{
+	return ICON_BORDERMOVE;
+}
+
+/* all animation summary (DopeSheet only) type define */
+static bAnimChannelType ACF_SUMMARY = 
+{
+	acf_summary_backdrop,				/* backdrop */
+	acf_generic_indention_0,			/* indent level */
+	NULL,								/* offset */
+	
+	acf_summary_name,					/* name */
+	acf_summary_icon,					/* icon */
+	
+	acf_generic_none_setting_valid,		/* has setting */
+	NULL,								/* flag for setting */
+	NULL								/* pointer for setting */
+};
 
 /* Scene ------------------------------------------- */
 
@@ -1802,6 +1854,8 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= NULL; 				/* None */
 		animchannelTypeInfo[type++]= NULL; 				/* AnimData */
 		animchannelTypeInfo[type++]= NULL; 				/* Special */
+		
+		animchannelTypeInfo[type++]= &ACF_SUMMARY;		/* Motion Summary */
 		
 		animchannelTypeInfo[type++]= &ACF_SCENE; 		/* Scene */
 		animchannelTypeInfo[type++]= &ACF_OBJECT; 		/* Object */

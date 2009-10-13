@@ -515,6 +515,24 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 
 /* *************************** Channel Drawing Funcs *************************** */
 
+void draw_summary_channel(View2D *v2d, bAnimContext *ac, float ypos)
+{
+	DLRBT_Tree keys, blocks;
+	
+	BLI_dlrbTree_init(&keys);
+	BLI_dlrbTree_init(&blocks);
+	
+		summary_to_keylist(ac, &keys, &blocks);
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	BLI_dlrbTree_linkedlist_sync(&blocks);
+	
+		draw_keylist(v2d, &keys, &blocks, ypos);
+	
+	BLI_dlrbTree_free(&keys);
+	BLI_dlrbTree_free(&blocks);
+}
+
 void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos)
 {
 	DLRBT_Tree keys, blocks;
@@ -621,6 +639,25 @@ void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos)
 }
 
 /* *************************** Keyframe List Conversions *************************** */
+
+void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
+{
+	if (ac) {
+		ListBase anim_data = {NULL, NULL};
+		bAnimListElem *ale;
+		int filter;
+		
+		/* get F-Curves to take keyframes from */
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+		
+		/* loop through each F-Curve, grabbing the keyframes */
+		for (ale= anim_data.first; ale; ale= ale->next)
+			fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
+		
+		BLI_freelistN(&anim_data);
+	}
+}
 
 void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {

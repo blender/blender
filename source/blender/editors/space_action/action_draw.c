@@ -260,6 +260,13 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				
 				if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
 					switch (ale->type) {
+						case ANIMTYPE_SUMMARY:
+						{
+							// FIXME: hardcoded colours - reddish color from NLA
+							glColor4f(0.8f, 0.2f, 0.0f, 0.4f);
+						}
+							break;
+						
 						case ANIMTYPE_SCENE:
 						case ANIMTYPE_OBJECT:
 						{
@@ -351,6 +358,9 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				
 				/* draw 'keyframes' for each specific datatype */
 				switch (ale->datatype) {
+					case ALE_ALL:
+						draw_summary_channel(v2d, ale->data, y);
+						break;
 					case ALE_SCE:
 						draw_scene_channel(v2d, ads, ale->key_data, y);
 						break;

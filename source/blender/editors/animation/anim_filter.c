@@ -458,6 +458,16 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 		
 		/* do specifics */
 		switch (datatype) {
+			case ANIMTYPE_SUMMARY:
+			{
+				/* nothing to include for now... this is just a dummy wrappy around all the other channels 
+				 * in the DopeSheet, and gets included at the start of the list
+				 */
+				ale->key_data= NULL;
+				ale->datatype= ALE_ALL;
+			}
+				break;
+			
 			case ANIMTYPE_SCENE:
 			{
 				Scene *sce= (Scene *)data;
@@ -1497,7 +1507,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 }
 
 // TODO: implement pinning... (if and when pinning is done, what we need to do is to provide freeing mechanisms - to protect against data that was deleted)
-static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int filter_mode)
+static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDopeSheet *ads, int filter_mode)
 {
 	Scene *sce= (Scene *)ads->source;
 	Base *base;
@@ -1508,6 +1518,21 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 	if ((ads->source == NULL) || (GS(ads->source->name)!=ID_SCE)) {
 		printf("DopeSheet Error: Not scene! \n");
 		return 0;
+	}
+	
+	/* dopesheet summary 
+	 *	- only for drawing and/or selecting keyframes in channels, but not for real editing 
+	 *	- only useful for DopeSheet Editor, where the summary is useful
+	 */
+	// TODO: we should really check if some other prohibited filters are also active, but that can be for later
+	if ((filter_mode & ANIMFILTER_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
+		ale= make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL, ANIMTYPE_NONE, NULL);
+		if (ale) {
+			BLI_addtail(anim_data, ale);
+			items++;
+		}
+		
+		// TODO: if the summary gets a collapse widget, then we could make the other stuff not get shown... 
 	}
 	
 	/* scene-linked animation */
@@ -1898,7 +1923,7 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 			case ANIMCONT_FCURVES:
 			case ANIMCONT_DRIVERS:
 			case ANIMCONT_NLA:
-				items= animdata_filter_dopesheet(anim_data, data, filter_mode);
+				items= animdata_filter_dopesheet(anim_data, ac, data, filter_mode);
 				break;
 		}
 			
