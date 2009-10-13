@@ -55,14 +55,6 @@ typedef struct TransformModeItem
 
 static float VecOne[3] = {1, 1, 1};
 
-/* need constants for this */
-EnumPropertyItem proportional_mode_types[] = {
-		{0, "OFF", 0, "Off", ""},
-		{1, "ON", 0, "On", ""},
-		{2, "CONNECTED", 0, "Connected", ""},
-		{0, NULL, 0, NULL, NULL}
-};
-
 char OP_TRANSLATION[] = "TFM_OT_translate";
 char OP_ROTATION[] = "TFM_OT_rotate";
 char OP_TOSPHERE[] = "TFM_OT_tosphere";
@@ -341,8 +333,8 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void Properties_Proportional(struct wmOperatorType *ot)
 {
-	RNA_def_enum(ot->srna, "proportional", proportional_mode_types, 0, "Proportional Editing", "");
-	RNA_def_enum(ot->srna, "proportional_editing_falloff", prop_mode_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
+	RNA_def_enum(ot->srna, "proportional", proportional_editing_items, 0, "Proportional Editing", "");
+	RNA_def_enum(ot->srna, "proportional_editing_falloff", proportional_falloff_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
 }
 

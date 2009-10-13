@@ -2145,7 +2145,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 					xco+= XIC;
 				}
 				if (ts->snap_mode == SCE_SNAP_MODE_FACE) {
-					uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_ROTATECOLLECTION,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_RETOPO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
 					xco+= XIC;
 				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");

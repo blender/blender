@@ -51,7 +51,7 @@ EnumPropertyItem snap_mode_items[] = {
 	{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
 	{0, NULL, 0, NULL, NULL}};
 	
-EnumPropertyItem prop_mode_items[] ={
+EnumPropertyItem proportional_falloff_items[] ={
 	{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
 	{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
 	{PROP_ROOT, "ROOT", 0, "Root", ""},
@@ -61,7 +61,13 @@ EnumPropertyItem prop_mode_items[] ={
 	{PROP_RANDOM, "RANDOM", 0, "Random", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-	
+
+EnumPropertyItem proportional_editing_items[] = {
+	{PROP_EDIT_OFF, "DISABLED", 0, "Disable", ""},
+	{PROP_EDIT_ON, "ENABLED", 0, "Enable", ""},
+	{PROP_EDIT_CONNECTED, "CONNECTED", 0, "Connected", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -502,12 +508,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem proportional_editing_items[] = {
-		{PROP_EDIT_OFF, "DISABLED", 0, "Disable", ""},
-		{PROP_EDIT_ON, "ENABLED", 0, "Enable", ""},
-		{PROP_EDIT_CONNECTED, "CONNECTED", 0, "Connected", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
 	
@@ -540,7 +540,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
-	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_enum_items(prop, proportional_falloff_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
@@ -583,7 +583,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "snap_project", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
 	RNA_def_property_ui_text(prop, "Project Individual Elements", "DOC_BROKEN");
-	RNA_def_property_ui_icon(prop, ICON_ROTATECOLLECTION, 0);
+	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
 
 	/* Auto Keying */
 	prop= RNA_def_property(srna, "enable_auto_key", PROP_BOOLEAN, PROP_NONE);
