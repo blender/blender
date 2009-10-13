@@ -244,15 +244,8 @@ enum {
 
 static void do_graph_buttons(bContext *C, void *arg, int event)
 {
-	switch (event) {
-		case B_MODECHANGE: /* change mode with mode selector */
-			ED_area_tag_refresh(CTX_wm_area(C));
-			/* no break, as we need redraw flush too... */
-			
-		case B_REDR:
-			ED_area_tag_redraw(CTX_wm_area(C));
-			break;
-	}
+	ED_area_tag_refresh(CTX_wm_area(C));
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 

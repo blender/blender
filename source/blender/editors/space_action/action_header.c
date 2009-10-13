@@ -68,7 +68,7 @@
 #include "action_intern.h"
 
 enum {
-	B_REDR= 0,
+	B_REDR= 1,
 } eActHeader_Events;
 
 /* ********************************************************* */
@@ -254,11 +254,8 @@ static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void do_action_buttons(bContext *C, void *arg, int event)
 {
-	switch (event) {
-		case B_REDR:
-			ED_area_tag_redraw(CTX_wm_area(C));
-			break;
-	}
+	ED_area_tag_refresh(CTX_wm_area(C));
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 void action_header_buttons(const bContext *C, ARegion *ar)

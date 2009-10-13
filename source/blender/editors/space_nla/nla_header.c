@@ -73,8 +73,8 @@
 
 /* button events */
 enum {
-	B_REDR 	= 0,
-} eActHeader_ButEvents;
+	B_REDR 	= 1,
+} eNLAHeader_ButEvents;
 
 /* ************************ header area region *********************** */
 
@@ -203,11 +203,8 @@ static void nla_addmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void do_nla_buttons(bContext *C, void *arg, int event)
 {
-	switch (event) {
-		case B_REDR:
-			ED_area_tag_redraw(CTX_wm_area(C));
-			break;
-	}
+	ED_area_tag_refresh(CTX_wm_area(C));
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 
