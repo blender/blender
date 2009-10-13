@@ -376,7 +376,6 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 	RE_RC_COUNT(isec->raycounter->raycast.test);
 
 	/* Setup vars used on raycast */
-	isec->labda *= Normalize(isec->vec);
 	isec->dist = VecLength(isec->vec);
 	
 	for(i=0; i<3; i++)
