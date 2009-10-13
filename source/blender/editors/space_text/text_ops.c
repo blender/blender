@@ -1628,10 +1628,6 @@ static int jump_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-// XXX invoke
-// short tmp= txt_get_span(text->lines.first, text->curl)+1;
-// button(&tmp, 1, nlines, "Jump to line:"))
-
 void TEXT_OT_jump(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1640,6 +1636,7 @@ void TEXT_OT_jump(wmOperatorType *ot)
 	ot->description= "Jump cursor to line.";
 	
 	/* api callbacks */
+	ot->invoke=  WM_operator_props_popup;
 	ot->exec= jump_exec;
 	ot->poll= text_edit_poll;
 
@@ -1647,7 +1644,7 @@ void TEXT_OT_jump(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
-	RNA_def_int(ot->srna, "line", 1, INT_MAX, 1, "Line", "Line number to jump to.", 1, 10000);
+	RNA_def_int(ot->srna, "line", 1, 1, INT_MAX, "Line", "Line number to jump to.", 1, 10000);
 }
 
 /******************* delete operator **********************/

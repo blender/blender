@@ -750,19 +750,14 @@ static int animdata_filter_action (ListBase *anim_data, bDopeSheet *ads, bAction
 	/* loop over groups */
 	// TODO: in future, should we expect to need nested groups?
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
-		ListBase tmp_channels = {NULL, NULL};
-		short grp_channel=0;
-		int tmp_items = 0;
-		
-		
 		/* add this group as a channel first */
 		if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
 			/* check if filtering by selection */
 			if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
 				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
 				if (ale) {
-					BLI_addtail(&tmp_channels, ale);
-					grp_channel=1;
+					BLI_addtail(anim_data, ale);
+					items++;
 				}
 			}
 		}
@@ -792,25 +787,13 @@ static int animdata_filter_action (ListBase *anim_data, bDopeSheet *ads, bAction
 				if ( !(filter_mode & ANIMFILTER_CURVEVISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
 				{
 					if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
-						// XXX the 'owner' info here needs review...
-						tmp_items += animdata_filter_fcurves(&tmp_channels, ads, agrp->channels.first, agrp, owner, ownertype, filter_mode, owner_id);
+						items += animdata_filter_fcurves(anim_data, ads, agrp->channels.first, agrp, owner, ownertype, filter_mode, owner_id);
 					}
 				}
 			}
 		}
 		
-		/* check group had any F-Curves visible */
-		// TODO: this needs more work to truly work so that closed group with no visible channels, and visible group with visible channels are differentiated between
-		if (/*tmp_items*/1) {
-			/* add the temp channels to the list of filtered channels */
-			addlisttolist(anim_data, &tmp_channels);
-			
-			/* increase the counts as appropriate */
-			items += tmp_items + grp_channel;
-		}
-		else {
-			BLI_freelistN(&tmp_channels);
-		}
+		// TODO: but we still need to deal with the case when the group may be closed, but it has no visible curves too
 	}
 	
 	/* loop over un-grouped F-Curves (only if we're not only considering those channels in the animive group) */

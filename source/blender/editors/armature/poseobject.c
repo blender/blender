@@ -1728,31 +1728,6 @@ void pose_activate_flipped_bone(Scene *scene)
 /* ********************************************** */
 
 /* Present a popup to get the layers that should be used */
-// TODO: move to wm?
-static uiBlock *wm_layers_select_create_menu(bContext *C, ARegion *ar, void *arg_op)
-{
-	wmOperator *op= arg_op;
-	uiBlock *block;
-	uiLayout *layout;
-	uiStyle *style= U.uistyles.first;
-	
-	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
-	
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 150, 20, style);
-		uiItemL(layout, op->type->name, 0);
-		uiTemplateLayers(layout, op->ptr, "layers"); /* must have a property named layers setup */
-		
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
-/* ------------------- */
-
-/* Present a popup to get the layers that should be used */
 static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -1769,10 +1744,8 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	RNA_boolean_get_array(&ptr, "layer", layers);
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
-		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	/* part to sync with other similar operators... */
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -1813,7 +1786,7 @@ void POSE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers to make visible.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
 }
 
 void ARMATURE_OT_armature_layers (wmOperatorType *ot)
@@ -1832,7 +1805,7 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers to make visible.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
 }
 
 /* ------------------- */
@@ -1861,9 +1834,7 @@ static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -1908,7 +1879,7 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers that bone belongs to.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ------------------- */
@@ -1937,9 +1908,7 @@ static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -1984,7 +1953,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers that bone belongs to.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ********************************************** */

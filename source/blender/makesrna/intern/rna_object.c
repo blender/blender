@@ -1192,7 +1192,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_select_update");
 
 	/* parent and track */
-
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_parent_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -1238,7 +1237,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	/* proxy */
-
 	prop= RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Proxy", "Library object this proxy object controls.");
 

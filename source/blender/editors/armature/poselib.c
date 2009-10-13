@@ -285,6 +285,9 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 	bAction *act= ob->poselib;
 	TimeMarker *marker;
 	
+	/* set the operator execution context correctly */
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+	
 	/* add each marker to this menu */
 	for (marker= act->markers.first; marker; marker= marker->next)
 		uiItemIntO(layout, marker->name, ICON_ARMATURE_DATA, "POSELIB_OT_pose_add", "frame", marker->frame);
@@ -398,7 +401,6 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-
 void POSELIB_OT_pose_add (wmOperatorType *ot)
 {
 	/* identifiers */
@@ -421,35 +423,35 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 
 /* ----- */
 
-static int poselib_stored_pose_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Object *ob= CTX_data_active_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i;
-	
-	/* sanity check */
-	if (ELEM(NULL, ob, act)) 
-		return OPERATOR_CANCELLED;
-	
-	/* start building */
-	pup= uiPupMenuBegin(C, op->type->name, 0);
-	layout= uiPupMenuLayout(pup);
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	
-	/* add each marker to this menu */
-	for (marker=act->markers.first, i=0; marker; marker= marker->next, i++)
-		uiItemIntO(layout, marker->name, ICON_ARMATURE_DATA, op->idname, "index", i);
-	
-	uiPupMenuEnd(C, pup);
-	
-	/* this operator is only for a menu, not used further */
-	return OPERATOR_CANCELLED;
+	EnumPropertyItem *item= NULL, item_tmp;
+	int totitem= 0;
+	int i= 0;
+
+	if (C == NULL)
+		return NULL;
+
+	memset(&item_tmp, 0, sizeof(item_tmp));
+
+	/* add each marker to the list */
+	for (marker=act->markers.first, i=0; marker; marker= marker->next, i++) {
+		item_tmp.identifier= item_tmp.name= marker->name;
+		item_tmp.icon= ICON_ARMATURE_DATA;
+		item_tmp.value= i;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	if (i > 0) {
+		*free= 1;
+		return item;
+	}
+	else
+		return NULL;
 }
-
-
 
 static int poselib_remove_exec (bContext *C, wmOperator *op)
 {
@@ -465,7 +467,7 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* get index (and pointer) of pose to remove */
-	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
+	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
 		return OPERATOR_CANCELLED;
@@ -499,13 +501,18 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 
 void POSELIB_OT_pose_remove (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_poses_dummy_types[] = {
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	/* identifiers */
 	ot->name= "PoseLib Remove Pose";
 	ot->idname= "POSELIB_OT_pose_remove";
 	ot->description= "Remove nth pose from the active Pose Library";
 	
 	/* api callbacks */
-	ot->invoke= poselib_stored_pose_menu_invoke;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= poselib_remove_exec;
 	ot->poll= ED_operator_posemode;
 	
@@ -513,10 +520,37 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The index of the pose to remove", 0, INT_MAX);
+	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to remove");
+		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 }
 
-
+static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	Object *ob= CTX_data_active_object(C);
+	bAction *act= (ob) ? ob->poselib : NULL;
+	TimeMarker *marker;
+	
+	/* check if valid poselib */
+	if (act == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Object doesn't have PoseLib data");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* get index (and pointer) of pose to remove */
+	marker= BLI_findlink(&act->markers, act->active_marker-1);
+	if (marker == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		/* use the existing name of the marker as the name, and use the active marker as the one to rename */
+		RNA_enum_set(op->ptr, "pose", act->active_marker-1);
+		RNA_string_set(op->ptr, "name", marker->name);
+	}
+	
+	/* part to sync with other similar operators... */
+	return WM_operator_props_popup(C, op, evt);
+}
 
 static int poselib_rename_exec (bContext *C, wmOperator *op)
 {
@@ -532,7 +566,7 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* get index (and pointer) of pose to remove */
-	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
+	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
 		return OPERATOR_CANCELLED;
@@ -551,13 +585,18 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 
 void POSELIB_OT_pose_rename (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_poses_dummy_types[] = {
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	/* identifiers */
 	ot->name= "PoseLib Rename Pose";
 	ot->idname= "POSELIB_OT_pose_rename";
 	ot->description= "Rename nth pose from the active Pose Library";
 	
 	/* api callbacks */
-	ot->invoke= poselib_stored_pose_menu_invoke;
+	ot->invoke= poselib_rename_invoke;
 	ot->exec= poselib_rename_exec;
 	ot->poll= ED_operator_posemode;
 	
@@ -565,7 +604,8 @@ void POSELIB_OT_pose_rename (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The index of the pose to remove", 0, INT_MAX);
+	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to rename");
+		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 	RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
 }
 
