@@ -204,7 +204,7 @@ class WM_OT_context_toggle_values(bpy.types.Operator):
 class WM_OT_context_cycle_enum(bpy.types.Operator):
 	'''Toggle a context value.'''
 	__idname__ = "wm.context_cycle_enum"
-	__label__ = "Context Toggle Values"
+	__label__ = "Context Enum Cycle"
 	__register__ = True
 	__undo__ = True
 	

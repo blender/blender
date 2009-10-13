@@ -60,6 +60,8 @@ extern EnumPropertyItem unpack_method_items[];
 
 extern EnumPropertyItem object_type_items[];
 
+extern EnumPropertyItem space_type_items[];
+
 struct bContext;
 struct PointerRNA;
 EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);

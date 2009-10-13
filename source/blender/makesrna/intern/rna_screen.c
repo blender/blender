@@ -26,6 +26,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -77,6 +78,22 @@ static int rna_Screen_animation_playing_get(PointerRNA *ptr)
 	return (sc->animtimer != NULL);
 }
 
+static void rna_Area_type_set(PointerRNA *ptr, int value)
+{
+	ScrArea *sa= (ScrArea*)ptr->data;
+	sa->butspacetype= value;
+}
+
+static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
+{
+	ScrArea *sa= (ScrArea*)ptr->data;
+
+	if(sa) {
+		ED_area_newspace(C, sa, sa->butspacetype); /* XXX - this uses the window */
+		ED_area_tag_redraw(sa);
+	}
+}
+
 #else
 
 static void rna_def_area(BlenderRNA *brna)
@@ -107,6 +124,14 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", HEADER_NO_PULLDOWN);
 	RNA_def_property_ui_text(prop, "Show Menus", "Show menus in the header.");
 	
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
+	RNA_def_property_enum_items(prop, space_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", NULL);
+	RNA_def_property_ui_text(prop, "Type", "Space type.");
+	RNA_def_property_update(prop, 0, "rna_Area_type_update");
+
+
 	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
 }
 

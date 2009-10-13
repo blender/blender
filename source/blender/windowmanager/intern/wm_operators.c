@@ -2186,6 +2186,7 @@ void wm_operatortype_init(void)
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
+	wmKeyMapItem *km;
 	
 	/* items to make WM work */
 	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);
@@ -2208,7 +2209,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 
-	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */
@@ -2216,5 +2217,55 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
+	/* Space switching */
+
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'LOGIC_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F3KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'NODE_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'CONSOLE'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F5KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'VIEW_3D'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F6KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'GRAPH_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F7KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'PROPERTIES'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F8KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'SEQUENCE_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'OUTLINER'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'OUTLINER'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F10KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'IMAGE_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'TEXT_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F12KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'DOPESHEET_EDITOR'");
 }
 
