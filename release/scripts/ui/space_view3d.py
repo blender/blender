@@ -1235,6 +1235,8 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
 		col = layout.column()
 		col.itemL(text="Overlays:")
 		col.itemR(mesh, "draw_edges", text="Edges")
+		col.itemR(mesh, "all_edges")
+		col.itemS()
 		col.itemR(mesh, "draw_faces", text="Faces")
 		col.itemR(mesh, "draw_creases", text="Creases")
 		col.itemR(mesh, "draw_bevel_weights", text="Bevel Weights")
@@ -1252,7 +1254,6 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
 		col.itemR(mesh, "draw_edge_lenght")
 		col.itemR(mesh, "draw_edge_angle")
 		col.itemR(mesh, "draw_face_area")
-
 
 class VIEW3D_PT_3dview_curvedisplay(bpy.types.Panel):
 	__space_type__ = 'VIEW_3D'
@@ -1273,8 +1274,7 @@ class VIEW3D_PT_3dview_curvedisplay(bpy.types.Panel):
 		col.itemR(curve, "draw_handles", text="Handles")
 		col.itemR(curve, "draw_normals", text="Normals")
 		col.itemR(context.scene.tool_settings, "normal_size", text="Normal Size")
-		
-	
+
 class VIEW3D_PT_background_image(bpy.types.Panel):
 	__space_type__ = 'VIEW_3D'
 	__region_type__ = 'UI'

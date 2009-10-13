@@ -1546,6 +1546,10 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Edges", "Displays selected edges using hilights in the 3d view and UV editor");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
+	prop= RNA_def_property(srna, "all_edges", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_ALLEDGES);
+	RNA_def_property_ui_text(prop, "All Edges", "Displays all edges for wireframe in all view modes in the 3d view");
+
 	prop= RNA_def_property(srna, "draw_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWFACES);
 	RNA_def_property_ui_text(prop, "Draw Faces", "Displays all faces as shades in the 3d view and UV editor");
@@ -1580,8 +1584,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWSHARP);
 	RNA_def_property_ui_text(prop, "Draw Sharp", "Displays sharp edges, used with the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-	
-	
+
 	prop= RNA_def_property(srna, "draw_edge_lenght", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGELEN);
 	RNA_def_property_ui_text(prop, "Edge Length", "Displays selected edge lengths");
