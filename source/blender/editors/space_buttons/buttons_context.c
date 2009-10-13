@@ -117,6 +117,7 @@ static int buttons_context_path_scene(ButsContextPath *path)
 static int buttons_context_path_world(ButsContextPath *path)
 {
 	Scene *scene;
+	World *world;
 	PointerRNA *ptr= &path->ptr[path->len-1];
 
 	/* if we already have a (pinned) world, we're done */
@@ -126,11 +127,14 @@ static int buttons_context_path_world(ButsContextPath *path)
 	/* if we have a scene, use the scene's world */
 	else if(buttons_context_path_scene(path)) {
 		scene= path->ptr[path->len-1].data;
+		world= scene->world;
+		
+		if(world) {
+			RNA_id_pointer_create(&scene->world->id, &path->ptr[path->len]);
+			path->len++;
 
-		RNA_id_pointer_create(&scene->world->id, &path->ptr[path->len]);
-		path->len++;
-
-		return 1;
+			return 1;
+		}
 	}
 
 	/* no path to a world possible */
@@ -367,7 +371,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		wo= path->ptr[path->len-1].data;
 
 		if(wo) {
-			give_current_world_texture(wo);
+			tex= give_current_world_texture(wo);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;

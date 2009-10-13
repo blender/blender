@@ -241,7 +241,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	if(U.uiflag & USER_MMB_PASTE) // XXX not dynamic
 		RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_paste", MIDDLEMOUSE, KM_PRESS, 0, 0)->ptr, "selection", 1);
 
-	WM_keymap_add_item(keymap, "TEXT_OT_jump", JKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_jump", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_find", FKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "TEXT_OT_properties", FKEY, KM_PRESS, KM_CTRL, 0);
