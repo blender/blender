@@ -660,7 +660,6 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			for(i = 0; i < dm->drawObject->nelements/3; i++) {
 				int actualFace = dm->drawObject->faceRemap[i];
 				int flag = 1;
-				unsigned char *cp = NULL;
 
 				if(drawParams) {
 					flag = drawParams(tf? &tf[actualFace]: NULL, mcol? &mcol[actualFace*4]: NULL, mf[actualFace].mat_nr);

@@ -1150,14 +1150,14 @@ void GPU_buffer_unbind()
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
 }
 
-void GPU_color3_upload( DerivedMesh *dm, char *data )
+void GPU_color3_upload( DerivedMesh *dm, unsigned char *data )
 {
 	if( dm->drawObject == 0 )
 		dm->drawObject = GPU_drawobject_new(dm);
 	GPU_buffer_free(dm->drawObject->colors,globalPool);
 	dm->drawObject->colors = GPU_buffer_setup( dm, dm->drawObject, sizeof(char)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color3 );
 }
-void GPU_color4_upload( DerivedMesh *dm, char *data )
+void GPU_color4_upload( DerivedMesh *dm, unsigned char *data )
 {
 	if( dm->drawObject == 0 )
 		dm->drawObject = GPU_drawobject_new(dm);

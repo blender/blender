@@ -711,9 +711,6 @@ void face_borderselect(Scene *scene, ScrArea *sa, ARegion *ar)
 // XXX	val= get_border(&rect, 3);
 	
 	if(val) {
-		View3D *v3d= sa->spacedata.first;
-		RegionView3D *rv3d= ar->regiondata;
-
 		/* without this border select often fails */
 #if 0 /* XXX untested in 2.5 */
 		if (v3d->flag & V3D_NEEDBACKBUFDRAW) {

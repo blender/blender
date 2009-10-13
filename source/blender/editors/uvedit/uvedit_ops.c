@@ -56,6 +56,7 @@
 
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 

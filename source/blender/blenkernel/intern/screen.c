@@ -57,7 +57,6 @@ static void spacetype_free(SpaceType *st)
 	ARegionType *art;
 	PanelType *pt;
 	HeaderType *ht;
-	MenuType *mt;
 	
 	for(art= st->regiontypes.first; art; art= art->next) {
 		BLI_freelistN(&art->drawcalls);

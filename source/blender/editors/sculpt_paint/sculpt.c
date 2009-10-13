@@ -305,7 +305,6 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float out[3], const 
 static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_verts)
 {
 	float area_normal[3];
-	int j;
 	ActiveData *node= active_verts->first;
 	float* buffer;
 

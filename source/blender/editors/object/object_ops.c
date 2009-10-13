@@ -63,8 +63,6 @@
 
 void ED_operatortypes_object(void)
 {
-	wmOperatorType *ot;
-
 	WM_operatortype_append(OBJECT_OT_location_clear);
 	WM_operatortype_append(OBJECT_OT_rotation_clear);
 	WM_operatortype_append(OBJECT_OT_scale_clear);

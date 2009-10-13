@@ -29,6 +29,7 @@
 #define ED_OBJECT_H
 
 struct wmKeyConfig;
+struct wmKeyMap;
 struct Scene;
 struct Object;
 struct bContext;
