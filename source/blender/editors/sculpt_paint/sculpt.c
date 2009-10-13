@@ -1469,12 +1469,15 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 {
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
-	float *buffer;
+	float *buffer= NULL;
 	int i;
 
 	/* Restore the mesh before continuing with anchored stroke */
 	if((brush->flag & BRUSH_ANCHORED) && ss->mesh_co_orig) {
-		buffer = buffer = ss->drawobject!=0?(float *)GPU_buffer_lock( ss->drawobject->normals ):0;
+
+		if(ss->drawobject)
+			buffer= (float *)GPU_buffer_lock(ss->drawobject->normals);
+
 		for(i = 0; i < ss->totvert; ++i) {
 			VecCopyf(ss->mvert[i].co, ss->mesh_co_orig[i]);
 			ss->mvert[i].no[0] = cache->orig_norms[i][0];

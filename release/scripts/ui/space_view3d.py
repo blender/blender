@@ -1423,6 +1423,7 @@ bpy.types.register(VIEW3D_MT_pose_showhide)
 bpy.types.register(VIEW3D_MT_snap) # Edit Menus
 
 bpy.types.register(VIEW3D_MT_edit_mesh)
+bpy.types.register(VIEW3D_MT_edit_mesh_specials) # Only as a menu for keybindings
 bpy.types.register(VIEW3D_MT_edit_mesh_vertices)
 bpy.types.register(VIEW3D_MT_edit_mesh_edges)
 bpy.types.register(VIEW3D_MT_edit_mesh_faces)
