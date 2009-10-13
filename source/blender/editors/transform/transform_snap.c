@@ -115,7 +115,7 @@ int BIF_snappingSupported(Object *obedit)
 {
 	int status = 0;
 	
-	if (obedit == NULL || ELEM(obedit->type, OB_MESH, OB_ARMATURE)) /* only support object mesh or armature */
+	if (obedit == NULL || ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) /* only support object mesh, armature, curves */
 	{
 		status = 1;
 	}
@@ -393,7 +393,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(snapping) && // Only if the snap flag is on
-			(obedit != NULL && ELEM(obedit->type, OB_MESH, OB_ARMATURE)) ) // Temporary limited to edit mode meshes or armature
+			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
 			t->tsnap.status |= SNAP_ON;
 			t->tsnap.modePoint = SNAP_GEO;
