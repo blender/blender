@@ -697,6 +697,16 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act-1];
 				mtex_ar[act-1] = mtexswap;
+
+				if(GS(id->name)==ID_MA) {
+					Material *ma= (Material *)id;
+					int mtexuse = ma->septex & (1<<act);
+					ma->septex &= ~(1<<act);
+					ma->septex |= (ma->septex & (1<<(act-1))) << 1;
+					ma->septex &= ~(1<<(act-1));
+					ma->septex |= mtexuse >> 1;
+				}
+
 				set_active_mtex(id, act-1);
 			}
 		}
@@ -705,6 +715,16 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act+1];
 				mtex_ar[act+1] = mtexswap;
+
+				if(GS(id->name)==ID_MA) {
+					Material *ma= (Material *)id;
+					int mtexuse = ma->septex & (1<<act);
+					ma->septex &= ~(1<<act);
+					ma->septex |= (ma->septex & (1<<(act+1))) >> 1;
+					ma->septex &= ~(1<<(act+1));
+					ma->septex |= mtexuse << 1;
+				}
+
 				set_active_mtex(id, act+1);
 			}
 		}
