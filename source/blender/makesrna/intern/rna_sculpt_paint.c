@@ -231,7 +231,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_mode_items[] = {
+	static EnumPropertyItem brush_mode_items[] = {
 		{0, "MIX", 0, "Mix", "Use mix blending mode while painting."},
 		{1, "ADD", 0, "Add", "Use add blending mode while painting."},
 		{2, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
@@ -246,7 +246,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of vertex and weight paint mode.");
     
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_enum_items(prop, brush_mode_items);
 	RNA_def_property_ui_text(prop, "Brush Mode", "Mode in which color is painted.");
 	
 	prop= RNA_def_property(srna, "all_faces", PROP_BOOLEAN, PROP_NONE);

@@ -2013,7 +2013,7 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
     just sets up the common parts of the radial control op. **/
 void WM_OT_radial_control_partial(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_mode_items[] = {
+	static EnumPropertyItem radial_mode_items[] = {
 		{WM_RADIALCONTROL_SIZE, "SIZE", 0, "Size", ""},
 		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", 0, "Strength", ""},
 		{WM_RADIALCONTROL_ANGLE, "ANGLE", 0, "Angle", ""},
@@ -2026,7 +2026,7 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "new_value", 0, 0, FLT_MAX, "New Value", "", 0, FLT_MAX);
 
 	/* Should be set before calling operator */
-	RNA_def_enum(ot->srna, "mode", prop_mode_items, 0, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", radial_mode_items, 0, "Mode", "");
 
 	/* Internal */
 	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
