@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_fcurve.h"
+#include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
@@ -325,6 +326,7 @@ void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, s
 /* standard header buttons for Animation Editors */
 short ANIM_headerUI_standard_buttons (const bContext *C, bDopeSheet *ads, uiBlock *block, short xco, short yco)
 {
+	Main *mainptr= CTX_data_main(C);
 	ScrArea *sa= CTX_wm_area(C);
 	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
 	
@@ -337,19 +339,27 @@ short ANIM_headerUI_standard_buttons (const bContext *C, bDopeSheet *ads, uiBloc
 		if (nlaActive) uiBlockEndAlign(block);
 		xco += 5;
 		
-		/* datatype based */
+		/* datatype based - only available datatypes are shown */
 		// TODO: only show the datablocks which exist
 		uiBlockBeginAlign(block);
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSCE, B_REDR, ICON_SCENE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Scene Animation");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOWOR, B_REDR, ICON_WORLD_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display World Animation");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSHAPEKEYS, B_REDR, ICON_SHAPEKEY_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display ShapeKeys");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMAT, B_REDR, ICON_MATERIAL_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Material Data");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Lamp Data");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Camera Data");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Curve Data");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMBA, B_REDR, ICON_META_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display MetaBall Data");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOARM, B_REDR, ICON_ARMATURE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Armature Data");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Particle Data");
+			if (mainptr && mainptr->key.first)
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSHAPEKEYS, B_REDR, ICON_SHAPEKEY_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display ShapeKeys");
+			if (mainptr && mainptr->mat.first)
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMAT, B_REDR, ICON_MATERIAL_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Material Data");
+			if (mainptr && mainptr->lamp.first)
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Lamp Data");
+			if (mainptr && mainptr->camera.first)
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Camera Data");
+			if (mainptr && mainptr->curve.first)
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Curve Data");
+			if (mainptr && mainptr->mball.first)
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMBA, B_REDR, ICON_META_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display MetaBall Data");
+			if (mainptr && mainptr->armature.first)
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOARM, B_REDR, ICON_ARMATURE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Armature Data");
+			if (mainptr && mainptr->particle.first)
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(ads->filterflag), 0, 0, 0, 0, "Display Particle Data");
 		uiBlockEndAlign(block);
 		xco += 30;
 	}
