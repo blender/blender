@@ -2908,7 +2908,7 @@ static void brush_add(PEData *data, short number)
 	ParticleSimulationData sim = {scene, ob, psys, psmd};
 	ParticleEditSettings *pset= PE_settings(scene);
 	int i, k, n= 0, totpart= psys->totpart;
-	short mco[2];
+	float mco[2];
 	short dmx= 0, dmy= 0;
 	float co1[3], co2[3], min_d, imat[4][4];
 	float framestep, timestep= psys_get_timestep(&sim);

@@ -766,6 +766,11 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
+	prop= RNA_def_property(srna, "pivot_point_align", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ALIGN);
+	RNA_def_property_ui_text(prop, "Align", "Manipulate object centers only.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
 	prop= RNA_def_property(srna, "manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_USE_MANIPULATOR);
 	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms.");

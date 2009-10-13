@@ -995,10 +995,10 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 		else
 		{
-			if ((t->options & CTX_NO_PET) == 0 && (ts->proportional)) {
+			if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
 				t->flag |= T_PROP_EDIT;
 				
-				if(ts->proportional == 2)
+				if(ts->proportional == PROP_EDIT_CONNECTED)
 					t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
 			}
 		}

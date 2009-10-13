@@ -291,5 +291,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	/* UV's */
 	WM_keymap_add_item(keymap, "UV_OT_mapping_menu", UKEY, KM_PRESS, 0, 0);
+
+	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }
 

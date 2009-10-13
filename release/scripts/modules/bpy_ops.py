@@ -145,7 +145,7 @@ bpy.ops = bpy_ops()
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
 	'''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
 	__idname__ = "mesh.delete_edgeloop"
-	__label__ = "Export PLY"
+	__label__ = "Delete Edge Loop"
 	
 	def execute(self, context):
 		bpy.ops.tfm.edge_slide(value=1.0)
@@ -153,6 +153,100 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
 		bpy.ops.mesh.remove_doubles()
 		return ('FINISHED',)
 
+class WM_OT_context_set(bpy.types.Operator):
+	'''Set a context value.'''
+	__idname__ = "wm.context_set"
+	__label__ = "Context Set"
+	__register__ = True
+	__undo__ = True
+	
+	__props__ = [
+		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="value", name="Value", description="Assignment value (as a string)", maxlen= 1024, default= "")
+	]
+	
+	def execute(self, context):
+		exec("context.%s=%s" % (self.path, self.value)) # security nuts will complain.
+		return ('FINISHED',)
+
+class WM_OT_context_toggle(bpy.types.Operator):
+	'''Toggle a context value.'''
+	__idname__ = "wm.context_toggle"
+	__label__ = "Context Toggle"
+	__register__ = True
+	__undo__ = True
+	
+	__props__ = [
+		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
+	]
+	
+	def execute(self, context):
+		exec("context.%s=not (context.%s)" % (self.path, self.path)) # security nuts will complain.
+		return ('FINISHED',)
+
+class WM_OT_context_toggle_values(bpy.types.Operator):
+	'''Toggle a context value.'''
+	__idname__ = "wm.context_toggle_values"
+	__label__ = "Context Toggle Values"
+	__register__ = True
+	__undo__ = True
+	
+	__props__ = [
+		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="value_1", name="Value", description="Toggle value (as a string)", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="value_2", name="Value", description="Toggle value (as a string)", maxlen= 1024, default= "")
+	]
+	
+	def execute(self, context):
+		exec("context.%s = [%s, %s][context.%s!=%s]" % (self.path, self.value_1, self.value_2, self.path, self.value_2)) # security nuts will complain.
+		return ('FINISHED',)
+
+class WM_OT_context_cycle_enum(bpy.types.Operator):
+	'''Toggle a context value.'''
+	__idname__ = "wm.context_cycle_enum"
+	__label__ = "Context Toggle Values"
+	__register__ = True
+	__undo__ = True
+	
+	__props__ = [
+		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
+		bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)
+	]
+	
+	def execute(self, context):
+		orig_value = eval("context.%s" % self.path) # security nuts will complain.
+		
+		# Have to get rna enum values
+		rna_struct_str, rna_prop_str =  self.path.rsplit('.', 1)
+		i = rna_prop_str.find('[')
+		if i != -1: rna_prop_str = rna_prop_str[0:i] # just incse we get "context.foo.bar[0]"
+		
+		rna_struct = eval("context.%s.rna_type" % rna_struct_str)
+		
+		rna_prop = rna_struct.properties[rna_prop_str]
+		
+		if type(rna_prop) != bpy.types.EnumProperty:
+			raise Exception("expected an enum property")
+		
+		enums = rna_struct.properties[rna_prop_str].items.keys()
+		orig_index = enums.index(orig_value)
+		
+		# Have the info we need, advance to the next item
+		if self.reverse:
+			if orig_index==0:			advance_enum = enums[-1]
+			else:					advance_enum = enums[orig_index-1]
+		else:
+			if orig_index==len(enums)-1:	advance_enum = enums[0]
+			else:					advance_enum = enums[orig_index+1]
+		
+		# set the new value
+		exec("context.%s=advance_enum" % self.path)
+		return ('FINISHED',)
 
 bpy.ops.add(MESH_OT_delete_edgeloop)
+
+bpy.ops.add(WM_OT_context_set)
+bpy.ops.add(WM_OT_context_toggle)
+bpy.ops.add(WM_OT_context_toggle_values)
+bpy.ops.add(WM_OT_context_cycle_enum)
 

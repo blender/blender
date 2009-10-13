@@ -248,5 +248,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "unselected", 1);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
+
+	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }
 

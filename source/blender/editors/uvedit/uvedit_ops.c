@@ -3129,6 +3129,8 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_tile_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 
+	ED_object_generic_keymap(keyconf, keymap, TRUE);
+
 	transform_keymap_for_space(keyconf, keymap, SPACE_IMAGE);
 }
 

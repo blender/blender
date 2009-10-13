@@ -3410,10 +3410,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
 	/* user prefs */
-	#ifdef __APPLE__
-	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_OSKEY, 0);
-	#endif
-	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", UKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
 	
 	/* Anim Playback ------------------------------------------------ */

@@ -1016,6 +1016,11 @@ typedef struct Scene {
 #define PROP_CONST             5
 #define PROP_RANDOM		6
 
+/* toolsettings->proportional */
+#define PROP_EDIT_OFF			0
+#define PROP_EDIT_ON			1
+#define PROP_EDIT_CONNECTED	2
+
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)
 #define SCE_DS_COLLAPSED		(1<<1)
