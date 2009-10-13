@@ -3003,6 +3003,9 @@ static void brush_add(PEData *data, short number)
 			for(k=0, hkey=pa->hair; k<pa->totkey; k++, hkey++, key++) {
 				key->co= hkey->co;
 				key->time= &hkey->time;
+
+				if(!(psys->flag & PSYS_GLOBAL_HAIR))
+					key->flag |= PEK_USE_WCO;
 			}
 			
 			pa->size= 1.0f;

@@ -4237,7 +4237,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 				if(!(point->flag & PEP_HIDE))
 					totkeys += point->totkey;
 
-			if(!(edit->points->keys->flag & PEK_USE_WCO))
+			if(edit->points && !(edit->points->keys->flag & PEK_USE_WCO))
 				pd=pdata=MEM_callocN(totkeys*3*sizeof(float), "particle edit point data");
 			cd=cdata=MEM_callocN(totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
 
