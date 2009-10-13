@@ -262,7 +262,7 @@ class TEXTURE_PT_influence(TextureSlotPanel):
 				#sub = col.column()
 				#sub.active = tex.map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
 				#sub.itemR(tex, "default_value", text="Amount", slider=True)
-			elif ma.type == 'VOLUME':
+			elif idblock.type == 'VOLUME':
 				split = layout.split()
 				
 				col = split.column()
