@@ -83,7 +83,6 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_select_lasso);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
 	WM_operatortype_append(VIEW3D_OT_setobjectascamera);
-	WM_operatortype_append(VIEW3D_OT_drawtype);
 	WM_operatortype_append(VIEW3D_OT_localview);
 	WM_operatortype_append(VIEW3D_OT_game_start);
 	WM_operatortype_append(VIEW3D_OT_fly);
@@ -174,17 +173,21 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_layers", ZEROKEY, KM_PRESS, KM_ANY, 0)->ptr, "nr", 10);
 	
 	/* drawtype */
-	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, 0, 0);
-	RNA_int_set(km->ptr, "draw_type", OB_SOLID);
-	RNA_int_set(km->ptr, "draw_type_alternate", OB_WIRE);
 
-	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_ALT, 0);
-	RNA_int_set(km->ptr, "draw_type", OB_TEXTURE);
-	RNA_int_set(km->ptr, "draw_type_alternate", OB_SOLID);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, 0, 0);
+	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
+	RNA_string_set(km->ptr, "value_1", "'SOLID'");
+	RNA_string_set(km->ptr, "value_2", "'WIREFRAME'");
 
-	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_int_set(km->ptr, "draw_type", OB_SHADED);
-	RNA_int_set(km->ptr, "draw_type_alternate", OB_WIRE);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, KM_ALT, 0);
+	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
+	RNA_string_set(km->ptr, "value_1", "'TEXTURED'");
+	RNA_string_set(km->ptr, "value_2", "'SOLID'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
+	RNA_string_set(km->ptr, "value_1", "'SHADED'");
+	RNA_string_set(km->ptr, "value_2", "'WIREFRAME'");
 
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);

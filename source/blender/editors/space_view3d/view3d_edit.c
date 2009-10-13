@@ -1879,57 +1879,6 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
-/* ********************* draw type operator ****************** */
-
-static int view3d_drawtype_exec(bContext *C, wmOperator *op)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	int dt, dt_alt;
-
-	dt  = RNA_int_get(op->ptr, "draw_type");
-	dt_alt = RNA_int_get(op->ptr, "draw_type_alternate");
-
-	if (dt_alt != -1) {
-		if (v3d->drawtype == dt)
-			v3d->drawtype = dt_alt;
-		else
-			v3d->drawtype = dt;
-	}
-	else
-		v3d->drawtype = dt;
-
-	ED_area_tag_redraw(CTX_wm_area(C));
-
-	return OPERATOR_FINISHED;
-}
-
-static int view3d_drawtype_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	return view3d_drawtype_exec(C, op);
-}
-
-/* toggles */
-void VIEW3D_OT_drawtype(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Change draw type";
-	ot->description = "Change the draw type of the view.";
-	ot->idname= "VIEW3D_OT_drawtype";
-
-	/* api callbacks */
-	ot->invoke= view3d_drawtype_invoke;
-	ot->exec= view3d_drawtype_exec;
-
-	ot->poll= ED_operator_view3d_active;
-
-	/* flags */
-	ot->flag= 0;
-
-	/* rna XXX should become enum */
-	RNA_def_int(ot->srna, "draw_type", 0, INT_MIN, INT_MAX, "Draw Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "draw_type_alternate", -1, INT_MIN, INT_MAX, "Draw Type Alternate", "", INT_MIN, INT_MAX);
-}
-
 /* ***************** 3d cursor cursor op ******************* */
 
 /* mx my in region coords */
