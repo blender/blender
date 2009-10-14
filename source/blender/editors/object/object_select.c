@@ -105,13 +105,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 		/* XXX old signals, remember to handle notifiers now! */
 		//		select_actionchannel_by_name(base->object->action, "Object", 1);
 		
-		/* disable temporal locks */
-		for(tbase=FIRSTBASE; tbase; tbase= tbase->next) {
-			if(base!=tbase && (tbase->object->shapeflag & OB_SHAPE_TEMPLOCK)) {
-				tbase->object->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-				DAG_id_flush_update(&tbase->object->id, OB_RECALC_DATA);
-			}
-		}
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	}
 	else

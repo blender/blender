@@ -747,7 +747,6 @@ static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)
 	Object *ob= (Object*)ptr->id.data;
 
 	ob->shapenr= value+1;
-	ob->shapeflag |= OB_SHAPE_TEMPLOCK;
 }
 
 static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
@@ -771,8 +770,6 @@ static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
 
 	if(value) ob->shapeflag |= OB_SHAPE_LOCK;
 	else ob->shapeflag &= ~OB_SHAPE_LOCK;
-
-	ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 }
 
 static PointerRNA rna_Object_field_get(PointerRNA *ptr)

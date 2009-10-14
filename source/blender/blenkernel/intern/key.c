@@ -1368,7 +1368,7 @@ int do_ob_key(Scene *scene, Object *ob)
 	if(key==NULL)
 		return 0;
 		
-	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
+	if(ob->shapeflag & OB_SHAPE_LOCK) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 		
 		if (G.f & G_DEBUG) printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
