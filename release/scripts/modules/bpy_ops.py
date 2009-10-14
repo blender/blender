@@ -153,54 +153,80 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
 		bpy.ops.mesh.remove_doubles()
 		return ('FINISHED',)
 
-class WM_OT_context_set(bpy.types.Operator):
+rna_path_prop = bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= "")
+
+class WM_OT_context_set_boolean(bpy.types.Operator):
 	'''Set a context value.'''
-	__idname__ = "wm.context_set"
+	__idname__ = "wm.context_set_boolean"
 	__label__ = "Context Set"
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
-		bpy.props.StringProperty(attr="value", name="Value", description="Assignment value (as a string)", maxlen= 1024, default= "")
-	]
-	
+	__props__ = [rna_path_prop, bpy.props.BoolProperty(attr="value", name="Value", description="Assignment value", default= True)]
 	def execute(self, context):
 		exec("context.%s=%s" % (self.path, self.value)) # security nuts will complain.
+		return ('FINISHED',)
+
+class WM_OT_context_set_int(bpy.types.Operator): # same as enum
+	'''Set a context value.'''
+	__idname__ = "wm.context_set_int"
+	__label__ = "Context Set"
+	__props__ = [rna_path_prop, bpy.props.IntProperty(attr="value", name="Value", description="Assignment value", default= 0)]
+	def execute(self, context):
+		exec("context.%s=%d" % (self.path, self.value)) # security nuts will complain.
+		return ('FINISHED',)
+		
+class WM_OT_context_set_float(bpy.types.Operator): # same as enum
+	'''Set a context value.'''
+	__idname__ = "wm.context_set_int"
+	__label__ = "Context Set"
+	__props__ = [rna_path_prop, bpy.props.FloatProperty(attr="value", name="Value", description="Assignment value", default= 0.0)]
+	def execute(self, context):
+		exec("context.%s=%f" % (self.path, self.value)) # security nuts will complain.
+		return ('FINISHED',)
+
+class WM_OT_context_set_string(bpy.types.Operator): # same as enum
+	'''Set a context value.'''
+	__idname__ = "wm.context_set_string"
+	__label__ = "Context Set"
+	__props__ = [rna_path_prop, bpy.props.StringProperty(attr="value", name="Value", description="Assignment value", maxlen= 1024, default= "")]
+	def execute(self, context):
+		exec("context.%s='%s'" % (self.path, self.value)) # security nuts will complain.
+		return ('FINISHED',)
+
+class WM_OT_context_set_enum(bpy.types.Operator):
+	'''Set a context value.'''
+	__idname__ = "wm.context_set_enum"
+	__label__ = "Context Set"
+	__props__ = [rna_path_prop, bpy.props.StringProperty(attr="value", name="Value", description="Assignment value (as a string)", maxlen= 1024, default= "")]
+	def execute(self, context):
+		exec("context.%s='%s'" % (self.path, self.value)) # security nuts will complain.
 		return ('FINISHED',)
 
 class WM_OT_context_toggle(bpy.types.Operator):
 	'''Toggle a context value.'''
 	__idname__ = "wm.context_toggle"
 	__label__ = "Context Toggle"
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
-	]
-	
+	__props__ = [rna_path_prop]
 	def execute(self, context):
 		exec("context.%s=not (context.%s)" % (self.path, self.path)) # security nuts will complain.
 		return ('FINISHED',)
 
-class WM_OT_context_toggle_values(bpy.types.Operator):
+class WM_OT_context_toggle_enum(bpy.types.Operator):
 	'''Toggle a context value.'''
-	__idname__ = "wm.context_toggle_values"
+	__idname__ = "wm.context_toggle_enum"
 	__label__ = "Context Toggle Values"
 	__props__ = [
-		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
-		bpy.props.StringProperty(attr="value_1", name="Value", description="Toggle value (as a string)", maxlen= 1024, default= ""),
-		bpy.props.StringProperty(attr="value_2", name="Value", description="Toggle value (as a string)", maxlen= 1024, default= "")
+		rna_path_prop,
+		bpy.props.StringProperty(attr="value_1", name="Value", description="Toggle enum", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="value_2", name="Value", description="Toggle enum", maxlen= 1024, default= "")
 	]
-	
 	def execute(self, context):
-		exec("context.%s = [%s, %s][context.%s!=%s]" % (self.path, self.value_1, self.value_2, self.path, self.value_2)) # security nuts will complain.
+		exec("context.%s = ['%s', '%s'][context.%s!='%s']" % (self.path, self.value_1, self.value_2, self.path, self.value_2)) # security nuts will complain.
 		return ('FINISHED',)
 
 class WM_OT_context_cycle_enum(bpy.types.Operator):
 	'''Toggle a context value.'''
 	__idname__ = "wm.context_cycle_enum"
 	__label__ = "Context Enum Cycle"
-	__props__ = [
-		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
-		bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)
-	]
-	
+	__props__ = [rna_path_prop, bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)]
 	def execute(self, context):
 		orig_value = eval("context.%s" % self.path) # security nuts will complain.
 		
@@ -233,8 +259,12 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 
 bpy.ops.add(MESH_OT_delete_edgeloop)
 
-bpy.ops.add(WM_OT_context_set)
+bpy.ops.add(WM_OT_context_set_boolean)
+bpy.ops.add(WM_OT_context_set_int)
+bpy.ops.add(WM_OT_context_set_float)
+bpy.ops.add(WM_OT_context_set_string)
+bpy.ops.add(WM_OT_context_set_enum)
 bpy.ops.add(WM_OT_context_toggle)
-bpy.ops.add(WM_OT_context_toggle_values)
+bpy.ops.add(WM_OT_context_toggle_enum)
 bpy.ops.add(WM_OT_context_cycle_enum)
 

@@ -2220,52 +2220,52 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	/* Space switching */
 
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'LOGIC_EDITOR'");
+	RNA_string_set(km->ptr, "value", "LOGIC_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F3KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F3KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'NODE_EDITOR'");
+	RNA_string_set(km->ptr, "value", "NODE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'CONSOLE'");
+	RNA_string_set(km->ptr, "value", "CONSOLE");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F5KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F5KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'VIEW_3D'");
+	RNA_string_set(km->ptr, "value", "VIEW_3D");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F6KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F6KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'GRAPH_EDITOR'");
+	RNA_string_set(km->ptr, "value", "GRAPH_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F7KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F7KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'PROPERTIES'");
+	RNA_string_set(km->ptr, "value", "PROPERTIES");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F8KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F8KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'SEQUENCE_EDITOR'");
+	RNA_string_set(km->ptr, "value", "SEQUENCE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'OUTLINER'");
+	RNA_string_set(km->ptr, "value", "OUTLINER");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'OUTLINER'");
+	RNA_string_set(km->ptr, "value", "OUTLINER");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F10KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F10KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'IMAGE_EDITOR'");
+	RNA_string_set(km->ptr, "value", "IMAGE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F11KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'TEXT_EDITOR'");
+	RNA_string_set(km->ptr, "value", "TEXT_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F12KEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "'DOPESHEET_EDITOR'");
+	RNA_string_set(km->ptr, "value", "DOPESHEET_EDITOR");
 }
 
