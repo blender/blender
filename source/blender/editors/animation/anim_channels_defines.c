@@ -2189,7 +2189,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 
 /* ------------------ */
 
-/* callback for widget settings - send notifiers */
+/* callback for (normal) widget settings - send notifiers */
 static void achannel_setting_widget_cb(bContext *C, void *poin, void *poin2)
 {
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);

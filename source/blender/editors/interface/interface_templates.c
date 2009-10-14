@@ -438,7 +438,6 @@ void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 		uiItemL(row, "ID-Block:", 0);
 	
 	/* ID-Type Selector - just have a menu of icons */
-	// XXX should value really be 0?
 	uiItemFullR(row, "", 0, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY);
 	
 	/* ID-Block Selector - just use pointer widget... */

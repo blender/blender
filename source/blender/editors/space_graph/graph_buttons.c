@@ -193,7 +193,7 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 	}
 	
 	/* default for now */
-	WM_event_add_notifier(C, NC_SCENE, scene);
+	WM_event_add_notifier(C, NC_SCENE, scene); // XXX does this always work?
 }
 
 /* callback to remove the active driver */
@@ -251,21 +251,6 @@ static int graph_panel_drivers_poll(const bContext *C, PanelType *pt)
 	return graph_panel_context(C, NULL, NULL);
 }
 
-static void test_obpoin_but(struct bContext *C, char *name, ID **idpp)
-{
-	ID *id;
-	
-	id= CTX_data_main(C)->object.first;
-	while(id) {
-		if( strcmp(name, id->name+2)==0 ) {
-			*idpp= id;
-			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
-			return;
-		}
-		id= id->next;
-	}
-	*idpp= NULL;
-}
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */
 static void graph_panel_drivers(const bContext *C, Panel *pa)
@@ -275,91 +260,98 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	ChannelDriver *driver;
 	DriverTarget *dtar;
 	
-	PointerRNA rna_ptr;
+	PointerRNA driver_ptr;
+	uiLayout *col;
 	uiBlock *block;
 	uiBut *but;
-	int yco=85, i=0;
-
-	if(!graph_panel_context(C, &ale, &fcu))
+	
+	/* Get settings from context */
+	if (!graph_panel_context(C, &ale, &fcu))
 		return;
-
 	driver= fcu->driver;
 	
-	block= uiLayoutAbsoluteBlock(pa->layout);
+	/* set event handler for panel */
+	block= uiLayoutGetBlock(pa->layout); // xxx?
 	uiBlockSetHandleFunc(block, do_graph_region_driver_buttons, NULL);
 	
-	/* general actions */
-	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Update Dependencies", 10, 200, 180, 22, NULL, 0.0, 0.0, 0, 0, "Force updates of dependencies");
-	uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
-	
-	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Remove Driver", 200, 200, 110, 18, NULL, 0.0, 0.0, 0, 0, "Remove this driver");
-	uiButSetFunc(but, driver_remove_cb, ale, NULL);
-	
-	/* type */
-	uiDefBut(block, LABEL, 1, "Type:",					10, 170, 60, 20, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefButI(block, MENU, B_IPO_DEPCHANGE,
-					"Driver Type%t|Normal%x0|Scripted Expression%x1|Rotational Difference%x2", 
-					70,170,240,20, &driver->type, 0, 0, 0, 0, "Driver type");
-	
-	/* show expression box if doing scripted drivers */
-	if (driver->type == DRIVER_TYPE_PYTHON) {
-		uiDefBut(block, TEX, B_REDR, "Expr: ", 10,150,300,20, driver->expression, 0, 255, 0, 0, "One-liner Python Expression to use as Scripted Expression");
+	/* general actions - management */
+	col= uiLayoutColumn(pa->layout, 0);
+	block= uiLayoutGetBlock(col);
+		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Update Dependencies", 0, 0, 10*UI_UNIT_X, 22, NULL, 0.0, 0.0, 0, 0, "Force updates of dependencies");
+		uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
 		
-		/* errors */
-		if (driver->flag & DRIVER_FLAG_INVALID) {
-			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 130, 48, 48, NULL, 0, 0, 0, 0, ""); // a bit larger
-			uiDefBut(block, LABEL, 0, "Error: invalid Python expression",
-					50,110,230,19, NULL, 0, 0, 0, 0, "");
-		}
-	}
-	else {
-		/* errors */
-		if (driver->flag & DRIVER_FLAG_INVALID) {
-			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 130, 48, 48, NULL, 0, 0, 0, 0, ""); // a bit larger
-			uiDefBut(block, LABEL, 0, "Error: invalid target channel(s)",
-					50,130,230,19, NULL, 0, 0, 0, 0, "");
-		}
-	}
+		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Remove Driver", 0, 0, 10*UI_UNIT_X, 18, NULL, 0.0, 0.0, 0, 0, "Remove this driver");
+		uiButSetFunc(but, driver_remove_cb, ale, NULL);
+		
+	/* driver-level settings - type, expressions, and errors */
+	RNA_pointer_create(ale->id, &RNA_Driver, driver, &driver_ptr);
 	
-	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Variable", 10, 110, 300, 20, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
-	uiButSetFunc(but, driver_add_var_cb, driver, NULL);
+	col= uiLayoutColumn(pa->layout, 1);
+	block= uiLayoutGetBlock(col);
+		uiItemR(col, NULL, 0, &driver_ptr, "type", 0);
+		
+		/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
+		if (driver->type == DRIVER_TYPE_PYTHON) {
+			/* expression */
+			uiItemR(col, "Expr:", 0, &driver_ptr, "expression", 0);
+			
+			/* errors? */
+			if (driver->flag & DRIVER_FLAG_INVALID)
+				uiItemL(col, "ERROR: invalid Python expression", ICON_ERROR);
+		}
+		else {
+			/* errors? */
+			if (driver->flag & DRIVER_FLAG_INVALID)
+				uiItemL(col, "ERROR: invalid target channel(s)", ICON_ERROR);
+		}
+	
+	/* add driver target variables */
+	col= uiLayoutColumn(pa->layout, 0);
+	block= uiLayoutGetBlock(col);
+		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Variable", 0, 0, 10*UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
+		uiButSetFunc(but, driver_add_var_cb, driver, NULL);
 	
 	/* loop over targets, drawing them */
 	for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-		short height = (dtar->id) ? 80 : 60;
+		PointerRNA dtar_ptr;
+		uiLayout *box, *row;
 		
-		/* panel behind buttons */
-		uiDefBut(block, ROUNDBOX, B_REDR, "", 5, yco-height+25, 310, height, NULL, 5.0, 0.0, 12.0, 0, "");
+		/* panel holding the buttons */
+		box= uiLayoutBox(pa->layout);
 		
-		/* variable name */
-		uiDefButC(block, TEX, B_REDR, "Name: ", 10,yco,280,20, dtar->name, 0, 63, 0, 0, "Name of target variable (No spaces or dots are allowed. Also, must not start with a symbol or digit).");
+		/* first row context info for driver */
+		RNA_pointer_create(ale->id, &RNA_DriverTarget, dtar, &dtar_ptr);
 		
-		/* remove button */
-		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 290, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
-		uiButSetFunc(but, driver_delete_var_cb, driver, dtar);
+		row= uiLayoutRow(box, 0);
+		block= uiLayoutGetBlock(row);
+			/* variable name */
+			uiItemR(row, "", 0, &dtar_ptr, "name", 0);
+			
+			/* remove button */
+			but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
+			uiButSetFunc(but, driver_delete_var_cb, driver, dtar);
 		
 		
-		/* Target Object */
-		uiDefBut(block, LABEL, 1, "Value:",	10, yco-30, 60, 20, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob: ", 70, yco-30, 240, 20, &dtar->id, "Object to use as Driver target");
+		/* Target ID */
+		row= uiLayoutRow(box, 0);
+			uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value: ");
 		
-		// XXX should we hide these technical details?
+		/* Target Property */
+		// TODO: make this less technical...
 		if (dtar->id) {
-			uiBlockBeginAlign(block);
-				/* RNA Path */
-				RNA_pointer_create(ale->id, &RNA_DriverTarget, dtar, &rna_ptr);
-				uiDefButR(block, TEX, 0, "Path: ", 10, yco-50, 250, 20, &rna_ptr, "rna_path", 0, 0, 0, -1, -1, "RNA Path (from Driver Object) to property used as Driver.");
-					
-				/* Array Index */
-				uiDefButI(block, NUM, B_REDR, "", 260,yco-50,50,20, &dtar->array_index, 0, INT_MAX, 0, 0, "Index to the specific property used as Driver if applicable.");
-			uiBlockEndAlign(block);
+			col= uiLayoutColumn(box, 1);
+			block= uiLayoutGetBlock(col);
+				/* rna path */
+				// TODO: this needs path constructor widget
+				uiItemR(col, "Path", 0, &dtar_ptr, "rna_path", 0);
+				
+				/* array index */
+				// TODO: this needs selector which limits it to ok values
+				uiItemR(col, "Index", 0, &dtar_ptr, "array_index", 0);
 		}
-		
-		/* adjust y-coordinate for next target */
-		yco -= height;
-		i++;
 	}
-
+	
+	/* cleanup */
 	MEM_freeN(ale);
 }
 
@@ -373,8 +365,8 @@ static void do_graph_region_modifier_buttons(bContext *C, void *arg, int event)
 	switch (event) {
 		case B_REDR:
 		case B_FMODIFIER_REDRAW: // XXX this should send depsgraph updates too
-			ED_area_tag_redraw(CTX_wm_area(C));
-			return; /* no notifier! */
+			WM_event_add_notifier(C, NC_ANIMATION, NULL); // XXX need a notifier specially for F-Modifiers
+			break;
 	}
 }
 

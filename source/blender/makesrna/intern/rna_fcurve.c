@@ -32,6 +32,7 @@
 #include "rna_internal.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -51,8 +52,6 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
-
-/* --------- */
 
 static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 {
@@ -81,6 +80,21 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 }
 
 /* ****************************** */
+
+#include "BKE_depsgraph.h"
+
+static void rna_ChannelDriver_update_data(bContext *C, PointerRNA *ptr)
+{
+	ID *id= ptr->id.data;
+	
+	// TODO: this really needs an update guard...
+	DAG_scene_sort(CTX_data_scene(C));
+	DAG_id_flush_update(id, OB_RECALC_DATA);
+	
+	WM_event_add_notifier(C, NC_SCENE, id);
+}
+
+/* ----------- */
 
 static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
 {
@@ -535,7 +549,8 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	/* Variable Name */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions.");
+	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
+	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
 	
 	/* Target Properties - ID-block to Drive */
 	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
@@ -544,20 +559,24 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_editable");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_DriverTarget_id_typef");
 	RNA_def_property_ui_text(prop, "ID", "ID-block that the specific property used can be found from");
+	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
 	
 	prop= RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
 	RNA_def_property_enum_items(prop, id_type_items);
 	RNA_def_property_enum_default(prop, ID_OB);
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
+	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
 	
 	/* Target Properties - Property to Drive */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_DriverTarget_RnaPath_get", "rna_DriverTarget_RnaPath_length", "rna_DriverTarget_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path (from Object) to property used");
+	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property used (if applicable)");
+	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
 }
 
 static void rna_def_channeldriver(BlenderRNA *brna)
@@ -579,10 +598,12 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Driver types.");
+	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data");
 
 	/* String values */
 	prop= RNA_def_property(srna, "expression", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Expression", "Expression to use for Scripted Expression.");
+	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
 
 	/* Collections */
 	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
