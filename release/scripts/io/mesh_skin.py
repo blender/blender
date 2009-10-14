@@ -227,8 +227,8 @@ def mesh_faces_extend(me, faces):
 	me.add_geometry(0, 0, new_facetot)
 	tot = orig_facetot+new_facetot
 	me_faces = me.faces
-	i= orig_facetot
-	while i < tot:
+	i= 0
+	while i < new_facetot:
 		
 		f = [v.index for v in faces[i]]
 		if len(f)==4 and f[3]==0:
