@@ -436,13 +436,16 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr,
 		return NULL;
 
 	memset(&item_tmp, 0, sizeof(item_tmp));
-
-	/* add each marker to the list */
-	for (marker=act->markers.first, i=0; marker; marker= marker->next, i++) {
-		item_tmp.identifier= item_tmp.name= marker->name;
-		item_tmp.icon= ICON_ARMATURE_DATA;
-		item_tmp.value= i;
-		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	
+	/* check that the action exists */
+	if (act) {
+		/* add each marker to the list */
+		for (marker=act->markers.first, i=0; marker; marker= marker->next, i++) {
+			item_tmp.identifier= item_tmp.name= marker->name;
+			item_tmp.icon= ICON_ARMATURE_DATA;
+			item_tmp.value= i;
+			RNA_enum_item_add(&item, &totitem, &item_tmp);
+		}
 	}
 
 	if (i > 0) {
