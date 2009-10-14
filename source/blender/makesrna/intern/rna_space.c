@@ -147,16 +147,20 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 	}
 }
 
-static int rna_TransformOrientation_getf(PointerRNA *ptr)
+static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
 {
+	Scene *scene = ((bScreen*)ptr->id.data)->scene;
 	View3D *v3d= (View3D*)ptr->data;
-
-	return v3d->twmode;
+	
+	if (v3d->twmode < 4)
+		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, NULL);
+	else
+		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, BLI_findlink(&scene->transform_spaces, v3d->twmode - 4));
 }
 
 EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	Scene *scene;
+	Scene *scene = ((bScreen*)ptr->id.data)->scene;
 	ListBase *transform_spaces;
 	TransformOrientation *ts= NULL;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -168,15 +172,9 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_VIEW);
 
-	scene= CTX_data_scene(C);
-
 	if(scene) {
 		transform_spaces = &scene->transform_spaces;
 		ts = transform_spaces->first;
-	}
-	else
-	{
-		printf("no scene\n");
 	}
 
 	if(ts)
@@ -783,9 +781,14 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "transform_orientation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "twmode");
 	RNA_def_property_enum_items(prop, transform_orientation_items);
-	RNA_def_property_enum_funcs(prop, "rna_TransformOrientation_getf", NULL, "rna_TransformOrientation_itemf");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_TransformOrientation_itemf");
 	RNA_def_property_ui_text(prop, "Transform Orientation", "Transformation orientation.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "current_orientation", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "TransformOrientation");
+	RNA_def_property_pointer_funcs(prop, "rna_CurrentOrientation_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Current Transform Orientation", "Current Transformation orientation.");
 
 	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, "RegionView3D", "viewlock", RV3D_LOCKED);
