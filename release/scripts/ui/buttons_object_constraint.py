@@ -50,6 +50,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				layout.item_pointerR(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
 	def ik_template(self, layout, con):
+		# only used for iTaSC
 		layout.itemR(con, "pole_target")
 	
 		if con.pole_target and con.pole_target.type == 'ARMATURE':
@@ -60,14 +61,14 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 			row.itemL()
 			row.itemR(con, "pole_angle")
 		
-		split = layout.split()
+		split = layout.split(percentage=0.33)
 		col = split.column()
 		col.itemR(con, "tail")
 		col.itemR(con, "stretch")
 
 		col = split.column()
-		col.itemR(con, "iterations")
 		col.itemR(con, "chain_length")
+		col.itemR(con, "targetless")
 
 	def CHILD_OF(self, context, layout, con):
 		self.target_template(layout, con)
@@ -115,24 +116,74 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 			layout.itemR(con, "ik_type")
 			getattr(self, "IK_"+con.ik_type)(context, layout, con)
 		else:
-			self.IK_COPY_POSE(context, layout, con)
+			# Legacy IK constraint
+			self.target_template(layout, con)
+			layout.itemR(con, "pole_target")
+	
+			if con.pole_target and con.pole_target.type == 'ARMATURE':
+				layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+		
+			if con.pole_target:
+				row = layout.row()
+				row.itemL()
+				row.itemR(con, "pole_angle")
+		
+			split = layout.split()
+			col = split.column()
+			col.itemR(con, "tail")
+			col.itemR(con, "stretch")
+
+			col = split.column()
+			col.itemR(con, "iterations")
+			col.itemR(con, "chain_length")
+			
+			split = layout.split()
+			col = split.column()
+			col.itemL()
+			col.itemR(con, "targetless")
+			col.itemR(con, "rotation")
+
+			col = split.column()
+			col.itemL(text="Weight:")
+			col.itemR(con, "weight", text="Position", slider=True)
+			sub = col.column()
+			sub.active = con.rotation
+			sub.itemR(con, "orient_weight", text="Rotation", slider=True)
 
 	def IK_COPY_POSE(self, context, layout, con):
 		self.target_template(layout, con)
 		self.ik_template(layout, con)
-
-		split = layout.split()
-		col = split.column()
-		col.itemL()
-		col.itemR(con, "targetless")
-		col.itemR(con, "rotation")
-
-		col = split.column()
-		col.itemL(text="Weight:")
-		col.itemR(con, "weight", text="Position", slider=True)
-		sub = col.column()
-		sub.active = con.rotation
-		sub.itemR(con, "orient_weight", text="Rotation", slider=True)
+	
+		row = layout.row()
+		row.itemL(text="Axis Ref:")
+		row.itemR(con, "axis_reference", expand=True)
+		split = layout.split(percentage=0.33)
+		split.row().itemR(con, "position")
+		row = split.row()
+		row.itemR(con, "weight", text="Weight", slider=True)
+		row.active = con.position
+		split = layout.split(percentage=0.33)
+		row = split.row()
+		row.itemL(text="Lock:")
+		row = split.row()
+		row.itemR(con, "pos_lock_x", text="X")
+		row.itemR(con, "pos_lock_y", text="Y")
+		row.itemR(con, "pos_lock_z", text="Z")
+		split.active = con.position
+		
+		split = layout.split(percentage=0.33)
+		split.row().itemR(con, "rotation")
+		row = split.row()
+		row.itemR(con, "orient_weight", text="Weight", slider=True)
+		row.active = con.rotation
+		split = layout.split(percentage=0.33)
+		row = split.row()
+		row.itemL(text="Lock:")
+		row = split.row()
+		row.itemR(con, "rot_lock_x", text="X")
+		row.itemR(con, "rot_lock_y", text="Y")
+		row.itemR(con, "rot_lock_z", text="Z")
+		split.active = con.rotation
 		
 	def IK_DISTANCE(self, context, layout, con):
 		self.target_template(layout, con)
@@ -610,20 +661,13 @@ class BONE_PT_inverse_kinematics(ConstraintButtonsPanel):
 		split.itemL()
 
 		if ob.pose.ik_solver == "ITASC":
-			layout.itemL(text="Joint constraint:")
-			split = layout.split(percentage=0.3)
-			row = split.row()
-			row.itemR(pchan, "ik_rot_control", text="Rotation")
-			row = split.row()
+			row = layout.row()
+			row.itemR(pchan, "ik_rot_control", text="Control Rotation")
 			row.itemR(pchan, "ik_rot_weight", text="Weight", slider=True)
-			row.active = pchan.ik_rot_control
 			# not supported yet
-			#split = layout.split(percentage=0.3)
-			#row = split.row()
-			#row.itemR(pchan, "ik_lin_control", text="Size")
-			#row = split.row()
+			#row = layout.row()
+			#row.itemR(pchan, "ik_lin_control", text="Joint Size")
 			#row.itemR(pchan, "ik_lin_weight", text="Weight", slider=True)
-			#row.active = pchan.ik_lin_control
 
 class BONE_PT_iksolver_itasc(ConstraintButtonsPanel):
 	__label__ = "iTaSC parameters"

@@ -87,6 +87,12 @@ EnumPropertyItem constraint_ik_type_items[] ={
 	{0, NULL, 0, NULL, NULL},
 };
 
+EnumPropertyItem constraint_ik_axisref_items[] ={
+	{0, "BONE", 0, "Bone", ""},
+	{CONSTRAINT_IK_TARGETAXIS, "TARGET", 0, "Target", ""},
+	{0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_action.h"
@@ -497,10 +503,51 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Tail", "Include bone's tail as last element in chain.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
+	prop= RNA_def_property(srna, "axis_reference", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, constraint_ik_axisref_items);
+	RNA_def_property_ui_text(prop, "Axis Reference", "Constraint axis Lock options relative to Bone or Target reference");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "position", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_POS);
+	RNA_def_property_ui_text(prop, "Position", "Chain follows position of target.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "pos_lock_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_POS_X);
+	RNA_def_property_ui_text(prop, "Lock X Pos", "Constraint position along X axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "pos_lock_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_POS_Y);
+	RNA_def_property_ui_text(prop, "Lock Y Pos", "Constraint position along Y axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "pos_lock_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_POS_Z);
+	RNA_def_property_ui_text(prop, "Lock Z Pos", "Constraint position along Z axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
+
 	prop= RNA_def_property(srna, "rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_ROT);
 	RNA_def_property_ui_text(prop, "Rotation", "Chain follows rotation of target.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "rot_lock_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_X);
+	RNA_def_property_ui_text(prop, "Lock X Rot", "Constraint rotation along X axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "rot_lock_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_Y);
+	RNA_def_property_ui_text(prop, "Lock Y Rot", "Constraint rotation along Y axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "rot_lock_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_Z);
+	RNA_def_property_ui_text(prop, "Lock Z Rot", "Constraint rotation along Z axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
 
 	prop= RNA_def_property(srna, "targetless", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_AUTO);

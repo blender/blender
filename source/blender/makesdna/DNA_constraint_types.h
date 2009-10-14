@@ -502,6 +502,16 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 #define CONSTRAINT_IK_POS		32
 #define CONSTRAINT_IK_SETANGLE	64
 #define CONSTRAINT_IK_GETANGLE	128
+	/* limit axis */
+#define CONSTRAINT_IK_NO_POS_X	256
+#define CONSTRAINT_IK_NO_POS_Y	512
+#define CONSTRAINT_IK_NO_POS_Z	1024
+#define CONSTRAINT_IK_NO_ROT_X	2048
+#define CONSTRAINT_IK_NO_ROT_Y	4096
+#define CONSTRAINT_IK_NO_ROT_Z	8192
+	/* axis relative to target */
+#define CONSTRAINT_IK_TARGETAXIS	16384
+
 
 /* MinMax (floor) flags */
 #define MINMAX_STICKY	0x01
