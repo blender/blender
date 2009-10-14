@@ -569,8 +569,8 @@ typedef struct SpaceUserPref {
 
 
 /* buts->mainb new */
-#define BCONTEXT_SCENE				0
-#define BCONTEXT_RENDER				1
+#define BCONTEXT_RENDER				0
+#define BCONTEXT_SCENE				1
 #define BCONTEXT_WORLD				2
 #define BCONTEXT_OBJECT				3
 #define BCONTEXT_DATA				4

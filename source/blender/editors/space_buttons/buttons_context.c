@@ -777,7 +777,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 			name= RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf));
 
 			if(name) {
-				if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene)
+				if(!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE) && ptr->type == &RNA_Scene)
 					uiItemL(row, "", icon); /* save some space */
 				else
 					uiItemL(row, name, icon);
