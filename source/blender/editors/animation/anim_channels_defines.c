@@ -280,11 +280,13 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 
 /* Settings ------------------------------------------- */
 
+#if 0
 /* channel type has no settings */
 static short acf_generic_none_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
 	return 0;
 }
+#endif
 
 /* check if some setting exists for this object-based data-expander (category only) */
 static short acf_generic_dsexpand_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
@@ -372,6 +374,50 @@ static int acf_summary_icon(bAnimListElem *ale)
 	return ICON_BORDERMOVE;
 }
 
+/* check if some setting exists for this channel */
+static short acf_summary_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+{
+	/* only expanded is supported, as it is used for hiding all stuff which the summary covers */
+	return (setting == ACHANNEL_SETTING_EXPAND);
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_summary_setting_flag(int setting, short *neg)
+{
+	if (setting == ACHANNEL_SETTING_EXPAND) {
+		/* expanded */
+		*neg= 1;
+		return ADS_FLAG_SUMMARY_COLLAPSED;
+	}
+	else {
+		/* unsupported */
+		*neg= 0;
+		return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	bAnimContext *ac= (bAnimContext *)ale->data;
+	
+	/* if data is valid, return pointer to active dopesheet's relevant flag 
+	 *	- this is restricted to DopeSheet/Action Editor only
+	 */
+	if ((ac->sa) && (ac->spacetype == SPACE_ACTION) && (setting == ACHANNEL_SETTING_EXPAND)) {
+		SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+		bDopeSheet *ads= &saction->ads;
+		
+		/* return pointer to DopeSheet's flag */
+		GET_ACF_FLAG_PTR(ads->flag);
+	}
+	else {
+		/* can't return anything useful - unsupported */
+		*type= 0;
+		return 0;
+	}
+}
+
 /* all animation summary (DopeSheet only) type define */
 static bAnimChannelType ACF_SUMMARY = 
 {
@@ -382,9 +428,9 @@ static bAnimChannelType ACF_SUMMARY =
 	acf_summary_name,					/* name */
 	acf_summary_icon,					/* icon */
 	
-	acf_generic_none_setting_valid,		/* has setting */
-	NULL,								/* flag for setting */
-	NULL								/* pointer for setting */
+	acf_summary_setting_valid,			/* has setting */
+	acf_summary_setting_flag,			/* flag for setting */
+	acf_summary_setting_ptr				/* pointer for setting */
 };
 
 /* Scene ------------------------------------------- */

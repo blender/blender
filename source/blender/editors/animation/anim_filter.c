@@ -1520,21 +1520,6 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 		return 0;
 	}
 	
-	/* dopesheet summary 
-	 *	- only for drawing and/or selecting keyframes in channels, but not for real editing 
-	 *	- only useful for DopeSheet Editor, where the summary is useful
-	 */
-	// TODO: we should really check if some other prohibited filters are also active, but that can be for later
-	if ((filter_mode & ANIMFILTER_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
-		ale= make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL, ANIMTYPE_NONE, NULL);
-		if (ale) {
-			BLI_addtail(anim_data, ale);
-			items++;
-		}
-		
-		// TODO: if the summary gets a collapse widget, then we could make the other stuff not get shown... 
-	}
-	
 	/* scene-linked animation */
 	// TODO: sequencer, composite nodes - are we to include those here too?
 	{
@@ -1887,6 +1872,50 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 	return items;
 }
 
+/* Summary track for DopeSheet/Action Editor 
+ * 	- return code is whether the summary lets the other channels get drawn
+ */
+static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim_data, int filter_mode, int *items)
+{
+	bDopeSheet *ads = NULL;
+	
+	/* get the DopeSheet information to use 
+	 *	- we should only need to deal with the DopeSheet/Action Editor, 
+	 *	  since all the other Animation Editors won't have this concept
+	 *	  being applicable.
+	 */
+	if ((ac && ac->sa) && (ac->sa->spacetype == SPACE_ACTION)) {
+		SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+		ads= &saction->ads;
+	}
+	else {
+		/* invalid space type - skip this summary channels */
+		return 1;
+	}
+	
+	/* dopesheet summary 
+	 *	- only for drawing and/or selecting keyframes in channels, but not for real editing 
+	 *	- only useful for DopeSheet Editor, where the summary is useful
+	 */
+	// TODO: we should really check if some other prohibited filters are also active, but that can be for later
+	if ((filter_mode & ANIMFILTER_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
+		bAnimListElem *ale= make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL, ANIMTYPE_NONE, NULL);
+		if (ale) {
+			BLI_addtail(anim_data, ale);
+			(*items)++;
+		}
+		
+		/* if summary is collapsed, don't show other channels beneath this 
+		 *	- this check is put inside the summary check so that it doesn't interfere with normal operation
+		 */ 
+		if (ads->flag & ADS_FLAG_SUMMARY_COLLAPSED)
+			return 0;
+	}
+	
+	/* the other channels beneath this can be shown */
+	return 1;
+}  
+
 /* ----------- Public API --------------- */
 
 /* This function filters the active data source to leave only animation channels suitable for
@@ -1907,23 +1936,41 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 		
 		/* firstly filter the data */
 		switch (datatype) {
-			case ANIMCONT_ACTION:
-				items= animdata_filter_action(anim_data, NULL, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+			case ANIMCONT_ACTION:	/* 'Action Editor' */
+			{
+				/* the check for the DopeSheet summary is included here since the summary works here too */
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items += animdata_filter_action(anim_data, NULL, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+			}
 				break;
 				
 			case ANIMCONT_SHAPEKEY:
+			{
 				//items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+			}
 				break;
 				
 			case ANIMCONT_GPENCIL:
+			{
 				//items= animdata_filter_gpencil(anim_data, data, filter_mode);
+			}
 				break;
 				
-			case ANIMCONT_DOPESHEET:
-			case ANIMCONT_FCURVES:
-			case ANIMCONT_DRIVERS:
-			case ANIMCONT_NLA:
-				items= animdata_filter_dopesheet(anim_data, ac, data, filter_mode);
+			case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
+			{
+				/* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items += animdata_filter_dopesheet(anim_data, ac, data, filter_mode);
+			}
+				break;
+				
+			case ANIMCONT_FCURVES: /* Graph Editor -> FCurves/Animation Editing */
+			case ANIMCONT_DRIVERS: /* Graph Editor -> Drivers Editing */
+			case ANIMCONT_NLA: /* NLA Editor */
+			{
+				/* all of these editors use the basic DopeSheet data for filtering options, but don't have all the same features */
+				items = animdata_filter_dopesheet(anim_data, ac, data, filter_mode);
+			}
 				break;
 		}
 			

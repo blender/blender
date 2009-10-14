@@ -444,9 +444,9 @@ typedef enum DOPESHEET_FILTERFLAG {
 } DOPESHEET_FILTERFLAG;	
 
 /* DopeSheet general flags */
-//typedef enum DOPESHEET_FLAG {
-	
-//} DOPESHEET_FLAG;
+typedef enum DOPESHEET_FLAG {
+	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0),	/* when summary is shown, it is collapsed, so all other channels get hidden */
+} DOPESHEET_FLAG;
 
 
 

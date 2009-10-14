@@ -326,23 +326,23 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco += (90 + 8);
 	
+	/* SUMMARY CHANNEL */
+	uiDefIconTextButBitI(block, TOG, ADS_FILTER_SUMMARY, B_REDR, ICON_BORDERMOVE, "Summary", xco,yco,XIC*4,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Include DopeSheet summary row"); // TODO: needs a better icon
+	xco += (XIC*4.5);
+	
 	/*if (ac.data)*/ 
 	{
 		/* MODE-DEPENDENT DRAWING */
 		if (saction->mode == SACTCONT_DOPESHEET) {
 			/* FILTERING OPTIONS */
-				/* DopeSheet summary...  */
-			uiDefIconTextButBitI(block, TOG, ADS_FILTER_SUMMARY, B_REDR, ICON_BORDERMOVE, "Summary", xco,yco,XIC*4,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Include DopeSheet summary row"); // TODO: needs a better icon
-			xco += (XIC*3.5);
-			
-				/* Standard filtering... */
+			xco -= XIC; // XXX first button incurs this offset...
 			xco= ANIM_headerUI_standard_buttons(C, &saction->ads, block, xco, yco);
 		}
 		else if (saction->mode == SACTCONT_ACTION) {
 			uiLayout *layout;
 			bScreen *sc= CTX_wm_screen(C);
 			PointerRNA ptr;
-
+			
 			RNA_pointer_create(&sc->id, &RNA_SpaceDopeSheetEditor, saction, &ptr);
 			
 			layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, 20+3, 20, 1, U.uistyles.first);
@@ -379,7 +379,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		xco += (XIC + 8);
 	}
 
-	/* always as last  */
+	/* always as last */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);
