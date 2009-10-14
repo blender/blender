@@ -7,7 +7,7 @@ class SceneButtonsPanel(bpy.types.Panel):
 	__context__ = "scene"
 	
 	def poll(self, context):
-		return (context.scene != None)
+		return context.scene
 
 class SCENE_PT_scene(SceneButtonsPanel):
 	__label__ = "Scene"
@@ -17,9 +17,9 @@ class SCENE_PT_scene(SceneButtonsPanel):
 		layout = self.layout
 		
 		scene = context.scene
+
 		layout.itemR(scene, "camera")
 		layout.itemR(scene, "set", text="Background")
-		
 
 class SCENE_PT_unit(SceneButtonsPanel):
 	__label__ = "Units"
@@ -119,9 +119,6 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 			col.itemR(ksp, "grouping")
 			if ksp.grouping == 'NAMED':
 				col.itemR(ksp, "group")
-				
-			
-			
 
 class SCENE_PT_physics(SceneButtonsPanel):
 	__label__ = "Gravity"

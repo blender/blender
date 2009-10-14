@@ -20,7 +20,7 @@ ERROR = 3
 class RenderButtonsPanel(bpy.types.Panel):
 	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
-	__context__ = "scene"
+	__context__ = "render"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
 	def poll(self, context):
@@ -29,7 +29,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 
 # Setting panel, use in the scene for now.
 @rnaType
-class SCENE_PT_network_settings(RenderButtonsPanel):
+class RENDER_PT_network_settings(RenderButtonsPanel):
 	__label__ = "Network Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 
@@ -60,7 +60,7 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 			col.itemO("render.netclientscan", icon="ICON_FILE_REFRESH", text="")
 
 @rnaType
-class SCENE_PT_network_job(RenderButtonsPanel):
+class RENDER_PT_network_job(RenderButtonsPanel):
 	__label__ = "Job Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
@@ -88,7 +88,7 @@ class SCENE_PT_network_job(RenderButtonsPanel):
 		col.itemR(scene.network_render, "chunks")
 
 @rnaType
-class SCENE_PT_network_slaves(RenderButtonsPanel):
+class RENDER_PT_network_slaves(RenderButtonsPanel):
 	__label__ = "Slaves Status"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
@@ -126,7 +126,7 @@ class SCENE_PT_network_slaves(RenderButtonsPanel):
 			layout.itemL(text="Stats: " + slave.stats)
 
 @rnaType
-class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
+class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 	__label__ = "Slaves Blacklist"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	
@@ -163,7 +163,7 @@ class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
 			layout.itemL(text="Stats: " + time.ctime(slave.stats))
 
 @rnaType
-class SCENE_PT_network_jobs(RenderButtonsPanel):
+class RENDER_PT_network_jobs(RenderButtonsPanel):
 	__label__ = "Jobs"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 	

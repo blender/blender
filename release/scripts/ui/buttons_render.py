@@ -1,14 +1,6 @@
 
 import bpy
 
-class SceneButtonsPanel(bpy.types.Panel):
-	__space_type__ = 'PROPERTIES'
-	__region_type__ = 'WINDOW'
-	__context__ = "render"
-	
-	def poll(self, context):
-		return (context.scene != None)
-
 class RenderButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
@@ -17,7 +9,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 	
 	def poll(self, context):
 		rd = context.scene.render_data
-		return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
+		return (context.scene and rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
@@ -446,7 +438,6 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		sub.active = rd.stamp_note
 		sub.itemR(rd, "stamp_note_text", text="")
 
-		
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_layers)
 bpy.types.register(RENDER_PT_dimensions)
@@ -457,4 +448,3 @@ bpy.types.register(RENDER_PT_encoding)
 bpy.types.register(RENDER_PT_performance)
 bpy.types.register(RENDER_PT_post_processing)
 bpy.types.register(RENDER_PT_stamp)
-
