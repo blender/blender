@@ -617,6 +617,17 @@ void recalcData(TransInfo *t)
 			}
 		}
 	}
+	else if (t->spacetype == SPACE_IMAGE) {
+		if (t->obedit && t->obedit->type == OB_MESH) {
+			SpaceImage *sima= t->sa->spacedata.first;
+			
+			flushTransUVs(t);
+			if(sima->flag & SI_LIVE_UNWRAP)
+				ED_uvedit_live_unwrap_re_solve();
+			
+			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
+		}
+	}
 	else if (t->spacetype == SPACE_VIEW3D) {
 		
 		/* project */
@@ -652,27 +663,17 @@ void recalcData(TransInfo *t)
 				if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
 			}
 			else if (t->obedit->type == OB_MESH) {
-				if(t->spacetype==SPACE_IMAGE) {
-					SpaceImage *sima= t->sa->spacedata.first;
-					
-					flushTransUVs(t);
-					if(sima->flag & SI_LIVE_UNWRAP)
-						ED_uvedit_live_unwrap_re_solve();
-					
-					DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
-				} else {
-					EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
-					/* mirror modifier clipping? */
-					if(t->state != TRANS_CANCEL) {
-						clipMirrorModifier(t, t->obedit);
-					}
-					if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
-						editmesh_apply_to_mirror(t);
-						
-					DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-					
-					recalc_editnormals(em);
+				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
+				/* mirror modifier clipping? */
+				if(t->state != TRANS_CANCEL) {
+					clipMirrorModifier(t, t->obedit);
 				}
+				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
+					editmesh_apply_to_mirror(t);
+					
+				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				
+				recalc_editnormals(em);
 			}
 			else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
 				bArmature *arm= t->obedit->data;
@@ -809,7 +810,7 @@ void recalcData(TransInfo *t)
 			}
 		}
 		
-		if(t->spacetype==SPACE_VIEW3D && ((View3D*)t->view)->drawtype == OB_SHADED)
+		if(((View3D*)t->view)->drawtype == OB_SHADED)
 			reshadeall_displist(t->scene);
 	}
 }
