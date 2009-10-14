@@ -873,7 +873,10 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(bool grab, bool warp, bool
 				setCursorWarpAccum(-x_new, -y_new);
 			}
 			else {
-				m_systemCocoa->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+				GHOST_TInt32 x_new, y_new;
+				//get/set cursor position works in screen coordinates
+				clientToScreen(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1], x_new, y_new);
+				m_systemCocoa->setCursorPosition(x_new, y_new);
 				setCursorWarpAccum(0, 0);
 			}
 			
