@@ -119,27 +119,13 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA *ptr)
 
 static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	if(C==NULL) {
-		EnumPropertyItem *item= NULL;
-		int totitem= 0;
-		
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, particle_edit_hair_brush_items);
-		RNA_enum_item_end(&item, &totitem);
-		
-		*free= 1;
-		
-		return item;
-	}
-	else {
-		Scene *scene= CTX_data_scene(C);
-		PTCacheEdit *edit = PE_get_current(scene, CTX_data_active_object(C));
-		
-		if(edit && edit->psys)
-			return particle_edit_hair_brush_items;
+	Scene *scene= CTX_data_scene(C);
+	PTCacheEdit *edit = PE_get_current(scene, CTX_data_active_object(C));
+	
+	if(edit && edit->psys)
+		return particle_edit_hair_brush_items;
 
-		return particle_edit_cache_brush_items;
-	}
+	return particle_edit_cache_brush_items;
 }
 
 static int rna_ParticleEdit_editable_get(PointerRNA *ptr)

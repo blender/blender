@@ -229,10 +229,6 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *p
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 
-	if(C==NULL) {
-		return parent_type_items;
-	}
-	
 	RNA_enum_items_add_value(&item, &totitem, parent_type_items, PAROBJECT);
 
 	if(ob->parent) {
@@ -253,7 +249,6 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *p
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-
 	*free= 1;
 
 	return item;

@@ -275,18 +275,14 @@ static EnumPropertyItem group_items[]= {
 
 static EnumPropertyItem *group_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
+	Main *bmain= CTX_data_main(C);
+	Group *group;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item= NULL;
-	Main *bmain;
-	Group *group;
 	int a, totitem= 0;
-	
-	if(!C) /* needed for docs */
-		return group_items;
 	
 	RNA_enum_items_add_value(&item, &totitem, group_items, -1);
 
-	bmain= CTX_data_main(C);
 	if(bmain->group.first)
 		RNA_enum_item_add_separator(&item, &totitem);
 
@@ -298,7 +294,6 @@ static EnumPropertyItem *group_itemf(bContext *C, PointerRNA *ptr, int *free)
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-
 	*free= 1;
 
 	return item;

@@ -440,12 +440,12 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
+	Object *ob= CTX_data_active_object(C);
 	EnumPropertyItem *item= NULL, *md_item;
 	ModifierTypeInfo *mti;
-	Object *ob;
 	int totitem= 0, a;
 	
-	if(!C || !(ob= CTX_data_active_object(C))) /* needed for docs */
+	if(!ob)
 		return modifier_type_items;
 
 	for(a=0; modifier_type_items[a].identifier; a++) {
@@ -466,7 +466,6 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *ptr, int *f
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-
 	*free= 1;
 
 	return item;

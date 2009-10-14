@@ -260,10 +260,6 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, Poi
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	if(C==NULL) {
-		return prop_texture_coordinates_items;
-	}
-	
 	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_GLOB);
 	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_OBJECT);
 	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_ORCO);
@@ -283,7 +279,6 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, Poi
 	}
 	
 	RNA_enum_item_end(&item, &totitem);
-	
 	*free= 1;
 	
 	return item;

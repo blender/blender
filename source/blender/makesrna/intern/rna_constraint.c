@@ -232,20 +232,6 @@ static EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *C, PointerRN
 	Object *ob= (Object*)ptr->id.data;
 	bConstraint *con= (bConstraint*)ptr->data;
 	
-	if(C==NULL) {
-		EnumPropertyItem *item= NULL;
-		int totitem= 0;
-		
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, space_object_items);
-		RNA_enum_items_add(&item, &totitem, space_pchan_items);
-		RNA_enum_item_end(&item, &totitem);
-		
-		*free= 1;
-		
-		return item;
-	}
-
 	if(BLI_findindex(&ob->constraints, con) == -1)
 		return space_pchan_items;
 	else /* object */
@@ -258,20 +244,6 @@ static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *C, PointerR
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
 	bConstraintTarget *ct;
-	
-	if(C==NULL) {
-		EnumPropertyItem *item= NULL;
-		int totitem= 0;
-		
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, space_object_items);
-		RNA_enum_items_add(&item, &totitem, space_pchan_items);
-		RNA_enum_item_end(&item, &totitem);
-		
-		*free= 1;
-		
-		return item;
-	}
 	
 	if(cti && cti->get_constraint_targets) {
 		cti->get_constraint_targets(con, &targets);

@@ -546,24 +546,6 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, 
 {
 	Object *ob= NULL;
 
-	if(C==NULL) {
-		EnumPropertyItem *item= NULL;
-		int totitem= 0;
-		
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, effector_shape_items);
-		RNA_enum_items_add(&item, &totitem, curve_shape_items);
-		RNA_enum_items_add(&item, &totitem, empty_shape_items);
-		RNA_enum_items_add(&item, &totitem, vortex_shape_items);
-		RNA_enum_items_add(&item, &totitem, curve_vortex_shape_items);
-		RNA_enum_items_add(&item, &totitem, empty_vortex_shape_items);
-		RNA_enum_item_end(&item, &totitem);
-		
-		*free= 1;
-		
-		return item;
-	}
-
 	if(particle_field_check(ptr))
 		return empty_shape_items;
 	

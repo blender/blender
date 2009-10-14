@@ -432,9 +432,6 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr,
 	int totitem= 0;
 	int i= 0;
 
-	if (C == NULL)
-		return NULL;
-
 	memset(&item_tmp, 0, sizeof(item_tmp));
 	
 	/* check that the action exists */
@@ -448,12 +445,10 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr,
 		}
 	}
 
-	if (i > 0) {
-		*free= 1;
-		return item;
-	}
-	else
-		return NULL;
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
 }
 
 static int poselib_remove_exec (bContext *C, wmOperator *op)

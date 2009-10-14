@@ -64,19 +64,23 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_USERPREF, "USER_PREFERENCES", 0, "User Preferences", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-#define DC_RGB {0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors."}
-#define DC_RGBA {SI_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha", "Draw image with RGB colors and alpha transparency."}
-#define DC_ALPHA {SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel."}
-#define DC_Z {SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)."}
+static EnumPropertyItem draw_channels_items[] = {
+	{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors."},
+	{SI_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha", "Draw image with RGB colors and alpha transparency."},
+	{SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel."},
+	{SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)."},
 #ifdef WITH_LCMS
-#define DC_LCMS {SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image."}
-#else
-#define DC_LCMS {0, NULL, 0, NULL, NULL}
+	{SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image."},
 #endif
-#define DC_ZERO {0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem dc_all_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_Z, DC_LCMS, DC_ZERO};
-
+static EnumPropertyItem transform_orientation_items[] = {
+	{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", "Align the transformation axes to world space"},
+	{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", "Align the transformation axes to the selected objects' local space"},
+	{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", "Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)"},
+	{V3D_MANIP_VIEW, "VIEW", 0, "View", "Align the transformation axes to the window"},
+	{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -155,37 +159,26 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 	Scene *scene;
 	ListBase *transform_spaces;
 	TransformOrientation *ts= NULL;
-
-	EnumPropertyItem global	= {V3D_MANIP_GLOBAL, "Global", 0, "Global", ""};
-	EnumPropertyItem normal = {V3D_MANIP_NORMAL, "Normal", 0, "Normal", ""};
-	EnumPropertyItem local = {V3D_MANIP_LOCAL, "Local", 0, "Local", ""};
-	EnumPropertyItem view = {V3D_MANIP_VIEW, "View", 0, "View", ""};
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item= NULL;
 	int i = V3D_MANIP_CUSTOM, totitem= 0;
 
-	RNA_enum_item_add(&item, &totitem, &global);
-	RNA_enum_item_add(&item, &totitem, &normal);
-	RNA_enum_item_add(&item, &totitem, &local);
-	RNA_enum_item_add(&item, &totitem, &view);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_GLOBAL);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_NORMAL);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_VIEW);
 
-	if(C) {
-		scene= CTX_data_scene(C);
+	scene= CTX_data_scene(C);
 
-		if(scene) {
-			transform_spaces = &scene->transform_spaces;
-			ts = transform_spaces->first;
-		}
-		else
-		{
-			printf("no scene\n");
-		}
+	if(scene) {
+		transform_spaces = &scene->transform_spaces;
+		ts = transform_spaces->first;
 	}
 	else
 	{
-		printf("no context\n");
+		printf("no scene\n");
 	}
-		
+
 	if(ts)
 		RNA_enum_item_add_separator(&item, &totitem);
 
@@ -197,7 +190,6 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-
 	*free= 1;
 
 	return item;
@@ -245,22 +237,14 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_image_set(NULL, sima, sc->scene, sc->scene->obedit, (Image*)value.data);
 }
 
-static EnumPropertyItem dc_rgb_items[] = {DC_RGB, DC_LCMS, DC_ZERO};
-static EnumPropertyItem dc_alpha_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_LCMS, DC_ZERO};
-static EnumPropertyItem dc_z_items[] = {DC_RGB, DC_Z, DC_LCMS, DC_ZERO};
-
 static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
+	EnumPropertyItem *item= NULL;
 	ImBuf *ibuf;
 	void *lock;
-	int zbuf, alpha;
+	int zbuf, alpha, totitem= 0;
 
-	if(C==NULL) {
-		/* needed for doc generation */
-		return dc_all_items;
-	}
-	
 	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	
 	alpha= ibuf && (ibuf->channels == 4);
@@ -269,13 +253,26 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	ED_space_image_release_buffer(sima, lock);
 
 	if(alpha && zbuf)
-		return dc_all_items;
-	else if(alpha)
-		return dc_alpha_items;
-	else if(zbuf)
-		return dc_z_items;
-	else
-		return dc_rgb_items;
+		return draw_channels_items;
+
+	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
+
+	if(alpha) {
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ALPHA);
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_USE_ALPHA);
+	}
+	else if(zbuf) {
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ZBUF);
+	}
+
+#ifdef WITH_LCMS
+	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_COLOR_CORRECTION);
+#endif
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
 }
 
 static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
@@ -641,14 +638,6 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 		{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
-	static EnumPropertyItem transform_orientation_items[] = {
-		{V3D_MANIP_GLOBAL, "ORIENT_GLOBAL", 0, "Global", "Align the transformation axes to world space"},
-		{V3D_MANIP_LOCAL, "ORIENT_LOCAL", 0, "Local", "Align the transformation axes to the selected objects' local space"},
-		{V3D_MANIP_NORMAL, "ORIENT_NORMAL", 0, "Normal", "Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)"},
-		{V3D_MANIP_VIEW, "ORIENT_VIEW", 0, "View", "Align the transformation axes to the window"},
-		{V3D_MANIP_CUSTOM, "ORIENT_CUSTOM", 0, "Custom", "Use a custom transform orientation"},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "Space3DView", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
@@ -911,7 +900,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "draw_channels", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, dc_all_items);
+	RNA_def_property_enum_items(prop, draw_channels_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceImageEditor_draw_channels_itemf");
 	RNA_def_property_ui_text(prop, "Draw Channels", "Channels of the image to draw.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);

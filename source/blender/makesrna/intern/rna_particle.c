@@ -499,39 +499,9 @@ static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 	else
 		strcpy(str, "No object");
 }
-EnumPropertyItem from_items[] = {
-	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
-	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
-	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-EnumPropertyItem reactor_from_items[] = {
-	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
-	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
-	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
-	{PART_FROM_PARTICLE, "PARTICLE", 0, "Particle", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
 static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	/* ParticleSettings *part = ptr->id.data; */
-
-	if(C==NULL) {
-		EnumPropertyItem *item= NULL;
-		int totitem= 0;
-		
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, part_reactor_from_items);
-		RNA_enum_items_add(&item, &totitem, part_from_items);
-		RNA_enum_item_end(&item, &totitem);
-		
-		*free= 1;
-		
-		return item;
-	}
-	
 	//if(part->type==PART_REACTOR)
 	//	return part_reactor_from_items;
 	//else
@@ -542,20 +512,6 @@ static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr
 {
 	ParticleSettings *part = ptr->id.data;
 
-	if(C==NULL) {
-		EnumPropertyItem *item= NULL;
-		int totitem= 0;
-		
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, part_hair_draw_as_items);
-		RNA_enum_items_add(&item, &totitem, part_draw_as_items);
-		RNA_enum_item_end(&item, &totitem);
-		
-		*free= 1;
-		
-		return item;
-	}
-	
 	if(part->type==PART_HAIR)
 		return part_hair_draw_as_items;
 	else
@@ -566,20 +522,6 @@ static EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *C, PointerRNA *ptr,
 {
 	ParticleSettings *part = ptr->id.data;
 
-	if(C==NULL) {
-		EnumPropertyItem *item= NULL;
-		int totitem= 0;
-		
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, part_hair_ren_as_items);
-		RNA_enum_items_add(&item, &totitem, part_ren_as_items);
-		RNA_enum_item_end(&item, &totitem);
-		
-		*free= 1;
-		
-		return item;
-	}
-	
 	if(part->type==PART_HAIR)
 		return part_hair_ren_as_items;
 	else

@@ -5856,14 +5856,10 @@ static EnumPropertyItem merge_type_items[]= {
 
 static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
-	Object *obedit;
+	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
-	
-	if(!C) /* needed for docs */
-		return merge_type_items;
-	
-	obedit= CTX_data_edit_object(C);
+
 	if(obedit && obedit->type == OB_MESH) {
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 
@@ -5882,14 +5878,12 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 3);
 		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 4);
 		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 5);
-		RNA_enum_item_end(&item, &totitem);
-
-		*free= 1;
-
-		return item;
 	}
-	
-	return NULL;
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
 }
 
 void MESH_OT_merge(wmOperatorType *ot)

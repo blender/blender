@@ -624,7 +624,7 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
-	if(eprop->itemf==NULL || eprop->itemf==rna_EnumProperty_default_itemf)
+	if(eprop->itemf==NULL || eprop->itemf==rna_EnumProperty_default_itemf || !C)
 		return eprop->item;
 
 	return eprop->itemf(C, ptr, free);

@@ -658,7 +658,25 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 
 /* selects new faces/edges/verts based on the existing selection */
 
-/* FACES GROUP */
+/* VERT GROUP */
+
+#define SIMVERT_NORMAL	0
+#define SIMVERT_FACE	1
+#define SIMVERT_VGROUP	2
+#define SIMVERT_TOT		3
+
+/* EDGE GROUP */
+
+#define SIMEDGE_LENGTH		101
+#define SIMEDGE_DIR			102
+#define SIMEDGE_FACE		103
+#define SIMEDGE_FACE_ANGLE	104
+#define SIMEDGE_CREASE		105
+#define SIMEDGE_SEAM		106
+#define SIMEDGE_SHARP		107
+#define SIMEDGE_TOT			108
+
+/* FACE GROUP */
 
 #define SIMFACE_MATERIAL	201
 #define SIMFACE_IMAGE		202
@@ -666,8 +684,19 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 #define SIMFACE_PERIMETER	204
 #define SIMFACE_NORMAL		205
 #define SIMFACE_COPLANAR	206
+#define SIMFACE_TOT			207
 
-static EnumPropertyItem prop_simface_types[] = {
+static EnumPropertyItem prop_similar_types[] = {
+	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
+	{SIMVERT_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
+	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
+	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
+	{SIMEDGE_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
+	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
+	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
+	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
 	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
 	{SIMFACE_AREA, "AREA", 0, "Area", ""},
@@ -830,27 +859,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 }	
 
 /* ***************************************************** */
-
-/* EDGE GROUP */
-
-#define SIMEDGE_LENGTH		101
-#define SIMEDGE_DIR			102
-#define SIMEDGE_FACE		103
-#define SIMEDGE_FACE_ANGLE	104
-#define SIMEDGE_CREASE		105
-#define SIMEDGE_SEAM		106
-#define SIMEDGE_SHARP		107
-
-static EnumPropertyItem prop_simedge_types[] = {
-	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
-	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
-	{SIMEDGE_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
-	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
-	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
-	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
-	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
 static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mode)
 {
@@ -1073,25 +1081,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 /* ********************************* */
 
-/*
-VERT GROUP
- mode 1: same normal
- mode 2: same number of face users
- mode 3: same vertex groups
-*/
-
-#define SIMVERT_NORMAL	0
-#define SIMVERT_FACE	1
-#define SIMVERT_VGROUP	2
-
-static EnumPropertyItem prop_simvertex_types[] = {
-	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
-	{SIMVERT_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
-	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
@@ -1243,37 +1232,30 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	Object *obedit;
+	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
-	int totitem= 0;
-	
-	if(C) {
-		obedit= CTX_data_edit_object(C);
+	int a, totitem= 0;
 		
-		if(obedit && obedit->type == OB_MESH) {
-			EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
+	if(obedit && obedit->type == OB_MESH) {
+		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
 
-			if(em->selectmode & SCE_SELECT_VERTEX)
-				RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
-			else if(em->selectmode & SCE_SELECT_EDGE)
-				RNA_enum_items_add(&item, &totitem, prop_simedge_types);
-			else if(em->selectmode & SCE_SELECT_FACE)
-				RNA_enum_items_add(&item, &totitem, prop_simface_types);
-			RNA_enum_item_end(&item, &totitem);
-
-			*free= 1;
-
-			return item;
+		if(em->selectmode & SCE_SELECT_VERTEX) {
+			for(a=SIMVERT_NORMAL; a<=SIMVERT_TOT; a++)
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
+		}
+		else if(em->selectmode & SCE_SELECT_EDGE) {
+			for(a=SIMEDGE_LENGTH; a<=SIMEDGE_TOT; a++)
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
+		}
+		else if(em->selectmode & SCE_SELECT_FACE) {
+			for(a=SIMFACE_MATERIAL; a<=SIMFACE_TOT; a++)
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
 		}
 	}
 
-	/* needed for doc generation */
-	RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
-	RNA_enum_items_add(&item, &totitem, prop_simedge_types);
-	RNA_enum_items_add(&item, &totitem, prop_simface_types);
 	RNA_enum_item_end(&item, &totitem);
 	*free= 1;
-	
+
 	return item;
 }
 
@@ -1295,7 +1277,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", prop_simvertex_types, SIMVERT_NORMAL, "Type", "");
+	prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
 }
 
