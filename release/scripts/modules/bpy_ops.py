@@ -157,9 +157,6 @@ class WM_OT_context_set(bpy.types.Operator):
 	'''Set a context value.'''
 	__idname__ = "wm.context_set"
 	__label__ = "Context Set"
-	__register__ = True
-	__undo__ = True
-	
 	__props__ = [
 		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
 		bpy.props.StringProperty(attr="value", name="Value", description="Assignment value (as a string)", maxlen= 1024, default= "")
@@ -173,9 +170,6 @@ class WM_OT_context_toggle(bpy.types.Operator):
 	'''Toggle a context value.'''
 	__idname__ = "wm.context_toggle"
 	__label__ = "Context Toggle"
-	__register__ = True
-	__undo__ = True
-	
 	__props__ = [
 		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
 	]
@@ -188,9 +182,6 @@ class WM_OT_context_toggle_values(bpy.types.Operator):
 	'''Toggle a context value.'''
 	__idname__ = "wm.context_toggle_values"
 	__label__ = "Context Toggle Values"
-	__register__ = True
-	__undo__ = True
-	
 	__props__ = [
 		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
 		bpy.props.StringProperty(attr="value_1", name="Value", description="Toggle value (as a string)", maxlen= 1024, default= ""),
@@ -205,9 +196,6 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 	'''Toggle a context value.'''
 	__idname__ = "wm.context_cycle_enum"
 	__label__ = "Context Enum Cycle"
-	__register__ = True
-	__undo__ = True
-	
 	__props__ = [
 		bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= ""),
 		bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)

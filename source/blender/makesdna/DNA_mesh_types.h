@@ -82,7 +82,7 @@ typedef struct Mesh {
 	 * the face does not need to be selected, -1 is inactive */
 	int act_face; 
 	
-	int texflag;
+	short texflag, editflag;
 	
 	/* texture space, copied as one block in editobject.c */
 	float loc[3];
@@ -115,6 +115,11 @@ typedef struct TFace {
 
 /* texflag */
 #define AUTOSPACE	1
+
+/* me->editflag */
+#define ME_EDIT_MIRROR_X (1 << 0)
+#define ME_EDIT_MIRROR_Y (1 << 1) // unused so far
+#define ME_EDIT_MIRROR_Z (1 << 2) // unused so far
 
 /* me->flag */
 #define ME_ISDONE		1

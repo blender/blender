@@ -4291,7 +4291,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 		if(eve->f & SELECT) {
 			if(eve->f1) {
 				
-				if (ts->editbutflag & B_MESH_X_MIRROR) {
+				if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
 					eve_mir= editmesh_get_x_mirror_vert(obedit, em, eve->co);
 				}
 				

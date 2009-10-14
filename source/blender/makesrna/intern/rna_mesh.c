@@ -1600,6 +1600,21 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Face Area", "Displays the area of selected faces");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
+	/* editflag */
+	prop= RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_X);
+	RNA_def_property_ui_text(prop, "X Mirror", "X Axis mirror editing");
+
+	/*
+	prop= RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_Y);
+	RNA_def_property_ui_text(prop, "Y Mirror", "Y Axis mirror editing");
+
+	prop= RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_Z);
+	RNA_def_property_ui_text(prop, "Z Mirror", "Z Axis mirror editing");
+	 */
+
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 
 	RNA_api_mesh(srna);

@@ -974,7 +974,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	// Need stuff to take it from edit mesh or whatnot here
 	else
 	{
-		if (t->obedit && t->obedit->type == OB_MESH && ts->editbutflag & B_MESH_X_MIRROR)
+		if (t->obedit && t->obedit->type == OB_MESH && (((Mesh *)t->obedit->data)->editflag & ME_EDIT_MIRROR_X))
 		{
 			t->flag |= T_MIRROR;
 		}
