@@ -270,8 +270,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 	BLI_strncpy(otmacro->idname, idname, OP_MAX_TYPENAME);
 
 	/* do this on first use, since operatordefinitions might have been not done yet */
-//	otmacro->ptr= MEM_callocN(sizeof(PointerRNA), "optype macro ItemPtr");
-//	WM_operator_properties_create(otmacro->ptr, idname);
+	WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
 	
 	BLI_addtail(&ot->macro, otmacro);
 	
@@ -441,6 +440,25 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 		RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
 }
 
+/* similar to the function above except its uses ID properties
+ * used for keymaps and macros */
+void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
+{
+	if(*properties==NULL) {
+		IDPropertyTemplate val = {0};
+		*properties= IDP_New(IDP_GROUP, val, "wmOpItemProp");
+	}
+
+	if(*ptr==NULL) {
+		*ptr= MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr");
+		WM_operator_properties_create(*ptr, opstring);
+	}
+
+	(*ptr)->data= *properties;
+
+}
+
+
 void WM_operator_properties_free(PointerRNA *ptr)
 {
 	IDProperty *properties= ptr->data;
@@ -488,18 +506,24 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
-/* op->invoke */
-int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
+/* Can't be used as an invoke directly, needs message arg (can be NULL) */
+int WM_operator_confirm_message(bContext *C, wmOperator *op, char *message)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
 	pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
-	uiItemO(layout, NULL, 0, op->type->idname);
+	uiItemO(layout, message, 0, op->type->idname);
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
+}
+
+
+int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_operator_confirm_message(C, op, NULL);
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
@@ -517,22 +541,33 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 /* default properties for fileselect */
 void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 {
-	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "FilePath", "Path to file.");
-	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "FileName", "Name of the file.");
+	PropertyRNA *prop;
+
+	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "File Path", "Path to file.");
+	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file.");
 	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
 
-	RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
-	RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
-	RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
-	RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
-	RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
-	RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
-	RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
-	RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+	prop= RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 
-	RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
+	prop= RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
 		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
 		FILE_LOADLIB, FILE_SPECIAL);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* op->poll */
@@ -772,7 +807,7 @@ static int wm_call_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
 
-	uiPupMenuInvoke(C, idname, CTX_wm_area(C)->spacetype);
+	uiPupMenuInvoke(C, idname);
 
 	return OPERATOR_CANCELLED;
 }
@@ -1103,6 +1138,8 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	ot->exec= wm_link_append_exec;
 	ot->poll= WM_operator_winactive;
 	
+	ot->flag |= OPTYPE_UNDO;
+
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
@@ -1382,7 +1419,7 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 
 int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(WM_key_event_is_tweak(event->type))
+	if(ISTWEAK(event->type))
 		op->customdata= WM_gesture_new(C, event, WM_GESTURE_RECT);
 	else
 		op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
@@ -1976,7 +2013,7 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
     just sets up the common parts of the radial control op. **/
 void WM_OT_radial_control_partial(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_mode_items[] = {
+	static EnumPropertyItem radial_mode_items[] = {
 		{WM_RADIALCONTROL_SIZE, "SIZE", 0, "Size", ""},
 		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", 0, "Strength", ""},
 		{WM_RADIALCONTROL_ANGLE, "ANGLE", 0, "Angle", ""},
@@ -1989,7 +2026,7 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "new_value", 0, 0, FLT_MAX, "New Value", "", 0, FLT_MAX);
 
 	/* Should be set before calling operator */
-	RNA_def_enum(ot->srna, "mode", prop_mode_items, 0, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", radial_mode_items, 0, "Mode", "");
 
 	/* Internal */
 	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
@@ -2146,9 +2183,10 @@ void wm_operatortype_init(void)
 }
 
 /* default keymap for windows and screens, only call once per WM */
-void wm_window_keymap(wmWindowManager *wm)
+void wm_window_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Window", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
+	wmKeyMapItem *km;
 	
 	/* items to make WM work */
 	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);
@@ -2171,7 +2209,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 
-	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */
@@ -2179,5 +2217,55 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
+	/* Space switching */
+
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'LOGIC_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F3KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'NODE_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'CONSOLE'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F5KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'VIEW_3D'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F6KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'GRAPH_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F7KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'PROPERTIES'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F8KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'SEQUENCE_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'OUTLINER'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'OUTLINER'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F10KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'IMAGE_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'TEXT_EDITOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", F12KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "'DOPESHEET_EDITOR'");
 }
 

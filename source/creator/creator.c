@@ -619,7 +619,7 @@ int main(int argc, char **argv)
 						int frame = atoi(argv[a]);
 						Render *re = RE_NewRender(scene->id.name);
 
-						frame = MIN2(MAXFRAME, MAX2(1, frame));
+						frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 						
 						RE_BlenderAnim(re, scene, frame, frame, scene->frame_step);
 					}

@@ -2151,7 +2151,7 @@ int VecLen( int *v1, int *v2)
 	return (int)floor(sqrt(x*x+y*y+z*z));
 }
 
-float VecLenf( float *v1, float *v2)
+float VecLenf(float v1[3], float v2[3])
 {
 	float x,y,z;
 
@@ -5131,7 +5131,7 @@ int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
 }
 
 /* point closest to v1 on line v2-v3 in 3D */
-void PclosestVL3Dfl(float *closest, float *v1, float *v2, float *v3)
+void PclosestVL3Dfl(float *closest, float v1[3], float v2[3], float v3[3])
 {
 	float lambda, cp[3];
 

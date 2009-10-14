@@ -492,11 +492,12 @@ static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		}
 		glEnd();
 	} else {
-		GPUBuffer *buffer = 0;
+		GPUBuffer *buffer = NULL;
 		float *varray;
-		if( setDrawOptions == 0 ) {
+
+		if(GPU_buffer_legacy(dm)==FALSE)
 			buffer = GPU_buffer_alloc( sizeof(float)*3*2*emdm->em->totedge, 0 );
-		}
+
 		if( buffer != 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
 			int prevdraw = 0;
 			int numedges = 0;

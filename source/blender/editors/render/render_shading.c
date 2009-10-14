@@ -433,6 +433,44 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
+static int material_slot_copy_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Material ***matar;
+
+	if(!ob || !(matar= give_matarar(ob)))
+		return OPERATOR_CANCELLED;
+
+	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+		if(ob != ob_iter && give_matarar(ob_iter)) {
+			assign_matarar(ob_iter, matar, ob->totcol);
+			if(ob_iter->totcol==ob->totcol) {
+				ob_iter->actcol= ob->actcol;
+				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);
+			}
+		}
+	}
+	CTX_DATA_END;
+
+	return OPERATOR_FINISHED;
+}
+
+
+void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Material to Others";
+	ot->idname= "OBJECT_OT_material_slot_copy";
+	ot->description="Copies materials to other selected objects.";
+
+	/* api callbacks */
+	ot->exec= material_slot_copy_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /********************** new material operator *********************/
 
 static int new_material_exec(bContext *C, wmOperator *op)
@@ -763,4 +801,80 @@ void SCENE_OT_freestyle_module_move_down(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_boolean(ot->srna, "active", 0, "Active", "True if the operator is enabled.");
+}
+
+static int texture_slot_move(bContext *C, wmOperator *op)
+{
+	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+
+	if(id) {
+		MTex **mtex_ar, *mtexswap;
+		short act;
+		int type= RNA_enum_get(op->ptr, "type");
+
+		give_active_mtex(id, &mtex_ar, &act);
+
+		if(type == -1) { /* Up */
+			if(act > 0) {
+				mtexswap = mtex_ar[act];
+				mtex_ar[act] = mtex_ar[act-1];
+				mtex_ar[act-1] = mtexswap;
+
+				if(GS(id->name)==ID_MA) {
+					Material *ma= (Material *)id;
+					int mtexuse = ma->septex & (1<<act);
+					ma->septex &= ~(1<<act);
+					ma->septex |= (ma->septex & (1<<(act-1))) << 1;
+					ma->septex &= ~(1<<(act-1));
+					ma->septex |= mtexuse >> 1;
+				}
+
+				set_active_mtex(id, act-1);
+			}
+		}
+		else { /* Down */
+			if(act < MAX_MTEX-1) {
+				mtexswap = mtex_ar[act];
+				mtex_ar[act] = mtex_ar[act+1];
+				mtex_ar[act+1] = mtexswap;
+
+				if(GS(id->name)==ID_MA) {
+					Material *ma= (Material *)id;
+					int mtexuse = ma->septex & (1<<act);
+					ma->septex &= ~(1<<act);
+					ma->septex |= (ma->septex & (1<<(act+1))) >> 1;
+					ma->septex &= ~(1<<(act+1));
+					ma->septex |= mtexuse << 1;
+				}
+
+				set_active_mtex(id, act+1);
+			}
+		}
+
+		WM_event_add_notifier(C, NC_TEXTURE, CTX_data_scene(C));
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void TEXTURE_OT_slot_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem slot_move[] = {
+		{-1, "UP", 0, "Up", ""},
+		{1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Move Texture Slot";
+	ot->idname= "TEXTURE_OT_slot_move";
+	ot->description="Move texture slots up and down.";
+
+	/* api callbacks */
+	ot->exec= texture_slot_move;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }

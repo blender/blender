@@ -34,7 +34,7 @@ struct ListBase;
 struct AnimData;
 
 struct bContext;
-struct wmWindowManager;
+struct wmKeyConfig;
 struct ScrArea;
 struct ARegion;
 struct View2D;
@@ -122,6 +122,8 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_ANIMDATA,
 	ANIMTYPE_SPECIALDATA,
 	
+	ANIMTYPE_SUMMARY,
+	
 	ANIMTYPE_SCENE,
 	ANIMTYPE_OBJECT,
 	ANIMTYPE_GROUP,
@@ -161,6 +163,7 @@ typedef enum eAnim_KeyType {
 	ALE_GPFRAME,		/* Grease Pencil Frames */
 	ALE_NLASTRIP,		/* NLA Strips */
 	
+	ALE_ALL,			/* All channels summary */
 	ALE_SCE,			/* Scene summary */
 	ALE_OB,				/* Object summary */
 	ALE_ACT,			/* Action summary */
@@ -184,6 +187,9 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
 	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
 	ANIMFILTER_SELEDIT		= (1<<11),	/* link editability with selected status */
+	
+	/* all filters - the power inside the bracket must be the last power for left-shifts + 1 */
+	ANIMFILTER_ALLFILTERS	= ((1<<12) - 1)
 } eAnimFilter_Flags;
 
 
@@ -487,11 +493,11 @@ void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);
 	
 	/* generic animation channels */
 void ED_operatortypes_animchannels(void);
-void ED_keymap_animchannels(struct wmWindowManager *wm);
+void ED_keymap_animchannels(struct wmKeyConfig *keyconf);
 
 	/* generic time editing */
 void ED_operatortypes_anim(void);
-void ED_keymap_anim(struct wmWindowManager *wm);
+void ED_keymap_anim(struct wmKeyConfig *keyconf);
 
 /* ************************************************ */
 

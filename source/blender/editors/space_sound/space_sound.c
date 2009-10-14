@@ -147,7 +147,7 @@ static void sound_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm, "Sound", SPACE_SOUND, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Sound", SPACE_SOUND, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -179,7 +179,7 @@ void sound_operatortypes(void)
 	
 }
 
-void sound_keymap(struct wmWindowManager *wm)
+void sound_keymap(struct wmKeyConfig *keyconf)
 {
 	
 }

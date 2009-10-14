@@ -157,7 +157,7 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem prop_mode_items[] = {
+	static EnumPropertyItem generator_mode_items[] = {
 		{FCM_GENERATOR_POLYNOMIAL, "POLYNOMIAL", 0, "Expanded Polynomial", ""},
 		{FCM_GENERATOR_POLYNOMIAL_FACTORISED, "POLYNOMIAL_FACTORISED", 0, "Factorised Polynomial", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -174,7 +174,7 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 	
 		// XXX this has a special validation func
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_enum_items(prop, generator_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Type of generator to use.");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	

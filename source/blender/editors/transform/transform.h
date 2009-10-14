@@ -87,6 +87,7 @@ typedef struct TransSnap {
 	short	modeTarget;
 	short	mode;
 	short	align;
+	short	project;
 	short  	status;
 	float	snapPoint[3]; /* snapping from this point */
 	float	snapTarget[3]; /* to this point */
@@ -216,7 +217,7 @@ typedef struct TransData {
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
-	int    rotOrder;	/* rotation order (for eulers), as defined in BLI_arithb.h */
+	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransData;
 
 typedef struct MouseInput {
@@ -508,7 +509,7 @@ int Align(TransInfo *t, short mval[2]);
 
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 
-void transform_modal_keymap(struct wmWindowManager *wm);
+void transform_modal_keymap(struct wmKeyConfig *keyconf);
 
 
 /*********************** transform_conversions.c ********** */
@@ -548,7 +549,7 @@ void drawConstraint(const struct bContext *C, TransInfo *t);
 void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
 void setLocalConstraint(TransInfo *t, int mode, const char text[]);
-void setUserConstraint(TransInfo *t, int mode, const char text[]);
+void setUserConstraint(TransInfo *t, short orientation, int mode, const char text[]);
 
 void constraintNumInput(TransInfo *t, float vec[3]);
 
@@ -578,6 +579,7 @@ void snapGrid(TransInfo *t, float *val);
 void snapGridAction(TransInfo *t, float *val, GearsType action);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
+void applyProject(TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 int  handleSnapping(TransInfo *t, struct wmEvent *event);

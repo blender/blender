@@ -126,10 +126,12 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int columns)
 {
 	uiLayout *split, *col;
+	int flag;
 	char *name;
 
 	RNA_STRUCT_BEGIN(ptr, prop) {
-		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
+		flag= RNA_property_flag(prop);
+		if(flag & PROP_HIDDEN)
 			continue;
 
 		name= (char*)RNA_property_ui_name(prop);

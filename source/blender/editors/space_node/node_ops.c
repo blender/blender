@@ -67,10 +67,10 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_group_edit);
 }
 
-void node_keymap(struct wmWindowManager *wm)
+void node_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Node", SPACE_NODE, 0);
-	wmKeymapItem *kmi;
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Node", SPACE_NODE, 0);
+	wmKeyMapItem *kmi;
 	
 	/* mouse select in nodes used to be both keys, it's UI elements... */
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
@@ -101,5 +101,5 @@ void node_keymap(struct wmWindowManager *wm)
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "name", "NODE_MT_add");
 
-	transform_keymap_for_space(wm, keymap, SPACE_NODE);
+	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);
 }

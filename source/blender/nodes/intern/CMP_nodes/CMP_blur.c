@@ -671,7 +671,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			free_compbuf(img);
 	}
 
-	generate_preview(node, out[0]->data);
+	generate_preview(data, node, out[0]->data);
 }
 
 static void node_composit_init_blur(bNode* node)

@@ -1654,6 +1654,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 							/* prepare colors */
 							if (arm->flag & ARM_POSEMODE)	
 								set_pchan_colorset(ob, pchan);
+#if 0 // XXX - 13 October 2009, Disabled this to make ghosting show the right colors (Aligorith)
 							else {
 								if ((scene->basact)==base) {
 									if (base->flag & (SELECT+BA_WAS_SEL)) UI_ThemeColor(TH_ACTIVE);
@@ -1664,6 +1665,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 									else UI_ThemeColor(TH_WIRE);
 								}
 							}
+#endif
 								
 							/* catch exception for bone with hidden parent */
 							flag= bone->flag;
@@ -1755,7 +1757,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, ARegion *ar, Base *bas
 					
 					/* extra draw service for pose mode */
 					constflag= pchan->constflag;
-					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))	// XXX this is useless crap
+					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 						constflag |= PCHAN_HAS_ACTION;
 					if (pchan->flag & POSE_STRIDE)
 						constflag |= PCHAN_HAS_STRIDE;

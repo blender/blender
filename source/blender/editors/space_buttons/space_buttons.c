@@ -142,7 +142,7 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_find(wm, "Buttons Generic", SPACE_BUTS, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Buttons Generic", SPACE_BUTS, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -189,9 +189,9 @@ void buttons_operatortypes(void)
 	WM_operatortype_append(BUTTONS_OT_file_browse);
 }
 
-void buttons_keymap(struct wmWindowManager *wm)
+void buttons_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Buttons Generic", SPACE_BUTS, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Buttons Generic", SPACE_BUTS, 0);
 	
 	WM_keymap_add_item(keymap, "BUTTONS_OT_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
 }

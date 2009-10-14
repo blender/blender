@@ -537,13 +537,23 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 static void write_userdef(WriteData *wd)
 {
 	bTheme *btheme;
+	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 
 	writestruct(wd, USER, "UserDef", 1, &U);
 
-	btheme= U.themes.first;
-	while(btheme) {
+	for(btheme= U.themes.first; btheme; btheme=btheme->next)
 		writestruct(wd, DATA, "bTheme", 1, btheme);
-		btheme= btheme->next;
+
+	for(keymap= U.keymaps.first; keymap; keymap=keymap->next) {
+		writestruct(wd, DATA, "wmKeyMap", 1, keymap);
+
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
+			writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
+
+			if(kmi->properties)
+				IDP_WriteProperty(kmi->properties, wd);
+		}
 	}
 }
 
@@ -1153,7 +1163,10 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
 			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
+			{
 				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
+				writestruct(wd, DATA, "EffectorWeights", 1, smd->domain->effector_weights);
+			}
 			else if(smd->type & MOD_SMOKE_TYPE_FLOW)
 				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
 			else if(smd->type & MOD_SMOKE_TYPE_COLL)

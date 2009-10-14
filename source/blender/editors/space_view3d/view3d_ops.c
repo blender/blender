@@ -83,7 +83,6 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_select_lasso);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
 	WM_operatortype_append(VIEW3D_OT_setobjectascamera);
-	WM_operatortype_append(VIEW3D_OT_drawtype);
 	WM_operatortype_append(VIEW3D_OT_localview);
 	WM_operatortype_append(VIEW3D_OT_game_start);
 	WM_operatortype_append(VIEW3D_OT_fly);
@@ -103,18 +102,18 @@ void view3d_operatortypes(void)
 	transform_operatortypes();
 }
 
-void view3d_keymap(wmWindowManager *wm)
+void view3d_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-	wmKeymapItem *km;
+	wmKeyMapItem *km;
 	
-	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(keyconf, "View3D Generic", SPACE_VIEW3D, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_toolbar", TKEY, KM_PRESS, 0, 0);
 	
 	/* only for region 3D window */
-	keymap= WM_keymap_find(wm, "View3D", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(keyconf, "View3D", SPACE_VIEW3D, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, 0, 0); /* manipulator always on left mouse, not on action mouse*/
 	
@@ -174,17 +173,21 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_layers", ZEROKEY, KM_PRESS, KM_ANY, 0)->ptr, "nr", 10);
 	
 	/* drawtype */
-	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, 0, 0);
-	RNA_int_set(km->ptr, "draw_type", OB_SOLID);
-	RNA_int_set(km->ptr, "draw_type_alternate", OB_WIRE);
 
-	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_ALT, 0);
-	RNA_int_set(km->ptr, "draw_type", OB_TEXTURE);
-	RNA_int_set(km->ptr, "draw_type_alternate", OB_SOLID);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, 0, 0);
+	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
+	RNA_string_set(km->ptr, "value_1", "'SOLID'");
+	RNA_string_set(km->ptr, "value_2", "'WIREFRAME'");
 
-	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_int_set(km->ptr, "draw_type", OB_SHADED);
-	RNA_int_set(km->ptr, "draw_type_alternate", OB_WIRE);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, KM_ALT, 0);
+	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
+	RNA_string_set(km->ptr, "value_1", "'TEXTURED'");
+	RNA_string_set(km->ptr, "value_2", "'SOLID'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
+	RNA_string_set(km->ptr, "value_1", "'SHADED'");
+	RNA_string_set(km->ptr, "value_2", "'WIREFRAME'");
 
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
@@ -221,11 +224,36 @@ void view3d_keymap(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_snap_menu", SKEY, KM_PRESS, KM_SHIFT, 0);
 
-	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
+	/* context ops */
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", COMMAKEY, KM_PRESS, 0, 0);
+	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(km->ptr, "value", "'BOUNDING_BOX_CENTER'");
 
-	fly_modal_keymap(wm);
-	viewrotate_modal_keymap(wm);
-	viewmove_modal_keymap(wm);
-	viewzoom_modal_keymap(wm);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", COMMAKEY, KM_PRESS, KM_CTRL, 0); /* 2.4x allowed Comma+Shift too, rather not use both */
+	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(km->ptr, "value", "'MEDIAN_POINT'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", COMMAKEY, KM_PRESS, KM_ALT, 0); /* new in 2.5 */
+	RNA_string_set(km->ptr, "path", "space_data.pivot_point_align");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", PERIODKEY, KM_PRESS, 0, 0);
+	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(km->ptr, "value", "'CURSOR'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", PERIODKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(km->ptr, "value", "'INDIVIDUAL_CENTERS'");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set", PERIODKEY, KM_PRESS, KM_ALT, 0);
+	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(km->ptr, "value", "'ACTIVE_ELEMENT'");
+
+
+	transform_keymap_for_space(keyconf, keymap, SPACE_VIEW3D);
+
+	fly_modal_keymap(keyconf);
+	viewrotate_modal_keymap(keyconf);
+	viewmove_modal_keymap(keyconf);
+	viewzoom_modal_keymap(keyconf);
 }
 

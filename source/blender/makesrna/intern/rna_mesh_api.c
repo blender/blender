@@ -72,6 +72,7 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Calculate vertex normals.");
 
 	func= RNA_def_function(srna, "update", "ED_mesh_update");
+	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 	func= RNA_def_function(srna, "add_material", "ED_mesh_material_add");

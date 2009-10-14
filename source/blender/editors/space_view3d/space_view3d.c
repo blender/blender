@@ -158,6 +158,24 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 	return rv3d;
 }
 
+/* Most of the time this isn't needed since you could assume the view matrix was
+ * set while drawing, however when functions like mesh_foreachScreenVert are
+ * called by selection tools, we can't be sure this object was the last.
+ *
+ * for example, transparent objects are drawn after editmode and will cause
+ * the rv3d mat's to change and break selection.
+ *
+ * 'ED_view3d_init_mats_rv3d' should be called before
+ * view3d_project_short_clip and view3d_project_short_noclip in cases where
+ * these functions are not used during draw_object
+ */
+void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
+{
+	wmMultMatrix(ob->obmat);
+	/* local viewmat and persmat, to calculate projections */
+	wmGetMatrix(rv3d->viewmatob);
+	wmGetSingleMatrix(rv3d->persmatob);
+}
 
 /* ******************** default callbacks for view3d space ***************** */
 
@@ -280,62 +298,62 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	wmKeyMap *keymap;
 
 	/* object ops. */
-	keymap= WM_keymap_find(wm, "Object Non-modal", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* pose is not modal, operator poll checks for this */
-	keymap= WM_keymap_find(wm, "Pose", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm, "Object Mode", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Object Mode", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "Image Paint", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "Vertex Paint", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Vertex Paint", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "Weight Paint", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Weight Paint", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "Sculpt", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Sculpt", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm, "EditMesh", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "EditMesh", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm, "Curve", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Curve", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm, "Armature", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Armature", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "Pose", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "Metaball", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Metaball", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm, "Lattice", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Lattice", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* armature sketching needs to take over mouse */
-	keymap= WM_keymap_find(wm, "Armature_Sketch", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Armature_Sketch", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "Particle", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Particle", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* editfont keymap swallows all... */
-	keymap= WM_keymap_find(wm, "Font", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Font", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* own keymap, last so modes can override it */
-	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm, "View3D", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "View3D", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -491,7 +509,7 @@ static void view3d_main_area_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
 	
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
@@ -531,7 +549,7 @@ static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -602,7 +620,7 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_find(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -620,10 +638,10 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"selected_objects", "selected_bases" "selected_editable_objects",
-			"selected_editable_bases" "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
+			"selected_objects", "selected_bases", "selected_editable_objects",
+			"selected_editable_bases", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
 			"active_base", "active_object", "visible_bones", "editable_bones",
-			"selected_bones", "selected_editable_bones" "visible_pchans",
+			"selected_bones", "selected_editable_bones", "visible_pchans",
 			"selected_pchans", "active_bone", "active_pchan", NULL};
 
 		CTX_data_dir_set(result, dir);

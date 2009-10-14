@@ -221,6 +221,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select File";
+	ot->description= "Activate/select the file(s) contained in the border.";
 	ot->idname= "FILE_OT_select_border";
 	
 	/* api callbacks */
@@ -273,6 +274,7 @@ void FILE_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select File";
+	ot->description= "Activate/select file.";
 	ot->idname= "FILE_OT_select";
 	
 	/* api callbacks */
@@ -317,6 +319,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect all files";
+	ot->description= "Select/deselect all files.";
 	ot->idname= "FILE_OT_select_all_toggle";
 	
 	/* api callbacks */
@@ -352,6 +355,7 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Directory";
+	ot->description= "Select a bookmarked directory.";
 	ot->idname= "FILE_OT_select_bookmark";
 	
 	/* api callbacks */
@@ -384,6 +388,7 @@ void FILE_OT_add_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Bookmark";
+	ot->description= "Add a bookmark for the selected/active directory.";
 	ot->idname= "FILE_OT_add_bookmark";
 	
 	/* api callbacks */
@@ -416,6 +421,7 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Bookmark";
+	ot->description= "Delete selected bookmark.";
 	ot->idname= "FILE_OT_delete_bookmark";
 	
 	/* api callbacks */
@@ -445,6 +451,7 @@ void FILE_OT_loadimages(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Load Images";
+	ot->description= "Load selected image(s).";
 	ot->idname= "FILE_OT_loadimages";
 	
 	/* api callbacks */
@@ -499,6 +506,7 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Highlight File";
+	ot->description= "Highlight selected file(s).";
 	ot->idname= "FILE_OT_highlight";
 	
 	/* api callbacks */
@@ -540,6 +548,7 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cancel File Load";
+	ot->description= "Cancel loading of selected file.";
 	ot->idname= "FILE_OT_cancel";
 	
 	/* api callbacks */
@@ -619,6 +628,7 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Execute File Window";
+	ot->description= "Execute selected file.";
 	ot->idname= "FILE_OT_execute";
 	
 	/* api callbacks */
@@ -649,6 +659,7 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Parent File";
+	ot->description= "Move to parent directory.";
 	ot->idname= "FILE_OT_parent";
 	
 	/* api callbacks */
@@ -673,6 +684,7 @@ void FILE_OT_previous(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Previous Folder";
+	ot->description= "Move to previous folder.";
 	ot->idname= "FILE_OT_previous";
 	
 	/* api callbacks */
@@ -703,6 +715,7 @@ void FILE_OT_next(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Next Folder";
+	ot->description= "Move to next folder.";
 	ot->idname= "FILE_OT_next";
 	
 	/* api callbacks */
@@ -766,8 +779,8 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Create New Directory";
-	ot->idname= "FILE_OT_directory_new";
 	ot->description= "Create a new directory";
+	ot->idname= "FILE_OT_directory_new";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -832,6 +845,7 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Refresh Filelist";
+	ot->description= "Refresh the file list.";
 	ot->idname= "FILE_OT_refresh";
 	
 	/* api callbacks */
@@ -859,6 +873,7 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Hide Dot Files";
+	ot->description= "Toggle hide hidden dot files.";
 	ot->idname= "FILE_OT_hidedot";
 	
 	/* api callbacks */
@@ -908,6 +923,7 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Bookmarks";
+	ot->description= "Toggle bookmarks display.";
 	ot->idname= "FILE_OT_bookmark_toggle";
 	
 	/* api callbacks */
@@ -936,6 +952,7 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Increment Number in Filename";
+	ot->description= "Increment number in filename.";
 	ot->idname= "FILE_OT_filenum";
 	
 	/* api callbacks */
@@ -987,6 +1004,7 @@ void FILE_OT_rename(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rename File or Directory";
+	ot->description= "Rename file or file directory.";
 	ot->idname= "FILE_OT_rename";
 	
 	/* api callbacks */
@@ -1037,6 +1055,7 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete File";
+	ot->description= "Delete selected file.";
 	ot->idname= "FILE_OT_delete";
 	
 	/* api callbacks */

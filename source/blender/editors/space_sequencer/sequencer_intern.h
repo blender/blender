@@ -75,7 +75,8 @@ extern EnumPropertyItem prop_side_types[];
 
 /* operators */
 struct wmOperatorType;
-struct wmWindowManager;
+struct wmKeyConfig;
+
 void SEQUENCER_OT_cut(struct wmOperatorType *ot);
 void SEQUENCER_OT_mute(struct wmOperatorType *ot);
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot);
@@ -137,7 +138,7 @@ enum {
 
 /* sequencer_ops.c */
 void sequencer_operatortypes(void);
-void sequencer_keymap(struct wmWindowManager *wm);
+void sequencer_keymap(struct wmKeyConfig *keyconf);
 
 /* sequencer_scope.c */
 struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf);

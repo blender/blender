@@ -78,10 +78,7 @@ void ED_anim_object_flush_update(const bContext *C, Object *ob)
  *	3) Grouping (only for pose to action for now)
  */
 
-/* XXX OBSOLETE CODE WARNING:
- * With the Animato system, the code below is somewhat obsolete now...
- */
- 
+
 /* Notifier from Action/Dopesheet (this may be extended to include other things such as Python...)
  * Channels in action changed, so update pose channels/groups to reflect changes.
  *
@@ -90,12 +87,14 @@ void ED_anim_object_flush_update(const bContext *C, Object *ob)
  */
 void ANIM_action_to_pose_sync (Object *ob)
 {
-	bAction *act= (bAction *)ob->action;
-	bActionChannel *achan;
+#if 0
+	AnimData *adt= ob->adt;
+	bAction *act= adt->act;
+	FCurve *fcu;
 	bPoseChannel *pchan;
 	
 	/* error checking */
-	if ((ob == NULL) || (ob->type != OB_ARMATURE) || ELEM(NULL, act, ob->pose))
+	if (ELEM3(NULL, ob, ob->adt, ob->pose) || (ob->type != OB_ARMATURE))
 		return;
 	
 	/* 1b) loop through all Action-Channels (there should be fewer channels to search through here in general) */
@@ -120,6 +119,7 @@ void ANIM_action_to_pose_sync (Object *ob)
 	}
 	
 	// TODO: add grouping changes too? For now, these tools aren't exposed to users in animation editors yet...
+#endif
 } 
  
 /* Notifier from 3D-View/Outliner (this is likely to include other sources too...)

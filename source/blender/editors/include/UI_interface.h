@@ -147,6 +147,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_INACTIVE		(1<<23)
 #define UI_BUT_LAST_ACTIVE	(1<<24)
 #define UI_BUT_UNDO			(1<<25)
+#define UI_BUT_IMMEDIATE	(1<<26)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -256,7 +257,7 @@ void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, char *filename
 void uiPupMenuNotice(struct bContext *C, char *str, ...);
 void uiPupMenuError(struct bContext *C, char *str, ...);
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
-void uiPupMenuInvoke(struct bContext *C, const char *idname, int spacetype); /* popup registered menu */
+void uiPupMenuInvoke(struct bContext *C, const char *idname); /* popup registered menu */
 
 /* Popup Blocks
  *
@@ -572,6 +573,8 @@ void UI_exit(void);
 #define UI_ITEM_R_SLIDER		4
 #define UI_ITEM_R_TOGGLE		8
 #define UI_ITEM_R_ICON_ONLY		16
+#define UI_ITEM_R_EVENT			32
+#define UI_ITEM_R_FULL_EVENT	64
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
@@ -611,7 +614,7 @@ uiLayout *uiLayoutListBox(uiLayout *layout);
 uiLayout *uiLayoutFree(uiLayout *layout, int align);
 uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
 
-uiBlock *uiLayoutFreeBlock(uiLayout *layout);
+uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);

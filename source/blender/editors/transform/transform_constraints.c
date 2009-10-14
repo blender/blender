@@ -551,11 +551,10 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	ftext is a format string passed to sprintf. It will add the name of
 	the orientation where %s is (logically).
 */
-void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
+void setUserConstraint(TransInfo *t, short orientation, int mode, const char ftext[]) {
 	char text[40];
-	//short twmode= (t->spacetype==SPACE_VIEW3D)? ((View3D*)t->view)->twmode: V3D_MANIP_GLOBAL;
 
-	switch(t->current_orientation) {
+	switch(orientation) {
 	case V3D_MANIP_GLOBAL:
 		{
 			float mtx[3][3];

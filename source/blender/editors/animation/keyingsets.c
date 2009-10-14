@@ -177,9 +177,10 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 	
 	/* free KeyingSet's data, then remove it from the scene */
 	BKE_keyingset_free(ks);
-	
 	BLI_freelinkN(&scene->keyingsets, ks);
-	scene->active_keyingset= 0;
+	
+	/* the active one should now be the previously second-to-last one */
+	scene->active_keyingset--;
 	
 	return OPERATOR_FINISHED;
 }
@@ -258,8 +259,8 @@ static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
 				BLI_freelinkN(&ks->paths, ksp);
 			}
 			
-			/* fix active path index */
-			ks->active_path= 0;
+			/* the active path should now be the previously second-to-last active one */
+			ks->active_path--;
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "No active Keying Set Path to remove");
@@ -337,11 +338,19 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			/* set flags */
-			if (all) 
+			if (all) {
 				pflag |= KSP_FLAG_WHOLE_ARRAY;
+				
+				/* we need to set the index for this to 0, even though it may break in some cases, this is 
+				 * necessary if we want the entire array for most cases to get included without the user
+				 * having to worry about where they clicked
+				 */
+				index= 0;
+			}
 				
 			/* add path to this setting */
 			BKE_keyingset_add_destination(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
+			ks->active_path= BLI_countlist(&ks->paths);
 			success= 1;
 			
 			/* free the temp path created */
@@ -1109,6 +1118,24 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, char name[])
 	return NULL;
 }
 
+
+/* Get the active Keying Set for the Scene provided */
+KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
+{
+	if (ELEM(NULL, scene, scene->keyingsets.first))
+		return NULL;
+	
+	/* currently, there are several possibilities here:
+	 *	-   0: no active keying set
+	 *	- > 0: one of the user-defined Keying Sets, but indices start from 0 (hence the -1)
+	 *	- < 0: a builtin keying set (XXX this isn't enabled yet so that we don't get errors on reading back files)
+	 */
+	if (scene->active_keyingset > 0)
+		return BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	else // for now...
+		return NULL; 
+}
+
 /* ******************************************* */
 /* KEYFRAME MODIFICATION */
 
@@ -1252,9 +1279,8 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
  * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
  * Returns the number of channels that keyframes were added to
  */
-int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
+int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
-	Scene *scene= CTX_data_scene(C);
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
@@ -1319,25 +1345,20 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					success+= delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 			}
 			
-			/* send notifiers and set recalc-flags */
-			// TODO: hopefully this doesn't result in execessive flooding of the notifier stack
-			if (C && ksp->id) {
+			/* set recalc-flags */
+			if (ksp->id) {
 				switch (GS(ksp->id->name)) {
 					case ID_OB: /* Object (or Object-Related) Keyframes */
 					{
 						Object *ob= (Object *)ksp->id;
 						
 						ob->recalc |= OB_RECALC;
-						WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, ksp->id);
 					}
 						break;
-					case ID_MA: /* Material Keyframes */
-						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, ksp->id);
-						break;
-					default: /* Any keyframes */
-						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-						break;
 				}
+				
+				/* send notifiers for updates (this doesn't require context to work!) */
+				WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 			}
 		}
 	}
@@ -1457,25 +1478,20 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				MEM_freeN(path);
 			}
 			
-			/* send notifiers and set recalc-flags */
-			// TODO: hopefully this doesn't result in execessive flooding of the notifier stack
-			if (C && cks->id) {
+			/* set recalc-flags */
+			if (cks->id) {
 				switch (GS(cks->id->name)) {
 					case ID_OB: /* Object (or Object-Related) Keyframes */
 					{
 						Object *ob= (Object *)cks->id;
 						
 						ob->recalc |= OB_RECALC;
-						WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, cks->id);
 					}
 						break;
-					case ID_MA: /* Material Keyframes */
-						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, cks->id);
-						break;
-					default: /* Any keyframes */
-						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-						break;
 				}
+				
+				/* send notifiers for updates (this doesn't require context to work!) */
+				WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 			}
 		}
 	}

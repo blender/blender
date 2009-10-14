@@ -2481,12 +2481,12 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	BLI_dynstr_free(ds);
 }
 
-void uiPupMenuInvoke(bContext *C, const char *idname, int spacetype)
+void uiPupMenuInvoke(bContext *C, const char *idname)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	Menu menu;
-	MenuType *mt= BKE_spacemenu_find(idname, spacetype);
+	MenuType *mt= WM_menutype_find(idname, TRUE);
 
 	if(mt==NULL) {
 		printf("uiPupMenuInvoke: named menu \"%s\" not found\n", idname);

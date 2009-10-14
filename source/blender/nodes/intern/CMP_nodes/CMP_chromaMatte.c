@@ -154,7 +154,7 @@ static void node_composit_exec_chroma_matte(void *data, bNode *node, bNodeStack 
 	if(out[1]->hasoutput)
 		out[1]->data= valbuf_from_rgbabuf(chromabuf, CHAN_A);
 	
-	generate_preview(node, chromabuf);
+	generate_preview(data, node, chromabuf);
 
 	if(cbuf!=in[0]->data)
 		free_compbuf(cbuf);

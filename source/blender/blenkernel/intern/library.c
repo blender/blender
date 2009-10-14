@@ -1208,12 +1208,13 @@ static void lib_indirect_test_id(ID *id)
 
 		int a;
 	
-		// XXX old animation system!
+		// XXX old animation system! --------------------------------------
 		for (strip=ob->nlastrips.first; strip; strip=strip->next){
 			LIBTAG(strip->object); 
 			LIBTAG(strip->act);
 			LIBTAG(strip->ipo);
 		}
+		// XXX: new animation system needs something like this?
 	
 		for(a=0; a<ob->totcol; a++) {
 			LIBTAG(ob->mat[a]);

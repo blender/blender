@@ -70,8 +70,8 @@ void BUTTONS_OT_toolbox(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toolbox";
+	ot->description="Display button panel toolbox";
 	ot->idname= "BUTTONS_OT_toolbox";
-	ot->description="Toolbar panel? DOC_BROKEN";
 	
 	/* api callbacks */
 	ot->invoke= toolbox_invoke;
@@ -139,8 +139,8 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "File Browse";
-	ot->idname= "BUTTONS_OT_file_browse";
 	ot->description="Open a file browser.";
+	ot->idname= "BUTTONS_OT_file_browse";
 	
 	/* api callbacks */
 	ot->invoke= file_browse_invoke;

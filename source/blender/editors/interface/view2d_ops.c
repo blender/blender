@@ -1407,9 +1407,9 @@ void ui_view2d_operatortypes(void)
 	WM_operatortype_append(VIEW2D_OT_reset);
 }
 
-void UI_view2d_keymap(wmWindowManager *wm)
+void UI_view2d_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "View2D", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "View2D", 0, 0);
 	
 	/* pan/scroll */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
@@ -1445,7 +1445,7 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	/* Alternative keymap for buttons listview */
-	keymap= WM_keymap_find(wm, "View2D Buttons List", 0, 0);
+	keymap= WM_keymap_find(keyconf, "View2D Buttons List", 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);

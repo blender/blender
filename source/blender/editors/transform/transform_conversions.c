@@ -125,7 +125,6 @@
 #include "ED_object.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
-#include "ED_retopo.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -509,7 +508,7 @@ static short apply_targetless_ik(Object *ob)
 					if (parchan->rotmode > 0) 
 						Mat3ToEulO(rmat3, parchan->eul, parchan->rotmode);
 					else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-						Mat3ToAxisAngle(rmat3, &parchan->quat[1], &parchan->quat[0]);
+						Mat3ToAxisAngle(rmat3, parchan->rotAxis, &pchan->rotAngle);
 					else
 						Mat3ToQuat(rmat3, parchan->quat);
 					
@@ -519,7 +518,7 @@ static short apply_targetless_ik(Object *ob)
 						if (parchan->rotmode > 0)
 							EulOToMat3(parchan->eul, parchan->rotmode, qrmat);
 						else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-							AxisAngleToMat3(&parchan->quat[1], parchan->quat[0], qrmat);
+							AxisAngleToMat3(parchan->rotAxis, parchan->rotAngle, qrmat);
 						else
 							QuatToMat3(parchan->quat, qrmat);
 						
@@ -2891,7 +2890,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 	/*	Loop 1: find selected keyframes   */
 	for (i = 0; i < fcu->totvert; i++) {
 		BezTriple *bezt= &fcu->bezt[i];
-
+		
 		if (BEZSELECTED(bezt)) {
 			selcache[index]= bezt->vec[1][0];
 			index++;
@@ -2899,16 +2898,18 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 		}
 	}
 
-	/* Loop 2: delete unselected keyframes on the same frames (if any keyframes were found) */
-	if (len) {
+	/* Loop 2: delete unselected keyframes on the same frames 
+	 * (if any keyframes were found, or the whole curve wasn't affected) 
+	 */
+	if ((len) && (len != fcu->totvert)) {
 		for (i = 0; i < fcu->totvert; i++) {
 			BezTriple *bezt= &fcu->bezt[i];
-
+			
 			if (BEZSELECTED(bezt) == 0) {
 				/* check beztriple should be removed according to cache */
 				for (index= 0; index < len; index++) {
 					if (IS_EQ(bezt->vec[1][0], selcache[index])) {
-						//delete_icu_key(icu, i, 0);
+						delete_fcurve_key(fcu, i, 0);
 						break;
 					}
 					else if (bezt->vec[1][0] > selcache[index])
@@ -2916,7 +2917,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 				}
 			}
 		}
-
+		
 		testhandles_fcurve(fcu);
 	}
 
@@ -4242,9 +4243,15 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
-		AnimData *adt= ob->adt;
+		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
+		bCommonKeySrc cks;
+		ListBase dsources = {&cks, &cks};
 		float cfra= (float)CFRA; // xxx this will do for now
 		short flag = 0;
+		
+		/* init common-key-source for use by KeyingSets */
+		memset(&cks, 0, sizeof(bCommonKeySrc));
+		cks.id= &ob->id;
 		
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
@@ -4253,7 +4260,14 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
 			flag |= INSERTKEY_REPLACE;
 			
-		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+		
+		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
+			/* only insert into active keyingset */
+			modify_keyframes(scene, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+		}
+		else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+			AnimData *adt= ob->adt;
+			
 			/* only key on available channels */
 			if (adt && adt->action) {
 				for (fcu= adt->action->curves.first; fcu; fcu= fcu->next) {
@@ -4292,41 +4306,25 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 					doScale = 1;
 			}
 			
-			// TODO: the group names here are temporary...
-			// TODO: should this be made to use the builtin KeyingSets instead?
+			/* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
 			if (doLoc) {
-				insert_keyframe(id, NULL, "Object Transform", "location", 0, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "location", 1, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "location", 2, cfra, flag);
+				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 			if (doRot) {
-				insert_keyframe(id, NULL, "Object Transform", "rotation", 0, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "rotation", 1, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "rotation", 2, cfra, flag);
+				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 			if (doScale) {
-				insert_keyframe(id, NULL, "Object Transform", "scale", 0, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "scale", 1, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "scale", 2, cfra, flag);
+				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scale");
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 		}
+		/* insert keyframe in all (transform) channels */
 		else {
-			// TODO: the group names here are temporary...
-			// TODO: should this be made to use the builtin KeyingSets instead?
-			insert_keyframe(id, NULL, "Object Transform", "location", 0, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "location", 1, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "location", 2, cfra, flag);
-			
-			insert_keyframe(id, NULL, "Object Transform", "rotation", 0, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "rotation", 1, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "rotation", 2, cfra, flag);
-			
-			insert_keyframe(id, NULL, "Object Transform", "scale", 0, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "scale", 1, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "scale", 2, cfra, flag);
+			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
-			
-		// XXX todo... find a way to send notifiers from here...
 	}
 }
 
@@ -4346,9 +4344,15 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
+		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
+		bCommonKeySrc cks;
+		ListBase dsources = {&cks, &cks};
 		float cfra= (float)CFRA;
 		short flag= 0;
-		char buf[512];
+		
+		/* init common-key-source for use by KeyingSets */
+		memset(&cks, 0, sizeof(bCommonKeySrc));
+		cks.id= &ob->id;
 		
 		/* flag is initialised from UserPref keyframing settings
 		 *	- special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
@@ -4367,8 +4371,14 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 				/* clear any 'unkeyed' flag it may have */
 				pchan->bone->flag &= ~BONE_UNKEYED;
 				
+				/* only insert into active keyingset? */
+				if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					modify_keyframes(scene, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+				}
 				/* only insert into available channels? */
-				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+				else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					if (act) {
 						for (fcu= act->curves.first; fcu; fcu= fcu->next)
 							insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
@@ -4401,60 +4411,34 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 					}
 					
 					if (doLoc) {
-						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+						
+						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+						cks.pchan= pchan;
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (doRot) {
-						// FIXME: better to just use the keyingsets for this instead...
-						if (pchan->rotmode == ROT_MODE_QUAT) {
-							sprintf(buf, "pose.pose_channels[\"%s\"].rotation_quaternion", pchan->name);
-							insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 3, cfra, flag);
-						}
-						else {
-							sprintf(buf, "pose.pose_channels[\"%s\"].rotation_euler", pchan->name);
-							insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-						}
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+						
+						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+						cks.pchan= pchan;
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (doScale) {
-						sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scale");
+						
+						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+						cks.pchan= pchan;
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 				}
-				/* insert keyframe in any channel that's appropriate */
+				/* insert keyframe in all (transform) channels */
 				else {
-					sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+					KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
-					// FIXME: better to just use the keyingsets for this instead...
-					if (pchan->rotmode == ROT_MODE_QUAT) {
-						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 3, cfra, flag);
-					}
-					else {
-						sprintf(buf, "pose.pose_channels[\"%s\"].rotation_euler", pchan->name);
-						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-					}
-					
-					sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 				}
 			}
 		}
@@ -4494,13 +4478,7 @@ void special_aftertrans_update(TransInfo *t)
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
-#if 0 // TRANSFORM_FIX_ME
-				EM_automerge(1);
-				/* when snapping, delay retopo until after automerge */
-				if (G.qual & LR_CTRLKEY) {
-					retopo_do_all();
-				}
-#endif
+				EM_automerge(t->scene, t->obedit, 1);
 			}
 		}
 	}

@@ -721,7 +721,7 @@ static int evalnodes(Tex *tex, float *texvec, float *dxt, float *dyt, TexResult 
 	short rv = TEX_INT;
 	bNodeTree *nodes = tex->nodetree;
 	
-	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, thread, tex, which_output, R.r.cfra, (R.r.scemode & R_NODE_PREVIEW));
+	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, thread, tex, which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0);
 	
 	if(texres->nor) rv |= TEX_NOR;
 	rv |= TEX_RGB;
@@ -1182,7 +1182,8 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	texres->talpha= 0;	/* is set when image texture returns alpha (considered premul) */
 	
 	if(tex->use_nodes && tex->nodetree) {
-		retval = evalnodes(tex, texvec, dxt, dyt, texres, thread, which_output);
+		if(osatex) retval = evalnodes(tex, texvec, dxt, dyt, texres, thread, which_output);
+		else retval = evalnodes(tex, texvec, NULL, NULL, texres, thread, which_output);
 	}
 	else
 	switch(tex->type) {

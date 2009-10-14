@@ -139,7 +139,9 @@ static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
 
 
-/* ************* only use while object drawing ************** */
+/* ************* only use while object drawing **************
+ * or after running ED_view3d_init_mats_rv3d
+ * */
 static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
 {
 	RegionView3D *rv3d= ar->regiondata;
@@ -1299,6 +1301,10 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 
 /* ***************** ******************** */
 
+/* Note! - foreach funcs should be called while drawing or directly after
+ * if not, ED_view3d_init_mats_rv3d() can be used for selection tools
+ * but would not give correct results with dupli's for eg. which dont
+ * use the object matrix in the useual way */
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
@@ -4231,7 +4237,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 				if(!(point->flag & PEP_HIDE))
 					totkeys += point->totkey;
 
-			if(!(edit->points->keys->flag & PEK_USE_WCO))
+			if(edit->points && !(edit->points->keys->flag & PEK_USE_WCO))
 				pd=pdata=MEM_callocN(totkeys*3*sizeof(float), "particle edit point data");
 			cd=cdata=MEM_callocN(totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
 
@@ -5451,11 +5457,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* draw paths... */
 	// TODO...
 
-	/* multiply view with object matrix */
-	wmMultMatrix(ob->obmat);
-	/* local viewmat and persmat, to calculate projections */
-	wmGetMatrix(rv3d->viewmatob);
-	wmGetSingleMatrix(rv3d->persmatob);
+	/* multiply view with object matrix.
+	 * local viewmat and persmat, to calculate projections */
+	ED_view3d_init_mats_rv3d(ob, rv3d);
 
 	/* which wire color */
 	if((flag & DRAW_CONSTCOLOR) == 0) {
@@ -5512,7 +5516,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(ob==OBACT && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		if(ob->type==OB_MESH) {
 
-			if(ob==scene->obedit);
+			if(ob->mode & OB_MODE_EDIT);
 			else {
 				if(dt<OB_SOLID)
 					zbufoff= 1;
@@ -5534,7 +5538,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(dt>=OB_BOUNDBOX ) {
 
 		dtx= ob->dtx;
-		if(scene->obedit==ob) {
+		if(ob->mode & OB_MODE_EDIT) {
 			// the only 2 extra drawtypes alowed in editmode
 			dtx= dtx & (OB_DRAWWIRE|OB_TEXSPACE);
 		}
@@ -5550,7 +5554,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	
 	/* draw outline for selected solid objects, mesh does itself */
 	if((v3d->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
-		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=scene->obedit && (flag && DRAW_SCENESET)==0) {
+		if(dt>OB_WIRE && dt<OB_TEXTURE && (ob->mode & OB_MODE_EDIT)==0 && (flag & DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
 				
 				drawSolidSelect(scene, v3d, ar, base);
@@ -5560,10 +5564,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	switch( ob->type) {
 		case OB_MESH:
-			if (!(base->flag&OB_RADIO)) {
-				empty_object= draw_mesh_object(scene, v3d, rv3d, base, dt, flag);
-				if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
-			}
+			empty_object= draw_mesh_object(scene, v3d, rv3d, base, dt, flag);
+			if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
 
 			break;
 		case OB_FONT:
@@ -5906,7 +5908,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(zbufoff) glDisable(GL_DEPTH_TEST);
 
 	if(warning_recursive) return;
-	if(base->flag & (OB_FROMDUPLI|OB_RADIO)) return;
+	if(base->flag & OB_FROMDUPLI) return;
 	if(G.f & G_RENDER_SHADOW) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
@@ -6159,7 +6161,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	switch( ob->type) {
 	case OB_MESH:
 	{
-		if(ob == scene->obedit) {
+		if(ob->mode & OB_MODE_EDIT) {
 			Mesh *me= ob->data;
 			EditMesh *em= me->edit_mesh;
 
@@ -6215,7 +6217,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 	DerivedMesh *dm=NULL, *edm=NULL;
 	int glsl;
 	
-	if(ob == scene->obedit)
+	if(ob->mode & OB_MODE_EDIT)
 		edm= editmesh_get_derived_base(ob, me->edit_mesh);
 	else 
 		dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);

@@ -406,7 +406,7 @@ void folderlist_pushdir(ListBase* folderlist, const char *dir)
 	previous_folder = folderlist->last;
 
 	// check if already exists
-	if(previous_folder){
+	if(previous_folder && previous_folder->foldername){
 		if(! strcmp(previous_folder->foldername, dir)){
 			return;
 		}

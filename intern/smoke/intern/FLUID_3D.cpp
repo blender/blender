@@ -184,13 +184,6 @@ void FLUID_3D::step()
 {
 	// addSmokeTestCase(_density, _res);
 	// addSmokeTestCase(_heat, _res);
-	
-	// wipe forces
-	for (int i = 0; i < _totalCells; i++)
-	{
-		_xForce[i] = _yForce[i] = _zForce[i] = 0.0f;
-		// _obstacles[i] &= ~2;
-	}
 
 	wipeBoundaries();
 
@@ -232,6 +225,13 @@ void FLUID_3D::step()
 
 	// todo xxx dg: only clear obstacles, not boundaries
 	// memset(_obstacles, 0, sizeof(unsigned char)*_xRes*_yRes*_zRes);
+
+	// wipe forces
+	// for external forces we can't do it at the beginning of this function but at the end
+	for (int i = 0; i < _totalCells; i++)
+	{
+		_xForce[i] = _yForce[i] = _zForce[i] = 0.0f;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////

@@ -404,6 +404,8 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_copy_driver_button);
 	WM_operatortype_append(ANIM_OT_paste_driver_button);
 	
+	WM_operatortype_append(ANIM_OT_copy_clipboard_button);
+
 	
 	WM_operatortype_append(ANIM_OT_add_keyingset_button);
 	WM_operatortype_append(ANIM_OT_remove_keyingset_button);
@@ -414,9 +416,9 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_keying_set_path_remove);
 }
 
-void ED_keymap_anim(wmWindowManager *wm)
+void ED_keymap_anim(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Animation", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Animation", 0, 0);
 	
 	/* frame management */
 		/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons */

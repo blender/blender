@@ -376,7 +376,6 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 	RE_RC_COUNT(isec->raycounter->raycast.test);
 
 	/* Setup vars used on raycast */
-	isec->labda *= Normalize(isec->vec);
 	isec->dist = VecLength(isec->vec);
 	
 	for(i=0; i<3; i++)
@@ -534,4 +533,48 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *control)
 		return control->test_break( control->data );
 
 	return 0;
+}
+
+
+/*
+ * Empty raytree
+ */
+static int RE_rayobject_empty_intersect(RayObject *o, Isect *is)
+{
+	return 0;
+}
+
+static void RE_rayobject_empty_free(RayObject *o)
+{
+}
+
+static void RE_rayobject_empty_bb(RayObject *o, float *min, float *max)
+{
+	return;
+}
+
+static float RE_rayobject_empty_cost(RayObject *o)
+{
+	return 0.0;
+}
+
+static void RE_rayobject_empty_hint_bb(RayObject *o, RayHint *hint, float *min, float *max)
+{}
+
+static RayObjectAPI empty_api =
+{
+	RE_rayobject_empty_intersect,
+	NULL, //static void RE_rayobject_instance_add(RayObject *o, RayObject *ob);
+	NULL, //static void RE_rayobject_instance_done(RayObject *o);
+	RE_rayobject_empty_free,
+	RE_rayobject_empty_bb,
+	RE_rayobject_empty_cost,
+	RE_rayobject_empty_hint_bb
+};
+
+static RayObject empty_raytree = { &empty_api, {0, 0} };
+
+RayObject *RE_rayobject_empty_create()
+{
+	return RE_rayobject_unalignRayAPI( &empty_raytree );
 }

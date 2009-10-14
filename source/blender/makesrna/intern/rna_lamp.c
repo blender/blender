@@ -69,31 +69,15 @@ static PointerRNA rna_Lamp_active_texture_get(PointerRNA *ptr)
 	Lamp *la= (Lamp*)ptr->data;
 	Tex *tex;
 
-	tex= (la->mtex[(int)la->texact])? la->mtex[(int)la->texact]->tex: NULL;
+	tex= give_current_lamp_texture(la);
 	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
 static void rna_Lamp_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Lamp *la= (Lamp*)ptr->data;
-	int act= la->texact;
 
-	if(la->mtex[act] && la->mtex[act]->tex)
-		id_us_min(&la->mtex[act]->tex->id);
-
-	if(value.data) {
-		if(!la->mtex[act]) {
-			la->mtex[act]= add_mtex();
-			la->mtex[act]->texco= TEXCO_GLOB;
-		}
-		
-		la->mtex[act]->tex= value.data;
-		id_us_plus(&la->mtex[act]->tex->id);
-	}
-	else if(la->mtex[act]) {
-		MEM_freeN(la->mtex[act]);
-		la->mtex[act]= NULL;
-	}
+	set_current_lamp_texture(la, value.data);
 }
 
 static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
@@ -496,7 +480,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop= RNA_def_property(srna, "shadow_soft_size", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "soft");
+	RNA_def_property_float_sdna(prop, NULL, "area_size");
 	RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Shadow Soft Size", "Light size for ray shadow sampling (Raytraced shadows).");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
@@ -586,6 +570,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 		{LA_SHADBUF_REGULAR	, "REGULAR", 0, "Classical", "Classic shadow buffer."},
 		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifaces."},
 		{LA_SHADBUF_IRREGULAR, "IRREGULAR", 0, "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing."},
+		{LA_SHADBUF_DEEP, "DEEP", 0, "Deep", "Deep shadow buffer supports transparency and better filtering, at the cost of more memory usage and processing time."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadbuffiltertype_items[] = {
@@ -706,6 +691,12 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "bufflag", LA_SHADBUF_AUTO_END);
 	RNA_def_property_ui_text(prop, "Autoclip End", "Automatic calculation of clipping-end, based on visible vertices.");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
+
+	prop= RNA_def_property(srna, "compression_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "compressthresh");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Compress", "Deep shadow map compression threshold.");
+	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 }
 
 static void rna_def_sun_lamp(BlenderRNA *brna)

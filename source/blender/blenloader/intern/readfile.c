@@ -3655,6 +3655,8 @@ static void lib_link_object(FileData *fd, Main *main)
 					smd->domain->coll_group = newlibadr_us(fd, ob->id.lib, smd->domain->coll_group);
 					smd->domain->eff_group = newlibadr_us(fd, ob->id.lib, smd->domain->eff_group);
 					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
+
+					smd->domain->effector_weights->group = newlibadr(fd, ob->id.lib, smd->domain->effector_weights->group);
 				}
 			}
 
@@ -3784,6 +3786,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->tex_shadow = NULL;
 				smd->domain->tex_wt = NULL;
 
+				if(smd->domain->effector_weights)
+					smd->domain->effector_weights = newdataadr(fd, smd->domain->effector_weights);
+				else
+					smd->domain->effector_weights = BKE_add_effector_weights(NULL);
+
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]));
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[1]), &(smd->domain->point_cache[1]));
 			}
@@ -3911,7 +3918,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->flag &= ~OB_FROMGROUP;
 	
 	/* editmode doesn't get saved in files, so should get cleared when reloading... */
-	ob->mode &= ~OB_MODE_EDIT;
+	ob->mode &= ~(OB_MODE_EDIT|OB_MODE_PARTICLE_EDIT);
 	
 	ob->disp.first=ob->disp.last= NULL;
 	
@@ -4088,6 +4095,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 		BLI_addhead(&ob->modifiers, hmd);
 		BLI_remlink(&ob->hooks, hook);
+		
+		modifier_unique_name(&ob->modifiers, (ModifierData*)hmd);
 
 		MEM_freeN(hook);
 	}
@@ -4158,9 +4167,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 
 				/* base->object= newlibadr_us(fd, sce->id.lib, base->object); */
 				base->object= newlibadr_us(fd, sce->id.lib, base->object);
-				
-				/* when save during radiotool, needs cleared */
-				base->flag &= ~OB_RADIO;
 				
 				if(base->object==NULL) {
 					printf("LIB ERROR: base removed\n");
@@ -4444,10 +4450,12 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	}
 	
 	wm->operators.first= wm->operators.last= NULL;
-	wm->keymaps.first= wm->keymaps.last= NULL;
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
 	BKE_reports_init(&wm->reports, RPT_STORE);
+
+	wm->keyconfigs.first= wm->keyconfigs.last= NULL;
+	wm->defaultconf= NULL;
 
 	wm->jobs.first= wm->jobs.last= NULL;
 	
@@ -5274,6 +5282,33 @@ static char *dataname(short id_code)
 	
 }
 
+static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocname)
+{
+	bhead = blo_nextbhead(fd, bhead);
+
+	while(bhead && bhead->code==DATA) {
+		void *data;
+#if 0		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
+		short *sp= fd->filesdna->structs[bhead->SDNAnr];
+		char *allocname = fd->filesdna->types[ sp[0] ];
+		char *tmp= malloc(100);
+		
+		strcpy(tmp, allocname);
+		data= read_struct(fd, bhead, tmp);
+#endif
+		data= read_struct(fd, bhead, allocname);
+		
+		if (data) {
+			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
+		}
+
+		bhead = blo_nextbhead(fd, bhead);
+	}
+
+	return bhead;
+}
+
 static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID **id_r)
 {
 	/* this routine reads a libblock and its direct data. Use link functions
@@ -5315,32 +5350,11 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		return blo_nextbhead(fd, bhead);
 	}
 
-	bhead = blo_nextbhead(fd, bhead);
-
 	/* need a name for the mallocN, just for debugging and sane prints on leaks */
 	allocname= dataname(GS(id->name));
 	
-		/* read all data */
-	
-	while(bhead && bhead->code==DATA) {
-		void *data;
-#if 0		
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
-		short *sp= fd->filesdna->structs[bhead->SDNAnr];
-		char *allocname = fd->filesdna->types[ sp[0] ];
-		char *tmp= malloc(100);
-		
-		strcpy(tmp, allocname);
-		data= read_struct(fd, bhead, tmp);
-#endif
-		data= read_struct(fd, bhead, allocname);
-		
-		if (data) {
-			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
-		}
-
-		bhead = blo_nextbhead(fd, bhead);
-	}
+	/* read all data into fd->datamap */
+	bhead= read_data_into_oldnewmap(fd, bhead, allocname);
 
 	/* init pointers direct data */
 	switch( GS(id->name) ) {
@@ -7649,6 +7663,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						smd->flags |= eSubsurfModifierFlag_ControlEdges;
 					
 					BLI_addtail(&ob->modifiers, smd);
+					
+					modifier_unique_name(&ob->modifiers, (ModifierData*)smd);
 				}
 			}
 			
@@ -9909,7 +9925,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 6)) {
+		Object *ob;
+		Lamp *la;
+		
+		/* New variables for axis-angle rotations and/or quaternion rotations were added, and need proper initialisation */
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			/* new variables for all objects */
+			ob->quat[0]= 1.0f;
+			ob->rotAxis[1]= 1.0f;
+			
+			/* bones */
+			if (ob->pose) {
+				bPoseChannel *pchan;
+				
+				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					/* just need to initalise rotation axis properly... */
+					pchan->rotAxis[1]= 1.0f;
+				}
+			}
+		}
+
+		for(la = main->lamp.first; la; la=la->id.next)
+			la->compressthresh= 0.05f;
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -9955,22 +9993,38 @@ static void lib_link_all(FileData *fd, Main *main)
 
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
-	Link *link;
+	UserDef *user;
+	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 
-	bfd->user= read_struct(fd, bhead, "user def");
-	bfd->user->themes.first= bfd->user->themes.last= NULL;
-	// XXX
-	bfd->user->uifonts.first= bfd->user->uifonts.last= NULL;
-	bfd->user->uistyles.first= bfd->user->uistyles.last= NULL;
+	bfd->user= user= read_struct(fd, bhead, "user def");
 
-	bhead = blo_nextbhead(fd, bhead);
+	/* read all data into fd->datamap */
+	bhead= read_data_into_oldnewmap(fd, bhead, "user def");
 
-		/* read all attached data */
-	while(bhead && bhead->code==DATA) {
-		link= read_struct(fd, bhead, "user def data");
-		BLI_addtail(&bfd->user->themes, link);
-		bhead = blo_nextbhead(fd, bhead);
+	link_list(fd, &user->themes);
+	link_list(fd, &user->keymaps);
+
+	for(keymap=user->keymaps.first; keymap; keymap=keymap->next) {
+		keymap->modal_items= NULL;
+		keymap->poll= NULL;
+
+		link_list(fd, &keymap->items);
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
+			kmi->properties= newdataadr(fd, kmi->properties);
+			if(kmi->properties)
+				IDP_DirectLinkProperty(kmi->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			kmi->ptr= NULL;
+		}
 	}
+
+	// XXX
+	user->uifonts.first= user->uifonts.last= NULL;
+	user->uistyles.first= user->uistyles.last= NULL;
+
+	/* free fd->datamap again */
+	oldnewmap_free_unused(fd->datamap);
+	oldnewmap_clear(fd->datamap);
 
 	return bhead;
 }

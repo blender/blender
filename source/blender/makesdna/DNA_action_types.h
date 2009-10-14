@@ -128,12 +128,15 @@ typedef struct bPoseChannel {
 	void				*dual_quat;
 	void				*b_bone_dual_quats;
 	
-	float		loc[3];				/* transforms - written in by actions or transform */
+		/* transforms - written in by actions or transform */
+	float		loc[3];				
 	float		size[3];
 	
-	float 		eul[3];				/* rotations - written in by actions or transform (but only euler/quat in use at any one time!) */
-	float		quat[4];
-	short 		rotmode;			/* for now either quat (0), or xyz-euler (1) */
+		/* rotations - written in by actions or transform (but only one representation gets used at any time) */
+	float 		eul[3];					/* euler rotation */
+	float		quat[4];				/* quaternion rotation */
+	float 		rotAxis[3], rotAngle;	/* axis-angle rotation */
+	short 		rotmode;				/* eRotationModes - rotation representation to use */
 	short 		pad;
 	
 	float		chan_mat[4][4];		/* matrix result of loc/quat/size , and where we put deform in, see next line */
@@ -419,6 +422,7 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_ONLYDRIVERS		= (1<<1),	/* for 'Drivers' editor - only include Driver data from AnimData */
 	ADS_FILTER_ONLYNLA			= (1<<2),	/* for 'NLA' editor - only include NLA data from AnimData */
 	ADS_FILTER_SELEDIT			= (1<<3),	/* for Graph Editor - used to indicate whether to include a filtering flag or not */
+	ADS_FILTER_SUMMARY			= (1<<4),	/* for 'DopeSheet' Editor - include 'summary' line */
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),

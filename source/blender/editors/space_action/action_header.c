@@ -68,7 +68,7 @@
 #include "action_intern.h"
 
 enum {
-	B_REDR= 0,
+	B_REDR= 1,
 } eActHeader_Events;
 
 /* ********************************************************* */
@@ -254,11 +254,8 @@ static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void do_action_buttons(bContext *C, void *arg, int event)
 {
-	switch (event) {
-		case B_REDR:
-			ED_area_tag_redraw(CTX_wm_area(C));
-			break;
-	}
+	ED_area_tag_refresh(CTX_wm_area(C));
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 void action_header_buttons(const bContext *C, ARegion *ar)
@@ -334,8 +331,11 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		/* MODE-DEPENDENT DRAWING */
 		if (saction->mode == SACTCONT_DOPESHEET) {
 			/* FILTERING OPTIONS */
-			xco -= 10;
+				/* DopeSheet summary...  */
+			uiDefIconTextButBitI(block, TOG, ADS_FILTER_SUMMARY, B_REDR, ICON_BORDERMOVE, "Summary", xco,yco,XIC*4,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Include DopeSheet summary row"); // TODO: needs a better icon
+			xco += (XIC*3.5);
 			
+				/* Standard filtering... */
 			xco= ANIM_headerUI_standard_buttons(C, &saction->ads, block, xco, yco);
 		}
 		else if (saction->mode == SACTCONT_ACTION) {

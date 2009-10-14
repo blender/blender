@@ -214,9 +214,9 @@ static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	/* own keymap */
 	// TODO: cannot use generic copy, need special NLA version
-	keymap= WM_keymap_find(wm, "NLA Channels", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_find(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -259,9 +259,9 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm, "NLA Data", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Data", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_find(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -358,7 +358,7 @@ static void nla_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm, "NLA Generic", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

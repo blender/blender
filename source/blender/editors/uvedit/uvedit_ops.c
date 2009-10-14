@@ -56,6 +56,7 @@
 
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -3084,11 +3085,11 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_tile_set);
 }
 
-void ED_keymap_uvedit(wmWindowManager *wm)
+void ED_keymap_uvedit(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
-	keymap= WM_keymap_find(wm, "UVEdit", 0, 0);
+	keymap= WM_keymap_find(keyconf, "UVEdit", 0, 0);
 	keymap->poll= ED_operator_uvedit;
 	
 	/* pick selection */
@@ -3129,6 +3130,8 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_tile_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 
-	transform_keymap_for_space(wm, keymap, SPACE_IMAGE);
+	ED_object_generic_keymap(keyconf, keymap, TRUE);
+
+	transform_keymap_for_space(keyconf, keymap, SPACE_IMAGE);
 }
 

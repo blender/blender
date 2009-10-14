@@ -1964,7 +1964,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlock *block;
 	int a, xco=0, maxco=0, yco= 0;
 	
-	block= uiLayoutFreeBlock(layout);
+	block= uiLayoutAbsoluteBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) 
@@ -2142,6 +2142,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 				xco+= XIC;
 				if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
 					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
+					xco+= XIC;
+				}
+				if (ts->snap_mode == SCE_SNAP_MODE_FACE) {
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_RETOPO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
 					xco+= XIC;
 				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");

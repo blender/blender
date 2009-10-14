@@ -44,6 +44,7 @@ struct wmWindowManager;
 #define OPTYPE_UNDO			2	/* do undo push after after */
 #define OPTYPE_BLOCKING		4	/* let blender grab all input from the WM (X11) */
 #define OPTYPE_MACRO		8
+#define OPTYPE_GRAB_POINTER	16	/* */
 
 /* context to call operator in for WM_operator_name_call */
 /* rna_ui.c contains EnumPropertyItem's of these, keep in sync */

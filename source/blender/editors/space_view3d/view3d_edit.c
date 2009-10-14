@@ -371,7 +371,7 @@ enum {
 
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
-void viewrotate_modal_keymap(wmWindowManager *wm)
+void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Cancel", ""},
@@ -381,12 +381,12 @@ void viewrotate_modal_keymap(wmWindowManager *wm)
 
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "View3D Rotate Modal");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Rotate Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(wm, "View3D Rotate Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Rotate Modal", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -621,7 +621,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 /* ************************ viewmove ******************************** */
@@ -630,19 +630,19 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
-void viewmove_modal_keymap(wmWindowManager *wm)
+void viewmove_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
 
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "View3D Move Modal");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Move Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(wm, "View3D Move Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Move Modal", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -743,25 +743,25 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 /* ************************ viewzoom ******************************** */
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
-void viewzoom_modal_keymap(wmWindowManager *wm)
+void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
 
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "View3D Zoom Modal");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Zoom Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(wm, "View3D Zoom Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Zoom Modal", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -976,7 +976,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
@@ -1877,57 +1877,6 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-}
-
-/* ********************* draw type operator ****************** */
-
-static int view3d_drawtype_exec(bContext *C, wmOperator *op)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	int dt, dt_alt;
-
-	dt  = RNA_int_get(op->ptr, "draw_type");
-	dt_alt = RNA_int_get(op->ptr, "draw_type_alternate");
-
-	if (dt_alt != -1) {
-		if (v3d->drawtype == dt)
-			v3d->drawtype = dt_alt;
-		else
-			v3d->drawtype = dt;
-	}
-	else
-		v3d->drawtype = dt;
-
-	ED_area_tag_redraw(CTX_wm_area(C));
-
-	return OPERATOR_FINISHED;
-}
-
-static int view3d_drawtype_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	return view3d_drawtype_exec(C, op);
-}
-
-/* toggles */
-void VIEW3D_OT_drawtype(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Change draw type";
-	ot->description = "Change the draw type of the view.";
-	ot->idname= "VIEW3D_OT_drawtype";
-
-	/* api callbacks */
-	ot->invoke= view3d_drawtype_invoke;
-	ot->exec= view3d_drawtype_exec;
-
-	ot->poll= ED_operator_view3d_active;
-
-	/* flags */
-	ot->flag= 0;
-
-	/* rna XXX should become enum */
-	RNA_def_int(ot->srna, "draw_type", 0, INT_MIN, INT_MAX, "Draw Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "draw_type_alternate", -1, INT_MIN, INT_MAX, "Draw Type Alternate", "", INT_MIN, INT_MAX);
 }
 
 /* ***************** 3d cursor cursor op ******************* */

@@ -156,30 +156,26 @@ static void rna_Pose_ik_solver_update(bContext *C, PointerRNA *ptr)
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
 }
 
-/* rotation - euler angles */
-static void rna_PoseChannel_rotation_euler_get(PointerRNA *ptr, float *value)
+/* rotation - axis-angle */
+static void rna_PoseChannel_rotation_axis_angle_get(PointerRNA *ptr, float *value)
 {
 	bPoseChannel *pchan= ptr->data;
 	
-	if(pchan->rotmode == ROT_MODE_AXISANGLE) /* default XYZ eulers */
-		AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], value, EULER_ORDER_DEFAULT);
-	else if(pchan->rotmode == ROT_MODE_QUAT) /* default XYZ eulers  */
-		QuatToEul(pchan->quat, value);
-	else
-		VECCOPY(value, pchan->eul);
+	/* for now, assume that rotation mode is axis-angle */
+	value[0]= pchan->rotAngle;
+	VecCopyf(&value[1], pchan->rotAxis);
 }
 
-/* rotation - euler angles */
-static void rna_PoseChannel_rotation_euler_set(PointerRNA *ptr, const float *value)
+/* rotation - axis-angle */
+static void rna_PoseChannel_rotation_axis_angle_set(PointerRNA *ptr, const float *value)
 {
 	bPoseChannel *pchan= ptr->data;
 	
-	if(pchan->rotmode == ROT_MODE_AXISANGLE) /* default XYZ eulers */
-		EulOToAxisAngle((float *)value, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
-	else if(pchan->rotmode == ROT_MODE_QUAT) /* default XYZ eulers */
-		EulToQuat((float*)value, pchan->quat);
-	else
-		VECCOPY(pchan->eul, value);
+	/* for now, assume that rotation mode is axis-angle */
+	pchan->rotAngle= value[0];
+	VecCopyf(pchan->rotAxis, (float *)&value[1]);
+	
+	// TODO: validate axis?
 }
 
 static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
@@ -187,7 +183,7 @@ static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
 	bPoseChannel *pchan= ptr->data;
 	
 	/* use API Method for conversions... */
-	BKE_rotMode_change_values(pchan->quat, pchan->eul, pchan->rotmode, (short)value);
+	BKE_rotMode_change_values(pchan->quat, pchan->eul, pchan->rotAxis, &pchan->rotAngle, pchan->rotmode, (short)value);
 	
 	/* finally, set the new rotation type */
 	pchan->rotmode= value;
@@ -578,14 +574,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 		 * having a single one is better for Keyframing and other property-management situations...
 		 */
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "quat");
-	// TODO: we may need some validation funcs
+	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
+	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_axis_angle_get", "rna_PoseChannel_rotation_axis_angle_set", NULL);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
-	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_euler_get", "rna_PoseChannel_rotation_euler_set", NULL);
 	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
@@ -595,15 +590,14 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_PoseChannel_rotation_mode_set", NULL);
 	RNA_def_property_ui_text(prop, "Rotation Mode", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
-
-	/* These three matrix properties await an implementation of the PROP_MATRIX subtype, which currently doesn't exist. */
+	
+	/* transform matrices - should be read-only since these are set directly by AnimSys evaluation */
 	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "chan_mat");
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");
-
-	/* kaito says this should be not user-editable; I disagree; power users should be able to force this in python; he's the boss. */
+	
 	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_array(prop, 16);

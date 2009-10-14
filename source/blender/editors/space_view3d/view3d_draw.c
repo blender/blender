@@ -1413,6 +1413,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 	
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	glDepthMask(0);
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
@@ -1433,6 +1434,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	wmPopMatrix();
 	
 	glDisable(GL_BLEND);
+
+	glDepthMask(1);
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
@@ -1961,6 +1964,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
+	else
+		v3d->zbuf= FALSE;
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	v3d->gridview= v3d->grid;

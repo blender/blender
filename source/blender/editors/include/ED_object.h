@@ -28,7 +28,8 @@
 #ifndef ED_OBJECT_H
 #define ED_OBJECT_H
 
-struct wmWindowManager;
+struct wmKeyConfig;
+struct wmKeyMap;
 struct Scene;
 struct Object;
 struct bContext;
@@ -44,7 +45,11 @@ struct ModifierData;
 
 /* object_edit.c */
 void ED_operatortypes_object(void);
-void ED_keymap_object(struct wmWindowManager *wm);
+void ED_operatormacros_object(void);
+void ED_keymap_object(struct wmKeyConfig *keyconf);
+
+/* generic editmode keys like pet */
+void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet);
 
 	/* send your own notifier for select! */
 void ED_base_object_select(struct Base *base, short mode);
@@ -70,6 +75,7 @@ void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 
 void ED_object_base_init_from_view(struct bContext *C, struct Base *base);
+struct Object *ED_object_add_type(struct bContext *C, int type);
 
 void ED_object_single_users(struct Scene *scene, int full);
 

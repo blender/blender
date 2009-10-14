@@ -45,6 +45,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -116,6 +117,26 @@ void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference
 	note->action= type & NOTE_ACTION;
 	
 	note->reference= reference;
+}
+
+void WM_main_add_notifier(unsigned int type, void *reference)
+{
+	Main *bmain= G.main;
+	wmWindowManager *wm= bmain->wm.first;
+
+	if(wm) {
+		wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
+		
+		note->wm= wm;
+		BLI_addtail(&note->wm->queue, note);
+		
+		note->category= type & NOTE_CATEGORY;
+		note->data= type & NOTE_DATA;
+		note->subtype= type & NOTE_SUBTYPE;
+		note->action= type & NOTE_ACTION;
+		
+		note->reference= reference;
+	}
 }
 
 static wmNotifier *wm_notifier_next(wmWindowManager *wm)
@@ -441,8 +462,10 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
 			/* grab cursor during blocking modal ops (X11) */
-			if(ot->flag & OPTYPE_BLOCKING)
-				WM_cursor_grab(CTX_wm_window(C), 1);
+			if(ot->flag & OPTYPE_BLOCKING) {
+				int warp = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+				WM_cursor_grab(CTX_wm_window(C), warp);
+			}
 		}
 		else
 			WM_operator_free(op);
@@ -637,8 +660,8 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 				CTX_wm_region_set(C, region);
 			}
 
+			WM_cursor_ungrab(CTX_wm_window(C), TRUE);
 			WM_operator_free(handler->op);
-			WM_cursor_grab(CTX_wm_window(C), 0);
 		}
 		else if(handler->ui_remove) {
 			ScrArea *area= CTX_wm_area(C);
@@ -704,16 +727,16 @@ static int wm_userdef_event_map(int kmitype)
 	return kmitype;
 }
 
-static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
+static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 {
 	int kmitype= wm_userdef_event_map(kmi->type);
 
-	if(kmi->inactive) return 0;
+	if(kmi->flag & KMI_INACTIVE) return 0;
 
 	/* exception for middlemouse emulation */
 	if((U.flag & USER_TWOBUTTONMOUSE) && (kmi->type == MIDDLEMOUSE)) {
 		if(winevent->type == LEFTMOUSE && winevent->alt) {
-			wmKeymapItem tmp= *kmi;
+			wmKeyMapItem tmp= *kmi;
 
 			tmp.type= winevent->type;
 			tmp.alt= winevent->alt;
@@ -763,9 +786,9 @@ static int wm_event_always_pass(wmEvent *event)
 static void wm_event_modalkeymap(wmOperator *op, wmEvent *event)
 {
 	if(op->type->modalkeymap) {
-		wmKeymapItem *kmi;
+		wmKeyMapItem *kmi;
 		
-		for(kmi= op->type->modalkeymap->keymap.first; kmi; kmi= kmi->next) {
+		for(kmi= op->type->modalkeymap->items.first; kmi; kmi= kmi->next) {
 			if(wm_eventmatch(event, kmi)) {
 					
 				event->type= EVT_MODAL_MAP;
@@ -835,7 +858,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			/* remove modal handler, operator itself should have been cancelled and freed */
 			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
-				WM_cursor_grab(CTX_wm_window(C), 0);
+				WM_cursor_ungrab(CTX_wm_window(C), TRUE);
 
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
@@ -1010,6 +1033,7 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmEventHandler *handler, *nexthandler;
 	int action= WM_HANDLER_CONTINUE;
 	int always_pass;
@@ -1030,11 +1054,11 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				action= WM_HANDLER_BREAK;
 
 			if(handler->keymap) {
-				wmKeyMap *keymap= handler->keymap;
-				wmKeymapItem *kmi;
+				wmKeyMap *keymap= WM_keymap_active(wm, handler->keymap);
+				wmKeyMapItem *kmi;
 				
 				if(!keymap->poll || keymap->poll(C)) {
-					for(kmi= keymap->keymap.first; kmi; kmi= kmi->next) {
+					for(kmi= keymap->items.first; kmi; kmi= kmi->next) {
 						if(wm_eventmatch(event, kmi)) {
 							
 							event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */

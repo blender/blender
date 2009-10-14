@@ -78,6 +78,8 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_resources.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -115,22 +117,26 @@ void EM_select_mirrored(Object *obedit, EditMesh *em)
 	}
 }
 
-void EM_automerge(int update) 
+void EM_automerge(Scene *scene, Object *obedit, int update)
 {
-// XXX	int len;
-	
-//	if ((scene->automerge) &&
-//		(obedit && obedit->type==OB_MESH) &&
-//		(((Mesh*)obedit->data)->mr==NULL)
-//	  ) {
-//		len = removedoublesflag(1, 1, scene->toolsettings->doublimit);
-//		if (len) {
-//			em->totvert -= len; /* saves doing a countall */
-//			if (update) {
-//				DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-//			}
-//		}
-//	}
+	Mesh *me= obedit ? obedit->data : NULL; /* can be NULL */
+	int len;
+
+	if ((scene->toolsettings->automerge) &&
+		(obedit && obedit->type==OB_MESH && (obedit->mode & OB_MODE_EDIT)) &&
+		(me->mr==NULL)
+	  ) {
+		Mesh *me= (Mesh*)obedit->data;
+		EditMesh *em= me->edit_mesh;
+
+		len = removedoublesflag(em, 1, 1, scene->toolsettings->doublimit);
+		if (len) {
+			em->totvert -= len; /* saves doing a countall */
+			if (update) {
+				DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+			}
+		}
+	}
 }
 
 /* ****************************** SELECTION ROUTINES **************** */
@@ -416,6 +422,9 @@ EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 		data.closestIndex = 0;
 
 		data.pass = 0;
+
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+
 		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, 1);
 
 		if (data.dist>3) {
@@ -505,6 +514,7 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 		data.dist = *dist;
 		data.closest = NULL;
 
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, 2);
 
 		*dist = data.dist;
@@ -560,6 +570,7 @@ static EditFace *findnearestface(ViewContext *vc, int *dist)
 			data.dist = 0x7FFF;		/* largest short */
 			data.toFace = efa;
 
+			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data);
 
 			if(vc->em->selectmode == SCE_SELECT_FACE || data.dist<*dist) {	/* only faces, no dist check */
@@ -588,6 +599,8 @@ static EditFace *findnearestface(ViewContext *vc, int *dist)
 		data.closestIndex = 0;
 
 		data.pass = 0;
+
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
 
 		if (data.dist>3) {
@@ -1234,36 +1247,34 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr,
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	if(C==NULL) {
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
-		RNA_enum_items_add(&item, &totitem, prop_simedge_types);
-		RNA_enum_items_add(&item, &totitem, prop_simface_types);
-		RNA_enum_item_end(&item, &totitem);
-		*free= 1;
+	if(C) {
+		obedit= CTX_data_edit_object(C);
 		
-		return item;
+		if(obedit && obedit->type == OB_MESH) {
+			EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
+
+			if(em->selectmode & SCE_SELECT_VERTEX)
+				RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
+			else if(em->selectmode & SCE_SELECT_EDGE)
+				RNA_enum_items_add(&item, &totitem, prop_simedge_types);
+			else if(em->selectmode & SCE_SELECT_FACE)
+				RNA_enum_items_add(&item, &totitem, prop_simface_types);
+			RNA_enum_item_end(&item, &totitem);
+
+			*free= 1;
+
+			return item;
+		}
 	}
-	
-	obedit= CTX_data_edit_object(C);
-	
-	if(obedit && obedit->type == OB_MESH) {
-		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
 
-		if(em->selectmode & SCE_SELECT_VERTEX)
-			RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
-		else if(em->selectmode & SCE_SELECT_EDGE)
-			RNA_enum_items_add(&item, &totitem, prop_simedge_types);
-		else if(em->selectmode & SCE_SELECT_FACE)
-			RNA_enum_items_add(&item, &totitem, prop_simface_types);
-		RNA_enum_item_end(&item, &totitem);
-
-		*free= 1;
-
-		return item;
-	}
+	/* needed for doc generation */
+	RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
+	RNA_enum_items_add(&item, &totitem, prop_simedge_types);
+	RNA_enum_items_add(&item, &totitem, prop_simface_types);
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
 	
-	return NULL;
+	return item;
 }
 
 void MESH_OT_select_similar(wmOperatorType *ot)
@@ -1284,7 +1295,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", prop_simvertex_types, 0, "Type", "");
+	prop= RNA_def_enum(ot->srna, "type", prop_simvertex_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
 }
 
@@ -3614,9 +3625,9 @@ static void mesh_selection_type(ToolSettings *ts, EditMesh *em, int val)
 }
 
 static EnumPropertyItem prop_mesh_edit_types[] = {
-	{1, "VERT", 0, "Vertices", ""},
-	{2, "EDGE", 0, "Edges", ""},
-	{3, "FACE", 0, "Faces", ""},
+	{1, "VERT", ICON_VERTEXSEL, "Vertices", ""},
+	{2, "EDGE", ICON_EDGESEL, "Edges", ""},
+	{3, "FACE", ICON_FACESEL, "Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

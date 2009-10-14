@@ -405,19 +405,22 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 			eve= BLI_findlink(&me->edit_mesh->verts, vertnum);
 			if(!eve) return 0.0f;
 			dvert= CustomData_em_get(&me->edit_mesh->vdata, eve->data, CD_MDEFORMVERT);
+			vertnum= 0;
 		}
 		else
-			dvert = me->dvert + vertnum;
+			dvert = me->dvert;
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 		
 		if(lt->dvert)
-			dvert = lt->dvert + vertnum;
+			dvert = lt->dvert;
 	}
 	
 	if(dvert==NULL)
 		return 0.0f;
+	
+	dvert += vertnum;
 	
 	for(i=dvert->totweight-1 ; i>=0 ; i--)
 		if(dvert->dw[i].def_nr == def_nr)

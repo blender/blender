@@ -146,7 +146,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	if(!graph_panel_context(C, &ale, &fcu))
 		return;
 
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
 
 	/* Info - Active F-Curve */
@@ -285,7 +285,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 
 	driver= fcu->driver;
 	
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_graph_region_driver_buttons, NULL);
 	
 	/* general actions */

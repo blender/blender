@@ -29,60 +29,28 @@
 
 #include <Cocoa/Cocoa.h>
 
+#ifndef MAC_OS_X_VERSION_10_6
+//Use of the SetSystemUIMode function (64bit compatible)
+#include <Carbon/Carbon.h>
+#endif
+
 #include "GHOST_WindowCocoa.h"
 #include "GHOST_SystemCocoa.h"
 #include "GHOST_Debug.h"
-/*
-AGLContext GHOST_WindowCocoa::s_firstaglCtx = NULL;
-#ifdef GHOST_DRAW_CARBON_GUTTER
-const GHOST_TInt32 GHOST_WindowCocoa::s_sizeRectSize = 16;
-#endif //GHOST_DRAW_CARBON_GUTTER
 
-static const GLint sPreferredFormatWindow[8] = {
-AGL_RGBA,
-AGL_DOUBLEBUFFER,	
-AGL_ACCELERATED,
-AGL_DEPTH_SIZE,		32,
-AGL_NONE,
+
+// Pixel Format Attributes for the windowed NSOpenGLContext
+static const NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
+{
+	NSOpenGLPFADoubleBuffer,
+	NSOpenGLPFAAccelerated,
+	NSOpenGLPFAAllowOfflineRenderers,   // NOTE: Needed to connect to secondary GPUs
+	NSOpenGLPFADepthSize, 32,
+	0
 };
 
-static const GLint sPreferredFormatFullScreen[9] = {
-AGL_RGBA,
-AGL_DOUBLEBUFFER,
-AGL_ACCELERATED,
-AGL_FULLSCREEN,
-AGL_DEPTH_SIZE,		32,
-AGL_NONE,
-};
+#pragma mark Cocoa window delegate object
 
-
-
-WindowRef ugly_hack=NULL;
-
-const EventTypeSpec	kWEvents[] = {
-	{ kEventClassWindow, kEventWindowZoom },  // for new zoom behaviour  
-};
-
-static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData) {
-	WindowRef mywindow;
-	GHOST_WindowCocoa *ghost_window;
-	OSStatus err;
-	int theState;
-	
-	if (::GetEventKind(event) == kEventWindowZoom) {
-		err =  ::GetEventParameter (event,kEventParamDirectObject,typeWindowRef,NULL,sizeof(mywindow),NULL, &mywindow);
-		ghost_window = (GHOST_WindowCocoa *) GetWRefCon(mywindow);
-		theState = ghost_window->getMac_windowState();
-		if (theState == 1) 
-			ghost_window->setMac_windowState(2);
-		else if (theState == 2)
-			ghost_window->setMac_windowState(1);
-
-	}
-	return eventNotHandledErr;
-}*/
-
-#pragma mark Cocoa delegate object
 @interface CocoaWindowDelegate : NSObject
 {
 	GHOST_SystemCocoa *systemCocoa;
@@ -116,7 +84,10 @@ static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event,
 
 - (void)windowDidResignKey:(NSNotification *)notification
 {
-	systemCocoa->handleWindowEvent(GHOST_kEventWindowDeactivate, associatedWindow);
+	//The window is no more key when its own view becomes fullscreen
+	//but ghost doesn't know the view/window difference, so hide this fact
+	if (associatedWindow->getState() != GHOST_kWindowStateFullScreen)
+		systemCocoa->handleWindowEvent(GHOST_kEventWindowDeactivate, associatedWindow);
 }
 
 - (void)windowDidUpdate:(NSNotification *)notification
@@ -129,6 +100,26 @@ static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event,
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
 }
 @end
+
+#pragma mark NSWindow subclass
+//We need to subclass it to tell that even borderless (fullscreen), it can become key (receive user events)
+@interface CocoaWindow: NSWindow
+{
+
+}
+-(BOOL)canBecomeKeyWindow;
+
+@end
+@implementation CocoaWindow
+
+-(BOOL)canBecomeKeyWindow
+{
+	return YES;
+}
+
+@end
+
+
 
 #pragma mark NSOpenGLView subclass
 //We need to subclass it in order to give Cocoa the feeling key events are trapped
@@ -158,8 +149,10 @@ static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event,
 
 #pragma mark initialization / finalization
 
+NSOpenGLContext* GHOST_WindowCocoa::s_firstOpenGLcontext = nil;
+
 GHOST_WindowCocoa::GHOST_WindowCocoa(
-	const GHOST_SystemCocoa *systemCocoa,
+	GHOST_SystemCocoa *systemCocoa,
 	const STR_String& title,
 	GHOST_TInt32 left,
 	GHOST_TInt32 top,
@@ -170,136 +163,55 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	const bool stereoVisual
 ) :
 	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone),
-	m_customCursor(0),
-	m_fullScreenDirty(false)
+	m_customCursor(0)
 {
+	m_systemCocoa = systemCocoa;
+	m_fullScreen = false;
+	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
-	//fprintf(stderr," main screen top %i left %i height %i width %i\n", top, left, height, width);
-	/*
-	if (state >= GHOST_kWindowState8Normal ) {
-		if(state == GHOST_kWindowState8Normal) state= GHOST_kWindowStateNormal;
-		else if(state == GHOST_kWindowState8Maximized) state= GHOST_kWindowStateMaximized;
-		else if(state == GHOST_kWindowState8Minimized) state= GHOST_kWindowStateMinimized;
-		else if(state == GHOST_kWindowState8FullScreen) state= GHOST_kWindowStateFullScreen;
-		
-		// state = state - 8;	this was the simple version of above code, doesnt work in gcc 4.0
-		
-		setMac_windowState(1);
-	} else 
-		setMac_windowState(0);
-*/
-	if (state != GHOST_kWindowStateFullScreen) {
-		
-		//Creates the window
-		NSRect rect;
-		
-		rect.origin.x = left;
-		rect.origin.y = top;
-		rect.size.width = width;
-		rect.size.height = height;
-		
-		m_window = [[NSWindow alloc] initWithContentRect:rect
-											   styleMask:NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask
-												 backing:NSBackingStoreBuffered defer:NO];
-		if (m_window == nil) {
-			[pool drain];
-			return;
-		}
-		
-		[m_window setTitle:[NSString stringWithUTF8String:title]];
-		
-				
-		//Creates the OpenGL View inside the window
-		NSOpenGLPixelFormatAttribute attributes[] =
-		{
-			NSOpenGLPFADoubleBuffer,
-			NSOpenGLPFAAccelerated,
-			NSOpenGLPFAAllowOfflineRenderers,   // NOTE: Needed to connect to secondary GPUs
-			NSOpenGLPFADepthSize, 32,
-			0
-		};
-		
-		NSOpenGLPixelFormat *pixelFormat =
-        [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
-		
-		m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect
-													 pixelFormat:pixelFormat];
-		
-		[pixelFormat release];
-		
-		m_openGLContext = [m_openGLView openGLContext];
-		
-		[m_window setContentView:m_openGLView];
-		[m_window setInitialFirstResponder:m_openGLView];
-		
-		[m_window setReleasedWhenClosed:NO]; //To avoid bad pointer exception in case of user closing the window
-		
-		[m_window makeKeyAndOrderFront:nil];
-		
-		setDrawingContextType(type);
-		updateDrawingContext();
-		activateDrawingContext();
-		
-		// Boolean visible = (state == GHOST_kWindowStateNormal) || (state == GHOST_kWindowStateMaximized); /*unused*/
-        /*gen2mac(title, title255);
-        
-		
-		err =  ::CreateNewWindow( kDocumentWindowClass,
-								 kWindowStandardDocumentAttributes+kWindowLiveResizeAttribute,
-								 &bnds,
-								 &m_windowRef);
-		
-		if ( err != noErr) {
-			fprintf(stderr," error creating window %i \n",(int)err);
-		} else {
+
+	//Creates the window
+	NSRect rect;
+	
+	rect.origin.x = left;
+	rect.origin.y = top;
+	rect.size.width = width;
+	rect.size.height = height;
+	
+	m_window = [[CocoaWindow alloc] initWithContentRect:rect
+										   styleMask:NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask
+											 backing:NSBackingStoreBuffered defer:NO];
+	if (m_window == nil) {
+		[pool drain];
+		return;
+	}
+	
+	[m_window setTitle:[NSString stringWithUTF8String:title]];
+	
 			
-			::SetWRefCon(m_windowRef,(SInt32)this);
-			setTitle(title);
-			err = InstallWindowEventHandler (m_windowRef, myWEventHandlerProc, GetEventTypeCount(kWEvents), kWEvents,NULL,NULL); 
-			if ( err != noErr) {
-				fprintf(stderr," error creating handler %i \n",(int)err);
-			} else {
-				//	::TransitionWindow (m_windowRef,kWindowZoomTransitionEffect,kWindowShowTransitionAction,NULL);
-				::ShowWindow(m_windowRef);
-				::MoveWindow (m_windowRef, left, top,true);
-				
-			}
-		}
-        if (m_windowRef) {
-            m_grafPtr = ::GetWindowPort(m_windowRef);
-            setDrawingContextType(type);
-            updateDrawingContext();
-            activateDrawingContext();
-        }
-		if(ugly_hack==NULL) {
-			ugly_hack= m_windowRef;
-			// when started from commandline, window remains in the back... also for play anim
-			ProcessSerialNumber psn;
-			GetCurrentProcess(&psn);
-			SetFrontProcess(&psn);
-		}*/
-    }
-    else {
-    /*
-        Rect bnds = { top, left, top+height, left+width };
-        gen2mac("", title255);
-        m_windowRef = ::NewCWindow(
-            nil,							// Storage 
-            &bnds,							// Bounding rectangle of the window
-            title255,						// Title of the window
-            0,								// Window initially visible
-            plainDBox, 						// procID
-            (WindowRef)-1L,					// Put window before all other windows
-            0,								// Window has minimize box
-            (SInt32)this);					// Store a pointer to the class in the refCon
-    */
-        //GHOST_PRINT("GHOST_WindowCocoa::GHOST_WindowCocoa(): creating full-screen OpenGL context\n");
-        setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);
-		installDrawingContext(GHOST_kDrawingContextTypeOpenGL);
-        updateDrawingContext();
-        activateDrawingContext();
-    }
+	//Creates the OpenGL View inside the window
+	NSOpenGLPixelFormat *pixelFormat =
+	[[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttrsWindow];
+	
+	m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect
+												 pixelFormat:pixelFormat];
+	
+	[pixelFormat release];
+	
+	m_openGLContext = [m_openGLView openGLContext]; //This context will be replaced by the proper one just after
+	
+	[m_window setContentView:m_openGLView];
+	[m_window setInitialFirstResponder:m_openGLView];
+	
+	[m_window setReleasedWhenClosed:NO]; //To avoid bad pointer exception in case of user closing the window
+	
+	[m_window makeKeyAndOrderFront:nil];
+	
+	setDrawingContextType(type);
+	updateDrawingContext();
+	activateDrawingContext();
+	
 	m_tablet.Active = GHOST_kTabletModeNone;
 	
 	CocoaWindowDelegate *windowDelegate = [[CocoaWindowDelegate alloc] init];
@@ -308,6 +220,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	[m_window setAcceptsMouseMovedEvents:YES];
 	
+	if (state == GHOST_kWindowStateFullScreen)
+		setState(GHOST_kWindowStateFullScreen);
+		
 	[pool drain];
 }
 
@@ -316,17 +231,22 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 {
 	if (m_customCursor) delete m_customCursor;
 
-	/*if(ugly_hack==m_windowRef) ugly_hack= NULL;
-	
-	if(ugly_hack==NULL) setDrawingContextType(GHOST_kDrawingContextTypeNone);*/
-    
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	[m_openGLView release];
 	
 	if (m_window) {
 		[m_window close];
+		[[m_window delegate] release];
 		[m_window release];
 		m_window = nil;
 	}
+	
+	//Check for other blender opened windows and make the frontmost key
+	NSArray *windowsList = [NSApp orderedWindows];
+	if ([windowsList count]) {
+		[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+	}
+	[pool drain];
 }
 
 #pragma mark accessors
@@ -400,19 +320,30 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect& bounds) const
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getClientBounds(): window invalid")
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSRect screenSize = [[m_window screen] visibleFrame];
-
-	//Max window contents as screen size (excluding title bar...)
-	NSRect contentRect = [NSWindow contentRectForFrameRect:screenSize
-												 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)];
-
-	rect = [m_window contentRectForFrameRect:[m_window frame]];
 	
-	bounds.m_b = contentRect.size.height - (rect.origin.y -contentRect.origin.y);
-	bounds.m_l = rect.origin.x -contentRect.origin.x;
-	bounds.m_r = rect.origin.x-contentRect.origin.x + rect.size.width;
-	bounds.m_t = contentRect.size.height - (rect.origin.y + rect.size.height -contentRect.origin.y);
-	
+	if (!m_fullScreen)
+	{
+		NSRect screenSize = [[m_window screen] visibleFrame];
+
+		//Max window contents as screen size (excluding title bar...)
+		NSRect contentRect = [CocoaWindow contentRectForFrameRect:screenSize
+													 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
+
+		rect = [m_window contentRectForFrameRect:[m_window frame]];
+		
+		bounds.m_b = contentRect.size.height - (rect.origin.y -contentRect.origin.y);
+		bounds.m_l = rect.origin.x -contentRect.origin.x;
+		bounds.m_r = rect.origin.x-contentRect.origin.x + rect.size.width;
+		bounds.m_t = contentRect.size.height - (rect.origin.y + rect.size.height -contentRect.origin.y);
+	}
+	else {
+		NSRect screenSize = [[m_window screen] frame];
+		
+		bounds.m_b = screenSize.origin.y + screenSize.size.height;
+		bounds.m_l = screenSize.origin.x;
+		bounds.m_r = screenSize.origin.x + screenSize.size.width;
+		bounds.m_t = screenSize.origin.y;
+	}
 	[pool drain];
 }
 
@@ -468,7 +399,10 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getState(): window invalid")
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_TWindowState state;
-	if ([m_window isMiniaturized]) {
+	if (m_fullScreen) {
+		state = GHOST_kWindowStateFullScreen;
+	} 
+	else if ([m_window isMiniaturized]) {
 		state = GHOST_kWindowStateMinimized;
 	}
 	else if ([m_window isZoomed]) {
@@ -515,20 +449,137 @@ void GHOST_WindowCocoa::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST
 	outY = screenCoord.y;
 }
 
-
+/**
+ * @note Fullscreen switch is not actual fullscreen with display capture. As this capture removes all OS X window manager features.
+ * Instead, the menu bar and the dock are hidden, and the window is made borderless and enlarged.
+ * Thus, process switch, exposé, spaces, ... still work in fullscreen mode
+ */
 GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setState(): window invalid")
     switch (state) {
-	case GHOST_kWindowStateMinimized:
+		case GHOST_kWindowStateMinimized:
             [m_window miniaturize:nil];
             break;
-	case GHOST_kWindowStateMaximized:
+		case GHOST_kWindowStateMaximized:
 			[m_window zoom:nil];
 			break;
-	case GHOST_kWindowStateNormal:
+		
+		case GHOST_kWindowStateFullScreen:
+			if (!m_fullScreen)
+			{
+				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+			
+				//This status change needs to be done before Cocoa call to enter fullscreen mode
+				//to give window delegate hint not to forward its deactivation to ghost wm that doesn't know view/window difference
+				m_fullScreen = true;
+
+#ifdef MAC_OS_X_VERSION_10_6
+				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
+				//Hide menu & dock if needed
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				{
+					[NSApp setPresentationOptions:(NSApplicationPresentationHideDock | NSApplicationPresentationAutoHideMenuBar)];
+				}
+				//Make window borderless and enlarge it
+				[m_window setStyleMask:NSBorderlessWindowMask];
+				[m_window setFrame:[[m_window screen] frame] display:YES];
+#else
+				//With 10.5, we need to create a new window to change its style to borderless
+				//Hide menu & dock if needed
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				{
+					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:NO];
+					//One of the very few 64bit compatible Carbon function
+					SetSystemUIMode(kUIModeAllHidden,kUIOptionAutoShowMenuBar);
+				}
+				//Create a fullscreen borderless window
+				CocoaWindow *tmpWindow = [[CocoaWindow alloc]
+										  initWithContentRect:[[m_window screen] frame]
+										  styleMask:NSBorderlessWindowMask
+										  backing:NSBackingStoreBuffered
+										  defer:YES];
+				//Copy current window parameters
+				[tmpWindow setTitle:[m_window title]];
+				[tmpWindow setRepresentedURL:[m_window representedURL]];
+				[tmpWindow setReleasedWhenClosed:NO];
+				[tmpWindow setAcceptsMouseMovedEvents:YES];
+				[tmpWindow setDelegate:[m_window delegate]];
+				
+				//Assign the openGL view to the new window
+				[tmpWindow setContentView:m_openGLView];
+				
+				//Show the new window
+				[tmpWindow makeKeyAndOrderFront:nil];
+				//Close and release old window
+				[m_window setDelegate:nil]; // To avoid the notification of "window closed" event
+				[m_window close];
+				[m_window release];
+				m_window = tmpWindow;
+#endif
+			
+				//Tell WM of view new size
+				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
+				
+				[pool drain];
+				}
+			break;
+		case GHOST_kWindowStateNormal:
         default:
-            if ([m_window isMiniaturized])
+			if (m_fullScreen)
+			{
+				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+				m_fullScreen = false;
+
+				//Exit fullscreen
+#ifdef MAC_OS_X_VERSION_10_6
+				//Show again menu & dock if needed
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				{
+					[NSApp setPresentationOptions:NSApplicationPresentationDefault];
+				}
+				//Make window normal and resize it
+				[m_window setStyleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
+				[m_window setFrame:[[m_window screen] visibleFrame] display:YES];
+#else
+				//With 10.5, we need to create a new window to change its style to borderless
+				//Show menu & dock if needed
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				{
+					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:YES];
+					SetSystemUIMode(kUIModeNormal, 0); //One of the very few 64bit compatible Carbon function
+				}
+				//Create a fullscreen borderless window
+				CocoaWindow *tmpWindow = [[CocoaWindow alloc]
+										  initWithContentRect:[[m_window screen] frame]
+													styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
+													  backing:NSBackingStoreBuffered
+														defer:YES];
+				//Copy current window parameters
+				[tmpWindow setTitle:[m_window title]];
+				[tmpWindow setRepresentedURL:[m_window representedURL]];
+				[tmpWindow setReleasedWhenClosed:NO];
+				[tmpWindow setAcceptsMouseMovedEvents:YES];
+				[tmpWindow setDelegate:[m_window delegate]];
+				
+				//Assign the openGL view to the new window
+				[tmpWindow setContentView:m_openGLView];
+				
+				//Show the new window
+				[tmpWindow makeKeyAndOrderFront:nil];
+				//Close and release old window
+				[m_window setDelegate:nil]; // To avoid the notification of "window closed" event
+				[m_window close];
+				[m_window release];
+				m_window = tmpWindow;
+#endif
+			
+				//Tell WM of view new size
+				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
+				
+				[pool drain];
+			}
+            else if ([m_window isMiniaturized])
 				[m_window deminiaturize:nil];
 			else if ([m_window isZoomed])
 				[m_window zoom:nil];
@@ -539,8 +590,11 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 
 GHOST_TSuccess GHOST_WindowCocoa::setModifiedState(bool isUnsavedChanges)
 {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
 	[m_window setDocumentEdited:isUnsavedChanges];
 	
+	[pool drain];
 	return GHOST_Window::setModifiedState(isUnsavedChanges);
 }
 
@@ -566,7 +620,9 @@ GHOST_TSuccess GHOST_WindowCocoa::swapBuffers()
 {
     if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
         if (m_openGLContext != nil) {
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext flushBuffer];
+			[pool drain];
             return GHOST_kSuccess;
         }
     }
@@ -577,7 +633,9 @@ GHOST_TSuccess GHOST_WindowCocoa::updateDrawingContext()
 {
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
 		if (m_openGLContext != nil) {
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext update];
+			[pool drain];
 			return GHOST_kSuccess;
 		}
 	}
@@ -588,21 +646,9 @@ GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 {
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
 		if (m_openGLContext != nil) {
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext makeCurrentContext];
-#ifdef GHOST_DRAW_CARBON_GUTTER
-			// Restrict drawing to non-gutter area
-			::aglEnable(m_aglCtx, AGL_BUFFER_RECT);
-			GHOST_Rect bnds;
-			getClientBounds(bnds);
-			GLint b[4] =
-			{
-				bnds.m_l,
-				bnds.m_t+s_sizeRectSize,
-				bnds.m_r-bnds.m_l,
-				bnds.m_b-bnds.m_t
-			};
-			GLboolean result = ::aglSetInteger(m_aglCtx, AGL_BUFFER_RECT, b);
-#endif //GHOST_DRAW_CARBON_GUTTER
+			[pool drain];
 			return GHOST_kSuccess;
 		}
 	}
@@ -623,13 +669,15 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 		case GHOST_kDrawingContextTypeOpenGL:
 			if (!getValid()) break;
             				
-			if(!m_fullScreen)
-			{
-				pixelFormat = [m_openGLView pixelFormat];
-				tmpOpenGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
-															  shareContext:m_openGLContext];
-				if (tmpOpenGLContext == nil)
-					break;
+			pixelFormat = [m_openGLView pixelFormat];
+			tmpOpenGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+															  shareContext:s_firstOpenGLcontext];
+			if (tmpOpenGLContext == nil) {
+				success = GHOST_kFailure;
+				break;
+			}
+			
+			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;
 #ifdef WAIT_FOR_VSYNC
 				/* wait for vsync, to avoid tearing artifacts */
 				[tmpOpenGLContext setValues:1 forParameter:NSOpenGLCPSwapInterval];
@@ -637,37 +685,7 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 				[m_openGLView setOpenGLContext:tmpOpenGLContext];
 				[tmpOpenGLContext setView:m_openGLView];
 				
-				//[m_openGLContext release];
 				m_openGLContext = tmpOpenGLContext;
-			}
-			/*	
-            AGLPixelFormat pixelFormat;
-            if (!m_fullScreen) {
-                pixelFormat = ::aglChoosePixelFormat(0, 0, sPreferredFormatWindow);
-                m_aglCtx = ::aglCreateContext(pixelFormat, s_firstaglCtx);
-                if (!m_aglCtx) break;
-				if (!s_firstaglCtx) s_firstaglCtx = m_aglCtx;
-                 success = ::aglSetDrawable(m_aglCtx, m_grafPtr) == GL_TRUE ? GHOST_kSuccess : GHOST_kFailure;
-            }
-            else {
-                //GHOST_PRINT("GHOST_WindowCocoa::installDrawingContext(): init full-screen OpenGL\n");
-GDHandle device=::GetMainDevice();pixelFormat=::aglChoosePixelFormat(&device,1,sPreferredFormatFullScreen);
-                m_aglCtx = ::aglCreateContext(pixelFormat, 0);
-                if (!m_aglCtx) break;
-				if (!s_firstaglCtx) s_firstaglCtx = m_aglCtx;
-                //GHOST_PRINT("GHOST_WindowCocoa::installDrawingContext(): created OpenGL context\n");
-                //::CGGetActiveDisplayList(0, NULL, &m_numDisplays)
-                success = ::aglSetFullScreen(m_aglCtx, m_fullScreenWidth, m_fullScreenHeight, 75, 0) == GL_TRUE ? GHOST_kSuccess : GHOST_kFailure;
-                
-                if (success == GHOST_kSuccess) {
-                    GHOST_PRINT("GHOST_WindowCocoa::installDrawingContext(): init full-screen OpenGL succeeded\n");
-                }
-                else {
-                    GHOST_PRINT("GHOST_WindowCocoa::installDrawingContext(): init full-screen OpenGL failed\n");
-                }
-                
-            }
-            ::aglDestroyPixelFormat(pixelFormat);*/
 			break;
 		
 		case GHOST_kDrawingContextTypeNone:
@@ -687,15 +705,22 @@ GHOST_TSuccess GHOST_WindowCocoa::removeDrawingContext()
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	switch (m_drawingContextType) {
 		case GHOST_kDrawingContextTypeOpenGL:
-			[m_openGLView clearGLContext];
+			if (m_openGLContext)
+			{
+				[m_openGLView clearGLContext];
+				if (s_firstOpenGLcontext == m_openGLContext) s_firstOpenGLcontext = nil;
+				m_openGLContext = nil;
+			}
+			[pool drain];
 			return GHOST_kSuccess;
 		case GHOST_kDrawingContextTypeNone:
+			[pool drain];
 			return GHOST_kSuccess;
 			break;
 		default:
+			[pool drain];
 			return GHOST_kFailure;
 	}
-	[pool drain];
 }
 
 
@@ -703,20 +728,7 @@ GHOST_TSuccess GHOST_WindowCocoa::invalidate()
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::invalidate(): window invalid")
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    if (!m_fullScreen) {
-		[m_openGLView setNeedsDisplay:YES];
-    }
-    else {
-        //EventRef event;
-        //OSStatus status = ::CreateEvent(NULL, kEventClassWindow, kEventWindowUpdate, 0, 0, &event);
-        //GHOST_PRINT("GHOST_WindowCocoa::invalidate(): created event " << status << " \n");
-        //status = ::SetEventParameter(event, kEventParamDirectObject, typeWindowRef, sizeof(WindowRef), this);
-        //GHOST_PRINT("GHOST_WindowCocoa::invalidate(): set event parameter " << status << " \n");
-        //status = ::PostEventToQueue(::GetMainEventQueue(), event, kEventPriorityStandard);
-        //status = ::SendEventToEventTarget(event, ::GetApplicationEventTarget());
-        //GHOST_PRINT("GHOST_WindowCocoa::invalidate(): added event to queue " << status << " \n");
-        m_fullScreenDirty = true;
-    }
+	[m_openGLView setNeedsDisplay:YES];
 	[pool drain];
 	return GHOST_kSuccess;
 }
@@ -795,11 +807,6 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 }
 
 
-bool GHOST_WindowCocoa::getFullScreenDirty()
-{
-    return m_fullScreen && m_fullScreenDirty;
-}
-
 
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)
 {
@@ -807,6 +814,73 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)
 		loadCursor(visible, getCursorShape());
 	}
 	
+	return GHOST_kSuccess;
+}
+
+
+//Override this method to provide set feature even if not in warp
+inline bool GHOST_WindowCocoa::setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y)
+{
+	m_cursorWarpAccumPos[0]= x;
+	m_cursorWarpAccumPos[1]= y;
+	
+	return GHOST_kSuccess;
+}
+
+
+GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(bool grab, bool warp, bool restore)
+{
+	if (grab)
+	{
+		//No need to perform grab without warp as it is always on in OS X
+		if(warp) {
+			GHOST_TInt32 x_old,y_old;
+
+			m_cursorWarp= true;
+			m_systemCocoa->getCursorPosition(x_old,y_old);
+			screenToClient(x_old, y_old, m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+			//Warp position is stored in client (window base) coordinates
+			setWindowCursorVisibility(false);
+			return CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+		}
+	}
+	else {
+		if(m_cursorWarp)
+		{/* are we exiting warp */
+			setWindowCursorVisibility(true);
+			/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+			if(restore) {
+				GHOST_Rect bounds;
+				GHOST_TInt32 x_new, y_new, x_cur, y_cur;
+				
+				getClientBounds(bounds);
+				x_new= m_cursorWarpInitPos[0]+m_cursorWarpAccumPos[0];
+				y_new= m_cursorWarpInitPos[1]+m_cursorWarpAccumPos[1];
+				
+				if(x_new < 0)		x_new = 0;
+				if(y_new < 0)		y_new = 0;
+				if(x_new > bounds.getWidth())	x_new = bounds.getWidth();
+				if(y_new > bounds.getHeight())	y_new = bounds.getHeight();
+				
+				//get/set cursor position works in screen coordinates
+				clientToScreen(x_new, y_new, x_cur, y_cur);
+				m_systemCocoa->setCursorPosition(x_cur, y_cur);
+				
+				//As Cocoa will give as first deltaX,deltaY this change in cursor position, we need to compensate for it
+				//Issue appearing in case of two transform operations conducted w/o mouse motion in between
+				x_new=m_cursorWarpAccumPos[0];
+				y_new=m_cursorWarpAccumPos[1];
+				setCursorWarpAccum(-x_new, -y_new);
+			}
+			else {
+				m_systemCocoa->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+				setCursorWarpAccum(0, 0);
+			}
+			
+			m_cursorWarp= false;
+			return CGAssociateMouseAndMouseCursorPosition(true) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+		}
+	}
 	return GHOST_kSuccess;
 }
 	

@@ -986,6 +986,8 @@ void load_editMesh(Scene *scene, Object *ob)
 	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
 	mesh_update_customdata_pointers(me);
 
+	em->mat_nr= ob->actcol-1;
+
 	/* the vertices, use ->tmp.l as counter */
 	eve= em->verts.first;
 	a= 0;
@@ -1340,10 +1342,14 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	ED_base_object_select(basenew, BA_DESELECT);
 	
 	/* 2 */
-	basenew->object->data= menew= add_mesh(me->id.name);	/* empty */
+	basenew->object->data= menew= add_mesh(me->id.name+2);	/* empty */
+	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 	me->id.us--;
 	make_editMesh(scene, basenew->object);
 	emnew= menew->edit_mesh;
+	CustomData_copy(&em->vdata, &emnew->vdata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
+	CustomData_copy(&em->edata, &emnew->edata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
+	CustomData_copy(&em->fdata, &emnew->fdata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
 	
 	/* 3 */
 	/* SPLIT: first make duplicate */
@@ -1386,6 +1392,8 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	/* 5 */
 	load_editMesh(scene, basenew->object);
 	free_editMesh(emnew);
+	MEM_freeN(menew->edit_mesh);
+	menew->edit_mesh= NULL;
 	
 	/* hashedges are invalid now, make new! */
 	editMesh_set_hash(em);

@@ -73,7 +73,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 					zbuf->malloc= 0;
 					free_compbuf(zbuf);
 				}
-				generate_preview(node, outbuf);
+				generate_preview(data, node, outbuf);
 				
 				/* we give outbuf to rr... */
 				rr->rectf= outbuf->rect;
@@ -91,7 +91,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 		}
 	}
 	if(in[0]->data)
-		generate_preview(node, in[0]->data);
+		generate_preview(data, node, in[0]->data);
 }
 
 bNodeType cmp_node_composite= {

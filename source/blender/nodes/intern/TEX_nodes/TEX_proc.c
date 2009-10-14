@@ -125,9 +125,8 @@ static int count_outputs(bNode *node)
         static void name##_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)                  \
         {                                                                                                    \
                 int outs = count_outputs(node);                                                              \
-                if(outs >= 1) tex_output(node, in, out[0], &name##_colorfn);                                 \
-                if(outs >= 2) tex_output(node, in, out[1], &name##_normalfn);                                \
-                if(outs >= 1) tex_do_preview(node, out[0], data);                                            \
+                if(outs >= 1) tex_output(node, in, out[0], &name##_colorfn, data);                                 \
+                if(outs >= 2) tex_output(node, in, out[1], &name##_normalfn, data);                                \
         }
 
 

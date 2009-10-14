@@ -87,7 +87,7 @@ static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **
 	composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_luma_matte, CB_RGBA);
 	composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_yuva_to_rgba, CB_RGBA);
 	
-	generate_preview(node, outbuf);
+	generate_preview(data, node, outbuf);
 	out[0]->data=outbuf;
 	if (out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);

@@ -124,7 +124,7 @@ enum {
 /* ***************************************** */
 /* action_ops.c */
 void action_operatortypes(void);
-void action_keymap(struct wmWindowManager *wm);
+void action_keymap(struct wmKeyConfig *keyconf);
 
 #endif /* ED_ACTION_INTERN_H */
 

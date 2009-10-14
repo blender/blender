@@ -1,10 +1,3 @@
-#!BPY
-"""
-Name: 'Autodesk FBX (.fbx)...'
-Blender: 249
-Group: 'Export'
-Tooltip: 'Selection to an ASCII Autodesk FBX '
-"""
 __author__ = "Campbell Barton"
 __url__ = ['www.blender.org', 'blenderartists.org']
 __version__ = "1.2"
@@ -3341,9 +3334,7 @@ def write_ui():
 	# GLOBALS.clear()
 
 class EXPORT_OT_fbx(bpy.types.Operator):
-	'''
-	Operator documentation text, will be used for the operator tooltip and python docs.
-	'''
+	'''Selection to an ASCII Autodesk FBX'''
 	__idname__ = "export.fbx"
 	__label__ = "Export FBX"
 	
@@ -3451,3 +3442,10 @@ bpy.ops.add(EXPORT_OT_fbx)
 
 # SMALL or COSMETICAL
 # - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')
+
+
+# Add to a menu
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("export.fbx", text="Autodesk FBX...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
+

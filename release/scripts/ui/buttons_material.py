@@ -59,6 +59,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 			col = row.column(align=True)
 			col.itemO("object.material_slot_add", icon='ICON_ZOOMIN', text="")
 			col.itemO("object.material_slot_remove", icon='ICON_ZOOMOUT', text="")
+			col.itemO("object.material_slot_copy", icon='ICON_COPYDOWN', text="")
 
 			if ob.mode == 'EDIT':
 				row = layout.row(align=True)
@@ -305,6 +306,8 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 			split = row.split(percentage=0.3)
 			split.itemL(text="Blend:")
 			split.itemR(mat, "diffuse_ramp_blend", text="")
+			row = layout.row()
+			row.itemR(mat, "diffuse_ramp_factor", text="Factor")
 
 class MATERIAL_PT_specular(MaterialButtonsPanel):
 	__label__ = "Specular"
@@ -357,6 +360,8 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 			split = row.split(percentage=0.3)
 			split.itemL(text="Blend:")
 			split.itemR(mat, "specular_ramp_blend", text="")
+			row = layout.row()
+			row.itemR(mat, "specular_ramp_factor", text="Factor")
 		
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__label__ = "Subsurface Scattering"

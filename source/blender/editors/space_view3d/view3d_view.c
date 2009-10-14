@@ -411,11 +411,22 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	setcameratoview3d(v3d, rv3d, v3d->camera);
+	rv3d->persp = V3D_CAMOB;
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 
+}
+
+int view3d_setcameratoview_poll(bContext *C)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+	if (v3d==NULL || v3d->camera==NULL)	return 0;
+	if (rv3d && rv3d->viewlock != 0)		return 0;
+	return 1;
 }
 
 void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
@@ -428,7 +439,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= view3d_setcameratoview_exec;	
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= view3d_setcameratoview_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -471,7 +482,7 @@ void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
 /* ********************************** */
 
 /* create intersection coordinates in view Z direction at mouse coordinates */
-void viewline(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_end[3])
+void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float vec[4];
@@ -506,7 +517,7 @@ void viewline(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float
 }
 
 /* create intersection ray in view Z direction at mouse coordinates */
-void viewray(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_normal[3])
+void viewray(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3])
 {
 	float ray_end[3];
 	
@@ -1633,7 +1644,7 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 #define FLY_MODAL_PRECISION_DISABLE	16
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
-void fly_modal_keymap(wmWindowManager *wm)
+void fly_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{FLY_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
@@ -1659,12 +1670,12 @@ void fly_modal_keymap(wmWindowManager *wm)
 
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "View3D Fly Modal");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Fly Modal");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(wm, "View3D Fly Modal", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "View3D Fly Modal", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, FLY_MODAL_CANCEL);

@@ -762,7 +762,10 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			break;
 		}
 	}
-	
+
+	/* Run rna property functions */
+	RNA_property_update(BPy_GetContext(), ptr, prop);
+
 	return 0;
 }
 
@@ -1148,6 +1151,31 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA * self, PyObject *ar
 		return NULL;
 
 	return PyBool_FromLong( insert_keyframe((ID *)self->ptr.data, NULL, NULL, path, index, cfra, 0));
+}
+
+static PyObject *pyrna_struct_is_property_set(BPy_StructRNA * self, PyObject *args)
+{
+	char *name;
+
+	if (!PyArg_ParseTuple(args, "s:is_property_set", &name))
+		return NULL;
+
+	return PyBool_FromLong(RNA_property_is_set(&self->ptr, name));
+}
+
+static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA * self, PyObject *args)
+{
+	PropertyRNA *prop;
+	char *name;
+	int hidden;
+
+	if (!PyArg_ParseTuple(args, "s:is_property_hidden", &name))
+		return NULL;
+	
+	prop= RNA_struct_find_property(&self->ptr, name);
+	hidden= (prop)? (RNA_property_flag(prop) & PROP_HIDDEN): 1;
+
+	return PyBool_FromLong(hidden);
 }
 
 
@@ -1742,6 +1770,8 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
+	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
+	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},
 
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}

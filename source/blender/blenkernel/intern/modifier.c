@@ -34,6 +34,7 @@
 *
 */
 
+#include "stddef.h"
 #include "string.h"
 #include "stdarg.h"
 #include "math.h"
@@ -8761,7 +8762,8 @@ ModifierData *modifier_new(int type)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
-
+	
+	// FIXME: we need to make the name always be unique somehow...
 	strcpy(md->name, mti->name);
 
 	md->type = type;
@@ -8784,6 +8786,15 @@ void modifier_free(ModifierData *md)
 	if (md->error) MEM_freeN(md->error);
 
 	MEM_freeN(md);
+}
+
+void modifier_unique_name(ListBase *modifiers, ModifierData *md)
+{
+	if (modifiers && md) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		
+		BLI_uniquename(modifiers, md, mti->name, '.', offsetof(ModifierData, name), sizeof(md->name));
+	}
 }
 
 int modifier_dependsOnTime(ModifierData *md) 
@@ -9137,7 +9148,7 @@ int modifiers_isDeformed(Scene *scene, Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
-		if(ob==scene->obedit && (md->mode & eModifierMode_Editmode)==0);
+		if(ob->mode==OB_MODE_EDIT && (md->mode & eModifierMode_Editmode)==0);
 		else 
 			if(modifier_isDeformer(md))
 				return 1;

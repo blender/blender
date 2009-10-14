@@ -30,6 +30,7 @@
 #ifndef ED_KEYFRAMES_DRAW_H
 #define ED_KEYFRAMES_DRAW_H
 
+struct bAnimContext;
 struct AnimData;
 struct BezTriple;
 struct FCurve;
@@ -109,6 +110,7 @@ void draw_agroup_channel(struct View2D *v2d, struct AnimData *adt, struct bActio
 void draw_action_channel(struct View2D *v2d, struct AnimData *adt, struct bAction *act, float ypos);
 void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Object *ob, float ypos);
 void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos);
+void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypos);
 void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos);
 
 /* Keydata Generation */
@@ -117,6 +119,7 @@ void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct D
 void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 
 /* Keyframe Finding */

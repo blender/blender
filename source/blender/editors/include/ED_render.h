@@ -64,21 +64,19 @@ typedef struct RenderInfo {
 /* Render the preview
 
 pr_method:
-- PR_DRAW_RENDER: preview is rendered and drawn, as indicated by called context (buttons panel)
-- PR_ICON_RENDER: the preview is not drawn and the function is not dynamic,
-  so no events are processed. Hopefully fast enough for at least 32x32 
-- PR_DO_RENDER: preview is rendered, not drawn, but events are processed for afterqueue,
-  in use for node editor now.
+- PR_BUTS_RENDER: preview is rendered for buttons window
+- PR_ICON_RENDER: preview is rendered for icons. hopefully fast enough for at least 32x32 
+- PR_NODE_RENDER: preview is rendered for node editor.
 */
 
-#define PR_DRAW_RENDER	0
+#define PR_BUTS_RENDER	0
 #define PR_ICON_RENDER	1
-#define PR_DO_RENDER	2
+#define PR_NODE_RENDER	2
 
 void ED_preview_init_dbase(void);
 void ED_preview_free_dbase(void);
 
-void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, struct ID *parent, struct MTex *slot, int sizex, int sizey);
+void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, struct ID *parent, struct MTex *slot, int sizex, int sizey, int method);
 void ED_preview_icon_job(const struct bContext *C, void *owner, struct ID *id, unsigned int *rect, int sizex, int sizey);
 
 void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, void *slot, rcti *rect);

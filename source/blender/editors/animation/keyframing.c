@@ -981,12 +981,15 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
-	printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+	if (G.f & G_DEBUG)
+		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
 	if (success == 0)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
+	else
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	/* free temp context-data if available */
 	if (dsources.first) {
@@ -995,10 +998,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* send updates */
-	ED_anim_dag_flush_update(C);	
-	
-	/* for now, only send ND_KEYS for KeyingSets */
-	WM_event_add_notifier(C, ND_KEYS, NULL);
+	ED_anim_dag_flush_update(C);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1132,12 +1132,15 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
-	printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
+	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
+	if (G.f & G_DEBUG)
+		printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
 	if (success == 0)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
+	else
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	/* free temp context-data if available */
 	if (dsources.first) {
@@ -1147,9 +1150,6 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
-	
-	/* for now, only send ND_KEYS for KeyingSets */
-	WM_event_add_notifier(C, ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
 }

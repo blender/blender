@@ -484,9 +484,9 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	/*char msg[100];*/
-	int cnt = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));
 
 	/*XXX this messes up last operator panel
+	int cnt = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));
 	if(cnt)
 	{
 		sprintf(msg, "Removed %d vertices", cnt);
@@ -543,7 +543,9 @@ void xsortvert_flag(bContext *C, int flag)
 		if(eve->f & flag)
 			sortblock[i].v1 = eve;
 
+	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, 0);
+
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 
 		/* make temporal listbase */

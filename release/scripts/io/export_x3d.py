@@ -1,10 +1,3 @@
-#!BPY
-""" Registration info for Blender menus:
-Name: 'X3D Extensible 3D (.x3d)...'
-Blender: 245
-Group: 'Export'
-Tooltip: 'Export selection to Extensible 3D file (.x3d)'
-"""
 
 __author__ = ("Bart", "Campbell Barton")
 __email__ = ["Bart, bart:neeneenee*de"]
@@ -1204,9 +1197,7 @@ def x3d_export_ui(filename):
 # 	Blender.Window.FileSelector(x3d_export_ui,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
 
 class EXPORT_OT_x3d(bpy.types.Operator):
-	'''
-	X3D Exporter
-	'''
+	'''Export selection to Extensible 3D file (.x3d)'''
 	__idname__ = "export.x3d"
 	__label__ = 'Export X3D'
 	
@@ -1229,12 +1220,12 @@ class EXPORT_OT_x3d(bpy.types.Operator):
 		wm = context.manager
 		wm.add_fileselect(self.__operator__)
 		return ('RUNNING_MODAL',)
-	
-	def poll(self, context): # Poll isnt working yet
-		print("Poll")
-		return context.active_object != None
 
 bpy.ops.add(EXPORT_OT_x3d)
+
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("export.x3d", text="X3D Extensible 3D (.x3d)...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_export, menu_func)
 
 # NOTES
 # - blender version is hardcoded 

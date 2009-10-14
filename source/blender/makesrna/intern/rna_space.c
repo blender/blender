@@ -77,6 +77,7 @@ EnumPropertyItem space_type_items[] = {
 
 static EnumPropertyItem dc_all_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_Z, DC_LCMS, DC_ZERO};
 
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -140,6 +141,66 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		default:
 			return &RNA_Space;
 	}
+}
+
+static int rna_TransformOrientation_getf(PointerRNA *ptr)
+{
+	View3D *v3d= (View3D*)ptr->data;
+
+	return v3d->twmode;
+}
+
+EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Scene *scene;
+	ListBase *transform_spaces;
+	TransformOrientation *ts= NULL;
+
+	EnumPropertyItem global	= {V3D_MANIP_GLOBAL, "Global", 0, "Global", ""};
+	EnumPropertyItem normal = {V3D_MANIP_NORMAL, "Normal", 0, "Normal", ""};
+	EnumPropertyItem local = {V3D_MANIP_LOCAL, "Local", 0, "Local", ""};
+	EnumPropertyItem view = {V3D_MANIP_VIEW, "View", 0, "View", ""};
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	int i = V3D_MANIP_CUSTOM, totitem= 0;
+
+	RNA_enum_item_add(&item, &totitem, &global);
+	RNA_enum_item_add(&item, &totitem, &normal);
+	RNA_enum_item_add(&item, &totitem, &local);
+	RNA_enum_item_add(&item, &totitem, &view);
+
+	if(C) {
+		scene= CTX_data_scene(C);
+
+		if(scene) {
+			transform_spaces = &scene->transform_spaces;
+			ts = transform_spaces->first;
+		}
+		else
+		{
+			printf("no scene\n");
+		}
+	}
+	else
+	{
+		printf("no context\n");
+	}
+		
+	if(ts)
+		RNA_enum_item_add_separator(&item, &totitem);
+
+	for(; ts; ts = ts->next) {
+		tmp.identifier = ts->name;
+		tmp.name= ts->name;
+		tmp.value = i++;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	*free= 1;
+
+	return item;
 }
 
 /* Space Image Editor */
@@ -593,6 +654,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
 	
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "camera");
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used in this view (when unlocked from the scene's active camera).");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -704,6 +766,11 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
+	prop= RNA_def_property(srna, "pivot_point_align", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ALIGN);
+	RNA_def_property_ui_text(prop, "Align", "Manipulate object centers only.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
 	prop= RNA_def_property(srna, "manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_USE_MANIPULATOR);
 	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms.");
@@ -727,7 +794,8 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "transform_orientation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "twmode");
 	RNA_def_property_enum_items(prop, transform_orientation_items);
-	RNA_def_property_ui_text(prop, "Transform Orientation", "The alignment of manipulator handles.");
+	RNA_def_property_enum_funcs(prop, "rna_TransformOrientation_getf", NULL, "rna_TransformOrientation_itemf");
+	RNA_def_property_ui_text(prop, "Transform Orientation", "Transformation orientation.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);

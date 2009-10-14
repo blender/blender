@@ -2226,6 +2226,9 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 	prop= NULL;
 	curptr= *ptr;
 
+	if(path==NULL)
+		return 0;
+
 	while(*path) {
 		/* look up property name in current struct */
 		token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
@@ -2782,7 +2785,10 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name)
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
 
 	if(prop) {
-		return (rna_idproperty_find(ptr, name) != NULL);
+		if(prop->flag & PROP_IDPROPERTY)
+			return (rna_idproperty_find(ptr, name) != NULL);
+		else
+			return 1;
 	}
 	else {
 		// printf("RNA_property_is_set: %s.%s not found.\n", ptr->type->identifier, name);

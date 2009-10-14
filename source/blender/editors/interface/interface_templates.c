@@ -61,7 +61,7 @@ void uiTemplateHeader(uiLayout *layout, bContext *C, int menus)
 {
 	uiBlock *block;
 	
-	block= uiLayoutFreeBlock(layout);
+	block= uiLayoutAbsoluteBlock(layout);
 	if(menus) ED_area_header_standardbuttons(C, block, 0);
 	else ED_area_header_switchbutton(C, block, 0);
 }
@@ -458,6 +458,8 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 	nmd->mode &= ~eModifierMode_Virtual;
 
 	BLI_addhead(&ob->modifiers, nmd);
+	
+	modifier_unique_name(&ob->modifiers, nmd);
 
 	ob->partype = PAROBJECT;
 
@@ -558,14 +560,14 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	if(!isVirtual) {
 		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
 		uiBlockBeginAlign(block);
-		uiItemO(row, "", VICON_MOVE_UP, "OBJECT_OT_modifier_move_up");
-		uiItemO(row, "", VICON_MOVE_DOWN, "OBJECT_OT_modifier_move_down");
+		uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
+		uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
 		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 
 		if(modifier_can_delete(md))
-			uiItemO(row, "", VICON_X, "OBJECT_OT_modifier_remove");
+			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
 
 		/* XXX uiBlockSetCol(block, TH_AUTO); */
 	}
@@ -601,7 +603,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		}
 
 		result= uiLayoutColumn(box, 0);
-		block= uiLayoutFreeBlock(box);
+		block= uiLayoutAbsoluteBlock(box);
 	}
 
 	if(md->error) {
@@ -921,10 +923,10 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
 				if (show_upbut)
-					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_up", WM_OP_INVOKE_DEFAULT, VICON_MOVE_UP, xco+width-50, yco, 16, 18, "Move constraint up in constraint stack");
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_up", WM_OP_INVOKE_DEFAULT, ICON_TRIA_UP, xco+width-50, yco, 16, 18, "Move constraint up in constraint stack");
 				
 				if (show_downbut)
-					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, ICON_TRIA_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
 			uiBlockEndAlign(block);
 		}
 	
@@ -946,7 +948,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	}
 	else {
 		box= uiLayoutBox(col);
-		block= uiLayoutFreeBlock(box);
+		block= uiLayoutAbsoluteBlock(box);
 
 		switch (con->type) {
 #ifndef DISABLE_PYTHON
@@ -1182,7 +1184,7 @@ uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
 	
 	xco = 290;
 	if(group->id.lib==0) { /* cant remove objects from linked groups */
-		but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
+		but = uiDefIconBut(block, BUT, B_NOP, ICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
 		uiButSetFunc(but, group_ob_rem, group, ob);
 	}
 }
@@ -1457,7 +1459,7 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 	rect.xmin= 0; rect.xmax= 200;
 	rect.ymin= 0; rect.ymax= 190;
 
-	block= uiLayoutFreeBlock(layout);
+	block= uiLayoutAbsoluteBlock(layout);
 	colorband_buttons_layout(block, cptr.data, &rect, !expand, cb);
 
 	MEM_freeN(cb);
@@ -2070,6 +2072,10 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 						uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, &itemptr, "active_render", 0, 0, 0, 0, 0, NULL);
 						uiBlockSetEmboss(block, UI_EMBOSS);
 					}
+					else if (itemptr.type == &RNA_MaterialTextureSlot) {
+						uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, ptr, "use_textures", i, 0, 0, 0, 0,  NULL);
+					}
+					/* XXX - end hardcoded cruft */
 
 					if(name)
 						MEM_freeN(name);

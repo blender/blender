@@ -305,7 +305,6 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float out[3], const 
 static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_verts)
 {
 	float area_normal[3];
-	int j;
 	ActiveData *node= active_verts->first;
 	float* buffer;
 
@@ -1017,6 +1016,18 @@ static void update_damaged_vert(SculptSession *ss, ListBase *lb)
 					VECCOPY(&buffer[(cur->element-cur->element%3)*3],norm);
 					VECCOPY(&buffer[(cur->element-cur->element%3+1)*3],norm);
 					VECCOPY(&buffer[(cur->element-cur->element%3+2)*3],norm);
+
+					/* maybe this was a quad - need to update the other triangle of the quad */
+					if( ss->drawobject->faceRemap[cur->element/3-1] == i ) {
+						VECCOPY(&buffer[(cur->element-cur->element%3-3)*3],norm);
+						VECCOPY(&buffer[(cur->element-cur->element%3-2)*3],norm);
+						VECCOPY(&buffer[(cur->element-cur->element%3-1)*3],norm);
+					}
+					if( ss->drawobject->faceRemap[cur->element/3+1] == i ) {
+						VECCOPY(&buffer[(cur->element-cur->element%3+3)*3],norm);
+						VECCOPY(&buffer[(cur->element-cur->element%3+4)*3],norm);
+						VECCOPY(&buffer[(cur->element-cur->element%3+5)*3],norm);
+					}
 				}
 
 				//VECCOPY(&buffer[cur->element*3],ss->mvert[vert->Index].no);
@@ -1457,12 +1468,15 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 {
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
-	float *buffer;
+	float *buffer= NULL;
 	int i;
 
 	/* Restore the mesh before continuing with anchored stroke */
 	if((brush->flag & BRUSH_ANCHORED) && ss->mesh_co_orig) {
-		buffer = buffer = ss->drawobject!=0?(float *)GPU_buffer_lock( ss->drawobject->normals ):0;
+
+		if(ss->drawobject)
+			buffer= (float *)GPU_buffer_lock(ss->drawobject->normals);
+
 		for(i = 0; i < ss->totvert; ++i) {
 			VecCopyf(ss->mvert[i].co, ss->mesh_co_orig[i]);
 			ss->mvert[i].no[0] = cache->orig_norms[i][0];

@@ -54,6 +54,7 @@ static void rna_KeyingSet_add_destination(KeyingSet *keyingset, ReportList *repo
 	/* if data is valid, call the API function for this */
 	if (keyingset) {
 		BKE_keyingset_add_destination(keyingset, id, group_name, rna_path, array_index, flag, grouping_method);
+		keyingset->active_path= BLI_countlist(&keyingset->paths); 
 	}
 	else {
 		BKE_report(reports, RPT_ERROR, "Keying Set Destination could not be added.");

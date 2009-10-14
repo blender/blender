@@ -1687,9 +1687,9 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_visibility_toggle);
 }
 
-void ED_keymap_animchannels(wmWindowManager *wm)
+void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(wm, "Animation_Channels", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "Animation_Channels", 0, 0);
 	
 	/* selection */
 		/* click-select */

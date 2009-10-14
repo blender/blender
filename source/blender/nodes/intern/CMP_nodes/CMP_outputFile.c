@@ -71,7 +71,7 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			
 			IMB_freeImBuf(ibuf);	
 			
-			generate_preview(node, cbuf);
+			generate_preview(data, node, cbuf);
 			
 			if(in[0]->data != cbuf) 
 				free_compbuf(cbuf);

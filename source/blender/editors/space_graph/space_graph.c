@@ -208,9 +208,9 @@ static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm, "GraphEdit Keys", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "GraphEdit Keys", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_find(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -286,9 +286,9 @@ static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm, "Animation_Channels", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Animation_Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-	keymap= WM_keymap_find(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -356,7 +356,7 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_find(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

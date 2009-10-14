@@ -348,7 +348,7 @@ void VecUpMat3(float *vec, float mat[][3], short axis);
 
 void VecCopyf(float *v1, float *v2);
 int VecLen(int *v1, int *v2);
-float VecLenf(float *v1, float *v2);
+float VecLenf(float v1[3], float v2[3]);
 float VecLength(float *v);
 void VecMulf(float *v1, float f);
 void VecNegf(float *v1);
@@ -412,7 +412,7 @@ void NormalFloatToShort(short *out, float *in);
 float DistVL2Dfl(float *v1, float *v2, float *v3);
 float PdistVL2Dfl(float *v1, float *v2, float *v3);
 float PdistVL3Dfl(float *v1, float *v2, float *v3);
-void PclosestVL3Dfl(float *closest, float *v1, float *v2, float *v3);
+void PclosestVL3Dfl(float *closest, float v1[3], float v2[3], float v3[3]);
 float AreaF2Dfl(float *v1, float *v2, float *v3);
 float AreaQ3Dfl(float *v1, float *v2, float *v3, float *v4);
 float AreaT3Dfl(float *v1, float *v2, float *v3);

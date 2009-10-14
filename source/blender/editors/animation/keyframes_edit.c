@@ -310,14 +310,46 @@ static short scene_keys_bezier_loop(BeztEditData *bed, Scene *sce, BeztEditFunc 
 		return 0;
 	
 	/* Scene's own animation */
-	if (sce->adt)
-		adt_keys_bezier_loop(bed, sce->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	if (sce->adt) {
+		if (adt_keys_bezier_loop(bed, sce->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
 	
 	/* World */
-	if (wo && wo->adt)
-		adt_keys_bezier_loop(bed, wo->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	if (wo && wo->adt) {
+		if (adt_keys_bezier_loop(bed, wo->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			return 1;
+	}
 	
 	return 0;
+}
+
+/* This function is used to loop over the keyframe data in a DopeSheet summary */
+static short summary_keys_bezier_loop(BeztEditData *bed, bAnimContext *ac, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, ret_code=0;
+	
+	/* sanity check */
+	if (ac == NULL)
+		return 0;
+	
+	/* get F-Curves to take keyframes from */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through each F-Curve, working on the keyframes until the first curve aborts */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		ret_code= ANIM_fcurve_keys_bezier_loop(bed, ale->data, bezt_ok, bezt_cb, fcu_cb);
+		
+		if (ret_code)
+			break;
+	}
+	
+	BLI_freelistN(&anim_data);
+	
+	return ret_code;
 }
 
 /* --- */
@@ -347,6 +379,8 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 			return ob_keys_bezier_loop(bed, (Object *)ale->key_data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 		case ALE_SCE: /* scene */
 			return scene_keys_bezier_loop(bed, (Scene *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+		case ALE_ALL: /* 'all' (DopeSheet summary) */
+			return summary_keys_bezier_loop(bed, (bAnimContext *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 	}
 	
 	return 0;
@@ -377,6 +411,8 @@ short ANIM_animchanneldata_keys_bezier_loop(BeztEditData *bed, void *data, int k
 			return ob_keys_bezier_loop(bed, (Object *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 		case ALE_SCE: /* scene */
 			return scene_keys_bezier_loop(bed, (Scene *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+		case ALE_ALL: /* 'all' (DopeSheet summary) */
+			return summary_keys_bezier_loop(bed, (bAnimContext *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 	}
 	
 	return 0;

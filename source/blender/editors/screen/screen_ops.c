@@ -512,6 +512,7 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Handle area action zones";
+	ot->description= "Handle area action zones for mouse actions/gestures.";
 	ot->idname= "SCREEN_OT_actionzone";
 	
 	ot->invoke= actionzone_invoke;
@@ -628,6 +629,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_swap(wmOperatorType *ot)
 {
 	ot->name= "Swap areas";
+	ot->description= "Swap selected areas screen positions.";
 	ot->idname= "SCREEN_OT_area_swap";
 
 	ot->invoke= area_swap_invoke;
@@ -692,6 +694,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Area into New Window";
+	ot->description= "Duplicate selected area into new window.";
 	ot->idname= "SCREEN_OT_area_dupli";
 	
 	ot->invoke= area_dupli_invoke;
@@ -931,6 +934,7 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move area edges";
+	ot->description= "Move selected area edges.";
 	ot->idname= "SCREEN_OT_area_move";
 
 	ot->exec= area_move_exec;
@@ -1246,6 +1250,7 @@ static EnumPropertyItem prop_direction_items[] = {
 static void SCREEN_OT_area_split(wmOperatorType *ot)
 {
 	ot->name = "Split area";
+	ot->description= "Split selected area into new windows.";
 	ot->idname = "SCREEN_OT_area_split";
 	
 	ot->exec= area_split_exec;
@@ -1372,6 +1377,7 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scale Region Size";
+	ot->description= "Scale selected area.";
 	ot->idname= "SCREEN_OT_region_scale";
 	
 	ot->invoke= region_scale_invoke;
@@ -1432,6 +1438,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 {
 	ot->name = "Jump to Endpoint";
+	ot->description= "Jump to first/last frame in frame range.";
 	ot->idname = "SCREEN_OT_frame_jump";
 
 	ot->exec= frame_jump_exec;
@@ -1497,6 +1504,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 {
 	ot->name = "Jump to Keyframe";
+	ot->description= "Jump to previous/next keyframe.";
 	ot->idname = "SCREEN_OT_keyframe_jump";
 
 	ot->exec= keyframe_jump_exec;
@@ -1553,6 +1561,7 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_screen_set(wmOperatorType *ot)
 {
 	ot->name = "Set Screen";
+	ot->description= "Cycle through available screens.";
 	ot->idname = "SCREEN_OT_screen_set";
 	
 	ot->exec= screen_set_exec;
@@ -1575,6 +1584,7 @@ static int screen_full_area_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 {
 	ot->name = "Toggle Full Screen";
+	ot->description= "Toggle display selected area as fullscreen.";
 	ot->idname = "SCREEN_OT_screen_full_area";
 	
 	ot->exec= screen_full_area_exec;
@@ -1848,6 +1858,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Join area";
+	ot->description= "Join selected areas into new window.";
 	ot->idname= "SCREEN_OT_area_join";
 	
 	/* api callbacks */
@@ -1881,6 +1892,7 @@ static void SCREEN_OT_repeat_last(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Repeat Last";
+	ot->description= "Repeat last action.";
 	ot->idname= "SCREEN_OT_repeat_last";
 	
 	/* api callbacks */
@@ -1933,6 +1945,7 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Repeat History";
+	ot->description= "Display menu for previous actions performed.";
 	ot->idname= "SCREEN_OT_repeat_history";
 	
 	/* api callbacks */
@@ -1966,6 +1979,7 @@ static void SCREEN_OT_redo_last(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Redo Last";
+	ot->description= "Display menu for last action performed.";
 	ot->idname= "SCREEN_OT_redo_last";
 	
 	/* api callbacks */
@@ -2009,6 +2023,7 @@ static void SCREEN_OT_region_split(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Split Region";
+	ot->description= "Split area by directional position.";
 	ot->idname= "SCREEN_OT_region_split";
 	
 	/* api callbacks */
@@ -2098,6 +2113,7 @@ static void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Quad View";
+	ot->description= "Split selected area into camera, front, right & top views.";
 	ot->idname= "SCREEN_OT_region_foursplit";
 	
 	/* api callbacks */
@@ -2292,6 +2308,7 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Animation Step";
+	ot->description= "Step through animation by position.";
 	ot->idname= "SCREEN_OT_animation_step";
 	
 	/* api callbacks */
@@ -2330,7 +2347,14 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 			ED_screen_animation_timer_update(C, stime->redraws);
 		}
 		else {
-			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, sync, mode);
+			int redraws = TIME_REGION|TIME_ALL_3D_WIN;
+
+			/* XXX - would like a better way to deal with this situation - Campbell */
+			if((sa) && (sa->spacetype == SPACE_SEQ)) {
+				redraws |= TIME_SEQ;
+			}
+
+			ED_screen_animation_timer(C, redraws, sync, mode);
 			
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;
@@ -2348,6 +2372,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Play Animation";
+	ot->description= "Play animation.";
 	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */
@@ -2357,6 +2382,29 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	
 	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate and stay in sync with audio.");
+}
+
+static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	
+	if(screen->animtimer)
+		return screen_animation_play(C, op, event);
+	
+	return OPERATOR_PASS_THROUGH;
+}
+
+static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Cancel Animation";
+	ot->description= "Cancel animation.";
+	ot->idname= "SCREEN_OT_animation_cancel";
+	
+	/* api callbacks */
+	ot->invoke= screen_animation_cancel;
+	
+	ot->poll= ED_operator_screenactive;
 }
 
 /* ************** border select operator (template) ***************************** */
@@ -2525,7 +2573,7 @@ static ScrArea *find_empty_image_area(bContext *C)
 static void screen_set_image_output(bContext *C, int mx, int my)
 {
 	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa;
+	ScrArea *sa= NULL;
 	SpaceImage *sima;
 	
 	if(scene->r.displaymode==R_OUTPUT_WINDOW) {
@@ -2555,8 +2603,8 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
 		sa= CTX_wm_area(C);
 	}
-	else {
 	
+	if(!sa) {
 		sa= find_area_showing_r_result(C);
 		if(sa==NULL)
 			sa= find_area_image_empty(C);
@@ -2886,7 +2934,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	multires_force_update(CTX_data_active_object(C));
 	
 	/* get editmode results */
-	ED_object_exit_editmode(C, 0);	/* 0 = does not exit editmode */
+	ED_object_exit_editmode(C, EM_DO_UNDO);	/* 0 = does not exit editmode */
 	
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render
@@ -2945,6 +2993,7 @@ static void SCREEN_OT_render(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Render";
+	ot->description= "Render active scene.";
 	ot->idname= "SCREEN_OT_render";
 	
 	/* api callbacks */
@@ -2968,6 +3017,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 	/* test if we have a temp screen in front */
 	if(CTX_wm_window(C)->screen->full==SCREENTEMP) {
 		wm_window_lower(CTX_wm_window(C));
+		return OPERATOR_FINISHED;
 	}
 	/* determine if render already shows */
 	else if(sima->flag & SI_PREVSPACE) {
@@ -2979,19 +3029,23 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 		}
 		else
 			ED_area_prevspace(C);
+
+		return OPERATOR_FINISHED;
 	}
 	else if(sima->flag & SI_FULLWINDOW) {
 		sima->flag &= ~SI_FULLWINDOW;
 		ed_screen_fullarea(C, sa);
-	}		
-	
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_PASS_THROUGH;
 }
 
 static void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cancel Render View";
+	ot->description= "Cancel show render view.";
 	ot->idname= "SCREEN_OT_render_view_cancel";
 	
 	/* api callbacks */
@@ -3037,6 +3091,7 @@ static void SCREEN_OT_render_view_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Show/Hide Render View";
+	ot->description= "Toggle show render view.";
 	ot->idname= "SCREEN_OT_render_view_show";
 	
 	/* api callbacks */
@@ -3075,6 +3130,7 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Show/Hide User Preferences";
+	ot->description= "Show/hide user preferences.";
 	ot->idname= "SCREEN_OT_userpref_show";
 	
 	/* api callbacks */
@@ -3099,6 +3155,7 @@ void SCREEN_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "New Screen";
+	ot->description= "Add a new screen.";
 	ot->idname= "SCREEN_OT_new";
 	
 	/* api callbacks */
@@ -3122,7 +3179,8 @@ static int screen_delete_exec(bContext *C, wmOperator *op)
 void SCREEN_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Scene";
+	ot->name= "Delete Screen"; //was scene
+	ot->description= "Delete active screen.";
 	ot->idname= "SCREEN_OT_delete";
 	
 	/* api callbacks */
@@ -3164,6 +3222,7 @@ void SCENE_OT_new(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "New Scene";
+	ot->description= "Add new scene by type.";
 	ot->idname= "SCENE_OT_new";
 	
 	/* api callbacks */
@@ -3192,6 +3251,7 @@ void SCENE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Scene";
+	ot->description= "Delete active scene.";
 	ot->idname= "SCENE_OT_delete";
 	
 	/* api callbacks */
@@ -3235,6 +3295,7 @@ void ED_operatortypes_screen(void)
 	
 	WM_operatortype_append(SCREEN_OT_animation_step);
 	WM_operatortype_append(SCREEN_OT_animation_play);
+	WM_operatortype_append(SCREEN_OT_animation_cancel);
 	
 	/* render */
 	WM_operatortype_append(SCREEN_OT_render);
@@ -3253,7 +3314,7 @@ void ED_operatortypes_screen(void)
 	
 }
 
-static void keymap_modal_set(wmWindowManager *wm)
+static void keymap_modal_set(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 		{KM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
@@ -3264,7 +3325,7 @@ static void keymap_modal_set(wmWindowManager *wm)
 	wmKeyMap *keymap;
 	
 	/* Standard Modal keymap ------------------------------------------------ */
-	keymap= WM_modalkeymap_add(wm, "Standard Modal Map", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Standard Modal Map", modal_items);
 	
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KM_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, KM_MODAL_APPLY);
@@ -3279,12 +3340,12 @@ static void keymap_modal_set(wmWindowManager *wm)
 }
 
 /* called in spacetypes.c */
-void ED_keymap_screen(wmWindowManager *wm)
+void ED_keymap_screen(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
 	/* Screen Editing ------------------------------------------------ */
-	keymap= WM_keymap_find(wm, "Screen Editing", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Screen Editing", 0, 0);
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "modifier", 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", 1);
@@ -3301,7 +3362,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 
 
 	/* Screen General ------------------------------------------------ */
-	keymap= WM_keymap_find(wm, "Screen", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Screen", 0, 0);
 	
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
@@ -3330,6 +3391,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 
 	/* files */
 	WM_keymap_add_item(keymap, "FILE_OT_execute", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_execute", PADENTER, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_cancel", ESCKEY, KM_PRESS, 0, 0);
 	
 	/* undo */
@@ -3348,14 +3410,11 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
 	/* user prefs */
-	#ifdef __APPLE__
-	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_OSKEY, 0);
-	#endif
-	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", UKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
 	
 	/* Anim Playback ------------------------------------------------ */
-	keymap= WM_keymap_find(wm, "Frames", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Frames", 0, 0);
 	
 	/* frame offsets */
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
@@ -3374,7 +3433,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", KKEY, KM_PRESS, 0, LKEY);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_cancel", ESCKEY, KM_PRESS, 0, 0);
 
-	keymap_modal_set(wm);
+	keymap_modal_set(keyconf);
 }
 

@@ -548,7 +548,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	/* functions */
 	func= RNA_def_function(srna, "getStripElem", "give_stripelem");
 	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None.");
-	prop= RNA_def_int(func, "frame", 0, INT_MIN, INT_MAX, "Frame", "The frame to get the strip element from", INT_MIN, INT_MAX);
+	prop= RNA_def_int(func, "frame", 0, -MAXFRAME, MAXFRAME, "Frame", "The frame to get the strip element from", -MAXFRAME, MAXFRAME);
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
 }

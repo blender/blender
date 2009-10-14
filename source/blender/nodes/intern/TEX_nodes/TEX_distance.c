@@ -53,9 +53,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	tex_output(node, in, out[0], &valuefn);
-	
-	tex_do_preview(node, out[0], data);
+	tex_output(node, in, out[0], &valuefn, data);
 }
 
 bNodeType tex_node_distance= {

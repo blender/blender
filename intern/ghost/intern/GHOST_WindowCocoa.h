@@ -70,7 +70,7 @@ public:
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
 	 */
 	GHOST_WindowCocoa(
-		const GHOST_SystemCocoa *systemCocoa,
+		GHOST_SystemCocoa *systemCocoa,
 		const STR_String& title,
 		GHOST_TInt32 left,
 		GHOST_TInt32 top,
@@ -204,16 +204,6 @@ public:
 
 	virtual void loadCursor(bool visible, GHOST_TStandardCursor cursor) const;
     
-    /**
-     * Returns the dirty state of the window when in full-screen mode.
-     * @return Whether it is dirty.
-     */
-    virtual bool getFullScreenDirty();
-
-		/* accessor for fullscreen window */
-	/*virtual void setMac_windowState(short value);
-	virtual short getMac_windowState();*/
-
 
 	const GHOST_TabletData* GetTabletData()
 	{ return &m_tablet; }
@@ -247,6 +237,18 @@ protected:
 	virtual GHOST_TSuccess setWindowCursorVisibility(bool visible);
 	
 	/**
+	 * Sets the cursor warp accumulator. Overriden for workaround due to Cocoa next event after cursor set giving delta values non zero
+	 */
+	inline virtual bool setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y);
+	
+	/**
+	 * Sets the cursor grab on the window using
+	 * native window system calls.
+	 * @param warp	Only used when grab is enabled, hides the mouse and allows gragging outside the screen.
+	 */
+	virtual GHOST_TSuccess setWindowCursorGrab(bool grab, bool warp, bool restore);
+	
+	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */
@@ -270,19 +272,16 @@ protected:
 	/** The opgnGL drawing context */
 	NSOpenGLContext *m_openGLContext;
 	
-	//CGrafPtr m_grafPtr;
-    //AGLContext m_aglCtx;
-
+	/** The mother SystemCocoa class to send events */
+	GHOST_SystemCocoa *m_systemCocoa;
+			
 	/** The first created OpenGL context (for sharing display lists) */
-	//static AGLContext s_firstaglCtx;
-		
+	static NSOpenGLContext *s_firstOpenGLcontext;
+	
 	NSCursor*	m_customCursor;
 
 	GHOST_TabletData m_tablet;
     
-    /** When running in full-screen this tells whether to refresh the window. */
-    bool m_fullScreenDirty;
-			 
     /**
      * The width/height of the size rectangle in the lower right corner of a 
      * Mac/Carbon window. This is also the height of the gutter area.

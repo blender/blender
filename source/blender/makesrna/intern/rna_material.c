@@ -59,6 +59,7 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
+#include "BKE_node.h"
 
 #include "ED_node.h"
 
@@ -129,29 +130,15 @@ static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)
 	Material *ma= (Material*)ptr->data;
 	Tex *tex;
 
-	tex= (ma->mtex[(int)ma->texact])? ma->mtex[(int)ma->texact]->tex: NULL;
+	tex= give_current_material_texture(ma);
 	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
 static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Material *ma= (Material*)ptr->data;
-	int act= ma->texact;
 
-	if(ma->mtex[act] && ma->mtex[act]->tex)
-		id_us_min(&ma->mtex[act]->tex->id);
-
-	if(value.data) {
-		if(!ma->mtex[act])
-			ma->mtex[act]= add_mtex();
-		
-		ma->mtex[act]->tex= value.data;
-		id_us_plus(&ma->mtex[act]->tex->id);
-	}
-	else if(ma->mtex[act]) {
-		MEM_freeN(ma->mtex[act]);
-		ma->mtex[act]= NULL;
-	}
+	set_current_material_texture(ma, value.data);
 }
 
 static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)
@@ -176,7 +163,7 @@ static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA va
 	Material *ma= (Material*)ptr->data;
 	Material *ma_act= value.data;
 
-	nodeSetActiveID(ma->nodetree, ID_MA, ma_act);
+	nodeSetActiveID(ma->nodetree, ID_MA, &ma_act->id);
 }
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
@@ -762,6 +749,17 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Specular Ramp Input", "");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
+	prop= RNA_def_property(srna, "diffuse_ramp_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "rampfac_col");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Factor", "Blending factor (also uses alpha in Colorband).");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop= RNA_def_property(srna, "specular_ramp_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "rampfac_spec");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Specular Ramp Factor", "Blending factor (also uses alpha in Colorband).");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
 static void rna_def_material_diffuse(StructRNA *srna)
@@ -1561,7 +1559,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "shadow_casting_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "shad_alpha");
 	RNA_def_property_range(prop, 0.001, 1);
-	RNA_def_property_ui_text(prop, "Shadow Casting Alpha", "Shadow casting alpha, only in use for Irregular Shadowbuffer.");
+	RNA_def_property_ui_text(prop, "Shadow Casting Alpha", "Shadow casting alpha, in use for Irregular and Deep shadow buffer.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "light_group", PROP_POINTER, PROP_NONE);
@@ -1715,7 +1713,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_nodes_set");
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the material.");
-	RNA_def_property_update(prop, NC_MATERIAL, NULL);
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "active_node_material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
@@ -1729,6 +1727,13 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
 		"rna_Material_active_texture_set", "MaterialTextureSlot", "rna_Material_update");
 	
+	/* only material has this one */
+	prop= RNA_def_property(srna, "use_textures", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "septex", 1);
+	RNA_def_property_array(prop, 18);
+	RNA_def_property_ui_text(prop, "Use Textures", "Enable/Disable each texture.");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
 	rna_def_material_colors(srna);
 	rna_def_material_diffuse(srna);
 	rna_def_material_specularity(srna);

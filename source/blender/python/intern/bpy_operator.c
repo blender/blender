@@ -94,7 +94,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 			char *report_str= BKE_reports_string(reports, 0); /* all reports */
 
 			if(report_str) {
-				PySys_WriteStdout(report_str);
+				PySys_WriteStdout("%s\n", report_str);
 				MEM_freeN(report_str);
 			}
 		}

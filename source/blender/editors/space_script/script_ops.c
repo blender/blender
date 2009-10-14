@@ -63,9 +63,9 @@ void script_operatortypes(void)
 	WM_operatortype_append(SCRIPT_OT_python_run_ui_scripts);
 }
 
-void script_keymap(wmWindowManager *wm)
+void script_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Script", SPACE_SCRIPT, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Script", SPACE_SCRIPT, 0);
 
 	/* TODO - this is just while we have no way to load a text datablock */
 	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", PKEY, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0)->ptr, "path", "test.py");

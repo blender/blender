@@ -141,9 +141,9 @@ void *GPU_buffer_lock_stream( GPUBuffer *buffer );
 void GPU_buffer_unlock( GPUBuffer *buffer );
 
 /* upload three unsigned chars, representing RGB colors, for each vertex. Resets dm->drawObject->colType to -1 */
-void GPU_color3_upload( struct DerivedMesh *dm, char *data );
+void GPU_color3_upload( struct DerivedMesh *dm, unsigned char *data );
 /* upload four unsigned chars, representing RGBA colors, for each vertex. Resets dm->drawObject->colType to -1 */
-void GPU_color4_upload( struct DerivedMesh *dm, char *data );
+void GPU_color4_upload( struct DerivedMesh *dm, unsigned char *data );
 /* switch color rendering on=1/off=0 */
 void GPU_color_switch( int mode );
 

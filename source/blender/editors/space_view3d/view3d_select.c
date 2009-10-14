@@ -459,7 +459,10 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	data.pass = 0;
 
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
@@ -584,6 +587,7 @@ static void do_lasso_select_curve(ViewContext *vc, short mcords[][2], short move
 	data.moves = moves;
 	data.select = select;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data);
 }
 
@@ -604,6 +608,7 @@ static void do_lasso_select_lattice(ViewContext *vc, short mcords[][2], short mo
 	data.moves = moves;
 	data.select = select;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	lattice_foreachScreenVert(vc, do_lasso_select_lattice__doSelect, &data);
 }
 
@@ -1256,6 +1261,7 @@ static void do_nurbs_box_select(ViewContext *vc, rcti *rect, int select)
 	data.rect = rect;
 	data.select = select;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_nurbs_box_select__doSelect, &data);
 }
 
@@ -1275,6 +1281,7 @@ static void do_lattice_box_select(ViewContext *vc, rcti *rect, int select)
 	data.rect = rect;
 	data.select = select;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	lattice_foreachScreenVert(vc, do_lattice_box_select__doSelect, &data);
 }
 
@@ -1324,6 +1331,7 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 	data.done = 0;
 
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
@@ -1705,6 +1713,8 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 		
 		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+
 		vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
 
 		data.select = selecting;
@@ -1773,6 +1783,7 @@ static void nurbscurve_circle_select(ViewContext *vc, int selecting, short *mval
 	data.mval[1] = mval[1];
 	data.radius = rad;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, nurbscurve_circle_doSelect, &data);
 }
 
@@ -1798,6 +1809,7 @@ static void lattice_circle_select(ViewContext *vc, int selecting, short *mval, f
 	data.mval[1] = mval[1];
 	data.radius = rad;
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	lattice_foreachScreenVert(vc, latticecurve_circle_doSelect, &data);
 }
 

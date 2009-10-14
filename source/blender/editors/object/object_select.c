@@ -171,7 +171,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 /*********************** Selection by Links *********************/
 
 static EnumPropertyItem prop_select_linked_types[] = {
-	{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
+	//{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
 	{2, "OBDATA", 0, "Ob Data", ""},
 	{3, "MATERIAL", 0, "Material", ""},
 	{4, "TEXTURE", 0, "Texture", ""},

@@ -1,10 +1,3 @@
-#!BPY
-""" 
-Name: '3D Studio (.3ds)...'
-Blender: 244
-Group: 'Import'
-Tooltip: 'Import from 3DS file format (.3ds)'
-"""
 
 __author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton', 'Mario Lapin']
 __url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
@@ -1130,9 +1123,7 @@ else:
 '''
 
 class IMPORT_OT_3ds(bpy.types.Operator):
-	'''
-	3DS Importer
-	'''
+	'''Import from 3DS file format (.3ds)'''
 	__idname__ = "import.3ds"
 	__label__ = 'Import 3DS'
 	
@@ -1155,12 +1146,12 @@ class IMPORT_OT_3ds(bpy.types.Operator):
 		wm = context.manager
 		wm.add_fileselect(self.__operator__)
 		return ('RUNNING_MODAL',)
-	'''
-	def poll(self, context):
-		print("Poll")
-		return context.active_object != None'''
 
 bpy.ops.add(IMPORT_OT_3ds)
+
+import dynamic_menu
+menu_func = lambda self, context: self.layout.itemO("import.3ds", text="3D Studio (.3ds)...")
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_file_import, menu_func)
 
 # NOTES:
 # why add 1 extra vertex? and remove it when done?

@@ -106,12 +106,12 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			free_compbuf(zbuf);
 		}
 
-		generate_preview(node, cbuf);
+		generate_preview(data, node, cbuf);
 		free_compbuf(cbuf);
 
 	}
 	else if(in[0]->data) {
-		generate_preview(node, in[0]->data);
+		generate_preview(data, node, in[0]->data);
 	}
 }
 

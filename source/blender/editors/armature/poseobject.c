@@ -819,7 +819,7 @@ void pose_copy_menu(Scene *scene)
 							
 							/* need to convert to quat first (in temp var)... */
 							Mat4ToQuat(delta_mat, tmp_quat);
-							QuatToAxisAngle(tmp_quat, &pchan->quat[1], &pchan->quat[0]);
+							QuatToAxisAngle(tmp_quat, pchan->rotAxis, &pchan->rotAngle);
 						}
 						else if (pchan->rotmode == ROT_MODE_QUAT)
 							Mat4ToQuat(delta_mat, pchan->quat);
@@ -1024,23 +1024,23 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				else if (pchan->rotmode > 0) {
 					/* quat/axis-angle to euler */
 					if (chan->rotmode == ROT_MODE_AXISANGLE)
-						AxisAngleToEulO(&chan->quat[1], chan->quat[0], pchan->eul, pchan->rotmode);
+						AxisAngleToEulO(chan->rotAxis, chan->rotAngle, pchan->eul, pchan->rotmode);
 					else
 						QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					/* quat/euler to axis angle */
 					if (chan->rotmode > 0)
-						EulOToAxisAngle(chan->eul, chan->rotmode, &pchan->quat[1], &pchan->quat[0]);
+						EulOToAxisAngle(chan->eul, chan->rotmode, pchan->rotAxis, &pchan->rotAngle);
 					else	
-						QuatToAxisAngle(chan->quat, &pchan->quat[1], &pchan->quat[0]);
+						QuatToAxisAngle(chan->quat, pchan->rotAxis, &pchan->rotAngle);
 				}
 				else {
 					/* euler/axis-angle to quat */
 					if (chan->rotmode > 0)
 						EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
 					else
-						AxisAngleToQuat(pchan->quat, &chan->quat[1], chan->quat[0]);
+						AxisAngleToQuat(pchan->quat, chan->rotAxis, pchan->rotAngle);
 				}
 				
 				/* paste flipped pose? */
@@ -1055,10 +1055,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 						float eul[3];
 						
-						AxisAngleToEulO(&pchan->quat[1], pchan->quat[0], eul, EULER_ORDER_DEFAULT);
+						AxisAngleToEulO(pchan->rotAxis, pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
 						eul[1]*= -1;
 						eul[2]*= -1;
-						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, &pchan->quat[1], &pchan->quat[0]);
+						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, &pchan->rotAngle);
 						
 						// experimental method (uncomment to test):
 #if 0
@@ -1089,7 +1089,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
 					cks.pchan= pchan;
 					
-					modify_keyframes(C, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+					modify_keyframes(scene, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					
 					/* clear any unkeyed tags */
 					if (chan->bone)
@@ -1118,6 +1118,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL); // XXX not really needed, but here for completeness...
 
 	return OPERATOR_FINISHED;
 }
@@ -1727,31 +1728,6 @@ void pose_activate_flipped_bone(Scene *scene)
 /* ********************************************** */
 
 /* Present a popup to get the layers that should be used */
-// TODO: move to wm?
-static uiBlock *wm_layers_select_create_menu(bContext *C, ARegion *ar, void *arg_op)
-{
-	wmOperator *op= arg_op;
-	uiBlock *block;
-	uiLayout *layout;
-	uiStyle *style= U.uistyles.first;
-	
-	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
-	
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 150, 20, style);
-		uiItemL(layout, op->type->name, 0);
-		uiTemplateLayers(layout, op->ptr, "layers"); /* must have a property named layers setup */
-		
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
-/* ------------------- */
-
-/* Present a popup to get the layers that should be used */
 static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -1768,10 +1744,8 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	RNA_boolean_get_array(&ptr, "layer", layers);
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
-		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	/* part to sync with other similar operators... */
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -1812,7 +1786,7 @@ void POSE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers to make visible.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
 }
 
 void ARMATURE_OT_armature_layers (wmOperatorType *ot)
@@ -1831,7 +1805,7 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers to make visible.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers to make visible");
 }
 
 /* ------------------- */
@@ -1860,9 +1834,7 @@ static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -1907,7 +1879,7 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers that bone belongs to.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ------------------- */
@@ -1936,9 +1908,7 @@ static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 		/* part to sync with other similar operators... */
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_layers_select_create_menu, op, WM_OP_EXEC_DEFAULT);
-	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+	return WM_operator_props_popup(C, op, evt);
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
@@ -1983,7 +1953,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layers", 16, NULL, "Layers", "Armature layers that bone belongs to.");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 16, NULL, "Layer", "Armature layers that bone belongs to");
 }
 
 /* ********************************************** */

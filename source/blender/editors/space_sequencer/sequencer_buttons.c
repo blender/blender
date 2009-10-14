@@ -72,7 +72,7 @@ static void sequencer_panel_view_properties(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_sequencer_panel_events, NULL);
 	
 }
@@ -82,7 +82,7 @@ static void sequencer_panel_properties(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 	
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_sequencer_panel_events, NULL);
 
 }	

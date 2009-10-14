@@ -581,6 +581,7 @@ short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 		for (aci= animcopybuf.first; aci; aci= aci->next) {
 			/* check that paths exist */
 			if (aci->rna_path && fcu->rna_path) {
+				// FIXME: this breaks for bone names!
 				if (strcmp(aci->rna_path, fcu->rna_path) == 0) {
 					/* should be a match unless there's more than one of these */
 					if ((no_name) || (aci->array_index == fcu->array_index)) 

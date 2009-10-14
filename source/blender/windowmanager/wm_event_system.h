@@ -44,7 +44,6 @@ typedef struct wmEventHandler {
 	
 	/* keymap handler */
 	wmKeyMap *keymap;			/* pointer to builtin/custom keymaps */
-	
 	rcti *bblocal, *bbwin;		/* optional local and windowspace bb */
 	
 	/* modal operator handler */

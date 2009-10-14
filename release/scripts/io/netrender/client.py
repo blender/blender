@@ -8,6 +8,68 @@ import netrender.slave as slave
 import netrender.master as master
 from netrender.utils import *
 
+def addFluidFiles(job, path):
+	if os.path.exists(path):
+		pattern = re.compile("fluidsurface_(final|preview)_([0-9]+)\.(bobj|bvel)\.gz")
+
+		for fluid_file in sorted(os.listdir(path)):
+			match = pattern.match(fluid_file)
+			
+			if match:
+				current_frame = int(match.groups()[1])
+				job.addFile(path + fluid_file, current_frame, current_frame)
+
+def addPointCache(job, ob, point_cache, default_path):
+	if not point_cache.disk_cache:
+		return
+	
+	
+	name = point_cache.name
+	if name == "":
+		name = "".join(["%02X" % ord(c) for c in ob.name])
+	
+	cache_path = bpy.sys.expandpath(point_cache.filepath) if point_cache.external else default_path
+	
+	index = "%02i" % point_cache.index
+	
+	if os.path.exists(cache_path):
+		pattern = re.compile(name + "_([0-9]+)_" + index + "\.bphys")
+		
+		cache_files = []
+
+		for cache_file in sorted(os.listdir(cache_path)):
+			match = pattern.match(cache_file)
+			
+			if match:
+				cache_frame = int(match.groups()[0])
+				cache_files.append((cache_frame, cache_file))
+				
+		cache_files.sort()
+		
+		if len(cache_files) == 1:
+			cache_frame, cache_file = cache_files[0]
+			job.addFile(cache_path + cache_file, cache_frame, cache_frame)
+		else:
+			for i in range(len(cache_files)):
+				current_item = cache_files[i]
+				next_item = cache_files[i+1] if i + 1 < len(cache_files) else None
+				previous_item = cache_files[i - 1] if i > 0 else None
+				
+				current_frame, current_file = current_item
+				
+				if  not next_item and not previous_item:
+					job.addFile(cache_path + current_file, current_frame, current_frame)
+				elif next_item and not previous_item:
+					next_frame = next_item[0]
+					job.addFile(cache_path + current_file, current_frame, next_frame - 1)
+				elif not next_item and previous_item:
+					previous_frame = previous_item[0]
+					job.addFile(cache_path + current_file, previous_frame + 1, current_frame)
+				else:
+					next_frame = next_item[0]
+					previous_frame = previous_item[0]
+					job.addFile(cache_path + current_file, previous_frame + 1, next_frame - 1)
+						
 def clientSendJob(conn, scene, anim = False):
 	netsettings = scene.network_render
 	job = netrender.model.RenderJob()
@@ -23,6 +85,7 @@ def clientSendJob(conn, scene, anim = False):
 	
 	job_name = netsettings.job_name
 	path, name = os.path.split(filename)
+	path += os.sep
 	if job_name == "[default]":
 		job_name = name
 	
@@ -30,67 +93,38 @@ def clientSendJob(conn, scene, anim = False):
 	# LIBRARIES
 	###########################
 	for lib in bpy.data.libraries:
-		lib_path = lib.filename
-		
-		if lib_path.startswith("//"):
-			lib_path = path + os.sep + lib_path[2:]
-			
-		job.addFile(lib_path)
-	
-	###########################
-	# POINT CACHES
-	###########################
-	
-	root, ext = os.path.splitext(name)
-	cache_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
-	
-	if os.path.exists(cache_path):
-		caches = {}
-		pattern = re.compile("([a-zA-Z0-9]+)_([0-9]+)_[0-9]+\.bphys")
-		for cache_file in sorted(os.listdir(cache_path)):
-			match = pattern.match(cache_file)
-			
-			if match:
-				cache_id = match.groups()[0]
-				cache_frame = int(match.groups()[1])
-					
-				cache_files = caches.get(cache_id, [])
-				cache_files.append((cache_frame, cache_file))
-				caches[cache_id] = cache_files
-				
-		for cache in caches.values():
-			cache.sort()
-			
-			if len(cache) == 1:
-				cache_frame, cache_file = cache[0]
-				job.addFile(cache_path + cache_file, cache_frame, cache_frame)
-			else:
-				for i in range(len(cache)):
-					current_item = cache[i]
-					next_item = cache[i+1] if i + 1 < len(cache) else None
-					previous_item = cache[i - 1] if i > 0 else None
-					
-					current_frame, current_file = current_item
-					
-					if  not next_item and not previous_item:
-						job.addFile(cache_path + current_file, current_frame, current_frame)
-					elif next_item and not previous_item:
-						next_frame = next_item[0]
-						job.addFile(cache_path + current_file, current_frame, next_frame - 1)
-					elif not next_item and previous_item:
-						previous_frame = previous_item[0]
-						job.addFile(cache_path + current_file, previous_frame + 1, current_frame)
-					else:
-						next_frame = next_item[0]
-						previous_frame = previous_item[0]
-						job.addFile(cache_path + current_file, previous_frame + 1, next_frame - 1)
+		job.addFile(bpy.sys.expandpath(lib_path))
 		
 	###########################
 	# IMAGES
 	###########################
 	for image in bpy.data.images:
 		if image.source == "FILE" and not image.packed_file:
-			job.addFile(image.filename)
+			job.addFile(bpy.sys.expandpath(image.filename))
+	
+	###########################
+	# FLUID + POINT CACHE
+	###########################
+	root, ext = os.path.splitext(name)
+	default_path = path + "blendcache_" + root + os.sep # need an API call for that
+
+	for object in bpy.data.objects:
+		for modifier in object.modifiers:
+			if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
+				addFluidFiles(job, bpy.sys.expandpath(modifier.settings.path))
+			elif modifier.type == "CLOTH":
+				addPointCache(job, object, modifier.point_cache, default_path)
+			elif modifier.type == "SOFT_BODY":
+				addPointCache(job, object, modifier.point_cache, default_path)
+			elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
+				addPointCache(job, object, modifier.domain_settings.point_cache_low, default_path)
+				if modifier.domain_settings.highres:
+					addPointCache(job, object, modifier.domain_settings.point_cache_high, default_path)
+
+		# particles modifier are stupid and don't contain data
+		# we have to go through the object property
+		for psys in object.particle_systems:
+			addPointCache(job, object, psys.point_cache, default_path)
 	
 	# print(job.files)
 	

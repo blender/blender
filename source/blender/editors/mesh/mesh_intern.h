@@ -167,7 +167,7 @@ void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
-extern void EM_automerge(int update);
+extern void EM_automerge(Scene *scene, Object *obedit, int update);
 void editmesh_select_by_material(EditMesh *em, int index);
 void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);

@@ -152,7 +152,7 @@ static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm, "Console", SPACE_CONSOLE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -232,9 +232,9 @@ void console_operatortypes(void)
 	WM_operatortype_append(CONSOLE_OT_report_copy);
 }
 
-void console_keymap(struct wmWindowManager *wm)
+void console_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm, "Console", SPACE_CONSOLE, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Console", SPACE_CONSOLE, 0);
 	
 #ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);

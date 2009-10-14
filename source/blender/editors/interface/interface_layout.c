@@ -96,7 +96,7 @@ typedef enum uiItemType {
 	ITEM_LAYOUT_COLUMN_FLOW,
 	ITEM_LAYOUT_ROW_FLOW,
 	ITEM_LAYOUT_BOX,
-	ITEM_LAYOUT_FREE,
+	ITEM_LAYOUT_ABSOLUTE,
 	ITEM_LAYOUT_SPLIT,
 
 	ITEM_LAYOUT_ROOT
@@ -290,7 +290,7 @@ static int ui_layout_local_dir(uiLayout *layout)
 		case ITEM_LAYOUT_COLUMN:
 		case ITEM_LAYOUT_COLUMN_FLOW:
 		case ITEM_LAYOUT_SPLIT:
-		case ITEM_LAYOUT_FREE:
+		case ITEM_LAYOUT_ABSOLUTE:
 		case ITEM_LAYOUT_BOX:
 		default:
 			return UI_LAYOUT_VERTICAL;
@@ -476,8 +476,20 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 		MEM_freeN(item);
 }
 
+/* callback for keymap item change button */
+static void ui_keymap_but_cb(bContext *C, void *but_v, void *key_v)
+{
+	uiBut *but= but_v;
+	short modifier= *((short*)key_v);
+
+	RNA_boolean_set(&but->rnapoin, "shift", (modifier & KM_SHIFT) != 0);
+	RNA_boolean_set(&but->rnapoin, "ctrl", (modifier & KM_CTRL) != 0);
+	RNA_boolean_set(&but->rnapoin, "alt", (modifier & KM_ALT) != 0);
+	RNA_boolean_set(&but->rnapoin, "oskey", (modifier & KM_OSKEY) != 0);
+}
+
 /* create label + button for RNA property */
-static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h, int icon_only)
+static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h, int flag)
 {
 	uiLayout *sub;
 	uiBut *but=NULL;
@@ -507,10 +519,26 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
 		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
 	}
-	else if(subtype == PROP_DIRECTION)
-		uiDefButR(block, BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
+	else if(subtype == PROP_DIRECTION) {
+		uiDefButR(block, BUT_NORMAL, 0, name, x, y, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
+	}
+	else if(flag & UI_ITEM_R_EVENT) {
+		uiDefButR(block, KEYEVT, 0, name, x, y, w, h, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
+	}
+	else if(flag & UI_ITEM_R_FULL_EVENT) {
+		if(RNA_struct_is_a(ptr->type, &RNA_KeyMapItem)) {
+			static short dummy = 0;
+			char buf[128];
+
+			WM_keymap_item_to_string(ptr->data, buf, sizeof(buf));
+
+			but= uiDefButR(block, HOTKEYEVT, 0, buf, x, y, w, h, ptr, RNA_property_identifier(prop), 0, 0, 0, -1, -1, NULL);
+			but->func_arg3= &dummy; // XXX abuse
+			uiButSetFunc(but, ui_keymap_but_cb, but, &dummy);
+		}
+	}
 	else
-		but= uiDefAutoButR(block, ptr, prop, index, (type == PROP_ENUM && !icon_only)? NULL: "", icon, x, y, w, h);
+		but= uiDefAutoButR(block, ptr, prop, index, (type == PROP_ENUM && !(flag & UI_ITEM_R_ICON_ONLY))? NULL: "", icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
 	return but;
@@ -897,7 +925,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 		ui_item_enum_row(layout, block, ptr, prop, name, 0, 0, w, h, icon_only);
 	/* property with separate label */
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
-		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, icon_only);
+		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
 		ui_but_add_search(but, ptr, prop, NULL, NULL);
 	}
 	/* single button */
@@ -1204,7 +1232,7 @@ void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname
 {
 	MenuType *mt;
 
-	mt= BKE_spacemenu_find(menuname, CTX_wm_area(C)->spacetype);
+	mt= WM_menutype_find(menuname, FALSE);
 
 	if(mt==NULL) {
 		printf("uiItemM: not found %s\n", menuname);
@@ -1703,7 +1731,7 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 }
 
 /* free layout */
-static void ui_litem_estimate_free(uiLayout *litem)
+static void ui_litem_estimate_absolute(uiLayout *litem)
 {
 	uiItem *item;
 	int itemx, itemy, itemw, itemh, minx, miny;
@@ -1728,7 +1756,7 @@ static void ui_litem_estimate_free(uiLayout *litem)
 	litem->h -= miny;
 }
 
-static void ui_litem_layout_free(uiLayout *litem)
+static void ui_litem_layout_absolute(uiLayout *litem)
 {
 	uiItem *item;
 	float scalex=1.0f, scaley=1.0f;
@@ -1934,7 +1962,7 @@ uiLayout *uiLayoutFree(uiLayout *layout, int align)
 	uiLayout *litem;
 
 	litem= MEM_callocN(sizeof(uiLayout), "uiLayoutFree");
-	litem->item.type= ITEM_LAYOUT_FREE;
+	litem->item.type= ITEM_LAYOUT_ABSOLUTE;
 	litem->root= layout->root;
 	litem->align= align;
 	litem->active= 1;
@@ -1947,7 +1975,7 @@ uiLayout *uiLayoutFree(uiLayout *layout, int align)
 	return litem;
 }
 
-uiBlock *uiLayoutFreeBlock(uiLayout *layout)
+uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout)
 {
 	uiBlock *block;
 
@@ -2108,8 +2136,8 @@ static void ui_item_estimate(uiItem *item)
 			case ITEM_LAYOUT_ROOT:
 				ui_litem_estimate_root(litem);
 				break;
-			case ITEM_LAYOUT_FREE:
-				ui_litem_estimate_free(litem);
+			case ITEM_LAYOUT_ABSOLUTE:
+				ui_litem_estimate_absolute(litem);
 				break;
 			case ITEM_LAYOUT_SPLIT:
 				ui_litem_estimate_split(litem);
@@ -2133,7 +2161,7 @@ static void ui_item_align(uiLayout *litem, int nr)
 				if(!bitem->but->alignnr)
 					bitem->but->alignnr= nr;
 		}
-		else if(item->type == ITEM_LAYOUT_FREE);
+		else if(item->type == ITEM_LAYOUT_ABSOLUTE);
 		else if(item->type == ITEM_LAYOUT_BOX) {
 			box= (uiLayoutItemBx*)item;
 			box->roundbox->alignnr= nr;
@@ -2193,8 +2221,8 @@ static void ui_item_layout(uiItem *item)
 			case ITEM_LAYOUT_ROOT:
 				ui_litem_layout_root(litem);
 				break;
-			case ITEM_LAYOUT_FREE:
-				ui_litem_layout_free(litem);
+			case ITEM_LAYOUT_ABSOLUTE:
+				ui_litem_layout_absolute(litem);
 				break;
 			case ITEM_LAYOUT_SPLIT:
 				ui_litem_layout_split(litem);

@@ -117,17 +117,41 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
-				/* check if convert to eulers for locking... */
 				if (ob->protectflag & OB_LOCK_ROT4D) {
 					/* perform clamping on a component by component basis */
-					if ((ob->protectflag & OB_LOCK_ROTW) == 0)
-						ob->quat[0]= (ob->rotmode == ROT_MODE_AXISANGLE) ? 0.0f : 1.0f;
-					if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-						ob->quat[1]= 0.0f;
-					if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-						ob->quat[2]= 0.0f;
-					if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-						ob->quat[3]= 0.0f;
+					if (ob->rotmode == ROT_MODE_AXISANGLE) {
+						if ((ob->protectflag & OB_LOCK_ROTW) == 0)
+							ob->rotAngle= 0.0f;
+						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+							ob->rotAxis[0]= 0.0f;
+						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+							ob->rotAxis[1]= 0.0f;
+						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+							ob->rotAxis[2]= 0.0f;
+							
+						/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
+						if (IS_EQ(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQ(ob->rotAxis[1], ob->rotAxis[2]))
+							ob->rotAxis[1] = 1.0f;
+					}
+					else if (ob->rotmode == ROT_MODE_QUAT) {
+						if ((ob->protectflag & OB_LOCK_ROTW) == 0)
+							ob->quat[0]= 1.0f;
+						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+							ob->quat[1]= 0.0f;
+						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+							ob->quat[2]= 0.0f;
+						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+							ob->quat[3]= 0.0f;
+					}
+					else {
+						/* the flag may have been set for the other modes, so just ignore the extra flag... */
+						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+							ob->rot[0]= 0.0f;
+						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+							ob->rot[1]= 0.0f;
+						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+							ob->rot[2]= 0.0f;
+					}
 				}
 				else {
 					/* perform clamping using euler form (3-components) */
@@ -138,7 +162,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 						QuatToEul(ob->quat, oldeul);
 					}
 					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						AxisAngleToEulO(&ob->quat[1], ob->quat[0], oldeul, EULER_ORDER_DEFAULT);
+						AxisAngleToEulO(ob->rotAxis, ob->rotAngle, oldeul, EULER_ORDER_DEFAULT);
 					}
 					else {
 						VECCOPY(oldeul, ob->rot);
@@ -161,7 +185,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 						}
 					}
 					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						AxisAngleToEulO(&ob->quat[1], ob->quat[0], oldeul, EULER_ORDER_DEFAULT);
+						EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, ob->rotAxis, &ob->rotAngle);
 					}
 					else {
 						VECCOPY(ob->rot, eul);
@@ -175,8 +199,8 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 				}
 				else if (ob->rotmode == ROT_MODE_AXISANGLE) {
 					/* by default, make rotation of 0 radians around y-axis (roll) */
-					ob->quat[0]=ob->quat[1]=ob->quat[3]= 0.0f;
-					ob->quat[2]= 1.0f;
+					ob->rotAxis[0]=ob->rotAxis[2]=ob->rotAngle= 0.0f;
+					ob->rotAxis[1]= 1.0f;
 				}
 				else {
 					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;

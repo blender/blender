@@ -37,6 +37,7 @@ void OBJECT_OT_material_slot_remove(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_assign(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_select(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_deselect(struct wmOperatorType *ot);
+void OBJECT_OT_material_slot_copy(struct wmOperatorType *ot);
 
 void MATERIAL_OT_new(struct wmOperatorType *ot);
 void TEXTURE_OT_new(struct wmOperatorType *ot);
@@ -48,6 +49,9 @@ void SCENE_OT_freestyle_module_add(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_move_up(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_move_down(struct wmOperatorType *ot);
+
+void TEXTURE_OT_slot_move(struct wmOperatorType *ot);
+
 
 #endif /* RENDER_INTERN_H */
 

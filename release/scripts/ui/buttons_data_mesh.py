@@ -48,6 +48,19 @@ class DATA_PT_normals(DataButtonsPanel):
 		col.itemR(mesh, "vertex_normal_flip")
 		col.itemR(mesh, "double_sided")
 
+class DATA_PT_settings(DataButtonsPanel):
+	__label__ = "Settings"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		mesh = context.mesh
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(mesh, "texture_mesh")
+
 class DATA_PT_vertex_groups(DataButtonsPanel):
 	__label__ = "Vertex Groups"
 	
@@ -197,6 +210,7 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 
 bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_normals)
+bpy.types.register(DATA_PT_settings)
 bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)

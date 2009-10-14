@@ -121,7 +121,7 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		
 		composit3_pixel_processor(node, cbuf, buf1, in[0]->vec, buf2, in[1]->vec, mask, NULL, do_copy_split_rgba, CB_RGBA, CB_RGBA, CB_VAL);
 		
-		generate_preview(node, cbuf);
+		generate_preview(data, node, cbuf);
 		free_compbuf(cbuf);
 		free_compbuf(mask);
 		

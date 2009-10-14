@@ -205,13 +205,13 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
 
-void ED_keymap_armature(wmWindowManager *wm)
+void ED_keymap_armature(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-	wmKeymapItem *kmi;
+	wmKeyMapItem *kmi;
 	
 	/* Armature ------------------------ */
-	keymap= WM_keymap_find(wm, "Armature", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Armature", 0, 0);
 	keymap->poll= ED_operator_editarmature;
 	
 	/* only set in editmode armature, by space_view3d listener */
@@ -297,7 +297,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 
 	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
-	keymap= WM_keymap_find(wm, "Pose", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Pose", 0, 0);
 	keymap->poll= ED_operator_posemode;
 	
 	// XXX: set parent is object-based operator, but it should also be available here...

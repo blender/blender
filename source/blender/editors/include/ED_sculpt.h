@@ -29,14 +29,14 @@
 #define ED_SCULPT_H
 
 struct bContext;
-struct wmWindowManager;
+struct wmKeyConfig;
 
 /* sculpt.c */
 void ED_operatortypes_sculpt(void);
 
 /* paint_ops.c */
 void ED_operatortypes_paint(void);
-void ED_keymap_paint(struct wmWindowManager *wm);
+void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
 /* paint_image.c */
 void undo_imagepaint_step(int step);

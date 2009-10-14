@@ -322,7 +322,7 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	else if(t->spacetype == SPACE_NODE)
 	{
 		//ED_area_tag_redraw(t->sa);
-		WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_NODE, NULL);
 	}
 	else if(t->spacetype == SPACE_SEQ)
 	{
@@ -515,7 +515,7 @@ static char *transform_to_undostr(TransInfo *t)
 #define TFM_MODAL_SNAP_GEARS_OFF	7
 
 /* called in transform_ops.c, on each regeneration of keymaps */
-void transform_modal_keymap(wmWindowManager *wm)
+void transform_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
@@ -527,12 +527,12 @@ void transform_modal_keymap(wmWindowManager *wm)
 	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
-	wmKeyMap *keymap= WM_modalkeymap_get(wm, "Transform Modal Map");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
 	
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 	
-	keymap= WM_modalkeymap_add(wm, "Transform Modal Map", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
 	
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
@@ -773,10 +773,11 @@ void transformEvent(TransInfo *t, wmEvent *event)
 							stopConstraint(t);
 						}
 						else {
+							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-								setUserConstraint(t, (CON_AXIS0), "along %s X");
+								setUserConstraint(t, orientation, (CON_AXIS0), "along %s X");
 							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-								setUserConstraint(t, (CON_AXIS1|CON_AXIS2), "locking %s X");
+								setUserConstraint(t, orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
 						}
 					}
 				}
@@ -805,10 +806,11 @@ void transformEvent(TransInfo *t, wmEvent *event)
 							stopConstraint(t);
 						}
 						else {
+							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-								setUserConstraint(t, (CON_AXIS1), "along %s Y");
+								setUserConstraint(t, orientation, (CON_AXIS1), "along %s Y");
 							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-								setUserConstraint(t, (CON_AXIS0|CON_AXIS2), "locking %s Y");
+								setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 						}
 					}
 				}
@@ -833,10 +835,11 @@ void transformEvent(TransInfo *t, wmEvent *event)
 						stopConstraint(t);
 					}
 					else {
+						short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setUserConstraint(t, (CON_AXIS2), "along %s Z");
+							setUserConstraint(t, orientation, (CON_AXIS2), "along %s Z");
 						else if ((t->modifiers & MOD_CONSTRAINT_PLANE) && ((t->flag & T_2D_EDIT)==0))
-							setUserConstraint(t, (CON_AXIS0|CON_AXIS1), "locking %s Z");
+							setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 					}
 				}
 				else if ((t->flag & T_2D_EDIT)==0) {
@@ -1285,6 +1288,36 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		proportional = 0;
 	}
 
+	// If modal, save settings back in scene if not set as operator argument
+	if (t->flag & T_MODAL)
+	{
+		/* save settings if not set in operator */
+		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional"))
+		{
+			ts->proportional = proportional;
+		}
+
+		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size"))
+		{
+			ts->proportional_size = t->prop_size;
+		}
+			
+		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
+		{
+			ts->prop_mode = t->prop_mode;
+		}
+		
+		if(t->spacetype == SPACE_VIEW3D)
+		{
+			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation"))
+			{
+				View3D *v3d = t->view;
+	
+				v3d->twmode = t->current_orientation;
+			}
+		}
+	}
+	
 	if (RNA_struct_find_property(op->ptr, "proportional"))
 	{
 		RNA_enum_set(op->ptr, "proportional", proportional);
@@ -1315,26 +1348,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 
 		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-	}
-
-	// XXX If modal, save settings back in scene
-	if (t->flag & T_MODAL)
-	{
-		ts->prop_mode = t->prop_mode;
-		
-		/* only save back if it wasn't automatically disabled */
-		if ((t->options & CTX_NO_PET) == 0)
-		{
-			ts->proportional = proportional;
-			ts->proportional_size = t->prop_size;
-		}
-
-		if(t->spacetype == SPACE_VIEW3D)
-		{
-			View3D *v3d = t->view;
-
-			v3d->twmode = t->current_orientation;
-		}
 	}
 }
 
@@ -1511,7 +1524,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 				t->con.mode |= CON_AXIS2;
 			}
 
-			setUserConstraint(t, t->con.mode, "%s");
+			setUserConstraint(t, t->current_orientation, t->con.mode, "%s");
 		}
 	}
 
@@ -2334,7 +2347,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		if (t->flag & (T_OBJECT|T_TEXTURE|T_POSE)) {
 			float obsizemat[3][3];
 			// Reorient the size mat to fit the oriented object.
-			Mat3MulMat3(obsizemat, tmat, td->axismtx);
+			Mat3MulMat3(obsizemat, td->axismtx, tmat);
 			//printmatrix3("obsizemat", obsizemat);
 			TransMat3ToSize(obsizemat, td->axismtx, fsize);
 			//printvecf("fsize", fsize);
@@ -2592,7 +2605,6 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			center = td->center;
 		}
 		else {
-			/* !TODO! Make this if not rely on G */
 			if(around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
 				center = td->center;
 			}

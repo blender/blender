@@ -108,7 +108,7 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 	out[0]->data=outbuf;
 	if(out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
-	generate_preview(node, outbuf);
+	generate_preview(data, node, outbuf);
 
 	if(imbuf1!=in[0]->data)
 		free_compbuf(imbuf1);

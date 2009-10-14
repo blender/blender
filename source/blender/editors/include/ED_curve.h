@@ -36,11 +36,11 @@ struct Scene;
 struct Text;
 struct View3D;
 struct wmOperator;
-struct wmWindowManager;
+struct wmKeyConfig;
 
 /* curve_ops.c */
 void	ED_operatortypes_curve(void);
-void	ED_keymap_curve	(struct wmWindowManager *wm);
+void	ED_keymap_curve	(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */
 void	undo_push_curve	(struct bContext *C, char *name);

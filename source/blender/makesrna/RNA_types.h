@@ -142,6 +142,9 @@ typedef enum PropertyFlag {
 	/* icon */
 	PROP_ICONS_CONSECUTIVE = 4096,
 
+	/* hidden in  the user interface */
+	PROP_HIDDEN = 524288,
+
 	/* function paramater flags */
 	PROP_REQUIRED = 4,
 	PROP_RETURN = 8,

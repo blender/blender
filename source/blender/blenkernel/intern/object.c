@@ -772,6 +772,7 @@ void *add_lamp(char *name)
 	la->samp= 3;
 	la->bias= 1.0f;
 	la->soft= 3.0f;
+	la->compressthresh= 0.05f;
 	la->ray_samp= la->ray_sampy= la->ray_sampz= 1; 
 	la->area_size=la->area_sizey=la->area_sizez= 1.0f; 
 	la->buffers= 1;
@@ -1041,6 +1042,8 @@ Object *add_object(struct Scene *scene, int type)
 	 * but rotations default to quaternions 
 	 */
 	ob->rotmode= ROT_MODE_EUL;
+	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
+	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
 
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
@@ -1231,6 +1234,7 @@ Object *copy_object(Object *ob)
 	if(ob->totcol) {
 		obn->mat= MEM_dupallocN(ob->mat);
 		obn->matbits= MEM_dupallocN(ob->matbits);
+		obn->totcol= ob->totcol;
 	}
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);
@@ -1602,9 +1606,9 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 		EulOToMat3(ob->drot, ob->rotmode, dmat);
 	}
 	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-		/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
-		AxisAngleToMat3(&ob->quat[1], ob->quat[0], rmat);
-		AxisAngleToMat3(&ob->dquat[1], ob->dquat[0], dmat);
+		/* axis-angle -  not really that great for 3D-changing orientations */
+		AxisAngleToMat3(ob->rotAxis, ob->rotAngle, rmat);
+		AxisAngleToMat3(ob->drotAxis, ob->drotAngle, dmat);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */
@@ -2367,7 +2371,7 @@ void object_handle_update(Scene *scene, Object *ob)
 				EditMesh *em = BKE_mesh_get_editmesh(ob->data);
 
 					// here was vieweditdatamask? XXX
-				if(ob==scene->obedit) {
+				if(ob->mode & OB_MODE_EDIT) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
 					BKE_mesh_end_editmesh(ob->data, em);
 				} else

@@ -604,9 +604,13 @@ static CompBuf *generate_procedural_preview(CompBuf *cbuf, int newx, int newy)
 	return outbuf;
 }
 
-void generate_preview(bNode *node, CompBuf *stackbuf)
+void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 {
+	RenderData *rd= data;
 	bNodePreview *preview= node->preview;
+	int xsize, ysize;
+	int color_manage= rd->color_mgt_flag & R_COLOR_MANAGEMENT;
+	unsigned char *rect;
 	
 	if(preview && stackbuf) {
 		CompBuf *cbuf, *stackbuf_use;
@@ -615,30 +619,41 @@ void generate_preview(bNode *node, CompBuf *stackbuf)
 		
 		stackbuf_use= typecheck_compbuf(stackbuf, CB_RGBA);
 
-		BLI_lock_thread(LOCK_PREVIEW);
-
 		if(stackbuf->x > stackbuf->y) {
-			preview->xsize= 140;
-			preview->ysize= (140*stackbuf->y)/stackbuf->x;
+			xsize= 140;
+			ysize= (140*stackbuf->y)/stackbuf->x;
 		}
 		else {
-			preview->ysize= 140;
-			preview->xsize= (140*stackbuf->x)/stackbuf->y;
+			ysize= 140;
+			xsize= (140*stackbuf->x)/stackbuf->y;
 		}
 		
 		if(stackbuf_use->rect_procedural)
-			cbuf= generate_procedural_preview(stackbuf_use, preview->xsize, preview->ysize);
+			cbuf= generate_procedural_preview(stackbuf_use, xsize, ysize);
 		else
-			cbuf= scalefast_compbuf(stackbuf_use, preview->xsize, preview->ysize);
+			cbuf= scalefast_compbuf(stackbuf_use, xsize, ysize);
 
-		/* this ensures free-compbuf does the right stuff */
-		SWAP(float *, cbuf->rect, node->preview->rect);
+		/* convert to byte for preview */
+		rect= MEM_callocN(sizeof(unsigned char)*4*xsize*ysize, "bNodePreview.rect");
 
-		BLI_unlock_thread(LOCK_PREVIEW);
+		if(color_manage)
+			floatbuf_to_srgb_byte(cbuf->rect, rect, 0, xsize, 0, ysize, xsize);
+		else
+			floatbuf_to_byte(cbuf->rect, rect, 0, xsize, 0, ysize, xsize);
 		
 		free_compbuf(cbuf);
 		if(stackbuf_use!=stackbuf)
 			free_compbuf(stackbuf_use);
+
+		BLI_lock_thread(LOCK_PREVIEW);
+
+		if(preview->rect)
+			MEM_freeN(preview->rect);
+		preview->xsize= xsize;
+		preview->ysize= ysize;
+		preview->rect= rect;
+
+		BLI_unlock_thread(LOCK_PREVIEW);
 	}
 }
 

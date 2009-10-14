@@ -625,6 +625,24 @@ void assign_material(Object *ob, Material *ma, int act)
 	test_object_materials(ob->data);
 }
 
+/* XXX - this calls many more update calls per object then are needed, could be optimized */
+void assign_matarar(struct Object *ob, struct Material ***matar, int totcol)
+{
+	int i, actcol_orig= ob->actcol;
+
+	while(object_remove_material_slot(ob)) {};
+
+	/* now we have the right number of slots */
+	for(i=0; i<totcol; i++)
+		assign_material(ob, (*matar)[i], i+1);
+
+	if(actcol_orig > ob->totcol)
+		actcol_orig= ob->totcol;
+
+	ob->actcol= actcol_orig;
+}
+
+
 int find_material_index(Object *ob, Material *ma)
 {
 	Material ***matarar;
@@ -645,17 +663,18 @@ int find_material_index(Object *ob, Material *ma)
 	return 0;	   
 }
 
-void object_add_material_slot(Object *ob)
+int object_add_material_slot(Object *ob)
 {
 	Material *ma;
 	
-	if(ob==0) return;
-	if(ob->totcol>=MAXMAT) return;
+	if(ob==0) return FALSE;
+	if(ob->totcol>=MAXMAT) return FALSE;
 	
 	ma= give_current_material(ob, ob->actcol);
 
 	assign_material(ob, ma, ob->totcol+1);
 	ob->actcol= ob->totcol;
+	return TRUE;
 }
 
 static void do_init_render_material(Material *ma, int r_mode, float *amb)
@@ -870,7 +889,7 @@ void automatname(Material *ma)
 }
 
 
-void object_remove_material_slot(Object *ob)
+int object_remove_material_slot(Object *ob)
 {
 	Material *mao, ***matarar;
 	Object *obt;
@@ -879,7 +898,7 @@ void object_remove_material_slot(Object *ob)
 	short *totcolp;
 	int a, actcol;
 	
-	if(ob==NULL || ob->totcol==0) return;
+	if(ob==NULL || ob->totcol==0) return FALSE;
 	
 	/* take a mesh/curve/mball as starting point, remove 1 index,
 	 * AND with all objects that share the ob->data
@@ -889,6 +908,8 @@ void object_remove_material_slot(Object *ob)
 	
 	totcolp= give_totcolp(ob);
 	matarar= give_matarar(ob);
+
+	if(*matarar==NULL) return FALSE;
 
 	/* we delete the actcol */
 	if(ob->totcol) {
@@ -952,6 +973,8 @@ void object_remove_material_slot(Object *ob)
 		}
 		freedisplist(&ob->disp);
 	}
+
+	return TRUE;
 }
 
 

@@ -851,7 +851,7 @@ typedef struct Scene {
 #define R_PASSEPARTOUT		0x0004
 #define R_PREVIEWBUTS		0x0008
 #define R_EXTENSION			0x0010
-#define R_NODE_PREVIEW		0x0020
+#define R_MATNODE_PREVIEW	0x0020
 #define R_DOCOMP			0x0040
 #define R_COMP_CROP			0x0080
 #define R_FREE_IMAGE		0x0100
@@ -863,7 +863,8 @@ typedef struct Scene {
 #define R_STAMP_INFO		0x4000	/* deprecated */
 #define R_FULL_SAMPLE		0x8000
 #define R_COMP_RERENDER		0x10000
-#define R_RECURS_PROTECTION     0x20000
+#define R_RECURS_PROTECTION	0x20000
+#define R_TEXNODE_PREVIEW	0x40000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001
@@ -992,6 +993,7 @@ typedef struct Scene {
 #define SCE_SNAP				1
 #define SCE_SNAP_ROTATE			2
 #define SCE_SNAP_PEEL_OBJECT	4
+#define SCE_SNAP_PROJECT		8
 /* toolsettings->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
@@ -1024,6 +1026,11 @@ typedef struct Scene {
 #define PROP_LIN               4
 #define PROP_CONST             5
 #define PROP_RANDOM		6
+
+/* toolsettings->proportional */
+#define PROP_EDIT_OFF			0
+#define PROP_EDIT_ON			1
+#define PROP_EDIT_CONNECTED	2
 
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)

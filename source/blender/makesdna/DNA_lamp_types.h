@@ -63,7 +63,7 @@ typedef struct Lamp {
 	short pad2;
 	
 	float clipsta, clipend, shadspotsize;
-	float bias, soft;
+	float bias, soft, compressthresh, pad5[3];
 	short bufsize, samp, buffers, filtertype;
 	char bufflag, buftype;
 	
@@ -167,6 +167,7 @@ typedef struct Lamp {
 #define LA_SHADBUF_REGULAR		0
 #define LA_SHADBUF_IRREGULAR	1
 #define LA_SHADBUF_HALFWAY		2
+#define LA_SHADBUF_DEEP			3
 
 /* bufflag, auto clipping */
 #define LA_SHADBUF_AUTO_START	1

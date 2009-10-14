@@ -230,6 +230,15 @@ static uiBut *ui_but_last(uiBlock *block)
 	return NULL;
 }
 
+static int ui_is_a_warp_but(uiBut *but)
+{
+	if(U.uiflag & USER_CONTINUOUS_MOUSE)
+		if(ELEM(but->type, NUM, NUMABS))
+			return TRUE;
+
+	return FALSE;
+}
+
 /* ********************** button apply/revert ************************/
 
 static ListBase UIAfterFuncs = {NULL, NULL};
@@ -1849,6 +1858,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
 			but->drawstr[0]= 0;
+			*(short *)but->func_arg3= 0;
 			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -1859,9 +1869,12 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		if(event->type == MOUSEMOVE)
 			return WM_UI_HANDLER_CONTINUE;
 		
-		if(ELEM(event->type, ESCKEY, LEFTMOUSE)) {
+		if(event->type == ESCKEY) {
 			/* data->cancel doesnt work, this button opens immediate */
-			ui_set_but_val(but, 0);
+			if(but->flag & UI_BUT_IMMEDIATE)
+				ui_set_but_val(but, 0);
+			else
+				data->cancel= 1;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -1971,6 +1984,51 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	return WM_UI_HANDLER_CONTINUE;
 }
 
+/* var names match ui_numedit_but_NUM */
+static float ui_numedit_apply_snapf(float tempf, float softmin, float softmax, float softrange, int snap)
+{
+	if(tempf==softmin || tempf==softmax)
+		return tempf;
+
+	switch(snap) {
+	case 0:
+		break;
+	case 1:
+		if(tempf==softmin || tempf==softmax) { }
+		else if(softrange < 2.10) tempf= 0.1*floor(10*tempf);
+		else if(softrange < 21.0) tempf= floor(tempf);
+		else tempf= 10.0*floor(tempf/10.0);
+		break;
+	case 2:
+		if(tempf==softmin || tempf==softmax) { }
+		else if(softrange < 2.10) tempf= 0.01*floor(100.0*tempf);
+		else if(softrange < 21.0) tempf= 0.1*floor(10.0*tempf);
+		else tempf= floor(tempf);
+		break;
+	}
+
+	return tempf;
+}
+
+static float ui_numedit_apply_snap(int temp, float softmin, float softmax, int snap)
+{
+	if(temp==softmin || temp==softmax)
+		return temp;
+
+	switch(snap) {
+	case 0:
+		break;
+	case 1:
+		temp= 10*(temp/10);
+		break;
+	case 2:
+		temp= 100*(temp/100);
+		break;
+	}
+
+	return temp;
+}
+
 static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, int snap, int mx)
 {
 	float deler, tempf, softmin, softmax, softrange;
@@ -1993,73 +2051,87 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 	softmax= but->softmax;
 	softrange= softmax - softmin;
 
-	deler= 500;
-	if(!ui_is_but_float(but)) {
-		if((softrange)<100) deler= 200.0;
-		if((softrange)<25) deler= 50.0;
-	}
-	deler /= fac;
 
-	if(ui_is_but_float(but) && softrange > 11) {
-		/* non linear change in mouse input- good for high precicsion */
-		data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002);
-	} else if (!ui_is_but_float(but) && softrange > 129) { /* only scale large int buttons */
-		/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
-		data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004);
-	} else {
-		/*no scaling */
-		data->dragf+= ((float)(mx-data->draglastx))/deler ;
-	}
+	if(ui_is_a_warp_but(but)) {
+		/* Mouse location isn't screen clamped to the screen so use a linear mapping
+		 * 2px == 1-int, or 1px == 1-ClickStep */
+		if(ui_is_but_float(but)) {
+			tempf = data->startvalue + ((mx - data->dragstartx) * fac * 0.01*but->a1);
+			tempf= ui_numedit_apply_snapf(tempf, softmin, softmax, softrange, snap);
+			CLAMP(tempf, softmin, softmax);
 
-	if(data->dragf>1.0) data->dragf= 1.0;
-	if(data->dragf<0.0) data->dragf= 0.0;
-	data->draglastx= mx;
-	tempf= (softmin + data->dragf*softrange);
-	
-	if(!ui_is_but_float(but)) {
-		temp= floor(tempf+.5);
-		
-		if(tempf==softmin || tempf==softmax);
-		else if(snap) {
-			if(snap == 2) temp= 100*(temp/100);
-			else temp= 10*(temp/10);
+			if(tempf != data->value) {
+				data->dragchange= 1;
+				data->value= tempf;
+				changed= 1;
+			}
 		}
+		else {
+			temp= data->startvalue + (mx - data->dragstartx)/2; /* simple 2px == 1 */
+			temp= ui_numedit_apply_snap(temp, softmin, softmax, snap);
+			CLAMP(temp, softmin, softmax);
 
-		CLAMP(temp, softmin, softmax);
-		lvalue= (int)data->value;
-			
-		if(temp != lvalue) {
-			data->dragchange= 1;
-			data->value= (double)temp;
-			changed= 1;
+			if(temp != data->value) {
+				data->dragchange= 1;
+				data->value= temp;
+				changed= 1;
+			}
 		}
 	}
 	else {
-		temp= 0;
+		/* Use a non-linear mapping of the mouse drag especially for large floats (normal behavior) */
+		deler= 500;
+		if(!ui_is_but_float(but)) {
+			if((softrange)<100) deler= 200.0;
+			if((softrange)<25) deler= 50.0;
+		}
+		deler /= fac;
 
-		if(snap) {
-			if(snap == 2) {
-				if(tempf==softmin || tempf==softmax);
-				else if(softrange < 2.10) tempf= 0.01*floor(100.0*tempf);
-				else if(softrange < 21.0) tempf= 0.1*floor(10.0*tempf);
-				else tempf= floor(tempf);
-			}
-			else {
-				if(tempf==softmin || tempf==softmax);
-				else if(softrange < 2.10) tempf= 0.1*floor(10*tempf);
-				else if(softrange < 21.0) tempf= floor(tempf);
-				else tempf= 10.0*floor(tempf/10.0);
+		if(ui_is_but_float(but) && softrange > 11) {
+			/* non linear change in mouse input- good for high precicsion */
+			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002);
+		} else if (!ui_is_but_float(but) && softrange > 129) { /* only scale large int buttons */
+			/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
+			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004);
+		} else {
+			/*no scaling */
+			data->dragf+= ((float)(mx-data->draglastx))/deler ;
+		}
+	
+		if(data->dragf>1.0) data->dragf= 1.0;
+		if(data->dragf<0.0) data->dragf= 0.0;
+		data->draglastx= mx;
+		tempf= (softmin + data->dragf*softrange);
+
+
+		if(!ui_is_but_float(but)) {
+			temp= floor(tempf+.5);
+
+			temp= ui_numedit_apply_snap(temp, softmin, softmax, snap);
+
+			CLAMP(temp, softmin, softmax);
+			lvalue= (int)data->value;
+
+			if(temp != lvalue) {
+				data->dragchange= 1;
+				data->value= (double)temp;
+				changed= 1;
 			}
 		}
+		else {
+			temp= 0;
+			tempf= ui_numedit_apply_snapf(tempf, softmin, softmax, softrange, snap);
 
-		CLAMP(tempf, softmin, softmax);
+			CLAMP(tempf, softmin, softmax);
 
-		if(tempf != data->value) {
-			data->dragchange= 1;
-			data->value= tempf;
-			changed= 1;
+			if(tempf != data->value) {
+				data->dragchange= 1;
+				data->value= tempf;
+				changed= 1;
+			}
 		}
 	}
+
 
 	return changed;
 }
@@ -2071,7 +2143,10 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	
 	mx= event->x;
 	my= event->y;
-	ui_window_to_block(data->region, block, &mx, &my);
+
+	if(!ui_is_a_warp_but(but)) {
+		ui_window_to_block(data->region, block, &mx, &my);
+	}
 
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		/* XXX hardcoded keymap check.... */
@@ -3254,6 +3329,7 @@ static uiBlock *menu_change_hotkey(bContext *C, ARegion *ar, void *arg_but)
 	strcat(buf, " |");
 	
 	but= uiDefHotKeyevtButS(block, 0, buf, 0, 0, 200, 20, dummy, dummy+1, "");
+	uiButSetFlag(but, UI_BUT_IMMEDIATE);
 	uiButSetFunc(but, do_menu_change_hotkey, arg_but, dummy);
 
 	uiPopupBoundsBlock(block, 6.0f, 50, -10);
@@ -3636,11 +3712,15 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		ui_textedit_end(C, but, data);
 	
 	/* number editing */
-	if(state == BUTTON_STATE_NUM_EDITING)
+	if(state == BUTTON_STATE_NUM_EDITING) {
+		if(ui_is_a_warp_but(but))
+			WM_cursor_grab(CTX_wm_window(C), TRUE);
 		ui_numedit_begin(but, data);
-	else if(data->state == BUTTON_STATE_NUM_EDITING)
+	} else if(data->state == BUTTON_STATE_NUM_EDITING) {
 		ui_numedit_end(but, data);
-
+		if(ui_is_a_warp_but(but))
+			WM_cursor_ungrab(CTX_wm_window(C), FALSE);
+	}
 	/* menu open */
 	if(state == BUTTON_STATE_MENU_OPEN)
 		ui_blockopen_begin(C, but, data);
@@ -3707,8 +3787,11 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 	
 	/* activate right away */
-	if(but->type==HOTKEYEVT)
-		button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
+	if(but->flag & UI_BUT_IMMEDIATE) {
+		if(but->type==HOTKEYEVT)
+			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
+		/* .. more to be added here */
+	}
 	
 	if(type == BUTTON_ACTIVATE_OPEN) {
 		button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);

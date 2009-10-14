@@ -3553,7 +3553,7 @@ short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
  * None of the actual calculations of the matricies should be done here! Also, this function is 
  * not to be used by any new constraints, particularly any that have multiple targets.
  */
-void get_constraint_target_matrix (bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
+void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
 {
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
@@ -3564,6 +3564,7 @@ void get_constraint_target_matrix (bConstraint *con, int n, short ownertype, voi
 		/* make 'constraint-ob' */
 		cob= MEM_callocN(sizeof(bConstraintOb), "tempConstraintOb");
 		cob->type= ownertype;
+		cob->scene = scene;
 		switch (ownertype) {
 			case CONSTRAINT_OBTYPE_OBJECT: /* it is usually this case */
 			{

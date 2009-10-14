@@ -83,7 +83,7 @@ static void logic_panel_properties(const bContext *C, Panel *pa)
 //	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	uiBlock *block;
 	
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_logic_panel_events, NULL);
 
 }	
@@ -93,7 +93,7 @@ static void logic_panel_view_properties(const bContext *C, Panel *pa)
 	//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	uiBlock *block;
 	
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_logic_panel_events, NULL);
 	
 }	

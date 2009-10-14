@@ -43,8 +43,15 @@
 
 #include "WM_types.h"
 
-/* prop_mode needs to be accessible from transform operator */
-EnumPropertyItem prop_mode_items[] ={
+
+EnumPropertyItem snap_mode_items[] = {
+	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
+	{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target."},
+	{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
+	{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
+	{0, NULL, 0, NULL, NULL}};
+	
+EnumPropertyItem proportional_falloff_items[] ={
 	{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
 	{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
 	{PROP_ROOT, "ROOT", 0, "Root", ""},
@@ -54,13 +61,22 @@ EnumPropertyItem prop_mode_items[] ={
 	{PROP_RANDOM, "RANDOM", 0, "Random", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+
+EnumPropertyItem proportional_editing_items[] = {
+	{PROP_EDIT_OFF, "DISABLED", 0, "Disable", ""},
+	{PROP_EDIT_ON, "ENABLED", 0, "Enable", ""},
+	{PROP_EDIT_CONNECTED, "CONNECTED", 0, "Connected", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
 
@@ -78,6 +94,22 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	/* we are actually iterating a Base list, so override get */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
+
+static PointerRNA rna_Scene_active_object_get(PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_Object, scene->basact ? scene->basact->object : NULL);
+}
+
+static void rna_Scene_active_object_set(PointerRNA *ptr, PointerRNA value)
+{
+	Scene *scene= (Scene*)ptr->data;
+	if(value.data)
+		scene->basact= object_in_scene((Object*)value.data, scene);
+	else
+		scene->basact= NULL;
+}
+
 
 static int layer_set(int lay, const int *values)
 {
@@ -279,6 +311,7 @@ void rna_SceneRenderData_jpeg2k_preset_update(RenderData *rd)
 	}
 }
 
+#ifdef WITH_OPENJPEG
 static void rna_SceneRenderData_jpeg2k_preset_set(PointerRNA *ptr, int value)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -292,6 +325,7 @@ static void rna_SceneRenderData_jpeg2k_depth_set(PointerRNA *ptr, int value)
 	rd->jp2_depth= value;
 	rna_SceneRenderData_jpeg2k_preset_update(rd);
 }
+#endif
 
 static int rna_SceneRenderData_active_layer_index_get(PointerRNA *ptr)
 {
@@ -426,6 +460,24 @@ static void rna_Physics_update(bContext *C, PointerRNA *ptr)
 }
 #else
 
+static void rna_def_transform_orientation(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	int matrix_dimsize[]= {3, 3};
+	
+	srna= RNA_def_struct(brna, "TransformOrientation", NULL);
+	
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "mat");
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_struct_name_property(srna, prop);
+}
+
 static void rna_def_tool_settings(BlenderRNA  *brna)
 {
 	StructRNA *srna;
@@ -451,13 +503,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume."},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem snap_mode_items[] = {
-		{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
-		{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target."},
-		{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
-		{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
-		{0, NULL, 0, NULL, NULL}};
-		
 	static EnumPropertyItem auto_key_items[] = {
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
@@ -487,14 +532,17 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Particle Edit", "");
 
 	/* Transform */
-	prop= RNA_def_property(srna, "proportional_editing", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "proportional", 0);
+	prop= RNA_def_property(srna, "proportional_editing", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "proportional");
+	RNA_def_property_enum_items(prop, proportional_editing_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional editing mode.");
+	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
-	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_enum_items(prop, proportional_falloff_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
+	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "normal_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "normalsize");
@@ -532,6 +580,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Snap Peel Object", "Consider objects as whole when finding volume center.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_PEEL_OBJECT, 0);
 	
+	prop= RNA_def_property(srna, "snap_project", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
+	RNA_def_property_ui_text(prop, "Project Individual Elements", "DOC_BROKEN");
+	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
+
 	/* Auto Keying */
 	prop= RNA_def_property(srna, "enable_auto_key", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
@@ -1296,50 +1349,50 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	static EnumPropertyItem image_type_items[] = {
 		{0, "", 0, "Image", NULL},
-		{R_PNG, "PNG", 0, "PNG", ""},
-		{R_JPEG90, "JPEG", 0, "JPEG", ""},
+		{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", ""},
+		{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", ""},
 #ifdef WITH_OPENJPEG
-		{R_JP2, "JPEG2000", 0, "JPEG 2000", ""},
+		{R_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", ""},
 #endif		
-		{R_BMP, "BMP", 0, "BMP", ""},
-		{R_TARGA, "TARGA", 0, "Targa", ""},
-		{R_RAWTGA, "RAWTARGA", 0, "Targa Raw", ""},
-		//{R_DDS, "DDS", 0, "DDS", ""}, // XXX not yet implemented
-		{R_HAMX, "HAMX", 0, "HamX", ""},
-		{R_IRIS, "IRIS", 0, "Iris", ""},
+		{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
+		{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
+		{R_RAWTGA, "RAWTARGA", ICON_FILE_IMAGE, "Targa Raw", ""},
+		//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
+		{R_HAMX, "HAMX", ICON_FILE_IMAGE, "HamX", ""},
+		{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 		{0, "", 0, " ", NULL},
 #ifdef WITH_OPENEXR
-		{R_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
-		{R_MULTILAYER, "MULTILAYER", 0, "MultiLayer", ""},
+		{R_OPENEXR, "OPENEXR", ICON_FILE_IMAGE, "OpenEXR", ""},
+		{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
 #endif
-		{R_TIFF, "TIFF", 0, "TIFF", ""},	// XXX only with G.have_libtiff
-		{R_RADHDR, "RADHDR", 0, "Radiance HDR", ""},
-		{R_CINEON, "CINEON", 0, "Cineon", ""},
-		{R_DPX, "DPX", 0, "DPX", ""},
+		{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
+		{R_RADHDR, "RADHDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
+		{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
+		{R_DPX, "DPX", ICON_FILE_IMAGE, "DPX", ""},
 		{0, "", 0, "Movie", NULL},
-		{R_AVIRAW, "AVIRAW", 0, "AVI Raw", ""},
-		{R_AVIJPEG, "AVIJPEG", 0, "AVI JPEG", ""},
+		{R_AVIRAW, "AVIRAW", ICON_FILE_MOVIE, "AVI Raw", ""},
+		{R_AVIJPEG, "AVIJPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
 #ifdef _WIN32
-		{R_AVICODEC, "AVICODEC", 0, "AVI Codec", ""},
+		{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""},
 #endif
 #ifdef WITH_QUICKTIME
-		{R_QUICKTIME, "QUICKTIME", 0, "QuickTime", ""},
+		{R_QUICKTIME, "QUICKTIME", ICON_FILE_MOVIE, "QuickTime", ""},
 #endif
 #ifdef __sgi
-		{R_MOVIE, "MOVIE", 0, "Movie", ""},
+		{R_MOVIE, "MOVIE", ICON_FILE_MOVIE, "Movie", ""},
 #endif
 #ifdef WITH_FFMPEG
-		{R_H264, "H264", 0, "H.264", ""},
-		{R_XVID, "XVID", 0, "Xvid", ""},
+		{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
+		{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", ""},
 		// XXX broken
 #if 0
 #ifdef WITH_OGG
-		{R_THEORA, "THEORA", 0, "Ogg Theora", ""},
+		{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
 #endif
 #endif
-		{R_FFMPEG, "FFMPEG", 0, "FFMpeg", ""},
+		{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFMpeg", ""},
 #endif
-		{R_FRAMESERVER, "FRAMESERVER", 0, "Frame Server", ""},
+		{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 #ifdef WITH_OPENEXR	
@@ -2109,6 +2162,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene.");
 
+	prop= RNA_def_property(srna, "active_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object", "Object to use as projector transform.");
+
+
 	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene.");
@@ -2147,6 +2207,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
+	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
@@ -2154,12 +2215,15 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
+	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "frame_step");
+	RNA_def_property_range(prop, 0, MAXFRAME);
+	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
 	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames to skip forward while rendering/playing back each frame");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
@@ -2329,12 +2393,19 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Freestyle Current Layer Number", "Number of current layers in Freestyle.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
+	/* Transform Orientations */
+	prop= RNA_def_property(srna, "orientations", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "transform_spaces", NULL);
+	RNA_def_property_struct_type(prop, "TransformOrientation");
+	RNA_def_property_ui_text(prop, "Transform Orientations", "");
+
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);
 	rna_def_unit_settings(brna);
 	rna_def_scene_render_data(brna);
 	rna_def_scene_game_data(brna);
 	rna_def_scene_render_layer(brna);
+	rna_def_transform_orientation(brna);
 	
 	/* Scene API */
 	RNA_api_scene(srna);

@@ -172,26 +172,22 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	wmOperator *op= sfile->op;
-	int empty= 1;
+	int empty= 1, flag;
 
 	if(op->type->ui) {
 		op->type->ui((bContext*)C, op->ptr, pa->layout);
 	}
 	else {
 		RNA_STRUCT_BEGIN(op->ptr, prop) {
-			if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
-				continue;
-			if(strcmp(RNA_property_identifier(prop), "filemode") == 0)
+			flag= RNA_property_flag(prop);
+
+			if(flag & PROP_HIDDEN)
 				continue;
 			if(strcmp(RNA_property_identifier(prop), "path") == 0)
 				continue;
 			if(strcmp(RNA_property_identifier(prop), "directory") == 0)
 				continue;
 			if(strcmp(RNA_property_identifier(prop), "filename") == 0)
-				continue;
-			if(strcmp(RNA_property_identifier(prop), "display") == 0)
-				continue;
-			if(strncmp(RNA_property_identifier(prop), "filter", 6) == 0)
 				continue;
 
 			uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0);
