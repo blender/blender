@@ -131,7 +131,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
 			subcol = col.column(align=True)
 			subcol.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
-			subcol.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
+			subcol.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
 
 			if key.relative:
 				row = layout.row()
