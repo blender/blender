@@ -42,6 +42,11 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_main.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_depsgraph.h"
+#include "DNA_object_types.h"
+
 static void rna_userdef_update(bContext *C, PointerRNA *ptr)
 {
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -123,6 +128,23 @@ static void rna_UserDef_audio_update(bContext *C, PointerRNA *ptr)
 {
 	sound_init(C);
 }
+
+static void rna_UserDef_weight_color_update(bContext *C, PointerRNA *ptr)
+{
+	Main *bmain= CTX_data_main(C);
+	Object *ob;
+
+	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight):NULL);
+
+	for(ob= bmain->object.first; ob; ob= ob->id.next) {
+		if(ob->mode & OB_MODE_WEIGHT_PAINT)
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	}
+
+	rna_userdef_update(C, ptr);
+}
+
+
 
 #else
 
@@ -2134,12 +2156,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_weight_color_range", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_CUSTOM_RANGE);
 	RNA_def_property_ui_text(prop, "Use Weight Color Range", "Enable color range used for weight visualization in weight painting mode.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_weight_color_update");
 
 	prop= RNA_def_property(srna, "weight_color_range", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "coba_weight");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Weight Color Range", "Color range used for weight visualization in weight painting mode.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_weight_color_update");
 
 	prop= RNA_def_property(srna, "enable_all_codecs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ALLWINCODECS);
