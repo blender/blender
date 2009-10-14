@@ -737,7 +737,7 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 		layout.itemS()
 		
 		layout.itemR(settings, "automerge_editing")
-		layout.itemR(settings, "proportional_editing")
+		layout.item_menu_enumR(settings, "proportional_editing")
 		layout.item_menu_enumR(settings, "proportional_editing_falloff")
 		
 		layout.itemS()
