@@ -110,6 +110,19 @@ static void rna_Scene_active_object_set(PointerRNA *ptr, PointerRNA value)
 		scene->basact= NULL;
 }
 
+static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value)
+{
+	Scene *scene= (Scene*)ptr->data;
+	Scene *set= (Scene*)value.data;
+	Scene *nested_set;
+
+	for(nested_set= set; nested_set; nested_set= nested_set->set) {
+		if(nested_set==scene)
+			return;
+	}
+
+	scene->set= set;
+}
 
 static int layer_set(int lay, const int *values)
 {
@@ -2083,6 +2096,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene.");
+
+	prop= RNA_def_property(srna, "set", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "set");
+	RNA_def_property_struct_type(prop, "Scene");
+	//RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
+	RNA_def_property_ui_text(prop, "Set Scene", "Background set scene.");
 
 	prop= RNA_def_property(srna, "active_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");

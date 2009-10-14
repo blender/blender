@@ -1452,7 +1452,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	/* TODO, should this be allowed to be its self? */
 	prop= RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Texture Mesh", "Use another mesh for texture indicies (vertex indicies must be aligned).");
 
 	/* UV textures */

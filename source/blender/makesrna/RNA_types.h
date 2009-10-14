@@ -126,47 +126,51 @@ typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
 	 * for pointers and collections. */
-	PROP_EDITABLE = 1,
+	PROP_EDITABLE = 1<<0,
 
 	/* this property is editable even if it is lib linked,
 	 * meaning it will get lost on reload, but it's useful
 	 * for editing. */
-	PROP_LIB_EXCEPTION = 65536,
+	PROP_LIB_EXCEPTION = 1<<16,
 
 	/* animateable means the property can be driven by some
 	 * other input, be it animation curves, expressions, ..
 	 * properties are animateable by default except for pointers
 	 * and collections */
-	PROP_ANIMATEABLE = 2,
+	PROP_ANIMATEABLE = 1<<1,
 
 	/* icon */
-	PROP_ICONS_CONSECUTIVE = 4096,
+	PROP_ICONS_CONSECUTIVE = 1<12,
 
 	/* hidden in  the user interface */
-	PROP_HIDDEN = 524288,
+	PROP_HIDDEN = 1<<19,
 
 	/* function paramater flags */
-	PROP_REQUIRED = 4,
-	PROP_RETURN = 8,
-	PROP_RNAPTR = 2048,
-
+	PROP_REQUIRED = 1<<2,
+	PROP_RETURN = 1<<3,
+	PROP_RNAPTR = 1<<11,
 	/* registering */
-	PROP_REGISTER = 16,
-	PROP_REGISTER_OPTIONAL = 16|32,
+	PROP_REGISTER = 1<<4,
+	PROP_REGISTER_OPTIONAL = (1<<4)|(1<<5),
 
 	/* pointers */
-	PROP_ID_REFCOUNT = 64,
-	PROP_NEVER_NULL = 262144,
+	PROP_ID_REFCOUNT = 1<<6,
+
+	/* disallow assigning a variable to its self, eg an object tracking its self
+	 * only apply this to types that are derived from an ID ()*/
+	PROP_ID_SELF_CHECK = 1<<20,
+
+	PROP_NEVER_NULL = 1<<18,
 
 	/* internal flags */
-	PROP_BUILTIN = 128,
-	PROP_EXPORT = 256,
-	PROP_RUNTIME = 512,
-	PROP_IDPROPERTY = 1024,
-	PROP_RAW_ACCESS = 8192,
-	PROP_RAW_ARRAY = 16384,
-	PROP_FREE_POINTERS = 32768,
-	PROP_DYNAMIC = 131072 /* for dynamic arrays, and retvals of type string */
+	PROP_BUILTIN = 1<<7,
+	PROP_EXPORT = 1<<8,
+	PROP_RUNTIME = 1<<9,
+	PROP_IDPROPERTY = 1<<10,
+	PROP_RAW_ACCESS = 1<<13,
+	PROP_RAW_ARRAY = 1<<14,
+	PROP_FREE_POINTERS = 1<<15,
+	PROP_DYNAMIC = 1<<17 /* for dynamic arrays, and retvals of type string */
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
