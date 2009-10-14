@@ -2138,15 +2138,15 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 
 static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
-	int mx, my, click= 0;
+	int mx, my;	/* mouse location scaled to fit the UI */
+	int screen_mx, screen_my; /* mouse location kept at screen pixel coords */
+	int click= 0;
 	int retval= WM_UI_HANDLER_CONTINUE;
 	
-	mx= event->x;
-	my= event->y;
+	mx= screen_mx= event->x;
+	my= screen_my= event->y;
 
-	if(!ui_is_a_warp_but(but)) {
-		ui_window_to_block(data->region, block, &mx, &my);
-	}
+	ui_window_to_block(data->region, block, &mx, &my);
 
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		/* XXX hardcoded keymap check.... */
@@ -2164,8 +2164,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				retval= WM_UI_HANDLER_BREAK;
 			}
 			else if(event->type == LEFTMOUSE) {
-				data->dragstartx= mx;
-				data->draglastx= mx;
+				data->dragstartx= data->draglastx= ui_is_a_warp_but(but) ? screen_mx:mx;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
@@ -2204,7 +2203,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			
 			snap= (event->ctrl)? (event->shift)? 2: 1: 0;
 
-			if(ui_numedit_but_NUM(but, data, fac, snap, mx))
+			if(ui_numedit_but_NUM(but, data, fac, snap, (ui_is_a_warp_but(but) ? screen_mx:mx)))
 				ui_numedit_apply(C, block, but, data);
 		}
 		retval= WM_UI_HANDLER_BREAK;
