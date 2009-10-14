@@ -221,7 +221,7 @@ def face_edge_keys(f):
 	
 	return ord_ind(verts[0], verts[1]),  ord_ind(verts[1], verts[2]),  ord_ind(verts[2], verts[3]),  ord_ind(verts[3], verts[0])
 	
-def mesh_faces_extend(me, faces):
+def mesh_faces_extend(me, faces, mat_idx = 0):
 	orig_facetot = len(me.faces)
 	new_facetot = len(faces)
 	me.add_geometry(0, 0, new_facetot)
@@ -233,8 +233,10 @@ def mesh_faces_extend(me, faces):
 		f = [v.index for v in faces[i]]
 		if len(f)==4 and f[3]==0:
 			f = f[1], f[2], f[3], f[0]
-			
-		me_faces[orig_facetot+i].verts_raw =  f
+		
+		mf = me_faces[orig_facetot+i]
+		mf.verts_raw =  f
+		mf.material_index = mat_idx
 		i+=1
 # end utils
 
@@ -605,7 +607,7 @@ def main(context):
 		except: pass
 	
 	if 1: # 2.5
-		mesh_faces_extend(me, faces)
+		mesh_faces_extend(me, faces, ob.active_material_index)
 		me.update(calc_edges=True)
 	else:
 		me.faces.extend(faces, smooth = True)

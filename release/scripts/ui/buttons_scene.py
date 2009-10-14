@@ -23,7 +23,6 @@ class SCENE_PT_scene(SceneButtonsPanel):
 
 class SCENE_PT_unit(SceneButtonsPanel):
 	__label__ = "Units"
-	__default_closed__ = True
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
@@ -41,7 +40,6 @@ class SCENE_PT_unit(SceneButtonsPanel):
 		
 class SCENE_PT_keying_sets(SceneButtonsPanel):
 	__label__ = "Keying Sets"
-	__default_closed__ = True
 	
 	def draw(self, context):
 		layout = self.layout
@@ -75,7 +73,6 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
 			
 class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 	__label__ = "Active Keying Set"
-	__default_closed__ = True
 	
 	def poll(self, context):
 		return (context.scene != None) and (context.scene.active_keying_set != None)

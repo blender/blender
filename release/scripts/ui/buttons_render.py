@@ -45,6 +45,9 @@ class RENDER_PT_layers(RenderButtonsPanel):
 		col.itemO("scene.render_layer_remove", icon='ICON_ZOOMOUT', text="")
 
 		rl = rd.layers[rd.active_layer_index]
+		
+		if rl:
+			layout.itemR(rl, "name")
 
 		split = layout.split()
 		
