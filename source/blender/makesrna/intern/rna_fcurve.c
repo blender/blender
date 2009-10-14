@@ -53,6 +53,8 @@ EnumPropertyItem fmodifier_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "WM_api.h"
+
 static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 {
 	FModifier *fcm= (FModifier *)ptr->data;

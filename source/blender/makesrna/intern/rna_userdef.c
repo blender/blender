@@ -64,10 +64,12 @@ static void rna_userdef_lmb_select_set(PointerRNA *ptr,int value)
 		userdef->flag &= ~USER_LMOUSESELECT;
 }
 
+#if 0
 static void rna_userdef_rmb_select_set(PointerRNA *ptr,int value)
 {
 	rna_userdef_lmb_select_set(ptr, !value);
 }
+#endif
 
 static void rna_userdef_emulate_set(PointerRNA *ptr,int value)
 {
