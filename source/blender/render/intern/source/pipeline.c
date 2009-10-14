@@ -2116,6 +2116,11 @@ static void do_render_fields_blur_3d(Render *re)
 				re->display_init(re->dih, re->result);
 				re->display_draw(re->ddh, re->result, NULL);
 			}
+			else {
+				/* set offset (again) for use in compositor, disprect was manipulated. */
+				re->result->xof= 0;
+				re->result->yof= 0;
+			}
 		}
 	}
 }
