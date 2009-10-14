@@ -1153,9 +1153,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSScrollWheel:
 			{
 				GHOST_TInt32 delta;
-				delta = [event deltaY] > 0 ? 1 : -1;
-				pushEvent(new GHOST_EventWheel(getMilliSeconds(), window, delta));
-
+				
+				double deltaF = [event deltaY];
+				if (deltaF == 0.0) break; //discard trackpad delta=0 events
+				
+				delta = deltaF > 0.0 ? 1 : -1;
+				pushEvent(new GHOST_EventWheel([event timestamp], window, delta));
 			}
 			break;
 			
