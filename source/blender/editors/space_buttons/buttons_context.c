@@ -437,6 +437,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	 * tracing back recursively */
 	switch(mainb) {
 		case BCONTEXT_SCENE:
+		case BCONTEXT_RENDER:
 			found= buttons_context_path_scene(path);
 			break;
 		case BCONTEXT_WORLD:
