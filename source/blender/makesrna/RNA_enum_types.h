@@ -29,6 +29,9 @@
 
 /* Types */
 
+extern EnumPropertyItem id_type_items[];
+
+
 extern EnumPropertyItem object_mode_items[];
 
 extern EnumPropertyItem proportional_falloff_items[];

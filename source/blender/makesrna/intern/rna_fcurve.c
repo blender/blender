@@ -24,8 +24,10 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -79,6 +81,18 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 }
 
 /* ****************************** */
+
+static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
+{
+	DriverTarget *dtar= (DriverTarget*)ptr->data;
+	return ID_code_to_RNA_type(dtar->idtype);
+}
+
+static int rna_DriverTarget_id_editable(PointerRNA *ptr)
+{
+	DriverTarget *dtar= (DriverTarget*)ptr->data;
+	return (dtar->idtype)? PROP_EDITABLE : 0;
+}
 
 static void rna_DriverTarget_RnaPath_get(PointerRNA *ptr, char *value)
 {
@@ -523,11 +537,21 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions.");
 	
-	/* Target Properties */
-	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_ui_text(prop, "Object", "Object the specific property used can be found from");
+	/* Target Properties - ID-block to Drive */
+	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_editable");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_DriverTarget_id_typef");
+	RNA_def_property_ui_text(prop, "ID", "ID-block that the specific property used can be found from");
 	
+	prop= RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "idtype");
+	RNA_def_property_enum_items(prop, id_type_items);
+	RNA_def_property_enum_default(prop, ID_OB);
+	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
+	
+	/* Target Properties - Property to Drive */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_DriverTarget_RnaPath_get", "rna_DriverTarget_RnaPath_length", "rna_DriverTarget_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path (from Object) to property used");

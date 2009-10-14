@@ -527,7 +527,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 		if ksp:
 			col = layout.column()
 			col.itemL(text="Target:")
-			col.itemR(ksp, "id")
+			col.template_any_ID(ksp, "id", "id_type")
 			col.itemR(ksp, "rna_path")
 			
 			

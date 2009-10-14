@@ -219,7 +219,7 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 	/* don't use the API method for this, since that checks on values... */
 	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSetPath Empty");
 	BLI_addtail(&ks->paths, ksp);
-	ks->active_path= BLI_countlist(&ks->paths) + 1;
+	ks->active_path= BLI_countlist(&ks->paths);
 	
 	ksp->groupmode= KSP_GROUP_KSNAME; // XXX?
 	

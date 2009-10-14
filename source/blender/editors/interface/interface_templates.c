@@ -152,6 +152,7 @@ static uiBlock *search_menu(bContext *C, ARegion *ar, void *arg_litem)
 }
 
 /************************ ID Template ***************************/
+/* This is for browsing and editing the ID-blocks used */
 
 /* for new/open operators */
 void uiIDContextProperty(bContext *C, PointerRNA *ptr, PropertyRNA **prop)
@@ -390,7 +391,10 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 
 	type= RNA_property_pointer_type(ptr, prop);
 	template->idlb= wich_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
-
+	
+	/* create UI elements for this template
+	 *	- template_ID makes a copy of the template data and assigns it to the relevant buttons
+	 */
 	if(template->idlb) {
 		uiLayoutRow(layout, 1);
 		block= uiLayoutGetBlock(layout);
@@ -398,6 +402,47 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 	}
 
 	MEM_freeN(template);
+}
+
+/************************ ID Chooser Template ***************************/
+/* This is for selecting the type of ID-block to use, and then from the relevant type choosing the block to use */
+
+/* - propname: property identifier for property that ID-pointer gets stored to
+ * - proptypename: property identifier for property used to determine the type of ID-pointer that can be used
+ */
+void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *proptypename, char *text)
+{
+	PropertyRNA *propID, *propType;
+	uiLayout *row;
+	
+	/* get properties... */
+	propID= RNA_struct_find_property(ptr, propname);
+	propType= RNA_struct_find_property(ptr, proptypename);
+
+	if (!propID || RNA_property_type(propID) != PROP_POINTER) {
+		printf("uiTemplateAnyID: pointer property not found: %s\n", propname);
+		return;
+	}
+	if (!propType || RNA_property_type(propType) != PROP_ENUM) { 
+		printf("uiTemplateAnyID: pointer-type property not found: %s\n", proptypename);
+		return;
+	}
+	
+	/* Start drawing UI Elements using standard defines */
+	row= uiLayoutRow(layout, 1);
+	
+	/* Label - either use the provided text, or will become "ID-Block:" */
+	if (text)
+		uiItemL(row, text, 0);
+	else
+		uiItemL(row, "ID-Block:", 0);
+	
+	/* ID-Type Selector - just have a menu of icons */
+	// XXX should value really be 0?
+	uiItemFullR(row, "", 0, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY);
+	
+	/* ID-Block Selector - just use pointer widget... */
+	uiItemFullR(row, "", 0, ptr, propID, 0, 0, 0);
 }
 
 /************************ Modifier Template *************************/

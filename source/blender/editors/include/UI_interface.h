@@ -620,6 +620,8 @@ uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
+void uiTemplateAnyID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
+	char *proptypename, char *text);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
