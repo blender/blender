@@ -2890,7 +2890,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 	/*	Loop 1: find selected keyframes   */
 	for (i = 0; i < fcu->totvert; i++) {
 		BezTriple *bezt= &fcu->bezt[i];
-
+		
 		if (BEZSELECTED(bezt)) {
 			selcache[index]= bezt->vec[1][0];
 			index++;
@@ -2898,16 +2898,18 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 		}
 	}
 
-	/* Loop 2: delete unselected keyframes on the same frames (if any keyframes were found) */
-	if (len) {
+	/* Loop 2: delete unselected keyframes on the same frames 
+	 * (if any keyframes were found, or the whole curve wasn't affected) 
+	 */
+	if ((len) && (len != fcu->totvert)) {
 		for (i = 0; i < fcu->totvert; i++) {
 			BezTriple *bezt= &fcu->bezt[i];
-
+			
 			if (BEZSELECTED(bezt) == 0) {
 				/* check beztriple should be removed according to cache */
 				for (index= 0; index < len; index++) {
 					if (IS_EQ(bezt->vec[1][0], selcache[index])) {
-						//delete_icu_key(icu, i, 0);
+						delete_fcurve_key(fcu, i, 0);
 						break;
 					}
 					else if (bezt->vec[1][0] > selcache[index])
@@ -2915,7 +2917,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 				}
 			}
 		}
-
+		
 		testhandles_fcurve(fcu);
 	}
 
@@ -4561,6 +4563,8 @@ void special_aftertrans_update(TransInfo *t)
 		if (ANIM_animdata_context_getdata(&ac) == 0)
 			return;
 		
+		printf("automerge dopesheet keys \n");
+		
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
@@ -4577,6 +4581,7 @@ void special_aftertrans_update(TransInfo *t)
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 				     ((cancelled == 0) || (duplicate)) )
 				{
+					printf("\tdo fcurve clean \n");
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
 						posttrans_fcurve_clean(fcu);
