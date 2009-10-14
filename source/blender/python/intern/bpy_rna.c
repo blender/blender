@@ -2315,6 +2315,19 @@ PyTypeObject pyrna_prop_Type = {
 	NULL
 };
 
+static struct PyMethodDef pyrna_struct_subtype_methods[] = {
+	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
+
+//	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
+	{NULL, NULL, 0, NULL}
+};
+
 static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
 	PointerRNA ptr;
@@ -2340,6 +2353,17 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "__rna__", item);
 	Py_DECREF(item);
 	/* done with rna instance */
+
+	/* attach functions into the class
+	 * so you can do... bpy.types.Scene.SomeFunction()
+	 */
+	{
+		PyMethodDef *ml;
+
+		for(ml= pyrna_struct_subtype_methods; ml->ml_name; ml++){
+			PyObject_SetAttrString(newclass, ml->ml_name, PyCFunction_New(ml, newclass));
+		}
+	}
 }
 
 /*
@@ -2361,20 +2385,6 @@ PyObject *BPy_GetStructRNA(PyObject *self)
 	}
 }
 */
-
-static struct PyMethodDef pyrna_struct_subtype_methods[] = {
-	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
-
-//	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
-	{NULL, NULL, 0, NULL}
-};
-
 
 PyObject* pyrna_srna_Subtype(StructRNA *srna)
 {
@@ -2425,18 +2435,6 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 			pyrna_subtype_set_rna(newclass, srna);
 
 			Py_DECREF(newclass); /* let srna own */
-
-
-			/* attach functions into the class
-			 * so you can do... bpy.types.Scene.SomeFunction()
-			 */
-			{
-				PyMethodDef *ml;
-				for(ml= pyrna_struct_subtype_methods; ml->ml_name; ml++){
-					PyObject_SetAttrString(newclass, ml->ml_name, PyCFunction_New(ml, newclass));
-				}
-			}
-
 		}
 		else {
 			/* this should not happen */
@@ -2818,7 +2816,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
 	char *id, *name="", *description="";
-	float min=FLT_MIN, max=FLT_MAX, soft_min=FLT_MIN, soft_max=FLT_MAX, def=0.0f;
+	float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, def=0.0f;
 	PropertyRNA *prop;
 	StructRNA *srna;
 
