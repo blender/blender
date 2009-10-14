@@ -4563,8 +4563,6 @@ void special_aftertrans_update(TransInfo *t)
 		if (ANIM_animdata_context_getdata(&ac) == 0)
 			return;
 		
-		printf("automerge dopesheet keys \n");
-		
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
@@ -4581,7 +4579,6 @@ void special_aftertrans_update(TransInfo *t)
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 				     ((cancelled == 0) || (duplicate)) )
 				{
-					printf("\tdo fcurve clean \n");
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
 						posttrans_fcurve_clean(fcu);
