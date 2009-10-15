@@ -624,6 +624,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_array.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_blenlib.h"
 				>
 			</File>

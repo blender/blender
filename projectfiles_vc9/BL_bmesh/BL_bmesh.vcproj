@@ -267,6 +267,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\blender\bmesh\operators\edgesplitop.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\blender\bmesh\intern\editmesh_to_bmesh.c"
 				>
 			</File>

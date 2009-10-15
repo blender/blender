@@ -1203,6 +1203,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editbmesh_bvh.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editbmesh_bvh.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editface.c"
 				>
 			</File>
