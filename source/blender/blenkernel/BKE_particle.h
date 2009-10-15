@@ -200,6 +200,7 @@ struct Object *psys_get_lattice(struct ParticleSimulationData *sim);
 
 int psys_in_edit_mode(struct Scene *scene, struct ParticleSystem *psys);
 int psys_check_enabled(struct Object *ob, struct ParticleSystem *psys);
+int psys_check_edited(struct ParticleSystem *psys);
 
 void psys_check_group_weights(struct ParticleSettings *part);
 

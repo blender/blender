@@ -298,8 +298,6 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	wmKeyMap *keymap;
 
 	/* object ops. */
-	keymap= WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* pose is not modal, operator poll checks for this */
 	keymap= WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
@@ -347,6 +345,9 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	/* editfont keymap swallows all... */
 	keymap= WM_keymap_find(wm->defaultconf, "Font", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* own keymap, last so modes can override it */

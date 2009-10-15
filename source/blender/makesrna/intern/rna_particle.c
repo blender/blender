@@ -420,10 +420,7 @@ static int rna_ParticleSystem_editable_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
 
-	if(psys->part && psys->part->type==PART_HAIR)
-		return (psys->flag & PSYS_HAIR_DONE);
-	else
-		return (psys->pointcache->flag & PTCACHE_BAKED);
+	return psys_check_edited(psys);
 }
 static int rna_ParticleSystem_edited_get(PointerRNA *ptr)
 {

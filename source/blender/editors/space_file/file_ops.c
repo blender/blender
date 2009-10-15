@@ -795,9 +795,6 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if(sfile->params) {
-		char prev_dir[sizeof(sfile->params->dir)];
-		BLI_strncpy(prev_dir, filelist_dir(sfile->files), sizeof(prev_dir));
-
 		if ( sfile->params->dir[0] == '~' ) {
 			if (sfile->params->dir[1] == '\0') {
 				BLI_strncpy(sfile->params->dir, BLI_gethome(), sizeof(sfile->params->dir) );
