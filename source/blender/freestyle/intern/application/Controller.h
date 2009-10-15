@@ -66,7 +66,7 @@ extern "C" {
 class Controller
 {
 public:
-  Controller() ;
+  Controller(bContext* C) ;
   ~Controller() ;
   
   void setView(AppView *iView);

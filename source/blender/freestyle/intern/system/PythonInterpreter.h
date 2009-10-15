@@ -51,8 +51,9 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 {
  public:
 
-  PythonInterpreter() {
+  PythonInterpreter(bContext* C) {
     _language = "Python";
+	_context = C;
     //Py_Initialize();
   }
 
@@ -62,15 +63,32 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 
   int interpretFile(const string& filename) {
 
-	bContext* C = CTX_create();
-	ReportList* reports = (ReportList*) MEM_mallocN(sizeof(ReportList), "freestyleExecutionReportList");
+	initPath();
 	
-	initPath(C);
-	
-	BKE_reports_init(reports, RPT_ERROR);
+	ReportList* reports = CTX_wm_reports(_context);
+	BKE_reports_clear(reports);
 	char *fn = const_cast<char*>(filename.c_str());
+#if 0
+	int status = BPY_run_python_script(_context, fn, NULL, reports);
+#else
+	int status;
+	FILE *fp = fopen(fn, "r");
+	if (fp) {
+		struct Text *text = add_empty_text("tmp_freestyle.txt");
+		char buf[256];
+		while (fgets(buf, sizeof(buf), fp) != NULL)
+			txt_insert_buf(text, buf);
+		fclose(fp);
 
-	int status = BPY_run_python_script( C, fn, NULL, reports);
+		status = BPY_run_python_script(_context, NULL, text, reports);
+
+		unlink_text(G.main, text);
+		free_libblock(&G.main->text, text);
+	} else {
+		BKE_reportf(reports, RPT_ERROR, "Cannot open file: %s", fn);
+		status = 0;
+	}
+#endif
 
 	if (status != 1) {
 		cout << "\nError executing Python script from PythonInterpreter::interpretFile" << endl;
@@ -81,12 +99,7 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 	}
 
 	// cleaning up
-	CTX_free( C );
 	BKE_reports_clear(reports);
-	if ((reports->flag & RPT_FREE) == 0)
-	{
-		MEM_freeN(reports);
-	}
 	
 	return 0;
   }
@@ -110,7 +123,9 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 
 private:
 
-  static void initPath(bContext* C) {
+  bContext* _context;
+
+  void initPath() {
 	if (_initialized)
 		return;
 
@@ -129,7 +144,7 @@ private:
 		}
 	}
 	
-	BPY_run_python_script( C, NULL, text, NULL);
+	BPY_run_python_script(_context, NULL, text, NULL);
 	
 	// cleaning up
 	unlink_text(G.main, text);

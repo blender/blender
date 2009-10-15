@@ -60,7 +60,7 @@ extern "C" {
 		if( !freestyle_is_initialized ) {
 
 			pathconfig = new Config::Path;
-			controller = new Controller;
+			controller = new Controller(C);
 			view = new AppView;
 			controller->setView(view);
 			

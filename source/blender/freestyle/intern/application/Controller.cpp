@@ -71,7 +71,7 @@ extern "C" {
 
 
 
-Controller::Controller()
+Controller::Controller(bContext* C)
 {
 	
   const string sep(Config::DIR_SEP.c_str());
@@ -108,7 +108,7 @@ Controller::Controller()
 
   _Canvas = new AppCanvas;
 
-  _inter = new PythonInterpreter;
+  _inter = new PythonInterpreter(C);
   _EnableQI = true;
   _ComputeRidges = true;
   _ComputeSteerableViewMap = false;
