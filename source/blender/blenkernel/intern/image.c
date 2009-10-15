@@ -964,6 +964,7 @@ typedef struct StampData {
 	char 	camera[64];
 	char 	scene[64];
 	char 	strip[64];
+	char 	rendertime[64];
 } StampData;
 
 static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
@@ -1087,6 +1088,20 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	} else {
 		stamp_data->strip[0] = '\0';
 	}
+
+	{
+		Render *re= RE_GetRender(scene->id.name);
+		RenderStats *stats= re ? RE_GetStats(re):NULL;
+
+		if (stats && (scene->r.stamp & R_STAMP_RENDERTIME)) {
+			BLI_timestr(stats->lastframetime, text);
+
+			if (do_prefix)		sprintf(stamp_data->rendertime, "RenderTime %s", text);
+			else				sprintf(stamp_data->rendertime, "%s", text);
+		} else {
+			stamp_data->rendertime[0] = '\0';
+		}
+	}
 }
 
 // XXX - Bad level call.
@@ -1116,7 +1131,12 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 		return;
 	
 	stampdata(scene, &stamp_data, 1);
-	stamp_font_begin(12);
+
+	/* TODO, do_versions */
+	if(scene->r.stamp_font_id < 8)
+		scene->r.stamp_font_id= 12;
+
+	stamp_font_begin(scene->r.stamp_font_id);
 
 	BLF_buffer(rectf, rect, width, height, channels);
 	BLF_buffer_col(scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
@@ -1166,6 +1186,21 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 
 		BLF_position(x, y, 0.0);
 		BLF_draw_buffer(stamp_data.date);
+
+		/* the extra pixel for background. */
+		y -= 4;
+	}
+
+	/* Top left corner, below File, Date or Note */
+	if (stamp_data.rendertime[0]) {
+		BLF_width_and_height(stamp_data.rendertime, &w, &h);
+		y -= h;
+
+		/* and space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+3);
+
+		BLF_position(x, y, 0.0);
+		BLF_draw_buffer(stamp_data.rendertime);
 	}
 
 	x= 0;

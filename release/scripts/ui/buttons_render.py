@@ -422,6 +422,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		col = split.column()
 		col.itemR(rd, "stamp_time", text="Time")
 		col.itemR(rd, "stamp_date", text="Date")
+		col.itemR(rd, "stamp_render_time", text="RenderTime")
 		col.itemR(rd, "stamp_frame", text="Frame")
 		col.itemR(rd, "stamp_scene", text="Scene")
 		col.itemR(rd, "stamp_camera", text="Camera")

@@ -1280,14 +1280,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, "THREADS_AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
 		{R_FIXED_THREADS, "THREADS_FIXED", 0, "Fixed", "Manually determine the number of threads"},
 		{0, NULL, 0, NULL, NULL}};
-	
-	static EnumPropertyItem stamp_font_size_items[] = {
-		{1, "STAMP_FONT_TINY", 0, "Tiny", ""},
-		{2, "STAMP_FONT_SMALL", 0, "Small", ""},
-		{3, "STAMP_FONT_MEDIUM", 0, "Medium", ""},
-		{0, "STAMP_FONT_LARGE", 0, "Large", ""},
-		{4, "STAMP_FONT_EXTRALARGE", 0, "Extra Large", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem image_type_items[] = {
 		{0, "", 0, "Image", NULL},
@@ -2005,23 +1997,28 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_SEQSTRIP);
 	RNA_def_property_ui_text(prop, "Stamp Sequence Strip", "Include the name of the foreground sequence strip in image metadata");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "stamp_render_time", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_RENDERTIME);
+	RNA_def_property_ui_text(prop, "Stamp Render Time", "Include the render time in the stamp image");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "stamp_note_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "stamp_udata");
 	RNA_def_property_ui_text(prop, "Stamp Note Text", "Custom text to appear in the stamp note");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
 	prop= RNA_def_property(srna, "render_stamp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_DRAW);
 	RNA_def_property_ui_text(prop, "Render Stamp", "Render the stamp info text in the rendered image");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "stamp_font_size", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "stamp_font_id");
-	RNA_def_property_enum_items(prop, stamp_font_size_items);
-	RNA_def_property_ui_text(prop, "Stamp Font Size", "Size of the font used when rendering stamp text");
+	prop= RNA_def_property(srna, "stamp_font_size", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "stamp_font_id");
+	RNA_def_property_range(prop, 8, 64);
+	RNA_def_property_ui_text(prop, "Font Size", "Size of the font used when rendering stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
 	prop= RNA_def_property(srna, "stamp_foreground", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "fg_stamp");
 	RNA_def_property_array(prop, 4);
