@@ -1609,9 +1609,9 @@ static void rna_def_texture(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{TEX_PLUGIN, "PLUGIN", ICON_CONSTRAINT, "Plugin", ""},
-		{TEX_IMAGE, "IMAGE", ICON_RENDER_RESULT, "Image or Movie", ""},
-		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_RENDER_RESULT, "Environment Map", ""},
+		{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
+		{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
+		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
 		{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
 		{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
 		{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},

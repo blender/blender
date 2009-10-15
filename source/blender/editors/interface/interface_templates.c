@@ -2266,11 +2266,11 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
 	if(WM_jobs_test(wm, scene))
-		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_REC, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
+		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_CANCEL, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
 	if(WM_jobs_test(wm, screen))
-		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_REC, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
 	if(screen->animtimer)
-		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 }
 
 

@@ -48,19 +48,19 @@ class INFO_MT_file(bpy.types.Menu):
 		layout = self.layout
 
 		layout.operator_context = "EXEC_AREA"
-		layout.itemO("wm.read_homefile", text="New")
+		layout.itemO("wm.read_homefile", text="New", icon='ICON_NEW')
 		layout.operator_context = "INVOKE_AREA"
-		layout.itemO("wm.open_mainfile", text="Open...")
+		layout.itemO("wm.open_mainfile", text="Open...", icon='ICON_FILE_FOLDER')
 		layout.item_menu_enumO("wm.open_recentfile", "file", text="Open Recent")
 		layout.itemO("wm.recover_last_session")
 
 		layout.itemS()
 
 		layout.operator_context = "EXEC_AREA"
-		layout.itemO("wm.save_mainfile", text="Save")
+		layout.itemO("wm.save_mainfile", text="Save", icon='ICON_FILE_TICK')
 		layout.operator_context = "INVOKE_AREA"
 		layout.itemO("wm.save_as_mainfile", text="Save As...")
-		layout.itemO("screen.userpref_show", text="User Preferences...")
+		layout.itemO("screen.userpref_show", text="User Preferences...", icon='ICON_PREFERENCES')
 
 		layout.itemS()
 		layout.operator_context = "INVOKE_AREA"
@@ -78,7 +78,7 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.itemS()
 
 		layout.operator_context = "EXEC_AREA"
-		layout.itemO("wm.exit_blender", text="Quit")
+		layout.itemO("wm.exit_blender", text="Quit", icon='ICON_QUIT')
 
 
 # test for expanding menus
@@ -212,7 +212,7 @@ class INFO_MT_help(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.itemO("help.manual", icon='ICON_URL')
+		layout.itemO("help.manual", icon='ICON_HELP')
 		layout.itemO("help.release_logs", icon='ICON_URL')
 
 		layout.itemS()

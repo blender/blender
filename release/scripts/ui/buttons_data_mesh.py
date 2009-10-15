@@ -82,9 +82,9 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 		col.itemO("object.vertex_group_add", icon='ICON_ZOOMIN', text="")
 		col.itemO("object.vertex_group_remove", icon='ICON_ZOOMOUT', text="")
 
-		col.itemO("object.vertex_group_copy", icon='ICON_COPYDOWN', text="")
+		col.itemO("object.vertex_group_copy", icon='ICON_COPY_ID', text="")
 		if ob.data.users > 1:
-			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_COPYDOWN', text="")
+			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_LINK_AREA', text="")
 
 		group = ob.active_vertex_group
 		if group:

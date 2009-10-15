@@ -59,7 +59,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 			col = row.column(align=True)
 			col.itemO("object.material_slot_add", icon='ICON_ZOOMIN', text="")
 			col.itemO("object.material_slot_remove", icon='ICON_ZOOMOUT', text="")
-			col.itemO("object.material_slot_copy", icon='ICON_COPYDOWN', text="")
+			col.itemO("object.material_slot_copy", icon='ICON_COPY_ID', text="")
 
 			if ob.mode == 'EDIT':
 				row = layout.row(align=True)
