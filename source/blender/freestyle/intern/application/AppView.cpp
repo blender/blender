@@ -19,6 +19,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+extern "C" {
+#include "BLI_jitter.h"
+}
+
 #include <iostream>
 #include "../stroke/Canvas.h"
 #include "AppView.h"
@@ -35,7 +39,6 @@
 
 extern "C" {
 #include "BLI_blenlib.h"
-#include "BLI_jitter.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #if 1 // FRS_antialiasing
