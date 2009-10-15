@@ -277,6 +277,7 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 
 static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 {
+	static float lastofs[3] = {0,0,0};
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d;
 	ViewOpsData *vod= MEM_callocN(sizeof(ViewOpsData), "viewops data");
@@ -291,6 +292,15 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 	vod->origx= vod->oldx= event->x;
 	vod->origy= vod->oldy= event->y;
 	vod->origkey= event->type; /* the key that triggered the operator.  */
+	
+	if (U.uiflag & USER_ORBIT_SELECTION)
+	{
+		VECCOPY(vod->ofs, rv3d->ofs);
+		/* If there's no selection, lastofs is unmodified and last value since static */
+		calculateTransformCenter(C, event, V3D_CENTROID, lastofs);
+		VECCOPY(vod->obofs, lastofs);
+		VecMulf(vod->obofs, -1.0f);
+	}
 
 	/* lookup, we dont pass on v3d to prevent confusement */
 	vod->grid= v3d->grid;
