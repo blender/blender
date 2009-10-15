@@ -932,8 +932,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor sha
 	return GHOST_kSuccess;
 }
 
-#if 0
-/** Reverse the bits in a GHOST_TUns8 */
+/** Reverse the bits in a GHOST_TUns8
 static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 {
 	ch= ((ch>>1)&0x55) | ((ch<<1)&0xAA);
@@ -941,7 +940,7 @@ static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 	ch= ((ch>>4)&0x0F) | ((ch<<4)&0xF0);
 	return ch;
 }
-#endif
+*/
 
 
 /** Reverse the bits in a GHOST_TUns16 */
@@ -957,43 +956,68 @@ static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask,
 					int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color)
 {
-	int y;
+	int y,nbUns16;
 	NSPoint hotSpotPoint;
+	NSBitmapImageRep *cursorImageRep;
 	NSImage *cursorImage;
+	NSSize imSize;
+	GHOST_TUns16 *cursorBitmap;
+	
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	if (m_customCursor) {
 		[m_customCursor release];
 		m_customCursor = nil;
 	}
-	/*TODO: implement this (but unused inproject at present)
-	cursorImage = [[NSImage alloc] initWithData:bitmap];
 	
-	for (y=0; y<16; y++) {
+
+	cursorImageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil
+														  	 pixelsWide:sizex
+															 pixelsHigh:sizey
+														  bitsPerSample:1 
+														samplesPerPixel:2
+															   hasAlpha:YES
+															   isPlanar:YES
+														 colorSpaceName:NSDeviceBlackColorSpace
+															bytesPerRow:(sizex/8 + (sizex%8 >0 ?1:0))
+														   bitsPerPixel:1];
+	
+	
+	cursorBitmap = (GHOST_TUns16*)[cursorImageRep bitmapData];
+	nbUns16 = [cursorImageRep bytesPerPlane]/2;
+	
+	for (y=0; y<nbUns16; y++) {
 #if !defined(__LITTLE_ENDIAN__)
-		m_customCursor->data[y] = uns16ReverseBits((bitmap[2*y]<<0) | (bitmap[2*y+1]<<8));
-		m_customCursor->mask[y] = uns16ReverseBits((mask[2*y]<<0) | (mask[2*y+1]<<8));
+		cursorBitmap[y] = uns16ReverseBits((bitmap[2*y]<<0) | (bitmap[2*y+1]<<8));
+		cursorBitmap[nbUns16+y] = uns16ReverseBits((mask[2*y]<<0) | (mask[2*y+1]<<8));
 #else
-		m_customCursor->data[y] = uns16ReverseBits((bitmap[2*y+1]<<0) | (bitmap[2*y]<<8));
-		m_customCursor->mask[y] = uns16ReverseBits((mask[2*y+1]<<0) | (mask[2*y]<<8));
+		cursorBitmap[y] = uns16ReverseBits((bitmap[2*y+1]<<0) | (bitmap[2*y]<<8));
+		cursorBitmap[nbUns16+y] = uns16ReverseBits((mask[2*y+1]<<0) | (mask[2*y]<<8));
 #endif
-			
+		
 	}
 	
+	
+	imSize.width = sizex;
+	imSize.height= sizey;
+	cursorImage = [[NSImage alloc] initWithSize:imSize];
+	[cursorImage addRepresentation:cursorImageRep];
 	
 	hotSpotPoint.x = hotX;
 	hotSpotPoint.y = hotY;
 	
+	//foreground and background color parameter is not handled for now (10.6)
 	m_customCursor = [[NSCursor alloc] initWithImage:cursorImage
-								 foregroundColorHint:<#(NSColor *)fg#>
-								 backgroundColorHint:<#(NSColor *)bg#>
 											 hotSpot:hotSpotPoint];
 	
+	[cursorImageRep release];
 	[cursorImage release];
 	
 	if ([m_window isVisible]) {
 		loadCursor(getCursorVisibility(), GHOST_kStandardCursorCustom);
 	}
-	*/
+	[pool drain];
 	return GHOST_kSuccess;
 }
 
@@ -1002,36 +1026,3 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 bitmap[
 {
 	return setWindowCustomCursorShape((GHOST_TUns8*)bitmap, (GHOST_TUns8*) mask, 16, 16, hotX, hotY, 0, 1);
 }
-
-#pragma mark Old carbon stuff to remove
-
-#if 0
-void GHOST_WindowCocoa::setMac_windowState(short value)
-{
-	mac_windowState = value;
-}
-
-short GHOST_WindowCocoa::getMac_windowState()
-{
-	return mac_windowState;
-}
-
-void GHOST_WindowCocoa::gen2mac(const STR_String& in, Str255 out) const
-{
-	STR_String tempStr  = in;
-	int num = tempStr.Length();
-	if (num > 255) num = 255;
-	::memcpy(out+1, tempStr.Ptr(), num);
-	out[0] = num;
-}
-
-
-void GHOST_WindowCocoa::mac2gen(const Str255 in, STR_String& out) const
-{
-	char tmp[256];
-	::memcpy(tmp, in+1, in[0]);
-	tmp[in[0]] = '\0';
-	out = tmp;
-}
-
-#endif
