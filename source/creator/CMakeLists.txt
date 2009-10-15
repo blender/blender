@@ -43,6 +43,7 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
 	../blender/render/extern/include
 	../blender/makesdna
 	../blender/gpu
+	../blender/freestyle
 	../blender/windowmanager
 	../kernel/gen_messaging
 	../kernel/gen_system

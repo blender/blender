@@ -82,6 +82,8 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
+#include "FRS_freestyle.h"
+
 /* for passing information between creator and gameengine */
 #include "SYS_System.h"
 
