@@ -33,10 +33,6 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 	__label__ = "Network Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
 
-	def draw_header(self, context):
-		layout = self.layout
-		scene = context.scene
-
 	def draw(self, context):
 		layout = self.layout
 
@@ -48,7 +44,6 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		
 		col.itemR(scene.network_render, "mode")
 		col.itemR(scene.network_render, "path")
 		col.itemR(scene.network_render, "server_address")
@@ -79,13 +74,13 @@ class RENDER_PT_network_job(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		
-		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION', text="Animation on network")
-		col.itemO("render.netclientsend", icon="ICON_FILE_BLEND", text="Send job")
-		col.itemO("render.netclientweb", icon="ICON_QUESTION", text="Open Master Monitor")
+		col.itemO("render.netclientanim", icon='ICON_RENDER_ANIMATION')
+		col.itemO("render.netclientsend", icon="ICON_FILE_BLEND")
+		col.itemO("render.netclientweb", icon="ICON_QUESTION")
 		col.itemR(scene.network_render, "job_name")
-		col.itemR(scene.network_render, "priority")
-		col.itemR(scene.network_render, "chunks")
+		row = col.row()
+		row.itemR(scene.network_render, "priority")
+		row.itemR(scene.network_render, "chunks")
 
 @rnaType
 class RENDER_PT_network_slaves(RenderButtonsPanel):
@@ -105,11 +100,9 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
 		row = layout.row()
 		row.template_list(netsettings, "slaves", netsettings, "active_slave_index", rows=2)
 
-		col = row.column()
-
-		subcol = col.column(align=True)
-		subcol.itemO("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
-		subcol.itemO("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
+		sub = row.column(align=True)
+		sub.itemO("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
+		sub.itemO("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
 		
 		if len(bpy.data.netrender_slaves) == 0 and len(netsettings.slaves) > 0:
 			while(len(netsettings.slaves) > 0):
@@ -143,10 +136,8 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
 		row = layout.row()
 		row.template_list(netsettings, "slaves_blacklist", netsettings, "active_blacklisted_slave_index", rows=2)
 
-		col = row.column()
-
-		subcol = col.column(align=True)
-		subcol.itemO("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
+		sub = row.column(align=True)
+		sub.itemO("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
 
 		if len(bpy.data.netrender_blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
 			while(len(netsettings.slaves_blacklist) > 0):
@@ -180,13 +171,11 @@ class RENDER_PT_network_jobs(RenderButtonsPanel):
 		row = layout.row()
 		row.template_list(netsettings, "jobs", netsettings, "active_job_index", rows=2)
 
-		col = row.column()
-
-		subcol = col.column(align=True)
-		subcol.itemO("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
-		subcol.itemO("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
-		subcol.itemO("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
-		subcol.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
+		sub = row.column(align=True)
+		sub.itemO("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
+		sub.itemO("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
+		sub.itemO("render.netclientcancelall", icon="ICON_PANEL_CLOSE", text="")
+		sub.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
 
 		if len(bpy.data.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
 			while(len(netsettings.jobs) > 0):
@@ -303,8 +292,8 @@ NetRenderSettings.EnumProperty(attr="mode",
 										("RENDER_MASTER", "Master", "Act as render master"),
 										("RENDER_SLAVE", "Slave", "Act as render slave"),
 									),
-						name="network mode",
-						description="mode of operation of this instance",
+						name="Network mode",
+						description="Mode of operation of this instance",
 						default="RENDER_CLIENT")
 
 NetRenderSettings.CollectionProperty(attr="slaves", type=NetRenderSlave, name="Slaves", description="")
