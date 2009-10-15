@@ -395,6 +395,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 		layout = self.layout
 
 		layout.itemM("VIEW3D_MT_object_clear")
+		layout.itemM("VIEW3D_MT_object_apply")
 		layout.itemM("VIEW3D_MT_snap")
 		
 		layout.itemS()
@@ -437,6 +438,18 @@ class VIEW3D_MT_object_clear(bpy.types.Menu):
 		layout.itemO("object.scale_clear", text="Scale")
 		layout.itemO("object.origin_clear", text="Origin")
 		
+class VIEW3D_MT_object_apply(bpy.types.Menu):
+	__label__ = "Apply"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("object.location_apply", text="Location")
+		layout.itemO("object.rotation_apply", text="Rotation")
+		layout.itemO("object.scale_apply", text="Scale")
+		layout.itemS()
+		layout.itemO("object.visual_transform_apply", text="Visual Transform")
+
 class VIEW3D_MT_object_parent(bpy.types.Menu):
 	__label__ = "Parent"
 
@@ -1396,6 +1409,7 @@ bpy.types.register(VIEW3D_MT_select_edit_armature)
 bpy.types.register(VIEW3D_MT_select_face) # XXX todo
 
 bpy.types.register(VIEW3D_MT_object) # Object Menu
+bpy.types.register(VIEW3D_MT_object_apply)
 bpy.types.register(VIEW3D_MT_object_clear)
 bpy.types.register(VIEW3D_MT_object_parent)
 bpy.types.register(VIEW3D_MT_object_track)
