@@ -176,6 +176,11 @@ PackedFile *newPackedFile(ReportList *reports, char *filename)
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	void *data;
 	
+	/* render result has no filename and can be ignored
+	 * any other files with no name can be ignored too */
+	if(filename[0]=='\0')
+		return NULL;
+
 	//XXX waitcursor(1);
 	
 	// convert relative filenames to absolute filenames
@@ -188,7 +193,7 @@ PackedFile *newPackedFile(ReportList *reports, char *filename)
 
 	file= open(name, O_BINARY|O_RDONLY);
 	if (file <= 0) {
-		BKE_reportf(reports, RPT_ERROR, "Can't open file: %s", name);
+		BKE_reportf(reports, RPT_ERROR, "Can't open file: \"%s\"", name);
 	} else {
 		filelen = BLI_filesize(file);
 
