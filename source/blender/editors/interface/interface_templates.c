@@ -405,9 +405,10 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 }
 
 /************************ ID Chooser Template ***************************/
-/* This is for selecting the type of ID-block to use, and then from the relevant type choosing the block to use */
 
-/* - propname: property identifier for property that ID-pointer gets stored to
+/* This is for selecting the type of ID-block to use, and then from the relevant type choosing the block to use 
+ *
+ * - propname: property identifier for property that ID-pointer gets stored to
  * - proptypename: property identifier for property used to determine the type of ID-pointer that can be used
  */
 void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *proptypename, char *text)
@@ -438,10 +439,40 @@ void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 		uiItemL(row, "ID-Block:", 0);
 	
 	/* ID-Type Selector - just have a menu of icons */
+	// FIXME: the icon-only setting doesn't work when we supply a blank name
 	uiItemFullR(row, "", 0, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY);
 	
 	/* ID-Block Selector - just use pointer widget... */
 	uiItemFullR(row, "", 0, ptr, propID, 0, 0, 0);
+}
+
+/********************* RNA Path Builder Template ********************/
+
+/* This is creating/editing RNA-Paths 
+ *
+ * - ptr: struct which holds the path property
+ * - propname: property identifier for property that path gets stored to
+ * - root_ptr: struct that path gets built from
+ */
+void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *root_ptr, char *text)
+{
+	PropertyRNA *propPath;
+	uiLayout *row;
+	
+	/* check that properties are valid */
+	propPath= RNA_struct_find_property(ptr, propname);
+	if (!propPath || RNA_property_type(propPath) != PROP_STRING) {
+		printf("uiTemplatePathBuilder: path property not found: %s\n", propname);
+		return;
+	}
+	
+	/* Start drawing UI Elements using standard defines */
+	row= uiLayoutRow(layout, 1);
+	
+	/* Path (existing string) Widget */
+	uiItemR(row, text, ICON_RNA, ptr, propname, 0);
+	
+	// TODO: attach something to this to make allow searching of nested properties to 'build' the path
 }
 
 /************************ Modifier Template *************************/

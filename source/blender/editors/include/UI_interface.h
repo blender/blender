@@ -622,6 +622,8 @@ void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, 
 	char *newop, char *openop, char *unlinkop);
 void uiTemplateAnyID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
 	char *proptypename, char *text);
+void uiTemplatePathBuilder(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
+	struct PointerRNA *root_ptr, char *text);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);

@@ -97,7 +97,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 			col = layout.column()
 			col.itemL(text="Target:")
 			col.template_any_ID(ksp, "id", "id_type")
-			col.itemR(ksp, "rna_path")
+			col.template_path_builder(ksp, "rna_path", ksp.id)
 			
 			
 			row = layout.row()

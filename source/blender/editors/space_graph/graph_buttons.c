@@ -339,11 +339,15 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		/* Target Property */
 		// TODO: make this less technical...
 		if (dtar->id) {
+			PointerRNA root_ptr;
+			
+			/* get pointer for resolving the property selected */
+			RNA_id_pointer_create(dtar->id, &root_ptr);
+			
 			col= uiLayoutColumn(box, 1);
 			block= uiLayoutGetBlock(col);
 				/* rna path */
-				// TODO: this needs path constructor widget
-				uiItemR(col, "Path", 0, &dtar_ptr, "rna_path", 0);
+				uiTemplatePathBuilder(col, (bContext *)C, &dtar_ptr, "rna_path", &root_ptr, "Path");
 				
 				/* array index */
 				// TODO: this needs selector which limits it to ok values

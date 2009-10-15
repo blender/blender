@@ -266,6 +266,16 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
 	
+	func= RNA_def_function(srna, "template_path_builder", "uiTemplatePathBuilder");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "root", "ID", "", "ID-block from which path is evaluated from.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	parm= RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
+	
 	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
 	parm= RNA_def_pointer(func, "data", "Modifier", "", "Modifier data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
