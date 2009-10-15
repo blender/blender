@@ -1258,7 +1258,7 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 static void copy_texture_space(Object *to, Object *ob)
 {
 	float *poin1= NULL, *poin2= NULL;
-	int texflag= 0;
+	short texflag= 0;
 	
 	if(ob->type==OB_MESH) {
 		texflag= ((Mesh *)ob->data)->texflag;

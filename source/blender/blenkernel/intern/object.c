@@ -1102,7 +1102,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 			pa->hair = MEM_dupallocN(pa->hair);
 	}
 
-	if(psysn->particles->keys || psysn->particles->boid) {
+	if(psysn->particles && (psysn->particles->keys || psysn->particles->boid)) {
 		ParticleKey *key = psysn->particles->keys;
 		BoidParticle *boid = psysn->particles->boid;
 
@@ -2475,7 +2475,7 @@ float give_timeoffset(Object *ob) {
 	}
 }
 
-int give_obdata_texspace(Object *ob, int **texflag, float **loc, float **size, float **rot) {
+int give_obdata_texspace(Object *ob, short **texflag, float **loc, float **size, float **rot) {
 	
 	if (ob->data==NULL)
 		return 0;

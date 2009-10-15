@@ -292,7 +292,7 @@ static void createTransTexspace(bContext *C, TransInfo *t)
 	TransData *td;
 	Object *ob;
 	ID *id;
-	int *texflag;
+	short *texflag;
 
 	ob = OBACT;
 
