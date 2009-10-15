@@ -80,6 +80,6 @@ env.BlenderLib (libname="bf_freestyle",
                 includes=Split(incs),
                 defines=defs,
 				libtype=['core'],
-                priority = [25]
+                priority = [370] # bf_python is 361
  )
 
