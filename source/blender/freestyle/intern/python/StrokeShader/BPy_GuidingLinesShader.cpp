@@ -72,4 +72,3 @@ int GuidingLinesShader___init__( BPy_GuidingLinesShader* self, PyObject *args)
 #ifdef __cplusplus
 }
 #endif
-	

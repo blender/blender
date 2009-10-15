@@ -177,7 +177,7 @@ PyObject * SShape_bbox( BPy_SShape *self ) {
 
 
 PyObject * SShape_getVertexList( BPy_SShape *self ) {
-	PyObject *py_vertices = PyList_New(NULL);
+	PyObject *py_vertices = PyList_New(0);
 
 	vector< SVertex * > vertices = self->ss->getVertexList();
 	vector< SVertex * >::iterator it;
@@ -191,7 +191,7 @@ PyObject * SShape_getVertexList( BPy_SShape *self ) {
 
 
 PyObject * SShape_getEdgeList( BPy_SShape *self ) {
-	PyObject *py_edges = PyList_New(NULL);
+	PyObject *py_edges = PyList_New(0);
 
 	vector< FEdge * > edges = self->ss->getEdgeList();
 	vector< FEdge * >::iterator it;

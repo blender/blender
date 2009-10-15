@@ -133,7 +133,7 @@ PyObject * SVertex_normals( BPy_SVertex *self ) {
 	PyObject *py_normals; 
 	set< Vec3r > normals;
 	
-	py_normals  = PyList_New(NULL);
+	py_normals  = PyList_New(0);
 	normals = self->sv->normals();
 		
 	for( set< Vec3r >::iterator set_iterator = normals.begin(); set_iterator != normals.end(); set_iterator++ ) {

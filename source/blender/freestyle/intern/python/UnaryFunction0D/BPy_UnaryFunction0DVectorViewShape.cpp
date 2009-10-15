@@ -139,7 +139,7 @@ PyObject * UnaryFunction0DVectorViewShape___call__( BPy_UnaryFunction0DVectorVie
 		}
 		return NULL;
 	}
-	PyObject *list = PyList_New(NULL);
+	PyObject *list = PyList_New(0);
 	
 	for( unsigned int i = 0; i < self->uf0D_vectorviewshape->result.size(); i++)
 		PyList_Append(list, BPy_ViewShape_from_ViewShape(*( self->uf0D_vectorviewshape->result[i] )) );

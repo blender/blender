@@ -142,7 +142,7 @@ PyObject * ViewShape_sshape( BPy_ViewShape *self ) {
 
 
 PyObject * ViewShape_vertices( BPy_ViewShape *self ) {
-	PyObject *py_vertices = PyList_New(NULL);
+	PyObject *py_vertices = PyList_New(0);
 
 	vector< ViewVertex * > vertices = self->vs->vertices();
 	vector< ViewVertex * >::iterator it;
@@ -156,7 +156,7 @@ PyObject * ViewShape_vertices( BPy_ViewShape *self ) {
 
 
 PyObject * ViewShape_edges( BPy_ViewShape *self ) {
-	PyObject *py_edges = PyList_New(NULL);
+	PyObject *py_edges = PyList_New(0);
 
 	vector< ViewEdge * > edges = self->vs->edges();
 	vector< ViewEdge * >::iterator it;
