@@ -177,7 +177,7 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 					BLI_add_slash(params->dir);
 				}
 
-				file_change_dir(sfile);
+				file_change_dir(sfile, 0);
 				retval = FILE_SELECT_DIR;
 			}
 		}
@@ -343,7 +343,7 @@ static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_get(op->ptr, "dir", entry);
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
 		BLI_cleanup_dir(G.sce, params->dir);
-		file_change_dir(sfile);				
+		file_change_dir(sfile, 1);
 
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}
@@ -645,7 +645,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 		if (BLI_has_parent(sfile->params->dir)) {
 			BLI_parent_dir(sfile->params->dir);
 			BLI_cleanup_dir(G.sce, sfile->params->dir);
-			file_change_dir(sfile);
+			file_change_dir(sfile, 0);
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 		}
 	}		
@@ -672,7 +672,7 @@ int file_refresh_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
-	file_change_dir(sfile);
+	file_change_dir(sfile, 1);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
@@ -704,7 +704,7 @@ int file_previous_exec(bContext *C, wmOperator *unused)
 		folderlist_popdir(sfile->folders_prev, sfile->params->dir);
 		folderlist_pushdir(sfile->folders_next, sfile->params->dir);
 
-		file_change_dir(sfile);
+		file_change_dir(sfile, 1);
 	}
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
@@ -736,7 +736,7 @@ int file_next_exec(bContext *C, wmOperator *unused)
 		// update folder_prev so we can check for it in folderlist_clear_next()
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		file_change_dir(sfile);
+		file_change_dir(sfile, 1);
 	}		
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
@@ -795,6 +795,8 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if(sfile->params) {
+		char prev_dir[sizeof(sfile->params->dir)];
+		BLI_strncpy(prev_dir, filelist_dir(sfile->files), sizeof(prev_dir));
 
 		if ( sfile->params->dir[0] == '~' ) {
 			if (sfile->params->dir[1] == '\0') {
@@ -817,7 +819,8 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 #endif
 		BLI_cleanup_dir(G.sce, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);
-		file_change_dir(sfile);
+		file_change_dir(sfile, 1);
+
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}		
 	

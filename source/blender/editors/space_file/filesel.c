@@ -384,9 +384,15 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 	return sfile->layout;
 }
 
-void file_change_dir(struct SpaceFile *sfile)
+void file_change_dir(struct SpaceFile *sfile, int checkdir)
 {
-	if (sfile->params) { 
+	if (sfile->params) {
+
+		if(checkdir && S_ISDIR(BLI_exists(sfile->params->dir)) == 0) {
+			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
+			/* could return but just refresh the current dir */
+		}
+
 		filelist_setdir(sfile->files, sfile->params->dir);
 
 		if(folderlist_clear_next(sfile))

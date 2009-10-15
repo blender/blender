@@ -172,8 +172,8 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
 		layout.itemO("object.select_random", text="Random")
 		layout.itemO("object.select_mirror", text="Mirror")
 		layout.itemO("object.select_by_layer", text="Select All by Layer")
-		layout.item_enumO("object.select_by_type", "type", "", text="Select All by Type...")
-		layout.itemO("object.select_grouped", text="Select Grouped...")
+		layout.item_menu_enumO("object.select_by_type", "type", "", text="Select All by Type...")
+		layout.item_menu_enumO("object.select_grouped", "type", text="Select Grouped...")
 		layout.itemO("object.select_pattern", text="Select Pattern...")
 
 class VIEW3D_MT_select_pose(bpy.types.Menu):

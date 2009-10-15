@@ -180,7 +180,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 
 	if(sfileo->params) {
 		sfilen->params= MEM_dupallocN(sfileo->params);
-		file_change_dir(sfilen);
+		file_change_dir(sfilen, 0);
 	}
 	if (sfileo->layout) {
 		sfilen->layout= MEM_dupallocN(sfileo->layout);
@@ -197,7 +197,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		sfile->folders_prev = folderlist_new();
 	if (!sfile->files) {
 		sfile->files = filelist_new(params->type);
-		file_change_dir(sfile);
+		file_change_dir(sfile, 0);
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
 	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
