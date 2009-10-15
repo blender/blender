@@ -2378,6 +2378,15 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
+			/* alt-click on sides to get "arrows" like in NUM buttons, and match wheel usage above */
+			else if(event->type == LEFTMOUSE && event->alt) {
+				int halfpos = (but->x1 + but->x2) / 2;
+				click = 2;
+				if (mx < halfpos)
+					mx = but->x1;
+				else
+					mx = but->x2;
+			}
 			else if(event->type == LEFTMOUSE) {
 				data->dragstartx= mx;
 				data->draglastx= mx;
@@ -2430,6 +2439,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			tempf= data->value;
 			temp= (int)data->value;
 			
+			/* XXX useles "if", same result for f, uh??? */
 			if(but->type==SLI) f= (float)(mx-but->x1)/(but->x2-but->x1);
 			else f= (float)(mx- but->x1)/(but->x2-but->x1);
 			
