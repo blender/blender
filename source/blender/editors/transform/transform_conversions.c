@@ -2214,7 +2214,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		for (eve=em->verts.first; eve; eve=eve->next) {
 			if(eve->h==0 && eve->f1 && eve->co[0]!=0.0f) {
 				if(eve->co[0]<0.0f)
+				{
+					t->mirror = -1;
 					mirror = -1;
+				}
 				break;
 			}
 		}
@@ -2280,6 +2283,19 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			}
 		}
 	}
+	
+	if (mirror != 0)
+	{
+		tob = t->data;
+		for( a = 0; a < t->total; a++, tob++ )
+		{
+			if (ABS(tob->loc[0]) <= 0.00001f)
+			{
+				tob->flag |= TD_MIRROR_EDGE;
+			}
+		}
+	}
+	
 	if (propmode) {
 		MEM_freeN(vectors);
 		MEM_freeN(nears);

@@ -259,10 +259,15 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 			continue;
 		
 		eve = td->extra;
-		if(eve) {
+		if (eve) {
 			eve->co[0]= -td->loc[0];
 			eve->co[1]= td->loc[1];
 			eve->co[2]= td->loc[2];
+		}
+		
+		if (td->flag & TD_MIRROR_EDGE)
+		{
+			td->loc[0] = 0;
 		}
 	}
 }
@@ -969,6 +974,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		if (RNA_boolean_get(op->ptr, "mirror"))
 		{
 			t->flag |= T_MIRROR;
+			t->mirror = 1;
 		}
 	}
 	// Need stuff to take it from edit mesh or whatnot here
@@ -977,6 +983,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		if (t->obedit && t->obedit->type == OB_MESH && (((Mesh *)t->obedit->data)->editflag & ME_EDIT_MIRROR_X))
 		{
 			t->flag |= T_MIRROR;
+			t->mirror = 1;
 		}
 	}
 	
@@ -1372,6 +1379,12 @@ void calculatePropRatio(TransInfo *t)
 		for(i = 0 ; i < t->total; i++, td++) {
 			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
+			}
+			else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f)
+			{
+				td->flag |= TD_SKIP;
+				td->factor = 0.0f;
+				restoreElement(td);
 			}
 			else if	((connected &&
 						(td->flag & TD_NOTCONNECTED || td->dist > t->prop_size))
