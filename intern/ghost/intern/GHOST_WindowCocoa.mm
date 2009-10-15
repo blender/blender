@@ -40,13 +40,13 @@
 
 
 // Pixel Format Attributes for the windowed NSOpenGLContext
-static const NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
+static NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
 {
 	NSOpenGLPFADoubleBuffer,
 	NSOpenGLPFAAccelerated,
-	NSOpenGLPFAAllowOfflineRenderers,   // NOTE: Needed to connect to secondary GPUs
-	NSOpenGLPFADepthSize, 32,
-	0
+	//NSOpenGLPFAAllowOfflineRenderers,   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
+	NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute) 32,
+	(NSOpenGLPixelFormatAttribute) 0
 };
 
 #pragma mark Cocoa window delegate object
@@ -187,7 +187,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		return;
 	}
 	
-	[m_window setTitle:[NSString stringWithUTF8String:title]];
+	setTitle(title);
 	
 			
 	//Creates the OpenGL View inside the window
@@ -271,7 +271,38 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
 
 	NSString *windowTitle = [[NSString alloc] initWithUTF8String:title];
 	
-	[m_window setTitle:windowTitle];
+	//Set associated file if applicable
+	if ([windowTitle hasPrefix:@"Blender"])
+	{
+		NSRange fileStrRange;
+		NSString *associatedFileName;
+		int len;
+		
+		fileStrRange.location = [windowTitle rangeOfString:@"["].location+1;
+		len = [windowTitle rangeOfString:@"]"].location - fileStrRange.location;
+	
+		if (len >0)
+		{
+			fileStrRange.length = len;
+			associatedFileName = [windowTitle substringWithRange:fileStrRange];
+			@try {
+				[m_window setRepresentedFilename:associatedFileName];
+			}
+			@catch (NSException * e) {
+				printf("\nInvalid file path given in window title");
+			}
+			[m_window setTitle:[associatedFileName lastPathComponent]];
+		}
+		else {
+			[m_window setTitle:windowTitle];
+			[m_window setRepresentedFilename:@""];
+		}
+
+	} else {
+		[m_window setTitle:windowTitle];
+		[m_window setRepresentedFilename:@""];
+	}
+
 	
 	[windowTitle release];
 	[pool drain];
@@ -501,7 +532,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 										  defer:YES];
 				//Copy current window parameters
 				[tmpWindow setTitle:[m_window title]];
-				[tmpWindow setRepresentedURL:[m_window representedURL]];
+				[tmpWindow setRepresentedFilename:[m_window representedFilename]];
 				[tmpWindow setReleasedWhenClosed:NO];
 				[tmpWindow setAcceptsMouseMovedEvents:YES];
 				[tmpWindow setDelegate:[m_window delegate]];
@@ -557,7 +588,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 														defer:YES];
 				//Copy current window parameters
 				[tmpWindow setTitle:[m_window title]];
-				[tmpWindow setRepresentedURL:[m_window representedURL]];
+				[tmpWindow setRepresentedFilename:[m_window representedFilename]];
 				[tmpWindow setReleasedWhenClosed:NO];
 				[tmpWindow setAcceptsMouseMovedEvents:YES];
 				[tmpWindow setDelegate:[m_window delegate]];

@@ -635,6 +635,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 				
 				[mainMenubar addItem:menuItem];
 				[menuItem release];
+				[NSApp performSelector:@selector(setAppleMenu:) withObject:appMenu]; //Needed for 10.5
 				[appMenu release];
 				
 				//Create the window menu
@@ -815,7 +816,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-	NSUInteger modifiers = [[NSApp currentEvent] modifierFlags];
+	unsigned int modifiers = [[NSApp currentEvent] modifierFlags];
 	//Direct query to modifierFlags can be used in 10.6
 
     keys.set(GHOST_kModifierKeyCommand, (modifiers & NSCommandKeyMask) ? true : false);
@@ -1175,7 +1176,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
-	NSUInteger modifiers;
+	unsigned int modifiers;
 	NSString *characters;
 	GHOST_TKey keyCode;
 	unsigned char ascii;
