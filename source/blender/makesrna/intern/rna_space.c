@@ -160,7 +160,7 @@ static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
 
 EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	Scene *scene = ((bScreen*)ptr->id.data)->scene;
+	Scene *scene = NULL;
 	ListBase *transform_spaces;
 	TransformOrientation *ts= NULL;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -172,19 +172,26 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_VIEW);
 
+	if (ptr->type == &RNA_Space3DView)
+		scene = ((bScreen*)ptr->id.data)->scene;
+	else
+		scene = CTX_data_scene(C); /* can't use scene from ptr->id.data because that enum is also used by operators */
+
 	if(scene) {
 		transform_spaces = &scene->transform_spaces;
 		ts = transform_spaces->first;
 	}
 
 	if(ts)
+	{
 		RNA_enum_item_add_separator(&item, &totitem);
 
-	for(; ts; ts = ts->next) {
-		tmp.identifier = ts->name;
-		tmp.name= ts->name;
-		tmp.value = i++;
-		RNA_enum_item_add(&item, &totitem, &tmp);
+		for(; ts; ts = ts->next) {
+			tmp.identifier = ts->name;
+			tmp.name= ts->name;
+			tmp.value = i++;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
 	}
 
 	RNA_enum_item_end(&item, &totitem);
