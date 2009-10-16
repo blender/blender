@@ -388,7 +388,7 @@ void file_change_dir(struct SpaceFile *sfile, int checkdir)
 {
 	if (sfile->params) {
 
-		if(checkdir && S_ISDIR(BLI_exists(sfile->params->dir)) == 0) {
+		if(checkdir && BLI_is_dir(sfile->params->dir)==0) {
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
 			/* could return but just refresh the current dir */
 		}
