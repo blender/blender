@@ -132,7 +132,9 @@ static int buttons_context_path_world(ButsContextPath *path)
 		if(world) {
 			RNA_id_pointer_create(&scene->world->id, &path->ptr[path->len]);
 			path->len++;
-
+			return 1;
+		}
+		else {
 			return 1;
 		}
 	}
