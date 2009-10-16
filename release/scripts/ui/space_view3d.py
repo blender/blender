@@ -1229,8 +1229,11 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
+
 		view = context.space_data
 		gs = context.scene.game_data
+		ob = context.object
+		mesh = context.active_object.data
 		
 		col = layout.column()
 		col.itemR(view, "display_floor", text="Grid Floor")
@@ -1240,12 +1243,13 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		col.itemR(view, "outline_selected")
 		col.itemR(view, "all_object_centers")
 		col.itemR(view, "relationship_lines")
+		if ob.type =='MESH':
+			col.itemR(mesh, "all_edges")
 		
 		col = layout.column()
 		col.itemL(text="Shading:")
 		col.itemR(gs, "material_mode", text="")
 		col.itemR(view, "textured_solid")
-
 
 # XXX - the Quad View options don't work yet		
 #		layout.itemS()
@@ -1273,8 +1277,6 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
 		col = layout.column()
 		col.itemL(text="Overlays:")
 		col.itemR(mesh, "draw_edges", text="Edges")
-		col.itemR(mesh, "all_edges")
-		col.itemS()
 		col.itemR(mesh, "draw_faces", text="Faces")
 		col.itemR(mesh, "draw_creases", text="Creases")
 		col.itemR(mesh, "draw_bevel_weights", text="Bevel Weights")

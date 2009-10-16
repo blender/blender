@@ -158,16 +158,16 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
 bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
 
-class SceneButtonsPanel(bpy.types.Panel):
+class RenderButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
-	__context__ = "scene"
+	__context__ = "render"
 
 	def poll(self, context):
 		rd = context.scene.render_data
 		return (rd.engine == 'BLENDER_GAME')
 
-class SCENE_PT_game(SceneButtonsPanel):
+class RENDER_PT_game(RenderButtonsPanel):
 	__label__ = "Game"
 
 	def draw(self, context):
@@ -177,7 +177,7 @@ class SCENE_PT_game(SceneButtonsPanel):
 		row.itemO("view3d.game_start", text="Start")
 		row.itemL()
 
-class SCENE_PT_game_player(SceneButtonsPanel):
+class RENDER_PT_game_player(RenderButtonsPanel):
 	__label__ = "Standalone Player"
 
 	def draw(self, context):
@@ -208,7 +208,7 @@ class SCENE_PT_game_player(SceneButtonsPanel):
 		if gs.framing_type == 'LETTERBOX':
 			col.itemR(gs, "framing_color", text="")
 
-class SCENE_PT_game_stereo(SceneButtonsPanel):
+class RENDER_PT_game_stereo(RenderButtonsPanel):
 	__label__ = "Stereo"
 
 	def draw(self, context):
@@ -257,7 +257,7 @@ class SCENE_PT_game_stereo(SceneButtonsPanel):
 		
 			layout.itemR(gs, "dome_text")
 
-class SCENE_PT_game_shading(SceneButtonsPanel):
+class RENDER_PT_game_shading(RenderButtonsPanel):
 	__label__ = "Shading"
 
 	def draw(self, context):
@@ -279,7 +279,7 @@ class SCENE_PT_game_shading(SceneButtonsPanel):
 			col.itemR(gs, "glsl_nodes", text="Nodes")
 			col.itemR(gs, "glsl_extra_textures", text="Extra Textures")
 
-class SCENE_PT_game_performance(SceneButtonsPanel):
+class RENDER_PT_game_performance(RenderButtonsPanel):
 	__label__ = "Performance"
 
 	def draw(self, context):
@@ -301,7 +301,7 @@ class SCENE_PT_game_performance(SceneButtonsPanel):
 		col.itemR(gs, "all_frames")
 		col.itemR(gs, "display_lists")
 		
-class SCENE_PT_game_sound(SceneButtonsPanel):
+class RENDER_PT_game_sound(RenderButtonsPanel):
 	__label__ = "Sound"
 
 	def draw(self, context):
@@ -313,12 +313,12 @@ class SCENE_PT_game_sound(SceneButtonsPanel):
 		layout.itemR(scene, "speed_of_sound", text="Speed")
 		layout.itemR(scene, "doppler_factor")
 
-bpy.types.register(SCENE_PT_game)
-bpy.types.register(SCENE_PT_game_player)
-bpy.types.register(SCENE_PT_game_stereo)
-bpy.types.register(SCENE_PT_game_shading)
-bpy.types.register(SCENE_PT_game_performance)
-bpy.types.register(SCENE_PT_game_sound)
+bpy.types.register(RENDER_PT_game)
+bpy.types.register(RENDER_PT_game_player)
+bpy.types.register(RENDER_PT_game_stereo)
+bpy.types.register(RENDER_PT_game_shading)
+bpy.types.register(RENDER_PT_game_performance)
+bpy.types.register(RENDER_PT_game_sound)
 
 class WorldButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
