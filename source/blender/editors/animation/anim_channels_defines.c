@@ -1386,7 +1386,7 @@ static int acf_dsskey_setting_flag(int setting, short *neg)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return KEYBLOCK_DS_EXPAND;
+			return KEY_DS_EXPAND;
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
@@ -1737,28 +1737,91 @@ static bAnimChannelType ACF_DSARM=
 
 
 /* ShapeKey Entry  ------------------------------------------- */
-// XXX ... this is currently obsolete...
 
-#if 0
-static void dummy_olddraw_shapekeys ()
+/* name for ShapeKey */
+static void acf_shapekey_name(bAnimListElem *ale, char *name)
 {
-	case ANIMTYPE_SHAPEKEY: /* shapekey channel */
-	{
-		KeyBlock *kb = (KeyBlock *)ale->data;
-		
-		indent = 0;
-		special = -1;
-		
-		offset= (ale->id) ? 21 : 0;
-		
-		if (kb->name[0] == '\0')
-			sprintf(name, "Key %d", ale->index);
-		else
+	KeyBlock *kb= (KeyBlock *)ale->data;
+	
+	/* just copy the name... */
+	if (kb && name) {
+		/* if the KeyBlock had a name, use it, otherwise use the index */
+		if (kb->name[0])
 			strcpy(name, kb->name);
+		else
+			sprintf(name, "Key %d", ale->index);
 	}
-		break;
 }
-#endif
+
+/* check if some setting exists for this channel */
+static short acf_shapekey_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+{
+	switch (setting) {
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted */
+		case ACHANNEL_SETTING_PROTECT: /* protected */
+			return 1;
+			
+		/* nothing else is supported */
+		default:
+			return 0;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_shapekey_setting_flag(int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_MUTE: /* mute */
+			return KEYBLOCK_MUTE;
+		
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return KEYBLOCK_SEL;
+		
+		case ACHANNEL_SETTING_PROTECT: /* locked */
+			return KEYBLOCK_LOCKED;
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_shapekey_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	KeyBlock *kb= (KeyBlock *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted */
+		case ACHANNEL_SETTING_PROTECT: /* protected */
+			GET_ACF_FLAG_PTR(kb->flag)
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* shapekey expander type define */
+static bAnimChannelType ACF_SHAPEKEY= 
+{
+	acf_generic_channel_backdrop,	/* backdrop */
+	acf_generic_indention_0,		/* indent level */
+	acf_generic_basic_offset,		/* offset */
+	
+	acf_shapekey_name,				/* name */
+	NULL,							/* icon */
+	
+	acf_shapekey_setting_valid,		/* has setting */
+	acf_shapekey_setting_flag,		/* flag for setting */
+	acf_shapekey_setting_ptr		/* pointer for setting */
+};
 
 /* Grease Pencil entries  ------------------------------------------- */
 // XXX ... this is currently not restored yet
@@ -1923,7 +1986,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSMBALL;		/* MetaBall Channel */
 		animchannelTypeInfo[type++]= &ACF_DSARM;		/* Armature Channel */
 		
-		animchannelTypeInfo[type++]= NULL;				/* ShapeKey */ // XXX this is no longer used for now...
+		animchannelTypeInfo[type++]= &ACF_SHAPEKEY;		/* ShapeKey */
 		
 			// XXX not restored yet
 		animchannelTypeInfo[type++]= NULL;				/* Grease Pencil Datablock */ 
@@ -2237,7 +2300,57 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 	}
 }
 
-
+/* callback for shapekey widget sliders - insert keyframes */
+static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, void *kb_poin)
+{
+	Key *key= (Key *)key_poin;
+	KeyBlock *kb= (KeyBlock *)kb_poin;
+	char *rna_path= key_get_curValue_rnaPath(key, kb);
+	
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	short flag=0, done=0;
+	float cfra;
+	
+	/* get current frame */
+	// NOTE: this will do for now...
+	cfra= (float)CFRA;
+	
+	/* get flags for keyframing */
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED))
+		flag |= INSERTKEY_NEEDED;
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY))
+		flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+		flag |= INSERTKEY_REPLACE;
+	
+	
+	/* get RNA pointer, and resolve the path */
+	RNA_id_pointer_create((ID *)key, &id_ptr);
+	
+	/* try to resolve the path stored in the F-Curve */
+	if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop)) {
+		/* find or create new F-Curve */
+		// XXX is the group name for this ok?
+		bAction *act= verify_adt_action((ID *)key, 1);
+		FCurve *fcu= verify_fcurve(act, NULL, rna_path, 0, 1);
+		
+		/* set the special 'replace' flag if on a keyframe */
+		if (fcurve_frame_has_keyframe(fcu, cfra, 0))
+			flag |= INSERTKEY_REPLACE;
+		
+		/* insert a keyframe for this F-Curve */
+		done= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
+		
+		if (done)
+			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	}
+	
+	/* free the path */
+	if (rna_path)
+		MEM_freeN(rna_path);
+}
 
 /* Draw a widget for some setting */
 static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf, uiBlock *block, int xpos, int ypos, int setting)
@@ -2445,7 +2558,7 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 		 *	  and wouldn't be able to auto-keyframe...
 		 *	- slider should start before the toggles (if they're visible) to keep a clean line down the side
 		 */
-		if ((draw_sliders) && (ale->type == ANIMTYPE_FCURVE)) {
+		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_SHAPEKEY)) {
 			/* adjust offset */
 			offset += SLIDER_WIDTH;
 			
@@ -2453,20 +2566,49 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 			uiBlockSetEmboss(block, UI_EMBOSS);
 			
 			if (ale->id) { /* Slider using RNA Access -------------------- */
-				FCurve *fcu= (FCurve *)ale->data;
 				PointerRNA id_ptr, ptr;
 				PropertyRNA *prop;
+				char *rna_path = NULL;
+				int array_index = 0;
+				short free_path = 0;
 				
-				/* get RNA pointer, and resolve the path */
-				RNA_id_pointer_create(ale->id, &id_ptr);
-				
-				/* try to resolve the path */
-				if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
-					uiBut *but;
+				/* get destination info */
+				if (ale->type == ANIMTYPE_FCURVE) {
+					FCurve *fcu= (FCurve *)ale->data;
 					
-					/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
-					but= uiDefAutoButR(block, &ptr, prop, fcu->array_index, "", 0, (int)v2d->cur.xmax-offset, ymid, SLIDER_WIDTH, (int)ymaxc-yminc);
-					uiButSetFunc(but, achannel_setting_slider_cb, ale->id, fcu);
+					rna_path= fcu->rna_path;
+					array_index= fcu->array_index;
+				}
+				else if (ale->type == ANIMTYPE_SHAPEKEY) {
+					KeyBlock *kb= (KeyBlock *)ale->data;
+					Key *key= (Key *)ale->id;
+					
+					rna_path= key_get_curValue_rnaPath(key, kb);
+					free_path= 1;
+				}
+				
+				/* only if RNA-Path found */
+				if (rna_path) {
+					/* get RNA pointer, and resolve the path */
+					RNA_id_pointer_create(ale->id, &id_ptr);
+					
+					/* try to resolve the path */
+					if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop)) {
+						uiBut *but;
+						
+						/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
+						but= uiDefAutoButR(block, &ptr, prop, array_index, "", 0, (int)v2d->cur.xmax-offset, ymid, SLIDER_WIDTH, (int)ymaxc-yminc);
+						
+						/* assign keyframing function according to slider type */
+						if (ale->type == ANIMTYPE_SHAPEKEY)
+							uiButSetFunc(but, achannel_setting_slider_shapekey_cb, ale->id, ale->data);
+						else
+							uiButSetFunc(but, achannel_setting_slider_cb, ale->id, ale->data);
+					}
+					
+					/* free the path if necessary */
+					if (free_path)
+						MEM_freeN(rna_path);
 				}
 			}
 			else { /* Special Slider for stuff without RNA Access ---------- */

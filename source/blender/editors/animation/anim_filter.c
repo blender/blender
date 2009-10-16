@@ -647,6 +647,36 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_FCURVE;
 			}
 				break;
+				
+			case ANIMTYPE_SHAPEKEY:
+			{
+				KeyBlock *kb= (KeyBlock *)data;
+				Key *key= (Key *)ale->id;
+				
+				ale->flag= kb->flag;
+				
+				/* whether we have keyframes depends on whether there is a Key block to find it from */
+				if (key) {
+					/* index of shapekey is defined by place in key's list */
+					ale->index= BLI_findindex(&key->block, kb);
+					
+					/* the corresponding keyframes are from the animdata */
+					if (ale->adt && ale->adt->action) {
+						bAction *act= ale->adt->action;
+						char *rna_path = key_get_curValue_rnaPath(key, kb);
+						
+						/* try to find the F-Curve which corresponds to this exactly,
+						 * then free the MEM_alloc'd string
+						 */
+						if (rna_path) {
+							ale->key_data= list_find_fcurve(&act->curves, rna_path, 0);
+							MEM_freeN(rna_path);
+						}
+					}
+					ale->datatype= (ale->key_data)? ALE_FCURVE : ALE_NONE;
+				}
+			}	
+				break;
 			
 			case ANIMTYPE_GPLAYER:
 			{
@@ -892,7 +922,51 @@ static int animdata_filter_nla (ListBase *anim_data, bDopeSheet *ads, AnimData *
 	/* return the number of items added to the list */
 	return items;
 }
- 
+
+/* Include ShapeKey Data for ShapeKey Editor */
+static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_mode)
+{
+	int items = 0;
+	
+	/* check if channels or only F-Curves */
+	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
+		bAnimListElem *ale;
+		KeyBlock *kb;
+		
+		/* loop through the channels adding ShapeKeys as appropriate */
+		for (kb= key->block.first; kb; kb= kb->next) {
+			/* skip the first one, since that's the non-animateable basis */
+			// XXX maybe in future this may become handy?
+			if (kb == key->block.first) continue;
+			
+			/* only work with this channel and its subchannels if it is editable */
+			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_SHAPEKEY(kb)) {
+				/* only include this track if selected in a way consistent with the filtering requirements */
+				if ( ANIMCHANNEL_SELOK(SEL_SHAPEKEY(kb)) ) {
+					// TODO: consider 'active' too?
+					
+					/* owner-id here must be key so that the F-Curve can be resolved... */
+					ale= make_new_animlistelem(kb, ANIMTYPE_SHAPEKEY, NULL, ANIMTYPE_NONE, (ID *)key);
+					
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+			}
+		}
+	}
+	else {
+		/* just use the action associated with the shapekey */
+		// FIXME: is owner-id and having no owner/dopesheet really fine?
+		if (key->adt && key->adt->action)
+			items= animdata_filter_action(anim_data, NULL, key->adt->action, filter_mode, NULL, ANIMTYPE_NONE, (ID *)key);
+	}
+	
+	/* return the number of items added to the list */
+	return items;
+}
+
 #if 0
 // FIXME: switch this to use the bDopeSheet...
 static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter_mode)
@@ -1944,9 +2018,11 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 			}
 				break;
 				
-			case ANIMCONT_SHAPEKEY:
+			case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			{
-				//items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+				/* the check for the DopeSheet summary is included here since the summary works here too */
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items= animdata_filter_shapekey(anim_data, data, filter_mode);
 			}
 				break;
 				
