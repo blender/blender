@@ -175,6 +175,7 @@ void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
 /* object_shapekey.c */
 void OBJECT_OT_shape_key_add(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_remove(struct wmOperatorType *ot);
+void OBJECT_OT_shape_key_clear(struct wmOperatorType *ot);
 
 /* object_group.c */
 void OBJECT_OT_group_add(struct wmOperatorType *ot);

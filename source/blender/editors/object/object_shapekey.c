@@ -72,6 +72,7 @@
 #include "ED_object.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -416,7 +417,7 @@ void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob)
 
 /*********************** remove shape key ***********************/
 
-int ED_object_shape_key_remove(bContext *C, Scene *scene, Object *ob)
+int ED_object_shape_key_remove(bContext *C, Object *ob)
 {
 	Main *bmain= CTX_data_main(C);
 	KeyBlock *kb, *rkb;
@@ -502,6 +503,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Shape Key";
+	ot->name= "Add shape key to the object.";
 	ot->idname= "OBJECT_OT_shape_key_add";
 	
 	/* api callbacks */
@@ -514,10 +516,9 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 
 static int shape_key_remove_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	if(!ED_object_shape_key_remove(C, scene, ob))
+	if(!ED_object_shape_key_remove(C, ob))
 		return OPERATOR_CANCELLED;
 	
 	return OPERATOR_FINISHED;
@@ -527,11 +528,45 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Shape Key";
+	ot->name= "Remove shape key from the object.";
 	ot->idname= "OBJECT_OT_shape_key_remove";
 	
 	/* api callbacks */
 	ot->poll= shape_key_poll;
 	ot->exec= shape_key_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int shape_key_clear_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Key *key= ob_get_key(ob);
+	KeyBlock *kb= ob_get_keyblock(ob);
+
+	if(!key || !kb)
+		return OPERATOR_CANCELLED;
+	
+	for(kb=key->block.first; kb; kb=kb->next)
+		kb->curval= 0.0f;
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Shape Keys";
+	ot->description= "Clear weights for all shape keys.";
+	ot->idname= "OBJECT_OT_shape_key_clear";
+	
+	/* api callbacks */
+	ot->poll= shape_key_poll;
+	ot->exec= shape_key_clear_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
