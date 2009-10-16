@@ -904,28 +904,14 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 		if (vis == ACHANNEL_SETFLAG_CLEAR) 
 			break;
 		
-		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_VISIBLE))
-			vis= ACHANNEL_SETFLAG_CLEAR;
-		else if ((ale->type == ANIMTYPE_GROUP) && !(ale->flag & AGRP_NOTVISIBLE))
+		/* set the setting in the appropriate way (if available) */
+		if (ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_VISIBLE))
 			vis= ACHANNEL_SETFLAG_CLEAR;
 	}
 		
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		switch (ale->type) {
-			case ANIMTYPE_FCURVE: /* F-Curve */
-			{
-				FCurve *fcu= (FCurve *)ale->data;
-				ACHANNEL_SET_FLAG(fcu, vis, FCURVE_VISIBLE);
-			}
-				break;
-			case ANIMTYPE_GROUP: /* Group */
-			{
-				bActionGroup *agrp= (bActionGroup *)ale->data;
-				ACHANNEL_SET_FLAG_NEG(agrp, vis, AGRP_NOTVISIBLE);
-			}
-				break;
-		}
+		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vis);
 	}
 	
 	/* cleanup */
