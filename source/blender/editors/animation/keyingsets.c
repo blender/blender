@@ -142,6 +142,9 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *op)
 	
 	scene->active_keyingset= BLI_countlist(&scene->keyingsets);
 	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -181,6 +184,9 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 	
 	/* the active one should now be the previously second-to-last one */
 	scene->active_keyingset--;
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
 	
 	return OPERATOR_FINISHED;
 }
