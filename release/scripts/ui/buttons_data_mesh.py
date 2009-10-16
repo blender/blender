@@ -125,6 +125,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		subcol = col.column(align=True)
 		subcol.itemO("object.shape_key_add", icon='ICON_ZOOMIN', text="")
 		subcol.itemO("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
+		subcol.itemO("object.shape_key_mirror", icon='ICON_MOD_MIRROR', text="")
 
 		if kb:
 			col.itemS()

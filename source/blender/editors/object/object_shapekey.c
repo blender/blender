@@ -70,6 +70,7 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 #include "ED_object.h"
+#include "ED_mesh.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -401,7 +402,7 @@ void insert_curvekey(Scene *scene, Curve *cu, short rel)
 
 /*********************** add shape key ***********************/
 
-void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob)
+static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob)
 {
 	Key *key;
 
@@ -417,7 +418,7 @@ void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob)
 
 /*********************** remove shape key ***********************/
 
-int ED_object_shape_key_remove(bContext *C, Object *ob)
+static int ED_object_shape_key_remove(bContext *C, Object *ob)
 {
 	Main *bmain= CTX_data_main(C);
 	KeyBlock *kb, *rkb;
@@ -472,6 +473,63 @@ int ED_object_shape_key_remove(bContext *C, Object *ob)
 		else if(GS(key->from->name)==ID_LT) ((Lattice *)key->from)->key= NULL;
 
 		free_libblock_us(&(bmain->key), key);
+	}
+	
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return 1;
+}
+
+static int ED_object_shape_key_mirror(bContext *C, Scene *scene, Object *ob)
+{
+	KeyBlock *kb;
+	Key *key;
+
+	key= ob_get_key(ob);
+	if(key==NULL)
+		return 0;
+	
+	kb= BLI_findlink(&key->block, ob->shapenr-1);
+
+	if(kb) {
+		int i1, i2;
+		float *fp1, *fp2;
+		float tvec[3];
+		char *tag_elem= MEM_callocN(sizeof(char) * kb->totelem, "shape_key_mirror");
+
+
+		if(ob->type==OB_MESH) {
+			Mesh *me= ob->data;
+			MVert *mv;
+
+			mesh_octree_table(ob, NULL, NULL, 's');
+
+			for(i1=0, mv=me->mvert; i1<me->totvert; i1++, mv++) {
+				i2= mesh_get_x_mirror_vert(ob, i1);
+				if(i2 != -1) {
+					if(tag_elem[i1]==0 && tag_elem[i2]==0) {
+						fp1= ((float *)kb->data) + i1*3;
+						fp2= ((float *)kb->data) + i2*3;
+
+						VECCOPY(tvec,	fp1);
+						VECCOPY(fp1,	fp2);
+						VECCOPY(fp2,	tvec);
+
+						/* flip x axis */
+						fp1[0] = -fp1[0];
+						fp2[0] = -fp2[0];
+					}
+					tag_elem[i1]= tag_elem[i2]= 1;
+				}
+
+			}
+
+			mesh_octree_table(ob, NULL, NULL, 'e');
+		}
+		/* todo, other types? */
+
+		MEM_freeN(tag_elem);
 	}
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -567,6 +625,32 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= shape_key_poll;
 	ot->exec= shape_key_clear_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static int shape_key_mirror_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	if(!ED_object_shape_key_mirror(C, scene, ob))
+		return OPERATOR_CANCELLED;
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mirror Shape Key";
+	ot->idname= "OBJECT_OT_shape_key_mirror";
+
+	/* api callbacks */
+	ot->poll= shape_key_poll;
+	ot->exec= shape_key_mirror_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
