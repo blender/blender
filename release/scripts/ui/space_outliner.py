@@ -24,8 +24,8 @@ class OUTLINER_HT_header(bpy.types.Header):
 		
 		if space.display_mode == 'DATABLOCKS':
 			row = layout.row(align=True)
-			row.itemO("anim.keying_set_add", icon='ICON_ZOOMIN', text="")
-			row.itemO("anim.keying_set_remove", icon='ICON_ZOOMOUT', text="")
+			row.itemO("outliner.keyingset_add_selected", icon='ICON_ZOOMIN', text="")
+			row.itemO("outliner.keyingset_remove_selected", icon='ICON_ZOOMOUT', text="")
 			if ks:
 				row.item_pointerR(scene, "active_keying_set", scene, "keying_sets", text="")
 				
