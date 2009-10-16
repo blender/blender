@@ -1334,7 +1334,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 }
 
 /* Utility function for getting the handle data from bezier's */
-TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt) {
+TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt) {
 	TransDataCurveHandleFlags *hdata;
 	td->flag |= TD_BEZTRIPLE;
 	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
@@ -1424,7 +1424,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						td->ext = NULL;
 						td->val = NULL;
 
-						hdata = initTransDataCurveHandes(td, bezt);
+						hdata = initTransDataCurveHandles(td, bezt);
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -1459,7 +1459,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0)
 						/* If the middle is selected but the sides arnt, this is needed */
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
-							hdata = initTransDataCurveHandes(td, bezt);
+							hdata = initTransDataCurveHandles(td, bezt);
 						}
 
 						td++;
@@ -1484,7 +1484,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						td->val = NULL;
 
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
-							hdata = initTransDataCurveHandes(td, bezt);
+							hdata = initTransDataCurveHandles(td, bezt);
 						}
 
 						Mat3CpyMat3(td->smtx, smtx);
@@ -1503,7 +1503,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 			if (propmode && head != tail)
 				calc_distanceCurveVerts(head, tail-1);
 
-			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandes
+			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandles
 			 * but for now just dont change handle types */
 			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0)
 				testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
@@ -3452,14 +3452,14 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				
 				/* only include handles if selected, irrespective of the interpolation modes */
 				if (bezt->f1 & SELECT) {
-					hdata = initTransDataCurveHandes(td, bezt);
+					hdata = initTransDataCurveHandles(td, bezt);
 					bezt_to_transdata(td++, td2d++, adt, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
 				}
 				else
 					h1= 0;
 				if (bezt->f3 & SELECT) {
 					if (hdata==NULL)
-						hdata = initTransDataCurveHandes(td, bezt);
+						hdata = initTransDataCurveHandles(td, bezt);
 					bezt_to_transdata(td++, td2d++, adt, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
 				}
 				else
@@ -3472,13 +3472,13 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						/* if handles were not selected, store their selection status */
 						if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
 							if (hdata == NULL)
-								hdata = initTransDataCurveHandes(td, bezt);
+								hdata = initTransDataCurveHandles(td, bezt);
 						}
 						
 						bezt_to_transdata(td++, td2d++, adt, bezt->vec[1], bezt->vec[1], 1, 0, intvals);
 					}
 					
-					/* special hack (must be done after initTransDataCurveHandes(), as that stores handle settings to restore...):
+					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
 					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
 					 *	  then check if we're using auto-handles.
 					 *	- If so, change them auto-handles to aligned handles so that handles get affected too
