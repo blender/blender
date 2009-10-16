@@ -363,7 +363,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 	
 	/* for now, this is editable directly, as users can set this even if they're not animating them (to test results) */
-	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "curval");
 	RNA_def_property_float_funcs(prop, NULL, "rna_ShapeKey_value_set", "rna_ShapeKey_value_range");
 	RNA_def_property_ui_text(prop, "Value", "Value of shape key at the current frame.");

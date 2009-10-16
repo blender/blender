@@ -2147,7 +2147,7 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 // XXX hardcoded size of icons
 #define ICON_WIDTH		17
 // XXX hardcoded width of sliders
-#define SLIDER_WIDTH	70
+#define SLIDER_WIDTH	80
 
 /* Draw the given channel */
 // TODO: make this use UI controls for the buttons

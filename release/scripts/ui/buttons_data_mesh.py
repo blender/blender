@@ -146,7 +146,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 					
 					row = layout.row()
 					row.enabled = ob.shape_key_lock == False
-					row.itemR(kb, "value", slider=True)
+					row.itemR(kb, "value")
 					row.itemO("object.shape_key_clear", icon='ICON_X', text="")
 					
 					split = layout.split()
