@@ -5,9 +5,11 @@ class OUTLINER_HT_header(bpy.types.Header):
 	__space_type__ = 'OUTLINER'
 
 	def draw(self, context):
-		so = context.space_data
-		sce = context.scene
 		layout = self.layout
+		
+		space = context.space_data
+		scene = context.scene
+		ks = context.scene.active_keying_set
 
 		row = layout.row(align=True)
 		row.template_header()
@@ -15,37 +17,40 @@ class OUTLINER_HT_header(bpy.types.Header):
 		if context.area.show_menus:
 			sub = row.row(align=True)
 			sub.itemM("OUTLINER_MT_view")
-			
-		row = layout.row()
-		row.itemR(so, "display_mode", text="")
+
+		layout.itemR(space, "display_mode", text="")
 		
-		if so.display_mode == 'DATABLOCKS':
+		layout.itemS()
+		
+		if space.display_mode == 'DATABLOCKS':
 			row = layout.row(align=True)
-			row.itemO("anim.keyingset_add_new", text="", icon=31)
-			# row.itemR(sce, "active_keyingset", text="KS: ")
-			# ks = sce.keyingsets[sce.active_keyingset - 1]
-			# row.itemR(ks, "name", text="")
-			## row.itemR(sce, "keyingsets")
-			
-			row = layout.row()
-			row.itemO("outliner.keyingset_add_selected", text="", icon=31)
-			row.itemO("outliner.keyingset_remove_selected", text="", icon=32)
-			
-			row.itemO("anim.insert_keyframe", text="", icon=514)
-			row.itemO("anim.delete_keyframe", text="", icon=513)
-		
+			row.itemO("anim.keying_set_add", icon='ICON_ZOOMIN', text="")
+			row.itemO("anim.keying_set_remove", icon='ICON_ZOOMOUT', text="")
+			if ks:
+				row.item_pointerR(scene, "active_keying_set", scene, "keying_sets", text="")
+				
+				row = layout.row(align=True)
+				row.itemO("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
+				row.itemO("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
+			else:
+				row.itemL(text="No Keying Set active")
 
 class OUTLINER_MT_view(bpy.types.Menu):
 	__label__ = "View"
 
 	def draw(self, context):
 		layout = self.layout
-		so = context.space_data
+		
+		space = context.space_data
 
 		col = layout.column()
-		col.itemR(so, "show_restriction_columns")
-		#layout.itemO("text.new")
+		if space.display_mode not in ('DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'):
+			col.itemR(space, "show_restriction_columns")
+			col.itemS()
+			col.itemO("outliner.show_active")
+
+		col.itemO("outliner.show_one_level")
+		col.itemO("outliner.show_hierarchy")
 
 bpy.types.register(OUTLINER_HT_header)
 bpy.types.register(OUTLINER_MT_view)
-
