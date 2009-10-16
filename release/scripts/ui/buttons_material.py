@@ -202,6 +202,9 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		col.itemR(mat, "sky")
 		col.itemR(mat, "exclude_mist")
 		col.itemR(mat, "invert_z")
+		sub = col.row()
+		sub.itemR(mat, "z_offset")
+		sub.active = mat.transparency and mat.transparency_method == 'Z_TRANSPARENCY'
 		sub = col.column(align=True)
 		sub.itemL(text="Light Group:")
 		sub.itemR(mat, "light_group", text="")

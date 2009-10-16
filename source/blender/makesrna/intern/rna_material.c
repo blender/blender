@@ -1600,6 +1600,11 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ZINV);
 	RNA_def_property_ui_text(prop, "Invert Z Depth", "Renders material's faces with an inverted Z buffer (scanline only).");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop= RNA_def_property(srna, "z_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "zoffs");
+	RNA_def_property_ui_text(prop, "Z Offset", "Gives faces an artificial offset in the Z buffer for Z transparency.");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ENV);
