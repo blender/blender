@@ -507,7 +507,12 @@ static int ED_object_shape_key_mirror(bContext *C, Scene *scene, Object *ob)
 
 			for(i1=0, mv=me->mvert; i1<me->totvert; i1++, mv++) {
 				i2= mesh_get_x_mirror_vert(ob, i1);
-				if(i2 != -1) {
+				if(i2==i1) {
+					fp1= ((float *)kb->data) + i1*3;
+					fp1[0] = -fp1[0];
+					tag_elem[i1]= 1;
+				}
+				else if(i2 != -1) {
 					if(tag_elem[i1]==0 && tag_elem[i2]==0) {
 						fp1= ((float *)kb->data) + i1*3;
 						fp2= ((float *)kb->data) + i2*3;
@@ -522,7 +527,6 @@ static int ED_object_shape_key_mirror(bContext *C, Scene *scene, Object *ob)
 					}
 					tag_elem[i1]= tag_elem[i2]= 1;
 				}
-
 			}
 
 			mesh_octree_table(ob, NULL, NULL, 'e');
