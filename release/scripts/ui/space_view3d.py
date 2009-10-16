@@ -409,6 +409,8 @@ class VIEW3D_MT_object(bpy.types.Menu):
 		layout.item_booleanO("object.duplicate", "linked", True, text="Duplicate Linked")
 		layout.itemO("object.delete", text="Delete...")
 		layout.itemO("object.proxy_make", text="Make Proxy...")
+		layout.item_menu_enumO("object.make_local", "type", text="Make Local...")
+		layout.itemM("VIEW3D_MT_make_single_user")
 		
 		layout.itemS()
 		
@@ -449,6 +451,8 @@ class VIEW3D_MT_object_apply(bpy.types.Menu):
 		layout.itemO("object.scale_apply", text="Scale")
 		layout.itemS()
 		layout.itemO("object.visual_transform_apply", text="Visual Transform")
+		layout.itemO("object.duplicates_make_real")
+		
 
 class VIEW3D_MT_object_parent(bpy.types.Menu):
 	__label__ = "Parent"
@@ -500,6 +504,27 @@ class VIEW3D_MT_object_showhide(bpy.types.Menu):
 		layout.itemO("object.restrictview_clear", text="Show Hidden")
 		layout.itemO("object.restrictview_set", text="Hide Selected")
 		layout.item_booleanO("object.restrictview_set", "unselected", True, text="Hide Unselected")
+
+class VIEW3D_MT_make_single_user(bpy.types.Menu):
+	__label__ = "Make Single User"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Object")
+		props.object = True
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Object & ObData")
+		props.object = props.obdata = True
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Object & ObData & Materials+Tex")
+		props.object = props.obdata = props.material = props.texture = True
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Materials+Tex")
+		props.material = props.texture = True
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Animation")
+		props.animation = True
 
 # ********** Vertex paint menu **********	
 	
@@ -1416,6 +1441,8 @@ bpy.types.register(VIEW3D_MT_object_track)
 bpy.types.register(VIEW3D_MT_object_group)
 bpy.types.register(VIEW3D_MT_object_constraints)
 bpy.types.register(VIEW3D_MT_object_showhide)
+bpy.types.register(VIEW3D_MT_make_single_user)
+
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
 

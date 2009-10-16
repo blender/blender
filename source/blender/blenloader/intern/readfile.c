@@ -6430,7 +6430,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	if(main->versionfile <= 140) {
-		/* r-g-b-fac in texure */
+		/* r-g-b-fac in texture */
 		Tex *tex = main->tex.first;
 		while (tex) {
 			if ((tex->rfac == 0.0) &&

@@ -58,6 +58,7 @@ void OBJECT_OT_track_clear(struct wmOperatorType *ot);
 void OBJECT_OT_slow_parent_set(struct wmOperatorType *ot);
 void OBJECT_OT_slow_parent_clear(struct wmOperatorType *ot);
 void OBJECT_OT_make_local(struct wmOperatorType *ot);
+void OBJECT_OT_make_single_user(struct wmOperatorType *ot);
 void OBJECT_OT_move_to_layer(struct wmOperatorType *ot);
 
 /* object_edit.c */

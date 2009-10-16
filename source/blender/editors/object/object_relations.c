@@ -1456,7 +1456,7 @@ void single_ipo_users(Scene *scene, int flag)
 #endif // XXX old animation system
 }
 
-void single_mat_users(Scene *scene, int flag)
+static void single_mat_users(Scene *scene, int flag, int do_textures)
 {
 	Object *ob;
 	Base *base;
@@ -1486,17 +1486,17 @@ void single_mat_users(Scene *scene, int flag)
 							ipo_idnew(ma->ipo);	/* drivers */
 						}
 #endif // XXX old animation system
-						
-						for(b=0; b<MAX_MTEX; b++) {
-							if(ma->mtex[b] && ma->mtex[b]->tex) {
-								tex= ma->mtex[b]->tex;
-								if(tex->id.us>1) {
-									ma->mtex[b]->tex= copy_texture(tex);
-									tex->id.us--;
+						if(do_textures) {
+							for(b=0; b<MAX_MTEX; b++) {
+								if(ma->mtex[b] && ma->mtex[b]->tex) {
+									tex= ma->mtex[b]->tex;
+									if(tex->id.us>1) {
+										ma->mtex[b]->tex= copy_texture(tex);
+										tex->id.us--;
+									}
 								}
 							}
 						}
-						
 					}
 				}
 			}
@@ -1599,42 +1599,6 @@ static void single_mat_users_expand(void)
 					ID_NEW(ma->mtex[a]->object);
 }
 
-void single_user(Scene *scene, View3D *v3d)
-{
-	int nr;
-	
-	if(scene->id.lib) return;
-
-	clear_id_newpoins();
-	
-	nr= pupmenu("Make Single User%t|Object|Object & ObData|Object & ObData & Materials+Tex|Materials+Tex|Ipos");
-	if(nr>0) {
-	
-		if(nr==1) single_object_users(scene, v3d, 1);
-	
-		else if(nr==2) {
-			single_object_users(scene, v3d, 1);
-			single_obdata_users(scene, 1);
-		}
-		else if(nr==3) {
-			single_object_users(scene, v3d, 1);
-			single_obdata_users(scene, 1);
-			single_mat_users(scene, 1); /* also tex */
-			
-		}
-		else if(nr==4) {
-			single_mat_users(scene, 1);
-		}
-		else if(nr==5) {
-			single_ipo_users(scene, 1);
-		}
-		
-		
-		clear_id_newpoins();
-
-	}
-}
-
 /* used for copying scenes */
 void ED_object_single_users(Scene *scene, int full)
 {
@@ -1676,7 +1640,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	Material *ma, ***matarar;
 	Lamp *la;
 	ID *id;
-	int a, b, mode= RNA_boolean_get(op->ptr, "type");
+	int a, b, mode= RNA_enum_get(op->ptr, "type");;
 	
 	if(mode==3) {
 		all_local(NULL, 0);	/* NULL is all libs */
@@ -1777,3 +1741,59 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
+static int make_single_user_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C); /* ok if this is NULL */
+	int flag= RNA_enum_get(op->ptr, "type"); /* 0==ALL, SELECTED==selected objecs */
+
+	if(RNA_boolean_get(op->ptr, "object"))
+	    single_object_users(scene, v3d, flag);
+
+	if(RNA_boolean_get(op->ptr, "obdata"))
+		single_obdata_users(scene, flag);
+
+	if(RNA_boolean_get(op->ptr, "material"))
+		single_mat_users(scene, flag, FALSE);
+
+	if(RNA_boolean_get(op->ptr, "texture"))
+		single_mat_users(scene, flag, TRUE);
+
+	if(RNA_boolean_get(op->ptr, "animation"))
+		single_ipo_users(scene, flag);
+
+	clear_id_newpoins();
+
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_make_single_user(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{SELECT, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
+		{0, "ALL", 0, "All", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Make Single User";
+	ot->description = "Make linked data local to each object.";
+	ot->idname= "OBJECT_OT_make_single_user";
+
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= make_single_user_exec;
+	ot->poll= ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+
+	RNA_def_boolean(ot->srna, "object", 0, "Object", "Make single user objects");
+	RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");
+	RNA_def_boolean(ot->srna, "material", 0, "Materials", "Make materials local to each datablock");
+	RNA_def_boolean(ot->srna, "texture", 0, "Textures", "Make textures local to each material");
+	RNA_def_boolean(ot->srna, "animation", 0, "Animation Data", "Make animation data local to each object");
+}
