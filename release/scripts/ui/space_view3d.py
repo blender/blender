@@ -794,18 +794,18 @@ class VIEW3D_MT_edit_mesh_specials(bpy.types.Menu):
 		layout.itemO("mesh.subdivide", text="Subdivide")
 		layout.item_floatO("mesh.subdivide", "smoothness", 1.0, text="Subdivide Smooth")
 		layout.itemO("mesh.merge", text="Merge...")
-		layout.itemO("mesh.remove_doubles", text="Remove Doubles")
+		layout.itemO("mesh.remove_doubles")
 		layout.itemO("mesh.hide", text="Hide")
 		layout.itemO("mesh.reveal", text="Reveal")
-		layout.itemO("mesh.select_inverse", text="Select Inverse")
+		layout.itemO("mesh.select_inverse")
 		layout.itemO("mesh.flip_normals")
 		layout.itemO("mesh.vertices_smooth", text="Smooth")
 		# layout.itemO("mesh.bevel", text="Bevel")
 		layout.itemO("mesh.faces_shade_smooth")
 		layout.itemO("mesh.faces_shade_flat")
-		# layout.itemO("mesh.blend_from_shape", text="Blend From Shape")
-		# layout.itemO("mesh.shape_propagate_to_all", text="Propagate to All Shapes")
-		layout.itemO("mesh.select_vertex_path", text="Select Vertex Path")
+		layout.itemO("mesh.blend_from_shape")
+		# layout.itemO("mesh.shape_propagate_to_all")
+		layout.itemO("mesh.select_vertex_path")
 
 class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 	__label__ = "Vertices"
@@ -824,9 +824,9 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 		layout.itemO("mesh.vertices_smooth")
 		layout.itemO("mesh.remove_doubles")
 		
-		layout.itemO("mesh.select_vertex_path", text="Select Vertex Path")
+		layout.itemO("mesh.select_vertex_path")
 		
-		# uiItemO(layout, "Blend From Shape", 0, "mesh.blend_from_shape");
+		layout.itemO("mesh.blend_from_shape")
 		# uiItemO(layout, "Propagate to All Shapes", 0, "mesh.shape_propagate_to_all");
 
 class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):

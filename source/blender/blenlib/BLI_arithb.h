@@ -457,6 +457,7 @@ void i_window(
 #define BLI_CS_CIE		2
 
 #define RAD2DEG(_rad) ((_rad)*(180.0/M_PI))
+#define DEG2RAD(_deg) ((_deg)*(M_PI/180.0))
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
