@@ -2056,9 +2056,21 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		/* Mouse location isn't screen clamped to the screen so use a linear mapping
 		 * 2px == 1-int, or 1px == 1-ClickStep */
 		if(ui_is_but_float(but)) {
-			tempf = data->startvalue + ((mx - data->dragstartx) * fac * 0.01*but->a1);
+			fac *= 0.01*but->a1;
+			tempf = data->startvalue + ((mx - data->dragstartx) * fac);
 			tempf= ui_numedit_apply_snapf(tempf, softmin, softmax, softrange, snap);
+
+#if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
+			if(tempf < softmin) {
+				data->dragstartx -= (softmin-tempf) / fac;
+				tempf= softmin;
+			} else if (tempf > softmax) {
+				data->dragstartx += (tempf-softmax) / fac;
+				tempf= softmax;
+			}
+#else
 			CLAMP(tempf, softmin, softmax);
+#endif
 
 			if(tempf != data->value) {
 				data->dragchange= 1;
@@ -2067,9 +2079,22 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 			}
 		}
 		else {
-			temp= data->startvalue + (mx - data->dragstartx)/2; /* simple 2px == 1 */
+			fac = 0.5; /* simple 2px == 1 */
+
+			temp= data->startvalue + ((mx - data->dragstartx) * fac);
 			temp= ui_numedit_apply_snap(temp, softmin, softmax, snap);
+
+#if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
+			if(temp < softmin) {
+				data->dragstartx -= (softmin-temp) / fac;
+				temp= softmin;
+			} else if (temp > softmax) {
+				data->dragstartx += (temp-softmax) / fac;
+				temp= softmax;
+			}
+#else
 			CLAMP(temp, softmin, softmax);
+#endif
 
 			if(temp != data->value) {
 				data->dragchange= 1;
@@ -2077,6 +2102,8 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 				changed= 1;
 			}
 		}
+
+		data->draglastx= mx;
 	}
 	else {
 		/* Use a non-linear mapping of the mouse drag especially for large floats (normal behavior) */

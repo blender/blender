@@ -399,9 +399,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 				/* could also clamp to screen bounds
 				 * wrap with a window outside the view will fail atm  */
-
-				bounds.wrapPoint(x_new, y_new, 1); /* offset of one incase blender is at screen bounds */
-
+				bounds.wrapPoint(x_new, y_new, 2); /* offset of one incase blender is at screen bounds */
 				window->getCursorGrabAccum(x_accum, y_accum);
 
 				if(x_new != xme.x_root || y_new != xme.y_root) {
