@@ -69,6 +69,7 @@
 
 enum {
 	B_REDR= 1,
+	B_MODECHANGE,
 } eActHeader_Events;
 
 /* ********************************************************* */
@@ -254,6 +255,15 @@ static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void do_action_buttons(bContext *C, void *arg, int event)
 {
+	/* special exception for mode changing - enable custom settings? */
+	if (event == B_MODECHANGE) {
+		SpaceAction *saction= CTX_wm_space_action(C);
+		
+		/* if the new mode is ShapeKeys editor, enable sliders */
+		if (saction->mode == SACTCONT_SHAPEKEY)
+			saction->flag |= SACTION_SLIDERS;
+	}
+	
 	ED_area_tag_refresh(CTX_wm_area(C));
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
@@ -318,7 +328,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* MODE SELECTOR */
-	uiDefButC(block, MENU, B_REDR, 
+	uiDefButC(block, MENU, B_MODECHANGE, 
 			"Editor Mode %t|DopeSheet %x3|Action Editor %x0|ShapeKey Editor %x1|Grease Pencil %x2", 
 			xco,yco,90,YIC, &saction->mode, 0, 1, 0, 0, 
 			"Editing modes for this editor");

@@ -284,15 +284,8 @@ static void animedit_refresh_id_tags (Scene *scene, ID *id)
 		if (adt)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
-		/* if ID-block is Object, set recalc flags */
-		switch (GS(id->name)) {
-			case ID_OB:
-			{
-				Object *ob= (Object *)id;
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-			}
-				break;
-		}
+		/* set recalc flags */
+		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
 	}
 }
 

@@ -926,11 +926,11 @@ static int animdata_filter_nla (ListBase *anim_data, bDopeSheet *ads, AnimData *
 /* Include ShapeKey Data for ShapeKey Editor */
 static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_mode)
 {
+	bAnimListElem *ale;
 	int items = 0;
 	
 	/* check if channels or only F-Curves */
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
-		bAnimListElem *ale;
 		KeyBlock *kb;
 		
 		/* loop through the channels adding ShapeKeys as appropriate */
@@ -959,8 +959,12 @@ static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_m
 	else {
 		/* just use the action associated with the shapekey */
 		// FIXME: is owner-id and having no owner/dopesheet really fine?
-		if (key->adt && key->adt->action)
-			items= animdata_filter_action(anim_data, NULL, key->adt->action, filter_mode, NULL, ANIMTYPE_NONE, (ID *)key);
+		if (key->adt) {
+			if (filter_mode & ANIMFILTER_ANIMDATA)
+				ANIMDATA_ADD_ANIMDATA(key)
+			else if (key->adt->action)
+				items= animdata_filter_action(anim_data, NULL, key->adt->action, filter_mode, NULL, ANIMTYPE_NONE, (ID *)key);
+		}
 	}
 	
 	/* return the number of items added to the list */

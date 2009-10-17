@@ -1430,7 +1430,7 @@ int autokeyframe_cfra_can_key(Scene *scene, ID *id)
 short fcurve_frame_has_keyframe (FCurve *fcu, float frame, short filter)
 {
 	/* quick sanity check */
-	if (fcu == NULL)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return 0;
 	
 	/* we either include all regardless of muting, or only non-muted  */
