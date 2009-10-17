@@ -463,8 +463,20 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		else if(retval & OPERATOR_RUNNING_MODAL) {
 			/* grab cursor during blocking modal ops (X11) */
 			if(ot->flag & OPTYPE_BLOCKING) {
-				int warp = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
-				WM_cursor_grab(CTX_wm_window(C), warp, FALSE);
+				int bounds[4] = {-1,-1,-1,-1};
+				int wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+
+				if(wrap) {
+					ARegion *ar= CTX_wm_region(C);
+					if(ar) {
+						bounds[0]= ar->winrct.xmin;
+						bounds[1]= ar->winrct.ymax;
+						bounds[2]= ar->winrct.xmax;
+						bounds[3]= ar->winrct.ymin;
+					}
+				}
+
+				WM_cursor_grab(CTX_wm_window(C), wrap, FALSE, bounds);
 			}
 		}
 		else

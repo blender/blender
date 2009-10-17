@@ -372,11 +372,13 @@ extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
  * events when the mouse is outside the window. X11 only, others
  * do this automatically.
  * @param windowhandle The handle to the window
- * @param	grab The new grab state of the cursor.
+ * @param	mode The new grab state of the cursor.
+ * @param	bounds The grab ragion (optional) - left,top,right,bottom
  * @return	Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
-												GHOST_TGrabCursorMode mode);
+												GHOST_TGrabCursorMode mode,
+												int* bounds);
 
 /***************************************************************************************
  ** Access to mouse button and keyboard states.

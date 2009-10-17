@@ -171,10 +171,16 @@ public:
 
 	/**
 	 * Sets the cursor grab.
-	 * @param	grab The new grab state of the cursor.
+	 * @param	mode The new grab state of the cursor.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode);
+	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds);
+
+	/**
+	 * Gets the cursor grab region, if unset the window is used.
+	 * reset when grab is disabled.
+	 */
+	virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect& bounds);
 
 	/**
 	 * Sets the window "modified" status, indicating unsaved changes
@@ -280,6 +286,9 @@ protected:
 
 	/** Accumulated offset from m_cursorGrabInitPos. */
 	GHOST_TInt32 m_cursorGrabAccumPos[2];
+
+	/** Wrap the cursor within this region. */
+	GHOST_Rect m_cursorGrabBounds;
 
 	/** The current shape of the cursor */
 	GHOST_TStandardCursor m_cursorShape;

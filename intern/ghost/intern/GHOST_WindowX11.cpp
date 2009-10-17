@@ -1421,6 +1421,7 @@ setWindowCursorGrab(
 
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 		setCursorGrabAccum(0, 0);
+		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
 		XUngrabPointer(m_display, CurrentTime);
 	}
 

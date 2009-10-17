@@ -76,7 +76,7 @@ void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(int val);
-void		WM_cursor_grab(struct wmWindow *win, int wrap, int hide);
+void		WM_cursor_grab(struct wmWindow *win, int wrap, int hide, int *bounds);
 void		WM_cursor_ungrab(struct wmWindow *win);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 

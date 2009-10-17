@@ -78,6 +78,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_fcurve.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -669,7 +670,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 						 * then free the MEM_alloc'd string
 						 */
 						if (rna_path) {
-							ale->key_data= list_find_fcurve(&act->curves, rna_path, 0);
+							ale->key_data= (void *)list_find_fcurve(&act->curves, rna_path, 0);
 							MEM_freeN(rna_path);
 						}
 					}

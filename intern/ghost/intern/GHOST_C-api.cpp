@@ -355,11 +355,21 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 
 
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
-										GHOST_TGrabCursorMode mode)
+										GHOST_TGrabCursorMode mode,
+										int *bounds)
 {
 	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+	GHOST_Rect bounds_rect, bounds_win;
+
+	if(bounds) {
+		/* if this is X11 specific we need a function that converts */
+		window->getClientBounds(bounds_win);
+		window->clientToScreen(bounds[0], bounds_win.getHeight() - bounds[1], bounds_rect.m_l, bounds_rect.m_t);
+		window->clientToScreen(bounds[2], bounds_win.getHeight() - bounds[3], bounds_rect.m_r, bounds_rect.m_b);
+
+	}
 	
-	return window->setCursorGrab(mode);
+	return window->setCursorGrab(mode, bounds ? &bounds_rect:NULL);
 }
 
 

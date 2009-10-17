@@ -97,18 +97,30 @@ GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 	}
 }
 
-GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode)
+GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds)
 {
 	if(m_cursorGrab == mode)
 		return GHOST_kSuccess;
 
 	if (setWindowCursorGrab(mode)) {
+
+		if(mode==GHOST_kGrabDisable)
+			m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1;
+		else if (bounds) {
+			m_cursorGrabBounds= *bounds;
+		}
 		m_cursorGrab = mode;
 		return GHOST_kSuccess;
 	}
 	else {
 		return GHOST_kFailure;
 	}
+}
+
+GHOST_TSuccess GHOST_Window::getCursorGrabBounds(GHOST_Rect& bounds)
+{
+	bounds= m_cursorGrabBounds;
+	return (bounds.m_l==-1 && bounds.m_r==-1) ? GHOST_kFailure : GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_Window::setCursorShape(GHOST_TStandardCursor cursorShape)

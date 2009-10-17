@@ -52,6 +52,7 @@ static void rna_userdef_update(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 }
 
+#if 0
 static void rna_userdef_lmb_select_set(PointerRNA *ptr,int value)
 {
 	UserDef *userdef = (UserDef*)ptr->data;
@@ -64,7 +65,6 @@ static void rna_userdef_lmb_select_set(PointerRNA *ptr,int value)
 		userdef->flag &= ~USER_LMOUSESELECT;
 }
 
-#if 0
 static void rna_userdef_rmb_select_set(PointerRNA *ptr,int value)
 {
 	rna_userdef_lmb_select_set(ptr, !value);

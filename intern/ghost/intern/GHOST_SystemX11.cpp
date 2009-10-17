@@ -395,7 +395,9 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				GHOST_TInt32 x_accum, y_accum;
 				GHOST_Rect bounds;
 
-				window->getClientBounds(bounds);
+				/* fallback to window bounds */
+				if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
+					window->getClientBounds(bounds);
 
 				/* could also clamp to screen bounds
 				 * wrap with a window outside the view will fail atm  */
