@@ -94,10 +94,8 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "mesh_intern.h"
 
 /* XXX */
-static int extern_qread() {return 0;}
 static void waitcursor(int val) {}
 static int pupmenu() {return 0;}
-static int qtest() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
 
 /* XXX */
@@ -5083,9 +5081,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	int add= RNA_int_get(op->ptr, "add");
 	int blended= 0;
 
-	kb= BLI_findlink(&key->block, shape);
-
-	if(kb) {
+	if(key && (kb= BLI_findlink(&key->block, shape))) {
 		data= kb->data;
 
 		for(eve=em->verts.first; eve; eve=eve->next){
