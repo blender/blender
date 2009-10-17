@@ -124,20 +124,20 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 
 
 class INFO_MT_mesh_add(dynamic_menu.DynMenu):
-	__label__ = "Add Mesh"
+	__label__ = "Mesh"
 	def draw(self, context):
 		layout = self.layout
 		layout.operator_context = 'INVOKE_REGION_WIN'
-		layout.itemO("mesh.primitive_plane_add", icon='ICON_MESH_PLANE')
-		layout.itemO("mesh.primitive_cube_add", icon='ICON_MESH_CUBE')
-		layout.itemO("mesh.primitive_circle_add", icon='ICON_MESH_CIRCLE')
-		layout.itemO("mesh.primitive_uv_sphere_add", icon='ICON_MESH_UVSPHERE')
-		layout.itemO("mesh.primitive_ico_sphere_add", icon='ICON_MESH_ICOSPHERE')
-		layout.itemO("mesh.primitive_cylinder_add", icon='ICON_MESH_TUBE')
-		layout.itemO("mesh.primitive_cone_add", icon='ICON_MESH_CONE')
+		layout.itemO("mesh.primitive_plane_add", icon='ICON_MESH_PLANE', text="Plane")
+		layout.itemO("mesh.primitive_cube_add", icon='ICON_MESH_CUBE', text="Cube")
+		layout.itemO("mesh.primitive_circle_add", icon='ICON_MESH_CIRCLE', text="Circle")
+		layout.itemO("mesh.primitive_uv_sphere_add", icon='ICON_MESH_UVSPHERE', text="UV Sphere")
+		layout.itemO("mesh.primitive_ico_sphere_add", icon='ICON_MESH_ICOSPHERE', text="Icosphere")
+		layout.itemO("mesh.primitive_cylinder_add", icon='ICON_MESH_TUBE', text="Tube")
+		layout.itemO("mesh.primitive_cone_add", icon='ICON_MESH_CONE', text="Cone")
 		layout.itemS()
-		layout.itemO("mesh.primitive_grid_add", icon='ICON_MESH_GRID')
-		layout.itemO("mesh.primitive_monkey_add", icon='ICON_MESH_MONKEY')
+		layout.itemO("mesh.primitive_grid_add", icon='ICON_MESH_GRID', text="Grid")
+		layout.itemO("mesh.primitive_monkey_add", icon='ICON_MESH_MONKEY', text="Monkey")
 
 class INFO_MT_add(bpy.types.Menu):
 	__label__ = "Add"
