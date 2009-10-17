@@ -1400,47 +1400,27 @@ setWindowCursorVisibility(
 	GHOST_TSuccess
 GHOST_WindowX11::
 setWindowCursorGrab(
-	bool grab, bool warp, bool restore
+	GHOST_TGrabCursorMode mode
 ){
-	if(grab) {
-		if(warp) {
-			m_system->getCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+	if(mode != GHOST_kGrabDisable) {
+		if(mode != GHOST_kGrabNormal) {
+			m_system->getCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
+			setCursorGrabAccum(0, 0);
 
-			setCursorWarpAccum(0, 0);
-			setWindowCursorVisibility(false);
-			m_cursorWarp= true;
+			if(mode == GHOST_kGrabHide)
+				setWindowCursorVisibility(false);
+
 		}
 		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	}
 	else {
-		if(m_cursorWarp) { /* are we exiting warp */
+		if (m_cursorGrab==GHOST_kGrabHide) {
+			m_system->setCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
 			setWindowCursorVisibility(true);
-			/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
-			if(restore) {
-				GHOST_Rect bounds;
-				GHOST_TInt32 x_new, y_new, x_rel, y_rel;
-
-				getClientBounds(bounds);
-
-				x_new= m_cursorWarpInitPos[0]+m_cursorWarpAccumPos[0];
-				y_new= m_cursorWarpInitPos[1]+m_cursorWarpAccumPos[1];
-
-				screenToClient(x_new, y_new, x_rel, y_rel);
-
-				if(x_rel < 0)		x_new = (x_new-x_rel) + 2;
-				if(y_rel < 0)		y_new = (y_new-y_rel) + 2;
-				if(x_rel > bounds.getWidth())	x_new -= (x_rel-bounds.getWidth()) + 2;
-				if(y_rel > bounds.getHeight())	y_new -= (y_rel-bounds.getHeight()) + 2;
-				m_system->setCursorPosition(x_new, y_new);
-
-			}
-			else {
-				m_system->setCursorPosition(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
-			}
-
-			setCursorWarpAccum(0, 0);
-			m_cursorWarp= false;
 		}
+
+		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+		setCursorGrabAccum(0, 0);
 		XUngrabPointer(m_display, CurrentTime);
 	}
 

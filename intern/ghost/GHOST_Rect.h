@@ -127,6 +127,13 @@ public:
 	virtual inline void unionPoint(GHOST_TInt32 x, GHOST_TInt32 y);
 
 	/**
+	 * Grows the rectangle to included a point.
+	 * @param	x	The x-coordinate of the point.
+	 * @param	y	The y-coordinate of the point.
+	 */
+	virtual inline void wrapPoint(GHOST_TInt32 &x, GHOST_TInt32 &y, GHOST_TInt32 ofs);
+
+	/**
 	 * Returns whether the point is inside this rectangle.
 	 * Point on the boundary is considered inside.
 	 * @param x	x-coordinate of point to test.
@@ -220,6 +227,21 @@ inline void GHOST_Rect::unionPoint(GHOST_TInt32 x, GHOST_TInt32 y)
 	if (x > m_r) m_r = x;
 	if (y < m_t) m_t = y;
 	if (y > m_b) m_b = y;
+}
+
+inline void GHOST_Rect::wrapPoint(GHOST_TInt32 &x, GHOST_TInt32 &y, GHOST_TInt32 ofs)
+{
+	GHOST_TInt32 w= getWidth();
+	GHOST_TInt32 h= getHeight();
+
+	/* highly unlikely but avoid eternal loop */
+	if(w-ofs <= 0 || h-ofs <= 0)
+		return;
+
+	while(x-ofs < m_l)		x+= w;
+	while(y-ofs < m_t)		y+= h;
+	while(x+ofs > m_r)		x-= w;
+	while(y+ofs > m_b)		y-= h;
 }
 
 inline bool GHOST_Rect::isInside(GHOST_TInt32 x, GHOST_TInt32 y) const

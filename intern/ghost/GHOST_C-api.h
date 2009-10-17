@@ -376,7 +376,7 @@ extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
  * @return	Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
-										  int grab, int warp, int restore);
+												GHOST_TGrabCursorMode mode);
 
 /***************************************************************************************
  ** Access to mouse button and keyboard states.

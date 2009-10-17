@@ -355,11 +355,11 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 
 
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
-								   int grab, int warp, int restore)
+										GHOST_TGrabCursorMode mode)
 {
 	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
 	
-	return window->setCursorGrab(grab?true:false, warp?true:false, restore?true:false);
+	return window->setCursorGrab(mode);
 }
 
 

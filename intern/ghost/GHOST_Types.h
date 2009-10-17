@@ -341,6 +341,12 @@ typedef enum {
 	GHOST_kKeyF24
 } GHOST_TKey;
 
+typedef enum {
+	GHOST_kGrabDisable = 0,	/* grab not set */
+	GHOST_kGrabNormal,	/* no cursor adjustments */
+	GHOST_kGrabWrap,		/* wrap the mouse location to prevent limiting screen bounds */
+	GHOST_kGrabHide,		/* hide the mouse while grabbing and restore the original location on release (numbuts) */
+} GHOST_TGrabCursorMode;
 
 typedef void* GHOST_TEventDataPtr;
 

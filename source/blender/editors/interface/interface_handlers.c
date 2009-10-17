@@ -3723,12 +3723,12 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	/* number editing */
 	if(state == BUTTON_STATE_NUM_EDITING) {
 		if(ui_is_a_warp_but(but))
-			WM_cursor_grab(CTX_wm_window(C), TRUE);
+			WM_cursor_grab(CTX_wm_window(C), TRUE, TRUE);
 		ui_numedit_begin(but, data);
 	} else if(data->state == BUTTON_STATE_NUM_EDITING) {
 		ui_numedit_end(but, data);
 		if(ui_is_a_warp_but(but))
-			WM_cursor_ungrab(CTX_wm_window(C), FALSE);
+			WM_cursor_ungrab(CTX_wm_window(C));
 	}
 	/* menu open */
 	if(state == BUTTON_STATE_MENU_OPEN)

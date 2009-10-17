@@ -239,7 +239,7 @@ protected:
 	/**
 	 * Sets the cursor warp accumulator. Overriden for workaround due to Cocoa next event after cursor set giving delta values non zero
 	 */
-	inline virtual bool setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y);
+	inline virtual bool setCursorGrabAccum(GHOST_TInt32 x, GHOST_TInt32 y);
 	
 	/**
 	 * Sets the cursor grab on the window using

@@ -158,10 +158,9 @@ public:
 	 * @return	The visibility state of the cursor.
 	 */
 	inline virtual bool getCursorVisibility() const;
-	inline virtual bool getCursorWarp() const;
-	inline virtual bool getCursorWarpPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
-	inline virtual bool getCursorWarpAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
-	inline virtual bool setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y);
+	inline virtual GHOST_TGrabCursorMode getCursorGrabMode() const;
+	inline virtual void getCursorGrabAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
+	inline virtual void setCursorGrabAccum(GHOST_TInt32 x, GHOST_TInt32 y);
 
 	/**
 	 * Shows or hides the cursor.
@@ -175,7 +174,7 @@ public:
 	 * @param	grab The new grab state of the cursor.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(bool grab, bool warp, bool restore);
+	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode);
 
 	/**
 	 * Sets the window "modified" status, indicating unsaved changes
@@ -247,7 +246,7 @@ protected:
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCursorGrab(bool grab, bool warp, bool restore) { return GHOST_kSuccess; };
+	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) { return GHOST_kSuccess; };
 	
 	/**
 	 * Sets the cursor shape on the window using
@@ -274,16 +273,13 @@ protected:
 	bool m_cursorVisible;
 
 	/** The current grabbed state of the cursor */
-	bool m_cursorGrabbed;
-	
-	/** The current warped state of the cursor */
-	bool m_cursorWarp;
+	GHOST_TGrabCursorMode m_cursorGrab;
 
 	/** Initial grab location. */
-	GHOST_TInt32 m_cursorWarpInitPos[2];
+	GHOST_TInt32 m_cursorGrabInitPos[2];
 
-	/** Accumulated offset from m_cursorWarpInitPos. */
-	GHOST_TInt32 m_cursorWarpAccumPos[2];
+	/** Accumulated offset from m_cursorGrabInitPos. */
+	GHOST_TInt32 m_cursorGrabAccumPos[2];
 
 	/** The current shape of the cursor */
 	GHOST_TStandardCursor m_cursorShape;
@@ -317,40 +313,21 @@ inline bool GHOST_Window::getCursorVisibility() const
 	return m_cursorVisible;
 }
 
-inline bool GHOST_Window::getCursorWarp() const
+inline GHOST_TGrabCursorMode GHOST_Window::getCursorGrabMode() const
 {
-	return m_cursorWarp;
+	return m_cursorGrab;
 }
 
-inline bool GHOST_Window::getCursorWarpPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+inline void GHOST_Window::getCursorGrabAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const
 {
-	if(m_cursorWarp==false)
-		return GHOST_kFailure;
-
-	x= m_cursorWarpInitPos[0];
-	y= m_cursorWarpInitPos[1];
-	return GHOST_kSuccess;
+	x= m_cursorGrabAccumPos[0];
+	y= m_cursorGrabAccumPos[1];
 }
 
-inline bool GHOST_Window::getCursorWarpAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+inline void GHOST_Window::setCursorGrabAccum(GHOST_TInt32 x, GHOST_TInt32 y)
 {
-	if(m_cursorWarp==false)
-		return GHOST_kFailure;
-
-	x= m_cursorWarpAccumPos[0];
-	y= m_cursorWarpAccumPos[1];
-	return GHOST_kSuccess;
-}
-
-inline bool GHOST_Window::setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y)
-{
-	if(m_cursorWarp==false)
-		return GHOST_kFailure;
-
-	m_cursorWarpAccumPos[0]= x;
-	m_cursorWarpAccumPos[1]= y;
-
-	return GHOST_kSuccess;
+	m_cursorGrabAccumPos[0]= x;
+	m_cursorGrabAccumPos[1]= y;
 }
 
 inline GHOST_TStandardCursor GHOST_Window::getCursorShape() const

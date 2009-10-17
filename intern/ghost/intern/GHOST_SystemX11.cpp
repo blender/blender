@@ -388,31 +388,36 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XMotionEvent &xme = xe->xmotion;
 			
-			if(window->getCursorWarp()) {
-				/* Calculate offscreen location and re-center the mouse */
-				GHOST_TInt32 x_warp, y_warp,  x_new, y_new, x_accum, y_accum;
+			if(window->getCursorGrabMode() != GHOST_kGrabDisable && window->getCursorGrabMode() != GHOST_kGrabNormal)
+			{
+				GHOST_TInt32 x_new= xme.x_root;
+				GHOST_TInt32 y_new= xme.y_root;
+				GHOST_TInt32 x_accum, y_accum;
+				GHOST_Rect bounds;
 
-				window->getCursorWarpPos(x_warp, y_warp);
-				getCursorPosition(x_new, y_new);
+				window->getClientBounds(bounds);
 
-				if(x_warp != x_new || y_warp != y_new) {
-					window->getCursorWarpAccum(x_accum, y_accum);
-					x_accum += x_new - x_warp;
-					y_accum += y_new - y_warp;
+				/* could also clamp to screen bounds
+				 * wrap with a window outside the view will fail atm  */
 
-					window->setCursorWarpAccum(x_accum, y_accum);
-					setCursorPosition(x_warp, y_warp); /* reset */
+				bounds.wrapPoint(x_new, y_new, 1); /* offset of one incase blender is at screen bounds */
 
-					g_event = new
-					GHOST_EventCursor(
-						getMilliSeconds(),
-						GHOST_kEventCursorMove,
-						window,
-						x_warp + x_accum,
-						y_warp + y_accum
-					);
+				window->getCursorGrabAccum(x_accum, y_accum);
 
+				if(x_new != xme.x_root || y_new != xme.y_root) {
+					setCursorPosition(x_new, y_new); /* wrap */
+					window->setCursorGrabAccum(x_accum + (xme.x_root - x_new), y_accum + (xme.y_root - y_new));
 				}
+
+				g_event = new
+				GHOST_EventCursor(
+					getMilliSeconds(),
+					GHOST_kEventCursorMove,
+					window,
+					xme.x_root + x_accum,
+					xme.y_root + y_accum
+				);
+
 			}
 			else {
 				g_event = new

@@ -48,15 +48,14 @@ GHOST_Window::GHOST_Window(
 :
 	m_drawingContextType(type),
 	m_cursorVisible(true),
-	m_cursorGrabbed(false),
-	m_cursorWarp(false),
+	m_cursorGrab(GHOST_kGrabDisable),
 	m_cursorShape(GHOST_kStandardCursorDefault),
 	m_stereoVisual(stereoVisual)
 {
 	m_isUnsavedChanges = false;
 	
-    m_cursorWarpAccumPos[0] = 0;
-    m_cursorWarpAccumPos[1] = 0;
+    m_cursorGrabAccumPos[0] = 0;
+    m_cursorGrabAccumPos[1] = 0;
 
     m_fullScreen = state == GHOST_kWindowStateFullScreen;
     if (m_fullScreen) {
@@ -98,13 +97,13 @@ GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 	}
 }
 
-GHOST_TSuccess GHOST_Window::setCursorGrab(bool grab, bool warp, bool restore)
+GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode)
 {
-	if(m_cursorGrabbed == grab)
+	if(m_cursorGrab == mode)
 		return GHOST_kSuccess;
 
-	if (setWindowCursorGrab(grab, warp, restore)) {
-		m_cursorGrabbed = grab;
+	if (setWindowCursorGrab(mode)) {
+		m_cursorGrab = mode;
 		return GHOST_kSuccess;
 	}
 	else {

@@ -271,7 +271,7 @@ public:
 	 * @param	grab The new grab state of the cursor.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(bool grab, bool warp, bool restore) { return GHOST_kSuccess; };
+	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode) { return GHOST_kSuccess; };
 
 };
 

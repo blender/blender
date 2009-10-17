@@ -256,8 +256,11 @@ protected:
 	 */
 		GHOST_TSuccess 
 	setWindowCursorGrab(
-		bool grab, bool warp, bool restore
+		GHOST_TGrabCursorMode mode
 	);
+
+		GHOST_TGrabCursorMode
+	getWindowCursorGrab() const;
 
 	/**
 	 * Sets the cursor shape on the window using
