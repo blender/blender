@@ -158,7 +158,6 @@ void MESH_OT_edges_select_sharp(struct wmOperatorType *ot);
 void MESH_OT_select_shortest_path(struct wmOperatorType *ot);
 void MESH_OT_select_similar(struct wmOperatorType *ot);
 void MESH_OT_select_random(struct wmOperatorType *ot);
-void MESH_OT_vertices_transform_to_sphere(struct wmOperatorType *ot);
 void MESH_OT_selection_type(struct wmOperatorType *ot);
 void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);

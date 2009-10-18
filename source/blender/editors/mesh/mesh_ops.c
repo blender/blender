@@ -103,7 +103,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_spin);
 	WM_operatortype_append(MESH_OT_screw);
 	
-	WM_operatortype_append(MESH_OT_vertices_transform_to_sphere);
 	WM_operatortype_append(MESH_OT_split);
 	WM_operatortype_append(MESH_OT_extrude_repeat);
 	WM_operatortype_append(MESH_OT_edge_rotate);
@@ -215,8 +214,6 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_faces_select_linked_flat", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_edges_select_sharp", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
-	
-	WM_keymap_add_item(keymap, "MESH_OT_vertices_transform_to_sphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT , 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 	
