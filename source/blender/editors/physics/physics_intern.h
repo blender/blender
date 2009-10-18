@@ -77,6 +77,8 @@ void PARTICLE_OT_target_move_down(struct wmOperatorType *ot);
 void PARTICLE_OT_connect_hair(struct wmOperatorType *ot);
 void PARTICLE_OT_disconnect_hair(struct wmOperatorType *ot);
 
+void PARTICLE_OT_dupliob_copy(struct wmOperatorType *ot);
+void PARTICLE_OT_dupliob_remove(struct wmOperatorType *ot);
 void PARTICLE_OT_dupliob_move_up(struct wmOperatorType *ot);
 void PARTICLE_OT_dupliob_move_down(struct wmOperatorType *ot);
 

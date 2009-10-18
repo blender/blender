@@ -650,6 +650,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 				col = row.column()
 				subrow = col.row()
 				subcol = subrow.column(align=True)
+				subcol.itemO("particle.dupliob_copy", icon='ICON_ZOOMIN', text="")
+				subcol.itemO("particle.dupliob_remove", icon='ICON_ZOOMOUT', text="")
 				subcol.itemO("particle.dupliob_move_up", icon='VICON_MOVE_UP', text="")
 				subcol.itemO("particle.dupliob_move_down", icon='VICON_MOVE_DOWN', text="")
 				

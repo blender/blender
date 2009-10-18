@@ -386,6 +386,90 @@ void PARTICLE_OT_dupliob_move_up(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************** particle dupliweight operators *********************/
+
+static int copy_particle_dupliob_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+	ParticleSettings *part;
+	ParticleDupliWeight *dw;
+
+	if(!psys)
+		return OPERATOR_CANCELLED;
+	part = psys->part;
+	for(dw=part->dupliweights.first; dw; dw=dw->next) {
+		if(dw->flag & PART_DUPLIW_CURRENT) {
+			dw->flag &= ~PART_DUPLIW_CURRENT;
+			dw = MEM_dupallocN(dw);
+			dw->flag |= PART_DUPLIW_CURRENT;
+			BLI_addhead(&part->dupliweights, dw);
+
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+			break;
+		}
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_dupliob_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Particle Dupliob";
+	ot->idname= "PARTICLE_OT_dupliob_copy";
+	ot->description="Duplicate the current dupliobject.";
+	
+	/* api callbacks */
+	ot->exec= copy_particle_dupliob_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int remove_particle_dupliob_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+	ParticleSettings *part;
+	ParticleDupliWeight *dw;
+
+	if(!psys)
+		return OPERATOR_CANCELLED;
+
+	part = psys->part;
+	for(dw=part->dupliweights.first; dw; dw=dw->next) {
+		if(dw->flag & PART_DUPLIW_CURRENT) {
+			BLI_remlink(&part->dupliweights, dw);
+			MEM_freeN(dw);
+			break;
+		}
+
+	}
+	dw = part->dupliweights.last;
+
+	if(dw)
+		dw->flag |= PART_DUPLIW_CURRENT;
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_dupliob_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Particle Dupliobject";
+	ot->idname= "PARTICLE_OT_dupliob_remove";
+	ot->description="Remove the selected dupliobject.";
+	
+	/* api callbacks */
+	ot->exec= remove_particle_dupliob_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /************************ move down particle dupliweight operator *********************/
 
 static int dupliob_move_down_exec(bContext *C, wmOperator *op)
