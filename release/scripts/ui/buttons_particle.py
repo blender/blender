@@ -6,8 +6,8 @@ from buttons_physics_common import effector_weights_ui
 from buttons_physics_common import basic_force_field_settings_ui
 from buttons_physics_common import basic_force_field_falloff_ui
 
-def particle_panel_enabled(psys):
-	return psys.point_cache.baked==False and psys.edited==False
+def particle_panel_enabled(context, psys):
+	return psys.point_cache.baked==False and psys.edited==False and (not context.particle_system_editable)
 	
 def particle_panel_poll(context):
 	psys = context.particle_system
@@ -78,7 +78,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 					return
 				
 				row=col.row()
-				row.enabled = particle_panel_enabled(psys)
+				row.enabled = particle_panel_enabled(context, psys)
 				row.itemR(part, "type", text="")
 				row.itemR(psys, "seed")
 				
@@ -89,7 +89,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 					else:
 						split.itemL(text="")
 					row = split.row()
-					row.enabled = particle_panel_enabled(psys)
+					row.enabled = particle_panel_enabled(context, psys)
 					row.itemR(part, "hair_step")
 					if psys.edited==True:
 						if psys.global_hair:
@@ -99,7 +99,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 							layout.itemO("particle.disconnect_hair")
 							layout.itemL(text="")
 				elif part.type=='REACTOR':
-					split.enabled = particle_panel_enabled(psys)
+					split.enabled = particle_panel_enabled(context, psys)
 					split.itemR(psys, "reactor_target_object")
 					split.itemR(psys, "reactor_target_particle_system", text="Particle System")
 		
@@ -118,7 +118,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		
-		layout.enabled = particle_panel_enabled(psys) and not psys.multiple_caches
+		layout.enabled = particle_panel_enabled(context, psys) and not psys.multiple_caches
 		
 		row = layout.row()
 		row.active = part.distribution != 'GRID'
@@ -221,7 +221,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 
 		psys = context.particle_system
 		
-		point_cache_ui(self, psys.point_cache, particle_panel_enabled(psys), not psys.hair_dynamics, 0)
+		point_cache_ui(self, psys.point_cache, particle_panel_enabled(context, psys), not psys.hair_dynamics, 0)
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel):
 	__label__ = "Velocity"
@@ -239,7 +239,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		
-		layout.enabled = particle_panel_enabled(psys)
+		layout.enabled = particle_panel_enabled(context, psys)
 	
 		split = layout.split()
 			
@@ -284,7 +284,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		
-		layout.enabled = particle_panel_enabled(psys)
+		layout.enabled = particle_panel_enabled(context, psys)
 		
 		split = layout.split()
 		split.itemL(text="Initial Rotation:")
@@ -322,7 +322,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		
-		layout.enabled = particle_panel_enabled(psys)
+		layout.enabled = particle_panel_enabled(context, psys)
 
 		row = layout.row()
 		row.itemR(part, "physics_type", expand=True)
@@ -461,7 +461,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		boids = context.particle_system.settings.boids
 		layout = self.layout
 		
-		layout.enabled = particle_panel_enabled(context.particle_system)
+		layout.enabled = particle_panel_enabled(context, context.particle_system)
 		
 		# Currently boids can only use the first state so these are commented out for now.
 		#row = layout.row()

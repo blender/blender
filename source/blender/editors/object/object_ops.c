@@ -90,6 +90,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_slow_parent_set);
 	WM_operatortype_append(OBJECT_OT_slow_parent_clear);
 	WM_operatortype_append(OBJECT_OT_make_local);
+	WM_operatortype_append(OBJECT_OT_make_single_user);
 	WM_operatortype_append(OBJECT_OT_move_to_layer);
 
 	WM_operatortype_append(OBJECT_OT_select_inverse);
@@ -170,6 +171,8 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
 	WM_operatortype_append(OBJECT_OT_shape_key_remove);
+	WM_operatortype_append(OBJECT_OT_shape_key_clear);
+	WM_operatortype_append(OBJECT_OT_shape_key_mirror);
 
 	WM_operatortype_append(LATTICE_OT_select_all_toggle);
 	WM_operatortype_append(LATTICE_OT_make_regular);
@@ -249,12 +252,21 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "name", "INFO_MT_add");
 
+	WM_keymap_add_item(keymap, "OBJECT_OT_duplicates_make_real", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_object_apply");
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", UKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_single_user");
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0)->ptr, "linked", 1);
 	WM_keymap_add_item(keymap, "OBJECT_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_convert", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	
+	WM_keymap_add_item(keymap, "OBJECT_OT_make_local", LKEY, KM_PRESS, 0, 0);
+
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
@@ -281,15 +293,15 @@ void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keym
 		km = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing_falloff");
 
-		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", OKEY, KM_PRESS, 0, 0);
+		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
 		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing");
-		RNA_string_set(km->ptr, "value_1", "'DISABLED'");
-		RNA_string_set(km->ptr, "value_2", "'ENABLED'");
+		RNA_string_set(km->ptr, "value_1", "DISABLED");
+		RNA_string_set(km->ptr, "value_2", "ENABLED");
 
-		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", OKEY, KM_PRESS, KM_ALT, 0);
+		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, KM_ALT, 0);
 		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing");
-		RNA_string_set(km->ptr, "value_1", "'DISABLED'");
-		RNA_string_set(km->ptr, "value_2", "'CONNECTED'");
+		RNA_string_set(km->ptr, "value_1", "DISABLED");
+		RNA_string_set(km->ptr, "value_2", "CONNECTED");
 	}
 
 }

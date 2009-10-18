@@ -142,6 +142,9 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *op)
 	
 	scene->active_keyingset= BLI_countlist(&scene->keyingsets);
 	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -182,6 +185,9 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 	/* the active one should now be the previously second-to-last one */
 	scene->active_keyingset--;
 	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -219,7 +225,7 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 	/* don't use the API method for this, since that checks on values... */
 	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSetPath Empty");
 	BLI_addtail(&ks->paths, ksp);
-	ks->active_path= BLI_countlist(&ks->paths) + 1;
+	ks->active_path= BLI_countlist(&ks->paths);
 	
 	ksp->groupmode= KSP_GROUP_KSNAME; // XXX?
 	

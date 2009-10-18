@@ -174,20 +174,20 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	
 	/* drawtype */
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, 0, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, 0, 0);
 	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
-	RNA_string_set(km->ptr, "value_1", "'SOLID'");
-	RNA_string_set(km->ptr, "value_2", "'WIREFRAME'");
+	RNA_string_set(km->ptr, "value_1", "SOLID");
+	RNA_string_set(km->ptr, "value_2", "WIREFRAME");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, KM_ALT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, KM_ALT, 0);
 	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
-	RNA_string_set(km->ptr, "value_1", "'TEXTURED'");
-	RNA_string_set(km->ptr, "value_2", "'SOLID'");
+	RNA_string_set(km->ptr, "value_1", "TEXTURED");
+	RNA_string_set(km->ptr, "value_2", "SOLID");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_values", ZKEY, KM_PRESS, KM_SHIFT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(km->ptr, "path", "space_data.viewport_shading");
-	RNA_string_set(km->ptr, "value_1", "'SHADED'");
-	RNA_string_set(km->ptr, "value_2", "'WIREFRAME'");
+	RNA_string_set(km->ptr, "value_1", "SHADED");
+	RNA_string_set(km->ptr, "value_2", "WIREFRAME");
 
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
@@ -225,28 +225,28 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_snap_menu", SKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* context ops */
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", COMMAKEY, KM_PRESS, 0, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
 	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
-	RNA_string_set(km->ptr, "value", "'BOUNDING_BOX_CENTER'");
+	RNA_string_set(km->ptr, "value", "BOUNDING_BOX_CENTER");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", COMMAKEY, KM_PRESS, KM_CTRL, 0); /* 2.4x allowed Comma+Shift too, rather not use both */
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0); /* 2.4x allowed Comma+Shift too, rather not use both */
 	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
-	RNA_string_set(km->ptr, "value", "'MEDIAN_POINT'");
+	RNA_string_set(km->ptr, "value", "MEDIAN_POINT");
 
 	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", COMMAKEY, KM_PRESS, KM_ALT, 0); /* new in 2.5 */
 	RNA_string_set(km->ptr, "path", "space_data.pivot_point_align");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", PERIODKEY, KM_PRESS, 0, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
 	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
-	RNA_string_set(km->ptr, "value", "'CURSOR'");
+	RNA_string_set(km->ptr, "value", "CURSOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", PERIODKEY, KM_PRESS, KM_CTRL, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
-	RNA_string_set(km->ptr, "value", "'INDIVIDUAL_CENTERS'");
+	RNA_string_set(km->ptr, "value", "INDIVIDUAL_CENTERS");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set", PERIODKEY, KM_PRESS, KM_ALT, 0);
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_ALT, 0);
 	RNA_string_set(km->ptr, "path", "space_data.pivot_point");
-	RNA_string_set(km->ptr, "value", "'ACTIVE_ELEMENT'");
+	RNA_string_set(km->ptr, "value", "ACTIVE_ELEMENT");
 
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_VIEW3D);

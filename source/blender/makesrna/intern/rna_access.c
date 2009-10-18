@@ -727,7 +727,7 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 
 	*free= 0;
 
-	if(eprop->itemf) {
+	if(eprop->itemf && C) {
 		int tot= 0;
 		*item= eprop->itemf(C, ptr, free);
 

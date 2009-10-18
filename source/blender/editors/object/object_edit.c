@@ -1258,7 +1258,7 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 static void copy_texture_space(Object *to, Object *ob)
 {
 	float *poin1= NULL, *poin2= NULL;
-	int texflag= 0;
+	short texflag= 0;
 	
 	if(ob->type==OB_MESH) {
 		texflag= ((Mesh *)ob->data)->texflag;
@@ -2001,12 +2001,6 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 
 	if(!ob || !object_mode_set_compat(C, op, ob))
 		return OPERATOR_PASS_THROUGH;
-
-	/* Irritating workaround! disallow paint modes from editmode since a number of shortcuts conflict
-	 * XXX - would be much better to handle this on a keymap level */
-	if((ob->mode & OB_MODE_EDIT) && ELEM6(mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT, OB_MODE_PARTICLE_EDIT, OB_MODE_POSE)) {
-		return OPERATOR_PASS_THROUGH;
-	}
 
 	/* Exit current mode if it's not the mode we're setting */
 	if(ob->mode != OB_MODE_OBJECT && ob->mode != mode)

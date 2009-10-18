@@ -78,6 +78,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_fcurve.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -647,6 +648,36 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_FCURVE;
 			}
 				break;
+				
+			case ANIMTYPE_SHAPEKEY:
+			{
+				KeyBlock *kb= (KeyBlock *)data;
+				Key *key= (Key *)ale->id;
+				
+				ale->flag= kb->flag;
+				
+				/* whether we have keyframes depends on whether there is a Key block to find it from */
+				if (key) {
+					/* index of shapekey is defined by place in key's list */
+					ale->index= BLI_findindex(&key->block, kb);
+					
+					/* the corresponding keyframes are from the animdata */
+					if (ale->adt && ale->adt->action) {
+						bAction *act= ale->adt->action;
+						char *rna_path = key_get_curValue_rnaPath(key, kb);
+						
+						/* try to find the F-Curve which corresponds to this exactly,
+						 * then free the MEM_alloc'd string
+						 */
+						if (rna_path) {
+							ale->key_data= (void *)list_find_fcurve(&act->curves, rna_path, 0);
+							MEM_freeN(rna_path);
+						}
+					}
+					ale->datatype= (ale->key_data)? ALE_FCURVE : ALE_NONE;
+				}
+			}	
+				break;
 			
 			case ANIMTYPE_GPLAYER:
 			{
@@ -892,7 +923,55 @@ static int animdata_filter_nla (ListBase *anim_data, bDopeSheet *ads, AnimData *
 	/* return the number of items added to the list */
 	return items;
 }
- 
+
+/* Include ShapeKey Data for ShapeKey Editor */
+static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_mode)
+{
+	bAnimListElem *ale;
+	int items = 0;
+	
+	/* check if channels or only F-Curves */
+	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
+		KeyBlock *kb;
+		
+		/* loop through the channels adding ShapeKeys as appropriate */
+		for (kb= key->block.first; kb; kb= kb->next) {
+			/* skip the first one, since that's the non-animateable basis */
+			// XXX maybe in future this may become handy?
+			if (kb == key->block.first) continue;
+			
+			/* only work with this channel and its subchannels if it is editable */
+			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_SHAPEKEY(kb)) {
+				/* only include this track if selected in a way consistent with the filtering requirements */
+				if ( ANIMCHANNEL_SELOK(SEL_SHAPEKEY(kb)) ) {
+					// TODO: consider 'active' too?
+					
+					/* owner-id here must be key so that the F-Curve can be resolved... */
+					ale= make_new_animlistelem(kb, ANIMTYPE_SHAPEKEY, NULL, ANIMTYPE_NONE, (ID *)key);
+					
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+			}
+		}
+	}
+	else {
+		/* just use the action associated with the shapekey */
+		// FIXME: is owner-id and having no owner/dopesheet really fine?
+		if (key->adt) {
+			if (filter_mode & ANIMFILTER_ANIMDATA)
+				ANIMDATA_ADD_ANIMDATA(key)
+			else if (key->adt->action)
+				items= animdata_filter_action(anim_data, NULL, key->adt->action, filter_mode, NULL, ANIMTYPE_NONE, (ID *)key);
+		}
+	}
+	
+	/* return the number of items added to the list */
+	return items;
+}
+
 #if 0
 // FIXME: switch this to use the bDopeSheet...
 static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter_mode)
@@ -1520,21 +1599,6 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 		return 0;
 	}
 	
-	/* dopesheet summary 
-	 *	- only for drawing and/or selecting keyframes in channels, but not for real editing 
-	 *	- only useful for DopeSheet Editor, where the summary is useful
-	 */
-	// TODO: we should really check if some other prohibited filters are also active, but that can be for later
-	if ((filter_mode & ANIMFILTER_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
-		ale= make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL, ANIMTYPE_NONE, NULL);
-		if (ale) {
-			BLI_addtail(anim_data, ale);
-			items++;
-		}
-		
-		// TODO: if the summary gets a collapse widget, then we could make the other stuff not get shown... 
-	}
-	
 	/* scene-linked animation */
 	// TODO: sequencer, composite nodes - are we to include those here too?
 	{
@@ -1887,6 +1951,50 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 	return items;
 }
 
+/* Summary track for DopeSheet/Action Editor 
+ * 	- return code is whether the summary lets the other channels get drawn
+ */
+static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim_data, int filter_mode, int *items)
+{
+	bDopeSheet *ads = NULL;
+	
+	/* get the DopeSheet information to use 
+	 *	- we should only need to deal with the DopeSheet/Action Editor, 
+	 *	  since all the other Animation Editors won't have this concept
+	 *	  being applicable.
+	 */
+	if ((ac && ac->sa) && (ac->sa->spacetype == SPACE_ACTION)) {
+		SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+		ads= &saction->ads;
+	}
+	else {
+		/* invalid space type - skip this summary channels */
+		return 1;
+	}
+	
+	/* dopesheet summary 
+	 *	- only for drawing and/or selecting keyframes in channels, but not for real editing 
+	 *	- only useful for DopeSheet Editor, where the summary is useful
+	 */
+	// TODO: we should really check if some other prohibited filters are also active, but that can be for later
+	if ((filter_mode & ANIMFILTER_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
+		bAnimListElem *ale= make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL, ANIMTYPE_NONE, NULL);
+		if (ale) {
+			BLI_addtail(anim_data, ale);
+			(*items)++;
+		}
+		
+		/* if summary is collapsed, don't show other channels beneath this 
+		 *	- this check is put inside the summary check so that it doesn't interfere with normal operation
+		 */ 
+		if (ads->flag & ADS_FLAG_SUMMARY_COLLAPSED)
+			return 0;
+	}
+	
+	/* the other channels beneath this can be shown */
+	return 1;
+}  
+
 /* ----------- Public API --------------- */
 
 /* This function filters the active data source to leave only animation channels suitable for
@@ -1907,23 +2015,43 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 		
 		/* firstly filter the data */
 		switch (datatype) {
-			case ANIMCONT_ACTION:
-				items= animdata_filter_action(anim_data, NULL, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+			case ANIMCONT_ACTION:	/* 'Action Editor' */
+			{
+				/* the check for the DopeSheet summary is included here since the summary works here too */
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items += animdata_filter_action(anim_data, NULL, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+			}
 				break;
 				
-			case ANIMCONT_SHAPEKEY:
-				//items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+			case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
+			{
+				/* the check for the DopeSheet summary is included here since the summary works here too */
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items= animdata_filter_shapekey(anim_data, data, filter_mode);
+			}
 				break;
 				
 			case ANIMCONT_GPENCIL:
+			{
 				//items= animdata_filter_gpencil(anim_data, data, filter_mode);
+			}
 				break;
 				
-			case ANIMCONT_DOPESHEET:
-			case ANIMCONT_FCURVES:
-			case ANIMCONT_DRIVERS:
-			case ANIMCONT_NLA:
-				items= animdata_filter_dopesheet(anim_data, ac, data, filter_mode);
+			case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
+			{
+				/* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items += animdata_filter_dopesheet(anim_data, ac, data, filter_mode);
+			}
+				break;
+				
+			case ANIMCONT_FCURVES: /* Graph Editor -> FCurves/Animation Editing */
+			case ANIMCONT_DRIVERS: /* Graph Editor -> Drivers Editing */
+			case ANIMCONT_NLA: /* NLA Editor */
+			{
+				/* all of these editors use the basic DopeSheet data for filtering options, but don't have all the same features */
+				items = animdata_filter_dopesheet(anim_data, ac, data, filter_mode);
+			}
 				break;
 		}
 			

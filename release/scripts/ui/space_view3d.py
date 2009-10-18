@@ -172,8 +172,8 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
 		layout.itemO("object.select_random", text="Random")
 		layout.itemO("object.select_mirror", text="Mirror")
 		layout.itemO("object.select_by_layer", text="Select All by Layer")
-		layout.item_enumO("object.select_by_type", "type", "", text="Select All by Type...")
-		layout.itemO("object.select_grouped", text="Select Grouped...")
+		layout.item_menu_enumO("object.select_by_type", "type", "", text="Select All by Type...")
+		layout.item_menu_enumO("object.select_grouped", "type", text="Select Grouped...")
 		layout.itemO("object.select_pattern", text="Select Pattern...")
 
 class VIEW3D_MT_select_pose(bpy.types.Menu):
@@ -395,6 +395,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 		layout = self.layout
 
 		layout.itemM("VIEW3D_MT_object_clear")
+		layout.itemM("VIEW3D_MT_object_apply")
 		layout.itemM("VIEW3D_MT_snap")
 		
 		layout.itemS()
@@ -408,6 +409,8 @@ class VIEW3D_MT_object(bpy.types.Menu):
 		layout.item_booleanO("object.duplicate", "linked", True, text="Duplicate Linked")
 		layout.itemO("object.delete", text="Delete...")
 		layout.itemO("object.proxy_make", text="Make Proxy...")
+		layout.item_menu_enumO("object.make_local", "type", text="Make Local...")
+		layout.itemM("VIEW3D_MT_make_single_user")
 		
 		layout.itemS()
 		
@@ -437,6 +440,20 @@ class VIEW3D_MT_object_clear(bpy.types.Menu):
 		layout.itemO("object.scale_clear", text="Scale")
 		layout.itemO("object.origin_clear", text="Origin")
 		
+class VIEW3D_MT_object_apply(bpy.types.Menu):
+	__label__ = "Apply"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("object.location_apply", text="Location")
+		layout.itemO("object.rotation_apply", text="Rotation")
+		layout.itemO("object.scale_apply", text="Scale")
+		layout.itemS()
+		layout.itemO("object.visual_transform_apply", text="Visual Transform")
+		layout.itemO("object.duplicates_make_real")
+		
+
 class VIEW3D_MT_object_parent(bpy.types.Menu):
 	__label__ = "Parent"
 
@@ -487,6 +504,27 @@ class VIEW3D_MT_object_showhide(bpy.types.Menu):
 		layout.itemO("object.restrictview_clear", text="Show Hidden")
 		layout.itemO("object.restrictview_set", text="Hide Selected")
 		layout.item_booleanO("object.restrictview_set", "unselected", True, text="Hide Unselected")
+
+class VIEW3D_MT_make_single_user(bpy.types.Menu):
+	__label__ = "Make Single User"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Object")
+		props.object = True
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Object & ObData")
+		props.object = props.obdata = True
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Object & ObData & Materials+Tex")
+		props.object = props.obdata = props.material = props.texture = True
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Materials+Tex")
+		props.material = props.texture = True
+		
+		props = layout.itemO("object.make_single_user", properties=True, text="Animation")
+		props.animation = True
 
 # ********** Vertex paint menu **********	
 	
@@ -737,7 +775,7 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 		layout.itemS()
 		
 		layout.itemR(settings, "automerge_editing")
-		layout.itemR(settings, "proportional_editing")
+		layout.item_menu_enumR(settings, "proportional_editing")
 		layout.item_menu_enumR(settings, "proportional_editing_falloff")
 		
 		layout.itemS()
@@ -756,18 +794,18 @@ class VIEW3D_MT_edit_mesh_specials(bpy.types.Menu):
 		layout.itemO("mesh.subdivide", text="Subdivide")
 		layout.item_floatO("mesh.subdivide", "smoothness", 1.0, text="Subdivide Smooth")
 		layout.itemO("mesh.merge", text="Merge...")
-		layout.itemO("mesh.remove_doubles", text="Remove Doubles")
+		layout.itemO("mesh.remove_doubles")
 		layout.itemO("mesh.hide", text="Hide")
 		layout.itemO("mesh.reveal", text="Reveal")
-		layout.itemO("mesh.select_inverse", text="Select Inverse")
+		layout.itemO("mesh.select_inverse")
 		layout.itemO("mesh.flip_normals")
 		layout.itemO("mesh.vertices_smooth", text="Smooth")
 		# layout.itemO("mesh.bevel", text="Bevel")
 		layout.itemO("mesh.faces_shade_smooth")
 		layout.itemO("mesh.faces_shade_flat")
-		# layout.itemO("mesh.blend_from_shape", text="Blend From Shape")
-		# layout.itemO("mesh.shape_propagate_to_all", text="Propagate to All Shapes")
-		layout.itemO("mesh.select_vertex_path", text="Select Vertex Path")
+		layout.itemO("mesh.blend_from_shape")
+		# layout.itemO("mesh.shape_propagate_to_all")
+		layout.itemO("mesh.select_vertex_path")
 
 class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 	__label__ = "Vertices"
@@ -786,9 +824,9 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 		layout.itemO("mesh.vertices_smooth")
 		layout.itemO("mesh.remove_doubles")
 		
-		layout.itemO("mesh.select_vertex_path", text="Select Vertex Path")
+		layout.itemO("mesh.select_vertex_path")
 		
-		# uiItemO(layout, "Blend From Shape", 0, "mesh.blend_from_shape");
+		layout.itemO("mesh.blend_from_shape")
 		# uiItemO(layout, "Propagate to All Shapes", 0, "mesh.shape_propagate_to_all");
 
 class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
@@ -1191,8 +1229,11 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
+
 		view = context.space_data
 		gs = context.scene.game_data
+		ob = context.object
+		mesh = context.active_object.data
 		
 		col = layout.column()
 		col.itemR(view, "display_floor", text="Grid Floor")
@@ -1202,12 +1243,13 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		col.itemR(view, "outline_selected")
 		col.itemR(view, "all_object_centers")
 		col.itemR(view, "relationship_lines")
+		if ob.type =='MESH':
+			col.itemR(mesh, "all_edges")
 		
 		col = layout.column()
 		col.itemL(text="Shading:")
 		col.itemR(gs, "material_mode", text="")
 		col.itemR(view, "textured_solid")
-
 
 # XXX - the Quad View options don't work yet		
 #		layout.itemS()
@@ -1235,8 +1277,6 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
 		col = layout.column()
 		col.itemL(text="Overlays:")
 		col.itemR(mesh, "draw_edges", text="Edges")
-		col.itemR(mesh, "all_edges")
-		col.itemS()
 		col.itemR(mesh, "draw_faces", text="Faces")
 		col.itemR(mesh, "draw_creases", text="Creases")
 		col.itemR(mesh, "draw_bevel_weights", text="Bevel Weights")
@@ -1333,12 +1373,11 @@ class VIEW3D_PT_transform_orientations(bpy.types.Panel):
 		col.itemR(view, "transform_orientation")
 		col.itemO("tfm.create_orientation", text="Create")
 		
-#		orientation_index = view.__rna__.properties["transform_orientation"].items[view.transform_orientation].value
-#		
-#		if orientation_index >= 4:
-#			orientation = context.scene.orientations[orientation_index - 4]
-#			col.itemR(orientation, "name")
-		col.itemO("tfm.delete_orientation", text="Delete")
+		orientation = view.current_orientation
+		
+		if orientation:
+			col.itemR(orientation, "name")
+			col.itemO("tfm.delete_orientation", text="Delete")
 
 # Operators 
 
@@ -1397,12 +1436,15 @@ bpy.types.register(VIEW3D_MT_select_edit_armature)
 bpy.types.register(VIEW3D_MT_select_face) # XXX todo
 
 bpy.types.register(VIEW3D_MT_object) # Object Menu
+bpy.types.register(VIEW3D_MT_object_apply)
 bpy.types.register(VIEW3D_MT_object_clear)
 bpy.types.register(VIEW3D_MT_object_parent)
 bpy.types.register(VIEW3D_MT_object_track)
 bpy.types.register(VIEW3D_MT_object_group)
 bpy.types.register(VIEW3D_MT_object_constraints)
 bpy.types.register(VIEW3D_MT_object_showhide)
+bpy.types.register(VIEW3D_MT_make_single_user)
+
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
 

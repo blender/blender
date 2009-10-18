@@ -60,6 +60,9 @@ class DATA_PT_settings(DataButtonsPanel):
 		
 		col = split.column()
 		col.itemR(mesh, "texture_mesh")
+		
+		col = split.column()
+		col.itemR(mesh, "use_mirror_x")
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
 	__label__ = "Vertex Groups"
@@ -79,9 +82,9 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 		col.itemO("object.vertex_group_add", icon='ICON_ZOOMIN', text="")
 		col.itemO("object.vertex_group_remove", icon='ICON_ZOOMOUT', text="")
 
-		col.itemO("object.vertex_group_copy", icon='ICON_COPYDOWN', text="")
+		col.itemO("object.vertex_group_copy", icon='ICON_COPY_ID', text="")
 		if ob.data.users > 1:
-			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_COPYDOWN', text="")
+			col.itemO("object.vertex_group_copy_to_linked", icon='ICON_LINK_AREA', text="")
 
 		group = ob.active_vertex_group
 		if group:
@@ -122,13 +125,14 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		subcol = col.column(align=True)
 		subcol.itemO("object.shape_key_add", icon='ICON_ZOOMIN', text="")
 		subcol.itemO("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
+		subcol.itemO("object.shape_key_mirror", icon='ICON_MOD_MIRROR', text="")
 
 		if kb:
 			col.itemS()
 
 			subcol = col.column(align=True)
 			subcol.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
-			subcol.itemR(kb, "mute", icon='ICON_MUTE_IPO_ON', text="")
+			subcol.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
 
 			if key.relative:
 				row = layout.row()
@@ -142,7 +146,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 					
 					row = layout.row()
 					row.enabled = ob.shape_key_lock == False
-					row.itemR(kb, "value", slider=True)
+					row.itemR(kb, "value")
+					row.itemO("object.shape_key_clear", icon='ICON_X', text="")
 					
 					split = layout.split()
 					sub = split.column(align=True)

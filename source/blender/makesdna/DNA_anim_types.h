@@ -246,7 +246,9 @@ typedef struct DriverTarget {
 	char *rna_path;		/* target channel to use as driver value */
 	int array_index;	/* if applicable, the index of the RNA-array item to use as driver */
 	
+	int idtype;			/* type of ID-block that this target can use */
 	int flags;			/* flags for the validity of the target */
+	int pad;
 	
 	char name[64];		/* name of the variable */
 } DriverTarget;

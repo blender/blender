@@ -12,11 +12,17 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 		
 		layout.template_header(menus=False)
 		
+		row = layout.row()
+		row.itemS()
+		
 		row = layout.row(align=True)
+		row.itemO("file.previous", text="", icon='ICON_BACK')
+		row.itemO("file.next", text="", icon='ICON_FORWARD')
 		row.itemO("file.parent", text="", icon='ICON_FILE_PARENT')
 		row.itemO("file.refresh", text="", icon='ICON_FILE_REFRESH')
-		row.itemO("file.previous", text="", icon='ICON_PREV_KEYFRAME')
-		row.itemO("file.next", text="", icon='ICON_NEXT_KEYFRAME')
+		
+		row = layout.row()
+		row.itemS()
 		
 		row = layout.row(align=True)
 		row.itemO("file.directory_new", text="", icon='ICON_NEWFOLDER')
@@ -24,8 +30,8 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 		layout.itemR(params, "display", expand=True, text="")
 		layout.itemR(params, "sort", expand=True, text="")
 		
-		layout.itemR(params, "hide_dot")
-		layout.itemR(params, "do_filter")
+		layout.itemR(params, "hide_dot", text="Hide Invisible")
+		layout.itemR(params, "do_filter", text="", icon='ICON_FILTER')
 		
 		row = layout.row(align=True)
 		row.itemR(params, "filter_folder", text="");

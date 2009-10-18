@@ -84,9 +84,6 @@
   #include "BLI_winstuff.h"
 #endif
 
-static void ptcache_data_to(void **data, int type, int index, void *to);
-static void ptcache_data_from(void **data, int type, void *from);
-
 #define PTCACHE_DATA_FROM(data, type, from)		if(data[type]) { memcpy(data[type], from, ptcache_data_size[type]); }
 #define PTCACHE_DATA_TO(data, type, index, to)	if(data[type]) { memcpy(to, (char*)data[type] + (index ? index * ptcache_data_size[type] : 0), ptcache_data_size[type]); }
 

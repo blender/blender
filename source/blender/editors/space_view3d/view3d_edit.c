@@ -277,6 +277,7 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 
 static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 {
+	static float lastofs[3] = {0,0,0};
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d;
 	ViewOpsData *vod= MEM_callocN(sizeof(ViewOpsData), "viewops data");
@@ -291,6 +292,15 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 	vod->origx= vod->oldx= event->x;
 	vod->origy= vod->oldy= event->y;
 	vod->origkey= event->type; /* the key that triggered the operator.  */
+	
+	if (U.uiflag & USER_ORBIT_SELECTION)
+	{
+		VECCOPY(vod->ofs, rv3d->ofs);
+		/* If there's no selection, lastofs is unmodified and last value since static */
+		calculateTransformCenter(C, event, V3D_CENTROID, lastofs);
+		VECCOPY(vod->obofs, lastofs);
+		VecMulf(vod->obofs, -1.0f);
+	}
 
 	/* lookup, we dont pass on v3d to prevent confusement */
 	vod->grid= v3d->grid;
@@ -916,6 +926,8 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	int delta= RNA_int_get(op->ptr, "delta");
+	int mx = RNA_int_get(op->ptr, "mx");
+	int my = RNA_int_get(op->ptr, "my");
 
 	if(delta < 0) {
 		/* this min and max is also in viewmove() */
@@ -923,14 +935,18 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 			rv3d->camzoom-= 10;
 			if(rv3d->camzoom<-30) rv3d->camzoom= -30;
 		}
-		else if(rv3d->dist<10.0*v3d->far) rv3d->dist*=1.2f;
+		else if(rv3d->dist<10.0*v3d->far) {
+			view_zoom_mouseloc(CTX_wm_region(C), 1.2f, mx, my);
+		}
 	}
 	else {
 		if(rv3d->persp==V3D_CAMOB) {
 			rv3d->camzoom+= 10;
 			if(rv3d->camzoom>300) rv3d->camzoom= 300;
 		}
-		else if(rv3d->dist> 0.001*v3d->grid) rv3d->dist*=.83333f;
+		else if(rv3d->dist> 0.001*v3d->grid) {
+			view_zoom_mouseloc(CTX_wm_region(C), .83333f, mx, my);
+		}
 	}
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
@@ -945,6 +961,13 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int delta= RNA_int_get(op->ptr, "delta");
+	
+	/* if one or the other zoom position aren't set, set from event */
+	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
+	{
+		RNA_int_set(op->ptr, "mx", event->x);
+		RNA_int_set(op->ptr, "my", event->y);
+	}
 
 	if(delta) {
 		viewzoom_exec(C, op);
@@ -978,7 +1001,9 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
 }
 
 static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */

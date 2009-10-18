@@ -3181,15 +3181,19 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
 	int x, y, *rza, *rma;
 	intptr_t *rd;
 	
-	if((R.osa==0 && !pa->rectz) || !pa->rectdaps) {
-		fillrect(arectz, pa->rectx, pa->recty, 0x7FFFFFFE);
-		return;
-	}
-
 	if(R.osa==0) {
-		memcpy(arectz, pa->rectz, sizeof(int)*pa->rectx*pa->recty);
+		if(!pa->rectz)
+			fillrect(arectz, pa->rectx, pa->recty, 0x7FFFFFFE);
+		else
+			memcpy(arectz, pa->rectz, sizeof(int)*pa->rectx*pa->recty);
+
 		if(rectmask && pa->rectmask)
 			memcpy(rectmask, pa->rectmask, sizeof(int)*pa->rectx*pa->recty);
+
+		return;
+	}
+	else if(!pa->rectdaps) {
+		fillrect(arectz, pa->rectx, pa->recty, 0x7FFFFFFE);
 		return;
 	}
 	

@@ -298,6 +298,14 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 	return 1;
 }
 
+int psys_check_edited(ParticleSystem *psys)
+{
+	if(psys->part && psys->part->type==PART_HAIR)
+		return (psys->flag & PSYS_EDITED || (psys->edit && psys->edit->edited));
+	else
+		return (psys->pointcache->edit && psys->pointcache->edit->edited);
+}
+
 void psys_check_group_weights(ParticleSettings *part)
 {
 	ParticleDupliWeight *dw, *tdw;

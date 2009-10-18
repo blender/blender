@@ -144,6 +144,11 @@ static void rna_print_data_get(FILE *f, PropertyDefRNA *dp)
 		fprintf(f, "	%s *data= (%s*)(ptr->data);\n", dp->dnastructname, dp->dnastructname);
 }
 
+static void rna_print_id_get(FILE *f, PropertyDefRNA *dp)
+{
+	fprintf(f, "	ID *id= ptr->id.data;\n");
+}
+
 static char *rna_alloc_function_name(const char *structname, const char *propname, const char *type)
 {
 	AllocDefRNA *alloc;
@@ -529,6 +534,11 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				rna_print_data_get(f, dp);
+
+				if(prop->flag & PROP_ID_SELF_CHECK) {
+					rna_print_id_get(f, dp);
+					fprintf(f, "	if(id==value.data) return;\n\n");
+				}
 
 				if(prop->flag & PROP_ID_REFCOUNT) {
 					fprintf(f, "\n	if(data->%s)\n", dp->dnaname);

@@ -259,10 +259,15 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 			continue;
 		
 		eve = td->extra;
-		if(eve) {
+		if (eve) {
 			eve->co[0]= -td->loc[0];
 			eve->co[1]= td->loc[1];
 			eve->co[2]= td->loc[2];
+		}
+		
+		if (td->flag & TD_MIRROR_EDGE)
+		{
+			td->loc[0] = 0;
 		}
 	}
 }
@@ -279,15 +284,8 @@ static void animedit_refresh_id_tags (Scene *scene, ID *id)
 		if (adt)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
-		/* if ID-block is Object, set recalc flags */
-		switch (GS(id->name)) {
-			case ID_OB:
-			{
-				Object *ob= (Object *)id;
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-			}
-				break;
-		}
+		/* set recalc flags */
+		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -617,6 +615,17 @@ void recalcData(TransInfo *t)
 			}
 		}
 	}
+	else if (t->spacetype == SPACE_IMAGE) {
+		if (t->obedit && t->obedit->type == OB_MESH) {
+			SpaceImage *sima= t->sa->spacedata.first;
+			
+			flushTransUVs(t);
+			if(sima->flag & SI_LIVE_UNWRAP)
+				ED_uvedit_live_unwrap_re_solve();
+			
+			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
+		}
+	}
 	else if (t->spacetype == SPACE_VIEW3D) {
 		
 		/* project */
@@ -652,27 +661,17 @@ void recalcData(TransInfo *t)
 				if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
 			}
 			else if (t->obedit->type == OB_MESH) {
-				if(t->spacetype==SPACE_IMAGE) {
-					SpaceImage *sima= t->sa->spacedata.first;
-					
-					flushTransUVs(t);
-					if(sima->flag & SI_LIVE_UNWRAP)
-						ED_uvedit_live_unwrap_re_solve();
-					
-					DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
-				} else {
-					EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
-					/* mirror modifier clipping? */
-					if(t->state != TRANS_CANCEL) {
-						clipMirrorModifier(t, t->obedit);
-					}
-					if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
-						editmesh_apply_to_mirror(t);
-						
-					DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-					
-					recalc_editnormals(em);
+				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
+				/* mirror modifier clipping? */
+				if(t->state != TRANS_CANCEL) {
+					clipMirrorModifier(t, t->obedit);
 				}
+				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
+					editmesh_apply_to_mirror(t);
+					
+				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				
+				recalc_editnormals(em);
 			}
 			else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
 				bArmature *arm= t->obedit->data;
@@ -809,7 +808,7 @@ void recalcData(TransInfo *t)
 			}
 		}
 		
-		if(t->spacetype==SPACE_VIEW3D && ((View3D*)t->view)->drawtype == OB_SHADED)
+		if(((View3D*)t->view)->drawtype == OB_SHADED)
 			reshadeall_displist(t->scene);
 	}
 }
@@ -968,14 +967,16 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		if (RNA_boolean_get(op->ptr, "mirror"))
 		{
 			t->flag |= T_MIRROR;
+			t->mirror = 1;
 		}
 	}
 	// Need stuff to take it from edit mesh or whatnot here
 	else
 	{
-		if (t->obedit && t->obedit->type == OB_MESH && ts->editbutflag & B_MESH_X_MIRROR)
+		if (t->obedit && t->obedit->type == OB_MESH && (((Mesh *)t->obedit->data)->editflag & ME_EDIT_MIRROR_X))
 		{
 			t->flag |= T_MIRROR;
+			t->mirror = 1;
 		}
 	}
 	
@@ -1371,6 +1372,12 @@ void calculatePropRatio(TransInfo *t)
 		for(i = 0 ; i < t->total; i++, td++) {
 			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
+			}
+			else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f)
+			{
+				td->flag |= TD_SKIP;
+				td->factor = 0.0f;
+				restoreElement(td);
 			}
 			else if	((connected &&
 						(td->flag & TD_NOTCONNECTED || td->dist > t->prop_size))

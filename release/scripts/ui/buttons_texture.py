@@ -177,28 +177,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 				split.itemL(text="Object:")
 				split.itemR(tex, "object", text="")
 			
-		if type(idblock) == bpy.types.Material:
-			split = layout.split(percentage=0.3)
-			split.itemL(text="Projection:")
-			split.itemR(tex, "mapping", text="")
-
-			split = layout.split()
-			
-			col = split.column()
-			if tex.texture_coordinates in ('ORCO', 'UV'):
-				col.itemR(tex, "from_dupli")
-			elif tex.texture_coordinates == 'OBJECT':
-				col.itemR(tex, "from_original")
-			else:
-				col.itemL()
-			
-			col = split.column()
-			row = col.row()
-			row.itemR(tex, "x_mapping", text="")
-			row.itemR(tex, "y_mapping", text="")
-			row.itemR(tex, "z_mapping", text="")
-
-		elif type(idblock) == bpy.types.Brush:
+		if type(idblock) == bpy.types.Brush:
 			layout.itemR(tex, "map_mode", expand=True)
 			
 			row = layout.row()
@@ -209,9 +188,32 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 			row.active = tex.map_mode in ('TILED', '3D')
 			row.column().itemR(tex, "size")
 		else:
+			if type(idblock) == bpy.types.Material:
+				split = layout.split(percentage=0.3)
+				split.itemL(text="Projection:")
+				split.itemR(tex, "mapping", text="")
+
+				split = layout.split()
+				
+				col = split.column()
+				if tex.texture_coordinates in ('ORCO', 'UV'):
+					col.itemR(tex, "from_dupli")
+				elif tex.texture_coordinates == 'OBJECT':
+					col.itemR(tex, "from_original")
+				else:
+					col.itemL()
+				
+				col = split.column()
+				row = col.row()
+				row.itemR(tex, "x_mapping", text="")
+				row.itemR(tex, "y_mapping", text="")
+				row.itemR(tex, "z_mapping", text="")
+			
+			# any non brush
 			row = layout.row()
 			row.column().itemR(tex, "offset")
 			row.column().itemR(tex, "size")
+			
 
 class TEXTURE_PT_influence(TextureSlotPanel):
 	__label__ = "Influence"

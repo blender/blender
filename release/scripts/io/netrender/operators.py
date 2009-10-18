@@ -9,11 +9,9 @@ import netrender.model
 
 @rnaOperator
 class RENDER_OT_netclientanim(bpy.types.Operator):
-	'''
-	Operator documentation text, will be used for the operator tooltip and python docs.
-	'''
+	'''Start rendering an animation on network'''
 	__idname__ = "render.netclientanim"
-	__label__ = "Net Render Client Anim"
+	__label__ = "Animation on network"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -42,11 +40,9 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 
 @rnaOperator
 class RENDER_OT_netclientsend(bpy.types.Operator):
-	'''
-	Operator documentation text, will be used for the operator tooltip and python docs.
-	'''
+	'''Send Render Job to the Network'''
 	__idname__ = "render.netclientsend"
-	__label__ = "Net Render Client Send"
+	__label__ = "Send job"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -73,9 +69,9 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 
 @rnaOperator
 class RENDER_OT_netclientstatus(bpy.types.Operator):
-	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	'''Refresh the status of the current jobs'''
 	__idname__ = "render.netclientstatus"
-	__label__ = "Net Render Client Status"
+	__label__ = "Client Status"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -120,7 +116,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	__idname__ = "render.netclientblacklistslave"
-	__label__ = "Net Render Client Blacklist Slave"
+	__label__ = "Client Blacklist Slave"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -155,7 +151,7 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	__idname__ = "render.netclientwhitelistslave"
-	__label__ = "Net Render Client Whitelist Slave"
+	__label__ = "Client Whitelist Slave"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -189,9 +185,9 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 
 @rnaOperator
 class RENDER_OT_netclientslaves(bpy.types.Operator):
-	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	'''Refresh status about available Render slaves'''
 	__idname__ = "render.netclientslaves"
-	__label__ = "Net Render Client Slaves"
+	__label__ = "Client Slaves"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -239,9 +235,9 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 
 @rnaOperator
 class RENDER_OT_netclientcancel(bpy.types.Operator):
-	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	'''Cancel the selected network rendering job.'''
 	__idname__ = "render.netclientcancel"
-	__label__ = "Net Render Client Cancel"
+	__label__ = "Client Cancel"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -273,9 +269,9 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 	
 @rnaOperator
 class RENDER_OT_netclientcancelall(bpy.types.Operator):
-	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	'''Cancel all running network rendering jobs.'''
 	__idname__ = "render.netclientcancelall"
-	__label__ = "Net Render Client Cancel All"
+	__label__ = "Client Cancel All"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -305,9 +301,9 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 
 @rnaOperator
 class netclientdownload(bpy.types.Operator):
-	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	'''Download render results from the network'''
 	__idname__ = "render.netclientdownload"
-	__label__ = "Net Render Client Download"
+	__label__ = "Client Download"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -357,7 +353,7 @@ class netclientdownload(bpy.types.Operator):
 class netclientscan(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	__idname__ = "render.netclientscan"
-	__label__ = "Net Render Client Scan"
+	__label__ = "Client Scan"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
@@ -393,9 +389,9 @@ class netclientscan(bpy.types.Operator):
 
 @rnaOperator
 class netclientweb(bpy.types.Operator):
-	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	'''Open new window with information about running rendering jobs'''
 	__idname__ = "render.netclientweb"
-	__label__ = "Net Render Client Web"
+	__label__ = "Open Master Monitor"
 	
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.

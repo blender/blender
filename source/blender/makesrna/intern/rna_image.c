@@ -128,9 +128,6 @@ static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, in
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	if(C==NULL) /* needed for doc generation */
-		return image_source_items;
-	
 	if(ima->source == IMA_SRC_VIEWER) {
 		RNA_enum_items_add_value(&item, &totitem, image_source_items, IMA_SRC_VIEWER);
 	}

@@ -2,7 +2,7 @@
 # include "../stroke/Canvas.h"
 # include "../application/AppConfig.h"
 
-# include "../rendering/GLStrokeRenderer.h"
+# include "BlenderTextureManager.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,7 +36,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re)
 :StrokeRenderer(){
 	
 	// TEMPORARY - need a  texture manager
-	_textureManager = new GLTextureManager;
+	_textureManager = new BlenderTextureManager;
 	_textureManager->load();
 
 	// Scene.New("FreestyleStrokes")

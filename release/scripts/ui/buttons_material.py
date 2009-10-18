@@ -59,7 +59,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 			col = row.column(align=True)
 			col.itemO("object.material_slot_add", icon='ICON_ZOOMIN', text="")
 			col.itemO("object.material_slot_remove", icon='ICON_ZOOMOUT', text="")
-			col.itemO("object.material_slot_copy", icon='ICON_COPYDOWN', text="")
+			col.itemO("object.material_slot_copy", icon='ICON_COPY_ID', text="")
 
 			if ob.mode == 'EDIT':
 				row = layout.row(align=True)
@@ -202,6 +202,9 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		col.itemR(mat, "sky")
 		col.itemR(mat, "exclude_mist")
 		col.itemR(mat, "invert_z")
+		sub = col.row()
+		sub.itemR(mat, "z_offset")
+		sub.active = mat.transparency and mat.transparency_method == 'Z_TRANSPARENCY'
 		sub = col.column(align=True)
 		sub.itemL(text="Light Group:")
 		sub.itemR(mat, "light_group", text="")

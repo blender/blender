@@ -110,6 +110,19 @@ static void rna_Scene_active_object_set(PointerRNA *ptr, PointerRNA value)
 		scene->basact= NULL;
 }
 
+static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value)
+{
+	Scene *scene= (Scene*)ptr->data;
+	Scene *set= (Scene*)value.data;
+	Scene *nested_set;
+
+	for(nested_set= set; nested_set; nested_set= nested_set->set) {
+		if(nested_set==scene)
+			return;
+	}
+
+	scene->set= set;
+}
 
 static int layer_set(int lay, const int *values)
 {
@@ -472,10 +485,12 @@ static void rna_def_transform_orientation(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "mat");
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
 static void rna_def_tool_settings(BlenderRNA  *brna)
@@ -1338,14 +1353,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, "THREADS_AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
 		{R_FIXED_THREADS, "THREADS_FIXED", 0, "Fixed", "Manually determine the number of threads"},
 		{0, NULL, 0, NULL, NULL}};
-	
-	static EnumPropertyItem stamp_font_size_items[] = {
-		{1, "STAMP_FONT_TINY", 0, "Tiny", ""},
-		{2, "STAMP_FONT_SMALL", 0, "Small", ""},
-		{3, "STAMP_FONT_MEDIUM", 0, "Medium", ""},
-		{0, "STAMP_FONT_LARGE", 0, "Large", ""},
-		{4, "STAMP_FONT_EXTRALARGE", 0, "Extra Large", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem image_type_items[] = {
 		{0, "", 0, "Image", NULL},
@@ -2068,23 +2075,28 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_SEQSTRIP);
 	RNA_def_property_ui_text(prop, "Stamp Sequence Strip", "Include the name of the foreground sequence strip in image metadata");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "stamp_render_time", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_RENDERTIME);
+	RNA_def_property_ui_text(prop, "Stamp Render Time", "Include the render time in the stamp image");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "stamp_note_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "stamp_udata");
 	RNA_def_property_ui_text(prop, "Stamp Note Text", "Custom text to appear in the stamp note");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
 	prop= RNA_def_property(srna, "render_stamp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_DRAW);
 	RNA_def_property_ui_text(prop, "Render Stamp", "Render the stamp info text in the rendered image");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "stamp_font_size", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "stamp_font_id");
-	RNA_def_property_enum_items(prop, stamp_font_size_items);
-	RNA_def_property_ui_text(prop, "Stamp Font Size", "Size of the font used when rendering stamp text");
+	prop= RNA_def_property(srna, "stamp_font_size", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "stamp_font_id");
+	RNA_def_property_range(prop, 8, 64);
+	RNA_def_property_ui_text(prop, "Font Size", "Size of the font used when rendering stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
 	prop= RNA_def_property(srna, "stamp_foreground", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "fg_stamp");
 	RNA_def_property_array(prop, 4);
@@ -2161,6 +2173,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene.");
+
+	prop= RNA_def_property(srna, "set", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "set");
+	RNA_def_property_struct_type(prop, "Scene");
+	//RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
+	RNA_def_property_ui_text(prop, "Set Scene", "Background set scene.");
 
 	prop= RNA_def_property(srna, "active_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");

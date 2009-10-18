@@ -1262,6 +1262,35 @@ static void widget_state(uiWidgetType *wt, int state)
 	}
 }
 
+/* sliders use special hack which sets 'item' as inner when drawing filling */
+static void widget_state_numslider(uiWidgetType *wt, int state)
+{
+	uiWidgetStateColors *wcol_state= wt->wcol_state;
+	float blend= wcol_state->blend - 0.2f; // XXX special tweak to make sure that bar will still be visible
+
+	/* call this for option button */
+	widget_state(wt, state);
+	
+	/* now, set the inner-part so that it reflects state settings too */
+	// TODO: maybe we should have separate settings for the blending colors used for this case?
+	if(state & UI_SELECT) {
+		if(state & UI_BUT_ANIMATED_KEY)
+			widget_state_blend(wt->wcol.item, wcol_state->inner_key_sel, blend);
+		else if(state & UI_BUT_ANIMATED)
+			widget_state_blend(wt->wcol.item, wcol_state->inner_anim_sel, blend);
+		else if(state & UI_BUT_DRIVEN)
+			widget_state_blend(wt->wcol.item, wcol_state->inner_driven_sel, blend);
+	}
+	else {
+		if(state & UI_BUT_ANIMATED_KEY)
+			widget_state_blend(wt->wcol.item, wcol_state->inner_key, blend);
+		else if(state & UI_BUT_ANIMATED)
+			widget_state_blend(wt->wcol.item, wcol_state->inner_anim, blend);
+		else if(state & UI_BUT_DRIVEN)
+			widget_state_blend(wt->wcol.item, wcol_state->inner_driven, blend);
+	}
+}
+
 /* labels use theme colors for text */
 static void widget_state_label(uiWidgetType *wt, int state)
 {
@@ -2192,6 +2221,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 		case UI_WTYPE_SLIDER:
 			wt.wcol_theme= &btheme->tui.wcol_numslider;
 			wt.custom= widget_numslider;
+			wt.state= widget_state_numslider;
 			break;
 			
 		case UI_WTYPE_EXEC:

@@ -1027,7 +1027,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 			{
 				SmokeModifierData *smd2 = (SmokeModifierData *)md;
 
-				if((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)
+				if((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll && smd2->coll->points)
 				{
 					// we got nice collision object
 					SmokeCollSettings *scs = smd2->coll;

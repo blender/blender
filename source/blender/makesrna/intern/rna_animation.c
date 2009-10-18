@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 #include "RNA_enum_types.h"
@@ -63,6 +64,20 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 	adt->action= value.data;
 }
 
+/* ****************************** */
+
+static StructRNA *rna_ksPath_id_typef(PointerRNA *ptr)
+{
+	KS_Path *ksp= (KS_Path*)ptr->data;
+	return ID_code_to_RNA_type(ksp->idtype);
+}
+
+static int rna_ksPath_id_editable(PointerRNA *ptr)
+{
+	KS_Path *ksp= (KS_Path*)ptr->data;
+	return (ksp->idtype)? PROP_EDITABLE : 0;
+}
+
 static void rna_ksPath_RnaPath_get(PointerRNA *ptr, char *value)
 {
 	KS_Path *ksp= (KS_Path *)ptr->data;
@@ -96,6 +111,7 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 		ksp->rna_path= NULL;
 }
 
+/* ****************************** */
 
 static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr)
 {
@@ -153,7 +169,17 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	
 	/* ID */
 	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_ksPath_id_editable");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_ksPath_id_typef");
 	RNA_def_property_ui_text(prop, "ID-Block", "ID-Block that keyframes for Keying Set should be added to (for Absolute Keying Sets only).");
+	
+	prop= RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "idtype");
+	RNA_def_property_enum_items(prop, id_type_items);
+	RNA_def_property_enum_default(prop, ID_OB);
+	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
 	
 	/* Group */
 	prop= RNA_def_property(srna, "group", PROP_STRING, PROP_NONE);
@@ -167,13 +193,11 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_string_funcs(prop, "rna_ksPath_RnaPath_get", "rna_ksPath_RnaPath_length", "rna_ksPath_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property setting.");
 	RNA_def_struct_name_property(srna, prop); // XXX this is the best indicator for now...
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
-	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific setting if applicable.");
 	
 	/* Flags */

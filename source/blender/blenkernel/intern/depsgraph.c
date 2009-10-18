@@ -2037,7 +2037,6 @@ static void dag_object_time_update_flags(Object *ob)
 				if(me->key) {
 					if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
 						ob->recalc |= OB_RECALC_DATA;
-						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 					}
 				}
 				if(ob->particlesystem.first)
@@ -2049,7 +2048,6 @@ static void dag_object_time_update_flags(Object *ob)
 				if(cu->key) {
 					if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
 						ob->recalc |= OB_RECALC_DATA;
-						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 					}
 				}
 				break;
@@ -2063,7 +2061,6 @@ static void dag_object_time_update_flags(Object *ob)
 				if(lt->key) {
 					if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
 						ob->recalc |= OB_RECALC_DATA;
-						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 					}
 				}
 					break;
@@ -2216,7 +2213,7 @@ void DAG_id_flush_update(ID *id, short flag)
 			else if(ob->type==OB_CURVE || ob->type==OB_SURF)
 				id= NULL;
 			/* also for locked shape keys we make an exception */
-			else if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)))
+			else if(ob_get_key(ob) && (ob->shapeflag & OB_SHAPE_LOCK))
 				id= NULL;
 		}
 	}
@@ -2238,7 +2235,18 @@ void DAG_id_flush_update(ID *id, short flag)
 				}
 			}
 		}
-
+		
+		/* set flags based on ShapeKey */
+		if(idtype == ID_KE) {
+			for(obt=bmain->object.first; obt; obt= obt->id.next) {
+				Key *key= ob_get_key(obt);
+				if(!(ob && obt == ob) && ((ID *)key == id)) {
+					obt->flag |= (OB_RECALC|OB_RECALC_DATA);
+					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+				}
+			}
+		}
+		
 		/* set flags based on particle settings */
 		if(idtype == ID_PA) {
 			ParticleSystem *psys;

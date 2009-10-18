@@ -658,7 +658,25 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 
 /* selects new faces/edges/verts based on the existing selection */
 
-/* FACES GROUP */
+/* VERT GROUP */
+
+#define SIMVERT_NORMAL	0
+#define SIMVERT_FACE	1
+#define SIMVERT_VGROUP	2
+#define SIMVERT_TOT		3
+
+/* EDGE GROUP */
+
+#define SIMEDGE_LENGTH		101
+#define SIMEDGE_DIR			102
+#define SIMEDGE_FACE		103
+#define SIMEDGE_FACE_ANGLE	104
+#define SIMEDGE_CREASE		105
+#define SIMEDGE_SEAM		106
+#define SIMEDGE_SHARP		107
+#define SIMEDGE_TOT			108
+
+/* FACE GROUP */
 
 #define SIMFACE_MATERIAL	201
 #define SIMFACE_IMAGE		202
@@ -666,8 +684,19 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 #define SIMFACE_PERIMETER	204
 #define SIMFACE_NORMAL		205
 #define SIMFACE_COPLANAR	206
+#define SIMFACE_TOT			207
 
-static EnumPropertyItem prop_simface_types[] = {
+static EnumPropertyItem prop_similar_types[] = {
+	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
+	{SIMVERT_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
+	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
+	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
+	{SIMEDGE_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
+	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
+	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
+	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
 	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
 	{SIMFACE_AREA, "AREA", 0, "Area", ""},
@@ -830,27 +859,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 }	
 
 /* ***************************************************** */
-
-/* EDGE GROUP */
-
-#define SIMEDGE_LENGTH		101
-#define SIMEDGE_DIR			102
-#define SIMEDGE_FACE		103
-#define SIMEDGE_FACE_ANGLE	104
-#define SIMEDGE_CREASE		105
-#define SIMEDGE_SEAM		106
-#define SIMEDGE_SHARP		107
-
-static EnumPropertyItem prop_simedge_types[] = {
-	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
-	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
-	{SIMEDGE_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
-	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
-	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
-	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
-	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
 static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mode)
 {
@@ -1073,25 +1081,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 /* ********************************* */
 
-/*
-VERT GROUP
- mode 1: same normal
- mode 2: same number of face users
- mode 3: same vertex groups
-*/
-
-#define SIMVERT_NORMAL	0
-#define SIMVERT_FACE	1
-#define SIMVERT_VGROUP	2
-
-static EnumPropertyItem prop_simvertex_types[] = {
-	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
-	{SIMVERT_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
-	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
@@ -1243,37 +1232,30 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	Object *obedit;
+	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
-	int totitem= 0;
-	
-	if(C) {
-		obedit= CTX_data_edit_object(C);
+	int a, totitem= 0;
 		
-		if(obedit && obedit->type == OB_MESH) {
-			EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
+	if(obedit && obedit->type == OB_MESH) {
+		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
 
-			if(em->selectmode & SCE_SELECT_VERTEX)
-				RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
-			else if(em->selectmode & SCE_SELECT_EDGE)
-				RNA_enum_items_add(&item, &totitem, prop_simedge_types);
-			else if(em->selectmode & SCE_SELECT_FACE)
-				RNA_enum_items_add(&item, &totitem, prop_simface_types);
-			RNA_enum_item_end(&item, &totitem);
-
-			*free= 1;
-
-			return item;
+		if(em->selectmode & SCE_SELECT_VERTEX) {
+			for(a=SIMVERT_NORMAL; a<=SIMVERT_TOT; a++)
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
+		}
+		else if(em->selectmode & SCE_SELECT_EDGE) {
+			for(a=SIMEDGE_LENGTH; a<=SIMEDGE_TOT; a++)
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
+		}
+		else if(em->selectmode & SCE_SELECT_FACE) {
+			for(a=SIMFACE_MATERIAL; a<=SIMFACE_TOT; a++)
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
 		}
 	}
 
-	/* needed for doc generation */
-	RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
-	RNA_enum_items_add(&item, &totitem, prop_simedge_types);
-	RNA_enum_items_add(&item, &totitem, prop_simface_types);
 	RNA_enum_item_end(&item, &totitem);
 	*free= 1;
-	
+
 	return item;
 }
 
@@ -1295,7 +1277,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", prop_simvertex_types, SIMVERT_NORMAL, "Type", "");
+	prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
 }
 
@@ -4291,7 +4273,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 		if(eve->f & SELECT) {
 			if(eve->f1) {
 				
-				if (ts->editbutflag & B_MESH_X_MIRROR) {
+				if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
 					eve_mir= editmesh_get_x_mirror_vert(obedit, em, eve->co);
 				}
 				
@@ -4413,99 +4395,6 @@ void vertexnoise(Object *obedit, EditMesh *em)
 	recalc_editnormals(em);
 //	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
-}
-
-static void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, float perc)
-{
-	EditVert *eve;
-	float *curs, len, vec[3], cent[3], fac, facm, imat[3][3], bmat[3][3];
-	int tot;
-	
-// XXX	if(button(&perc, 1, 100, "Percentage:")==0) return;
-	
-	fac= perc/100.0f;
-	facm= 1.0f-fac;
-	
-	Mat3CpyMat4(bmat, obedit->obmat);
-	Mat3Inv(imat, bmat);
-
-	/* center */
-	curs= give_cursor(scene, v3d);
-	cent[0]= curs[0]-obedit->obmat[3][0];
-	cent[1]= curs[1]-obedit->obmat[3][1];
-	cent[2]= curs[2]-obedit->obmat[3][2];
-	Mat3MulVecfl(imat, cent);
-
-	len= 0.0;
-	tot= 0;
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & SELECT) {
-			tot++;
-			len+= VecLenf(cent, eve->co);
-		}
-		eve= eve->next;
-	}
-	len/=tot;
-	
-	if(len==0.0) len= 10.0;
-	
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & SELECT) {
-			vec[0]= eve->co[0]-cent[0];
-			vec[1]= eve->co[1]-cent[1];
-			vec[2]= eve->co[2]-cent[2];
-			
-			Normalize(vec);
-			
-			eve->co[0]= fac*(cent[0]+vec[0]*len) + facm*eve->co[0];
-			eve->co[1]= fac*(cent[1]+vec[1]*len) + facm*eve->co[1];
-			eve->co[2]= fac*(cent[2]+vec[2]*len) + facm*eve->co[2];
-			
-		}
-		eve= eve->next;
-	}
-	
-	recalc_editnormals(em);
-//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-
-}
-
-static int vertices_to_sphere_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	vertices_to_sphere(scene, v3d, obedit, em, RNA_float_get(op->ptr,"percent"));
-		
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_vertices_transform_to_sphere(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Vertices to Sphere";
-	//added "around cursor" to differentiate between "TFM_OT_tosphere()"
-	ot->description= "Move selected vertices outward in a spherical shape around cursor.";
-	ot->idname= "MESH_OT_vertices_transform_to_sphere";
-	
-	/* api callbacks */
-	ot->exec= vertices_to_sphere_exec;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
-	
-	/* props */
-	RNA_def_float(ot->srna, "percent", 100.0f, 0.0f, 100.0f, "Percent", "DOC_BROKEN", 0.01f, 100.0f);
 }
 
 void flipface(EditMesh *em, EditFace *efa)

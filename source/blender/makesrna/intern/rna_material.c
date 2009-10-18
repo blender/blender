@@ -260,10 +260,6 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, Poi
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	if(C==NULL) {
-		return prop_texture_coordinates_items;
-	}
-	
 	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_GLOB);
 	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_OBJECT);
 	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_ORCO);
@@ -283,7 +279,6 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, Poi
 	}
 	
 	RNA_enum_item_end(&item, &totitem);
-	
 	*free= 1;
 	
 	return item;
@@ -1604,6 +1599,11 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "invert_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ZINV);
 	RNA_def_property_ui_text(prop, "Invert Z Depth", "Renders material's faces with an inverted Z buffer (scanline only).");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop= RNA_def_property(srna, "z_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "zoffs");
+	RNA_def_property_ui_text(prop, "Z Offset", "Gives faces an artificial offset in the Z buffer for Z transparency.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "sky", PROP_BOOLEAN, PROP_NONE);

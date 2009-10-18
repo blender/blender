@@ -152,6 +152,7 @@ static uiBlock *search_menu(bContext *C, ARegion *ar, void *arg_litem)
 }
 
 /************************ ID Template ***************************/
+/* This is for browsing and editing the ID-blocks used */
 
 /* for new/open operators */
 void uiIDContextProperty(bContext *C, PointerRNA *ptr, PropertyRNA **prop)
@@ -390,7 +391,10 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 
 	type= RNA_property_pointer_type(ptr, prop);
 	template->idlb= wich_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
-
+	
+	/* create UI elements for this template
+	 *	- template_ID makes a copy of the template data and assigns it to the relevant buttons
+	 */
 	if(template->idlb) {
 		uiLayoutRow(layout, 1);
 		block= uiLayoutGetBlock(layout);
@@ -398,6 +402,77 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 	}
 
 	MEM_freeN(template);
+}
+
+/************************ ID Chooser Template ***************************/
+
+/* This is for selecting the type of ID-block to use, and then from the relevant type choosing the block to use 
+ *
+ * - propname: property identifier for property that ID-pointer gets stored to
+ * - proptypename: property identifier for property used to determine the type of ID-pointer that can be used
+ */
+void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *proptypename, char *text)
+{
+	PropertyRNA *propID, *propType;
+	uiLayout *row;
+	
+	/* get properties... */
+	propID= RNA_struct_find_property(ptr, propname);
+	propType= RNA_struct_find_property(ptr, proptypename);
+
+	if (!propID || RNA_property_type(propID) != PROP_POINTER) {
+		printf("uiTemplateAnyID: pointer property not found: %s\n", propname);
+		return;
+	}
+	if (!propType || RNA_property_type(propType) != PROP_ENUM) { 
+		printf("uiTemplateAnyID: pointer-type property not found: %s\n", proptypename);
+		return;
+	}
+	
+	/* Start drawing UI Elements using standard defines */
+	row= uiLayoutRow(layout, 1);
+	
+	/* Label - either use the provided text, or will become "ID-Block:" */
+	if (text)
+		uiItemL(row, text, 0);
+	else
+		uiItemL(row, "ID-Block:", 0);
+	
+	/* ID-Type Selector - just have a menu of icons */
+	// FIXME: the icon-only setting doesn't work when we supply a blank name
+	uiItemFullR(row, "", 0, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY);
+	
+	/* ID-Block Selector - just use pointer widget... */
+	uiItemFullR(row, "", 0, ptr, propID, 0, 0, 0);
+}
+
+/********************* RNA Path Builder Template ********************/
+
+/* This is creating/editing RNA-Paths 
+ *
+ * - ptr: struct which holds the path property
+ * - propname: property identifier for property that path gets stored to
+ * - root_ptr: struct that path gets built from
+ */
+void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *root_ptr, char *text)
+{
+	PropertyRNA *propPath;
+	uiLayout *row;
+	
+	/* check that properties are valid */
+	propPath= RNA_struct_find_property(ptr, propname);
+	if (!propPath || RNA_property_type(propPath) != PROP_STRING) {
+		printf("uiTemplatePathBuilder: path property not found: %s\n", propname);
+		return;
+	}
+	
+	/* Start drawing UI Elements using standard defines */
+	row= uiLayoutRow(layout, 1);
+	
+	/* Path (existing string) Widget */
+	uiItemR(row, text, ICON_RNA, ptr, propname, 0);
+	
+	// TODO: attach something to this to make allow searching of nested properties to 'build' the path
 }
 
 /************************ Modifier Template *************************/
@@ -2191,11 +2266,11 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
 	if(WM_jobs_test(wm, scene))
-		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_REC, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
+		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_CANCEL, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
 	if(WM_jobs_test(wm, screen))
-		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_REC, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
 	if(screen->animtimer)
-		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 }
 
 

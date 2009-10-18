@@ -223,24 +223,12 @@ static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 	ED_object_parent(ob, ob->parent, value, ob->parsubstr);
 }
 
-static void rna_Object_track_set(PointerRNA *ptr, PointerRNA value)
-{
-	Object *ob= (Object*)ptr->data;
-
-	if(ob != value.data)
-		ob->track= value.data;
-}
-
 static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Object *ob= (Object*)ptr->data;
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 
-	if(C==NULL) {
-		return parent_type_items;
-	}
-	
 	RNA_enum_items_add_value(&item, &totitem, parent_type_items, PAROBJECT);
 
 	if(ob->parent) {
@@ -261,7 +249,6 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *p
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-
 	*free= 1;
 
 	return item;
@@ -755,7 +742,6 @@ static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)
 	Object *ob= (Object*)ptr->id.data;
 
 	ob->shapenr= value+1;
-	ob->shapeflag |= OB_SHAPE_TEMPLOCK;
 }
 
 static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
@@ -779,8 +765,6 @@ static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
 
 	if(value) ob->shapeflag |= OB_SHAPE_LOCK;
 	else ob->shapeflag &= ~OB_SHAPE_LOCK;
-
-	ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 }
 
 static PointerRNA rna_Object_field_get(PointerRNA *ptr)
@@ -1219,8 +1203,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
 	prop= RNA_def_property(srna, "track", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_track_set", NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Track", "Object being tracked to define the rotation (Old Track).");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 

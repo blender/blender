@@ -215,7 +215,7 @@ typedef struct TransData {
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
-    short  flag;         /* Various flags */
+    int  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransData;
@@ -289,6 +289,8 @@ typedef struct TransInfo {
 	short		current_orientation;
 
 	short		prop_mode;
+	
+	short		mirror;
 
 	float		values[4];
 	float		auto_values[4];
@@ -398,6 +400,7 @@ typedef struct TransInfo {
 #define TD_NO_LOC			(1 << 13)	/* when this is set, don't apply translation changes to this element */
 #define TD_NOTIMESNAP		(1 << 14)	/* for Graph Editor autosnap, indicates that point should not undergo autosnapping */
 #define TD_INTVALUES	 	(1 << 15) 	/* for Graph Editor - curves that can only have int-values need their keyframes tagged with this */
+#define TD_MIRROR_EDGE	 	(1 << 16) 	/* For editmode mirror, clamp to x = 0 */
 
 /* transsnap->status */
 #define SNAP_ON			1

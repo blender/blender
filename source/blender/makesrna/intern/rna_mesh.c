@@ -1452,7 +1452,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	/* TODO, should this be allowed to be its self? */
 	prop= RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Texture Mesh", "Use another mesh for texture indicies (vertex indicies must be aligned).");
 
 	/* UV textures */
@@ -1599,6 +1599,21 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_FACEAREA);
 	RNA_def_property_ui_text(prop, "Face Area", "Displays the area of selected faces");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+	/* editflag */
+	prop= RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_X);
+	RNA_def_property_ui_text(prop, "X Mirror", "X Axis mirror editing");
+
+	/*
+	prop= RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_Y);
+	RNA_def_property_ui_text(prop, "Y Mirror", "Y Axis mirror editing");
+
+	prop= RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_Z);
+	RNA_def_property_ui_text(prop, "Z Mirror", "Z Axis mirror editing");
+	 */
 
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 

@@ -608,9 +608,6 @@ static EnumPropertyItem *add_dupligroup_itemf(bContext *C, PointerRNA *ptr, int 
 	int i= 0;
 	Group *group;
 
-	if(C==NULL)
-		return NULL;
-
 	memset(&item_tmp, 0, sizeof(item_tmp));
 
 	for(group= CTX_data_main(C)->group.first; group; group= group->id.next) {
@@ -619,13 +616,10 @@ static EnumPropertyItem *add_dupligroup_itemf(bContext *C, PointerRNA *ptr, int 
 		RNA_enum_item_add(&item, &totitem, &item_tmp);
 	}
 
-	if(i>0) {
-		*free= 1;
-		return item;
-	}
-	else {
-		return NULL;
-	}
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
 }
 
 static int group_instance_add_exec(bContext *C, wmOperator *op)

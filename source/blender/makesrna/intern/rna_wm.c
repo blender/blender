@@ -680,8 +680,9 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 static void rna_def_keyconfig(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	FunctionRNA *func;
-	PropertyRNA *prop, *parm;
+	// FunctionRNA *func;
+	// PropertyRNA *parm;
+	PropertyRNA *prop;
 
 	static EnumPropertyItem map_type_items[] = {
 		{KMI_TYPE_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},

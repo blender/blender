@@ -206,7 +206,7 @@ static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerR
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	if(tex && C) { /* Note, tex/mtex/ntree can be invalid of C is NULL, TODO - can this give valid results when C is NULL? */
+	if(tex) {
 		bNodeTree *ntree= tex->nodetree;
 		if(ntree) {
 			EnumPropertyItem tmp= {0, "", 0, "", ""};
@@ -229,8 +229,8 @@ static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerR
 	}
 	
 	RNA_enum_item_end(&item, &totitem);
-	
 	*free = 1;
+
 	return item;
 }
 
@@ -1609,9 +1609,9 @@ static void rna_def_texture(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{TEX_PLUGIN, "PLUGIN", ICON_CONSTRAINT, "Plugin", ""},
-		{TEX_IMAGE, "IMAGE", ICON_RENDER_RESULT, "Image or Movie", ""},
-		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_RENDER_RESULT, "Environment Map", ""},
+		{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
+		{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
+		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
 		{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
 		{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
 		{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},

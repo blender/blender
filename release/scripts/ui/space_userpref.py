@@ -469,13 +469,13 @@ class USERPREF_PT_input(bpy.types.Panel):
 			row = subcol.row()
 
 			if kmi.expanded:
-				row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_DOWN")
+				row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_RIGHT")
 			else:
 				row.itemR(kmi, "expanded", text="", icon="ICON_TRIA_RIGHT")
 
 			itemrow = row.row()
 			itemrow.enabled = km.user_defined
-			itemrow.itemR(kmi, "active", text="", icon="ICON_DOT")
+			itemrow.itemR(kmi, "active", text="", icon="ICON_CHECKBOX_DEHLT")
 
 			itemcol = itemrow.column()
 			itemcol.active = kmi.active
@@ -519,7 +519,7 @@ class USERPREF_PT_input(bpy.types.Panel):
 					subrow.itemR(kmi, "shift")
 					subrow.itemR(kmi, "ctrl")
 					subrow.itemR(kmi, "alt")
-					subrow.itemR(kmi, "oskey")
+					subrow.itemR(kmi, "oskey", text="Cmd")
 					sub.itemR(kmi, "key_modifier", text="", event=True)
 
 				flow = itemcol.column_flow(columns=2)

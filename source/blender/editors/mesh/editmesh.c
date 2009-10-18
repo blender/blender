@@ -787,7 +787,6 @@ void make_editMesh(Scene *scene, Object *ob)
 		undo_editmode_clear();
 	}
 
-	
 	/* make editverts */
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;
@@ -797,10 +796,14 @@ void make_editMesh(Scene *scene, Object *ob)
 		
 		co= mvert->co;
 
+		/* edit the shape key coordinate if available */
+		if(actkey && a < actkey->totelem)
+			co= (float*)actkey->data + 3*a;
+
 		eve= addvertlist(em, co, NULL);
 		evlist[a]= eve;
 		
-		// face select sets selection in next loop
+		/* face select sets selection in next loop */
 		if(!paint_facesel_test(ob))
 			eve->f |= (mvert->flag & 1);
 		

@@ -383,14 +383,13 @@ static void rna_Property_description_get(PointerRNA *ptr, char *value)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	strcpy(value, prop->description);
+	strcpy(value, prop->description ? prop->description:"");
 }
-
 static int rna_Property_description_length(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	return strlen(prop->description);
+	return prop->description ? strlen(prop->description) : 0;
 }
 
 static int rna_Property_type_get(PointerRNA *ptr)
@@ -625,7 +624,7 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
-	if(eprop->itemf==NULL || eprop->itemf==rna_EnumProperty_default_itemf)
+	if(eprop->itemf==NULL || eprop->itemf==rna_EnumProperty_default_itemf || !C)
 		return eprop->item;
 
 	return eprop->itemf(C, ptr, free);

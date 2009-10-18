@@ -80,6 +80,7 @@ typedef struct Key {
 #define KEY_RELATIVE    1
 
 /* key->flag */
+#define KEY_DS_EXPAND	1
 
 /* keyblock->type */
 #define KEY_LINEAR      0
@@ -87,8 +88,9 @@ typedef struct Key {
 #define KEY_BSPLINE     2
 
 /* keyblock->flag */
-#define KEYBLOCK_MUTE		1
-#define KEYBLOCK_DS_EXPAND	2
+#define KEYBLOCK_MUTE			(1<<0)
+#define KEYBLOCK_SEL			(1<<1)
+#define KEYBLOCK_LOCKED			(1<<2)
 
 #endif
 

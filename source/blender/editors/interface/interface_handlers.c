@@ -2056,9 +2056,21 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		/* Mouse location isn't screen clamped to the screen so use a linear mapping
 		 * 2px == 1-int, or 1px == 1-ClickStep */
 		if(ui_is_but_float(but)) {
-			tempf = data->startvalue + ((mx - data->dragstartx) * fac * 0.01*but->a1);
+			fac *= 0.01*but->a1;
+			tempf = data->startvalue + ((mx - data->dragstartx) * fac);
 			tempf= ui_numedit_apply_snapf(tempf, softmin, softmax, softrange, snap);
+
+#if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
+			if(tempf < softmin) {
+				data->dragstartx -= (softmin-tempf) / fac;
+				tempf= softmin;
+			} else if (tempf > softmax) {
+				data->dragstartx += (tempf-softmax) / fac;
+				tempf= softmax;
+			}
+#else
 			CLAMP(tempf, softmin, softmax);
+#endif
 
 			if(tempf != data->value) {
 				data->dragchange= 1;
@@ -2067,9 +2079,22 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 			}
 		}
 		else {
-			temp= data->startvalue + (mx - data->dragstartx)/2; /* simple 2px == 1 */
+			fac = 0.5; /* simple 2px == 1 */
+
+			temp= data->startvalue + ((mx - data->dragstartx) * fac);
 			temp= ui_numedit_apply_snap(temp, softmin, softmax, snap);
+
+#if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
+			if(temp < softmin) {
+				data->dragstartx -= (softmin-temp) / fac;
+				temp= softmin;
+			} else if (temp > softmax) {
+				data->dragstartx += (temp-softmax) / fac;
+				temp= softmax;
+			}
+#else
 			CLAMP(temp, softmin, softmax);
+#endif
 
 			if(temp != data->value) {
 				data->dragchange= 1;
@@ -2077,6 +2102,8 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 				changed= 1;
 			}
 		}
+
+		data->draglastx= mx;
 	}
 	else {
 		/* Use a non-linear mapping of the mouse drag especially for large floats (normal behavior) */
@@ -2138,15 +2165,15 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 
 static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
-	int mx, my, click= 0;
+	int mx, my;	/* mouse location scaled to fit the UI */
+	int screen_mx, screen_my; /* mouse location kept at screen pixel coords */
+	int click= 0;
 	int retval= WM_UI_HANDLER_CONTINUE;
 	
-	mx= event->x;
-	my= event->y;
+	mx= screen_mx= event->x;
+	my= screen_my= event->y;
 
-	if(!ui_is_a_warp_but(but)) {
-		ui_window_to_block(data->region, block, &mx, &my);
-	}
+	ui_window_to_block(data->region, block, &mx, &my);
 
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		/* XXX hardcoded keymap check.... */
@@ -2164,8 +2191,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				retval= WM_UI_HANDLER_BREAK;
 			}
 			else if(event->type == LEFTMOUSE) {
-				data->dragstartx= mx;
-				data->draglastx= mx;
+				data->dragstartx= data->draglastx= ui_is_a_warp_but(but) ? screen_mx:mx;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
@@ -2204,7 +2230,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			
 			snap= (event->ctrl)? (event->shift)? 2: 1: 0;
 
-			if(ui_numedit_but_NUM(but, data, fac, snap, mx))
+			if(ui_numedit_but_NUM(but, data, fac, snap, (ui_is_a_warp_but(but) ? screen_mx:mx)))
 				ui_numedit_apply(C, block, but, data);
 		}
 		retval= WM_UI_HANDLER_BREAK;
@@ -2379,6 +2405,15 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
+			/* alt-click on sides to get "arrows" like in NUM buttons, and match wheel usage above */
+			else if(event->type == LEFTMOUSE && event->alt) {
+				int halfpos = (but->x1 + but->x2) / 2;
+				click = 2;
+				if (mx < halfpos)
+					mx = but->x1;
+				else
+					mx = but->x2;
+			}
 			else if(event->type == LEFTMOUSE) {
 				data->dragstartx= mx;
 				data->draglastx= mx;
@@ -2431,6 +2466,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			tempf= data->value;
 			temp= (int)data->value;
 			
+			/* XXX useles "if", same result for f, uh??? */
 			if(but->type==SLI) f= (float)(mx-but->x1)/(but->x2-but->x1);
 			else f= (float)(mx- but->x1)/(but->x2-but->x1);
 			
@@ -3714,12 +3750,12 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	/* number editing */
 	if(state == BUTTON_STATE_NUM_EDITING) {
 		if(ui_is_a_warp_but(but))
-			WM_cursor_grab(CTX_wm_window(C), TRUE);
+			WM_cursor_grab(CTX_wm_window(C), TRUE, TRUE, NULL);
 		ui_numedit_begin(but, data);
 	} else if(data->state == BUTTON_STATE_NUM_EDITING) {
 		ui_numedit_end(but, data);
 		if(ui_is_a_warp_but(but))
-			WM_cursor_ungrab(CTX_wm_window(C), FALSE);
+			WM_cursor_ungrab(CTX_wm_window(C));
 	}
 	/* menu open */
 	if(state == BUTTON_STATE_MENU_OPEN)

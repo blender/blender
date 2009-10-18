@@ -292,7 +292,7 @@ static void createTransTexspace(bContext *C, TransInfo *t)
 	TransData *td;
 	Object *ob;
 	ID *id;
-	int *texflag;
+	short *texflag;
 
 	ob = OBACT;
 
@@ -1334,7 +1334,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 }
 
 /* Utility function for getting the handle data from bezier's */
-TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt) {
+TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt) {
 	TransDataCurveHandleFlags *hdata;
 	td->flag |= TD_BEZTRIPLE;
 	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
@@ -1424,7 +1424,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						td->ext = NULL;
 						td->val = NULL;
 
-						hdata = initTransDataCurveHandes(td, bezt);
+						hdata = initTransDataCurveHandles(td, bezt);
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -1459,7 +1459,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0)
 						/* If the middle is selected but the sides arnt, this is needed */
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
-							hdata = initTransDataCurveHandes(td, bezt);
+							hdata = initTransDataCurveHandles(td, bezt);
 						}
 
 						td++;
@@ -1484,7 +1484,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						td->val = NULL;
 
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
-							hdata = initTransDataCurveHandes(td, bezt);
+							hdata = initTransDataCurveHandles(td, bezt);
 						}
 
 						Mat3CpyMat3(td->smtx, smtx);
@@ -1503,7 +1503,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 			if (propmode && head != tail)
 				calc_distanceCurveVerts(head, tail-1);
 
-			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandes
+			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandles
 			 * but for now just dont change handle types */
 			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0)
 				testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
@@ -2214,7 +2214,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		for (eve=em->verts.first; eve; eve=eve->next) {
 			if(eve->h==0 && eve->f1 && eve->co[0]!=0.0f) {
 				if(eve->co[0]<0.0f)
+				{
+					t->mirror = -1;
 					mirror = -1;
+				}
 				break;
 			}
 		}
@@ -2280,6 +2283,19 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			}
 		}
 	}
+	
+	if (mirror != 0)
+	{
+		tob = t->data;
+		for( a = 0; a < t->total; a++, tob++ )
+		{
+			if (ABS(tob->loc[0]) <= 0.00001f)
+			{
+				tob->flag |= TD_MIRROR_EDGE;
+			}
+		}
+	}
+	
 	if (propmode) {
 		MEM_freeN(vectors);
 		MEM_freeN(nears);
@@ -3326,7 +3342,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	bAnimListElem *ale;
 	int filter;
 	
-	BezTriple *bezt, *prevbezt;
+	BezTriple *bezt;
 	int count=0, i;
 	float cfra;
 	char side;
@@ -3366,29 +3382,28 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		else
 			cfra = (float)CFRA;
 		
+		/* F-Curve may not have any keyframes */
+		if (fcu->bezt == NULL)
+			continue;
+		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
-		if (fcu->bezt) {
-			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
-				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
-					if (v2d->around == V3D_LOCAL) {
-						/* for local-pivot we only need to count the number of selected handles only, so that centerpoitns don't
-						 * don't get moved wrong
-						 */
-						if (bezt->ipo == BEZT_IPO_BEZ) {
-							if (bezt->f1 & SELECT) count++;
-							if (bezt->f3 & SELECT) count++;
-						}
-						else if (bezt->f2 & SELECT) count++;
+		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
+				if (v2d->around == V3D_LOCAL) {
+					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
+					 * don't get moved wrong
+					 */
+					if (bezt->ipo == BEZT_IPO_BEZ) {
+						if (bezt->f1 & SELECT) count++;
+						if (bezt->f3 & SELECT) count++;
 					}
-					else {
-						/* for 'normal' pivots */
-						if (bezt->ipo == BEZT_IPO_BEZ) {
-							if (bezt->f1 & SELECT) count++;
-							if (bezt->f2 & SELECT) count++;
-							if (bezt->f3 & SELECT) count++;
-						}
-						else if (bezt->f2 & SELECT) count++;
-					}
+					else if (bezt->f2 & SELECT) count++; // TODO: could this cause problems?
+				}
+				else {
+					/* for 'normal' pivots - just include anything that is selected */
+					if (bezt->f1 & SELECT) count++;
+					if (bezt->f2 & SELECT) count++;
+					if (bezt->f3 & SELECT) count++;
 				}
 			}
 		}
@@ -3424,49 +3439,46 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
+			
+		/* F-Curve may not have any keyframes */
+		if (fcu->bezt == NULL)
+			continue;
 		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
-		bezt= fcu->bezt;
-		prevbezt= NULL;
-		
-		for (i=0; i < fcu->totvert; i++, prevbezt=bezt, bezt++) {
+		for (i=0, bezt= fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TransDataCurveHandleFlags *hdata = NULL;
 				short h1=1, h2=1;
 				
-				/* only include handles if selected, and interpolaton mode uses beztriples */
-				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
-					if (bezt->f1 & SELECT) {
-						hdata = initTransDataCurveHandes(td, bezt);
-						bezt_to_transdata(td++, td2d++, adt, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
-					}
-					else
-						h1= 0;
+				/* only include handles if selected, irrespective of the interpolation modes */
+				if (bezt->f1 & SELECT) {
+					hdata = initTransDataCurveHandles(td, bezt);
+					bezt_to_transdata(td++, td2d++, adt, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
 				}
-				if (bezt->ipo == BEZT_IPO_BEZ) {
-					if (bezt->f3 & SELECT) {
-						if (hdata==NULL)
-							hdata = initTransDataCurveHandes(td, bezt);
-						bezt_to_transdata(td++, td2d++, adt, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
-					}
-					else
-						h2= 0;
+				else
+					h1= 0;
+				if (bezt->f3 & SELECT) {
+					if (hdata==NULL)
+						hdata = initTransDataCurveHandles(td, bezt);
+					bezt_to_transdata(td++, td2d++, adt, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
 				}
+				else
+					h2= 0;
 				
 				/* only include main vert if selected */
 				if (bezt->f2 & SELECT) {
-					/* if scaling around individuals centers, do no include keyframes */
+					/* if scaling around individuals centers, do not include keyframes */
 					if (v2d->around != V3D_LOCAL) {
 						/* if handles were not selected, store their selection status */
 						if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
 							if (hdata == NULL)
-								hdata = initTransDataCurveHandes(td, bezt);
+								hdata = initTransDataCurveHandles(td, bezt);
 						}
 						
 						bezt_to_transdata(td++, td2d++, adt, bezt->vec[1], bezt->vec[1], 1, 0, intvals);
 					}
 					
-					/* special hack (must be done after initTransDataCurveHandes(), as that stores handle settings to restore...):
+					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
 					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
 					 *	  then check if we're using auto-handles.
 					 *	- If so, change them auto-handles to aligned handles so that handles get affected too

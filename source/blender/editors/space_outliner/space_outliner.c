@@ -153,38 +153,15 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 
 /* ************************ header outliner area region *********************** */
 
-//#define PY_HEADER
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void outliner_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-#ifdef PY_HEADER
 	ED_region_header_init(ar);
-#else
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
-#endif
 }
 
 static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 {
-#ifdef PY_HEADER
 	ED_region_header(C, ar);
-#else
-	float col[3];
-	
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-
-	outliner_header_buttons(C, ar);
-#endif
 }
 
 static void outliner_header_area_free(ARegion *ar)

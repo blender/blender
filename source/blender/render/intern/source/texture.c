@@ -1736,6 +1736,16 @@ void do_material_tex(ShadeInput *shi)
 
 							vlr_set_uv_indices(shi->vlr, &j1, &j2, &j3);
 
+							// compute ortho basis around normal
+							if(!nunvdone) {
+								// render normal is negated
+								nn[0] = -shi->vn[0];
+								nn[1] = -shi->vn[1];
+								nn[2] = -shi->vn[2];
+								VecOrthoBasisf(nn, nu, nv);
+								nunvdone= 1;
+							}
+
 							if (tf) {
 								float *uv1 = tf->uv[j1], *uv2 = tf->uv[j2], *uv3 = tf->uv[j3];
 								const float an[3] = {fabsf(nn[0]), fabsf(nn[1]), fabsf(nn[2])};

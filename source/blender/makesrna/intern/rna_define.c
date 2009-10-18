@@ -2135,6 +2135,11 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, co
 {
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
+
+	if(!items) {
+		printf("RNA_def_enum: items not allowed to be NULL.\n");
+		return NULL;
+	}
 	
 	prop= RNA_def_property(cont, identifier, PROP_ENUM, PROP_NONE);
 	if(items) RNA_def_property_enum_items(prop, items);

@@ -92,7 +92,7 @@ bpy.ops.add(MESH_OT_primitive_torus_add)
 # Add to a menu
 import dynamic_menu
 import space_info
-menu_item = dynamic_menu.add(bpy.types.INFO_MT_mesh_add, (lambda self, context: self.layout.itemO("mesh.primitive_torus_add", text="Add Torus")) )
+menu_item = dynamic_menu.add(bpy.types.INFO_MT_mesh_add, (lambda self, context: self.layout.itemO("mesh.primitive_torus_add", text="Torus", icon='ICON_MESH_DONUT')) )
 
 if __name__ == "__main__":
 	bpy.ops.mesh.primitive_torus_add()

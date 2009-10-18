@@ -1417,10 +1417,22 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		switch (condata->type) {
 		case CONSTRAINT_IK_COPYPOSE:
 			controltype = 0;
-			if ((condata->flag & CONSTRAINT_IK_ROT) && (condata->orientweight != 0.0))
-				controltype |= iTaSC::CopyPose::CTL_ROTATION;
-			if ((condata->weight != 0.0))
-				controltype |= iTaSC::CopyPose::CTL_POSITION;
+			if (condata->flag & CONSTRAINT_IK_ROT) {
+				if (!(condata->flag & CONSTRAINT_IK_NO_ROT_X))
+					controltype |= iTaSC::CopyPose::CTL_ROTATIONX;
+				if (!(condata->flag & CONSTRAINT_IK_NO_ROT_Y))
+					controltype |= iTaSC::CopyPose::CTL_ROTATIONY;
+				if (!(condata->flag & CONSTRAINT_IK_NO_ROT_Z))
+					controltype |= iTaSC::CopyPose::CTL_ROTATIONZ;
+			}
+			if (condata->flag & CONSTRAINT_IK_POS) {
+				if (!(condata->flag & CONSTRAINT_IK_NO_POS_X))
+					controltype |= iTaSC::CopyPose::CTL_POSITIONX;
+				if (!(condata->flag & CONSTRAINT_IK_NO_POS_Y))
+					controltype |= iTaSC::CopyPose::CTL_POSITIONY;
+				if (!(condata->flag & CONSTRAINT_IK_NO_POS_Z))
+					controltype |= iTaSC::CopyPose::CTL_POSITIONZ;
+			}
 			if (controltype) {
 				iktarget->constraint = new iTaSC::CopyPose(controltype, controltype, bonelen);
 				// set the gain
@@ -1432,7 +1444,10 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 				iktarget->errorCallback = copypose_error;
 				iktarget->controlType = controltype;
 				// add the constraint
-				ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, armname, iktarget->targetName, ikscene->channels[iktarget->channel].tail);
+				if (condata->flag & CONSTRAINT_IK_TARGETAXIS)
+					ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, iktarget->targetName, armname, "", ikscene->channels[iktarget->channel].tail);
+				else
+					ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, armname, iktarget->targetName, ikscene->channels[iktarget->channel].tail);
 			}
 			break;
 		case CONSTRAINT_IK_DISTANCE:

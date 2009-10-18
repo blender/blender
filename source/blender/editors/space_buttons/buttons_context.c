@@ -132,7 +132,9 @@ static int buttons_context_path_world(ButsContextPath *path)
 		if(world) {
 			RNA_id_pointer_create(&scene->world->id, &path->ptr[path->len]);
 			path->len++;
-
+			return 1;
+		}
+		else {
 			return 1;
 		}
 	}
@@ -437,6 +439,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	 * tracing back recursively */
 	switch(mainb) {
 		case BCONTEXT_SCENE:
+		case BCONTEXT_RENDER:
 			found= buttons_context_path_scene(path);
 			break;
 		case BCONTEXT_WORLD:
@@ -553,7 +556,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		static const char *dir[] = {
 			"world", "object", "mesh", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
-			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
+			"texture", "texture_slot", "bone", "edit_bone", "particle_system", "particle_system_editable",
 			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
@@ -657,6 +660,13 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		set_pointer_type(path, result, &RNA_ParticleSystem);
 		return 1;
 	}
+	else if(CTX_data_equals(member, "particle_system_editable")) {
+		if(PE_poll(C))
+			set_pointer_type(path, result, &RNA_ParticleSystem);
+		else
+			CTX_data_pointer_set(result, NULL, &RNA_ParticleSystem, NULL);
+		return 1;
+	}	
 	else if(CTX_data_equals(member, "cloth")) {
 		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
 
@@ -776,7 +786,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 			name= RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf));
 
 			if(name) {
-				if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene)
+				if(!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE) && ptr->type == &RNA_Scene)
 					uiItemL(row, "", icon); /* save some space */
 				else
 					uiItemL(row, name, icon);

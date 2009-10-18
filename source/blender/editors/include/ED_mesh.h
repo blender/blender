@@ -66,7 +66,7 @@ struct Object;
 #define B_AUTOFGON			0x20
 #define B_KNIFE				0x80
 #define B_PERCENTSUBD		0x40
-#define B_MESH_X_MIRROR		0x100
+//#define B_MESH_X_MIRROR		0x100 // deprecated, use mesh
 #define B_JOINTRIA_UV		0x200
 #define B_JOINTRIA_VCOL		0X400
 #define B_JOINTRIA_SHARP	0X800

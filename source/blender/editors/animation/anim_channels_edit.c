@@ -238,6 +238,10 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 					if (ale->flag & FCURVE_SELECTED)
 						sel= ACHANNEL_SETFLAG_CLEAR;
 					break;
+				case ANIMTYPE_SHAPEKEY:
+					if (ale->flag & KEYBLOCK_SEL)
+						sel= ACHANNEL_SETFLAG_CLEAR;
+					break;
 				case ANIMTYPE_NLATRACK:
 					if (ale->flag & NLATRACK_SELECTED)
 						sel= ACHANNEL_SETFLAG_CLEAR;
@@ -305,6 +309,13 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 				
 				ACHANNEL_SET_FLAG(fcu, sel, FCURVE_SELECTED);
 				fcu->flag &= ~FCURVE_ACTIVE;
+			}
+				break;
+			case ANIMTYPE_SHAPEKEY:
+			{
+				KeyBlock *kb= (KeyBlock *)ale->data;
+				
+				ACHANNEL_SET_FLAG(kb, sel, KEYBLOCK_SEL);
 			}
 				break;
 			case ANIMTYPE_NLATRACK:
@@ -904,28 +915,14 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 		if (vis == ACHANNEL_SETFLAG_CLEAR) 
 			break;
 		
-		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_VISIBLE))
-			vis= ACHANNEL_SETFLAG_CLEAR;
-		else if ((ale->type == ANIMTYPE_GROUP) && !(ale->flag & AGRP_NOTVISIBLE))
+		/* set the setting in the appropriate way (if available) */
+		if (ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_VISIBLE))
 			vis= ACHANNEL_SETFLAG_CLEAR;
 	}
 		
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		switch (ale->type) {
-			case ANIMTYPE_FCURVE: /* F-Curve */
-			{
-				FCurve *fcu= (FCurve *)ale->data;
-				ACHANNEL_SET_FLAG(fcu, vis, FCURVE_VISIBLE);
-			}
-				break;
-			case ANIMTYPE_GROUP: /* Group */
-			{
-				bActionGroup *agrp= (bActionGroup *)ale->data;
-				ACHANNEL_SET_FLAG_NEG(agrp, vis, AGRP_NOTVISIBLE);
-			}
-				break;
-		}
+		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vis);
 	}
 	
 	/* cleanup */
@@ -1534,6 +1531,24 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			notifierFlags |= ND_ANIMCHAN_SELECT;
 		}
 			break;
+		case ANIMTYPE_SHAPEKEY: 
+		{
+			KeyBlock *kb= (KeyBlock *)ale->data;
+			
+			/* select/deselect */
+			if (selectmode == SELECT_INVERT) {
+				/* inverse selection status of this ShapeKey only */
+				kb->flag ^= KEYBLOCK_SEL;
+			}
+			else {
+				/* select ShapeKey by itself */
+				ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				kb->flag |= KEYBLOCK_SEL;
+			}
+				
+			notifierFlags |= ND_ANIMCHAN_SELECT;
+		}
+			break;
 		case ANIMTYPE_GPDATABLOCK:
 		{
 			bGPdata *gpd= (bGPdata *)ale->data;
@@ -1570,9 +1585,6 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			}
 #endif // XXX future of this is unclear
 		}
-			break;
-		case ANIMTYPE_SHAPEKEY:
-			/* TODO: shapekey channels cannot be selected atm... */
 			break;
 		default:
 			printf("Error: Invalid channel type in mouse_anim_channels() \n");

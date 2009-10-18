@@ -35,6 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -57,7 +59,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_blenlib.h"
+#include "RNA_access.h"
 
 
 #ifdef HAVE_CONFIG_H
@@ -1368,7 +1370,7 @@ int do_ob_key(Scene *scene, Object *ob)
 	if(key==NULL)
 		return 0;
 		
-	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
+	if(ob->shapeflag & OB_SHAPE_LOCK) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 		
 		if (G.f & G_DEBUG) printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
@@ -1488,4 +1490,25 @@ KeyBlock *key_get_named_keyblock(Key *key, const char name[])
 	}
 	
 	return NULL;
+}
+
+/* Get RNA-Path for 'value' setting of the given ShapeKey 
+ * NOTE: the user needs to free the returned string once they're finishe with it
+ */
+char *key_get_curValue_rnaPath(Key *key, KeyBlock *kb)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	
+	/* sanity checks */
+	if ELEM(NULL, key, kb)
+		return NULL;
+	
+	/* create the RNA pointer */
+	RNA_pointer_create(key, &RNA_ShapeKey, kb, &ptr);
+	/* get pointer to the property too */
+	prop= RNA_struct_find_property(&ptr, "value");
+	
+	/* return the path */
+	return RNA_path_from_ID_to_property(&ptr, prop);
 }
