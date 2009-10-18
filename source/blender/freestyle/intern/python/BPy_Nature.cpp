@@ -11,6 +11,7 @@ extern "C" {
 static PyObject *BPy_Nature___and__(PyObject *a, PyObject *b);
 static PyObject *BPy_Nature___xor__(PyObject *a, PyObject *b);
 static PyObject *BPy_Nature___or__(PyObject *a, PyObject *b);
+static int BPy_Nature_bool(PyObject *v);
 
 /*-----------------------BPy_Nature number method definitions --------------------*/
 
@@ -24,7 +25,7 @@ PyNumberMethods nature_as_number = {
 	0,                              /* unaryfunc nb_negative */
 	0,                              /* unaryfunc nb_positive */
 	0,                              /* unaryfunc nb_absolute */
-	0,                              /* inquiry nb_bool */
+	(inquiry)BPy_Nature_bool,       /* inquiry nb_bool */
 	0,                              /* unaryfunc nb_invert */
 	0,                              /* binaryfunc nb_lshift */
 	0,                              /* binaryfunc nb_rshift */
@@ -237,6 +238,12 @@ static PyObject *
 BPy_Nature___or__(PyObject *a, PyObject *b)
 {
 	return BPy_Nature_bitwise(a, '|', b);
+}
+
+static int
+BPy_Nature_bool(PyObject *v)
+{
+	return ((PyLongObject *)v)->ob_digit[0] != 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
