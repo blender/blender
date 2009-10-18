@@ -218,7 +218,7 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 			seq->flag &= SEQ_DESEL;
 		}
 		else {
-			seq->flag &= (SEQ_LEFTSEL+SEQ_RIGHTSEL);
+			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
 			seq->flag |= SELECT;
 		}
 	}
@@ -259,7 +259,7 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 			seq->flag &= SEQ_DESEL;
 		}
 		else {
-			seq->flag &= (SEQ_LEFTSEL+SEQ_RIGHTSEL);
+			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
 			seq->flag |= SELECT;
 		}
 	}
