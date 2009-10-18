@@ -5116,7 +5116,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
 	Object *obedit= CTX_data_edit_object(C);
-	Mesh *me= obedit->data;
+	Mesh *me= (obedit) ? obedit->data : NULL;
 	Key *key;
 	KeyBlock *kb, *actkb;
 	EnumPropertyItem tmp= {0, "", 0, "", ""}, *item= NULL;
