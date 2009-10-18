@@ -2708,6 +2708,10 @@ static void brush_cut(PEData *data, int pa_index)
 	/* blunt scissors */
 	if(BLI_frand() > data->cutfac) return;
 
+	/* don't cut hidden */
+	if(edit->points[pa_index].flag & PEP_HIDE)
+		return;
+
 	rad2= data->rad * data->rad;
 
 	cut=0;
