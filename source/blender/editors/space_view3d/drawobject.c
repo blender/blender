@@ -3658,7 +3658,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	//if(part->flag&PART_GLOB_TIME)
 	cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
 
-	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL)
+	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL && psys->childcache==NULL)
 		draw_as=PART_DRAW_DOT;
 
 /* 3. */
@@ -4008,6 +4008,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		}
 
 		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+			totpart=0;
+		else if(psys->pathcache==NULL)
 			totpart=0;
 
 		/* draw actual/parent particles */
@@ -5709,6 +5711,22 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob);
 
+	/* particle mode has to be drawn first so that possible child particles get cached in edit mode */
+	if(		(warning_recursive==0) &&
+			(flag & DRAW_PICKING)==0 &&
+			(!scene->obedit)	
+	  ) {
+
+		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+			PTCacheEdit *edit = PE_get_current(scene, ob);
+			if(edit) {
+				wmLoadMatrix(rv3d->viewmat);
+				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);
+				wmMultMatrix(ob->obmat);
+			}
+		}
+	}
+
 	/* code for new particle system */
 	if(		(warning_recursive==0) &&
 			(ob->particlesystem.first) &&
@@ -5732,21 +5750,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		
 		//glDepthMask(GL_TRUE);
 		if(col) cpack(col);
-	}
-	
-	if(		(warning_recursive==0) &&
-			(flag & DRAW_PICKING)==0 &&
-			(!scene->obedit)	
-	  ) {
-
-		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
-			PTCacheEdit *edit = PE_get_current(scene, ob);
-			if(edit) {
-				wmLoadMatrix(rv3d->viewmat);
-				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);
-				wmMultMatrix(ob->obmat);
-			}
-		}
 	}
 
 	/* draw code for smoke */
