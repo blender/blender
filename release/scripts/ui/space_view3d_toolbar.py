@@ -449,7 +449,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 					col.row().itemR(brush, "direction", expand=True)
 
 				if brush.sculpt_tool == 'LAYER':
-					col.itemR(brush, "persistent")
+					col.itemR(brush, "use_persistent")
 					col.itemO("sculpt.set_persistent_base")
 
 		# Texture Paint Mode #
