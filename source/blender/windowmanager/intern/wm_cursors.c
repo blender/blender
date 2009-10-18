@@ -169,7 +169,6 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 	 * It helps not to get a stuck WM when hitting a breakpoint  
 	 * */
 	GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
-	int bounds_arr[4] = {-1, -1, -1, -1}; /* l/t/r/b */
 
 	if(hide)		mode = GHOST_kGrabHide;
 	else if(wrap)	mode = GHOST_kGrabWrap;

@@ -1419,6 +1419,13 @@ setWindowCursorGrab(
 			setWindowCursorVisibility(true);
 		}
 
+		if(m_cursorGrab != GHOST_kGrabNormal) {
+			/* use to generate a mouse move event, otherwise the last event
+			 * blender gets can be outside the screen causing menus not to show
+			 * properly unless the user moves the mouse */
+			XWarpPointer(m_display,None,None,0,0,0,0,0,0);
+		}
+
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 		setCursorGrabAccum(0, 0);
 		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */

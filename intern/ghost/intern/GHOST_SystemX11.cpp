@@ -405,19 +405,21 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				window->getCursorGrabAccum(x_accum, y_accum);
 
 				if(x_new != xme.x_root || y_new != xme.y_root) {
+					/* when wrapping we don't need to add an event because the
+					 * setCursorPosition call will cause a new event after */
 					setCursorPosition(x_new, y_new); /* wrap */
 					window->setCursorGrabAccum(x_accum + (xme.x_root - x_new), y_accum + (xme.y_root - y_new));
 				}
-
-				g_event = new
-				GHOST_EventCursor(
-					getMilliSeconds(),
-					GHOST_kEventCursorMove,
-					window,
-					xme.x_root + x_accum,
-					xme.y_root + y_accum
-				);
-
+				else {
+					g_event = new
+					GHOST_EventCursor(
+						getMilliSeconds(),
+						GHOST_kEventCursorMove,
+						window,
+						xme.x_root + x_accum,
+						xme.y_root + y_accum
+					);
+				}
 			}
 			else {
 				g_event = new
