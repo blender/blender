@@ -204,10 +204,27 @@ BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
 		PyErr_SetString(PyExc_TypeError, "operands must be a Nature object");
 		return NULL;
 	}
+	if (Py_SIZE(a) != 1) {
+		stringstream msg;
+		msg << "operand 1: unexpected Nature byte length: " << Py_SIZE(a);
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
+	}
+	if (Py_SIZE(b) != 1) {
+		stringstream msg;
+		msg << "operand 2: unexpected Nature byte length: " << Py_SIZE(b);
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
+	}
 	result = PyObject_NewVar(BPy_Nature, &Nature_Type, 1);
 	if (!result)
 		return NULL;
-	assert(Py_SIZE(a) == 1 && Py_SIZE(b) == 1 && Py_SIZE(result) == 1);
+	if (Py_SIZE(result) != 1) {
+		stringstream msg;
+		msg << "unexpected Nature byte length: " << Py_SIZE(result);
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
+	}
 	switch (op) {
 	case '&':
 		result->i.ob_digit[0] = (((PyLongObject *)a)->ob_digit[0]) & (((PyLongObject *)b)->ob_digit)[0];
