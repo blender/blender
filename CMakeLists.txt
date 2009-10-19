@@ -82,7 +82,8 @@ OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
 IF (APPLE)
-OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" OFF)
+OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
+OPTION(WITH_LIBS10.5	  "Use 10.5 libs (needed for 64bit builds)" OFF)
 ENDIF (APPLE)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
@@ -396,17 +397,22 @@ IF(WIN32)
 ENDIF(WIN32)
 
 IF(APPLE)
-	IF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
-		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-8.x.i386)
-	ELSE(CMAKE_OSX_ARCHITECTURES MATCHES i386)
-		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-6.1-powerpc)
-	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+	IF(WITH_LIBS10.5)
+		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
+	ELSE(WITH_LIBS10.5)
+		IF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+			SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-8.x.i386)
+		ELSE(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+			SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-6.1-powerpc)
+		ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+	ENDIF(WITH_LIBS10.5)
+	
 
 	IF(WITH_OPENAL)
 		FIND_PACKAGE(OpenAL)
 		IF(OPENAL_FOUND)
 			SET(WITH_OPENAL ON)
-			SET(OPENAL_INCLUDE_DIR "${OPENAL_INCLUDE_DIR};${LIBDIR}/openal/include")
+			SET(OPENAL_INCLUDE_DIR "${LIBDIR}/openal/include")
 		ELSE(OPENAL_FOUND)
 			SET(WITH_OPENAL OFF)
 		ENDIF(OPENAL_FOUND)
@@ -432,20 +438,20 @@ IF(APPLE)
 		# we use precompiled libraries for py 3.1 and up by default
 
 		SET(PYTHON ${LIBDIR}/python)
-		SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
-		# SET(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}" CACHE STRING "") # not used yet
+		SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+		# SET(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}") # not used yet
 		SET(PYTHON_LIB python${PYTHON_VERSION})
-		SET(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}" CACHE STRING "")
+		SET(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}")
 		#    SET(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 	ELSE(PYTHON_VERSION MATCHES 3.1)
 		# otherwise, use custom system framework
 
 		SET(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
 		SET(PYTHON_VERSION 2.5)
-		SET(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}" CACHE STRING "")
-		# SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION} CACHE STRING "") # not used yet
+		SET(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
+		# SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
 		SET(PYTHON_LIB "")
-		SET(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config CACHE STRING "")
+		SET(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config)
 		SET(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
 	ENDIF(PYTHON_VERSION MATCHES 3.1)
 
@@ -457,7 +463,7 @@ IF(APPLE)
 	IF(WITH_FFTW3)
 		SET(FFTW3 ${LIBDIR}/fftw3)
 		SET(FFTW3_INC ${FFTW3}/include)
-		SET(FFTW3_LIB libfftw)
+		SET(FFTW3_LIB fftw3)
 		SET(FFTW3_LIBPATH ${FFTW3}/lib)
 	ENDIF(WITH_FFTW3)
 
