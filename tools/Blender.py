@@ -243,22 +243,12 @@ def buildinfo(lenv, build_type):
 
 	obj = []
 	if lenv['BF_BUILDINFO']:
-		if sys.platform=='win32':
-			build_info_file = open("source/creator/winbuildinfo.h", 'w')
-			build_info_file.write("char *build_date=\"%s\";\n"%build_date)
-			build_info_file.write("char *build_time=\"%s\";\n"%build_time)
-			build_info_file.write("char *build_rev=\"%s\";\n"%build_rev)
-			build_info_file.write("char *build_platform=\"win32\";\n")
-			build_info_file.write("char *build_type=\"dynamic\";\n")
-			build_info_file.close()
-			lenv.Append (CPPDEFINES = ['NAN_BUILDINFO', 'BUILD_DATE'])
-		else:
-			lenv.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
-										'BUILD_DATE=\'"%s"\''%(build_date),
-										'BUILD_TYPE=\'"dynamic"\'',
-										'BUILD_REV=\'"%s"\''%(build_rev),
-										'NAN_BUILDINFO',
-										'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
+		lenv.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
+									'BUILD_DATE=\'"%s"\''%(build_date),
+									'BUILD_TYPE=\'"dynamic"\'',
+									'BUILD_REV=\'"%s"\''%(build_rev),
+									'NAN_BUILDINFO',
+									'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
 		obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
 						[root_build_dir+'source/creator/buildinfo.c'])]
 	return obj
