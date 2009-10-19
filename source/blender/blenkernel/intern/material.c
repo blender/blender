@@ -485,6 +485,18 @@ ID *material_from(Object *ob, int act)
 	else return ob->data;
 }
 
+Material *give_node_material(Material *ma)
+{
+	if(ma && ma->use_nodes && ma->nodetree) {
+		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);
+
+		if(node)
+			return (Material *)node->id;
+	}
+
+	return NULL;
+}
+
 /* GS reads the memory pointed at in a specific ordering. There are,
  * however two definitions for it. I have jotted them down here, both,
  * but I think the first one is actually used. The thing is that

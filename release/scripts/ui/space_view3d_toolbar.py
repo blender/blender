@@ -650,6 +650,11 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
 		col.itemR(wpaint, "normals")
 		col.itemR(wpaint, "spray")
 		col.itemR(wpaint, "vertex_dist", text="Distance")
+		
+		
+		data = context.weight_paint_object.data
+		if type(data) == bpy.types.Mesh:
+			col.itemR(data, "use_mirror_x")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.itemL(text="Gamma:")

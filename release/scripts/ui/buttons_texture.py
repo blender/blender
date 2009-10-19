@@ -219,8 +219,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 
 class TEXTURE_PT_influence(TextureSlotPanel):
 	__label__ = "Influence"
+	def poll(self, context):
+		return 1
+		
 	
 	def draw(self, context):
+		
 		layout = self.layout
 		
 		idblock = context_tex_datablock(context)

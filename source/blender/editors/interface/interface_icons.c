@@ -38,6 +38,8 @@
 #endif   
 #include "MEM_guardedalloc.h"
 
+#include "GPU_extensions.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"

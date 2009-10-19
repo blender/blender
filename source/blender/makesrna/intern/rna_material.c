@@ -58,6 +58,7 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_node.h"
 
@@ -143,19 +144,8 @@ static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 
 static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)
 {
-	Material *ma= (Material*)ptr->data;
-	Material *ma_node= NULL;
-
-	/* used in buttons to check context, also checks for edited groups */
-
-	if(ma && ma->use_nodes && ma->nodetree) {
-		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);
-
-		if(node)
-			ma_node= (Material *)node->id;
-	}
-
-	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma_node);
+	Material *ma= give_node_material((Material*)ptr->data);
+	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
 }
 
 static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA value)

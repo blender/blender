@@ -622,7 +622,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		PointerRNA *ptr;
 
 		if((ptr=get_pointer_type(path, &RNA_Material))) {
-			Material *ma= ptr->data;
+			Material *ma= ptr->data; /* should this be made a different option? */
+			Material *ma_node= give_node_material(ma);
+			ma= ma_node?ma_node:ma;
 
 			if(ma)
 				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
