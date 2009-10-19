@@ -4012,6 +4012,53 @@ static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *
 }
 
 
+static void freeSeqData(TransInfo *t)
+{
+	Editing *ed= seq_give_editing(t->scene, FALSE);
+	if (ed && !(t->state == TRANS_CANCEL)) {
+		ListBase *seqbasep= ed->seqbasep;
+		Sequence *seq;
+
+		int a;
+		TransData *td= t->data;
+
+		/* prevent updating the same seq twice
+		 * if the transdata order is changed this will mess up
+		 * but so will TransDataSeq */
+		Sequence *seq_prev= NULL;
+
+		/* flush to 2d vector from internally used 3d vector */
+		for(a=0; a<t->total; a++, td++) {
+			seq= ((TransDataSeq *)td->extra)->seq;
+			if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
+				shuffle_seq(seqbasep, seq);
+			}
+
+			seq_prev= seq;
+		}
+
+		for(seq= seqbasep->first; seq; seq= seq->next) {
+			/* We might want to build a list of effects that need to be updated during transform */
+			if(seq->type & SEQ_EFFECT) {
+				if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
+				else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
+				else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
+			}
+		}
+
+		sort_seq(t->scene);
+	}
+
+	if (t->customData) {
+		MEM_freeN(t->customData);
+		t->customData= NULL;
+	}
+	if (t->data) {
+		MEM_freeN(t->data); // XXX postTrans usually does this
+		t->data= NULL;
+	}
+}
+
 static void createTransSeqData(bContext *C, TransInfo *t)
 {
 
@@ -4028,6 +4075,8 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 		t->total= 0;
 		return;
 	}
+
+	t->customFree= freeSeqData;
 
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
@@ -4480,6 +4529,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 /* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
 /* note: this runs even when createTransData exits early because  (t->total==0), is this correct?... (campbell) */
+/* note: sequencer freeing has its own function now because of a conflict with transform's order of freeing (campbell)*/
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
@@ -4493,68 +4543,6 @@ void special_aftertrans_update(TransInfo *t)
 				EM_automerge(t->scene, t->obedit, 1);
 			}
 		}
-	}
-
-	if (t->spacetype == SPACE_SEQ) {
-		Editing *ed= seq_give_editing(t->scene, FALSE);
-		if (ed && !cancelled) {
-			ListBase *seqbasep= ed->seqbasep;
-			Sequence *seq;
-#if 0		// TRANSFORM_FIX_ME, Would prefer to use this since the array takes into
-			// account what where transforming (with extend, locked strips etc)
-			// But at the moment t->data is freed in postTrans so for now re-shuffeling selected strips works ok. - Campbell
-
-			int a;
-			TransData *td= t->data;
-
-			/* prevent updating the same seq twice
-			 * if the transdata order is changed this will mess up
-			 * but so will TransDataSeq */
-			Sequence *seq_prev= NULL;
-
-			/* flush to 2d vector from internally used 3d vector */
-			for(a=0; a<t->total; a++, td++) {
-				seq= ((TransDataSeq *)td->extra)->seq;
-				if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
-					shuffle_seq(seqbasep, seq);
-				}
-
-				seq_prev= seq;
-			}
-#else		// while t->data is not available...
-			int machine, max_machine = 0;
-
-			/* update in order so we always move bottom strips first */
-			for(seq= seqbasep->first; seq; seq= seq->next) {
-				max_machine = MAX2(max_machine, seq->machine);
-			}
-
-			for (machine = 0; machine <= max_machine; machine++)
-			{
-				for(seq= seqbasep->first; seq; seq= seq->next) {
-					if (seq->machine == machine && seq->depth == 0 && (seq->flag & (SELECT|SEQ_LEFTSEL|SEQ_RIGHTSEL)) != 0 && (seq->flag & SEQ_OVERLAP)) {
-						shuffle_seq(seqbasep, seq);
-					}
-				}
-			}
-#endif
-
-			for(seq= seqbasep->first; seq; seq= seq->next) {
-				/* We might want to build a list of effects that need to be updated during transform */
-				if(seq->type & SEQ_EFFECT) {
-					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
-					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
-					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
-				}
-			}
-
-			sort_seq(t->scene);
-		}
-
-		if (t->customData)
-			MEM_freeN(t->customData);
-		if (t->data)
-			MEM_freeN(t->data); // XXX postTrans usually does this
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;

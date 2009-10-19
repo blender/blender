@@ -1052,6 +1052,15 @@ void postTrans (TransInfo *t)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle);
 	}
 	
+
+	if (t->customFree) {
+		/* Can take over freeing t->data and data2d etc... */
+		t->customFree(t);
+	}
+	else if (t->customData) {
+		MEM_freeN(t->customData);
+	}
+
 	/* postTrans can be called when nothing is selected, so data is NULL already */
 	if (t->data) {
 		int a;
@@ -1079,13 +1088,6 @@ void postTrans (TransInfo *t)
 	if (t->mouse.data)
 	{
 		MEM_freeN(t->mouse.data);
-	}
-	
-	if (t->customFree) {
-		t->customFree(t);
-	}
-	else if (t->customData) {
-		MEM_freeN(t->customData);
 	}
 }
 
