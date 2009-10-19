@@ -376,7 +376,7 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 		triple->x[0]= win->sizex;
 		triple->y[0]= win->sizey;
 	}
-	else if(GLEW_ARB_texture_non_power_of_two) {
+	else if(GPU_non_power_of_two_support()) {
 		triple->target= GL_TEXTURE_2D;
 		triple->nx= 1;
 		triple->ny= 1;

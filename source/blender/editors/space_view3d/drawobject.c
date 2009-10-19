@@ -212,7 +212,7 @@ static void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr)
 
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 {
-	if(!GPU_extensions_minimum_support())
+	if(!GPU_glsl_support())
 		return 0;
 	if(G.f & G_PICKSEL)
 		return 0;

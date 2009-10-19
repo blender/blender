@@ -69,7 +69,7 @@
 static struct GPUGlobal {
 	GLint maxtextures;
 	GLuint currentfb;
-	int minimumsupport;
+	int glslsupport;
 	int extdisabled;
 } GG = {1, 0, 0, 0};
 
@@ -87,15 +87,27 @@ void GPU_extensions_init()
 	if (GLEW_ARB_multitexture)
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &GG.maxtextures);
 
-	GG.minimumsupport = 1;
-	if (!GLEW_ARB_multitexture) GG.minimumsupport = 0;
-	if (!GLEW_ARB_vertex_shader) GG.minimumsupport = 0;
-	if (!GLEW_ARB_fragment_shader) GG.minimumsupport = 0;
+	GG.glslsupport = 1;
+	if (!GLEW_ARB_multitexture) GG.glslsupport = 0;
+	if (!GLEW_ARB_vertex_shader) GG.glslsupport = 0;
+	if (!GLEW_ARB_fragment_shader) GG.glslsupport = 0;
 }
 
-int GPU_extensions_minimum_support()
+int GPU_glsl_support()
 {
-	return !GG.extdisabled && GG.minimumsupport;
+	return !GG.extdisabled && GG.glslsupport;
+}
+
+int GPU_non_power_of_two_support()
+{
+	/* Exception for buggy ATI/Apple driver in Mac OS X 10.5/10.6,
+	 * they claim to support this but can cause system freeze */
+#ifdef __APPLE__
+	if(strcmp(glGetString(GL_VENDOR), "ATI Technologies Inc.") == 0)
+		return 0;
+#endif
+
+	return GLEW_ARB_texture_non_power_of_two;
 }
 
 int GPU_print_error(char *str)
@@ -231,7 +243,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 		return NULL;
 	}
 
-	if (!GLEW_ARB_texture_non_power_of_two) {
+	if (!GPU_non_power_of_two_support()) {
 		tex->w = larger_pow2(tex->w);
 		tex->h = larger_pow2(tex->h);
 	}
@@ -337,7 +349,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 		return NULL;
 	}
 
-	if (!GLEW_ARB_texture_non_power_of_two) {
+	if (!GPU_non_power_of_two_support()) {
 		tex->w = larger_pow2(tex->w);
 		tex->h = larger_pow2(tex->h);
 		tex->depth = larger_pow2(tex->depth);
