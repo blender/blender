@@ -37,7 +37,7 @@ extern "C"
 {
 #include "ED_keyframing.h"
 #include "ED_armature.h"
-#include "ED_mesh.h" // add_vert_to_defgroup, ...
+#include "ED_mesh.h" // ED_vgroup_vert_add, ...
 #include "ED_anim_api.h"
 #include "WM_types.h"
 #include "WM_api.h"
@@ -89,9 +89,12 @@ extern "C"
 #include <math.h>
 #include <float.h>
 
-#define COLLADA_DEBUG
+// #define COLLADA_DEBUG
 
 char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
+
+// armature module internal func, it's not good to use it here? (Arystan)
+struct EditBone *addEditBone(struct bArmature *arm, char *name);
 
 const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
 {
@@ -706,7 +709,7 @@ private:
 
 	void set_euler_rotmode()
 	{
-		// just set rotmode = PCHAN_ROT_EUL on pose channel for each joint
+		// just set rotmode = PCHAN_ROT_XYZ on pose channel for each joint
 
 		std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>::iterator it;
 
@@ -723,7 +726,7 @@ private:
 					bPoseChannel *pchan = skin.get_pose_channel_from_node(joint);
 
 					if (pchan) {
-						pchan->rotmode = PCHAN_ROT_EUL;
+						pchan->rotmode = PCHAN_ROT_XYZ;
 					}
 					else {
 						fprintf(stderr, "Cannot find pose channel for %s.\n", get_joint_name(joint));
@@ -1756,7 +1759,7 @@ private:
 		bez.ipo = U.ipo_new; /* use default interpolation mode here... */
 		bez.f1 = bez.f2 = bez.f3 = SELECT;
 		bez.h1 = bez.h2 = HD_AUTO;
-		insert_bezt_fcurve(fcu, &bez);
+		insert_bezt_fcurve(fcu, &bez, 0);
 		calchandles_fcurve(fcu);
 	}
 
@@ -1796,7 +1799,7 @@ private:
 				bez.ipo = U.ipo_new; /* use default interpolation mode here... */
 				bez.f1 = bez.f2 = bez.f3 = SELECT;
 				bez.h1 = bez.h2 = HD_AUTO;
-				insert_bezt_fcurve(fcu, &bez);
+				insert_bezt_fcurve(fcu, &bez, 0);
 				calchandles_fcurve(fcu);
 			}
 
@@ -1829,7 +1832,7 @@ private:
 					bez.ipo = U.ipo_new; /* use default interpolation mode here... */
 					bez.f1 = bez.f2 = bez.f3 = SELECT;
 					bez.h1 = bez.h2 = HD_AUTO;
-					insert_bezt_fcurve(fcu, &bez);
+					insert_bezt_fcurve(fcu, &bez, 0);
 					calchandles_fcurve(fcu);
 				}
 

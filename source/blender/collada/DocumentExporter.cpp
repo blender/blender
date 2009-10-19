@@ -1941,7 +1941,7 @@ public:
 		bez.ipo = U.ipo_new; /* use default interpolation mode here... */
 		bez.f1 = bez.f2 = bez.f3 = SELECT;
 		bez.h1 = bez.h2 = HD_AUTO;
-		insert_bezt_fcurve(fcu, &bez);
+		insert_bezt_fcurve(fcu, &bez, 0);
 		calchandles_fcurve(fcu);
 	}
 	
@@ -2031,7 +2031,7 @@ public:
 					continue;
 				
 				// if rotation mode is euler - no need to convert it
-				if (pchan->rotmode == PCHAN_ROT_EUL) {
+				if (pchan->rotmode == PCHAN_ROT_XYZ) {
 					
 					std::vector<FCurve*> &rotfcurves = rotfcurves_actionGroup_map[grp];
 					
