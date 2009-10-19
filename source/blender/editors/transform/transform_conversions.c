@@ -2325,8 +2325,8 @@ void flushTransSeq(TransInfo *t)
 {
 	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check alredy done */
 	int a, new_frame;
-	TransData *td= t->data;
-	TransData2D *td2d= t->data2d;
+	TransData *td= NULL;
+	TransData2D *td2d= NULL;
 	TransDataSeq *tdsq= NULL;
 	Sequence *seq;
 
@@ -2338,7 +2338,7 @@ void flushTransSeq(TransInfo *t)
 	Sequence *seq_prev= NULL;
 
 	/* flush to 2d vector from internally used 3d vector */
-	for(a=0; a<t->total; a++, td++, td2d++) {
+	for(a=0, td= t->data, td2d= t->data2d; a<t->total; a++, td++, td2d++) {
 
 		tdsq= (TransDataSeq *)td->extra;
 		seq= tdsq->seq;
@@ -2372,15 +2372,29 @@ void flushTransSeq(TransInfo *t)
 				 * children are ALWAYS transformed first
 				 * so we dont need to do this in another loop. */
 				calc_sequence(seq);
+			}
+			else {
+				calc_sequence_disp(seq);
+			}
+		}
+		seq_prev= seq;
+	}
 
+	/* need to do the overlap check in a new loop otherwise adjacent strips
+	 * will not be updated and we'll get false positives */
+	seq_prev= NULL;
+	for(a=0, td= t->data, td2d= t->data2d; a<t->total; a++, td++, td2d++) {
+
+		tdsq= (TransDataSeq *)td->extra;
+		seq= tdsq->seq;
+
+		if (seq != seq_prev) {
+			if(seq->depth==0) {
 				/* test overlap, displayes red outline */
 				seq->flag &= ~SEQ_OVERLAP;
 				if( seq_test_overlap(seqbasep, seq) ) {
 					seq->flag |= SEQ_OVERLAP;
 				}
-			}
-			else {
-				calc_sequence_disp(seq);
 			}
 		}
 		seq_prev= seq;
