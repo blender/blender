@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 	# FIXME: need to set the appropriate flags for msvc, otherwise we get warnings
 	cflags = []
 	cxxflags = []
