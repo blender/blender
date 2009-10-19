@@ -876,6 +876,8 @@ static void vgroup_assign_verts(Object *ob, float weight)
 	int	i, done;
 
 	dg=BLI_findlink(&ob->defbase, ob->actdef-1);
+	if(!dg)
+		return;
 
 	if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;

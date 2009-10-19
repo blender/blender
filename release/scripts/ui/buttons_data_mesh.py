@@ -88,7 +88,7 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 			row = layout.row()
 			row.itemR(group, "name")
 
-		if ob.mode == 'EDIT':
+		if ob.mode == 'EDIT' and len(ob.vertex_groups) > 0:
 			row = layout.row()
 			
 			sub = row.row(align=True)
