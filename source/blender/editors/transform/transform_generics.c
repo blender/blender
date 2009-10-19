@@ -343,11 +343,6 @@ void recalcData(TransInfo *t)
 	Scene *scene = t->scene;
 	Base *base = scene->basact;
 
-	if (t->obedit) {
-	}
-	else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
-		flushTransParticles(t);
-	}
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
 	}
@@ -776,6 +771,9 @@ void recalcData(TransInfo *t)
 			}
 			else
 				where_is_pose(scene, ob);
+		}
+		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
+			flushTransParticles(t);
 		}
 		else {
 			for(base= FIRSTBASE; base; base= base->next) {
