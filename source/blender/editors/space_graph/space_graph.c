@@ -42,6 +42,8 @@
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_fcurve.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -110,6 +112,7 @@ static SpaceLink *graph_new(const bContext *C)
 	
 	/* allocate DopeSheet data for Graph Editor */
 	sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+	sipo->ads->source= (ID *)scene;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for graphedit");
@@ -183,8 +186,10 @@ static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 	SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
 	
 	/* init dopesheet data if non-existant (i.e. for old files) */
-	if (sipo->ads == NULL)
+	if (sipo->ads == NULL) {
 		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+		sipo->ads->source= (ID *)(G.main->scene.first); // FIXME: this is a really nasty hack here for now...
+	}
 
 	ED_area_tag_refresh(sa);
 }
