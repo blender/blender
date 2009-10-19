@@ -1453,8 +1453,18 @@ int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mv
 	if (mode == SNAP_ALL && obedit)
 	{
 		Object *ob = obedit;
-		
+
 		retval |= snapObject(scene, ar, ob, 1, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
+	}
+
+	/* This isn't so great, particles only need to snap with the mesh object
+	 * that emits them, but this doesnt fit into a current snap mode
+	 * */
+	if(BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT)
+	{
+		Object *ob = BASACT->object;
+
+		retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 	}
 	
 	base= FIRSTBASE;

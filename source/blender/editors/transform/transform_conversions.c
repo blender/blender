@@ -4572,6 +4572,10 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
+	else if (t->spacetype == SPACE_SEQ) {
+		/* freeSeqData in transform_conversions.c does this
+		 * keep here so the else at the end wont run... */
+	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		Scene *scene;
