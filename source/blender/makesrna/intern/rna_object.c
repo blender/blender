@@ -1024,6 +1024,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "boundtype");
 	RNA_def_property_enum_items(prop, collision_bounds_items);
 	RNA_def_property_ui_text(prop, "Collision Bounds",  "Selects the collision type.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "collision_compound", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_CHILD);
