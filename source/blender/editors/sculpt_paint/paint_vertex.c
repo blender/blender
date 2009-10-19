@@ -394,7 +394,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 	
 	/* directly copied from weight_paint, should probaby split into a seperate function */
 	/* if mirror painting, find the other group */		
-	if(wp->flag & VP_MIRROR_X) {
+	if(me->editflag & ME_EDIT_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
 		if(defgroup) {
 			bDeformGroup *curdef;
@@ -437,7 +437,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 						uw->weight= dw->weight; /* set the undo weight */
 						dw->weight= paintweight;
 						
-						if(wp->flag & VP_MIRROR_X) {	/* x mirror painting */
+						if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 							int j= mesh_get_x_mirror_vert(ob, faceverts[i]);
 							if(j>=0) {
 								/* copy, not paint again */
@@ -1009,7 +1009,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 	
 	wpaint_blend(wp, dw, uw, (float)alpha/255.0, paintweight);
 	
-	if(wp->flag & VP_MIRROR_X) {	/* x mirror painting */
+	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
 			/* copy, not paint again */
@@ -1284,7 +1284,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	Mat3CpyMat4(wpd->wpimat, imat);
 	
 	/* if mirror painting, find the other group */
-	if(wp->flag & VP_MIRROR_X) {
+	if(me->editflag & ME_EDIT_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
 		if(defgroup) {
 			bDeformGroup *curdef;

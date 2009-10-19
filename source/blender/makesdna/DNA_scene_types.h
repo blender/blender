@@ -556,7 +556,7 @@ typedef struct VPaint {
 #define VP_SOFT		4
 #define VP_NORMALS	8
 #define VP_SPRAY	16
-#define VP_MIRROR_X	32
+// #define VP_MIRROR_X	32 // depricated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X)
 #define VP_HARD		64
 #define VP_ONLYVGROUP	128
 
