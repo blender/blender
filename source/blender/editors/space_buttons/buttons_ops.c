@@ -613,6 +613,12 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 
 /********************** new particle settings operator *********************/
 
+static int psys_poll(bContext *C)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	return (ptr.data != NULL);
+}
+
 static int new_particle_settings_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -657,6 +663,7 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= new_particle_settings_exec;
+	ot->poll= psys_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -916,7 +923,7 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	RNA_pointer_create(&sc->id, &RNA_SpaceButtonsWindow, sbuts, &ptr);
+	RNA_pointer_create(&sc->id, &RNA_SpaceProperties, sbuts, &ptr);
 
 	pup= uiPupMenuBegin(C, "Align", 0);
 	layout= uiPupMenuLayout(pup);
@@ -947,6 +954,9 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 {
 	FileBrowseOp *fbo= op->customdata;
 	char *str;
+	
+	if (RNA_property_is_set(op->ptr, "filename")==0 || fbo==NULL)
+		return OPERATOR_CANCELLED;
 	
 	str= RNA_string_get_alloc(op->ptr, "filename", 0, 0);
 	RNA_property_string_set(&fbo->ptr, fbo->prop, str);

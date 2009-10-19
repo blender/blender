@@ -35,6 +35,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_text_types.h"
@@ -410,22 +412,25 @@ void init_actuator(bActuator *act)
 {
 	/* also use when actuator changes type */
 	bObjectActuator *oa;
+	bSoundActuator *sa;
 	
 	if(act->data) MEM_freeN(act->data);
 	act->data= 0;
 	
 	switch(act->type) {
-#ifdef __NLA
 	case ACT_ACTION:
 	case ACT_SHAPEACTION:
 		act->data= MEM_callocN(sizeof(bActionActuator), "actionact");
 		break;
-#endif
 	case ACT_SOUND:
-		act->data= MEM_callocN(sizeof(bSoundActuator), "soundact");
-		break;
-	case ACT_CD:
-		act->data= MEM_callocN(sizeof(bCDActuator), "cdact");
+		sa = act->data= MEM_callocN(sizeof(bSoundActuator), "soundact");
+		sa->volume = 1.0f;
+		sa->sound3D.rolloff_factor = 1.0f;
+		sa->sound3D.reference_distance = 1.0f;
+		sa->sound3D.max_gain = 1.0f;
+		sa->sound3D.cone_inner_angle = 360.0f;
+		sa->sound3D.cone_outer_angle = 360.0f;
+		sa->sound3D.max_distance = FLT_MAX;
 		break;
 	case ACT_OBJECT:
 		act->data= MEM_callocN(sizeof(bObjectActuator), "objectact");

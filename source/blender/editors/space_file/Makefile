@@ -59,3 +59,7 @@ ifeq ($(WITH_OPENJPEG),true)
 	CPPFLAGS += -DWITH_OPENJPEG
 endif
 
+ifeq ($(WITH_OPENEXR), true)
+    CPPFLAGS += -DWITH_OPENEXR
+endif
+

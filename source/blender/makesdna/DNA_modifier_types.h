@@ -41,6 +41,7 @@ typedef enum ModifierType {
 	eModifierType_SimpleDeform,
 	eModifierType_Multires,
 	eModifierType_Surface,
+	eModifierType_Smoke,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -237,6 +238,22 @@ typedef struct BMeshModifierData {
 	int type;
 } BMeshModifierData;
 
+
+/* Smoke modifier flags */
+#define MOD_SMOKE_TYPE_DOMAIN (1 << 0)
+#define MOD_SMOKE_TYPE_FLOW (1 << 1)
+#define MOD_SMOKE_TYPE_COLL (1 << 2)
+
+typedef struct SmokeModifierData {
+	ModifierData modifier;
+
+	struct SmokeDomainSettings *domain;
+	struct SmokeFlowSettings *flow; /* inflow, outflow, smoke objects */
+	struct SmokeCollSettings *coll; /* collision objects */
+	float time;
+	int type;  /* domain, inflow, outflow, ... */
+} SmokeModifierData;
+
 typedef struct DisplaceModifierData {
 	ModifierData modifier;
 
@@ -272,7 +289,7 @@ typedef struct UVProjectModifierData {
 	ModifierData modifier;
 
 	/* the objects which do the projecting */
-	struct Object *projectors[10];
+	struct Object *projectors[10]; /* MOD_UVPROJECT_MAX */
 	struct Image *image;      /* the image to project */
 	int flags;
 	int num_projectors;
@@ -380,6 +397,8 @@ typedef struct HookModifierData {
 	ModifierData modifier;
 
 	struct Object *object;
+	char subtarget[32];		/* optional name of bone target */
+	
 	float parentinv[4][4];	/* matrix making current transform unmodified */
 	float cent[3];			/* visualization of hook */
 	float falloff;			/* if not zero, falloff is distance where influence zero */
@@ -402,6 +421,7 @@ typedef struct ClothModifierData {
 	struct ClothSimSettings *sim_parms; /* definition is in DNA_cloth_types.h */
 	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
 	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+	struct ListBase ptcaches;
 } ClothModifierData;
 
 typedef struct CollisionModifierData {
@@ -621,5 +641,7 @@ typedef struct SimpleDeformModifierData {
 /* indicates whether simple deform should use the local
    coordinates or global coordinates of origin */
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
+
+#define MOD_UVPROJECT_MAX				10
 
 #endif

@@ -31,6 +31,10 @@
 
 #include "KX_BlenderInputDevice.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class KX_BlenderKeyboardDevice : public BL_BlenderInputDevice
 {
 	bool	m_hookesc;
@@ -43,6 +47,13 @@ public:
 	virtual bool	ConvertBlenderEvent(unsigned short incode,short val);
 	virtual void	NextFrame();
 	virtual void	HookEscape();
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderKeyboardDevice"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_BLENDERKEYBOARDDEVICE

@@ -165,14 +165,14 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
 int			WM_operator_repeat		(struct bContext *C, struct wmOperator *op);
 int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
-int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *properties, struct ReportList *reports);
+int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports);
 
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter);
 
 		/* operator as a python command (resultuing string must be free'd) */
-char		*WM_operator_pystring(struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
+char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 
@@ -244,7 +244,6 @@ void		WM_jobs_stop_all(struct wmWindowManager *wm);
 			/* clipboard */
 char		*WM_clipboard_text_get(int selection);
 void		WM_clipboard_text_set(char *buf, int selection);
-
 
 #endif /* WM_API_H */
 

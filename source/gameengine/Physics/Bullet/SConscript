@@ -16,16 +16,9 @@ incs += ' #source/gameengine/SceneGraph'
 incs += ' #source/blender/makesdna'
 incs += ' #source/blender/blenkernel'
 incs += ' #source/blender/blenlib'
-incs += ' #intern/SoundSystem'
 incs += ' #intern/guardedalloc'
 
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_PYTHON_INC']
 
-cxxflags = []
-if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-	cxxflags.append ('/EHsc')
-
-env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['core','player'], priority=[350,80], cxx_compileflags=cxxflags )
+env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['core'], priority=[350], cxx_compileflags=env['BGE_CXXFLAGS'])

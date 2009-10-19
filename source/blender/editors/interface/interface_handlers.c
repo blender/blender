@@ -315,6 +315,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 static void ui_apply_but_funcs_after(bContext *C)
 {
 	uiAfterFunc *afterf, after;
+	PointerRNA opptr;
 	ListBase funcs;
 
 	/* copy to avoid recursive calls */
@@ -328,12 +329,17 @@ static void ui_apply_but_funcs_after(bContext *C)
 		if(after.context)
 			CTX_store_set(C, after.context);
 
-		if(after.optype)
-			WM_operator_name_call(C, after.optype->idname, after.opcontext, after.opptr);
 		if(after.opptr) {
-			WM_operator_properties_free(after.opptr);
+			/* free in advance to avoid leak on exit */
+			opptr= *after.opptr,
 			MEM_freeN(after.opptr);
 		}
+
+		if(after.optype)
+			WM_operator_name_call(C, after.optype->idname, after.opcontext, (after.opptr)? &opptr: NULL);
+
+		if(after.opptr)
+			WM_operator_properties_free(&opptr);
 
 		if(after.rnapoin.data)
 			RNA_property_update(C, &after.rnapoin, after.rnaprop);
@@ -672,7 +678,11 @@ static void ui_add_link(uiBut *from, uiBut *to)
 		return;
 	}
 
-	if (from->type==LINK && to->type==INLINK) {
+	if (from->type==INLINK && to->type==INLINK) {
+		printf("cannot link\n");
+		return;
+	}
+	else if (from->type==LINK && to->type==INLINK) {
 		if( from->link->tocode != (int)to->hardmin ) {
 			printf("cannot link\n");
 			return;
@@ -968,7 +978,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			char *str;
 			opptr= uiButGetOperatorPtrRNA(but); /* allocated when needed, the button owns it */
 
-			str= WM_operator_pystring(but->optype, opptr, 0);
+			str= WM_operator_pystring(C, but->optype, opptr, 0);
 
 			WM_clipboard_text_set(str, 0);
 
@@ -1714,6 +1724,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	uiBlockCreateFunc func= NULL;
 	uiBlockHandleCreateFunc handlefunc= NULL;
 	uiMenuCreateFunc menufunc= NULL;
+	char *menustr= NULL;
 	void *arg= NULL;
 
 	switch(but->type) {
@@ -1738,16 +1749,15 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 				data->value= data->origvalue;
 				but->editval= &data->value;
 
-				handlefunc= ui_block_func_MENU;
-				arg= but;
+				menustr= but->str;
 			}
 			break;
 		case ICONROW:
-			handlefunc= ui_block_func_ICONROW;
+			menufunc= ui_block_func_ICONROW;
 			arg= but;
 			break;
 		case ICONTEXTROW:
-			handlefunc= ui_block_func_ICONTEXTROW;
+			menufunc= ui_block_func_ICONTEXTROW;
 			arg= but;
 			break;
 		case COL:
@@ -1765,8 +1775,8 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 		if(but->block->handle)
 			data->menu->popup= but->block->handle->popup;
 	}
-	else if(menufunc) {
-		data->menu= ui_popup_menu_create(C, data->region, but, menufunc, arg);
+	else if(menufunc || menustr) {
+		data->menu= ui_popup_menu_create(C, data->region, but, menufunc, arg, menustr);
 		if(but->block->handle)
 			data->menu->popup= but->block->handle->popup;
 	}
@@ -3255,23 +3265,34 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ui_but_copy_paste(C, but, data, (event->type == CKEY)? 'c': 'v');
 			return WM_UI_HANDLER_BREAK;
 		}
-		/* handle keyframeing */
+		/* handle keyframing */
 		else if(event->type == IKEY && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_delete_keyframe(C);
 			else
 				ui_but_anim_insert_keyframe(C);
-
+			
 			ED_region_tag_redraw(CTX_wm_region(C));
-
+			
 			return WM_UI_HANDLER_BREAK;
 		}
-		/* handle driver adding */
+		/* handle drivers */
 		else if(event->type == DKEY && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_driver(C);
 			else
 				ui_but_anim_add_driver(C);
+				
+			ED_region_tag_redraw(CTX_wm_region(C));
+			
+			return WM_UI_HANDLER_BREAK;
+		}
+		/* handle keyingsets */
+		else if(event->type == KKEY && event->val == KM_PRESS) {
+			if(event->alt)
+				ui_but_anim_remove_keyingset(C);
+			else
+				ui_but_anim_remove_keyingset(C);
 				
 			ED_region_tag_redraw(CTX_wm_region(C));
 			
@@ -3723,9 +3744,14 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 		}
 	}
 
-	/* autokey & undo push */
-	if(!data->cancel)
+	if(!data->cancel) {
+		/* autokey & undo push */
 		ui_apply_autokey_undo(C, but);
+
+		/* popup menu memory */
+		if(block->flag & UI_BLOCK_POPUP_MEMORY)
+			ui_popup_menu_memory(block, but);
+	}
 
 	/* disable tooltips until mousemove + last active flag */
 	for(block=data->region->uiblocks.first; block; block=block->next) {

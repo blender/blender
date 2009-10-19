@@ -35,7 +35,6 @@ SET(INC
   ../../../../intern/guardedalloc
   ../../../kernel/gen_system
   ../../../../intern/string
-  ../../../../intern/SoundSystem 
   ../../Rasterizer
   ../../Ketsji
   ../../Expressions

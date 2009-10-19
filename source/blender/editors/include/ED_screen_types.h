@@ -31,10 +31,23 @@
 
 /* for animplayer */
 typedef struct ScreenAnimData {
-	ARegion *ar;	/* do not read from this, only for comparing if region exists */
+	ARegion *ar;		/* do not read from this, only for comparing if region exists */
 	int redraws;
-	int reverse;
+	int flag;			/* flags for playback */
 } ScreenAnimData;
+
+/* for animplayer */
+enum {
+		/* user-setting - frame range is played backwards */
+	ANIMPLAY_FLAG_REVERSE		= (1<<0),
+		/* temporary - playback just jumped to the start/end */
+	ANIMPLAY_FLAG_JUMPED		= (1<<1),
+		/* drop frames as needed to maintain framerate */
+	ANIMPLAY_FLAG_SYNC			= (1<<2),
+		/* don't drop frames (and ignore AUDIO_SYNC flag) */
+	ANIMPLAY_FLAG_NO_SYNC		= (1<<3),
+};
+
 
 
 typedef struct AZone {

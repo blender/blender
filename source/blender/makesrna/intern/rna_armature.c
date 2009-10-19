@@ -495,13 +495,13 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Roll", "Bone rotation around head-tail axis.");
 	RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 
-	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "head");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Head", "Location of head end of the bone.");
 	RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 
-	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "tail");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Tail", "Location of tail end of the bone.");
@@ -708,13 +708,13 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Ghosting Frame Step", "Frame step for Ghosts (not for 'On Keyframes' Onion-skining method).");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "ghost_start_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "ghost_start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsf");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting Start Frame", "Starting frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method).");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "ghost_end_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "ghost_end_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting End Frame", "End frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method).");
@@ -727,13 +727,13 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Paths Frame Step", "Number of frames between 'dots' on Bone Paths (when drawing).");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "path_start_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "path_start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "pathsf");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_path_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Paths Calculation Start Frame", "Starting frame of range of frames to use for Bone Path calculations.");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "path_end_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "path_end_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "pathef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_path_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Paths Calculation End Frame", "End frame of range of frames to use for Bone Path calculations.");

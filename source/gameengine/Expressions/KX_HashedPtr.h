@@ -29,6 +29,10 @@
 #ifndef __KX_HASHEDPTR
 #define __KX_HASHEDPTR
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 unsigned int			KX_Hash(void * inDWord);
 
 class CHashedPtr
@@ -44,6 +48,13 @@ public:
 	{
 		return rhs.m_valptr == lhs.m_valptr;
 	}	
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CHashedPtr"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_HASHEDPTR

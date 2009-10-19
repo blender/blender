@@ -33,6 +33,7 @@
 #include "DNA_modifier_types.h"		/* needed for all enum typdefs */
 #include "BKE_customdata.h"
 
+struct ID;
 struct EditMesh;
 struct DerivedMesh;
 struct DagForest;
@@ -89,7 +90,10 @@ typedef enum {
 	eModifierTypeFlag_UsesPointCache = (1<<6),
 
 	/* For physics modifiers, max one per type */
-	eModifierTypeFlag_Single = (1<<7)
+	eModifierTypeFlag_Single = (1<<7),
+
+	/* Some modifier can't be added manually by user */
+	eModifierTypeFlag_NoUserAdd = (1<<8)
 } ModifierTypeFlag;
 
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);

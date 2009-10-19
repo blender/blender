@@ -1988,9 +1988,9 @@ void chan_calc_mat(bPoseChannel *chan)
 	SizeToMat3(chan->size, smat);
 	
 	/* rotations may either be quats or eulers (no rotation modes for now...) */
-	if (chan->rotmode) {
+	if (chan->rotmode > 0) {
 		/* euler rotations (will cause gimble lock... no rotation order to solve that yet) */
-		EulToMat3(chan->eul, rmat);
+		EulOToMat3(chan->eul, chan->rotmode, rmat);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */
@@ -2213,7 +2213,7 @@ static void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, fl
 			Mat4MulSerie(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 		}
 		else if(bone->flag & BONE_NO_SCALE) {
-			float orthmat[4][4], vec[3];
+			float orthmat[4][4];
 			
 			/* get the official transform, but we only use the vector from it (optimize...) */
 			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);

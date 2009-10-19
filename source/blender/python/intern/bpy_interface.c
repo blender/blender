@@ -1,4 +1,28 @@
-
+/**
+ * $Id:
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney,
+ * Chris Keith, Chris Want, Ken Hughes, Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,11 +34,14 @@
 #include "BLI_winstuff.h"
 #endif
 
+/* grr, python redefines */
+#ifdef _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
+#endif
+
 #include <Python.h>
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
-
-#include "bpy_compat.h"
 
 #include "bpy_rna.h"
 #include "bpy_operator.h"
@@ -28,6 +55,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_util.h"
+#include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
@@ -43,6 +71,80 @@
 #include "../generic/Mathutils.h"
 #include "../generic/Geometry.h"
 #include "../generic/BGL.h"
+
+
+/* for internal use, when starting and ending python scripts */
+
+/* incase a python script triggers another python call, stop bpy_context_clear from invalidating */
+static int py_call_level= 0;
+
+
+// only for tests
+#define TIME_PY_RUN
+
+#ifdef TIME_PY_RUN
+#include "PIL_time.h"
+static int		bpy_timer_count = 0;
+static double	bpy_timer; /* time since python starts */
+static double	bpy_timer_run; /* time for each python script run */
+static double	bpy_timer_run_tot; /* accumulate python runs */
+#endif
+
+void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
+{
+	py_call_level++;
+
+	if(gilstate)
+		*gilstate = PyGILState_Ensure();
+
+	if(py_call_level==1) {
+
+		BPY_update_modules(); /* can give really bad results if this isnt here */
+
+		if(C) { // XXX - should always be true.
+			BPy_SetContext(C);
+			bpy_import_main_set(CTX_data_main(C));
+		}
+		else {
+			fprintf(stderr, "ERROR: Python context called with a NULL Context. this should not happen!\n");
+		}
+
+#ifdef TIME_PY_RUN
+		if(bpy_timer_count==0) {
+			/* record time from the beginning */
+			bpy_timer= PIL_check_seconds_timer();
+			bpy_timer_run = bpy_timer_run_tot = 0.0;
+		}
+		bpy_timer_run= PIL_check_seconds_timer();
+
+
+		bpy_timer_count++;
+#endif
+	}
+}
+
+void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
+{
+	py_call_level--;
+
+	if(gilstate)
+		PyGILState_Release(*gilstate);
+
+	if(py_call_level < 0) {
+		fprintf(stderr, "ERROR: Python context internal state bug. this should not happen!\n");
+	}
+	else if(py_call_level==0) {
+		// XXX - Calling classes currently wont store the context :\, cant set NULL because of this. but this is very flakey still.
+		//BPy_SetContext(NULL);
+		//bpy_import_main_set(NULL);
+
+#ifdef TIME_PY_RUN
+		bpy_timer_run_tot += PIL_check_seconds_timer() - bpy_timer_run;
+		bpy_timer_count++;
+#endif
+
+	}
+}
 
 
 void BPY_free_compiled_text( struct Text *text )
@@ -75,23 +177,22 @@ static void bpy_init_modules( void )
 
 
 	/* stand alone utility modules not related to blender directly */
-	Geometry_Init("Geometry");
-	Mathutils_Init("Mathutils");
-	BGL_Init("BGL");
+	Geometry_Init();
+	Mathutils_Init();
+	BGL_Init();
 }
-
-#if (PY_VERSION_HEX < 0x02050000)
-PyObject *PyImport_ImportModuleLevel(char *name, void *a, void *b, void *c, int d)
-{
-	return PyImport_ImportModule(name);
-}
-#endif
 
 void BPY_update_modules( void )
 {
+#if 0 // slow, this runs all the time poll, draw etc 100's of time a sec.
 	PyObject *mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
 	PyModule_AddObject( mod, "data", BPY_rna_module() );
-	PyModule_AddObject( mod, "types", BPY_rna_types() );
+	PyModule_AddObject( mod, "types", BPY_rna_types() ); // atm this does not need updating
+#endif
+
+	/* refreshes the main struct */
+	BPY_update_rna_module();
+
 }
 
 /*****************************************************************************
@@ -105,9 +206,6 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
 	PyDict_SetItemString( dict, "__name__", item );
 	Py_DECREF(item);
-	
-	// XXX - evil, need to access context
-	BPy_SetContext(C);
 	
 	// XXX - put somewhere more logical
 	{
@@ -173,9 +271,7 @@ void BPY_start_python( int argc, char **argv )
 
 	Py_Initialize(  );
 	
-#if (PY_VERSION_HEX < 0x03000000)
-	PySys_SetArgv( argc, argv);
-#else
+	// PySys_SetArgv( argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
 		int i;
@@ -187,7 +283,6 @@ void BPY_start_python( int argc, char **argv )
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
 	}
-#endif
 	
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
@@ -205,38 +300,57 @@ void BPY_start_python( int argc, char **argv )
 		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
 	}
 	
+	pyrna_alloc_types();
+
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 }
 
 void BPY_end_python( void )
 {
+	// fprintf(stderr, "Ending Python!\n");
+
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 	
 	// free other python data.
-	//BPY_rna_free_types();
+	pyrna_free_types();
+
+	/* clear all python data from structs */
 	
 	Py_Finalize(  );
 	
-	return;
+#ifdef TIME_PY_RUN
+	// measure time since py started
+	bpy_timer = PIL_check_seconds_timer() - bpy_timer;
+
+	printf("*bpy stats* - ");
+	printf("tot exec: %d,  ", bpy_timer_count);
+	printf("tot run: %.4fsec,  ", bpy_timer_run_tot);
+	if(bpy_timer_count>0)
+		printf("average run: %.6fsec,  ", (bpy_timer_run_tot/bpy_timer_count));
+
+	if(bpy_timer>0.0)
+		printf("tot usage %.4f%%", (bpy_timer_run_tot/bpy_timer)*100.0);
+
+	printf("\n");
+
+	// fprintf(stderr, "Ending Python Done!\n");
+
+#endif
+
 }
 
 /* Can run a file or text block */
 int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
-	PyObject *py_dict, *py_result;
+	PyObject *py_dict, *py_result= NULL;
 	PyGILState_STATE gilstate;
 	
 	if (fn==NULL && text==NULL) {
 		return 0;
 	}
 	
-	//BPY_start_python();
-	
-	gilstate = PyGILState_Ensure();
-
-	BPY_update_modules(); /* can give really bad results if this isnt here */
-	bpy_import_main_set(CTX_data_main(C));
+	bpy_context_set(C, &gilstate);
 	
 	py_dict = CreateGlobalDictionary(C);
 
@@ -251,13 +365,11 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 			MEM_freeN( buf );
 
 			if( PyErr_Occurred(  ) ) {
-				BPy_errors_to_report(reports);
 				BPY_free_compiled_text( text );
-				PyGILState_Release(gilstate);
-				return 0;
 			}
 		}
-		py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
+		if(text->compiled)
+			py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
 		
 	} else {
 #if 0
@@ -287,10 +399,9 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	}
 	
 	Py_DECREF(py_dict);
-	PyGILState_Release(gilstate);
-	bpy_import_main_set(NULL);
 	
-	//BPY_end_python();
+	bpy_context_clear(C, &gilstate);
+
 	return py_result ? 1:0;
 }
 
@@ -473,12 +584,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	PyGILState_STATE gilstate;
 	PyObject *sys_path;
 
-	gilstate = PyGILState_Ensure();
-	
-	// XXX - evil, need to access context
-	BPy_SetContext(C);
-	bpy_import_main_set(CTX_data_main(C));
-
+	bpy_context_set(C, &gilstate);
 
 	sys_path= PySys_GetObject("path"); /* borrow */
 	PyList_Insert(sys_path, 0, Py_None); /* place holder, resizes the list */
@@ -513,7 +619,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 				}
 			}
 #ifndef __linux__
-			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exists(path))) {
+			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exist(path))) {
 #else
 			else if(de->d_type==DT_DIR) {
 				BLI_join_dirfile(path, dirname, de->d_name);
@@ -537,12 +643,14 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	
 	PyList_SetSlice(sys_path, 0, 1, NULL); /* remove the first item */
 
-	bpy_import_main_set(NULL);
+	bpy_context_clear(C, &gilstate);
 	
-	PyGILState_Release(gilstate);
 #ifdef TIME_REGISTRATION
 	printf("script time %f\n", (PIL_check_seconds_timer()-time));
 #endif
+
+	/* reset the timer so as not to take loading into the stats */
+	bpy_timer_count = 0;
 }
 
 /* ****************************************** */
@@ -740,3 +848,56 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 
 	return result;
 }
+
+int BPY_button_eval(bContext *C, char *expr, double *value)
+{
+	PyGILState_STATE gilstate;
+	PyObject *dict, *retval;
+	int error_ret = 0;
+	
+	if (!value || !expr || expr[0]=='\0') return -1;
+	
+	bpy_context_set(C, &gilstate);
+	
+	dict= CreateGlobalDictionary(C);
+	retval = PyRun_String(expr, Py_eval_input, dict, dict);
+	
+	if (retval == NULL) {
+		error_ret= -1;
+	}
+	else {
+		double val;
+
+		if(PyTuple_Check(retval)) {
+			/* Users my have typed in 10km, 2m
+			 * add up all values */
+			int i;
+			val= 0.0;
+
+			for(i=0; i<PyTuple_GET_SIZE(retval); i++) {
+				val+= PyFloat_AsDouble(PyTuple_GET_ITEM(retval, i));
+			}
+		}
+		else {
+			val = PyFloat_AsDouble(retval);
+		}
+		Py_DECREF(retval);
+		
+		if(val==-1 && PyErr_Occurred()) {
+			error_ret= -1;
+		}
+		else {
+			*value= val;
+		}
+	}
+	
+	if(error_ret) {
+		BPy_errors_to_report(CTX_wm_reports(C));
+	}
+	
+	Py_DECREF(dict);
+	bpy_context_clear(C, &gilstate);
+	
+	return error_ret;
+}
+

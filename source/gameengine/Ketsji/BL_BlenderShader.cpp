@@ -44,7 +44,7 @@ void BL_BlenderShader::SetProg(bool enable, double time)
 {
 	if(VerifyShader()) {
 		if(enable)
-			GPU_material_bind(mGPUMat, mLightLayer, mBlenderScene->lay, time);
+			GPU_material_bind(mGPUMat, mLightLayer, mBlenderScene->lay, time, 1);
 		else
 			GPU_material_unbind(mGPUMat);
 	}

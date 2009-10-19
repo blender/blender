@@ -159,8 +159,6 @@ static void registerAllTypes(void)
 	pyFilterTypes.add(&FilterBGR24Type, "FilterBGR24");
 }
 
-
-#if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef VideoTexture_module_def = {
 	{}, /* m_base */
 	"VideoTexture",  /* m_name */
@@ -172,7 +170,6 @@ static struct PyModuleDef VideoTexture_module_def = {
 	0,  /* m_clear */
 	0,  /* m_free */
 };
-#endif
 
 PyObject* initVideoTexture(void) 
 {
@@ -202,14 +199,8 @@ PyObject* initVideoTexture(void)
 	else {
 		PyErr_Clear();
 	
-#if (PY_VERSION_HEX >= 0x03000000)
 		m = PyModule_Create(&VideoTexture_module_def);
 		PyDict_SetItemString(PySys_GetObject("modules"), VideoTexture_module_def.m_name, m);
-#else
-		m = Py_InitModule4("VideoTexture", moduleMethods,
-			"Module that allows to play video files on textures in GameBlender.",
-			(PyObject*)NULL,PYTHON_API_VERSION);
-#endif
 	}
 	
 	if (m == NULL) 

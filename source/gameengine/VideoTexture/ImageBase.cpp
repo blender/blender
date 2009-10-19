@@ -219,15 +219,17 @@ bool ImageBase::checkSourceSizes (void)
 		// get size of current source
 		short * curSize = (*it)->getSize();
 		// if size is available and is not empty
-		if (curSize[0] != 0 && curSize[1] != 0)
+		if (curSize[0] != 0 && curSize[1] != 0) {
 			// if reference size is not set
-			if (refSize == NULL)
+			if (refSize == NULL) {
 				// set current size as reference
 				refSize = curSize;
 		// otherwise check with current size
-			else if (curSize[0] != refSize[0] || curSize[1] != refSize[1])
+			} else if (curSize[0] != refSize[0] || curSize[1] != refSize[1]) {
 				// if they don't match, report it
 				return false;
+			}
+		}
 	}
 	// all sizes match
 	return true;

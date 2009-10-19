@@ -57,8 +57,9 @@ extern "C" {
 
 struct IDProperty;
 struct RenderData;	
+struct Scene;
 
-extern void start_ffmpeg(struct RenderData *rd, int rectx, int recty);
+extern void start_ffmpeg(struct Scene *scene, struct RenderData *rd, int rectx, int recty);
 extern void end_ffmpeg(void);
 extern void append_ffmpeg(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
 

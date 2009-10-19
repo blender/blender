@@ -27,16 +27,12 @@ SET(INC
   ../../../source/gameengine/Network
   ../../../source/gameengine/SceneGraph 
   ../../../source/gameengine/Physics/common
-  ../../../source/gameengine/Physics/Bullet 
-  ../../../source/gameengine/Physics/Sumo
-  ../../../source/gameengine/Physics/Sumo/Fuzzics/include 
+  ../../../source/gameengine/Physics/Bullet
   ../../../source/gameengine/Network/LoopBackNetwork
-  ../../../intern/SoundSystem 
   ../../../source/blender/misc 
   ../../../source/blender/blenloader
   ../../../source/blender/gpu
   ../../../extern/bullet2/src
-  ../../../extern/solid
   ../../../extern/glew/include
   ${PYTHON_INC}
 )

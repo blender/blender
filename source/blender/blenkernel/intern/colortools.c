@@ -68,33 +68,33 @@
 void gamma_correct_rec709(float *c, float gamma)
 {
 	/* Rec. 709 gamma correction. */
-	float cc = 0.018f;
+	const float cc = 0.018f;
 	
 	if (*c < cc)
-	    *c *= ((1.099f * (float)pow(cc, gamma)) - 0.099f) / cc;
+	    *c *= ((1.099f * (float)powf(cc, gamma)) - 0.099f) * (1.0f/cc);
 	else 
-	    *c = (1.099f * (float)pow(*c, gamma)) - 0.099f;
+	    *c = (1.099f * (float)powf(*c, gamma)) - 0.099f;
 }
 
 void gamma_correct(float *c, float gamma)
 {
-	*c = pow((*c), gamma);
+	*c = powf((*c), gamma);
 }
 
 float srgb_to_linearrgb(float c)
 {
 	if (c < 0.04045f)
-		return (c < 0.f)?0.f:c / 12.92;
+		return (c < 0.0f)? 0.0f: c*(1.0f/12.92f);
 	else
-		return pow((c + 0.055)/1.055, 2.4);
+		return powf((c + 0.055f)*(1.0f/1.055f), 2.4f);
 }
 
 float linearrgb_to_srgb(float c)
 {
-	if (c < 0.0031308)
-		return (c < 0.f)?0.f:c * 12.92;
+	if (c < 0.0031308f)
+		return (c < 0.0f)? 0.0f: c * 12.92f;
 	else
-		return  1.055 * pow(c, 1.0/2.4) - 0.055;
+		return  1.055f * powf(c, 1.0f/2.4f) - 0.055f;
 }
 
 /* utility function convert an RGB triplet from sRGB to linear RGB color space */

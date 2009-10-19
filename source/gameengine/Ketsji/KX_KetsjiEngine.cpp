@@ -61,8 +61,7 @@
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
 
-#include "SND_Scene.h"
-#include "SND_IAudioDevice.h"
+#include "AUD_C-API.h"
 
 #include "NG_NetworkScene.h"
 #include "NG_NetworkDeviceInterface.h"
@@ -113,7 +112,6 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_rendertools(NULL),
 	m_sceneconverter(NULL),
 	m_networkdevice(NULL),
-	m_audiodevice(NULL),
 	m_pythondictionary(NULL),
 	m_keyboarddevice(NULL),
 	m_mousedevice(NULL),
@@ -209,15 +207,6 @@ void KX_KetsjiEngine::SetNetworkDevice(NG_NetworkDeviceInterface* networkdevice)
 	MT_assert(networkdevice);
 	m_networkdevice = networkdevice;
 }
-
-
-
-void KX_KetsjiEngine::SetAudioDevice(SND_IAudioDevice* audiodevice)
-{
-	MT_assert(audiodevice);
-	m_audiodevice = audiodevice;
-}
-
 
 
 void KX_KetsjiEngine::SetCanvas(RAS_ICanvas* canvas)
@@ -393,12 +382,12 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 	m_firstframe = true;
 	m_bInitialized = true;
 	// there is always one scene enabled at startup
-	World* world = m_scenes[0]->GetBlenderScene()->world;
-	if (world)
+	Scene* scene = m_scenes[0]->GetBlenderScene();
+	if (scene)
 	{
-		m_ticrate = world->ticrate ? world->ticrate : DEFAULT_LOGIC_TIC_RATE;
-		m_maxLogicFrame = world->maxlogicstep ? world->maxlogicstep : 5;
-		m_maxPhysicsFrame = world->maxphystep ? world->maxlogicstep : 5;
+		m_ticrate = scene->gm.ticrate ? scene->gm.ticrate : DEFAULT_LOGIC_TIC_RATE;
+		m_maxLogicFrame = scene->gm.maxlogicstep ? scene->gm.maxlogicstep : 5;
+		m_maxPhysicsFrame = scene->gm.maxphystep ? scene->gm.maxlogicstep : 5;
 	}
 	else
 	{
@@ -690,10 +679,7 @@ else
 		
 		if (m_networkdevice)
 			m_networkdevice->NextFrame();
-	
-		if (m_audiodevice)
-			m_audiodevice->NextFrame();
-	
+
 		// scene management
 		ProcessScheduledScenes();
 		
@@ -970,13 +956,40 @@ void KX_KetsjiEngine::DoSound(KX_Scene* scene)
 	MT_Vector3 listenervelocity = cam->GetLinearVelocity();
 	MT_Matrix3x3 listenerorientation = cam->NodeGetWorldOrientation();
 
-	SND_Scene* soundscene = scene->GetSoundScene();
-	soundscene->SetListenerTransform(
-		listenerposition,
-		listenervelocity,
-		listenerorientation);
+	{
+		AUD_3DData data;
+		float f;
 
-	soundscene->Proceed();
+		listenerorientation.getValue3x3(data.orientation);
+		listenerposition.getValue(data.position);
+		listenervelocity.getValue(data.velocity);
+
+		f = data.position[1];
+		data.position[1] = data.position[2];
+		data.position[2] = -f;
+
+		f = data.velocity[1];
+		data.velocity[1] = data.velocity[2];
+		data.velocity[2] = -f;
+
+		f = data.orientation[1];
+		data.orientation[1] = data.orientation[2];
+		data.orientation[2] = -f;
+
+		f = data.orientation[3];
+		data.orientation[3] = -data.orientation[6];
+		data.orientation[6] = f;
+
+		f = data.orientation[4];
+		data.orientation[4] = -data.orientation[8];
+		data.orientation[8] = -f;
+
+		f = data.orientation[5];
+		data.orientation[5] = data.orientation[7];
+		data.orientation[7] = f;
+
+		AUD_updateListener(&data);
+	}
 }
 
 
@@ -1595,14 +1608,11 @@ KX_Scene* KX_KetsjiEngine::CreateScene(const STR_String& scenename)
 	KX_Scene* tmpscene = new KX_Scene(m_keyboarddevice,
 									  m_mousedevice,
 									  m_networkdevice,
-									  m_audiodevice,
 									  scenename,
 									  scene);
 
-	m_sceneconverter->ConvertScene(scenename,
-							  tmpscene,
+	m_sceneconverter->ConvertScene(tmpscene,
 							  m_pythondictionary,
-							  m_keyboarddevice,
 							  m_rendertools,
 							  m_canvas);
 

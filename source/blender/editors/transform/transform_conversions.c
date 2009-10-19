@@ -502,22 +502,29 @@ static short apply_targetless_ik(Object *ob)
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
-					float rmat3[3][3], qmat[3][3], imat[3][3], smat[3][3];
+					float rmat3[3][3], qrmat[3][3], imat[3][3], smat[3][3];
 
 					Mat3CpyMat4(rmat3, rmat);
-
-					/* quaternion */
-					Mat3ToQuat(rmat3, parchan->quat);
-
+					
+					/* rotation */
+					if (parchan->rotmode > 0) 
+						Mat3ToEulO(rmat3, parchan->eul, parchan->rotmode);
+					else
+						Mat3ToQuat(rmat3, parchan->quat);
+					
 					/* for size, remove rotation */
 					/* causes problems with some constraints (so apply only if needed) */
 					if (data->flag & CONSTRAINT_IK_STRETCH) {
-						QuatToMat3(parchan->quat, qmat);
-						Mat3Inv(imat, qmat);
+						if (parchan->rotmode > 0)
+							EulOToMat3(parchan->eul, parchan->rotmode, qrmat);
+						else
+							QuatToMat3(parchan->quat, qrmat);
+						
+						Mat3Inv(imat, qrmat);
 						Mat3MulMat3(smat, rmat3, imat);
 						Mat3ToSize(smat, parchan->size);
 					}
-
+					
 					/* causes problems with some constraints (e.g. childof), so disable this */
 					/* as it is IK shouldn't affect location directly */
 					/* VECCOPY(parchan->loc, rmat[3]); */
@@ -568,18 +575,20 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	td->ext->size= pchan->size;
 	VECCOPY(td->ext->isize, pchan->size);
 
-	if (pchan->rotmode) {
+	if (pchan->rotmode > 0) {
 		td->ext->rot= pchan->eul;
 		td->ext->quat= NULL;
-
+		
 		VECCOPY(td->ext->irot, pchan->eul);
+		td->rotOrder= pchan->rotmode;
 	}
 	else {
 		td->ext->rot= NULL;
 		td->ext->quat= pchan->quat;
-
+		
 		QUATCOPY(td->ext->iquat, pchan->quat);
 	}
+	
 
 	/* proper way to get parent transform + own transform + constraints transform */
 	Mat3CpyMat4(omat, ob->obmat);
@@ -698,6 +707,8 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 			bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
 			bone->flag &= ~BONE_TRANSFORM_CHILD;
 		}
+		else
+			bone->flag &= ~BONE_TRANSFORM;
 	}
 
 	/* make sure no bone can be transformed when a parent is transformed */
@@ -917,7 +928,7 @@ static short pose_grab_with_ik(Object *ob)
 	Bone *bonec;
 	short tot_ik= 0;
 
-	if ((ob==NULL) || (ob->pose==NULL) || (ob->flag & OB_POSEMODE)==0)
+	if ((ob==NULL) || (ob->pose==NULL) || (ob->mode & OB_MODE_POSE)==0)
 		return 0;
 
 	arm = ob->data;
@@ -1615,31 +1626,32 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	TransDataExtension *tx;
 	Base *base = CTX_data_active_base(C);
 	Object *ob = CTX_data_active_object(C);
-	ParticleSystem *psys = PE_get_current(t->scene, ob);
-	ParticleSystemModifierData *psmd = NULL;
 	ParticleEditSettings *pset = PE_settings(t->scene);
-	ParticleData *pa = NULL;
-	ParticleEdit *edit;
-	ParticleEditKey *key;
+	PTCacheEdit *edit = PE_get_current(t->scene, ob);
+	ParticleSystem *psys = NULL;
+	ParticleSystemModifierData *psmd = NULL;
+	PTCacheEditPoint *point;
+	PTCacheEditKey *key;
 	float mat[4][4];
-	int i,k, totpart, transformparticle;
+	int i,k, transformparticle;
 	int count = 0, hasselected = 0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	if(psys==NULL || t->settings->particle.selectmode==SCE_SELECT_PATH) return;
+	if(edit==NULL || t->settings->particle.selectmode==SCE_SELECT_PATH) return;
 
-	psmd = psys_get_modifier(ob,psys);
+	psys = edit->psys;
 
-	edit = psys->edit;
-	totpart = psys->totpart;
+	if(psys)
+		psmd = psys_get_modifier(ob,psys);
+
 	base->flag |= BA_HAS_RECALC_DATA;
 
-	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
-		pa->flag &= ~PARS_TRANSFORM;
+	for(i=0, point=edit->points; i<edit->totpoint; i++, point++) {
+		point->flag &= ~PEP_TRANSFORM;
 		transformparticle= 0;
 
-		if((pa->flag & PARS_HIDE)==0) {
-			for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++) {
+		if((point->flag & PEP_HIDE)==0) {
+			for(k=0, key=point->keys; k<point->totkey; k++, key++) {
 				if((key->flag&PEK_HIDE)==0) {
 					if(key->flag&PEK_SELECT) {
 						hasselected= 1;
@@ -1652,8 +1664,8 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 		}
 
 		if(transformparticle) {
-			count += pa->totkey;
-			pa->flag |= PARS_TRANSFORM;
+			count += point->totkey;
+			point->flag |= PEP_TRANSFORM;
 		}
 	}
 
@@ -1672,18 +1684,23 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 	Mat4Invert(ob->imat,ob->obmat);
 
-	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
+	for(i=0, point=edit->points; i<edit->totpoint; i++, point++) {
 		TransData *head, *tail;
 		head = tail = td;
 
-		if(!(pa->flag & PARS_TRANSFORM)) continue;
+		if(!(point->flag & PEP_TRANSFORM)) continue;
 
-		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, mat);
+		if(psys)
+			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
 
-		for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++) {
-			VECCOPY(key->world_co, key->co);
-			Mat4MulVecfl(mat, key->world_co);
-			td->loc = key->world_co;
+		for(k=0, key=point->keys; k<point->totkey; k++, key++) {
+			if(psys) {
+				VECCOPY(key->world_co, key->co);
+				Mat4MulVecfl(mat, key->world_co);
+				td->loc = key->world_co;
+			}
+			else
+				td->loc = key->co;
 
 			VECCOPY(td->iloc, td->loc);
 			VECCOPY(td->center, td->loc);
@@ -1711,7 +1728,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 				if(k==0) tx->size = 0;
 				else tx->size = (key - 1)->time;
 
-				if(k == pa->totkey - 1) tx->quat = 0;
+				if(k == point->totkey - 1) tx->quat = 0;
 				else tx->quat = (key + 1)->time;
 			}
 
@@ -1729,35 +1746,42 @@ void flushTransParticles(TransInfo *t)
 {
 	Scene *scene = t->scene;
 	Object *ob = OBACT;
-	ParticleSystem *psys = PE_get_current(scene, ob);
-	ParticleSystemModifierData *psmd;
-	ParticleData *pa;
-	ParticleEditKey *key;
+	PTCacheEdit *edit = PE_get_current(scene, ob);
+	ParticleSystem *psys = edit->psys;
+	ParticleSystemModifierData *psmd = NULL;
+	PTCacheEditPoint *point;
+	PTCacheEditKey *key;
 	TransData *td;
 	float mat[4][4], imat[4][4], co[3];
 	int i, k, propmode = t->flag & T_PROP_EDIT;
 
-	psmd = psys_get_modifier(ob, psys);
+	if(psys)
+		psmd = psys_get_modifier(ob, psys);
 
 	/* we do transform in world space, so flush world space position
-	 * back to particle local space */
+	 * back to particle local space (only for hair particles) */
 	td= t->data;
-	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++, td++) {
-		if(!(pa->flag & PARS_TRANSFORM)) continue;
+	for(i=0, point=edit->points; i<edit->totpoint; i++, point++, td++) {
+		if(!(point->flag & PEP_TRANSFORM)) continue;
 
-		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, mat);
-		Mat4Invert(imat,mat);
+		if(psys) {
+			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
+			Mat4Invert(imat,mat);
 
-		for(k=0, key=psys->edit->keys[i]; k<pa->totkey; k++, key++) {
-			VECCOPY(co, key->world_co);
-			Mat4MulVecfl(imat, co);
+			for(k=0, key=point->keys; k<point->totkey; k++, key++) {
+				VECCOPY(co, key->world_co);
+				Mat4MulVecfl(imat, co);
 
-			/* optimization for proportional edit */
-			if(!propmode || !FloatCompare(key->co, co, 0.0001f)) {
-				VECCOPY(key->co, co);
-				pa->flag |= PARS_EDIT_RECALC;
+
+				/* optimization for proportional edit */
+				if(!propmode || !FloatCompare(key->co, co, 0.0001f)) {
+					VECCOPY(key->co, co);
+					point->flag |= PEP_EDIT_RECALC;
+				}
 			}
 		}
+		else
+			point->flag |= PEP_EDIT_RECALC;
 	}
 
 	PE_update_object(scene, OBACT, 1);
@@ -4324,12 +4348,14 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 		AnimData *adt= ob->adt;
 		float cfra= (float)CFRA; // xxx this will do for now
 		short flag = 0;
-
+		
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
 		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
 			flag |= INSERTKEY_MATRIX;
-
+		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+			flag |= INSERTKEY_REPLACE;
+			
 		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 			/* only key on available channels */
 			if (adt && adt->action) {
@@ -4341,7 +4367,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 		}
 		else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
 			short doLoc=0, doRot=0, doScale=0;
-
+			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 			if (tmode == TFM_TRANSLATION) {
 				doLoc = 1;
@@ -4353,7 +4379,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 				}
 				else if (v3d->around == V3D_CURSOR)
 					doLoc = 1;
-
+				
 				if ((v3d->flag & V3D_ALIGN)==0)
 					doRot = 1;
 			}
@@ -4364,11 +4390,11 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 				}
 				else if (v3d->around == V3D_CURSOR)
 					doLoc = 1;
-
+				
 				if ((v3d->flag & V3D_ALIGN)==0)
 					doScale = 1;
 			}
-
+			
 			// TODO: the group names here are temporary...
 			// TODO: should this be made to use the builtin KeyingSets instead?
 			if (doLoc) {
@@ -4393,16 +4419,16 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 			insert_keyframe(id, NULL, "Object Transform", "location", 0, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "location", 1, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "location", 2, cfra, flag);
-
+			
 			insert_keyframe(id, NULL, "Object Transform", "rotation", 0, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "rotation", 1, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "rotation", 2, cfra, flag);
-
+			
 			insert_keyframe(id, NULL, "Object Transform", "scale", 0, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "scale", 1, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "scale", 2, cfra, flag);
 		}
-
+			
 		// XXX todo... find a way to send notifiers from here...
 	}
 }
@@ -4426,7 +4452,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 		float cfra= (float)CFRA;
 		short flag= 0;
 		char buf[512];
-
+		
 		/* flag is initialised from UserPref keyframing settings
 		 *	- special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
 		 * 	  visual keyframes even if flag not set, as it's not that useful otherwise
@@ -4436,12 +4462,14 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 			flag |= INSERTKEY_MATRIX;
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
-
+		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+			flag |= INSERTKEY_REPLACE;
+		
 		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
 			if (pchan->bone->flag & BONE_TRANSFORM) {
 				/* clear any 'unkeyed' flag it may have */
 				pchan->bone->flag &= ~BONE_UNKEYED;
-
+				
 				/* only insert into available channels? */
 				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					if (act) {
@@ -4452,7 +4480,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 				/* only insert keyframe if needed? */
 				else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
 					short doLoc=0, doRot=0, doScale=0;
-
+					
 					/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 					if (tmode == TFM_TRANSLATION) {
 						if (targetless_ik)
@@ -4463,18 +4491,18 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 					else if (tmode == TFM_ROTATION) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
 							doLoc = 1;
-
+							
 						if ((v3d->flag & V3D_ALIGN)==0)
 							doRot = 1;
 					}
 					else if (tmode == TFM_RESIZE) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
 							doLoc = 1;
-
+							
 						if ((v3d->flag & V3D_ALIGN)==0)
 							doScale = 1;
 					}
-
+					
 					if (doLoc) {
 						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
 						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
@@ -4509,7 +4537,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
 					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
 					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-
+					
 					if (pchan->rotmode == PCHAN_ROT_QUAT) {
 						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
 						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
@@ -4523,7 +4551,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
 						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 					}
-
+					
 					sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
 					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
 					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
@@ -4531,14 +4559,14 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 				}
 			}
 		}
-
+		
 		// XXX todo... figure out way to get appropriate notifiers sent
-
+		
 		/* do the bone paths */
-#if 0 // TRANSFORM_FIX_ME
+#if 0 // XXX TRANSFORM FIX ME
 		if (arm->pathflag & ARM_PATH_ACFRA) {
-			pose_clear_paths(ob);
-			pose_recalculate_paths(ob);
+			//pose_clear_paths(ob); // XXX for now, don't need to clear
+			ED_pose_recalculate_paths(C, scene, ob);
 		}
 #endif
 	}
@@ -4734,7 +4762,7 @@ void special_aftertrans_update(TransInfo *t)
 				 * 	- sync this with actdata_filter_gpencil() in editaction.c
 				 */
 				for (sa= sc->areabase.first; sa; sa= sa->next) {
-					bGPdata *gpd= gpencil_data_getactive(sa);
+					bGPdata *gpd= gpencil_data_get_active(sa);
 					
 					if (gpd)
 						posttrans_gpd_clean(gpd);
@@ -4898,7 +4926,7 @@ void special_aftertrans_update(TransInfo *t)
 		//	allqueue(REDRAWBUTSEDIT, 0);
 
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(t->scene->basact && (ob = t->scene->basact->object) && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		;
 	}
 	else {
@@ -4957,9 +4985,9 @@ static void createTransObject(bContext *C, TransInfo *t)
 	set_trans_object_base_flags(C, t);
 
 	/* count */
+#if 0 // TRANSFORM_FIX_ME
 	CTX_DATA_BEGIN(C, Object*, ob, selected_objects)
 	{
-#if 0 // TRANSFORM_FIX_ME
 		/* store ipo keys? */
 		if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
 			elems.first= elems.last= NULL;
@@ -4973,12 +5001,14 @@ static void createTransObject(bContext *C, TransInfo *t)
 			if(elems.first==NULL)
 				t->total++;
 		}
-#endif
 //		else {
 			t->total++;
 //		}
 	}
 	CTX_DATA_END;
+#else
+	t->total= CTX_DATA_COUNT(C, selected_objects);
+#endif
 
 	if(!t->total) {
 		/* clear here, main transform function escapes too */
@@ -5232,18 +5262,18 @@ void createTransData(bContext *C, TransInfo *t)
 			t->poseobj = ob;	/* <- tsk tsk, this is going to give issues one day */
 		}
 	}
-	else if (ob && (ob->flag & OB_POSEMODE)) {
+	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		// XXX this is currently limited to active armature only...
 		// XXX active-layer checking isn't done as that should probably be checked through context instead
 		createTransPose(C, t, ob);
 	}
-	else if (G.f & G_WEIGHTPAINT) {
+	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
 		/* exception, we look for the one selected armature */
 		CTX_DATA_BEGIN(C, Object*, ob_armature, selected_objects)
 		{
 			if(ob_armature->type==OB_ARMATURE)
 			{
-				if(ob_armature->flag & OB_POSEMODE)
+				if(ob_armature->mode & OB_MODE_POSE)
 				{
 					createTransPose(C, t, ob_armature);
 					break;
@@ -5252,7 +5282,8 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 		CTX_DATA_END;
 	}
-	else if (G.f & G_PARTICLEEDIT && PE_can_edit(PE_get_current(scene, ob))) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) 
+		&& PE_start_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
 
 		if(t->data && t->flag & T_PROP_EDIT) {
@@ -5271,7 +5302,7 @@ void createTransData(bContext *C, TransInfo *t)
 		if (t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
 			View3D *v3d = t->view;
-			RegionView3D *rv3d = t->ar->regiondata;
+			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			if((t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
 			{
 				t->flag |= T_CAMERA;

@@ -567,7 +567,7 @@ void free_libblock(ListBase *lb, void *idv)
 			//XXX free_script((Script *)id);
 			break;
 		case ID_SO:
-			sound_free_sound((bSound *)id);
+			sound_free((bSound*)id);
 			break;
 		case ID_GR:
 			free_group((Group *)id);
@@ -1030,6 +1030,20 @@ static void lib_indirect_test_id(ID *id)
 	}
 }
 
+void tag_main(struct Main *mainvar, int tag)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	ID *id;
+	int a;
+
+	a= set_listbasepointers(mainvar, lbarray);
+	while(a--) {
+		for(id= lbarray[a]->first; id; id= id->next) {
+			if(tag)	id->flag |= LIB_DOIT;
+			else	id->flag &= ~LIB_DOIT;
+		}
+	}
+}
 
 /* if lib!=NULL, only all from lib local */
 void all_local(Library *lib, int untagged_only)

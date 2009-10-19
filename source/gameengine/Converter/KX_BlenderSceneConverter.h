@@ -56,14 +56,10 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	// Should also have a list of collision shapes. 
 	// For the time being this is held in KX_Scene::m_shapes
 
-	GEN_Map<CHashedPtr,struct Object*> m_map_gameobject_to_blender;
-	GEN_Map<CHashedPtr,KX_GameObject*> m_map_blender_to_gameobject;
-
-	GEN_Map<CHashedPtr,RAS_MeshObject*> m_map_mesh_to_gamemesh;
-//	GEN_Map<CHashedPtr,DT_ShapeHandle> m_map_gamemesh_to_sumoshape;
-	
-	GEN_Map<CHashedPtr,SCA_IActuator*> m_map_blender_to_gameactuator;
-	GEN_Map<CHashedPtr,SCA_IController*> m_map_blender_to_gamecontroller;
+	GEN_Map<CHashedPtr,KX_GameObject*>	m_map_blender_to_gameobject;		/* cleared after conversion */
+	GEN_Map<CHashedPtr,RAS_MeshObject*>	m_map_mesh_to_gamemesh;				/* cleared after conversion */
+	GEN_Map<CHashedPtr,SCA_IActuator*>	m_map_blender_to_gameactuator;		/* cleared after conversion */
+	GEN_Map<CHashedPtr,SCA_IController*>m_map_blender_to_gamecontroller;	/* cleared after conversion */
 	
 	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameAdtList;
 	
@@ -92,10 +88,8 @@ public:
 	 * dictobj: python dictionary (for pythoncontrollers)
 	 */
 	virtual void	ConvertScene(
-						const STR_String& scenename,
 						class KX_Scene* destinationscene,
 						PyObject* dictobj,
-						class SCA_IInputDevice* keyinputdev,
 						class RAS_IRenderTools* rendertools,
 						class RAS_ICanvas* canvas
 					);
@@ -109,13 +103,9 @@ public:
 	void RegisterGameObject(KX_GameObject *gameobject, struct Object *for_blenderobject);
 	void UnregisterGameObject(KX_GameObject *gameobject);
 	KX_GameObject *FindGameObject(struct Object *for_blenderobject);
-	struct Object *FindBlenderObject(KX_GameObject *for_gameobject);
 
 	void RegisterGameMesh(RAS_MeshObject *gamemesh, struct Mesh *for_blendermesh);
 	RAS_MeshObject *FindGameMesh(struct Mesh *for_blendermesh/*, unsigned int onlayer*/);
-
-//	void RegisterSumoShape(DT_ShapeHandle shape, RAS_MeshObject *for_gamemesh);
-//	DT_ShapeHandle FindSumoShape(RAS_MeshObject *for_gamemesh);
 
 	void RegisterPolyMaterial(RAS_IPolyMaterial *polymat);
 
@@ -150,6 +140,15 @@ public:
 	virtual bool GetGLSLMaterials();
 
 	struct Scene* GetBlenderSceneForName(const STR_String& name);
+
+	struct Main* GetMain() { return m_maggie; };
+
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderSceneConverter"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_BLENDERSCENECONVERTER_H

@@ -353,7 +353,7 @@ short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val)
 	}
 
 	if(draw)
-		; // XXX redraw_alltext();
+		{}; // XXX redraw_alltext();
 	
 	return swallow;
 }
@@ -536,7 +536,7 @@ short do_textmarkers(SpaceText *st, char ascii, unsigned short evnt, short val)
 	}
 	
 	if(draw)
-		; // XXX redraw_alltext();
+		{}; // XXX redraw_alltext();
 	
 	return swallow;
 }

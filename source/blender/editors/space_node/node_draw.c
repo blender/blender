@@ -607,9 +607,9 @@ static void do_node_internal_buttons(bContext *C, void *node_v, int event)
 			}
 			WM_event_add_notifier(C, NC_SCENE|ND_NODES, CTX_data_scene(C));
 		}			
-		
-	//	else if(snode->treetype==NTREE_TEXTURE)
-	//		texture_node_event(snode, val);
+		else if(snode->treetype==NTREE_TEXTURE) {
+			WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
+		}
 	}
 	
 }

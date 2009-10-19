@@ -58,6 +58,7 @@
 #include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h"
+#include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -66,6 +67,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
@@ -450,7 +452,7 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 {
 //	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *settings= CTX_data_tool_settings(C);
-	Brush *brush= settings->imapaint.brush;
+	Brush *brush= paint_brush(&settings->imapaint.paint);
 	ID *id;
 	int yco, xco, butw, but_idx;
 //	short *menupoin = &(sima->menunr); // XXX : &(G.buts->menunr);
@@ -472,7 +474,7 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 	uiBlockEndAlign(block);
 	yco -= 30;
 	
-	id= (ID*)settings->imapaint.brush;
+	id= (ID*)brush;
 	xco= 200; // std_libbuttons(block, 0, yco, 0, NULL, evt_browse, ID_BR, 0, id, NULL, menupoin, 0, evt_local, evt_del, 0, evt_keepdata);
 	
 	if(brush && !brush->id.lib) {
@@ -574,7 +576,7 @@ static void image_panel_paintcolor(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *settings= CTX_data_tool_settings(C);
-	Brush *brush= settings->imapaint.brush;
+	Brush *brush= paint_brush(&settings->imapaint.paint);
 	uiBlock *block;
 	static float hsv[3], old[3];	// used as temp mem for picker
 	static char hexcol[128];
@@ -1318,7 +1320,7 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 		 }
 		 
 		 /* exception, let's do because we only use this panel 3 times in blender... but not real good code! */
-		 if( (FACESEL_PAINT_TEST) && sima && &sima->iuser==iuser)
+		 if( (paint_facesel_test(CTX_data_active_object(C))) && sima && &sima->iuser==iuser)
 			 return;
 		 /* left side default per-image options, right half the additional options */
 		 
@@ -1436,6 +1438,12 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "IMAGE_PT_curves");
 	strcpy(pt->label, "Curves");
 	pt->draw= image_panel_curves;
+	BLI_addtail(&art->paneltypes, pt);
+	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel gpencil");
+	strcpy(pt->idname, "IMAGE_PT_gpencil");
+	strcpy(pt->label, "Grease Pencil");
+	pt->draw= gpencil_panel_standard;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

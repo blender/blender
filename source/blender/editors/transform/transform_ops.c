@@ -148,6 +148,7 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name   = "Select Orientation";
+	ot->description= "Select orientation type.";
 	ot->idname = "TFM_OT_select_orientation";
 
 	/* api callbacks */
@@ -308,6 +309,7 @@ void TFM_OT_translate(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Translate";
+	ot->description= "Translate selected items.";
 	ot->idname = OP_TRANSLATION;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -333,6 +335,7 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Resize";
+	ot->description= "Resize selected items."; 
 	ot->idname = OP_RESIZE;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -359,6 +362,7 @@ void TFM_OT_trackball(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Trackball";
+	ot->description= "Trackball style rotation of selected items.";
 	ot->idname = OP_TRACKBALL;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -380,6 +384,7 @@ void TFM_OT_rotate(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Rotate";
+	ot->description= "Rotate selected items.";
 	ot->idname = OP_ROTATION;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -405,6 +410,10 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Tilt";
+    /*optionals - 
+        "Tilt selected vertices."
+        "Specify an extra axis rotation for selected vertices of 3d curve." */
+	ot->description= "Tilt selected control vertices of 3d curve."; 
 	ot->idname = OP_TILT;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -428,6 +437,7 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Warp";
+	ot->description= "Warp selected items around the cursor.";
 	ot->idname = OP_WARP;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -452,6 +462,7 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Shear";
+	ot->description= "Shear selected items along the horizontal screen axis.";
 	ot->idname = OP_SHEAR;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -476,6 +487,7 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Shrink/Fatten";
+	ot->description= "Shrink/fatten selected vertices along normals.";
 	ot->idname = OP_SHRINK_FATTEN;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -497,6 +509,8 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "To Sphere";
+    //added "around mesh center" to differentiate between "MESH_OT_vertices_to_sphere()" 
+	ot->description= "Move selected vertices outward in a spherical shape around mesh center.";
 	ot->idname = OP_TOSPHERE;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
@@ -548,6 +562,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name   = "Transform";
+	ot->description= "Transform selected items by mode type.";
 	ot->idname = "TFM_OT_transform";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 

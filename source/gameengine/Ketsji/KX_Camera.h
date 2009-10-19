@@ -273,10 +273,7 @@ public:
 	
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getCameraToWorld);
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getWorldToCamera);
-	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getProjectionMatrix);
-	KX_PYMETHOD_DOC_O(KX_Camera, setProjectionMatrix);
 	
-	KX_PYMETHOD_DOC_O(KX_Camera, enableViewport);
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
 

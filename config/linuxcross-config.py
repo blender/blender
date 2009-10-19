@@ -22,6 +22,11 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
+BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include'
@@ -73,6 +78,7 @@ BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = False
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'

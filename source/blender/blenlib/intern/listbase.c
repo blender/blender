@@ -347,11 +347,11 @@ void BLI_duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */
 {
 	struct Link *link1, *link2;
 	
+	/* in this order, to ensure it works if list1 == list2 */
+	link2= list2->first;
 	list1->first= list1->last= 0;
 	
-	link2= list2->first;
 	while(link2) {
-		
 		link1= MEM_dupallocN(link2);
 		BLI_addtail(list1, link1);
 		

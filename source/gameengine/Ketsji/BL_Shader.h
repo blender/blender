@@ -25,6 +25,12 @@ public:
 	{
 	}
 	int				mLoc;		// Sampler location
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_Sampler"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /**
@@ -65,6 +71,13 @@ public:
 
 	int GetLocation()	{ return mLoc; }
 	void* getData()		{ return mData; }
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_Uniform"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /**
@@ -83,6 +96,13 @@ public:
 	int				mType;
 	int				mLoc;
 	unsigned int	mFlag;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_DefUniform"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /**

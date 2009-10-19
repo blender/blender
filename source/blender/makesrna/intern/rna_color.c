@@ -130,7 +130,7 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 
 	/* not editable for now, need to have CurveMapping to do curvemapping_changed */
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

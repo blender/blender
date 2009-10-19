@@ -37,13 +37,13 @@ struct Strip;
 struct StripElem;
 struct ImBuf;
 struct Scene;
+struct bContext;
 
 #define MAXSEQ          32
 
 #define BUILD_SEQAR_COUNT_NOTHING  0
 #define BUILD_SEQAR_COUNT_CURRENT  1
 #define BUILD_SEQAR_COUNT_CHILDREN 2
-
 
 /* sequence iterator */
 
@@ -137,9 +137,9 @@ struct SeqEffectHandle {
 /* sequence.c */
 
 // extern
-void seq_free_sequence(struct Editing *ed, struct Sequence *seq);
+void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
-void seq_free_editing(struct Editing *ed);
+void seq_free_editing(struct Scene *scene);
 struct Editing *seq_give_editing(struct Scene *scene, int alloc);
 char *give_seqname(struct Sequence *seq);
 struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
@@ -181,5 +181,10 @@ int check_single_seq(struct Sequence *seq);
 void fix_single_seq(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test);
-void free_imbuf_seq(struct ListBase * seqbasep);
+void free_imbuf_seq(struct ListBase * seqbasep, int check_mem_usage);
+
+void seq_update_sound(struct Sequence *seq);
+
+void clear_scene_in_allseqs(struct Scene *sce);
+
 

@@ -33,6 +33,7 @@ struct bScreen;
 
 /* *************** internal api ************** */
 void		wm_ghost_init			(bContext *C);
+void		wm_ghost_exit(void);
 
 wmWindow	*wm_window_new			(bContext *C);
 void		wm_window_free			(bContext *C, wmWindow *win);

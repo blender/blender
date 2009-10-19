@@ -575,10 +575,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\psfont.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\rand.c"
 				>
 			</File>
@@ -612,6 +608,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\vectorops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\voxel.c"
 				>
 			</File>
 			<File
@@ -725,6 +725,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_voxel.h"
 				>
 			</File>
 			<File

@@ -36,6 +36,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
@@ -81,6 +82,7 @@
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_image.h"
+#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -510,7 +512,7 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
 	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 
-	QuatToEul(pchan->quat, tfp->ob_eul);
+	QuatToEulO(pchan->quat, tfp->ob_eul, pchan->rotmode); // XXX?
 	tfp->ob_eul[0]*= 180.0/M_PI;
 	tfp->ob_eul[1]*= 180.0/M_PI;
 	tfp->ob_eul[2]*= 180.0/M_PI;
@@ -839,7 +841,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			eul[0]= M_PI*tfp->ob_eul[0]/180.0;
 			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
 			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
-			EulToQuat(eul, pchan->quat);
+			EulOToQuat(eul, pchan->rotmode, pchan->quat); // xxx?
 		}
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:
@@ -1002,74 +1004,7 @@ static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 }
 #endif // XXX not used
 
-static void weight_paint_buttons(Scene *scene, uiBlock *block)
-{
-	VPaint *wpaint= scene->toolsettings->wpaint;
-	Object *ob;
-	ob= OBACT;
-	
-	if(ob==NULL || ob->type!=OB_MESH) return;
-
-	/* XXX	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_REDR, "Weight:",10,170,225,19, &wpaint->weight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
-	
-	uiDefBut(block, BUT, B_WEIGHT0_0 , "0",			 10,150,45,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_WEIGHT1_4 , "1/4",		 55,150,45,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_WEIGHT1_2 , "1/2",		 100,150,45,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_WEIGHT3_4 , "3/4",		 145,150,45,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_WEIGHT1_0 , "1",			 190,150,45,19, 0, 0, 0, 0, 0, "");
-	
-	uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		10,130,225,19, &wpaint->a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-	
-	uiDefBut(block, BUT, B_OPA1_8 , "1/8",		10,110,45,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_OPA1_4 , "1/4",		55,110,45,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_OPA1_2 , "1/2",		100,110,45,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_OPA3_4 , "3/4",		145,110,45,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_OPA1_0 , "1",		190,110,45,19, 0, 0, 0, 0, 0, "");
-	
-	uiDefButF(block, NUMSLI, B_NOP, "Size ",	10,90,225,19, &wpaint->size, 2.0, 64.0, 0, 0, "The size of the brush");
-	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_NOP, "Mix",		250,170,60,17, &wpaint->mode, 1.0, 0.0, 0, 0, "Mix the vertex colors");
-	uiDefButS(block, ROW, B_NOP, "Add",		250,152,60,17, &wpaint->mode, 1.0, 1.0, 0, 0, "Add the vertex colors");
-	uiDefButS(block, ROW, B_NOP, "Sub",		250,134,60,17, &wpaint->mode, 1.0, 2.0, 0, 0, "Subtract from the vertex color");
-	uiDefButS(block, ROW, B_NOP, "Mul",		250,116,60,17, &wpaint->mode, 1.0, 3.0, 0, 0, "Multiply the vertex color");
-	uiDefButS(block, ROW, B_NOP, "Blur",		250, 98,60,17, &wpaint->mode, 1.0, 4.0, 0, 0, "Blur the weight with surrounding values");
-	uiDefButS(block, ROW, B_NOP, "Lighter",	250, 80,60,17, &wpaint->mode, 1.0, 5.0, 0, 0, "Paint over darker areas only");
-	uiDefButS(block, ROW, B_NOP, "Darker",		250, 62,60,17, &wpaint->mode, 1.0, 6.0, 0, 0, "Paint over lighter areas only");
-	uiBlockEndAlign(block);
-	*/
-	
-	/* draw options same as below */
-	uiBlockBeginAlign(block);
-	if (FACESEL_PAINT_TEST) {
-		Mesh *me= ob->data;
-		uiDefButBitI(block, TOG, ME_DRAWFACES, B_REDR, "Faces",	10,45,60,19, &me->drawflag, 0, 0, 0, 0, "Displays all faces as shades");
-		uiDefButBitI(block,TOG, ME_DRAWEDGES, B_REDR,"Edges",70,45,60,19, &me->drawflag, 2.0, 0, 0, 0,  "Displays edges of visible faces");
-	 	uiDefButBitI(block,TOG, ME_HIDDENEDGES, B_REDR,"Hidden Edges",130,45,100,19, &me->drawflag, 2.0, 1.0, 0, 0,  "Displays edges of hidden faces");
-	} else{ 
- 		uiDefButBitC(block, TOG, OB_DRAWWIRE, B_REDR, "Wire",	10,45,75,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
-	}
-	uiBlockEndAlign(block);
-	
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, VP_AREA, 0, "All Faces", 	10,20,60,19, &wpaint->flag, 0, 0, 0, 0, "Paint on all faces inside brush (otherwise only on face under mouse cursor)");
-	uiDefButBitS(block, TOG, VP_SOFT, 0, "Vert Dist", 70,20,60,19, &wpaint->flag, 0, 0, 0, 0, "Use distances to vertices (instead of all vertices of face)");
-	uiDefButBitS(block, TOGN, VP_HARD, 0, "Soft",		130,20,60,19, &wpaint->flag, 0, 0, 0, 0, "Use a soft brush");
-	uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	190,20,60,19, &wpaint->flag, 0, 0, 0, 0, "Applies the vertex normal before painting");
-	uiDefButBitS(block, TOG, VP_SPRAY, 0, "Spray",		250,20,55,19, &wpaint->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse");
-	uiBlockEndAlign(block);
-	
-	if(ob) {
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, VP_ONLYVGROUP, B_REDR, "Vgroup",		10,0,100,19, &wpaint->flag, 0, 0, 0, 0, "Only paint on vertices in the selected vertex group.");
-		uiDefButBitS(block, TOG, VP_MIRROR_X, B_REDR, "X-Mirror",	110,0,100,19, &wpaint->flag, 0, 0, 0, 0, "Mirrored Paint, applying on mirrored Weight Group name");
-		uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					210,0,100,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
-		uiBlockEndAlign(block);
-	}
-}
-
+#if 0
 static void brush_idpoin_handle(bContext *C, ID *id, int event)
 {
 	Brush **br = current_brush_source(CTX_data_scene(C));
@@ -1100,6 +1035,7 @@ static void brush_idpoin_handle(bContext *C, ID *id, int event)
 		break;
 	}
 }
+#endif
 
 static void view3d_panel_object(const bContext *C, Panel *pa)
 {
@@ -1111,7 +1047,6 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	Object *ob= OBACT;
 	TransformProperties *tfp;
 	float lim;
-	static char hexcol[128];
 	
 	if(ob==NULL) return;
 
@@ -1125,13 +1060,13 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 
 // XXX	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
-	if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+	if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
 	}
 	else {
 		//bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 21.0, 0, 0, "");
 		//uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 
-		if((G.f & G_PARTICLEEDIT)==0) {
+		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0) {
 		//	uiBlockBeginAlign(block);
 		//	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 			if((ob->parent) && (ob->partype == PARBONE)) {
@@ -1152,26 +1087,9 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		if(ob->type==OB_MBALL) v3d_editmetaball_buts(block, ob, lim);
 		else v3d_editvertex_buts(C, block, v3d, ob, lim);
 	}
-	else if(ob->flag & OB_POSEMODE) {
+	else if(ob->mode & OB_MODE_POSE) {
 		v3d_posearmature_buts(block, v3d, ob, lim);
 	}
-	else if(G.f & G_WEIGHTPAINT) {
-		BLI_strncpy(pa->drawname, "Weight Paint Properties", sizeof(pa->drawname));
-		weight_paint_buttons(scene, block);
-	}
-	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
-		static float hsv[3], old[3];	// used as temp mem for picker
-		Brush **br = current_brush_source(scene);
-
-		BLI_strncpy(pa->drawname, "Paint Properties", sizeof(pa->drawname));
-		if(br && *br)
-			/* 'f' is for floating panel */
-			uiBlockPickerButtons(block, (*br)->rgb, hsv, old, hexcol, 'f', B_REDR);
-	}
-	else if(G.f & G_PARTICLEEDIT){
-		BLI_strncpy(pa->drawname, "Particle Edit Properties", sizeof(pa->drawname));
-// XXX		particle_edit_buttons(block);
-	} 
 	else {
 		BoundBox *bb = NULL;
 		
@@ -1257,133 +1175,6 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	}
 }
 
-#if 0 // XXX not used anymore
-static void view3d_panel_background(const bContext *C, Panel *pa)
-{
-	View3D *v3d= CTX_wm_view3d(C);
-	uiBlock *block;
-
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
-
-	if(v3d->flag & V3D_DISPBGPIC) {
-		if(v3d->bgpic==NULL) {
-			v3d->bgpic= MEM_callocN(sizeof(BGpic), "bgpic");
-			v3d->bgpic->size= 5.0;
-			v3d->bgpic->blend= 0.5;
-			v3d->bgpic->iuser.fie_ima= 2;
-			v3d->bgpic->iuser.ok= 1;
-		}
-	}
-	
-	if(!(v3d->flag & V3D_DISPBGPIC)) {
-		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use Background Image", 10, 180, 150, 20, &v3d->flag, 0, 0, 0, 0, "Display an image in the background of this 3D View");
-		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
-	}
-	else {
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use", 10, 225, 50, 20, &v3d->flag, 0, 0, 0, 0, "Display an image in the background of this 3D View");
-		uiDefButF(block, NUMSLI, B_REDR, "Blend:",	60, 225, 150, 20, &v3d->bgpic->blend, 0.0,1.0, 0, 0, "Set the transparency of the background image");
-		uiDefButF(block, NUM, B_REDR, "Size:",		210, 225, 100, 20, &v3d->bgpic->size, 0.1, 250.0*v3d->grid, 100, 0, "Set the size (width) of the background image");
-
-		uiDefButF(block, NUM, B_REDR, "X Offset:",	10, 205, 150, 20, &v3d->bgpic->xof, -250.0*v3d->grid,250.0*v3d->grid, 10, 2, "Set the horizontal offset of the background image");
-		uiDefButF(block, NUM, B_REDR, "Y Offset:",	160, 205, 150, 20, &v3d->bgpic->yof, -250.0*v3d->grid,250.0*v3d->grid, 10, 2, "Set the vertical offset of the background image");
-		
-		ED_image_uiblock_panel(C, block, &v3d->bgpic->ima, &v3d->bgpic->iuser, B_REDR, B_REDR);
-		uiBlockEndAlign(block);
-	}
-}
-
-
-static void view3d_panel_properties(const bContext *C, Panel *pa)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *arlast;
-	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= CTX_wm_view3d(C);
-	RegionView3D *rv3d;
-	uiBlock *block;
-	float *curs;
-
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
-
-	uiDefBut(block, LABEL, 1, "Grid:",					10, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Spacing:",		10, 200, 140, 19, &v3d->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
-	uiDefButS(block, NUM, B_REDR, "Lines:",		10, 180, 140, 19, &v3d->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines in perspective view");
-	uiDefButS(block, NUM, B_REDR, "Divisions:",		10, 160, 140, 19, &v3d->gridsubdiv, 1.0, 100.0, 100, 0, "Set the number of grid lines");
-	uiBlockEndAlign(block);
-
-	uiDefBut(block, LABEL, 1, "3D Display:",							160, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefButBitS(block, TOG, V3D_SHOW_FLOOR, B_REDR, "Grid Floor",160, 200, 150, 19, &v3d->gridflag, 0, 0, 0, 0, "Show the grid floor in free camera mode");
-	uiDefButBitS(block, TOG, V3D_SHOW_X, B_REDR, "X Axis",		160, 176, 48, 19, &v3d->gridflag, 0, 0, 0, 0, "Show the X Axis line");
-	uiDefButBitS(block, TOG, V3D_SHOW_Y, B_REDR, "Y Axis",		212, 176, 48, 19, &v3d->gridflag, 0, 0, 0, 0, "Show the Y Axis line");
-	uiDefButBitS(block, TOG, V3D_SHOW_Z, B_REDR, "Z Axis",		262, 176, 48, 19, &v3d->gridflag, 0, 0, 0, 0, "Show the Z Axis line");
-
-	uiDefBut(block, LABEL, 1, "View Camera:",			10, 140, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefButF(block, NUM, B_REDR, "Lens:",		10, 120, 140, 19, &v3d->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Clip Start:",	10, 96, 140, 19, &v3d->near, v3d->grid/100.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
-	uiDefButF(block, NUM, B_REDR, "Clip End:",	10, 76, 140, 19, &v3d->far, 1.0, 10000.0*v3d->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
-	uiBlockEndAlign(block);
-
-	uiDefBut(block, LABEL, 1, "3D Cursor:",				160, 150, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
-
-	uiBlockBeginAlign(block);
-	curs= give_cursor(scene, v3d);
-	uiDefButF(block, NUM, B_REDR, "X:",			160, 130, 150, 22, curs, -10000.0*v3d->grid, 10000.0*v3d->grid, 10, 0, "X co-ordinate of the 3D cursor");
-	uiDefButF(block, NUM, B_REDR, "Y:",			160, 108, 150, 22, curs+1, -10000.0*v3d->grid, 10000.0*v3d->grid, 10, 0, "Y co-ordinate of the 3D cursor");
-	uiDefButF(block, NUM, B_REDR, "Z:",			160, 86, 150, 22, curs+2, -10000.0*v3d->grid, 10000.0*v3d->grid, 10, 0, "Z co-ordinate of the 3D cursor");
-	uiBlockEndAlign(block);
-
-	uiDefBut(block, LABEL, 1, "Display:",				10, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, B_REDR, "Outline Selected", 10, 30, 140, 19, &v3d->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
-	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, B_REDR, "All Object Centers", 10, 10, 140, 19, &v3d->flag, 0, 0, 0, 0, "Draw the center points on all objects");
-	uiDefButBitS(block, TOGN, V3D_HIDE_HELPLINES, B_REDR, "Relationship Lines", 10, -10, 140, 19, &v3d->flag, 0, 0, 0, 0, "Draw dashed lines indicating Parent, Constraint, or Hook relationships");
-	uiDefButBitS(block, TOG, V3D_SOLID_TEX, B_REDR, "Solid Tex", 10, -30, 140, 19, &v3d->flag2, 0, 0, 0, 0, "Display textures in Solid draw type (Shift T)");
-	uiBlockEndAlign(block);
-
-	uiDefBut(block, LABEL, 1, "View Locking:",				160, 60, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Object:", 160, 40, 150, 19, &v3d->ob_centre, "Lock view to center to this Object"); 
-	uiDefBut(block, TEX, B_REDR, "Bone:",						160, 20, 150, 19, v3d->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
-	uiBlockEndAlign(block);	
-
-	/* last region is always 3d... a bit weak */
-	arlast= sa->regionbase.last;
-	uiBlockBeginAlign(block);
-	if(arlast->alignment==RGN_ALIGN_QSPLIT) {
-		arlast= arlast->prev;
-		rv3d= arlast->regiondata;
-		
-		uiDefButO(block, BUT, "SCREEN_OT_region_foursplit", WM_OP_EXEC_REGION_WIN, "End 4-Split View", 160, -10, 150, 19, "Join the 3D View");
-		uiDefButBitS(block, TOG, RV3D_LOCKED, B_RV3D_LOCKED, "Lock", 160, -30, 50, 19, &rv3d->viewlock, 0, 0, 0, 0, "");
-		uiDefButBitS(block, TOG, RV3D_BOXVIEW, B_RV3D_BOXVIEW, "Box", 210, -30, 50, 19, &rv3d->viewlock, 0, 0, 0, 0, "");
-		uiDefButBitS(block, TOG, RV3D_BOXCLIP, B_RV3D_BOXCLIP, "Clip", 260, -30, 50, 19, &rv3d->viewlock, 0, 0, 0, 0, "");
-	}		
-	else
-		uiDefButO(block, BUT, "SCREEN_OT_region_foursplit", WM_OP_EXEC_REGION_WIN, "4-Split View", 160, -10, 150, 19, "Split 3D View in 4 parts");
-		
-	uiBlockEndAlign(block);	
-		
-	
-// XXX
-//	uiDefBut(block, LABEL, 1, "Keyframe Display:",				160, -2, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-//	uiBlockBeginAlign(block);
-//	uiDefButBitS(block, TOG, ANIMFILTER_ACTIVE, B_REDR, "Active",160, -22, 50, 19, &v3d->keyflags, 0, 0, 0, 0, "Show keyframes for active element only (i.e. active bone or active material)");
-//	uiDefButBitS(block, TOG, ANIMFILTER_MUTED, B_REDR, "Muted",210, -22, 50, 19, &v3d->keyflags, 0, 0, 0, 0, "Show keyframes in muted channels");
-//	uiDefButBitS(block, TOG, ANIMFILTER_LOCAL, B_REDR, "Local",260, -22, 50, 19, &v3d->keyflags, 0, 0, 0, 0, "Show keyframes directly connected to datablock");
-//	if ((v3d->keyflags & ANIMFILTER_LOCAL)==0) {
-//		uiDefButBitS(block, TOGN, ANIMFILTER_NOMAT, B_REDR, "Material",160, -42, 75, 19, &v3d->keyflags, 0, 0, 0, 0, "Show keyframes for any available Materials");
-//		uiDefButBitS(block, TOGN, ANIMFILTER_NOSKEY, B_REDR, "ShapeKey",235, -42, 75, 19, &v3d->keyflags, 0, 0, 0, 0, "Show keyframes for any available Shape Keys");
-//	}
-	uiBlockEndAlign(block);	
-}
-#endif // XXX not used anymore
-
 #if 0
 static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3D_HANDLER_PREVIEW
 {
@@ -1406,33 +1197,6 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 		//printf("found recalc\n");
 		BIF_view3d_previewrender_free(sa->spacedata.first);
 		BIF_preview_changed(0);
-	}
-}
-#endif
-
-#if 0
-static void view3d_panel_gpencil(const bContext *C, Panel *pa)
-{
-	View3D *v3d= CTX_wm_view3d(C);
-	uiBlock *block;
-
-	block= uiLayoutFreeBlock(pa->layout);
-
-	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
-	if (v3d->flag2 & V3D_DISPGP) {
-//		if (v3d->gpd == NULL)
-// XXX			gpencil_data_setactive(ar, gpencil_data_addnew());
-	}
-	
-	if (v3d->flag2 & V3D_DISPGP) {
-// XXX		bGPdata *gpd= v3d->gpd;
-		
-		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &v3d->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View (draw using Shift-LMB)");
-	}
-	else {
-		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &v3d->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View");
-		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 	}
 }
 #endif
@@ -1627,18 +1391,17 @@ void view3d_buttons_register(ARegionType *art)
 	strcpy(pt->label, "Transform");
 	pt->draw= view3d_panel_object;
 	BLI_addtail(&art->paneltypes, pt);
+	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
+	strcpy(pt->idname, "VIEW3D_PT_gpencil");
+	strcpy(pt->label, "Grease Pencil");
+	pt->draw= gpencil_panel_standard;
+	BLI_addtail(&art->paneltypes, pt);
 /*
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel properties");
 	strcpy(pt->idname, "VIEW3D_PT_properties");
 	strcpy(pt->label, "View Properties");
 	pt->draw= view3d_panel_properties;
-	BLI_addtail(&art->paneltypes, pt);
-
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel background");
-	strcpy(pt->idname, "VIEW3D_PT_background");
-	strcpy(pt->label, "Background Image");
-	pt->draw= view3d_panel_background;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel transform spaces");

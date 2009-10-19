@@ -65,8 +65,7 @@ struct CollisionTree;
 #elif defined (__sun) || defined (__sun__)
 #   define DO_INLINE
 #else
-#   define DO_INLINE inline
-#   define LINUX
+#   define DO_INLINE static inline
 #endif
 
 #define CLOTH_MAX_THREAD 2
@@ -244,10 +243,6 @@ void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int tot
 // needed for collision.c
 void bvhtree_update_from_cloth ( ClothModifierData *clmd, int moving );
 void bvhselftree_update_from_cloth ( ClothModifierData *clmd, int moving );
-
-// needed for editmesh.c
-void cloth_write_cache( Object *ob, ClothModifierData *clmd, int framenr );
-int cloth_read_cache( Scene *scene, Object *ob, ClothModifierData *clmd, float framenr, int *old_framenr );
 
 // needed for button_object.c
 void cloth_clear_cache ( Object *ob, ClothModifierData *clmd, float framenr );

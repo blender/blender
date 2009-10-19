@@ -12,18 +12,12 @@ incs += ' #source/gameengine/BlenderRoutines'
 incs += ' #source/blender/editors/include #source/blender/blenlib #source/blender/blenkernel'
 incs += ' #source/blender/makesdna #source/blender/imbuf #source/blender/python'
 incs += ' #source/blender/gpu #source/kernel/gen_system #intern/string #intern/moto/include'
-incs += ' #intern/guardedalloc #intern/SoundSystem'
-incs += ' #extern/glew/include'
+incs += ' #intern/guardedalloc #extern/glew/include'
 
 defs = [] 
-cxxflags = []
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-	cxxflags.append ('/EHsc')
 	if env['BF_DEBUG']:
 		defs.append('_DEBUG')
-
 
 incs += ' ' + env['BF_PYTHON_INC']
 #incs += ' ' + env['BF_OPENGL_INC']
@@ -33,4 +27,4 @@ if env['WITH_BF_FFMPEG']:
     incs += ' ' + env['BF_FFMPEG_INC'] + ' ' + env['BF_PTHREADS_INC']
     defs.append('__STDC_CONSTANT_MACROS')
 
-env.BlenderLib ( 'bf_videotex', sources, Split(incs), defs, libtype=['core','player'], priority=[300, 72], cxx_compileflags = cxxflags )
+env.BlenderLib ( 'bf_videotex', sources, Split(incs), defs, libtype=['core'], priority=[300], cxx_compileflags=env['BGE_CXXFLAGS'])

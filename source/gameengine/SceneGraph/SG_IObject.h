@@ -160,8 +160,6 @@ private :
 	SGControllerList	m_SGcontrollers;
 
 public:
-
-
 	virtual ~SG_IObject();
 
 
@@ -338,6 +336,11 @@ protected :
 	);
 
 
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_IObject"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__SG_IOBJECT

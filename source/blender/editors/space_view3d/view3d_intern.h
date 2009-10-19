@@ -140,7 +140,6 @@ void view3d_buttons_register(struct ARegionType *art);
 void VIEW3D_OT_toolbar(struct wmOperatorType *ot);
 void view3d_toolbar_register(struct ARegionType *art);
 void view3d_tool_props_register(struct ARegionType *art);
-char *view3d_context_string(const struct bContext *C);
 
 /* view3d_snap.c */
 int minmax_verts(Object *obedit, float *min, float *max);
@@ -156,6 +155,9 @@ void VIEW3D_OT_snap_menu(struct wmOperatorType *ot);
 /* space_view3d.c */
 ARegion *view3d_has_buttons_region(ScrArea *sa);
 ARegion *view3d_has_tools_region(ScrArea *sa);
+
+/* draw_volume.c */
+void draw_volume(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct Base *base, struct GPUTexture *tex, int res[3]);
 
 
 #endif /* ED_VIEW3D_INTERN_H */

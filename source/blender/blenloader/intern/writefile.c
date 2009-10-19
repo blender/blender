@@ -130,6 +130,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sensor_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
@@ -156,6 +157,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h" // for packAll
+#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_screen.h" // for waitcursor
 #include "BKE_sequence.h"
@@ -405,13 +407,13 @@ static void IDP_WriteIDPArray(IDProperty *prop, void *wd)
 {
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	if (prop->data.pointer) {
-		IDProperty **array = prop->data.pointer;
+		IDProperty *array = prop->data.pointer;
 		int a;
 
-		writedata(wd, DATA, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+		writestruct(wd, DATA, "IDProperty", prop->len, array);
 
 		for(a=0; a<prop->len; a++)
-			IDP_WriteProperty(array[a], wd);
+			IDP_WriteProperty_OnlyData(&array[a], wd);
 	}
 }
 
@@ -581,19 +583,27 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 /* TODO: replace *cache with *cachelist once it's coded */
 #define PTCACHE_WRITE_PSYS	0
 #define PTCACHE_WRITE_CLOTH	1
-static void write_pointcaches(WriteData *wd, PointCache *cache, int type)
+static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 {
-	writestruct(wd, DATA, "PointCache", 1, cache);
+	PointCache *cache = ptcaches->first;
+	int i;
 
-	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
-		PTCacheMem *pm = cache->mem_cache.first;
+	for(; cache; cache=cache->next) {
+		writestruct(wd, DATA, "PointCache", 1, cache);
 
-		for(; pm; pm=pm->next) {
-			writestruct(wd, DATA, "PTCacheMem", 1, pm);
-			if(type==PTCACHE_WRITE_PSYS)
-				writestruct(wd, DATA, "ParticleKey", pm->totpoint, pm->data);
-			else if(type==PTCACHE_WRITE_CLOTH)
-				writedata(wd, DATA, 9 * sizeof(float) * pm->totpoint, pm->data);
+		if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+			PTCacheMem *pm = cache->mem_cache.first;
+
+			for(; pm; pm=pm->next) {
+				writestruct(wd, DATA, "PTCacheMem", 1, pm);
+				if(pm->index_array)
+					writedata(wd, DATA, sizeof(int) * pm->totpoint, pm->index_array);
+				
+				for(i=0; i<BPHYS_TOT_DATA; i++) {
+					if(pm->data[i] && pm->data_types & (1<<i))
+						writedata(wd, DATA, BKE_ptcache_data_size(i) * pm->totpoint, pm->data[i]);
+				}
+			}
 		}
 	}
 }
@@ -651,8 +661,8 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
-		if(psys->soft) write_pointcaches(wd, psys->soft->pointcache, PTCACHE_WRITE_PSYS);
-		write_pointcaches(wd, psys->pointcache, PTCACHE_WRITE_PSYS);
+		if(psys->soft) write_pointcaches(wd, &psys->soft->ptcaches);
+		write_pointcaches(wd, &psys->ptcaches);
 	}
 }
 
@@ -769,9 +779,6 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 			break;
 		case ACT_SOUND:
 			writestruct(wd, DATA, "bSoundActuator", 1, act->data);
-			break;
-		case ACT_CD:
-			writestruct(wd, DATA, "bCDActuator", 1, act->data);
 			break;
 		case ACT_OBJECT:
 			writestruct(wd, DATA, "bObjectActuator", 1, act->data);
@@ -1093,7 +1100,7 @@ static void write_defgroups(WriteData *wd, ListBase *defbase)
 		writestruct(wd, DATA, "bDeformGroup", 1, defgroup);
 }
 
-static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
+static void write_modifiers(WriteData *wd, ListBase *modbase)
 {
 	ModifierData *md;
 
@@ -1114,7 +1121,25 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
-			write_pointcaches(wd, clmd->point_cache, PTCACHE_WRITE_CLOTH);
+			write_pointcaches(wd, &clmd->ptcaches);
+		} 
+		else if(md->type==eModifierType_Smoke) {
+			SmokeModifierData *smd = (SmokeModifierData*) md;
+			
+			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
+				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
+			else if(smd->type & MOD_SMOKE_TYPE_FLOW)
+				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
+			/*
+			else if(smd->type & MOD_SMOKE_TYPE_COLL)
+				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
+			*/
+
+			if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
+			{
+				write_pointcaches(wd, &(smd->domain->ptcaches[0]));
+				write_pointcaches(wd, &(smd->domain->ptcaches[1]));
+			}
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
@@ -1147,13 +1172,13 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 		else if (md->type==eModifierType_Multires) {
 			MultiresModifierData *mmd = (MultiresModifierData*) md;
 
-			if(mmd->undo_verts && write_undo)
+			if(mmd->undo_verts)
 				writestruct(wd, DATA, "MVert", mmd->undo_verts_tot, mmd->undo_verts);
 		}
 	}
 }
 
-static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
+static void write_objects(WriteData *wd, ListBase *idbase)
 {
 	Object *ob;
 	
@@ -1183,11 +1208,11 @@ static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
-			if(ob->soft) writestruct(wd, DATA, "PointCache", 1, ob->soft->pointcache);
+			if(ob->soft) write_pointcaches(wd, &ob->soft->ptcaches);
 			writestruct(wd, DATA, "BulletSoftBody", 1, ob->bsoft);
 			
 			write_particlesystems(wd, &ob->particlesystem);
-			write_modifiers(wd, &ob->modifiers, write_undo);
+			write_modifiers(wd, &ob->modifiers);
 		}
 		ob= ob->id.next;
 	}
@@ -1284,6 +1309,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mb->totcol, mb->mat);
+			if (mb->adt) write_animdata(wd, mb->adt);
 
 			ml= mb->elems.first;
 			while(ml) {
@@ -1549,6 +1575,11 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if(tex->type == TEX_PLUGIN && tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
 			if(tex->type == TEX_ENVMAP && tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
+			if(tex->type == TEX_POINTDENSITY && tex->pd) {
+				writestruct(wd, DATA, "PointDensity", 1, tex->pd);
+				if(tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
+			}
+			if(tex->type == TEX_VOXELDATA && tex->vd) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
 			
 			/* nodetree is integral part of texture, no libdata */
 			if(tex->nodetree) {
@@ -1656,6 +1687,11 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_paint(WriteData *wd, Paint *p)
+{
+	if(p && p->brushes)
+		writedata(wd, DATA, p->brush_count * sizeof(Brush*), p->brushes);
+}
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
@@ -1668,6 +1704,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TimeMarker *marker;
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
+	ToolSettings *tos;
 	
 	sce= scebase->first;
 	while(sce) {
@@ -1685,13 +1722,22 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			base= base->next;
 		}
 		
-		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
-		if(sce->toolsettings->vpaint)
-			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);
-		if(sce->toolsettings->wpaint)
-			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->wpaint);
-		if(sce->toolsettings->sculpt)
-			writestruct(wd, DATA, "Sculpt", 1, sce->toolsettings->sculpt);
+		tos = sce->toolsettings;
+		writestruct(wd, DATA, "ToolSettings", 1, tos);
+		if(tos->vpaint) {
+			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
+			write_paint(wd, &tos->vpaint->paint);
+		}
+		if(tos->wpaint) {
+			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
+			write_paint(wd, &tos->wpaint->paint);
+		}
+		if(tos->sculpt) {
+			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
+			write_paint(wd, &tos->sculpt->paint);
+		}
+
+		write_paint(wd, &tos->imapaint.paint);
 
 		ed= sce->ed;
 		if(ed) {
@@ -1988,6 +2034,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_CONSOLE) {
 					writestruct(wd, DATA, "SpaceConsole", 1, sl);
 				}
+				else if(sl->spacetype==SPACE_USERPREF) {
+					writestruct(wd, DATA, "SpaceUserPref", 1, sl);
+				}
+
 				sl= sl->next;
 			}
 		}
@@ -2123,44 +2173,20 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 static void write_sounds(WriteData *wd, ListBase *idbase)
 {
 	bSound *sound;
-	bSample *sample;
 
 	PackedFile * pf;
-
-	// set all samples to unsaved status
-
-	sample = samples->first; // samples is a global defined in sound.c
-	while (sample) {
-		sample->flags |= SAMPLE_NEEDS_SAVE;
-		sample = sample->id.next;
-	}
 
 	sound= idbase->first;
 	while(sound) {
 		if(sound->id.us>0 || wd->current) {
-			// do we need to save the packedfile as well ?
-			sample = sound->sample;
-			if (sample) {
-				if (sample->flags & SAMPLE_NEEDS_SAVE) {
-					sound->newpackedfile = sample->packedfile;
-					sample->flags &= ~SAMPLE_NEEDS_SAVE;
-				} else {
-					sound->newpackedfile = NULL;
-				}
-			}
-
 			/* write LibData */
 			writestruct(wd, ID_SO, "bSound", 1, sound);
 			if (sound->id.properties) IDP_WriteProperty(sound->id.properties, wd);
 
-			if (sound->newpackedfile) {
-				pf = sound->newpackedfile;
+			if (sound->packedfile) {
+				pf = sound->packedfile;
 				writestruct(wd, DATA, "PackedFile", 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);
-			}
-
-			if (sample) {
-				sound->newpackedfile = sample->packedfile;
 			}
 		}
 		sound= sound->id.next;
@@ -2305,7 +2331,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_groups   (wd, &mainvar->group);
 	write_armatures(wd, &mainvar->armature);
 	write_actions  (wd, &mainvar->action);
-	write_objects  (wd, &mainvar->object, (current != NULL));
+	write_objects  (wd, &mainvar->object);
 	write_materials(wd, &mainvar->mat);
 	write_textures (wd, &mainvar->tex);
 	write_meshs    (wd, &mainvar->mesh);

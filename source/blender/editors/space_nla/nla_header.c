@@ -94,14 +94,14 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0);
 	
 	if (snla->flag & SNLA_DRAWTIME)
 		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");
 	else
 		uiItemO(layout, "Show Seconds", 0, "ANIM_OT_time_toggle");
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "show_strip_curves", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_strip_curves", 0);
 	
 	uiItemS(layout);
 	
@@ -151,8 +151,8 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu);
-	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu);
+	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu, NULL);
+	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu, NULL);
 	
 	uiItemS(layout);
 	
@@ -261,13 +261,14 @@ void nla_header_buttons(const bContext *C, ARegion *ar)
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display Lamps");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display Cameras");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display Curves");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMBA, B_REDR, ICON_META_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display MetaBalls");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display Particles");
 		uiBlockEndAlign(block);
 		xco += 15;
 	}
 	else {
 		// XXX this case shouldn't happen at all... for now, just pad out same amount of space
-		xco += 7*XIC + 15;
+		xco += 10*XIC + 15;
 	}
 	xco += (XIC + 8);
 	

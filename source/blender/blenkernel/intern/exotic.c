@@ -334,7 +334,7 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 	 */
 	numtenthousand = 1;
 	vertdata = malloc(numtenthousand*3*30000*sizeof(float));	// uses realloc!
-	if (!vertdata); STLALLOCERROR;
+	if (!vertdata) { STLALLOCERROR; }
 
 	linenum = 1;
 	/* Get rid of the first line */
@@ -357,7 +357,7 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 			++numtenthousand;
 			vertdata = realloc(vertdata, 
 							   numtenthousand*3*30000*sizeof(float));
-			if (!vertdata); STLALLOCERROR;
+			if (!vertdata) { STLALLOCERROR; }
 		}
 		
 		/* Don't read normal, but check line for proper syntax anyway
@@ -1687,7 +1687,7 @@ static void displist_to_objects(Scene *scene, ListBase *lbase)
 
 	if(totvert==0) {
 		
-		if(ivsurf==0) ; //XXX error("Found no data");
+		if(ivsurf==0) {}; //XXX error("Found no data");
 		if(lbase->first) BLI_freelistN(lbase);
 		
 		return;

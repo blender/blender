@@ -28,6 +28,8 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <float.h>
+#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -98,6 +100,7 @@
 #include "BKE_mesh.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_report.h"
@@ -126,6 +129,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 /* for menu/popup icons etc etc*/
 #include "UI_interface.h"
@@ -138,10 +142,10 @@
 
 /* ************* XXX **************** */
 static void error() {}
-static void waitcursor() {}
-static int pupmenu() {return 0;}
-static int pupmenu_col() {return 0;}
-static int okee() {return 0;}
+static void waitcursor(int val) {}
+static int pupmenu(const char *msg) {return 0;}
+static int pupmenu_col(const char *msg, int val) {return 0;}
+static int okee(const char *msg) {return 0;}
 
 /* port over here */
 static bContext *C;
@@ -176,10 +180,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *tbase;
-	
-	/* activating a non-mesh, should end a couple of modes... */
-	if(base && base->object->type!=OB_MESH)
-		ED_view3d_exit_paint_modes(C);
 	
 	/* sets scene->basact */
 	BASACT= base;
@@ -271,9 +271,6 @@ static Object *object_add_type(bContext *C, int type)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
-	
-	/* XXX hrms, this is editor level operator, remove? */
-	ED_view3d_exit_paint_modes(C);
 	
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
@@ -757,8 +754,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if(CTX_data_edit_object(C)) 
 		return OPERATOR_CANCELLED;
 	
-	ED_view3d_exit_paint_modes(C);
-
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 
 		if(base->object->type==OB_LAMP) islamp= 1;
@@ -992,6 +987,9 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 	EditVert *eve;
 	int index=0, nr=0;
 	
+	if (hmd->indexar == NULL)
+		return;
+	
 	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
 		if(nr==hmd->indexar[index]) {
 			eve->f |= SELECT;
@@ -1163,7 +1161,7 @@ void ED_object_apply_obmat(Object *ob)
 	
 }
 
-int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
+int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar= NULL;
 	*tot= 0;
@@ -1245,9 +1243,8 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 	}
 }
 
-void obedit_hook_select(Object *ob, HookModifierData *hmd) 
+void object_hook_select(Object *ob, HookModifierData *hmd) 
 {
-	
 	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
 	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
 	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
@@ -1331,7 +1328,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		int tot, ok, *indexar;
 		char name[32];
 		
-		ok = hook_getIndexArray(obedit, &tot, &indexar, name, cent);
+		ok = object_hook_index_array(obedit, &tot, &indexar, name, cent);
 		
 		if(ok==0) {
 			error("Requires selected vertices or active Vertex Group");
@@ -1375,6 +1372,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 			hmd->totindex= tot;
 			BLI_strncpy(hmd->name, name, 32);
 			
+			// TODO: need to take into account bone targets here too now...
 			if(mode==1 || mode==2) {
 				/* matrix calculus */
 				/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
@@ -1394,9 +1392,11 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		modifier_free(md);
 	}
 	else if(mode==5) { /* select */
-		obedit_hook_select(obedit, hmd);
+		// FIXME: this is now OBJECT_OT_hook_select
+		object_hook_select(obedit, hmd);
 	}
 	else if(mode==6) { /* clear offset */
+		// FIXME: this is now OBJECT_OT_hook_reset operator
 		where_is_object(scene, ob);	/* ob is hook->parent */
 
 		Mat4Invert(ob->imat, ob->obmat);
@@ -1407,25 +1407,6 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 
 	DAG_scene_sort(scene);
 }
-
-
-/* use this when the loc/size/rot of the parent has changed but the children should stay in the same place
- * apply-size-rot or object center for eg */
-static void ignore_parent_tx(Scene *scene, Object *ob ) 
-{
-	Object workob;
-	Object *ob_child;
-	
-	/* a change was made, adjust the children to compensate */
-	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
-		if (ob_child->parent == ob) {
-			ED_object_apply_obmat(ob_child);
-			what_does_parent(scene, ob_child, &workob);
-			Mat4Invert(ob_child->parentinv, workob.obmat);
-		}
-	}
-}
-
 
 void add_hook_menu(Scene *scene, View3D *v3d)
 {
@@ -1443,6 +1424,25 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 		
 	/* do operations */
 	add_hook(scene, v3d, mode);
+}
+
+
+
+/* use this when the loc/size/rot of the parent has changed but the children should stay in the same place
+ * apply-size-rot or object center for eg */
+static void ignore_parent_tx(Scene *scene, Object *ob ) 
+{
+	Object workob;
+	Object *ob_child;
+	
+	/* a change was made, adjust the children to compensate */
+	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
+		if (ob_child->parent == ob) {
+			ED_object_apply_obmat(ob_child);
+			what_does_parent(scene, ob_child, &workob);
+			Mat4Invert(ob_child->parentinv, workob.obmat);
+		}
+	}
 }
 
 /* ******************** clear parent operator ******************* */
@@ -2197,6 +2197,165 @@ void OBJECT_OT_select_all_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
+/* ****** select mirror *******/
+/* finds the best possible flipped name. For renaming; check for unique names afterwards */
+/* if strip_number: removes number extensions */
+void object_flip_name (char *name)
+{
+	int     len;
+	char    prefix[128]={""};   /* The part before the facing */
+	char    suffix[128]={""};   /* The part after the facing */
+	char    replace[128]={""};  /* The replacement string */
+	char    number[128]={""};   /* The number extension string */
+	char    *index=NULL;
+
+	len= strlen(name);
+	if(len<3) return; // we don't do names like .R or .L
+
+	/* We first check the case with a .### extension, let's find the last period */
+	if(isdigit(name[len-1])) {
+		index= strrchr(name, '.'); // last occurrance
+		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
+			strcpy(number, index);
+			*index= 0;
+			len= strlen(name);
+		}
+	}
+
+	strcpy (prefix, name);
+
+#define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
+
+	/* first case; separator . - _ with extensions r R l L  */
+	if( IS_SEPARATOR(name[len-2]) ) {
+		switch(name[len-1]) {
+			case 'l':
+				prefix[len-1]= 0;
+				strcpy(replace, "r");
+				break;
+			case 'r':
+				prefix[len-1]= 0;
+				strcpy(replace, "l");
+				break;
+			case 'L':
+				prefix[len-1]= 0;
+				strcpy(replace, "R");
+				break;
+			case 'R':
+				prefix[len-1]= 0;
+				strcpy(replace, "L");
+				break;
+		}
+	}
+	/* case; beginning with r R l L , with separator after it */
+	else if( IS_SEPARATOR(name[1]) ) {
+		switch(name[0]) {
+			case 'l':
+				strcpy(replace, "r");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'r':
+				strcpy(replace, "l");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'L':
+				strcpy(replace, "R");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'R':
+				strcpy(replace, "L");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+		}
+	}
+	else if(len > 5) {
+		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
+		index = BLI_strcasestr(prefix, "right");
+		if (index==prefix || index==prefix+len-5) {
+			if(index[0]=='r') 
+				strcpy (replace, "left");
+			else {
+				if(index[1]=='I') 
+					strcpy (replace, "LEFT");
+				else
+					strcpy (replace, "Left");
+			}
+			*index= 0;
+			strcpy (suffix, index+5);
+		}
+		else {
+			index = BLI_strcasestr(prefix, "left");
+			if (index==prefix || index==prefix+len-4) {
+				if(index[0]=='l') 
+					strcpy (replace, "right");
+				else {
+					if(index[1]=='E') 
+						strcpy (replace, "RIGHT");
+					else
+						strcpy (replace, "Right");
+				}
+				*index= 0;
+				strcpy (suffix, index+4);
+			}
+		}
+	}
+
+#undef IS_SEPARATOR
+
+	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
+}
+
+static int object_select_mirror_exec(bContext *C, wmOperator *op)
+{
+	char tmpname[32];
+	short seltype;
+	
+	seltype = RNA_enum_get(op->ptr, "seltype");
+	
+	CTX_DATA_BEGIN(C, Base*, primbase, selected_bases) {
+
+		strcpy(tmpname, primbase->object->id.name+2);
+		object_flip_name(tmpname);
+		
+		CTX_DATA_BEGIN(C, Base*, secbase, visible_bases) {
+			if(!strcmp(secbase->object->id.name+2, tmpname)) {
+				ED_base_object_select(secbase, BA_SELECT);
+			}
+		}
+		CTX_DATA_END;
+		
+		if (seltype == 0) ED_base_object_select(primbase, BA_DESELECT);
+		
+	}
+	CTX_DATA_END;
+	
+	/* undo? */
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_select_mirror(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Select Mirror";
+	ot->description = "Select the Mirror objects of the selected object eg. L.sword -> R.sword";
+	ot->idname= "OBJECT_OT_select_mirror";
+	
+	/* api callbacks */
+	ot->exec= object_select_mirror_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
+}
 /* ****** random selection *******/
 
 static int object_select_random_exec(bContext *C, wmOperator *op)
@@ -2252,7 +2411,7 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if ((ob->protectflag & OB_LOCK_LOCX)==0)
 				ob->loc[0]= ob->dloc[0]= 0.0f;
 			if ((ob->protectflag & OB_LOCK_LOCY)==0)
@@ -2295,7 +2454,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			/* eulers can only get cleared if they are not protected */
 			if ((ob->protectflag & OB_LOCK_ROTX)==0)
 				ob->rot[0]= ob->drot[0]= 0.0f;
@@ -2339,7 +2498,7 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
 				ob->dsize[0]= 0.0f;
 				ob->size[0]= 1.0f;
@@ -2750,7 +2909,6 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 /* present menu listing the possible objects within the group to proxify */
 static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, Group *group)
 {
-	PointerRNA gob_ptr;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	GroupObject *go;
@@ -2766,23 +2924,14 @@ static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, G
 	pup= uiPupMenuBegin(C, "Make Proxy For:", 0);
 	layout= uiPupMenuLayout(pup);
 	
-	/* make RNA pointer for object that group belongs to */
-	RNA_id_pointer_create((ID *)ob, &gob_ptr);
-	
 	for (go= group->gobject.first; go; go= go->next) {
 		if (go->ob) {
-			PointerRNA props_ptr, ob_ptr;
+			PointerRNA props_ptr;
 			
-			/* create pointer for this object */
-			RNA_id_pointer_create((ID *)go->ob, &ob_ptr);
-			
-			/* create operator properties, and assign the relevant pointers to that, 
-			 * and add a menu entry which uses these props 
-			 */
-			WM_operator_properties_create(&props_ptr, op->idname);
-				RNA_pointer_set(&props_ptr, "object", ob_ptr);
-				RNA_pointer_set(&props_ptr, "group_object", gob_ptr);
-			uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+			/* create operator menu item with relevant properties filled in */
+			props_ptr= uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+			RNA_string_set(&props_ptr, "object", go->ob->id.name+2);
+			RNA_string_set(&props_ptr, "group_object", go->ob->id.name+2);
 		}
 	}
 	
@@ -2808,17 +2957,11 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	else if (ob->id.lib) {
 		uiPopupMenu *pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 		uiLayout *layout= uiPupMenuLayout(pup);
-		PointerRNA ob_ptr, props_ptr;
+		PointerRNA props_ptr = {0};
 		
-		/* create pointer for this object */
-		RNA_id_pointer_create((ID *)ob, &ob_ptr);
-		
-		/* create operator properties, and assign the relevant pointers to that, 
-		 * and add a menu entry which uses these props 
-		 */
-		WM_operator_properties_create(&props_ptr, op->idname);
-			RNA_pointer_set(&props_ptr, "object", ob_ptr);
-		uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		/* create operator menu item with relevant properties filled in */
+		props_ptr= uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		RNA_string_set(&props_ptr, "object", ob->id.name+2);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -2834,11 +2977,39 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int make_proxy_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ob_ptr= RNA_pointer_get(op->ptr, "object");
-	PointerRNA gob_ptr= RNA_pointer_get(op->ptr, "group_object");
-	Object *ob= ob_ptr.data;
-	Object *gob= gob_ptr.data;
+	Object *ob=NULL, *gob=NULL;
 	Scene *scene= CTX_data_scene(C);
+	char ob_name[21], gob_name[21];
+	
+	/* get object and group object
+	 *	- firstly names
+	 *	- then pointers from context 
+	 */
+	RNA_string_get(op->ptr, "object", ob_name);
+	RNA_string_get(op->ptr, "group_object", gob_name);
+	
+	if (gob_name[0]) {
+		Group *group;
+		GroupObject *go;
+		
+		/* active object is group object... */
+		// FIXME: we should get the nominated name instead
+		gob= CTX_data_active_object(C);
+		group= gob->dup_group;
+		
+		/* find the object to affect */
+		for (go= group->gobject.first; go; go= go->next) {
+			if ((go->ob) && strcmp(go->ob->id.name+2, gob_name)==0) {
+				ob= go->ob;
+				break;
+			}
+		}
+	}
+	else {
+		/* just use the active object for now */
+		// FIXME: we should get the nominated name instead
+		ob= CTX_data_active_object(C);
+	}
 	
 	if (ob) {
 		Object *newob;
@@ -2870,6 +3041,8 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
 		DAG_object_flush_update(scene, newob, OB_RECALC);
+		
+		WM_event_add_notifier(C, NC_OBJECT, NULL);
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No object to make proxy for");
@@ -2895,8 +3068,8 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_pointer(ot->srna, "object", "Object", "Proxy Object", "Lib-linked/grouped object to make a proxy for.");
-	RNA_def_pointer(ot->srna, "group_object", "Object", "Group Object", "Group instancer (if applicable).");
+	RNA_def_string(ot->srna, "object", "", 19, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
+	RNA_def_string(ot->srna, "group_object", "", 19, "Group Object", "Name of group instancer (if applicable).");
 }
 
 /* ******************** make parent operator *********************** */
@@ -3686,7 +3859,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			me->edit_mesh= NULL;
 		}
 		
-		if(G.f & G_WEIGHTPAINT)
+		if(obedit->restore_mode & OB_MODE_WEIGHT_PAINT)
 			mesh_octree_table(obedit, NULL, NULL, 'e');
 	}
 	else if (obedit->type==OB_ARMATURE) {	
@@ -3710,7 +3883,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		load_editMball(obedit);
 		if(freedata) free_editMball(obedit);
 	}
-	
+
 	/* freedata only 0 now on file saves */
 	if(freedata) {
 		/* for example; displist make is different in editmode */
@@ -3725,6 +3898,9 @@ void ED_object_exit_editmode(bContext *C, int flag)
 	
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 	}
+
+	obedit->mode &= ~OB_MODE_EDIT;
+	ED_object_toggle_modes(C, obedit->restore_mode);
 }
 
 
@@ -3758,7 +3934,10 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	
 	if(flag & EM_WAITCURSOR) waitcursor(1);
 
-	ED_view3d_exit_paint_modes(C);
+	ob->restore_mode = ob->mode;
+	ED_object_toggle_modes(C, ob->mode);
+
+	ob->mode |= OB_MODE_EDIT;
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
@@ -3846,6 +4025,16 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int editmode_toggle_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+
+	return ob && (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
+		      ob->type == OB_FONT || ob->type == OB_MBALL ||
+		      ob->type == OB_LATTICE || ob->type == OB_SURF ||
+		      ob->type == OB_CURVE);
+}
+
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 {
 	
@@ -3857,7 +4046,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= editmode_toggle_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= editmode_toggle_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3874,7 +4063,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 			ED_object_exit_editmode(C, EM_FREEDATA);
 			ED_armature_enter_posemode(C, base);
 		}
-		else if(base->object->flag & OB_POSEMODE)
+		else if(base->object->mode & OB_MODE_POSE)
 			ED_armature_exit_posemode(C, base);
 		else
 			ED_armature_enter_posemode(C, base);
@@ -4097,10 +4286,10 @@ void special_editmenu(Scene *scene, View3D *v3d)
 	
 	if(obedit==NULL) {
 		
-		if(ob->flag & OB_POSEMODE) {
+		if(ob->mode & OB_MODE_POSE) {
 // XXX			pose_special_editmenu();
 		}
-		else if(FACESEL_PAINT_TEST) {
+		else if(paint_facesel_test(ob)) {
 			Mesh *me= get_mesh(ob);
 			MTFace *tface;
 			MFace *mface;
@@ -4146,7 +4335,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			}
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
-		else if(G.f & G_VERTEXPAINT) {
+		else if(ob->mode & OB_MODE_VERTEX_PAINT) {
 			Mesh *me= get_mesh(ob);
 			
 			if(me==0 || (me->mcol==NULL && me->mtface==NULL) ) return;
@@ -4159,17 +4348,17 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 			}
 		}
-		else if(G.f & G_WEIGHTPAINT) {
+		else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 			Object *par= modifiers_isDeformedByArmature(ob);
 
-			if(par && (par->flag & OB_POSEMODE)) {
+			if(par && (par->mode & OB_MODE_POSE)) {
 				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
 
 // XXX				if(nr==1 || nr==2)
 // XXX					pose_adds_vgroups(ob, (nr == 2));
 			}
 		}
-		else if(G.f & G_PARTICLEEDIT) {
+		else if(ob->mode & OB_MODE_PARTICLE_EDIT) {
 #if 0
 			// XXX
 			ParticleSystem *psys = PE_get_current(ob);
@@ -5711,7 +5900,7 @@ void new_id_matar(Material **matar, int totcol)
 	}
 }
 
-void single_obdata_users(Scene *scene, View3D *v3d, int flag)
+void single_obdata_users(Scene *scene, int flag)
 {
 	Object *ob;
 	Lamp *la;
@@ -5834,7 +6023,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 	}
 }
 
-void single_ipo_users(Scene *scene, View3D *v3d, int flag)
+void single_ipo_users(Scene *scene, int flag)
 {
 #if 0 // XXX old animation system
 	Object *ob;
@@ -5857,7 +6046,7 @@ void single_ipo_users(Scene *scene, View3D *v3d, int flag)
 #endif // XXX old animation system
 }
 
-void single_mat_users(Scene *scene, View3D *v3d, int flag)
+void single_mat_users(Scene *scene, int flag)
 {
 	Object *ob;
 	Base *base;
@@ -6043,25 +6232,39 @@ void single_user(Scene *scene, View3D *v3d)
 	
 		else if(nr==2) {
 			single_object_users(scene, v3d, 1);
-			single_obdata_users(scene, v3d, 1);
+			single_obdata_users(scene, 1);
 		}
 		else if(nr==3) {
 			single_object_users(scene, v3d, 1);
-			single_obdata_users(scene, v3d, 1);
-			single_mat_users(scene, v3d, 1); /* also tex */
+			single_obdata_users(scene, 1);
+			single_mat_users(scene, 1); /* also tex */
 			
 		}
 		else if(nr==4) {
-			single_mat_users(scene, v3d, 1);
+			single_mat_users(scene, 1);
 		}
 		else if(nr==5) {
-			single_ipo_users(scene, v3d, 1);
+			single_ipo_users(scene, 1);
 		}
 		
 		
 		clear_id_newpoins();
 
 	}
+}
+
+/* used for copying scenes */
+void ED_object_single_users(Scene *scene, int full)
+{
+    single_object_users(scene, NULL, 0);
+
+    if(full) {
+        single_obdata_users(scene, 0);
+        single_mat_users_expand();
+        single_tex_users_expand();
+    }
+
+	clear_id_newpoins();
 }
 
 /* ************************************************************* */
@@ -6268,7 +6471,7 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 	int a, didit;
 
 	ob= base->object;
-	if(ob->flag & OB_POSEMODE) {
+	if(ob->mode & OB_MODE_POSE) {
 		; /* nothing? */
 	}
 	else {
@@ -6327,6 +6530,17 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 				if(id) {
 					ID_NEW_US(obn->mat[a])
 					else obn->mat[a]= copy_material(obn->mat[a]);
+					id->us--;
+				}
+			}
+		}
+		if(dupflag & USER_DUP_PSYS) {
+			ParticleSystem *psys;
+			for(psys=obn->particlesystem.first; psys; psys=psys->next) {
+				id= (ID*) psys->part;
+				if(id) {
+					ID_NEW_US(psys->part)
+					else psys->part= psys_copy_settings(psys->part);
 					id->us--;
 				}
 			}
@@ -7003,4 +7217,194 @@ void hookmenu(Scene *scene, View3D *v3d)
 	
 	if (changed) {
 	}	
+}
+
+static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	EnumPropertyItem *input = object_mode_items;
+	EnumPropertyItem *item= NULL;
+	Object *ob;
+	int totitem= 0;
+	
+	if(!C) /* needed for docs */
+		return object_mode_items;
+
+	ob = CTX_data_active_object(C);
+	while(ob && input->identifier) {
+		if((input->value == OB_MODE_EDIT && ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE) ||
+						    (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
+						     (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
+		   (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
+		   (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
+		   ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
+		     input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
+		   (input->value == OB_MODE_OBJECT))
+			RNA_enum_item_add(&item, &totitem, input);
+		++input;
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	*free= 1;
+
+	return item;
+}
+
+static const char *object_mode_op_string(int mode)
+{
+	if(mode == OB_MODE_EDIT)
+		return "OBJECT_OT_editmode_toggle";
+	if(mode == OB_MODE_SCULPT)
+		return "SCULPT_OT_sculptmode_toggle";
+	if(mode == OB_MODE_VERTEX_PAINT)
+		return "PAINT_OT_vertex_paint_toggle";
+	if(mode == OB_MODE_WEIGHT_PAINT)
+		return "PAINT_OT_weight_paint_toggle";
+	if(mode == OB_MODE_TEXTURE_PAINT)
+		return "PAINT_OT_texture_paint_toggle";
+	if(mode == OB_MODE_PARTICLE_EDIT)
+		return "PARTICLE_OT_particle_edit_toggle";
+	if(mode == OB_MODE_POSE)
+		return "OBJECT_OT_posemode_toggle";
+	return NULL;
+}
+
+static int object_mode_set_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
+	ObjectMode restore_mode = ob->mode;
+	int toggle = RNA_boolean_get(op->ptr, "toggle");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	/* Exit current mode if it's not the mode we're setting */
+	if(ob->mode != OB_MODE_OBJECT && ob->mode != mode)
+		WM_operator_name_call(C, object_mode_op_string(ob->mode), WM_OP_EXEC_REGION_WIN, NULL);
+
+	if(mode != OB_MODE_OBJECT) {
+		/* Enter new mode */
+		if(ob->mode != mode || toggle)
+			WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);
+
+		if(toggle) {
+			if(ob->mode == mode)
+				/* For toggling, store old mode so we know what to go back to */
+				ob->restore_mode = restore_mode;
+			else if(ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
+				WM_operator_name_call(C, object_mode_op_string(ob->restore_mode), WM_OP_EXEC_REGION_WIN, NULL);
+			}
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_mode_set(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Set Object Mode";
+	ot->description = "Sets the object interaction mode.";
+	ot->idname= "OBJECT_OT_mode_set";
+	
+	/* api callbacks */
+	ot->exec= object_mode_set_exec;
+	
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, 0, "Mode", "");
+	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
+
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+}
+
+
+
+void ED_object_toggle_modes(bContext *C, int mode)
+{
+	if(mode & OB_MODE_SCULPT)
+		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_VERTEX_PAINT)
+		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_WEIGHT_PAINT)
+		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_TEXTURE_PAINT)
+		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_PARTICLE_EDIT)
+		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+}
+
+/* game property ops */
+
+static int game_property_new(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bProperty *prop;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	prop= new_property(PROP_FLOAT);
+	BLI_addtail(&ob->prop, prop);
+	unique_property(NULL, prop, 0); // make_unique_prop_names(prop->name);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void OBJECT_OT_game_property_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New Game Property";
+	ot->idname= "OBJECT_OT_game_property_new";
+
+	/* api callbacks */
+	ot->exec= game_property_new;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int game_property_remove(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bProperty *prop;
+	int index;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	index = RNA_int_get(op->ptr, "index");
+
+    prop= BLI_findlink(&ob->prop, index);
+
+    if(prop) {
+		BLI_remlink(&ob->prop, prop);
+		free_property(prop);
+		return OPERATOR_FINISHED;
+    }
+    else {
+    	return OPERATOR_CANCELLED;
+    }
+}
+
+void OBJECT_OT_game_property_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Game Property";
+	ot->idname= "OBJECT_OT_game_property_remove";
+
+	/* api callbacks */
+	ot->exec= game_property_remove;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to remove ", 0, INT_MAX);
 }

@@ -48,6 +48,7 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenfont
+CPPFLAGS += -I../../python
 
 # own include 
 

@@ -115,6 +115,11 @@ void object_handle_update(struct Scene *scene, struct Object *ob);
 
 float give_timeoffset(struct Object *ob);
 int give_obdata_texspace(struct Object *ob, int **texflag, float **loc, float **size, float **rot);
+
+int object_insert_ptcache(struct Object *ob);
+// void object_delete_ptcache(struct Object *ob, int index);
+
+
 #ifdef __cplusplus
 }
 #endif

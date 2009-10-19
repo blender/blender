@@ -34,6 +34,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.h"
 
@@ -43,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
+#include "BKE_global.h"
 
 #include <string.h>
 
@@ -217,7 +219,10 @@ struct ARegion *CTX_wm_menu(const bContext *C)
 
 struct ReportList *CTX_wm_reports(const bContext *C)
 {
-	return &(C->wm.manager->reports);
+	if (C->wm.manager)
+		return &(C->wm.manager->reports);
+
+	return NULL;
 }
 
 View3D *CTX_wm_view3d(const bContext *C)
@@ -329,6 +334,13 @@ struct SpaceAction *CTX_wm_space_action(const bContext *C)
 struct SpaceInfo *CTX_wm_space_info(const bContext *C)
 {
 	if(C->wm.area && C->wm.area->spacetype==SPACE_INFO)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_USERPREF)
 		return C->wm.area->spacedata.first;
 	return NULL;
 }
@@ -654,6 +666,69 @@ Scene *CTX_data_scene(const bContext *C)
 		return scene;
 	else
 		return C->data.scene;
+}
+
+int CTX_data_mode_enum(const bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+
+	if(obedit) {
+		switch(obedit->type) {
+			case OB_MESH:
+				return CTX_MODE_EDIT_MESH;
+			case OB_CURVE:
+				return CTX_MODE_EDIT_CURVE;
+			case OB_SURF:
+				return CTX_MODE_EDIT_SURFACE;
+			case OB_FONT:
+				return CTX_MODE_EDIT_TEXT;
+			case OB_ARMATURE:
+				return CTX_MODE_EDIT_ARMATURE;
+			case OB_MBALL:
+				return CTX_MODE_EDIT_METABALL;
+			case OB_LATTICE:
+				return CTX_MODE_EDIT_LATTICE;
+		}
+	}
+	else {
+		Object *ob = CTX_data_active_object(C);
+
+		if(ob) {
+			if(ob->mode & OB_MODE_POSE) return CTX_MODE_POSE;
+			else if(ob->mode & OB_MODE_SCULPT)  return CTX_MODE_SCULPT;
+			else if(ob->mode & OB_MODE_WEIGHT_PAINT) return CTX_MODE_PAINT_WEIGHT;
+			else if(ob->mode & OB_MODE_VERTEX_PAINT) return CTX_MODE_PAINT_VERTEX;
+			else if(ob->mode & OB_MODE_TEXTURE_PAINT) return CTX_MODE_PAINT_TEXTURE;
+			else if(ob->mode & OB_MODE_PARTICLE_EDIT) return CTX_MODE_PARTICLE;
+		}
+	}
+
+	return CTX_MODE_OBJECT;
+}
+
+
+/* would prefer if we can use the enum version below over this one - Campbell */
+/* must be aligned with above enum  */
+static char *data_mode_strings[] = {
+	"mesh_edit",
+	"curve_edit",
+	"surface_edit",
+	"text_edit",
+	"armature_edit",
+	"mball_edit",
+	"lattice_edit",
+	"posemode",
+	"sculpt_mode",
+	"weightpaint",
+	"vertexpaint",
+	"texturepaint",
+	"particlemode",
+	"objectmode",
+	0
+};
+char *CTX_data_mode_string(const bContext *C)
+{
+	return data_mode_strings[CTX_data_mode_enum(C)];
 }
 
 void CTX_data_scene_set(bContext *C, Scene *scene)

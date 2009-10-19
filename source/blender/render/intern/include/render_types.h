@@ -201,6 +201,9 @@ struct Render
 	ListBase customdata_names;
 
 	struct Object *excludeob;
+	ListBase render_volumes_inside;
+	ListBase volumes;
+	ListBase volume_precache_parts;
 
 	/* arena for allocating data for use during render, for
 		* example dynamic TFaces to go in the VlakRen structure.
@@ -292,7 +295,9 @@ typedef struct ObjectInstanceRen {
 
 	float dupliorco[3], dupliuv[2];
 	float (*duplitexmat)[4];
-
+	
+	struct VolumePrecache *volume_precache;
+	
 	float *vectors;
 	int totvector;
 } ObjectInstanceRen;
@@ -402,6 +407,46 @@ typedef struct StrandRen {
 	float orco[3];
 } StrandRen;
 
+/* ------------------------------------------------------------------------- */
+
+typedef struct VolumeOb
+{
+	struct VolumeOb *next, *prev;
+	struct Material *ma;
+	struct ObjectRen *obr;
+} VolumeOb;
+
+typedef struct MatInside {
+	struct MatInside *next, *prev;
+	struct Material *ma;
+	struct ObjectInstanceRen *obi;
+} MatInside;
+
+typedef struct VolPrecachePart
+{
+	struct VolPrecachePart *next, *prev;
+	struct RayTree *tree;
+	struct ShadeInput *shi;
+	struct ObjectInstanceRen *obi;
+	int num;
+	int minx, maxx;
+	int miny, maxy;
+	int minz, maxz;
+	int res[3];
+	float bbmin[3];
+	float voxel[3];
+	int working, done;
+} VolPrecachePart;
+
+typedef struct VolumePrecache
+{
+	int res[3];
+	float *data_r;
+	float *data_g;
+	float *data_b;
+} VolumePrecache;
+
+/* ------------------------------------------------------------------------- */
 
 struct LampRen;
 struct MTex;

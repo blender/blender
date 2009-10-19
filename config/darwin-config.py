@@ -1,10 +1,3 @@
-#
-# Note : if you want to alter this file
-# copy it as a whole in the upper folder
-# as user-config.py
-# dont create a new file with only some
-# vars changed.
-
 import commands
 
 # IMPORTANT NOTE : OFFICIAL BUILDS SHOULD BE DONE WITH SDKs
@@ -27,27 +20,33 @@ else :
 	LCGDIR = '#../lib/darwin-8.x.i386'
 LIBDIR = '${LCGDIR}'
 
+BF_PYTHON_VERSION = '3.1'
+
 if MAC_PROC== 'powerpc' and BF_PYTHON_VERSION == '2.3':
 	MAC_MIN_VERS = '10.3'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-elif MAC_CUR_VER=='10.4':
+else:
 	MAC_MIN_VERS = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
-else:
-	MAC_MIN_VERS = '10.5'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
 
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-BF_FFMPEG = "#extern/ffmpeg"
-BF_FFMPEG_INC = '${BF_FFMPEG}'
-if USE_SDK==True:
-	BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
-#BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-#BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
-
-BF_PYTHON_VERSION = '3.1'
+FFMPEG_PRECOMPILED = False
+if FFMPEG_PRECOMPILED:
+	# use precompiled ffmpeg in /lib
+	BF_FFMPEG = LIBDIR + '/ffmpeg'
+	BF_FFMPEG_INC = "#extern/ffmpeg"
+	BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+	BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore'
+else:
+	# use ffmpeg in extern
+	BF_FFMPEG = "#extern/ffmpeg"
+	BF_FFMPEG_INC = '${BF_FFMPEG}'
+	if USE_SDK==True:
+		BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
+	BF_XVIDCORE_CONFIG = '--disable-assembly'	# currently causes errors, even with yasm installed
+	BF_X264_CONFIG = '--disable-pthread'
 
 if BF_PYTHON_VERSION=='3.1':
 	# python 3.1 uses precompiled libraries in bf svn /lib by default
@@ -57,7 +56,7 @@ if BF_PYTHON_VERSION=='3.1':
 	# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 	BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
 	BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
-	# BF_PYTHON_LINKFLAGS = '-u _PyMac_Error -framework System'
+	# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
 else:
 	# python 2.5 etc. uses built-in framework
 
@@ -73,18 +72,13 @@ else:
 	BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
 	BF_PYTHON_LIB = ''
 	BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
-	BF_PYTHON_LINKFLAGS = '-u _PyMac_Error -framework System -framework Python'
+	BF_PYTHON_LINKFLAGS = ['-u','_PyMac_Error','-framework','System','-framework','Python']
 	if MAC_CUR_VER=='10.3' or  MAC_CUR_VER=='10.4':
-		BF_PYTHON_LINKFLAGS ='-u __dummy '+BF_PYTHON_LINKFLAGS
+		BF_PYTHON_LINKFLAGS = ['-u', '__dummy']+BF_PYTHON_LINKFLAGS
 	
 BF_QUIET = '1'
 WITH_BF_OPENMP = '0'
 
-# Note : should be true, but openal simply dont work on intel
-if MAC_PROC == 'i386':
-	WITH_BF_OPENAL = False
-else:
-	WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc
 # for gcc 3.3
 #BF_OPENAL = LIBDIR + '/openal'
@@ -105,6 +99,24 @@ BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
+
+BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
+# TODO - set proper paths here (add precompiled to lib/ ? )
+WITH_BF_JACK = False
+BF_JACK = '/usr'
+BF_JACK_INC = '${BF_JACK}/include/jack'
+BF_JACK_LIB = 'jack'
+BF_JACK_LIBPATH = '${BF_JACK}/lib'
+
+WITH_BF_SNDFILE = False
+BF_SNDFILE = LIBDIR + '/sndfile'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include'
+BF_SNDFILE_LIB = 'sndfile'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl' #$(shell sdl-config --prefix)
@@ -151,12 +163,18 @@ BF_GETTEXT_LIB = 'intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE=True
-WITH_BF_PLAYER=True
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
+
+WITH_BF_FFTW3 = False
+BF_FFTW3 = LIBDIR + '/fftw3'
+BF_FFTW3_INC = '${BF_FFTW3}/include'
+BF_FFTW3_LIB = 'libfftw3'
+BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr
@@ -193,14 +211,14 @@ BF_ICONV_LIB = 'iconv'
 WITH_BF_STATICOPENGL = True
 BF_OPENGL_LIB = 'GL GLU'
 BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
-BF_OPENGL_LINKFLAGS = '-framework OpenGL'
+BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
 CFLAGS = ['-pipe','-fPIC','-funsigned-char']
 
 CPPFLAGS = ['-fpascal-strings']
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fpascal-strings']
 CXXFLAGS = [ '-pipe','-fPIC','-funsigned-char', '-fpascal-strings']
-PLATFORM_LINKFLAGS = '-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime'
+PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','QuickTime']
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 LLIBS = ['stdc++', 'SystemStubs']
@@ -209,12 +227,12 @@ LLIBS = ['stdc++', 'SystemStubs']
 if MAC_MIN_VERS == '10.3':
 	CFLAGS = ['-fuse-cxa-atexit']+CFLAGS
 	CXXFLAGS = ['-fuse-cxa-atexit']+CXXFLAGS
-	PLATFORM_LINKFLAGS = '-fuse-cxa-atexit '+PLATFORM_LINKFLAGS
+	PLATFORM_LINKFLAGS = ['-fuse-cxa-atexit']+PLATFORM_LINKFLAGS
 	LLIBS.append('crt3.o')
 	
 if USE_SDK==True:
 	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS]	
-	PLATFORM_LINKFLAGS = '-mmacosx-version-min='+MAC_MIN_VERS+ ' -Wl,-syslibroot,' + MACOSX_SDK+" "+PLATFORM_LINKFLAGS
+	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS, '-Wl,-syslibroot,' + MACOSX_SDK]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
 	

@@ -32,7 +32,6 @@
 #define EXPP_Mathutils_H
 
 #include <Python.h>
-#include "../intern/bpy_compat.h"
 #include "vector.h"
 #include "matrix.h"
 #include "quat.h"
@@ -55,10 +54,7 @@ PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
 void BaseMathObject_dealloc(BaseMathObject * self);
 
-
-
-
-PyObject *Mathutils_Init( const char * from );
+PyObject *Mathutils_Init(void);
 
 PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
 

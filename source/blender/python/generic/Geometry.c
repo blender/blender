@@ -78,7 +78,6 @@ struct PyMethodDef M_Geometry_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-#if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef M_Geometry_module_def = {
 	PyModuleDef_HEAD_INIT,
 	"Geometry",  /* m_name */
@@ -90,19 +89,14 @@ static struct PyModuleDef M_Geometry_module_def = {
 	0,  /* m_clear */
 	0,  /* m_free */
 };
-#endif
 
 /*----------------------------MODULE INIT-------------------------*/
-PyObject *Geometry_Init(const char *from)
+PyObject *Geometry_Init(void)
 {
 	PyObject *submodule;
 	
-#if (PY_VERSION_HEX >= 0x03000000)
 	submodule = PyModule_Create(&M_Geometry_module_def);
 	PyDict_SetItemString(PySys_GetObject("modules"), M_Geometry_module_def.m_name, submodule);
-#else
-	submodule = Py_InitModule3(from, M_Geometry_methods, M_Geometry_doc);
-#endif
 	
 	return (submodule);
 }

@@ -28,7 +28,7 @@ FILE(GLOB SRC intern/*.c)
 
 SET(INC 
   . ../makesdna ../../../intern/guardedalloc ../../../intern/memutil ../blenlib
-  ../avi ../quicktime ../blenkernel
+  ../avi ../blenkernel
   ${JPEG_INC}
   ${PNG_INC}
   ${TIFF_INC}
@@ -45,7 +45,7 @@ IF(WITH_OPENJPEG)
 ENDIF(WITH_OPENJPEG)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
+  SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 

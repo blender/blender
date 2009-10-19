@@ -41,12 +41,12 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void valuefn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	float coord1[3], coord2[3];
 
-	tex_input_vec(coord1, in[0], coord, thread);
-	tex_input_vec(coord2, in[1], coord, thread);
+	tex_input_vec(coord1, in[0], p, thread);
+	tex_input_vec(coord2, in[1], p, thread);
 
 	*out = VecLenf(coord2, coord1);
 }

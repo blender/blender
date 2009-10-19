@@ -75,11 +75,11 @@ endif
 # PLUGAPPLIB libs that form the application to be plugged in
 # Note: the order is important here
 
+
 GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
 GRPLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
-GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
 GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
@@ -106,6 +106,30 @@ COMLIB += $(NAN_JPEG)/lib/libjpeg.a
 COMLIB += $(OCGDIR)/blender/gpu/$(DEBUG_DIR)libgpu.a
 COMLIB += $(NAN_GLEW)/lib/$(DEBUG_DIR)libglew.a
 COMLIB += $(OCGDIR)/blender/blenfont/$(DEBUG_DIR)libblenfont.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_src.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fx.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sdl.a
+COMLIB += $(NAN_SAMPLERATE)/lib/$(DEBUG_DIR)libsamplerate.a
+COMLIB += $(NAN_LZO)/lib/$(DEBUG_DIR)libminilzo.a
+COMLIB += $(NAN_LZMA)/lib/$(DEBUG_DIR)liblzma.a
+COMLIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)/libsmoke.a 
+
+ifeq ($(WITH_FFMPEG),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
+endif
+
+ifeq ($(WITH_OPENAL),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_openal.a
+endif
+
+ifeq ($(WITH_JACK),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_jack.a
+endif
+
+ifeq ($(WITH_SNDFILE),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
+endif
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
@@ -114,8 +138,6 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
-    COMLIB += $(OCGDIR)/gameengine/blphys/fuzzics/$(DEBUG_DIR)libfuzzics.a
-    COMLIB += $(NAN_QHULL)/lib/libqhull.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
@@ -242,6 +264,9 @@ PULIB += $(OCGDIR)/blender/ed_image/$(DEBUG_DIR)libed_image.a
 PULIB += $(OCGDIR)/blender/ed_uvedit/$(DEBUG_DIR)libed_uvedit.a
 PULIB += $(OCGDIR)/blender/ed_screen/$(DEBUG_DIR)libed_screen.a
 PULIB += $(OCGDIR)/blender/ed_console/$(DEBUG_DIR)libed_console.a
+PULIB += $(OCGDIR)/blender/ed_userpref/$(DEBUG_DIR)libed_userpref.a
+PULIB += $(OCGDIR)/blender/ed_gpencil/$(DEBUG_DIR)libed_gpencil.a
+PULIB += $(OCGDIR)/blender/ed_opsound/$(DEBUG_DIR)libed_opsound.a
 PULIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
@@ -249,6 +274,7 @@ PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 PULIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 PULIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
+PULIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)/libsmoke.a 
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
@@ -349,71 +375,35 @@ ifeq ($(OS),solaris)
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
 
-# OpenAL libs are already compiled as shared code!
-
-# Some vars to keep the rest of this section mostly readable
-# in an 80 char term
-SOUNDSYSTEM = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-DUMMYSOUND  = $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-OPENALSOUND = $(OCGDIR)/intern/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
-SDLSOUND    = $(OCGDIR)/intern/SDLSoundSystem/$(DEBUG_DIR)libSDLSoundSystem.a
-
-# Some kooky logic going on here ...
-ifeq ($(NAN_NO_OPENAL), true)
-    NAN_SND_LIBS =  $(SOUNDSYSTEM)
-    NAN_SND_LIBS += $(DUMMYSOUND)
-    NAN_SND_LIBS += $(SOUNDSYSTEM)
-else
+ifeq ($(WITH_OPENAL),true)
   ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
     ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc x86_64 parisc64"))
-        NAN_SND_LIBS =  $(SOUNDSYSTEM)
-        NAN_SND_LIBS += $(DUMMYSOUND)
-        NAN_SND_LIBS += $(OPENALSOUND)
-        NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-        NAN_SND_LIBS += $(SOUNDSYSTEM)
     else
       ifeq ($(OS),windows)
-        NAN_SND_LIBS =  $(SOUNDSYSTEM)
-        NAN_SND_LIBS += $(DUMMYSOUND)
-        NAN_SND_LIBS += $(OPENALSOUND)
-        NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
-        NAN_SND_LIBS += $(SOUNDSYSTEM)
-      else
-        NAN_SND_LIBS =  $(SOUNDSYSTEM)
-        NAN_SND_LIBS += $(DUMMYSOUND)
-        NAN_SND_LIBS += $(SOUNDSYSTEM)
       endif
     endif
   else
     ifeq ($(OS),darwin)
-      NAN_SND_LIBS =  $(SOUNDSYSTEM)
-      NAN_SND_LIBS += $(DUMMYSOUND)
-      NAN_SND_LIBS += $(OPENALSOUND)
       NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-      NAN_SND_LIBS += $(SOUNDSYSTEM)
     else
       ifeq ($(OS), solaris)
-        NAN_SND_LIBS =  $(SOUNDSYSTEM)
-        NAN_SND_LIBS += $(DUMMYSOUND)
-        NAN_SND_LIBS += $(OPENALSOUND)
-        NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-        NAN_SND_LIBS += $(SOUNDSYSTEM)
-      else
-        ifeq ($(OS), irix)
-           NAN_SND_LIBS = $(SOUNDSYSTEM)
-           NAN_SND_LIBS += $(DUMMYSOUND)
-           NAN_SND_LIBS += $(SDLSOUND)
-           NAN_SND_LIBS += $(SOUNDSYSTEM)
-        else
-           NAN_SND_LIBS =  $(SOUNDSYSTEM)
-           NAN_SND_LIBS += $(DUMMYSOUND)
-           NAN_SND_LIBS += $(SOUNDSYSTEM)
-        endif
       endif
     endif
+  endif
+endif
+
+ifeq ($(WITH_JACK),true)
+  ifeq ($(OS),$(findstring $(OS), "linux"))
+    NAN_SND_LIBS += $(NAN_JACKLIBS)
+  endif
+endif
+
+ifeq ($(WITH_SNDFILE),true)
+  ifeq ($(OS),$(findstring $(OS), "linux"))
+    NAN_SND_LIBS += $(NAN_SNDFILELIBS)
   endif
 endif
 

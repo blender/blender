@@ -69,8 +69,7 @@ public:
 			double margin,
 			double resetmargin,
 			bool bFindMaterial,
-			const STR_String& touchedpropname,
-			class KX_Scene* kxscene);
+			const STR_String& touchedpropname);
 	KX_RadarSensor();
 	virtual ~KX_RadarSensor();
 	virtual void SynchronizeTransform();
@@ -91,11 +90,6 @@ public:
 	/* python */
 	virtual sensortype GetSensorType() { return ST_RADAR; }
 
-	//Deprecated ----->
-	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeOrigin);
-	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeTarget);
-	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeHeight);
-	//<-----
 };
 
 #endif //__KX_RADAR_SENSOR_H

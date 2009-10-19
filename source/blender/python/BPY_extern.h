@@ -122,7 +122,7 @@ extern "C" {
 	void BPY_pydriver_update(void);
 	float BPY_pydriver_eval(struct ChannelDriver *driver);
 
-	int BPY_button_eval(char *expr, double *value);
+	int BPY_button_eval(struct bContext *C, char *expr, double *value);
 
 /* format importer hook */
 	int BPY_call_importloader( char *name );

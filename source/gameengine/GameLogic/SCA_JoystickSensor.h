@@ -35,7 +35,6 @@
 class SCA_JoystickSensor :public SCA_ISensor
 {
 	Py_Header;
-	class SCA_JoystickManager*	m_pJoystickMgr;
 	
 	/**
 	 * Axis 1-JOYAXIS_MAX, MUST be followed by m_axisf
@@ -123,28 +122,8 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	/* Joystick Index */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetIndex);
-	KX_PYMETHOD_DOC_O(SCA_JoystickSensor,SetIndex);
-	/* Axes*/
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetAxis);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetAxis);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetAxisValue);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetThreshold);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetThreshold);
-	/* Buttons */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButton);
-	KX_PYMETHOD_DOC_O(SCA_JoystickSensor,SetButton);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonValue);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonActiveList);
 	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,GetButtonStatus);
-	/* Hats */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetHat);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetHat);
-	/* number of */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfAxes);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfButtons);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfHats);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
 
 	static PyObject*	pyattr_get_axis_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_axis_single(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

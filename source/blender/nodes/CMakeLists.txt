@@ -29,9 +29,8 @@ SET(INC
   . ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
   ../render/extern/include ../../../intern/decimation/extern ../makesrna
   ../imbuf ../avi ../../../intern/elbeem/extern
-  ../../../intern/iksolver/extern ../blenloader ../quicktime
+  ../../../intern/iksolver/extern ../blenloader
   ../blenkernel ../../../extern/glew/include ../gpu
-  ${SDL_INC}
   ${ZLIB_INC}
 )
 
@@ -40,7 +39,7 @@ IF(WITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
+  SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 

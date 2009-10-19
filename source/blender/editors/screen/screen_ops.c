@@ -54,8 +54,10 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_sound.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -230,7 +232,7 @@ int ED_operator_posemode(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	
 	if ((obact != obedit) && (obact) && (obact->type==OB_ARMATURE))
-		return (obact->flag & OB_POSEMODE)!=0;
+		return (obact->mode & OB_MODE_POSE)!=0;
 		
 	return 0;
 }
@@ -1411,6 +1413,37 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
+
+/* function to be called outside UI context, or for redo */
+static int frame_jump_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (RNA_boolean_get(op->ptr, "end"))
+		CFRA= PEFRA;
+	else
+		CFRA= PSFRA;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_frame_jump(wmOperatorType *ot)
+{
+	ot->name = "Jump to Endpoint";
+	ot->idname = "SCREEN_OT_frame_jump";
+
+	ot->exec= frame_jump_exec;
+
+	ot->poll= ED_operator_screenactive;
+	ot->flag= 0;
+
+	/* rna */
+	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of the frame range.");
+}
+
+
 /* ************** jump to keyframe operator ***************************** */
 
 /* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
@@ -1549,7 +1582,6 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	/* rna */
-	RNA_def_pointer_runtime(ot->srna, "screen", &RNA_Screen, "Screen", "");
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
@@ -2194,48 +2226,69 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
 		ScrArea *sa;
+		int sync;
+
+		/* sync, don't sync, or follow scene setting */
+		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
+		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
+		else sync= (scene->r.audio.flag & AUDIO_SYNC);
 		
-		if(scene->audio.flag & AUDIO_SYNC) {
+		if(sync) {
+			/* skip frames */
 			int step = floor(wt->duration * FPS);
-			if (sad->reverse) // XXX does this option work with audio?
+			if(sad->flag & ANIMPLAY_FLAG_REVERSE) // XXX does this option work with audio?
 				scene->r.cfra -= step;
 			else
 				scene->r.cfra += step;
 			wt->duration -= ((float)step)/FPS;
 		}
 		else {
-			if (sad->reverse)
+			/* one frame +/- */
+			if(sad->flag & ANIMPLAY_FLAG_REVERSE)
 				scene->r.cfra--;
 			else
 				scene->r.cfra++;
 		}
 		
-		if (sad->reverse) {
-			/* jump back to end */
+		/* reset 'jumped' flag before checking if we need to jump... */
+		sad->flag &= ~ANIMPLAY_FLAG_JUMPED;
+		
+		if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
+			/* jump back to end? */
 			if (scene->r.psfra) {
-				if(scene->r.cfra < scene->r.psfra)
+				if (scene->r.cfra < scene->r.psfra) {
 					scene->r.cfra= scene->r.pefra;
+					sad->flag |= ANIMPLAY_FLAG_JUMPED;
+				}
 			}
 			else {
-				if(scene->r.cfra < scene->r.sfra)
+				if (scene->r.cfra < scene->r.sfra) {
 					scene->r.cfra= scene->r.efra;
+					sad->flag |= ANIMPLAY_FLAG_JUMPED;
+				}
 			}
 		}
 		else {
-			/* jump back to start */
+			/* jump back to start? */
 			if (scene->r.psfra) {
-				if(scene->r.cfra > scene->r.pefra)
+				if (scene->r.cfra > scene->r.pefra) {
 					scene->r.cfra= scene->r.psfra;
+					sad->flag |= ANIMPLAY_FLAG_JUMPED;
+				}
 			}
 			else {
-				if(scene->r.cfra > scene->r.efra)
+				if (scene->r.cfra > scene->r.efra) {
 					scene->r.cfra= scene->r.sfra;
+					sad->flag |= ANIMPLAY_FLAG_JUMPED;
+				}
 			}
 		}
 
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 		ED_update_for_newframe(C, 1);
-		
+
+		sound_update_playing(C);
+
 		for(sa= screen->areabase.first; sa; sa= sa->next) {
 			ARegion *ar;
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {
@@ -2275,18 +2328,35 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	bScreen *screen= CTX_wm_screen(C);
 	
 	if(screen->animtimer) {
-		ED_screen_animation_timer(C, 0, 0);
+		ED_screen_animation_timer(C, 0, 0, 0);
+		sound_stop_all(C);
 	}
 	else {
+		ScrArea *sa= CTX_wm_area(C);
 		int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
+		int sync= -1;
+
+		if(RNA_property_is_set(op->ptr, "sync"))
+			sync= (RNA_boolean_get(op->ptr, "sync"));
 		
-		ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, mode);
-		
-		if(screen->animtimer) {
-			wmTimer *wt= screen->animtimer;
-			ScreenAnimData *sad= wt->customdata;
+		/* timeline gets special treatment since it has it's own menu for determining redraws */
+		if ((sa) && (sa->spacetype == SPACE_TIME)) {
+			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 			
-			sad->ar= CTX_wm_region(C);
+			ED_screen_animation_timer(C, stime->redraws, sync, mode);
+			
+			/* update region if TIME_REGION was set, to leftmost 3d window */
+			ED_screen_animation_timer_update(C, stime->redraws);
+		}
+		else {
+			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, sync, mode);
+			
+			if(screen->animtimer) {
+				wmTimer *wt= screen->animtimer;
+				ScreenAnimData *sad= wt->customdata;
+				
+				sad->ar= CTX_wm_region(C);
+			}
 		}
 	}
 	
@@ -2305,6 +2375,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
+	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate and stay in sync with audio.");
 }
 
 /* ************** border select operator (template) ***************************** */
@@ -2813,9 +2884,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RenderJob *rj;
 	Image *ima;
 	
-	/* only one job at a time */
+	/* only one render job at a time */
 	if(WM_jobs_test(CTX_wm_manager(C), scene))
 		return OPERATOR_CANCELLED;
+	
+	/* stop all running jobs, currently previews frustrate Render */
+	WM_jobs_stop_all(CTX_wm_manager(C));
 	
 	/* handle UI stuff */
 	WM_cursor_wait(1);
@@ -3020,7 +3094,124 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 }
 
+/********************* new screen operator *********************/
 
+static int screen_new_exec(bContext *C, wmOperator *op)
+{
+	wmWindow *win= CTX_wm_window(C);
+	bScreen *sc= CTX_wm_screen(C);
+
+	sc= ED_screen_duplicate(win, sc);
+	WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, sc);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New Screen";
+	ot->idname= "SCREEN_OT_new";
+	
+	/* api callbacks */
+	ot->exec= screen_new_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************* delete screen operator *********************/
+
+static int screen_delete_exec(bContext *C, wmOperator *op)
+{
+	bScreen *sc= CTX_wm_screen(C);
+
+	WM_event_add_notifier(C, NC_SCREEN|ND_SCREENDELETE, sc);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Scene";
+	ot->idname= "SCREEN_OT_delete";
+	
+	/* api callbacks */
+	ot->exec= screen_delete_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************* new scene operator *********************/
+
+static int scene_new_exec(bContext *C, wmOperator *op)
+{
+	Scene *newscene, *scene= CTX_data_scene(C);
+	Main *bmain= CTX_data_main(C);
+	int type= RNA_enum_get(op->ptr, "type");
+
+	newscene= copy_scene(bmain, scene, type);
+
+	/* these can't be handled in blenkernel curently, so do them here */
+	if(type == SCE_COPY_LINK_DATA)
+		ED_object_single_users(newscene, 0);
+	else if(type == SCE_COPY_FULL)
+		ED_object_single_users(newscene, 1);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, newscene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_new(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{SCE_COPY_EMPTY, "EMPTY", 0, "Empty", "Add empty scene."},
+		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, "Link Objects", "Link to the objects from the current scene."},
+		{SCE_COPY_LINK_DATA, "LINK_OBJECT_DATA", 0, "Link Object Data", "Copy objects linked to data from the current scene."},
+		{SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene."},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "New Scene";
+	ot->idname= "SCENE_OT_new";
+	
+	/* api callbacks */
+	ot->exec= scene_new_exec;
+	ot->invoke= WM_menu_invoke;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+}
+
+/********************* delete scene operator *********************/
+
+static int scene_delete_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SCENEDELETE, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Scene";
+	ot->idname= "SCENE_OT_delete";
+	
+	/* api callbacks */
+	ot->exec= scene_delete_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* ****************  Assigning operatortypes to global list, adding handlers **************** */
 
@@ -3051,6 +3242,7 @@ void ED_operatortypes_screen(void)
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
+	WM_operatortype_append(SCREEN_OT_frame_jump);
 	WM_operatortype_append(SCREEN_OT_keyframe_jump);
 	
 	WM_operatortype_append(SCREEN_OT_animation_step);
@@ -3060,6 +3252,12 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_render);
 	WM_operatortype_append(SCREEN_OT_render_view_cancel);
 	WM_operatortype_append(SCREEN_OT_render_view_show);
+
+	/* new/delete */
+	WM_operatortype_append(SCREEN_OT_new);
+	WM_operatortype_append(SCREEN_OT_delete);
+	WM_operatortype_append(SCENE_OT_new);
+	WM_operatortype_append(SCENE_OT_delete);
 
 	/* tools shared by more space types */
 	WM_operatortype_append(ED_OT_undo);
@@ -3100,6 +3298,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	/* Screen General ------------------------------------------------ */
 	keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 	
+	
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
 	
@@ -3128,7 +3327,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
 	
@@ -3136,7 +3336,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCRIPT_OT_python_run_ui_scripts", F8KEY, KM_PRESS, 0, 0);
 
 	/* files */
-	WM_keymap_add_item(keymap, "FILE_OT_exec", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_execute", RETKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_cancel", ESCKEY, KM_PRESS, 0, 0);
 	
 	/* undo */
@@ -3147,12 +3347,17 @@ void ED_keymap_screen(wmWindowManager *wm)
 						  
 	/* render */
 	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
+//	WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_CTRL, 0);
+//	WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_OSKEY, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, KM_CTRL, 0)->ptr, "animation", 1);
+//	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "animation", 1);
+//	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_OSKEY|KM_SHIFT, 0)->ptr, "animation", 1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
 	/* user prefs */
-	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", UKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_OSKEY, 0);
 	
 	/* Anim Playback ------------------------------------------------ */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
@@ -3163,11 +3368,16 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	
+	WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 0);
+	
 	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEUPKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEDOWNKEY, KM_PRESS, KM_CTRL, 0)->ptr, "next", 0);
 	
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", KKEY, KM_PRESS, 0, LKEY);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
 
 	keymap_modal_set(wm);

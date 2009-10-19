@@ -310,12 +310,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		file_hilight_set(sfile, ar, event->x, event->y);
 	}
 	
-	if (params->display == FILE_IMGDISPLAY) {
-		file_draw_previews(C, ar);
-	} else {
-		file_draw_list(C, ar);
-	}
-	
+	file_draw_list(C, ar);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -335,7 +330,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_select_bookmark);
 	WM_operatortype_append(FILE_OT_loadimages);
 	WM_operatortype_append(FILE_OT_highlight);
-	WM_operatortype_append(FILE_OT_exec);
+	WM_operatortype_append(FILE_OT_execute);
 	WM_operatortype_append(FILE_OT_cancel);
 	WM_operatortype_append(FILE_OT_parent);
 	WM_operatortype_append(FILE_OT_previous);

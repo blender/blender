@@ -333,7 +333,6 @@ void BLF_default_rotation(float angle)
 	}
 }
 
-
 void BLF_draw(char *str)
 {
 	FontBLF *font;
@@ -342,40 +341,24 @@ void BLF_draw(char *str)
 	 * The pixmap alignment hack is handle
 	 * in BLF_position (old ui_rasterpos_safe).
 	 */
-
 	font= global_font[global_font_cur];
 	if (font) {
-		if (font->mode == BLF_MODE_BITMAP) {
-			glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-			glPushAttrib(GL_ENABLE_BIT);
-			glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glDisable(GL_BLEND);
-			glRasterPos3f(font->pos[0], font->pos[1], font->pos[2]);
+		glEnable(GL_BLEND);
+		glEnable(GL_TEXTURE_2D);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			blf_font_draw(font, str);
+		glPushMatrix();
+		glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
+		glScalef(font->aspect, font->aspect, 1.0);
 
-			glPopAttrib();
-			glPopClientAttrib();
-		}
-		else {
-			glEnable(GL_BLEND);
-			glEnable(GL_TEXTURE_2D);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		if (font->flags & BLF_ROTATION)
+			glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
 
-			glPushMatrix();
-			glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
-			glScalef(font->aspect, font->aspect, 1.0);
+		blf_font_draw(font, str);
 
-			if (font->flags & BLF_ROTATION)
-				glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
-
-			blf_font_draw(font, str);
-
-			glPopMatrix();
-			glDisable(GL_BLEND);
-			glDisable(GL_TEXTURE_2D);
-		}
+		glPopMatrix();
+		glDisable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
 	}
 }
 
@@ -386,6 +369,15 @@ void BLF_boundbox(char *str, rctf *box)
 	font= global_font[global_font_cur];
 	if (font)
 		blf_font_boundbox(font, str, box);
+}
+
+void BLF_width_and_height(char *str, float *width, float *height)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		blf_font_width_and_height(font, str, width, height);
 }
 
 float BLF_width(char *str)
@@ -506,15 +498,6 @@ void BLF_clipping(float xmin, float ymin, float xmax, float ymax)
 	}
 }
 
-void BLF_mode(int mode)
-{
-	FontBLF *font;
-
-	font= global_font[global_font_cur];
-	if (font)
-		font->mode= mode;
-}
-
 void BLF_shadow(int level, float r, float g, float b, float a)
 {
 	FontBLF *font;
@@ -538,4 +521,40 @@ void BLF_shadow_offset(int x, int y)
 		font->shadow_x= x;
 		font->shadow_y= y;
 	}
+}
+
+void BLF_buffer(float *fbuf, unsigned char *cbuf, unsigned int w, unsigned int h, int nch)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font) {
+		font->b_fbuf= fbuf;
+		font->b_cbuf= cbuf;
+		font->bw= w;
+		font->bh= h;
+		font->bch= nch;
+	}
+}
+
+void BLF_buffer_col(float r, float g, float b, float a)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font) {
+		font->b_col[0]= r;
+		font->b_col[1]= g;
+		font->b_col[2]= b;
+		font->b_col[3]= a;
+	}
+}
+
+void BLF_draw_buffer(char *str)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		blf_font_buffer(font, str);
 }

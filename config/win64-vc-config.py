@@ -16,13 +16,10 @@ BF_PYTHON_LIB = 'python31'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
 WITH_BF_OPENAL = False 
-WITH_BF_STATICOPENAL = False
 BF_OPENAL = LIBDIR + '/openal'
-BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
-BF_OPENAL_LIB = 'dxguid openal_static'
+BF_OPENAL_INC = '${BF_OPENAL}/include '
+BF_OPENAL_LIB = 'wrap_oal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
-# Warning, this static lib configuration is untested! users of this OS please confirm.
-BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
 # TODO - are these useful on win32?
 # BF_CXX = '/usr'
@@ -34,6 +31,11 @@ BF_ICONV = LIBDIR + '/iconv'
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
+
+BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'libsamplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
@@ -139,6 +141,12 @@ BF_OPENJPEG_LIB = ''
 BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
+WITH_BF_FFTW3 = True
+BF_FFTW3 = LIBDIR + '/fftw3'
+BF_FFTW3_INC = '${BF_FFTW3}/include'
+BF_FFTW3_LIB = 'libfftw'
+BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
+
 WITH_BF_REDCODE = False  
 BF_REDCODE_INC = '#extern'
 
@@ -165,6 +173,7 @@ CXX = 'cl.exe'
 CFLAGS = []
 CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267']
 CXXFLAGS = ['/EHsc']
+BGE_CXXFLAGS = ['/O2', '/EHsc', '/GR', '/fp:fast', '/arch:SSE2']
 
 BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
 

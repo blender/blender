@@ -101,7 +101,10 @@ def create_blender_liblist(lenv = None, libtype = None):
 		sortlist.sort()
 		for sk in sortlist:
 			v = curlib[sk]
-			target = os.path.abspath(os.getcwd() + os.sep + root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
+			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+				target = os.path.abspath(os.getcwd() + os.sep + root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
+			else:
+				target = os.path.abspath(root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
 			lst.append(target)
 
 	return lst
@@ -117,6 +120,7 @@ def setup_staticlibs(lenv):
 		lenv['BF_JPEG_LIBPATH'],
 		lenv['BF_PNG_LIBPATH'],
 		lenv['BF_ZLIB_LIBPATH'],
+		lenv['BF_LIBSAMPLERATE_LIBPATH'],
 		lenv['BF_ICONV_LIBPATH']
 		]
 
@@ -127,10 +131,16 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_SDL_LIBPATH'])
 	if lenv['WITH_BF_FFMPEG']:
 		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
+	if lenv['WITH_BF_JACK']:
+		libincs += Split(lenv['BF_JACK_LIBPATH'])
+	if lenv['WITH_BF_SNDFILE']:
+		libincs += Split(lenv['BF_SNDFILE_LIBPATH'])
 	if lenv['WITH_BF_OPENEXR']:
 		libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENEXR']:
 			statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
+	if lenv['WITH_BF_FFTW3']:
+		libincs += Split(lenv['BF_FFTW3_LIBPATH'])
 	if lenv['WITH_BF_INTERNATIONAL']:
 		libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
 	if lenv['WITH_BF_OPENAL']:
@@ -162,7 +172,8 @@ def setup_syslibs(lenv):
 		
 		lenv['BF_JPEG_LIB'],
 		lenv['BF_PNG_LIB'],
-		lenv['BF_ZLIB_LIB']
+		lenv['BF_ZLIB_LIB'],
+		lenv['BF_LIBSAMPLERATE_LIB']
 		]
 
 	syslibs += Split(lenv['BF_FREETYPE_LIB'])
@@ -190,6 +201,12 @@ def setup_syslibs(lenv):
 		syslibs += Split(lenv['BF_FFMPEG_LIB'])
 		if lenv['WITH_BF_OGG']:
 			syslibs += Split(lenv['BF_OGG_LIB'])
+	if lenv['WITH_BF_JACK']:
+			syslibs += Split(lenv['BF_JACK_LIB'])
+	if lenv['WITH_BF_SNDFILE']:
+			syslibs += Split(lenv['BF_SNDFILE_LIB'])
+	if lenv['WITH_BF_FFTW3']:
+		syslibs += Split(lenv['BF_FFTW3_LIB'])
 	if lenv['WITH_BF_SDL']:
 		syslibs += Split(lenv['BF_SDL_LIB'])
 	if not lenv['WITH_BF_STATICOPENGL']:
@@ -385,6 +402,48 @@ def AppIt(target=None, source=None, env=None):
 	cmd = 'find %s/%s.app -name .DS_Store -exec rm -rf {} \;'%(builddir, binary)
 	commands.getoutput(cmd)
 
+# extract copy system python, be sure to update other build systems
+# when making changes to the files that are copied.
+def my_pyinst_print(target, source, env):
+	pass
+
+def PyInstall(target=None, source=None, env=None):
+	# Any Unix except osx
+	#-- .blender/python/lib/python3.1
+	
+	import commands
+	
+	def run(cmd):
+		print 'Install command:', cmd
+		commands.getoutput(cmd)
+	
+	py_src =	env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
+	py_target =	env.subst( env['BF_INSTALLDIR'] + '/.blender/python/lib/python'+env['BF_PYTHON_VERSION'] )
+	
+	# Copied from source/creator/CMakeLists.txt, keep in sync.
+	print 'Install python from:'
+	print '\t"%s" into...' %	py_src
+	print '\t"%s"\n' %			py_target
+	
+	run('rm -rf "%s"' % py_target)
+	try:	os.makedirs(os.path.dirname(py_target)) # the final part is copied
+	except:pass
+	
+	run('cp -R "%s" "%s"' % (py_src, os.path.dirname(py_target)))
+	run('rm -rf "%s/distutils"' % py_target)
+	run('rm -rf "%s/lib2to3"' % py_target)
+	run('rm -rf "%s/idlelib"' % py_target)
+	run('rm -rf "%s/tkinter"' % py_target)
+	run('rm -rf "%s/config"' % py_target)
+
+	run('rm -rf "%s/site-packages"' % py_target)
+	run('mkdir "%s/site-packages"' % py_target)    # python needs it.'
+
+	run('rm "%s/lib-dynload/_tkinter.so"' % py_target)
+	run('find "%s" -name "test" -prune -exec rm -rf {} \;' % py_target)
+	run('find "%s" -name "*.py?" -exec rm -rf {} \;' % py_target)
+	run('find "%s" -name "*.so"-exec strip -s {} \;' % py_target)
+
 #### END ACTION STUFF #########
 
 def bsc(env, target, source):
@@ -421,7 +480,11 @@ class BlenderEnvironment(SConsEnvironment):
 		
 		print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
 		lenv = self.Clone()
-		res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
+		if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+			res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
+		else:
+			res = lenv.RES(root_build_dir+'lib/'+libname, source)
+
 		
 		SConsEnvironment.Default(self, res)
 		resources.append(res)
@@ -545,6 +608,11 @@ class BlenderEnvironment(SConsEnvironment):
 		if  lenv['OURPLATFORM']=='darwin':
 			lenv['BINARYKIND'] = binarykind
 			lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
+		elif os.sep == '/': # any unix
+			if lenv['WITH_BF_PYTHON']:
+				if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL']:
+					lenv.AddPostAction(prog,Action(PyInstall,strfunction=my_pyinst_print))
+		
 		return prog
 
 	def Glob(lenv, pattern):

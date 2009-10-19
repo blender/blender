@@ -75,25 +75,28 @@ typedef struct BevPoint {
 	short f1, f2;
 } BevPoint;
 
-/* Keyframes on IPO curves and Points on Bezier Curves/Paths are generally BezTriples */
+/* Keyframes on F-Curves (allows code reuse of Bezier eval code) and 
+ * Points on Bezier Curves/Paths are generally BezTriples 
+ */
 /* note: alfa location in struct is abused by Key system */
 /* vec in BezTriple looks like this:
 	vec[0][0]=x location of handle 1
 	vec[0][1]=y location of handle 1
-	vec[0][2]=z location of handle 1 (not used for IpoCurve Points(2d))
+	vec[0][2]=z location of handle 1 (not used for FCurve Points(2d))
 	vec[1][0]=x location of control point
 	vec[1][1]=y location of control point
 	vec[1][2]=z location of control point
 	vec[2][0]=x location of handle 2
 	vec[2][1]=y location of handle 2
-	vec[2][2]=z location of handle 2 (not used for IpoCurve Points(2d))
+	vec[2][2]=z location of handle 2 (not used for FCurve Points(2d))
 */
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */
 	short ipo;					/* ipo: interpolation mode for segment from this BezTriple to the next */
 	char h1, h2; 				/* h1, h2: the handle type of the two handles */
-	char f1, f2, f3, hide;		/* f1, f2, f3: used for selection status,  hide: used to indicate whether BezTriple is hidden */
+	char f1, f2, f3;			/* f1, f2, f3: used for selection status */
+	char hide;					/* hide: used to indicate whether BezTriple is hidden (3D), type of keyframe (eBezTriple_KeyframeTypes) */
 } BezTriple;
 
 /* note; alfa location in struct is abused by Key system */
@@ -278,6 +281,12 @@ typedef enum eBezTriple_Interpolation {
 	BEZT_IPO_LIN,		/* linear interpolation */
 	BEZT_IPO_BEZ,		/* bezier interpolation */
 } eBezTriple_Interpolation;
+
+/* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
+typedef enum eBezTriple_KeyframeType {
+	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
+	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
+} eBezTriple_KeyframeType;
 
 /* *************** CHARINFO **************** */
 

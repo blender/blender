@@ -138,6 +138,8 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, pt->space_type, pt->region_type)))
 		return;
 	
+	RNA_struct_free_extension(type, &pt->ext);
+
 	BLI_freelinkN(&art->paneltypes, pt);
 	RNA_struct_free(&BLENDER_RNA, type);
 
@@ -146,7 +148,7 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, void *data, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	PanelType *pt, dummypt = {0};
@@ -233,6 +235,8 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, ht->space_type, RGN_TYPE_HEADER)))
 		return;
 	
+	RNA_struct_free_extension(type, &ht->ext);
+
 	BLI_freelinkN(&art->headertypes, ht);
 	RNA_struct_free(&BLENDER_RNA, type);
 
@@ -241,7 +245,7 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, void *data, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	HeaderType *ht, dummyht = {0};
@@ -347,6 +351,8 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, mt->space_type, RGN_TYPE_HEADER)))
 		return;
 	
+	RNA_struct_free_extension(type, &mt->ext);
+
 	BLI_freelinkN(&art->menutypes, mt);
 	RNA_struct_free(&BLENDER_RNA, type);
 
@@ -355,7 +361,7 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void *data, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	MenuType *mt, dummymt = {0};

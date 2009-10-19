@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -34,6 +34,48 @@ static bNodeSocketType inputs[]= {
 	{ SOCK_VECTOR, 1, "Normal", 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
 	{ -1, 0, ""	}
 };
+
+static void osa(
+	void (*input_fn)(float *, bNodeStack *, TexParams *, short),
+	float *out,
+	bNodeStack *in,
+	TexParams *p,
+	short thread
+){
+	if(!p->dxt) {
+		input_fn(out, in, p, thread);
+	} else {
+		float sample[4] = {0};
+		float coord[3];
+		TexParams sp = *p;
+		int i;
+	
+		sp.coord = coord;
+		sp.dxt = sp.dyt = 0;
+		
+		QUATCOPY(out, sample);
+		
+		for(i=0; i<5; i++) {
+			VECCOPY(coord, p->coord);
+			
+			if(i < 4)
+			{
+				if(i % 2) VECADD(coord, coord, p->dxt);
+				if(i > 1) VECADD(coord, coord, p->dyt);
+			}
+			else
+			{
+				VECADDFAC(coord, coord, p->dxt, 0.5);
+				VECADDFAC(coord, coord, p->dyt, 0.5);
+			}
+			
+			input_fn(sample, in, &sp, thread);
+			
+			QUATADDFAC(out, out, sample, 0.2);
+		}
+	}
+}
+	
 
 /* applies to render pipeline */
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -49,14 +91,17 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	if(!cdata->do_preview) {
 		if(cdata->which_output == node->custom1)
 		{
-			tex_input_rgba(&target->tr, in[0], cdata->coord, cdata->thread);
+			TexParams params;
+			params_from_cdata(&params, cdata);
+			
+			osa(tex_input_rgba, &target->tr, in[0], &params, cdata->thread);
 		
 			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
 			target->talpha = 1.0f;
 		
 			if(target->nor) {
 				if(in[1]->hasinput)
-					tex_input_vec(target->nor, in[1], cdata->coord, cdata->thread);
+					osa(tex_input_vec, target->nor, in[1], &params, cdata->thread);
 				else
 					target->nor = 0;
 			}
@@ -64,13 +109,85 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	}
 }
 
-static void init(bNode* node)
+static void unique_name(bNode *node)
 {
-   TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
-   strcpy(tno->name, "Default");
-   node->storage= tno;
+	TexNodeOutput *tno = (TexNodeOutput *)node->storage;
+	char *new_name = 0;
+	int new_len;
+	int suffix;
+	bNode *i;
+	char *name = tno->name;
+	
+	i = node;
+	while(i->prev) i = i->prev;
+	for(; i; i=i->next) {
+		if(
+			i == node ||
+			i->type != TEX_NODE_OUTPUT ||
+			strcmp(name, ((TexNodeOutput*)(i->storage))->name)
+		)
+			continue;
+		
+		if(!new_name) {
+			int len = strlen(name);
+			if(len >= 4 && sscanf(name + len - 4, ".%03d", &suffix) == 1) {
+				new_len = len;
+			} else {
+				suffix = 0;
+				new_len = len + 4;
+				if(new_len > 31)
+					new_len = 31;
+			}
+			
+			new_name = malloc(new_len + 1);
+			strcpy(new_name, name);
+			name = new_name;
+		}
+		sprintf(new_name + new_len - 4, ".%03d", ++suffix);
+	}
+	
+	if(new_name) {
+		strcpy(tno->name, new_name);
+		free(new_name);
+	}
 }
 
+static void assign_index(struct bNode *node)
+{
+	bNode *tnode;
+	int index = 1;
+	
+	tnode = node;
+	while(tnode->prev)
+		tnode = tnode->prev;
+	
+	check_index:
+	for(; tnode; tnode= tnode->next)
+		if(tnode->type == TEX_NODE_OUTPUT && tnode != node)
+			if(tnode->custom1 == index) {
+				index ++;
+				goto check_index;
+			}
+			
+	node->custom1 = index;
+}
+
+static void init(bNode *node)
+{
+	TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
+	node->storage= tno;
+	
+	strcpy(tno->name, "Default");
+	unique_name(node);
+	assign_index(node);
+}
+
+static void copy(bNode *orig, bNode *new)
+{
+	node_copy_standard_storage(orig, new);
+	unique_name(new);
+	assign_index(new);
+}
 
 bNodeType tex_node_output= {
 	/* *next,*prev     */  NULL, NULL,
@@ -85,6 +202,6 @@ bNodeType tex_node_output= {
 	/* butfunc         */  NULL,
 	/* initfunc        */  init,
 	/* freestoragefunc */  node_free_standard_storage,
-	/* copystoragefunc */  node_copy_standard_storage,  
+	/* copystoragefunc */  copy,  
 	/* id              */  NULL
 };

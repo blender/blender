@@ -90,6 +90,7 @@ static void MESH_OT_vertex_specials(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Vertex Specials";
+	//ot->description= "Perform special vertex operations.";
 	ot->idname= "MESH_OT_vertex_specials";
 	
 	/* api callbacks */
@@ -128,6 +129,7 @@ static void MESH_OT_edge_specials(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Edge Specials";
+	//ot->description= "Perform special edge operations.";
 	ot->idname= "MESH_OT_edge_specials";
 	
 	/* api callbacks */
@@ -178,6 +180,7 @@ static void MESH_OT_face_specials(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Face Specials";
+	//ot->description= "Perform special face operations.";
 	ot->idname= "MESH_OT_face_specials";
 	
 	/* api callbacks */
@@ -219,6 +222,7 @@ static void MESH_OT_specials(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Specials";
+	//ot->description= "Perform special vertice, edge or face operations.";
 	ot->idname= "MESH_OT_specials";
 	
 	/* api callbacks */

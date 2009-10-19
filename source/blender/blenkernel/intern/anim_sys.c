@@ -71,7 +71,7 @@ static short id_has_animdata (ID *id)
 	switch (GS(id->name)) {
 			/* has AnimData */
 		case ID_OB:
-		case ID_CU:
+		case ID_MB: case ID_CU:
 		case ID_KE:
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
@@ -120,8 +120,15 @@ AnimData *BKE_id_add_animdata (ID *id)
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		
 		/* check if there's already AnimData, in which case, don't add */
-		if (iat->adt == NULL)
-			iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+		if (iat->adt == NULL) {
+			AnimData *adt;
+			
+			/* add animdata */
+			adt= iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+			
+			/* set default settings */
+			adt->act_influence= 1.0f;
+		}
 		
 		return iat->adt;
 	}
@@ -200,12 +207,6 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 /* *********************************** */ 
 /* KeyingSet API */
 
-/* NOTES:
- * It is very likely that there will be two copies of the api - one for internal use,
- * and one 'operator' based wrapper of the internal API, which should allow for access
- * from Python/scripts so that riggers can automate the creation of KeyingSets for their rigs.
- */
-
 /* Finding Tools --------------------------- */
 
 /* Find the first path that matches the given criteria */
@@ -238,7 +239,7 @@ KS_Path *BKE_keyingset_find_destination (KeyingSet *ks, ID *id, const char group
 		if ((ksp->rna_path==0) || strcmp(rna_path, ksp->rna_path))
 			eq_path= 0;
 			
-		/* index */
+		/* index - need to compare whole-array setting too... */
 		if (ksp->array_index != array_index)
 			eq_index= 0;
 			
@@ -269,7 +270,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	if (name)
 		BLI_snprintf(ks->name, 64, name);
 	else
-		strcpy(ks->name, "Keying Set");
+		strcpy(ks->name, "KeyingSet");
 	
 	ks->flag= flag;
 	ks->keyingflag= keyingflag;
@@ -278,7 +279,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	BLI_addtail(list, ks);
 	
 	/* make sure KeyingSet has a unique name (this helps with identification) */
-	BLI_uniquename(list, ks, "Keying Set", ' ', offsetof(KeyingSet, name), 64);
+	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), 64);
 	
 	/* return new KeyingSet for further editing */
 	return ks;
@@ -292,18 +293,25 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	KS_Path *ksp;
 	
 	/* sanity checks */
-	if ELEM(NULL, ks, rna_path)
+	if ELEM(NULL, ks, rna_path) {
+		printf("ERROR: no Keying Set and/or RNA Path to add destination with \n");
 		return;
+	}
 	
 	/* ID is optional for relative KeyingSets, but is necessary for absolute KeyingSets */
 	if (id == NULL) {
-		if (ks->flag & KEYINGSET_ABSOLUTE)
+		if (ks->flag & KEYINGSET_ABSOLUTE) {
+			printf("ERROR: No ID provided for absolute destination. \n");
 			return;
+		}
 	}
 	
 	/* don't add if there is already a matching KS_Path in the KeyingSet */
-	if (BKE_keyingset_find_destination(ks, id, group_name, rna_path, array_index, groupmode))
+	if (BKE_keyingset_find_destination(ks, id, group_name, rna_path, array_index, groupmode)) {
+		if (G.f & G_DEBUG)
+			printf("ERROR: destination already exists in Keying Set \n");
 		return;
+	}
 	
 	/* allocate a new KeyingSet Path */
 	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSet Path");
@@ -335,6 +343,21 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	BLI_addtail(&ks->paths, ksp);
 }	
 
+/* Copy all KeyingSets in the given list */
+void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
+{
+	KeyingSet *ksn;
+	KS_Path *kspn;
+
+	BLI_duplicatelist(newlist, list);
+
+	for(ksn=newlist->first; ksn; ksn=ksn->next) {
+		BLI_duplicatelist(&ksn->paths, &ksn->paths);
+
+		for(kspn=ksn->paths.first; kspn; kspn=kspn->next)
+			kspn->rna_path= MEM_dupallocN(kspn->rna_path);
+	}
+}
 
 /* Freeing Tools --------------------------- */
 
@@ -418,19 +441,19 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(prop))
+					if (RNA_property_array_length(&new_ptr, prop))
 						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(prop))
+					if (RNA_property_array_length(&new_ptr, prop))
 						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(prop))
+					if (RNA_property_array_length(&new_ptr, prop))
 						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
@@ -1155,19 +1178,19 @@ void nladata_flush_channels (ListBase *channels)
 		switch (RNA_property_type(prop)) 
 		{
 			case PROP_BOOLEAN:
-				if (RNA_property_array_length(prop))
+				if (RNA_property_array_length(ptr, prop))
 					RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_boolean_set(ptr, prop, (int)value);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(prop))
+				if (RNA_property_array_length(ptr, prop))
 					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_int_set(ptr, prop, (int)value);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(prop))
+				if (RNA_property_array_length(ptr, prop))
 					RNA_property_float_set_index(ptr, prop, array_index, value);
 				else
 					RNA_property_float_set(ptr, prop, value);
@@ -1190,8 +1213,12 @@ void nladata_flush_channels (ListBase *channels)
  */
 static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 {
+	ListBase dummy_trackslist = {NULL, NULL};
+	NlaStrip dummy_strip;
+	
 	NlaTrack *nlt;
 	short track_index=0;
+	short has_strips = 0;
 	
 	ListBase estrips= {NULL, NULL};
 	ListBase echannels= {NULL, NULL};
@@ -1213,9 +1240,48 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		if (nlt->flag & NLATRACK_MUTED) 
 			continue;
 			
+		/* if this track has strips (but maybe they won't be suitable), set has_strips 
+		 *	- used for mainly for still allowing normal action evaluation...
+		 */
+		if (nlt->strips.first)
+			has_strips= 1;
+			
 		/* otherwise, get strip to evaluate for this channel */
 		nes= nlastrips_ctime_get_strip(&estrips, &nlt->strips, track_index, ctime);
 		if (nes) nes->track= nlt;
+	}
+	
+	/* add 'active' Action (may be tweaking track) as last strip to evaluate in NLA stack
+	 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+	 */
+	if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK)) {
+		/* if there are strips, evaluate action as per NLA rules */
+		if (has_strips) {
+			/* make dummy NLA strip, and add that to the stack */
+			memset(&dummy_strip, 0, sizeof(NlaStrip));
+			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
+			
+			dummy_strip.act= adt->action;
+			dummy_strip.remap= adt->remap;
+			
+			/* action range is calculated taking F-Modifiers into account (which making new strips doesn't do due to the troublesome nature of that) */
+			calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
+			dummy_strip.start = dummy_strip.actstart;
+			dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
+			
+			dummy_strip.blendmode= adt->act_blendmode;
+			dummy_strip.extendmode= adt->act_extendmode;
+			dummy_strip.influence= adt->act_influence;
+			
+			/* add this to our list of evaluation strips */
+			nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
+		}
+		else {
+			/* special case - evaluate as if there isn't any NLA data */
+			// TODO: this is really just a stop-gap measure...
+			animsys_evaluate_action(ptr, adt->action, adt->remap, ctime);
+			return;
+		}
 	}
 	
 	/* only continue if there are strips to evaluate */
@@ -1316,14 +1382,10 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
 		{
-			/* evaluate NLA-stack */
-			animsys_evaluate_nla(&id_ptr, adt, ctime);
-			
-			/* evaluate 'active' Action (may be tweaking track) on top of results of NLA-evaluation 
-			 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+			/* evaluate NLA-stack 
+			 *	- active action is evaluated as part of the NLA stack as the last item
 			 */
-			if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK))
-				animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
+			animsys_evaluate_nla(&id_ptr, adt, ctime);
 		}
 		/* evaluate Active Action only */
 		else if (adt->action)
@@ -1362,19 +1424,36 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-// TODO: we currently go over entire 'main' database...
+// FIXME?: we currently go over entire 'main' database...
 void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
 	
 	if (G.f & G_DEBUG)
 		printf("Evaluate all animation - %f \n", ctime);
-
-	/* macro for less typing */
-#define EVAL_ANIM_IDS(first, flag) \
+	
+	/* macro for less typing 
+	 *	- only evaluate animation data for id if it has users (and not just fake ones)
+	 *	- whether animdata exists is checked for by the evaluation function, though taking 
+	 *	  this outside of the function may make things slightly faster?
+	 */
+#define EVAL_ANIM_IDS(first, aflag) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
-		BKE_animsys_evaluate_animdata(id, adt, ctime, flag); \
+		if ( (id->us > 1) || (id->us && !(id->flag & LIB_FAKEUSER)) ) \
+			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+	}
+	
+	/* optimisation: 
+	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
+	 * which should ultimately be empty, since it is not possible for now to have any animation 
+	 * without some actions, and drivers wouldn't get affected by any state changes
+	 */
+	if (main->action.first == NULL) {
+		if (G.f & G_DEBUG)
+			printf("\tNo Actions, so no animation needs to be evaluated...\n");
+			
+		return;
 	}
 	
 	/* nodes */
@@ -1395,6 +1474,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	/* shapekeys */
 		// TODO: we probably need the same hack as for curves (ctime-hack)
 	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
+	
+	/* metaballs */
+	EVAL_ANIM_IDS(main->mball.first, ADT_RECALC_ANIM);
 	
 	/* curves */
 		/* we need to perform a special hack here to ensure that the ctime 

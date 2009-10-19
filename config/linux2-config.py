@@ -22,6 +22,23 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
+BF_LIBSAMPLERATE = '/usr'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
+WITH_BF_JACK = False
+BF_JACK = '/usr'
+BF_JACK_INC = '${BF_JACK}/include/jack'
+BF_JACK_LIB = 'jack'
+BF_JACK_LIBPATH = '${BF_JACK}/lib'
+
+WITH_BF_SNDFILE = False
+BF_SNDFILE = '/usr'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include/sndfile'
+BF_SNDFILE_LIB = 'sndfile'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
+
 WITH_BF_SDL = True
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
@@ -67,29 +84,12 @@ BF_GETTEXT_LIB = 'gettextlib'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = True
-WITH_BF_PLAYER = True
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
-
-#WITH_BF_NSPR = True
-#BF_NSPR = $(LIBDIR)/nspr
-#BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
-#BF_NSPR_LIB = 
-
-# Uncomment the following line to use Mozilla inplace of netscape
-#CPPFLAGS += -DMOZ_NOT_NET
-# Location of MOZILLA/Netscape header files...
-#BF_MOZILLA = $(LIBDIR)/mozilla
-#BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
-#BF_MOZILLA_LIB =
-# Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
-# if this is not set.
-#
-# Be paranoid regarding library creation (do not update archives)
-#BF_PARANOID = True
 
 # enable freetype2 support for text objects
 BF_FREETYPE = '/usr'
@@ -129,6 +129,12 @@ BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
 BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
+
+WITH_BF_FFTW3 = False
+BF_FFTW3 = LIBDIR + '/usr'
+BF_FFTW3_INC = '${BF_FFTW3}/include'
+BF_FFTW3_LIB = 'fftw3'
+BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
 WITH_BF_REDCODE = False  
 BF_REDCODE = '#extern/libredcode'
@@ -178,8 +184,9 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGSQUIET = ru
 ##
 C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement']
-
 CC_WARN = ['-Wall']
+CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
+
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 

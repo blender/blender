@@ -197,7 +197,7 @@ def is_tricyl_facegroup(faces):
 	is the face group a tri cylinder
 	Returens a bool, true if the faces make an extruded tri solid
 	'''
-	return False
+	
 	# cube must have 5 faces
 	if len(faces) != 5:
 		print '1'
@@ -249,6 +249,10 @@ def write_node_map(file, ob):
 	file.write('{\n')
 	for name_value in props:
 		file.write('"%s" "%s"\n' % name_value)
+	if PREF_GRID_SNAP.val:
+		file.write('"origin" "%d %d %d"\n' % tuple([round(axis*PREF_SCALE.val) for axis in ob.getLocation('worldspace')]) )
+	else:
+		file.write('"origin" "%.6f %.6f %.6f"\n' % tuple([axis*PREF_SCALE.val for axis in ob.getLocation('worldspace')]) )
 	file.write('}\n')
 	return True
 

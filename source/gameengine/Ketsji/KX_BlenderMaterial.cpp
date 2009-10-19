@@ -59,8 +59,7 @@ KX_BlenderMaterial::KX_BlenderMaterial()
 void KX_BlenderMaterial::Initialize(
     KX_Scene *scene,
 	BL_Material *data,
-	bool skin,
-	int lightlayer)
+	bool skin)
 {
 	RAS_IPolyMaterial::Initialize(
 		data->texname[0],
@@ -72,8 +71,7 @@ void KX_BlenderMaterial::Initialize(
 		data->mode,
 		data->transp,
 		((data->ras_mode &ALPHA)!=0),
-		((data->ras_mode &ZSORT)!=0),
-		lightlayer
+		((data->ras_mode &ZSORT)!=0)
 	);
 	mMaterial = data;
 	mShader = 0;
@@ -237,7 +235,7 @@ void KX_BlenderMaterial::OnExit()
 	}
 
 	if( mMaterial->tface ) 
-		GPU_set_tpage(mMaterial->tface);
+		GPU_set_tpage(mMaterial->tface, 1);
 }
 
 
@@ -776,6 +774,7 @@ void KX_BlenderMaterial::UpdateIPO(
 	mMaterial->hard			= (float)(hard);
 	mMaterial->emit			= (float)(emit);
 	mMaterial->spec_f		= (float)(spec);
+	mMaterial->ref			= (float)(ref);
 }
 
 
@@ -795,31 +794,25 @@ PyAttributeDef KX_BlenderMaterial::Attributes[] = {
 };
 
 PyTypeObject KX_BlenderMaterial::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_BlenderMaterial",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&PyObjectPlus::Type,
-		0,0,0,0,0,0,
-		py_base_new
+	"KX_BlenderMaterial",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&PyObjectPlus::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")

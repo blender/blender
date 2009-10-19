@@ -48,8 +48,7 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 			double margin,
 			double resetmargin,
 			bool bFindMaterial,
-			const STR_String& touchedpropname,
-			class KX_Scene* kxscene)
+			const STR_String& touchedpropname)
 
 			: KX_NearSensor(
 				eventmgr,
@@ -59,7 +58,6 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 				resetmargin,
 				bFindMaterial,
 				touchedpropname,
-				kxscene,
 				physCtrl),
 
 				m_coneradius(coneradius),
@@ -178,63 +176,13 @@ void KX_RadarSensor::SynchronizeTransform()
 /* Python Functions															 */
 /* ------------------------------------------------------------------------- */
 
-//Deprecated ----->
-/* getConeOrigin */
-const char KX_RadarSensor::GetConeOrigin_doc[] = 
-"getConeOrigin()\n"
-"\tReturns the origin of the cone with which to test. The origin\n"
-"\tis in the middle of the cone.";
-PyObject* KX_RadarSensor::PyGetConeOrigin() {
-	ShowDeprecationWarning("getConeOrigin()", "the coneOrigin property");
-
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_cone_origin[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_cone_origin[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_cone_origin[2]));
-	
-	return retVal;
-}
-
-/* getConeOrigin */
-const char KX_RadarSensor::GetConeTarget_doc[] = 
-"getConeTarget()\n"
-"\tReturns the center of the bottom face of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeTarget() {
-	ShowDeprecationWarning("getConeTarget()", "the coneTarget property");
-
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_cone_target[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_cone_target[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_cone_target[2]));
-	
-	return retVal;
-}
-
-/* getConeHeight */
-const char KX_RadarSensor::GetConeHeight_doc[] = 
-"getConeHeight()\n"
-"\tReturns the height of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeHeight() {
-											  
-	ShowDeprecationWarning("getConeHeight()", "the distance property");
-
-	return PyFloat_FromDouble(m_coneheight);
-}
-//<----- Deprecated
+/* none */
 
 /* ------------------------------------------------------------------------- */
 /* Python Integration Hooks                                                  */
 /* ------------------------------------------------------------------------- */
 PyTypeObject KX_RadarSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_RadarSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -256,14 +204,6 @@ PyTypeObject KX_RadarSensor::Type = {
 };
 
 PyMethodDef KX_RadarSensor::Methods[] = {
-	//Deprecated ----->
-	{"getConeOrigin", (PyCFunction) KX_RadarSensor::sPyGetConeOrigin, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeOrigin_doc},
-	{"getConeTarget", (PyCFunction) KX_RadarSensor::sPyGetConeTarget, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeTarget_doc},
-	{"getConeHeight", (PyCFunction) KX_RadarSensor::sPyGetConeHeight, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeHeight_doc},
-	 //<-----
 	{NULL} //Sentinel
 };
 

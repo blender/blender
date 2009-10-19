@@ -31,15 +31,15 @@ SET(INC .
   ../../../intern/guardedalloc ../../../intern/memutil
   ../blenlib ../makesdna ../makesrna ../blenkernel
   ../include ../imbuf ../render/extern/include
-  ../../../intern/bsp/extern ../radiosity/extern/include
+  ../../../intern/bsp/extern
   ../../../intern/decimation/extern ../blenloader
-  ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
-  ../quicktime ../../../intern/elbeem/extern
+  ../../kernel/gen_system ../readstreamglue
+  ../../../intern/elbeem/extern
   ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
   ../nodes
   ../gpu
   ../blenfont
-  ${SDL_INC}
+  ${OPENGL_INCLUDE_DIR}
 )
 
 IF(WITH_INTERNATIONAL)
@@ -51,7 +51,7 @@ IF(WITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
+  SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 

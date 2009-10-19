@@ -28,6 +28,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <float.h>
 
 #include "DNA_actuator_types.h"
 #include "DNA_controller_types.h"
@@ -81,9 +82,6 @@ static int pupmenu() {return 1;}
 #define MAX_RENDER_PASS   100
 #define B_REDR		1
 #define B_IDNAME	2
-
-#define B_ADD_PROP		2701
-#define B_CHANGE_PROP		2702
 
 #define B_ADD_SENS		2703
 #define B_CHANGE_SENS		2704
@@ -363,7 +361,6 @@ static void sca_move_actuator(bContext *C, void *datav, void *data2_unused)
 
 void do_logic_buts(bContext *C, void *arg, int event)
 {
-	bProperty *prop;
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -385,25 +382,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 	case B_SETMAINACTOR:
 		ob->gameflag &= ~(OB_SECTOR|OB_PROP);
 		break;
-
-
-	case B_ADD_PROP:
-		prop= new_property(PROP_FLOAT);
-		make_unique_prop_names(C, prop->name);
-		BLI_addtail(&ob->prop, prop);
-		ED_undo_push(C, "Add property");
-		break;
-#if 0 // XXX Now done in python
-	case B_CHANGE_PROP:
-		prop= ob->prop.first;
-		while(prop) {
-			if(prop->type!=prop->otype) {
-				init_property(prop);
-			}
-			prop= prop->next;
-		}
-		break;
-#endif
+	
 	case B_ADD_SENS:
 		for(ob=G.main->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ADDSENS) {
@@ -708,8 +687,6 @@ static char *actuator_name(int type)
 		return "Material";
 	case ACT_SOUND:
 		return "Sound";
-	case ACT_CD:
-		return "CD";
 	case ACT_PROPERTY:
 		return "Property";
 	case ACT_EDIT_OBJECT:
@@ -748,21 +725,21 @@ static char *actuator_pup(Object *owner)
 	case OB_ARMATURE:
 		return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 		break;
 
 	case OB_MESH:
 		return "Actuators  %t|Shape Action %x21|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 		break;
 
 	default:
 		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 	}
 }
@@ -1316,9 +1293,15 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			* proper compatibility with older .blend files. */
 			str= "Type %t|Left button %x1|Middle button %x2|"
 				"Right button %x4|Wheel Up %x5|Wheel Down %x6|Movement %x8|Mouse over %x16|Mouse over any%x32"; 
-			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, width-20, 19,
+			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, (width*0.8f)-20, 19,
 				&ms->type, 0, 31, 0, 0,
 				"Specify the type of event this mouse sensor should trigger on");
+			
+			if(ms->type==32) {
+				uiDefButBitS(block, TOG, SENS_MOUSE_FOCUS_PULSE, B_REDR, "Pulse",(short)(xco + 10) + (width*0.8f)-20,(short)(yco - 44),
+					(short)(0.20 * (width-20)), 19, &ms->flag, 0.0, 0.0, 0, 0,
+					"Moving the mouse over a different object generates a pulse");	
+			}
 			
 			yco-= ysize;
 			break;
@@ -1581,7 +1564,6 @@ static int get_col_actuator(int type)
 	case ACT_IPO:			return TH_PANEL;
 	case ACT_PROPERTY:		return TH_PANEL;
 	case ACT_SOUND:			return TH_PANEL;
-	case ACT_CD:			return TH_PANEL;
 	case ACT_CAMERA: 		return TH_PANEL;
 	case ACT_EDIT_OBJECT: 		return TH_PANEL;
 	case ACT_GROUP:			return TH_PANEL;
@@ -1662,7 +1644,8 @@ char *get_state_name(Object *ob, short bit)
 
 static void check_state_mask(bContext *C, void *arg1_but, void *arg2_mask)
 {
-	int shift= 0; // XXX
+	wmWindow *win= CTX_wm_window(C);
+	int shift= win->eventstate->shift;
 	unsigned int *cont_mask = arg2_mask;
 	uiBut *but = arg1_but;
 
@@ -1674,7 +1657,6 @@ static void check_state_mask(bContext *C, void *arg1_but, void *arg2_mask)
 static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, short xco, short yco, short width)
 {
 	bSoundActuator      *sa      = NULL;
-	bCDActuator			*cda	 = NULL;
 	bObjectActuator     *oa      = NULL;
 	bIpoActuator        *ia      = NULL;
 	bPropertyActuator   *pa      = NULL;
@@ -1984,11 +1966,14 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		}
     case ACT_SOUND:
 		{
-			ysize = 70;
-			
 			sa = act->data;
 			sa->sndnr = 0;
 			
+			if(sa->flag & ACT_SND_3D_SOUND)
+				ysize = 180;
+			else
+				ysize = 92;
+
 			wval = (width-20)/2;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -1998,57 +1983,35 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				/* reset this value, it is for handling the event */
 				sa->sndnr = 0;
 				uiDefButS(block, MENU, B_SOUNDACT_BROWSE, str, xco+10,yco-22,20,19, &(sa->sndnr), 0, 0, 0, 0, "");	
+				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+wval+10, yco-22, wval, 19, "Load a sound file. Remember to set caching on for small sounds that are played often.");
 
 				if(sa->sound) {
 					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
-					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,width-40,19, sa->sound->id.name+2,    0.0, 21.0, 0, 0, "");
+					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,wval-20,19, sa->sound->id.name+2,    0.0, 21.0, 0, 0, "");
 					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19, &sa->type, 0.0, 0.0, 0, 0, "");
-					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->sound->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
-					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->sound->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
+					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
+					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
+					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19, &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space.");
+					if(sa->flag & ACT_SND_3D_SOUND)
+					{
+						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19, &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0, "The minimum gain of the sound, no matter how far it is away.");
+						uiDefButF(block, NUM, 0, "Maximum Gain: ", xco+10, yco-132, wval, 19, &sa->sound3D.max_gain, 0.0, 1.0, 0.0, 0.0, "The maximum gain of the sound, no matter how near it is..");
+						uiDefButF(block, NUM, 0, "Reference Distance: ", xco+10, yco-154, wval, 19, &sa->sound3D.reference_distance, 0.0, FLT_MAX, 0.0, 0.0, "The reference distance is the distance where the sound has a gain of 1.0.");
+						uiDefButF(block, NUM, 0, "Maximum Distance: ", xco+10, yco-176, wval, 19, &sa->sound3D.max_distance, 0.0, FLT_MAX, 0.0, 0.0, "The maximum distance at which you can hear the sound.");
+						uiDefButF(block, NUM, 0, "Rolloff: ", xco+wval+10, yco-110, wval, 19, &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0, "The rolloff factor defines the influence factor on volume depending on distance.");
+						uiDefButF(block, NUM, 0, "Cone Outer Gain: ", xco+wval+10, yco-132, wval, 19, &sa->sound3D.cone_outer_gain, 0.0, 1.0, 0.0, 0.0, "The gain outside the outer cone. The gain in the outer cone will be interpolated between this value und the normal gain in the inner cone.");
+						uiDefButF(block, NUM, 0, "Cone Outer Angle: ", xco+wval+10, yco-154, wval, 19, &sa->sound3D.cone_outer_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the outer cone.");
+						uiDefButF(block, NUM, 0, "Cone Inner Angle: ", xco+wval+10, yco-176, wval, 19, &sa->sound3D.cone_inner_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the inner cone.");
+					}
 				}
 				MEM_freeN(str);
 			} 
 			else {
-				uiDefBut(block, LABEL, 0, "Use Sound window (F10) to load samples", xco, yco-24, width, 19, NULL, 0, 0, 0, 0, "");
+				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+10, yco-22, width-20, 19, "Load a sound file.");
 			}
 					
 			yco-= ysize;
 			
-			break;
-		}
-	case ACT_CD:
-		{
-			char cd_type_str[] = "Sound mode %t|Play all tracks %x0|Play one track %x1|"
-				"Volume %x3|Stop %x4|Pause %x5|Resume %x6";
-			cda = act->data;
-
-			if (cda) {
-				if (cda->track == 0) {
-					cda->track = 1;
-					cda->volume = 1;
-					cda->type = ACT_CD_PLAY_ALL;
-				}
-				
-				if (cda->type == ACT_CD_PLAY_TRACK || cda->type == ACT_CD_LOOP_TRACK) {
-					ysize = 48;
-					glRects(xco, yco-ysize, xco+width, yco);
-					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
-					uiDefButS(block, NUM, 0, "Track:", xco+10,yco-44,width-20, 19, &cda->track, 1, 99, 0, 0, "Select the track to be played");
-				}
-				else if (cda->type == ACT_CD_VOLUME) {
-					ysize = 48;
-					glRects(xco, yco-ysize, xco+width, yco);
-					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
-					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-44,width-20, 19, &cda->volume, 0, 1, 0, 0, "Set the volume for CD playback");
-				}
-				else {
-					ysize = 28;
-					glRects(xco, yco-ysize, xco+width, yco);
-					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
-				}
-				uiDefButS(block, MENU, B_REDR, cd_type_str,xco+10,yco-22,width-20, 19, &cda->type, 0.0, 0.0, 0, 0, "");
-			}
-			yco-= ysize;
 			break;
 		}
 	case ACT_CAMERA:
@@ -2134,7 +2097,10 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
-			uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, 1, "ME:",		xco+40, yco-44, (width-80), 19, &(eoa->me), "replace the existing mesh with this one");
+			uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, 1, "ME:",		xco+40, yco-44, (width-80)/2, 19, &(eoa->me), "replace the existing, when left blank 'Phys' will remake the existing physics mesh");
+			
+			uiDefButBitS(block, TOGN, ACT_EDOB_REPLACE_MESH_NOGFX, 0, "Gfx",	xco+40 + (width-80)/2, yco-44, (width-80)/4, 19, &eoa->flag, 0, 0, 0, 0, "Replace the display mesh");
+			uiDefButBitS(block, TOG, ACT_EDOB_REPLACE_MESH_PHYS, 0, "Phys",	xco+40 + (width-80)/2 +(width-80)/4, yco-44, (width-80)/4, 19, &eoa->flag, 0, 0, 0, 0, "Replace the physics mesh (triangle bounds only. compound shapes not supported)");
 		}
 		else if(eoa->type==ACT_EDOB_TRACK_TO) {
 			ysize= 48;

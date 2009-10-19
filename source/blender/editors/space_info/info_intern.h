@@ -32,9 +32,6 @@
 
 struct wmOperatorType;
 
-/* info_header.c */
-void info_header_buttons(const bContext *C, ARegion *ar);
-
 void FILE_OT_pack_all(struct wmOperatorType *ot);
 void FILE_OT_unpack_all(struct wmOperatorType *ot);
 void FILE_OT_make_paths_relative(struct wmOperatorType *ot);

@@ -2,8 +2,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -38,29 +38,29 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		curve = context.curve
 		space = context.space_data
 
-		if curve:
-			layout.itemR(curve, "curve_2d")			
+
+		layout.itemR(curve, "curve_2d")			
 							
-			split = layout.split()
+		split = layout.split()
 		
-			col = split.column()
-			col.itemL(text="Caps:")
-			col.itemR(curve, "front")
-			col.itemR(curve, "back")
-			col.itemL(text="Textures:")
-			col.itemR(curve, "uv_orco")
-			col.itemR(curve, "auto_texspace")
+		col = split.column()
+		col.itemL(text="Caps:")
+		col.itemR(curve, "front")
+		col.itemR(curve, "back")
+		col.itemL(text="Textures:")
+		col.itemR(curve, "uv_orco")
+		col.itemR(curve, "auto_texspace")
 			
-			col = split.column()	
-			col.itemL(text="Resolution:")
-			sub = col.column(align=True)
-			sub.itemR(curve, "resolution_u", text="Preview U")
-			sub.itemR(curve, "render_resolution_u", text="Render U")
-			sub = col.column(align=True)
-			sub.itemR(curve, "resolution_v", text="Preview V")
-			sub.itemR(curve, "render_resolution_v", text="Render V")
-			col.itemL(text="Display:")
-			col.itemR(curve, "fast")
+		col = split.column()	
+		col.itemL(text="Resolution:")
+		sub = col.column(align=True)
+		sub.itemR(curve, "resolution_u", text="Preview U")
+		sub.itemR(curve, "render_resolution_u", text="Render U")
+		sub = col.column(align=True)
+		sub.itemR(curve, "resolution_v", text="Preview V")
+		sub.itemR(curve, "render_resolution_v", text="Render V")
+		col.itemL(text="Display:")
+		col.itemR(curve, "fast")
 
 class DATA_PT_geometry_text(DataButtonsPanel):
 	__label__ = "Geometry"
@@ -134,8 +134,8 @@ class DATA_PT_paragraph(DataButtonsPanel):
 
 		col = split.column(align=True)
 		col.itemL(text="Offset:")
-		col.itemR(text, "x_offset", text="X")
-		col.itemR(text, "y_offset", text="Y")
+		col.itemR(text, "offset_x", text="X")
+		col.itemR(text, "offset_y", text="Y")
 		#col.itemR(text, "wrap")
 
 """		

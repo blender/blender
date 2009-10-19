@@ -91,6 +91,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
 #include "BKE_key.h"
@@ -100,6 +101,7 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
@@ -221,6 +223,34 @@ void object_free_display(Object *ob)
 	freedisplist(&ob->disp);
 }
 
+void free_sculptsession(SculptSession **ssp)
+{
+	if(ssp && *ssp) {
+		SculptSession *ss = *ssp;
+		if(ss->projverts)
+			MEM_freeN(ss->projverts);
+
+		if(ss->fmap)
+			MEM_freeN(ss->fmap);
+
+		if(ss->fmap_mem)
+			MEM_freeN(ss->fmap_mem);
+
+		if(ss->texcache)
+			MEM_freeN(ss->texcache);
+
+		if(ss->layer_disps)
+			MEM_freeN(ss->layer_disps);
+
+		if(ss->mesh_co_orig)
+			MEM_freeN(ss->mesh_co_orig);
+
+		MEM_freeN(ss);
+
+		*ssp = NULL;
+	}
+}
+
 /* do not free object itself */
 void free_object(Object *ob)
 {
@@ -254,6 +284,7 @@ void free_object(Object *ob)
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->dup_group) ob->dup_group->id.us--;
+	if(ob->gpd) ob->gpd->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
@@ -275,6 +306,10 @@ void free_object(Object *ob)
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
+
+	free_sculptsession(&ob->sculpt);
+
+	if(ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -984,6 +1019,8 @@ Object *add_only_object(int type, char *name)
 	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
 
+	ob->pc_ids.first = ob->pc_ids.last = NULL;
+
 	return ob;
 }
 
@@ -1025,7 +1062,7 @@ SoftBody *copy_softbody(SoftBody *sb)
 	
 	sbn->scratch= NULL;
 
-	sbn->pointcache= BKE_ptcache_copy(sb->pointcache);
+	sbn->pointcache= BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches);
 
 	return sbn;
 }
@@ -1084,7 +1121,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->reactevents.first = psysn->reactevents.last = NULL;
 	psysn->renderdata = NULL;
 	
-	psysn->pointcache= BKE_ptcache_copy(psys->pointcache);
+	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
 
 	id_us_plus((ID *)psysn->part);
 
@@ -1210,6 +1247,9 @@ Object *copy_object(Object *ob)
 	copy_defgroups(&obn->defbase, &ob->defbase);
 	copy_constraints(&obn->constraints, &ob->constraints);
 
+	obn->mode = 0;
+	obn->sculpt = NULL;
+
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->dup_group);
@@ -1233,7 +1273,8 @@ Object *copy_object(Object *ob)
 	obn->derivedFinal = NULL;
 
 	obn->gpulamp.first = obn->gpulamp.last = NULL;
-
+	obn->pc_ids.first = obn->pc_ids.last = NULL;
+	
 	return obn;
 }
 
@@ -1402,11 +1443,32 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	ob->parent= target->parent;	/* libdata */
 	Mat4CpyMat4(ob->parentinv, target->parentinv);
-#if 0 // XXX old animation system
-	ob->ipo= target->ipo;		/* libdata */
-#endif // XXX old animation system
 	
-	/* skip constraints, constraintchannels, nla? */
+	/* copy animdata stuff - drivers only for now... */
+	if ((target->adt) && (target->adt->drivers.first)) {
+		FCurve *fcu;
+		
+		/* add new animdata block */
+		ob->adt= BKE_id_add_animdata(&ob->id);
+		
+		/* make a copy of all the drivers (for now), then correct any links that need fixing */
+		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
+		
+		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
+			
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+				if ((Object *)dtar->id == target)
+					dtar->id= (ID *)ob;
+				else
+					id_lib_extern((ID *)dtar->id);
+			}
+		}
+	}
+	
+	/* skip constraints? */
+	// FIXME: this is considered by many as a bug
 	
 	/* set object type and link to data */
 	ob->type= target->type;
@@ -1442,6 +1504,9 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		armature_set_id_extern(ob);
 	}
+	
+	/* copy drawtype info */
+	ob->dt= target->dt;
 }
 
 
@@ -2476,3 +2541,61 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 	
 	return result;
 }
+
+static int pc_cmp(void *a, void *b)
+{
+	LinkData *ad = a, *bd = b;
+	if((int)ad->data > (int)bd->data)
+		return 1;
+	else return 0;
+}
+
+int object_insert_ptcache(Object *ob) 
+{
+	LinkData *link = NULL;
+	int i = 0;
+
+	BLI_sortlist(&ob->pc_ids, pc_cmp);
+
+	for(link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
+	{
+		int index =(int)link->data;
+
+		if(i < index)
+			break;
+	}
+
+	link = MEM_callocN(sizeof(LinkData), "PCLink");
+	link->data = (void *)i;
+	BLI_addtail(&ob->pc_ids, link);
+
+	return i;
+}
+
+#if 0
+static int pc_findindex(ListBase *listbase, int index)
+{
+	LinkData *link= NULL;
+	int number= 0;
+	
+	if (listbase == NULL) return -1;
+	
+	link= listbase->first;
+	while (link) {
+		if ((int)link->data == index)
+			return number;
+		
+		number++;
+		link= link->next;
+	}
+	
+	return -1;
+}
+
+void object_delete_ptcache(Object *ob, int index) 
+{
+	int list_index = pc_findindex(&ob->pc_ids, index);
+	LinkData *link = BLI_findlink(&ob->pc_ids, list_index);
+	BLI_freelinkN(&ob->pc_ids, link);
+}
+#endif

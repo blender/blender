@@ -466,12 +466,12 @@ static void renameTemplateBone(char *name, char *template_name, ListBase *editbo
 		{
 			if (template_name[i+1] == 'S' || template_name[i+1] == 's')
 			{
-				j += sprintf(name + j, side_string);
+				j += sprintf(name + j, "%s", side_string);
 				i++;
 			}
 			else if (template_name[i+1] == 'N' || template_name[i+1] == 'n')
 			{
-				j += sprintf(name + j, num_string);
+				j += sprintf(name + j, "%s", num_string);
 				i++;
 			}
 			else

@@ -33,7 +33,7 @@
 /* Grease-Pencil Annotations - 'Stroke Point'
  *	-> Coordinates may either be 2d or 3d depending on settings at the time
  * 	-> Coordinates of point on stroke, in proportions of window size
- *		(i.e. n/1000). This assumes that the bottom-left corner is (0,0)
+ *	   This assumes that the bottom-left corner is (0,0)
  */
 typedef struct bGPDspoint {
 	float x, y, z;			/* co-ordinates of point (usually 2d, but can be 3d as well) */				
@@ -135,12 +135,14 @@ typedef struct bGPdata {
 /* bGPdata->flag */
 // XXX many of these flags should be depreceated for more general ideas in 2.5
 	/* don't allow painting to occur at all */
+	// XXX is depreceated - not well understood
 #define GP_DATA_LMBPLOCK	(1<<0)
 	/* show debugging info in viewport (i.e. status print) */
 #define GP_DATA_DISPINFO	(1<<1)
 	/* in Action Editor, show as expanded channel */
 #define GP_DATA_EXPAND		(1<<2)
 	/* is the block overriding all clicks? */
+	// XXX is depreceated - nasty old concept
 #define GP_DATA_EDITPAINT	(1<<3)
 	/* new strokes are added in viewport space */
 #define GP_DATA_VIEWALIGN	(1<<4)

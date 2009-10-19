@@ -160,7 +160,7 @@ static AdrBit2Path ma_mode_bits[]= {
 // 	{MA_SHADOW, "shadow", 0},
 //	{MA_SHLESS, "shadeless", 0},
 // 	...
-	{MA_RAYTRANSP, "raytrace_transparency.enabled", 0},
+	{MA_RAYTRANSP, "transparency", 0},
 	{MA_RAYMIRROR, "raytrace_mirror.enabled", 0},
 //	{MA_HALO, "type", MA_TYPE_HALO}
 };
@@ -296,8 +296,8 @@ static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 		case AC_EUL_Z:
 			*array_index= 2; return "euler_rotation";
 			
-		case -1: // XXX special case for rotation drivers... until eulers are added...
-			*array_index= 0; return "rotation";
+		case -1: /* special case for euler-rotations used by old drivers */
+			*array_index= 0; return "euler_rotation";
 			
 		case AC_LOC_X:
 			*array_index= 0; return "location";
@@ -1023,12 +1023,11 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_Z, idriver->name, NULL, &dtar->array_index);
 						break;	
 						
-					case OB_ROT_X:	/* rotation - we need to be careful with this... XXX (another reason why we need eulers) */	
+					case OB_ROT_X:	/* rotation - we need to be careful with this... */	
 					case OB_ROT_Y:
 					case OB_ROT_Z:
 					{
-						// XXX this is not yet a 1:1 map, since we'd need euler rotations to make this work nicely (unless we make some hacks)
-						// XXX -1 here is a special hack...
+						/* -1 here, not rotation code, since old system didn't have eulers */
 						dtar->rna_path= get_rna_access(ID_PO, -1, idriver->name, NULL, NULL);
 						dtar->array_index= idriver->adrcode - OB_ROT_X;
 					}
@@ -1275,6 +1274,26 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 					dst->vec[0][1] *= fac;
 					dst->vec[1][1] *= fac;
 					dst->vec[2][1] *= fac;
+				}
+				
+				/* correct times for rotation drivers 
+				 *	- need to go from degrees to radians...
+				 * 	- there's only really 1 target to worry about 
+				 */
+				if (fcu->driver && fcu->driver->targets.first) {
+					DriverTarget *dtar= fcu->driver->targets.first;
+					
+					/* since drivers could only be for objects, we should just check for 'rotation' being 
+					 * in the name of the path given
+					 *	- WARNING: this will break if we encounter a bone or object explictly named in that way...
+					 */
+					if ((dtar && dtar->rna_path) && strstr(dtar->rna_path, "rotation")) {
+						const float fac= (float)M_PI / 180.0f;
+						
+						dst->vec[0][0] *= fac;
+						dst->vec[1][0] *= fac;
+						dst->vec[2][0] *= fac;
+					}
 				}
 			}
 			

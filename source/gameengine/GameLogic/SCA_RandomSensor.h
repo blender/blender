@@ -59,13 +59,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	/* 1. setSeed                                                            */
-	KX_PYMETHOD_DOC_VARARGS(SCA_RandomSensor,SetSeed);
-	/* 2. getSeed                                                            */
-	KX_PYMETHOD_DOC_NOARGS(SCA_RandomSensor,GetSeed);
-	/* 3. getLastDraw                                                        */
-	KX_PYMETHOD_DOC_NOARGS(SCA_RandomSensor,GetLastDraw);
 	
 	static PyObject*	pyattr_get_seed(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_seed(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

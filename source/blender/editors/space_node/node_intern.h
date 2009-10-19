@@ -31,6 +31,7 @@
 /* internal exports only */
 
 struct ARegion;
+struct ARegionType;
 struct View2D;
 struct bContext;
 struct wmWindowManager;
@@ -45,6 +46,7 @@ struct wmWindowManager;
 
 /* node_header.c */
 void node_header_buttons(const bContext *C, ARegion *ar);
+void node_menus_register(struct ARegionType *art);
 
 /* node_draw.c */
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
@@ -75,9 +77,6 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode, int swap);
-void node_shader_default(Material *ma);
-void node_composit_default(Scene *sce);
-void node_texture_default(Tex *tx);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *snode_get_editgroup(SpaceNode *snode);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);

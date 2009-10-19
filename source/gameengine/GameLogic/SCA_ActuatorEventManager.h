@@ -45,6 +45,13 @@ public:
 	virtual void NextFrame();
 	virtual void UpdateFrame();
 	//SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_ActuatorEventManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_ACTUATOREVENTMANAGER

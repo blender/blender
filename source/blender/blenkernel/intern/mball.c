@@ -55,6 +55,7 @@
 #include "BKE_main.h"
 
 /*  #include "BKE_object.h" */
+#include "BKE_animsys.h"
 #include "BKE_scene.h"
 #include "BKE_blender.h"
 #include "BKE_library.h"
@@ -68,10 +69,10 @@
 
 /* Global variables */
 
-float thresh= 0.6f;
-int totelem=0;
-MetaElem **mainb;
-octal_tree *metaball_tree = NULL;
+static float thresh= 0.6f;
+static int totelem=0;
+static MetaElem **mainb;
+static octal_tree *metaball_tree = NULL;
 /* Functions */
 
 void unlink_mball(MetaBall *mb)
@@ -90,6 +91,7 @@ void free_mball(MetaBall *mb)
 {
 	unlink_mball(mb);	
 	
+	if(mb->adt) BKE_free_animdata((ID *)mb);
 	if(mb->mat) MEM_freeN(mb->mat);
 	if(mb->bb) MEM_freeN(mb->bb);
 	BLI_freelistN(&mb->elems);
@@ -276,6 +278,47 @@ int is_basis_mball(Object *ob)
 	len= strlen(ob->id.name);
 	if( isdigit(ob->id.name[len-1]) ) return 0;
 	return 1;
+}
+
+/* \brief copy some properties from object to other metaball object with same base name
+ *
+ * When some properties (wiresize, threshold, update flags) of metaball are changed, then this properties
+ * are copied to all metaballs in same "group" (metaballs with same base name: MBall,
+ * MBall.001, MBall.002, etc). The most important is to copy properties to the base metaball,
+ * because this metaball influence polygonisation of metaballs. */
+void copy_mball_properties(Scene *scene, Object *active_object)
+{
+	Base *base;
+	Object *ob;
+	MetaBall *active_mball = (MetaBall*)active_object->data;
+	int basisnr, obnr;
+	char basisname[32], obname[32];
+	
+	splitIDname(active_object->id.name+2, basisname, &basisnr);
+
+	/* XXX recursion check, see scene.c, just too simple code this next_object() */
+	if(F_ERROR==next_object(scene, 0, 0, 0))
+		return;
+	
+	while(next_object(scene, 1, &base, &ob)) {
+		if (ob->type==OB_MBALL) {
+			if(ob!=active_object){
+				splitIDname(ob->id.name+2, obname, &obnr);
+
+				/* Object ob has to be in same "group" ... it means, that it has to have
+				 * same base of its name */
+				if(strcmp(obname, basisname)==0){
+					MetaBall *mb= ob->data;
+
+					/* Copy properties from selected/edited metaball */
+					mb->wiresize= active_mball->wiresize;
+					mb->rendersize= active_mball->rendersize;
+					mb->thresh= active_mball->thresh;
+					mb->flag= active_mball->flag;
+				}
+			}
+		}
+	}
 }
 
 /** \brief This function finds basic MetaBall.

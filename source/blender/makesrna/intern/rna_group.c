@@ -52,7 +52,7 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks.");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
 
-	prop= RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
 	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the center to use when instancing as DupliGroup.");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);

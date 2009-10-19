@@ -40,6 +40,10 @@
 
 #include "KX_BlenderGL.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 struct ARegion;
 struct wmWindow;
 
@@ -166,6 +170,13 @@ private:
 	struct ARegion* m_ar;
 	struct wmWindow* m_win;
 	RAS_Rect 	m_area_rect;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderCanvas"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // __KX_BLENDERCANVAS

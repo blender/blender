@@ -151,13 +151,13 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shadow", "Lets the texture affect the shadow color of the lamp.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Color Factor", "Amount texture affects color values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "shadow_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "shadow_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Shadow Factor", "Amount texture affects shadow.");
@@ -314,7 +314,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "Type of Lamp.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_ui_range(prop, 0, 1000, 1.0, 2);
 	RNA_def_property_ui_text(prop, "Distance", "Falloff distance - the light is at half the original intensity at this point.");
@@ -465,7 +465,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_ui_text(prop, "Shadow Adaptive Threshold", "Threshold for Adaptive Sampling (Raytraced shadows).");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
-	prop= RNA_def_property(srna, "shadow_soft_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "shadow_soft_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "soft");
 	RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Shadow Soft Size", "Light size for ray shadow sampling (Raytraced shadows).");
@@ -526,13 +526,13 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shape", "Shape of the area lamp.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "area_size");
 	RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Size", "Size of the area of the area Lamp, X direction size for Rectangle shapes.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "size_y", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "size_y", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "area_sizey");
 	RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Size Y", "Size of the area of the area Lamp in the Y direction for Rectangle shapes.");
@@ -628,13 +628,13 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Spot Size", "Angle of the spotlight beam in degrees.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "shadow_buffer_clip_start", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "shadow_buffer_clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
 	RNA_def_property_range(prop, 0.0f, 9999.0f);
 	RNA_def_property_ui_text(prop, "Shadow Buffer Clip Start", "Shadow map clip start: objects closer will not generate shadows");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "shadow_buffer_clip_end", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "shadow_buffer_clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
 	RNA_def_property_range(prop, 0.0f, 9999.0f);
 	RNA_def_property_ui_text(prop, "Shadow Buffer Clip End", "Shadow map clip end beyond which objects will not generate shadows.");

@@ -2,8 +2,8 @@
 import bpy
 
 class ObjectButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "object"
 
 class OBJECT_PT_context_object(ObjectButtonsPanel):
@@ -11,10 +11,11 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 		
 		row = layout.row()
-		row.itemL(text="", icon="ICON_OBJECT_DATA")
+		row.itemL(text="", icon='ICON_OBJECT_DATA')
 		row.itemR(ob, "name", text="")
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
@@ -22,6 +23,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 
 		row = layout.row()
@@ -34,9 +36,11 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 
 		split = layout.split()
+		
 		col = split.column()
 		col.itemR(ob, "layers")
 		col.itemS()
@@ -47,7 +51,9 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
 		col.itemR(ob, "parent", text="")
 
 		sub = col.column()
-		sub.itemR(ob, "parent_type", text="Type")
+		split = sub.split(percentage=0.3)
+		split.itemL(text="Type:")
+		split.itemR(ob, "parent_type", text="")
 		parent = ob.parent
 		if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
 			sub.item_pointerR(ob, "parent_bone", parent.data, "bones", text="")
@@ -58,6 +64,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 
 		split = layout.split()
@@ -72,7 +79,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
 				row = col.box().row()
 				row.itemR(group, "name", text="")
-				row.itemO("object.group_remove", text="", icon="VICON_X")
+				row.itemO("object.group_remove", text="", icon='VICON_X')
 
 				split = col.box().split()
 				split.column().itemR(group, "layer", text="Dupli")
@@ -83,6 +90,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 			
 		row = layout.row()
@@ -102,6 +110,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 
 		layout.itemR(ob, "dupli_type", expand=True)
@@ -109,13 +118,13 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 		if ob.dupli_type == 'FRAMES':
 			split = layout.split()
 			
-			sub = split.column(align=True)
-			sub.itemR(ob, "dupli_frames_start", text="Start")
-			sub.itemR(ob, "dupli_frames_end", text="End")
+			col = split.column(align=True)
+			col.itemR(ob, "dupli_frames_start", text="Start")
+			col.itemR(ob, "dupli_frames_end", text="End")
 			
-			sub = split.column(align=True)
-			sub.itemR(ob, "dupli_frames_on", text="On")
-			sub.itemR(ob, "dupli_frames_off", text="Off")
+			col = split.column(align=True)
+			col.itemR(ob, "dupli_frames_on", text="On")
+			col.itemR(ob, "dupli_frames_off", text="Off")
 			
 			layout.itemR(ob, "dupli_frames_no_speed", text="No Speed")
 
@@ -135,30 +144,31 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 		
 		split = layout.split()
 		
-		sub = split.column()
-		sub.itemL(text="Time Offset:")
-		sub.itemR(ob, "time_offset_edit", text="Edit")
-		row = sub.row()
+		col = split.column()
+		col.itemL(text="Time Offset:")
+		col.itemR(ob, "time_offset_edit", text="Edit")
+		row = col.row()
 		row.itemR(ob, "time_offset_particle", text="Particle")
 		row.active = len(ob.particle_systems) != 0
-		row = sub.row()
+		row = col.row()
 		row.itemR(ob, "time_offset_parent", text="Parent")
 		row.active = ob.parent != None
-		row = sub.row()
+		row = col.row()
 		row.itemR(ob, "slow_parent")
 		row.active = ob.parent != None
-		sub.itemR(ob, "time_offset", text="Offset")
+		col.itemR(ob, "time_offset", text="Offset")
 
-		sub = split.column()
-		sub.itemL(text="Track:")
-		sub.itemR(ob, "track", text="")
-		sub.itemR(ob, "track_axis", text="Axis")
-		sub.itemR(ob, "up_axis", text="Up Axis")
-		row = sub.row()
+		col = split.column()
+		col.itemL(text="Track:")
+		col.itemR(ob, "track", text="")
+		col.itemR(ob, "track_axis", text="Axis")
+		col.itemR(ob, "up_axis", text="Up Axis")
+		row = col.row()
 		row.itemR(ob, "track_override_parent", text="Override Parent")
 		row.active = ob.parent != None
 

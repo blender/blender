@@ -49,7 +49,7 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame", PROP_INT, PROP_TIME);
 	RNA_def_property_ui_text(prop, "Frame", "The frame on which the timeline marker appears.");
 }
 

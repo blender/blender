@@ -32,6 +32,7 @@
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 #include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
@@ -51,6 +52,10 @@
 #include "BLI_threads.h"
 #include <pthread.h>
 
+#include "BKE_context.h"
+#include "BKE_sound.h"
+#include "AUD_C-API.h"
+
 #ifdef WIN32
 #define snprintf _snprintf
 #endif
@@ -58,7 +63,7 @@
 /* **** XXX ******** */
 static int seqrectx= 0;	/* bad bad global! */
 static int seqrecty= 0;
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static int blender_test_break() {return 0;}
 
 /* **** XXX ******** */
@@ -122,7 +127,7 @@ void new_tstripdata(Sequence *seq)
 
 /* free */
 
-static void free_proxy_seq(Sequence *seq)
+void free_proxy_seq(Sequence *seq)
 {
 	if (seq->strip && seq->strip->proxy && seq->strip->proxy->anim) {
 		IMB_free_anim(seq->strip->proxy->anim);
@@ -177,12 +182,16 @@ void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
-void seq_free_sequence(Editing *ed, Sequence *seq)
+void seq_free_sequence(Scene *scene, Sequence *seq)
 {
+	Editing *ed = scene->ed;
+
 	if(seq->strip) seq_free_strip(seq->strip);
 
 	if(seq->anim) IMB_free_anim(seq->anim);
-	//XXX if(seq->hdaudio) sound_close_hdaudio(seq->hdaudio);
+
+	if(seq->sound_handle)
+		sound_delete_handle(scene, seq->sound_handle);
 
 	if (seq->type & SEQ_EFFECT) {
 		struct SeqEffectHandle sh = get_sequence_effect(seq);
@@ -207,8 +216,9 @@ Editing *seq_give_editing(Scene *scene, int alloc)
 	return scene->ed;
 }
 
-void seq_free_editing(Editing *ed)
+void seq_free_editing(Scene *scene)
 {
+	Editing *ed = scene->ed;
 	MetaStack *ms;
 	Sequence *seq;
 
@@ -216,7 +226,7 @@ void seq_free_editing(Editing *ed)
 		return;
 
 	SEQ_BEGIN(ed, seq) {
-		seq_free_sequence(ed, seq);
+		seq_free_sequence(scene, seq);
 	}
 	SEQ_END
 
@@ -443,6 +453,8 @@ void calc_sequence_disp(Sequence *seq)
 	else if(seq->enddisp-seq->startdisp > 250) {
 		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
 	}
+
+	seq_update_sound(seq);
 }
 
 void calc_sequence(Sequence *seq)
@@ -514,8 +526,8 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (!(seq->type == SEQ_MOVIE || seq->type == SEQ_IMAGE ||
-	      seq->type == SEQ_HD_SOUND || seq->type == SEQ_RAM_SOUND ||
-	      seq->type == SEQ_SCENE || seq->type == SEQ_META)) {
+		  seq->type == SEQ_SOUND ||
+		  seq->type == SEQ_SCENE || seq->type == SEQ_META)) {
 		return;
 	}
 
@@ -557,23 +569,8 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 			seq->len = 0;
 		}
 		seq->strip->len = seq->len;
-	} else if (seq->type == SEQ_HD_SOUND) {
-// XXX		if(seq->hdaudio) sound_close_hdaudio(seq->hdaudio);
-//		seq->hdaudio = sound_open_hdaudio(str);
-
-		if (!seq->hdaudio) {
-			return;
-		}
-
-// XXX		seq->len = sound_hdaudio_get_duration(seq->hdaudio, FPS) - seq->anim_startofs - seq->anim_endofs;
-		if (seq->len < 0) {
-			seq->len = 0;
-		}
-		seq->strip->len = seq->len;
-	} else if (seq->type == SEQ_RAM_SOUND) {
-		seq->len = (int) ( ((float)(seq->sound->streamlen-1)/
-				    ((float)scene->audio.mixrate*4.0 ))
-				   * FPS);
+	} else if (seq->type == SEQ_SOUND) {
+		seq->len = AUD_getInfo(seq->sound->handle).length * FPS;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
 		if (seq->len < 0) {
@@ -692,8 +689,7 @@ char *give_seqname_by_type(int type)
 	case SEQ_IMAGE:      return "Image";
 	case SEQ_SCENE:      return "Scene";
 	case SEQ_MOVIE:      return "Movie";
-	case SEQ_RAM_SOUND:  return "Audio (RAM)";
-	case SEQ_HD_SOUND:   return "Audio (HD)";
+	case SEQ_SOUND:      return "Audio";
 	case SEQ_CROSS:      return "Cross";
 	case SEQ_GAMCROSS:   return "Gamma Cross";
 	case SEQ_ADD:        return "Add";
@@ -1070,10 +1066,9 @@ int evaluate_seq_frame(Scene *scene, int cfra)
 
 static int video_seq_is_rendered(Sequence * seq)
 {
-	return (seq 
-		&& !(seq->flag & SEQ_MUTE) 
-		&& seq->type != SEQ_RAM_SOUND 
-		&& seq->type != SEQ_HD_SOUND);
+	return (seq
+		&& !(seq->flag & SEQ_MUTE)
+		&& seq->type != SEQ_SOUND);
 }
 
 static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Sequence ** seq_arr_out)
@@ -3039,11 +3034,36 @@ void free_imbuf_seq_except(Scene *scene, int cfra)
 	SEQ_END
 }
 
-void free_imbuf_seq(ListBase * seqbase)
+void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
 {
 	Sequence *seq;
 	TStripElem *se;
 	int a;
+
+	if (check_mem_usage) {
+		/* Let the cache limitor take care of this (schlaile) */
+		/* While render let's keep all memory available for render 
+		   (ton)
+		   At least if free memory is tight...
+		   This can make a big difference in encoding speed
+		   (it is around 4 times(!) faster, if we do not waste time
+		   on freeing _all_ buffers every time on long timelines...)
+		   (schlaile)
+		*/
+	
+		uintptr_t mem_in_use;
+		uintptr_t mmap_in_use;
+		uintptr_t max;
+	
+		mem_in_use= MEM_get_memory_in_use();
+		mmap_in_use= MEM_get_mapped_memory_in_use();
+		max = MEM_CacheLimiter_get_maximum();
+	
+		if (max == 0 || mem_in_use + mmap_in_use <= max) {
+			return;
+		}
+	}
+
 	
 	for(seq= seqbase->first; seq; seq= seq->next) {
 		if(seq->strip) {
@@ -3076,7 +3096,11 @@ void free_imbuf_seq(ListBase * seqbase)
 			}
 		}
 		if(seq->type==SEQ_META) {
-			free_imbuf_seq(&seq->seqbase);
+			free_imbuf_seq(&seq->seqbase, FALSE);
+		}
+		if(seq->type==SEQ_SCENE) {
+			/* FIXME: recurs downwards, 
+			   but do recurs protection somehow! */
 		}
 	}
 	
@@ -3173,88 +3197,6 @@ void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 	}
 	SEQ_END
 }
-
-#if 0
-/* bad levell call... */
-void do_render_seq(RenderResult *rr, int cfra)
-{
-	static int recurs_depth = 0
-	ImBuf *ibuf;
-
-	recurs_depth++;
-
-	ibuf= give_ibuf_seq(rr->rectx, rr->recty, cfra, 0, 100.0);
-
-	recurs_depth--;
-	
-	if(ibuf) {
-		if(ibuf->rect_float) {
-			if (!rr->rectf)
-				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
-			
-			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
-			
-			/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
-			   can hang around when sequence render has rendered a 32 bits one before */
-			if(rr->rect32) {
-				MEM_freeN(rr->rect32);
-				rr->rect32= NULL;
-			}
-		}
-		else if(ibuf->rect) {
-			if (!rr->rect32)
-				rr->rect32= MEM_mallocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
-
-			memcpy(rr->rect32, ibuf->rect, 4*rr->rectx*rr->recty);
-
-			/* if (ibuf->zbuf) { */
-			/* 	if (R.rectz) freeN(R.rectz); */
-			/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
-			/* } */
-		}
-		
-		/* Let the cache limitor take care of this (schlaile) */
-		/* While render let's keep all memory available for render 
-		   (ton)
-		   At least if free memory is tight...
-		   This can make a big difference in encoding speed
-		   (it is around 4 times(!) faster, if we do not waste time
-		   on freeing _all_ buffers every time on long timelines...)
-		   (schlaile)
-		*/
-		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
-			uintptr_t mem_in_use;
-			uintptr_t mmap_in_use;
-			uintptr_t max;
-
-			mem_in_use= MEM_get_memory_in_use();
-			mmap_in_use= MEM_get_mapped_memory_in_use();
-			max = MEM_CacheLimiter_get_maximum();
-
-			if (max != 0 && mem_in_use + mmap_in_use > max) {
-				fprintf(stderr, "Memory in use > maximum memory\n");
-				fprintf(stderr, "Cleaning up, please wait...\n"
-					"If this happens very often,\n"
-					"consider "
-					"raising the memcache limit in the "
-					"user preferences.\n");
-				free_imbuf_seq();
-			}
-			free_proxy_seq(seq);
-		}
-	}
-	else {
-		/* render result is delivered empty in most cases, nevertheless we handle all cases */
-		if (rr->rectf)
-			memset(rr->rectf, 0, 4*sizeof(float)*rr->rectx*rr->recty);
-		else if (rr->rect32)
-			memset(rr->rect32, 0, 4*rr->rectx*rr->recty);
-		else
-			rr->rect32= MEM_callocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
-	}
-}
-
-#endif
 
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.
@@ -3361,7 +3303,7 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 	}
 
 	/* sounds cannot be extended past their endpoints */
-	if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
+	if (seq->type == SEQ_SOUND) {
 		seq->startstill= 0;
 		seq->endstill= 0;
 	}
@@ -3456,5 +3398,17 @@ int shuffle_seq(ListBase * seqbasep, Sequence *test)
 		return 0;
 	} else {
 		return 1;
+	}
+}
+
+void seq_update_sound(struct Sequence *seq)
+{
+	if(seq->type == SEQ_SOUND)
+	{
+		seq->sound_handle->startframe = seq->startdisp;
+		seq->sound_handle->endframe = seq->enddisp;
+		seq->sound_handle->frameskip = seq->startofs + seq->anim_startofs;
+		seq->sound_handle->mute = seq->flag & SEQ_MUTE ? 1 : 0;
+		seq->sound_handle->changed = -1;
 	}
 }

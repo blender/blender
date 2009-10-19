@@ -61,6 +61,30 @@ void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
 	}
 }
 
+static char *rna_NlaStrip_path(PointerRNA *ptr)
+{
+	NlaStrip *strip= (NlaStrip *)ptr->data;
+	AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+	
+	/* if we're attached to AnimData, try to resolve path back to AnimData */
+	if (adt) {
+		NlaTrack *nlt;
+		NlaStrip *nls;
+		
+		for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+			for (nls = nlt->strips.first; nls; nls = nls->next) {
+				if (nls == strip) {
+					// XXX but if we animate like this, the control will never work...
+					return BLI_sprintfN("animation_data.nla_tracks[\"%s\"].strips[\"%s\"]", nlt->name, strip->name);
+				}
+			}
+		}
+	}
+	
+	/* no path */
+	return "";
+}
+
 
 static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 {
@@ -243,6 +267,19 @@ static void rna_NlaStrip_animated_time_set(PointerRNA *ptr, int value)
 
 #else
 
+/* enum defines exported for rna_animation.c */
+EnumPropertyItem nla_mode_blend_items[] = {
+	{NLASTRIP_MODE_REPLACE, "REPLACE", 0, "Replace", "Result strip replaces the accumulated results by amount specified by influence."},
+	{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumlated results."},
+	{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract", "Weighted result of strip is removed from the accumlated results."},
+	{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply", "Weighted result of strip is multiplied with the accumlated results."},
+	{0, NULL, 0, NULL, NULL}};
+EnumPropertyItem nla_mode_extend_items[] = {
+	{NLASTRIP_EXTEND_NOTHING, "NOTHING", 0, "Nothing", "Strip has no influence past its extents."},
+	{NLASTRIP_EXTEND_HOLD, "HOLD", 0, "Hold", "Hold the first frame if no previous strips in track, and always hold last frame."},
+	{NLASTRIP_EXTEND_HOLD_FORWARD, "HOLD_FORWARD", 0, "Hold Forward", "Only hold last frame."},
+	{0, NULL, 0, NULL, NULL}};
+
 void rna_def_nlastrip(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -254,21 +291,11 @@ void rna_def_nlastrip(BlenderRNA *brna)
 		{NLASTRIP_TYPE_TRANSITION, "TRANSITION", 0, "Transition", "NLA Strip 'transitions' between adjacent strips."},
 		{NLASTRIP_TYPE_META, "META", 0, "Meta", "NLA Strip acts as a container for adjacent strips."},
 		{0, NULL, 0, NULL, NULL}};
-	static EnumPropertyItem prop_mode_blend_items[] = {
-		{NLASTRIP_MODE_REPLACE, "REPLACE", 0, "Replace", "Result strip replaces the accumulated results by amount specified by influence."},
-		{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumlated results."},
-		{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract", "Weighted result of strip is removed from the accumlated results."},
-		{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply", "Weighted result of strip is multiplied with the accumlated results."},
-		{0, NULL, 0, NULL, NULL}};
-	static EnumPropertyItem prop_mode_extend_items[] = {
-		{NLASTRIP_EXTEND_NOTHING, "NOTHING", 0, "Nothing", "Strip has no influence past its extents."},
-		{NLASTRIP_EXTEND_HOLD, "HOLD", 0, "Hold", "Hold the first frame if no previous strips in track, and always hold last frame."},
-		{NLASTRIP_EXTEND_HOLD_FORWARD, "HOLD_FORWARD", 0, "Hold Forward", "Only hold last frame."},
-		{0, NULL, 0, NULL, NULL}};
 	
 	/* struct definition */
 	srna= RNA_def_struct(brna, "NlaStrip", NULL);
 	RNA_def_struct_ui_text(srna, "NLA Strip", "A container referencing an existing Action.");
+	RNA_def_struct_path_func(srna, "rna_NlaStrip_path");
 	RNA_def_struct_ui_icon(srna, ICON_NLA); // XXX
 	
 	/* name property */
@@ -286,21 +313,21 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "extrapolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "extendmode");
-	RNA_def_property_enum_items(prop, prop_mode_extend_items);
+	RNA_def_property_enum_items(prop, nla_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Extrapolation", "Action to take for gaps past the strip extents.");
 	
 	prop= RNA_def_property(srna, "blending", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "blendmode");
-	RNA_def_property_enum_items(prop, prop_mode_blend_items);
+	RNA_def_property_enum_items(prop, nla_mode_blend_items);
 	RNA_def_property_ui_text(prop, "Blending", "Method used for combining strip's result with accumulated result.");
 	
 	/* Strip extents */
-	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "start");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "end");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");
@@ -323,15 +350,16 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	/* Action */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act");
+	RNA_def_property_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Action", "Action referenced by this strip.");
 	
 	/* Action extents */
-	prop= RNA_def_property(srna, "action_start_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "action_start_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actstart");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action Start Frame", "");
 	
-	prop= RNA_def_property(srna, "action_end_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "action_end_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actend");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action End Frame", "");
@@ -369,7 +397,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Influence", "Amount the strip contributes to the current result.");
 	
-	prop= RNA_def_property(srna, "strip_time", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "strip_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_ui_text(prop, "Strip Time", "Frame of referenced Action to evaluate.");
 	
 		// TODO: should the animated_influence/time settings be animatable themselves?

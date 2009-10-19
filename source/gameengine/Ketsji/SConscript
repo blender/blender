@@ -10,8 +10,7 @@ incs = '. #source/blender/python/generic' # Only for Mathutils! and bpy_internal
 
 incs += ' #source/kernel/gen_system #intern/string #intern/guardedalloc'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
-incs += ' #intern/SoundSystem #intern/SoundSystem/include #intern/SoundSystem/openal'
-incs += ' #intern/SoundSystem/dummy #intern/SoundSystem/intern #source/gameengine/Converter'
+incs += ' #intern/audaspace/intern #source/gameengine/Converter'
 incs += ' #source/gameengine/BlenderRoutines #source/blender/imbuf #intern/moto/include'
 incs += ' #source/gameengine/Ketsji #source/gameengine/Ketsji/KXNetwork #source/blender/blenlib'
 incs += ' #source/blender/blenkernel #source/blender #source/blender/editors/include'
@@ -30,12 +29,8 @@ if  env['WITH_BF_SDL']:
 else:
 	defs.append('DISABLE_SDL')
 	
-cxxflags = []
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	cxxflags.append ('/GR')
-	cxxflags.append ('/O2')
-	cxxflags.append ('/EHsc')
 	if env['BF_DEBUG']:
 		defs.append('_DEBUG') # for Python
 
-env.BlenderLib ( 'bf_ketsji', sources, Split(incs), defs, libtype=['core','player'], priority=[320, 60], cxx_compileflags = cxxflags )
+env.BlenderLib ( 'bf_ketsji', sources, Split(incs), defs, libtype=['core'], priority=[320], cxx_compileflags=env['BGE_CXXFLAGS'])

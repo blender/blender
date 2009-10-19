@@ -65,7 +65,7 @@
 
 
 /* ************* XXX *************** */
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static void progress_bar() {}
 static void start_progress_bar() {}
 static void end_progress_bar() {}

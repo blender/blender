@@ -15,6 +15,10 @@
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 struct MTFace;
 class KX_Scene;
 
@@ -27,8 +31,7 @@ public:
 	void Initialize(
 		class KX_Scene*	scene,
 		BL_Material*	mat,
-		bool			skin,
-		int				lightlayer
+		bool			skin
 	);
 
 	virtual ~KX_BlenderMaterial();

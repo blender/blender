@@ -76,7 +76,7 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 	Object *priority_ob = NULL;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
 	float mul = (rule->type == eBoidRuleType_Avoid ? 1.0 : -1.0);
-	float priority = 0.0f, len;
+	float priority = 0.0f, len = 0.0f;
 	int ret = 0;
 
 	/* first find out goal/predator with highest priority */
@@ -614,7 +614,7 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 	KDTreeNearest *ptn = NULL;
 	ParticleTarget *pt;
 	ParticleData *epars;
-	ParticleData *enemy_pa;
+	ParticleData *enemy_pa = NULL;
 	/* friends & enemies */
 	float closest_enemy[3] = {0.0f,0.0f,0.0f};
 	float closest_dist = fbr->distance + 1.0f;

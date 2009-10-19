@@ -218,7 +218,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Vertex Group for pinning of vertices.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 	
-	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -100.0, 100.0);
 	RNA_def_property_float_funcs(prop, "rna_ClothSettings_gravity_get", "rna_ClothSettings_gravity_set", NULL);

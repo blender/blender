@@ -35,6 +35,10 @@
 #include <vector>
 using namespace std;
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 /* polygon flags */
 
 class RAS_Polygon
@@ -68,6 +72,7 @@ public:
 
 	void				SetVertexOffset(int i, unsigned short offset);
 	int					GetVertexOffset(int i);
+	int					GetVertexOffsetAbs(RAS_MeshObject *mesh, int i); /* accounts for quad and tri arrays, slower, for python */
 	
 	// each bit is for a visible edge, starting with bit 1 for the first edge, bit 2 for second etc.
 	// - Not used yet!
@@ -85,6 +90,12 @@ public:
 
 	RAS_MaterialBucket*	GetMaterial();
 	RAS_DisplayArray*	GetDisplayArray();
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_Polygon"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

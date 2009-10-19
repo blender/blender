@@ -27,7 +27,10 @@
 #ifndef BPY_UTIL_H
 #define BPY_UTIL_H
 
-#include "bpy_compat.h"
+#if PY_VERSION_HEX <  0x03010000
+#error "Python versions below 3.1 are not supported anymore, you'll need to update your python."
+#endif
+
 #include "RNA_types.h" /* for EnumPropertyItem only */
 
 struct EnumPropertyItem;
@@ -72,7 +75,7 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 char *BPy_enum_as_string(struct EnumPropertyItem *item);
 
 
-#define BLANK_PYTHON_TYPE {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+#define BLANK_PYTHON_TYPE {PyVarObject_HEAD_INIT(NULL, 0) 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
 /* error reporting */
 int BPy_reports_to_error(struct ReportList *reports);
@@ -81,5 +84,9 @@ int BPy_errors_to_report(struct ReportList *reports);
 /* TODO - find a better solution! */
 struct bContext *BPy_GetContext(void);
 void BPy_SetContext(struct bContext *C);
+
+extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
+extern void bpy_context_clear(struct bContext *C, PyGILState_STATE *gilstate);
+
 
 #endif

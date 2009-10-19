@@ -70,7 +70,6 @@ private:
 	class RAS_IRenderTools*				m_rendertools;
 	class KX_ISceneConverter*			m_sceneconverter;
 	class NG_NetworkDeviceInterface*		m_networkdevice;
-	class SND_IAudioDevice*				m_audiodevice;
 	PyObject*					m_pythondictionary;
 	class SCA_IInputDevice*				m_keyboarddevice;
 	class SCA_IInputDevice*				m_mousedevice;
@@ -191,7 +190,6 @@ private:
 	void					DoSound(KX_Scene* scene);
 
 public:
-
 	KX_KetsjiEngine(class KX_ISystem* system);
 	virtual ~KX_KetsjiEngine();
 
@@ -200,7 +198,6 @@ public:
 	void			SetKeyboardDevice(SCA_IInputDevice* keyboarddevice);
 	void			SetMouseDevice(SCA_IInputDevice* mousedevice);
 	void			SetNetworkDevice(NG_NetworkDeviceInterface* networkdevice);
-	void			SetAudioDevice(SND_IAudioDevice* audiodevice);
 	void			SetCanvas(RAS_ICanvas* canvas);
 	void			SetRenderTools(RAS_IRenderTools* rendertools);
 	void			SetRasterizer(RAS_IRasterizer* rasterizer);
@@ -398,6 +395,13 @@ protected:
 	bool			BeginFrame();
 	void			ClearFrame();
 	void			EndFrame();
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_KetsjiEngine"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_KETSJI_ENGINE

@@ -68,8 +68,5 @@ extern void				sbObjectToSoftbody(struct Object *ob);
 /* pass NULL to unlink again */
 extern void             sbSetInterruptCallBack(int (*f)(void));
 
-/* writing to cache for bake editing */
-extern void 			sbWriteCache(struct Object *ob, int framenr);
-
 #endif
 

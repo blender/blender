@@ -54,6 +54,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -856,6 +857,7 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
+	float *curs;
 
 	int center= RNA_boolean_get(op->ptr, "center");
 
@@ -865,6 +867,10 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	if(center) {
 		min[0]= min[1]= min[2]= 0.0f;
 		max[0]= max[1]= max[2]= 0.0f;
+
+		/* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
+		curs= give_cursor(scene, v3d);
+		curs[0]= curs[1]= curs[2]= 0.0;
 	}
 	else {
 		INIT_MINMAX(min, max);
@@ -904,6 +910,9 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 			rv3d->persp= V3D_PERSP;
 			smooth_view(C, NULL, v3d->camera, new_ofs, NULL, &new_dist, NULL);
 		}
+        else {
+            smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+        }
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
@@ -947,14 +956,14 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 	INIT_MINMAX(min, max);
 
-	if (G.f & G_WEIGHTPAINT) {
+	if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 		/* hardcoded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base;
 		for(base=scene->base.first; base; base= base->next) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base->object->type==OB_ARMATURE)
-					if(base->object->flag & OB_POSEMODE)
+					if(base->object->mode & OB_MODE_POSE)
 						break;
 			}
 		}
@@ -966,7 +975,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	if(obedit) {
 		ok = minmax_verts(obedit, min, max);	/* only selected */
 	}
-	else if(ob && (ob->flag & OB_POSEMODE)) {
+	else if(ob && (ob->mode & OB_MODE_POSE)) {
 		if(ob->pose) {
 			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
@@ -987,10 +996,10 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 			}
 		}
 	}
-	else if (FACESEL_PAINT_TEST) {
+	else if (paint_facesel_test(ob)) {
 // XXX		ok= minmax_tface(min, max);
 	}
-	else if (G.f & G_PARTICLEEDIT) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok= PE_minmax(scene, min, max);
 	}
 	else {
@@ -2196,7 +2205,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	rv3d->view = 0;
 //printf("passing here \n");
 //
-	if (scene->obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
+	if (scene->obedit==NULL && ob && !(ob->mode & OB_MODE_POSE)) {
 		use_sel = 1;
 	}
 

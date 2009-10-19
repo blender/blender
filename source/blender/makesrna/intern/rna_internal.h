@@ -130,6 +130,7 @@ void RNA_def_curve(struct BlenderRNA *brna);
 void RNA_def_fluidsim(struct BlenderRNA *brna);
 void RNA_def_fcurve(struct BlenderRNA *brna);
 void RNA_def_gameproperty(struct BlenderRNA *brna);
+void RNA_def_gpencil(struct BlenderRNA *brna);
 void RNA_def_group(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
 void RNA_def_key(struct BlenderRNA *brna);
@@ -154,6 +155,7 @@ void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_sculpt_paint(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_sequence(struct BlenderRNA *brna);
+void RNA_def_smoke(struct BlenderRNA *brna);
 void RNA_def_space(struct BlenderRNA *brna);
 void RNA_def_text(struct BlenderRNA *brna);
 void RNA_def_texture(struct BlenderRNA *brna);
@@ -180,6 +182,9 @@ struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
 struct IDProperty *rna_ID_idproperties(struct PointerRNA *ptr, int create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
 struct IDProperty *rna_IDPropertyGroup_idproperties(struct PointerRNA *ptr, int create);
+void rna_IDPropertyGroup_unregister(const struct bContext *C, struct StructRNA *type);
+struct StructRNA *rna_IDPropertyGroup_register(const struct bContext *C, struct ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
+struct StructRNA* rna_IDPropertyGroup_refine(struct PointerRNA *ptr);
 
 void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);
 int rna_object_vgroup_name_index_length(struct PointerRNA *ptr, int index);
@@ -193,9 +198,11 @@ void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
 
 /* API functions */
 
+void RNA_api_keyingset(struct StructRNA *srna);
 void RNA_api_main(struct StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
+void RNA_api_scene(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
 
@@ -258,6 +265,7 @@ void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
 void rna_addtail(struct ListBase *listbase, void *vlink);
 void rna_freelinkN(struct ListBase *listbase, void *vlink);
 void rna_freelistN(struct ListBase *listbase);
+PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier);
 
 StructDefRNA *rna_find_struct_def(StructRNA *srna);
 FunctionDefRNA *rna_find_function_def(FunctionRNA *func);

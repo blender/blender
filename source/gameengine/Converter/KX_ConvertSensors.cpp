@@ -28,6 +28,7 @@
  * Conversion of Blender data blocks to KX sensor system
  */
 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -94,7 +95,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					   SCA_LogicManager* logicmgr,
 					   KX_Scene* kxscene,
 					   KX_KetsjiEngine* kxengine,
-					   SCA_IInputDevice* keydev,
 					   int activeLayerBitInfo,
 					   bool isInActiveLayer,
 					   RAS_ICanvas* canvas,
@@ -444,9 +444,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						blendernearsensor->dist,
 						blendernearsensor->resetdist,
 						bFindMaterial,
-						nearpropertyname,kxscene,
-						physCtrl
-						);
+						nearpropertyname,
+						physCtrl);
 					
 				}
 				break;
@@ -537,6 +536,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 							starty,
 							keytype,
 							trackfocus,
+							(bmouse->flag & SENS_MOUSE_FOCUS_PULSE) ? true:false,
 							kxscene,
 							kxengine,
 							gameobj); 
@@ -648,8 +648,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						smallmargin,
 						largemargin,
 						bFindMaterial,
-						radarpropertyname,
-						kxscene);
+						radarpropertyname);
 						
 				}
 			

@@ -45,6 +45,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
@@ -88,6 +89,7 @@
  * part of the channel is relevant.
  *
  * NOTE: eventually, this should probably be phased out when many of these things are replaced with buttons
+ *	--> Most channels are now selection only...
  */
 
 static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, short selectmode)
@@ -95,6 +97,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	View2D *v2d= &ac->ar->v2d;
 	int notifierFlags = 0;
 	
 	/* get the channel that was clicked on */
@@ -117,32 +120,17 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_SCENE:
 		{
 			Scene *sce= (Scene *)ale->data;
-			AnimData *adt= ale->data;
 			
-			if (x < 16) {
-				/* toggle expand */
-				sce->flag ^= SCE_DS_COLLAPSED;
-				
-				notifierFlags |= ND_ANIMCHAN_EDIT;
-			}
-			else if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-				
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+			/* set selection status */
+			if (selectmode == SELECT_INVERT) {
+				/* swap select */
+				sce->flag ^= SCE_DS_SELECTED;
 			}
 			else {
-				/* set selection status */
-				if (selectmode == SELECT_INVERT) {
-					/* swap select */
-					sce->flag ^= SCE_DS_SELECTED;
-				}
-				else {
-					sce->flag |= SCE_DS_SELECTED;
-				}
-				
-				notifierFlags |= ND_ANIMCHAN_SELECT;
+				sce->flag |= SCE_DS_SELECTED;
 			}
+			
+			notifierFlags |= ND_ANIMCHAN_SELECT;
 		}
 			break;
 		case ANIMTYPE_OBJECT:
@@ -151,20 +139,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			Scene *sce= (Scene *)ads->source;
 			Base *base= (Base *)ale->data;
 			Object *ob= base->object;
-			AnimData *adt= ale->adt;
 			
-			if (x < 16) {
-				/* toggle expand */
-				ob->nlaflag ^= OB_ADS_COLLAPSED; // XXX
-				notifierFlags |= ND_ANIMCHAN_EDIT;				
-			}
-			else if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-				
-				notifierFlags |= ND_ANIMCHAN_EDIT;
-			}
-			else if (nlaedit_is_tweakmode_on(ac) == 0) {
+			if (nlaedit_is_tweakmode_on(ac) == 0) {
 				/* set selection status */
 				if (selectmode == SELECT_INVERT) {
 					/* swap select */
@@ -193,133 +169,6 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			}
 		}
 			break;
-		case ANIMTYPE_FILLMATD:
-		{
-			Object *ob= (Object *)ale->data;
-			ob->nlaflag ^= OB_ADS_SHOWMATS;	// XXX 
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_FILLPARTD:
-		{
-			Object *ob= (Object *)ale->data;
-			ob->nlaflag ^= OB_ADS_SHOWPARTS;	// XXX 
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-				
-		case ANIMTYPE_DSMAT:
-		{
-			Material *ma= (Material *)ale->data;
-			AnimData *adt= ale->adt;
-			
-			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-			} 
-			else {
-				/* toggle expand */
-				ma->flag ^= MA_DS_EXPAND;
-			}
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSLAM:
-		{
-			Lamp *la= (Lamp *)ale->data;
-			AnimData *adt= ale->adt;
-			
-			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-			} 
-			else {
-				/* toggle expand */
-				la->flag ^= LA_DS_EXPAND;
-			}
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSCAM:
-		{
-			Camera *ca= (Camera *)ale->data;
-			AnimData *adt= ale->adt;
-			
-			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-			} 
-			else {
-				/* toggle expand */
-				ca->flag ^= CAM_DS_EXPAND;
-			}
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSCUR:
-		{
-			Curve *cu= (Curve *)ale->data;
-			AnimData *adt= ale->adt;
-			
-			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-			} 
-			else {
-				/* toggle expand */
-				cu->flag ^= CU_DS_EXPAND;
-			}
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSSKEY:
-		{
-			Key *key= (Key *)ale->data;
-			AnimData *adt= ale->adt;
-			
-			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-			} 
-			else {
-				/* toggle expand */
-				key->flag ^= KEYBLOCK_DS_EXPAND;
-			}
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSWOR:
-		{
-			World *wo= (World *)ale->data;
-			AnimData *adt= ale->adt;
-			
-			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-			} 
-			else {
-				/* toggle expand */
-				wo->flag ^= WO_DS_EXPAND;
-			}
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSPART:
-		{
-			ParticleSettings *part= (ParticleSettings *)ale->data;
-			AnimData *adt= ale->adt;
-			
-			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
-				/* toggle mute */
-				adt->flag ^= ADT_NLA_EVAL_OFF;
-			} 
-			else {
-				/* toggle expand */
-				part->flag ^= PART_DS_EXPAND;
-			}
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
 			
 		case ANIMTYPE_NLATRACK:
 		{
@@ -338,14 +187,14 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			else
 				offset= 0;
 			
-			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
+			if (x >= (v2d->cur.xmax-NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle protection (only if there's a toggle there) */
 				nlt->flag ^= NLATRACK_PROTECTED;
 				
 				/* notifier flags - channel was edited */
 				notifierFlags |= ND_ANIMCHAN_EDIT;
 			}
-			else if (x >= (NLACHANNEL_NAMEWIDTH-2*NLACHANNEL_BUTTON_WIDTH)) {
+			else if (x >= (v2d->cur.xmax-2*NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle mute */
 				nlt->flag ^= NLATRACK_MUTED;
 				
@@ -384,7 +233,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		{
 			AnimData *adt= BKE_animdata_from_id(ale->owner); /* this won't crash, right? */
 			
-			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
+			if (x >= (v2d->cur.xmax-NLACHANNEL_BUTTON_WIDTH)) {
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
 					/* 'push-down' action - only usable when not in TweakMode */
 					// TODO: make this use the operator instead of calling the function directly

@@ -75,11 +75,6 @@ protected:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	// Deprecated functions ----->
-	KX_PYMETHOD_DOC(KX_GameActuator,GetFile);
-	KX_PYMETHOD_DOC(KX_GameActuator,SetFile);
-	// <-----
 	
 }; /* end of class KX_GameActuator */
 

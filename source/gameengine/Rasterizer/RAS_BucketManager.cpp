@@ -126,10 +126,7 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 		RAS_MaterialBucket* bucket = *bit;
 		RAS_MeshSlot* ms;
 		// remove the mesh slot form the list, it culls them automatically for next frame
-		for(ms = bucket->GetNextActiveMeshSlot();
-			ms!= NULL;
-			ms = bucket->GetNextActiveMeshSlot())
-		{
+		while((ms = bucket->GetNextActiveMeshSlot())) {
 			slots[i++].set(ms, bucket, pnorm);
 		}
 	}
@@ -179,9 +176,7 @@ void RAS_BucketManager::RenderSolidBuckets(
 		RAS_MaterialBucket* bucket = *bit;
 		RAS_MeshSlot* ms;
 		// remove the mesh slot form the list, it culls them automatically for next frame
-		for(ms = bucket->GetNextActiveMeshSlot();
-			ms!= NULL;
-			ms = bucket->GetNextActiveMeshSlot())
+		while((ms = bucket->GetNextActiveMeshSlot()))
 		{
 			rendertools->SetClientObject(rasty, ms->m_clientObj);
 			while (bucket->ActivateMaterial(cameratrans, rasty, rendertools))

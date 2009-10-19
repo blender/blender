@@ -59,6 +59,12 @@ public:
 	GHOST_SystemX11(
 	);
 	
+	/**
+	 * Destructor.
+	 */
+	virtual ~GHOST_SystemX11();
+
+
 		GHOST_TSuccess 
 	init(
 	);
@@ -258,7 +264,7 @@ private :
 	GHOST_TUns64 m_start_time;
 
 	/// A vector of keyboard key masks
-	char *m_keyboard_vector;
+	char m_keyboard_vector[32];
 
 	/**
 	 * Return the ghost window associated with the

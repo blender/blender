@@ -32,6 +32,11 @@
 
 #include <vector>
 #include "PHY_DynamicTypes.h"
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class PHY_IVehicle;
 class RAS_MeshObject;
 class PHY_IPhysicsController;
@@ -76,6 +81,12 @@ public:
 		m_faceNormal(faceNormal)
 	{
 	}
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IRayCastFilterCallback"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 /**
@@ -160,6 +171,13 @@ class PHY_IPhysicsEnvironment
 		
 		virtual void	setConstraintParam(int constraintId,int param,float value,float value1) = 0;
 		virtual float	getConstraintParam(int constraintId,int param) = 0;
+		
+		
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IPhysicsEnvironment"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //_IPHYSICSENVIRONMENT

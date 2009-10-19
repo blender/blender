@@ -52,7 +52,6 @@ Documentation for the GameLogic Module.
 		- L{ActionActuator<GameTypes.BL_ActionActuator>}
 		- L{AddObjectActuator<GameTypes.KX_SCA_AddObjectActuator>}
 		- L{CameraActuator<GameTypes.KX_CameraActuator>}
-		- L{CDActuator<GameTypes.KX_CDActuator>}
 		- L{ConstraintActuator<GameTypes.KX_ConstraintActuator>}
 		- L{DynamicActuator<GameTypes.KX_SCA_DynamicActuator>}
 		- L{EndObjectActuator<GameTypes.KX_SCA_EndObjectActuator>}
@@ -446,14 +445,6 @@ def setPhysicsTicRate(ticrate):
 	
 	@param ticrate: The new update frequency (in Hz).
 	@type ticrate: float
-	"""
-
-def EvalExpression(text):
-	"""
-	Evaluate the string as an expression, similar to the expression controller logic brick.
-	@param text: The expression to evaluate.
-	@type text: string
-	@return: The result of the expression. The type depends on the expression.
 	"""
 
 #{ Utility functions

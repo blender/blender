@@ -32,7 +32,6 @@
 #define EXPP_euler_h
 
 #include <Python.h>
-#include "../intern/bpy_compat.h"
 
 extern PyTypeObject euler_Type;
 #define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)

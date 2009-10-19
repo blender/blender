@@ -12,5 +12,7 @@ defs = ''
 
 if not env['WITH_BF_PYTHON']:
     defs += 'DISABLE_PYTHON'
+if env['WITH_BF_OPENEXR']:
+	defs += ' WITH_OPENEXR'
 
 env.BlenderLib ( 'bf_editors_screen', sources, Split(incs), Split(defs), libtype=['core'], priority=[105] )

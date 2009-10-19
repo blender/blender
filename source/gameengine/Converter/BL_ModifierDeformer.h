@@ -101,6 +101,12 @@ protected:
 	Scene					*m_scene;
 	DerivedMesh				*m_dm;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ModifierDeformer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

@@ -6,8 +6,7 @@ defs = []
 
 incs = '. #source/kernel/gen_system #intern/string #intern/guardedalloc'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
-incs += ' #intern/SoundSystem #intern/SoundSystem/include #intern/SoundSystem/openal'
-incs += ' #intern/SoundSystem/dummy #intern/SoundSystem/intern #source/gameengine/Converter'
+incs += ' #intern/audaspace/intern #source/gameengine/Converter'
 incs += ' #source/gameengine/BlenderRoutines #source/blender/imbuf'
 incs += ' #intern/moto/include #source/gameengine/Ketsji #source/gameengine/Ketsji/KXNetwork'
 incs += ' #source/blender/blenlib #source/blender/blenkernel #source/blender'
@@ -24,4 +23,4 @@ incs += ' #source/blender/makesrna'
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']
 
-env.BlenderLib ( 'bf_converter', sources, Split(incs), defs, libtype=['core','player'], priority=[305,50] )
+env.BlenderLib ( 'bf_converter', sources, Split(incs), defs, libtype=['core'], priority=[305], cxx_compileflags=env['BGE_CXXFLAGS'])

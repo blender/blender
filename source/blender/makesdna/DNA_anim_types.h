@@ -631,6 +631,8 @@ typedef enum eKSP_TemplateTypes {
 	KSP_TEMPLATE_PCHAN 			= (1<<1),	/* #pch - selected posechannel */
 	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
 	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
+	
+	KSP_TEMPLATE_PCHAN_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Pose Channel */
 } eKSP_TemplateTypes;
 
 /* ---------------- */
@@ -734,8 +736,13 @@ typedef struct AnimData {
 	ListBase 	overrides;	/* temp storage (AnimOverride) of values for settings that are animated (but the value hasn't been keyframed) */
 	
 		/* settings for animation evaluation */
-	int flag;			/* user-defined settings */
-	int recalc;			/* depsgraph recalculation flags */		
+	int flag;				/* user-defined settings */
+	int recalc;				/* depsgraph recalculation flags */	
+	
+		/* settings for active action evaluation (based on NLA strip settings) */
+	short act_blendmode;	/* accumulation mode for active action */
+	short act_extendmode;	/* extrapolation mode for active action */
+	float act_influence;	/* influence for active action */
 } AnimData;
 
 /* Animation Data settings (mostly for NLA) */

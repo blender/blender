@@ -67,6 +67,9 @@ extern "C"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
+extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
+extern char btempdir[];		/* use this to store a valid temp directory */
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

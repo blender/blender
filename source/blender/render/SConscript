@@ -6,7 +6,7 @@ sources = env.Glob('intern/source/*.c')
 
 incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
 incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf'
-incs += ' ../include ../blenloader'
+incs += ' ../include ../blenloader ../../../intern/smoke/extern'
 
 defs = []
 

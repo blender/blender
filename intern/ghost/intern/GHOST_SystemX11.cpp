@@ -148,6 +148,13 @@ GHOST_SystemX11(
 	
 }
 
+GHOST_SystemX11::
+~GHOST_SystemX11()
+{
+	XCloseDisplay(m_display);
+}
+
+
 	GHOST_TSuccess 
 GHOST_SystemX11::
 init(
@@ -155,11 +162,9 @@ init(
 	GHOST_TSuccess success = GHOST_System::init();
 
 	if (success) {
-		m_keyboard_vector = new char[32];
-
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
-		if (m_keyboard_vector && m_displayManager) {
+		if (m_displayManager) {
 			return GHOST_kSuccess;
 		}
 	}
@@ -715,9 +720,9 @@ getModifierKeys(
 
 	// analyse the masks retuned from XQueryPointer.
 
-	memset(m_keyboard_vector,0,sizeof(m_keyboard_vector));
+	memset((void *)m_keyboard_vector,0,sizeof(m_keyboard_vector));
 
-	XQueryKeymap(m_display,m_keyboard_vector);
+	XQueryKeymap(m_display,(char *)m_keyboard_vector);
 
 	// now translate key symobols into keycodes and
 	// test with vector.

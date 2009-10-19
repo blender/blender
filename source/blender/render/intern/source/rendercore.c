@@ -477,7 +477,7 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				col= shr->refr;
 				break;
 			case SCE_PASS_RADIO:
-				col= shr->rad;
+				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -569,7 +569,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				col= shr->refr;
 				break;
 			case SCE_PASS_RADIO:
-				col= shr->rad;
+				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -2234,7 +2234,7 @@ static int bake_check_intersect(Isect *is, int ob, RayFace *face)
 	/* no direction checking for now, doesn't always improve the result
 	 * (INPR(shi->facenor, bs->dir) > 0.0f); */
 
-	return (R.objectinstance[ob].obr->ob != bs->actob);
+	return (R.objectinstance[ob & ~RE_RAY_TRANSFORM_OFFS].obr->ob != bs->actob);
 }
 
 static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *start, float *dir, float sign, float *hitco, float *dist)

@@ -89,6 +89,9 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BKE_sound.h"
+#include "AUD_C-API.h"
+
 /* own include */
 #include "sequencer_intern.h"
 
@@ -224,24 +227,80 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene Name", "Scene name to add as a strip");
 }
 
+static Sequence* sequencer_add_sound_strip(bContext *C, wmOperator *op, int start_frame, int channel, char* filename)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, TRUE);
+
+	bSound *sound;
+
+	Sequence *seq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+
+	AUD_SoundInfo info;
+
+	sound = sound_new_file(CTX_data_main(C), filename);
+
+	if (sound==NULL || sound->handle == NULL) {
+		if(op)
+			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return NULL;
+	}
+
+	info = AUD_getInfo(sound->handle);
+
+	if (info.specs.format == AUD_FORMAT_INVALID) {
+		sound_delete(C, sound);
+		if(op)
+			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return NULL;
+	}
+
+	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
+
+	seq->type= SEQ_SOUND;
+	seq->sound= sound;
+
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = (int) (info.length * FPS);
+	strip->us= 1;
+
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+	BLI_split_dirfile_basic(filename, strip->dir, se->name);
+
+	seq->sound_handle = sound_new_handle(scene, sound, start_frame, start_frame + strip->len, 0);
+
+	calc_sequence_disp(seq);
+	sort_seq(scene);
+
+	/* last active name */
+	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
+
+	return seq;
+}
+
 /* add movie operator */
 static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, TRUE);
-	
+
 	struct anim *an;
 	char filename[FILE_MAX];
 
-	Sequence *seq;	/* generic strip vars */
+	Sequence *seq, *soundseq=NULL;	/* generic strip vars */
 	Strip *strip;
 	StripElem *se;
-	
-	int start_frame, channel; /* operator props */
-	
+
+	int start_frame, channel, sound; /* operator props */
+
 	start_frame= RNA_int_get(op->ptr, "start_frame");
 	channel= RNA_int_get(op->ptr, "channel");
-	
+	sound = RNA_boolean_get(op->ptr, "sound");
+
 	RNA_string_get(op->ptr, "filename", filename);
 	
 	an = openanim(filename, IB_rect);
@@ -271,10 +330,19 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 	calc_sequence_disp(seq);
 	sort_seq(scene);
 
+	if(sound)
+	{
+		soundseq = sequencer_add_sound_strip(C, NULL, start_frame, channel+1, filename);
+		if(soundseq != NULL)
+			RNA_string_get(op->ptr, "name", soundseq->name);
+	}
+
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
 		set_last_seq(scene, seq);
 		seq->flag |= SELECT;
+		if(soundseq)
+			soundseq->flag |= SELECT;
 	}
 	
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -310,24 +378,15 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "sound", FALSE, "Sound", "Load hd sound with the movie"); // XXX need to impliment this
+	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load sound with the movie");
 }
-
 
 /* add sound operator */
 static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Editing *ed= seq_give_editing(scene, TRUE);
-	
-	bSound *sound;
-
 	char filename[FILE_MAX];
-
+	Scene *scene= CTX_data_scene(C);
 	Sequence *seq;	/* generic strip vars */
-	Strip *strip;
-	StripElem *se;
-	
 	int start_frame, channel; /* operator props */
 	
 	start_frame= RNA_int_get(op->ptr, "start_frame");
@@ -335,47 +394,16 @@ static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "filename", filename);
 
-	/* XXX if(sfile->flag & FILE_STRINGCODE) {
-		BLI_makestringcode(G.sce, str);
-	}*/
+	seq = sequencer_add_sound_strip(C, op, start_frame, channel, filename);
 
-// XXX	sound= sound_new_sound(filename);
-	sound= NULL;
-
-	if (sound==NULL || sound->sample->type == SAMPLE_INVALID) {
-		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+	if(seq == NULL)
 		return OPERATOR_CANCELLED;
-	}
-
-	if (sound==NULL || sound->sample->bits != 16) {
-		BKE_report(op->reports, RPT_ERROR, "Only 16 bit audio is supported");
-		return OPERATOR_CANCELLED;
-	}
-	
-	sound->flags |= SOUND_FLAGS_SEQUENCE;
-// XXX	audio_makestream(sound);
-	
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-	
-	seq->type= SEQ_RAM_SOUND;
-	seq->sound= sound;
-	
-	/* basic defaults */
-	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = (int) ( ((float)(sound->streamlen-1) / ( (float)scene->r.audio.mixrate*4.0 ))* FPS);
-	strip->us= 1;
-	
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-	
-	BLI_split_dirfile_basic(filename, strip->dir, se->name);
 
 	RNA_string_get(op->ptr, "name", seq->name);
-	
-	calc_sequence_disp(seq);
-	sort_seq(scene);
-	
-	/* last active name */
-	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
+
+	if (RNA_boolean_get(op->ptr, "cache")) {
+		sound_cache(seq->sound, 0);
+	}
 
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
@@ -416,7 +444,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "hd", FALSE, "HD Sound", "Load the sound as streaming audio"); // XXX need to impliment this
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
 }
 
 /* add image operator */
@@ -585,7 +613,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 		if(seq->plugin==NULL) {
 			BLI_remlink(ed->seqbasep, seq);
-			seq_free_sequence(ed, seq);
+			seq_free_sequence(scene, seq);
 			BKE_reportf(op->reports, RPT_ERROR, "Sequencer plugin \"%s\" could not load.", filename);
 			return OPERATOR_CANCELLED;
 		}

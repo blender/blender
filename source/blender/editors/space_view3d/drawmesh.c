@@ -60,6 +60,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_property.h"
 #include "BKE_utildefines.h"
 
@@ -297,9 +298,9 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 
 	if (textured!=c_textured || texface!=c_texface) {
 		if (textured ) {
-			c_badtex= !GPU_set_tpage(texface);
+			c_badtex= !GPU_set_tpage(texface, !(litob->mode & OB_MODE_TEXTURE_PAINT));
 		} else {
-			GPU_set_tpage(0);
+			GPU_set_tpage(NULL, 0);
 			c_badtex= 0;
 		}
 		c_textured= textured;
@@ -377,7 +378,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 static void draw_textured_end()
 {
 	/* switch off textures */
-	GPU_set_tpage(0);
+	GPU_set_tpage(NULL, 0);
 
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
@@ -482,7 +483,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	if(ob == scene->obedit)
 		return;
 	else if(ob==OBACT)
-		if(FACESEL_PAINT_TEST)
+		if(paint_facesel_test(ob))
 			return;
 
 	ddm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
@@ -562,7 +563,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	if(ob == scene->obedit) {
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
 	} else if(faceselect) {
-		if(G.f & G_WEIGHTPAINT)
+		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1);
 		else
 			dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, me);

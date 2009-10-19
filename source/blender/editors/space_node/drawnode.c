@@ -253,7 +253,7 @@ static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
 		/* Alpha option, composite */
 		if(a_but)
-			uiDefButS(block, TOG, B_NODE_EXEC, "A",
+			uiDefIconButS(block, TOG, B_NODE_EXEC, ICON_IMAGE_RGB_ALPHA,
 				  (short)butr->xmax-20, (short)butr->ymin, 20, 20, 
 				  &node->custom2, 0, 0, 0, 0, "Include Alpha of 2nd input in this operation");
 	}
@@ -1077,7 +1077,7 @@ static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNo
 		/* browse button layer */
 		strp= scene_layer_menu(node->id?(Scene *)node->id:scene);
 		if(node->id)
-			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC, ICON_SCENE_DATA, strp, 
+			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC, ICON_RENDERLAYERS, strp, 
 				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-40, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
 		else
@@ -1473,7 +1473,7 @@ static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *n
 		uiDefButS(block, NUM, B_NODE_EXEC, "MaxSpeed:",
 				  butr->xmin, dy+38, dx, 19, 
 				  &nbd->maxspeed, 0, 1024, 0, 0, "If not zero, maximum speed in pixels");
-		uiDefButF(block, NUM, B_NODE_EXEC, "BlurFac:",
+		uiDefButF(block, NUM, B_NODE_EXEC, "Blur:",
 				  butr->xmin, dy+19, dx, 19, 
 				  &nbd->fac, 0.0f, 2.0f, 10, 2, "Scaling factor for motion vectors, actually 'shutter speed' in frames");
 		uiDefButS(block, TOG, B_NODE_EXEC, "Curved",

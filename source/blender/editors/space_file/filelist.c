@@ -840,7 +840,16 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".mv")) {
 				file->flags |= MOVIEFILE;			
 			}
-			else if(BLI_testextensie(file->relname, ".wav")) {
+			else if(BLI_testextensie(file->relname, ".wav")
+				||	BLI_testextensie(file->relname, ".ogg")
+				||	BLI_testextensie(file->relname, ".oga")
+				||	BLI_testextensie(file->relname, ".mp3")
+				||	BLI_testextensie(file->relname, ".mp2")
+				||	BLI_testextensie(file->relname, ".ac3")
+				||	BLI_testextensie(file->relname, ".aac")
+				||	BLI_testextensie(file->relname, ".flac")
+				||	BLI_testextensie(file->relname, ".wma")
+				||	BLI_testextensie(file->relname, ".eac3")) {
 				file->flags |= SOUNDFILE;
 			}
 		} else { // no quicktime
@@ -875,7 +884,16 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".mv")) {
 				file->flags |= MOVIEFILE;			
 			}
-			else if(BLI_testextensie(file->relname, ".wav")) {
+			else if(BLI_testextensie(file->relname, ".wav")
+				||	BLI_testextensie(file->relname, ".ogg")
+				||	BLI_testextensie(file->relname, ".oga")
+				||	BLI_testextensie(file->relname, ".mp3")
+				||	BLI_testextensie(file->relname, ".mp2")
+				||	BLI_testextensie(file->relname, ".ac3")
+				||	BLI_testextensie(file->relname, ".aac")
+				||	BLI_testextensie(file->relname, ".flac")
+				||	BLI_testextensie(file->relname, ".wma")
+				||	BLI_testextensie(file->relname, ".eac3")) {
 				file->flags |= SOUNDFILE;
 			}
 		}

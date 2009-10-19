@@ -2,8 +2,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -13,9 +13,7 @@ class DATA_PT_preview(DataButtonsPanel):
 	__label__ = "Preview"
 
 	def draw(self, context):
-		layout = self.layout
-
-		layout.template_preview(context.lamp)
+		self.layout.template_preview(context.lamp)
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
 	__show_header__ = False
@@ -52,54 +50,29 @@ class DATA_PT_lamp(DataButtonsPanel):
 		sub = col.column()
 		sub.itemR(lamp, "color", text="")
 		sub.itemR(lamp, "energy")
-		
-	
-		
-		
-		#split = layout.split()
-		
+
 		if lamp.type in ('POINT', 'SPOT'):
-			#col = split.column()
-			#col.itemL(text="Falloff:")
-			sub = col.column()
-			sub.itemR(lamp, "falloff_type", text="Falloff")
+			sub.itemL(text="Falloff:")
+			sub.itemR(lamp, "falloff_type", text="")
 			sub.itemR(lamp, "distance")
-			
-			
+
 			if lamp.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED':
-				#col = split.column()
 				col.itemL(text="Attenuation Factors:")
 				sub = col.column(align=True)
 				sub.itemR(lamp, "linear_attenuation", slider=True, text="Linear")
 				sub.itemR(lamp, "quadratic_attenuation", slider=True, text="Quadratic")
-			#else:
-				# 
-				# split.column()
 			
 			col.itemR(lamp, "sphere")
 			
 		if lamp.type == 'AREA':
-			#col = split.column()
 			col.itemR(lamp, "distance")
 			col.itemR(lamp, "gamma")
-
-			#col = split.column()
-			
-			
-			col.itemR(lamp, "shape")
-			sub = col.column(align=True)
-			if (lamp.shape == 'SQUARE'):
-				sub.itemR(lamp, "size")
-			elif (lamp.shape == 'RECTANGLE'):
-				sub.itemR(lamp, "size", text="Size X")
-				sub.itemR(lamp, "size_y", text="Size Y")
-			
+	
 		col = split.column()
 		col.itemR(lamp, "negative")
 		col.itemR(lamp, "layer", text="This Layer Only")
 		col.itemR(lamp, "specular")
 		col.itemR(lamp, "diffuse")	
-			
 
 class DATA_PT_sunsky(DataButtonsPanel):
 	__label__ = "Sun/Sky"
@@ -198,13 +171,13 @@ class DATA_PT_shadow(DataButtonsPanel):
 			if lamp.type in ('POINT', 'SUN', 'SPOT'):
 				split = layout.split()
 				
-				col = split.column(align=True)
+				col = split.column()
 				col.itemR(lamp, "shadow_soft_size", text="Soft Size")
 				
-				col = split.column(align=True)
 				col.itemR(lamp, "shadow_ray_samples", text="Samples")
 				if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
 					col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
+				col = split.column()
 						
 			elif lamp.type == 'AREA':
 				split = layout.split()
@@ -212,18 +185,18 @@ class DATA_PT_shadow(DataButtonsPanel):
 				col = split.column()
 				sub = split.column(align=True)
 				if lamp.shape == 'SQUARE':
-					sub.itemR(lamp, "shadow_ray_samples_x", text="Samples")
+					col.itemR(lamp, "shadow_ray_samples_x", text="Samples")
 				elif lamp.shape == 'RECTANGLE':
-					sub.itemR(lamp, "shadow_ray_samples_x", text="Samples X")
-					sub.itemR(lamp, "shadow_ray_samples_y", text="Samples Y")
+					col.itemR(lamp, "shadow_ray_samples_x", text="Samples X")
+					col.itemR(lamp, "shadow_ray_samples_y", text="Samples Y")
 					
 				if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
-					sub.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
+					col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
 					
 				elif lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
-					col.itemR(lamp, "umbra")
-					col.itemR(lamp, "dither")
-					col.itemR(lamp, "jitter")	
+					sub.itemR(lamp, "umbra")
+					sub.itemR(lamp, "dither")
+					sub.itemR(lamp, "jitter")	
 
 		if lamp.shadow_method == 'BUFFER_SHADOW':
 			col = layout.column()
@@ -262,8 +235,34 @@ class DATA_PT_shadow(DataButtonsPanel):
 			sub.active = not lamp.auto_clip_end
 			sub.itemR(lamp, "shadow_buffer_clip_end", text=" Clip End")
 
+class DATA_PT_area(DataButtonsPanel):
+	__label__ = "Area Shape"
+	
+	def poll(self, context):
+		lamp = context.lamp
+		return (lamp and lamp.type == 'AREA')
+
+	def draw(self, context):
+		layout = self.layout
+		
+		lamp = context.lamp
+
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(lamp, "shape", text="")
+		
+		sub = col.column(align=True)
+		if (lamp.shape == 'SQUARE'):
+			sub.itemR(lamp, "size")
+		elif (lamp.shape == 'RECTANGLE'):
+			sub.itemR(lamp, "size", text="Size X")
+			sub.itemR(lamp, "size_y", text="Size Y")
+		
+		col = split.column()
+
 class DATA_PT_spot(DataButtonsPanel):
-	__label__ = "Spot"
+	__label__ = "Spot Shape"
 	
 	def poll(self, context):
 		lamp = context.lamp
@@ -297,23 +296,18 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 	def poll(self, context):
 		lamp = context.lamp
 
-		if lamp and lamp.type in ('POINT', 'SPOT'):
-			if lamp.falloff_type == 'CUSTOM_CURVE':
-				return True
-
-		return False
+		return (lamp and lamp.type in ('POINT', 'SPOT') and lamp.falloff_type == 'CUSTOM_CURVE')
 
 	def draw(self, context):
-		layout = self.layout
-		
 		lamp = context.lamp
 
-		layout.template_curve_mapping(lamp.falloff_curve)
+		self.layout.template_curve_mapping(lamp.falloff_curve)
 
 bpy.types.register(DATA_PT_context_lamp)
 bpy.types.register(DATA_PT_preview)
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_falloff_curve)
+bpy.types.register(DATA_PT_area)
 bpy.types.register(DATA_PT_spot)
 bpy.types.register(DATA_PT_shadow)
 bpy.types.register(DATA_PT_sunsky)

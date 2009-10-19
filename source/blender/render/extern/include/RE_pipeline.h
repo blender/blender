@@ -266,7 +266,8 @@ typedef struct RenderEngine {
 	ListBase fullresult;
 } RenderEngine;
 
-void RE_layer_rect_from_file(RenderLayer *layer, struct ReportList *reports, char *filename, int x, int y);
+void RE_layer_load_from_file(RenderLayer *layer, struct ReportList *reports, char *filename);
+void RE_result_load_from_file(RenderResult *result, struct ReportList *reports, char *filename);
 
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);

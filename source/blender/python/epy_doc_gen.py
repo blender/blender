@@ -37,6 +37,94 @@ Generate html docs  by running...
 
 # if you dont have graphvis installed ommit the --graph arg.
 
+# GLOBALS['BASEDIR'] = './source/blender/python/doc'
+
+import os
+
+SUBMODULES = {}
+INIT_SUBMODULES = {}			# store initialized files
+
+INIT_SUBMODULES_IMPORTS = {}	# dont import the same module twice
+
+def append_package(package_path, mod_name):
+	
+	init_path =	os.path.join(os.path.dirname(package_path), "__init__.py")
+	
+	# avoid double ups
+	if mod_name:
+		imports = INIT_SUBMODULES_IMPORTS.setdefault(init_path, [])
+		if mod_name in imports:
+			return
+		imports.append(mod_name)
+		
+	try:
+		os.makedirs(os.path.dirname(init_path)) # make the dirs if they are not there
+	except:
+		pass
+	
+	# Open the new file for the first time, otherwise keep it open.
+	f = INIT_SUBMODULES.get(init_path)
+	if f == None:
+		f = INIT_SUBMODULES[init_path] = open(init_path, 'w')
+	
+	if mod_name:
+		f.write("import %s\n" % mod_name)
+		
+	return f
+
+def append_package_recursive(package_path, BASEPATH):
+	'''
+	assume the last item of package_path will be a file (not a dir thats created)
+	'''
+	
+	package_path = os.path.splitext(package_path)[0] # incase of .py
+	
+	try:
+		os.makedirs(os.path.join(BASEPATH, os.path.dirname(package_path))) # make the dirs if they are not there
+	except:
+		pass
+	
+	new_path = BASEPATH
+	
+	for mod_name in package_path.split(os.sep):
+		init_path =	os.path.join(new_path, "__init__.py")
+		new_path = os.path.join(new_path, mod_name)
+		append_package(init_path, mod_name)
+
+
+def open_submodule(subpath, BASEPATH):
+	'''
+	This is a utility function that lets us quickly add submodules
+	'''
+	
+	# create all the package paths leading up to this module
+	append_package_recursive(subpath, BASEPATH)
+	
+	module_name =		os.path.basename( os.path.splitext(subpath)[0] )
+	mod_path =	os.path.join(BASEPATH, subpath)
+	
+	# Open the new file for the first time, otherwise keep it open.
+	f = SUBMODULES.get(mod_path)
+	if f == None:
+		f = SUBMODULES[mod_path] = open(mod_path, 'w')
+
+	f = open(mod_path, 'w')
+	return f
+
+def close_all():
+	for files in (INIT_SUBMODULES.values(), SUBMODULES.values()):
+		for f in files:
+			if f.name.endswith('.py'):
+				f_name = f.name 
+				f.close()
+				
+				f = open(f_name, 'a')
+				f.write("\ndel __package__\n") # annoying, no need do show this
+			
+			
+			f.close()
+
+
 def range_str(val):
 	if val < -10000000:	return '-inf'
 	if val >  10000000:	return 'inf'
@@ -59,6 +147,19 @@ def full_rna_struct_path(rna_struct):
 	else:
 		return rna_struct.identifier
 
+def rna_id_ignore(rna_id):
+	if rna_id == "rna_type":
+		return True
+	
+	if "_OT_" in rna_id:
+		return True
+	if "_MT_" in rna_id:
+		return True
+	if "_PT_" in rna_id:
+		return True
+	
+	return False
+
 def write_func(rna, ident, out, func_type):
 	# Keyword attributes
 	kw_args = [] # "foo = 1", "bar=0.5", "spam='ENUM'"
@@ -68,7 +169,7 @@ def write_func(rna, ident, out, func_type):
 	
 	# Operators and functions work differently
 	if func_type=='OPERATOR':
-		rna_func_name = rna_struct.identifier
+		rna_func_name = rna_struct.identifier.split("_OT_")[-1]
 		rna_func_desc = rna_struct.description.strip()
 		items = rna_struct.properties.items()
 	else:
@@ -76,8 +177,9 @@ def write_func(rna, ident, out, func_type):
 		rna_func_desc = rna.description.strip()
 		items = rna.parameters.items()
 	
+	
 	for rna_prop_identifier, rna_prop in items:
-		if rna_prop_identifier=='rna_type':
+		if rna_id_ignore(rna_prop_identifier):
 			continue
 		
 		# clear vars			
@@ -88,13 +190,25 @@ def write_func(rna, ident, out, func_type):
 		rna_prop_type = rna_prop.type.lower() # enum, float, int, boolean
 		
 		
+		# only for rna functions, operators should not get pointers as args
+		if rna_prop_type=='pointer':
+			rna_prop_type_refine = "L{%s}" % rna_prop.fixed_type.identifier
+		else:
+			rna_prop_type_refine = rna_prop_type
+		
+		
 		try:		length = rna_prop.array_length
 		except:	length = 0
 		
 		array_str = get_array_str(length)
 		
-		kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type, array_str)
-		kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description.strip())
+		if rna_prop.use_return:
+			kw_type_str= "@rtype: %s%s" % (rna_prop_type_refine, array_str)
+			kw_param_str= "@return: %s" % (rna_prop.description.strip())
+		else:
+			kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type_refine, array_str)
+			kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description.strip())
+		
 		kw_param_set = False
 		
 		if func_type=='OPERATOR':
@@ -159,8 +273,11 @@ def write_func(rna, ident, out, func_type):
 			# stora 
 		else:
 			# currently functions dont have a default value
-			kw_args.append('%s' % (rna_prop_identifier))
-		
+			if not rna_prop.use_return:
+				kw_args.append('%s' % (rna_prop_identifier))
+			else:
+				kw_param_set = True
+
 		
 		# Same for operators and functions
 		kw_arg_attrs.append(kw_type_str)
@@ -174,15 +291,17 @@ def write_func(rna, ident, out, func_type):
 	out.write(ident+'\t%s\n' % rna_func_desc)
 	for desc in kw_arg_attrs:
 		out.write(ident+'\t%s\n' % desc)
-	out.write(ident+'\t@rtype: None\n')
+		
+	# out.write(ident+'\t@rtype: None\n') # implicit
 	out.write(ident+'\t"""\n')
 	
 
 
-def rna2epy(target_path):
+def rna2epy(BASEPATH):
 	
 	# Use for faster lookups
 	# use rna_struct.identifier as the key for each dict
+	rna_struct_dict =		{}  # store identifier:rna lookups
 	rna_full_path_dict =	{}	# store the result of full_rna_struct_path(rna_struct)
 	rna_children_dict =		{}	# store all rna_structs nested from here
 	rna_references_dict =	{}	# store a list of rna path strings that reference this type
@@ -199,8 +318,12 @@ def rna2epy(target_path):
 		
 		if rna_base:
 			out.write(ident+ 'class %s(%s):\n' % (identifier, rna_base.identifier))
+			rna_base_prop_keys = rna_base.properties.keys() # could be cached
+			rna_base_func_keys = [f.identifier for f in rna_base.functions]
 		else:
 			out.write(ident+ 'class %s:\n' % identifier)
+			rna_base_prop_keys = []
+			rna_base_func_keys = []
 		
 		out.write(ident+ '\t"""\n')
 		
@@ -232,11 +355,9 @@ def rna2epy(target_path):
 		
 		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
 			
-			if rna_prop_identifier=='RNA':
-				continue
-			
-			if rna_prop_identifier=='rna_type':
-				continue
+			if rna_prop_identifier=='RNA':					continue
+			if rna_id_ignore(rna_prop_identifier):			continue
+			if rna_prop_identifier in rna_base_prop_keys:	continue # does this prop exist in our parent class, if so skip
 			
 			rna_desc = rna_prop.description.strip()
 			
@@ -269,7 +390,8 @@ def rna2epy(target_path):
 						out.write(ident+ '\t@ivar %s: %s in (%s)\n' %  (rna_prop_identifier, rna_desc, ', '.join(rna_prop.items.keys())))
 					else:
 						out.write(ident+ '\t@ivar %s: %s in...\n' %  (rna_prop_identifier, rna_desc))
-						for e in rna_prop.items.keys():
+						for e, e_rna_prop in rna_prop.items.items():
+							#out.write(ident+ '\t\t- %s: %s\n' % (e, e_rna_prop.description)) # XXX - segfaults, FIXME
 							out.write(ident+ '\t\t- %s\n' % e)
 						
 					out.write(ident+ '\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type,  array_str, readonly_str))
@@ -290,7 +412,8 @@ def rna2epy(target_path):
 		# Write functions 
 		# for rna_func in rna_struct.functions: # Better ignore inherited (line below)
 		for rna_func in rna_functions_dict[identifier]:
-			write_func(rna_func, ident+'\t', out, 'FUNCTION')
+			if rna_func not in rna_base_func_keys:
+				write_func(rna_func, ident+'\t', out, 'FUNCTION')
 		
 		out.write('\n')
 		
@@ -298,7 +421,10 @@ def rna2epy(target_path):
 		for child in rna_children_dict[identifier]:
 			write_struct(child, ident + '\t')
 	
-	out = open(target_path, 'w')
+	
+	
+	# out = open(target_path, 'w')
+	out = open_submodule("types.py", BASEPATH) # bpy.types
 
 	def base_id(rna_struct):
 		try:		return rna_struct.base.identifier
@@ -313,24 +439,31 @@ def rna2epy(target_path):
 	structs = []
 	for rna_type_name in dir(bpy.types):
 		rna_type = getattr(bpy.types, rna_type_name)
-		if hasattr(rna_type, '__rna__'):
+		
+		try:		rna_struct = rna_type.__rna__
+		except:	rna_struct = None
+		
+		if rna_struct:
 			#if not rna_type_name.startswith('__'):
-			rna_struct = rna_type.__rna__
+			
 			identifier = rna_struct.identifier
-			structs.append( (base_id(rna_struct), identifier, rna_struct) )	
 			
-			
-			
-			# Store full rna path 'GameObjectSettings' -> 'Object.GameObjectSettings'
-			rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
-			
-			# Store a list of functions, remove inherited later
-			rna_functions_dict[identifier]= list(rna_struct.functions)
-			
-			
-			# fill in these later
-			rna_children_dict[identifier]= []
-			rna_references_dict[identifier]= []
+			if not rna_id_ignore(identifier):
+				structs.append( (base_id(rna_struct), identifier, rna_struct) )	
+				
+				# Simple lookup
+				rna_struct_dict[identifier] = rna_struct
+				
+				# Store full rna path 'GameObjectSettings' -> 'Object.GameObjectSettings'
+				rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
+				
+				# Store a list of functions, remove inherited later
+				rna_functions_dict[identifier]= list(rna_struct.functions)
+				
+				
+				# fill in these later
+				rna_children_dict[identifier]= []
+				rna_references_dict[identifier]= []
 			
 			
 		else:
@@ -377,16 +510,21 @@ def rna2epy(target_path):
 	# precalc vars to avoid a lot of looping
 	for (rna_base, identifier, rna_struct) in structs:
 		
+		if rna_base:
+			rna_base_prop_keys = rna_struct_dict[rna_base].properties.keys() # could cache
+			rna_base_func_keys = [f.identifier for f in rna_struct_dict[rna_base].functions]
+		else:
+			rna_base_prop_keys = []
+			rna_base_func_keys= []
 		
 		# rna_struct_path = full_rna_struct_path(rna_struct)
 		rna_struct_path = rna_full_path_dict[identifier]
 		
 		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
-			if rna_prop_identifier=='RNA':
-				continue
 			
-			if rna_prop_identifier=='rna_type':
-				continue
+			if rna_prop_identifier=='RNA':					continue
+			if rna_id_ignore(rna_prop_identifier):			continue
+			if rna_prop_identifier in rna_base_prop_keys:	continue
 			
 			try:		rna_prop_ptr = rna_prop.fixed_type
 			except:	rna_prop_ptr = None
@@ -395,7 +533,21 @@ def rna2epy(target_path):
 			if rna_prop_ptr:
 				rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_prop_identifier) )
 		
-		
+		for rna_func in rna_struct.functions:
+			for rna_prop_identifier, rna_prop in rna_func.parameters.items():
+				
+				if rna_prop_identifier=='RNA':					continue
+				if rna_id_ignore(rna_prop_identifier):			continue
+				if rna_prop_identifier in rna_base_func_keys:	continue
+					
+				
+				try:		rna_prop_ptr = rna_prop.fixed_type
+				except:	rna_prop_ptr = None
+				
+				# Does this property point to me?
+				if rna_prop_ptr:
+					rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_func.identifier) )
+			
 		
 		# Store nested children
 		nested = rna_struct.nested
@@ -430,6 +582,7 @@ def rna2epy(target_path):
 	# # We could also just run....
 	# os.system('epydoc source/blender/python/doc/rna.py -o ./source/blender/python/doc/html -v')
 	
+	target_path = os.path.join(BASEPATH, "dump.py") # XXX - used for other funcs
 	
 	# Write graphviz
 	out= open(target_path.replace('.py', '.dot'), 'w')
@@ -500,8 +653,8 @@ def rna2epy(target_path):
 		out.write('%s\n' % w)
 	
 
-def op2epy(target_path):
-	out = open(target_path, 'w')
+def op2epy(BASEPATH):
+	# out = open(target_path, 'w')
 	
 	op_mods = dir(bpy.ops)
 	op_mods.remove('add')
@@ -510,26 +663,73 @@ def op2epy(target_path):
 	for op_mod_name in sorted(op_mods):
 		if op_mod_name.startswith('__'):
 			continue
+		
+		# open the submodule
+		mod_path = os.path.join("ops", op_mod_name + ".py")
+		out = open_submodule(mod_path, BASEPATH)
+
 
 		op_mod = getattr(bpy.ops, op_mod_name)
-		
 		operators = dir(op_mod)
 		for op in sorted(operators):
 			# rna = getattr(bpy.types, op).__rna__
 			rna = getattr(op_mod, op).get_rna()
 			write_func(rna, '', out, 'OPERATOR')
+		
+		out.write('\n')
+		out.close()
+
+def misc2epy(BASEPATH):
+	'''
+	Hard coded modules, try to avoid adding stuff here
+	'''
 	
-	out.write('\n')
-	out.close()
+	f = append_package(os.path.join(BASEPATH, ""), ""); # add a slash on the end of the base path
+	f.write('''
+"""
+@type data: L{bpy.types.Main}
+@var  data: blender data is accessed from here
+"""
+''')
+
+	f = open_submodule("props.py", BASEPATH)
+	f.write('''
+MAX_INT= 2**31
+MAX_FLOAT= 1e+37
+def BoolProperty(attr, name="", description="", default=False):
+	"""
+	return a new bool property
+	"""
+def IntProperty(attr, name="", description="", min=-MAX_INT, max=MAX_INT, soft_min=-MAX_INT, soft_max=MAX_INT, default=0):
+	"""
+	return a new int property
+	"""
+def FloatProperty(attr, name="", description="", min=-MAX_FLOAT, max=MAX_FLOAT, soft_min=-MAX_FLOAT, soft_max=MAX_FLOAT, default=0.0):
+	"""
+	return a new float property
+	"""
+def StringProperty(attr, name="", description="", maxlen=0, default=""):
+	"""
+	return a new string property
+	"""
+def EnumProperty(attr, items, name="", description="", default=""):
+	"""
+	return a new enum property
+	"""	
+''')
+
 
 if __name__ == '__main__':
 	if 'bpy' not in dir():
 		print("\nError, this script must run from inside blender2.5")
 		print(script_help_msg)
-		
 	else:
-		rna2epy('source/blender/python/doc/rna.py')
-		op2epy('source/blender/python/doc/bpyoperator.py')
+		misc2epy('source/blender/python/doc/bpy') # first to write in info in some of the modules.
+		rna2epy('source/blender/python/doc/bpy')
+		op2epy('source/blender/python/doc/bpy')
+	
+	
+	close_all()
 	
 	import sys
 	sys.exit()

@@ -178,13 +178,13 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "BPoint");
 	RNA_def_struct_ui_text(srna, "LatticePoint", "Point in the lattice grid.");
 
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_LatticePoint_co_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	prop= RNA_def_property(srna, "deformed_co", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "deformed_co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Deformed Location", "");

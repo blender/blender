@@ -46,8 +46,7 @@ void  RAS_IPolyMaterial::Initialize(
 				int mode,
 				int transp,
 				bool alpha,
-				bool zsort,
-				int lightlayer)
+				bool zsort)
 {
 	m_texturename = texname;
 	m_materialname = matname;
@@ -59,7 +58,6 @@ void  RAS_IPolyMaterial::Initialize(
 	m_transp = transp;
 	m_alpha = alpha;
 	m_zsort = zsort;
-	//m_lightlayer = lightlayer;
 	m_polymatid = m_newpolymatid++;
 	m_flag = 0;
 	m_multimode = 0;
@@ -72,7 +70,6 @@ void  RAS_IPolyMaterial::Initialize(
 RAS_IPolyMaterial::RAS_IPolyMaterial() 
 		: m_texturename("__Dummy_Texture_Name__"),
 		m_materialname("__Dummy_Material_Name__"),
-		m_materialindex(0),
 		m_tile(0),
 		m_tilexrep(0),
 		m_tileyrep(0),
@@ -80,7 +77,7 @@ RAS_IPolyMaterial::RAS_IPolyMaterial()
 		m_transp(0),
 		m_alpha(false),
 		m_zsort(false),
-		//m_lightlayer(0),
+		m_materialindex(0),
 		m_polymatid(0),
 		m_flag(0),
 		m_multimode(0)
@@ -100,11 +97,9 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 int mode,
 									 int transp,
 									 bool alpha,
-									 bool zsort,
-									 int lightlayer)
+									 bool zsort)
 		: m_texturename(texname),
 		m_materialname(matname),
-		m_materialindex(materialindex),
 		m_tile(tile),
 		m_tilexrep(tilexrep),
 		m_tileyrep(tileyrep),
@@ -112,7 +107,7 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_transp(transp),
 		m_alpha(alpha),
 		m_zsort(zsort),
-		//m_lightlayer(lightlayer),
+		m_materialindex(materialindex),
 		m_polymatid(m_newpolymatid++),
 		m_flag(0),
 		m_multimode(0)
@@ -171,11 +166,6 @@ bool RAS_IPolyMaterial::Less(const RAS_IPolyMaterial& rhs) const
 		
 	return m_polymatid < rhs.m_polymatid;
 }
-
-//int RAS_IPolyMaterial::GetLightLayer() const
-//{
-//	return m_lightlayer;
-//}
 
 bool RAS_IPolyMaterial::IsAlpha() const
 {

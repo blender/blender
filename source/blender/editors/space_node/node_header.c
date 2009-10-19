@@ -45,6 +45,7 @@
 #include "BKE_screen.h"
 #include "BKE_node.h"
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -62,67 +63,9 @@
 
 #include "node_intern.h"
 
-/* ************************ header area region *********************** */
+/* ************************ add menu *********************** */
 
-static void do_node_selectmenu(bContext *C, void *arg, int event)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	SpaceNode *snode= CTX_wm_space_node(C); 
-	
-	/* functions in editnode.c assume there's a tree */
-	if(snode->nodetree==NULL)
-		return;
-	
-	switch(event) {
-		case 1: /* border select */
-			WM_operator_name_call(C, "NODE_OT_select_border", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 2: /* select/deselect all */
-			// XXX node_deselectall(snode, 1);
-			break;
-		case 3:	/* select linked in */
-			// XXX node_select_linked(snode, 0);
-			break;
-		case 4:	/* select linked out */
-			// XXX node_select_linked(snode, 1);
-			break;
-	}
-	
-	ED_area_tag_redraw(curarea);
-}
-
-static uiBlock *node_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "node_selectmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_selectmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked From|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked To|Shift L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	
-	if(curarea->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
-void do_node_addmenu(bContext *C, void *arg, int event)
+static void do_node_add(bContext *C, void *arg, int event)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
@@ -141,311 +84,125 @@ void do_node_addmenu(bContext *C, void *arg, int event)
 	snode_handle_recalc(C, snode);
 }
 
-static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)
+static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 {
 	Main *bmain= CTX_data_main(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree;
+	int nodeclass= GET_INT_FROM_POINTER(arg_nodeclass);
 	int tot= 0, a;
-	short yco= 0, menuwidth=120;
 	
 	ntree = snode->nodetree;
-	if(ntree) {
-		/* mostly taken from toolbox.c, node_add_sublevel() */
-		if(ntree) {
-			if(nodeclass==NODE_CLASS_GROUP) {
-				bNodeTree *ngroup= bmain->nodetree.first;
-				for(; ngroup; ngroup= ngroup->id.next)
-					if(ngroup->type==ntree->type)
-						tot++;
-			}
-			else {
-				bNodeType *type = ntree->alltypes.first;
-				while(type) {
-					if(type->nclass == nodeclass)
-						tot++;
-					type= type->next;
-				}
-			}
-		}	
-		
-		if(tot==0) {
-			uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-			return;
-		}
-		
-		if(nodeclass==NODE_CLASS_GROUP) {
-			bNodeTree *ngroup= bmain->nodetree.first;
-			for(tot=0, a=0; ngroup; ngroup= ngroup->id.next, tot++) {
-				if(ngroup->type==ntree->type) {
-					
-					uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, (ngroup->id.name+2), 0, 
-						yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1.0f, (float)(NODE_GROUP_MENU+tot), "");
-					a++;
-				}
-			}
-		}
-		else {
-			bNodeType *type;
-			int script=0;
-			for(a=0, type= ntree->alltypes.first; type; type=type->next) {
-				if( type->nclass == nodeclass && type->name) {
-					if(type->type == NODE_DYNAMIC) {
-						uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
-							yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1.0f, (float)(NODE_DYNAMIC_MENU+script), "");
-						script++;
-					} else {
-					uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
-						yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1.0f, (float)(type->type), "");
-					}
-					a++;
-				}
-			}
-		}
-	} else {
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	if(!ntree) {
+		uiItemS(layout);
 		return;
 	}
-}
 
-static uiBlock *node_add_inputmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-
-	block= uiBeginBlock(C, ar, "node_add_inputmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_INPUT, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_outputmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_outputmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_OUTPUT, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_colormenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_colormenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_OP_COLOR, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_vectormenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_vectormenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_OP_VECTOR, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_filtermenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_filtermenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_OP_FILTER, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_convertermenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_convertermenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_CONVERTOR, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_mattemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_mattemenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_MATTE, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_distortmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_distortmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_DISTORT, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_patternmenu(bContext *C, ARegion *ar,  void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_patternmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_PATTERN, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_texturemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_texturemenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_TEXTURE, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-static uiBlock *node_add_groupmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_groupmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_GROUP, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
-static uiBlock *node_add_dynamicmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiBeginBlock(C, ar, "node_add_dynamicmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(C, NODE_CLASS_OP_DYNAMIC, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
-static uiBlock *node_addmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "node_addmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	if(snode->treetype==NTREE_SHADER) {
-		uiDefIconTextBlockBut(block, node_add_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_outputmenu, NULL, ICON_RIGHTARROW_THIN, "Output", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_colormenu, NULL, ICON_RIGHTARROW_THIN, "Color", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_vectormenu, NULL, ICON_RIGHTARROW_THIN, "Vector", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_dynamicmenu, NULL, ICON_RIGHTARROW_THIN, "Dynamic", 0, yco-=20, 120, 19, "");
-	}
-	else if(snode->treetype==NTREE_COMPOSIT) {
-		uiDefIconTextBlockBut(block, node_add_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_outputmenu, NULL, ICON_RIGHTARROW_THIN, "Output", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_colormenu, NULL, ICON_RIGHTARROW_THIN, "Color", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_vectormenu, NULL, ICON_RIGHTARROW_THIN, "Vector", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_filtermenu, NULL, ICON_RIGHTARROW_THIN, "Filter", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_mattemenu, NULL, ICON_RIGHTARROW_THIN, "Matte", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_distortmenu, NULL, ICON_RIGHTARROW_THIN, "Distort", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
-
-	} else if(snode->treetype==NTREE_TEXTURE) {
-		uiDefIconTextBlockBut(block, node_add_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_outputmenu, NULL, ICON_RIGHTARROW_THIN, "Output", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_colormenu, NULL, ICON_RIGHTARROW_THIN, "Color", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_patternmenu, NULL, ICON_RIGHTARROW_THIN, "Patterns", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_texturemenu, NULL, ICON_RIGHTARROW_THIN, "Textures", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_distortmenu, NULL, ICON_RIGHTARROW_THIN, "Distort", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
-	}
-	else
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
-	
-	if(curarea->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
+	/* mostly taken from toolbox.c, node_add_sublevel() */
+	if(nodeclass==NODE_CLASS_GROUP) {
+		bNodeTree *ngroup= bmain->nodetree.first;
+		for(; ngroup; ngroup= ngroup->id.next)
+			if(ngroup->type==ntree->type)
+				tot++;
 	}
 	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
+		bNodeType *type = ntree->alltypes.first;
+		while(type) {
+			if(type->nclass == nodeclass)
+				tot++;
+			type= type->next;
+		}
+	}	
+	
+	if(tot==0) {
+		uiItemS(layout);
+		return;
 	}
+
+	uiLayoutSetFunc(layout, do_node_add, NULL);
 	
-	uiTextBoundsBlock(block, 50);
-	
-	return block;
+	if(nodeclass==NODE_CLASS_GROUP) {
+		bNodeTree *ngroup= bmain->nodetree.first;
+
+		for(tot=0, a=0; ngroup; ngroup= ngroup->id.next, tot++) {
+			if(ngroup->type==ntree->type) {
+				uiItemV(layout, ngroup->id.name+2, 0, NODE_GROUP_MENU+tot);
+				a++;
+			}
+		}
+	}
+	else {
+		bNodeType *type;
+		int script=0;
+
+		for(a=0, type= ntree->alltypes.first; type; type=type->next) {
+			if(type->nclass == nodeclass && type->name) {
+				if(type->type == NODE_DYNAMIC) {
+					uiItemV(layout, type->name, 0, NODE_DYNAMIC_MENU+script);
+					script++;
+				}
+				else
+					uiItemV(layout, type->name, 0, type->type);
+
+				a++;
+			}
+		}
+	}
 }
 
+static void node_menu_add(const bContext *C, Menu *menu)
+{
+	uiLayout *layout= menu->layout;
+	SpaceNode *snode= CTX_wm_space_node(C);
+
+	if(!snode->nodetree)
+		uiLayoutSetActive(layout, 0);
+
+	if(snode->treetype==NTREE_SHADER) {
+		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
+		uiItemMenuF(layout, "Output", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
+		uiItemMenuF(layout, "Color", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
+		uiItemMenuF(layout, "Vector", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_VECTOR));
+		uiItemMenuF(layout, "Convertor", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
+		uiItemMenuF(layout, "Group", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
+		uiItemMenuF(layout, "Dynamic", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_DYNAMIC));
+	}
+	else if(snode->treetype==NTREE_COMPOSIT) {
+		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
+		uiItemMenuF(layout, "Output", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
+		uiItemMenuF(layout, "Color", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
+		uiItemMenuF(layout, "Vector", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_VECTOR));
+		uiItemMenuF(layout, "Filter", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_FILTER));
+		uiItemMenuF(layout, "Convertor", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
+		uiItemMenuF(layout, "Matte", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_MATTE));
+		uiItemMenuF(layout, "Distort", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_DISTORT));
+		uiItemMenuF(layout, "Group", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
+	}
+	else if(snode->treetype==NTREE_TEXTURE) {
+		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
+		uiItemMenuF(layout, "Output", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
+		uiItemMenuF(layout, "Color", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
+		uiItemMenuF(layout, "Patterns", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_PATTERN));
+		uiItemMenuF(layout, "Textures", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_TEXTURE));
+		uiItemMenuF(layout, "Convertor", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
+		uiItemMenuF(layout, "Distort", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_DISTORT));
+		uiItemMenuF(layout, "Group", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
+	}
+}
+
+void node_menus_register(ARegionType *art)
+{
+	MenuType *mt;
+
+	mt= MEM_callocN(sizeof(MenuType), "spacetype node menu add");
+	strcpy(mt->idname, "NODE_MT_add");
+	strcpy(mt->label, "Add");
+	mt->draw= node_menu_add;
+	BLI_addtail(&art->menutypes, mt);
+}
+
+#if 0
 static void do_node_nodemenu(bContext *C, void *arg, int event)
 {
 	ScrArea *curarea= CTX_wm_area(C);
@@ -571,218 +328,5 @@ static uiBlock *node_nodemenu(bContext *C, ARegion *ar, void *arg_unused)
 	
 	return block;
 }
-
-static void do_node_viewmenu(bContext *C, void *arg, int event)
-{
-//	SpaceNode *snode= CTX_wm_space_node(C);
-//	ARegion *ar= CTX_wm_region(C);
-	ScrArea *sa= CTX_wm_area(C);
-	
-	switch(event) {
-		case 1: /* Zoom in */
-			WM_operator_name_call(C, "VIEW2D_OT_zoom_in", WM_OP_EXEC_REGION_WIN, NULL);
-			break;
-		case 2: /* View all */
-			WM_operator_name_call(C, "VIEW2D_OT_zoom_out", WM_OP_EXEC_REGION_WIN, NULL);
-			break;
-		case 3: /* View all */
-			WM_operator_name_call(C, "NODE_OT_view_all", WM_OP_EXEC_REGION_WIN, NULL);
-			break;
-		case 4: /* Grease Pencil */
-			// XXX add_blockhandler(sa, NODES_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
-			break;
-	}
-	ED_area_tag_redraw(sa);
-}
-
-static uiBlock *node_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "node_viewmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_node_viewmenu, NULL);
-
-	if (snode->nodetree) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Grease Pencil...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-		
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	}
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	
-	/* XXX if (!curarea->full) 
-		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	else 
-		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	*/
-	if(curarea->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
-static void do_node_buttons(bContext *C, void *arg, int event)
-{
-	// NODE_FIX_ME : instead of using "current material/texture/scene", node editor can also pin context?
-	// note: scene context better not gets overridden, that'll clash too much (ton)
-	SpaceNode *snode= CTX_wm_space_node(C);
-	Scene *scene= CTX_data_scene(C);
-	Material *ma;
-	Tex *tx;
-	
-	switch(event) {
-		case B_REDR:
-			ED_area_tag_redraw(CTX_wm_area(C));			
-			break;
-		case B_NODE_USEMAT:
-			ma= (Material *)snode->id;
-			if(ma) {
-				if(ma->use_nodes && ma->nodetree==NULL) {
-					node_shader_default(ma);
-					snode_set_context(snode, scene);
-				}
-			}		
-			ED_area_tag_redraw(CTX_wm_area(C));			
-			break;
-			
-		case B_NODE_USESCENE:
-			if(scene->use_nodes) {
-				if(scene->nodetree==NULL)
-					node_composit_default(scene);
-			}
-			snode_set_context(snode, scene);
-			ED_area_tag_redraw(CTX_wm_area(C));			
-			break;
-			
-		case B_NODE_USETEX:
-			tx = (Tex *)snode->id;
-			if(tx) {
-				tx->type = 0;
-				if(tx->use_nodes && tx->nodetree==NULL) {
-					node_texture_default(tx);
-					snode_set_context(snode, scene);
-				}
-			}
-			ED_area_tag_redraw(CTX_wm_area(C));			
-			break;
-	}
-}
-
-void node_header_buttons(const bContext *C, ARegion *ar)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
-	Scene *scene= CTX_data_scene(C);
-	uiBlock *block;
-	short xco, yco= 3;
-	
-	block= uiBeginBlock(C, ar, "header node", UI_EMBOSS);
-	uiBlockSetHandleFunc(block, do_node_buttons, NULL);
-	
-	xco= ED_area_header_standardbuttons(C, block, yco);
-	
-	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
-		int xmax;
-	
-		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, node_viewmenu, NULL, 
-					  "View", xco, yco, xmax-3, 20, "");
-		xco+= xmax;
-		
-		xmax= GetButStringLength("Select");
-		uiDefPulldownBut(block, node_selectmenu, NULL, 
-						 "Select", xco, yco, xmax-3, 20, "");
-		xco+= xmax;
-		
-		xmax= GetButStringLength("Add");
-		uiDefPulldownBut(block, node_addmenu, NULL, 
-						 "Add", xco, yco, xmax-3, 20, "");
-		xco+= xmax;
-		
-		xmax= GetButStringLength("Node");
-		uiDefPulldownBut(block, node_nodemenu, NULL, 
-						 "Node", xco, yco, xmax-3, 20, "");
-		xco+= xmax;
-	}
-	
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
-	uiBlockSetEmboss(block, UI_EMBOSS);
-	
-	/* main type choosing */
-	uiBlockBeginAlign(block);
-	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DATA, xco,yco,XIC,YIC-2,
-				  &(snode->treetype), 2.0f, 0.0f, 0.0f, 0.0f, "Material Nodes");
-	xco+= XIC;
-	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DATA, xco,yco,XIC,YIC-2,
-				  &(snode->treetype), 2.0f, 1.0f, 0.0f, 0.0f, "Composite Nodes");
-	xco+= XIC;
-	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DATA, xco,yco,XIC,YIC-2,
-				  &(snode->treetype), 2.0f, 2.0f, 0.0f, 0.0f, "Texture Nodes");
-	xco+= 2*XIC;
-	uiBlockEndAlign(block);
-
-	/* find and set the context */
-	snode_set_context(snode, scene);
-	
-	if(snode->treetype==NTREE_SHADER) {
-		if(snode->from) {
-										/* 0, NULL -> pin */
-			// XXX xco= std_libbuttons(block, xco, 0, 0, NULL, B_MATBROWSE, ID_MA, 1, snode->id, snode->from, &(snode->menunr), 
-			//   B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
-			
-			if(snode->id) {
-				Material *ma= (Material *)snode->id;
-				uiDefButC(block, TOG, B_NODE_USEMAT, "Use Nodes", xco+5,yco,90,19, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
-				xco+=80;
-			}
-		}
-	}
-	else if(snode->treetype==NTREE_COMPOSIT) {
-		int icon;
-		
-		if(WM_jobs_test(CTX_wm_manager(C), sa)) icon= ICON_REC; else icon= ICON_BLANK1;
-		uiDefIconTextButS(block, TOG, B_NODE_USESCENE, icon, "Use Nodes", xco+5,yco,100,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
-		xco+= 100;
-		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,yco,100,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
-		xco+= 100;
-		uiDefButBitS(block, TOG, SNODE_BACKDRAW, B_REDR, "Backdrop", xco+5,yco,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
-		xco+= 90;
-	}
-	else if(snode->treetype==NTREE_TEXTURE) {
-		if(snode->from) {
-			
-			// XXX xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, ID_TE, 1, snode->id, snode->from, &(snode->menunr), 
-			//		   B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
-			
-			if(snode->id) {
-				Tex *tx= (Tex *)snode->id;
-				uiDefButC(block, TOG, B_NODE_USETEX, "Use Nodes", xco+5,yco,90,19, &tx->use_nodes, 0.0f, 0.0f, 0, 0, "");
-				xco+=80;
-			}
-		}
-	}
-	
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+100, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
-	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
-}
-
+#endif
 

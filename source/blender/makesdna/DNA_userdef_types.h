@@ -260,6 +260,7 @@ typedef struct bTheme {
 	ThemeSpace ttime;
 	ThemeSpace tnode;
 	ThemeSpace tlogic;
+	ThemeSpace tuserpref;	
 	
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];
@@ -293,6 +294,11 @@ typedef struct UserDef {
 	short userpref, viewzoom;
 	
 	int mixbufsize;
+	int audiodevice;
+	int audiorate;
+	int audioformat;
+	int audiochannels;
+
 	int scrollback; /* console scrollback limit */
 	int dpi;		/* range 48-128? */
 	short encoding;
@@ -363,6 +369,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_RELPATHS			(1 << 20)
 #define USER_DRAGIMMEDIATE		(1 << 21)
 #define USER_DONT_DOSCRIPTLINKS	(1 << 22)
+#define USER_FILENOUI			(1 << 23)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
@@ -404,10 +411,12 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_MODE_EDITKEYS	5
 
 /* Auto-Keying flag */
+	/* U.autokey_flag */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
-
+	/* toolsettings->autokey_flag */
+#define 	ANIMRECORD_FLAG_WITHNLA		(1<<10)
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)
@@ -431,6 +440,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DUP_TEX			(1 << 8)
 #define	USER_DUP_ARM			(1 << 9)
 #define	USER_DUP_ACT			(1 << 10)
+#define	USER_DUP_PSYS			(1 << 11)
 
 /* gameflags */
 #define USER_DEPRECATED_FLAG	1

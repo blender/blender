@@ -150,6 +150,9 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case SPACE_INFO:
 				ts= &btheme->tinfo;
 				break;
+			case SPACE_USERPREF:
+				ts= &btheme->tuserpref;
+				break;
 			case SPACE_TIME:
 				ts= &btheme->ttime;
 				break;
@@ -402,6 +405,7 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->ttime);
 	ui_theme_init_new_do(&btheme->tnode);
 	ui_theme_init_new_do(&btheme->tlogic);
+	ui_theme_init_new_do(&btheme->tuserpref);
 	
 }
 
@@ -441,6 +445,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
 	
 	SETCOLF(btheme->tv3d.header,	0.45, 0.45, 0.45, 1.0);
+	SETCOLF(btheme->tv3d.button,	0.45, 0.45, 0.45, 1.0);
 	SETCOL(btheme->tv3d.panel,      165, 165, 165, 127);
 	
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
@@ -582,6 +587,10 @@ void ui_theme_init_userdef(void)
 	/* space info */
 	btheme->tinfo= btheme->tv3d;
 	SETCOLF(btheme->tinfo.back, 	0.45, 0.45, 0.45, 1.0);
+
+	/* space user preferences */
+	btheme->tuserpref= btheme->tv3d;
+	SETCOLF(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
@@ -1233,6 +1242,7 @@ void init_userdef_do_versions(void)
 			}
 
 			SETCOLF(btheme->tinfo.back, 0.45, 0.45, 0.45, 1.0);
+			SETCOLF(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
 		}
 	}
 	

@@ -127,7 +127,7 @@ void makeavistring (RenderData *rd, char *string)
 	}
 }
 
-void start_avi(RenderData *rd, int rectx, int recty)
+void start_avi(struct Scene *scene, RenderData *rd, int rectx, int recty)
 {
 	int x, y;
 	char name[256];

@@ -57,6 +57,7 @@
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
+#include "BKE_paint.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -1028,11 +1029,11 @@ void vgroup_assign_with_menu(Scene *scene, Object *ob)
 	switch (mode) {
 		case 1: /* add to new group */
 			add_defgroup(ob);
-			assign_verts_defgroup(ob, wp->brush->alpha);
+			assign_verts_defgroup(ob, paint_brush(&wp->paint)->alpha);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case 2: /* add to current group */
-			assign_verts_defgroup(ob, wp->brush->alpha);
+			assign_verts_defgroup(ob, paint_brush(&wp->paint)->alpha);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case 3:	/* remove from current group */
@@ -1075,7 +1076,7 @@ void vgroup_operation_with_menu(Object *ob)
 				short nr;
 				
 				if (menustr) {
-// XXX					nr= pupmenu(menustr);
+					nr= 1; // pupmenu(menustr); // XXX
 					
 					if ((nr >= 1) && (nr <= defCount)) 
 						ob->actdef= nr;

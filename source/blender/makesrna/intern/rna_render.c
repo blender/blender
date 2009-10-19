@@ -106,11 +106,12 @@ static void rna_RenderEngine_unregister(const bContext *C, StructRNA *type)
 	if(!et)
 		return;
 	
+	RNA_struct_free_extension(type, &et->ext);
 	BLI_freelinkN(&R_engines, et);
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-static StructRNA *rna_RenderEngine_register(const bContext *C, ReportList *reports, void *data, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_RenderEngine_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	RenderEngineType *et, dummyet = {0};
 	RenderEngine dummyengine= {0};
@@ -272,9 +273,16 @@ static void rna_def_render_result(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "RenderResult", NULL);
 	RNA_def_struct_ui_text(srna, "Render Result", "Result of rendering, including all layers and passes.");
+
+	func= RNA_def_function(srna, "load_from_file", "RE_result_load_from_file");
+	RNA_def_function_ui_description(func, "Copies the pixels of this render result from an image file.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	prop= RNA_def_string(func, "filename", "", 0, "Filename", "Filename to load into this render tile, must be no smaller then the render result");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
 
 	RNA_define_verify_sdna(0);
 
@@ -302,14 +310,10 @@ static void rna_def_render_layer(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "RenderLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Render Layer", "");
 
-	func= RNA_def_function(srna, "rect_from_file", "RE_layer_rect_from_file");
+	func= RNA_def_function(srna, "load_from_file", "RE_layer_load_from_file");
 	RNA_def_function_ui_description(func, "Copies the pixels of this renderlayer from an image file.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	prop= RNA_def_string(func, "filename", "", 0, "Filename", "Filename to load into this render tile, must be no smaller then the renderlayer");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_int(func, "x", 0, 0, INT_MAX, "Offset X", "Offset the position to copy from if the image is larger then the render layer", 0, INT_MAX);
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_int(func, "y", 0, 0, INT_MAX, "Offset Y", "Offset the position to copy from if the image is larger then the render layer", 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 	
 	RNA_define_verify_sdna(0);

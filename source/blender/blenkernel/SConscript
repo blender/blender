@@ -3,13 +3,17 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
-incs = '. #/intern/guardedalloc ../editors/include ../blenlib ../makesdna'
+incs = '. #/intern/guardedalloc #/intern/memutil ../editors/include ../blenlib ../blenfont ../makesdna'
 incs += ' ../render/extern/include #/intern/decimation/extern ../makesrna'
 incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
 incs += ' #/intern/iksolver/extern ../blenloader'
 incs += ' #/extern/bullet2/src'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
+incs += ' #/intern/smoke/extern'
+incs += ' #/extern/lzo/minilzo'
+incs += ' #/extern/lzma'
+incs += ' #/intern/audaspace/intern'
 
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
@@ -50,7 +54,7 @@ if env['WITH_BF_QUICKTIME']:
 	incs += ' ' + env['BF_QUICKTIME_INC']
 
 if env['WITH_BF_BULLET']:
-	defs.append('WITH_BULLET')
+	defs.append('USE_BULLET')
 
 if env['BF_NO_ELBEEM']:
 	defs.append('DISABLE_ELBEEM')

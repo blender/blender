@@ -38,7 +38,7 @@ DIRS += Expressions GameLogic Ketsji Rasterizer SceneGraph
 DIRS += Network Physics VideoTexture
 
 ifeq ($(WITH_BF_BLENDERGAMEENGINE),true)
-  DIRS += GamePlayer
+#  DIRS += GamePlayer
 endif
 
 include nan_subdirs.mk

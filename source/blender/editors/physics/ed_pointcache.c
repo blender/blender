@@ -46,6 +46,7 @@
 
 #include "ED_screen.h"
 #include "ED_physics.h"
+#include "ED_particle.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -61,7 +62,6 @@
 static int cache_break_test(void *cbd) {
 	return G.afbreek==1;
 }
-/**************************** general **********************************/
 static int ptcache_bake_all_poll(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -70,6 +70,12 @@ static int ptcache_bake_all_poll(bContext *C)
 		return 0;
 	
 	return 1;
+}
+
+static int ptcache_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	return (ptr.data && ptr.id.data);
 }
 
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
@@ -130,7 +136,7 @@ void PTCACHE_OT_bake_all(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
+	RNA_def_boolean(ot->srna, "bake", 1, "Bake", "");
 }
 void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 {
@@ -145,32 +151,25 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
-/**************************** cloth **********************************/
-static int ptcache_bake_cloth_poll(bContext *C)
+static int ptcache_bake_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
-	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-
-	if(!scene || !ob || ob->id.lib || !clmd)
-		return 0;
-	
-	return 1;
-}
-
-static int ptcache_bake_cloth_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
-	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	PTCacheID pid;
+	Scene *scene = CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	Object *ob= ptr.id.data;
+	PointCache *cache= ptr.data;
 	PTCacheBaker baker;
+	PTCacheID *pid;
+	ListBase pidlist;
 
-	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+	
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache == cache)
+			break;
+	}
 
 	baker.scene = scene;
-	baker.pid = &pid;
+	baker.pid = pid;
 	baker.bake = RNA_boolean_get(op->ptr, "bake");
 	baker.render = 0;
 	baker.anim_init = 0;
@@ -182,195 +181,168 @@ static int ptcache_bake_cloth_exec(bContext *C, wmOperator *op)
 
 	BKE_ptcache_make_cache(&baker);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-
-	return OPERATOR_FINISHED;
-}
-static int ptcache_free_bake_cloth_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
-	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	PTCacheID pid;
-
-	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
-	pid.cache->flag &= ~PTCACHE_BAKED;
+	BLI_freelistN(&pidlist);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 
 	return OPERATOR_FINISHED;
 }
-void PTCACHE_OT_cache_cloth(wmOperatorType *ot)
+static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 {
-	/* identifiers */
-	ot->name= "Bake Cloth";
-	ot->idname= "PTCACHE_OT_cache_cloth";
-	
-	/* api callbacks */
-	ot->exec= ptcache_bake_cloth_exec;
-	ot->poll= ptcache_bake_cloth_poll;
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	PointCache *cache= ptr.data;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
-}
-void PTCACHE_OT_free_bake_cloth(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Free Cloth Bake";
-	ot->idname= "PTCACHE_OT_free_bake_cloth";
-	
-	/* api callbacks */
-	ot->exec= ptcache_free_bake_cloth_exec;
-	ot->poll= ptcache_bake_cloth_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-static int ptcache_bake_from_cloth_cache_exec(bContext *C, wmOperator *op)
-{
-	Object *ob= CTX_data_active_object(C);
-	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	PTCacheID pid;
-
-	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
-	pid.cache->flag |= PTCACHE_BAKED;
+	if(cache->edit) {
+		if(!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
+			PE_free_ptcache_edit(cache->edit);
+			cache->edit = NULL;
+			cache->flag &= ~PTCACHE_BAKED;
+		}
+	}
+	else
+		cache->flag &= ~PTCACHE_BAKED;
 
 	return OPERATOR_FINISHED;
 }
-void PTCACHE_OT_bake_from_cloth_cache(wmOperatorType *ot)
+static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	PointCache *cache= ptr.data;
+	
+	cache->flag |= PTCACHE_BAKED;
+
+	return OPERATOR_FINISHED;
+}
+void PTCACHE_OT_bake(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake Physics";
+	ot->idname= "PTCACHE_OT_bake";
+	
+	/* api callbacks */
+	ot->exec= ptcache_bake_exec;
+	ot->poll= ptcache_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "bake", 1, "Bake", "");
+}
+void PTCACHE_OT_free_bake(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Free Physics Bake";
+	ot->idname= "PTCACHE_OT_free_bake";
+	
+	/* api callbacks */
+	ot->exec= ptcache_free_bake_exec;
+	ot->poll= ptcache_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Bake From Cache";
-	ot->idname= "PTCACHE_OT_bake_from_cloth_cache";
+	ot->idname= "PTCACHE_OT_bake_from_cache";
 	
 	/* api callbacks */
-	ot->exec= ptcache_bake_from_cloth_cache_exec;
-	ot->poll= ptcache_bake_cloth_poll;
+	ot->exec= ptcache_bake_from_cache_exec;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/**************************** particles **********************************/
-static int ptcache_bake_particle_system_poll(bContext *C)
+static int ptcache_add_new_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	Object *ob= ptr.id.data;
+	PointCache *cache= ptr.data;
+	PTCacheID *pid;
+	ListBase pidlist;
 
-	if(!scene || !ob || ob->id.lib)
-		return 0;
+	BKE_ptcache_ids_from_object(&pidlist, ob);
 	
-	return (ob->particlesystem.first != NULL);
-}
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache == cache) {
+			*(pid->cache_ptr) = BKE_ptcache_add(pid->ptcaches);
+			break;
+		}
+	}
 
-static int ptcache_bake_particle_system_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
-	ParticleSystem *psys =psys_get_current(ob);
-	PTCacheID pid;
-	PTCacheBaker baker;
-
-	BKE_ptcache_id_from_particles(&pid, ob, psys);
-
-	baker.scene = scene;
-	baker.pid = &pid;
-	baker.bake = RNA_boolean_get(op->ptr, "bake");
-	baker.render = 0;
-	baker.anim_init = 0;
-	baker.quick_step = 1;
-	baker.break_test = cache_break_test;
-	baker.break_data = NULL;
-	baker.progressbar = (void (*)(void *, int))WM_timecursor;
-	baker.progresscontext = CTX_wm_window(C);
-
-	BKE_ptcache_make_cache(&baker);
+	BLI_freelistN(&pidlist);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_free_bake_particle_system_exec(bContext *C, wmOperator *op)
+static int ptcache_remove_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
-	ParticleSystem *psys= psys_get_current(ob);
-	PTCacheID pid;
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	Object *ob= ptr.id.data;
+	PointCache *cache= ptr.data;
+	PTCacheID *pid;
+	ListBase pidlist;
 
-	BKE_ptcache_id_from_particles(&pid, ob, psys);
-	psys->pointcache->flag &= ~PTCACHE_BAKED;
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+	
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache == cache) {
+			if(pid->ptcaches->first == pid->ptcaches->last)
+				continue; /* don't delete last cache */
 
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+			BLI_remlink(pid->ptcaches, pid->cache);
+			BKE_ptcache_free(pid->cache);
+			*(pid->cache_ptr) = pid->ptcaches->first;
+
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
 
 	return OPERATOR_FINISHED;
 }
-void PTCACHE_OT_cache_particle_system(wmOperatorType *ot)
+void PTCACHE_OT_add_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake Particles";
-	ot->idname= "PTCACHE_OT_cache_particle_system";
+	ot->name= "Add new cache";
+	ot->idname= "PTCACHE_OT_add_new";
 	
 	/* api callbacks */
-	ot->exec= ptcache_bake_particle_system_exec;
-	ot->poll= ptcache_bake_particle_system_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
-}
-void PTCACHE_OT_free_bake_particle_system(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Free Particles Bake";
-	ot->idname= "PTCACHE_OT_free_bake_particle_system";
-	
-	/* api callbacks */
-	ot->exec= ptcache_free_bake_particle_system_exec;
-	ot->poll= ptcache_bake_particle_system_poll;
+	ot->exec= ptcache_add_new_exec;
+	ot->poll= ptcache_poll; // ptcache_bake_all_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-static int ptcache_bake_from_particles_cache_exec(bContext *C, wmOperator *op)
-{
-	Object *ob= CTX_data_active_object(C);
-	ParticleSystem *psys= psys_get_current(ob);
-	PTCacheID pid;
-
-	BKE_ptcache_id_from_particles(&pid, ob, psys);
-	psys->pointcache->flag |= PTCACHE_BAKED;
-
-	return OPERATOR_FINISHED;
-}
-void PTCACHE_OT_bake_from_particles_cache(wmOperatorType *ot)
+void PTCACHE_OT_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake From Cache";
-	ot->idname= "PTCACHE_OT_bake_from_particles_cache";
+	ot->name= "Delete current cache";
+	ot->idname= "PTCACHE_OT_remove";
 	
 	/* api callbacks */
-	ot->exec= ptcache_bake_from_particles_cache_exec;
-	ot->poll= ptcache_bake_particle_system_poll;
+	ot->exec= ptcache_remove_exec;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
 /**************************** registration **********************************/
 
 void ED_operatortypes_pointcache(void)
 {
 	WM_operatortype_append(PTCACHE_OT_bake_all);
 	WM_operatortype_append(PTCACHE_OT_free_bake_all);
-	WM_operatortype_append(PTCACHE_OT_cache_particle_system);
-	WM_operatortype_append(PTCACHE_OT_free_bake_particle_system);
-	WM_operatortype_append(PTCACHE_OT_bake_from_particles_cache);
-	WM_operatortype_append(PTCACHE_OT_cache_cloth);
-	WM_operatortype_append(PTCACHE_OT_free_bake_cloth);
-	WM_operatortype_append(PTCACHE_OT_bake_from_cloth_cache);
+	WM_operatortype_append(PTCACHE_OT_bake);
+	WM_operatortype_append(PTCACHE_OT_free_bake);
+	WM_operatortype_append(PTCACHE_OT_bake_from_cache);
+	WM_operatortype_append(PTCACHE_OT_add_new);
+	WM_operatortype_append(PTCACHE_OT_remove);
 }
 
 //void ED_keymap_pointcache(wmWindowManager *wm)

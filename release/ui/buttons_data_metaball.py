@@ -1,8 +1,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -54,30 +54,59 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 	__label__ = "Active Element"
 	
 	def poll(self, context):
-		return (context.meta_ball and context.meta_ball.last_selected_element)
+		return (context.meta_ball and context.meta_ball.active_element)
 
 	def draw(self, context):
 		layout = self.layout
 		
-		metaelem = context.meta_ball.last_selected_element
+		metaelem = context.meta_ball.active_element
 		
 		split = layout.split(percentage=0.3)
 		split.itemL(text="Type:")	
 		split.itemR(metaelem, "type", text="")
 		
 		split = layout.split()
-		
-		col = split.column()
-		col.itemL(text="Size:")	
-		col.itemR(metaelem, "size", text="")
-		
+			
 		col = split.column()
 		col.itemL(text="Settings:")
 		col.itemR(metaelem, "stiffness", text="Stiffness")
 		col.itemR(metaelem, "negative", text="Negative")
 		col.itemR(metaelem, "hide", text="Hide")
 		
-	
+		if metaelem.type == 'BALL':
+		
+			col = split.column(align=True)
+			
+		elif metaelem.type == 'CUBE':
+		
+			col = split.column(align=True)
+			col.itemL(text="Size:")	
+			col.itemR(metaelem, "size_x", text="X")
+			col.itemR(metaelem, "size_y", text="Y")
+			col.itemR(metaelem, "size_z", text="Z")
+			
+		elif metaelem.type == 'TUBE':
+		
+			col = split.column(align=True)
+			col.itemL(text="Size:")	
+			col.itemR(metaelem, "size_x", text="X")
+			
+		elif metaelem.type == 'PLANE':
+			
+			col = split.column(align=True)
+			col.itemL(text="Size:")	
+			col.itemR(metaelem, "size_x", text="X")
+			col.itemR(metaelem, "size_y", text="Y")
+			
+		elif metaelem.type == 'ELLIPSOID':
+			
+			col = split.column(align=True)
+			col.itemL(text="Size:")	
+			col.itemR(metaelem, "size_x", text="X")
+			col.itemR(metaelem, "size_y", text="Y")
+			col.itemR(metaelem, "size_z", text="Z")
+		
+
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)
 bpy.types.register(DATA_PT_metaball_element)

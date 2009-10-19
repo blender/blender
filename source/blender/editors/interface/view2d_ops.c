@@ -235,6 +235,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 			break;
 			
+		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 			if (event->val==0) {
 				/* calculate overall delta mouse-movement for redo */
@@ -826,6 +827,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 			break;
 			
+		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 			if (event->val==0) {
 				/* for redo, store the overall deltas - need to respect zoom-locks here... */

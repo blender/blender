@@ -269,37 +269,31 @@ void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject KX_LightObject::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_LightObject",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,
-		&KX_GameObject::Sequence,
-		&KX_GameObject::Mapping,
-		0,0,0,
-		NULL,
-		NULL,
-		0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&KX_GameObject::Type,
-		0,0,0,0,0,0,
-		py_base_new
+	"KX_LightObject",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,
+	&KX_GameObject::Sequence,
+	&KX_GameObject::Mapping,
+	0,0,0,
+	NULL,
+	NULL,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&KX_GameObject::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_LightObject::Methods[] = {

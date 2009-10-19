@@ -48,6 +48,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
+#include "BKE_sequence.h"
 #include "BKE_pointcache.h"
 
 #include "MEM_guardedalloc.h"
@@ -867,33 +868,26 @@ static void renderresult_add_names(RenderResult *rr)
 			strcpy(rpass->name, get_pass_name(rpass->passtype, -1));
 }
 
-
-/* only for temp buffer files, makes exact copy of render result */
-static void read_render_result(Render *re, int sample)
+/* called for reading temp files, and for external engines */
+static int read_render_result_from_file(char *filename, RenderResult *rr)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
 	void *exrhandle= IMB_exr_get_handle();
 	int rectx, recty;
-	char str[FILE_MAX];
-	
-	RE_FreeRenderResult(re->result);
-	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 
-	render_unique_exr_name(re, str, sample);
-	if(IMB_exr_begin_read(exrhandle, str, &rectx, &recty)==0) {
+	if(IMB_exr_begin_read(exrhandle, filename, &rectx, &recty)==0) {
 		IMB_exr_close(exrhandle);
-		printf("cannot read: %s\n", str);
-		return;
+		return 0;
 	}
 	
-	printf("read exr tmp file: %s\n", str);
-	
-	if(re->result == NULL || rectx!=re->result->rectx || recty!=re->result->recty) {
+	if(rr == NULL || rectx!=rr->rectx || recty!=rr->recty) {
 		printf("error in reading render result\n");
+		IMB_exr_close(exrhandle);
+		return 0;
 	}
 	else {
-		for(rl= re->result->layers.first; rl; rl= rl->next) {
+		for(rl= rr->layers.first; rl; rl= rl->next) {
 			
 			/* combined */
 			if(rl->rectf) {
@@ -913,10 +907,27 @@ static void read_render_result(Render *re, int sample)
 			
 		}
 		IMB_exr_read_channels(exrhandle);
-		renderresult_add_names(re->result);
+		renderresult_add_names(rr);
 	}
 	
 	IMB_exr_close(exrhandle);
+
+	return 1;
+}
+
+/* only for temp buffer files, makes exact copy of render result */
+static void read_render_result(Render *re, int sample)
+{
+	char str[FILE_MAX];
+
+	RE_FreeRenderResult(re->result);
+	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+
+	render_unique_exr_name(re, str, sample);
+	printf("read exr tmp file: %s\n", str);
+
+	if(!read_render_result_from_file(str, re->result))
+		printf("cannot read: %s\n", str);
 }
 
 /* *************************************************** */
@@ -2303,6 +2314,63 @@ static void renderresult_stampinfo(Scene *scene)
 	BKE_stamp_buf(scene, (unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
 }
 
+static void do_render_seq(Render * re)
+{
+	static int recurs_depth = 0;
+	struct ImBuf *ibuf;
+	RenderResult *rr = re->result;
+	int cfra = re->r.cfra;
+
+	recurs_depth++;
+
+	ibuf= give_ibuf_seq(re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
+
+	recurs_depth--;
+	
+	if(ibuf) {
+		if(ibuf->rect_float) {
+			if (!rr->rectf)
+				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
+			
+			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
+			
+			/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
+			   can hang around when sequence render has rendered a 32 bits one before */
+			if(rr->rect32) {
+				MEM_freeN(rr->rect32);
+				rr->rect32= NULL;
+			}
+		}
+		else if(ibuf->rect) {
+			if (!rr->rect32)
+				rr->rect32= MEM_mallocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
+
+			memcpy(rr->rect32, ibuf->rect, 4*rr->rectx*rr->recty);
+
+			/* if (ibuf->zbuf) { */
+			/* 	if (R.rectz) freeN(R.rectz); */
+			/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
+			/* } */
+		}
+		
+		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
+			Editing * ed = re->scene->ed;
+			if (ed) {
+				free_imbuf_seq(&ed->seqbase, TRUE);
+			}
+		}
+	}
+	else {
+		/* render result is delivered empty in most cases, nevertheless we handle all cases */
+		if (rr->rectf)
+			memset(rr->rectf, 0, 4*sizeof(float)*rr->rectx*rr->recty);
+		else if (rr->rect32)
+			memset(rr->rect32, 0, 4*rr->rectx*rr->recty);
+		else
+			rr->rect32= MEM_callocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
+	}
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
@@ -2316,7 +2384,7 @@ static void do_render_all_options(Render *re)
 	if((re->r.scemode & R_DOSEQ) && re->scene->ed && re->scene->ed->seqbase.first) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break(re->tbh)) 
-			; //XXX do_render_seq(re->result, re->r.cfra);
+			do_render_seq(re);
 		
 		re->stats_draw(re->sdh, &re->i);
 		re->display_draw(re->ddh, re->result, NULL);
@@ -2502,8 +2570,15 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim, int 
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
 
-	/* make sure dynamics are up to date */
-	update_physics_cache(re, scene, anim_init);
+	/*
+	 * Disabled completely for now,
+	 * can be later set as render profile option
+	 * and default for background render.
+	*/
+	if(0) {
+		/* make sure dynamics are up to date */
+		update_physics_cache(re, scene, anim_init);
+	}
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
@@ -2634,7 +2709,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
-		mh->start_movie(&re->r, re->rectx, re->recty);
+		mh->start_movie(scene, &re->r, re->rectx, re->recty);
 	
 	if (mh->get_next_frame) {
 		while (!(G.afbreek == 1)) {
@@ -2879,7 +2954,7 @@ void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info)
 
 /* loads in image into a result, size must match
  * x/y offsets are only used on a partial copy when dimensions dont match */
-void RE_layer_rect_from_file(RenderLayer *layer, ReportList *reports, char *filename, int x, int y)
+void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, char *filename)
 {
 	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect);
 
@@ -2890,7 +2965,7 @@ void RE_layer_rect_from_file(RenderLayer *layer, ReportList *reports, char *file
 
 			memcpy(layer->rectf, ibuf->rect_float, sizeof(float)*4*layer->rectx*layer->recty);
 		} else {
-			if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
+			if ((ibuf->x >= layer->rectx) && (ibuf->y >= layer->recty)) {
 				ImBuf *ibuf_clip;
 
 				if(ibuf->rect_float==NULL)
@@ -2898,7 +2973,7 @@ void RE_layer_rect_from_file(RenderLayer *layer, ReportList *reports, char *file
 
 				ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat, 0);
 				if(ibuf_clip) {
-					IMB_rectcpy(ibuf_clip, ibuf, 0,0, x,y, layer->rectx, layer->recty);
+					IMB_rectcpy(ibuf_clip, ibuf, 0,0, 0,0, layer->rectx, layer->recty);
 
 					memcpy(layer->rectf, ibuf_clip->rect_float, sizeof(float)*4*layer->rectx*layer->recty);
 					IMB_freeImBuf(ibuf_clip);
@@ -2918,6 +2993,15 @@ void RE_layer_rect_from_file(RenderLayer *layer, ReportList *reports, char *file
 		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
 	}
 }
+
+void RE_result_load_from_file(RenderResult *result, ReportList *reports, char *filename)
+{
+	if(!read_render_result_from_file(filename, result)) {
+		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
+		return;
+	}
+}
+
 static void external_render_3d(Render *re, RenderEngineType *type)
 {
 	RenderEngine engine;

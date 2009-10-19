@@ -71,9 +71,15 @@ static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 	}
 }
 
+static int rna_Screen_animation_playing_get(PointerRNA *ptr)
+{
+	bScreen *sc= (bScreen*)ptr->data;
+	return (sc->animtimer != NULL);
+}
+
 #else
 
-static void rna_def_scrarea(BlenderRNA *brna)
+static void rna_def_area(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -119,7 +125,7 @@ static void rna_def_region(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Region ID", "Uniqute ID for this region.");
 }
 
-static void rna_def_bscreen(BlenderRNA *brna)
+static void rna_def_screen(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -139,12 +145,17 @@ static void rna_def_bscreen(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "areabase", NULL);
 	RNA_def_property_struct_type(prop, "Area");
 	RNA_def_property_ui_text(prop, "Areas", "Areas the screen is subdivided into.");
+
+	prop= RNA_def_property(srna, "animation_playing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Screen_animation_playing_get", NULL);
+	RNA_def_property_ui_text(prop, "Animation Playing", "Animation playback is active.");
 }
 
 void RNA_def_screen(BlenderRNA *brna)
 {
-	rna_def_bscreen(brna);
-	rna_def_scrarea(brna);
+	rna_def_screen(brna);
+	rna_def_area(brna);
 	rna_def_region(brna);
 }
 

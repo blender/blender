@@ -620,7 +620,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					
 					tenla->name= "Pose";
 					
-					if(arm->edbo==NULL && (ob->flag & OB_POSEMODE)) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
+					if(arm->edbo==NULL && (ob->mode & OB_MODE_POSE)) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
 						int a= 0, const_index= 1000;	/* ensure unique id for bone constraints */
 						
 						for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
@@ -887,7 +887,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				else {
 					/* do not extend Armature when we have posemode */
 					tselem= TREESTORE(te->parent);
-					if( GS(tselem->id->name)==ID_OB && ((Object *)tselem->id)->flag & OB_POSEMODE);
+					if( GS(tselem->id->name)==ID_OB && ((Object *)tselem->id)->mode & OB_MODE_POSE);
 					else {
 						Bone *curBone;
 						for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
@@ -1016,7 +1016,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		PointerRNA pptr, propptr, *ptr= (PointerRNA*)idv;
 		PropertyRNA *prop, *iterprop;
 		PropertyType proptype;
-		PropertySubType propsubtype;
 		int a, tot;
 
 		/* we do lazy build, for speed and to avoid infinite recusion */
@@ -1085,7 +1084,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					te->flag |= TE_LAZY_CLOSED;
 			}
 			else if(ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-				tot= RNA_property_array_length(prop);
+				tot= RNA_property_array_length(ptr, prop);
 
 				if(!(tselem->flag & TSE_CLOSED)) {
 					for(a=0; a<tot; a++)
@@ -1096,31 +1095,20 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			}
 		}
 		else if(type == TSE_RNA_ARRAY_ELEM) {
-			/* array property element */
-			static char *vectoritem[4]= {"  x", "  y", "  z", "  w"};
-			static char *quatitem[4]= {"  w", "  x", "  y", "  z"};
-			static char *coloritem[4]= {"  r", "  g", "  b", "  a"};
+			char c;
 
 			prop= parent->directdata;
-			proptype= RNA_property_type(prop);
-			propsubtype= RNA_property_subtype(prop);
-			tot= RNA_property_array_length(prop);
 
 			te->directdata= prop;
 			te->rnaptr= *ptr;
 			te->index= index;
 
-			if(tot == 4 && propsubtype == PROP_ROTATION)
-				te->name= quatitem[index];
-			else if(tot <= 4 && (propsubtype == PROP_VECTOR || propsubtype == PROP_ROTATION))
-				te->name= vectoritem[index];
-			else if(tot <= 4 && propsubtype == PROP_COLOR)
-				te->name= coloritem[index];
-			else {
-				te->name= MEM_callocN(sizeof(char)*20, "OutlinerRNAArrayName");
-				sprintf(te->name, "  %d", index+1);
-				te->flag |= TE_FREE_NAME;
-			}
+			c= RNA_property_array_item_char(prop, index);
+
+			te->name= MEM_callocN(sizeof(char)*20, "OutlinerRNAArrayName");
+			if(c) sprintf(te->name, "  %c", c);
+			else sprintf(te->name, "  %d", index+1);
+			te->flag |= TE_FREE_NAME;
 		}
 	}
 	else if(type == TSE_KEYMAP) {
@@ -2132,9 +2120,7 @@ static int tree_element_active_psys(bContext *C, Scene *scene, TreeElement *te, 
 {
 	if(set) {
 		Object *ob= (Object *)tselem->id;
-		ParticleSystem *psys= te->directdata;
 		
-		PE_change_act_psys(scene, ob, psys);
 		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 		
 // XXX		extern_set_butspace(F7KEY, 0);
@@ -2189,13 +2175,13 @@ static int tree_element_active_pose(bContext *C, Scene *scene, TreeElement *te, 
 		if(scene->obedit) 
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		
-		if(ob->flag & OB_POSEMODE) 
+		if(ob->mode & OB_MODE_POSE) 
 			ED_armature_exit_posemode(C, base);
 		else 
 			ED_armature_enter_posemode(C, base);
 	}
 	else {
-		if(ob->flag & OB_POSEMODE) return 1;
+		if(ob->mode & OB_MODE_POSE) return 1;
 	}
 	return 0;
 }
@@ -3073,10 +3059,6 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		if(scene->obedit==base->object) 
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		
-		if(base==BASACT) {
-			ED_view3d_exit_paint_modes(C);
-		}
-		
 		ED_base_object_free_and_unlink(scene, base);
 		te->directdata= NULL;
 		tselem->id= NULL;
@@ -3250,7 +3232,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
-	char *str;
+	char *str= NULL;
 	
 	/* check for invalid states */
 	if (soops == NULL)
@@ -3674,7 +3656,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 				}
 				else if(RNA_property_type(prop) == PROP_COLLECTION) {
 					char buf[128], *name;
-
+					
 					temnext= (TreeElement*)(ld->next->data);
 					tsenext= TREESTORE(temnext);
 					
@@ -3737,7 +3719,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* item is part of an array, so must set the array_index */
 			*array_index= te->index;
 		}
-		else if (RNA_property_array_length(prop)) {
+		else if (RNA_property_array_length(ptr, prop)) {
 			/* entire array was selected, so keyframe all */
 			*flag |= KSP_FLAG_WHOLE_ARRAY;
 		}
@@ -3917,7 +3899,7 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 	/* add if none found */
 	// XXX the default settings have yet to evolve
 	if ((add) && (ks==NULL)) {
-		ks= BKE_keyingset_add(&scene->keyingsets, "Keying Set", KEYINGSET_ABSOLUTE, 0);
+		ks= BKE_keyingset_add(&scene->keyingsets, NULL, KEYINGSET_ABSOLUTE, 0);
 		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
 	}
 	
@@ -3942,7 +3924,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 			short groupmode= KSP_GROUP_KSNAME;
 			
 			/* check if RNA-property described by this selected element is an animateable prop */
-			if ((tselem->type == TSE_RNA_PROPERTY) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
 				/* get id + path + index info from the selected element */
 				tree_element_to_path(soops, te, tselem, 
 						&id, &path, &array_index, &flag, &groupmode);
@@ -3979,8 +3961,6 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 				/* free path, since it had to be generated */
 				MEM_freeN(path);
 			}
-			
-			
 		}
 		
 		/* go over sub-tree */
@@ -4178,13 +4158,13 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_POSEGRP_BASE:
 				UI_icon_draw(x, y, ICON_VERTEXSEL); break;
 			case TSE_SEQUENCE:
-				if((te->idcode==SEQ_MOVIE) || (te->idcode==SEQ_MOVIE_AND_HD_SOUND))
+				if(te->idcode==SEQ_MOVIE)
 					UI_icon_draw(x, y, ICON_SEQUENCE);
 				else if(te->idcode==SEQ_META)
 					UI_icon_draw(x, y, ICON_DOT);
 				else if(te->idcode==SEQ_SCENE)
 					UI_icon_draw(x, y, ICON_SCENE);
-				else if((te->idcode==SEQ_RAM_SOUND) || (te->idcode==SEQ_HD_SOUND))
+				else if(te->idcode==SEQ_SOUND)
 					UI_icon_draw(x, y, ICON_SOUND);
 				else if(te->idcode==SEQ_IMAGE)
 					UI_icon_draw(x, y, ICON_IMAGE_COL);
@@ -5097,6 +5077,28 @@ static char *keymap_tweak_menu(void)
 	return string;
 }
 
+static char *keymap_tweak_dir_menu(void)
+{
+	static char string[500];
+	static char formatstr[] = "|%s %%x%d";
+	char *str= string;
+	
+	str += sprintf(str, "Tweak Direction %%t");
+	
+	str += sprintf(str, formatstr, "Any", KM_ANY);
+	str += sprintf(str, formatstr, "North", EVT_GESTURE_N);
+	str += sprintf(str, formatstr, "North-East", EVT_GESTURE_NE);
+	str += sprintf(str, formatstr, "East", EVT_GESTURE_E);
+	str += sprintf(str, formatstr, "Sout-East", EVT_GESTURE_SE);
+	str += sprintf(str, formatstr, "South", EVT_GESTURE_S);
+	str += sprintf(str, formatstr, "South-West", EVT_GESTURE_SW);
+	str += sprintf(str, formatstr, "West", EVT_GESTURE_W);
+	str += sprintf(str, formatstr, "North-West", EVT_GESTURE_NW);
+	
+	return string;
+}
+
+
 static void keymap_type_cb(bContext *C, void *kmi_v, void *unused_v)
 {
 	wmKeymapItem *kmi= kmi_v;
@@ -5174,17 +5176,20 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 						str= keymap_tweak_menu();
 						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->type, 0, 0, 0, 0,  "Tweak gesture");	
 						xstart+= butw2+5;
+						str= keymap_tweak_dir_menu();
+						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->val, 0, 0, 0, 0,  "Tweak gesture direction");	
+						xstart+= butw2+5;
 						break;
 				}
 				
 				/* modifiers */
-				uiBlockBeginAlign(block);
 				uiDefButS(block, OPTION, 0, "Shift",	xstart, (int)te->ys+1, butw3+5, OL_H-1, &kmi->shift, 0, 0, 0, 0, "Modifier"); xstart+= butw3+5;
 				uiDefButS(block, OPTION, 0, "Ctrl",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->ctrl, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
 				uiDefButS(block, OPTION, 0, "Alt",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->alt, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
 				uiDefButS(block, OPTION, 0, "Cmd",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->oskey, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
 				xstart+= 5;
-				uiBlockEndAlign(block);
+				uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->keymodifier, "Key Modifier code");
+				xstart+= butw3+5;
 				
 				/* rna property */
 				if(kmi->ptr && kmi->ptr->data)
@@ -5267,7 +5272,10 @@ void draw_outliner(const bContext *C)
 		sizex_rna= MAX2(OL_RNA_COLX, sizex_rna+OL_RNA_COL_SPACEX);
 		
 		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
-		sizex= sizex_rna + OL_RNA_COL_SIZEX + 50;
+		if (soops->outlinevis == SO_KEYMAP) 
+			sizex= sizex_rna + OL_RNA_COL_SIZEX*3 + 50; // XXX this is only really a quick hack to make this wide enough...
+		else
+			sizex= sizex_rna + OL_RNA_COL_SIZEX + 50;
 	}
 	else {
 		/* width must take into account restriction columns (if visible) so that entries will still be visible */
@@ -5279,6 +5287,9 @@ void draw_outliner(const bContext *C)
 		if ((soops->flag & SO_HIDE_RESTRICTCOLS)==0)
 			sizex += OL_TOGW*3;
 	}
+	
+	/* tweak to display last line (when list bigger than window) */
+	sizey += V2D_SCROLL_HEIGHT;
 	
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, sizex, sizey);

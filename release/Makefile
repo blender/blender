@@ -35,16 +35,6 @@ BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)-py$(NAN_PYTHON_VERSION)$(TYPE)
 export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
 export CONFDIR=$(DISTDIR)/.blender
 
-ifeq ($(OS),beos)
-   TAR="zip"
-   TARFLAGS="-ry9"
-   EXT0=""
-   EXT1=".zip"
-   COMPRESS=""
-   EXT2=""
-   NOPLUGINS?=true
-endif
-
 ifeq ($(OS),$(findstring $(OS), "freebsd irix linux openbsd solaris"))
    TAR="tar"
    TARFLAGS="cf"
@@ -166,6 +156,12 @@ endif
 
 	@echo "----> Copy python UI files"
 	@[ ! -d ui ] || cp -r ui $(CONFDIR)/ui
+	
+    ifeq ($(OS),darwin)
+	@echo "----> Copy python modules"
+	@mkdir $(CONFDIR)/python/
+	@unzip -q $(LCGDIR)/release/python.zip -d $(CONFDIR)/python/	
+    endif
 
     ifeq ($(OS),darwin)
 	@echo "----> Move .blender to .app/Contents/MacOS/"

@@ -29,4 +29,9 @@ SET(INC .)
 FILE(GLOB SRC intern/*.c)
 
 BLENDERLIB(bf_guardedalloc "${SRC}" "${INC}")
-#, libtype=['intern', 'player'], priority = [10, 175] )
+
+# Override C++ alloc optional
+IF(WITH_CXX_GUARDEDALLOC)
+  FILE(GLOB SRC cpp/*.cpp)
+  BLENDERLIB(bf_guardedalloc_cpp "${SRC}" "${INC}")
+ENDIF(WITH_CXX_GUARDEDALLOC)

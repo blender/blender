@@ -31,7 +31,6 @@
 #define EXPP_vector_h
 
 #include <Python.h>
-#include "../intern/bpy_compat.h"
 
 extern PyTypeObject vector_Type;
 #define VectorObject_Check(_v) PyObject_TypeCheck((_v), &vector_Type)

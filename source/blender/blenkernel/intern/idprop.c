@@ -167,7 +167,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 		for (i=newlen; i<prop->len; i++) {
 			IDP_FreeProperty(GETPROP(prop, i));
 		}
-		memcpy(newarr, prop->data.pointer, newlen*prop->len*sizeof(IDProperty));
+		memcpy(newarr, prop->data.pointer, newlen*sizeof(IDProperty));
 	}
 
 	if(prop->data.pointer)

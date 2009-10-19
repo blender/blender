@@ -98,8 +98,6 @@ protected:
 
 	KX_IPhysicsController*				m_pPhysicsController1;
 	PHY_IGraphicController*				m_pGraphicController;
-	// used for ray casting
-	PHY_IPhysicsEnvironment*			m_pPhysicsEnvironment;
 	STR_String							m_testPropName;
 	bool								m_xray;
 	KX_GameObject*						m_pHitObject;
@@ -336,20 +334,6 @@ public:
 		bool lin_vel_local,
 		bool ang_vel_local
 	);
-
-
-	/**
-	 * @return a pointer to the physics environment in use during the game, for rayCasting
-	 */
-	PHY_IPhysicsEnvironment* GetPhysicsEnvironment()
-	{
-		return m_pPhysicsEnvironment;
-	}
-
-	void SetPhysicsEnvironment(PHY_IPhysicsEnvironment* physicsEnvironment)
-	{
-		m_pPhysicsEnvironment = physicsEnvironment;
-	}
 
 	/**
 	 * @return a pointer to the physics controller owned by this class.
@@ -811,9 +795,7 @@ public:
 	{
 		return PyUnicode_FromString(GetName().ReadPtr());
 	}
-		
-	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
-	KX_PYMETHOD_O(KX_GameObject,SetPosition);
+
 	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);
 	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyForce);
 	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyTorque);
@@ -824,10 +806,10 @@ public:
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetAngularVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetAngularVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetVelocity);
-	KX_PYMETHOD_NOARGS(KX_GameObject,GetMass);
+
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetReactionForce);
-	KX_PYMETHOD_NOARGS(KX_GameObject,GetOrientation);
-	KX_PYMETHOD_O(KX_GameObject,SetOrientation);
+
+
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetVisible);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetVisible);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetOcclusion);
@@ -844,12 +826,12 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetParent);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetParent);
 	KX_PYMETHOD_NOARGS(KX_GameObject,RemoveParent);
-	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildren);	
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildren);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildrenRecursive);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPropertyNames);
-	KX_PYMETHOD_O(KX_GameObject,ReplaceMesh);
+	KX_PYMETHOD_VARARGS(KX_GameObject,ReplaceMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
@@ -860,7 +842,6 @@ public:
 	
 	/* Dict access */
 	KX_PYMETHOD_VARARGS(KX_GameObject,get);
-	KX_PYMETHOD_O(KX_GameObject,has_key);
 	
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

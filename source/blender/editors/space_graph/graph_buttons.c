@@ -160,7 +160,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	}
 	
 	getname_anim_fcurve(name, ale->id, fcu);
-	uiDefBut(block, LABEL, 1, name,	30, 180, 300, 19, NULL, 0.0, 0.0, 0, 0, "Name of Active F-Curve");
+	uiDefBut(block, LABEL, 1, name,	40, 180, 300, 19, NULL, 0.0, 0.0, 0, 0, "Name of Active F-Curve");
 	
 	/* TODO: the following settings could be added here
 	 *	- F-Curve coloring mode - mode selector + color selector

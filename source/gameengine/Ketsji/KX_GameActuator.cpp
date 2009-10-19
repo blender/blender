@@ -207,39 +207,29 @@ bool KX_GameActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_GameActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_GameActuator",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_IActuator::Type,
-		0,0,0,0,0,0,
-		py_base_new
+	"KX_GameActuator",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_GameActuator::Methods[] =
 {
-	// Deprecated ----->
-	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, (PY_METHODCHAR)GetFile_doc},
-	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, (PY_METHODCHAR)SetFile_doc},
-	// <-----
 	{NULL,NULL} //Sentinel
 };
 
@@ -248,36 +238,3 @@ PyAttributeDef KX_GameActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mode", KX_GAME_NODEF+1, KX_GAME_MAX-1, true, KX_GameActuator, m_mode),
 	{ NULL }	//Sentinel
 };
-
-// Deprecated ----->
-/* getFile */
-const char KX_GameActuator::GetFile_doc[] = 
-"getFile()\n"
-"get the name of the file to start.\n";
-PyObject* KX_GameActuator::PyGetFile(PyObject* args, PyObject* kwds)
-{	
-	ShowDeprecationWarning("getFile()", "the fileName property");
-	return PyUnicode_FromString(m_filename);
-}
-
-/* setFile */
-const char KX_GameActuator::SetFile_doc[] =
-"setFile(name)\n"
-"set the name of the file to start.\n";
-PyObject* KX_GameActuator::PySetFile(PyObject* args, PyObject* kwds)
-{
-	char* new_file;
-
-	ShowDeprecationWarning("setFile()", "the fileName property");
-	
-	if (!PyArg_ParseTuple(args, "s:setFile", &new_file))
-	{
-		return NULL;
-	}
-	
-	m_filename = STR_String(new_file);
-
-	Py_RETURN_NONE;
-
-}
-// <-----	

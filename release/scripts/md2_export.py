@@ -923,7 +923,8 @@ def fill_md2(md2, object):
 					maxdot = dot;
 					maxdotindex = j;
 			
-			md2.frames[frame_counter].vertices[vert_counter].lightnormalindex=maxdotindex+2
+			# See patch [#19206], gives good info on this line below.
+			md2.frames[frame_counter].vertices[vert_counter].lightnormalindex=maxdotindex
 			
 			del maxdot, maxdotindex
 			del new_x, new_y, new_z

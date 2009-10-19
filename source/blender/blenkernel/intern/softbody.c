@@ -866,7 +866,8 @@ static void renew_softbody(Scene *scene, Object *ob, int totpoint, int totspring
 			bp->frozen = 1.0f;
 			bp->colball = 0.0f;
 			bp->flag = 0;
-
+			bp->springweight = 1.0f;
+			bp->mass = sb->nodemass;
 		}
 	}
 }
@@ -3687,66 +3688,6 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
 	}
 }
 
-void sbWriteCache(Object *ob, int framenr)
-{
-	SoftBody *sb= ob->soft;
-	BodyPoint *bp;
-	PTCacheID pid;
-	PTCacheFile *pf;
-	int a;
-
-	if(sb->totpoint == 0)
-		return;
-
-	BKE_ptcache_id_from_softbody(&pid, ob, sb);
-	pf= BKE_ptcache_file_open(&pid, PTCACHE_FILE_WRITE, framenr);
-	if(!pf)
-		return;
-	
-	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
-		BKE_ptcache_file_write_floats(pf, bp->pos, 3);
-
-	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
-		BKE_ptcache_file_write_floats(pf, bp->vec, 3);
-
-	BKE_ptcache_file_close(pf);
-}
-
-static int softbody_read_cache(Object *ob, float framenr)
-{
-	SoftBody *sb= ob->soft;
-	BodyPoint *bp;
-	PTCacheID pid;
-	PTCacheFile *pf;
-	int a;
-
-	if(sb->totpoint == 0)
-		return 0;
-	
-	BKE_ptcache_id_from_softbody(&pid, ob, sb);
-	pf= BKE_ptcache_file_open(&pid, PTCACHE_FILE_READ, framenr);
-	if(!pf)
-		return 0;
-
-	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++) {
-		if(!BKE_ptcache_file_read_floats(pf, bp->pos, 3)) {
-			BKE_ptcache_file_close(pf);
-			return 0;
-		}
-	}
-
-	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++) {
-		if(!BKE_ptcache_file_read_floats(pf, bp->vec, 3)) {
-			BKE_ptcache_file_close(pf);
-			return 0;
-		}
-	}
-
-	BKE_ptcache_file_close(pf);
-
-	return 1;
-}
-
 /* +++ ************ maintaining scratch *************** */
 static void sb_new_scratch(SoftBody *sb)
 {
@@ -3806,7 +3747,7 @@ SoftBody *sbNew(Scene *scene)
 	sb->shearstiff = 1.0f;
 	sb->solverflags |= SBSO_OLDERR;
 
-	sb->pointcache = BKE_ptcache_add();
+	sb->pointcache = BKE_ptcache_add(&sb->ptcaches);
 
 	return sb;
 }
@@ -3815,7 +3756,8 @@ SoftBody *sbNew(Scene *scene)
 void sbFree(SoftBody *sb)
 {
 	free_softbody_intern(sb);
-	BKE_ptcache_free(sb->pointcache);
+	BKE_ptcache_free_list(&sb->ptcaches);
+	sb->pointcache = NULL;
 	MEM_freeN(sb);
 }
 
@@ -4114,6 +4056,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	PTCacheID pid;
 	float dtime, timescale;
 	int framedelta, framenr, startframe, endframe;
+	int cache_result;
 
 	cache= sb->pointcache;
 
@@ -4128,7 +4071,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	if(sb->bpoint && numVerts != sb->totpoint) {
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
-
+		cache->last_exact= 0;
 		return;
 	}
 
@@ -4136,6 +4079,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	if(framenr < startframe) {
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
+		cache->last_exact= 0;
 
 		return;
 	}
@@ -4198,26 +4142,35 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	}
 
 	/* try to read from cache */
-	if(softbody_read_cache(ob, framenr)) {
-		if(sb->particles==0)
-			softbody_to_object(ob, vertexCos, numVerts, sb->local);
+	cache_result = BKE_ptcache_read_cache(&pid, framenr, scene->r.frs_sec);
 
+	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
 		cache->flag |= PTCACHE_SIMULATION_VALID;
 		cache->simframe= framenr;
 
+		if(sb->particles==0)
+			softbody_to_object(ob, vertexCos, numVerts, sb->local);
+
 		return;
+	}
+	else if(cache_result==PTCACHE_READ_OLD) {
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_FREE);
+		cache->flag |= PTCACHE_SIMULATION_VALID;
 	}
 	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
 		/* if baked and nothing in cache, do nothing */
-		if(cache->flag & PTCACHE_SIMULATION_VALID) {
-			cache->flag &= ~PTCACHE_SIMULATION_VALID;
-			cache->simframe= 0;
-		}
-
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+		cache->last_exact= 0;
 		return;
 	}
 
 	if(framenr == startframe) {
+		if(cache->flag & PTCACHE_REDO_NEEDED) {
+			softbody_update_positions(ob, sb, vertexCos, numVerts);
+			softbody_reset(ob, sb, vertexCos, numVerts);
+			cache->flag &= ~PTCACHE_REDO_NEEDED;
+		}
 		/* first frame, no simulation to do, just set the positions */
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
 
@@ -4227,10 +4180,10 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		/* don't write cache on first frame, but on second frame write
 		 * cache for frame 1 and 2 */
 	}
-	else if(framedelta == 1) {
+	else {
 		/* if on second frame, write cache for first frame */
-		if(framenr == startframe+1)
-			sbWriteCache(ob, startframe);
+		if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
+			BKE_ptcache_write_cache(&pid, startframe);
 
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
 
@@ -4246,14 +4199,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		if(sb->particles==0)
 			softbody_to_object(ob, vertexCos, numVerts, 0);
 
-		sbWriteCache(ob, framenr);
-	}
-	else {
-		/* time step backwards or too large forward - do nothing */
-		if(cache->flag & PTCACHE_SIMULATION_VALID) {
-			cache->flag &= ~PTCACHE_SIMULATION_VALID;
-			cache->simframe= 0;
-		}
+		BKE_ptcache_write_cache(&pid, framenr);
 	}
 }
 

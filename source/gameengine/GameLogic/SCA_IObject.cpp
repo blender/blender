@@ -288,13 +288,7 @@ void SCA_IObject::SetState(unsigned int state)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_IObject::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_IObject",
 	sizeof(PyObjectPlus_Proxy),
 	0,

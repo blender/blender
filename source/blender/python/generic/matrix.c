@@ -37,14 +37,17 @@ static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* 
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
 
-static int mathutils_matrix_vector_check(MatrixObject *self)
+static int mathutils_matrix_vector_check(PyObject *self_p)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_vector_get(MatrixObject *self, int subtype, float *vec_from)
+static int mathutils_matrix_vector_get(PyObject *self_p, int subtype, float *vec_from)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
 	int i;
+
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
@@ -54,9 +57,11 @@ static int mathutils_matrix_vector_get(MatrixObject *self, int subtype, float *v
 	return 1;
 }
 
-static int mathutils_matrix_vector_set(MatrixObject *self, int subtype, float *vec_to)
+static int mathutils_matrix_vector_set(PyObject *self_p, int subtype, float *vec_to)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
 	int i;
+
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
@@ -67,8 +72,10 @@ static int mathutils_matrix_vector_set(MatrixObject *self, int subtype, float *v
 	return 1;
 }
 
-static int mathutils_matrix_vector_get_index(MatrixObject *self, int subtype, float *vec_from, int index)
+static int mathutils_matrix_vector_get_index(PyObject *self_p, int subtype, float *vec_from, int index)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
+
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
@@ -76,8 +83,10 @@ static int mathutils_matrix_vector_get_index(MatrixObject *self, int subtype, fl
 	return 1;
 }
 
-static int mathutils_matrix_vector_set_index(MatrixObject *self, int subtype, float *vec_to, int index)
+static int mathutils_matrix_vector_set_index(PyObject *self_p, int subtype, float *vec_to, int index)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
+
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
@@ -988,7 +997,7 @@ static PyObject* Matrix_inv(MatrixObject *self)
 
 /*-----------------PROTOCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Matrix_SeqMethods = {
-	(inquiry) Matrix_len,					/* sq_length */
+	(lenfunc) Matrix_len,					/* sq_length */
 	(binaryfunc) 0,							/* sq_concat */
 	(ssizeargfunc) 0,							/* sq_repeat */
 	(ssizeargfunc) Matrix_item,				/* sq_item */
@@ -998,8 +1007,6 @@ static PySequenceMethods Matrix_SeqMethods = {
 };
 
 
-
-#if (PY_VERSION_HEX >= 0x03000000)
 static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 {
 	if (PyIndex_Check(item)) {
@@ -1071,11 +1078,8 @@ static PyMappingMethods Matrix_AsMapping = {
 	(binaryfunc)Matrix_subscript,
 	(objobjargproc)Matrix_ass_subscript
 };
-#endif /*  (PY_VERSION_HEX >= 0x03000000) */
 
 
-
-#if (PY_VERSION_HEX >= 0x03000000)
 static PyNumberMethods Matrix_NumMethods = {
 		(binaryfunc)	Matrix_add,	/*nb_add*/
 		(binaryfunc)	Matrix_sub,	/*nb_subtract*/
@@ -1112,33 +1116,6 @@ static PyNumberMethods Matrix_NumMethods = {
 		0,				/* nb_inplace_true_divide */
 		0,				/* nb_index */
 };
-#else
-static PyNumberMethods Matrix_NumMethods = {
-	(binaryfunc) Matrix_add,				/* __add__ */
-	(binaryfunc) Matrix_sub,				/* __sub__ */
-	(binaryfunc) Matrix_mul,				/* __mul__ */
-	(binaryfunc) 0,							/* __div__ */
-	(binaryfunc) 0,							/* __mod__ */
-	(binaryfunc) 0,							/* __divmod__ */
-	(ternaryfunc) 0,						/* __pow__ */
-	(unaryfunc) 0,							/* __neg__ */
-	(unaryfunc) 0,							/* __pos__ */
-	(unaryfunc) 0,							/* __abs__ */
-	(inquiry) 0,							/* __nonzero__ */
-	(unaryfunc) Matrix_inv,					/* __invert__ */
-	(binaryfunc) 0,							/* __lshift__ */
-	(binaryfunc) 0,							/* __rshift__ */
-	(binaryfunc) 0,							/* __and__ */
-	(binaryfunc) 0,							/* __xor__ */
-	(binaryfunc) 0,							/* __or__ */
-	/*(coercion)*/ 0,							/* __coerce__ */
-	(unaryfunc) 0,							/* __int__ */
-	(unaryfunc) 0,							/* __long__ */
-	(unaryfunc) 0,							/* __float__ */
-	(unaryfunc) 0,							/* __oct__ */
-	(unaryfunc) 0,							/* __hex__ */
-};
-#endif
 
 static PyObject *Matrix_getRowSize( MatrixObject * self, void *type )
 {
@@ -1164,13 +1141,7 @@ static PyGetSetDef Matrix_getseters[] = {
 
 /*------------------PY_OBECT DEFINITION--------------------------*/
 PyTypeObject matrix_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"matrix",						/*tp_name*/
 	sizeof(MatrixObject),			/*tp_basicsize*/
 	0,								/*tp_itemsize*/
@@ -1182,11 +1153,7 @@ PyTypeObject matrix_Type = {
 	(reprfunc) Matrix_repr,			/*tp_repr*/
 	&Matrix_NumMethods,				/*tp_as_number*/
 	&Matrix_SeqMethods,				/*tp_as_sequence*/
-#if (PY_VERSION_HEX >= 0x03000000)
 	&Matrix_AsMapping,				/*tp_as_mapping*/
-#else
-	0,
-#endif
 	0,								/*tp_hash*/
 	0,								/*tp_call*/
 	0,								/*tp_str*/

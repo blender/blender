@@ -9,6 +9,7 @@ for source in env.Glob('*_api.c'):
 incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc'
 incs += ' #/extern/glew/include'
+incs += ' ../../python/' # python button eval
 
 defs = []
 

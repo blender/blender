@@ -65,6 +65,7 @@ short RNA_type_to_ID_code(StructRNA *type)
 	if(RNA_struct_is_a(type, &RNA_Brush)) return ID_BR;
 	if(RNA_struct_is_a(type, &RNA_Camera)) return ID_CA;
 	if(RNA_struct_is_a(type, &RNA_Curve)) return ID_CU;
+	if(RNA_struct_is_a(type, &RNA_GreasePencil)) return ID_GD;
 	if(RNA_struct_is_a(type, &RNA_Group)) return ID_GR;
 	if(RNA_struct_is_a(type, &RNA_Image)) return ID_IM;
 	if(RNA_struct_is_a(type, &RNA_Key)) return ID_KE;
@@ -97,6 +98,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_BR: return &RNA_Brush;
 		case ID_CA: return &RNA_Camera;
 		case ID_CU: return &RNA_Curve;
+		case ID_GD: return &RNA_GreasePencil;
 		case ID_GR: return &RNA_Group;
 		case ID_IM: return &RNA_Image;
 		case ID_KE: return &RNA_Key;
@@ -150,6 +152,30 @@ void rna_ID_fake_user_set(PointerRNA *ptr, int value)
 IDProperty *rna_IDPropertyGroup_idproperties(PointerRNA *ptr, int create)
 {
 	return ptr->data;
+}
+
+void rna_IDPropertyGroup_unregister(const bContext *C, StructRNA *type)
+{
+	RNA_struct_free(&BLENDER_RNA, type);
+}
+
+StructRNA *rna_IDPropertyGroup_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	PointerRNA dummyptr;
+
+	/* create dummy pointer */
+	RNA_pointer_create(NULL, &RNA_IDPropertyGroup, NULL, &dummyptr);
+
+	/* validate the python class */
+	if(validate(&dummyptr, data, NULL) != 0)
+		return NULL;
+
+	return RNA_def_struct(&BLENDER_RNA, identifier, "IDPropertyGroup");  // XXX
+}
+
+StructRNA* rna_IDPropertyGroup_refine(PointerRNA *ptr)
+{
+	return ptr->type;
 }
 
 #else
@@ -210,6 +236,8 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "IDPropertyGroup", NULL);
 	RNA_def_struct_ui_text(srna, "ID Property Group", "Group of ID properties.");
 	RNA_def_struct_idproperties_func(srna, "rna_IDPropertyGroup_idproperties");
+	RNA_def_struct_register_funcs(srna, "rna_IDPropertyGroup_register", "rna_IDPropertyGroup_unregister");
+	RNA_def_struct_refine_func(srna, "rna_IDPropertyGroup_refine");
 }
 
 static void rna_def_ID(BlenderRNA *brna)

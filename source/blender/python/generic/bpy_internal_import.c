@@ -111,8 +111,8 @@ PyObject *bpy_text_import( char *name, int *found )
 PyObject *bpy_text_reimport( PyObject *module, int *found )
 {
 	Text *text;
-	char *txtname;
-	char *name;
+	const char *txtname;
+	const char *name;
 	char *buf = NULL;
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
@@ -166,7 +166,7 @@ PyObject *bpy_text_reimport( PyObject *module, int *found )
 	}
 
 	/* make into a module */
-	return PyImport_ExecCodeModule( name, text->compiled );
+	return PyImport_ExecCodeModule( (char *)name, text->compiled );
 }
 
 
@@ -179,20 +179,12 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 	PyObject *newmodule;
 	
 	//PyObject_Print(args, stderr, 0);
-#if (PY_VERSION_HEX >= 0x02060000)
 	int dummy_val; /* what does this do?*/
 	static char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", 0};
 	
 	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOOi:bpy_import_meth", kwlist,
 			       &name, &globals, &locals, &fromlist, &dummy_val) )
 		return NULL;
-#else
-	static char *kwlist[] = {"name", "globals", "locals", "fromlist", 0};
-	
-	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOO:bpy_import_meth", kwlist,
-			       &name, &globals, &locals, &fromlist ) )
-		return NULL;
-#endif
 
 	/* import existing builtin modules or modules that have been imported alredy */
 	newmodule = PyImport_ImportModuleEx( name, globals, locals, fromlist );
@@ -273,8 +265,8 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 	return newmodule;
 }
 
-PyMethodDef bpy_import_meth[] = { {"bpy_import_meth", blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"} };
-PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", blender_reload, METH_VARARGS, "blenders reload"} };
+PyMethodDef bpy_import_meth[] = { {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"} };
+PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reload, METH_VARARGS, "blenders reload"} };
 
 
 /* Clear user modules.

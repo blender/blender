@@ -47,7 +47,6 @@ SET(INC
   ../../../intern/string
   ../../../intern/moto/include
   ../../../intern/guardedalloc
-  ../../../intern/SoundSystem
   ../../../extern/glew/include
   ${PYTHON_INC}
 )

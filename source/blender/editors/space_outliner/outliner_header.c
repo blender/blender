@@ -177,7 +177,7 @@ static void do_outliner_buttons(bContext *C, void *arg, int event)
 			/* add a new KeyingSet if active is -1 */
 			if (scene->active_keyingset == -1) {
 				// XXX the default settings have yet to evolve... need to keep this in sync with the 
-				BKE_keyingset_add(&scene->keyingsets, "KeyingSet", KEYINGSET_ABSOLUTE, 0);
+				BKE_keyingset_add(&scene->keyingsets, NULL, KEYINGSET_ABSOLUTE, 0);
 				scene->active_keyingset= BLI_countlist(&scene->keyingsets);
 			}
 			
@@ -196,6 +196,8 @@ static void do_outliner_buttons(bContext *C, void *arg, int event)
 					BLI_freelinkN(&scene->keyingsets, ks);
 					scene->active_keyingset= 0;
 				}
+				else
+					scene->active_keyingset= 0;
 			}
 			
 			/* redraw regions with KeyingSet info */

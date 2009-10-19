@@ -42,6 +42,9 @@
 #include <cstring>
 #include <cstdio>
 
+#include <algorithm>
+#include <string>
+
 // For obscure full screen mode stuuf
 // lifted verbatim from blut.
 
@@ -187,6 +190,8 @@ GHOST_WindowX11(
 		printf("%s:%d: X11 glxChooseVisual() failed for OpenGL, verify working openGL system!\n", __FILE__, __LINE__);
 		return;
 	}
+	
+	memset(&m_xtablet, 0, sizeof(m_xtablet));
 
 	// Create a bunch of attributes needed to create an X window.
 
@@ -426,7 +431,20 @@ void GHOST_WindowX11::initXInputDevices()
 			old_handler = XSetErrorHandler(ApplicationErrorHandler) ;
 
 			for(int i=0; i<device_count; ++i) {
-				if(!strcasecmp(device_info[i].name, "stylus")) {
+				std::string type = "";
+				
+				if(device_info[i].type) {
+					const char *orig = XGetAtomName(m_display, device_info[i].type);
+					// Make a copy so we can convert to lower case
+					if(orig) {
+						type = orig;
+						XFree((void*)orig);
+						std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+					}
+				}
+
+
+				if(type.find("stylus") != std::string::npos) {
 					m_xtablet.StylusID= device_info[i].id;
 					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
 
@@ -451,7 +469,7 @@ void GHOST_WindowX11::initXInputDevices()
  						m_xtablet.StylusID= 0;
 					}
 				}
-				if(!strcasecmp(device_info[i].name, "eraser")) {
+				if(type.find("eraser") != std::string::npos) {
 					m_xtablet.EraserID= device_info[i].id;
 					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
 					if (m_xtablet.EraserDevice == NULL) m_xtablet.EraserID= 0;
@@ -1323,13 +1341,12 @@ setWindowCustomCursorShape(
 	int fg_color, 
 	int bg_color
 ){
+	Colormap colormap= DefaultColormap(m_display, DefaultScreen(m_display));
 	Pixmap bitmap_pix, mask_pix;
 	XColor fg, bg;
 	
-	if(XAllocNamedColor(m_display, DefaultColormap(m_display, DefaultScreen(m_display)),
-		"White", &fg, &fg) == 0) return GHOST_kFailure;
-	if(XAllocNamedColor(m_display, DefaultColormap(m_display, DefaultScreen(m_display)),
-		"Black", &bg, &bg) == 0) return GHOST_kFailure;
+	if(XAllocNamedColor(m_display, colormap, "White", &fg, &fg) == 0) return GHOST_kFailure;
+	if(XAllocNamedColor(m_display, colormap, "Black", &bg, &bg) == 0) return GHOST_kFailure;
 
 	if (m_custom_cursor) {
 		XFreeCursor(m_display, m_custom_cursor);
@@ -1344,6 +1361,9 @@ setWindowCustomCursorShape(
 	
 	XFreePixmap(m_display, bitmap_pix);
 	XFreePixmap(m_display, mask_pix);
+
+    XFreeColors(m_display, colormap, &fg.pixel, 1, 0L);
+    XFreeColors(m_display, colormap, &bg.pixel, 1, 0L);
 
 	return GHOST_kSuccess;
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-SConscript(['SoundSystem/SConscript',
+SConscript(['audaspace/SConscript',
             'string/SConscript',
             'ghost/SConscript',
             'guardedalloc/SConscript',
@@ -11,7 +11,8 @@ SConscript(['SoundSystem/SConscript',
             'decimation/SConscript',
             'iksolver/SConscript',
             'boolop/SConscript',
-            'opennl/SConscript'])
+            'opennl/SConscript',
+            'smoke/SConscript'])
 
 # NEW_CSG was intended for intern/csg, but
 # getting it to compile is difficult

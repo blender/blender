@@ -101,9 +101,6 @@
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderSceneConverter.h"
 
-#include"SND_Scene.h"
-#include "SND_SoundListener.h"
-
 /* This little block needed for linking to Blender... */
 #ifdef WIN32
 #include "BLI_winstuff.h"
@@ -323,9 +320,7 @@ bool ConvertMaterial(
 	MTFace* tface,  
 	const char *tfaceName,
 	MFace* mface, 
-	MCol* mmcol, 
-	int lightlayer, 
-	Object* blenderobj,
+	MCol* mmcol,
 	MTF_localLayer *layers,
 	bool glslmat)
 {
@@ -628,7 +623,7 @@ bool ConvertMaterial(
 	}
 
 	// with ztransp enabled, enforce alpha blending mode
-	if(validmat && (mat->mode & MA_ZTRA) && (material->transp == TF_SOLID))
+	if(validmat && (mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (material->transp == TF_SOLID))
 		material->transp = TF_ALPHA;
 
   	// always zsort alpha + add
@@ -721,12 +716,12 @@ bool ConvertMaterial(
 	return true;
 }
 
-
-RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools* rendertools, KX_Scene* scene, KX_BlenderSceneConverter *converter)
+/* blenderobj can be NULL, make sure its checked for */
+RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
 	RAS_MeshObject *meshobj;
 	bool skinMesh = false;
-	int lightlayer = blenderobj->lay;
+	int lightlayer = blenderobj ? blenderobj->lay:(1<<20)-1; // all layers if no object.
 
 	if ((meshobj = converter->FindGameMesh(mesh/*, ob->lay*/)) != NULL)
 		return meshobj;
@@ -749,13 +744,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 
 	// Determine if we need to make a skinned mesh
-	if (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0) || BL_ModifierDeformer::HasCompatibleDeformer(blenderobj))
+	if (blenderobj && (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0) || BL_ModifierDeformer::HasCompatibleDeformer(blenderobj)))
 	{
-		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
+		meshobj = new BL_SkinMeshObject(mesh);
 		skinMesh = true;
 	}
 	else
-		meshobj = new RAS_MeshObject(mesh, lightlayer);
+		meshobj = new RAS_MeshObject(mesh);
 
 	// Extract avaiable layers
 	MTF_localLayer *layers =  new MTF_localLayer[MAX_MTFACE];
@@ -844,9 +839,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				tan3 = tangent[f*4 + 3];
 		}
 
-		/* get material */
-		ma = give_current_material(blenderobj, mface->mat_nr+1);
-	
+ 		ma = give_current_material(blenderobj, mface->mat_nr+1);
+
 		{
 			bool visible = true;
 			bool twoside = false;
@@ -860,7 +854,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				if (!bl_mat)
 					bl_mat = new BL_Material();
 				ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
-					lightlayer, blenderobj, layers, converter->GetGLSLMaterials());
+					layers, converter->GetGLSLMaterials());
 
 				visible = ((bl_mat->ras_mode & POLY_VIS)!=0);
 				collider = ((bl_mat->ras_mode & COLLIDER)!=0);
@@ -883,7 +877,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				if (kx_blmat == NULL)
 					kx_blmat = new KX_BlenderMaterial();
 
-				kx_blmat->Initialize(scene, bl_mat, skinMesh, lightlayer);
+				kx_blmat->Initialize(scene, bl_mat, skinMesh);
 				polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
 			}
 			else {
@@ -1067,8 +1061,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 	
 	
-static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blenderobject,
-												  KX_Scene *kxscene)
+static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blenderobject)
 {
 	PHY_MaterialProps *materialProps = new PHY_MaterialProps;
 	
@@ -1101,8 +1094,7 @@ static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blender
 	return materialProps;
 }
 
-static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blenderobject,
-												 KX_Scene *kxscene)
+static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blenderobject)
 {
 	PHY_ShapeProps *shapeProps = new PHY_ShapeProps;
 	
@@ -1385,7 +1377,9 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	bool isCompoundChild = false;
 	bool hasCompoundChildren = !parent && (blenderobject->gameflag & OB_CHILD);
 
-	if (parent/* && (parent->gameflag & OB_DYNAMIC)*/) {
+	/* When the parent is not OB_DYNAMIC and has no OB_COLLISION then it gets no bullet controller
+	 * and cant be apart of the parents compound shape */
+	if (parent && (parent->gameflag & (OB_DYNAMIC | OB_COLLISION))) {
 		
 		if ((parent->gameflag & OB_CHILD) != 0 && (blenderobject->gameflag & OB_CHILD))
 		{
@@ -1397,12 +1391,11 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 
 	PHY_ShapeProps* shapeprops =
-			CreateShapePropsFromBlenderObject(blenderobject, 
-			kxscene);
+			CreateShapePropsFromBlenderObject(blenderobject);
 
 	
 	PHY_MaterialProps* smmaterial = 
-		CreateMaterialFromBlenderObject(blenderobject, kxscene);
+		CreateMaterialFromBlenderObject(blenderobject);
 					
 	KX_ObjectProperties objprop;
 	objprop.m_lockXaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_X_AXIS) !=0;
@@ -1686,8 +1679,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 								Object *ob, 
 								KX_Scene *kxscene, 
 								RAS_IRenderTools *rendertools, 
-								KX_BlenderSceneConverter *converter,
-								Scene *blenderscene) 
+								KX_BlenderSceneConverter *converter) 
 {
 	KX_GameObject *gameobj = NULL;
 	
@@ -1721,7 +1713,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		Mesh* mesh = static_cast<Mesh*>(ob->data);
 		float center[3], extents[3];
 		float radius = my_boundbox_mesh((Mesh*) ob->data, center, extents);
-		RAS_MeshObject* meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
+		RAS_MeshObject* meshobj = BL_ConvertMesh(mesh,ob,kxscene,converter);
 		
 		// needed for python scripting
 		kxscene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
@@ -1747,7 +1739,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 
 		if (bHasModifier) {
 			BL_ModifierDeformer *dcont = new BL_ModifierDeformer((BL_DeformableGameObject *)gameobj,
-																blenderscene, ob,	(BL_SkinMeshObject *)meshobj);
+																kxscene->GetBlenderScene(), ob,	(BL_SkinMeshObject *)meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 			if (bHasShapeKey && bHasArmature)
 				dcont->LoadShapeDrivers(ob->parent);
@@ -1786,7 +1778,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 			kxscene,
 			KX_Scene::m_callbacks,
 			ob,
-			blenderscene // handle
+			kxscene->GetBlenderScene() // handle
 		);
 		/* Get the current pose from the armature object and apply it as the rest pose */
 		break;
@@ -1801,7 +1793,6 @@ static KX_GameObject *gameobject_from_blenderobject(
 	}
 	if (gameobj) 
 	{
-		gameobj->SetPhysicsEnvironment(kxscene->GetPhysicsEnvironment());
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
 		/* set the visibility state based on the objects render option in the outliner */
@@ -1837,7 +1828,8 @@ ListBase *get_active_constraints2(Object *ob)
 	if (!ob)
 		return NULL;
 
-	if (ob->flag & OB_POSEMODE) {
+  // XXX - shouldnt we care about the pose data and not the mode???
+	if (ob->mode & OB_MODE_POSE) { 
 		bPoseChannel *pchan;
 
 		pchan = get_active_posechannel2(ob);
@@ -1900,12 +1892,10 @@ KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 
 // convert blender objects into ketsji gameobjects
 void BL_ConvertBlenderObjects(struct Main* maggie,
-							  const STR_String& scenename,
 							  KX_Scene* kxscene,
 							  KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
 							  PyObject* pythondictionary,
-							  SCA_IInputDevice* keydev,
 							  RAS_IRenderTools* rendertools,
 							  RAS_ICanvas* canvas,
 							  KX_BlenderSceneConverter* converter,
@@ -1913,7 +1903,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  )
 {	
 
-	Scene *blenderscene = converter->GetBlenderSceneForName(scenename);
+	Scene *blenderscene = kxscene->GetBlenderScene();
 	// for SETLOOPER
 	Scene *sce;
 	Base *base;
@@ -2005,8 +1995,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 										base->object, 
 										kxscene, 
 										rendertools, 
-										converter,
-										blenderscene);
+										converter);
 										
 		bool isInActiveLayer = (blenderobject->lay & activeLayerBitInfo) !=0;
 		bool addobj=true;
@@ -2195,8 +2184,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 														blenderobject, 
 														kxscene, 
 														rendertools, 
-														converter,
-														blenderscene);
+														converter);
 										
 						// this code is copied from above except that
 						// object from groups are never in active layer
@@ -2418,8 +2406,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 					obj->Release();
 			}
 			childrenlist->Release();
+			
 			// now destroy recursively
+			converter->UnregisterGameObject(childobj); // removing objects during conversion make sure this runs too
 			kxscene->RemoveObject(childobj);
+			
 			continue;
 		}
 
@@ -2496,10 +2487,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 		}
 		if (occlusion)
-			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
+			kxscene->SetDbvtOcclusionRes(blenderscene->gm.occlusionRes);
 	}
 	if (blenderscene->world)
-		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->world->physubstep);
+		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->gm.physubstep);
 
 	// now that the scenegraph is complete, let's instantiate the deformers.
 	// We need that to create reusable derived mesh and physic shapes
@@ -2516,7 +2507,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for (i=0;i<sumolist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobject = gameobj->GetBlenderObject();
 		int nummeshes = gameobj->GetMeshCount();
 		RAS_MeshObject* meshobj = 0;
 		if (nummeshes > 0)
@@ -2532,7 +2523,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for (i=0;i<sumolist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobject = gameobj->GetBlenderObject();
 		int nummeshes = gameobj->GetMeshCount();
 		RAS_MeshObject* meshobj = 0;
 		if (nummeshes > 0)
@@ -2560,7 +2551,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for (i=0;i<sumolist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobject = gameobj->GetBlenderObject();
 		ListBase *conlist;
 		bConstraint *curcon;
 		conlist = get_active_constraints2(blenderobject);
@@ -2628,23 +2619,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 	}
 
-	sumolist->Release();	
-
-	// convert global sound stuff
-
-	/* XXX, glob is the very very wrong place for this
-	 * to be, re-enable once the listener has been moved into
-	 * the scene. */
-#if 1
-	SND_Scene* soundscene = kxscene->GetSoundScene();
-	SND_SoundListener* listener = soundscene->GetListener();
-	if (listener && G.listener)
-	{
-		listener->SetDopplerFactor(G.listener->dopplerfactor);
-		listener->SetDopplerVelocity(G.listener->dopplervelocity);
-		listener->SetGain(G.listener->gain);
-	}
-#endif
+	sumolist->Release();
 
 	// convert world
 	KX_WorldInfo* worldinfo = new BlenderWorldInfo(blenderscene->world);
@@ -2657,7 +2632,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for (i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
-		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
 		BL_ConvertActuators(maggie->name, blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,layerMask,isInActiveLayer,rendertools,converter);
@@ -2665,7 +2640,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
-		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
 		BL_ConvertControllers(blenderobj,gameobj,logicmgr,pythondictionary,layerMask,isInActiveLayer,converter);
@@ -2673,10 +2648,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
-		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,keydev,layerMask,isInActiveLayer,canvas,converter);
+		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,layerMask,isInActiveLayer,canvas,converter);
 		// set the init state to all objects
 		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
 	}
@@ -2714,4 +2689,3 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	RAS_BucketManager *bucketmanager = kxscene->GetBucketManager();
 	bucketmanager->OptimizeBuckets(distance);
 }
-

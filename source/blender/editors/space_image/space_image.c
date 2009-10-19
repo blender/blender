@@ -54,6 +54,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
@@ -430,15 +431,21 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* we set view2d from own zoom and offset each time */
 	image_main_area_set_view2d(sima, ar, scene);
-		
+	
 	/* we draw image in pixelspace */
 	draw_image_main(sima, ar, scene);
 
 	/* and uvs in 0.0-1.0 space */
 	UI_view2d_view_ortho(C, v2d);
-	draw_uvedit_main(sima, ar, scene, obedit);
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
+		draw_uvedit_main(sima, ar, scene, obedit);
+		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
+		
+		/* Grease Pencil too (in addition to UV's) */
+		draw_image_grease_pencil((bContext *)C, 1); 
 	UI_view2d_view_restore(C);
+	
+	/* draw Grease Pencil - screen space only */
+	draw_image_grease_pencil((bContext *)C, 0);
 	
 	/* scrollers? */
 	/*scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
@@ -558,11 +565,10 @@ void ED_spacetype_image(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
 	art->init= image_main_area_init;
 	art->draw= image_main_area_draw;
 	art->listener= image_main_area_listener;
-	art->keymapflag= 0;
 
 	BLI_addhead(&st->regiontypes, art);
 	
