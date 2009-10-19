@@ -1338,8 +1338,8 @@ static void rna_def_material_specularity(StructRNA *srna)
 	 * multiple times, which may give somewhat strange changes in the outliner,
 	 * but in the UI they are never visible at the same time. */
 
-	prop= RNA_def_property(srna, "specular_hardness", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "har");
+	prop= RNA_def_property(srna, "specular_hardness", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "har");
 	RNA_def_property_range(prop, 1, 511);
 	RNA_def_property_ui_text(prop, "Specular Hardness", "");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
