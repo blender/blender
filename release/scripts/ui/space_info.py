@@ -287,7 +287,7 @@ class HELP_OT_user_community(HelpOperator):
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 	__idname__ = "help.operator_cheat_sheet"
-	__label__ = "Operator Cheet Sheet (new textblock)"
+	__label__ = "Operator Cheat Sheet (new textblock)"
 	def execute(self, context):
 		op_strings = []
 		tot = 0

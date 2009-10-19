@@ -4015,38 +4015,52 @@ static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *
 static void freeSeqData(TransInfo *t)
 {
 	Editing *ed= seq_give_editing(t->scene, FALSE);
-	if (ed && !(t->state == TRANS_CANCEL)) {
-		ListBase *seqbasep= ed->seqbasep;
-		Sequence *seq;
 
-		int a;
+	if(ed != NULL) {
+		ListBase *seqbasep= ed->seqbasep;
 		TransData *td= t->data;
+		int a;
 
 		/* prevent updating the same seq twice
 		 * if the transdata order is changed this will mess up
 		 * but so will TransDataSeq */
 		Sequence *seq_prev= NULL;
+		Sequence *seq;
 
-		/* flush to 2d vector from internally used 3d vector */
-		for(a=0; a<t->total; a++, td++) {
-			seq= ((TransDataSeq *)td->extra)->seq;
-			if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
-				shuffle_seq(seqbasep, seq);
+
+		if (!(t->state == TRANS_CANCEL)) {
+
+			/* flush to 2d vector from internally used 3d vector */
+			for(a=0; a<t->total; a++, td++) {
+				seq= ((TransDataSeq *)td->extra)->seq;
+				if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
+					shuffle_seq(seqbasep, seq);
+				}
+
+				seq_prev= seq;
 			}
 
-			seq_prev= seq;
-		}
+			for(seq= seqbasep->first; seq; seq= seq->next) {
+				/* We might want to build a list of effects that need to be updated during transform */
+				if(seq->type & SEQ_EFFECT) {
+					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
+					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
+					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
+				}
+			}
 
-		for(seq= seqbasep->first; seq; seq= seq->next) {
-			/* We might want to build a list of effects that need to be updated during transform */
-			if(seq->type & SEQ_EFFECT) {
-				if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
-				else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
-				else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
+			sort_seq(t->scene);
+		}
+		else {
+			/* Cancelled, need to update the strips display */
+			for(a=0; a<t->total; a++, td++) {
+				seq= ((TransDataSeq *)td->extra)->seq;
+				if ((seq != seq_prev) && (seq->depth==0)) {
+					calc_sequence_disp(seq);
+				}
+				seq_prev= seq;
 			}
 		}
-
-		sort_seq(t->scene);
 	}
 
 	if (t->customData) {

@@ -69,6 +69,13 @@ static int blender_test_break() {return 0;}
 /* **** XXX ******** */
 
 
+void printf_strip(Sequence *seq)
+{
+	fprintf(stderr, "name: '%s', len:%d, start:%d, (startofs:%d, endofs:%d), (startstill:%d, endstill:%d), machine:%d, (startdisp:%d, enddisp:%d)\n",
+			seq->name, seq->len, seq->start, seq->startofs, seq->endofs, seq->startstill, seq->endstill, seq->machine, seq->startdisp, seq->enddisp);
+	fprintf(stderr, "\tseq_tx_set_final_left: %d %d\n\n", seq_tx_get_final_left(seq, 0), seq_tx_get_final_right(seq, 0));
+}
+
 /* **********************************************************************
    alloc / free functions
    ********************************************************************** */
@@ -3238,7 +3245,7 @@ void seq_tx_set_final_left(Sequence *seq, int val)
 {
 	if (val < (seq)->start) {
 		seq->startstill = abs(val - (seq)->start);
-				(seq)->startofs = 0;
+		seq->startofs = 0;
 	} else {
 		seq->startofs = abs(val - (seq)->start);
 		seq->startstill = 0;
@@ -3249,7 +3256,7 @@ void seq_tx_set_final_right(Sequence *seq, int val)
 {
 	if (val > (seq)->start + (seq)->len) {
 		seq->endstill = abs(val - (seq->start + (seq)->len));
-		(seq)->endofs = 0;
+		seq->endofs = 0;
 	} else {
 		seq->endofs = abs(val - ((seq)->start + (seq)->len));
 		seq->endstill = 0;

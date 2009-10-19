@@ -135,6 +135,7 @@ struct SeqEffectHandle {
 /* ********************* prototypes *************** */
 
 /* sequence.c */
+void printf_strip(struct Sequence *seq);
 
 // extern
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
