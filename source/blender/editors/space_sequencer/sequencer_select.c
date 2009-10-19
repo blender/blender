@@ -291,8 +291,8 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	short extend= RNA_boolean_get(op->ptr, "extend");
-	short linked_left= RNA_boolean_get(op->ptr, "linked_left");
-	short linked_right= RNA_boolean_get(op->ptr, "linked_right");
+	short linked_handle= RNA_boolean_get(op->ptr, "linked_handle");
+	short left_right= RNA_boolean_get(op->ptr, "left_right");
 
 	short mval[2];	
 	
@@ -323,12 +323,34 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			marker->flag |= SELECT;				
 		}
 		
+	} else if (left_right) {
+		/* use different logic for this */
+		float x;
+		deselect_all_seq(scene);
+		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+
+		SEQP_BEGIN(ed, seq) {
+			if (x < CFRA) {
+				if(seq->enddisp < CFRA) {
+					seq->flag |= SELECT;
+					recurs_sel_seq(seq);
+				}
+			}
+			else {
+				if(seq->startdisp > CFRA) {
+					seq->flag |= SELECT;
+					recurs_sel_seq(seq);
+				}
+			}
+
+		}
+		SEQ_END
 	} else {
 	
 		seq= find_nearest_seq(scene, v2d, &hand, mval);
 		act_orig= ed->act_seq;
 
-		if(extend == 0 && linked_left==0 && linked_right==0)
+		if(extend == 0 && linked_handle==0)
 			deselect_all_seq(scene);
 	
 		if(seq) {
@@ -348,7 +370,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			if(extend && (seq->flag & SELECT) && ed->act_seq == act_orig ) {
 				switch(hand) {
 				case SEQ_SIDE_NONE:
-					if (linked_left==0 && linked_right==0)
+					if (linked_handle==0)
 						seq->flag &= SEQ_DESEL;
 					break;
 				case SEQ_SIDE_LEFT:
@@ -365,19 +387,19 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				if(hand==SEQ_SIDE_RIGHT)	seq->flag |= SEQ_RIGHTSEL;
 			}
 			
-			/* On Ctrl-Alt selection, select the strip and bordering handles */
-			if (linked_left && linked_right) {
+			/* On Alt selection, select the strip and bordering handles */
+			if (linked_handle && !ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
 				if(extend==0) deselect_all_seq(scene);
 				seq->flag |= SELECT;
 				select_surrounding_handles(scene, seq);
 			}
-			else if  ((linked_left || linked_right) && (seq->flag & SELECT)) {
+			else if (linked_handle && ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT) && (seq->flag & SELECT)) {
 				/*
 				 * First click selects adjacent handles on that side.
 				 * Second click selects all strips in that direction.
 				 * If there are no adjacent strips, it just selects all in that direction.
 				 */
-				sel_side= linked_left ? SEQ_SIDE_LEFT:SEQ_SIDE_RIGHT;
+				sel_side= hand;
 				neighbor=find_neighboring_sequence(scene, seq, sel_side, -1);
 				if (neighbor) {
 					switch (sel_side) {
@@ -461,9 +483,10 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
-	RNA_def_boolean(ot->srna, "linked_left", 0, "Linked Left", "Select strips to the left of the active strip");
-	RNA_def_boolean(ot->srna, "linked_right", 0, "Linked Right", "Select strips to the right of the active strip");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection.");
+	RNA_def_boolean(ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip.");
+	/* for animation this is an enum but atm having an enum isnt useful for us */
+	RNA_def_boolean(ot->srna, "left_right", 0, "Left/Right", "select based on the frame side the cursor is on.");
 }
 
 
