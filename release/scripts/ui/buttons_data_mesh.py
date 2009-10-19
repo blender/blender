@@ -60,9 +60,6 @@ class DATA_PT_settings(DataButtonsPanel):
 		
 		col = split.column()
 		col.itemR(mesh, "texture_mesh")
-		
-		col = split.column()
-		col.itemR(mesh, "use_mirror_x")
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
 	__label__ = "Vertex Groups"

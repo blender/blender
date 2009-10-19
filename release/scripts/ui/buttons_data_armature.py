@@ -47,9 +47,6 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		col.itemR(arm, "layer", text="")
 		col.itemL(text="Protected Layers:")
 		col.itemR(arm, "layer_protection", text="")
-		col.itemL(text="Edit Options:")
-		col.itemR(arm, "x_axis_mirror")
-		col.itemR(arm, "auto_ik")
 		
 		col = split.column()
 		col.itemL(text="Deform:")
