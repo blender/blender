@@ -69,7 +69,6 @@ void MESH_OT_separate(struct wmOperatorType *ot);
 void MESH_OT_primitive_plane_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_cube_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_circle_add(struct wmOperatorType *ot);
-void MESH_OT_primitive_cylinder_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_tube_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_cone_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_grid_add(struct wmOperatorType *ot);

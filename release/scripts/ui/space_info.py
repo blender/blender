@@ -133,7 +133,7 @@ class INFO_MT_mesh_add(dynamic_menu.DynMenu):
 		layout.itemO("mesh.primitive_circle_add", icon='ICON_MESH_CIRCLE', text="Circle")
 		layout.itemO("mesh.primitive_uv_sphere_add", icon='ICON_MESH_UVSPHERE', text="UV Sphere")
 		layout.itemO("mesh.primitive_ico_sphere_add", icon='ICON_MESH_ICOSPHERE', text="Icosphere")
-		layout.itemO("mesh.primitive_cylinder_add", icon='ICON_MESH_TUBE', text="Tube")
+		layout.itemO("mesh.primitive_tube_add", icon='ICON_MESH_TUBE', text="Tube")
 		layout.itemO("mesh.primitive_cone_add", icon='ICON_MESH_CONE', text="Cone")
 		layout.itemS()
 		layout.itemO("mesh.primitive_grid_add", icon='ICON_MESH_GRID', text="Grid")

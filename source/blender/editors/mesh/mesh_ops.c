@@ -88,7 +88,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_plane_add);
 	WM_operatortype_append(MESH_OT_primitive_cube_add);
 	WM_operatortype_append(MESH_OT_primitive_circle_add);
-	WM_operatortype_append(MESH_OT_primitive_cylinder_add);
 	WM_operatortype_append(MESH_OT_primitive_tube_add);
 	WM_operatortype_append(MESH_OT_primitive_cone_add);
 	WM_operatortype_append(MESH_OT_primitive_grid_add);

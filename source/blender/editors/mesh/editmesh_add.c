@@ -1411,7 +1411,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "");
 }
 
-static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
+static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 {
 	make_prim_ext(C, PRIM_CYLINDER, RNA_int_get(op->ptr, "vertices"), 0, 0,
 			RNA_float_get(op->ptr,"radius"),
@@ -1421,41 +1421,11 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Add Cylinder";
-	ot->description= "Construct a cylindrical mesh (ends filled).";
-	ot->idname= "MESH_OT_primitive_cylinder_add";
-	
-	/* api callbacks */
-	ot->exec= add_primitive_cylinder_exec;
-	ot->poll= ED_operator_scene_editable;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "cap_ends", 1, "Cap Ends", "");
-}
-
-static int add_primitive_tube_exec(bContext *C, wmOperator *op)
-{
-	make_prim_ext(C, PRIM_CYLINDER, RNA_int_get(op->ptr, "vertices"), 0, 0,
-			RNA_float_get(op->ptr,"radius"),
-			RNA_float_get(op->ptr, "depth"), 1, 0);
-
-	return OPERATOR_FINISHED;	
-}
-
 void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Tube";
-	ot->description= "Construct a cylindrical mesh (ends not filled).";
+	ot->description= "Construct a tube mesh.";
 	ot->idname= "MESH_OT_primitive_tube_add";
 	
 	/* api callbacks */
@@ -1469,6 +1439,7 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
+	RNA_def_boolean(ot->srna, "cap_ends", 1, "Cap Ends", "");
 }
 
 static int add_primitive_cone_exec(bContext *C, wmOperator *op)
