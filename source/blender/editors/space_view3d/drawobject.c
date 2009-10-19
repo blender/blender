@@ -6086,7 +6086,7 @@ static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh
 	}
 }
 
-static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmooth_r)
+static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = userData;
 
@@ -6096,7 +6096,14 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 		return 0;
 	}
 }
+
 static int bbs_mesh_solid__setDrawOpts_legacy(void *userData, int index, int *drawSmooth_r)
+{
+	WM_set_framebuffer_index_color(index+1);
+	return 1;
+}
+
+static int bbs_mesh_solid_hide__setDrawOpts_legacy(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = userData;
 
@@ -6108,13 +6115,13 @@ static int bbs_mesh_solid__setDrawOpts_legacy(void *userData, int index, int *dr
 	}
 }
 
-/* TODO remove this - since face select mode now only works with painting */
 static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
 	MCol *colors;
 	int i,j;
+	int face_sel_mode = (G.f & G_FACESELECT) ? 1:0;
 	
 	glColor3ub(0, 0, 0);
 		
@@ -6127,7 +6134,7 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 				ind = index[i];
 			else
 				ind = i;
-			if (!(me->mface[ind].flag&ME_HIDE)) {
+			if (face_sel_mode==0 || !(me->mface[ind].flag&ME_HIDE)) {
 				unsigned int fbindex = index_to_framebuffer(ind+1);
 				for(j=0;j<4;j++) {
 					colors[i*4+j].b = ((fbindex)&0xFF);
@@ -6143,10 +6150,13 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 		CustomData_add_layer( &dm->faceData, CD_ID_MCOL, CD_ASSIGN, colors, dm->numFaceData );
 		GPU_buffer_free(dm->drawObject->colors,0);
 		dm->drawObject->colors = 0;
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 1);
+
+		if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 1);
+		else				dm->drawMappedFaces(dm, NULL, me, 1);
 	}
 	else {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts_legacy, me, 0);
+		if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts_legacy, me, 0);
+		else				dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts_legacy, me, 0);
 	}
 
 	dm->release(dm);
