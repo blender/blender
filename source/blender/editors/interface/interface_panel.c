@@ -309,20 +309,6 @@ void uiPanelToMouse(const bContext *C, Panel *pa)
 }
 #endif
 
-static int panel_has_tabs(ARegion *ar, Panel *panel)
-{
-	Panel *pa= ar->panels.first;
-	
-	if(panel==NULL) return 0;
-	
-	while(pa) {
-		if((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==panel) {
-			return 1;
-		}
-		pa= pa->next;
-	}
-	return 0;
-}
 
 static void ui_offset_panel_block(uiBlock *block)
 {
@@ -465,62 +451,32 @@ static void ui_draw_panel_dragwidget(rctf *rect)
 }
 
 
-static void ui_draw_aligned_panel_header(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
+static void ui_draw_aligned_panel_header(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect, char dir)
 {
 	Panel *panel= block->panel;
-	Panel *pa;
 	rcti hrect;
-	float width;
-	int a, nr= 1, pnl_icons;
+	int  pnl_icons;
 	char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
-	char *panelname;
-	
-	/* count */
-	for(pa= ar->panels.first; pa; pa=pa->next)
-		if(pa->runtime_flag & PNL_ACTIVE)
-			if(pa->paneltab==panel)
-				nr++;
 	
 	/* + 0.001f to avoid flirting with float inaccuracy */
 	if(panel->control & UI_PNL_CLOSE) pnl_icons=(panel->labelofs+2*PNL_ICON+5)/block->aspect + 0.001f;
 	else pnl_icons= (panel->labelofs+PNL_ICON+5)/block->aspect + 0.001f;
 	
-	if(nr==1) {
-		
-		/* active tab */
-		/* draw text label */
-		UI_ThemeColor(TH_TITLE);
-		
-		hrect= *rect;
+	/* active tab */
+	/* draw text label */
+	UI_ThemeColor(TH_TITLE);
+	
+	hrect= *rect;
+	if(dir == 'h') {
 		hrect.xmin= rect->xmin+pnl_icons;
 		uiStyleFontDraw(&style->paneltitle, &hrect, activename);
-		
-		return;
 	}
-	
-	a= 0;
-	width= (rect->xmax-rect->xmin - 3 - pnl_icons - PNL_ICON)/nr;
-	for(pa= ar->panels.first; pa; pa=pa->next) {
-		panelname= pa->drawname[0]?pa->drawname:pa->panelname;
-		
-		if((pa->runtime_flag & PNL_ACTIVE) && (pa==panel || pa->paneltab==panel)) {
-			float col[3];
-			
-			UI_GetThemeColor3fv(TH_TITLE, col);
-
-			/* active tab */
-			if(pa==panel)
-				glColor4f(col[0], col[1], col[2], 1.0f);
-			else
-				glColor4f(col[0], col[1], col[2], 0.5f);
-			
-			hrect= *rect;
-			hrect.xmin= rect->xmin+pnl_icons + a*width;
-			hrect.xmax= hrect.xmin + width;
-			uiStyleFontDraw(&style->paneltitle, &hrect, panelname);
-			
-			a++;
-		}
+	else {
+		/* ignore 'pnl_icons', otherwise the text gets offset horizontally 
+		 * + 0.001f to avoid flirting with float inaccuracy
+		 */
+		hrect.xmin= rect->xmin + (PNL_ICON+5)/block->aspect + 0.001f;
+		uiStyleFontDrawRotated(&style->paneltitle, &hrect, activename);
 	}
 }
 
@@ -567,9 +523,9 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 		glDisable(GL_BLEND);
 	}
 	
-	/* title */
+	/* horizontal title */
 	if(!(panel->flag & PNL_CLOSEDX)) {
-		ui_draw_aligned_panel_header(ar, style, block, &headrect);
+		ui_draw_aligned_panel_header(ar, style, block, &headrect, 'h');
 		
 		/* itemrect smaller */	
 		itemrect.xmax= headrect.xmax - 5.0f/block->aspect;
@@ -585,16 +541,10 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 		*/
 	if(panel->flag & PNL_CLOSEDY) {
 		
-		
-		/* if it's being overlapped by a panel being dragged */
-		if(panel->flag & PNL_OVERLAP) {
-			UI_ThemeColor(TH_TEXT_HI);
-			uiRoundRect(rect->xmin, rect->ymax, rect->xmax, rect->ymax+PNL_HEADER, 8);
-		}
-		
 	}
 	else if(panel->flag & PNL_CLOSEDX) {
-		
+		/* draw vertical title */
+		ui_draw_aligned_panel_header(ar, style, block, &headrect, 'v');
 	}
 	/* an open panel */
 	else {
@@ -606,13 +556,6 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 			
 			UI_ThemeColorShade(TH_BACK, -120);
 			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax+1, 8);
-		}
-		if(panel->flag & PNL_OVERLAP) {
-			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
-			else uiSetRoundBox(3);
-			
-			UI_ThemeColor(TH_TEXT_HI);
-			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, headrect.ymax+1, 8);
 		}
 		
 		if(panel->control & UI_PNL_SCALE)
@@ -963,62 +906,6 @@ static void check_panel_overlap(ARegion *ar, Panel *panel)
 	}
 }
 
-#if 0 // XXX panel docking/tabbing code that's no longer used
-static void test_add_new_tabs(ARegion *ar)
-{
-	Panel *pa, *pasel=NULL, *palap=NULL;
-	/* search selected and overlapped panel */
-	
-	pa= ar->panels.first;
-	while(pa) {
-		if(pa->runtime_flag & PNL_ACTIVE) {
-			if(pa->flag & PNL_SELECT) pasel= pa;
-			if(pa->flag & PNL_OVERLAP) palap= pa;
-		}
-		pa= pa->next;
-	}
-	
-	if(pasel && palap==NULL) {
-
-		/* copy locations */
-		pa= ar->panels.first;
-		while(pa) {
-			if(pa->paneltab==pasel) {
-				ui_panel_copy_offset(pa, pasel);
-			}
-			pa= pa->next;
-		}
-	}
-	
-	if(pasel==NULL || palap==NULL) return;
-	if(palap->type && palap->type->flag & PNL_NO_HEADER) return;
-	
-	/* the overlapped panel becomes a tab */
-	palap->paneltab= pasel;
-	
-	/* the selected panel gets coords of overlapped one */
-	ui_panel_copy_offset(pasel, palap);
-
-	/* and its tabs */
-	pa= ar->panels.first;
-	while(pa) {
-		if(pa->paneltab == pasel) {
-			ui_panel_copy_offset(pa, palap);
-		}
-		pa= pa->next;
-	}
-	
-	/* but, the overlapped panel already can have tabs too! */
-	pa= ar->panels.first;
-	while(pa) {
-		if(pa->paneltab == palap) {
-			pa->paneltab = pasel;
-		}
-		pa= pa->next;
-	}
-}
-#endif
-
 /************************ panel dragging ****************************/
 
 static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
@@ -1061,99 +948,8 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 	ED_region_tag_redraw(ar);
 }
 
-static void ui_do_untab(const bContext *C, wmEvent *event, Panel *panel)
-{
-	uiHandlePanelData *data= panel->activedata;
-	ARegion *ar= CTX_wm_region(C);
-	Panel *pa, *panew= NULL;
-	int nr;
-
-	/* wait until a threshold is passed to untab */
-	if(abs(event->x-data->startx) + abs(event->y-data->starty) > 6) {
-		/* find new parent panel */
-		nr= 0;
-		for(pa= ar->panels.first; pa; pa=pa->next) {
-			if(pa->paneltab==panel) {
-				panew= pa;
-				nr++;
-			}
-		}
-		
-		/* make old tabs point to panew */
-		panew->paneltab= NULL;
-		
-		for(pa= ar->panels.first; pa; pa=pa->next)
-			if(pa->paneltab==panel)
-				pa->paneltab= panew;
-		
-		panel_activate_state(C, panel, PANEL_STATE_DRAG);
-	}
-}
-
 /******************* region level panel interaction *****************/
 
-static void panel_clicked_tabs(const bContext *C, ScrArea *sa, ARegion *ar, uiBlock *block,  int mousex)
-{
-	Panel *pa, *tabsel=NULL, *panel= block->panel;
-	int nr= 1, a, width, ofsx;
-	
-	ofsx= PNL_ICON;
-	if(block->panel->type && (block->panel->control & UI_PNL_CLOSE)) ofsx+= PNL_ICON;
-	
-	/* count */
-	for(pa= ar->panels.first; pa; pa=pa->next)
-		if(pa!=panel)
-			if((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==panel)
-				nr++;
-
-	if(nr==1) return;
-	
-	/* find clicked tab, mouse in panel coords */
-	a= 0;
-	width= (int)((float)(panel->sizex - ofsx-10)/nr);
-	pa= ar->panels.first;
-	while(pa) {
-		if(pa==panel || ((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==panel)) {
-			if((mousex > ofsx+a*width) && (mousex < ofsx+(a+1)*width)) {
-				tabsel= pa;
-				break;
-			}
-			a++;
-		}
-		pa= pa->next;
-	}
-
-	if(tabsel) {
-		if(tabsel == panel) {
-			panel_activate_state(C, panel, PANEL_STATE_WAIT_UNTAB);
-		}
-		else {
-			/* tabsel now becomes parent for all others */
-			panel->paneltab= tabsel;
-			tabsel->paneltab= NULL;
-			
-			pa= ar->panels.first;
-			while(pa) {
-				if(pa->paneltab == panel) pa->paneltab = tabsel;
-				pa= pa->next;
-			}
-			
-			/* copy locations to tabs */
-			for(pa= ar->panels.first; pa; pa= pa->next) {
-				if(pa->paneltab && pa->runtime_flag & PNL_ACTIVE) {
-					ui_panel_copy_offset(pa, pa->paneltab);
-				}
-			}
-			
-			/* panels now differ size.. */
-			if(panel_aligned(sa, ar))
-				panel_activate_state(C, tabsel, PANEL_STATE_ANIMATION);
-
-			ED_region_tag_redraw(ar);
-		}
-	}
-	
-}
 
 /* this function is supposed to call general window drawing too */
 /* also it supposes a block has panel, and isnt a menu */
@@ -1216,10 +1012,6 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 	}
 	else if(block->panel->flag & PNL_CLOSED) {
 		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
-	}
-	/* check if clicked in tabbed area */
-	else if(mx < block->maxx-PNL_ICON-3 && panel_has_tabs(ar, block->panel)) {
-		panel_clicked_tabs(C, sa, ar, block, mx);
 	}
 	else {
 		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
@@ -1346,9 +1138,7 @@ static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 			panel_activate_state(C, panel, PANEL_STATE_EXIT);
 	}
 	else if(event->type == MOUSEMOVE) {
-		if(data->state == PANEL_STATE_WAIT_UNTAB)
-			ui_do_untab(C, event, panel);
-		else if(data->state == PANEL_STATE_DRAG)
+		if(data->state == PANEL_STATE_DRAG)
 			ui_do_drag(C, event, panel);
 	}
 	else if(event->type == TIMER && event->customdata == data->animtimer) {

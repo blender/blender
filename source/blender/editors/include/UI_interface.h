@@ -683,6 +683,7 @@ void uiIDContextProperty(struct bContext *C, struct PointerRNA *ptr, struct Prop
 /* Styled text draw */
 void uiStyleFontSet(struct uiFontStyle *fs);
 void uiStyleFontDraw(struct uiFontStyle *fs, struct rcti *rect, char *str);
+void uiStyleFontDrawRotated(struct uiFontStyle *fs, struct rcti *rect, char *str);
 
 int UI_GetStringWidth(char *str); // XXX temp
 void UI_DrawString(float x, float y, char *str); // XXX temp
