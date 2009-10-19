@@ -1970,11 +1970,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	Strip *strip_new;
 	StripElem *se, *se_new;
 	int start_ofs, cfra, frame_end;
-	static int step= 1;
-
-//	add_numbut(0, NUM|INT, "Image Duration:", 1, 256, &step, NULL);
-//	if (!do_clever_numbuts("Separate Images", 1, REDRAW))
-//		return;
+	int step= RNA_int_get(op->ptr, "length");
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
@@ -2044,13 +2040,15 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	ot->description="On image sequences strips, it return a strip for each image.";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
+	ot->invoke= WM_operator_props_popup;
 	ot->exec= sequencer_separate_images_exec;
 
 	ot->poll= ED_operator_sequencer_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "length", 1, 1, 1000, "Length", "Length of each frame", 1, INT_MAX);
 }
 
 
