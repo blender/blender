@@ -50,14 +50,27 @@ static NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
 };
 
 #pragma mark Cocoa window delegate object
-
+/* live resize ugly patch
+extern "C" {
+	struct bContext;
+	typedef struct bContext bContext;
+	bContext* ghostC;
+	extern int wm_window_timer(const bContext *C);
+	extern void wm_window_process_events(const bContext *C);
+	extern void wm_event_do_handlers(bContext *C);
+	extern void wm_event_do_notifiers(bContext *C);
+	extern void wm_draw_update(bContext *C);
+};*/
 @interface CocoaWindowDelegate : NSObject
+#ifdef MAC_OS_X_VERSION_10_6
+<NSWindowDelegate>
+#endif
 {
 	GHOST_SystemCocoa *systemCocoa;
 	GHOST_WindowCocoa *associatedWindow;
 }
 
-- (void)setSystemAndWindowCocoa:(const GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
+- (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 - (void)windowWillClose:(NSNotification *)notification;
 - (void)windowDidBecomeKey:(NSNotification *)notification;
 - (void)windowDidResignKey:(NSNotification *)notification;
@@ -97,7 +110,18 @@ static NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-	systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
+	if (![[notification object] inLiveResize]) {
+		//Send event only once, at end of resize operation (when user has released mouse button)
+		systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
+	}
+	/* Live resize ugly patch. Needed because live resize runs in a modal loop, not letting main loop run
+	 if ([[notification object] inLiveResize]) {
+		systemCocoa->dispatchEvents();
+		wm_window_timer(ghostC);
+		wm_event_do_handlers(ghostC);
+		wm_event_do_notifiers(ghostC);
+		wm_draw_update(ghostC);
+	}*/
 }
 @end
 
@@ -107,8 +131,6 @@ static NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
 {
 
 }
--(BOOL)canBecomeKeyWindow;
-
 @end
 @implementation CocoaWindow
 
@@ -125,7 +147,6 @@ static NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[] =
 //We need to subclass it in order to give Cocoa the feeling key events are trapped
 @interface CocoaOpenGLView : NSOpenGLView
 {
-	
 }
 @end
 @implementation CocoaOpenGLView
@@ -515,6 +536,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Make window borderless and enlarge it
 				[m_window setStyleMask:NSBorderlessWindowMask];
 				[m_window setFrame:[[m_window screen] frame] display:YES];
+				[m_window makeFirstResponder:m_openGLView];
 #else
 				//With 10.5, we need to create a new window to change its style to borderless
 				//Hide menu & dock if needed
@@ -572,6 +594,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Make window normal and resize it
 				[m_window setStyleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
 				[m_window setFrame:[[m_window screen] visibleFrame] display:YES];
+				[m_window makeFirstResponder:m_openGLView];
 #else
 				//With 10.5, we need to create a new window to change its style to borderless
 				//Show menu & dock if needed
@@ -849,73 +872,42 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)
 }
 
 
-//Override this method to provide set feature even if not in warp
-inline bool GHOST_WindowCocoa::setCursorWarpAccum(GHOST_TInt32 x, GHOST_TInt32 y)
+GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 {
-	m_cursorWarpAccumPos[0]= x;
-	m_cursorWarpAccumPos[1]= y;
+	GHOST_TSuccess err = GHOST_kSuccess;
 	
-	return GHOST_kSuccess;
-}
-
-
-GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(bool grab, bool warp, bool restore)
-{
-	if (grab)
+	if (mode != GHOST_kGrabDisable)
 	{
 		//No need to perform grab without warp as it is always on in OS X
-		if(warp) {
+		if(mode != GHOST_kGrabNormal) {
 			GHOST_TInt32 x_old,y_old;
 
-			m_cursorWarp= true;
 			m_systemCocoa->getCursorPosition(x_old,y_old);
-			screenToClient(x_old, y_old, m_cursorWarpInitPos[0], m_cursorWarpInitPos[1]);
+			screenToClient(x_old, y_old, m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
 			//Warp position is stored in client (window base) coordinates
-			setWindowCursorVisibility(false);
-			return CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+			setCursorGrabAccum(0, 0);
+			
+			if(mode == GHOST_kGrabHide) {
+				setWindowCursorVisibility(false);
+			}
+			
+			//Dissociate cursor position even for warp mode, to allow mouse acceleration to work even when warping the cursor
+			err = CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
 		}
 	}
 	else {
-		if(m_cursorWarp)
-		{/* are we exiting warp */
+		if(m_cursorGrab==GHOST_kGrabHide)
+		{
+			//No need to set again cursor position, as it has not changed for Cocoa
 			setWindowCursorVisibility(true);
-			/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
-			if(restore) {
-				GHOST_Rect bounds;
-				GHOST_TInt32 x_new, y_new, x_cur, y_cur;
-				
-				getClientBounds(bounds);
-				x_new= m_cursorWarpInitPos[0]+m_cursorWarpAccumPos[0];
-				y_new= m_cursorWarpInitPos[1]+m_cursorWarpAccumPos[1];
-				
-				if(x_new < 0)		x_new = 0;
-				if(y_new < 0)		y_new = 0;
-				if(x_new > bounds.getWidth())	x_new = bounds.getWidth();
-				if(y_new > bounds.getHeight())	y_new = bounds.getHeight();
-				
-				//get/set cursor position works in screen coordinates
-				clientToScreen(x_new, y_new, x_cur, y_cur);
-				m_systemCocoa->setCursorPosition(x_cur, y_cur);
-				
-				//As Cocoa will give as first deltaX,deltaY this change in cursor position, we need to compensate for it
-				//Issue appearing in case of two transform operations conducted w/o mouse motion in between
-				x_new=m_cursorWarpAccumPos[0];
-				y_new=m_cursorWarpAccumPos[1];
-				setCursorWarpAccum(-x_new, -y_new);
-			}
-			else {
-				GHOST_TInt32 x_new, y_new;
-				//get/set cursor position works in screen coordinates
-				clientToScreen(m_cursorWarpInitPos[0], m_cursorWarpInitPos[1], x_new, y_new);
-				m_systemCocoa->setCursorPosition(x_new, y_new);
-				setCursorWarpAccum(0, 0);
-			}
-			
-			m_cursorWarp= false;
-			return CGAssociateMouseAndMouseCursorPosition(true) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
 		}
+		
+		err = CGAssociateMouseAndMouseCursorPosition(true) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+		setCursorGrabAccum(0, 0);
+		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
 	}
-	return GHOST_kSuccess;
+	return err;
 }
 	
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor shape)
@@ -979,7 +971,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 														samplesPerPixel:2
 															   hasAlpha:YES
 															   isPlanar:YES
-														 colorSpaceName:NSDeviceBlackColorSpace
+														 colorSpaceName:NSDeviceWhiteColorSpace
 															bytesPerRow:(sizex/8 + (sizex%8 >0 ?1:0))
 														   bitsPerPixel:1];
 	
@@ -989,10 +981,10 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 	
 	for (y=0; y<nbUns16; y++) {
 #if !defined(__LITTLE_ENDIAN__)
-		cursorBitmap[y] = uns16ReverseBits((bitmap[2*y]<<0) | (bitmap[2*y+1]<<8));
+		cursorBitmap[y] = ~uns16ReverseBits((bitmap[2*y]<<0) | (bitmap[2*y+1]<<8));
 		cursorBitmap[nbUns16+y] = uns16ReverseBits((mask[2*y]<<0) | (mask[2*y+1]<<8));
 #else
-		cursorBitmap[y] = uns16ReverseBits((bitmap[2*y+1]<<0) | (bitmap[2*y]<<8));
+		cursorBitmap[y] = ~uns16ReverseBits((bitmap[2*y+1]<<0) | (bitmap[2*y]<<8));
 		cursorBitmap[nbUns16+y] = uns16ReverseBits((mask[2*y+1]<<0) | (mask[2*y]<<8));
 #endif
 		
