@@ -159,7 +159,6 @@ typedef enum PropertyFlag {
 	/* disallow assigning a variable to its self, eg an object tracking its self
 	 * only apply this to types that are derived from an ID ()*/
 	PROP_ID_SELF_CHECK = 1<<20,
-
 	PROP_NEVER_NULL = 1<<18,
 
 	/* internal flags */

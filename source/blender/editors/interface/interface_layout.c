@@ -1054,10 +1054,14 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 {
 	uiBut *but= arg_but;
 	char *name;
-	int i, iconid;
+	int i, iconid, flag= RNA_property_flag(but->rnaprop);
 
 	i = 0;
 	RNA_PROP_BEGIN(&but->rnasearchpoin, itemptr, but->rnasearchprop) {
+		if(flag & PROP_ID_SELF_CHECK)
+			if(itemptr.data == but->rnapoin.id.data)
+				continue;
+
 		iconid= 0;
 		if(RNA_struct_is_ID(itemptr.type))
 			iconid= ui_id_icon_get((bContext*)C, itemptr.data);

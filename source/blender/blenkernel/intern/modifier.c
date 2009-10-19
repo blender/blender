@@ -1187,9 +1187,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* need to avoid infinite recursion here */
 	if(amd->start_cap && amd->start_cap != ob)
-		start_cap = mesh_get_derived_final(scene, amd->start_cap, CD_MASK_MESH);
+		start_cap = amd->start_cap->derivedFinal;
 	if(amd->end_cap && amd->end_cap != ob)
-		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
+		end_cap = amd->end_cap->derivedFinal;
 
 	Mat4One(offset);
 
@@ -6356,7 +6356,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 {
 	// XXX doesn't handle derived data
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
-	DerivedMesh *dm = mesh_get_derived_final(md->scene, bmd->object, CD_MASK_BAREMESH);
+	DerivedMesh *dm = bmd->object->derivedFinal;
 
 	/* we do a quick sanity check */
 	if(dm && (derivedData->getNumFaces(derivedData) > 3)
