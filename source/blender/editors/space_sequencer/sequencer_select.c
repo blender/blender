@@ -296,8 +296,8 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	short mval[2];	
 	
-	Sequence *seq,*neighbor;
-	int hand,sel_side, shift= 0; // XXX
+	Sequence *seq,*neighbor, *act_orig;
+	int hand,sel_side;
 	TimeMarker *marker;
 
 	if(ed==NULL)
@@ -311,7 +311,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (marker) {
 		int oldflag;
 		/* select timeline marker */
-		if (shift) {
+		if (extend) {
 			oldflag= marker->flag;
 			if (oldflag & SELECT)
 				marker->flag &= ~SELECT;
@@ -326,6 +326,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	} else {
 	
 		seq= find_nearest_seq(scene, v2d, &hand, mval);
+		act_orig= ed->act_seq;
 
 		if(extend == 0 && linked_left==0 && linked_right==0)
 			deselect_all_seq(scene);
@@ -344,7 +345,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 	
-			if(extend && (seq->flag & SELECT)) {
+			if(extend && (seq->flag & SELECT) && ed->act_seq == act_orig ) {
 				switch(hand) {
 				case SEQ_SIDE_NONE:
 					if (linked_left==0 && linked_right==0)

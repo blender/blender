@@ -1233,7 +1233,6 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		view = context.space_data
 		gs = context.scene.game_data
 		ob = context.object
-		mesh = context.active_object.data
 		
 		col = layout.column()
 		col.itemR(view, "display_floor", text="Grid Floor")
@@ -1243,7 +1242,8 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		col.itemR(view, "outline_selected")
 		col.itemR(view, "all_object_centers")
 		col.itemR(view, "relationship_lines")
-		if ob.type =='MESH':
+		if ob and ob.type =='MESH':
+			mesh = context.active_object.data
 			col.itemR(mesh, "all_edges")
 		
 		col = layout.column()
