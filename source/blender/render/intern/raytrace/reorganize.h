@@ -26,9 +26,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #include <stdio.h>
-#include <math.h>
 #include <algorithm>
+#include <math.h>
 #include <vector>
 #include <queue>
 
@@ -289,7 +290,6 @@ float bvh_refit(Node *node)
  * with the purpose to reduce the expected cost (eg.: number of BB tests).
  */
 #include <vector>
-#include <cmath>
 #define MAX_CUT_SIZE	16
 #define MAX_OPTIMIZE_CHILDS	MAX_CUT_SIZE
 
