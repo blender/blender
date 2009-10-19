@@ -416,7 +416,7 @@ static int passtype_from_name(char *str)
 	if(strcmp(str, "Mist")==0)
 		return SCE_PASS_MIST;
 	
-	if(strcmp(str, "RAYHITS")==0)
+	if(strcmp(str, "RayHits")==0)
 		return SCE_PASS_RAYHITS;
 	return 0;
 }
@@ -545,7 +545,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl->lay= srl->lay;
 		rl->lay_zmask= srl->lay_zmask;
 		rl->layflag= srl->layflag;
-		rl->passflag= srl->passflag | SCE_PASS_RAYHITS;
+		rl->passflag= srl->passflag; // for debugging: srl->passflag|SCE_PASS_RAYHITS;
 		rl->pass_xor= srl->pass_xor;
 		rl->light_override= srl->light_override;
 		rl->mat_override= srl->mat_override;
@@ -589,7 +589,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		if(srl->passflag  & SCE_PASS_MIST)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST);
-		if(rl->passflag  & SCE_PASS_RAYHITS)
+		if(rl->passflag & SCE_PASS_RAYHITS)
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_RAYHITS);
 		
 	}
@@ -1704,11 +1704,10 @@ static void threaded_tile_processor(Render *re)
 		
 	}
 	
-	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-
 	if(re->result->exrhandle) {
 		RenderResult *rr;
 
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		save_empty_result_tiles(re);
 		
 		for(rr= re->result; rr; rr= rr->next) {
@@ -1718,11 +1717,11 @@ static void threaded_tile_processor(Render *re)
 		
 		free_render_result(&re->fullresult, re->result);
 		re->result= NULL;
+
+		BLI_rw_mutex_unlock(&re->resultmutex);
 		
 		read_render_result(re, 0);
 	}
-
-	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	/* unset threadsafety */
 	g_break= 0;
