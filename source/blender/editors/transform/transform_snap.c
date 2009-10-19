@@ -344,6 +344,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 {
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
+	Scene *scene = t->scene;
 	int snapping = 0;
 	short snap_mode = t->settings->snap_target;
 	
@@ -406,6 +407,15 @@ void initSnapping(TransInfo *t, wmOperator *op)
 			{
 				t->tsnap.mode = SNAP_ALL;
 			}
+		}
+		/* Particles edit mode*/
+		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
+			(snapping) && // Only if the snap flag is on
+			(obedit == NULL && BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT ))
+		{
+			t->tsnap.status |= SNAP_ON;
+			t->tsnap.modePoint = SNAP_GEO;
+			t->tsnap.mode = SNAP_ALL;
 		}
 		/* Object mode */
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
@@ -1457,13 +1467,14 @@ int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mv
 		retval |= snapObject(scene, ar, ob, 1, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 	}
 
-	/* This isn't so great, particles only need to snap with the mesh object
-	 * that emits them, but this doesnt fit into a current snap mode
+	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
+	 * which makes the loop skip it, even the derived mesh will never change
+	 *
+	 * To solve that problem, we do it first as an exception. 
 	 * */
 	if(BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT)
 	{
 		Object *ob = BASACT->object;
-
 		retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 	}
 	
