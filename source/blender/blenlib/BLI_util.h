@@ -51,6 +51,7 @@ char *BLI_gethome_folder(char *folder_name, int flag);
 #define BLI_GETHOME_ALL			(BLI_GETHOME_SYSTEM|BLI_GETHOME_LOCAL|BLI_GETHOME_USER)
 
 void BLI_setenv(const char *env, const char *val);
+void BLI_setenv_if_new(const char *env, const char* val);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
