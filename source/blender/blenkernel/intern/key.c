@@ -1505,7 +1505,7 @@ char *key_get_curValue_rnaPath(Key *key, KeyBlock *kb)
 		return NULL;
 	
 	/* create the RNA pointer */
-	RNA_pointer_create(key, &RNA_ShapeKey, kb, &ptr);
+	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &ptr);
 	/* get pointer to the property too */
 	prop= RNA_struct_find_property(&ptr, "value");
 	
