@@ -922,11 +922,11 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 		/* draw the circle/square representing spotbl */
 		if(la->type==LA_SPOT) {
 			float spotblcirc = fabs(z)*(1 - pow(la->spotblend, 2));
-			/* make sure the line is always visible - prevent it from reaching the outer border (or 0) 
-			 * values are kinda arbitrary - just what seemed to work well */
-			if (spotblcirc == 0) spotblcirc = 0.15;
-			else if (spotblcirc == fabs(z)) spotblcirc = fabs(z) - 0.07;
-			circ(0.0, 0.0, spotblcirc);
+			/* hide line if it is zero size or overlaps with outer border,
+			   previously it adjusted to always to show it but that seems
+			   confusing because it doesn't show the actual blend size */
+			if (spotblcirc != 0 && spotblcirc != fabs(z))
+				circ(0.0, 0.0, spotblcirc);
 		}
 		
 	}
