@@ -2386,6 +2386,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 					ntree->sdh= re->sdh;
 					ntree->tbh= re->tbh;
 					/* in case it was never initialized */
+					R.sdh= re->sdh;
 					R.stats_draw= re->stats_draw;
 					
 					if(re->r.scemode & R_FULL_SAMPLE) 
