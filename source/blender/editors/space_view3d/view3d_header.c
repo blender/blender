@@ -178,12 +178,12 @@ static void handle_view3d_lock(bContext *C)
 	
 	if (v3d != NULL && sa != NULL) {
 		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
-			
 			/* copy to scene */
 			scene->lay= v3d->lay;
 			scene->camera= v3d->camera;
 			
-			//copy_view3d_lock(REDRAW);
+			/* notifiers for scene update */
+			WM_event_add_notifier(C, NC_SCENE, scene);
 		}
 	}
 }
@@ -2204,6 +2204,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
 		if (ob && (ob->mode & OB_MODE_POSE)) {
+			PointerRNA *but_ptr;
+			uiBut *but;
+			
 			xco+= XIC*2;
 			uiBlockBeginAlign(block);
 			
@@ -2213,8 +2216,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			
 			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, NULL);
 			xco+= XIC;
-				// FIXME: this needs an extra arg...
-			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEFLIPDOWN, xco,yco,XIC,YIC, NULL);
+			but=uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEFLIPDOWN, xco,yco,XIC,YIC, NULL);
+				but_ptr= uiButGetOperatorPtrRNA(but);
+				RNA_boolean_set(but_ptr, "flipped", 1);
 			uiBlockEndAlign(block);
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 

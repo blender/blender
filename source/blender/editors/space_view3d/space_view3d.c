@@ -123,7 +123,7 @@ ARegion *view3d_has_tools_region(ScrArea *sa)
 		
 		BLI_insertlinkafter(&sa->regionbase, arhead, artool);
 		artool->regiontype= RGN_TYPE_TOOLS;
-		artool->alignment= RGN_OVERLAP_LEFT;
+		artool->alignment= RGN_ALIGN_LEFT; //RGN_OVERLAP_LEFT;
 		artool->flag = RGN_FLAG_HIDDEN;
 	}
 
@@ -218,12 +218,28 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
+	/* toolbar */
+	ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
+	
+	BLI_addtail(&v3d->regionbase, ar);
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_ALIGN_LEFT;
+	ar->flag = RGN_FLAG_HIDDEN;
+	
+	/* tool properties */
+	ar= MEM_callocN(sizeof(ARegion), "tool properties for view3d");
+	
+	BLI_addtail(&v3d->regionbase, ar);
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+	ar->flag = RGN_FLAG_HIDDEN;
+	
 	/* buttons/list view */
 	ar= MEM_callocN(sizeof(ARegion), "buttons for view3d");
 	
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
-	ar->alignment= RGN_ALIGN_LEFT;
+	ar->alignment= RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */

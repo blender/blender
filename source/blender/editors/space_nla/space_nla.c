@@ -47,6 +47,8 @@
 #include "BKE_nla.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -112,6 +114,7 @@ static SpaceLink *nla_new(const bContext *C)
 	
 	/* allocate DopeSheet data for NLA Editor */
 	snla->ads= MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
+	snla->ads->source= (ID *)scene;
 	
 	/* set auto-snapping settings */
 	snla->autosnap = SACTSNAP_FRAME;
@@ -189,8 +192,10 @@ static void nla_init(struct wmWindowManager *wm, ScrArea *sa)
 	SpaceNla *snla= (SpaceNla *)sa->spacedata.first;
 	
 	/* init dopesheet data if non-existant (i.e. for old files) */
-	if (snla->ads == NULL)
+	if (snla->ads == NULL) {
 		snla->ads= MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
+		snla->ads->source= (ID *)G.main->scene.first; // XXX this is bad, but we need this to be set correct
+	}
 
 	ED_area_tag_refresh(sa);
 }
