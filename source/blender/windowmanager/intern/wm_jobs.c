@@ -192,7 +192,6 @@ static void *do_job_thread(void *job_v)
 {
 	wmJob *steve= job_v;
 	
-	steve->stop= steve->ready= 0;
 	steve->startjob(steve->run_customdata, &steve->stop, &steve->do_update);
 	steve->ready= 1;
 	
@@ -245,6 +244,9 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 				if(steve->initjob)
 					steve->initjob(steve->run_customdata);
 				
+				steve->stop= 0;
+				steve->ready= 0;
+
 				BLI_init_threads(&steve->threads, do_job_thread, 1);
 				BLI_insert_thread(&steve->threads, steve);
 
