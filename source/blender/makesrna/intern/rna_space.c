@@ -1624,7 +1624,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "backdrop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);
 	RNA_def_property_ui_text(prop, "Backdrop", "Use active Viewer Node output as backdrop for compositing nodes.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE_VIEW, NULL);
 }
 
 static void rna_def_space_logic(BlenderRNA *brna)

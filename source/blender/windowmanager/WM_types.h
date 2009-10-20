@@ -227,6 +227,7 @@ typedef struct wmNotifier {
 #define ND_SPACE_DOPESHEET		(13<<16)
 #define ND_SPACE_NLA			(14<<16)
 #define ND_SPACE_SEQUENCER		(15<<16)
+#define ND_SPACE_NODE_VIEW		(16<<16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00
