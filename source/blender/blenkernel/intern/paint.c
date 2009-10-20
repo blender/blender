@@ -29,6 +29,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_brush.h"
@@ -160,8 +161,7 @@ void paint_brush_slot_remove(Paint *p)
 
 int paint_facesel_test(Object *ob)
 {
-	return (G.f&G_FACESELECT) && (ob && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)));
-
+	return (ob && (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_MASK) && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)));
 }
 
 void paint_init(Paint *p, const char col[3])

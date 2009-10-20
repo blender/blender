@@ -3182,7 +3182,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 #endif
 		
-		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
+		if (tf->tpage && ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_MASK)==0 || mf->flag & ME_FACE_SEL)) {
 			
 			float *v1coSS, *v2coSS, *v3coSS, *v4coSS=NULL;
 			
@@ -4290,7 +4290,7 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 	if (texpaint) {
 		/* pick new face and image */
 		if (	imapaint_pick_face(vc, s->me, mval, &newfaceindex) &&
-				((G.f & G_FACESELECT)==0 || (s->me->mface+newfaceindex)->flag & ME_FACE_SEL)
+				((s->me->editflag & ME_EDIT_PAINT_MASK)==0 || (s->me->mface+newfaceindex)->flag & ME_FACE_SEL)
 		) {
 			ImBuf *ibuf;
 			

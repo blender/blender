@@ -203,7 +203,7 @@ static unsigned int vpaint_get_current_col(VPaint *vp)
 	return rgba_to_mcol(brush->rgb[0], brush->rgb[1], brush->rgb[2], 1.0f);
 }
 
-void do_shared_vertexcol(Mesh *me)
+static void do_shared_vertexcol(Mesh *me)
 {
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
@@ -221,7 +221,7 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if((tface && tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+		if((tface && tface->mode & TF_SHAREDCOL) || (me->editflag & ME_EDIT_PAINT_MASK)==0) {
 			scol= scolmain+4*mface->v1;
 			scol[0]++; scol[1]+= mcol[1]; scol[2]+= mcol[2]; scol[3]+= mcol[3];
 			scol= scolmain+4*mface->v2;
@@ -251,7 +251,7 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if((tface && tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+		if((tface && tface->mode & TF_SHAREDCOL) || (me->editflag & ME_EDIT_PAINT_MASK)==0) {
 			scol= scolmain+4*mface->v1;
 			mcol[1]= scol[1]; mcol[2]= scol[2]; mcol[3]= scol[3];
 			scol= scolmain+4*mface->v2;
@@ -1361,7 +1361,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 			
-	if((G.f & G_FACESELECT) && me->mface) {
+	if((me->editflag & ME_EDIT_PAINT_MASK) && me->mface) {
 		for(index=0; index<totindex; index++) {
 			if(indexar[index] && indexar[index]<=me->totface) {
 				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
@@ -1675,7 +1675,7 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index
 	int alpha, i;
 	
 	if((vp->flag & VP_COLINDEX && mface->mat_nr!=ob->actcol-1) ||
-	   (G.f & G_FACESELECT && !(mface->flag & ME_FACE_SEL)))
+	   ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL)))
 		return;
 
 	if(vp->mode==VP_BLUR) {

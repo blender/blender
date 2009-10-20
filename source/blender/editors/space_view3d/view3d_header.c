@@ -1818,6 +1818,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
         ED_area_tag_redraw(sa);
 		break;		
 	case B_VIEW_BUTSEDIT:
+		ED_area_tag_redraw(sa);
 		break;
 		
 	default:
@@ -2031,7 +2032,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
  		}
  	} else {
  		if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
- 			uiDefIconButBitI(block, TOG, G_FACESELECT, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
+			Mesh *me= ob->data;
+ 			uiDefIconButBitS(block, TOG, ME_EDIT_PAINT_MASK, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &me->editflag, 0, 0, 0, 0, "Painting Mask (FKey)");
 			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
  		} else {
  			/* Manipulators aren't used in weight paint mode */

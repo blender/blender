@@ -6121,7 +6121,7 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 	Mesh *me = (Mesh*)ob->data;
 	MCol *colors;
 	int i,j;
-	int face_sel_mode = (G.f & G_FACESELECT) ? 1:0;
+	int face_sel_mode = (me->flag & ME_EDIT_PAINT_MASK) ? 1:0;
 	
 	glColor3ub(0, 0, 0);
 		

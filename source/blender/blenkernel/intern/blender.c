@@ -226,8 +226,6 @@ static void clear_global(void)
 //	free_vertexpaint();
 
 	G.main= NULL;
-	
-	G.f &= ~(G_FACESELECT);
 }
 
 /* make sure path names are correct for OS */
