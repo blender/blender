@@ -163,6 +163,9 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_deselect);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_linked);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
+	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
+	WM_operatortype_append(OBJECT_OT_vertex_group_invert);
+	WM_operatortype_append(OBJECT_OT_vertex_group_clean);
 	WM_operatortype_append(OBJECT_OT_vertex_group_menu);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 
