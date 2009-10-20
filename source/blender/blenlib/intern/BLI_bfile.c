@@ -29,6 +29,7 @@
 #ifndef WIN32
  #include <unistd.h>
  #include <sys/param.h>
+// #include <libgen.h>
 #else
  #include <io.h>
  #include "BLI_winstuff.h"
@@ -36,7 +37,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <libgen.h>
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
