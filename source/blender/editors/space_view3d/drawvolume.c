@@ -172,8 +172,8 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	RegionView3D *rv3d= ar->regiondata;
 
 	float viewnormal[3];
-	int i, j, n;
-	float d, d0, dd;
+	int i, j, n, good_index, count = 0;
+	float d, d0, dd, ds;
 	float *points = NULL;
 	int numpoints = 0;
 	float cor[3] = {1.,1.,1.};
@@ -279,6 +279,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	VECCOPY(edges[11][0], cv[5]); // minx, maxy, minz
 
 	// printf("size x: %f, y: %f, z: %f\n", size[0], size[1], size[2]);
+	// printf("min[2]: %f, max[2]: %f\n", min[2], max[2]);
 
 	edges[0][1][2] = size[2];
 	edges[1][1][2] = size[2];
@@ -306,6 +307,13 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	/*
+	printf("Viewinv:\n");
+	printf("%f, %f, %f\n", rv3d->viewinv[0][0], rv3d->viewinv[0][1], rv3d->viewinv[0][2]);
+	printf("%f, %f, %f\n", rv3d->viewinv[1][0], rv3d->viewinv[1][1], rv3d->viewinv[1][2]);
+	printf("%f, %f, %f\n", rv3d->viewinv[2][0], rv3d->viewinv[2][1], rv3d->viewinv[2][2]);
+	*/
+
 	// get view vector
 	VECCOPY(viewnormal, rv3d->viewinv[2]);
 	Normalize(viewnormal);
@@ -314,9 +322,9 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	for (i=0; i<8; i++) {
 		float x,y,z;
 
-		x = cv[i][0] + viewnormal[0];
-		y = cv[i][1] + viewnormal[1];
-		z = cv[i][2] + viewnormal[2];
+		x = cv[i][0] - viewnormal[0];
+		y = cv[i][1] - viewnormal[1];
+		z = cv[i][2] - viewnormal[2];
 
 		if ((x>=min[0])&&(x<=max[0])
 			&&(y>=min[1])&&(y<=max[1])
@@ -326,6 +334,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	}
 
 	// printf("i: %d\n", i);
+	// printf("point %f, %f, %f\n", cv[i][0], cv[i][1], cv[i][2]);
 
 	if (GL_TRUE == glewIsSupported("GL_ARB_fragment_program"))
 	{
@@ -359,19 +368,35 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	// (a,b,c), the plane normal, are given by viewdir
 	// d is the parameter along the view direction. the first d is given by
 	// inserting previously found vertex into the plane equation
-	d0 = -(viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]);
-	dd = 2.0*d0/64.0f;
+	d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]);
+	ds = (ABS(viewnormal[0])*size[0] + ABS(viewnormal[1])*size[1] + ABS(viewnormal[2])*size[2]);
+	dd = ds/128.0f;
 	n = 0;
+	good_index = i;
 
-	// printf("d0: %f, dd: %f\n", d0, dd);
+	// printf("d0: %f, dd: %f, ds: %f\n\n", d0, dd, ds);
 
 	points = MEM_callocN(sizeof(float)*12*3, "smoke_points_preview");
 
-	for (d = d0; d > -d0; d -= dd) {
+	while(1) {
 		float p0[3];
+		float tmp_point[3], tmp_point2[3];
+
+		if(dd*n > ds)
+			break;
+
+		VECCOPY(tmp_point, viewnormal);
+		VecMulf(tmp_point, -dd*(128.0f-(float)n));
+		VECADD(tmp_point2, cv[good_index], tmp_point);
+		d = INPR(tmp_point2, viewnormal);
+
+		// printf("my d: %f\n", d);
+
 		// intersect_edges returns the intersection points of all cube edges with
 		// the given plane that lie within the cube
-		numpoints = intersect_edges(points, viewnormal[0], viewnormal[1], viewnormal[2], d, edges);
+		numpoints = intersect_edges(points, viewnormal[0], viewnormal[1], viewnormal[2], -d, edges);
+
+		// printf("points: %d\n", numpoints);
 
 		if (numpoints > 2) {
 			VECCOPY(p0, points);
