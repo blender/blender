@@ -1045,10 +1045,10 @@ void postTrans (TransInfo *t)
 {
 	TransData *td;
 	
-	if (t->draw_handle)
-	{
-		ED_region_draw_cb_exit(t->ar->type, t->draw_handle);
-	}
+	if (t->draw_handle_view)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
+	if (t->draw_handle_pixel)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
 	
 
 	if (t->customFree) {

@@ -151,10 +151,6 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 
 /* ********************** custom drawcall api ***************** */
 
-/* type */
-#define REGION_DRAW_PRE		1
-#define REGION_DRAW_POST	0
-
 typedef struct RegionDrawCB {
 	struct RegionDrawCB *next, *prev;
 	

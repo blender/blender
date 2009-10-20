@@ -1539,7 +1539,7 @@ static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	info= MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
 	info->art= ar->type;
-	info->draw_handle = ED_region_draw_cb_activate(ar->type, sample_draw, info, REGION_DRAW_POST);
+	info->draw_handle = ED_region_draw_cb_activate(ar->type, sample_draw, info, REGION_DRAW_POST_PIXEL);
 	op->customdata= info;
 
 	sample_apply(C, op, event);

@@ -431,15 +431,17 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 	draw_uvedit_main(sima, ar, scene, obedit);
 
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 		
 	/* Grease Pencil too (in addition to UV's) */
 	draw_image_grease_pencil((bContext *)C, 1); 
 
 	UI_view2d_view_restore(C);
-	
+
 	/* draw Grease Pencil - screen space only */
 	draw_image_grease_pencil((bContext *)C, 0);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	/* scrollers? */
 	/*scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

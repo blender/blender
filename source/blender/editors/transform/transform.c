@@ -1124,14 +1124,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 
 		projectFloatView(t, vecrot, cent);	// no overflow in extreme cases
 
-		glDisable(GL_DEPTH_TEST);
-
-		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-
-		ED_region_pixelspace(t->ar);
 
 		switch(t->helpline)
 		{
@@ -1238,22 +1231,23 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 				}
 		}
 
-		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-
-		glEnable(GL_DEPTH_TEST);
 	}
 }
 
-void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
+void drawTransformView(const struct bContext *C, struct ARegion *ar, void *arg)
 {
 	TransInfo *t = arg;
 
 	drawConstraint(C, t);
 	drawPropCircle(C, t);
 	drawSnapping(C, t);
+}
+
+void drawTransformPixel(const struct bContext *C, struct ARegion *ar, void *arg)
+{
+	TransInfo *t = arg;
+
 	drawHelpline(C, t);
 }
 
@@ -1373,11 +1367,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		//calc_manipulator_stats(curarea);
 		initTransformOrientation(C, t);
 
-		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
+		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
 		Mat3One(t->spacemtx);
-		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
+		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 	}
 	else
 		Mat3One(t->spacemtx);

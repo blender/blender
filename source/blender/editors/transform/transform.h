@@ -302,7 +302,8 @@ typedef struct TransInfo {
 	struct wmTimer *animtimer;
     short       mval[2];        /* current mouse position               */
     struct Object   *obedit;
-    void		*draw_handle;
+    void		*draw_handle_view;
+    void		*draw_handle_pixel;
 } TransInfo;
 
 

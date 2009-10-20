@@ -2056,7 +2056,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		view3d_update_depths(ar, v3d);
 	}
 	
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
 //	REEB_draw();
 	
@@ -2123,6 +2123,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	ob= OBACT;
 	if(U.uiflag & USER_DRAWVIEWINFO) 
 		draw_selected_name(scene, ob, v3d);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	/* XXX here was the blockhandlers for floating panels */
 

@@ -173,8 +173,6 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 {
 	char str[256];
 	int ofs;
-
-	ED_region_pixelspace(ar);
 	
 	ofs= sprintf(str, "X: %d Y: %d ", x, y);
 	if(cp)
