@@ -286,6 +286,8 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+
+	ED_object_generic_keymap(keyconf, keymap, TRUE);
 }
 
 void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet)

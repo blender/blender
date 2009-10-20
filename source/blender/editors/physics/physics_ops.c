@@ -35,6 +35,7 @@
 #include "WM_types.h"
 
 #include "ED_physics.h"
+#include "ED_object.h"
 
 #include "physics_intern.h" // own include
 
@@ -111,6 +112,8 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
+
+	ED_object_generic_keymap(keyconf, keymap, 1);
 }
 
 /******************************* boids *************************************/
