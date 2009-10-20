@@ -463,57 +463,14 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 				}
 			}
 
-			if(numpoints==3)
-			{
-				glBegin(GL_TRIANGLES);
-				glColor3f(1.0, 1.0, 1.0);
-				for (i = 0; i < numpoints; i++) {
-					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
-					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
-				}
-				glEnd();
-			}
-			else if(numpoints == 4)
-			{
-				glBegin(GL_QUADS);
-				glColor3f(1.0, 1.0, 1.0);
-				for (i = 0; i < numpoints; i++) {
-					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
-					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
-				}
-				glEnd();
-			}
-			else if(numpoints == 5)
-			{
-				glBegin(GL_TRIANGLES);
-				glColor3f(1.0, 1.0, 1.0);
-				for (i = 0; i < 3; i++) {
-					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
-					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
-				}
-				glEnd();
-				glBegin(GL_QUADS);
-				glColor3f(1.0, 1.0, 1.0);
-				for (i = 2; i < numpoints; i++) {
-					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
-					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
-				}
-				i = 0;
+			// printf("numpoints: %d\n", numpoints);
+			glBegin(GL_POLYGON);
+			glColor3f(1.0, 1.0, 1.0);
+			for (i = 0; i < numpoints; i++) {
 				glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
-					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
-				glEnd();
+				glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
 			}
-			else
-			{
-				// printf("numpoints: %d\n", numpoints);
-				glBegin(GL_POLYGON);
-				glColor3f(1.0, 1.0, 1.0);
-				for (i = 0; i < numpoints; i++) {
-					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
-					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
-				}
-				glEnd();
-			}
+			glEnd();
 		}
 		n++;
 	}
