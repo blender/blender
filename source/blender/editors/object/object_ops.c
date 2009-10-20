@@ -189,10 +189,19 @@ void ED_operatortypes_object(void)
 void ED_operatormacros_object(void)
 {
 	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
 	
 	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
+		WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	}
+
+	/* grr, should be able to pass options on... */
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	if(ot) {
+		otmacro= WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
+		RNA_boolean_set(otmacro->ptr, "linked", 1);
 		WM_operatortype_macro_define(ot, "TFM_OT_translate");
 	}
 }
@@ -266,7 +275,8 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "name", "VIEW3D_MT_make_single_user");
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0)->ptr, "linked", 1);
+	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move_linked", DKEY, KM_PRESS, KM_ALT, 0);
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_convert", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
