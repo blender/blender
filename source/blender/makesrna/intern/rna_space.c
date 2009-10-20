@@ -1241,6 +1241,17 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Show handles of Bezier control points.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
+	/* cursor */
+	prop= RNA_def_property(srna, "show_cursor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NODRAWCURSOR);
+	RNA_def_property_ui_text(prop, "Show Cursor", "Show 2D cursor.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	prop= RNA_def_property(srna, "cursor_value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "cursorVal");
+	RNA_def_property_ui_text(prop, "Cursor Y-Value", "Graph Editor 2D-Value cursor - Y-Value component");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
 	// TODO... autosnap, dopesheet?
 }
 

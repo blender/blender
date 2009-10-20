@@ -41,6 +41,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
+#include "BKE_sound.h"
 #include "BKE_utildefines.h"
 
 #include "UI_interface.h"
@@ -57,12 +58,133 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* ************************** poll callbacks **********************************/
-
-
-
 /* ************************** view-based operators **********************************/
-// XXX this probably shouldn't be here..
+// XXX should these really be here?
+
+/* Set Cursor --------------------------------------------------------------------- */
+/* The 'cursor' in the Graph Editor consists of two parts:
+ *	1) Current Frame Indicator (as per ANIM_OT_change_frame)
+ *	2) Value Indicator (stored per Graph Editor instance)
+ */
+
+/* Set the new frame number */
+static void graphview_cursor_apply(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
+	
+	/* adjust the frame 
+	 * NOTE: sync this part of the code with ANIM_OT_change_frame
+	 */
+	CFRA= RNA_int_get(op->ptr, "frame");
+	sound_scrub(C);
+	
+	/* set the cursor value */
+	sipo->cursorVal= RNA_float_get(op->ptr, "value");
+	
+	/* send notifiers - notifiers for frame should force an update for both vars ok... */
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+}
+
+/* ... */
+
+/* Non-modal callback for running operator without user input */
+static int graphview_cursor_exec(bContext *C, wmOperator *op)
+{
+	graphview_cursor_apply(C, op);
+	return OPERATOR_FINISHED;
+}
+
+/* ... */
+
+/* set the operator properties from the initial event */
+static void graphview_cursor_setprops(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	float viewx, viewy;
+	int x, y;
+	
+	/* abort if not active region (should not really be possible) */
+	if (ar == NULL)
+		return;
+	
+	/* convert screen coordinates to region coordinates */
+	x= event->x - ar->winrct.xmin;
+	y= event->y - ar->winrct.ymin;
+	
+	/* convert from region coordinates to View2D 'tot' space */
+	UI_view2d_region_to_view(&ar->v2d, x, y, &viewx, &viewy);
+	
+	/* store the values in the operator properties */
+		/* frame is rounded to the nearest int, since frames are ints */
+	RNA_int_set(op->ptr, "frame", (int)floor(viewx+0.5f));
+	RNA_float_set(op->ptr, "value", viewy);
+}
+
+/* Modal Operator init */
+static int graphview_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* Change to frame that mouse is over before adding modal handler,
+	 * as user could click on a single frame (jump to frame) as well as
+	 * click-dragging over a range (modal scrubbing).
+	 */
+	graphview_cursor_setprops(C, op, event);
+	
+	/* apply these changes first */
+	graphview_cursor_apply(C, op);
+	
+	/* add temp handler */
+	WM_event_add_modal_handler(C, op);
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* Modal event handling of cursor changing */
+static int graphview_cursor_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* execute the events */
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_FINISHED;
+		
+		case MOUSEMOVE:
+			/* set the new values */
+			graphview_cursor_setprops(C, op, event);
+			graphview_cursor_apply(C, op);
+			break;
+		
+		case LEFTMOUSE: 
+		case RIGHTMOUSE:
+			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init 
+			 * the modal op) doesn't work for some reason
+			 */
+			if (event->val==KM_RELEASE)
+				return OPERATOR_FINISHED;
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void GRAPH_OT_cursor_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Cursor";
+	ot->idname= "GRAPH_OT_cursor_set";
+	ot->description= "Interactively set the current frame number and value cursor";
+	
+	/* api callbacks */
+	ot->exec= graphview_cursor_exec;
+	ot->invoke= graphview_cursor_invoke;
+	ot->modal= graphview_cursor_modal;
+	ot->poll= ED_operator_ipo_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+
+	/* rna */
+	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
+	RNA_def_float(ot->srna, "value", 0, FLT_MIN, FLT_MAX, "Value", "", -100.0f, 100.0f);
+}
 
 /* Toggle Handles ----------------------------------------------------------------- */
 
@@ -100,6 +222,8 @@ void graphedit_operatortypes(void)
 {
 	/* view */
 	WM_operatortype_append(GRAPH_OT_view_togglehandles);
+	WM_operatortype_append(GRAPH_OT_cursor_set);
+	
 	WM_operatortype_append(GRAPH_OT_previewrange_set);
 	WM_operatortype_append(GRAPH_OT_view_all);
 	WM_operatortype_append(GRAPH_OT_properties);
@@ -147,6 +271,11 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* view */
 	WM_keymap_add_item(keymap, "GRAPH_OT_handles_view_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
+		/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons
+		 * This keymap is supposed to override ANIM_OT_change_frame, which does the same except it doesn't do y-values
+		 */
+	WM_keymap_add_item(keymap, "GRAPH_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
+	
 	
 	/* graph_select.c - selection tools */
 		/* click-select */
@@ -175,7 +304,6 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPH_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
 	
 		/* column select */
-		// XXX KKEY would be nice to keep for 'keyframe' lines
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_select_column", KKEY, KM_PRESS, 0, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_KEYS);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_select_column", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_CFRA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_select_column", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN);

@@ -62,6 +62,18 @@
 
 /* ********************** frame change operator ***************************/
 
+/* Check if the operator can be run from the current context */
+static int change_frame_poll(bContext *C)
+{
+	ScrArea *curarea= CTX_wm_area(C);
+	
+	/* as long as there is an active area, and it isn't a Graph Editor 
+	 * (since the Graph Editor has its own version which does extra stuff),
+	 * we're fine
+	 */
+	return ((curarea) && (curarea->spacetype != SPACE_IPO));
+}
+
 /* Set any flags that are necessary to indicate modal time-changing operation */
 static int change_frame_init(bContext *C, wmOperator *op)
 {
@@ -85,18 +97,12 @@ static int change_frame_init(bContext *C, wmOperator *op)
 static void change_frame_apply(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	int cfra;
 	
-	/* get frame, and clamp to MINAFRAME 
-	 *	- not MINFRAME, since it's useful to be able to key a few-frames back
-	 */
-	cfra= RNA_int_get(op->ptr, "frame");
+	/* set the new frame number */
+	CFRA= RNA_int_get(op->ptr, "frame");
 	
-	if (cfra < MINAFRAME) cfra= MINAFRAME;
-	CFRA= cfra;
-	
+	/* do updates */
 	sound_scrub(C);
-
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
 
@@ -210,12 +216,14 @@ void ANIM_OT_change_frame(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Change frame";
 	ot->idname= "ANIM_OT_change_frame";
+	ot->description= "Interactively change the current frame number.";
 	
 	/* api callbacks */
 	ot->exec= change_frame_exec;
 	ot->invoke= change_frame_invoke;
 	ot->cancel= change_frame_cancel;
 	ot->modal= change_frame_modal;
+	ot->poll= change_frame_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;

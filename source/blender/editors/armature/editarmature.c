@@ -5037,11 +5037,11 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
-		/* select pchan, only if selectable */
-		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
-			if (sel==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-			else pchan->bone->flag |= BONE_SELECTED;
-		}
+		/* select pchan only if selectable, but deselect works always */
+		if (sel==0) 
+			pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
+		else if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
+			pchan->bone->flag |= BONE_SELECTED;
 	}
 	CTX_DATA_END;	
 
@@ -5313,41 +5313,13 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			/* we have the object using the armature */
 			if (arm==ob->data) {
 				Object *cob;
-				//bAction  *act;
-				//bActionChannel *achan;
-				//bActionStrip *strip;
 				
-				/* Rename action channel if necessary */
-#if 0 // XXX old animation system
-				act = ob->action;
-				if (act && !act->id.lib) {
-					/*	Find the appropriate channel */
-					achan= get_action_channel(act, oldname);
-					if (achan) 
-						BLI_strncpy(achan->name, newname, MAXBONENAME);
-				}
-#endif // XXX old animation system
-		
 				/* Rename the pose channel, if it exists */
 				if (ob->pose) {
 					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
 					if (pchan)
 						BLI_strncpy(pchan->name, newname, MAXBONENAME);
 				}
-				
-				/* check all nla-strips too */
-#if 0 // XXX old animation system
-				for (strip= ob->nlastrips.first; strip; strip= strip->next) {
-					/* Rename action channel if necessary */
-					act = strip->act;
-					if (act && !act->id.lib) {
-						/*	Find the appropriate channel */
-						achan= get_action_channel(act, oldname);
-						if (achan) 
-							BLI_strncpy(achan->name, newname, MAXBONENAME);
-					}
-				}
-#endif // XXX old animation system
 				
 				/* Update any object constraints to use the new bone name */
 				for (cob= G.main->object.first; cob; cob= cob->id.next) {
@@ -5381,35 +5353,12 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			}
 			
 			/* Fix animation data attached to this object */
+			// TODO: should we be using the database wide version instead (since drivers may break)
 			if (ob->adt) {
 				/* posechannels only... */
 				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.pose_channels", oldname, newname);
 			}
 		}
-		
-		/* do entire db - ipo's for the drivers */
-#if 0 // XXX old animation system
-		for (ipo= G.main->ipo.first; ipo; ipo= ipo->id.next) {
-			IpoCurve *icu;
-			
-			/* check each curve's driver */
-			for (icu= ipo->curve.first; icu; icu= icu->next) {
-				IpoDriver *icd= icu->driver;
-				
-				if ((icd) && (icd->ob)) {
-					ob= icd->ob;
-					
-					if (icu->driver->type == IPO_DRIVER_TYPE_NORMAL) {
-						if (!strcmp(oldname, icd->name))
-							BLI_strncpy(icd->name, newname, MAXBONENAME);
-					}
-					else {
-						/* TODO: pydrivers need to be treated differently */
-					}
-				}
-			}			
-		}
-#endif // XXX old animation system
 	}
 }
 

@@ -1450,7 +1450,8 @@ void GRAPH_OT_frame_jump (wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 EnumPropertyItem prop_graphkeys_snap_types[] = {
-	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
+	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current Frame", ""},
+	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value", ""},
 	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
 	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
 	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
@@ -1480,6 +1481,10 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	if (mode == GRAPHKEYS_SNAP_NEAREST_MARKER) {
 		bed.list.first= (ac->markers) ? ac->markers->first : NULL;
 		bed.list.last= (ac->markers) ? ac->markers->last : NULL;
+	}
+	else if (mode == GRAPHKEYS_SNAP_VALUE) {
+		SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+		bed.f1= (sipo) ? sipo->cursorVal : 0.0f;
 	}
 	
 	/* snap keyframes */

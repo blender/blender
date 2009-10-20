@@ -81,6 +81,7 @@ static void graph_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	uiItemS(layout);
 	
 	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cursor", 0);
 	uiItemR(layout, NULL, 0, &spaceptr, "show_sliders", 0);
 	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0);
 	
@@ -162,6 +163,7 @@ static void graph_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_VALUE);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_FRAME);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_SECOND);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_MARKER);

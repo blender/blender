@@ -86,7 +86,6 @@ typedef struct SpaceInfo {
 } SpaceInfo;
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
-/* XXX for now, we keep all old data... */
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -101,9 +100,11 @@ typedef struct SpaceIpo {
 	ListBase ghostCurves;	/* sampled snapshots of F-Curves used as in-session guides */
 	
 	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
-	short flag;				/* settings for Graph editor */
 	short autosnap;			/* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
-	char pin, lock;			// XXX old, unused vars that are probably going to be depreceated soon...
+	int flag;				/* settings for Graph editor */
+	
+	float cursorVal;		/* cursor value (y-value, x-value is current frame) */
+	int pad;
 } SpaceIpo;
 
 typedef struct SpaceButs {
@@ -723,6 +724,7 @@ enum FileSortTypeE {
 #define SIPO_SELCUVERTSONLY		(1<<5)
 #define SIPO_DRAWNAMES			(1<<6)
 #define SIPO_SLIDERS			(1<<7)
+#define SIPO_NODRAWCURSOR		(1<<8)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {
