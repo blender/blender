@@ -733,6 +733,90 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 	}
 }
 
+static void vgroup_blend(Object *ob)
+{
+	bDeformGroup *dg;
+	MDeformWeight *dw;
+	MDeformVert *dvert_array=NULL, *dvert;
+	int i, def_nr, dvert_tot=0;
+
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)ob->data));
+	// ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+
+	if(em==NULL)
+		return;
+
+	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
+
+	if(dg) {
+		int sel1, sel2;
+		int i1, i2;
+
+		EditEdge *eed;
+		EditVert *eve;
+		float *vg_weights;
+		float *vg_users;
+
+		def_nr= ob->actdef-1;
+
+		i= 0;
+		for(eve= em->verts.first; eve; eve= eve->next)
+			eve->tmp.l= i++;
+
+		dvert_tot= i;
+
+		vg_weights= MEM_callocN(sizeof(float)*dvert_tot, "vgroup_blend_f");
+		vg_users= MEM_callocN(sizeof(int)*dvert_tot, "vgroup_blend_i");
+
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			sel1= eed->v1->f & SELECT;
+			sel2= eed->v2->f & SELECT;
+
+			if(sel1 != sel2) {
+				/* i1 is always the selected one */
+				if(sel1==TRUE && sel2==FALSE) {
+					i1= eed->v1->tmp.l;
+					i2= eed->v2->tmp.l;
+					eve= eed->v2;
+				}
+				else {
+					i2= eed->v1->tmp.l;
+					i1= eed->v2->tmp.l;
+					eve= eed->v1;
+				}
+
+				vg_users[i1]++;
+
+				/* TODO, we may want object mode blending */
+				if(em)	dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+				else	dvert= dvert_array+i2;
+
+				dw= ED_vgroup_weight_get(dvert, def_nr);
+
+				if(dw) {
+					vg_weights[i1] += dw->weight;
+				}
+			}
+		}
+
+		i= 0;
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->f & SELECT && vg_users[i] > 0) {
+				/* TODO, we may want object mode blending */
+				if(em)	dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+				else	dvert= dvert_array+i;
+
+				dw= ED_vgroup_weight_verify(dvert, def_nr);
+				dw->weight= vg_weights[i] / (float)vg_users[i];
+			}
+
+			i++;
+		}
+		MEM_freeN(vg_weights);
+		MEM_freeN(vg_users);
+	}
+}
+
 static void vgroup_clean(Object *ob, float eul, int keep_single)
 {
 	bDeformGroup *dg;
@@ -1471,6 +1555,35 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "auto_assign", TRUE, "Add Weights", "Add verts from groups that have zero weight before inverting.");
 	RNA_def_boolean(ot->srna, "auto_remove", TRUE, "Remove Weights", "Remove verts from groups that have zero weight after inverting.");
 }
+
+
+static int vertex_group_blend_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	vgroup_blend(ob);
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Blend Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_blend";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_blend_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 
 static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 {

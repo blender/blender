@@ -827,6 +827,8 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 		layout.itemO("mesh.select_vertex_path")
 		
 		layout.itemO("mesh.blend_from_shape")
+		
+		layout.itemO("object.vertex_group_blend")
 		# uiItemO(layout, "Propagate to All Shapes", 0, "mesh.shape_propagate_to_all");
 
 class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):

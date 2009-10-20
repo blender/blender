@@ -100,19 +100,39 @@ static int pupmenu() {return 0;}
 
 /* ****************************** MIRROR **************** */
 
-void EM_select_mirrored(Object *obedit, EditMesh *em)
+void EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em)
 {
-	if(em->selectmode & SCE_SELECT_VERTEX) {
-		EditVert *eve, *v1;
-		
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->f & SELECT) {
-				v1= editmesh_get_x_mirror_vert(obedit, em, eve->co);
-				if(v1) {
-					eve->f &= ~SELECT;
-					v1->f |= SELECT;
-				}
-			}
+	EditVert *eve, *eve_mirror;
+
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		eve->tmp.v= NULL;
+	}
+
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->tmp.v==NULL) {
+			eve_mirror = editmesh_get_x_mirror_vert(ob, em, eve->co);
+			eve->tmp.v= eve_mirror;
+			eve_mirror->tmp.v = eve;
+		}
+	}
+}
+
+void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
+{
+
+	EditVert *eve;
+
+	EM_cache_x_mirror_vert(obedit, em);
+
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f & SELECT && eve->tmp.v) {
+			eve->tmp.v->f |= SELECT;
+
+			if(extend==FALSE)
+				eve->f &= ~SELECT;
+
+			/* remove the interference */
+			eve->tmp.v->tmp.v= eve->tmp.v= NULL;
 		}
 	}
 }
@@ -2823,6 +2843,39 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
+}
+
+
+int select_mirror_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+
+	int extend= RNA_boolean_get(op->ptr, "extend");
+
+	EM_select_mirrored(obedit, em, extend);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_mirror(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Mirror";
+	ot->description= "Select mesh items at mirrored locations.";
+	ot->idname= "MESH_OT_select_mirror";
+
+	/* api callbacks */
+	ot->exec= select_mirror_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
 }
 
 static int select_sharp_edges_exec(bContext *C, wmOperator *op)
