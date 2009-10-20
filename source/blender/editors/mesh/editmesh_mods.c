@@ -111,8 +111,10 @@ void EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em)
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->tmp.v==NULL) {
 			eve_mirror = editmesh_get_x_mirror_vert(ob, em, eve->co);
-			eve->tmp.v= eve_mirror;
-			eve_mirror->tmp.v = eve;
+			if(eve_mirror) {
+				eve->tmp.v= eve_mirror;
+				eve_mirror->tmp.v = eve;
+			}
 		}
 	}
 }

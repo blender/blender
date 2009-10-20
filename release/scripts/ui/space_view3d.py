@@ -256,6 +256,8 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
 		layout.itemO("mesh.select_more", text="More")
 
 		layout.itemS()
+		
+		layout.itemO("mesh.select_mirror", text="Mirror")
 
 		layout.itemO("mesh.select_linked", text="Linked")
 		layout.itemO("mesh.select_vertex_path", text="Vertex Path")
