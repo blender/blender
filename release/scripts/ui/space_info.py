@@ -39,7 +39,8 @@ class INFO_HT_header(bpy.types.Header):
 		layout.template_running_jobs()
 
 		layout.itemL(text=scene.statistics())
-
+		
+		layout.itemO("wm.window_fullscreen_toggle", icon='ICON_ARROW_LEFTRIGHT', text="")
 
 class INFO_MT_file(bpy.types.Menu):
 	__label__ = "File"

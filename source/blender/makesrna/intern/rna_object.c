@@ -1405,13 +1405,13 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "empty_draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "empty_drawtype");
 	RNA_def_property_enum_items(prop, empty_drawtype_items);
-	RNA_def_property_ui_text(prop, "Empty Draw Type", "Viewport display style for empties.");
+	RNA_def_property_ui_text(prop, "Empty Display Type", "Viewport display style for empties.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "empty_drawsize");
 	RNA_def_property_range(prop, 0.01, 10.0);
-	RNA_def_property_ui_text(prop, "Empty Draw Size", "Size of of display for empties in the viewport.");
+	RNA_def_property_ui_text(prop, "Empty Display Size", "Size of of display for empties in the viewport.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* render */
