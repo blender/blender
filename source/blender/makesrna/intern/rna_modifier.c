@@ -69,7 +69,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
-	{0, "", 0, "Physics", ""},
+	{0, "", 0, "Simulate", ""},
 	{eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
 	{eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
 	{eModifierType_Explode, "EXPLODE", ICON_MOD_EXPLODE, "Explode", ""},
