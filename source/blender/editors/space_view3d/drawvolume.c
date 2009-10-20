@@ -119,6 +119,51 @@
 
 #include "view3d_intern.h"	// own include
 
+
+#ifdef _WIN32
+#include <time.h>
+#include <stdio.h>
+#include <conio.h>
+#include <windows.h>
+
+static LARGE_INTEGER liFrequency;
+static LARGE_INTEGER liStartTime;
+static LARGE_INTEGER liCurrentTime;
+
+static void tstart ( void )
+{
+	QueryPerformanceFrequency ( &liFrequency );
+	QueryPerformanceCounter ( &liStartTime );
+}
+static void tend ( void )
+{
+	QueryPerformanceCounter ( &liCurrentTime );
+}
+static double tval()
+{
+	return ((double)( (liCurrentTime.QuadPart - liStartTime.QuadPart)* (double)1000.0/(double)liFrequency.QuadPart ));
+}
+#else
+#include <sys/time.h>
+static struct timeval _tstart, _tend;
+static struct timezone tz;
+static void tstart ( void )
+{
+	gettimeofday ( &_tstart, &tz );
+}
+static void tend ( void )
+{
+	gettimeofday ( &_tend,&tz );
+}
+static double tval()
+{
+	double t1, t2;
+	t1 = ( double ) _tstart.tv_sec*1000 + ( double ) _tstart.tv_usec/ ( 1000 );
+	t2 = ( double ) _tend.tv_sec*1000 + ( double ) _tend.tv_usec/ ( 1000 );
+	return t2-t1;
+}
+#endif
+
 struct GPUTexture;
 
 int intersect_edges(float *points, float a, float b, float c, float d, float edges[12][2][3])
@@ -226,6 +271,8 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	
 	float size[3];
+
+	tstart();
 
 	VECSUB(size, max, min);
 
@@ -370,7 +417,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	// inserting previously found vertex into the plane equation
 	d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]);
 	ds = (ABS(viewnormal[0])*size[0] + ABS(viewnormal[1])*size[1] + ABS(viewnormal[2])*size[2]);
-	dd = ds/128.0f;
+	dd = 0.03; // ds/512.0f;
 	n = 0;
 	good_index = i;
 
@@ -386,7 +433,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 			break;
 
 		VECCOPY(tmp_point, viewnormal);
-		VecMulf(tmp_point, -dd*(128.0f-(float)n));
+		VecMulf(tmp_point, -dd*((ds/dd)-(float)n));
 		VECADD(tmp_point2, cv[good_index], tmp_point);
 		d = INPR(tmp_point2, viewnormal);
 
@@ -406,26 +453,73 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 			{
 				for(j = i + 1; j < numpoints; j++)
 				{
-					if(convex(p0, viewnormal, &points[j * 3], &points[i * 3]))
+					if(!convex(p0, viewnormal, &points[j * 3], &points[i * 3]))
 					{
 						float tmp2[3];
-						VECCOPY(tmp2, &points[i * 3]);
-						VECCOPY(&points[i * 3], &points[j * 3]);
-						VECCOPY(&points[j * 3], tmp2);
+						VECCOPY(tmp2, &points[j * 3]);
+						VECCOPY(&points[j * 3], &points[i * 3]);
+						VECCOPY(&points[i * 3], tmp2);
 					}
 				}
 			}
 
-			glBegin(GL_POLYGON);
-			for (i = 0; i < numpoints; i++) {
+			if(numpoints==3)
+			{
+				glBegin(GL_TRIANGLES);
 				glColor3f(1.0, 1.0, 1.0);
-				glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
-				glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
+				for (i = 0; i < numpoints; i++) {
+					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
+					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
+				}
+				glEnd();
 			}
-			glEnd();
+			else if(numpoints == 4)
+			{
+				glBegin(GL_QUADS);
+				glColor3f(1.0, 1.0, 1.0);
+				for (i = 0; i < numpoints; i++) {
+					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
+					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
+				}
+				glEnd();
+			}
+			else if(numpoints == 5)
+			{
+				glBegin(GL_TRIANGLES);
+				glColor3f(1.0, 1.0, 1.0);
+				for (i = 0; i < 3; i++) {
+					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
+					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
+				}
+				glEnd();
+				glBegin(GL_QUADS);
+				glColor3f(1.0, 1.0, 1.0);
+				for (i = 2; i < numpoints; i++) {
+					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
+					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
+				}
+				i = 0;
+				glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
+					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
+				glEnd();
+			}
+			else
+			{
+				// printf("numpoints: %d\n", numpoints);
+				glBegin(GL_POLYGON);
+				glColor3f(1.0, 1.0, 1.0);
+				for (i = 0; i < numpoints; i++) {
+					glTexCoord3d((points[i * 3 + 0] - min[0] )*cor[0]/size[0], (points[i * 3 + 1] - min[1])*cor[1]/size[1], (points[i * 3 + 2] - min[2])*cor[2]/size[2]);
+					glVertex3f(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]);
+				}
+				glEnd();
+			}
 		}
 		n++;
 	}
+
+	tend();
+	printf ( "Draw Time: %f\n",( float ) tval() );
 
 	if(tex_shadow)
 		GPU_texture_unbind(tex_shadow);
