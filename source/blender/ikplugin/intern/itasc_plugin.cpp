@@ -1121,12 +1121,14 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 
 		KDL::Frame tip(iTaSC::F_identity);
 		Vector3 *fl = bone->bone_mat;
-		KDL::Frame head(KDL::Rotation(
-			fl[0][0], fl[1][0], fl[2][0],
-			fl[0][1], fl[1][1], fl[2][1],
-			fl[0][2], fl[1][2], fl[2][2]),
-			KDL::Vector(bone->head[0], bone->head[1], bone->head[2])*scale);
-
+		KDL::Rotation brot(
+						   fl[0][0], fl[1][0], fl[2][0],
+						   fl[0][1], fl[1][1], fl[2][1],
+						   fl[0][2], fl[1][2], fl[2][2]);
+		KDL::Vector bpos(bone->head[0], bone->head[1], bone->head[2]);
+		bpos = bpos*scale;
+		KDL::Frame head(brot, bpos);
+		
 		// rest pose length of the bone taking scaling into account
 		length= bone->length*scale;
 		parent = (a > 0) ? ikscene->channels[tree->parent[a]].tail : root;
