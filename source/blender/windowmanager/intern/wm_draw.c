@@ -44,6 +44,8 @@
 
 #include "ED_screen.h"
 
+#include "GPU_extensions.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"

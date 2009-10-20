@@ -4645,7 +4645,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 	PaintOperation *pop= op->customdata;
 
 	if(pop->timer)
-		WM_event_remove_window_timer(CTX_wm_window(C), pop->timer);
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), pop->timer);
 
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 	imapaint_canvas_free(&pop->s);
@@ -4757,7 +4757,7 @@ static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_event_add_modal_handler(C, op);
 
 	if(pop->s.brush->flag & BRUSH_AIRBRUSH)
-		pop->timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER, 0.01f);
+		pop->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
 	return OPERATOR_RUNNING_MODAL;
 }

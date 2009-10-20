@@ -95,6 +95,7 @@
 #include "WM_types.h"
 #include "wm.h"
 #include "wm_window.h"
+#include "wm_event_system.h"
 
 static void writeBlog(void);
 
@@ -348,49 +349,6 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 }
 
 
-static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
-{
-	char pidstr[32];
-#ifdef WIN32
-	char subdir[9];
-	char savedir[FILE_MAXDIR];
-#endif
-
-	sprintf(pidstr, "%d.blend", abs(getpid()));
-	
-#ifdef WIN32
-	if (!BLI_exists(U.tempdir)) {
-		BLI_strncpy(subdir, "autosave", sizeof(subdir));
-		BLI_make_file_string("/", savedir, BLI_gethome(), subdir);
-		
-		/* create a new autosave dir
-		 * function already checks for existence or not */
-		BLI_recurdir_fileops(savedir);
-	
-		BLI_make_file_string("/", buf, savedir, pidstr);
-		return;
-	}
-#endif
-	
-	BLI_make_file_string("/", buf, U.tempdir, pidstr);
-}
-
-void WM_read_autosavefile(bContext *C)
-{
-	char tstr[FILE_MAX], scestr[FILE_MAX];
-	int save_over;
-
-	BLI_strncpy(scestr, G.sce, FILE_MAX);	/* temporal store */
-	
-	get_autosave_location(tstr);
-
-	save_over = G.save_over;
-	BKE_read_file(C, tstr, NULL, NULL);
-	G.save_over = save_over;
-	BLI_strncpy(G.sce, scestr, FILE_MAX);
-}
-
-
 void read_Blog(void)
 {
 	char name[FILE_MAX];
@@ -496,10 +454,10 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
+void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 {
 	Library *li;
-	int writeflags, len;
+	int len;
 	char di[FILE_MAX];
 	
 	len = strlen(target);
@@ -537,20 +495,14 @@ void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
 
 	do_history(di, reports);
 	
-	writeflags= G.fileflags;
-
-	/* set compression flag */
-	if(compress) writeflags |= G_FILE_COMPRESS;
-	else writeflags &= ~G_FILE_COMPRESS;
-	
-	if (BLO_write_file(CTX_data_main(C), di, writeflags, reports)) {
+	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports)) {
 		strcpy(G.sce, di);
 		G.relbase_valid = 1;
 		strcpy(G.main->name, di);	/* is guaranteed current file */
 
 		G.save_over = 1; /* disable untitled.blend convention */
 
-		if(compress) G.fileflags |= G_FILE_COMPRESS;
+		if(fileflags & G_FILE_COMPRESS) G.fileflags |= G_FILE_COMPRESS;
 		else G.fileflags &= ~G_FILE_COMPRESS;
 		
 		writeBlog();
@@ -562,56 +514,125 @@ void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
 /* operator entry */
 int WM_write_homefile(bContext *C, wmOperator *op)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= CTX_wm_window(C);
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
-	int write_flags;
+	int fileflags;
 	
 	/* check current window and close it if temp */
-	if(win->screen->full == SCREENTEMP) {
-		wm_window_close(C, win);
-	}
+	if(win->screen->full == SCREENTEMP)
+		wm_window_close(C, wm, win);
 	
 	BLI_make_file_string("/", tstr, BLI_gethome(), ".B25.blend");
 	
 	/*  force save as regular blend file */
-	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
+	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 
-	BLO_write_file(CTX_data_main(C), tstr, write_flags, op->reports);
+	BLO_write_file(CTX_data_main(C), tstr, fileflags, op->reports);
 	
 	G.save_over= 0;
 	
 	return OPERATOR_FINISHED;
 }
 
-void WM_write_autosave(bContext *C)
+/************************ autosave ****************************/
+
+void wm_autosave_location(char *filename)
 {
-	char tstr[FILE_MAXDIR+FILE_MAXFILE];
-	int write_flags;
+	char pidstr[32];
+#ifdef WIN32
+	char subdir[9];
+	char savedir[FILE_MAXDIR];
+#endif
+
+	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
-	get_autosave_location(tstr);
-
-		/*  force save as regular blend file */
-	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
-
-		/* error reporting to console */
-	BLO_write_file(CTX_data_main(C), tstr, write_flags, NULL);
+#ifdef WIN32
+	if (!BLI_exists(U.tempdir)) {
+		BLI_strncpy(subdir, "autosave", sizeof(subdir));
+		BLI_make_file_string("/", savedir, BLI_gethome(), subdir);
+		
+		/* create a new autosave dir
+		 * function already checks for existence or not */
+		BLI_recurdir_fileops(savedir);
+	
+		BLI_make_file_string("/", filename, savedir, pidstr);
+		return;
+	}
+#endif
+	
+	BLI_make_file_string("/", filename, U.tempdir, pidstr);
 }
 
-/* if global undo; remove tempsave, otherwise rename */
-void delete_autosave(void)
+void WM_autosave_init(bContext *C)
 {
-	char tstr[FILE_MAXDIR+FILE_MAXFILE];
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wm_autosave_timer_ended(wm);
+
+	if(U.flag & USER_AUTOSAVE)
+		wm->autosavetimer= WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime*60.0);
+}
+
+void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
+{
+	wmWindow *win;
+	wmEventHandler *handler;
+	char filename[FILE_MAX];
+	int fileflags;
+
+	WM_event_remove_timer(wm, NULL, wm->autosavetimer);
+
+	/* if a modal operator is running, don't autosave, but try again in 10 seconds */
+	for(win=wm->windows.first; win; win=win->next) {
+		for(handler=win->modalhandlers.first; handler; handler=handler->next) {
+			if(handler->op) {
+				wm->autosavetimer= WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 10.0);
+				return;
+			}
+		}
+	}
 	
-	get_autosave_location(tstr);
+	wm_autosave_location(filename);
 
-	if (BLI_exists(tstr)) {
-		char str[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+	/*  force save as regular blend file */
+	fileflags = G.fileflags & ~(G_FILE_COMPRESS|G_FILE_LOCK|G_FILE_SIGN);
 
-		if(U.uiflag & USER_GLOBALUNDO) BLI_delete(tstr, 0, 0);
-		else BLI_rename(tstr, str);
+	/* no error reporting to console */
+	BLO_write_file(CTX_data_main(C), filename, fileflags, NULL);
+
+	/* do timer after file write, just in case file write takes a long time */
+	wm->autosavetimer= WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime*60.0);
+}
+
+void wm_autosave_timer_ended(wmWindowManager *wm)
+{
+	if(wm->autosavetimer) {
+		WM_event_remove_timer(wm, NULL, wm->autosavetimer);
+		wm->autosavetimer= NULL;
 	}
 }
 
-/***/
+void wm_autosave_delete(void)
+{
+	char filename[FILE_MAX];
+	
+	wm_autosave_location(filename);
+
+	if(BLI_exists(filename)) {
+		char str[FILE_MAXDIR+FILE_MAXFILE];
+		BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+
+		/* if global undo; remove tempsave, otherwise rename */
+		if(U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, 0, 0);
+		else BLI_rename(filename, str);
+	}
+}
+
+void wm_autosave_read(bContext *C, ReportList *reports)
+{
+	char filename[FILE_MAX];
+
+	wm_autosave_location(filename);
+	WM_read_file(C, filename, reports);
+}
 

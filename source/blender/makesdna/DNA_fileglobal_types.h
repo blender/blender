@@ -47,6 +47,9 @@ typedef struct FileGlobal {
 	struct Scene *curscene;
 	int fileflags;
 	int globalf;
+	
+	/* file path where this was saved, for recover */
+	char filename[240]; /* 240 = FILE_MAX */
 } FileGlobal;
 
 

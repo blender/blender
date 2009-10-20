@@ -1040,7 +1040,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 
 	/* wake up animtimer */
 	if(win->screen->animtimer)
-		WM_event_window_timer_sleep(win, win->screen->animtimer, 0);
+		WM_event_timer_sleep(wm, win, win->screen->animtimer, 0);
 	
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
@@ -1097,6 +1097,7 @@ void ED_area_exit(bContext *C, ScrArea *sa)
 
 void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *prevwin= CTX_wm_window(C);
 	ScrArea *sa;
 	ARegion *ar;
@@ -1104,7 +1105,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	CTX_wm_window_set(C, window);
 	
 	if(screen->animtimer)
-		WM_event_remove_window_timer(window, screen->animtimer);
+		WM_event_remove_timer(wm, window, screen->animtimer);
 	screen->animtimer= NULL;
 	
 	if(screen->mainwin)
@@ -1232,6 +1233,7 @@ int ED_screen_area_active(const bContext *C)
 /* Do NOT call in area/region queues! */
 void ED_screen_set(bContext *C, bScreen *sc)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *oldscreen= CTX_wm_screen(C);
 	ID *id;
@@ -1264,7 +1266,7 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer= NULL;
 		if(wt)
-			WM_event_window_timer_sleep(win, wt, 1);
+			WM_event_timer_sleep(wm, win, wt, 1);
 		
 		ED_screen_exit(C, win, oldscreen);
 		oldscreen->animtimer= wt;
@@ -1519,17 +1521,18 @@ void ED_screen_full_prevspace(bContext *C)
 void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= CTX_wm_window(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	if(screen->animtimer)
-		WM_event_remove_window_timer(win, screen->animtimer);
+		WM_event_remove_timer(wm, win, screen->animtimer);
 	screen->animtimer= NULL;
 	
 	if(enable) {
 		struct ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
 		
-		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
+		screen->animtimer= WM_event_add_timer(wm, win, TIMER0, (1.0/FPS));
 		sad->ar= CTX_wm_region(C);
 		sad->redraws= redraws;
 		sad->flag |= (enable < 0)? ANIMPLAY_FLAG_REVERSE: 0;

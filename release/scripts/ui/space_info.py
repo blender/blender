@@ -54,6 +54,7 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.itemO("wm.open_mainfile", text="Open...", icon='ICON_FILE_FOLDER')
 		layout.item_menu_enumO("wm.open_recentfile", "file", text="Open Recent")
 		layout.itemO("wm.recover_last_session")
+		layout.itemO("wm.recover_auto_save", text="Recover Auto Save...")
 
 		layout.itemS()
 

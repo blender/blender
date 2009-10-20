@@ -93,7 +93,6 @@ EnumPropertyItem event_timer_type_items[]= {
 	{TIMER0, "TIMER0", 0, "Timer 0", ""},
 	{TIMER1, "TIMER1", 0, "Timer 1", ""},
 	{TIMER2, "TIMER2", 0, "Timer 2", ""},
-	{TIMERJOBS, "JOBS_TIMER", 0, "Jobs Timer", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* not returned: CAPSLOCKKEY, UNKNOWNKEY, GRLESSKEY */
@@ -229,7 +228,6 @@ EnumPropertyItem event_type_items[] = {
 	{TIMER0, "TIMER0", 0, "Timer 0", ""},
 	{TIMER1, "TIMER1", 0, "Timer 1", ""},
 	{TIMER2, "TIMER2", 0, "Timer 2", ""},
-	{TIMERJOBS, "JOBS_TIMER", 0, "Jobs Timer", ""},
 	{0, NULL, 0, NULL, NULL}};	
 
 #define KMI_TYPE_KEYBOARD	0

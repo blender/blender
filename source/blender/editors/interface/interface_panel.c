@@ -1189,7 +1189,7 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 		pa->flag |= PNL_SELECT;
 
 	if(data && data->animtimer) {
-		WM_event_remove_window_timer(win, data->animtimer);
+		WM_event_remove_timer(CTX_wm_manager(C), win, data->animtimer);
 		data->animtimer= NULL;
 	}
 
@@ -1208,7 +1208,7 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 		}
 
 		if(ELEM(state, PANEL_STATE_ANIMATION, PANEL_STATE_DRAG))
-			data->animtimer= WM_event_add_window_timer(win, TIMER, ANIMATION_INTERVAL);
+			data->animtimer= WM_event_add_timer(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
 
 		data->state= state;
 		data->startx= win->eventstate->x;

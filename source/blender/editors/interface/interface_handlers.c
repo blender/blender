@@ -92,6 +92,7 @@ typedef enum uiHandleButtonState {
 } uiHandleButtonState;
 
 typedef struct uiHandleButtonData {
+	wmWindowManager *wm;
 	wmWindow *window;
 	ARegion *region;
 
@@ -3677,7 +3678,7 @@ static void button_timers_tooltip_remove(bContext *C, uiBut *but)
 	data= but->active;
 
 	if(data->tooltiptimer) {
-		WM_event_remove_window_timer(data->window, data->tooltiptimer);
+		WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
 		data->tooltiptimer= NULL;
 	}
 	if(data->tooltip) {
@@ -3686,7 +3687,7 @@ static void button_timers_tooltip_remove(bContext *C, uiBut *but)
 	}
 
 	if(data->autoopentimer) {
-		WM_event_remove_window_timer(data->window, data->autoopentimer);
+		WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
 		data->autoopentimer= NULL;
 	}
 }
@@ -3698,13 +3699,13 @@ static void button_tooltip_timer_reset(uiBut *but)
 	data= but->active;
 
 	if(data->tooltiptimer) {
-		WM_event_remove_window_timer(data->window, data->tooltiptimer);
+		WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
 		data->tooltiptimer= NULL;
 	}
 
 	if(U.flag & USER_TOOLTIPS)
 		if(!but->block->tooltipdisabled)
-			data->tooltiptimer= WM_event_add_window_timer(data->window, TIMER, BUTTON_TOOLTIP_DELAY);
+			data->tooltiptimer= WM_event_add_timer(data->wm, data->window, TIMER, BUTTON_TOOLTIP_DELAY);
 }
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state)
@@ -3732,7 +3733,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 				else time= -1;
 
 				if(time >= 0)
-					data->autoopentimer= WM_event_add_window_timer(data->window, TIMER, 0.02*(double)time);
+					data->autoopentimer= WM_event_add_timer(data->wm, data->window, TIMER, 0.02*(double)time);
 			}
 		}
 	}
@@ -3765,10 +3766,10 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	/* add a short delay before exiting, to ensure there is some feedback */
 	if(state == BUTTON_STATE_WAIT_FLASH) {
-		data->flashtimer= WM_event_add_window_timer(data->window, TIMER, BUTTON_FLASH_DELAY);
+		data->flashtimer= WM_event_add_timer(data->wm, data->window, TIMER, BUTTON_FLASH_DELAY);
 	}
 	else if(data->flashtimer) {
-		WM_event_remove_window_timer(data->window, data->flashtimer);
+		WM_event_remove_timer(data->wm, data->window, data->flashtimer);
 		data->flashtimer= NULL;
 	}
 
@@ -3799,6 +3800,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 
 	/* setup struct */
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
+	data->wm= CTX_wm_manager(C);
 	data->window= CTX_wm_window(C);
 	data->region= ar;
 	if( ELEM(but->type, BUT_CURVE, SEARCH_MENU) );  // XXX curve is temp
@@ -4036,7 +4038,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 			case TIMER: {
 				/* handle tooltip timer */
 				if(event->customdata == data->tooltiptimer) {
-					WM_event_remove_window_timer(data->window, data->tooltiptimer);
+					WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
 					data->tooltiptimer= NULL;
 
 					if(!data->tooltip)
@@ -4044,7 +4046,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 				}
 				/* handle menu auto open timer */
 				else if(event->customdata == data->autoopentimer) {
-					WM_event_remove_window_timer(data->window, data->autoopentimer);
+					WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
 					data->autoopentimer= NULL;
 
 					if(ui_mouse_inside_button(ar, but, event->x, event->y))
@@ -4058,7 +4060,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 			case MIDDLEMOUSE:
 				/* XXX hardcoded keymap check... but anyway, while view changes, tooltips should be removed */
 				if(data->tooltiptimer) {
-					WM_event_remove_window_timer(data->window, data->tooltiptimer);
+					WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
 					data->tooltiptimer= NULL;
 				}
 				/* pass on purposedly */

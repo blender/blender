@@ -283,7 +283,7 @@ void WM_exit(bContext *C)
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
 	}
-//	delete_autosave();
+	wm_autosave_delete();
 	
 	printf("\nBlender quit\n");
 	

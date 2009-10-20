@@ -1412,7 +1412,7 @@ setWindowCursorGrab(
 				setWindowCursorVisibility(false);
 
 		}
-		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+		//XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {
@@ -1430,7 +1430,7 @@ setWindowCursorGrab(
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 		setCursorGrabAccum(0, 0);
 		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
-		XUngrabPointer(m_display, CurrentTime);
+		//XUngrabPointer(m_display, CurrentTime);
 	}
 
 	XFlush(m_display);

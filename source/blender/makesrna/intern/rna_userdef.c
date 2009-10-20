@@ -146,7 +146,11 @@ static void rna_UserDef_weight_color_update(bContext *C, PointerRNA *ptr)
 	rna_userdef_update(C, ptr);
 }
 
-
+static void rna_userdef_autosave_update(bContext *C, PointerRNA *ptr)
+{
+	WM_autosave_init(C);
+	rna_userdef_update(C, ptr);
+}
 
 #else
 
@@ -2344,11 +2348,13 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "auto_save_temporary_files", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOSAVE);
 	RNA_def_property_ui_text(prop, "Auto Save Temporary Files", "Automatic saving of temporary files.");
+	RNA_def_property_update(prop, 0, "rna_userdef_autosave_update");
 
 	prop= RNA_def_property(srna, "auto_save_time", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "savetime");
 	RNA_def_property_range(prop, 1, 60);
 	RNA_def_property_ui_text(prop, "Auto Save Time", "The time (in minutes) to wait between automatic temporary saves.");
+	RNA_def_property_update(prop, 0, "rna_userdef_autosave_update");
 
 	prop= RNA_def_property(srna, "recent_files", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 30);

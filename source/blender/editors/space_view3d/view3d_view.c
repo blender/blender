@@ -292,9 +292,9 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				rv3d->sms= MEM_mallocN(sizeof(struct SmoothViewStore), "smoothview v3d");
 			*rv3d->sms= sms;
 			if(rv3d->smooth_timer)
-				WM_event_remove_window_timer(CTX_wm_window(C), rv3d->smooth_timer);
+				WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
 			/* TIMER1 is hardcoded in keymap */
-			rv3d->smooth_timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frs/sec */
+			rv3d->smooth_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frs/sec */
 			
 			return;
 		}
@@ -346,7 +346,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		MEM_freeN(rv3d->sms);
 		rv3d->sms= NULL;
 		
-		WM_event_remove_window_timer(CTX_wm_window(C), rv3d->smooth_timer);
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
 		rv3d->smooth_timer= NULL;
 	}
 	else {
@@ -1798,7 +1798,7 @@ int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event)
 
 	fly->dvec_prev[0]= fly->dvec_prev[1]= fly->dvec_prev[2]= 0.0f;
 
-	fly->timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER, 0.01f);
+	fly->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
 
 	/* we have to rely on events to give proper mousecoords after a warp_pointer */
@@ -1867,7 +1867,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	if(fly->state == FLY_RUNNING)
 		return OPERATOR_RUNNING_MODAL;
 
-	WM_event_remove_window_timer(CTX_wm_window(C), fly->timer);
+	WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), fly->timer);
 
 	rv3d->dist= fly->dist_backup;
 

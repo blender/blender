@@ -289,6 +289,9 @@ typedef struct wmTabletData {
 
 typedef struct wmTimer {
 	struct wmTimer *next, *prev;
+	
+	struct wmWindow *win;	/* window this timer is attached to (optional) */
+
 	double timestep;		/* set by timer user */
 	int event_type;			/* set by timer user, goes to event system */
 	void *customdata;		/* set by timer user, to allow custom values */

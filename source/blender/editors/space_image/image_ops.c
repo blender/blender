@@ -1680,7 +1680,7 @@ static void record_composite_exit(bContext *C, wmOperator *op)
 	WM_cursor_restore(CTX_wm_window(C));
 
 	if(rcd->timer)
-		WM_event_remove_window_timer(CTX_wm_window(C), rcd->timer);
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rcd->timer);
 
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
@@ -1711,7 +1711,7 @@ static int record_composite_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	rcd= op->customdata;
-	rcd->timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER, 0.0f);
+	rcd->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.0f);
 	WM_event_add_modal_handler(C, op);
 
 	if(!record_composite_apply(C, op))

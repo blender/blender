@@ -4432,7 +4432,6 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->curswin= NULL;
 		win->tweak= NULL;
 
-		win->timers.first= win->timers.last= NULL;
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
 		win->modalhandlers.first= win->modalhandlers.last= NULL;
@@ -4444,6 +4443,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->drawfail= 0;
 	}
 	
+	wm->timers.first= wm->timers.last= NULL;
 	wm->operators.first= wm->operators.last= NULL;
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
@@ -5468,6 +5468,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->fileflags= fg->fileflags;
 	bfd->displaymode= fg->displaymode;
 	bfd->globalf= fg->globalf;
+	BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
 	
 	bfd->curscreen= fg->curscreen;
 	bfd->curscene= fg->curscene;

@@ -243,7 +243,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 				WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_stroke, stroke);
 
 			if(stroke->brush->flag & BRUSH_AIRBRUSH)
-				stroke->timer = WM_event_add_window_timer(CTX_wm_window(C), TIMER, stroke->brush->rate);
+				stroke->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
 		}
 
 		ED_region_tag_redraw(ar);
@@ -270,7 +270,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
 
 		if(stroke->timer)
-			WM_event_remove_window_timer(CTX_wm_window(C), stroke->timer);
+			WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
 
 		stroke->done(C, stroke);
 		MEM_freeN(stroke);
