@@ -31,10 +31,13 @@
 #include <config.h>
 #endif
 
+#define STRINGIFY(x) XSTRINGIFY(x)
+#define XSTRINGIFY(x) #x
+
 #ifdef BUILD_DATE
-const char * build_date=BUILD_DATE;
-const char * build_time=BUILD_TIME;
-const char * build_rev=BUILD_REV;
-const char * build_platform=BUILD_PLATFORM;
-const char * build_type=BUILD_TYPE;
+const char * build_date=STRINGIFY(BUILD_DATE);
+const char * build_time=STRINGIFY(BUILD_TIME);
+const char * build_rev=STRINGIFY(BUILD_REV);
+const char * build_platform=STRINGIFY(BUILD_PLATFORM);
+const char * build_type=STRINGIFY(BUILD_TYPE);
 #endif
