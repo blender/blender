@@ -15,7 +15,7 @@ class USERPREF_HT_header(bpy.types.Header):
 
 		if userpref.active_section == 'INPUT':
 			layout.operator_context = "INVOKE_DEFAULT"
-			layout.itemO("wm.keyconfig_save", "Save Key Configuration...")
+			layout.itemO("wm.keyconfig_export", "Export Key Configuration...")
 			
 class USERPREF_MT_view(bpy.types.Menu):
 	__label__ = "View"
@@ -548,10 +548,10 @@ bpy.types.register(USERPREF_PT_system)
 bpy.types.register(USERPREF_PT_file)
 bpy.types.register(USERPREF_PT_input)
 
-class WM_OT_keyconfig_save(bpy.types.Operator):
-	"Save key configuration to a python script."
-	__idname__ = "wm.keyconfig_save"
-	__label__ = "Save Key Configuration..."
+class WM_OT_keyconfig_export(bpy.types.Operator):
+	"Export key configuration to a python script."
+	__idname__ = "wm.keyconfig_export"
+	__label__ = "Export Key Configuration..."
 	__props__ = [
 		bpy.props.StringProperty(attr="path", name="File Path", description="File path to write file to.")]
 
@@ -578,7 +578,7 @@ class WM_OT_keyconfig_save(bpy.types.Operator):
 						result += ", "
 				result += "]"
 		else:
-			print("Save key configuration: can't write ", value)
+			print("Export key configuration: can't write ", value)
 
 		return result
 
@@ -688,7 +688,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
 		km.remove_item(kmi)
 		return ('FINISHED',)
 
-bpy.ops.add(WM_OT_keyconfig_save)
+bpy.ops.add(WM_OT_keyconfig_export)
 bpy.ops.add(WM_OT_keymap_edit)
 bpy.ops.add(WM_OT_keymap_restore)
 bpy.ops.add(WM_OT_keyitem_add)
