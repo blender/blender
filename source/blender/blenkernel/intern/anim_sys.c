@@ -239,9 +239,7 @@ void BKE_animdata_make_local(AnimData *adt)
 /* Path Validation -------------------------------------------- */
 
 /* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate 
- *
- * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- * 		i.e. pose.pose_channels["Bone"]
+ * NOTE: we assume that oldName and newName have [" "] padding around them
  */
 static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, char *oldpath)
 {
@@ -253,9 +251,9 @@ static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, cha
 	/* only start fixing the path if the prefix and oldName feature in the path,
 	 * and prefix occurs immediately before oldName (the +2 should take care of any [")
 	 */
-	if ( (prefixPtr && oldNamePtr) && (prefixPtr+prefixLen+2 == oldNamePtr) ) {
+	if ( (prefixPtr && oldNamePtr) && (prefixPtr+prefixLen == oldNamePtr) ) {
 		DynStr *ds= BLI_dynstr_new();
-		char *postfixPtr= oldNamePtr+oldNameLen+2;
+		char *postfixPtr= oldNamePtr+oldNameLen;
 		char *newPath = NULL;
 		char oldChar;
 		
@@ -267,15 +265,13 @@ static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, cha
 			prefixPtr[0]= oldChar;
 		}
 		
-		/* add the prefix, and opening brackets */
+		/* add the prefix */
 		BLI_dynstr_append(ds, prefix);
-		BLI_dynstr_append(ds, "[\"");
 		
-		/* add the new name */
+		/* add the new name (complete with brackets) */
 		BLI_dynstr_append(ds, newName);
 		
-		/* add the closing brackets, then the postfix */
-		BLI_dynstr_append(ds, "\"]");
+		/* add the postfix */
 		BLI_dynstr_append(ds, postfixPtr);
 		
 		/* create new path, and cleanup old data */
@@ -339,23 +335,32 @@ static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName
 void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, char *oldName, char *newName)
 {
 	NlaTrack *nlt;
+	char *oldN, *newN;
 	
 	/* if no AnimData, no need to proceed */
 	if (ELEM4(NULL, owner_id, adt, oldName, newName))
 		return;
 	
+	/* pad the names with [" "] so that only exact matches are made */
+	oldN= BLI_sprintfN("[\"%s\"]", oldName);
+	newN= BLI_sprintfN("[\"%s\"]", newName);
+	
 	/* Active action and temp action */
 	if (adt->action)
-		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &adt->action->curves);
+		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->action->curves);
 	if (adt->tmpact)
-		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &adt->tmpact->curves);
+		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->tmpact->curves);
 		
 	/* Drivers - Drivers are really F-Curves */
-	fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &adt->drivers);
+	fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->drivers);
 	
 	/* NLA Data - Animation Data for Strips */
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next)
-		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, &nlt->strips);
+		nlastrips_path_rename_fix(owner_id, prefix, oldN, newN, &nlt->strips);
+		
+	/* free the temp names */
+	MEM_freeN(oldN);
+	MEM_freeN(newN);
 }
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
