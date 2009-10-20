@@ -297,7 +297,7 @@ GHOST_WindowX11(
 	// we want this window treated.
 
 	XSizeHints * xsizehints = XAllocSizeHints();
-	xsizehints->flags = USPosition | USSize | PMinSize;
+	xsizehints->flags = PPosition | PSize | PMinSize;
 	xsizehints->x = left;
 	xsizehints->y = top;
 	xsizehints->width = width;
