@@ -319,9 +319,10 @@ void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 /* hardcoded to event TIMERJOBS */
 void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 {
-	wmJob *steve= wm->jobs.first;
+	wmJob *steve= wm->jobs.first, *stevenext;
 	
-	for(; steve; steve= steve->next) {
+	for(; steve; steve= stevenext) {
+		stevenext= steve->next;
 		
 		if(steve->wt==wt) {
 			
