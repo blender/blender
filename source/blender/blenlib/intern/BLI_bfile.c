@@ -27,12 +27,12 @@
 #include <string.h>
 #include <stdlib.h>
 #ifndef WIN32
-  #include <unistd.h>
+ #include <unistd.h>
+ #include <sys/param.h>
 #else
-  #include <io.h>
-  #include "BLI_winstuff.h"
+ #include <io.h>
+ #include "BLI_winstuff.h"
 #endif
-#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -465,13 +465,16 @@ char* find_in_pathlist(char* filename, char* pathlist) {
  */
 void fill_paths(BFILE *bfile, const char *path) {
 	char* source_path = NULL;
+	char* temp_path = NULL;
 	int bflags = bfile->uflags;
 
 	if(bflags & BFILE_NORMAL || bflags & BFILE_RAW) {
 //		bfile->fpath is path with // replaced
 	}
 	if(bflags & BFILE_TEMP) {
-//		bfile->fpath is tempdir+path
+		temp_path = MEM_mallocN(MAXPATHLEN, "bfile-fpath-1");
+		snprintf(temp_path, MAXPATHLEN, "%s/%s", getenv("BLENDER_TEMP"), path);
+		bfile->fpath = temp_path;
 	}
 	if(bflags & BFILE_CONFIG) {
 //		bfile->fpath is userdir+version+path
@@ -482,7 +485,9 @@ void fill_paths(BFILE *bfile, const char *path) {
 
 	if(bfile->classf & BCF_WRITE && !(bflags & BFILE_RAW)) {
 		/* Generate temp path */
-		// bfile->tpath is fpath+randstring
+		temp_path = MEM_mallocN(MAXPATHLEN, "bfile-fpath-2");
+		snprintf(temp_path, MAXPATHLEN, "%s.XXXXXX", path);
+		bfile->tpath = mkdtemp(temp_path);
 		if(!(bfile->classf & BCF_DISCARD)) {
 			/* Copy data to tpath */
 			if(source_path) {
