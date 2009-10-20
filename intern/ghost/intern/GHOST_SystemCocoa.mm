@@ -525,7 +525,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 @interface CocoaAppDelegate : NSObject {
 	GHOST_SystemCocoa *systemCocoa;
 }
--(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
+- (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 - (void)applicationWillTerminate:(NSNotification *)aNotification;
 @end
@@ -534,6 +535,12 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) {
 -(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa
 {
 	systemCocoa = sysCocoa;
+}
+
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
+{
+	NSLog(@"\nGet open file event from cocoa : %@",filename);
+	return YES;
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
@@ -658,13 +665,14 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 				[NSApp setWindowsMenu:windowMenu];
 				[windowMenu release];
 			}
-			[NSApp finishLaunching];
 		}
 		if ([NSApp delegate] == nil) {
 			CocoaAppDelegate *appDelegate = [[CocoaAppDelegate alloc] init];
 			[appDelegate setSystemCocoa:this];
 			[NSApp setDelegate:appDelegate];
 		}
+		
+		[NSApp finishLaunching];
 				
 		[pool drain];
     }
@@ -995,7 +1003,7 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	GHOST_Window* window = (GHOST_Window*)m_windowManager->getActiveWindow();
 	
 	//Discard quit event if we are in cursor grab sequence
-	if ((window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
+	if (window && (window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
 		return GHOST_kExitCancel;
 	
 	//Check open windows if some changes are not saved
@@ -1007,7 +1015,14 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 		{
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
 			return GHOST_kExitNow;
+		} else {
+			//Give back focus to the blender window if user selected cancel quit
+			NSArray *windowsList = [NSApp orderedWindows];
+			if ([windowsList count]) {
+				[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+			}
 		}
+
 	}
 	else {
 		pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );

@@ -115,12 +115,12 @@ extern "C" {
 - (void)windowDidResize:(NSNotification *)notification
 {
 #ifdef MAC_OS_X_VERSION_10_6
-	if (![[notification object] inLiveResize]) {
+	//if (![[notification object] inLiveResize]) {
 		//Send event only once, at end of resize operation (when user has released mouse button)
 #endif
 		systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
 #ifdef MAC_OS_X_VERSION_10_6
-	}
+	//}
 #endif
 	/* Live resize ugly patch. Needed because live resize runs in a modal loop, not letting main loop run
 	 if ([[notification object] inLiveResize]) {
