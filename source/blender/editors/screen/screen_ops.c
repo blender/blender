@@ -2518,18 +2518,22 @@ static ScrArea *biggest_area(bContext *C)
 
 static ScrArea *find_area_showing_r_result(bContext *C)
 {
-	bScreen *sc= CTX_wm_screen(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *win;
 	ScrArea *sa;
 	SpaceImage *sima;
 	
 	/* find an imagewindow showing render result */
-	for(sa=sc->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_IMAGE) {
-			sima= sa->spacedata.first;
-			if(sima->image && sima->image->type==IMA_TYPE_R_RESULT)
-				break;
+	for(win=wm->windows.first; win; win=win->next) {
+		for(sa=win->screen->areabase.first; sa; sa= sa->next) {
+			if(sa->spacetype==SPACE_IMAGE) {
+				sima= sa->spacedata.first;
+				if(sima->image && sima->image->type==IMA_TYPE_R_RESULT)
+					break;
+			}
 		}
 	}
+
 	return sa;
 }
 
