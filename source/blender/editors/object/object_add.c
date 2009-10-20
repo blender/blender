@@ -293,17 +293,20 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb;
 	Nurb *nu;
-	int newob= 0;
+	int newob= 0, type= RNA_enum_get(op->ptr, "type");
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
 		ED_object_add_type(C, OB_CURVE);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
+		obedit= CTX_data_edit_object(C);
+
+		if(type & CU_PRIM_PATH)
+			((Curve*)obedit->data)->flag |= CU_PATH|CU_3D;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	obedit= CTX_data_edit_object(C);
-	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	nu= add_nurbs_primitive(C, type, newob);
 	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
 	
