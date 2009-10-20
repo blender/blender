@@ -977,7 +977,7 @@ FileData *blo_openblenderfile(char *name, ReportList *reports)
 		fd->read = fd_read_gzip_from_file;
 
 		/* needed for library_append and read_libraries */
-		BLI_strncpy(fd->filename, name, sizeof(fd->filename));
+		BLI_strncpy(fd->relabase, name, sizeof(fd->relabase));
 
 		return blo_decode_and_check(fd, reports);
 	}
@@ -5134,7 +5134,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	}
 	/* make sure we have full path in lib->filename */
 	BLI_strncpy(lib->filename, lib->name, sizeof(lib->name));
-	cleanup_path(fd->filename, lib->filename);
+	cleanup_path(fd->relabase, lib->filename);
 	
 //	printf("direct_link_library: name %s\n", lib->name);
 //	printf("direct_link_library: filename %s\n", lib->filename);
@@ -5469,6 +5469,8 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->displaymode= fg->displaymode;
 	bfd->globalf= fg->globalf;
 	BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
+	if(G.fileflags & G_FILE_RECOVER)
+		BLI_strncpy(fd->relabase, fg->filename, sizeof(fd->relabase));
 	
 	bfd->curscreen= fg->curscreen;
 	bfd->curscene= fg->curscene;
@@ -6284,7 +6286,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* WATCH IT!!!: pointers from libdata have not been converted */
 
 	if(G.f & G_DEBUG)
-		printf("read file %s\n  Version %d sub %d\n", fd->filename, main->versionfile, main->subversionfile);
+		printf("read file %s\n  Version %d sub %d\n", fd->relabase, main->versionfile, main->subversionfile);
 	
 	if(main->versionfile == 100) {
 		/* tex->extend and tex->imageflag have changed: */
@@ -10058,14 +10060,25 @@ BlendFileData *blo_read_file_internal(FileData *fd, char *file)
 			break;
 
 		case ID_LI:
-			bhead = read_libblock(fd, bfd->main, bhead, LIB_LOCAL, NULL);
+			/* skip library datablocks in undo, this works together with
+			   BLO_read_from_memfile, where the old main->library is restored
+			   overwriting  the libraries from the memory file. previously
+			   it did not save ID_LI/ID_ID blocks in this case, but they are
+			   needed to make quit.blend recover them correctly. */
+			if(fd->memfile)
+				bhead= blo_nextbhead(fd, bhead);
+			else
+				bhead= read_libblock(fd, bfd->main, bhead, LIB_LOCAL, NULL);
 			break;
 		case ID_ID:
+			/* same as above */
+			if(fd->memfile)
+				bhead= blo_nextbhead(fd, bhead);
+			else
 				/* always adds to the most recently loaded
 				 * ID_LI block, see direct_link_library.
-				 * this is part of the file format definition.
-				 */
-			bhead = read_libblock(fd, fd->mainlist.last, bhead, LIB_READ+LIB_EXTERN, NULL);
+				 * this is part of the file format definition. */
+				bhead = read_libblock(fd, fd->mainlist.last, bhead, LIB_READ+LIB_EXTERN, NULL);
 			break;
 			
 			/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
@@ -10087,7 +10100,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, char *file)
 
 	lib_link_all(fd, bfd->main);
 	lib_verify_nodetree(bfd->main, 1);
-	fix_relpaths_library(fd->filename, bfd->main); /* make all relative paths, relative to the open blend file */
+	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 	
 	link_global(fd, bfd);	/* as last */
 	
@@ -10135,6 +10148,10 @@ static void sort_bhead_old_map(FileData *fd)
 
 static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 {
+	/* skip library datablocks in undo, see comment in read_libblock */
+	if(fd->memfile)
+		return NULL;
+
 	for (; bhead; bhead= blo_prevbhead(fd, bhead))
 		if (bhead->code==ID_LI)
 			break;
@@ -10206,7 +10223,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 
 			if(bheadlib) {
 				Library *lib= read_struct(fd, bheadlib, "Library");
-				Main *ptr= blo_find_main(fd, &fd->mainlist, lib->name, fd->filename);
+				Main *ptr= blo_find_main(fd, &fd->mainlist, lib->name, fd->relabase);
 
 				id= is_yet_read(fd, ptr, bhead);
 
@@ -11464,7 +11481,7 @@ BlendFileData *blo_read_blendafterruntime(int file, char *name, int actualsize, 
 	fd->read = fd_read_from_file;
 
 	/* needed for library_append and read_libraries */
-	BLI_strncpy(fd->filename, name, sizeof(fd->filename));
+	BLI_strncpy(fd->relabase, name, sizeof(fd->relabase));
 
 	fd = blo_decode_and_check(fd, reports);
 	if (!fd)

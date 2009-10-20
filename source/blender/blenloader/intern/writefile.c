@@ -2383,8 +2383,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
 	write_gpencils (wd, &mainvar->gpencil);
-	if(current==NULL)	
-		write_libraries(wd,  mainvar->next); /* no library save in undo */
+	write_libraries(wd,  mainvar->next);
 
 	if (write_user_block) {
 		write_userdef(wd);
