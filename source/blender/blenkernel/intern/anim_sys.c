@@ -238,24 +238,69 @@ void BKE_animdata_make_local(AnimData *adt)
 
 /* Path Validation -------------------------------------------- */
 
-#if 0
-/* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate */
-static char *rna_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *newName, char *oldpath)
+/* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate 
+ *
+ * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
+ * 		i.e. pose.pose_channels["Bone"]
+ */
+static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, char *oldpath)
 {
+	char *prefixPtr= strstr(oldpath, prefix);
+	char *oldNamePtr= strstr(oldpath, oldName);
+	int prefixLen= strlen(prefix);
+	int oldNameLen= strlen(oldName);
 	
+	/* only start fixing the path if the prefix and oldName feature in the path,
+	 * and prefix occurs immediately before oldName (the +2 should take care of any [")
+	 */
+	if ( (prefixPtr && oldNamePtr) && (prefixPtr+prefixLen+2 == oldNamePtr) ) {
+		DynStr *ds= BLI_dynstr_new();
+		char *postfixPtr= oldNamePtr+oldNameLen+2;
+		char *newPath = NULL;
+		char oldChar;
+		
+		/* add the part of the string that goes up to the start of the prefix */
+		if (prefixPtr > oldpath) {
+			oldChar= prefixPtr[0]; 
+			prefixPtr[0]= 0;
+			BLI_dynstr_append(ds, oldpath);
+			prefixPtr[0]= oldChar;
+		}
+		
+		/* add the prefix, and opening brackets */
+		BLI_dynstr_append(ds, prefix);
+		BLI_dynstr_append(ds, "[\"");
+		
+		/* add the new name */
+		BLI_dynstr_append(ds, newName);
+		
+		/* add the closing brackets, then the postfix */
+		BLI_dynstr_append(ds, "\"]");
+		BLI_dynstr_append(ds, postfixPtr);
+		
+		/* create new path, and cleanup old data */
+		newPath= BLI_dynstr_get_cstring(ds);
+		BLI_dynstr_free(ds);
+		
+		MEM_freeN(oldpath);
+		
+		/* return the new path */
+		return newPath;
+	}
 	
-	return oldpath; // FIXME!!!
+	/* the old path doesn't need to be changed */
+	return oldpath;
 }
 
 /* Check RNA-Paths for a list of F-Curves */
-static void fcurves_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *newName, ListBase *curves)
+static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, ListBase *curves)
 {
 	FCurve *fcu;
 	
 	/* we need to check every curve... */
 	for (fcu= curves->first; fcu; fcu= fcu->next) {
 		/* firstly, handle the F-Curve's own path */
-		fcu->rna_path= rna_path_rename_fix(owner_id, modPtr, newName, fcu->rna_path);
+		fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path);
 		
 		/* driver? */
 		if (fcu->driver) {
@@ -264,14 +309,14 @@ static void fcurves_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *new
 			
 			/* driver targets */
 			for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
-				dtat->rna_path= rna_path_rename_fix(dtar->id, modPtr, newName, dtar->rna_path);
+				dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path);
 			}
 		}
 	}
 }
 
 /* Fix all RNA-Paths for Actions linked to NLA Strips */
-static void nlastrips_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *newName, ListBase *strips)
+static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, ListBase *strips)
 {
 	NlaStrip *strip;
 	
@@ -279,42 +324,113 @@ static void nlastrips_path_rename_fix (ID *owner_id, PointerRNA *modPtr, char *n
 	for (strip= strips->first; strip; strip= strip->next) {
 		/* fix strip's action */
 		if (strip->act)
-			fcurves_path_rename_fix(owner_id, modPtr, newName, &strip->act->curves);
+			fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &strip->act->curves);
 		/* ignore own F-Curves, since those are local...  */
 		
 		/* check sub-strips (if metas) */
-		nlastrips_path_rename_fix(owner_id, modPtr, newName, &strip->strips);
+		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, &strip->strips);
 	}
 }
 
 /* Fix all RNA-Paths in the AnimData block used by the given ID block
- * 	- the pointer of interest must not have had its new name assigned already, otherwise
- *	  path matching for this will never work
+ * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
+ * 		i.e. pose.pose_channels["Bone"]
  */
-void BKE_animdata_fix_paths_rename (ID *owner_id, PointerRNA *modPtr, char *newName)
+void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, char *oldName, char *newName)
 {
-	AnimData *adt= BKE_animdata_from_id(owner_id);
 	NlaTrack *nlt;
 	
 	/* if no AnimData, no need to proceed */
-	if (ELEM4(NULL, owner_id, adt, modPtr, newName))
+	if (ELEM4(NULL, owner_id, adt, oldName, newName))
 		return;
 	
 	/* Active action and temp action */
 	if (adt->action)
-		fcurves_path_rename_fix(owner_id, modPtr, newName, &adt->action->curves);
+		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &adt->action->curves);
 	if (adt->tmpact)
-		fcurves_path_rename_fix(owner_id, modPtr, newName, &adt->tmpact->curves);
+		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &adt->tmpact->curves);
 		
 	/* Drivers - Drivers are really F-Curves */
-	fcurves_path_rename_fix(owner_id, modPtr, newName, &adt->drivers);
+	fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &adt->drivers);
 	
 	/* NLA Data - Animation Data for Strips */
-	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next)
+		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, &nlt->strips);
+}
+
+/* Fix all RNA-Paths throughout the database (directly access the Global.main version)
+ * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
+ * 		i.e. pose.pose_channels["Bone"]
+ */
+void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newName)
+{
+	Main *mainptr= G.main;
+	ID *id;
+	
+	/* macro for less typing 
+	 *	- whether animdata exists is checked for by the main renaming callback, though taking 
+	 *	  this outside of the function may make things slightly faster?
+	 */
+#define RENAMEFIX_ANIM_IDS(first) \
+	for (id= first; id; id= id->next) { \
+		AnimData *adt= BKE_animdata_from_id(id); \
+		BKE_animdata_fix_paths_rename(id, adt, prefix, oldName, newName);\
+	}
+	
+	/* nodes */
+	RENAMEFIX_ANIM_IDS(mainptr->nodetree.first);
+	
+	/* textures */
+	RENAMEFIX_ANIM_IDS(mainptr->tex.first);
+	
+	/* lamps */
+	RENAMEFIX_ANIM_IDS(mainptr->lamp.first);
+	
+	/* materials */
+	RENAMEFIX_ANIM_IDS(mainptr->mat.first);
+	
+	/* cameras */
+	RENAMEFIX_ANIM_IDS(mainptr->camera.first);
+	
+	/* shapekeys */
+	RENAMEFIX_ANIM_IDS(mainptr->key.first);
+	
+	/* metaballs */
+	RENAMEFIX_ANIM_IDS(mainptr->mball.first);
+	
+	/* curves */
+	RENAMEFIX_ANIM_IDS(mainptr->curve.first);
+	
+	/* armatures */
+	RENAMEFIX_ANIM_IDS(mainptr->armature.first);
+	
+	/* meshes */
+	// TODO...
+	
+	/* particles */
+	RENAMEFIX_ANIM_IDS(mainptr->particle.first);
+	
+	/* objects */
+	RENAMEFIX_ANIM_IDS(mainptr->object.first); 
+	
+	/* worlds */
+	RENAMEFIX_ANIM_IDS(mainptr->world.first);
+	
+	/* scenes */
+	for (id= mainptr->scene.first; id; id= id->next) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		Scene *scene= (Scene *)id;
 		
+		/* do compositing nodes first (since these aren't included in main tree) */
+		if (scene->nodetree) {
+			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
+			BKE_animdata_fix_paths_rename((ID *)scene->nodetree, adt2, prefix, oldName, newName);
+		}
+		
+		/* now fix scene animation data as per normal */
+		BKE_animdata_fix_paths_rename((ID *)id, adt, prefix, oldName, newName);
 	}
 }
-#endif
 
 /* *********************************** */ 
 /* KeyingSet API */

@@ -155,6 +155,10 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 {
 	bConstraint *con= ptr->data;
+	char oldname[32];
+	
+	/* make a copy of the old name first */
+	BLI_strncpy(oldname, con->name, sizeof(oldname));
 	
 	/* copy the new name into the name slot */
 	BLI_strncpy(con->name, value, sizeof(con->name));
@@ -168,6 +172,9 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 		if (list)
 			unique_constraint_name(con, list); 
 	}
+	
+	/* fix all the animation data which may link to this */
+	BKE_all_animdata_fix_paths_rename("constraints", oldname, con->name);
 }
 
 static char *rna_Constraint_path(PointerRNA *ptr)

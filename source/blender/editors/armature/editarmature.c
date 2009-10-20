@@ -5289,9 +5289,8 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 		
 		/* now check if we're in editmode, we need to find the unique name */
 		if (arm->edbo) {
-			EditBone	*eBone;
+			EditBone *eBone= editbone_name_exists(arm->edbo, oldname);
 			
-			eBone= editbone_name_exists(arm->edbo, oldname);
 			if (eBone) {
 				unique_editbone_name(arm->edbo, newname, NULL);
 				BLI_strncpy(eBone->name, newname, MAXBONENAME);
@@ -5302,7 +5301,7 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			Bone *bone= get_named_bone(arm, oldname);
 			
 			if (bone) {
-				unique_bone_name (arm, newname);
+				unique_bone_name(arm, newname);
 				BLI_strncpy(bone->name, newname, MAXBONENAME);
 			}
 			else return;
@@ -5378,6 +5377,12 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 					if (!strcmp(dg->name, oldname))
 					   BLI_strncpy(dg->name, newname, MAXBONENAME);
 				}
+			}
+			
+			/* Fix animation data attached to this object */
+			if (ob->adt) {
+				/* posechannels only... */
+				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.pose_channels", oldname, newname);
 			}
 		}
 		

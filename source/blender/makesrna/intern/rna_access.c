@@ -2216,6 +2216,81 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 	return buf;
 }
 
+/* Resolve the given RNA path to find the next pointer+property pointed to in the path */
+// NOTE: this is the same as the code below, except that we don't have the while() loop to traverse the entire path
+int RNA_path_resolve_next(PointerRNA *ptr, char **path, PointerRNA *r_ptr, PropertyRNA **r_prop)
+{
+	PropertyRNA *prop;
+	PointerRNA curptr, nextptr;
+	char fixedbuf[256], *token;
+	int len, intkey;
+
+	prop= NULL;
+	curptr= *ptr;
+
+	if ((path == NULL) || (*path == 0))
+		return 0;
+	
+	/* look up property name in current struct */
+	token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
+	if (!token)
+		return 0;
+
+	prop= RNA_struct_find_property(&curptr, token);
+	
+	if(token != fixedbuf)
+		MEM_freeN(token);
+	if (!prop)
+		return 0;
+	
+	/* now look up the value of this property if it is a pointer or
+	 * collection, otherwise return the property rna so that the
+	 * caller can read the value of the property itself */
+	if(RNA_property_type(prop) == PROP_POINTER) {
+		nextptr= RNA_property_pointer_get(&curptr, prop);
+		
+		if(nextptr.data)
+			curptr= nextptr;
+		else
+			return 0;
+	}
+	else if(RNA_property_type(prop) == PROP_COLLECTION && *path) {
+		/* resolve the lookup with [] brackets */
+		token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
+		
+		if(!token)
+			return 0;
+		
+		len= strlen(token);
+		
+		/* check for "" to see if it is a string */
+		if(len >= 2 && token[0] == '"' && token[len-1] == '"') {
+			/* strip away "" */
+			token[len-1]= 0;
+			RNA_property_collection_lookup_string(&curptr, prop, token+1, &nextptr);
+		}
+		else {
+			/* otherwise do int lookup */
+			intkey= atoi(token);
+			RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr);
+		}
+		
+		if(token != fixedbuf)
+			MEM_freeN(token);
+		
+		if(nextptr.data)
+			curptr= nextptr;
+		else
+			return 0;
+	}
+
+	*r_ptr= curptr;
+	*r_prop= prop;
+
+	return 1;
+}
+
+/* Resolve the given RNA path to find the pointer+property indicated at the end of the path */
 int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
 	PropertyRNA *prop;

@@ -168,6 +168,10 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 {
 	ModifierData *md= ptr->data;
+	char oldname[32];
+	
+	/* make a copy of the old name first */
+	BLI_strncpy(oldname, md->name, sizeof(oldname));
 	
 	/* copy the new name into the name slot */
 	BLI_strncpy(md->name, value, sizeof(md->name));
@@ -177,6 +181,9 @@ void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 		Object *ob= ptr->id.data;
 		modifier_unique_name(&ob->modifiers, md);
 	}
+	
+	/* fix all the animation data which may link to this */
+	BKE_all_animdata_fix_paths_rename("modifiers", oldname, md->name);
 }
 
 static char *rna_Modifier_path(PointerRNA *ptr)
