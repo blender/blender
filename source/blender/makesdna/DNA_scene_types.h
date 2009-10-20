@@ -1169,6 +1169,7 @@ typedef enum SculptFlags {
 #define	SK_RETARGET_AUTONAME			1
 
 /* toolsettings->skgen_retarget_roll */
+#define	SK_RETARGET_ROLL_NONE			0
 #define	SK_RETARGET_ROLL_VIEW			1
 #define	SK_RETARGET_ROLL_JOINT			2
 
