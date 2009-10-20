@@ -4232,8 +4232,10 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
 	(*paint)= newdataadr(fd, (*paint));
-	if(*paint)
+	if(*paint) {
+		(*paint)->paint_cursor= NULL;
 		(*paint)->brushes= newdataadr(fd, (*paint)->brushes);
+	}
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)
