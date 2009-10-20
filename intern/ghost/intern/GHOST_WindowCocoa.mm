@@ -34,6 +34,10 @@
 #include <Carbon/Carbon.h>
 #endif
 
+/***** Multithreaded opengl code : uncomment for enabling
+#include <OpenGL/OpenGL.h>
+*/
+ 
 #include "GHOST_WindowCocoa.h"
 #include "GHOST_SystemCocoa.h"
 #include "GHOST_Debug.h"
@@ -110,10 +114,14 @@ extern "C" {
 
 - (void)windowDidResize:(NSNotification *)notification
 {
+#ifdef MAC_OS_X_VERSION_10_6
 	if (![[notification object] inLiveResize]) {
 		//Send event only once, at end of resize operation (when user has released mouse button)
+#endif
 		systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
+#ifdef MAC_OS_X_VERSION_10_6
 	}
+#endif
 	/* Live resize ugly patch. Needed because live resize runs in a modal loop, not letting main loop run
 	 if ([[notification object] inLiveResize]) {
 		systemCocoa->dispatchEvents();
@@ -194,6 +202,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 
 	//Creates the window
 	NSRect rect;
+	NSSize	minSize;
 	
 	rect.origin.x = left;
 	rect.origin.y = top;
@@ -207,6 +216,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		[pool drain];
 		return;
 	}
+	
+	//Forbid to resize the window below the blender defined minimum one
+	minSize.width = 320;
+	minSize.height = 240;
+	[m_window setContentMinSize:minSize];
 	
 	setTitle(title);
 	
@@ -719,6 +733,10 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 	NSOpenGLPixelFormat *pixelFormat;
 	NSOpenGLContext *tmpOpenGLContext;
 	
+	/***** Multithreaded opengl code : uncomment for enabling
+	CGLContextObj cglCtx;
+	*/
+	 
 	switch (type) {
 		case GHOST_kDrawingContextTypeOpenGL:
 			if (!getValid()) break;
@@ -730,6 +748,13 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 				success = GHOST_kFailure;
 				break;
 			}
+			
+			//Switch openGL to multhreaded mode
+			/******* Multithreaded opengl code : uncomment for enabling
+			cglCtx = (CGLContextObj)[tmpOpenGLContext CGLContextObj];
+			if (CGLEnable(cglCtx, kCGLCEMPEngine) == kCGLNoError)
+				printf("\nSwitched openGL to multithreaded mode");
+			 */
 			
 			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;
 #ifdef WAIT_FOR_VSYNC
