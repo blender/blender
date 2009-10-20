@@ -133,8 +133,8 @@ public:
     Vector   w; // rotation vector
 public:
     RotationVel():R(),w() {}
-    explicit RotationVel(const Rotation& _R):R(_R),w(Vector::Zero()){}
-    RotationVel(const Rotation& _R,const Vector& _w):R(_R),w(_w){}
+    explicit RotationVel(const Rotation& R_):R(R_),w(Vector::Zero()){}
+    RotationVel(const Rotation& R_,const Vector& _w):R(R_),w(_w){}
 
 
     Rotation value() const { return R;}
@@ -194,11 +194,11 @@ public:
 public:
     FrameVel(){}
 
-    explicit FrameVel(const Frame& _T):
-        M(_T.M),p(_T.p) {}
+    explicit FrameVel(const Frame& T_):
+        M(T_.M),p(T_.p) {}
 
-    FrameVel(const Frame& _T,const Twist& _t):
-        M(_T.M,_t.rot),p(_T.p,_t.vel) {}
+    FrameVel(const Frame& T_,const Twist& _t):
+        M(T_.M,_t.rot),p(T_.p,_t.vel) {}
 
     FrameVel(const RotationVel& _M,const VectorVel& _p):
         M(_M),p(_p) {}
