@@ -417,7 +417,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	// inserting previously found vertex into the plane equation
 	d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]);
 	ds = (ABS(viewnormal[0])*size[0] + ABS(viewnormal[1])*size[1] + ABS(viewnormal[2])*size[2]);
-	dd = 0.03; // ds/512.0f;
+	dd = 0.05; // ds/512.0f;
 	n = 0;
 	good_index = i;
 
@@ -429,7 +429,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		float p0[3];
 		float tmp_point[3], tmp_point2[3];
 
-		if(dd*n > ds)
+		if(dd*(float)n > ds)
 			break;
 
 		VECCOPY(tmp_point, viewnormal);
