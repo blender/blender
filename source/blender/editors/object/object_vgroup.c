@@ -616,9 +616,9 @@ static void vgroup_normalize(Object *ob)
 }
 
 /* TODO - select between groups */
-static void vgroup_normalize_all(Object *ob)
+static void vgroup_normalize_all(Object *ob, int lock_active)
 {
-	MDeformWeight *dw;
+	MDeformWeight *dw, *dw_act;
 	MDeformVert *dvert, *dvert_array=NULL;
 	int i, dvert_tot=0;
 	float tot_weight;
@@ -626,25 +626,70 @@ static void vgroup_normalize_all(Object *ob)
 	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
 
 	if(dvert_array) {
-		for(i = 0; i < dvert_tot; i++) {
-			int j;
-			tot_weight= 0.0f;
-			dvert = dvert_array+i;
+		if(lock_active) {
+			int def_nr= ob->actdef-1;
 
-			j= dvert->totweight;
-			while(j--) {
-				dw= dvert->dw + j;
-				tot_weight += dw->weight;
-			}
+			for(i = 0; i < dvert_tot; i++) {
+				float lock_iweight= 1.0f;
+				int j;
 
-			if(tot_weight) {
+				tot_weight= 0.0f;
+				dw_act= NULL;
+				dvert = dvert_array+i;
+
 				j= dvert->totweight;
 				while(j--) {
 					dw= dvert->dw + j;
-					dw->weight /= tot_weight;
 
-					/* incase of division errors with very low weights */
-					CLAMP(dw->weight, 0.0f, 1.0f);
+					if(dw->def_nr==def_nr) {
+						dw_act= dw;
+						lock_iweight = (1.0f - dw_act->weight);
+					}
+					else {
+						tot_weight += dw->weight;
+					}
+				}
+
+				if(tot_weight) {
+					j= dvert->totweight;
+					while(j--) {
+						dw= dvert->dw + j;
+						if(dw == dw_act) {
+							if (dvert->totweight==1) {
+								dw_act->weight= 1.0f; /* no other weights, set to 1.0 */
+							}
+						} else {
+							if(dw->weight > 0.0f)
+								dw->weight = (dw->weight / tot_weight) * lock_iweight;
+						}
+
+						/* incase of division errors with very low weights */
+						CLAMP(dw->weight, 0.0f, 1.0f);
+					}
+				}
+			}
+		}
+		else {
+			for(i = 0; i < dvert_tot; i++) {
+				int j;
+				tot_weight= 0.0f;
+				dvert = dvert_array+i;
+
+				j= dvert->totweight;
+				while(j--) {
+					dw= dvert->dw + j;
+					tot_weight += dw->weight;
+				}
+
+				if(tot_weight) {
+					j= dvert->totweight;
+					while(j--) {
+						dw= dvert->dw + j;
+						dw->weight /= tot_weight;
+
+						/* incase of division errors with very low weights */
+						CLAMP(dw->weight, 0.0f, 1.0f);
+					}
 				}
 			}
 		}
@@ -1342,12 +1387,8 @@ void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 static int vertex_group_normalize_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	int all_groups= RNA_boolean_get(op->ptr,"all_groups");
 
-	if(all_groups)
-		vgroup_normalize_all(ob);
-	else
-		vgroup_normalize(ob);
+	vgroup_normalize(ob);
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -1368,8 +1409,36 @@ void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
-	RNA_def_boolean(ot->srna, "all_groups", FALSE, "All Groups", "Normalize all vertex groups.");
+static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	int lock_active= RNA_boolean_get(op->ptr,"lock_active");
+
+	vgroup_normalize_all(ob, lock_active);
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Normalize All Vertex Groups";
+	ot->idname= "OBJECT_OT_vertex_group_normalize_all";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_normalize_all_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active", "Keep the values of the active group while normalizing others.");
 }
 
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)

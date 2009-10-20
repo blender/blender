@@ -103,7 +103,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 		col.itemO("screen.repeat_history", text="History...")
 		col.itemO("screen.redo_last", text="Tweak...")
 		
-class VIEW3D_PT_tools_mesheditoptions(View3DPanel):
+class VIEW3D_PT_tools_meshedit_options(View3DPanel):
 	__context__ = "mesh_edit"
 	__label__ = "Mesh Options"
 
@@ -636,6 +636,22 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 
 class VIEW3D_PT_tools_weightpaint(View3DPanel):
 	__context__ = "weightpaint"
+	__label__ = "Weight Tools"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		wpaint = context.tool_settings.weight_paint
+
+		col = layout.column()
+		# col.itemL(text="Blend:")
+		col.itemO("object.vertex_group_normalize_all", text="Normalize All")
+		col.itemO("object.vertex_group_normalize", text="Normalize")
+		col.itemO("object.vertex_group_invert", text="Invert")
+		col.itemO("object.vertex_group_clean", text="Clean")
+
+class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
+	__context__ = "weightpaint"
 	__label__ = "Options"
 
 	def draw(self, context):
@@ -806,9 +822,10 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 		sub.active = pe.fade_time
 		sub.itemR(pe, "fade_frames", slider=True)
 
+bpy.types.register(VIEW3D_PT_tools_weightpaint)
 bpy.types.register(VIEW3D_PT_tools_objectmode)
 bpy.types.register(VIEW3D_PT_tools_meshedit)
-bpy.types.register(VIEW3D_PT_tools_mesheditoptions)
+bpy.types.register(VIEW3D_PT_tools_meshedit_options)
 bpy.types.register(VIEW3D_PT_tools_curveedit)
 bpy.types.register(VIEW3D_PT_tools_surfaceedit)
 bpy.types.register(VIEW3D_PT_tools_textedit)
@@ -822,6 +839,6 @@ bpy.types.register(VIEW3D_PT_tools_brush_stroke)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
 bpy.types.register(VIEW3D_PT_tools_vertexpaint)
-bpy.types.register(VIEW3D_PT_tools_weightpaint)
+bpy.types.register(VIEW3D_PT_tools_weightpaint_options)
 bpy.types.register(VIEW3D_PT_tools_projectpaint)
 bpy.types.register(VIEW3D_PT_tools_particlemode)
