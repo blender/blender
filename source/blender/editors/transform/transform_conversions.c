@@ -3344,6 +3344,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 
 static void createTransGraphEditData(bContext *C, TransInfo *t)
 {
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
@@ -3375,7 +3376,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
 		
-		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
 		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
@@ -3403,7 +3404,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
-				if (v2d->around == V3D_LOCAL) {
+				if (sipo->around == V3D_LOCAL) {
 					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
 					 * don't get moved wrong
 					 */
@@ -3482,7 +3483,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				/* only include main vert if selected */
 				if (bezt->f2 & SELECT) {
 					/* if scaling around individuals centers, do not include keyframes */
-					if (v2d->around != V3D_LOCAL) {
+					if (sipo->around != V3D_LOCAL) {
 						/* if handles were not selected, store their selection status */
 						if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
 							if (hdata == NULL)

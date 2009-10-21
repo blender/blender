@@ -250,17 +250,30 @@ static void do_graph_buttons(bContext *C, void *arg, int event)
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
+static char *garound_pup(const bContext *C)
+{
+	static char string[512];
+	char *str = string;
+
+	str += sprintf(str, "%s", "Pivot: %t"); 
+	str += sprintf(str, "%s", "|Bounding Box Center %x0"); 
+	//str += sprintf(str, "%s", "|Median Point %x3");
+	str += sprintf(str, "%s", "|2D Cursor %x1");
+	str += sprintf(str, "%s", "|Individual Centers %x2");
+	return string;
+}
 
 void graph_header_buttons(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
+	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 	int xco, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_graph_buttons, NULL);
 	
+	/* standard buttosn in header - viewtype selector and menus */
 	xco= ED_area_header_standardbuttons(C, block, yco);
 	
 	if ((sa->flag & HEADER_NO_PULLDOWN)==0) {
@@ -309,6 +322,10 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 				"Auto-snapping mode for keyframe times when transforming");
 	}
 	xco += 98;
+	
+	/* pivot mode setting */
+	uiDefIconTextButI(block, ICONTEXTROW,B_REDR, ICON_ROTATE, garound_pup(C), xco,yco,XIC+10,YIC, &(sipo->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot");
+	xco+= XIC+10;
 	
 	/* copy + paste */
 	uiBlockBeginAlign(block);

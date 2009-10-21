@@ -952,11 +952,17 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->view = &ar->v2d;
 		t->around = sima->around;
 	}
+	else if(t->spacetype==SPACE_IPO) 
+	{
+		SpaceIpo *sipo= sa->spacedata.first;
+		t->view = &ar->v2d;
+		t->around = sipo->around;
+	}
 	else
 	{
 		// XXX for now, get View2D  from the active region
 		t->view = &ar->v2d;
-		
+		// XXX for now, the center point is the midpoint of the data
 		t->around = V3D_CENTER;
 	}
 	
@@ -1196,6 +1202,18 @@ void calculateCenterCursor2D(TransInfo *t)
 	calculateCenter2D(t);
 }
 
+void calculateCenterCursorGraph2D(TransInfo *t)
+{
+	SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+	Scene *scene= t->scene;
+	
+	/* cursor is combination of current frame, and graph-editor cursor value */
+	t->center[0]= (float)(scene->r.cfra);
+	t->center[1]= sipo->cursorVal;
+	
+	calculateCenter2D(t);
+}
+
 void calculateCenterMedian(TransInfo *t)
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
@@ -1267,6 +1285,8 @@ void calculateCenter(TransInfo *t)
 	case V3D_CURSOR:
 		if(t->spacetype==SPACE_IMAGE)
 			calculateCenterCursor2D(t);
+		else if(t->spacetype==SPACE_IPO)
+			calculateCenterCursorGraph2D(t);
 		else
 			calculateCenterCursor(t);
 		break;

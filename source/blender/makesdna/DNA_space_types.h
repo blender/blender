@@ -104,7 +104,7 @@ typedef struct SpaceIpo {
 	int flag;				/* settings for Graph editor */
 	
 	float cursorVal;		/* cursor value (y-value, x-value is current frame) */
-	int pad;
+	int around;				/* pivot point for transforms */
 } SpaceIpo;
 
 typedef struct SpaceButs {
