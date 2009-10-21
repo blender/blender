@@ -154,6 +154,7 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
 		return ('FINISHED',)
 
 rna_path_prop = bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= "")
+rna_reverse_prop = bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)
 
 def execute_context_assign(self, context):
 	exec("context.%s=self.value" % self.path)
@@ -216,11 +217,30 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 		exec("context.%s = ['%s', '%s'][context.%s!='%s']" % (self.path, self.value_1, self.value_2, self.path, self.value_2)) # security nuts will complain.
 		return ('FINISHED',)
 
+class WM_OT_context_cycle_int(bpy.types.Operator):
+	'''Set a context value. Useful for cycling active material, vertex keys, groups' etc.'''
+	__idname__ = "wm.context_cycle_int"
+	__label__ = "Context Int Cycle"
+	__props__ = [rna_path_prop, rna_reverse_prop]
+	def execute(self, context):
+		self.value = eval("context.%s" % self.path)
+		if self.reverse:	self.value -= 1
+		else:		self.value += 1
+		execute_context_assign(self, context)
+		
+		if self.value != eval("context.%s" % self.path):
+			# relies on rna clamping int's out of the range
+			if self.reverse:	self.value =  (1<<32)
+			else:		self.value = -(1<<32)
+			execute_context_assign(self, context)
+			
+		return ('FINISHED',)
+
 class WM_OT_context_cycle_enum(bpy.types.Operator):
 	'''Toggle a context value.'''
 	__idname__ = "wm.context_cycle_enum"
 	__label__ = "Context Enum Cycle"
-	__props__ = [rna_path_prop, bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)]
+	__props__ = [rna_path_prop, rna_reverse_prop]
 	def execute(self, context):
 		orig_value = eval("context.%s" % self.path) # security nuts will complain.
 		
@@ -251,6 +271,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 		exec("context.%s=advance_enum" % self.path)
 		return ('FINISHED',)
 
+
 bpy.ops.add(MESH_OT_delete_edgeloop)
 
 bpy.ops.add(WM_OT_context_set_boolean)
@@ -261,4 +282,5 @@ bpy.ops.add(WM_OT_context_set_enum)
 bpy.ops.add(WM_OT_context_toggle)
 bpy.ops.add(WM_OT_context_toggle_enum)
 bpy.ops.add(WM_OT_context_cycle_enum)
+bpy.ops.add(WM_OT_context_cycle_int)
 

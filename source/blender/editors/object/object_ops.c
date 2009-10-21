@@ -291,6 +291,15 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
+	/* if 2.4x keys use these can be replaced, could also use page up/down keys to switch vgroups */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PAGEUPKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "object.active_shape_key_index");
+	RNA_boolean_set(kmi->ptr, "reverse", TRUE);
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "object.active_shape_key_index");
+
+
 	/* Lattice */
 	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);
 	keymap->poll= ED_operator_editlattice;
