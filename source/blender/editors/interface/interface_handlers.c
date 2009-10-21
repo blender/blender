@@ -1944,8 +1944,11 @@ static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 {
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(ELEM4(event->type, LEFTMOUSE, PADENTER, RETKEY, EVT_BUT_OPEN) && event->val==KM_PRESS) {
-			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-			return WM_UI_HANDLER_BREAK;
+			if(but->dt == UI_EMBOSSN && !event->ctrl);
+			else {
+				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+				return WM_UI_HANDLER_BREAK;
+			}
 		}
 	}
 	else if(data->state == BUTTON_STATE_TEXT_EDITING) {
@@ -3653,13 +3656,33 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 			if(but->flag & UI_HIDDEN)
 				continue;
 			if(ui_but_contains_pt(but, mx, my))
-				/* give precedence to already activated buttons */
-				if(!butover || (!butover->active && but->active))
-					butover= but;
+				butover= but;
 		}
 	}
 
 	return butover;
+}
+
+static uiBut *ui_list_find_mouse_over(ARegion *ar, int x, int y)
+{
+	uiBlock *block;
+	uiBut *but;
+	int mx, my;
+
+	if(!ui_mouse_inside_region(ar, x, y))
+		return NULL;
+
+	for(block=ar->uiblocks.first; block; block=block->next) {
+		mx= x;
+		my= y;
+		ui_window_to_block(ar, block, &mx, &my);
+
+		for(but=block->buttons.last; but; but= but->prev)
+			if(but->type == LISTBOX && ui_but_contains_pt(but, mx, my))
+				return but;
+	}
+
+	return NULL;
 }
 
 /* ****************** button state handling **************************/
@@ -4028,6 +4051,10 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 					data->cancel= 1;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
+				else if(ui_but_find_mouse_over(ar, event->x, event->y) != but) {
+					data->cancel= 1;
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
+				}
 				else if(event->x!=event->prevx || event->y!=event->prevy) {
 					/* re-enable tooltip on mouse move */
 					ui_blocks_set_tooltips(ar, 1);
@@ -4146,6 +4173,71 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 		/* for jumping to the next button with tab while text editing */
 		if(postbut)
 			button_activate_init(C, ar, postbut, posttype);
+	}
+
+	return retval;
+}
+
+static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
+{
+	uiBut *but= ui_list_find_mouse_over(ar, event->x, event->y);
+	int retval= WM_UI_HANDLER_CONTINUE;
+	int value, min, max;
+
+	if(but && (event->val == KM_PRESS)) {
+		Panel *pa= but->block->panel;
+
+		if(ELEM(event->type, UPARROWKEY, DOWNARROWKEY) ||
+		   ((ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt))) {
+			/* activate up/down the list */
+			value= RNA_property_int_get(&but->rnapoin, but->rnaprop);
+
+			if(ELEM(event->type, UPARROWKEY, WHEELUPMOUSE))
+				value--;
+			else
+				value++;
+
+			if(value < pa->list_scroll)
+				pa->list_scroll= value;
+			else if(value >= pa->list_scroll+pa->list_size)
+				pa->list_scroll= value - pa->list_size + 1;
+
+			RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
+			value= CLAMPIS(value, min, max);
+
+			RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
+			RNA_property_update(C, &but->rnapoin, but->rnaprop);
+			ED_region_tag_redraw(ar);
+
+			retval= WM_UI_HANDLER_BREAK;
+		}
+		else if(ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
+			/* silly replacement for proper grip */
+			if(pa->list_grip_size == 0)
+				pa->list_grip_size= pa->list_size;
+
+			if(event->type == WHEELUPMOUSE)
+				pa->list_grip_size--;
+			else
+				pa->list_grip_size++;
+
+			pa->list_grip_size= MAX2(pa->list_grip_size, 1);
+
+			ED_region_tag_redraw(ar);
+
+			retval= WM_UI_HANDLER_BREAK;
+		}
+		else if(ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+			/* list template will clamp */
+			if(event->type == WHEELUPMOUSE)
+				pa->list_scroll--;
+			else
+				pa->list_scroll++;
+
+			ED_region_tag_redraw(ar);
+
+			retval= WM_UI_HANDLER_BREAK;
+		}
 	}
 
 	return retval;
@@ -4614,6 +4706,9 @@ static int ui_handler_region(bContext *C, wmEvent *event, void *userdata)
 
 	if(!but || !button_modal_state(but->active->state))
 		retval= ui_handler_panel_region(C, event);
+
+	if(retval == WM_UI_HANDLER_CONTINUE)
+		retval= ui_handle_list_event(C, event, ar);
 
 	if(retval == WM_UI_HANDLER_CONTINUE) {
 		if(but)

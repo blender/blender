@@ -106,6 +106,7 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	void *activedata;			/* runtime for panel manipulation */
 
 	int list_scroll, list_size;
+	int list_last_len, list_grip_size;
 	char list_search[64];
 } Panel;
 

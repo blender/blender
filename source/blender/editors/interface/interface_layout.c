@@ -98,6 +98,7 @@ typedef enum uiItemType {
 	ITEM_LAYOUT_BOX,
 	ITEM_LAYOUT_ABSOLUTE,
 	ITEM_LAYOUT_SPLIT,
+	ITEM_LAYOUT_OVERLAP,
 
 	ITEM_LAYOUT_ROOT
 #if 0
@@ -148,7 +149,6 @@ typedef struct uiLayoutItemFlow {
 typedef struct uiLayoutItemBx {
 	uiLayout litem;
 	uiBut *roundbox;
-	ListBase items;
 } uiLayoutItemBx;
 
 typedef struct uiLayoutItemSplt {
@@ -286,6 +286,7 @@ static int ui_layout_local_dir(uiLayout *layout)
 	switch(layout->item.type) {
 		case ITEM_LAYOUT_ROW:
 		case ITEM_LAYOUT_ROOT:
+		case ITEM_LAYOUT_OVERLAP:
 			return UI_LAYOUT_HORIZONTAL;
 		case ITEM_LAYOUT_COLUMN:
 		case ITEM_LAYOUT_COLUMN_FLOW:
@@ -362,7 +363,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		int cols= (len >= 20)? 2: 1;
 		int colbuts= len/(2*cols);
 
-		uiBlockSetCurLayout(block, uiLayoutFree(layout, 0));
+		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 0));
 
 		unit= UI_UNIT_X*0.75;
 		butw= unit;
@@ -390,7 +391,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		/* matrix layout */
 		int row, col;
 
-		uiBlockSetCurLayout(block, uiLayoutFree(layout, 1));
+		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 1));
 
 		len= ceil(sqrt(len));
 
@@ -1869,6 +1870,42 @@ static void ui_litem_layout_split(uiLayout *litem)
 	litem->y= y;
 }
 
+/* overlap layout */
+static void ui_litem_estimate_overlap(uiLayout *litem)
+{
+	uiItem *item;
+	int itemw, itemh;
+
+	litem->w= 0;
+	litem->h= 0;
+
+	for(item=litem->items.first; item; item=item->next) {
+		ui_item_size(item, &itemw, &itemh);
+
+		litem->w= MAX2(itemw, litem->w);
+		litem->h= MAX2(itemh, litem->h);
+	}
+}
+
+static void ui_litem_layout_overlap(uiLayout *litem)
+{
+	uiItem *item;
+	int itemw, itemh, x, y;
+
+	x= litem->x;
+	y= litem->y;
+
+	for(item=litem->items.first; item; item=item->next) {
+		ui_item_size(item, &itemw, &itemh);
+		ui_item_position(item, x, y-itemh, litem->w, itemh);
+
+		litem->h= MAX2(litem->h, itemh);
+	}
+
+	litem->x= x;
+	litem->y= y - litem->h;
+}
+
 /* layout create functions */
 uiLayout *uiLayoutRow(uiLayout *layout, int align)
 {
@@ -1928,7 +1965,7 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 	return &flow->litem;
 }
 
-static uiLayout *ui_layout_box(uiLayout *layout, int type)
+static uiLayoutItemBx *ui_layout_box(uiLayout *layout, int type)
 {
 	uiLayoutItemBx *box;
 
@@ -1945,30 +1982,32 @@ static uiLayout *ui_layout_box(uiLayout *layout, int type)
 
 	box->roundbox= uiDefBut(layout->root->block, type, 0, "", 0, 0, 0, 0, NULL, 0.0, 0.0, 0, 0, "");
 
-	return &box->litem;
+	return box;
 }
 
 uiLayout *uiLayoutBox(uiLayout *layout)
 {
-	return ui_layout_box(layout, ROUNDBOX);
+	return (uiLayout*)ui_layout_box(layout, ROUNDBOX);
 }
 
-uiLayout *uiLayoutListBox(uiLayout *layout)
+uiLayout *uiLayoutListBox(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *actptr, PropertyRNA *actprop)
 {
-	return ui_layout_box(layout, LISTBOX);
+    uiLayoutItemBx *box= ui_layout_box(layout, LISTBOX);
+	uiBut *but= box->roundbox;
+
+	but->rnasearchpoin= *ptr;
+	but->rnasearchprop= prop;
+	but->rnapoin= *actptr;
+	but->rnaprop= actprop;
+
+	return (uiLayout*)box;
 }
 
-ListBase *uiLayoutBoxGetList(uiLayout *layout)
-{
-	uiLayoutItemBx *box= (uiLayoutItemBx*)layout;
-	return &box->items;
-}
-
-uiLayout *uiLayoutFree(uiLayout *layout, int align)
+uiLayout *uiLayoutAbsolute(uiLayout *layout, int align)
 {
 	uiLayout *litem;
 
-	litem= MEM_callocN(sizeof(uiLayout), "uiLayoutFree");
+	litem= MEM_callocN(sizeof(uiLayout), "uiLayoutAbsolute");
 	litem->item.type= ITEM_LAYOUT_ABSOLUTE;
 	litem->root= layout->root;
 	litem->align= align;
@@ -1987,9 +2026,26 @@ uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout)
 	uiBlock *block;
 
 	block= uiLayoutGetBlock(layout);
-	uiLayoutFree(layout, 0);
+	uiLayoutAbsolute(layout, 0);
 
 	return block;
+}
+
+uiLayout *uiLayoutOverlap(uiLayout *layout)
+{
+	uiLayout *litem;
+
+	litem= MEM_callocN(sizeof(uiLayout), "uiLayoutOverlap");
+	litem->item.type= ITEM_LAYOUT_OVERLAP;
+	litem->root= layout->root;
+	litem->active= 1;
+	litem->enabled= 1;
+	litem->context= layout->context;
+	BLI_addtail(&layout->items, litem);
+
+	uiBlockSetCurLayout(layout->root->block, litem);
+
+	return litem;
 }
 
 uiLayout *uiLayoutSplit(uiLayout *layout, float percentage)
@@ -2149,6 +2205,9 @@ static void ui_item_estimate(uiItem *item)
 			case ITEM_LAYOUT_SPLIT:
 				ui_litem_estimate_split(litem);
 				break;
+			case ITEM_LAYOUT_OVERLAP:
+				ui_litem_estimate_overlap(litem);
+				break;
 			default:
 				break;
 		}
@@ -2169,6 +2228,7 @@ static void ui_item_align(uiLayout *litem, int nr)
 					bitem->but->alignnr= nr;
 		}
 		else if(item->type == ITEM_LAYOUT_ABSOLUTE);
+		else if(item->type == ITEM_LAYOUT_OVERLAP);
 		else if(item->type == ITEM_LAYOUT_BOX) {
 			box= (uiLayoutItemBx*)item;
 			box->roundbox->alignnr= nr;
@@ -2234,6 +2294,9 @@ static void ui_item_layout(uiItem *item)
 			case ITEM_LAYOUT_SPLIT:
 				ui_litem_layout_split(litem);
 				break;
+			case ITEM_LAYOUT_OVERLAP:
+				ui_litem_layout_overlap(litem);
+				break;
 			default:
 				break;
 		}
@@ -2267,9 +2330,6 @@ static void ui_layout_free(uiLayout *layout)
 		else
 			ui_layout_free((uiLayout*)item);
 	}
-
-	if(layout->item.type == ITEM_LAYOUT_BOX)
-		BLI_freelistN(&((uiLayoutItemBx*)layout)->items);
 
 	MEM_freeN(layout);
 }

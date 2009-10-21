@@ -489,20 +489,6 @@ static void rna_UILayout_scale_y_set(PointerRNA *ptr, float value)
 	uiLayoutSetScaleY(ptr->data, value);
 }
 
-static PointerRNA rna_UIListItem_layout_get(PointerRNA *ptr)
-{
-	uiListItem *item= (uiListItem*)ptr->data;
-	PointerRNA newptr;
-	RNA_pointer_create(NULL, &RNA_UILayout, item->layout, &newptr);
-	return newptr;
-}
-
-static PointerRNA rna_UIListItem_data_get(PointerRNA *ptr)
-{
-	uiListItem *item= (uiListItem*)ptr->data;
-	return item->data;
-}
-
 #else // RNA_RUNTIME
 
 static void rna_def_ui_layout(BlenderRNA *brna)
@@ -566,21 +552,6 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_y_get", "rna_UILayout_scale_y_set", NULL);
 
 	RNA_api_ui_layout(srna);
-
-	/* list item */
-
-	srna= RNA_def_struct(brna, "UIListItem", NULL);
-	RNA_def_struct_ui_text(srna, "UI List Item", "User interface list.");
-
-	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "UILayout");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_UIListItem_layout_get", NULL, NULL);
-
-	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "AnyType");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_UIListItem_data_get", NULL, NULL);
 }
 
 static void rna_def_panel(BlenderRNA *brna)
