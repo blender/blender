@@ -1321,8 +1321,12 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
 	RNA_string_set(op->ptr, "path", name);
-	uiPupMenuSaveOver(C, op, name);
-
+	
+	if (G.save_over)
+		uiPupMenuSaveOver(C, op, name);
+	else
+		WM_event_add_fileselect(C, op);
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
