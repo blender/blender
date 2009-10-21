@@ -2117,7 +2117,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 
 		if(prop)
 			len= RNA_property_collection_length(ptr, prop);
-		items= CLAMPIS(len, rows, 5);
+		items= CLAMPIS(len, rows, MAX2(rows, 5));
 
 		pa->list_scroll= MIN2(pa->list_scroll, len-items);
 		pa->list_scroll= MAX2(pa->list_scroll, 0);
