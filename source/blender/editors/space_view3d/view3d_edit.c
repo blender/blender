@@ -94,7 +94,7 @@ static void view3d_boxview_clip(ScrArea *sa)
 	ARegion *ar;
 	BoundBox *bb = MEM_callocN(sizeof(BoundBox), "clipbb");
 	float clip[6][4];
-	float x1= 0.0f, y1= 0.0f, z1= 0.0f, ofs[3];
+	float x1= 0.0f, y1= 0.0f, z1= 0.0f, ofs[3] = {0.0f, 0.0f, 0.0f};
 	int val;
 
 	/* create bounding box */

@@ -860,7 +860,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
 	int index;
-	short mval[2], sco[2];
+	short mval[2] = {0, 0}, sco[2];
 
 	if (!me) return;
 	

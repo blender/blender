@@ -2795,7 +2795,7 @@ static void brush_length(PEData *data, int point_index)
 	PTCacheEdit *edit= data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
 	KEY_K;
-	float dvec[3],pvec[3];
+	float dvec[3],pvec[3] = {0.0f, 0.0f, 0.0f};
 
 	LOOP_KEYS {
 		if(k==0) {
@@ -2819,7 +2819,7 @@ static void brush_puff(PEData *data, int point_index)
 	PTCacheEditPoint *point = edit->points + point_index;
 	KEY_K;
 	float mat[4][4], imat[4][4];
-	float lastco[3], rootco[3], co[3], nor[3], kco[3], dco[3], fac=0.0f, length=0.0f;
+	float lastco[3], rootco[3] = {0.0f, 0.0f, 0.0f}, co[3], nor[3], kco[3], dco[3], fac=0.0f, length=0.0f;
 
 	if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 		psys_mat_hair_to_global(data->ob, data->dm, psys->part->from, psys->particles + point_index, mat);

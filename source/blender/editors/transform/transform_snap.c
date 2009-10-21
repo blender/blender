@@ -633,7 +633,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			DepthPeel *p1, *p2;
 			float *last_p = NULL;
 			float dist = FLT_MAX;
-			float p[3];
+			float p[3] = {0.0f, 0.0f, 0.0f};
 			
 			depth_peels.first = depth_peels.last = NULL;
 			

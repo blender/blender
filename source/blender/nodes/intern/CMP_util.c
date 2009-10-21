@@ -1255,7 +1255,7 @@ CompBuf* qd_downScaledCopy(CompBuf* src, int scale)
 		fbuf = alloc_compbuf(nw, nh, src->type, 1);
 		{
 			int x, y, xx, yy, sx, sy, mx, my;
-			float colsum[4];
+			float colsum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 			float fscale = 1.f/(float)(scale*scale);
 			for (y=0; y<nh; y++) {
 				fRGB* fcolp = (fRGB*)&fbuf->rect[y*fbuf->x*fbuf->type];

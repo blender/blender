@@ -1922,7 +1922,7 @@ void makeBevelList(Object *ob)
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
 	float min, inp, x1, x2, y1, y2;
 	struct bevelsort *sortdata, *sd, *sd1;
-	int a, b, nr, poly, resolu, len=0;
+	int a, b, nr, poly, resolu = 0, len = 0;
 	int do_tilt, do_radius;
 	
 	/* this function needs an object, because of tflag and upflag */
