@@ -125,6 +125,13 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		subcol.itemO("object.shape_key_mirror", icon='ICON_MOD_MIRROR', text="")
 
 		if kb:
+			
+			col.itemS()
+
+			subcol = col.column(align=True)
+			subcol.item_enumO("object.shape_key_move", "type", 'UP', icon='ICON_TRIA_UP', text="")
+			subcol.item_enumO("object.shape_key_move", "type", 'DOWN', icon='ICON_TRIA_DOWN', text="")
+			
 			col.itemS()
 
 			subcol = col.column(align=True)

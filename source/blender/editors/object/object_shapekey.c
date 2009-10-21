@@ -660,3 +660,63 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
+static int shape_key_move_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	int type= RNA_enum_get(op->ptr, "type");
+	Key *key= ob_get_key(ob);
+
+	if(key) {
+		KeyBlock *kb, *kb_other;
+		kb= BLI_findlink(&key->block, ob->shapenr-1);
+
+		if(type==-1) {
+			/* move back */
+			if(kb->prev) {
+				kb_other= kb->prev;
+				BLI_remlink(&key->block, kb);
+				BLI_insertlinkbefore(&key->block, kb_other, kb);
+				ob->shapenr--;
+			}
+		}
+		else {
+			/* move next */
+			if(kb->next) {
+				kb_other= kb->next;
+				BLI_remlink(&key->block, kb);
+				BLI_insertlinkafter(&key->block, kb_other, kb);
+				ob->shapenr++;
+			}
+		}
+	}
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem slot_move[] = {
+		{-1, "UP", 0, "Up", ""},
+		{1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Move Shape Key";
+	ot->idname= "OBJECT_OT_shape_key_move";
+
+	/* api callbacks */
+	ot->poll= shape_key_poll;
+	ot->exec= shape_key_move_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
+}
+
