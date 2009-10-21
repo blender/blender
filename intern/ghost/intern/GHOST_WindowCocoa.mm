@@ -515,6 +515,13 @@ void GHOST_WindowCocoa::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST
 	outY = screenCoord.y;
 }
 
+
+NSScreen* GHOST_WindowCocoa::getScreen()
+{
+	return [m_window screen];
+}
+
+
 /**
  * @note Fullscreen switch is not actual fullscreen with display capture. As this capture removes all OS X window manager features.
  * Instead, the menu bar and the dock are hidden, and the window is made borderless and enlarged.

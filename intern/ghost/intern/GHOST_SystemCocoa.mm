@@ -797,7 +797,9 @@ GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
 
 
 	
-
+/**
+ * @note : returns coordinates in Cocoa screen coordinates
+ */
 GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
     NSPoint mouseLoc = [NSEvent mouseLocation];
@@ -808,17 +810,24 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
     return GHOST_kSuccess;
 }
 
-
+/**
+ * @note : expect Cocoa screen coordinates
+ */
 GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
 {
 	float xf=(float)x, yf=(float)y;
+	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
+	NSScreen *windowScreen = window->getScreen();
+	NSRect screenRect = [windowScreen frame];
+	
+	//Set position relative to current screen
+	xf -= screenRect.origin.x;
+	yf -= screenRect.origin.y;
 	
 	//Quartz Display Services uses the old coordinates (top left origin)
-	yf = [[NSScreen mainScreen] frame].size.height -yf;
-	
-	//CGAssociateMouseAndMouseCursorPosition(false);
-	CGWarpMouseCursorPosition(CGPointMake(xf, yf));
-	//CGAssociateMouseAndMouseCursorPosition(true);
+	yf = screenRect.size.height -yf;
+
+	CGDisplayMoveCursorToPoint([[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
 
     return GHOST_kSuccess;
 }
@@ -1174,10 +1183,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
 						window->getClientBounds(windowBounds);
-						bounds.m_b = (windowBounds.m_b - windowBounds.m_t) - bounds.m_b;
-						bounds.m_t = (windowBounds.m_b - windowBounds.m_t) - bounds.m_t;
 						window->screenToClient(bounds.m_l,bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
 						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
+						correctedBounds.m_b = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_b;
+						correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
 						
 						//Update accumulation counts
 						window->getCursorGrabAccum(x_accum, y_accum);
