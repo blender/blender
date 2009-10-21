@@ -427,6 +427,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 		
 		layout.itemS()
 		
+		layout.itemO("object.move_to_layer", text="Move to Layer...")
 		layout.itemM("VIEW3D_MT_object_showhide")
 		
 		layout.item_menu_enumO("object.convert", "target")

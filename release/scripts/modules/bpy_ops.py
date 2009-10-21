@@ -155,50 +155,44 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
 
 rna_path_prop = bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= "")
 
+def execute_context_assign(self, context):
+	exec("context.%s=self.value" % self.path)
+	return ('FINISHED',)
+
 class WM_OT_context_set_boolean(bpy.types.Operator):
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_boolean"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.BoolProperty(attr="value", name="Value", description="Assignment value", default= True)]
-	def execute(self, context):
-		exec("context.%s=%s" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 
 class WM_OT_context_set_int(bpy.types.Operator): # same as enum
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_int"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.IntProperty(attr="value", name="Value", description="Assignment value", default= 0)]
-	def execute(self, context):
-		exec("context.%s=%d" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 		
 class WM_OT_context_set_float(bpy.types.Operator): # same as enum
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_int"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.FloatProperty(attr="value", name="Value", description="Assignment value", default= 0.0)]
-	def execute(self, context):
-		exec("context.%s=%f" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 
 class WM_OT_context_set_string(bpy.types.Operator): # same as enum
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_string"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.StringProperty(attr="value", name="Value", description="Assignment value", maxlen= 1024, default= "")]
-	def execute(self, context):
-		exec("context.%s='%s'" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 
 class WM_OT_context_set_enum(bpy.types.Operator):
 	'''Set a context value.'''
 	__idname__ = "wm.context_set_enum"
 	__label__ = "Context Set"
 	__props__ = [rna_path_prop, bpy.props.StringProperty(attr="value", name="Value", description="Assignment value (as a string)", maxlen= 1024, default= "")]
-	def execute(self, context):
-		exec("context.%s='%s'" % (self.path, self.value)) # security nuts will complain.
-		return ('FINISHED',)
+	execute = execute_context_assign
 
 class WM_OT_context_toggle(bpy.types.Operator):
 	'''Toggle a context value.'''
