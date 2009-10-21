@@ -3771,21 +3771,39 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 			}
 			
 			/* only if ID and path were set, should we perform any actions */
+			// FIXME: if whole array flag is set, mus add the entire array
 			if (id && path) {
-				/* action depends on mode */
-				switch (mode) {
-					case DRIVERS_EDITMODE_ADD:
-					{
-						/* add a new driver with the information obtained (only if valid) */
-						ANIM_add_driver(id, path, array_index, flag, DRIVER_TYPE_AVERAGE);
+				int arraylen, i;
+				
+				/* array checks */
+				if (flag & KSP_FLAG_WHOLE_ARRAY) {
+					/* entire array was selected, so add drivers for all */
+					arraylen= RNA_property_array_length(&te->rnaptr, te->directdata);
+				}
+				else
+					arraylen= array_index;
+				
+				/* we should do at least one step */
+				if (arraylen == array_index)
+					arraylen++;
+				
+				/* for each array element we should affect, add driver */
+				for (; array_index < arraylen; array_index++) {
+					/* action depends on mode */
+					switch (mode) {
+						case DRIVERS_EDITMODE_ADD:
+						{
+							/* add a new driver with the information obtained (only if valid) */
+							ANIM_add_driver(id, path, array_index, flag, DRIVER_TYPE_PYTHON);
+						}
+							break;
+						case DRIVERS_EDITMODE_REMOVE:
+						{
+							/* remove driver matching the information obtained (only if valid) */
+							ANIM_remove_driver(id, path, array_index, flag);
+						}
+							break;
 					}
-						break;
-					case DRIVERS_EDITMODE_REMOVE:
-					{
-						/* remove driver matching the information obtained (only if valid) */
-						ANIM_remove_driver(id, path, array_index, flag);
-					}
-						break;
 				}
 				
 				/* free path, since it had to be generated */
@@ -3815,16 +3833,16 @@ static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
 	do_outliner_drivers_editop(soutliner, &soutliner->tree, DRIVERS_EDITMODE_ADD);
 	
 	/* send notifiers */
-	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	WM_event_add_notifier(C, ND_KEYS, NULL); // XXX
 	
 	return OPERATOR_FINISHED;
 }
 
-void OUTLINER_OT_drivers_add(wmOperatorType *ot)
+void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
 {
 	/* api callbacks */
-	ot->idname= "OUTLINER_OT_drivers_add";
-	ot->name= "Add Drivers";
+	ot->idname= "OUTLINER_OT_drivers_add_selected";
+	ot->name= "Add Drivers for Selected";
 	ot->description= "Add drivers to selected items.";
 	
 	/* api callbacks */
@@ -3850,16 +3868,16 @@ static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
 	do_outliner_drivers_editop(soutliner, &soutliner->tree, DRIVERS_EDITMODE_REMOVE);
 	
 	/* send notifiers */
-	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	WM_event_add_notifier(C, ND_KEYS, NULL); // XXX
 	
 	return OPERATOR_FINISHED;
 }
 
-void OUTLINER_OT_drivers_delete(wmOperatorType *ot)
+void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->idname= "OUTLINER_OT_drivers_delete";
-	ot->name= "Delete Drivers";
+	ot->idname= "OUTLINER_OT_drivers_delete_selected";
+	ot->name= "Delete Drivers for Selected";
 	ot->description= "Delete drivers assigned to selected items.";
 	
 	/* api callbacks */
