@@ -3771,9 +3771,8 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 			}
 			
 			/* only if ID and path were set, should we perform any actions */
-			// FIXME: if whole array flag is set, mus add the entire array
 			if (id && path) {
-				int arraylen, i;
+				int arraylen;
 				
 				/* array checks */
 				if (flag & KSP_FLAG_WHOLE_ARRAY) {

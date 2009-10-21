@@ -4157,7 +4157,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	PTCacheEditKey *key;
 	ParticleEditSettings *pset = PE_settings(scene);
 	int i, k, totpoint = edit->totpoint, timed = pset->flag & PE_FADE_TIME ? pset->fade_frames : 0;
-	int steps;
+	int steps=1;
 	char nosel[4], sel[4];
 	float sel_col[3];
 	float nosel_col[3];

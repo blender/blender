@@ -2520,7 +2520,7 @@ static ScrArea *find_area_showing_r_result(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
-	ScrArea *sa;
+	ScrArea *sa = NULL;
 	SpaceImage *sima;
 	
 	/* find an imagewindow showing render result */

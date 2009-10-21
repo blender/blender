@@ -1311,7 +1311,7 @@ static void make_prim_ext(bContext *C, int type, int tot, int seg,
 		int subdiv, float dia, float depth, int ext, int fill)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	int newob;
+	int newob = 0;
 	float mat[4][4];
 
 	if(obedit==NULL || obedit->type!=OB_MESH) {

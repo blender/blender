@@ -36,10 +36,6 @@
 struct wmOperatorType;
 
 /* particle_edit.c */
-int PE_poll(struct bContext *C);
-int PE_hair_poll(struct bContext *C);
-int PE_poll_3dview(struct bContext *C);
-
 void PARTICLE_OT_select_all_toggle(struct wmOperatorType *ot);
 void PARTICLE_OT_select_first(struct wmOperatorType *ot);
 void PARTICLE_OT_select_last(struct wmOperatorType *ot);

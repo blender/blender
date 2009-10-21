@@ -4240,7 +4240,6 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *o
 
 static int smooth_vertex(bContext *C, wmOperator *op)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	EditVert *eve, *eve_mir = NULL;

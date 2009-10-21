@@ -217,7 +217,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	RegionView3D *rv3d= ar->regiondata;
 
 	float viewnormal[3];
-	int i, j, n, good_index, count = 0;
+	int i, j, n, good_index;
 	float d, d0, dd, ds;
 	float *points = NULL;
 	int numpoints = 0;
