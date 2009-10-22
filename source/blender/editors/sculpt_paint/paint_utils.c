@@ -26,6 +26,10 @@
 #include "BIF_gl.h"
 
 #include "ED_view3d.h"
+#include "ED_screen.h"
+
+#include "BLO_sys_types.h"
+#include "ED_mesh.h" /* for face mask functions */
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -223,4 +227,68 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "shape", prop_shape_items, BRUSH_PRESET_SHARP, "Mode", "");
+}
+
+
+/* face-select ops */
+static int paint_select_linked_exec(bContext *C, wmOperator *op)
+{
+	select_linked_tfaces(C, CTX_data_active_object(C), NULL, 2);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_face_select_linked(wmOperatorType *ot)
+{
+	ot->name= "Select Linked";
+    ot->description= "Select linked faces.";
+	ot->idname= "PAINT_OT_face_select_linked";
+
+	ot->exec= paint_select_linked_exec;
+	ot->poll= facemask_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int mode= RNA_boolean_get(op->ptr, "extend") ? 1:0;
+	select_linked_tfaces(C, CTX_data_active_object(C), event->mval, mode);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
+{
+	ot->name= "Select Linked Pick";
+    ot->description= "Select linked faces.";
+	ot->idname= "PAINT_OT_face_select_linked_pick";
+
+	ot->invoke= paint_select_linked_pick_invoke;
+	ot->poll= facemask_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
+}
+
+
+static int face_deselect_all_exec(bContext *C, wmOperator *op)
+{
+	deselectall_tface(CTX_data_active_object(C));
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+
+void PAINT_OT_face_deselect_all(wmOperatorType *ot)
+{
+	ot->name= "Select Linked";
+    ot->description= "Select linked faces under the mouse.";
+	ot->idname= "PAINT_OT_face_deselect_all";
+
+	ot->exec= face_deselect_all_exec;
+	ot->poll= facemask_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

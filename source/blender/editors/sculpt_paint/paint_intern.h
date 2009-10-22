@@ -94,6 +94,10 @@ void imapaint_pick_uv(struct Scene *scene, struct Object *ob, struct Mesh *mesh,
 void paint_sample_color(struct Scene *scene, struct ARegion *ar, int x, int y);
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
 
+void PAINT_OT_face_select_linked(struct wmOperatorType *ot);
+void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
+void PAINT_OT_face_deselect_all(struct wmOperatorType *ot);
+
 int facemask_paint_poll(struct bContext *C);
 
 #endif /* ED_PAINT_INTERN_H */

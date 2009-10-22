@@ -53,6 +53,7 @@ struct UvMapVert;
 struct CustomData;
 struct Material;
 struct Object;
+struct recti;
 
 #define EM_FGON_DRAW	1 // face flag
 #define EM_FGON			2 // edge and face flag both
@@ -166,6 +167,9 @@ void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
 int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
+void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select);
+void deselectall_tface(struct Object *ob);
+void select_linked_tfaces(struct bContext *C, struct Object *ob, short mval[2], int mode);
 
 /* object_vgroup.c */
 

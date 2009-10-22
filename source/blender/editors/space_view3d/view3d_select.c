@@ -1392,7 +1392,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	
 	if(obedit==NULL && (paint_facesel_test(OBACT))) {
-// XXX		face_borderselect();
+		face_borderselect(C, obact, &rect, (val==LEFTMOUSE));
 		return OPERATOR_FINISHED;
 	}
 	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {

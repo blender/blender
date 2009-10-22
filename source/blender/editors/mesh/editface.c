@@ -60,6 +60,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_customdata.h"
+#include "BKE_context.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -72,6 +73,7 @@
 #endif
 
 #include "ED_mesh.h"
+#include "ED_screen.h"
 #include "ED_object.h"
 #include "ED_view3d.h"
 
@@ -82,7 +84,6 @@
 #include "mesh_intern.h"
 
 /* ***************** XXX **************** */
-static void error() {}
 static int pupmenu() {return 0;}
 /* ***************** XXX **************** */
 
@@ -234,35 +235,156 @@ void hide_tface(Scene *scene)
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
-void select_linked_tfaces(Scene *scene, View3D *v3d, int mode)
+/* Set tface seams based on edge data, uses hash table to find seam edges. */
+
+static void hash_add_face(EdgeHash *ehash, MFace *mf)
 {
-	Object *ob;
+	BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
+	BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);
+	if(mf->v4) {
+		BLI_edgehash_insert(ehash, mf->v3, mf->v4, NULL);
+		BLI_edgehash_insert(ehash, mf->v4, mf->v1, NULL);
+	}
+	else
+		BLI_edgehash_insert(ehash, mf->v3, mf->v1, NULL);
+}
+
+
+void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
+{
+	MFace *mf;
+	int a, doit=1, mark=0;
+	char *linkflag;
+	EdgeHash *ehash, *seamhash;
+	MEdge *med;
+
+	ehash= BLI_edgehash_new();
+	seamhash = BLI_edgehash_new();
+	linkflag= MEM_callocN(sizeof(char)*me->totface, "linkflaguv");
+
+	for(med=me->medge, a=0; a < me->totedge; a++, med++)
+		if(med->flag & ME_SEAM)
+			BLI_edgehash_insert(seamhash, med->v1, med->v2, NULL);
+
+	if (mode==0 || mode==1) {
+		/* only put face under cursor in array */
+		mf= ((MFace*)me->mface) + index;
+		hash_add_face(ehash, mf);
+		linkflag[index]= 1;
+	}
+	else {
+		/* fill array by selection */
+		mf= me->mface;
+		for(a=0; a<me->totface; a++, mf++) {
+			if(mf->flag & ME_HIDE);
+			else if(mf->flag & ME_FACE_SEL) {
+				hash_add_face(ehash, mf);
+				linkflag[a]= 1;
+			}
+		}
+	}
+
+	while(doit) {
+		doit= 0;
+
+		/* expand selection */
+		mf= me->mface;
+		for(a=0; a<me->totface; a++, mf++) {
+			if(mf->flag & ME_HIDE)
+				continue;
+
+			if(!linkflag[a]) {
+				mark= 0;
+
+				if(!BLI_edgehash_haskey(seamhash, mf->v1, mf->v2))
+					if(BLI_edgehash_haskey(ehash, mf->v1, mf->v2))
+						mark= 1;
+				if(!BLI_edgehash_haskey(seamhash, mf->v2, mf->v3))
+					if(BLI_edgehash_haskey(ehash, mf->v2, mf->v3))
+						mark= 1;
+				if(mf->v4) {
+					if(!BLI_edgehash_haskey(seamhash, mf->v3, mf->v4))
+						if(BLI_edgehash_haskey(ehash, mf->v3, mf->v4))
+							mark= 1;
+					if(!BLI_edgehash_haskey(seamhash, mf->v4, mf->v1))
+						if(BLI_edgehash_haskey(ehash, mf->v4, mf->v1))
+							mark= 1;
+				}
+				else if(!BLI_edgehash_haskey(seamhash, mf->v3, mf->v1))
+					if(BLI_edgehash_haskey(ehash, mf->v3, mf->v1))
+						mark = 1;
+
+				if(mark) {
+					linkflag[a]= 1;
+					hash_add_face(ehash, mf);
+					doit= 1;
+				}
+			}
+		}
+
+	}
+
+	BLI_edgehash_free(ehash, NULL);
+	BLI_edgehash_free(seamhash, NULL);
+
+	if(mode==0 || mode==2) {
+		for(a=0, mf=me->mface; a<me->totface; a++, mf++)
+			if(linkflag[a])
+				mf->flag |= ME_FACE_SEL;
+			else
+				mf->flag &= ~ME_FACE_SEL;
+	}
+	else if(mode==1) {
+		for(a=0, mf=me->mface; a<me->totface; a++, mf++)
+			if(linkflag[a] && (mf->flag & ME_FACE_SEL))
+				break;
+
+		if (a<me->totface) {
+			for(a=0, mf=me->mface; a<me->totface; a++, mf++)
+				if(linkflag[a])
+					mf->flag &= ~ME_FACE_SEL;
+		}
+		else {
+			for(a=0, mf=me->mface; a<me->totface; a++, mf++)
+				if(linkflag[a])
+					mf->flag |= ME_FACE_SEL;
+		}
+	}
+
+	MEM_freeN(linkflag);
+
+	// BIF_undo_push("Select linked UV face");
+	// object_tface_flags_changed(OBACT, 0);
+}
+
+void select_linked_tfaces(bContext *C, Object *ob, short mval[2], int mode)
+{
 	Mesh *me;
-	short mval[2];
 	unsigned int index=0;
 
-	ob = OBACT;
 	me = get_mesh(ob);
 	if(me==0 || me->totface==0) return;
 
 	if (mode==0 || mode==1) {
-		if (!(ob->lay & v3d->lay))
-			error("The active object is not in this layer");
-			
-// XXX		getmouseco_areawin(mval);
-		if (!facesel_face_pick(v3d, me, mval, &index, 1)) return;
+		// XXX - Causes glitches, not sure why
+		/*
+		if (!facesel_face_pick(C, me, mval, &index, 1))
+			return;
+		*/
 	}
 
-// XXX unwrapper.c	select_linked_tfaces_with_seams(mode, me, index);
+	select_linked_tfaces_with_seams(mode, me, index);
+
+	object_facesel_flush_dm(ob);
 }
 
-void deselectall_tface(Scene *scene)
+void deselectall_tface(Object *ob)
 {
 	Mesh *me;
 	MFace *mface;
 	int a, sel;
-		
-	me= get_mesh(OBACT);
+
+	me= get_mesh(ob);
 	if(me==0) return;
 	
 	mface= me->mface;
@@ -288,7 +410,7 @@ void deselectall_tface(Scene *scene)
 		mface++;
 	}
 
-	object_facesel_flush_dm(OBACT);
+	object_facesel_flush_dm(ob);
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
@@ -693,73 +815,63 @@ int face_select(struct bContext *C, Object *ob, short mval[2], int extend)
 	return 1;
 }
 
-void face_borderselect(Scene *scene, ScrArea *sa, ARegion *ar)
+void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select)
 {
 	Mesh *me;
 	MFace *mface;
-	rcti rect;
 	struct ImBuf *ibuf;
 	unsigned int *rt;
-	int a, sx, sy, index, val= 0;
+	int a, sx, sy, index;
 	char *selar;
 	
-	me= get_mesh(OBACT);
+	ViewContext vc;
+	view3d_set_viewcontext(C, &vc);
+
+	me= get_mesh(ob);
 	if(me==0) return;
 	if(me->totface==0) return;
-	
-// XXX	val= get_border(&rect, 3);
-	
-	if(val) {
-		/* without this border select often fails */
-#if 0 /* XXX untested in 2.5 */
-		if (v3d->flag & V3D_NEEDBACKBUFDRAW) {
-			check_backbuf();
-			persp(PERSP_VIEW);
-		}
-#endif
-		
-		selar= MEM_callocN(me->totface+1, "selar");
-		
-		sx= (rect.xmax-rect.xmin+1);
-		sy= (rect.ymax-rect.ymin+1);
-		if(sx*sy<=0) return;
 
-		ibuf = IMB_allocImBuf(sx,sy,32,IB_rect,0);
-		rt = ibuf->rect;
-		glReadPixels(rect.xmin+ar->winrct.xmin,  rect.ymin+ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
-		if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+	selar= MEM_callocN(me->totface+1, "selar");
 
-		a= sx*sy;
-		while(a--) {
-			if(*rt) {
-				index= WM_framebuffer_to_index(*rt);
-				if(index<=me->totface) selar[index]= 1;
-			}
-			rt++;
+	sx= (rect->xmax-rect->xmin+1);
+	sy= (rect->ymax-rect->ymin+1);
+	if(sx*sy<=0) return;
+
+	view3d_validate_backbuf(&vc);
+
+	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect,0);
+	rt = ibuf->rect;
+	glReadPixels(rect->xmin+vc.ar->winrct.xmin,  rect->ymin+vc.ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+
+	a= sx*sy;
+	while(a--) {
+		if(*rt) {
+			index= WM_framebuffer_to_index(*rt);
+			if(index<=me->totface) selar[index]= 1;
 		}
-		
-		mface= me->mface;
-		for(a=1; a<=me->totface; a++, mface++) {
-			if(selar[a]) {
-				if(mface->flag & ME_HIDE);
-				else {
-					if(val==LEFTMOUSE) mface->flag |= ME_FACE_SEL;
-					else mface->flag &= ~ME_FACE_SEL;
-				}
+		rt++;
+	}
+
+	mface= me->mface;
+	for(a=1; a<=me->totface; a++, mface++) {
+		if(selar[a]) {
+			if(mface->flag & ME_HIDE);
+			else {
+				if(select) mface->flag |= ME_FACE_SEL;
+				else mface->flag &= ~ME_FACE_SEL;
 			}
 		}
-		
-		IMB_freeImBuf(ibuf);
-		MEM_freeN(selar);
+	}
+
+	IMB_freeImBuf(ibuf);
+	MEM_freeN(selar);
 
 
 // XXX notifier!			object_tface_flags_changed(OBACT, 0);
-	}
 #ifdef __APPLE__	
 	glReadBuffer(GL_BACK);
 #endif
 	
-	object_facesel_flush_dm(OBACT);
+	object_facesel_flush_dm(ob);
 }
-
-

@@ -133,6 +133,11 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
 	WM_operatortype_append(PAINT_OT_vertex_paint);
 	WM_operatortype_append(PAINT_OT_vertex_color_set);
+
+	/* face-select */
+	WM_operatortype_append(PAINT_OT_face_select_linked);
+	WM_operatortype_append(PAINT_OT_face_select_linked_pick);
+	WM_operatortype_append(PAINT_OT_face_deselect_all);
 }
 
 void ED_keymap_paint(wmKeyConfig *keyconf)
@@ -184,5 +189,13 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_clone_cursor_set", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-}
 
+	/* face-mask mode */
+	keymap= WM_keymap_find(keyconf, "Face Mask", 0, 0);
+	keymap->poll= facemask_paint_poll;
+
+	WM_keymap_add_item(keymap, "PAINT_OT_face_deselect_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+
+}
