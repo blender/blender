@@ -220,7 +220,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 class TEXTURE_PT_influence(TextureSlotPanel):
 	__label__ = "Influence"
 	def poll(self, context):
-		return 1
+		return context.texture_slot
 		
 	
 	def draw(self, context):
