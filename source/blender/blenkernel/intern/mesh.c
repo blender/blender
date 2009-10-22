@@ -362,35 +362,12 @@ void boundbox_mesh(Mesh *me, float *loc, float *size)
 
 void tex_space_mesh(Mesh *me)
 {
-	KeyBlock *kb;
-	float *fp, loc[3], size[3], min[3], max[3];
+	float loc[3], size[3];
 	int a;
 
 	boundbox_mesh(me, loc, size);
 
 	if(me->texflag & AUTOSPACE) {
-		if(me->key) {
-			kb= me->key->refkey;
-			if (kb) {
-				
-				INIT_MINMAX(min, max);
-				
-				fp= kb->data;
-				for(a=0; a<kb->totelem; a++, fp+=3) {	
-					DO_MINMAX(fp, min, max);
-				}
-				if(kb->totelem) {
-					loc[0]= (min[0]+max[0])/2.0f; loc[1]= (min[1]+max[1])/2.0f; loc[2]= (min[2]+max[2])/2.0f;
-					size[0]= (max[0]-min[0])/2.0f; size[1]= (max[1]-min[1])/2.0f; size[2]= (max[2]-min[2])/2.0f;
-				}
-				else {
-					loc[0]= loc[1]= loc[2]= 0.0;
-					size[0]= size[1]= size[2]= 0.0;
-				}
-				
-			}
-		}
-
 		for (a=0; a<3; a++) {
 			if(size[a]==0.0) size[a]= 1.0;
 			else if(size[a]>0.0 && size[a]<0.00001) size[a]= 0.00001;
@@ -430,26 +407,20 @@ void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
 float *get_mesh_orco_verts(Object *ob)
 {
 	Mesh *me = ob->data;
+	MVert *mvert = NULL;
+	Mesh *tme = me->texcomesh?me->texcomesh:me;
 	int a, totvert;
 	float (*vcos)[3] = NULL;
 
 	/* Get appropriate vertex coordinates */
-	if(me->key && me->texcomesh==0 && me->key->refkey) {
-		vcos= mesh_getRefKeyCos(me, &totvert);
-	}
-	else {
-		MVert *mvert = NULL;		
-		Mesh *tme = me->texcomesh?me->texcomesh:me;
+	vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
+	mvert = tme->mvert;
+	totvert = MIN2(tme->totvert, me->totvert);
 
-		vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
-		mvert = tme->mvert;
-		totvert = MIN2(tme->totvert, me->totvert);
-
-		for(a=0; a<totvert; a++, mvert++) {
-			vcos[a][0]= mvert->co[0];
-			vcos[a][1]= mvert->co[1];
-			vcos[a][2]= mvert->co[2];
-		}
+	for(a=0; a<totvert; a++, mvert++) {
+		vcos[a][0]= mvert->co[0];
+		vcos[a][1]= mvert->co[1];
+		vcos[a][2]= mvert->co[2];
 	}
 
 	return (float*)vcos;
@@ -1217,29 +1188,6 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 	for (i=0; i<numVerts; i++)
 		VECCOPY(cos[i], me->mvert[i].co);
 	
-	return cos;
-}
-
-float (*mesh_getRefKeyCos(Mesh *me, int *numVerts_r))[3]
-{
-	KeyBlock *kb;
-	float (*cos)[3] = NULL;
-	int totvert;
-	
-	if(me->key && me->key->refkey) {
-		if(numVerts_r) *numVerts_r= me->totvert;
-		
-		kb= me->key->refkey;
-		
-		/* prevent accessing invalid memory */
-		if (me->totvert > kb->totelem)		cos= MEM_callocN(sizeof(*cos)*me->totvert, "vertexcos1");
-		else								cos= MEM_mallocN(sizeof(*cos)*me->totvert, "vertexcos1");
-		
-		totvert= MIN2(kb->totelem, me->totvert);
-
-		memcpy(cos, kb->data, sizeof(*cos)*totvert);
-	}
-
 	return cos;
 }
 

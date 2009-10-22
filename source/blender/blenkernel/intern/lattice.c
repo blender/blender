@@ -995,9 +995,8 @@ void lattice_calc_modifiers(Scene *scene, Object *ob)
 
 	freedisplist(&ob->disp);
 
-	if (!editmode) {
-		do_ob_key(scene, ob);
-	}
+	if (!editmode)
+		vertexCos= (float(*)[3])do_ob_key(scene, ob);
 
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);

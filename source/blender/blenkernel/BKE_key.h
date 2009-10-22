@@ -56,10 +56,7 @@ void key_curve_position_weights(float t, float *data, int type);
 void key_curve_tangent_weights(float t, float *data, int type);
 void key_curve_normal_weights(float t, float *data, int type);
 
-/* only exported to curve.c! */
-void cp_cu_key(struct Curve *cu, struct KeyBlock *kb, int start, int end);
-
-int do_ob_key(struct Scene *scene, struct Object *ob);
+float *do_ob_key(struct Scene *scene, struct Object *ob);
 
 struct Key *ob_get_key(struct Object *ob);
 struct KeyBlock *ob_get_keyblock(struct Object *ob);

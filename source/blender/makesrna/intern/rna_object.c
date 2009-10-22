@@ -759,14 +759,6 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
 	return keyptr;
 }
 
-static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
-{
-	Object *ob= (Object*)ptr->id.data;
-
-	if(value) ob->shapeflag |= OB_SHAPE_LOCK;
-	else ob->shapeflag &= ~OB_SHAPE_LOCK;
-}
-
 static PointerRNA rna_Object_field_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -1646,7 +1638,6 @@ static void rna_def_object(BlenderRNA *brna)
 	/* shape keys */
 	prop= RNA_def_property(srna, "shape_key_lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_shape_key_lock_set");
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object.");
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_update(prop, 0, "rna_Object_update_data");

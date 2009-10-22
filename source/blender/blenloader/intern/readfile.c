@@ -9924,7 +9924,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 6)) {
 		Object *ob;
 		Lamp *la;
@@ -9948,6 +9947,71 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(la = main->lamp.first; la; la=la->id.next)
 			la->compressthresh= 0.05f;
+	}
+
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 7)) {
+		Mesh *me;
+		Nurb *nu;
+		Lattice *lt;
+		Curve *cu;
+		Key *key;
+		float *data;
+		int a, tot;
+
+		/* shape keys are no longer applied to the mesh itself, but rather
+		   to the derivedmesh/displist, so here we ensure that the basis
+		   shape key is always set in the mesh coordinates. */
+
+		for(me= main->mesh.first; me; me= me->id.next) {
+			if((key = newlibadr(fd, lib, me->key)) && key->refkey) {
+				data= key->refkey->data;
+				tot= MIN2(me->totvert, key->refkey->totelem);
+
+				for(a=0; a<tot; a++, data+=3)
+					VECCOPY(me->mvert[a].co, data)
+			}
+		}
+
+		for(lt= main->latt.first; lt; lt= lt->id.next) {
+			if((key = newlibadr(fd, lib, lt->key)) && key->refkey) {
+				data= key->refkey->data;
+				tot= MIN2(lt->pntsu*lt->pntsv*lt->pntsw, key->refkey->totelem);
+
+				for(a=0; a<tot; a++, data+=3)
+					VECCOPY(lt->def[a].vec, data)
+			}
+		}
+
+		for(cu= main->curve.first; cu; cu= cu->id.next) {
+			if((key = newlibadr(fd, lib, cu->key)) && key->refkey) {
+				data= key->refkey->data;
+
+				for(nu=cu->nurb.first; nu; nu=nu->next) {
+					if(nu->bezt) {
+						BezTriple *bezt = nu->bezt;
+
+						for(a=0; a<nu->pntsu; a++, bezt++) {
+							VECCOPY(bezt->vec[0], data); data+=3;
+							VECCOPY(bezt->vec[1], data); data+=3;
+							VECCOPY(bezt->vec[2], data); data+=3;
+							bezt->alfa= *data; data++;
+						}
+					}
+					else if(nu->bp) {
+						BPoint *bp = nu->bp;
+
+						for(a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
+							VECCOPY(bp->vec, data); data+=3;
+							bp->alfa= *data; data++;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

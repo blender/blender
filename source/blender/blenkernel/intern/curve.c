@@ -1099,8 +1099,7 @@ float *make_orco_curve(Scene *scene, Object *ob)
 	float *fp, *coord_array;
 	int remakeDisp = 0;
 
-	if (!(cu->flag&CU_UV_ORCO) && cu->key && cu->key->refkey) {
-		cp_cu_key(cu, cu->key->refkey, 0, count_curveverts(&cu->nurb));
+	if (!(cu->flag&CU_UV_ORCO) && cu->key && cu->key->block.first) {
 		makeDispListCurveTypes(scene, ob, 1);
 		remakeDisp = 1;
 	}
@@ -2900,6 +2899,64 @@ void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
 
 			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
 				VECCOPY(bp->vec, co); co+=3;
+			}
+		}
+	}
+}
+
+float (*curve_getKeyVertexCos(Curve *cu, ListBase *lb, float *key))[3]
+{
+	int i, numVerts;
+	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "cu_vcos");
+	Nurb *nu;
+
+	co = cos[0];
+	for (nu=lb->first; nu; nu=nu->next) {
+		if (nu->type == CU_BEZIER) {
+			BezTriple *bezt = nu->bezt;
+
+			for (i=0; i<nu->pntsu; i++,bezt++) {
+				VECCOPY(co, key); co+=3; key+=3;
+				VECCOPY(co, key); co+=3; key+=3;
+				VECCOPY(co, key); co+=3; key+=3;
+				key++; /* skip tilt */
+			}
+		}
+		else {
+			BPoint *bp = nu->bp;
+
+			for(i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+				VECCOPY(co, key); co+=3; key+=3;
+				key++; /* skip tilt */
+			}
+		}
+	}
+
+	return cos;
+}
+
+void curve_applyKeyVertexTilts(Curve *cu, ListBase *lb, float *key)
+{
+	Nurb *nu;
+	int i;
+
+	for(nu=lb->first; nu; nu=nu->next) {
+		if(nu->type == CU_BEZIER) {
+			BezTriple *bezt = nu->bezt;
+
+			for(i=0; i<nu->pntsu; i++,bezt++) {
+				key+=3*3;
+				bezt->alfa= *key;
+				key++;
+			}
+		}
+		else {
+			BPoint *bp = nu->bp;
+
+			for(i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+				key+=3;
+				bp->alfa= *key;
+				key++;
 			}
 		}
 	}

@@ -148,10 +148,13 @@ bool BL_ShapeDeformer::Update(void)
 		// make sure the vertex weight cache is in line with this object
 		m_pMeshObject->CheckWeightCache(blendobj);
 
-		/* we will blend the key directly in mvert array: it is used by armature as the start position */
+		/* we will blend the key directly in m_transverts array: it is used by armature as the start position */
 		/* m_bmesh->key can be NULL in case of Modifier deformer */
 		if (m_bmesh->key) {
-			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)m_bmesh->mvert->co, m_bmesh->key, 0);
+			/* store verts locally */
+			VerifyStorage();
+
+			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts, m_bmesh->key, 0);
 			m_bDynamic = true;
 		}
 
@@ -167,18 +170,12 @@ bool BL_ShapeDeformer::Update(void)
 		bShapeUpdate = true;
 	}
 	// check for armature deform
-	bSkinUpdate = BL_SkinDeformer::Update();
+	bSkinUpdate = BL_SkinDeformer::UpdateInternal(bShapeUpdate && m_bDynamic);
 
 	// non dynamic deformer = Modifer without armature and shape keys, no need to create storage
 	if (!bSkinUpdate && bShapeUpdate && m_bDynamic) {
-		// this means that there is no armature, we still need to copy the vertex to m_transverts
-		// and update the normal (was not done after shape key calculation)
-
-		/* store verts locally */
-		VerifyStorage();
-
-		for (int v =0; v<m_bmesh->totvert; v++)
-			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
+		// this means that there is no armature, we still need to 
+		// update the normal (was not done after shape key calculation)
 
 #ifdef __NLA_DEFNORMALS
 		if (m_recalcNormal)

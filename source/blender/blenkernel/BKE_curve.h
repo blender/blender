@@ -92,6 +92,9 @@ void switchdirectionNurb( struct Nurb *nu);
 float (*curve_getVertexCos(struct Curve *cu, struct ListBase *lb, int *numVerts_r))[3];
 void curve_applyVertexCos(struct Curve *cu, struct ListBase *lb, float (*vertexCos)[3]);
 
+float (*curve_getKeyVertexCos(struct Curve *cu, struct ListBase *lb, float *key))[3];
+void curve_applyKeyVertexTilts(struct Curve *cu, struct ListBase *lb, float *key);
+
 /* nurb checks if they can be drawn, also clamp order func */
 int check_valid_nurb_u( struct Nurb *nu);
 int check_valid_nurb_v( struct Nurb *nu);

@@ -383,6 +383,7 @@ void insert_curvekey(Scene *scene, Curve *cu, short rel)
 {
 	Key *key;
 	KeyBlock *kb;
+	ListBase *lb= (cu->editnurb)? cu->editnurb: &cu->nurb;
 	
 	if(cu->key==NULL) {
 		cu->key= add_key( (ID *)cu);
@@ -396,8 +397,7 @@ void insert_curvekey(Scene *scene, Curve *cu, short rel)
 	
 	kb= add_keyblock(scene, key);
 	
-	if(cu->editnurb->first) curve_to_key(cu, kb, cu->editnurb);
-	else curve_to_key(cu, kb, &cu->nurb);
+	curve_to_key(cu, kb, lb);
 }
 
 /*********************** add shape key ***********************/
@@ -633,7 +633,6 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
 
 static int shape_key_mirror_exec(bContext *C, wmOperator *op)
 {

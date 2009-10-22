@@ -1755,8 +1755,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	*final_r = NULL;
 
 	if(useDeform) {
-		if(useDeform > 0 && do_ob_key(scene, ob)) /* shape key makes deform verts */
-			deformedVerts = mesh_getVertexCos(me, &numVerts);
+		if(useDeform > 0)
+			deformedVerts= (float(*)[3])do_ob_key(scene, ob); /* shape key makes deform verts */
 		else if(inputVertexCos)
 			deformedVerts = inputVertexCos;
 		
@@ -1800,7 +1800,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		if(inputVertexCos)
 			deformedVerts = inputVertexCos;
 		else
-			deformedVerts = mesh_getRefKeyCos(me, &numVerts);
+			deformedVerts = mesh_getVertexCos(me, &numVerts);
 	}
 
 
@@ -2030,6 +2030,9 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 	dataMask |= CD_MASK_ORIGINDEX;
 
 	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
+
+	/* doesn't work, shape keys are not updated from editmesh.
+	   deformedVerts= (float(*)[3])do_ob_key(scene, ob); */
 
 	curr = datamasks;
 	for(i = 0; md; i++, md = md->next, curr = curr->next) {

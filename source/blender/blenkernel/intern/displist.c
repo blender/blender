@@ -1245,6 +1245,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	int editmode = (!forRender && cu->editnurb);
 	float (*originalVerts)[3] = NULL;
 	float (*deformedVerts)[3] = NULL;
+	float *keyVerts= NULL;
 	int required_mode;
 
 	if(forRender) required_mode = eModifierMode_Render;
@@ -1254,9 +1255,15 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	
 	if(editmode) required_mode |= eModifierMode_Editmode;
 
-	if(cu->editnurb==NULL && do_ob_key(scene, ob)) {
-		deformedVerts = curve_getVertexCos(ob->data, nurb, &numVerts);
-		originalVerts = MEM_dupallocN(deformedVerts);
+	if(cu->editnurb==NULL) {
+		keyVerts= do_ob_key(scene, ob);
+
+		if(keyVerts) {
+			/* split coords from key data, the latter also includes
+			   tilts, which is passed through in the modifier stack */
+			deformedVerts= curve_getKeyVertexCos(cu, nurb, keyVerts);
+			originalVerts= MEM_dupallocN(deformedVerts);
+		}
 	}
 	
 	if (preTesselatePoint) {
@@ -1270,7 +1277,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 			if (mti->type!=eModifierTypeType_OnlyDeform) continue;
 
 			if (!deformedVerts) {
-				deformedVerts = curve_getVertexCos(ob->data, nurb, &numVerts);
+				deformedVerts = curve_getVertexCos(cu, nurb, &numVerts);
 				originalVerts = MEM_dupallocN(deformedVerts);
 			}
 			
@@ -1281,9 +1288,13 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 		}
 	}
 
-	if (deformedVerts) {
-		curve_applyVertexCos(ob->data, nurb, deformedVerts);
-	}
+	if (deformedVerts)
+		curve_applyVertexCos(cu, nurb, deformedVerts);
+	if (keyVerts) /* these are not passed through modifier stack */
+		curve_applyKeyVertexTilts(cu, nurb, keyVerts);
+	
+	if(keyVerts)
+		MEM_freeN(keyVerts);
 
 	*originalVerts_r = originalVerts;
 	*deformedVerts_r = deformedVerts;
