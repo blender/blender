@@ -575,12 +575,25 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 	if (pchan->rotmode > 0) {
 		td->ext->rot= pchan->eul;
+		td->ext->rotAxis= NULL;
+		td->ext->rotAngle= NULL;
 		td->ext->quat= NULL;
 		
 		VECCOPY(td->ext->irot, pchan->eul);
 	}
+	else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+		td->ext->rot= NULL;
+		td->ext->rotAxis= pchan->rotAxis;
+		td->ext->rotAngle= &pchan->rotAngle;
+		td->ext->quat= NULL;
+		
+		td->ext->irotAngle= pchan->rotAngle;
+		VECCOPY(td->ext->irotAxis, pchan->rotAxis);
+	}
 	else {
 		td->ext->rot= NULL;
+		td->ext->rotAxis= NULL;
+		td->ext->rotAngle= NULL;
 		td->ext->quat= pchan->quat;
 		
 		QUATCOPY(td->ext->iquat, pchan->quat);
@@ -4195,14 +4208,37 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 
 	td->loc = ob->loc;
 	VECCOPY(td->iloc, td->loc);
-
-	td->ext->rot = ob->rot;
-	VECCOPY(td->ext->irot, ob->rot);
-	VECCOPY(td->ext->drot, ob->drot);
 	
-	td->ext->quat = ob->quat;
-	QUATCOPY(td->ext->iquat, ob->quat);
-	QUATCOPY(td->ext->dquat, ob->dquat);
+	if (ob->rotmode > 0) {
+		td->ext->rot= ob->rot;
+		td->ext->rotAxis= NULL;
+		td->ext->rotAngle= NULL;
+		td->ext->quat= NULL;
+		
+		VECCOPY(td->ext->irot, ob->rot);
+		VECCOPY(td->ext->drot, ob->drot);
+	}
+	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+		td->ext->rot= NULL;
+		td->ext->rotAxis= ob->rotAxis;
+		td->ext->rotAngle= &ob->rotAngle;
+		td->ext->quat= NULL;
+		
+		td->ext->irotAngle= ob->rotAngle;
+		VECCOPY(td->ext->irotAxis, ob->rotAxis);
+		td->ext->drotAngle= ob->drotAngle;
+		VECCOPY(td->ext->drotAxis, ob->drotAxis);
+	}
+	else {
+		td->ext->rot= NULL;
+		td->ext->rotAxis= NULL;
+		td->ext->rotAngle= NULL;
+		td->ext->quat= ob->quat;
+		
+		QUATCOPY(td->ext->iquat, ob->quat);
+		QUATCOPY(td->ext->dquat, ob->dquat);
+	}
+	td->rotOrder=ob->rotmode;
 
 	td->ext->size = ob->size;
 	VECCOPY(td->ext->isize, ob->size);

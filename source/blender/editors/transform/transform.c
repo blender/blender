@@ -1634,7 +1634,7 @@ static void protectedRotateBits(short protectflag, float *eul, float *oldeul)
 
 /* this function only does the delta rotation */
 /* axis-angle is usually internally stored as quats... */
-static void protectedAxisAngleBits(short protectflag, float *quat, float *oldquat)
+static void protectedAxisAngleBits(short protectflag, float axis[3], float *angle, float oldAxis[3], float oldAngle)
 {
 	/* check that protection flags are set */
 	if ((protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) == 0)
@@ -1643,21 +1643,20 @@ static void protectedAxisAngleBits(short protectflag, float *quat, float *oldqua
 	if (protectflag & OB_LOCK_ROT4D) {
 		/* axis-angle getting limited as 4D entities that they are... */
 		if (protectflag & OB_LOCK_ROTW)
-			quat[0]= oldquat[0];
+			*angle= oldAngle;
 		if (protectflag & OB_LOCK_ROTX)
-			quat[1]= oldquat[1];
+			axis[0]= oldAxis[0];
 		if (protectflag & OB_LOCK_ROTY)
-			quat[2]= oldquat[2];
+			axis[1]= oldAxis[1];
 		if (protectflag & OB_LOCK_ROTZ)
-			quat[3]= oldquat[3];
+			axis[2]= oldAxis[2];
 	}
 	else {
 		/* axis-angle get limited with euler... */
-		float eul[3], oldeul[3], quat1[4];
+		float eul[3], oldeul[3];
 		
-		QUATCOPY(quat1, quat);
-		AxisAngleToEulO(quat+1, quat[0], eul, EULER_ORDER_DEFAULT);
-		AxisAngleToEulO(oldquat+1, oldquat[0], oldeul, EULER_ORDER_DEFAULT);
+		AxisAngleToEulO(axis, *angle, eul, EULER_ORDER_DEFAULT);
+		AxisAngleToEulO(oldAxis, oldAngle, oldeul, EULER_ORDER_DEFAULT);
 		
 		if (protectflag & OB_LOCK_ROTX)
 			eul[0]= oldeul[0];
@@ -1666,12 +1665,12 @@ static void protectedAxisAngleBits(short protectflag, float *quat, float *oldqua
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
 		
-		EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, quat+1, quat);
+		EulOToAxisAngle(eul, EULER_ORDER_DEFAULT, axis, angle);
 		
 		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
-		if (IS_EQ(quat[1], quat[2]) && IS_EQ(quat[2], quat[3])) {
+		if (IS_EQ(axis[0], axis[1]) && IS_EQ(axis[1], axis[2])) {
 			/* for now, rotate around y-axis then (so that it simply becomes the roll) */
-			quat[2]= 1.0f;
+			axis[1]= 1.0f;
 		}
 	}
 }
@@ -2690,22 +2689,18 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			}
 			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
 				/* calculate effect based on quats */
-				float iquat[4];
+				float iquat[4], tquat[4];
 				
-				/* td->ext->(i)quat is in axis-angle form, not quats! */
-				AxisAngleToQuat(iquat, &td->ext->iquat[1], td->ext->iquat[0]);
+				AxisAngleToQuat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
 				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				Mat3ToQuat(fmat, quat);	// Actual transform
+				QuatMul(tquat, quat, iquat);
 				
-				QuatMul(td->ext->quat, quat, iquat);
-				
-				/* make temp copy (since stored in same place) */
-				QUATCOPY(quat, td->ext->quat); // this is just a 4d vector copying macro
-				QuatToAxisAngle(quat, &td->ext->quat[1], &td->ext->quat[0]); 
+				QuatToAxisAngle(tquat, td->ext->rotAxis, td->ext->rotAngle); 
 				
 				/* this function works on end result */
-				protectedAxisAngleBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
 			}
 			else { 
 				float eulmat[3][3];
@@ -2762,22 +2757,18 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			}
 			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
 				/* calculate effect based on quats */
-				float iquat[4];
+				float iquat[4], tquat[4];
 				
-				/* td->ext->(i)quat is in axis-angle form, not quats! */
-				AxisAngleToQuat(iquat, &td->ext->iquat[1], td->ext->iquat[0]);
+				AxisAngleToQuat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
 				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				Mat3ToQuat(fmat, quat);	// Actual transform
+				QuatMul(tquat, quat, iquat);
 				
-				QuatMul(td->ext->quat, quat, iquat);
-				
-				/* make temp copy (since stored in same place) */
-				QUATCOPY(quat, td->ext->quat); // this is just a 4d vector copying macro
-				QuatToAxisAngle(quat, &td->ext->quat[1], &td->ext->quat[0]); 
+				QuatToAxisAngle(quat, td->ext->rotAxis, td->ext->rotAngle); 
 				
 				/* this function works on end result */
-				protectedAxisAngleBits(td->protectflag, td->ext->quat, td->ext->iquat);
+				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
 			}
 			else {
 				float obmat[3][3];
