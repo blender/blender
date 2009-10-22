@@ -521,8 +521,13 @@ short bezt_calc_average(BeztEditData *bed, BezTriple *bezt)
 {
 	/* only if selected */
 	if (bezt->f2 & SELECT) {
-		/* store average time in float (only do rounding at last step */
+		/* store average time in float 1 (only do rounding at last step) */
 		bed->f1 += bezt->vec[1][0];
+		
+		/* store average value in float 2 (only do rounding at last step) 
+		 *	- this isn't always needed, but some operators may also require this
+		 */
+		bed->f2 += bezt->vec[1][1];
 		
 		/* increment number of items */
 		bed->i1++;
@@ -682,7 +687,7 @@ static short mirror_bezier_value(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
-/* Note: for markers case, need to set global vars (eww...) */
+/* Note: for markers and 'value', the values to use must be supplied as the first float value */
 // calchandles_fcurve
 BeztEditFunc ANIM_editkeyframes_mirror(short type)
 {

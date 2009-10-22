@@ -1419,10 +1419,14 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 	
 	BLI_freelistN(&anim_data);
 	
-	/* set the new current frame value, based on the average time */
+	/* set the new current frame and cursor values, based on the average time and value */
 	if (bed.i1) {
+		SpaceIpo *sipo= ac.sa->spacedata.first;
 		Scene *scene= ac.scene;
+		
+		/* take the average values, rounding to the nearest int for the current frame */
 		CFRA= (int)floor((bed.f1 / bed.i1) + 0.5f);
+		sipo->cursorVal= bed.f2 / (float)bed.i1;
 	}
 	
 	/* set notifier that things have changed */
