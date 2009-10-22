@@ -56,15 +56,23 @@
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BIK_api.h"
 
 #include "BLI_blenlib.h"
 
 /* both in intern */
 #include "smoke_API.h"
+
+#ifdef WITH_LZO
 #include "minilzo.h"
+#else
+/* used for non-lzo cases */
+#define LZO_OUT_LEN(size)     ((size) + (size) / 16 + 64 + 3)
+#endif
 
+#ifdef WITH_LZMA
 #include "LzmaLib.h"
-
+#endif
 
 /* needed for directory lookup */
 /* untitled blend's need getpid for a unique name */
@@ -76,8 +84,19 @@
   #include "BLI_winstuff.h"
 #endif
 
-static void ptcache_data_to(void **data, int type, int index, void *to);
-static void ptcache_data_from(void **data, int type, void *from);
+#define PTCACHE_DATA_FROM(data, type, from)		if(data[type]) { memcpy(data[type], from, ptcache_data_size[type]); }
+#define PTCACHE_DATA_TO(data, type, index, to)	if(data[type]) { memcpy(to, (char*)data[type] + (index ? index * ptcache_data_size[type] : 0), ptcache_data_size[type]); }
+
+int ptcache_data_size[] = {	
+		sizeof(int), // BPHYS_DATA_INDEX
+		3 * sizeof(float), // BPHYS_DATA_LOCATION:
+		3 * sizeof(float), // BPHYS_DATA_VELOCITY:
+		4 * sizeof(float), // BPHYS_DATA_ROTATION:
+		3 * sizeof(float), // BPHYS_DATA_AVELOCITY: /* also BPHYS_DATA_XCONST */
+		sizeof(float), // BPHYS_DATA_SIZE:
+		3 * sizeof(float), // BPHYS_DATA_TIMES:	
+		sizeof(BoidData) // case BPHYS_DATA_BOIDS:
+};
 
 /* Common functions */
 static int ptcache_read_basic_header(PTCacheFile *pf)
@@ -110,8 +129,8 @@ static int ptcache_write_softbody(int index, void *soft_v, void **data)
 	SoftBody *soft= soft_v;
 	BodyPoint *bp = soft->bpoint + index;
 
-	ptcache_data_from(data, BPHYS_DATA_LOCATION, bp->pos);
-	ptcache_data_from(data, BPHYS_DATA_VELOCITY, bp->vec);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, bp->pos);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_VELOCITY, bp->vec);
 
 	return 1;
 }
@@ -125,8 +144,8 @@ static void ptcache_read_softbody(int index, void *soft_v, void **data, float fr
 		memcpy(bp->vec, data + 3, 3 * sizeof(float));
 	}
 	else {
-		ptcache_data_to(data, BPHYS_DATA_LOCATION, 0, bp->pos);
-		ptcache_data_to(data, BPHYS_DATA_VELOCITY, 0, bp->vec);
+		PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, 0, bp->pos);
+		PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, 0, bp->vec);
 	}
 }
 static void ptcache_interpolate_softbody(int index, void *soft_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
@@ -181,25 +200,25 @@ static int ptcache_write_particle(int index, void *psys_v, void **data)
 			return 0;
 	}
 	
-	ptcache_data_from(data, BPHYS_DATA_INDEX, &index);
-	ptcache_data_from(data, BPHYS_DATA_LOCATION, pa->state.co);
-	ptcache_data_from(data, BPHYS_DATA_VELOCITY, pa->state.vel);
-	ptcache_data_from(data, BPHYS_DATA_ROTATION, pa->state.rot);
-	ptcache_data_from(data, BPHYS_DATA_AVELOCITY, pa->state.ave);
-	ptcache_data_from(data, BPHYS_DATA_SIZE, &pa->size);
-	ptcache_data_from(data, BPHYS_DATA_TIMES, times);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_INDEX, &index);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, pa->state.co);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_VELOCITY, pa->state.vel);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_ROTATION, pa->state.rot);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_AVELOCITY, pa->state.ave);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_SIZE, &pa->size);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_TIMES, times);
 
 	if(boid)
-		ptcache_data_from(data, BPHYS_DATA_BOIDS, &boid->data);
+		PTCACHE_DATA_FROM(data, BPHYS_DATA_BOIDS, &boid->data);
 
 	return 1;
 }
 void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, float time)
 {
-	ptcache_data_to(data, BPHYS_DATA_LOCATION, index, key->co);
-	ptcache_data_to(data, BPHYS_DATA_VELOCITY, index, key->vel);
-	ptcache_data_to(data, BPHYS_DATA_ROTATION, index, key->rot);
-	ptcache_data_to(data, BPHYS_DATA_AVELOCITY, index, key->ave);
+	PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, index, key->co);
+	PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, index, key->vel);
+	PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, key->rot);
+	PTCACHE_DATA_TO(data, BPHYS_DATA_AVELOCITY, index, key->ave);
 	key->time = time;
 }
 static void ptcache_read_particle(int index, void *psys_v, void **data, float frs_sec, float cfra, float *old_data)
@@ -220,18 +239,18 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 	BKE_ptcache_make_particle_key(&pa->state, 0, data, cfra);
 
 	if(data[BPHYS_DATA_SIZE])
-		ptcache_data_to(data, BPHYS_DATA_SIZE, 0, &pa->size);
+		PTCACHE_DATA_TO(data, BPHYS_DATA_SIZE, 0, &pa->size);
 	
 	if(data[BPHYS_DATA_TIMES]) {
 		float times[3];
-		ptcache_data_to(data, BPHYS_DATA_TIMES, 0, &times);
+		PTCACHE_DATA_TO(data, BPHYS_DATA_TIMES, 0, &times);
 		pa->time = times[0];
 		pa->dietime = times[1];
 		pa->lifetime = times[2];
 	}
 
 	if(boid)
-		ptcache_data_to(data, BPHYS_DATA_BOIDS, 0, &boid->data);
+		PTCACHE_DATA_TO(data, BPHYS_DATA_BOIDS, 0, &boid->data);
 
 	/* determine velocity from previous location */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
@@ -247,7 +266,7 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 
 	/* determine rotation from velocity */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		vectoquat(pa->state.vel, OB_POSX, OB_POSZ, pa->state.rot);
+		vectoquat(pa->state.vel, OB_NEGX, OB_POSZ, pa->state.rot);
 	}
 }
 static void ptcache_interpolate_particle(int index, void *psys_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
@@ -270,13 +289,33 @@ static void ptcache_interpolate_particle(int index, void *psys_v, void **data, f
 	else
 		BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
 
+	/* determine velocity from previous location */
+	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
+		if(keys[1].time > keys[2].time) {
+			VecSubf(keys[2].vel, keys[1].co, keys[2].co);
+			VecMulf(keys[2].vel, (keys[1].time - keys[2].time) / frs_sec);
+		}
+		else {
+			VecSubf(keys[2].vel, keys[2].co, keys[1].co);
+			VecMulf(keys[2].vel, (keys[2].time - keys[1].time) / frs_sec);
+		}
+	}
+
+	/* determine rotation from velocity */
+	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
+		vectoquat(keys[2].vel, OB_NEGX, OB_POSZ, keys[2].rot);
+	}
+
+	if(cfra > pa->time)
+		cfra1 = MAX2(cfra1, pa->time);
+
 	dfra = cfra2 - cfra1;
 
 	VecMulf(keys[1].vel, dfra / frs_sec);
 	VecMulf(keys[2].vel, dfra / frs_sec);
 
 	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
-	QuatInterpol(pa->state.rot, keys[1].rot,keys[2].rot, (cfra - cfra1) / dfra);
+	QuatInterpol(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 
 	VecMulf(pa->state.vel, frs_sec / dfra);
 
@@ -307,6 +346,132 @@ static int ptcache_totwrite_particle(void *psys_v)
 	return totwrite;
 }
 
+//static int ptcache_write_particle_stream(PTCacheFile *pf, PTCacheMem *pm, void *psys_v)
+//{
+//	ParticleSystem *psys= psys_v;
+//	ParticleData *pa = psys->particles;
+//	BoidParticle *boid = NULL;
+//	float times[3];
+//	int i = 0;
+//
+//	if(!pf && !pm)
+//		return 0;
+//
+//	for(i=0; i<psys->totpart; i++, pa++) {
+//
+//		if(data[BPHYS_DATA_INDEX]) {
+//			int step = psys->pointcache->step;
+//			/* No need to store unborn or died particles */
+//			if(pa->time - step > pa->state.time || pa->dietime + step < pa->state.time)
+//				continue;
+//		}
+//
+//		times[0] = pa->time;
+//		times[1] = pa->dietime;
+//		times[2] = pa->lifetime;
+//		
+//		PTCACHE_DATA_FROM(data, BPHYS_DATA_INDEX, &index);
+//		PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, pa->state.co);
+//		PTCACHE_DATA_FROM(data, BPHYS_DATA_VELOCITY, pa->state.vel);
+//		PTCACHE_DATA_FROM(data, BPHYS_DATA_ROTATION, pa->state.rot);
+//		PTCACHE_DATA_FROM(data, BPHYS_DATA_AVELOCITY, pa->state.ave);
+//		PTCACHE_DATA_FROM(data, BPHYS_DATA_SIZE, &pa->size);
+//		PTCACHE_DATA_FROM(data, BPHYS_DATA_TIMES, times);
+//
+//		boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
+//		if(boid)
+//			PTCACHE_DATA_FROM(data, BPHYS_DATA_BOIDS, &boid->data);
+//
+//		if(pf && !ptcache_file_write_data(pf))
+//			return 0;
+//
+//		if(pm)
+//			BKE_ptcache_mem_incr_pointers(pm);
+//	}
+//
+//	return 1;
+//}
+//static void ptcache_read_particle_stream(PTCacheFile *pf, PTCacheMem *pm, void *psys_v, void **data, float frs_sec, float cfra, float *old_data)
+//{
+//	ParticleSystem *psys= psys_v;
+//	ParticleData *pa = psys->particles + index;
+//	BoidParticle *boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
+//
+//	if(cfra > pa->state.time)
+//		memcpy(&pa->prev_state, &pa->state, sizeof(ParticleKey));
+//
+//	if(old_data){
+//		/* old format cache */
+//		memcpy(&pa->state, old_data, sizeof(ParticleKey));
+//		return;
+//	}
+//
+//	BKE_ptcache_make_particle_key(&pa->state, 0, data, cfra);
+//
+//	if(data[BPHYS_DATA_SIZE])
+//		PTCACHE_DATA_TO(data, BPHYS_DATA_SIZE, 0, &pa->size);
+//	
+//	if(data[BPHYS_DATA_TIMES]) {
+//		float times[3];
+//		PTCACHE_DATA_TO(data, BPHYS_DATA_TIMES, 0, &times);
+//		pa->time = times[0];
+//		pa->dietime = times[1];
+//		pa->lifetime = times[2];
+//	}
+//
+//	if(boid)
+//		PTCACHE_DATA_TO(data, BPHYS_DATA_BOIDS, 0, &boid->data);
+//
+//	/* determine velocity from previous location */
+//	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
+//		if(cfra > pa->prev_state.time) {
+//			VecSubf(pa->state.vel, pa->state.co, pa->prev_state.co);
+//			VecMulf(pa->state.vel, (cfra - pa->prev_state.time) / frs_sec);
+//		}
+//		else {
+//			VecSubf(pa->state.vel, pa->prev_state.co, pa->state.co);
+//			VecMulf(pa->state.vel, (pa->prev_state.time - cfra) / frs_sec);
+//		}
+//	}
+//
+//	/* determine rotation from velocity */
+//	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
+//		vectoquat(pa->state.vel, OB_POSX, OB_POSZ, pa->state.rot);
+//	}
+//}
+//static void ptcache_interpolate_particle_stream(int index, void *psys_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
+//{
+//	ParticleSystem *psys= psys_v;
+//	ParticleData *pa = psys->particles + index;
+//	ParticleKey keys[4];
+//	float dfra;
+//
+//	cfra = MIN2(cfra, pa->dietime);
+//	cfra1 = MIN2(cfra1, pa->dietime);
+//	cfra2 = MIN2(cfra2, pa->dietime);
+//
+//	if(cfra1 == cfra2)
+//		return;
+//
+//	memcpy(keys+1, &pa->state, sizeof(ParticleKey));
+//	if(old_data)
+//		memcpy(keys+2, old_data, sizeof(ParticleKey));
+//	else
+//		BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
+//
+//	dfra = cfra2 - cfra1;
+//
+//	VecMulf(keys[1].vel, dfra / frs_sec);
+//	VecMulf(keys[2].vel, dfra / frs_sec);
+//
+//	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
+//	QuatInterpol(pa->state.rot, keys[1].rot,keys[2].rot, (cfra - cfra1) / dfra);
+//
+//	VecMulf(pa->state.vel, frs_sec / dfra);
+//
+//	pa->state.time = cfra;
+//}
+//
 /* Cloth functions */
 static int ptcache_write_cloth(int index, void *cloth_v, void **data)
 {
@@ -314,9 +479,9 @@ static int ptcache_write_cloth(int index, void *cloth_v, void **data)
 	Cloth *cloth= clmd->clothObject;
 	ClothVertex *vert = cloth->verts + index;
 
-	ptcache_data_from(data, BPHYS_DATA_LOCATION, vert->x);
-	ptcache_data_from(data, BPHYS_DATA_VELOCITY, vert->v);
-	ptcache_data_from(data, BPHYS_DATA_XCONST, vert->xconst);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, vert->x);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_VELOCITY, vert->v);
+	PTCACHE_DATA_FROM(data, BPHYS_DATA_XCONST, vert->xconst);
 
 	return 1;
 }
@@ -332,9 +497,9 @@ static void ptcache_read_cloth(int index, void *cloth_v, void **data, float frs_
 		memcpy(vert->v, data + 6, 3 * sizeof(float));
 	}
 	else {
-		ptcache_data_to(data, BPHYS_DATA_LOCATION, 0, vert->x);
-		ptcache_data_to(data, BPHYS_DATA_VELOCITY, 0, vert->v);
-		ptcache_data_to(data, BPHYS_DATA_XCONST, 0, vert->xconst);
+		PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, 0, vert->x);
+		PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, 0, vert->v);
+		PTCACHE_DATA_TO(data, BPHYS_DATA_XCONST, 0, vert->xconst);
 	}
 }
 static void ptcache_interpolate_cloth(int index, void *cloth_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
@@ -443,7 +608,8 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	if(psys->part->phystype == PART_PHYS_BOIDS)
 		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION) | (1<<BPHYS_DATA_BOIDS);
 
-	if(psys->part->rotmode || psys->part->avemode)
+	if(psys->part->rotmode!=PART_ROT_VEL
+		|| psys->part->avemode!=PART_AVE_SPIN || psys->part->avefac!=0.0f)
 		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION);
 
 	if(psys->part->flag & PART_ROT_DYN)
@@ -484,20 +650,25 @@ static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, int size);
 static int ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned int in_len, unsigned char *out, int mode)
 {
 	int r = 0;
-	unsigned char compressed;
-	LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
-	unsigned int out_len = LZO_OUT_LEN(in_len);
+	unsigned char compressed = 0;
+	unsigned int out_len= 0;
 	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
 	size_t sizeOfIt = 5;
 
+#ifdef WITH_LZO
+	out_len= LZO_OUT_LEN(in_len);
 	if(mode == 1) {
+		LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
+		
 		r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);	
 		if (!(r == LZO_E_OK) || (out_len >= in_len))
 			compressed = 0;
 		else
 			compressed = 1;
 	}
-	else if(mode == 2) {
+#endif
+#ifdef WITH_LZMA
+	if(mode == 2) {
 		
 		r = LzmaCompress(out, (size_t *)&out_len, in, in_len,//assume sizeof(char)==1....
 						props, &sizeOfIt, 5, 1 << 24, 3, 0, 2, 32, 2);
@@ -507,7 +678,8 @@ static int ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned i
 		else
 			compressed = 2;
 	}
-
+#endif
+	
 	ptcache_file_write(pf, &compressed, 1, sizeof(unsigned char));
 	if(compressed) {
 		ptcache_file_write(pf, &out_len, 1, sizeof(unsigned int));
@@ -621,16 +793,19 @@ static int ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigne
 		in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
 		ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
 
+#ifdef WITH_LZO
 		if(compressed == 1)
 				r = lzo1x_decompress(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
-		else if(compressed == 2)
+#endif
+#ifdef WITH_LZMA
+		if(compressed == 2)
 		{
 			size_t leni = in_len, leno = out_len;
 			ptcache_file_read(pf, &sizeOfIt, 1, sizeof(unsigned int));
 			ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
 			r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
 		}
-
+#endif
 		MEM_freeN(in);
 	}
 	else {
@@ -987,7 +1162,7 @@ static int ptcache_file_read_data(PTCacheFile *pf)
 	int i;
 
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
-		if(pf->data_types & (1<<i) && !ptcache_file_read(pf, pf->cur[i], 1, BKE_ptcache_data_size(i)))
+		if(pf->data_types & (1<<i) && !ptcache_file_read(pf, pf->cur[i], 1, ptcache_data_size[i]))
 			return 0;
 	}
 	
@@ -998,7 +1173,7 @@ static int ptcache_file_write_data(PTCacheFile *pf)
 	int i;
 
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
-		if(pf->data_types & (1<<i) && !ptcache_file_write(pf, pf->cur[i], 1, BKE_ptcache_data_size(i)))
+		if(pf->data_types & (1<<i) && !ptcache_file_write(pf, pf->cur[i], 1, ptcache_data_size[i]))
 			return 0;
 	}
 	
@@ -1045,38 +1220,7 @@ static int ptcache_file_write_header_begin(PTCacheFile *pf)
 /* Data pointer handling */
 int BKE_ptcache_data_size(int data_type)
 {
-	switch(data_type) {
-		case BPHYS_DATA_INDEX:
-			return sizeof(int);
-		case BPHYS_DATA_LOCATION:
-		case BPHYS_DATA_VELOCITY:
-		case BPHYS_DATA_AVELOCITY: /* also BPHYS_DATA_XCONST */
-		case BPHYS_DATA_TIMES:
-			return 3 * sizeof(float);
-		case BPHYS_DATA_ROTATION:
-			return 4 * sizeof(float);
-		case BPHYS_DATA_SIZE:
-			return sizeof(float);
-		case BPHYS_DATA_BOIDS:
-			return sizeof(BoidData);
-		default:
-			return 0;
-	}
-}
-static void ptcache_data_to(void **data, int type, int index, void *to)
-{
-	if(data[type]) {
-		if(index)
-			memcpy(to, (char*)data[type] + index * BKE_ptcache_data_size(type), BKE_ptcache_data_size(type));
-		else
-			memcpy(to, data[type], BKE_ptcache_data_size(type));
-	}
-}
-
-static void ptcache_data_from(void **data, int type, void *from)
-{
-	if(data[type])
-		memcpy(data[type], from, BKE_ptcache_data_size(type));
+	return ptcache_data_size[data_type];
 }
 
 static void ptcache_file_init_pointers(PTCacheFile *pf)
@@ -1108,7 +1252,7 @@ void BKE_ptcache_mem_incr_pointers(PTCacheMem *pm)
 
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
 		if(pm->cur[i])
-			pm->cur[i] = (char*)pm->cur[i] + BKE_ptcache_data_size(i);
+			pm->cur[i] = (char*)pm->cur[i] + ptcache_data_size[i];
 	}
 }
 static void ptcache_alloc_data(PTCacheMem *pm)
@@ -1119,7 +1263,7 @@ static void ptcache_alloc_data(PTCacheMem *pm)
 
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
 		if(data_types & (1<<i))
-			pm->data[i] = MEM_callocN(totpoint * BKE_ptcache_data_size(i), "PTCache Data");
+			pm->data[i] = MEM_callocN(totpoint * ptcache_data_size[i], "PTCache Data");
 	}
 }
 static void ptcache_free_data(void *data[])
@@ -1136,7 +1280,7 @@ static void ptcache_copy_data(void *from[], void *to[])
 	int i;
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
 		if(from[i])
-			memcpy(to[i], from[i], BKE_ptcache_data_size(i));
+			memcpy(to[i], from[i], ptcache_data_size[i]);
 	}
 }
 
@@ -1898,6 +2042,9 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 		}
 	}
 
+	if (ob->type == OB_ARMATURE)
+		BIK_clear_cache(ob->pose);
+
 	return reset;
 }
 
@@ -2137,6 +2284,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 						}
 					}
 				}
+				BLI_freelistN(&pidlist2);
 			}
 
 			if(bake || cache->flag & PTCACHE_REDO_NEEDED)

@@ -219,6 +219,9 @@ void copy_nladata (ListBase *dst, ListBase *src)
 	if ELEM(NULL, dst, src)
 		return;
 		
+	/* clear out the destination list first for precautions... */
+	dst->first= dst->last= NULL;
+		
 	/* copy each NLA-track, one at a time */
 	for (nlt= src->first; nlt; nlt= nlt->next) {
 		/* make a copy, and add the copy to the destination list */

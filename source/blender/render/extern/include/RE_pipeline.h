@@ -157,8 +157,11 @@ void RE_FreeAllRender (void);
 
 /* get results and statistics */
 void RE_FreeRenderResult(struct RenderResult *rr);
-struct RenderResult *RE_GetResult(struct Render *re);
-void RE_GetResultImage(struct Render *re, struct RenderResult *rr);
+struct RenderResult *RE_AcquireResultRead(struct Render *re);
+struct RenderResult *RE_AcquireResultWrite(struct Render *re);
+void RE_ReleaseResult(struct Render *re);
+void RE_AcquireResultImage(struct Render *re, struct RenderResult *rr);
+void RE_ReleaseResultImage(struct Render *re);
 struct RenderStats *RE_GetStats(struct Render *re);
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);

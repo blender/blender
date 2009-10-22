@@ -142,6 +142,7 @@ void multiresModifier_join(Object *ob)
 				
 				mmd = (MultiresModifierData*)modifier_new(eModifierType_Multires);
 				BLI_insertlinkbefore(&base->object->modifiers, md, mmd);
+				modifier_unique_name(&base->object->modifiers, mmd);
 			}
 
 			if(mmd)

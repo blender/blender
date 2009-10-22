@@ -36,6 +36,8 @@
 #include "InputParser.h"
 #include "MT_Transform.h" // for fuzzyZero
 
+#include <stdio.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

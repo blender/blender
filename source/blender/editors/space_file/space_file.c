@@ -156,17 +156,9 @@ static void file_free(SpaceLink *sl)
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
-	if(sfile->params) {
-		MEM_freeN(sfile->params);
-		sfile->params = 0;
-		ED_fileselect_set_params(sfile);
-		if (sfile->files) {
-			filelist_free(sfile->files);
-			MEM_freeN(sfile->files);
-			sfile->files= NULL;
-		}
-	}
 	printf("file_init\n");
+
+	if(sfile->layout) sfile->layout->dirty= 1;
 }
 
 
@@ -188,7 +180,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 
 	if(sfileo->params) {
 		sfilen->params= MEM_dupallocN(sfileo->params);
-		file_change_dir(sfilen);
+		file_change_dir(sfilen, 0);
 	}
 	if (sfileo->layout) {
 		sfilen->layout= MEM_dupallocN(sfileo->layout);
@@ -205,7 +197,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		sfile->folders_prev = folderlist_new();
 	if (!sfile->files) {
 		sfile->files = filelist_new(params->type);
-		file_change_dir(sfile);
+		file_change_dir(sfile, 0);
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
 	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
@@ -213,6 +205,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	if (filelist_empty(sfile->files))
 	{
 		filelist_readdir(sfile->files);
+		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
 	}
 	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
 	
@@ -255,15 +248,15 @@ static void file_listener(ScrArea *sa, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymaps */
-	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "File", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_listbase(wm, "FileMain", SPACE_FILE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "FileMain", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 							   
 
@@ -371,11 +364,11 @@ void file_operatortypes(void)
 }
 
 /* NOTE: do not add .blend file reading on this level */
-void file_keymap(struct wmWindowManager *wm)
+void file_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeymapItem *kmi;
+	wmKeyMapItem *kmi;
 	/* keys for all areas */
-	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "File", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_bookmark_toggle", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_add_bookmark", BKEY, KM_PRESS, KM_CTRL, 0);
@@ -384,9 +377,10 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "FILE_OT_next", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);  /* XXX needs button */
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
 	/* keys for main area */
-	keymap= WM_keymap_listbase(wm, "FileMain", SPACE_FILE, 0);
+	keymap= WM_keymap_find(keyconf, "FileMain", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
@@ -407,7 +401,7 @@ void file_keymap(struct wmWindowManager *wm)
 	RNA_int_set(kmi->ptr, "increment",-100);
 	
 	/* keys for button area (top) */
-	keymap= WM_keymap_listbase(wm, "FileButtons", SPACE_FILE, 0);
+	keymap= WM_keymap_find(keyconf, "FileButtons", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "increment", 1);
@@ -426,12 +420,12 @@ void file_keymap(struct wmWindowManager *wm)
 
 static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	ED_region_panels_init(wm, ar);
 
 	/* own keymaps */
-	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);	
+	keymap= WM_keymap_find(wm->defaultconf, "File", SPACE_FILE, 0);	
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -462,15 +456,15 @@ static void file_header_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void file_ui_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "File", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
-	keymap= WM_keymap_listbase(wm, "FileButtons", SPACE_FILE, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "FileButtons", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

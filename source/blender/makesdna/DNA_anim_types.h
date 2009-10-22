@@ -246,7 +246,9 @@ typedef struct DriverTarget {
 	char *rna_path;		/* target channel to use as driver value */
 	int array_index;	/* if applicable, the index of the RNA-array item to use as driver */
 	
+	int idtype;			/* type of ID-block that this target can use */
 	int flags;			/* flags for the validity of the target */
+	int pad;
 	
 	char name[64];		/* name of the variable */
 } DriverTarget;
@@ -632,7 +634,7 @@ typedef enum eKSP_TemplateTypes {
 	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
 	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
 	
-	KSP_TEMPLATE_PCHAN_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Pose Channel */
+	KSP_TEMPLATE_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Object or Pose Channel */
 } eKSP_TemplateTypes;
 
 /* ---------------- */
@@ -654,8 +656,10 @@ typedef struct KeyingSet {
 	
 	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) */
 	
-	int flag;				/* settings for KeyingSet */
-	int keyingflag;			/* settings to supply insertkey() with */
+	short flag;				/* settings for KeyingSet */
+	short keyingflag;		/* settings to supply insertkey() with */
+	
+	int active_path;		/* index of the active path */
 } KeyingSet;
 
 /* KeyingSet settings */
@@ -762,6 +766,11 @@ typedef enum eAnimData_Flag {
 	ADT_DRIVERS_COLLAPSED	= (1<<10),
 		/* don't execute drivers */
 	ADT_DRIVERS_DISABLED	= (1<<11),
+	
+		/* AnimData block is selected in UI */
+	ADT_UI_SELECTED			= (1<<14),
+		/* AnimData block is active in UI */
+	ADT_UI_ACTIVE			= (1<<15),
 	
 		/* F-Curves from this AnimData block are not visible in the Graph Editor */
 	ADT_CURVES_NOT_VISIBLE	= (1<<16),

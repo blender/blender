@@ -120,7 +120,7 @@ int vertex_paint_mode_poll(bContext *C)
 	return ob && ob->mode == OB_MODE_VERTEX_PAINT;
 }
 
-static int vp_poll(bContext *C)
+int vertex_paint_poll(bContext *C)
 {
 	if(vertex_paint_mode_poll(C) && 
 	   paint_brush(&CTX_data_tool_settings(C)->vpaint->paint)) {
@@ -134,7 +134,7 @@ static int vp_poll(bContext *C)
 	return 0;
 }
 
-static int wp_poll(bContext *C)
+int weight_paint_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
@@ -1121,7 +1121,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
 
 		paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
-		paint_cursor_start(C, wp_poll);
+		paint_cursor_start(C, weight_paint_poll);
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
 		
@@ -1190,14 +1190,18 @@ static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		paint_cursor_start(C, vp_poll);
+		paint_cursor_start(C, vertex_paint_poll);
 	return ret;
 }
 
 static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->vpaint->paint);
-	return brush_radial_control_exec(op, brush, 1);
+	int ret = brush_radial_control_exec(op, brush, 1);
+	
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+	
+	return ret;
 }
 
 static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1215,14 +1219,18 @@ static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		paint_cursor_start(C, wp_poll);
+		paint_cursor_start(C, weight_paint_poll);
 	return ret;
 }
 
 static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->wpaint->paint);
-	return brush_radial_control_exec(op, brush, 1);
+	int ret = brush_radial_control_exec(op, brush, 1);
+	
+	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
+	
+	return ret;
 }
 
 void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
@@ -1235,7 +1243,7 @@ void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
 	ot->invoke= wpaint_radial_control_invoke;
 	ot->modal= wpaint_radial_control_modal;
 	ot->exec= wpaint_radial_control_exec;
-	ot->poll= wp_poll;
+	ot->poll= weight_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1251,7 +1259,7 @@ void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
 	ot->invoke= vpaint_radial_control_invoke;
 	ot->modal= vpaint_radial_control_modal;
 	ot->exec= vpaint_radial_control_exec;
-	ot->poll= vp_poll;
+	ot->poll= vertex_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1539,7 +1547,7 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					  wpaint_stroke_done);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	op->type->modal(C, op, event);
 	
@@ -1557,7 +1565,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	ot->invoke= wpaint_invoke;
 	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
-	ot->poll= wp_poll;
+	ot->poll= weight_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1604,7 +1612,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(vp==NULL)
 			vp= scene->toolsettings->vpaint= new_vpaint(0);
 		
-		paint_cursor_start(C, vp_poll);
+		paint_cursor_start(C, vertex_paint_poll);
 
 		paint_init(&vp->paint, PAINT_CURSOR_VERTEX_PAINT);
 	}
@@ -1957,7 +1965,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					  vpaint_stroke_done);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	op->type->modal(C, op, event);
 	
@@ -1974,7 +1982,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	ot->invoke= vpaint_invoke;
 	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
-	ot->poll= vp_poll;
+	ot->poll= vertex_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

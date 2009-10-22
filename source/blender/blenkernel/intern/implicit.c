@@ -33,6 +33,7 @@
 
 #include "DNA_cloth_types.h"	
 #include "DNA_scene_types.h"
+#include "DNA_object_force.h"
 
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -496,6 +497,7 @@ DO_INLINE void mulsub_fmatrix_fvector(float to[3], float matrix[3][3], float fro
 // SPARSE SYMMETRIC big matrix with 3x3 matrix entries
 ///////////////////////////
 /* printf a big matrix on console: for debug output */
+#if 0
 static void print_bfmatrix(fmatrix3x3 *m3)
 {
 	unsigned int i = 0;
@@ -505,6 +507,8 @@ static void print_bfmatrix(fmatrix3x3 *m3)
 		print_fmatrix(m3[i].m);
 	}
 }
+#endif
+
 /* create big matrix */
 DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 {
@@ -1417,7 +1421,6 @@ static void hair_velocity_smoothing(float smoothfac, lfVector *lF, lfVector *lX,
 	int	i = 0;
 	int	j = 0;
 	int	k = 0;
-	lfVector temp;
 
 	INIT_MINMAX(gmin, gmax);
 
@@ -1480,15 +1483,19 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 	Cloth 		*cloth 		= clmd->clothObject;
 	int		i 		= 0;
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
-	float 		gravity[3];
+	float 		gravity[3] = {0.0f, 0.0f, 0.0f};
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
 	MFace 		*mfaces 	= cloth->mfaces;
 	unsigned int numverts = cloth->numverts;
 	LinkNode *search = cloth->springs;
 	lfVector *winvec;
+	EffectedPoint epoint;
 
-	VECCOPY(gravity, clmd->sim_parms->gravity);
-	mul_fvector_S(gravity, gravity, 0.001f); /* scale gravity force */
+	/* global acceleration (gravitation) */
+	if(clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+		VECCOPY(gravity, clmd->scene->physics_settings.gravity);
+		mul_fvector_S(gravity, gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity); /* scale gravity force */
+	}
 
 	/* set dFdX jacobi matrix to zero */
 	init_bfmatrix(dFdX, ZERO);
@@ -1523,10 +1530,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 		
 		// precalculate wind forces
 		for(i = 0; i < cloth->numverts; i++)
-		{
-			float speed[3] = {0.0f, 0.0f,0.0f};
-			
-			pdDoEffectors(clmd->scene, effectors, lX[i], winvec[i], speed, frame, 0.0f, 0);
+		{	
+			pd_point_from_loc(clmd->scene, (float*)lX[i], (float*)lV[i], i, &epoint);
+			pdDoEffectors(effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL);
 		}
 		
 		for(i = 0; i < cloth->numfaces; i++)
@@ -1654,9 +1660,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	while(step < tf)
 	{	
 		// calculate forces
-		effectors= pdInitEffectors(clmd->scene, ob, NULL);
 		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
-		if(effectors) pdEndEffectors(effectors);
 		
 		// calculate new velocity
 		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
@@ -1739,9 +1743,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				cp_lfvector(id->V, id->Vnew, numverts);
 				
 				// calculate 
-				effectors= pdInitEffectors(clmd->scene, ob, NULL);
 				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
-				if(effectors) pdEndEffectors(effectors);
 				
 				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
 			}

@@ -158,6 +158,24 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 	return rv3d;
 }
 
+/* Most of the time this isn't needed since you could assume the view matrix was
+ * set while drawing, however when functions like mesh_foreachScreenVert are
+ * called by selection tools, we can't be sure this object was the last.
+ *
+ * for example, transparent objects are drawn after editmode and will cause
+ * the rv3d mat's to change and break selection.
+ *
+ * 'ED_view3d_init_mats_rv3d' should be called before
+ * view3d_project_short_clip and view3d_project_short_noclip in cases where
+ * these functions are not used during draw_object
+ */
+void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
+{
+	wmMultMatrix(ob->obmat);
+	/* local viewmat and persmat, to calculate projections */
+	wmGetMatrix(rv3d->viewmatob);
+	wmGetSingleMatrix(rv3d->persmatob);
+}
 
 /* ******************** default callbacks for view3d space ***************** */
 
@@ -259,7 +277,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	if(v3do->localvd) {
 		v3do->localvd= NULL;
 		v3do->properties_storage= NULL;
-		v3do->localview= 0;
 		v3do->lay= v3dn->localvd->lay;
 		v3do->lay &= 0xFFFFFF;
 	}
@@ -275,101 +292,69 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	return (SpaceLink *)v3dn;
 }
 
-static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
-{
-	RegionView3D *rv3d= ar->regiondata;
-	ListBase *keymap;
-	
-	/* copy last mode, then we can re-init the region maps */
-	rv3d->lastmode= stype;
-	
-	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
-	if(ELEM(stype, 0, NS_MODE_OBJECT))
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
-	if(stype==NS_EDITMODE_MESH)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
-	if(stype==NS_EDITMODE_CURVE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
-	if(stype==NS_EDITMODE_ARMATURE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-		
-	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
-	if(stype==NS_MODE_POSE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	keymap= WM_keymap_listbase(wm, "Metaball", 0, 0);
-	if(stype==NS_EDITMODE_MBALL)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
-	if(stype==NS_EDITMODE_LATTICE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	/* armature sketching needs to take over mouse */
-	keymap= WM_keymap_listbase(wm, "Armature_Sketch", 0, 0);
-	if(stype==NS_EDITMODE_ARMATURE)
-		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	keymap= WM_keymap_listbase(wm, "Particle", 0, 0);
-	if(stype==NS_MODE_PARTICLE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	/* editfont keymap swallows all... */
-	keymap= WM_keymap_listbase(wm, "Font", 0, 0);
-	if(stype==NS_EDITMODE_TEXT)
-		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-}
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	RegionView3D *rv3d= ar->regiondata;
-	ListBase *keymap;
-	
-	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
+	wmKeyMap *keymap;
+
 	/* object ops. */
-	keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	/* pose is not modal, operator poll checks for this */
-	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	/* modal ops keymaps */
-	view3d_modal_keymaps(wm, ar, rv3d->lastmode);
-	/* operator poll checks for modes */
-	keymap= WM_keymap_listbase(wm, "ImagePaint", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Object Mode", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Vertex Paint", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Weight Paint", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Sculpt", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_find(wm->defaultconf, "EditMesh", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_find(wm->defaultconf, "Curve", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_find(wm->defaultconf, "Armature", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Metaball", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_find(wm->defaultconf, "Lattice", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	/* armature sketching needs to take over mouse */
+	keymap= WM_keymap_find(wm->defaultconf, "Armature_Sketch", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Particle", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	/* editfont keymap swallows all... */
+	keymap= WM_keymap_find(wm->defaultconf, "Font", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Object Non-modal", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	/* own keymap, last so modes can override it */
+	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_find(wm->defaultconf, "View3D", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -444,7 +429,6 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_MODE:
-					view3d_modal_keymaps(wmn->wm, ar, wmn->subtype);
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -454,6 +438,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_POSE:
 				case ND_DRAW:
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
@@ -482,12 +467,21 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_WORLD:
+			switch(wmn->data) {
+				case ND_WORLD_DRAW:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_LAMP:
 			switch(wmn->data) {
 				case ND_LIGHTING_DRAW:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
 		case NC_IMAGE:	
 			/* this could be more fine grained checks if we had
 			 * more context than just the region */
@@ -516,7 +510,7 @@ static void view3d_main_area_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
 	
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
@@ -552,11 +546,11 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -594,6 +588,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_POSE:
 				case ND_DRAW:
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);
@@ -608,6 +603,10 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_BRUSH:
+			if(wmn->action==NA_EDITED)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_VIEW3D)
 				ED_region_tag_redraw(ar);
@@ -618,15 +617,13 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
-
-
 
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {
@@ -642,10 +639,10 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"selected_objects", "selected_bases" "selected_editable_objects",
-			"selected_editable_bases" "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
+			"selected_objects", "selected_bases", "selected_editable_objects",
+			"selected_editable_bases", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
 			"active_base", "active_object", "visible_bones", "editable_bones",
-			"selected_bones", "selected_editable_bones" "visible_pchans",
+			"selected_bones", "selected_editable_bones", "visible_pchans",
 			"selected_pchans", "active_bone", "active_pchan", NULL};
 
 		CTX_data_dir_set(result, dir);

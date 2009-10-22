@@ -74,6 +74,7 @@
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_ipo.h"
 #include "BKE_main.h"
@@ -406,10 +407,26 @@ static int handle_subversion_warning(Main *main)
 
 void BKE_userdef_free(void)
 {
+	wmKeyMap *km;
+	wmKeyMapItem *kmi;
+
+	for(km=U.keymaps.first; km; km=km->next) {
+		for(kmi=km->items.first; kmi; kmi=kmi->next) {
+			if(kmi->properties) {
+				IDP_FreeProperty(kmi->properties);
+				MEM_freeN(kmi->properties);
+			}
+			if(kmi->ptr)
+				MEM_freeN(kmi->ptr);
+		}
+
+		BLI_freelistN(&km->items);
+	}
 	
 	BLI_freelistN(&U.uistyles);
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);
+	BLI_freelistN(&U.keymaps);
 	
 }
 

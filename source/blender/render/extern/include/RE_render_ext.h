@@ -55,7 +55,7 @@ int	externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, f
 
 /* particle.c */
 void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype);
-float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip);
+float texture_value_blend(float tex, float out, float fact, float facg, int blendtype);
 
 /* node_composite.c */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result);

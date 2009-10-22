@@ -244,15 +244,8 @@ enum {
 
 static void do_graph_buttons(bContext *C, void *arg, int event)
 {
-	switch (event) {
-		case B_MODECHANGE: /* change mode with mode selector */
-			ED_area_tag_refresh(CTX_wm_area(C));
-			/* no break, as we need redraw flush too... */
-			
-		case B_REDR:
-			ED_area_tag_redraw(CTX_wm_area(C));
-			break;
-	}
+	ED_area_tag_refresh(CTX_wm_area(C));
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 
@@ -298,29 +291,7 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	xco+= 120;
 	
 	/* filtering buttons */
-	if (sipo->ads) {
-		//uiBlockBeginAlign(block);
-			uiDefIconButBitI(block, TOG, ADS_FILTER_ONLYSEL, B_REDR, ICON_RESTRICT_SELECT_OFF,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Only display selected Objects");
-		//uiBlockEndAlign(block);
-		xco += 5;
-		
-		uiBlockBeginAlign(block);
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSCE, B_REDR, ICON_SCENE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Scene Animation");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOWOR, B_REDR, ICON_WORLD_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display World Animation");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSHAPEKEYS, B_REDR, ICON_SHAPEKEY_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display ShapeKeys");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMAT, B_REDR, ICON_MATERIAL_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Materials");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Lamps");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Cameras");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Curves");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMBA, B_REDR, ICON_META_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display MetaBalls");
-			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Particles");
-		uiBlockEndAlign(block);
-		xco += 30;
-	}
-	else {
-		// XXX this case shouldn't happen at all... for now, just pad out same amount of space
-		xco += 10*XIC + 30;
-	}
+	xco= ANIM_headerUI_standard_buttons(C, sipo->ads, block, xco, yco);
 	
 	/* auto-snap selector */
 	if (sipo->flag & SIPO_DRAWTIME) {
@@ -347,9 +318,9 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	/* ghost curves */
 	// XXX these icons need to be changed
 	if (sipo->ghostCurves.first)
-		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_clear", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_DATA_CURVE, xco,yco,XIC,YIC, "Clear F-Curve snapshots (Ghosts) for this Graph Editor instance");
+		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_clear", WM_OP_INVOKE_REGION_WIN, ICON_GHOST_DISABLED, xco,yco,XIC,YIC, "Clear F-Curve snapshots (Ghosts) for this Graph Editor instance");
 	else 
-		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_create", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_OB_CURVE, xco,yco,XIC,YIC, "Create snapshot (Ghosts) of selected F-Curves as background aid for this Graph Editor instance");
+		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_create", WM_OP_INVOKE_REGION_WIN, ICON_GHOST_ENABLED, xco,yco,XIC,YIC, "Create snapshot (Ghosts) of selected F-Curves as background aid for this Graph Editor instance");
 	xco+= XIC;
 	
 	

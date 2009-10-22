@@ -39,8 +39,12 @@ SET(SRC
 		../../../../intern/guardedalloc/intern/mallocn.c
 		../../../../intern/guardedalloc/intern/mmap_win.c)
 
-INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors/include ../../imbuf ../../render/extern/include ../../bmesh .)
+INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../ikplugin ../../windowmanager ../../editors/include ../../imbuf ../../render/extern/include .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
+
+IF(WIN32)
+	SET(INC ${INC} ${PTHREADS_INC})
+ENDIF(WIN32)
 
 IF(WITH_GAMEENGINE)
 	ADD_DEFINITIONS(-DGAMEBLENDER)

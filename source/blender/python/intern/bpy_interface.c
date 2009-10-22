@@ -147,6 +147,17 @@ void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
 	}
 }
 
+static void bpy_import_test(char *modname)
+{
+	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
+	if(mod) {
+		Py_DECREF(mod);
+	}
+	else {
+		PyErr_Print();
+		PyErr_Clear();
+	}	
+}
 
 void BPY_free_compiled_text( struct Text *text )
 {
@@ -176,7 +187,21 @@ static void bpy_init_modules( void )
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
 
-
+	/* add our own modules dir */
+	{
+		char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
+		
+		if(modpath) {
+			PyObject *sys_path= PySys_GetObject("path"); /* borrow */
+			PyObject *py_modpath= PyUnicode_FromString(modpath);
+			PyList_Insert(sys_path, 0, py_modpath); /* add first */
+			Py_DECREF(py_modpath);
+		}
+		
+		bpy_import_test("bpy_ops"); /* adds its self to bpy.ops */
+		bpy_import_test("bpy_sys"); /* adds its self to bpy.sys */
+	}
+	
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
@@ -216,6 +241,9 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 			{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{NULL, NULL, 0, NULL}
 		};
 		
@@ -232,26 +260,10 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	return dict;
 }
 
-/* Use this so we can include our own python bundle */
-#if 0
-wchar_t* Py_GetPath(void)
-{
-	int i;
-	static wchar_t py_path[FILE_MAXDIR] = L"";
-	char *dirname= BLI_gethome_folder("python");
-	if(dirname) {
-		i= mbstowcs(py_path, dirname, FILE_MAXDIR);
-		printf("py path %s, %d\n", dirname, i);
-	}
-	return py_path;
-}
-#endif
-
-
 /* must be called before Py_Initialize */
 void BPY_start_python_path(void)
 {
-	char *py_path_bundle= BLI_gethome_folder("python");
+	char *py_path_bundle= BLI_gethome_folder("python", BLI_GETHOME_ALL);
 
 	if(py_path_bundle==NULL)
 		return;
@@ -311,6 +323,11 @@ void BPY_start_python( int argc, char **argv )
 		PyObject *d = PyEval_GetBuiltins(  );
 		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(bpy_reload_meth, NULL));	Py_DECREF(item);
 		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
+		
+		/* a bit nasty but this prevents help() and input() from locking blender
+		 * Ideally we could have some way for the console to replace sys.stdin but
+		 * python would lock blender while waiting for a return value, not easy :| */
+		PySys_SetObject("stdin", Py_None);
 	}
 	
 	pyrna_alloc_types();
@@ -591,8 +608,9 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *file_extension;
 	char *dirname;
 	char path[FILE_MAX];
-	char *dirs[] = {"ui", "io", NULL};
-	int a, err;
+	char *dirs[] = {"scripts/ui", "scripts/io", NULL};
+	int path_flags[] = {BLI_GETHOME_LOCAL|BLI_GETHOME_SYSTEM, BLI_GETHOME_USER}; /* SYSTEM / NON-SYSTEM */
+	int a, err, flag_iter;
 	
 	PyGILState_STATE gilstate;
 	PyObject *sys_path;
@@ -602,56 +620,60 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	sys_path= PySys_GetObject("path"); /* borrow */
 	PyList_Insert(sys_path, 0, Py_None); /* place holder, resizes the list */
 
-	for(a=0; dirs[a]; a++) {
-		dirname= BLI_gethome_folder(dirs[a]);
-
-		if(!dirname)
-			continue;
-
-		dir = opendir(dirname);
-
-		if(!dir)
-			continue;
+	/* Scan system scripts first, then local/user */
+	for(flag_iter=0; flag_iter < sizeof(path_flags)/sizeof(int); flag_iter++) {
 		
-		/* set the first dir in the sys.path for fast importing of modules */
-		PyList_SetItem(sys_path, 0, PyUnicode_FromString(dirname)); /* steals the ref */
+		for(a=0; dirs[a]; a++) {
+			dirname= BLI_gethome_folder(dirs[a], path_flags[flag_iter]);
+
+			if(!dirname)
+				continue;
+
+			dir = opendir(dirname);
+
+			if(!dir)
+				continue;
 			
-		while((de = readdir(dir)) != NULL) {
-			/* We could stat the file but easier just to let python
-			 * import it and complain if theres a problem */
-			err = 0;
+			/* set the first dir in the sys.path for fast importing of modules */
+			PyList_SetItem(sys_path, 0, PyUnicode_FromString(dirname)); /* steals the ref */
+				
+			while((de = readdir(dir)) != NULL) {
+				/* We could stat the file but easier just to let python
+				 * import it and complain if theres a problem */
+				err = 0;
 
-			if (de->d_name[0] == '.') {
-				/* do nothing, probably .svn */
-			}
-			else if ((file_extension = strstr(de->d_name, ".py"))) {
-				/* normal py files? */
-				if(file_extension && file_extension[3] == '\0') {
-					de->d_name[(file_extension - de->d_name)] = '\0';
-					err= bpy_import_module(de->d_name, reload);
+				if (de->d_name[0] == '.') {
+					/* do nothing, probably .svn */
 				}
-			}
+				else if ((file_extension = strstr(de->d_name, ".py"))) {
+					/* normal py files? */
+					if(file_extension && file_extension[3] == '\0') {
+						de->d_name[(file_extension - de->d_name)] = '\0';
+						err= bpy_import_module(de->d_name, reload);
+					}
+				}
 #ifndef __linux__
-			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exist(path))) {
+				else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exist(path))) {
 #else
-			else if(de->d_type==DT_DIR) {
-				BLI_join_dirfile(path, dirname, de->d_name);
+				else if(de->d_type==DT_DIR) {
+					BLI_join_dirfile(path, dirname, de->d_name);
 #endif
-				/* support packages */
-				BLI_join_dirfile(path, path, "__init__.py");
+					/* support packages */
+					BLI_join_dirfile(path, path, "__init__.py");
 
-				if(BLI_exists(path)) {
-					err= bpy_import_module(de->d_name, reload);
+					if(BLI_exists(path)) {
+						err= bpy_import_module(de->d_name, reload);
+					}
+				}
+
+				if(err==-1) {
+					BPy_errors_to_report(NULL);
+					fprintf(stderr, "unable to import %s/%s\n", dirname, de->d_name);
 				}
 			}
 
-			if(err==-1) {
-				BPy_errors_to_report(NULL);
-				fprintf(stderr, "unable to import %s/%s\n", dirname, de->d_name);
-			}
+			closedir(dir);
 		}
-
-		closedir(dir);
 	}
 	
 	PyList_SetSlice(sys_path, 0, 1, NULL); /* remove the first item */

@@ -39,10 +39,14 @@ public:
 	KX_PhysicsObjectWrapper(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsEnvironment* physenv);
 	virtual ~KX_PhysicsObjectWrapper();
 	
+#ifndef DISABLE_PYTHON
+
 	KX_PYMETHOD_VARARGS(KX_PhysicsObjectWrapper,SetPosition);
 	KX_PYMETHOD_VARARGS(KX_PhysicsObjectWrapper,SetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_PhysicsObjectWrapper,SetAngularVelocity);
 	KX_PYMETHOD_VARARGS(KX_PhysicsObjectWrapper,SetActive);
+
+#endif // DISABLE_PYTHON
 
 private:
 	class PHY_IPhysicsController*	m_ctrl;

@@ -87,6 +87,8 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "UI_resources.h"
+
 #include "mesh_intern.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
@@ -116,22 +118,24 @@ void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
 #endif
 }
 
-void EDBM_automerge(int update) 
+void EDBM_automerge(Scene *scene, Object *obedit, int update)
 {
-// XXX	int len;
+	BMEditMesh *em;
+	int len;
 	
-//	if ((scene->automerge) &&
-//		(obedit && obedit->type==OB_MESH) &&
-//		(((Mesh*)obedit->data)->mr==NULL)
-//	  ) {
-//		len = removedoublesflag(1, 1, scene->toolsettings->doublimit);
-//		if (len) {
-//			em->totvert -= len; /* saves doing a countall */
-//			if (update) {
-//				DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-//			}
-//		}
-//	}
+	if ((scene->toolsettings->automerge) &&
+	    (obedit && obedit->type==OB_MESH) &&
+	    (((Mesh*)obedit->data)->mr==NULL))
+	{
+		em = ((Mesh*)obedit->data)->edit_btmesh;
+		if (!em)
+			return;
+
+		BMO_CallOpf(em->bm, "automerge verts=%hv dist=%f", BM_SELECT, scene->toolsettings->doublimit);
+		if (update) {
+			DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+		}
+	}
 }
 
 /* ****************************** SELECTION ROUTINES **************** */
@@ -417,6 +421,9 @@ BMVert *EDBM_findnearestvert(ViewContext *vc, int *dist, short sel, short strict
 		data.closestIndex = 0;
 
 		data.pass = 0;
+
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+
 		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, 1);
 
 		if (data.dist>3) {
@@ -505,6 +512,7 @@ BMEdge *EDBM_findnearestedge(ViewContext *vc, int *dist)
 		data.mval[1] = vc->mval[1];
 		data.dist = *dist;
 		data.closest = NULL;
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, 2);
 
@@ -588,12 +596,14 @@ BMFace *EDBM_findnearestface(ViewContext *vc, int *dist)
 		data.dist = *dist;
 		data.closest = NULL;
 		data.closestIndex = 0;
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 		data.pass = 0;
 		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
 
 		if (data.dist>3) {
 			data.pass = 1;
+			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 			mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
 		}
 
@@ -644,19 +654,30 @@ static int unified_findnearest(ViewContext *vc, BMVert **eve, BMEdge **eed, BMFa
 
 /* ****************  SIMILAR "group" SELECTS. FACE, EDGE AND VERTEX ************** */
 
-/* selects new faces/edges/verts based on the existing selection */
+static EnumPropertyItem prop_similar_types[] = {
+	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
+	{SIMVERT_FACE, "FACE", 0, "Amount of Adjacent Faces", ""},
+	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
 
-/* FACES GROUP */
+	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
+	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
+	{SIMEDGE_FACE, "FACE", 0, "Amount of Faces Around an Edge", ""},
+	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
+	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
+	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
+	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
 
-static EnumPropertyItem prop_simface_types[] = {
 	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
 	{SIMFACE_AREA, "AREA", 0, "Area", ""},
 	{SIMFACE_PERIMETER, "PERIMETER", 0, "Perimeter", ""},
 	{SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
 	{SIMFACE_COPLANAR, "COPLANAR", 0, "Co-planar", ""},
+
 	{0, NULL, 0, NULL, NULL}
 };
+
+/* selects new faces/edges/verts based on the existing selection */
 
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
@@ -697,17 +718,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 /* ***************************************************** */
 
 /* EDGE GROUP */
-
-static EnumPropertyItem prop_simedge_types[] = {
-	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
-	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
-	{SIMEDGE_FACE, "FACE", 0, "Amount of Faces Around an Edge", ""},
-	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
-	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
-	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
-	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
@@ -755,13 +765,6 @@ VERT GROUP
  mode 2: same number of face users
  mode 3: same vertex groups
 */
-
-static EnumPropertyItem prop_simvertex_types[] = {
-	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
-	{SIMVERT_FACE, "FACE", 0, "Amount of Adjacent Faces", ""},
-	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
 
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
@@ -814,32 +817,26 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	Object *obedit;
+	Object *obedit = CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
-	int totitem= 0;
-	
-	if(C==NULL) {
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
-		RNA_enum_items_add(&item, &totitem, prop_simedge_types);
-		RNA_enum_items_add(&item, &totitem, prop_simface_types);
-		RNA_enum_item_end(&item, &totitem);
-		*free= 1;
-		
-		return item;
-	}
-	
-	obedit= CTX_data_edit_object(C);
+	int a, totitem= 0;
 	
 	if(obedit && obedit->type == OB_MESH) {
 		BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh; 
 
-		if(em->selectmode & SCE_SELECT_VERTEX)
-			RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
-		else if(em->selectmode & SCE_SELECT_EDGE)
-			RNA_enum_items_add(&item, &totitem, prop_simedge_types);
-		else if(em->selectmode & SCE_SELECT_FACE)
-			RNA_enum_items_add(&item, &totitem, prop_simface_types);
+		if(em->selectmode & SCE_SELECT_VERTEX) {
+			for (a=SIMVERT_NORMAL; a<SIMEDGE_LENGTH; a++) {
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
+			}
+		} else if(em->selectmode & SCE_SELECT_EDGE) {
+			for (a=SIMEDGE_LENGTH; a<SIMFACE_MATERIAL; a++) {
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
+			}
+		} else if(em->selectmode & SCE_SELECT_FACE) {
+			for (a=SIMFACE_MATERIAL; a<=SIMFACE_COPLANAR; a++) {
+				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
+			}
+		}
 		RNA_enum_item_end(&item, &totitem);
 
 		*free= 1;
@@ -868,7 +865,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", prop_simvertex_types, 0, "Type", "");
+	prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
 }
 
@@ -1134,6 +1131,9 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 	vc.mval[1]= mval[1];
 	em= vc.em;
 	
+	/* no afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad */
+	view3d_validate_backbuf(&vc);
+
 	eed= EDBM_findnearestedge(&vc, &dist);
 	if(eed) {
 		if(extend==0) EDBM_clear_flag_all(em, BM_SELECT);

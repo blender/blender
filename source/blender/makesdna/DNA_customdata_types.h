@@ -76,11 +76,13 @@ typedef struct CustomData {
 #define CD_MLOOPCOL		17
 #define CD_TANGENT		18
 #define CD_MDISPS		19
-#define CD_WEIGHT_MCOL	20 /* for displaying weightpaint colors */
+#define CD_WEIGHT_MCOL		20 /* for displaying weightpaint colors */
 #define CD_MPOLY		21
 #define CD_MLOOP		22
 #define CD_WEIGHT_MLOOPCOL	23
-#define CD_NUMTYPES		24
+#define CD_ID_MCOL		24
+#define CD_TEXTURE_MCOL		25
+#define CD_NUMTYPES		26
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)

@@ -211,13 +211,20 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Logarithmic dissolve", "Using 1/x ");
 	RNA_def_property_update(prop, 0, NULL);
 
-	prop= RNA_def_property(srna, "point_cache_low", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "point_cache_low", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "point_cache[0]");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 
-	prop= RNA_def_property(srna, "point_cache_high", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "point_cache_high", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "point_cache[1]");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
+
+	prop= RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "EffectorWeights");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Effector Weights", "");
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)

@@ -62,12 +62,12 @@ void VIEW3D_OT_layers(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
 void view3d_operatortypes(void);
-void view3d_keymap(struct wmWindowManager *wm);
+void view3d_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_edit.c */
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
-void VIEW3D_OT_viewmove(struct wmOperatorType *ot);
-void VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
+void VIEW3D_OT_move(struct wmOperatorType *ot);
+void VIEW3D_OT_rotate(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center(struct wmOperatorType *ot);
@@ -89,10 +89,13 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob);
 void drawaxes(float size, int flag, char drawtype);
-void view3d_object_text_draw_add(float x, float y, float z, char *str, short xoffs);
+
+void view3d_cached_text_draw_begin(void);
+void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs);
+void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4]);
 
 /* drawarmature.c */
-int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag);
+int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag);
 
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, struct DerivedMesh *dm, int faceselect);
@@ -119,8 +122,10 @@ void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 /* view3d_view.c */
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
+void VIEW3D_OT_setobjectascamera(struct wmOperatorType *ot);
 void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
+void VIEW3D_OT_fly(struct wmOperatorType *ot);
 
 
 int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
@@ -131,6 +136,11 @@ void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
+
+void fly_modal_keymap(struct wmKeyConfig *keyconf);
+void viewrotate_modal_keymap(struct wmKeyConfig *keyconf);
+void viewmove_modal_keymap(struct wmKeyConfig *keyconf);
+void viewzoom_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);

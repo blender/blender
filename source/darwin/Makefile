@@ -49,8 +49,6 @@ ifeq ($(APPLICATION), blender)
 	@echo "---> copying .blender/ scripts"
 	@cp -R $(NANBLENDERHOME)/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
 	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
-	@echo "---> copying ui scripts"
-	@cp -R $(NANBLENDERHOME)/release/ui $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
 	@echo "---> copying python modules"
 	@mkdir $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python
 	@unzip -q $(LCGDIR)/release/python.zip -d $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python/	

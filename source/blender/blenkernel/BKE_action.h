@@ -41,6 +41,7 @@ struct bAction;
 struct bActionGroup;
 struct FCurve;
 struct bPose;
+struct bItasc;
 struct bPoseChannel;
 struct Object;
 struct Scene;
@@ -51,7 +52,7 @@ struct ID;
 extern "C" {
 #endif
 
-/* Action API ----------------- */
+/* Action Lib Stuff ----------------- */
 
 /* Allocate a new bAction with the given name */
 struct bAction *add_empty_action(const char name[]);
@@ -65,6 +66,31 @@ void free_action(struct bAction *act);
 // XXX is this needed?
 void make_local_action(struct bAction *act);
 
+
+/* Action API ----------------- */
+
+/* types of transforms applied to the given item 
+ * 	- these are the return falgs for action_get_item_transforms()
+ */
+typedef enum eAction_TransformFlags {
+		/* location */
+	ACT_TRANS_LOC	= (1<<0),
+		/* rotation */
+	ACT_TRANS_ROT	= (1<<1),
+		/* scaling */
+	ACT_TRANS_SCALE	= (1<<2),
+		
+		/* all flags */
+	ACT_TRANS_ALL	= (ACT_TRANS_LOC|ACT_TRANS_ROT|ACT_TRANS_SCALE),
+} eAction_TransformFlags;
+
+/* Return flags indicating which transforms the given object/posechannel has 
+ *	- if 'curves' is provided, a list of links to these curves are also returned
+ *	  whose nodes WILL NEED FREEING
+ */
+short action_get_item_transforms(struct bAction *act, struct Object *ob, struct bPoseChannel *pchan, ListBase *curves);
+
+
 /* Some kind of bounding box operation on the action */
 void calc_action_range(const struct bAction *act, float *start, float *end, short incl_modifiers);
 
@@ -72,6 +98,9 @@ void calc_action_range(const struct bAction *act, float *start, float *end, shor
 short action_has_motion(const struct bAction *act);
 
 /* Action Groups API ----------------- */
+
+/* Get the active action-group for an Action */
+struct bActionGroup *get_active_actiongroup(struct bAction *act);
 
 /* Make the given Action Group the active one */
 void set_active_action_group(struct bAction *act, struct bActionGroup *agrp, short select);
@@ -126,10 +155,20 @@ struct bPoseChannel *get_active_posechannel(struct Object *ob);
  */
 struct bPoseChannel *verify_pose_channel(struct bPose* pose, const char* name);
 
-
+/* Copy the data from the action-pose (src) into the pose */
+void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* sets constraint flags */
 void update_pose_constraint_flags(struct bPose *pose);
+
+/* return the name of structure pointed by pose->ikparam */
+const char *get_ikparam_name(struct bPose *pose);
+
+/* allocate and initialize pose->ikparam according to pose->iksolver */
+void init_pose_ikparam(struct bPose *pose);
+
+/* initialize a bItasc structure with default value */
+void init_pose_itasc(struct bItasc *itasc);
 
 /* clears BONE_UNKEYED flags for frame changing */
 // XXX to be depreceated for a more general solution in animsys...
@@ -152,16 +191,6 @@ void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *w
 void copy_pose_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void rest_pose(struct bPose *pose);
-
-/* Game Engine ------------------------- */
-
-/* exported for game engine */
-void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight/*, short mode*/); /* was blend_poses */
-void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
-
-/* functions used by the game engine */
-void game_copy_pose(struct bPose **dst, struct bPose *src);
-void game_free_pose(struct bPose *pose);
 
 #ifdef __cplusplus
 };

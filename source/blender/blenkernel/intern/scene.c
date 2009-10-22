@@ -400,6 +400,10 @@ Scene *add_scene(char *name)
 
 	sce->toolsettings->proportional_size = 1.0f;
 
+	sce->physics_settings.gravity[0] = 0.0f;
+	sce->physics_settings.gravity[1] = 0.0f;
+	sce->physics_settings.gravity[2] = -9.81f;
+	sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
 
 	sce->unit.scale_length = 1.0f;
 
@@ -419,7 +423,11 @@ Scene *add_scene(char *name)
 	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
 	sce->jumpframe = 10;
-	sce->r.audio.mixrate = 44100;
+	sce->r.ffcodecdata.audio_mixrate = 44100;
+
+	sce->audio.distance_model = 2.0;
+	sce->audio.doppler_factor = 1.0;
+	sce->audio.speed_of_sound = 343.3;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
@@ -774,11 +782,11 @@ static void scene_update(Scene *sce, unsigned int lay)
 	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
 	
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
-		* with an 'local' to 'macro' order of evaluation. This should ensure that
-		* settings stored nestled within a hierarchy (i.e. settings in a Texture block
-	    * can be overridden by settings from Scene, which owns the Texture through a hierarchy 
-	    * such as Scene->World->MTex/Texture) can still get correctly overridden.
-		*/
+	 * with an 'local' to 'macro' order of evaluation. This should ensure that
+	 * settings stored nestled within a hierarchy (i.e. settings in a Texture block
+	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy 
+	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
+	 */
 	BKE_animsys_evaluate_all_animation(G.main, ctime);
 	
 	for(base= sce->base.first; base; base= base->next) {

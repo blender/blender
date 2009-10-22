@@ -311,6 +311,8 @@ typedef struct UserDef {
 	struct ListBase themes;
 	struct ListBase uifonts;
 	struct ListBase uistyles;
+	struct ListBase keymaps;
+	char keyconfigstr[64];
 	
 	short undosteps;
 	short undomemory;
@@ -347,6 +349,14 @@ typedef struct UserDef {
 extern UserDef U; /* from blenkernel blender.c */
 
 /* ***************** USERDEF ****************** */
+
+/* userpref/section */
+#define USER_SECTION_INTERFACE	0
+#define USER_SECTION_EDIT		1
+#define USER_SECTION_FILE		2
+#define USER_SECTION_SYSTEM		3
+#define USER_SECTION_THEME		4
+#define USER_SECTION_INPUT		5
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)
@@ -405,6 +415,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_SHOW_FPS			(1 << 21)
 #define USER_MMB_PASTE			(1 << 22)
 #define USER_MENUFIXEDORDER		(1 << 23)
+#define USER_CONTINUOUS_MOUSE		(1 << 24)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */
@@ -414,10 +425,12 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_MODE_EDITKEYS	5
 
 /* Auto-Keying flag */
-	/* U.autokey_flag */
+	/* U.autokey_flag (not strictly used when autokeying only - is also used when keyframing these days) */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
+	/* U.autokey_flag (strictly autokeying only) */
+#define 	AUTOKEY_FLAG_ONLYKEYINGSET	(1<<6)
 	/* toolsettings->autokey_flag */
 #define 	ANIMRECORD_FLAG_WITHNLA		(1<<10)
 
@@ -449,6 +462,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DEPRECATED_FLAG	1
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
+#define USER_DISABLE_VBO		8
 
 /* wm draw method */
 #define USER_DRAW_TRIPLE		0

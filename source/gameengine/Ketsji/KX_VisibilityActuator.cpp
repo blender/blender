@@ -41,7 +41,7 @@ KX_VisibilityActuator::KX_VisibilityActuator(
 	bool occlusion,
 	bool recursive
 	) 
-	: SCA_IActuator(gameobj),
+	: SCA_IActuator(gameobj, KX_ACT_VISIBILITY),
 	  m_visible(visible),
 	  m_occlusion(occlusion),
 	  m_recursive(recursive)
@@ -83,6 +83,8 @@ KX_VisibilityActuator::Update()
 	return false;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -122,3 +124,5 @@ PyAttributeDef KX_VisibilityActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("useRecursion", KX_VisibilityActuator, m_recursive),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

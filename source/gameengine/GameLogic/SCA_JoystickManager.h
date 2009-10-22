@@ -35,8 +35,6 @@
 using namespace std;
 class SCA_JoystickManager : public SCA_EventManager
 {
-	
-	class SCA_LogicManager* m_logicmgr;
 	/**
 	 * SDL Joystick Class Instance
 	 */

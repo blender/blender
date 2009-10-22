@@ -83,13 +83,14 @@ void OBJECT_OT_select_name(struct wmOperatorType *ot);
 
 /* object_add.c */
 void OBJECT_OT_add(struct wmOperatorType *ot);
-void OBJECT_OT_mesh_add(struct wmOperatorType *ot);
 void OBJECT_OT_curve_add(struct wmOperatorType *ot);
 void OBJECT_OT_surface_add(struct wmOperatorType *ot);
 void OBJECT_OT_metaball_add(struct wmOperatorType *ot);
 void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
-void OBJECT_OT_primitive_add(struct wmOperatorType *ot); /* only used as menu */
+void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
+void OBJECT_OT_effector_add(struct wmOperatorType *ot);
+void OBJECT_OT_group_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
 void OBJECT_OT_duplicate(struct wmOperatorType *ot);
@@ -173,6 +174,10 @@ void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
 /* object_shapekey.c */
 void OBJECT_OT_shape_key_add(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_remove(struct wmOperatorType *ot);
+
+/* object_group.c */
+void OBJECT_OT_group_add(struct wmOperatorType *ot);
+void OBJECT_OT_group_remove(struct wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

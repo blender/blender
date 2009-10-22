@@ -91,7 +91,7 @@ CValue* SCA_NANDController::GetReplica()
 	return replica;
 }
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -127,5 +127,7 @@ PyMethodDef SCA_NANDController::Methods[] = {
 PyAttributeDef SCA_NANDController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+#endif
 
 /* eof */

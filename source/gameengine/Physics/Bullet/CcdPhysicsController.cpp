@@ -593,7 +593,7 @@ bool CcdPhysicsController::ReplaceControllerShape(btCollisionShape *newShape)
 	for(int i= 0; i < obarr.size(); i++) {
 		ob= obarr[i];
 		if (ob->getCollisionShape() == newShape); {
-			proxy = obarr[i]->getBroadphaseHandle();
+			proxy = ob->getBroadphaseHandle();
 			
 			if(proxy)
 				dw->getPairCache()->cleanProxyFromPairs(proxy,dw->getDispatcher());
@@ -1454,7 +1454,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 
 	MVert *mvert = dm->getVertArray(dm);
 	MFace *mface = dm->getTessFaceArray(dm);
-	numpolys = dm->getNumFaces(dm);
+	numpolys = dm->getNumTessFaces(dm);
 	numverts = dm->getNumVerts(dm);
 	int* index = (int*)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 
@@ -1722,7 +1722,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 
 		MVert *mvert = dm->getVertArray(dm);
 		MFace *mface = dm->getTessFaceArray(dm);
-		numpolys = dm->getNumFaces(dm);
+		numpolys = dm->getNumTessFaces(dm);
 		numverts = dm->getNumVerts(dm);
 		int* index = (int*)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 

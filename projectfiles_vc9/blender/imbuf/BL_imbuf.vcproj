@@ -266,6 +266,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\build\msvc_9\intern\memutil\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr;..\..\..\source\blender\imbuf\intern\dds"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR;WITH_DDS;WITH_FFMPEG"

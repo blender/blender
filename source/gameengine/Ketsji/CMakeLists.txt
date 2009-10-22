@@ -59,7 +59,6 @@ SET(INC
 	../../../source/blender/gpu
 	../../../extern/bullet2/src
 	../../../extern/glew/include
-	${PYTHON_INC}
 )
 
 IF(WITH_SDL)
@@ -67,6 +66,12 @@ IF(WITH_SDL)
 ELSE(WITH_SDL)
 	ADD_DEFINITIONS(-DDISABLE_SDL)
 ENDIF(WITH_SDL)
+
+IF(WITH_PYTHON)
+	SET(INC ${INC} ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_ketsji "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_ketsji', sources, Split(incs), [], libtype=['game','player'], priority=[25, 72], compileflags = cflags )

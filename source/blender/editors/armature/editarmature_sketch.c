@@ -1006,9 +1006,9 @@ void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end, float 
 	{
 		float ray_start[3], ray_normal[3];
 		float delta = VecLenf(stk->points[i].p, stk->points[i + 1].p);
-		short pval[2];
+		float pval[2];
 
-		project_short_noclip(ar, stk->points[i].p, pval);
+		project_float(ar, stk->points[i].p, pval);
 		viewray(ar, v3d, pval, ray_start, ray_normal);
 
 		VecMulf(ray_normal, distance * progress / length);
@@ -1076,11 +1076,14 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 		float dist = FLT_MAX;
 		float p[3];
 		float size = 0;
+		float mvalf[2];
 
 		BLI_freelistN(&sketch->depth_peels);
 		sketch->depth_peels.first = sketch->depth_peels.last = NULL;
 
-		peelObjectsContext(C, &sketch->depth_peels, dd->mval);
+		mvalf[0]= dd->mval[0];
+		mvalf[1]= dd->mval[1];
+		peelObjectsContext(C, &sketch->depth_peels, mvalf);
 
 		if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
 		{
@@ -1174,6 +1177,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 		SK_Stroke *snap_stk;
 		float vec[3];
 		float no[3];
+		float mval[2];
 		int found = 0;
 		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
 
@@ -1197,9 +1201,12 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 				point_added = 1;
 			}
 		}
+		
+		mval[0] = dd->mval[0];
+		mval[1] = dd->mval[1];
 
 		/* try to snap to closer object */
-		found = snapObjectsContext(C, dd->mval, &dist, vec, no, SNAP_NOT_SELECTED);
+		found = snapObjectsContext(C, mval, &dist, vec, no, SNAP_NOT_SELECTED);
 		if (found == 1)
 		{
 			pt->type = dd->type;
@@ -1708,7 +1715,7 @@ int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, SK_Strok
 				{
 					SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
 					float ray_start[3], ray_end[3];
-					short mval[2];
+					float mval[2];
 
 					isect->gesture_index = g_i;
 					isect->before = s_i;
@@ -1716,8 +1723,8 @@ int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, SK_Strok
 					isect->stroke = stk;
 					isect->lambda = lambda;
 
-					mval[0] = (short)(vi[0]);
-					mval[1] = (short)(vi[1]);
+					mval[0] = vi[0];
+					mval[1] = vi[1];
 					viewline(ar, v3d, mval, ray_start, ray_end);
 
 					LineIntersectLine(	stk->points[s_i].p,
@@ -1814,7 +1821,7 @@ int sk_detectTrimGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		VecSubf(s1, gest->segments->points[1].p, gest->segments->points[0].p);
 		VecSubf(s2, gest->segments->points[2].p, gest->segments->points[1].p);
 
-		angle = VecAngle2(s1, s2);
+		angle = RAD2DEG(VecAngle2(s1, s2));
 
 		if (angle > 60 && angle < 120)
 		{
@@ -1932,7 +1939,7 @@ int sk_detectDeleteGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		VecSubf(s1, gest->segments->points[1].p, gest->segments->points[0].p);
 		VecSubf(s2, gest->segments->points[2].p, gest->segments->points[1].p);
 
-		angle = VecAngle2(s1, s2);
+		angle = RAD2DEG(VecAngle2(s1, s2));
 
 		if (angle > 120)
 		{
@@ -2064,7 +2071,7 @@ int sk_detectReverseGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 					VecSubf(end_v, sk_lastStrokePoint(gest->stk)->p, isect->p);
 				}
 
-				angle = VecAngle2(start_v, end_v);
+				angle = RAD2DEG(VecAngle2(start_v, end_v));
 
 				if (angle > 120)
 				{
@@ -2618,7 +2625,7 @@ static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
 
 	sk_draw_stroke(C, sketch, sketch->active_stroke, dd, snap);
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2644,7 +2651,7 @@ static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
 	sk_start_draw_gesture(sketch);
 	sk_draw_stroke(C, sketch, sketch->gesture, dd, snap);
 
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2675,7 +2682,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 		retval = OPERATOR_CANCELLED;
 		break;
 	case LEFTMOUSE:
-		if (event->val == 0)
+		if (event->val == KM_RELEASE)
 		{
 			if (gesture == 0)
 			{

@@ -58,11 +58,12 @@ short *give_totcolp(struct Object *ob);
 struct Material *give_current_material(struct Object *ob, int act);
 struct ID *material_from(struct Object *ob, int act);
 void assign_material(struct Object *ob, struct Material *ma, int act);
+void assign_matarar(struct Object *ob, struct Material ***matar, int totcol);
 
 int find_material_index(struct Object *ob, struct Material *ma);
 
-void object_add_material_slot(struct Object *ob);
-void object_remove_material_slot(struct Object *ob);
+int object_add_material_slot(struct Object *ob);
+int object_remove_material_slot(struct Object *ob);
 
 /* rendering */
 

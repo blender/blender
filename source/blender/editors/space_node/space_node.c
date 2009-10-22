@@ -48,7 +48,7 @@
 #include "BKE_screen.h"
 #include "BKE_node.h"
 
-#include "ED_previewrender.h"
+#include "ED_render.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
@@ -179,12 +179,14 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 {
 	/* default now: refresh node is starting preview */
 	SpaceNode *snode= sa->spacedata.first;
+
+	snode_set_context(snode, CTX_data_scene(C));
 	
 	if(snode->nodetree) {
 		if(snode->treetype==NTREE_SHADER) {
 			Material *ma= (Material *)snode->id;
 			if(ma->use_nodes)
-				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100);
+				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene *)snode->id;
@@ -194,7 +196,7 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 		else if(snode->treetype==NTREE_TEXTURE) {
 			Tex *tex= (Tex *)snode->id;
 			if(tex->use_nodes) {
-				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100);
+				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100, PR_NODE_RENDER);
 			}
 		}
 	}
@@ -245,12 +247,12 @@ static void node_channel_area_draw(const bContext *C, ARegion *ar)
 /* Initialise main area, setting handlers. */
 static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Node", SPACE_NODE, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "Node", SPACE_NODE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
 				PreprocessorDefinitions="WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
 				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -193,7 +193,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -267,8 +267,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -343,7 +344,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
 				PreprocessorDefinitions="WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -418,7 +419,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\SceneGraph;..\..\..\source\blender\blenloader"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="true"
 				RuntimeLibrary="0"

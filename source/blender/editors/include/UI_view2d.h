@@ -128,7 +128,7 @@ struct View2D;
 struct View2DGrid;
 struct View2DScrollers;
 
-struct wmWindowManager;
+struct wmKeyConfig;
 struct bScreen;
 struct ScrArea;
 struct ARegion;
@@ -196,7 +196,7 @@ void UI_view2d_text_cache_draw(struct ARegion *ar);
 
 /* operators */
 void ui_view2d_operatortypes(void);
-void UI_view2d_keymap(struct wmWindowManager *wm);
+void UI_view2d_keymap(struct wmKeyConfig *keyconf);
 
 #endif /* UI_VIEW2D_H */
 

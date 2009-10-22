@@ -47,12 +47,14 @@
 
 #define PREV_RES 128 /* default preview resolution */
 
-int preview_flag = 0;
-
 void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
-	if(dg->node->need_exec)
+	if(dg->node->need_exec) {
 		dg->fn(out, params, dg->node, dg->in, thread);
+
+		if(dg->cdata->do_preview)
+			tex_do_preview(dg->node, params->coord, out);
+	}
 }
 
 void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, short thread)
@@ -97,26 +99,6 @@ float tex_input_value(bNodeStack *in, TexParams *params, short thread)
 	return out[0];
 }
 
-static void init_preview(bNode *node)
-{
-	int xsize = (int)(node->prvr.xmax - node->prvr.xmin);
-	int ysize = (int)(node->prvr.ymax - node->prvr.ymin);
-	
-	if(xsize == 0) {
-		xsize = PREV_RES;
-		ysize = PREV_RES;
-	}
-	
-	if(node->preview==NULL)
-		node->preview= MEM_callocN(sizeof(bNodePreview), "node preview");
-	
-	if(node->preview->rect==NULL) {
-		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(float)*4, "node preview rect");
-		node->preview->xsize= xsize;
-		node->preview->ysize= ysize;
-	}
-}
-
 void params_from_cdata(TexParams *out, TexCallData *in)
 {
 	out->coord = in->coord;
@@ -125,48 +107,19 @@ void params_from_cdata(TexParams *out, TexCallData *in)
 	out->cfra = in->cfra;
 }
 
-void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata)
+void tex_do_preview(bNode *node, float *coord, float *col)
 {
-	int x, y;
-	float *result;
-	bNodePreview *preview;
-	float coord[3] = {0, 0, 0};
-	TexParams params;
-	int resolution;
-	int xsize, ysize;
-	
-	if(!cdata->do_preview)
-		return;
-	
-	if(!(node->typeinfo->flag & NODE_PREVIEW))
-		return;
-	
-	init_preview(node);
-	
-	preview = node->preview;
-	xsize = preview->xsize;
-	ysize = preview->ysize;
-	
-	params.dxt = 0;
-	params.dyt = 0;
-	params.cfra = cdata->cfra;
-	params.coord = coord;
-	
-	resolution = (xsize < ysize) ? xsize : ysize;
-	
-	for(x=0; x<xsize; x++)
-	for(y=0; y<ysize; y++)
-	{
-		params.coord[0] = ((float) x / resolution) * 2 - 1;
-		params.coord[1] = ((float) y / resolution) * 2 - 1;
-		
-		result = preview->rect + 4 * (xsize*y + x);
-		
-		tex_input_rgba(result, ns, &params, cdata->thread);
+	bNodePreview *preview= node->preview;
+
+	if(preview) {
+		int xs= ((coord[0] + 1.0f)*0.5f)*preview->xsize;
+		int ys= ((coord[1] + 1.0f)*0.5f)*preview->ysize;
+
+		nodeAddToPreview(node, col, xs, ys);
 	}
 }
 
-void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn)
+void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *cdata)
 {
 	TexDelegate *dg;
 	if(!out->data)
@@ -175,7 +128,7 @@ void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn)
 	else
 		dg = out->data;
 	
-	
+	dg->cdata= cdata;
 	dg->fn = texfn;
 	dg->node = node;
 	memcpy(dg->in, in, MAX_SOCKET * sizeof(bNodeStack*));
@@ -217,33 +170,23 @@ void ntreeTexExecTree(
 	short thread, 
 	Tex *tex, 
 	short which_output, 
-	int cfra
+	int cfra,
+	int preview
 ){
 	TexResult dummy_texres;
 	TexCallData data;
-	
-	/* 0 means don't care, so just use first */
-	if(which_output == 0)
-		which_output = 1;
 	
 	if(!texres) texres = &dummy_texres;
 	data.coord = coord;
 	data.dxt = dxt;
 	data.dyt = dyt;
 	data.target = texres;
-	data.do_preview = preview_flag;
+	data.do_preview = preview;
 	data.thread = thread;
 	data.which_output = which_output;
 	data.cfra= cfra;
 	
-	preview_flag = 0;
-	
 	ntreeExecTree(nodes, &data, thread);
-}
-
-void ntreeTexSetPreviewFlag(int doit)
-{
-	preview_flag = doit;
 }
 
 char* ntreeTexOutputMenu(bNodeTree *ntree)

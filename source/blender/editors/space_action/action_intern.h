@@ -99,6 +99,8 @@ void ACT_OT_frame_jump(struct wmOperatorType *ot);
 void ACT_OT_snap(struct wmOperatorType *ot);
 void ACT_OT_mirror(struct wmOperatorType *ot);
 
+void ACT_OT_new(struct wmOperatorType *ot);
+
 /* defines for snap keyframes 
  * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
  */
@@ -122,7 +124,7 @@ enum {
 /* ***************************************** */
 /* action_ops.c */
 void action_operatortypes(void);
-void action_keymap(struct wmWindowManager *wm);
+void action_keymap(struct wmKeyConfig *keyconf);
 
 #endif /* ED_ACTION_INTERN_H */
 

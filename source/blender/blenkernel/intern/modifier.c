@@ -35,6 +35,7 @@
 *
 */
 
+#include "stddef.h"
 #include "string.h"
 #include "stdarg.h"
 #include "math.h"
@@ -5164,6 +5165,8 @@ static void clothModifier_copyData(ModifierData *md, ModifierData *target)
 	tclmd->point_cache = NULL;
 	
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
+	if(clmd->sim_parms->effector_weights)
+		tclmd->sim_parms->effector_weights = MEM_dupallocN(clmd->sim_parms->effector_weights);
 	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
 	tclmd->point_cache = BKE_ptcache_copy_list(&tclmd->ptcaches, &clmd->ptcaches);
 	tclmd->clothObject = NULL;
@@ -5185,8 +5188,11 @@ static void clothModifier_freeData(ModifierData *md)
 		
 		cloth_free_modifier_extern (clmd);
 		
-		if(clmd->sim_parms)
+		if(clmd->sim_parms) {
+			if(clmd->sim_parms->effector_weights)
+				MEM_freeN(clmd->sim_parms->effector_weights);
 			MEM_freeN(clmd->sim_parms);
+		}
 		if(clmd->coll_parms)
 			MEM_freeN(clmd->coll_parms);	
 		
@@ -5399,7 +5405,8 @@ static void surfaceModifier_freeData(ModifierData *md)
 			MEM_freeN(surmd->bvhtree);
 		}
 
-		surmd->dm->release(surmd->dm);
+		if(surmd->dm)
+			surmd->dm->release(surmd->dm);
 
 		if(surmd->x)
 			MEM_freeN(surmd->x);
@@ -5486,7 +5493,10 @@ static void surfaceModifier_deformVerts(
 		else
 			surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
 
-		bvhtree_from_mesh_faces(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
+		if(surmd->dm->getNumFaces(surmd->dm))
+			bvhtree_from_mesh_faces(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
+		else
+			bvhtree_from_mesh_edges(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
 	}
 }
 
@@ -5794,6 +5804,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 {
 	DerivedMesh *dm = derivedData, *result;
 	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+	ParticleSimulationData sim;
 	ParticleSystem * psys=0;
 	ParticleData *pa=0, *pars=0;
 	MFace *mface, *orig_mface;
@@ -5828,6 +5839,11 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	if(totpart==0)
 		return derivedData;
 
+	sim.scene = md->scene;
+	sim.ob = pimd->ob;
+	sim.psys = psys;
+	sim.psmd = psys_get_modifier(pimd->ob, psys);
+
 	if(pimd->flag & eParticleInstanceFlag_UseSize) {
 		int p;
 		float *si;
@@ -5855,7 +5871,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	maxvert=totvert*totpart;
 	maxface=totface*totpart;
 
-	psys->lattice=psys_get_lattice(md->scene, ob, psys);
+	psys->lattice=psys_get_lattice(&sim);
 
 	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED){
 
@@ -5905,7 +5921,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 				mv->co[axis] = 0.0;
 			}
 
-			psys_get_particle_on_path(md->scene, pimd->ob, psys,first_particle + i/totvert, &state,1);
+			psys_get_particle_on_path(&sim, first_particle + i/totvert, &state,1);
 
 			Normalize(state.vel);
 			
@@ -5927,7 +5943,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 		}
 		else{
 			state.time=-1.0;
-			psys_get_particle_state(md->scene, pimd->ob, psys, first_particle + i/totvert, &state,1);
+			psys_get_particle_state(&sim, first_particle + i/totvert, &state,1);
 		}	
 
 		QuatMulVecf(state.rot,mv->co);
@@ -6611,6 +6627,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	DerivedMesh *explode, *dm=to_explode;
 	MFace *mf=0;
 	ParticleSettings *part=psmd->psys->part;
+	ParticleSimulationData sim = {scene, ob, psmd->psys, psmd};
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state;
 	EdgeHash *vertpahash;
@@ -6626,7 +6643,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	totvert= dm->getNumVerts(dm);
 	totpart= psmd->psys->totpart;
 
-	timestep= psys_get_timestep(part);
+	timestep= psys_get_timestep(&sim);
 
 	//if(part->flag & PART_GLOB_TIME)
 		cfra=bsystem_time(scene, 0,(float)scene->r.cfra,0.0);
@@ -6669,7 +6686,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	/* getting back to object space */
 	Mat4Invert(imat,ob->obmat);
 
-	psmd->psys->lattice = psys_get_lattice(scene, ob, psmd->psys);
+	psmd->psys->lattice = psys_get_lattice(&sim);
 
 	/* duplicate & displace vertices */
 	ehi= BLI_edgehashIterator_new(vertpahash);
@@ -6697,7 +6714,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
-			psys_get_particle_state(scene, ob, psmd->psys, i, &state,1);
+			psys_get_particle_state(&sim, i, &state, 1);
 
 			vertco=CDDM_get_vert(explode,v)->co;
 			
@@ -6787,7 +6804,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 {
 	DerivedMesh *dm = derivedData;
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
-	ParticleSystemModifierData *psmd=explodeModifier_findPrecedingParticlesystem(ob,md);;
+	ParticleSystemModifierData *psmd=explodeModifier_findPrecedingParticlesystem(ob,md);
 
 	if(psmd){
 		ParticleSystem * psys=psmd->psys;
@@ -7698,6 +7715,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = smoothModifier_initData;
 		mti->copyData = smoothModifier_copyData;
 		mti->requiredDataMask = smoothModifier_requiredDataMask;
+		mti->isDisabled = smoothModifier_isDisabled;
 		mti->deformVerts = smoothModifier_deformVerts;
 		mti->deformVertsEM = smoothModifier_deformVertsEM;
 
@@ -7708,6 +7726,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = castModifier_initData;
 		mti->copyData = castModifier_copyData;
 		mti->requiredDataMask = castModifier_requiredDataMask;
+		mti->isDisabled = castModifier_isDisabled;
 		mti->foreachObjectLink = castModifier_foreachObjectLink;
 		mti->updateDepgraph = castModifier_updateDepgraph;
 		mti->deformVerts = castModifier_deformVerts;
@@ -7938,7 +7957,8 @@ ModifierData *modifier_new(int type)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
-
+	
+	// FIXME: we need to make the name always be unique somehow...
 	strcpy(md->name, mti->name);
 
 	md->type = type;
@@ -7961,6 +7981,15 @@ void modifier_free(ModifierData *md)
 	if (md->error) MEM_freeN(md->error);
 
 	MEM_freeN(md);
+}
+
+void modifier_unique_name(ListBase *modifiers, ModifierData *md)
+{
+	if (modifiers && md) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		
+		BLI_uniquename(modifiers, md, mti->name, '.', offsetof(ModifierData, name), sizeof(md->name));
+	}
 }
 
 int modifier_dependsOnTime(ModifierData *md) 
@@ -8314,7 +8343,7 @@ int modifiers_isDeformed(Scene *scene, Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
-		if(ob==scene->obedit && (md->mode & eModifierMode_Editmode)==0);
+		if(ob->mode==OB_MODE_EDIT && (md->mode & eModifierMode_Editmode)==0);
 		else 
 			if(modifier_isDeformer(md))
 				return 1;
@@ -8330,19 +8359,6 @@ int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 	for (md=ob->modifiers.first; (md && md_seek!=md); md=md->next, i++);
 	if (!md) return -1; /* modifier isnt in the object */
 	return i;
-}
-
-static int modifiers_usesPointCache(Object *ob)
-{
-	ModifierData *md = ob->modifiers.first;
-
-	for (; md; md=md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		if (mti->flags & eModifierTypeFlag_UsesPointCache) {
-			return 1;
-		}
-	}
-	return 0;
 }
 
 void modifier_freeTemporaryData(ModifierData *md)

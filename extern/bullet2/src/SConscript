@@ -4,11 +4,11 @@ import os
 
 Import('env')
 
-defs = 'USE_DOUBLES QHULL _LIB'
+defs = ''
 cflags = []
 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-    defs += ' WIN32 NDEBUG _WINDOWS _LIB'
+    defs += ' WIN32 NDEBUG _WINDOWS'
     #cflags += ['/MT', '/W3', '/GX', '/O2', '/Op']
     cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6', '/O3', '/EHcs']
 elif env['OURPLATFORM']=='win32-mingw':

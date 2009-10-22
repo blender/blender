@@ -50,7 +50,8 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 		RenderData *rd= data;
 		
 		if(scene && (rd->scemode & R_DOCOMP)) {
-			RenderResult *rr= RE_GetResult(RE_GetRender(scene->id.name)); 
+			Render *re= RE_GetRender(scene->id.name);
+			RenderResult *rr= RE_AcquireResultWrite(re); 
 			if(rr) {
 				CompBuf *outbuf, *zbuf=NULL;
 				
@@ -72,21 +73,25 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 					zbuf->malloc= 0;
 					free_compbuf(zbuf);
 				}
-				generate_preview(node, outbuf);
+				generate_preview(data, node, outbuf);
 				
 				/* we give outbuf to rr... */
 				rr->rectf= outbuf->rect;
 				outbuf->malloc= 0;
 				free_compbuf(outbuf);
+
+				RE_ReleaseResult(re);
 				
 				/* signal for imageviewer to refresh (it converts to byte rects...) */
 				BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
 				return;
 			}
+			else
+				RE_ReleaseResult(re);
 		}
 	}
 	if(in[0]->data)
-		generate_preview(node, in[0]->data);
+		generate_preview(data, node, in[0]->data);
 }
 
 bNodeType cmp_node_composite= {

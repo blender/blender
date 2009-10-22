@@ -50,7 +50,7 @@ KX_SceneActuator::KX_SceneActuator(SCA_IObject *gameobj,
 								   KX_KetsjiEngine* ketsjiEngine,
 								   const STR_String& nextSceneName,
 								   KX_Camera* camera)
-								   : SCA_IActuator(gameobj)
+								   : SCA_IActuator(gameobj, KX_ACT_SCENE)
 {
 	m_mode = mode;
 	m_scene  = scene;
@@ -214,7 +214,7 @@ KX_Scene* KX_SceneActuator::FindScene(char * sceneName)
 }
 
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -286,5 +286,7 @@ int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_
 	
 	return PY_SET_ATTR_SUCCESS;
 }
+
+#endif // DISABLE_PYTHON
 
 /* eof */

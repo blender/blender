@@ -355,11 +355,11 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 
 
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
-								   int grab)
+								   int grab, int warp, int restore)
 {
 	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
 	
-	return window->setCursorGrab(grab?true:false);
+	return window->setCursorGrab(grab?true:false, warp?true:false, restore?true:false);
 }
 
 
@@ -628,6 +628,13 @@ GHOST_TSuccess GHOST_SetWindowState(GHOST_WindowHandle windowhandle,
 	return window->setState(state);
 }
 
+
+GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle, GHOST_TUns8 isUnsavedChanges)
+{
+	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+	
+	return window->setModifiedState(isUnsavedChanges);
+}	
 
 
 GHOST_TSuccess GHOST_SetWindowOrder(GHOST_WindowHandle windowhandle,

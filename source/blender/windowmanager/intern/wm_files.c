@@ -195,6 +195,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 
 			/* ensure making new keymaps and set space types */
 			wm->initialized= 0;
+			wm->winactive= NULL;
 			
 			/* only first wm in list has ghostwins */
 			for(win= wm->windows.first; win; win= win->next) {
@@ -202,6 +203,10 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 					
 					if(oldwin->winid == win->winid ) {
 						win->ghostwin= oldwin->ghostwin;
+						win->active= oldwin->active;
+						if(win->active)
+							wm->winactive= win;
+
 						GHOST_SetWindowUserData(win->ghostwin, win);	/* pointer back */
 						oldwin->ghostwin= NULL;
 						
@@ -528,7 +533,7 @@ void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
 		packAll(G.main, reports);
 	}
 	
-	ED_object_exit_editmode(C, 0);
+	ED_object_exit_editmode(C, EM_DO_UNDO);
 
 	do_history(di, reports);
 	

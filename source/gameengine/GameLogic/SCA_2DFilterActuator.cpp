@@ -43,7 +43,7 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
 		int int_arg,
 		RAS_IRasterizer* rasterizer,
 		RAS_IRenderTools* rendertools)
-    : SCA_IActuator(gameobj),
+    : SCA_IActuator(gameobj, KX_ACT_2DFILTER),
      m_type(type),
 	 m_disableMotionBlur(flag),
 	 m_float_arg(float_arg),
@@ -99,11 +99,11 @@ void SCA_2DFilterActuator::SetShaderText(const char *text)
 	m_shaderText = text;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
-
-
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_2DFilterActuator::Type = {
@@ -141,3 +141,5 @@ PyAttributeDef SCA_2DFilterActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("value", 0.0, 100.0, SCA_2DFilterActuator, m_float_arg),
 	{ NULL }	//Sentinel
 };
+
+#endif

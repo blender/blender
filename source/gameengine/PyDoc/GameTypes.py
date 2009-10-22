@@ -4,15 +4,17 @@ Documentation for the GameTypes Module.
 
 @group Base: PyObjectPlus, CValue, CPropValue, SCA_ILogicBrick, SCA_IObject, SCA_ISensor, SCA_IController, SCA_IActuator
 
-@group Object: KX_GameObject, KX_LightObject, KX_Camera
+@group Object: KX_GameObject, KX_LightObject, KX_Camera, BL_ArmatureObject
+
+@group Animation: BL_ArmatureConstraint
 
 @group Mesh: KX_MeshProxy, KX_PolyProxy, KX_VertexProxy
 
 @group Shading: KX_PolygonMaterial, KX_BlenderMaterial, BL_Shader
 
-@group Sensors: SCA_ActuatorSensor, SCA_AlwaysSensor, SCA_DelaySensor, SCA_JoystickSensor, SCA_KeyboardSensor, KX_MouseFocusSensor, SCA_MouseSensor, KX_NearSensor, KX_NetworkMessageSensor, SCA_PropertySensor, KX_RadarSensor, SCA_RandomSensor, KX_RaySensor, KX_TouchSensor
+@group Sensors: SCA_ActuatorSensor, SCA_AlwaysSensor, SCA_DelaySensor, SCA_JoystickSensor, SCA_KeyboardSensor, KX_MouseFocusSensor, SCA_MouseSensor, KX_NearSensor, KX_NetworkMessageSensor, SCA_PropertySensor, KX_RadarSensor, SCA_RandomSensor, KX_RaySensor, KX_TouchSensor, KX_ArmatureSensor
 
-@group Actuators: SCA_2DFilterActuator, BL_ActionActuator, KX_SCA_AddObjectActuator, KX_CameraActuator, KX_ConstraintActuator, KX_SCA_DynamicActuator, KX_SCA_EndObjectActuator, KX_GameActuator, KX_IpoActuator, KX_NetworkMessageActuator, KX_ObjectActuator, KX_ParentActuator, SCA_PropertyActuator, SCA_RandomActuator, KX_SCA_ReplaceMeshActuator, KX_SceneActuator, BL_ShapeActionActuator, KX_SoundActuator, KX_StateActuator, KX_TrackToActuator, KX_VisibilityActuator
+@group Actuators: SCA_2DFilterActuator, BL_ActionActuator, BL_ArmatureActuator, KX_SCA_AddObjectActuator, KX_CameraActuator, KX_ConstraintActuator, KX_SCA_DynamicActuator, KX_SCA_EndObjectActuator, KX_GameActuator, KX_IpoActuator, KX_NetworkMessageActuator, KX_ObjectActuator, KX_ParentActuator, SCA_PropertyActuator, SCA_RandomActuator, KX_SCA_ReplaceMeshActuator, KX_SceneActuator, BL_ShapeActionActuator, KX_SoundActuator, KX_StateActuator, KX_TrackToActuator, KX_VisibilityActuator
 
 @group Controllers: SCA_ANDController, SCA_NANDController, SCA_NORController, SCA_ORController, SCA_PythonController, SCA_XNORController, SCA_XORController
 """
@@ -5686,6 +5688,332 @@ class KX_Camera(KX_GameObject):
 		@return: the first object hit or None if no object or object does not match prop
 		"""
 
+class BL_ArmatureObject(KX_GameObject):
+	"""
+	An armature object.
+	
+	@ivar constraints: The list of armature constraint defined on this armature
+	                   Elements of the list can be accessed by index or string.
+	                   The key format for string access is '<bone_name>:<constraint_name>'
+	@type constraints: list of L{BL_ArmatureConstraint}
+	@ivar channels: The list of armature channels. 
+		Elements of the list can be accessed by index or name the bone. 
+	@type channels: list of L{BL_ArmatureChannel}
+	"""
+	
+	def update():
+		"""
+		Ensures that the armature will be updated on next graphic frame.
+		
+		This action is unecessary if a KX_ArmatureActuator with mode run is active
+		or if an action is playing. Use this function in other cases. It must be called
+		on each frame to ensure that the armature is updated continously.
+		"""
+		
+class BL_ArmatureActuator(SCA_IActuator):
+	"""
+	Armature Actuators change constraint condition on armatures.
+	
+	@group Constants: KX_ACT_ARMATURE_RUN, KX_ACT_ARMATURE_ENABLE, KX_ACT_ARMATURE_DISABLE, KX_ACT_ARMATURE_SETTARGET, KX_ACT_ARMATURE_SETWEIGHT
+	@ivar KX_ACT_ARMATURE_RUN: see type
+	@ivar KX_ACT_ARMATURE_ENABLE: see type
+	@ivar KX_ACT_ARMATURE_DISABLE: see type
+	@ivar KX_ACT_ARMATURE_SETTARGET: see type
+	@ivar KX_ACT_ARMATURE_SETWEIGHT: see type
+ 	@ivar type: The type of action that the actuator executes when it is active.
+
+				KX_ACT_ARMATURE_RUN(0): just make sure the armature will be updated on the next graphic frame
+				This is the only persistent mode of the actuator: it executes automatically once per frame until stopped by a controller
+
+				KX_ACT_ARMATURE_ENABLE(1): enable the constraint.
+
+				KX_ACT_ARMATURE_DISABLE(2): disable the constraint (runtime constraint values are not updated).
+
+				KX_ACT_ARMATURE_SETTARGET(3): change target and subtarget of constraint
+
+				KX_ACT_ARMATURE_SETWEIGHT(4): change weight of (only for IK constraint)
+	@type type: integer
+	@ivar constraint: The constraint object this actuator is controlling.
+	@type constraint: L{BL_ArmatureConstraint}
+	@ivar target: The object that this actuator will set as primary target to the constraint it controls
+	@type target: L{KX_GameObject}
+	@ivar subtarget: The object that this actuator will set as secondary target to the constraint it controls.
+	                 Currently, the only secondary target is the pole target for IK constraint.
+	@type subtarget: L{KX_GameObject}
+	@ivar weight: The weight this actuator will set on the constraint it controls.
+	              Currently only the IK constraint has a weight. It must be a value between 0 and 1.
+	              A weight of 0 disables a constraint while still updating constraint runtime values (see L{BL_ArmatureConstraint})
+	@type weight: float
+	"""
+
+class KX_ArmatureSensor(SCA_ISensor):
+	"""
+	Armature sensor detect conditions on armatures.
+	
+	@group Constants: KX_ARMSENSOR_STATE_CHANGED, KX_ARMSENSOR_LIN_ERROR_BELOW, KX_ARMSENSOR_LIN_ERROR_ABOVE, KX_ARMSENSOR_ROT_ERROR_BELOW, KX_ARMSENSOR_ROT_ERROR_ABOVE
+	@ivar KX_ARMSENSOR_STATE_CHANGED: see type
+ 	@ivar KX_ARMSENSOR_LIN_ERROR_BELOW: see type
+	@ivar KX_ARMSENSOR_LIN_ERROR_ABOVE: see type
+	@ivar KX_ARMSENSOR_ROT_ERROR_BELOW: see type
+	@ivar KX_ARMSENSOR_ROT_ERROR_ABOVE: see type
+	@ivar type: The type of measurement that the sensor make when it is active.
+
+				KX_ARMSENSOR_STATE_CHANGED(0): detect that the constraint is changing state (active/inactive)
+
+				KX_ARMSENSOR_LIN_ERROR_BELOW(1): detect that the constraint linear error is above a threshold
+
+				KX_ARMSENSOR_LIN_ERROR_ABOVE(2): detect that the constraint linear error is below a threshold
+
+				KX_ARMSENSOR_ROT_ERROR_BELOW(3): detect that the constraint rotation error is above a threshold
+
+				KX_ARMSENSOR_ROT_ERROR_ABOVE(4): detect that the constraint rotation error is below a threshold
+	@type type: integer
+	@ivar constraint: The constraint object this sensor is watching.
+	@type constraint: L{BL_ArmatureConstraint}
+	@ivar value: The threshold used in the comparison with the constraint error
+	             The linear error is only updated on CopyPose/Distance IK constraint with iTaSC solver
+	             The rotation error is only updated on CopyPose+rotation IK constraint with iTaSC solver
+	             The linear error on CopyPose is always >= 0: it is the norm of the distance between the target and the bone
+	             The rotation error on CopyPose is always >= 0: it is the norm of the equivalent rotation vector between the bone and the target orientations
+	             The linear error on Distance can be positive if the distance between the bone and the target is greater than the desired distance, and negative if the distance is smaller
+	@type value: float
+	"""
+
+class BL_ArmatureConstraint(PyObjectPlus):
+	"""
+	Proxy to Armature Constraint. Allows to change constraint on the fly.
+	Obtained through L{BL_ArmatureObject}.constraints.
+	Note: not all armature constraints are supported in the GE.
+	
+	@group Constants: CONSTRAINT_TYPE_TRACKTO, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_ROTLIKE, CONSTRAINT_TYPE_LOCLIKE, CONSTRAINT_TYPE_MINMAX, CONSTRAINT_TYPE_SIZELIKE, CONSTRAINT_TYPE_LOCKTRACK, CONSTRAINT_TYPE_STRETCHTO, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_TRANSFORM, CONSTRAINT_TYPE_DISTLIMIT,CONSTRAINT_IK_COPYPOSE, CONSTRAINT_IK_DISTANCE,CONSTRAINT_IK_MODE_INSIDE, CONSTRAINT_IK_MODE_OUTSIDE,CONSTRAINT_IK_MODE_ONSURFACE,CONSTRAINT_IK_FLAG_TIP,CONSTRAINT_IK_FLAG_ROT, CONSTRAINT_IK_FLAG_STRETCH, CONSTRAINT_IK_FLAG_POS
+	@ivar CONSTRAINT_TYPE_TRACKTO: see type
+	@ivar CONSTRAINT_TYPE_KINEMATIC: see type
+	@ivar CONSTRAINT_TYPE_ROTLIKE: see type
+	@ivar CONSTRAINT_TYPE_LOCLIKE: see type
+	@ivar CONSTRAINT_TYPE_MINMAX: see type
+	@ivar CONSTRAINT_TYPE_SIZELIKE: see type
+	@ivar CONSTRAINT_TYPE_LOCKTRACK: see type
+	@ivar CONSTRAINT_TYPE_STRETCHTO: see type
+	@ivar CONSTRAINT_TYPE_CLAMPTO: see type
+	@ivar CONSTRAINT_TYPE_TRANSFORM: see type
+	@ivar CONSTRAINT_TYPE_DISTLIMIT: see type
+	@ivar CONSTRAINT_IK_COPYPOSE: see ik_type
+	@ivar CONSTRAINT_IK_DISTANCE: see ik_type
+	@ivar CONSTRAINT_IK_MODE_INSIDE: see ik_mode
+	@ivar CONSTRAINT_IK_MODE_OUTSIDE: see ik_mode
+	@ivar CONSTRAINT_IK_MODE_ONSURFACE: see ik_mode
+	@ivar CONSTRAINT_IK_FLAG_TIP: see ik_flag
+	@ivar CONSTRAINT_IK_FLAG_ROT: see ik_flag
+	@ivar CONSTRAINT_IK_FLAG_STRETCH: see ik_flag
+	@ivar CONSTRAINT_IK_FLAG_POS: see ik_flag
+	@ivar type: Type of constraint, read-only
+	@type type: integer, one of CONSTRAINT_TYPE_ constant
+	@ivar name: Name of constraint constructed as <bone_name>:<constraint_name>
+	            This name is also the key subscript on L{BL_ArmatureObject}.constraints list
+	@type name: string
+	@ivar enforce: fraction of constraint effect that is enforced. Between 0 and 1.
+	@type enforce: float
+	@ivar headtail: position of target between head and tail of the target bone: 0=head, 1=tail
+	                Only used if the target is a bone (i.e target object is an armature)
+	@type headtail: float
+	@ivar lin_error: runtime linear error (in Blender unit) on constraint at the current frame.
+	                 This is a runtime value updated on each frame by the IK solver. Only available on IK constraint and iTaSC solver.
+	@type lin_error: float
+	@ivar rot_error: runtime rotation error (in radiant) on constraint at the current frame.
+	                 This is a runtime value updated on each frame by the IK solver. Only available on IK constraint and iTaSC solver.
+	                 It is only set if the constraint has a rotation part, for example, a CopyPose+Rotation IK constraint.
+	@type rot_error: float
+	@ivar target: Primary target object for the constraint. The position of this object in the GE will be used as target for the constraint.
+	@type target: L{KX_GameObject}
+	@ivar subtarget: Secondary target object for the constraint. The position of this object in the GE will be used as secondary target for the constraint.
+	                 Currently this is only used for pole target on IK constraint.
+	@type subtarget: L{KX_GameObject}
+	@ivar active: True if the constraint is active.
+	              Note: an inactive constraint does not update lin_error and rot_error.
+	@type active: boolean
+	@ivar ik_weight: Weight of the IK constraint between 0 and 1. 
+	                 Only defined for IK constraint.
+	@type ik_weight: float
+	@ivar ik_type: Type of IK constraint, read-only
+
+				   CONSTRAINT_IK_COPYPOSE(0): constraint is trying to match the position and eventually the rotation of the target.
+
+				   CONSTRAINT_IK_DISTANCE(1): constraint is maintaining a certain distance to target subject to ik_mode
+	@type ik_type: integer
+	@ivar ik_flag: Combination of IK constraint option flags, read-only
+
+				   CONSTRAINT_IK_FLAG_TIP(1) : set when the constraint operates on the head of the bone and not the tail
+
+				   CONSTRAINT_IK_FLAG_ROT(2) : set when the constraint tries to match the orientation of the target
+
+				   CONSTRAINT_IK_FLAG_STRETCH(16) : set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
+
+				   CONSTRAINT_IK_FLAG_POS(32) : set when the constraint tries to match the position of the target
+	@type ik_flag: integer
+	@ivar ik_dist: Distance the constraint is trying to maintain with target, only used when ik_type=CONSTRAINT_IK_DISTANCE
+	@type ik_dist: float
+	@ivar ik_mode: Additional mode for IK constraint. Currently only used for Distance constraint:
+
+				   CONSTRAINT_IK_MODE_INSIDE(0) : the constraint tries to keep the bone within ik_dist of target
+
+				   CONSTRAINT_IK_MODE_OUTSIDE(1) : the constraint tries to keep the bone outside ik_dist of the target
+
+				   CONSTRAINT_IK_MODE_ONSURFACE(2) : the constraint tries to keep the bone exactly at ik_dist of the target
+	@type ik_mode: integer
+	"""
+
+class BL_ArmatureChannel(PyObjectPlus):
+	"""
+	Proxy to armature pose channel. Allows to read and set armature pose.
+	The attributes are identical to RNA attributes, but mostly in read-only mode.
+	
+	@group Constants: PCHAN_ROT_QUAT, PCHAN_ROT_XYZ, PCHAN_ROT_XZY, PCHAN_ROT_YXZ, PCHAN_ROT_YZX, PCHAN_ROT_ZXY, PCHAN_ROT_ZYX
+	@ivar PCHAN_ROT_QUAT: see rotation_mode
+	@ivar PCHAN_ROT_XYZ: see rotation_mode
+	@ivar PCHAN_ROT_XZY: see rotation_mode
+	@ivar PCHAN_ROT_YXZ: see rotation_mode
+	@ivar PCHAN_ROT_YZX: see rotation_mode
+	@ivar PCHAN_ROT_ZXY: see rotation_mode
+	@ivar PCHAN_ROT_ZYX: see rotation_mode
+	@ivar name: channel name (=bone name), read-only.
+	@type name: string
+	@ivar bone: return the bone object corresponding to this pose channel, read-only.
+	@type bone: L{BL_ArmatureBone}
+	@ivar parent: return the parent channel object, None if root channel, read-only.
+	@type parent: L{BL_ArmatureChannel}
+	@ivar has_ik: true if the bone is part of an active IK chain, read-only.
+		This flag is not set when an IK constraint is defined but not enabled (miss target information for example)
+	@type has_ik: boolean
+	@ivar ik_dof_x: true if the bone is free to rotation in the X axis, read-only.
+	@type ik_dof_x: boolean
+	@ivar ik_dof_y: true if the bone is free to rotation in the Y axis, read-only.
+	@type ik_dof_y: boolean
+	@ivar ik_dof_z: true if the bone is free to rotation in the Z axis, read-only.
+	@type ik_dof_z: boolean
+	@ivar ik_limit_x: true if a limit is imposed on X rotation, read-only.
+	@type ik_limit_x: boolean
+	@ivar ik_limit_y: true if a limit is imposed on Y rotation, read-only.
+	@type ik_limit_y: boolean
+	@ivar ik_limit_z: true if a limit is imposed on Z rotation, read-only.
+	@type ik_limit_z: boolean
+	@ivar ik_rot_control: true if channel rotation should applied as IK constraint, read-only.
+	@type ik_rot_control: boolean
+	@ivar ik_lin_control: true if channel size should applied as IK constraint, read-only.
+	@type ik_lin_control: boolean
+	@ivar location: displacement of the bone head in armature local space, read-write.
+		You can only move a bone if it is unconnected to its parent. An action playing on the armature may change the value. An IK chain does not update this value, see joint_rotation.
+		Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see L{BL_ArmatureObject.update})
+	@type location: vector [X,Y,Z]
+	@ivar scale: scale of the bone relative to its parent, read-write.
+		An action playing on the armature may change the value.  An IK chain does not update this value, see joint_rotation.
+		Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see L{BL_ArmatureObject.update})
+	@type scale: vector [sizeX, sizeY, sizeZ]
+	@ivar rotation: rotation of the bone relative to its parent expressed as a quaternion, read-write.
+		This field is only used if rotation_mode is 0. An action playing on the armature may change the value.  An IK chain does not update this value, see joint_rotation.
+		Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see L{BL_ArmatureObject.update})
+	@type rotation: vector [qr, qi, qj, qk]
+	@ivar euler_rotation: rotation of the bone relative to its parent expressed as a set of euler angles, read-write.
+		This field is only used if rotation_mode is > 0. You must always pass the angles in [X,Y,Z] order; the order of applying the angles to the bone depends on rotation_mode. An action playing on the armature may change this field.  An IK chain does not update this value, see joint_rotation.
+		Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see L{BL_ArmatureObject.update})
+	@type euler_rotation: vector [X, Y, Z]
+	@ivar rotation_mode: method of updating the bone rotation, read-write.
+		Use the following constants (euler mode are named as in BLender UI but the actual axis order is reversed):
+		  - PCHAN_ROT_QUAT(0) : use quaternioin in rotation attribute to update bone rotation
+		  - PCHAN_ROT_XYZ(1) : use euler_rotation and apply angles on bone's Z, Y, X axis successively
+		  - PCHAN_ROT_XZY(2) : use euler_rotation and apply angles on bone's Y, Z, X axis successively
+		  - PCHAN_ROT_YXZ(3) : use euler_rotation and apply angles on bone's Z, X, Y axis successively
+		  - PCHAN_ROT_YZX(4) : use euler_rotation and apply angles on bone's X, Z, Y axis successively
+		  - PCHAN_ROT_ZXY(5) : use euler_rotation and apply angles on bone's Y, X, Z axis successively
+		  - PCHAN_ROT_ZYX(6) : use euler_rotation and apply angles on bone's X, Y, Z axis successively
+	@type rotation_mode: integer
+	@ivar channel_matrix: pose matrix in bone space (deformation of the bone due to action, constraint, etc), Read-only.
+		This field is updated after the graphic render, it represents the current pose.
+	@type channel_matrix: matrix [4][4]
+	@ivar pose_matrix: pose matrix in armature space, read-only,
+		This field is updated after the graphic render, it represents the current pose.
+	@type pose_matrix: matrix [4][4]
+	@ivar pose_head: position of bone head in armature space, read-only.
+	@type pose_head: vector [x, y, z]
+	@ivar pose_tail: position of bone tail in armature space, read-only.
+	@type pose_tail: vector [x, y, z]
+	@ivar ik_min_x: minimum value of X rotation in degree (<= 0) when X rotation is limited (see ik_limit_x), read-only.
+	@type ik_min_x: float
+	@ivar ik_max_x: maximum value of X rotation in degree (>= 0) when X rotation is limited (see ik_limit_x), read-only.
+	@type ik_max_x: float
+	@ivar ik_min_y: minimum value of Y rotation in degree (<= 0) when Y rotation is limited (see ik_limit_y), read-only.
+	@type ik_min_y: float
+	@ivar ik_max_y: maximum value of Y rotation in degree (>= 0) when Y rotation is limited (see ik_limit_y), read-only.
+	@type ik_max_y: float
+	@ivar ik_min_z: minimum value of Z rotation in degree (<= 0) when Z rotation is limited (see ik_limit_z), read-only.
+	@type ik_min_z: float
+	@ivar ik_max_z: maximum value of Z rotation in degree (>= 0) when Z rotation is limited (see ik_limit_z), read-only.
+	@type ik_max_z: float
+	@ivar ik_stiffness_x: bone rotation stiffness in X axis, read-only
+	@type ik_stiffness_x: float between 0 and 1
+	@ivar ik_stiffness_y: bone rotation stiffness in Y axis, read-only
+	@type ik_stiffness_y: float between 0 and 1
+	@ivar ik_stiffness_z: bone rotation stiffness in Z axis, read-only
+	@type ik_stiffness_z: float between 0 and 1
+	@ivar ik_stretch: ratio of scale change that is allowed, 0=bone can't change size, read-only.
+	@type ik_stretch: float
+	@ivar ik_rot_weight: weight of rotation constraint when ik_rot_control is set, read-write.
+	@type ik_rot_weight: float between 0 and 1
+	@ivar ik_lin_weight: weight of size constraint when ik_lin_control is set, read-write.
+	@type ik_lin_weight: float between 0 and 1
+	@ivar joint_rotation: control bone rotation in term of joint angle (for robotic applications), read-write.
+		When writing to this attribute, you pass a [x, y, z] vector and an appropriate set of euler angles or quaternion is calculated according to the rotation_mode.
+		When you read this attribute, the current pose matrix is converted into a [x, y, z] vector representing the joint angles.
+		The value and the meaning of the x, y, z depends on the ik_dof_ attributes:
+		  - 1DoF joint X, Y or Z: the corresponding x, y, or z value is used an a joint angle in radiant
+		  - 2DoF joint X+Y or Z+Y: treated as 2 successive 1DoF joints: first X or Z, then Y. The x or z value is used as a joint angle in radiant along the X or Z axis, followed by a rotation along the new Y axis of y radiants.
+		  - 2DoF joint X+Z: treated as a 2DoF joint with rotation axis on the X/Z plane. The x and z values are used as the coordinates of the rotation vector in the X/Z plane.
+		  - 3DoF joint X+Y+Z: treated as a revolute joint. The [x,y,z] vector represents the equivalent rotation vector to bring the joint from the rest pose to the new pose.
+
+		Notes:
+		  - The bone must be part of an IK chain if you want to set the ik_dof_ attributes via the UI, but this will interfere with this attribute since the IK solver will overwrite the pose. You can stay in control of the armature if you create an IK constraint but do not finalize it (e.g. don't set a target): the IK solver will not run but the IK panel will show up on the UI for each bone in the chain.
+		  - [0,0,0] always corresponds to the rest pose. 
+		  - You must request the armature pose to update and wait for the next graphic frame to see the effect of setting this attribute (see L{BL_ArmatureObject.update}). 
+		  - You can read the result of the calculation in rotation or euler_rotation attributes after setting this attribute.
+	@type joint_rotation: vector [x, y, z]
+	"""
+	
+class BL_ArmatureBone(PyObjectPlus):
+	"""
+	Proxy to Blender bone structure. All fields are read-only and comply to RNA names.
+	All space attribute correspond to the rest pose.
+	
+	@ivar name: bone name
+	@type name: string
+	@ivar connected: true when the bone head is struck to the parent's tail
+	@type connected: boolean
+	@ivar hinge: true when bone doesn't inherit rotation or scale from parent bone
+	@type hinge: boolean
+	@ivar inherit_scale: true when bone inherits scaling from parent bone
+	@type inherit_scale: boolean
+	@ivar bbone_segments: number of B-bone segments
+	@type bbone_segments: integer
+	@ivar roll: bone rotation around head-tail axis
+	@type roll: float
+	@ivar head: location of head end of the bone in parent bone space
+	@type head: vector [x, y, z]
+	@ivar tail: location of head end of the bone in parent bone space
+	@type tail: vector [x, y, z]
+	@ivar length: bone length
+	@type length: float
+	@ivar arm_head: location of head end of the bone in armature space
+	@type arm_head: vector [x, y, z]
+	@ivar arm_tail: location of tail end of the bone in armature space
+	@type arm_tail: vector [x, y, z]
+	@ivar arm_mat: matrix of the bone head in armature space
+		This matrix has no scale part.
+	@type arm_mat: matrix [4][4]
+	@ivar bone_mat: rotation matrix of the bone in parent bone space.
+	@type bone_mat: matrix [3][3]
+	@ivar parent: parent bone, or None for root bone
+	@type parent: L{BL_ArmatureBone}
+	@ivar children: list of bone's children
+	@type children: list of L{BL_ArmatureBone}
+	"""
 # Util func to extract all attrs
 """
 import types

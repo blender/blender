@@ -54,6 +54,7 @@ EnumPropertyItem beztriple_interpolation_mode_items[] = {
 EnumPropertyItem beztriple_keyframe_type_items[] = {
 		{BEZT_KEYTYPE_KEYFRAME, "KEYFRAME", 0, "Keyframe", ""},
 		{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", ""},
+		{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -470,7 +471,8 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	/* number values */
 	prop= RNA_def_property(srna, "text_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fsize");
-	RNA_def_property_range(prop, 0.1f, 10.0f);
+	RNA_def_property_range(prop, 0.0001f, 10000.0f);
+	RNA_def_property_ui_range(prop, 0.01, 10, 1, 1);
 	RNA_def_property_ui_text(prop, "Font size", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	

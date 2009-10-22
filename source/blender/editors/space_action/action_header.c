@@ -68,7 +68,7 @@
 #include "action_intern.h"
 
 enum {
-	B_REDR= 0,
+	B_REDR= 1,
 } eActHeader_Events;
 
 /* ********************************************************* */
@@ -189,6 +189,7 @@ static void act_edit_keytypesmenu(bContext *C, uiLayout *layout, void *arg_unuse
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_KEYFRAME);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_BREAKDOWN);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_keyframe_type", "type", BEZT_KEYTYPE_EXTREME);
 }
 
 static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
@@ -253,66 +254,8 @@ static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void do_action_buttons(bContext *C, void *arg, int event)
 {
-	switch (event) {
-		case B_REDR:
-			ED_area_tag_redraw(CTX_wm_area(C));
-			break;
-	}
-}
-
-static void saction_idpoin_handle(bContext *C, ID *id, int event)
-{
-	SpaceAction *saction= CTX_wm_space_action(C);
-	Object *obact= CTX_data_active_object(C);
-	
-	printf("actedit do id: \n");
-	
-	switch (event) {
-		case UI_ID_BROWSE:
-			printf("browse \n");
-		case UI_ID_DELETE:
-			printf("browse or delete \n");
-			saction->action= (bAction*)id;
-			
-			/* we must set this action to be the one used by active object (if not pinned) */
-			if (saction->pin == 0) {
-				AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
-				
-				/* set action */
-				printf("\tset action \n");
-				adt->action= saction->action;
-				adt->action->id.us++;
-			}
-			
-			ED_area_tag_redraw(CTX_wm_area(C));
-			ED_undo_push(C, "Assign Action");
-			break;
-		case UI_ID_RENAME:
-			printf("actedit rename \n");
-			break;
-		case UI_ID_ADD_NEW:
-			printf("actedit addnew \n");
-			if (saction->pin == 0) {
-				AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
-				
-				/* set new action */
-				// XXX need to restore behaviour to copy old actions...
-				printf("\tset new action \n");
-				adt->action= saction->action= add_empty_action("Action");
-			}
-			break;
-		case UI_ID_OPEN:
-			printf("actedit open \n");
-			/* XXX not implemented */
-			break;
-		case UI_ID_ALONE:
-			printf("actedit alone \n");
-			/* XXX not implemented */
-			break;
-		case UI_ID_PIN:
-			printf("actedit pin \n");
-			break;
-	}
+	ED_area_tag_refresh(CTX_wm_area(C));
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 void action_header_buttons(const bContext *C, ARegion *ar)
@@ -383,35 +326,28 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco += (90 + 8);
 	
+	/* SUMMARY CHANNEL */
+	uiDefIconTextButBitI(block, TOG, ADS_FILTER_SUMMARY, B_REDR, ICON_BORDERMOVE, "Summary", xco,yco,XIC*4,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Include DopeSheet summary row"); // TODO: needs a better icon
+	xco += (XIC*4.5);
+	
 	/*if (ac.data)*/ 
 	{
 		/* MODE-DEPENDENT DRAWING */
 		if (saction->mode == SACTCONT_DOPESHEET) {
 			/* FILTERING OPTIONS */
-			xco -= 10;
-			
-			//uiBlockBeginAlign(block);
-				uiDefIconButBitI(block, TOG, ADS_FILTER_ONLYSEL, B_REDR, ICON_RESTRICT_SELECT_OFF,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Only display selected Objects");
-			//uiBlockEndAlign(block);
-			xco += 5;
-			
-			uiBlockBeginAlign(block);
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSCE, B_REDR, ICON_SCENE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Scene Animation");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOWOR, B_REDR, ICON_WORLD_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display World Animation");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSHAPEKEYS, B_REDR, ICON_SHAPEKEY_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display ShapeKeys");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMAT, B_REDR, ICON_MATERIAL_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Materials");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Lamps");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Cameras");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Curves");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMBA, B_REDR, ICON_META_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display MetaBalls");
-				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Particles");
-			uiBlockEndAlign(block);
-			xco += 30;
+			xco -= XIC; // XXX first button incurs this offset...
+			xco= ANIM_headerUI_standard_buttons(C, &saction->ads, block, xco, yco);
 		}
 		else if (saction->mode == SACTCONT_ACTION) {
-			/* NAME ETC  */
-			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)saction->action, ID_AC, &saction->pin, xco, yco,
-				saction_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE|UI_ID_FAKE_USER|UI_ID_ALONE|UI_ID_PIN);
+			uiLayout *layout;
+			bScreen *sc= CTX_wm_screen(C);
+			PointerRNA ptr;
+			
+			RNA_pointer_create(&sc->id, &RNA_SpaceDopeSheetEditor, saction, &ptr);
+			
+			layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, 20+3, 20, 1, U.uistyles.first);
+			uiTemplateID(layout, (bContext*)C, &ptr, "action", "ACT_OT_new", NULL, NULL);
+			uiBlockLayoutResolve(block, &xco, NULL);
 			
 			xco += 8;
 		}
@@ -443,7 +379,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		xco += (XIC + 8);
 	}
 
-	/* always as last  */
+	/* always as last */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);

@@ -1078,7 +1078,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
+	RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
 }
 
 /******************* set radius operator ******************/
@@ -2242,6 +2242,7 @@ static short findnearestNurbvert(ViewContext *vc, short sel, int mval[2], Nurb *
 	data.mval[0] = mval[0];
 	data.mval[1] = mval[1];
 
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 	nurbs_foreachScreenVert(vc, findnearestNurbvert__doClosest, &data);
 
 	*nurb = data.nurb;
@@ -4681,7 +4682,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(scene);	// because we removed object(s), call before editmode!
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
-	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR);
+	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 

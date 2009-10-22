@@ -34,6 +34,7 @@
 
 #include <signal.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef WIN32
 // don't show stl-warnings
@@ -89,6 +90,8 @@ extern "C" {
 #include "DNA_scene_types.h"
 	/***/
 
+#include "AUD_C-API.h"
+
 //XXX #include "BSE_headerbuttons.h"
 #include "BKE_context.h"
 #include "../../blender/windowmanager/WM_types.h"
@@ -135,6 +138,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 
 	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
 	BLI_strncpy(oldsce, G.sce, sizeof(oldsce));
+#ifndef DISABLE_PYTHON
 	resetGamePythonPath(); // need this so running a second time wont use an old blendfiles path
 	setGamePythonPath(G.sce);
 
@@ -143,6 +147,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 	
 	PyObject *pyGlobalDict = PyDict_New(); /* python utility storage, spans blend file loading */
+#endif
 	
 	bgl::InitExtensions(true);
 
@@ -204,8 +209,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 
+#ifndef DISABLE_PYTHON
 		CValue::SetDeprecationWarnings(nodepwarnings);
-
+#endif
 
 		//lock frame and camera enabled - storing global values
 		int tmp_lay= scene->lay;
@@ -286,7 +292,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 				if(blenderdata) {
 					BLI_strncpy(G.sce, blenderdata->name, sizeof(G.sce));
 					BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
+#ifndef DISABLE_PYTHON
 					setGamePythonPath(G.sce);
+#endif
 				}
 			}
 			// else forget it, we can't find it
@@ -363,10 +371,11 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 				networkdevice,
 				startscenename,
 				blscene);
-			
+
+#ifndef DISABLE_PYTHON
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
-			ketsjiengine->SetPythonDictionary(dictionaryobject);
+			ketsjiengine->SetPyNamespace(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
@@ -381,17 +390,22 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 #ifdef WITH_FFMPEG
 			initVideoTexture();
 #endif
+#endif // DISABLE_PYTHON
 
 			//initialize Dome Settings
 			if(blscene->gm.stereoflag == STEREO_DOME)
 				ketsjiengine->InitDome(blscene->gm.dome.res, blscene->gm.dome.mode, blscene->gm.dome.angle, blscene->gm.dome.resbuf, blscene->gm.dome.tilt, blscene->gm.dome.warptext);
+
+			// initialize 3D Audio Settings
+			AUD_set3DSetting(AUD_3DS_SPEED_OF_SOUND, blscene->audio.speed_of_sound);
+			AUD_set3DSetting(AUD_3DS_DOPPLER_FACTOR, blscene->audio.doppler_factor);
+			AUD_set3DSetting(AUD_3DS_DISTANCE_MODEL, blscene->audio.distance_model);
 
 			if (sceneconverter)
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
 					startscene,
-					dictionaryobject,
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
@@ -461,7 +475,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 
 
 				// when exiting the mainloop
-				
+#ifndef DISABLE_PYTHON
 				// Clears the dictionary by hand:
 				// This prevents, extra references to global variables
 				// inside the GameLogic dictionary when the python interpreter is finalized.
@@ -481,9 +495,11 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 				}
 				Py_DECREF(gameLogic_keys_new);
 				gameLogic_keys_new = NULL;
-				
+#endif
 				ketsjiengine->StopEngine();
+#ifndef DISABLE_PYTHON
 				exitGamePythonScripting();
+#endif
 				networkdevice->Disconnect();
 			}
 			if (sceneconverter)
@@ -491,9 +507,11 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 				delete sceneconverter;
 				sceneconverter = NULL;
 			}
-			
+
+#ifndef DISABLE_PYTHON
 			Py_DECREF(gameLogic_keys);
 			gameLogic_keys = NULL;
+#endif
 		}
 		//lock frame and camera enabled - restoring global values
 		if (v3d->scenelock==0){
@@ -548,14 +566,17 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	
-	Py_DECREF(pyGlobalDict);
-	
 	if (bfd) BLO_blendfiledata_free(bfd);
 
 	BLI_strncpy(G.sce, oldsce, sizeof(G.sce));
 
+#ifndef DISABLE_PYTHON
+	Py_DECREF(pyGlobalDict);
+
 	// Release Python's GIL
 	PyGILState_Release(gilstate);
+#endif
+
 }
 
 extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
@@ -574,9 +595,11 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 
 	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
 
+#ifndef DISABLE_PYTHON
 	// Acquire Python's GIL (global interpreter lock)
 	// so we can safely run Python code and API calls
 	PyGILState_STATE gilstate = PyGILState_Ensure();
+#endif
 
 	bgl::InitExtensions(true);
 
@@ -673,9 +696,10 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 				startscenename,
 				blscene);
 
+#ifndef DISABLE_PYTHON
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
-			ketsjiengine->SetPythonDictionary(dictionaryobject);
+			ketsjiengine->SetPyNamespace(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
@@ -687,13 +711,13 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 #ifdef WITH_FFMPEG
 			initVideoTexture();
 #endif
+#endif // DISABLE_PYTHON
 
 			if (sceneconverter)
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
 					startscene,
-					dictionaryobject,
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
@@ -771,6 +795,8 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 
+#ifndef DISABLE_PYTHON
 	// Release Python's GIL
 	PyGILState_Release(gilstate);
+#endif
 }

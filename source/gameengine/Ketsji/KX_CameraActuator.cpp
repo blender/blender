@@ -55,7 +55,7 @@ KX_CameraActuator::KX_CameraActuator(
 	float maxhght,
 	bool  xytog
 ): 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_CAMERA),
 	m_ob (obj),
 	m_height (hght),
 	m_minHeight (minhght),
@@ -350,6 +350,8 @@ CValue *KX_CameraActuator::findObject(char *obName)
 	return NULL;
 }
 
+#ifndef DISABLE_PYTHON
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -415,5 +417,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 	
 	return PY_SET_ATTR_SUCCESS;
 }
+
+#endif // DISABLE_PYTHON
 
 /* eof */

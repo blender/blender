@@ -2200,7 +2200,7 @@ int VecLen( int *v1, int *v2)
 	return (int)floor(sqrt(x*x+y*y+z*z));
 }
 
-float VecLenf( float *v1, float *v2)
+float VecLenf(float v1[3], float v2[3])
 {
 	float x,y,z;
 
@@ -2236,21 +2236,38 @@ void VecMulVecf(float *v, float *v1, float *v2)
 	v[2] = v1[2] * v2[2];
 }
 
-void VecLerpf(float *target, float *a, float *b, float t)
+void VecLerpf(float *target, const float *a, const float *b, const float t)
 {
-	float s = 1.0f-t;
+	const float s = 1.0f-t;
 
 	target[0]= s*a[0] + t*b[0];
 	target[1]= s*a[1] + t*b[1];
 	target[2]= s*a[2] + t*b[2];
 }
 
-void Vec2Lerpf(float *target, float *a, float *b, float t)
+void Vec2Lerpf(float *target, const float *a, const float *b, const float t)
 {
-	float s = 1.0f-t;
+	const float s = 1.0f-t;
 
 	target[0]= s*a[0] + t*b[0];
 	target[1]= s*a[1] + t*b[1];
+}
+
+/* weight 3 vectors, (VecWeightf in 2.4x)
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void VecLerp3f(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
+	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2];
+}
+
+/* weight 3 2D vectors, (Vec2Weightf in 2.4x)
+ * 'w' must be unit length but is not a vector, just 3 weights */
+void Vec2Lerp3f(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
 }
 
 void VecMidf(float *v, float *v1, float *v2)
@@ -3597,10 +3614,10 @@ float VecAngle3(float *v1, float *v2, float *v3)
 	Normalize(vec1);
 	Normalize(vec2);
 
-	return NormalizedVecAngle2(vec1, vec2) * (float)(180.0/M_PI);
+	return NormalizedVecAngle2(vec1, vec2);
 }
 
-float VecAngle3_2D(float *v1, float *v2, float *v3)
+float Vec2Angle3(float *v1, float *v2, float *v3)
 {
 	float vec1[2], vec2[2];
 
@@ -3613,7 +3630,7 @@ float VecAngle3_2D(float *v1, float *v2, float *v3)
 	Normalize2(vec1);
 	Normalize2(vec2);
 
-	return NormalizedVecAngle2_2D(vec1, vec2) * (float)(180.0/M_PI);
+	return NormalizedVecAngle2_2D(vec1, vec2);
 }
 
 /* Return the shortest angle in degrees between the 2 vectors */
@@ -3626,7 +3643,7 @@ float VecAngle2(float *v1, float *v2)
 	Normalize(vec1);
 	Normalize(vec2);
 
-	return NormalizedVecAngle2(vec1, vec2)* (float)(180.0/M_PI);
+	return NormalizedVecAngle2(vec1, vec2);
 }
 
 float NormalizedVecAngle2(float *v1, float *v2)
@@ -4764,7 +4781,7 @@ int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float 
 		
 		VecSubf(c, v3t, v1);
 		VecSubf(a, v2, v1);
-		VecSubf(b, v4t, v3);
+		VecSubf(b, v4t, v3t);
 
 		Crossf(ab, a, b);
 		Crossf(cb, c, b);
@@ -4871,6 +4888,15 @@ static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 	return(Inpf(u,h)/Inpf(u,u));
 }
 #endif
+
+/* useful to calculate an even width shell, by taking the angle between 2 planes.
+ * The return value is a scale on the offset.
+ * no angle between planes is 1.0, as the angle between the 2 planes approches 180d
+ * the distance gets very high, 180d would be inf, but this case isn't valid */
+float AngleToLength(const float angle)
+{
+	return (angle < SMALL_NUMBER) ? 1.0f : fabsf(1.0f / cosf(angle * (M_PI/180.0f)));
+}
 
 /* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
 void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv)
@@ -5154,7 +5180,7 @@ int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
 }
 
 /* point closest to v1 on line v2-v3 in 3D */
-void PclosestVL3Dfl(float *closest, float *v1, float *v2, float *v3)
+void PclosestVL3Dfl(float *closest, float v1[3], float v2[3], float v3[3])
 {
 	float lambda, cp[3];
 

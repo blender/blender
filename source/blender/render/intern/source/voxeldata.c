@@ -226,9 +226,6 @@ void make_voxeldata(struct Render *re)
 {
     Tex *tex;
 	
-	if(re->scene->r.scemode & R_PREVIEWBUTS)
-		return;
-	
 	re->i.infostr= "Loading voxel datasets";
 	re->stats_draw(re->sdh, &re->i);
 	
@@ -258,9 +255,6 @@ static void free_voxeldata_one(Render *re, Tex *tex)
 void free_voxeldata(Render *re)
 {
 	Tex *tex;
-	
-	if(re->scene->r.scemode & R_PREVIEWBUTS)
-		return;
 	
 	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
 		if(tex->id.us && tex->type==TEX_VOXELDATA) {

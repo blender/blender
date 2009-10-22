@@ -57,7 +57,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_previewrender.h"
+#include "ED_render.h"
 
 #include "buttons_intern.h"	// own include
 
@@ -138,11 +138,11 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_listbase(wm, "Buttons Generic", SPACE_BUTS, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Buttons Generic", SPACE_BUTS, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -156,6 +156,8 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
 	if(sbuts->mainb == BCONTEXT_SCENE)
 		ED_region_panels(C, ar, vertical, "scene", sbuts->mainb);
+	else if(sbuts->mainb == BCONTEXT_RENDER)
+		ED_region_panels(C, ar, vertical, "render", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_WORLD)
 		ED_region_panels(C, ar, vertical, "world", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_OBJECT)
@@ -176,6 +178,8 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		ED_region_panels(C, ar, vertical, "modifier", sbuts->mainb);
 	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
 		ED_region_panels(C, ar, vertical, "constraint", sbuts->mainb);
+	else if(sbuts->mainb == BCONTEXT_BONE_CONSTRAINT)
+		ED_region_panels(C, ar, vertical, "bone_constraint", sbuts->mainb);
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;
@@ -183,40 +187,13 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
 void buttons_operatortypes(void)
 {
-	WM_operatortype_append(OBJECT_OT_group_add);
-	WM_operatortype_append(OBJECT_OT_group_remove);
-
-	WM_operatortype_append(OBJECT_OT_material_slot_add);
-	WM_operatortype_append(OBJECT_OT_material_slot_remove);
-	WM_operatortype_append(OBJECT_OT_material_slot_assign);
-	WM_operatortype_append(OBJECT_OT_material_slot_select);
-	WM_operatortype_append(OBJECT_OT_material_slot_deselect);
-
-	WM_operatortype_append(MATERIAL_OT_new);
-	WM_operatortype_append(TEXTURE_OT_new);
-	WM_operatortype_append(WORLD_OT_new);
-
-	WM_operatortype_append(OBJECT_OT_particle_system_add);
-	WM_operatortype_append(OBJECT_OT_particle_system_remove);
-
-	WM_operatortype_append(PARTICLE_OT_new);
-	WM_operatortype_append(PARTICLE_OT_new_target);
-	WM_operatortype_append(PARTICLE_OT_remove_target);
-	WM_operatortype_append(PARTICLE_OT_target_move_up);
-	WM_operatortype_append(PARTICLE_OT_target_move_down);
-	WM_operatortype_append(PARTICLE_OT_connect_hair);
-	WM_operatortype_append(PARTICLE_OT_disconnect_hair);
-
-	WM_operatortype_append(SCENE_OT_render_layer_add);
-	WM_operatortype_append(SCENE_OT_render_layer_remove);
-
 	WM_operatortype_append(BUTTONS_OT_toolbox);
 	WM_operatortype_append(BUTTONS_OT_file_browse);
 }
 
-void buttons_keymap(struct wmWindowManager *wm)
+void buttons_keymap(struct wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Buttons Generic", SPACE_BUTS, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Buttons Generic", SPACE_BUTS, 0);
 	
 	WM_keymap_add_item(keymap, "BUTTONS_OT_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
 }
@@ -258,58 +235,6 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
 }
-
-#if 0
-/* add handlers, stuff you only do once or on area/region changes */
-static void buttons_context_area_init(wmWindowManager *wm, ARegion *ar)
-{
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
-}
-
-#define CONTEXTY	30
-
-static void buttons_context_area_draw(const bContext *C, ARegion *ar)
-{
-	SpaceButs *sbuts= CTX_wm_space_buts(C);
-	uiStyle *style= U.uistyles.first;
-	uiBlock *block;
-	uiLayout *layout;
-	View2D *v2d= &ar->v2d;
-	float col[3];
-	int x, y, w, h;
-
-	buttons_context_compute(C, sbuts);
-
-	w= v2d->cur.xmax - v2d->cur.xmin;
-	h= v2d->cur.ymax - v2d->cur.ymin;
-	UI_view2d_view_ortho(C, v2d);
-
-	/* create UI */
-	block= uiBeginBlock(C, ar, "buttons_context", UI_EMBOSS);
-	layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_PANEL,
-		style->panelspace, h - (h-UI_UNIT_Y)/2, w, 20, style);
-
-	buttons_context_draw(C, layout);
-
-	uiBlockLayoutResolve(C, block, &x, &y);
-	uiEndBlock(C, block);
-
-	/* draw */
-	UI_SetTheme(SPACE_BUTS, RGN_TYPE_WINDOW); /* XXX */
-
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	UI_view2d_totRect_set(v2d, x, -y);
-	UI_view2d_view_ortho(C, v2d);
-
-	uiDrawBlock(C, block);
-
-	/* restore view matrix */
-	UI_view2d_view_restore(C);
-}
-#endif
 
 /* reused! */
 static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
@@ -424,19 +349,6 @@ void ED_spacetype_buttons(void)
 	art->draw= buttons_header_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 
-#if 0
-	/* regions: context */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
-	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizey= CONTEXTY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
-	art->init= buttons_context_area_init;
-	art->draw= buttons_context_area_draw;;
-	art->listener= buttons_area_listener;
-	
-	BLI_addhead(&st->regiontypes, art);
-#endif
-	
 	BKE_spacetype_register(st);
 }
 

@@ -193,7 +193,7 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 
 static void region_draw_azone(ScrArea *sa, AZone *az)
 {
-	GLUquadricObj *qobj = gluNewQuadric(); 
+	GLUquadricObj *qobj = NULL; 
 	short midx = az->x1 + (az->x2 - az->x1)/2;
 	short midy = az->y1 + (az->y2 - az->y1)/2;
 	
@@ -201,6 +201,8 @@ static void region_draw_azone(ScrArea *sa, AZone *az)
 	
 	/* only display action zone icons when the region is hidden */
 	if (!(az->ar->flag & RGN_FLAG_HIDDEN)) return;
+	
+	qobj = gluNewQuadric();
 	
 	glPushMatrix(); 	
 	glTranslatef(midx, midy, 0.); 
@@ -824,24 +826,24 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 		UI_add_region_handlers(handlers);
 	}
 	if(flag & ED_KEYMAP_VIEW2D) {
-		ListBase *keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
+		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "View2D", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_MARKERS) {
-		ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
+		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 		// XXX need boundbox check urgently!!!
 	}
 	if(flag & ED_KEYMAP_ANIMATION) {
-		ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
+		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Animation", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_FRAMES) {
-		ListBase *keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
+		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_GPENCIL) {
-		ListBase *keymap= WM_keymap_listbase(wm, "Grease Pencil", 0, 0);
+		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 }
@@ -958,17 +960,22 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	/* Note; SPACE_EMPTY is possible on new screens */
 	
 	/* regions */
-	if(swap_space<2) {
-		st= BKE_spacetype_from_id(sa1->spacetype);
-		for(ar= sa1->regionbase.first; ar; ar= ar->next)
-			BKE_area_region_free(st, ar);
-		BLI_freelistN(&sa1->regionbase);
+	if(swap_space == 1) {
+		SWAP(ListBase, sa1->regionbase, sa2->regionbase);
 	}
-	
-	st= BKE_spacetype_from_id(sa2->spacetype);
-	for(ar= sa2->regionbase.first; ar; ar= ar->next) {
-		ARegion *newar= BKE_area_region_copy(st, ar);
-		BLI_addtail(&sa1->regionbase, newar);
+	else {
+		if(swap_space<2) {
+			st= BKE_spacetype_from_id(sa1->spacetype);
+			for(ar= sa1->regionbase.first; ar; ar= ar->next)
+				BKE_area_region_free(st, ar);
+			BLI_freelistN(&sa1->regionbase);
+		}
+		
+		st= BKE_spacetype_from_id(sa2->spacetype);
+		for(ar= sa2->regionbase.first; ar; ar= ar->next) {
+			ARegion *newar= BKE_area_region_copy(st, ar);
+			BLI_addtail(&sa1->regionbase, newar);
+		}
 	}
 }
 
@@ -1254,7 +1261,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 				pt->draw_header(C, panel);
 
-				uiBlockLayoutResolve(C, block, &xco, &yco);
+				uiBlockLayoutResolve(block, &xco, &yco);
 				panel->labelofs= xco - triangle;
 				panel->layout= NULL;
 			}
@@ -1265,7 +1272,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 				pt->draw(C, panel);
 
-				uiBlockLayoutResolve(C, block, &xco, &yco);
+				uiBlockLayoutResolve(block, &xco, &yco);
 				panel->layout= NULL;
 
 				yco -= 2*style->panelspace;
@@ -1353,7 +1360,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
 		// scrollbars for button regions
@@ -1366,7 +1373,7 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
-	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "View2D Buttons List", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -1411,7 +1418,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 				maxco= xco;
 		}
 
-		uiBlockLayoutResolve(C, block, &xco, &yco);
+		uiBlockLayoutResolve(block, &xco, &yco);
 		
 		/* for view2d */
 		if(xco > maxco)

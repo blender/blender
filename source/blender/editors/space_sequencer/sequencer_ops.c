@@ -103,10 +103,10 @@ void sequencer_operatortypes(void)
 }
 
 
-void sequencer_keymap(wmWindowManager *wm)
+void sequencer_keymap(wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);
-	wmKeymapItem *kmi;
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Sequencer", SPACE_SEQ, 0);
+	wmKeyMapItem *kmi;
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
@@ -177,9 +177,12 @@ void sequencer_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_border", BKEY, KM_PRESS, 0, 0);
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", AKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "name", "SEQUENCER_MT_add");
 	
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 
-	transform_keymap_for_space(wm, keymap, SPACE_SEQ);
+	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
 }
 

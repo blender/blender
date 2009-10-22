@@ -134,7 +134,7 @@ void info_operatortypes(void)
 	WM_operatortype_append(FILE_OT_find_missing_files);
 }
 
-void info_keymap(struct wmWindowManager *wm)
+void info_keymap(struct wmKeyConfig *keyconf)
 {
 	
 }

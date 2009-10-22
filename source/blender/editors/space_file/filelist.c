@@ -406,7 +406,7 @@ void folderlist_pushdir(ListBase* folderlist, const char *dir)
 	previous_folder = folderlist->last;
 
 	// check if already exists
-	if(previous_folder){
+	if(previous_folder && previous_folder->foldername){
 		if(! strcmp(previous_folder->foldername, dir)){
 			return;
 		}
@@ -592,10 +592,12 @@ void filelist_loadimage_timer(struct FileList* filelist)
 		}
 		if (limg->done) {
 			FileImage *oimg = limg;
-			BLI_remlink(&filelist->loadimages, oimg);
 			BLI_remove_thread(&filelist->threads, oimg);
+			/* brecht: keep failed images in the list, otherwise
+			   it keeps trying to load them over and over?
+			BLI_remlink(&filelist->loadimages, oimg);
+			MEM_freeN(oimg);*/
 			limg = oimg->next;
-			MEM_freeN(oimg);
 			refresh = 1;
 		} else {
 			limg= limg->next;
@@ -802,6 +804,8 @@ static void filelist_read_library(struct FileList* filelist)
 	if(!filelist->libfiledata) {
 		int num;
 		struct direntry *file;
+
+		BLI_make_exist(filelist->dir);
 		filelist_read_dir(filelist);
 		file = filelist->filelist;
 		for(num=0; num<filelist->numfiles; num++, file++) {

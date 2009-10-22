@@ -26,7 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include <Python.h>
+
 #include "PyObjectPlus.h"
 
 #include "KX_PhysicsObjectWrapper.h"
@@ -50,6 +50,7 @@ KX_PhysicsObjectWrapper::~KX_PhysicsObjectWrapper()
 {
 }
 
+#ifndef DISABLE_PYTHON
 
 PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* args)
 {
@@ -141,3 +142,5 @@ PyMethodDef KX_PhysicsObjectWrapper::Methods[] = {
 	{"setActive",(PyCFunction) KX_PhysicsObjectWrapper::sPySetActive, METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
+
+#endif

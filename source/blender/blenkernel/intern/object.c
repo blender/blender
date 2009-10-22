@@ -91,6 +91,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
@@ -128,8 +129,8 @@ void clear_workob(Object *workob)
 {
 	memset(workob, 0, sizeof(Object));
 	
-	workob->size[0]= workob->size[1]= workob->size[2]= 1.0;
-	
+	workob->size[0]= workob->size[1]= workob->size[2]= 1.0f;
+	workob->rotmode= ROT_MODE_EUL;
 }
 
 void copy_baseflags(struct Scene *scene)
@@ -299,11 +300,8 @@ void free_object(Object *ob)
 	
 	free_constraints(&ob->constraints);
 	
-	if(ob->pd){
-		if(ob->pd->tex)
-			ob->pd->tex->id.us--;
-		MEM_freeN(ob->pd);
-	}
+	free_partdeflect(ob->pd);
+
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
@@ -775,6 +773,7 @@ void *add_lamp(char *name)
 	la->samp= 3;
 	la->bias= 1.0f;
 	la->soft= 3.0f;
+	la->compressthresh= 0.05f;
 	la->ray_samp= la->ray_sampy= la->ray_sampz= 1; 
 	la->area_size=la->area_sizey=la->area_sizez= 1.0f; 
 	la->buffers= 1;
@@ -1039,6 +1038,13 @@ Object *add_object(struct Scene *scene, int type)
 	ob->data= add_obdata_from_type(type);
 
 	ob->lay= scene->lay;
+	
+	/* objects should default to having Euler XYZ rotations, 
+	 * but rotations default to quaternions 
+	 */
+	ob->rotmode= ROT_MODE_EUL;
+	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
+	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
 
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
@@ -1064,6 +1070,9 @@ SoftBody *copy_softbody(SoftBody *sb)
 	sbn->scratch= NULL;
 
 	sbn->pointcache= BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches);
+
+	if(sb->effector_weights)
+		sbn->effector_weights = MEM_dupallocN(sb->effector_weights);
 
 	return sbn;
 }
@@ -1094,7 +1103,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 			pa->hair = MEM_dupallocN(pa->hair);
 	}
 
-	if(psysn->particles->keys || psysn->particles->boid) {
+	if(psysn->particles && (psysn->particles->keys || psysn->particles->boid)) {
 		ParticleKey *key = psysn->particles->keys;
 		BoidParticle *boid = psysn->particles->boid;
 
@@ -1125,11 +1134,9 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
-	psysn->effectors.first= psysn->effectors.last= 0;
 	
 	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
 	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
-	psysn->reactevents.first = psysn->reactevents.last = NULL;
 	psysn->renderdata = NULL;
 	
 	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
@@ -1228,6 +1235,7 @@ Object *copy_object(Object *ob)
 	if(ob->totcol) {
 		obn->mat= MEM_dupallocN(ob->mat);
 		obn->matbits= MEM_dupallocN(ob->matbits);
+		obn->totcol= ob->totcol;
 	}
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);
@@ -1264,7 +1272,7 @@ Object *copy_object(Object *ob)
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->dup_group);
-	// FIXME: add this for animdata too...
+	
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
@@ -1274,6 +1282,8 @@ Object *copy_object(Object *ob)
 		obn->pd= MEM_dupallocN(ob->pd);
 		if(obn->pd->tex)
 			id_us_plus(&(obn->pd->tex->id));
+		if(obn->pd->rng)
+			obn->pd->rng = MEM_dupallocN(ob->pd->rng);
 	}
 	obn->soft= copy_softbody(ob->soft);
 	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
@@ -1554,13 +1564,11 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 	cfra+= bluroffs+fieldoffs;
 
 	/* global time */
-	cfra*= scene->r.framelen;	
+	if (scene)
+		cfra*= scene->r.framelen;	
 	
 #if 0 // XXX old animation system
 	if (ob) {
-		if (no_speed_curve==0 && ob->ipo)
-			cfra= calc_ipo_time(ob->ipo, cfra);
-		
 		/* ofset frames */
 		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) 
 			cfra-= give_timeoffset(ob);
@@ -1575,29 +1583,44 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	if(ob->ipo) {
-		vec[0]= ob->size[0]+ob->dsize[0];
-		vec[1]= ob->size[1]+ob->dsize[1];
-		vec[2]= ob->size[2]+ob->dsize[2];
-		SizeToMat3(vec, mat);
-	}
-	else {
-		SizeToMat3(ob->size, mat);
-	}
+	
+	vec[0]= ob->size[0]+ob->dsize[0];
+	vec[1]= ob->size[1]+ob->dsize[1];
+	vec[2]= ob->size[2]+ob->dsize[2];
+	SizeToMat3(vec, mat);
 }
 
+// TODO: this should take rotation orders into account later...
 void object_rot_to_mat3(Object *ob, float mat[][3])
 {
-	float vec[3];
-	if(ob->ipo) {
-		vec[0]= ob->rot[0]+ob->drot[0];
-		vec[1]= ob->rot[1]+ob->drot[1];
-		vec[2]= ob->rot[2]+ob->drot[2];
-		EulToMat3(vec, mat);
+	float rmat[3][3], dmat[3][3];
+	
+	/* initialise the delta-rotation matrix, which will get (pre)multiplied 
+	 * with the rotation matrix to yield the appropriate rotation
+	 */
+	Mat3One(dmat);
+	
+	/* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
+	if (ob->rotmode > 0) {
+		/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
+		EulOToMat3(ob->rot, ob->rotmode, rmat);
+		EulOToMat3(ob->drot, ob->rotmode, dmat);
+	}
+	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+		/* axis-angle -  not really that great for 3D-changing orientations */
+		AxisAngleToMat3(ob->rotAxis, ob->rotAngle, rmat);
+		AxisAngleToMat3(ob->drotAxis, ob->drotAngle, dmat);
 	}
 	else {
-		EulToMat3(ob->rot, mat);
+		/* quats are normalised before use to eliminate scaling issues */
+		NormalQuat(ob->quat);
+		QuatToMat3(ob->quat, rmat);
+		QuatToMat3(ob->dquat, dmat);
 	}
+	
+	/* combine these rotations */
+	// XXX is this correct? if errors, change the order of multiplication...
+	Mat3MulMat3(mat, dmat, rmat);
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -1610,19 +1633,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 	object_scale_to_mat3(ob, smat);
 
 	/* rot */
-	/* Quats arnt used yet */
-	/*if(ob->transflag & OB_QUAT) {
-		if(ob->ipo) {
-			QuatMul(q1, ob->quat, ob->dquat);
-			QuatToMat3(q1, rmat);
-		}
-		else {
-			QuatToMat3(ob->quat, rmat);
-		}
-	}
-	else {*/
-		object_rot_to_mat3(ob, rmat);
-	/*}*/
+	object_rot_to_mat3(ob, rmat);
 	Mat3MulMat3(mat, rmat, smat);
 }
 
@@ -1634,12 +1645,9 @@ void object_to_mat4(Object *ob, float mat[][4])
 	
 	Mat4CpyMat3(mat, tmat);
 	
-	VECCOPY(mat[3], ob->loc);
-	if(ob->ipo) {
-		mat[3][0]+= ob->dloc[0];
-		mat[3][1]+= ob->dloc[1];
-		mat[3][2]+= ob->dloc[2];
-	}
+	mat[3][0]= ob->loc[0] + ob->dloc[0];
+	mat[3][1]= ob->loc[1] + ob->dloc[1];
+	mat[3][2]= ob->loc[2] + ob->dloc[2];
 }
 
 int enable_cu_speed= 1;
@@ -1920,31 +1928,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	
 	if(ob==NULL) return;
 	
-#if 0 // XXX old animation system
-	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
-	stime= bsystem_time(scene, ob, ctime, 0.0);
-	if(stime != ob->ctime) {
-		
-		ob->ctime= stime;
-		
-		if(ob->ipo) {
-			calc_ipo(ob->ipo, stime);
-			execute_ipo((ID *)ob, ob->ipo);
-		}
-		else 
-			do_all_object_actions(scene, ob);
-		
-		/* do constraint ipos ..., note it needs stime (0 = all ipos) */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 0);
-	}
-	else {
-		/* but, the drivers have to be done */
-		if(ob->ipo) do_ob_ipodrivers(ob, ob->ipo, stime);
-		/* do constraint ipos ..., note it needs stime (1 = only drivers ipos) */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 1);
-	}
-#endif // XXX old animation system
-
 	/* execute drivers only, as animation has already been done */
 	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
 	
@@ -2389,7 +2372,7 @@ void object_handle_update(Scene *scene, Object *ob)
 				BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 
 				// here was vieweditdatamask? XXX
-				if(ob==scene->obedit) {
+				if(ob->mode & OB_MODE_EDIT) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
 				} else
 					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
@@ -2492,7 +2475,7 @@ float give_timeoffset(Object *ob) {
 	}
 }
 
-int give_obdata_texspace(Object *ob, int **texflag, float **loc, float **size, float **rot) {
+int give_obdata_texspace(Object *ob, short **texflag, float **loc, float **size, float **rot) {
 	
 	if (ob->data==NULL)
 		return 0;
@@ -2562,7 +2545,7 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 static int pc_cmp(void *a, void *b)
 {
 	LinkData *ad = a, *bd = b;
-	if((int)ad->data > (int)bd->data)
+	if(GET_INT_FROM_POINTER(ad->data) > GET_INT_FROM_POINTER(bd->data))
 		return 1;
 	else return 0;
 }
@@ -2576,14 +2559,14 @@ int object_insert_ptcache(Object *ob)
 
 	for(link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
 	{
-		int index =(int)link->data;
+		int index = GET_INT_FROM_POINTER(link->data);
 
 		if(i < index)
 			break;
 	}
 
 	link = MEM_callocN(sizeof(LinkData), "PCLink");
-	link->data = (void *)i;
+	link->data = SET_INT_IN_POINTER(i);
 	BLI_addtail(&ob->pc_ids, link);
 
 	return i;

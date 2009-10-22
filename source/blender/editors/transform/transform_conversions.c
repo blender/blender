@@ -126,7 +126,6 @@
 #include "ED_object.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
-#include "ED_retopo.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -296,7 +295,7 @@ static void createTransTexspace(bContext *C, TransInfo *t)
 	TransData *td;
 	Object *ob;
 	ID *id;
-	int *texflag;
+	short *texflag;
 
 	ob = OBACT;
 
@@ -382,7 +381,6 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 			Mat3CpyMat3(td->mtx, mtx);
 
 			td->ext = NULL;
-			td->tdi = NULL;
 			if (t->mode == TFM_BWEIGHT) {
 				td->val = &(eed->bweight);
 				td->ival = eed->bweight;
@@ -512,8 +510,8 @@ static short apply_targetless_ik(Object *ob)
 					/* rotation */
 					if (parchan->rotmode > 0) 
 						Mat3ToEulO(rmat3, parchan->eul, parchan->rotmode);
-					else if (parchan->rotmode == PCHAN_ROT_AXISANGLE)
-						Mat3ToAxisAngle(rmat3, &parchan->quat[1], &parchan->quat[0]);
+					else if (parchan->rotmode == ROT_MODE_AXISANGLE)
+						Mat3ToAxisAngle(rmat3, parchan->rotAxis, &pchan->rotAngle);
 					else
 						Mat3ToQuat(rmat3, parchan->quat);
 					
@@ -522,8 +520,8 @@ static short apply_targetless_ik(Object *ob)
 					if (data->flag & CONSTRAINT_IK_STRETCH) {
 						if (parchan->rotmode > 0)
 							EulOToMat3(parchan->eul, parchan->rotmode, qrmat);
-						else if (parchan->rotmode == PCHAN_ROT_AXISANGLE)
-							AxisAngleToMat3(&parchan->quat[1], parchan->quat[0], qrmat);
+						else if (parchan->rotmode == ROT_MODE_AXISANGLE)
+							AxisAngleToMat3(parchan->rotAxis, parchan->rotAngle, qrmat);
 						else
 							QuatToMat3(parchan->quat, qrmat);
 						
@@ -559,10 +557,6 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 	td->ob = ob;
 	td->flag = TD_SELECTED;
-	if (pchan->rotmode == PCHAN_ROT_QUAT) 
-	{
-		td->flag |= TD_USEQUAT;
-	}
 	if (bone->flag & BONE_HINGE_CHILD_TRANSFORM)
 	{
 		td->flag |= TD_NOCENTER;
@@ -587,15 +581,14 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		td->ext->quat= NULL;
 		
 		VECCOPY(td->ext->irot, pchan->eul);
-		td->rotOrder= pchan->rotmode;
 	}
 	else {
 		td->ext->rot= NULL;
 		td->ext->quat= pchan->quat;
 		
 		QUATCOPY(td->ext->iquat, pchan->quat);
-		td->rotOrder= pchan->rotmode;
 	}
+	td->rotOrder= pchan->rotmode;
 	
 
 	/* proper way to get parent transform + own transform + constraints transform */
@@ -1019,7 +1012,6 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
     tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
 	for(i=0; i<t->total; i++, td++, tdx++) {
 		td->ext= tdx;
-		td->tdi = NULL;
 		td->val = NULL;
 	}
 
@@ -1103,7 +1095,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->loc = NULL;
 					td->ext = NULL;
-					td->tdi = NULL;
 
 					td++;
 				}
@@ -1119,7 +1110,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->loc = NULL;
 					td->ext = NULL;
-					td->tdi = NULL;
 
 					td++;
 				}
@@ -1154,7 +1144,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					Mat3Ortho(td->axismtx);
 
 					td->ext = NULL;
-					td->tdi = NULL;
 
 					td++;
 				}
@@ -1171,7 +1160,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td->flag= TD_SELECTED;
 
 					td->ext = NULL;
-					td->tdi = NULL;
 
 					td++;
 				}
@@ -1199,7 +1187,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					}
 
 					td->ext = NULL;
-					td->tdi = NULL;
 					td->val = NULL;
 
 					td++;
@@ -1222,7 +1209,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td->extra = ebo; /* to fix roll */
 
 					td->ext = NULL;
-					td->tdi = NULL;
 					td->val = NULL;
 
 					td++;
@@ -1275,7 +1261,6 @@ static void createTransMBallVerts(bContext *C, TransInfo *t)
 			Mat3CpyMat3(td->mtx, mtx);
 
 			td->ext = tx;
-			td->tdi = NULL;
 
 			/* Radius of MetaElem (mass of MetaElem influence) */
 			if(ml->flag & MB_SCALE_RAD){
@@ -1440,7 +1425,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							else td->flag= 0;
 						}
 						td->ext = NULL;
-						td->tdi = NULL;
 						td->val = NULL;
 
 						hdata = initTransDataCurveHandes(td, bezt);
@@ -1461,7 +1445,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
-						td->tdi = NULL;
 
 						if (t->mode==TFM_CURVE_SHRINKFATTEN) { /* || t->mode==TFM_RESIZE) {*/ /* TODO - make points scale */
 							td->val = &(bezt->radius);
@@ -1501,7 +1484,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							else td->flag= 0;
 						}
 						td->ext = NULL;
-						td->tdi = NULL;
 						td->val = NULL;
 
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
@@ -1541,7 +1523,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
-						td->tdi = NULL;
 
 						if (t->mode==TFM_CURVE_SHRINKFATTEN || t->mode==TFM_RESIZE) {
 							td->val = &(bp->radius);
@@ -1617,7 +1598,6 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 				Mat3CpyMat3(td->mtx, mtx);
 
 				td->ext = NULL;
-				td->tdi = NULL;
 				td->val = NULL;
 
 				td++;
@@ -1728,7 +1708,6 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 			td->ob = ob;
 			td->ext = tx;
-			td->tdi = NULL;
 			if(t->mode == TFM_BAKE_TIME) {
 				td->val = key->time;
 				td->ival = *(key->time);
@@ -1951,7 +1930,6 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 		td->axismtx[1][1]	=\
 		td->axismtx[1][2]	= 0.0f;\
 	td->ext = NULL;\
-	td->tdi = NULL;\
 	td->val = NULL;\
 	td->extra = NULL;\
 	if (t->mode == TFM_BWEIGHT) {\
@@ -1985,7 +1963,6 @@ inline void VertsToTransData(TransInfo *t, TransData *td, BMesh *em, BMVert *eve
 		td->axismtx[1][2]	= 0.0f;
 
 	td->ext = NULL;
-	td->tdi = NULL;
 	td->val = NULL;
 	td->extra = NULL;
 	if (t->mode == TFM_BWEIGHT) {
@@ -2298,7 +2275,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		for(a=0; eve; eve=BMIter_Step(&iter), a++) {
 			if(!BM_TestHFlag(eve, BM_HIDDEN) && selstate[a] && eve->co[0]!=0.0f) {
 				if(eve->co[0]<0.0f)
+				{
+					t->mirror = -1;
 					mirror = -1;
+				}
 				break;
 			}
 		}
@@ -2374,6 +2354,19 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			}
 		}
 	}
+	
+	if (mirror != 0)
+	{
+		tob = t->data;
+		for( a = 0; a < t->total; a++, tob++ )
+		{
+			if (ABS(tob->loc[0]) <= 0.00001f)
+			{
+				tob->flag |= TD_MIRROR_EDGE;
+			}
+		}
+	}
+	
 	if (propmode) {
 		MEM_freeN(vectors);
 		MEM_freeN(nears);
@@ -2504,7 +2497,7 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 
-	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+	td->ext= NULL; td->val= NULL;
 
 	if(selected) {
 		td->flag |= TD_SELECTED;
@@ -2804,7 +2797,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								memset(td->axismtx, 0, sizeof(td->axismtx));
 								td->axismtx[2][2] = 1.0f;
 								
-								td->ext= NULL; td->tdi= NULL; td->val= NULL;
+								td->ext= NULL; td->val= NULL;
 								
 								td->flag |= TD_SELECTED;
 								td->dist= 0.0f;
@@ -2835,7 +2828,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								memset(td->axismtx, 0, sizeof(td->axismtx));
 								td->axismtx[2][2] = 1.0f;
 								
-								td->ext= NULL; td->tdi= NULL; td->val= NULL;
+								td->ext= NULL; td->val= NULL;
 								
 								td->flag |= TD_SELECTED;
 								td->dist= 0.0f;
@@ -2987,7 +2980,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 	/*	Loop 1: find selected keyframes   */
 	for (i = 0; i < fcu->totvert; i++) {
 		BezTriple *bezt= &fcu->bezt[i];
-
+		
 		if (BEZSELECTED(bezt)) {
 			selcache[index]= bezt->vec[1][0];
 			index++;
@@ -2995,16 +2988,18 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 		}
 	}
 
-	/* Loop 2: delete unselected keyframes on the same frames (if any keyframes were found) */
-	if (len) {
+	/* Loop 2: delete unselected keyframes on the same frames 
+	 * (if any keyframes were found, or the whole curve wasn't affected) 
+	 */
+	if ((len) && (len != fcu->totvert)) {
 		for (i = 0; i < fcu->totvert; i++) {
 			BezTriple *bezt= &fcu->bezt[i];
-
+			
 			if (BEZSELECTED(bezt) == 0) {
 				/* check beztriple should be removed according to cache */
 				for (index= 0; index < len; index++) {
 					if (IS_EQ(bezt->vec[1][0], selcache[index])) {
-						//delete_icu_key(icu, i, 0);
+						delete_fcurve_key(fcu, i, 0);
 						break;
 					}
 					else if (bezt->vec[1][0] > selcache[index])
@@ -3012,7 +3007,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 				}
 			}
 		}
-
+		
 		testhandles_fcurve(fcu);
 	}
 
@@ -3386,7 +3381,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 	
-	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+	td->ext= NULL; td->val= NULL;
 	
 	/* store AnimData info in td->extra, for applying mapping when flushing */
 	td->extra= adt;
@@ -3819,98 +3814,6 @@ void flushTransGraphData(TransInfo *t)
 	}
 }
 
-/* **************** IpoKey stuff, for Object TransData ********** */
-
-/* while transforming */
-void add_tdi_poin(float *poin, float *old, float delta)
-{
-	if(poin) {
-		poin[0]= old[0]+delta;
-		poin[-3]= old[3]+delta;
-		poin[3]= old[6]+delta;
-	}
-}
-
-#if 0 // TRANSFORM_FIX_ME
-/* storage of bezier triple. thats why -3 and +3! */
-static void set_tdi_old(float *old, float *poin)
-{
-	old[0]= *(poin);
-	old[3]= *(poin-3);
-	old[6]= *(poin+3);
-}
-
-/* fill ipokey transdata with old vals and pointers */
-static void ipokey_to_transdata(IpoKey *ik, TransData *td)
-{
-	extern int ob_ar[];		// blenkernel ipo.c
-	TransDataIpokey *tdi= td->tdi;
-	BezTriple *bezt;
-	int a, delta= 0;
-
-	td->val= NULL;	// is read on ESC
-
-	for(a=0; a<OB_TOTIPO; a++) {
-		if(ik->data[a]) {
-			bezt= ik->data[a];
-
-			switch( ob_ar[a] ) {
-				case OB_LOC_X:
-				case OB_DLOC_X:
-					tdi->locx= &(bezt->vec[1][1]); break;
-				case OB_LOC_Y:
-				case OB_DLOC_Y:
-					tdi->locy= &(bezt->vec[1][1]); break;
-				case OB_LOC_Z:
-				case OB_DLOC_Z:
-					tdi->locz= &(bezt->vec[1][1]); break;
-
-				case OB_DROT_X:
-					delta= 1;
-				case OB_ROT_X:
-					tdi->rotx= &(bezt->vec[1][1]); break;
-				case OB_DROT_Y:
-					delta= 1;
-				case OB_ROT_Y:
-					tdi->roty= &(bezt->vec[1][1]); break;
-				case OB_DROT_Z:
-					delta= 1;
-				case OB_ROT_Z:
-					tdi->rotz= &(bezt->vec[1][1]); break;
-
-				case OB_SIZE_X:
-				case OB_DSIZE_X:
-					tdi->sizex= &(bezt->vec[1][1]); break;
-				case OB_SIZE_Y:
-				case OB_DSIZE_Y:
-					tdi->sizey= &(bezt->vec[1][1]); break;
-				case OB_SIZE_Z:
-				case OB_DSIZE_Z:
-					tdi->sizez= &(bezt->vec[1][1]); break;
-			}
-		}
-	}
-
-	/* oldvals for e.g. undo */
-	if(tdi->locx) set_tdi_old(tdi->oldloc, tdi->locx);
-	if(tdi->locy) set_tdi_old(tdi->oldloc+1, tdi->locy);
-	if(tdi->locz) set_tdi_old(tdi->oldloc+2, tdi->locz);
-
-	/* remember, for mapping curves ('1'=10 degrees)  */
-	if(tdi->rotx) set_tdi_old(tdi->oldrot, tdi->rotx);
-	if(tdi->roty) set_tdi_old(tdi->oldrot+1, tdi->roty);
-	if(tdi->rotz) set_tdi_old(tdi->oldrot+2, tdi->rotz);
-
-	/* this is not allowed to be dsize! */
-	if(tdi->sizex) set_tdi_old(tdi->oldsize, tdi->sizex);
-	if(tdi->sizey) set_tdi_old(tdi->oldsize+1, tdi->sizey);
-	if(tdi->sizez) set_tdi_old(tdi->oldsize+2, tdi->sizez);
-
-	tdi->flag= TOB_IPO;
-	if(delta) tdi->flag |= TOB_IPODROT;
-}
-#endif
-
 /* *************************** Object Transform data ******************* */
 
 /* Little helper function for ObjectToTransData used to give certain
@@ -4128,7 +4031,7 @@ static TransData *SeqToTransData(TransInfo *t, TransData *td, TransData2D *td2d,
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 
-	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+	td->ext= NULL; td->val= NULL;
 
 	td->flag |= TD_SELECTED;
 	td->dist= 0.0;
@@ -4269,20 +4172,20 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 	if (skip_invert == 0 && (ob->track || constinv==0)) {
 		track= ob->track;
 		ob->track= NULL;
-
+		
 		if (constinv == 0) {
 			fakecons.first = ob->constraints.first;
 			fakecons.last = ob->constraints.last;
 			ob->constraints.first = ob->constraints.last = NULL;
 		}
-
+		
 		where_is_object(t->scene, ob);
-
+		
 		if (constinv == 0) {
 			ob->constraints.first = fakecons.first;
 			ob->constraints.last = fakecons.last;
 		}
-
+		
 		ob->track= track;
 	}
 	else
@@ -4296,6 +4199,10 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 	td->ext->rot = ob->rot;
 	VECCOPY(td->ext->irot, ob->rot);
 	VECCOPY(td->ext->drot, ob->drot);
+	
+	td->ext->quat = ob->quat;
+	QUATCOPY(td->ext->iquat, ob->quat);
+	QUATCOPY(td->ext->dquat, ob->dquat);
 
 	td->ext->size = ob->size;
 	VECCOPY(td->ext->isize, ob->size);
@@ -4337,7 +4244,7 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 /* it deselects Bases, so we have to call the clear function always after */
 static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 {
-	Scene *sce = CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = t->view;
 
 	/*
@@ -4354,15 +4261,15 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 	copy_baseflags(t->scene);
 
 	/* handle pending update events, otherwise they got copied below */
-	for (base= sce->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		if(base->object->recalc)
 			object_handle_update(t->scene, base->object);
 	}
 
-	for (base= sce->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		base->flag &= ~BA_WAS_SEL;
 
-		if(TESTBASELIB(v3d, base)) {
+		if(TESTBASELIB_BGMODE(v3d, base)) {
 			Object *ob= base->object;
 			Object *parsel= ob->parent;
 
@@ -4394,7 +4301,7 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
-	for (base= sce->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		if(base->object->recalc & OB_RECALC_OB)
 			base->flag |= BA_HAS_RECALC_OB;
 		if(base->object->recalc & OB_RECALC_DATA)
@@ -4426,9 +4333,15 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
-		AnimData *adt= ob->adt;
+		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
+		bCommonKeySrc cks;
+		ListBase dsources = {&cks, &cks};
 		float cfra= (float)CFRA; // xxx this will do for now
 		short flag = 0;
+		
+		/* init common-key-source for use by KeyingSets */
+		memset(&cks, 0, sizeof(bCommonKeySrc));
+		cks.id= &ob->id;
 		
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
@@ -4437,7 +4350,14 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
 			flag |= INSERTKEY_REPLACE;
 			
-		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+		
+		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
+			/* only insert into active keyingset */
+			modify_keyframes(scene, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+		}
+		else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+			AnimData *adt= ob->adt;
+			
 			/* only key on available channels */
 			if (adt && adt->action) {
 				for (fcu= adt->action->curves.first; fcu; fcu= fcu->next) {
@@ -4476,41 +4396,25 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 					doScale = 1;
 			}
 			
-			// TODO: the group names here are temporary...
-			// TODO: should this be made to use the builtin KeyingSets instead?
+			/* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
 			if (doLoc) {
-				insert_keyframe(id, NULL, "Object Transform", "location", 0, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "location", 1, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "location", 2, cfra, flag);
+				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 			if (doRot) {
-				insert_keyframe(id, NULL, "Object Transform", "rotation", 0, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "rotation", 1, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "rotation", 2, cfra, flag);
+				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 			if (doScale) {
-				insert_keyframe(id, NULL, "Object Transform", "scale", 0, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "scale", 1, cfra, flag);
-				insert_keyframe(id, NULL, "Object Transform", "scale", 2, cfra, flag);
+				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scale");
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 		}
+		/* insert keyframe in all (transform) channels */
 		else {
-			// TODO: the group names here are temporary...
-			// TODO: should this be made to use the builtin KeyingSets instead?
-			insert_keyframe(id, NULL, "Object Transform", "location", 0, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "location", 1, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "location", 2, cfra, flag);
-			
-			insert_keyframe(id, NULL, "Object Transform", "rotation", 0, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "rotation", 1, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "rotation", 2, cfra, flag);
-			
-			insert_keyframe(id, NULL, "Object Transform", "scale", 0, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "scale", 1, cfra, flag);
-			insert_keyframe(id, NULL, "Object Transform", "scale", 2, cfra, flag);
+			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
-			
-		// XXX todo... find a way to send notifiers from here...
 	}
 }
 
@@ -4530,9 +4434,15 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
+		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
+		bCommonKeySrc cks;
+		ListBase dsources = {&cks, &cks};
 		float cfra= (float)CFRA;
 		short flag= 0;
-		char buf[512];
+		
+		/* init common-key-source for use by KeyingSets */
+		memset(&cks, 0, sizeof(bCommonKeySrc));
+		cks.id= &ob->id;
 		
 		/* flag is initialised from UserPref keyframing settings
 		 *	- special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
@@ -4551,8 +4461,14 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 				/* clear any 'unkeyed' flag it may have */
 				pchan->bone->flag &= ~BONE_UNKEYED;
 				
+				/* only insert into active keyingset? */
+				if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					modify_keyframes(scene, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+				}
 				/* only insert into available channels? */
-				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+				else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					if (act) {
 						for (fcu= act->curves.first; fcu; fcu= fcu->next)
 							insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
@@ -4585,58 +4501,34 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 					}
 					
 					if (doLoc) {
-						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+						
+						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+						cks.pchan= pchan;
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (doRot) {
-						if (pchan->rotmode == PCHAN_ROT_QUAT) {
-							sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-							insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 3, cfra, flag);
-						}
-						else {
-							sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
-							insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-							insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-						}
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+						
+						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+						cks.pchan= pchan;
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (doScale) {
-						sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scale");
+						
+						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+						cks.pchan= pchan;
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 				}
-				/* insert keyframe in any channel that's appropriate */
+				/* insert keyframe in all (transform) channels */
 				else {
-					sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+					KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
-					if (pchan->rotmode == PCHAN_ROT_QUAT) {
-						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 3, cfra, flag);
-					}
-					else {
-						sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
-						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-					}
-					
-					sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
-					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
-					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+					cks.pchan= pchan;
+					modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 				}
 			}
 		}
@@ -4676,13 +4568,7 @@ void special_aftertrans_update(TransInfo *t)
 	if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			if (cancelled==0) {
-#if 0 // TRANSFORM_FIX_ME
-				EM_automerge(1);
-				/* when snapping, delay retopo until after automerge */
-				if (G.qual & LR_CTRLKEY) {
-					retopo_do_all();
-				}
-#endif
+				EM_automerge(t->scene, t->obedit, 1);
 			}
 		}
 	}
@@ -5007,7 +4893,7 @@ void special_aftertrans_update(TransInfo *t)
 		//	allqueue(REDRAWBUTSEDIT, 0);
 
 	}
-	else if(t->scene->basact && (ob = t->scene->basact->object) && ob->mode & OB_MODE_PARTICLE_EDIT) {
+	else if(t->scene->basact && (ob = t->scene->basact->object) && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, ob)) {
 		;
 	}
 	else {
@@ -5030,6 +4916,7 @@ void special_aftertrans_update(TransInfo *t)
 					if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
 						pid->cache->flag |= PTCACHE_OUTDATED;
 				}
+				BLI_freelistN(&pidlist);
 
 				/* pointcache refresh */
 				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
@@ -5076,30 +4963,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 	set_trans_object_base_flags(C, t);
 
 	/* count */
-#if 0 // TRANSFORM_FIX_ME
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects)
-	{
-		/* store ipo keys? */
-		if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
-			elems.first= elems.last= NULL;
-			make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
-
-			pushdata(&elems, sizeof(ListBase));
-
-			for(ik= elems.first; ik; ik= ik->next)
-				t->total++;
-
-			if(elems.first==NULL)
-				t->total++;
-		}
-//		else {
-			t->total++;
-//		}
-	}
-	CTX_DATA_END;
-#else
 	t->total= CTX_DATA_COUNT(C, selected_objects);
-#endif
 
 	if(!t->total) {
 		/* clear here, main transform function escapes too */
@@ -5113,92 +4977,27 @@ static void createTransObject(bContext *C, TransInfo *t)
 	CTX_DATA_BEGIN(C, Base*, base, selected_bases)
 	{
 		Object *ob= base->object;
-
+		
 		td->flag = TD_SELECTED;
 		td->protectflag= ob->protectflag;
 		td->ext = tx;
-
+		td->rotOrder= ob->rotmode;
+		
 		if (base->flag & BA_TRANSFORM_CHILD)
 		{
 			td->flag |= TD_NOCENTER;
 			td->flag |= TD_NO_LOC;
 		}
-
+		
 		/* select linked objects, but skip them later */
 		if (ob->id.lib != 0) {
 			td->flag |= TD_SKIP;
 		}
-
-		/* store ipo keys? */
-		// TRANSFORM_FIX_ME
-#if 0
-		if((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
-
-			popfirst(&elems);	// bring back pushed listbase
-
-			if(elems.first) {
-				int cfraont;
-				int ipoflag;
-
-				base->flag |= BA_DO_IPO+BA_WAS_SEL;
-				base->flag &= ~SELECT;
-
-				cfraont= CFRA;
-				set_no_parent_ipo(1);
-				ipoflag= ob->ipoflag;
-				ob->ipoflag &= ~OB_OFFS_OB;
-
-				/*
-				 * This is really EVIL code that pushes down Object values
-				 * (loc, dloc, orig, size, dsize, rot, drot)
-				 * */
-
-				pushdata((void*)ob->loc, 7 * 3 * sizeof(float)); // tsk! tsk!
-
-				for(ik= elems.first; ik; ik= ik->next) {
-
-					/* weak... this doesn't correct for floating values, giving small errors */
-					CFRA= (int)(ik->val/t->scene->r.framelen);
-
-					do_ob_ipo(ob);
-					ObjectToTransData(C, t, td, ob);	// does where_is_object()
-
-					td->flag= TD_SELECTED;
-
-					td->tdi= MEM_callocN(sizeof(TransDataIpokey), "TransDataIpokey");
-					/* also does tdi->flag and oldvals, needs to be after ob_to_transob()! */
-					ipokey_to_transdata(ik, td);
-
-					td++;
-					tx++;
-					if(ik->next) td->ext= tx;	// prevent corrupting mem!
-				}
-				free_ipokey(&elems);
-
-				poplast(ob->loc);
-				set_no_parent_ipo(0);
-
-				CFRA= cfraont;
-				ob->ipoflag= ipoflag;
-
-				where_is_object(t->scene, ob);	// restore
-			}
-			else {
-				ObjectToTransData(C, t, td, ob);
-				td->tdi = NULL;
-				td->val = NULL;
-				td++;
-				tx++;
-			}
-		}
-#endif
-//		else {
-			ObjectToTransData(C, t, td, ob);
-			td->tdi = NULL;
-			td->val = NULL;
-			td++;
-			tx++;
-//		}
+		
+		ObjectToTransData(C, t, td, ob);
+		td->val = NULL;
+		td++;
+		tx++;
 	}
 	CTX_DATA_END;
 }
@@ -5220,7 +5019,7 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 
-	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+	td->ext= NULL; td->val= NULL;
 
 	td->flag |= TD_SELECTED;
 	td->dist= 0.0;
@@ -5364,7 +5163,7 @@ void createTransData(bContext *C, TransInfo *t)
 		{
 			if(ob_armature->type==OB_ARMATURE)
 			{
-				if(ob_armature->mode & OB_MODE_POSE)
+				if((ob_armature->mode & OB_MODE_POSE) && ob_armature == modifiers_isDeformedByArmature(ob))
 				{
 					createTransPose(C, t, ob_armature);
 					break;
@@ -5387,6 +5186,8 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else {
 		t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
+		t->options |= CTX_NO_PET;
+		
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
 
@@ -5394,7 +5195,7 @@ void createTransData(bContext *C, TransInfo *t)
 		{
 			View3D *v3d = t->view;
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if((t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+			if(rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
 			{
 				t->flag |= T_CAMERA;
 			}

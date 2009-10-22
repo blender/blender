@@ -383,14 +383,13 @@ static void rna_Property_description_get(PointerRNA *ptr, char *value)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	strcpy(value, prop->description);
+	strcpy(value, prop->description ? prop->description:"");
 }
-
 static int rna_Property_description_length(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	return strlen(prop->description);
+	return prop->description ? strlen(prop->description) : 0;
 }
 
 static int rna_Property_type_get(PointerRNA *ptr)
@@ -625,7 +624,7 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
-	if(eprop->itemf==NULL || eprop->itemf==rna_EnumProperty_default_itemf)
+	if(eprop->itemf==NULL || eprop->itemf==rna_EnumProperty_default_itemf || !C)
 		return eprop->item;
 
 	return eprop->itemf(C, ptr, free);
@@ -842,6 +841,7 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_DIRPATH, "DIRECTORY_PATH", 0, "Directory Path", ""},
 		{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned Number", ""},
 		{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
+		{PROP_FACTOR, "FACTOR", 0, "Factor", ""},
 		{PROP_ANGLE, "ANGLE", 0, "Angle", ""},
 		{PROP_TIME, "TIME", 0, "Time", ""},
 		{PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
@@ -853,7 +853,6 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
 		{PROP_XYZ, "XYZ", 0, "XYZ", ""},
 		{PROP_RGB, "RGB", 0, "RGB", ""},
-		{PROP_NEVER_NULL, "NEVER_NULL", 0, "Never Null", ""},
 		{PROP_LAYER, "LAYER", 0, "Layer", ""},
 		{PROP_LAYER_MEMBER, "LAYER_MEMBERSHIP", 0, "Layer Membership", ""},
 		{0, NULL, 0, NULL, NULL}};

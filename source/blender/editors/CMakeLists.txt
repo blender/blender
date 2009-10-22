@@ -40,6 +40,7 @@ SET(INC ../windowmanager
   ../gpu
   ../blenfont
   ${SDL_INC}
+	../ikplugin
 )
 
 IF(WITH_INTERNATIONAL)

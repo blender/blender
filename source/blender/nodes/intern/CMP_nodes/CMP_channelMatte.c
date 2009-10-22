@@ -166,7 +166,7 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 		break;
 	}
 
-	generate_preview(node, outbuf);
+	generate_preview(data, node, outbuf);
 	out[0]->data=outbuf;
 	if(out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);

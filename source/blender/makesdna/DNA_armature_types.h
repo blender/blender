@@ -31,6 +31,8 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
+struct AnimData;
+
 /* this system works on different transformation space levels;
 
 1) Bone Space;		with each Bone having own (0,0,0) origin
@@ -69,6 +71,7 @@ typedef struct Bone {
 
 typedef struct bArmature {
 	ID			id;
+	struct AnimData *adt;
 	ListBase	bonebase;
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
@@ -102,7 +105,8 @@ typedef enum eArmature_Flag {
 	ARM_AUTO_IK			= (1<<9),
 	ARM_NO_CUSTOM		= (1<<10), 	/* made option negative, for backwards compat */
 	ARM_COL_CUSTOM		= (1<<11),	/* draw custom colours  */
-	ARM_GHOST_ONLYSEL 	= (1<<12)	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */
+	ARM_GHOST_ONLYSEL 	= (1<<12),	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */
+	ARM_DS_EXPAND 		= (1<<13)
 } eArmature_Flag;
 
 /* armature->drawtype */

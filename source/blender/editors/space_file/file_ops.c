@@ -68,25 +68,15 @@
 
 /* ---------- FILE SELECTION ------------ */
 
-static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short y, short clamp)
+static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, int x, int y)
 {
 	float fx,fy;
 	int active_file = -1;
-	int numfiles = filelist_numfiles(sfile->files);
 	View2D* v2d = &ar->v2d;
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
 
 	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
-
-	if(active_file < 0) {
-		if(clamp)	active_file=  0;
-		else		active_file= -1;
-	}
-	else if(active_file >= numfiles) {
-		if(clamp)	active_file=  numfiles-1;
-		else		active_file= -1;
-	}
 	
 	return active_file;
 }
@@ -109,6 +99,31 @@ typedef enum FileSelect { FILE_SELECT_DIR = 1,
   FILE_SELECT_FILE = 2 } FileSelect;
 
 
+static void clamp_to_filelist(int numfiles, int *first_file, int *last_file)
+{
+	/* border select before the first file */
+	if ( (*first_file < 0) && (*last_file >=0 ) ) {
+		*first_file = 0;
+	}
+	/* don't select if everything is outside filelist */
+	if ( (*first_file >= numfiles) && ((*last_file < 0) || (*last_file >= numfiles)) ) {
+		*first_file = -1;
+		*last_file = -1;
+	}
+	
+	/* fix if last file invalid */
+	if ( (*first_file > 0) && (*last_file < 0) )
+		*last_file = numfiles-1;
+
+	/* clamp */
+	if ( (*first_file >= numfiles) ) {
+		*first_file = numfiles-1;
+	}
+	if ( (*last_file >= numfiles) ) {
+		*last_file = numfiles-1;
+	}
+}
+
 static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short val)
 {
 	int first_file = -1;
@@ -123,9 +138,11 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 	int numfiles = filelist_numfiles(sfile->files);
 
 	params->selstate = NOTACTIVE;
-	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax, 1);
-	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin, 1);
+	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax);
+	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin);
 	
+	clamp_to_filelist(numfiles, &first_file, &last_file);
+
 	/* select all valid files between first and last indicated */
 	if ( (first_file >= 0) && (first_file < numfiles) && (last_file >= 0) && (last_file < numfiles) ) {
 		for (act_file = first_file; act_file <= last_file; act_file++) {
@@ -136,6 +153,9 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 				file->flags &= ~ACTIVE;
 		}
 	}
+
+	/* Don't act on multiple selected files */
+	if (first_file != last_file) selecting= 0;
 
 	/* make the last file active */
 	if (selecting && (last_file >= 0 && last_file < numfiles)) {
@@ -157,7 +177,7 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 					BLI_add_slash(params->dir);
 				}
 
-				file_change_dir(sfile);
+				file_change_dir(sfile, 0);
 				retval = FILE_SELECT_DIR;
 			}
 		}
@@ -168,7 +188,7 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 			}
 			
 		}	
-	}
+	} 
 	return retval;
 }
 
@@ -201,6 +221,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select File";
+	ot->description= "Activate/select the file(s) contained in the border.";
 	ot->idname= "FILE_OT_select_border";
 	
 	/* api callbacks */
@@ -253,6 +274,7 @@ void FILE_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select File";
+	ot->description= "Activate/select file.";
 	ot->idname= "FILE_OT_select";
 	
 	/* api callbacks */
@@ -297,6 +319,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect all files";
+	ot->description= "Select/deselect all files.";
 	ot->idname= "FILE_OT_select_all_toggle";
 	
 	/* api callbacks */
@@ -320,7 +343,7 @@ static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_get(op->ptr, "dir", entry);
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
 		BLI_cleanup_dir(G.sce, params->dir);
-		file_change_dir(sfile);				
+		file_change_dir(sfile, 1);
 
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}
@@ -332,6 +355,7 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Directory";
+	ot->description= "Select a bookmarked directory.";
 	ot->idname= "FILE_OT_select_bookmark";
 	
 	/* api callbacks */
@@ -364,6 +388,7 @@ void FILE_OT_add_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Bookmark";
+	ot->description= "Add a bookmark for the selected/active directory.";
 	ot->idname= "FILE_OT_add_bookmark";
 	
 	/* api callbacks */
@@ -396,6 +421,7 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Bookmark";
+	ot->description= "Delete selected bookmark.";
 	ot->idname= "FILE_OT_delete_bookmark";
 	
 	/* api callbacks */
@@ -425,6 +451,7 @@ void FILE_OT_loadimages(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Load Images";
+	ot->description= "Load selected image(s).";
 	ot->idname= "FILE_OT_loadimages";
 	
 	/* api callbacks */
@@ -449,7 +476,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	my -= ar->winrct.ymin;
 
 	if(BLI_in_rcti(&ar->v2d.mask, mx, my)) {
-		actfile = find_file_mouse(sfile, ar, mx , my, 0);
+		actfile = find_file_mouse(sfile, ar, mx , my);
 
 		if((actfile >= 0) && (actfile < numfiles))
 			params->active_file=actfile;
@@ -479,6 +506,7 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Highlight File";
+	ot->description= "Highlight selected file(s).";
 	ot->idname= "FILE_OT_highlight";
 	
 	/* api callbacks */
@@ -497,6 +525,7 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 	sfile->op = NULL;
 	
 	if (sfile->files) {
+		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
@@ -505,15 +534,26 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 	return OPERATOR_FINISHED;
 }
 
+int file_operator_poll(bContext *C)
+{
+	int poll = ED_operator_file_active(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	if (!sfile || !sfile->op) poll= 0;
+
+	return poll;
+}
+
 void FILE_OT_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cancel File Load";
+	ot->description= "Cancel loading of selected file.";
 	ot->idname= "FILE_OT_cancel";
 	
 	/* api callbacks */
 	ot->exec= file_cancel_exec;
-	ot->poll= ED_operator_file_active;
+	ot->poll= file_operator_poll;
 }
 
 /* sends events now, so things get handled on windowqueue level */
@@ -531,9 +571,10 @@ int file_exec(bContext *C, wmOperator *unused)
 		RNA_string_set(op->ptr, "directory", name);
 		strcat(name, sfile->params->file);
 
-		if ( RNA_boolean_get(op->ptr, "relative_paths") ) {
-			BLI_makestringcode(G.sce, name);
-		}
+		if(RNA_struct_find_property(op->ptr, "relative_paths"))
+			if(RNA_boolean_get(op->ptr, "relative_paths"))
+				BLI_makestringcode(G.sce, name);
+
 		RNA_string_set(op->ptr, "path", name);
 		
 		/* some ops have multiple files to select */
@@ -574,6 +615,7 @@ int file_exec(bContext *C, wmOperator *unused)
 		fsmenu_write_file(fsmenu_get(), name);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
+		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
@@ -586,11 +628,12 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Execute File Window";
+	ot->description= "Execute selected file.";
 	ot->idname= "FILE_OT_execute";
 	
 	/* api callbacks */
 	ot->exec= file_exec;
-	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+	ot->poll= file_operator_poll; 
 }
 
 
@@ -602,7 +645,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 		if (BLI_has_parent(sfile->params->dir)) {
 			BLI_parent_dir(sfile->params->dir);
 			BLI_cleanup_dir(G.sce, sfile->params->dir);
-			file_change_dir(sfile);
+			file_change_dir(sfile, 0);
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 		}
 	}		
@@ -616,6 +659,7 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Parent File";
+	ot->description= "Move to parent directory.";
 	ot->idname= "FILE_OT_parent";
 	
 	/* api callbacks */
@@ -628,7 +672,7 @@ int file_refresh_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
-	file_change_dir(sfile);
+	file_change_dir(sfile, 1);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
@@ -640,6 +684,7 @@ void FILE_OT_previous(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Previous Folder";
+	ot->description= "Move to previous folder.";
 	ot->idname= "FILE_OT_previous";
 	
 	/* api callbacks */
@@ -659,7 +704,7 @@ int file_previous_exec(bContext *C, wmOperator *unused)
 		folderlist_popdir(sfile->folders_prev, sfile->params->dir);
 		folderlist_pushdir(sfile->folders_next, sfile->params->dir);
 
-		file_change_dir(sfile);
+		file_change_dir(sfile, 1);
 	}
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
@@ -670,6 +715,7 @@ void FILE_OT_next(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Next Folder";
+	ot->description= "Move to next folder.";
 	ot->idname= "FILE_OT_next";
 	
 	/* api callbacks */
@@ -690,7 +736,7 @@ int file_next_exec(bContext *C, wmOperator *unused)
 		// update folder_prev so we can check for it in folderlist_clear_next()
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		file_change_dir(sfile);
+		file_change_dir(sfile, 1);
 	}		
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
@@ -733,8 +779,8 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Create New Directory";
-	ot->idname= "FILE_OT_directory_new";
 	ot->description= "Create a new directory";
+	ot->idname= "FILE_OT_directory_new";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -749,7 +795,6 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if(sfile->params) {
-
 		if ( sfile->params->dir[0] == '~' ) {
 			if (sfile->params->dir[1] == '\0') {
 				BLI_strncpy(sfile->params->dir, BLI_gethome(), sizeof(sfile->params->dir) );
@@ -771,7 +816,8 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 #endif
 		BLI_cleanup_dir(G.sce, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);
-		file_change_dir(sfile);
+		file_change_dir(sfile, 1);
+
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}		
 	
@@ -799,6 +845,7 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Refresh Filelist";
+	ot->description= "Refresh the file list.";
 	ot->idname= "FILE_OT_refresh";
 	
 	/* api callbacks */
@@ -826,6 +873,7 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Hide Dot Files";
+	ot->description= "Toggle hide hidden dot files.";
 	ot->idname= "FILE_OT_hidedot";
 	
 	/* api callbacks */
@@ -875,6 +923,7 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Bookmarks";
+	ot->description= "Toggle bookmarks display.";
 	ot->idname= "FILE_OT_bookmark_toggle";
 	
 	/* api callbacks */
@@ -903,6 +952,7 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Increment Number in Filename";
+	ot->description= "Increment number in filename.";
 	ot->idname= "FILE_OT_filenum";
 	
 	/* api callbacks */
@@ -954,6 +1004,7 @@ void FILE_OT_rename(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rename File or Directory";
+	ot->description= "Rename file or file directory.";
 	ot->idname= "FILE_OT_rename";
 	
 	/* api callbacks */
@@ -1004,6 +1055,7 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete File";
+	ot->description= "Delete selected file.";
 	ot->idname= "FILE_OT_delete";
 	
 	/* api callbacks */

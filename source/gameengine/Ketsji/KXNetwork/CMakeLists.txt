@@ -36,8 +36,13 @@ SET(INC
 	../../../../source/gameengine/Expressions
 	../../../../source/gameengine/SceneGraph
 	../../../../source/gameengine/Network
-	${PYTHON_INC}
 )
+
+IF(WITH_PYTHON)
+	SET(INC ${INC} ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(kx_network "${SRC}" "${INC}")
 #env.BlenderLib ( 'kx_network', Split(sources), Split(incs), defines=[],libtype=['game2', 'player'], priority=[5, 155] )

@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="gen_messaging"
 	ProjectGUID="{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}"
+	RootNamespace="gen_messaging"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -189,6 +190,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"

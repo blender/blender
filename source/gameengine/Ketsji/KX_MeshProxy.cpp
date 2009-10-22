@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef DISABLE_PYTHON
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -309,3 +311,5 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 	
 	return false;
 }
+
+#endif // DISABLE_PYTHON

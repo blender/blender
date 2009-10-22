@@ -48,6 +48,8 @@ static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
 			return &RNA_KeyboardSensor;
 		case SENS_PROPERTY:
 			return &RNA_PropertySensor;
+		case SENS_ARMATURE:
+			return &RNA_ArmatureSensor;
 		case SENS_MOUSE:
 			return &RNA_MouseSensor;
 		case SENS_COLLISION:
@@ -92,6 +94,7 @@ static void rna_def_sensor(BlenderRNA *brna)
 		{SENS_JOYSTICK, "JOYSTICK", 0, "joystick", ""},
 		{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
 		{SENS_DELAY, "DELAY", 0, "Delay", ""},
+		{SENS_ARMATURE, "ARMATURE", 0, "Armature", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Sensor", NULL);
@@ -276,6 +279,40 @@ static void rna_def_property_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "max_value", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "maxvalue");
 	RNA_def_property_ui_text(prop, "Maximum Value", "Specify maximum value in Interval type.");
+}
+
+static void rna_def_armature_sensor(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_type_items[] ={
+		{SENS_ARM_STATE_CHANGED, "STATECHG", 0, "State Changed", ""},
+		{SENS_ARM_LIN_ERROR_BELOW, "LINERRORBELOW", 0, "Lin error below", ""},
+		{SENS_ARM_LIN_ERROR_ABOVE, "LINERRORABOVE", 0, "Lin error above", ""},
+		{SENS_ARM_ROT_ERROR_BELOW, "ROTERRORBELOW", 0, "Rot error below", ""},
+		{SENS_ARM_ROT_ERROR_ABOVE, "ROTERRORBELOW", 0, "Rot error above", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "ArmatureSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Armature Sensor", "Sensor to detect values and changes in values of IK solver.");
+	RNA_def_struct_sdna_from(srna, "bArmatureSensor", "data");
+
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_ui_text(prop, "Test Type", "Type of value and test.");
+
+	prop= RNA_def_property(srna, "channel_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "posechannel");
+	RNA_def_property_ui_text(prop, "Bone name", "Identify the bone to check value from");
+
+	prop= RNA_def_property(srna, "constraint_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "constraint");
+	RNA_def_property_ui_text(prop, "Constraint name", "Identify the bone constraint to check value from.");
+
+	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_ui_text(prop, "Compare Value", "Specify value to be used in comparison.");
 }
 
 static void rna_def_actuator_sensor(BlenderRNA *brna)
@@ -531,6 +568,7 @@ void RNA_def_sensor(BlenderRNA *brna)
 	rna_def_touch_sensor(brna);
 	rna_def_keyboard_sensor(brna);
 	rna_def_property_sensor(brna);
+	rna_def_armature_sensor(brna);
 	rna_def_actuator_sensor(brna);
 	rna_def_delay_sensor(brna);
 	rna_def_collision_sensor(brna);

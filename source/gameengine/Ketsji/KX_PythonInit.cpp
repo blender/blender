@@ -37,12 +37,17 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#ifndef DISABLE_PYTHON
+
 extern "C" {
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
 	#include "BGL.h"
+
+	#include "marshal.h" /* python header for loading/saving dicts */
 }
+#endif
 
 #include "KX_PythonInit.h"
 //python physics binding
@@ -51,6 +56,7 @@ extern "C" {
 #include "KX_KetsjiEngine.h"
 #include "KX_RadarSensor.h"
 #include "KX_RaySensor.h"
+#include "KX_ArmatureSensor.h"
 #include "KX_SceneActuator.h"
 #include "KX_GameActuator.h"
 #include "KX_ParentActuator.h"
@@ -65,6 +71,7 @@ extern "C" {
 #include "KX_SoundActuator.h"
 #include "KX_StateActuator.h"
 #include "BL_ActionActuator.h"
+#include "BL_ArmatureObject.h"
 #include "RAS_IRasterizer.h"
 #include "RAS_ICanvas.h"
 #include "RAS_BucketManager.h"
@@ -87,17 +94,7 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
 
-
-#include "marshal.h" /* python header for loading/saving dicts */
-
 #include "PHY_IPhysicsEnvironment.h"
-// FIXME: Enable for access to blender python modules.  This is disabled because
-// python has dependencies on a lot of other modules and is a pain to link.
-//#define USE_BLENDER_PYTHON
-#ifdef USE_BLENDER_PYTHON
-//#include "BPY_extern.h"
-#endif 
-
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -120,14 +117,33 @@ static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
 static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super happy about this, but we need to remember the first loaded file for the global/dict load save
-static PyObject *gp_OrigPythonSysPath= NULL;
-static PyObject *gp_OrigPythonSysModules= NULL;
 
+void KX_SetActiveScene(class KX_Scene* scene)
+{
+	gp_KetsjiScene = scene;
+}
+
+class KX_Scene* KX_GetActiveScene()
+{
+	return gp_KetsjiScene;
+}
+
+class KX_KetsjiEngine* KX_GetActiveEngine()
+{
+	return gp_KetsjiEngine;
+}
+
+/* why is this in python? */
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 {
 	if (gp_Rasterizer)
 		gp_Rasterizer->DrawDebugLine(from,to,color);
 }
+
+#ifndef DISABLE_PYTHON
+
+static PyObject *gp_OrigPythonSysPath= NULL;
+static PyObject *gp_OrigPythonSysModules= NULL;
 
 /* Macro for building the keyboard translation */
 //#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyLong_FromSsize_t(SCA_IInputDevice::KX_##name))
@@ -1218,6 +1234,53 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_PARENT_SET, KX_ParentActuator::KX_PARENT_SET);
 	KX_MACRO_addTypesToDict(d, KX_PARENT_REMOVE, KX_ParentActuator::KX_PARENT_REMOVE);
 
+	/* BL_ArmatureConstraint type */
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_TRACKTO, CONSTRAINT_TYPE_TRACKTO);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_KINEMATIC);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_ROTLIKE, CONSTRAINT_TYPE_ROTLIKE);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_LOCLIKE, CONSTRAINT_TYPE_LOCLIKE);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_MINMAX, CONSTRAINT_TYPE_MINMAX);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_SIZELIKE, CONSTRAINT_TYPE_SIZELIKE);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_LOCKTRACK, CONSTRAINT_TYPE_LOCKTRACK);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_STRETCHTO, CONSTRAINT_TYPE_STRETCHTO);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_CLAMPTO);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_TRANSFORM, CONSTRAINT_TYPE_TRANSFORM);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_TYPE_DISTLIMIT, CONSTRAINT_TYPE_DISTLIMIT);
+	/* BL_ArmatureConstraint ik_type */
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_COPYPOSE, CONSTRAINT_IK_COPYPOSE);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_DISTANCE, CONSTRAINT_IK_DISTANCE);
+	/* BL_ArmatureConstraint ik_mode */
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_MODE_INSIDE, LIMITDIST_INSIDE);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_MODE_OUTSIDE, LIMITDIST_OUTSIDE);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_MODE_ONSURFACE, LIMITDIST_ONSURFACE);
+	/* BL_ArmatureConstraint ik_flag */
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_FLAG_TIP, CONSTRAINT_IK_TIP);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_FLAG_ROT, CONSTRAINT_IK_ROT);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_FLAG_STRETCH, CONSTRAINT_IK_STRETCH);
+	KX_MACRO_addTypesToDict(d, CONSTRAINT_IK_FLAG_POS, CONSTRAINT_IK_POS);
+	/* KX_ArmatureSensor type */
+	KX_MACRO_addTypesToDict(d, KX_ARMSENSOR_STATE_CHANGED, SENS_ARM_STATE_CHANGED);
+	KX_MACRO_addTypesToDict(d, KX_ARMSENSOR_LIN_ERROR_BELOW, SENS_ARM_LIN_ERROR_BELOW);
+	KX_MACRO_addTypesToDict(d, KX_ARMSENSOR_LIN_ERROR_ABOVE, SENS_ARM_LIN_ERROR_ABOVE);
+	KX_MACRO_addTypesToDict(d, KX_ARMSENSOR_ROT_ERROR_BELOW, SENS_ARM_ROT_ERROR_BELOW);
+	KX_MACRO_addTypesToDict(d, KX_ARMSENSOR_ROT_ERROR_ABOVE, SENS_ARM_ROT_ERROR_ABOVE);
+
+	/* BL_ArmatureActuator type */
+	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_RUN, ACT_ARM_RUN);
+	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_ENABLE, ACT_ARM_ENABLE);
+	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_DISABLE, ACT_ARM_DISABLE);
+	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_SETTARGET, ACT_ARM_SETTARGET);
+	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_SETWEIGHT, ACT_ARM_SETWEIGHT);
+
+	/* BL_Armature Channel rotation_mode */
+	KX_MACRO_addTypesToDict(d, ROT_MODE_QUAT, ROT_MODE_QUAT);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_XYZ, ROT_MODE_XYZ);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_XZY, ROT_MODE_XZY);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_YXZ, ROT_MODE_YXZ);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_YZX, ROT_MODE_YZX);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_ZXY, ROT_MODE_ZXY);
+	KX_MACRO_addTypesToDict(d, ROT_MODE_ZYX, ROT_MODE_ZYX);
+
 	// Check for errors
 	if (PyErr_Occurred())
     {
@@ -1901,21 +1964,6 @@ PyObject* initBGL()
 	return BGL_Init();
 }
 
-void KX_SetActiveScene(class KX_Scene* scene)
-{
-	gp_KetsjiScene = scene;
-}
-
-class KX_Scene* KX_GetActiveScene()
-{
-	return gp_KetsjiScene;
-}
-
-class KX_KetsjiEngine* KX_GetActiveEngine()
-{
-	return gp_KetsjiEngine;
-}
-
 // utility function for loading and saving the globalDict
 int saveGamePythonConfig( char **marshal_buffer)
 {
@@ -2016,3 +2064,5 @@ void resetGamePythonPath()
 {
 	gp_GamePythonPathOrig[0] = '\0';
 }
+
+#endif // DISABLE_PYTHON

@@ -27,8 +27,6 @@
  */
 
 /**
-
- * $Id$
  * Copyright (C) 2001 NaN Technologies B.V.
  * @author	Maarten Gribnau
  * @date	May 10, 2001
@@ -50,10 +48,16 @@ GHOST_Window::GHOST_Window(
 :
 	m_drawingContextType(type),
 	m_cursorVisible(true),
-	m_cursorGrabbed(true),
+	m_cursorGrabbed(false),
+	m_cursorWarp(false),
 	m_cursorShape(GHOST_kStandardCursorDefault),
 	m_stereoVisual(stereoVisual)
 {
+	m_isUnsavedChanges = false;
+	
+    m_cursorWarpAccumPos[0] = 0;
+    m_cursorWarpAccumPos[1] = 0;
+
     m_fullScreen = state == GHOST_kWindowStateFullScreen;
     if (m_fullScreen) {
         m_fullScreenWidth = width;
@@ -94,12 +98,12 @@ GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 	}
 }
 
-GHOST_TSuccess GHOST_Window::setCursorGrab(bool grab)
+GHOST_TSuccess GHOST_Window::setCursorGrab(bool grab, bool warp, bool restore)
 {
 	if(m_cursorGrabbed == grab)
 		return GHOST_kSuccess;
 
-	if (setWindowCursorGrab(grab)) {
+	if (setWindowCursorGrab(grab, warp, restore)) {
 		m_cursorGrabbed = grab;
 		return GHOST_kSuccess;
 	}
@@ -139,3 +143,15 @@ GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUn
 	}
 }
 
+
+GHOST_TSuccess GHOST_Window::setModifiedState(bool isUnsavedChanges)
+{
+	m_isUnsavedChanges = isUnsavedChanges;
+	
+	return GHOST_kSuccess;
+}
+
+bool GHOST_Window::getModifiedState()
+{
+	return m_isUnsavedChanges;
+}

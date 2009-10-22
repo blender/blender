@@ -128,12 +128,15 @@ typedef struct bPoseChannel {
 	void				*dual_quat;
 	void				*b_bone_dual_quats;
 	
-	float		loc[3];				/* transforms - written in by actions or transform */
+		/* transforms - written in by actions or transform */
+	float		loc[3];				
 	float		size[3];
 	
-	float 		eul[3];				/* rotations - written in by actions or transform (but only euler/quat in use at any one time!) */
-	float		quat[4];
-	short 		rotmode;			/* for now either quat (0), or xyz-euler (1) */
+		/* rotations - written in by actions or transform (but only one representation gets used at any time) */
+	float 		eul[3];					/* euler rotation */
+	float		quat[4];				/* quaternion rotation */
+	float 		rotAxis[3], rotAngle;	/* axis-angle rotation */
+	short 		rotmode;				/* eRotationModes - rotation representation to use */
 	short 		pad;
 	
 	float		chan_mat[4][4];		/* matrix result of loc/quat/size , and where we put deform in, see next line */
@@ -146,7 +149,9 @@ typedef struct bPoseChannel {
 	float		limitmin[3], limitmax[3];	/* DOF constraint */
 	float		stiffness[3];				/* DOF stiffness */
 	float		ikstretch;
-	
+	float		ikrotweight;		/* weight of joint rotation constraint */
+	float		iklinweight;		/* weight of joint stretch constraint */
+
 	float		*path;				/* totpath x 3 x float */
 	struct Object *custom;			/* draws custom object instead of this channel */
 } bPoseChannel;
@@ -166,7 +171,8 @@ typedef enum ePchan_Flag {
 	POSE_CHAIN		=	0x0200,
 	POSE_DONE		=   0x0400,
 	POSE_KEY		=	0x1000,
-	POSE_STRIDE		=	0x2000
+	POSE_STRIDE		=	0x2000,
+	POSE_IKTREE		=   0x4000,
 } ePchan_Flag;
 
 /* PoseChannel constflag (constraint detection) */
@@ -190,28 +196,34 @@ typedef enum ePchan_IkFlag {
 	BONE_IK_YLIMIT	= (1<<4),
 	BONE_IK_ZLIMIT	= (1<<5),
 	
+	BONE_IK_ROTCTL  = (1<<6),
+	BONE_IK_LINCTL  = (1<<7),
+
 	BONE_IK_NO_XDOF_TEMP = (1<<10),
 	BONE_IK_NO_YDOF_TEMP = (1<<11),
-	BONE_IK_NO_ZDOF_TEMP = (1<<12)
+	BONE_IK_NO_ZDOF_TEMP = (1<<12),
+
 } ePchan_IkFlag;
 
-/* PoseChannel->rotmode */
-typedef enum ePchan_RotMode {
+/* PoseChannel->rotmode and Object->rotmode */
+typedef enum eRotationModes {
 		/* quaternion rotations (default, and for older Blender versions) */
-	PCHAN_ROT_QUAT	= 0,
+	ROT_MODE_QUAT	= 0,
 		/* euler rotations - keep in sync with enum in BLI_arithb.h */
-	PCHAN_ROT_XYZ = 1,		/* Blender 'default' (classic) - must be as 1 to sync with PoseChannel rotmode */
-	PCHAN_ROT_XZY,
-	PCHAN_ROT_YXZ,
-	PCHAN_ROT_YZX,
-	PCHAN_ROT_ZXY,
-	PCHAN_ROT_ZYX,
+	ROT_MODE_EUL = 1,		/* Blender 'default' (classic) - must be as 1 to sync with arithb defines */
+	ROT_MODE_XYZ = 1,		/* Blender 'default' (classic) - must be as 1 to sync with arithb defines */
+	ROT_MODE_XZY,
+	ROT_MODE_YXZ,
+	ROT_MODE_YZX,
+	ROT_MODE_ZXY,
+	ROT_MODE_ZYX,
 	/* NOTE: space is reserved here for 18 other possible 
 	 * euler rotation orders not implemented 
 	 */
+	ROT_MODE_MAX,	/* sentinel for Py API */
 		/* axis angle rotations */
-	PCHAN_ROT_AXISANGLE = -1
-} ePchan_RotMode;
+	ROT_MODE_AXISANGLE = -1
+} eRotationModes;
 
 /* Pose ------------------------------------ */
 
@@ -233,7 +245,9 @@ typedef struct bPose {
 	ListBase agroups;			/* list of bActionGroups */
 	
 	int active_group;			/* index of active group (starts from 1) */
-	int pad;
+	int	iksolver;				/* ik solver to use, see ePose_IKSolverType */
+	void *ikdata;				/* temporary IK data, depends on the IK solver. Not saved in file */
+	void *ikparam;				/* IK solver parameters, structure depends on iksolver */ 
 } bPose;
 
 
@@ -249,7 +263,54 @@ typedef enum ePose_Flags {
 	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
 		/* recalculate bone paths */
 	POSE_RECALCPATHS = (1<<4),
+	    /* set by armature_rebuild_pose to give a chance to the IK solver to rebuild IK tree */
+	POSE_WAS_REBUILT = (1<<5),
+	    /* set by game_copy_pose to indicate that this pose is used in the game engine */
+	POSE_GAME_ENGINE = (1<<6),
 } ePose_Flags;
+
+/* IK Solvers ------------------------------------ */
+
+/* bPose->iksolver and bPose->ikparam->iksolver */
+typedef enum {
+	IKSOLVER_LEGACY = 0,
+	IKSOLVER_ITASC,
+} ePose_IKSolverType;
+
+/* header for all bPose->ikparam structures */
+typedef struct bIKParam {
+	int   iksolver;
+} bIKParam;
+
+/* bPose->ikparam when bPose->iksolver=1 */
+typedef struct bItasc {
+	int   iksolver;
+	float precision;
+	short numiter;
+	short numstep;
+	float minstep;
+	float maxstep;
+	short solver;	
+	short flag;
+	float feedback;
+	float maxvel;	/* max velocity to SDLS solver */
+	float dampmax;	/* maximum damping for DLS solver */
+	float dampeps;	/* threshold of singular value from which the damping start progressively */
+} bItasc;
+
+/* bItasc->flag */
+typedef enum {
+	ITASC_AUTO_STEP = (1<<0),
+	ITASC_INITIAL_REITERATION = (1<<1),
+	ITASC_REITERATION = (1<<2),
+	ITASC_SIMULATION = (1<<3),
+} eItasc_Flags;
+
+/* bItasc->solver */
+typedef enum {
+	ITASC_SOLVER_SDLS = 0,	/* selective damped least square, suitable for CopyPose constraint */
+	ITASC_SOLVER_DLS		/* damped least square with numerical filtering of damping */
+} eItasc_Solver;
 
 /* ************************************************ */
 /* Action */
@@ -361,6 +422,7 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_ONLYDRIVERS		= (1<<1),	/* for 'Drivers' editor - only include Driver data from AnimData */
 	ADS_FILTER_ONLYNLA			= (1<<2),	/* for 'NLA' editor - only include NLA data from AnimData */
 	ADS_FILTER_SELEDIT			= (1<<3),	/* for Graph Editor - used to indicate whether to include a filtering flag or not */
+	ADS_FILTER_SUMMARY			= (1<<4),	/* for 'DopeSheet' Editor - include 'summary' line */
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
@@ -372,18 +434,19 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_NOSCE			= (1<<15),
 	ADS_FILTER_NOPART			= (1<<16),
 	ADS_FILTER_NOMBA			= (1<<17),
+	ADS_FILTER_NOARM			= (1<<18),
 	
 		/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT		= (1<<20),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
 	
 		/* combination filters (some only used at runtime) */
-	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART),
+	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM),
 } DOPESHEET_FILTERFLAG;	
 
 /* DopeSheet general flags */
-//typedef enum DOPESHEET_FLAG {
-	
-//} DOPESHEET_FLAG;
+typedef enum DOPESHEET_FLAG {
+	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0),	/* when summary is shown, it is collapsed, so all other channels get hidden */
+} DOPESHEET_FLAG;
 
 
 
@@ -493,6 +556,5 @@ typedef enum ACHAN_FLAG {
 	ACHAN_SHOWCONS 	= (1<<6),
 	ACHAN_MOVED     = (1<<31),
 } ACHAN_FLAG; 
-
 
 #endif

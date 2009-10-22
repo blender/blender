@@ -1,6 +1,11 @@
 #!/usr/bin/python
 Import ('env')
+import os
 
+if env['WITH_BF_FHS']:
+	BLENDERPATH = os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION'])
+else:
+	BLENDERPATH = env['BF_INSTALLDIR']
 
 from optparse import OptionParser
 import epydoc
@@ -14,7 +19,7 @@ optvalues["quiet"] = 0
 optvalues["include_source_code"] = 0
 optvalues["inheritance"] = "included"
 optvalues["show_private"] = 0
-optvalues["target"] = env["BF_DOCDIR"]+"/BGE_API/"
+optvalues["target"] = os.path.join(BLENDERPATH, 'doc')
 optvalues["url"] = "http://www.blender.org"
 optvalues["top"] = "Game Engine API"
 optvalues["name"] = "Blender"

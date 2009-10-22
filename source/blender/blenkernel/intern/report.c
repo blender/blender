@@ -230,7 +230,7 @@ char *BKE_reports_string(ReportList *reports, ReportType level)
 	DynStr *ds;
 	char *cstring;
 
-	if(!reports)
+	if(!reports || !reports->list.first)
 		return NULL;
 
 	ds= BLI_dynstr_new();

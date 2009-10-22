@@ -212,7 +212,7 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 			
 		out[0]->data= stackbuf;
 		
-		generate_preview(node, out[0]->data);
+		generate_preview(data, node, out[0]->data);
 	}
 }
 

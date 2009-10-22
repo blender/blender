@@ -1315,7 +1315,7 @@ static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* 
 	}
 	vecNew[3] = 1.0f;
 
-	for(x = 0; x < mat->colSize; z++) {
+	for(x = 0; x < mat->colSize; x++) {
 		for(y = 0; y < mat->rowSize; y++) {
 			dot += mat->matrix[y][x] * vecCopy[y];
 		}

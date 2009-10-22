@@ -26,17 +26,20 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -55,6 +58,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_lattice.h"
@@ -109,7 +113,7 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 		VECCOPY(ob->loc, scene->cursor);
 	} 
 	else {
-		if (v3d->localview) {
+		if (v3d->localvd) {
 			base->lay= ob->lay= v3d->layact | v3d->lay;
 			VECCOPY(ob->loc, v3d->cursor);
 		} 
@@ -140,14 +144,14 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 }
 
 /* for object add primitive operators */
-static Object *object_add_type(bContext *C, int type)
+Object *ED_object_add_type(bContext *C, int type)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO); /* freedata, and undo */
 	
 	/* deselects all, sets scene->basact */
 	ob= add_object(scene, type);
@@ -165,7 +169,7 @@ static Object *object_add_type(bContext *C, int type)
 /* for object add operator */
 static int object_add_exec(bContext *C, wmOperator *op)
 {
-	object_add_type(C, RNA_int_get(op->ptr, "type"));
+	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"));
 	
 	return OPERATOR_FINISHED;
 }
@@ -189,93 +193,91 @@ void OBJECT_OT_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", object_type_items, 0, "Type", "");
 }
 
-/* ***************** add primitives *************** */
-/* ******  work both in and outside editmode ****** */
+/********************* Add Effector Operator ********************/
+/* copy from rna_object_force.c*/
+static EnumPropertyItem field_type_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{PFIELD_FORCE, "FORCE", 0, "Force", ""},
+	{PFIELD_WIND, "WIND", 0, "Wind", ""},
+	{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
+	{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
+	{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
+	{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
+	{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
+	{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
+	{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
+	{PFIELD_BOID, "BOID", 0, "Boid", ""},
+	{PFIELD_TURBULENCE, "TURBULENCE", 0, "Turbulence", ""},
+	{PFIELD_DRAG, "DRAG", 0, "Drag", ""},
+	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem prop_mesh_types[] = {
-	{0, "PLANE", ICON_MESH_PLANE, "Plane", ""},
-	{1, "CUBE", ICON_MESH_CUBE, "Cube", ""},
-	{2, "CIRCLE", ICON_MESH_CIRCLE, "Circle", ""},
-	{3, "UVSPHERE", ICON_MESH_UVSPHERE, "UVsphere", ""},
-	{4, "ICOSPHERE", ICON_MESH_ICOSPHERE, "Icosphere", ""},
-	{5, "CYLINDER", ICON_MESH_TUBE, "Cylinder", ""},
-	{6, "CONE", ICON_MESH_CONE, "Cone", ""},
-	{0, "", 0, NULL, NULL},
-	{7, "GRID", ICON_MESH_GRID, "Grid", ""},
-	{8, "MONKEY", ICON_MESH_MONKEY, "Monkey", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int object_add_mesh_exec(bContext *C, wmOperator *op)
+void add_effector_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
 {
-	Object *obedit= CTX_data_edit_object(C);
-	int newob= 0;
-	
-	if(obedit==NULL || obedit->type!=OB_MESH) {
-		object_add_type(C, OB_MESH);
-		ED_object_enter_editmode(C, EM_DO_UNDO);
-		newob = 1;
-	}
-	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	/* keep here to get things compile, remove later */
+}
 
-	switch(RNA_enum_get(op->ptr, "type")) {
-		case 0:
-			WM_operator_name_call(C, "MESH_OT_primitive_plane_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 1:
-			WM_operator_name_call(C, "MESH_OT_primitive_cube_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 2:
-			WM_operator_name_call(C, "MESH_OT_primitive_circle_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 3:
-			WM_operator_name_call(C, "MESH_OT_primitive_uv_sphere_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 4:
-			WM_operator_name_call(C, "MESH_OT_primitive_ico_sphere_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 5:
-			WM_operator_name_call(C, "MESH_OT_primitive_cylinder_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 6:
-			WM_operator_name_call(C, "MESH_OT_primitive_cone_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 7:
-			WM_operator_name_call(C, "MESH_OT_primitive_grid_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case 8:
-			WM_operator_name_call(C, "MESH_OT_primitive_monkey_add", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-	}
-	/* userdef */
-	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
-	}
+/* for effector add primitive operators */
+static Object *effector_add_type(bContext *C, int type)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+	/* for as long scene has editmode... */
+	if (CTX_data_edit_object(C)) 
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO); /* freedata, and undo */
+	
+	/* deselects all, sets scene->basact */
+	if(type==PFIELD_GUIDE) {
+		ob = add_object(scene, OB_CURVE);
+		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
+		ED_object_enter_editmode(C, 0);
+		BLI_addtail(curve_get_editcurve(ob), add_nurbs_primitive(C, CU_NURBS|CU_PRIM_PATH, 1));
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
+	}
+	else
+		ob=	add_object(scene, OB_EMPTY);
+
+	ob->pd= object_add_collision_fields(type);
+
+	/* editor level activate, notifiers */
+	ED_base_object_activate(C, BASACT);
+
+	/* more editor stuff */
+	ED_object_base_init_from_view(C, BASACT);
+
+	DAG_scene_sort(scene);
+
+	return ob;
+}
+
+/* for object add operator */
+static int effector_add_exec(bContext *C, wmOperator *op)
+{
+	effector_add_type(C, RNA_int_get(op->ptr, "type"));
 	
 	return OPERATOR_FINISHED;
 }
 
-
-void OBJECT_OT_mesh_add(wmOperatorType *ot)
+void OBJECT_OT_effector_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Mesh";
-	ot->description = "Add a mesh object to the scene.";
-	ot->idname= "OBJECT_OT_mesh_add";
+	ot->name= "Add Effector";
+	ot->description = "Add an empty object with a physics effector to the scene.";
+	ot->idname= "OBJECT_OT_effector_add";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= object_add_mesh_exec;
+	ot->exec= effector_add_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
-	/* flags: no register or undo, this operator calls operators */
-	ot->flag= 0; //OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_mesh_types, 0, "Primitive", "");
+	RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
 }
+
+/* ***************** add primitives *************** */
 
 static EnumPropertyItem prop_curve_types[] = {
 	{CU_BEZIER|CU_PRIM_CURVE, "BEZIER_CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", ""},
@@ -294,7 +296,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		object_add_type(C, OB_CURVE);
+		ED_object_add_type(C, OB_CURVE);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -307,7 +309,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -369,7 +371,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
-		object_add_type(C, OB_SURF);
+		ED_object_add_type(C, OB_SURF);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -382,7 +384,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -426,7 +428,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
-		object_add_type(C, OB_MBALL);
+		ED_object_add_type(C, OB_MBALL);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -439,7 +441,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -467,7 +469,7 @@ static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *even
 void OBJECT_OT_metaball_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Metaball";
+	ot->name= "Add Metaball";
 	ot->description= "Add an metaball object to the scene.";
 	ot->idname= "OBJECT_OT_metaball_add";
 
@@ -488,7 +490,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	if(obedit && obedit->type==OB_FONT)
 		return OPERATOR_CANCELLED;
 
-	object_add_type(C, OB_FONT);
+	ED_object_add_type(C, OB_FONT);
 	obedit= CTX_data_active_object(C);
 
 	if(U.flag & USER_ADD_EDITMODE)
@@ -522,7 +524,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		object_add_type(C, OB_ARMATURE);
+		ED_object_add_type(C, OB_ARMATURE);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -536,7 +538,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -559,45 +561,112 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int object_lamp_add_exec(bContext *C, wmOperator *op)
 {
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
-	uiLayout *layout= uiPupMenuLayout(pup);
+	Object *ob;
+	int type= RNA_enum_get(op->ptr, "type");
+
+	ob= ED_object_add_type(C, OB_LAMP);
+	if(ob && ob->data)
+		((Lamp*)ob->data)->type= type;
 	
-	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
-	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
-	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_metaball_add", "type");
-	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
-	uiItemS(layout);
-	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_add", "type", OB_LATTICE);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_add", "type", OB_EMPTY);
-	uiItemS(layout);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_add", "type", OB_CAMERA);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LAMP, "OBJECT_OT_add", "type", OB_LAMP);
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_lamp_add(wmOperatorType *ot)
+{	
+	static EnumPropertyItem lamp_type_items[] = {
+		{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source."},
+		{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source."},
+		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source."},
+		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemi", "180 degree constant light source."},
+		{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source."},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Add Lamp";
+	ot->description = "Add a lamp object to the scene.";
+	ot->idname= "OBJECT_OT_lamp_add";
 	
-	uiPupMenuEnd(C, pup);
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_lamp_add_exec;
+	ot->poll= ED_operator_scene_editable;
 	
-	/* this operator is only for a menu, not used further */
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+}
+
+/* add dupligroup */
+static EnumPropertyItem *add_dupligroup_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem *item= NULL, item_tmp;
+	int totitem= 0;
+	int i= 0;
+	Group *group;
+
+	memset(&item_tmp, 0, sizeof(item_tmp));
+
+	for(group= CTX_data_main(C)->group.first; group; group= group->id.next) {
+		item_tmp.identifier= item_tmp.name= group->id.name+2;
+		item_tmp.value= i++;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
+static int group_instance_add_exec(bContext *C, wmOperator *op)
+{
+	/* XXX, using an enum for library lookups is a bit dodgy */
+	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "type"));
+
+	if(group) {
+		Object *ob= ED_object_add_type(C, OB_EMPTY);
+		rename_id(&ob->id, group->id.name+2);
+		ob->dup_group= group;
+		ob->transflag |= OB_DUPLIGROUP;
+		id_us_plus(&group->id);
+
+
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+		return OPERATOR_FINISHED;
+	}
+
 	return OPERATOR_CANCELLED;
 }
 
 /* only used as menu */
-void OBJECT_OT_primitive_add(wmOperatorType *ot)
+void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_group_dummy_types[] = {
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
-	ot->name= "Add Primitive";
-	ot->description = "Add a primitive object.";
-	ot->idname= "OBJECT_OT_primitive_add";
-	
+	ot->name= "Add Group Instance";
+	ot->description = "Add a dupligroup instance.";
+	ot->idname= "OBJECT_OT_group_instance_add";
+
 	/* api callbacks */
-	ot->invoke= object_primitive_add_invoke;
-	
+	ot->exec= group_instance_add_exec;
+
 	ot->poll= ED_operator_scene_editable;
-	
+
 	/* flags */
 	ot->flag= 0;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", prop_group_dummy_types, 0, "Type", "");
+	RNA_def_enum_funcs(prop, add_dupligroup_itemf);
 }
 
 /**************************** Delete Object *************************/
@@ -857,8 +926,8 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 /**************************** Convert **************************/
 
 static EnumPropertyItem convert_target_items[]= {
-	{OB_CURVE, "CURVE", 0, "Curve", ""},
-	{OB_MESH, "MESH", 0, "Mesh", ""},
+	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
+	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Mesh", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static void curvetomesh(Scene *scene, Object *ob) 
@@ -910,6 +979,25 @@ static int convert_exec(bContext *C, wmOperator *op)
 		
 		if(ob->flag & OB_DONE)
 			continue;
+		else if (ob->type==OB_MESH && target == OB_CURVE) {
+			ob->flag |= OB_DONE;
+
+			ob1= copy_object(ob);
+			ob1->recalc |= OB_RECALC;
+
+			basen= MEM_mallocN(sizeof(Base), "duplibase");
+			*basen= *base;
+			BLI_addhead(&scene->base, basen);	/* addhead: otherwise eternal loop */
+			basen->object= ob1;
+			basen->flag |= SELECT;
+			base->flag &= ~SELECT;
+			ob->flag &= ~SELECT;
+
+			mesh_to_curve(scene, ob1);
+
+			if(ob1->type==OB_CURVE)
+				object_free_modifiers(ob1);	/* after derivedmesh calls! */
+		}
 		else if(ob->type==OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 			ob->flag |= OB_DONE;
 			basedel = base;
@@ -935,7 +1023,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			/* make new mesh data from the original copy */
 			dm= mesh_get_derived_final(scene, ob1, CD_MASK_MESH);
 			/* dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton) */
-			
+
 			DM_to_mesh(dm, ob1->data);
 
 			dm->release(dm);
@@ -1059,47 +1147,13 @@ static int convert_exec(bContext *C, wmOperator *op)
 	BASACT= basact;
 
 	DAG_scene_sort(scene);
-	WM_event_add_notifier(C, NC_SCENE, scene);
+	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
+
+
 
 	return OPERATOR_FINISHED;
 }
 
-static int convert_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obact= CTX_data_active_object(C);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	char *title;
-
-	if(obact->type==OB_FONT) {
-		pup= uiPupMenuBegin(C, "Convert Font to", 0);
-		layout= uiPupMenuLayout(pup);
-
-		uiItemEnumO(layout, "Curve", 0, op->type->idname, "target", OB_CURVE);
-	}
-	else {
-		if(obact->type == OB_MBALL)
-			title= "Convert Metaball to";
-		else if(obact->type == OB_CURVE)
-			title= "Convert Curve to";
-		else if(obact->type == OB_SURF)
-			title= "Convert Nurbs Surface to";
-		else if(obact->type == OB_MESH)
-			title= "Convert Modifiers to";
-		else
-			return OPERATOR_CANCELLED;
-
-		pup= uiPupMenuBegin(C, title, 0);
-		layout= uiPupMenuLayout(pup);
-	}
-
-	uiItemBooleanO(layout, "Mesh (keep original)", 0, op->type->idname, "keep_original", 1);
-	uiItemBooleanO(layout, "Mesh (delete original)", 0, op->type->idname, "keep_original", 0);
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
-}
 
 void OBJECT_OT_convert(wmOperatorType *ot)
 {
@@ -1109,7 +1163,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_convert";
 	
 	/* api callbacks */
-	ot->invoke= convert_invoke;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= convert_exec;
 	ot->poll= convert_poll;
 	

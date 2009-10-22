@@ -225,6 +225,22 @@ BMOpDefine def_removedoubles = {
 };
 
 /*
+  Auto Merge
+
+  Finds groups of vertices closer then dist and merges them together,
+  using the weld verts bmop.  The merges must go from a vert not in
+  verts to one in verts.
+*/
+BMOpDefine def_automerge = {
+	"automerge",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input verts
+	 {BMOP_OPSLOT_FLT,         "dist"}, //minimum distance
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_automerge_exec,
+	0,
+};
+
+/*
   Collapse Connected
 
   Collapses connected vertices
@@ -872,6 +888,7 @@ BMOpDefine *opdefines[] = {
 	&def_vertexshortestpath,
 	&def_scale,
 	&def_edgesplit,
+	&def_automerge,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

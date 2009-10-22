@@ -75,6 +75,7 @@
 #include "BKE_DerivedMesh.h"
 
 #include "RE_render_ext.h"	/* externtex */
+#include "RE_raytrace.h"
 
 #include "renderpipeline.h"
 #include "render_types.h"
@@ -872,12 +873,33 @@ void free_renderdata_tables(Render *re)
 			MEM_freeN(obr->mtface);
 		if(obr->mcol)
 			MEM_freeN(obr->mcol);
+			
+		if(obr->rayfaces)
+		{
+			MEM_freeN(obr->rayfaces);
+			obr->rayfaces = NULL;
+		}
+		if(obr->rayprimitives)
+		{
+			MEM_freeN(obr->rayprimitives);
+			obr->rayprimitives = NULL;
+		}
+		if(obr->raytree)
+		{
+			RE_rayobject_free(obr->raytree);
+			obr->raytree = NULL;
+		}
 	}
 
 	if(re->objectinstance) {
 		for(obi=re->instancetable.first; obi; obi=obi->next)
+		{
 			if(obi->vectors)
 				MEM_freeN(obi->vectors);
+
+			if(obi->raytree)
+				RE_rayobject_free(obi->raytree);
+		}
 
 		MEM_freeN(re->objectinstance);
 		re->objectinstance= NULL;
@@ -1024,7 +1046,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta);
 
 			yn= tin*mtex->colfac;
-			zn= tin*mtex->varfac;
+			zn= tin*mtex->alphafac;
 
 			if(mtex->mapto & MAP_COL) {
 				zn= 1.0-yn;
@@ -1156,7 +1178,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta);
 
 			//yn= tin*mtex->colfac;
-			//zn= tin*mtex->varfac;
+			//zn= tin*mtex->alphafac;
 			if(mtex->mapto & MAP_COL) {
 				tex[0]=tr;
 				tex[1]=tg;
@@ -1175,11 +1197,11 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				har->b= in[2];
 			}
 			if(mtex->mapto & MAP_ALPHA)
-				har->alfa = texture_value_blend(mtex->def_var,har->alfa,tin,mtex->varfac,mtex->blendtype,mtex->maptoneg & MAP_ALPHA);
+				har->alfa = texture_value_blend(mtex->def_var,har->alfa,tin,mtex->alphafac,mtex->blendtype);
 			if(mtex->mapto & MAP_HAR)
-				har->hard = 1.0+126.0*texture_value_blend(mtex->def_var,((float)har->hard)/127.0,tin,mtex->varfac,mtex->blendtype,mtex->maptoneg & MAP_HAR);
+				har->hard = 1.0+126.0*texture_value_blend(mtex->def_var,((float)har->hard)/127.0,tin,mtex->hardfac,mtex->blendtype);
 			if(mtex->mapto & MAP_RAYMIRR)
-				har->hasize = 100.0*texture_value_blend(mtex->def_var,har->hasize/100.0,tin,mtex->varfac,mtex->blendtype,mtex->maptoneg & MAP_RAYMIRR);
+				har->hasize = 100.0*texture_value_blend(mtex->def_var,har->hasize/100.0,tin,mtex->raymirrfac,mtex->blendtype);
 			/* now what on earth is this good for?? */
 			//if(mtex->texco & 16) {
 			//	har->alfa= tin;

@@ -235,6 +235,21 @@ extern "C" float *smoke_get_velocity_z(FLUID_3D *fluid)
 	return fluid->_zVelocity;
 }
 
+extern "C" float *smoke_get_force_x(FLUID_3D *fluid)
+{
+	return fluid->_xForce;
+}
+
+extern "C" float *smoke_get_force_y(FLUID_3D *fluid)
+{
+	return fluid->_yForce;
+}
+
+extern "C" float *smoke_get_force_z(FLUID_3D *fluid)
+{
+	return fluid->_zForce;
+}
+
 extern "C" float *smoke_turbulence_get_density(WTURBULENCE *wt)
 {
 	return wt ? wt->getDensityBig() : NULL;

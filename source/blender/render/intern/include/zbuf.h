@@ -37,6 +37,7 @@ struct VlakRen;
 struct ListBase;
 struct ZSpan;
 struct APixstrand;
+struct APixstr;
 struct StrandShadeCache;
 
 void fillrect(int *rect, int x, int y, int val);
@@ -50,11 +51,12 @@ void projectverto(float *v1, float winmat[][4], float *adr);
 int testclip(float *v); 
 
 void zbuffer_shadow(struct Render *re, float winmat[][4], struct LampRen *lar, int *rectz, int size, float jitx, float jity);
+void zbuffer_abuf_shadow(struct Render *re, struct LampRen *lar, float winmat[][4], struct APixstr *APixbuf, struct APixstrand *apixbuf, struct ListBase *apsmbase, int size, int samples, float (*jit)[2]);
 void zbuffer_solid(struct RenderPart *pa, struct RenderLayer *rl, void (*fillfunc)(struct RenderPart*, struct ZSpan*, int, void*), void *data);
 
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass, struct ListBase *psmlist);
 void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void*, int, int, int, int, int));
-int zbuffer_strands_abuf(struct Render *re, struct RenderPart *pa, struct RenderLayer *rl, struct APixstrand *apixbuf, struct ListBase *apsmbase, struct StrandShadeCache *cache);
+int zbuffer_strands_abuf(struct Render *re, struct RenderPart *pa, struct APixstrand *apixbuf, struct ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int sample, float (*jit)[2], float clipcrop, int shadow, struct StrandShadeCache *cache);
 
 typedef struct APixstr {
     unsigned short mask[4];		/* jitter mask */
@@ -118,6 +120,7 @@ typedef struct ZSpan {
 /* exported to shadbuf.c */
 void zbufclip4(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4);
 void zbuf_free_span(struct ZSpan *zspan);
+void freepsA(struct ListBase *lb);
 
 /* to rendercore.c */
 void zspan_scanconvert(struct ZSpan *zpan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float) );
@@ -128,7 +131,7 @@ void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty, float clipcrop);
 void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *ho2, float *ho3, float *ho4, int c1, int c2, int c3, int c4);
 
 /* exported to shadeinput.c */
-void zbuf_make_winmat(Render *re, float duplimat[][4], float winmat[][4]);
+void zbuf_make_winmat(Render *re, float winmat[][4]);
 void zbuf_render_project(float winmat[][4], float *co, float *ho);
 
 #endif

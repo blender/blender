@@ -28,6 +28,6 @@
  
 void volume_precache(Render *re);
 void free_volume_precache(Render *re);
-int point_inside_volume_objectinstance(ObjectInstanceRen *obi, float *co);
+int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float *co);
 
 #define VOL_MS_TIMESTEP	0.1f

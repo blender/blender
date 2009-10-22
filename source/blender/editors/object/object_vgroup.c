@@ -407,19 +407,22 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 			eve= BMIter_AtIndex(me->edit_btmesh->bm, BM_VERTS_OF_MESH, NULL, vertnum);
 			if(!eve) return 0.0f;
 			dvert= CustomData_bmesh_get(&me->edit_btmesh->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+			vertnum= 0;
 		}
 		else
-			dvert = me->dvert + vertnum;
+			dvert = me->dvert;
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 		
 		if(lt->dvert)
-			dvert = lt->dvert + vertnum;
+			dvert = lt->dvert;
 	}
 	
 	if(dvert==NULL)
 		return 0.0f;
+	
+	dvert += vertnum;
 	
 	for(i=dvert->totweight-1 ; i>=0 ; i--)
 		if(dvert->dw[i].def_nr == def_nr)
@@ -1228,13 +1231,13 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
-	Object *ob;
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item= NULL;
 	bDeformGroup *def;
 	int a, totitem= 0;
 	
-	if(!C || !(ob = CTX_data_pointer_get_type(C, "object", &RNA_Object).data)) /* needed for docs */
+	if(!ob)
 		return vgroup_items;
 	
 	for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
@@ -1245,7 +1248,6 @@ static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *ptr, int *free)
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-
 	*free= 1;
 
 	return item;

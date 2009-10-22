@@ -37,6 +37,8 @@ struct EditEdge;
 struct EditFace;
 struct bContext;
 struct wmWindowManager;
+struct wmKeyConfig;
+struct ReportList;
 struct EditSelection;
 struct ViewContext;
 struct bDeformGroup;
@@ -55,6 +57,8 @@ struct BMEdge;
 struct BMFace;
 struct UvVertMap;
 struct UvMapVert;
+struct Material;
+struct Object;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -70,7 +74,7 @@ struct UvMapVert;
 #define B_AUTOFGON		32
 #define B_KNIFE			0x80
 #define B_PERCENTSUBD		0x40
-#define B_MESH_X_MIRROR		0x100
+//#define B_MESH_X_MIRROR		0x100 // deprecated, use mesh
 #define B_JOINTRIA_UV		0x200
 #define B_JOINTRIA_VCOL		0X400
 #define B_JOINTRIA_SHARP	0X800
@@ -148,17 +152,18 @@ int			*mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
-void		ED_keymap_mesh(struct wmWindowManager *wm);
+void		ED_operatormacros_mesh(void);
+void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
 
 /* editmesh.c */
 
 void		ED_spacetypes_init(void);
-void		ED_keymap_mesh(struct wmWindowManager *wm);
+void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
-struct EditMesh *make_editMesh(struct Scene *scene, Object *ob);
-void		load_editMesh(struct Scene *scene, Object *ob, struct EditMesh *em);
-void		remake_editMesh(struct Scene *scene, Object *ob);
+struct EditMesh *make_editMesh(struct Scene *scene, struct Object *ob);
+void		load_editMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em);
+void		remake_editMesh(struct Scene *scene, struct Object *ob);
 void		free_editMesh(struct EditMesh *em);
 
 void		recalc_editnormals(struct EditMesh *em);
@@ -186,6 +191,7 @@ void		EM_select_face(struct EditFace *efa, int sel);
 void		EM_select_face_fgon(struct EditMesh *em, struct EditFace *efa, int val);
 void		EM_select_swap(struct EditMesh *em);
 void		EM_toggle_select_all(struct EditMesh *em);
+void		EM_select_all(struct EditMesh *em);
 void		EM_selectmode_flush(struct EditMesh *em);
 void		EM_deselect_flush(struct EditMesh *em);
 void		EM_selectmode_set(struct EditMesh *em);
@@ -215,6 +221,8 @@ int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short r
 
 void		EM_hide_mesh(struct EditMesh *em, int swap);
 void		EM_reveal_mesh(struct EditMesh *em);
+
+void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
 
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
@@ -250,5 +258,26 @@ struct MDeformWeight	*ED_vgroup_weight_get(struct MDeformVert *dv, int defgroup)
 struct BMVert *EDBM_findnearestvert(struct ViewContext *vc, int *dist, short sel, short strict);
 struct BMEdge *EDBM_findnearestedge(struct ViewContext *vc, int *dist);
 struct BMFace *EDBM_findnearestface(struct ViewContext *vc, int *dist);
+
+/*needed by edge slide*/
+struct EditVert *editedge_getOtherVert(struct EditEdge *eed, struct EditVert *eve);
+struct EditVert *editedge_getSharedVert(struct EditEdge *eed, struct EditEdge *eed2);
+int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
+int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
+int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
+short sharesFace(struct EditMesh *em, struct EditEdge *e1, struct EditEdge *e2);
+
+/* mesh_data.c */
+
+void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
+void ED_mesh_transform(struct Mesh *me, float *mat);
+void ED_mesh_calc_normals(struct Mesh *me);
+void ED_mesh_material_add(struct Mesh *me, struct Material *ma);
+void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges);
+
+int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
+int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
+int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
+int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 
 #endif /* ED_MESH_H */

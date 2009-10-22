@@ -93,6 +93,8 @@ typedef struct FFMpegCodecData {
 	int audio_codec;
 	int video_bitrate;
 	int audio_bitrate;
+	int audio_mixrate;
+	float audio_volume;
 	int gop_size;
 	int flags;
 
@@ -106,10 +108,13 @@ typedef struct FFMpegCodecData {
 
 
 typedef struct AudioData {
-	int mixrate;
-	float main;		/* Main mix in dB */
+	int mixrate; // 2.5: now in FFMpegCodecData: audio_mixrate
+	float main; // 2.5: now in FFMpegCodecData: audio_volume
+	float speed_of_sound;
+	float doppler_factor;
+	int distance_model;
 	short flag;
-	short pad[3];
+	short pad;
 } AudioData;
 
 typedef struct SceneRenderLayer {
@@ -162,6 +167,8 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
 #define SCE_PASS_MIST		16384
 
+#define SCE_PASS_RAYHITS	32768
+
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
 
@@ -170,7 +177,6 @@ typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
 	struct FFMpegCodecData ffcodecdata;
-	struct AudioData audio;	/* new in 2.5 */
 	
 	int cfra, sfra, efra;	/* frames as in 'images' */
 	int psfra, pefra;		/* start+end frames of preview range */
@@ -236,9 +242,23 @@ typedef struct RenderData {
 	 */
 	int mode;
 
-	/* render engine (deprecated), octree resolution */
-	short renderer, ocres;
+	/**
+	 * Flags for raytrace settings. Use bit-masking to access the settings.
+	 */
+	int raytrace_options;
+	
+	/**
+	 * Raytrace acceleration structure
+	 */
+	short raytrace_structure;
 
+	/* renderer (deprecated) */
+	short renderer;
+
+	/* octree resolution */
+	short ocres;
+	short pad4;
+	
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
 	 * blending for the background
@@ -251,6 +271,7 @@ typedef struct RenderData {
 	short osa;
 
 	short frs_sec, edgeint;
+
 	
 	/* safety, border and display rect */
 	rctf safety, border;
@@ -663,6 +684,11 @@ typedef struct UnitSettings {
 	short flag; /* imperial, metric etc */
 } UnitSettings;
 
+typedef struct PhysicsSettings {
+	float gravity[3];
+	int flag;
+} PhysicsSettings;
+
 typedef struct Scene {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -697,7 +723,7 @@ typedef struct Scene {
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */
 	struct RenderData r;
-	struct AudioData audio;		/* DEPRECATED 2.5 */
+	struct AudioData audio;
 	
 	ListBase markers;
 	ListBase transform_spaces;
@@ -727,6 +753,9 @@ typedef struct Scene {
 	
 	/* Grease Pencil */
 	struct bGPdata *gpd;
+
+	/* Physics simulation settings */
+	struct PhysicsSettings physics_settings;
 } Scene;
 
 
@@ -792,6 +821,18 @@ typedef struct Scene {
 #define R_INTERN	0
 #define R_YAFRAY	1
 
+/* raytrace structure */
+#define R_RAYSTRUCTURE_AUTO				0
+#define R_RAYSTRUCTURE_OCTREE			1
+#define R_RAYSTRUCTURE_BLIBVH			2
+#define R_RAYSTRUCTURE_VBVH				3
+#define R_RAYSTRUCTURE_SIMD_SVBVH		4	/* needs SIMD */
+#define R_RAYSTRUCTURE_SIMD_QBVH		5	/* needs SIMD */
+
+/* raytrace_options */
+#define R_RAYTRACE_USE_LOCAL_COORDS		0x0001
+#define R_RAYTRACE_USE_INSTANCES		0x0002
+
 /* scemode (int now) */
 #define R_DOSEQ				0x0001
 #define R_BG_RENDER			0x0002
@@ -799,7 +840,7 @@ typedef struct Scene {
 #define R_PASSEPARTOUT		0x0004
 #define R_PREVIEWBUTS		0x0008
 #define R_EXTENSION			0x0010
-#define R_NODE_PREVIEW		0x0020
+#define R_MATNODE_PREVIEW	0x0020
 #define R_DOCOMP			0x0040
 #define R_COMP_CROP			0x0080
 #define R_FREE_IMAGE		0x0100
@@ -811,7 +852,8 @@ typedef struct Scene {
 #define R_STAMP_INFO		0x4000	/* deprecated */
 #define R_FULL_SAMPLE		0x8000
 #define R_COMP_RERENDER		0x10000
-#define R_RECURS_PROTECTION     0x20000
+#define R_RECURS_PROTECTION	0x20000
+#define R_TEXNODE_PREVIEW	0x40000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001
@@ -824,7 +866,8 @@ typedef struct Scene {
 #define R_STAMP_MARKER	0x0080
 #define R_STAMP_FILENAME	0x0100
 #define R_STAMP_SEQSTRIP	0x0200
-#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP)
+#define R_STAMP_RENDERTIME	0x0400
+#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP|R_STAMP_RENDERTIME)
 
 /* alphamode */
 #define R_ADDSKY		0
@@ -940,6 +983,7 @@ typedef struct Scene {
 #define SCE_SNAP				1
 #define SCE_SNAP_ROTATE			2
 #define SCE_SNAP_PEEL_OBJECT	4
+#define SCE_SNAP_PROJECT		8
 /* toolsettings->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
@@ -972,6 +1016,11 @@ typedef struct Scene {
 #define PROP_LIN               4
 #define PROP_CONST             5
 #define PROP_RANDOM		6
+
+/* toolsettings->proportional */
+#define PROP_EDIT_OFF			0
+#define PROP_EDIT_ON			1
+#define PROP_EDIT_CONNECTED	2
 
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)
@@ -1122,6 +1171,9 @@ typedef enum SculptFlags {
 /* toolsettings->skgen_retarget_roll */
 #define	SK_RETARGET_ROLL_VIEW			1
 #define	SK_RETARGET_ROLL_JOINT			2
+
+/* physics_settings->flag */
+#define PHYS_GLOBAL_GRAVITY		1
 
 /* UnitSettings */
 

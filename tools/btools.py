@@ -27,7 +27,7 @@ def print_arguments(args, bc):
 
 def validate_arguments(args, bc):
 	opts_list = [
-			'BF_NO_PYDEBUG', 'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
+			'WITH_BF_PYTHON', 'BF_NO_PYDEBUG', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL',
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
 			'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH',
@@ -56,6 +56,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
 			'WITH_BF_BINRELOC',
+			'WITH_BF_LZO', 'WITH_BF_LZMA',
 			'LCGDIR',
 			'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
 			'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
@@ -69,6 +70,8 @@ def validate_arguments(args, bc):
 			'WITH_BF_DOCS',
 			'BF_NUMJOBS',
 			'BF_MSVS',
+			'WITH_BF_FHS',
+			'BF_VERSION',
 			]
 	
 	# Have options here that scons expects to be lists
@@ -85,13 +88,13 @@ def validate_arguments(args, bc):
 	]
 	
 	
-	arg_list = ['BF_NO_PYDEBUG', 'BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
+	arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
 			'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
 			'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
 			'BF_BSC', 'BF_CONFIG',
 			'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
 			'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-			'BF_DOCDIR', 'BF_UNIT_TEST']
+			'BF_UNIT_TEST']
 
 	okdict = {}
 
@@ -151,12 +154,13 @@ def read_opts(cfg, args):
 	localopts.AddVariables(
 		('LCGDIR', 'location of cvs lib dir'),
 		(BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
-		(BoolVariable('BF_NO_PYDEBUG', 'don\'t use debug python, only valid on win32/msvc', False)),
+		('BF_NO_PYDEBUG', 'don\'t use python debug lib', False),
 		('BF_PYTHON', 'base path for python', ''),
 		('BF_PYTHON_VERSION', 'Python version to use', ''),
 		('BF_PYTHON_INC', 'include path for Python headers', ''),
 		('BF_PYTHON_BINARY', 'Path to the Python interpreter', ''),
 		('BF_PYTHON_LIB', 'Python library', ''),
+		('BF_PYTHON_DLL', 'Python dll - used on Windows only', ''),
 		('BF_PYTHON_LIB_STATIC', 'Python static libraries', ''),
 		('BF_PYTHON_LIBPATH', 'Library path', ''),
 		('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
@@ -363,7 +367,6 @@ def read_opts(cfg, args):
 
 		('BF_BUILDDIR', 'Build dir', ''),
 		('BF_INSTALLDIR', 'Installation dir', ''),
-		('BF_DOCDIR', 'Dir where BPy documentation will be created', ''),
 
 		('CC', 'C compiler to use', ''),
 		('CXX', 'C++ compiler to use', ''),
@@ -378,6 +381,9 @@ def read_opts(cfg, args):
 		(BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
 		(BoolVariable('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),
 		
+		(BoolVariable('WITH_BF_LZO', 'Enable fast LZO pointcache compression', True)),
+		(BoolVariable('WITH_BF_LZMA', 'Enable best LZMA pointcache compression', True)),
+		
 		(BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
 		('BF_LCMS_LIB', 'LCMSlibrary', 'lcms'),
 
@@ -388,6 +394,9 @@ def read_opts(cfg, args):
 		('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
 		('BF_MSVS', 'Generate MSVS project files and solution', False),
+		
+		(BoolVariable('WITH_BF_FHS', 'Use the Unix "Filesystem Hierarchy Standard" rather then a redistributable directory layout', False)),
+		('BF_VERSION', 'The root path for Unix (non-apple)', '2.5'),
 
 		(BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False))
 

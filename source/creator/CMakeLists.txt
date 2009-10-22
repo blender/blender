@@ -24,6 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# So BUILDINFO and BLENDERPATH strings are automatically quoted
+CMAKE_POLICY(SET CMP0005 NEW)
+
 SETUP_LIBDIRS()
 
 INCLUDE_DIRECTORIES(../../intern/guardedalloc
@@ -67,19 +70,37 @@ IF(NOT WITH_SDL)
 	ADD_DEFINITIONS(-DDISABLE_SDL)
 ENDIF(NOT WITH_SDL)
 
+IF(UNIX AND NOT APPLE)
+	SET(BLENDERPATH ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION})
+	# blender_path in creator.c
+	ADD_DEFINITIONS(-DBLENDERPATH="${BLENDERPATH}")
+ENDIF(UNIX AND NOT APPLE)
+
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	ADD_DEFINITIONS(-DWITH_BINRELOC)
 	INCLUDE_DIRECTORIES(${BINRELOC_INC})
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
-MESSAGE(STATUS "Configuring blender")
+# Setup the exe sources and buildinfo
+SET(EXESRC creator.c)
 
 IF(WIN32)
-	ADD_EXECUTABLE(blender ${EXETYPE} creator.c ../icons/winblender.rc)
-ELSE(WIN32)
-	ADD_EXECUTABLE(blender ${EXETYPE} creator.c)
+	SET(EXESRC ${EXESRC} ../icons/winblender.rc)
 ENDIF(WIN32)
 
+IF(WITH_BUILDINFO)
+	ADD_DEFINITIONS(-DBUILD_DATE="${BUILD_DATE}")
+	ADD_DEFINITIONS(-DBUILD_TIME="${BUILD_TIME}")
+	ADD_DEFINITIONS(-DBUILD_REV="${BUILD_REV}")
+	ADD_DEFINITIONS(-DBUILD_PLATFORM="${CMAKE_SYSTEM_NAME}")
+	ADD_DEFINITIONS(-DBUILD_TYPE="${CMAKE_BUILD_TYPE}")
+	
+	SET(EXESRC ${EXESRC} buildinfo.c)
+ENDIF(WITH_BUILDINFO)
+
+MESSAGE(STATUS "Configuring blender")
+
+ADD_EXECUTABLE(blender ${EXETYPE} ${EXESRC})
 
 # Post build steps for bundling/packaging.
 
@@ -123,6 +144,9 @@ IF(UNIX AND NOT APPLE)
 ENDIF(UNIX AND NOT APPLE)
 =======
 	IF(UNIX AND NOT APPLE)
+		
+		# Local installation, "make install" can be done after this optionally
+		
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND rm -Rf ${TARGETDIR}/.blender
@@ -142,8 +166,7 @@ ENDIF(UNIX AND NOT APPLE)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 				COMMENT "copying blender scripts..."
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/.blender/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/io ${TARGETDIR}/.blender/
+				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
 				COMMAND find ${TARGETDIR} -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
       
@@ -185,6 +208,27 @@ IF(APPLE)
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND find ${TARGETDIR} -name .svn -prune -exec rm -rf {} "\;"
 		)
+    
+    
+		# Above we bundle a portable distrobution in ./bin
+		# This is an optional "make install" which installs blender on the system.
+		INSTALL(
+			PROGRAMS ${TARGETDIR}/blender
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+		)
+
+		IF(WITH_GAMEENGINE AND WITH_PLAYER)
+			INSTALL(
+				PROGRAMS ${TARGETDIR}/blenderplayer
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+			)
+		ENDIF(WITH_GAMEENGINE AND WITH_PLAYER)
+
+		INSTALL(
+			DIRECTORY ${TARGETDIR}/.blender/
+			DESTINATION ${BLENDERPATH}
+		)
+		# end "make install"
     
 	ENDIF(UNIX AND NOT APPLE)
 >>>>>>> .merge-right.r23146
@@ -261,9 +305,9 @@ IF(WIN32)
 =======
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND cp -R ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
-			COMMAND cp -R ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
-			COMMAND cp -R ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
+			COMMAND cp -Rf ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
+			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
+			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
 			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
 			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/.blender
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
@@ -274,8 +318,8 @@ IF(WIN32)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
 				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/Resources/
 			)
 		ENDIF(WITH_INTERNATIONAL)
@@ -283,8 +327,7 @@ IF(WIN32)
 		IF(WITH_PYTHON)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/io ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
 				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
 				COMMAND unzip -q ${LIBDIR}/release/python.zip -d ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
 				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
@@ -318,18 +361,16 @@ IF(WIN32)
 			MAIN_DEPENDENCY blender
 			COMMAND if not exist \"${TARGETDIR}\\.blender\" mkdir \"${TARGETDIR}\\.blender\"
 			COMMAND if not exist \"${TARGETDIR}\\.blender\\locale\" mkdir \"${TARGETDIR}\\.blender\\locale\"
-			COMMAND if not exist \"${TARGETDIR}\\.blender\\ui\" mkdir \"${TARGETDIR}\\.blender\\ui\"
-			COMMAND if not exist \"${TARGETDIR}\\.blender\\io\" mkdir \"${TARGETDIR}\\.blender\\io\"
+			COMMAND if not exist \"${TARGETDIR}\\.blender\\scripts\" mkdir \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
-			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\ui\\*.*\" \"${TARGETDIR}\\.blender\\ui\"
-			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\io\\*.*\" \"${TARGETDIR}\\.blender\\io\"
 			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
-			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python26.zip\" \"${TARGETDIR}\\\"
+			# TODO, copy python bundle
+			# COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python31.zip\" \"${TARGETDIR}\\\"
 		)
 >>>>>>> .merge-right.r23146
 <<<<<<< .working
@@ -531,6 +572,7 @@ IF(UNIX)
 		blender_ONL 
 		bf_python 
 		bf_gen_python 
+		bf_ikplugin
 		bf_blenkernel 
 		bf_nodes
 		bf_gpu
@@ -575,6 +617,7 @@ IF(UNIX)
 		bf_ngnetwork 
 		extern_bullet 
 		bf_loopbacknetwork 
+		bf_ITASC
 		bf_common 
 		bf_moto 
 		bf_python

@@ -912,7 +912,7 @@ static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
 		return NULL;
 	}
-	if( vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec2->size) {
+	if( vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
 		PyErr_SetString( PyExc_TypeError,"vectors must be of the same size\n" );
 		return NULL;
 	}

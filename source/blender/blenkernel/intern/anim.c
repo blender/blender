@@ -281,17 +281,27 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 	if (quat) {
 		float totfac, q1[4], q2[4];
 
+		/* checks for totfac are needed when 'fac' is 1.0 key_curve_position_weights can assign zero
+		 * to more then one index in data which can give divide by zero error */
+/*
 		totfac= data[0]+data[1];
-		QuatInterpol(q1, p0->quat, p1->quat, data[0] / totfac);
+		if(totfac>0.000001)	QuatInterpol(q1, p0->quat, p1->quat, data[0] / totfac);
+		else				QUATCOPY(q1, p1->quat);
+
 		NormalQuat(q1);
 
 		totfac= data[2]+data[3];
-		QuatInterpol(q2, p2->quat, p3->quat, data[2] / totfac);
+		if(totfac>0.000001)	QuatInterpol(q2, p2->quat, p3->quat, data[2] / totfac);
+		else				QUATCOPY(q1, p3->quat);
 		NormalQuat(q2);
 
 		totfac = data[0]+data[1]+data[2]+data[3];
-		QuatInterpol(quat, q1, q2, (data[0]+data[1]) / totfac);
+		if(totfac>0.000001)	QuatInterpol(quat, q1, q2, (data[0]+data[1]) / totfac);
+		else				QUATCOPY(quat, q2);
 		NormalQuat(quat);
+		*/
+		// XXX - find some way to make quat interpolation work correctly, above code fails in rare but nasty cases.
+		QUATCOPY(quat, p1->quat);
 	}
 
 	if(radius)
@@ -539,7 +549,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					/* mballs have a different dupli handling */
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
 
-					if(par==scene->obedit) {
+					if(par->mode & OB_MODE_EDIT) {
 						dm->foreachMappedVert(dm, vertex_dupli__mapFunc, (void*) &vdd);
 					}
 					else {
@@ -747,7 +757,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		else		go= go->next;		/* group loop */
 	}
 	
-	if(par==scene->obedit) {
+	if(par->mode & OB_MODE_EDIT) {
 		MEM_freeN(mface);
 		MEM_freeN(mvert);
 	}
@@ -763,14 +773,15 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	GroupObject *go;
 	Object *ob=0, **oblist=0, obcopy, *obcopylist=0;
 	DupliObject *dob;
+	ParticleDupliWeight *dw;
+	ParticleSimulationData sim = {scene, par, psys, psys_get_modifier(par, psys)};
 	ParticleSettings *part;
 	ParticleData *pa;
 	ChildParticle *cpa=0;
 	ParticleKey state;
 	ParticleCacheKey *cache;
-	ParticleSystemModifierData *psmd;
 	float ctime, pa_time, scale = 1.0f;
-	float tmat[4][4], mat[4][4], pamat[4][4], size=0.0;
+	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size=0.0;
 	float (*obmat)[4], (*oldobmat)[4];
 	int lay, a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
@@ -781,7 +792,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	if(level>MAX_DUPLI_RECUR) return;
 	
 	part=psys->part;
-	psmd= psys_get_modifier(par, psys);
 
 	if(part==0)
 		return;
@@ -801,6 +811,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		((part->ren_as == PART_DRAW_OB && part->dup_ob) ||
 		(part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first))) {
 
+		psys_check_group_weights(part);
+
 		/* if we have a hair particle system, use the path cache */
 		if(part->type == PART_HAIR) {
 			if(psys->flag & PSYS_HAIR_DONE)
@@ -813,24 +825,43 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			totpart = psys->totcached;
 		}
 
-		psys->lattice = psys_get_lattice(scene, par, psys);
+		psys->lattice = psys_get_lattice(&sim);
 
 		/* gather list of objects or single object */
 		if(part->ren_as==PART_DRAW_GR) {
 			group_handle_recalc_and_update(scene, par, part->dup_group);
 
-			for(go=part->dup_group->gobject.first; go; go=go->next)
-				totgroup++;
+			if(part->draw & PART_DRAW_COUNT_GR) {
+				for(dw=part->dupliweights.first; dw; dw=dw->next)
+					totgroup += dw->count;
+			}
+			else {
+				for(go=part->dup_group->gobject.first; go; go=go->next)
+					totgroup++;
+			}
 
 			/* we also copy the actual objects to restore afterwards, since
 			 * where_is_object_time will change the object which breaks transform */
 			oblist = MEM_callocN(totgroup*sizeof(Object *), "dupgroup object list");
 			obcopylist = MEM_callocN(totgroup*sizeof(Object), "dupgroup copy list");
 
-			go = part->dup_group->gobject.first;
-			for(a=0; a<totgroup; a++, go=go->next) {
-				oblist[a] = go->ob;
-				obcopylist[a] = *go->ob;
+			
+			if(part->draw & PART_DRAW_COUNT_GR && totgroup) {
+				dw = part->dupliweights.first;
+
+				for(a=0; a<totgroup; dw=dw->next) {
+					for(b=0; b<dw->count; b++, a++) {
+						oblist[a] = dw->ob;
+						obcopylist[a] = *dw->ob;
+					}
+				}
+			}
+			else {
+				go = part->dup_group->gobject.first;
+				for(a=0; a<totgroup; a++, go=go->next) {
+					oblist[a] = go->ob;
+					obcopylist[a] = *go->ob;
+				}
 			}
 		}
 		else {
@@ -884,11 +915,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				/* hair we handle separate and compute transform based on hair keys */
 				if(a < totpart) {
 					cache = psys->pathcache[a];
-					psys_get_dupli_path_transform(par, psys, psmd, pa, 0, cache, pamat, &scale);
+					psys_get_dupli_path_transform(&sim, pa, 0, cache, pamat, &scale);
 				}
 				else {
 					cache = psys->childcache[a-totpart];
-					psys_get_dupli_path_transform(par, psys, psmd, 0, cpa, cache, pamat, &scale);
+					psys_get_dupli_path_transform(&sim, 0, cpa, cache, pamat, &scale);
 				}
 
 				VECCOPY(pamat[3], cache->co);
@@ -898,7 +929,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			else {
 				/* first key */
 				state.time = ctime;
-				if(psys_get_particle_state(scene, par, psys, a, &state, 0) == 0)
+				if(psys_get_particle_state(&sim, a, &state, 0) == 0)
 					continue;
 
 				QuatToMat4(state.rot, pamat);
@@ -918,17 +949,24 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					dob= new_dupli_object(lb, go->ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
 					Mat4CpyMat4(dob->omat, obcopylist[b].obmat);
 					if(G.rendering)
-						psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
+						psys_get_dupli_texture(par, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 				}
 			}
 			else {
 				/* to give ipos in object correct offset */
 				where_is_object_time(scene, ob, ctime-pa_time);
+
+				VECCOPY(vec, obmat[3]);
+				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
 				
 				Mat4CpyMat4(mat, pamat);
 
 				Mat4MulMat4(tmat, obmat, mat);
 				Mat4MulFloat3((float *)tmat, size*scale);
+
+				if(part->draw & PART_DRAW_GLOBAL_OB)
+					VECADD(tmat[3], tmat[3], vec);
+
 				if(par_space_mat)
 					Mat4MulMat4(mat, tmat, par_space_mat);
 				else
@@ -937,7 +975,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, OB_DUPLIPARTS, animated);
 				Mat4CpyMat4(dob->omat, oldobmat);
 				if(G.rendering)
-					psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
+					psys_get_dupli_texture(par, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 			}
 		}
 

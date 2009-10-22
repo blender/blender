@@ -119,6 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"

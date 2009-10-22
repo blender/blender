@@ -29,9 +29,14 @@
 
 /* Types */
 
+extern EnumPropertyItem id_type_items[];
+
+
 extern EnumPropertyItem object_mode_items[];
 
-extern EnumPropertyItem prop_mode_items[];
+extern EnumPropertyItem proportional_falloff_items[];
+extern EnumPropertyItem proportional_editing_items[];
+extern EnumPropertyItem snap_mode_items[];
 extern EnumPropertyItem space_type_items[];
 extern EnumPropertyItem region_type_items[];
 extern EnumPropertyItem modifier_type_items[];
@@ -57,6 +62,12 @@ extern EnumPropertyItem brush_sculpt_tool_items[];
 extern EnumPropertyItem unpack_method_items[];
 
 extern EnumPropertyItem object_type_items[];
+
+extern EnumPropertyItem space_type_items[];
+
+struct bContext;
+struct PointerRNA;
+EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 
 #endif /* RNA_ENUM_TYPES */
 

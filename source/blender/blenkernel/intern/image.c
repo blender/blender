@@ -277,7 +277,7 @@ static Image *image_alloc(const char *name, short source, short type)
 		
 		ima->xrep= ima->yrep= 1;
 		ima->aspx= ima->aspy= 1.0;
-		ima->gen_x= 256; ima->gen_y= 256;
+		ima->gen_x= 1024; ima->gen_y= 1024;
 		ima->gen_type= 1;	/* no defines yet? */
 		
 		ima->source= source;
@@ -964,6 +964,7 @@ typedef struct StampData {
 	char 	camera[64];
 	char 	scene[64];
 	char 	strip[64];
+	char 	rendertime[64];
 } StampData;
 
 static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
@@ -1087,6 +1088,20 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	} else {
 		stamp_data->strip[0] = '\0';
 	}
+
+	{
+		Render *re= RE_GetRender(scene->id.name);
+		RenderStats *stats= re ? RE_GetStats(re):NULL;
+
+		if (stats && (scene->r.stamp & R_STAMP_RENDERTIME)) {
+			BLI_timestr(stats->lastframetime, text);
+
+			if (do_prefix)		sprintf(stamp_data->rendertime, "RenderTime %s", text);
+			else				sprintf(stamp_data->rendertime, "%s", text);
+		} else {
+			stamp_data->rendertime[0] = '\0';
+		}
+	}
 }
 
 // XXX - Bad level call.
@@ -1116,7 +1131,12 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 		return;
 	
 	stampdata(scene, &stamp_data, 1);
-	stamp_font_begin(12);
+
+	/* TODO, do_versions */
+	if(scene->r.stamp_font_id < 8)
+		scene->r.stamp_font_id= 12;
+
+	stamp_font_begin(scene->r.stamp_font_id);
 
 	BLF_buffer(rectf, rect, width, height, channels);
 	BLF_buffer_col(scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
@@ -1166,6 +1186,21 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 
 		BLF_position(x, y, 0.0);
 		BLF_draw_buffer(stamp_data.date);
+
+		/* the extra pixel for background. */
+		y -= 4;
+	}
+
+	/* Top left corner, below File, Date or Note */
+	if (stamp_data.rendertime[0]) {
+		BLF_width_and_height(stamp_data.rendertime, &w, &h);
+		y -= h;
+
+		/* and space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, 0, y-3, w+3, y+h+3);
+
+		BLF_position(x, y, 0.0);
+		BLF_draw_buffer(stamp_data.rendertime);
 	}
 
 	x= 0;
@@ -1472,9 +1507,11 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			iuser->ok= 1;
 		break;
 	case IMA_SIGNAL_SRC_CHANGE:
-		if(ima->type==IMA_TYPE_MULTILAYER)
-			image_free_buffers(ima);
-		else if(ima->source==IMA_SRC_GENERATED) {
+		if(ima->type == IMA_TYPE_UV_TEST)
+			if(ima->source != IMA_SRC_GENERATED)
+				ima->type= IMA_TYPE_IMAGE;
+
+		if(ima->source==IMA_SRC_GENERATED) {
 			if(ima->gen_x==0 || ima->gen_y==0) {
 				ImBuf *ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
 				if(ibuf) {
@@ -1483,6 +1520,9 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 				}
 			}
 		}
+
+		image_free_buffers(ima);
+
 		ima->ok= 1;
 		if(iuser)
 			iuser->ok= 1;
@@ -1559,13 +1599,20 @@ RenderPass *BKE_image_multilayer_index(RenderResult *rr, ImageUser *iuser)
 	return rpass;
 }
 
-RenderResult *BKE_image_get_renderresult(struct Scene *scene, Image *ima)
+RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, Image *ima)
 {
 	if(ima->rr)
 		return ima->rr;
-	if(ima->type==IMA_TYPE_R_RESULT)
-		return RE_GetResult(RE_GetRender(scene->id.name));
+	else if(ima->type==IMA_TYPE_R_RESULT)
+		return RE_AcquireResultRead(RE_GetRender(scene->id.name));
 	return NULL;
+}
+
+void BKE_image_release_renderresult(struct Scene *scene, Image *ima)
+{
+	if(ima->rr);
+	else if(ima->type==IMA_TYPE_R_RESULT)
+		RE_ReleaseResult(RE_GetRender(scene->id.name));
 }
 
 /* after imbuf load, openexr type can return with a exrhandle open */
@@ -1868,16 +1915,25 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 /* showing RGBA result itself (from compo/sequence) or
    like exr, using layers etc */
 /* always returns a single ibuf, also during render progress */
-static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
+static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_r)
 {
 	Render *re= NULL;
 	RenderResult *rr= NULL;
 	
+	/* if we the caller is not going to release the lock, don't give the image */
+	if(!lock_r)
+		return NULL;
+
 	if(iuser && iuser->scene) {
 		re= RE_GetRender(iuser->scene->id.name);
-		rr= RE_GetResult(re);
+		rr= RE_AcquireResultRead(re);
+
+		/* release is done in BKE_image_release_ibuf using lock_r */
+		*lock_r= re;
 	}
-	if(rr==NULL) return NULL;
+
+	if(rr==NULL)
+		return NULL;
 	
 	if(RE_RenderInProgress(re)) {
 		ImBuf *ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
@@ -1888,6 +1944,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 			ibuf= IMB_allocImBuf(rr->rectx, rr->recty, 32, IB_rect, 0);
 			image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		}
+
 		return ibuf;
 	}
 	else {
@@ -1902,7 +1959,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 		pass= (iuser)? iuser->pass: 0;
 		
 		/* this gives active layer, composite or seqence result */
-		RE_GetResultImage(RE_GetRender(iuser->scene->id.name), &rres);
+		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name), &rres);
 		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
 		dither= iuser->scene->r.dither_intensity;
@@ -1949,10 +2006,14 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 			ibuf->zbuf_float= rres.rectz;
 			ibuf->flags |= IB_zbuffloat;
 			ibuf->dither= dither;
-			
+
+			RE_ReleaseResultImage(re);
+
 			ima->ok= IMA_OK_LOADED;
 			return ibuf;
 		}
+
+		RE_ReleaseResultImage(re);
 	}
 	
 	return NULL;
@@ -2006,8 +2067,9 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 }
 
 /* Checks optional ImageUser and verifies/creates ImBuf. */
-/* returns ibuf */
-ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
+/* use this one if you want to get a render result in progress,
+ * if not, use BKE_image_get_ibuf which doesn't require a release */
+ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 {
 	ImBuf *ibuf= NULL;
 	float color[] = {0, 0, 0, 1};
@@ -2023,6 +2085,9 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	 * things in a threadsafe way for image_get_ibuf_threadsafe to work correct.
 	 * That means, the last two steps must be, 1) add the ibuf to the list and
 	 * 2) set ima/iuser->ok to 0 to IMA_OK_LOADED */
+	
+	if(lock_r)
+		*lock_r= NULL;
 
 	/* quick reject tests */
 	if(ima==NULL) 
@@ -2090,16 +2155,17 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 			else if(ima->source == IMA_SRC_GENERATED) {
 				/* generated is: ibuf is allocated dynamically */
 				/* UV testgrid or black or solid etc */
-				if(ima->gen_x==0) ima->gen_x= 256;
-				if(ima->gen_y==0) ima->gen_y= 256;
+				if(ima->gen_x==0) ima->gen_x= 1024;
+				if(ima->gen_y==0) ima->gen_y= 1024;
 				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;
 			}
 			else if(ima->source == IMA_SRC_VIEWER) {
 				if(ima->type==IMA_TYPE_R_RESULT) {
-					/* always verify entirely */
-					ibuf= image_get_render_result(ima, iuser);
+					/* always verify entirely, and potentially
+					   returns pointer to release later */
+					ibuf= image_get_render_result(ima, iuser, lock_r);
 				}
 				else if(ima->type==IMA_TYPE_COMPOSITE) {
 					/* Composite Viewer, all handled in compositor */
@@ -2121,6 +2187,17 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	return ibuf;
 }
 
+void BKE_image_release_ibuf(Image *ima, void *lock)
+{
+	/* for getting image during threaded render, need to release */
+	if(lock)
+		RE_ReleaseResult(lock);
+}
+
+ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
+{
+	return BKE_image_acquire_ibuf(ima, iuser, NULL);
+}
 
 void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
 {
@@ -2168,5 +2245,105 @@ void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
 		iuser->framenr= imanr;
 		if(iuser->ok==0) iuser->ok= 1;
 	}
+}
+
+/*
+  Produce image export path.
+
+  Fails returning 0 if image filename is empty or if destination path
+  matches image path (i.e. both are the same file).
+
+  Trailing slash in dest_dir is optional.
+
+  Logic:
+
+  - if an image is "below" current .blend file directory, rebuild the
+    same dir structure in dest_dir
+
+  For example //textures/foo/bar.png becomes
+  [dest_dir]/textures/foo/bar.png.
+
+  - if an image is not "below" current .blend file directory,
+  disregard it's path and copy it in the same directory where 3D file
+  goes.
+
+  For example //../foo/bar.png becomes [dest_dir]/bar.png.
+
+  This logic will help ensure that all image paths are relative and
+  that a user gets his images in one place. It'll also provide
+  consistent behaviour across exporters.
+ */
+int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size)
+{
+	char path[FILE_MAX];
+	char dir[FILE_MAX];
+	char base[FILE_MAX];
+	char blend_dir[FILE_MAX];	/* directory, where current .blend file resides */
+	char dest_path[FILE_MAX];
+	char rel_dir[FILE_MAX];
+	int len;
+
+	if (abs)
+		abs[0]= 0;
+
+	if (rel)
+		rel[0]= 0;
+
+	BLI_split_dirfile_basic(G.sce, blend_dir, NULL);
+
+	if (!strlen(im->name)) {
+		if (G.f & G_DEBUG) printf("Invalid image type.\n");
+		return 0;
+	}
+
+	BLI_strncpy(path, im->name, sizeof(path));
+
+	/* expand "//" in filename and get absolute path */
+	BLI_convertstringcode(path, G.sce);
+
+	/* get the directory part */
+	BLI_split_dirfile_basic(path, dir, base);
+
+	len= strlen(blend_dir);
+
+	rel_dir[0] = 0;
+
+	/* if image is "below" current .blend file directory */
+	if (!strncmp(path, blend_dir, len)) {
+
+		/* if image is _in_ current .blend file directory */
+		if (!strcmp(dir, blend_dir)) {
+			BLI_join_dirfile(dest_path, dest_dir, base);
+		}
+		/* "below" */
+		else {
+			/* rel = image_path_dir - blend_dir */
+			BLI_strncpy(rel_dir, dir + len, sizeof(rel_dir));
+
+			BLI_join_dirfile(dest_path, dest_dir, rel_dir);
+			BLI_join_dirfile(dest_path, dest_path, base);
+		}
+			
+	}
+	/* image is out of current directory */
+	else {
+		BLI_join_dirfile(dest_path, dest_dir, base);
+	}
+
+	if (abs)
+		BLI_strncpy(abs, dest_path, abs_size);
+
+	if (rel) {
+		strncat(rel, rel_dir, rel_size);
+		strncat(rel, base, rel_size);
+	}
+
+	/* return 2 if src=dest */
+	if (!strcmp(path, dest_path)) {
+		if (G.f & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
+		return 2;
+	}
+
+	return 1;
 }
 

@@ -34,6 +34,7 @@
 
 //#include "DNA_listbase.h"
 struct ListBase;
+struct LinkData;
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,6 +56,9 @@ void BLI_freelist(struct ListBase *listbase);
 int BLI_countlist(struct ListBase *listbase);
 void BLI_freelinkN(struct ListBase *listbase, void *vlink);
 void BLI_duplicatelist(struct ListBase *list1, struct ListBase *list2);  /* copy from 2 to 1 */
+
+/* create a generic list node containing link to provided data */
+struct LinkData *BLI_genericNodeN(void *data);
 
 #ifdef __cplusplus
 }

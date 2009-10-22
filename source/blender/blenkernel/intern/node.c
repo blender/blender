@@ -1246,9 +1246,12 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y)
 	if(preview) {
 		if(x>=0 && y>=0) {
 			if(x<preview->xsize && y<preview->ysize) {
-				float *tar= preview->rect+ 4*((preview->xsize*y) + x);
+				unsigned char *tar= preview->rect+ 4*((preview->xsize*y) + x);
 				//if(tar[0]==0.0f) {
-				QUATCOPY(tar, col);
+				tar[0]= FTOCHAR(col[0]);
+				tar[1]= FTOCHAR(col[1]);
+				tar[2]= FTOCHAR(col[2]);
+				tar[3]= FTOCHAR(col[3]);
 				//}
 			}
 			//else printf("prv out bound x y %d %d\n", x, y);
@@ -1574,6 +1577,37 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 
 	return node;
 }
+
+int nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
+{
+	bNode *node;
+	int ok= FALSE;
+
+	if(ntree==NULL) return ok;
+
+	/* check for group edit */
+    for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+
+	if(node)
+		ntree= (bNodeTree*)node->id;
+
+	/* now find active node with this id */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->id && GS(node->id->name)==idtype) {
+			if(id && ok==FALSE && node->id==id) {
+				node->flag |= NODE_ACTIVE_ID;
+				ok= TRUE;
+			} else {
+				node->flag &= ~NODE_ACTIVE_ID;
+			}
+		}
+	}
+
+	return ok;
+}
+
 
 /* two active flags, ID nodes have special flag for buttons display */
 void nodeClearActiveID(bNodeTree *ntree, short idtype)
@@ -1953,6 +1987,7 @@ static void composit_end_exec(bNodeTree *ntree, int is_group)
 			if(ns->data) {
 				printf("freed leftover buffer from stack\n");
 				free_compbuf(ns->data);
+				ns->data= NULL;
 			}
 		}
 	}

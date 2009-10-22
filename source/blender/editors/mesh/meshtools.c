@@ -588,7 +588,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(scene);	// removed objects, need to rebuild dag before editmode call
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
-	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR);
+	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
@@ -687,7 +687,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 		if (event == 1)
 			Mat4MulMat4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
 		else if (event == 2) { /* sort from cursor */
-			if( v3d && v3d->localview ) {
+			if( v3d && v3d->localvd ) {
 				VECCOPY(cur, v3d->cursor);
 			} else {
 				VECCOPY(cur, scene->cursor);

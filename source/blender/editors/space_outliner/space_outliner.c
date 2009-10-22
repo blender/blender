@@ -72,12 +72,12 @@
 
 static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
+	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OUTLINER, 0);	/* XXX weak? */
+	keymap= WM_keymap_find(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -137,10 +137,15 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* all actions now, todo: check outliner view mode? */
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_LAMP:
+			/* For updating lamp icons, when changing lamp type */
+			if(wmn->data == ND_LIGHTING_DRAW)
+				ED_region_tag_redraw(ar);
+				break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_OUTLINER)
 				ED_region_tag_redraw(ar);
-			break;
+				break;
 	}
 	
 }

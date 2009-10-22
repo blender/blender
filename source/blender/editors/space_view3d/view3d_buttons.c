@@ -153,8 +153,9 @@ typedef struct {
 
 
 /* is used for both read and write... */
-static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, Object *ob, float lim)
+static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
+	uiBlock *block= (layout)? uiLayoutAbsoluteBlock(layout): NULL;
 	MDeformVert *dvert=NULL;
 	TransformProperties *tfp= v3d->properties_storage;
 	float median[5], ve_median[5];
@@ -474,6 +475,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 	}
 }
 
+#if 0
 /* assumes armature active */
 static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
 {
@@ -492,14 +494,17 @@ static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
 		ED_armature_bone_rename(ob->data, oldname, newname); // editarmature.c
 	}
 }
+#endif
 
-static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float lim)
+static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
-	uiBut *but;
+	uiBlock *block= uiLayoutGetBlock(layout);
 	bArmature *arm;
 	bPoseChannel *pchan;
 	Bone *bone= NULL;
 	TransformProperties *tfp= v3d->properties_storage;
+	PointerRNA pchanptr;
+	uiLayout *row;
 
 	arm = ob->data;
 	if (!arm || !ob->pose) return;
@@ -509,14 +514,26 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 		if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
 			break;
 	}
+	if (!pchan)	{
+		uiDefBut(block, LABEL, 0, "No Bone Active",			0, 240, 100, 20, 0, 0, 0, 0, 0, "");
+		return; 
+	}
+	else {
+		row= uiLayoutRow(layout, 0);
+		RNA_pointer_create(&ob->id, &RNA_PoseChannel, pchan, &pchanptr);
+		uiItemL(row, "", ICON_BONE_DATA);
+		uiItemR(row, "", 0, &pchanptr, "name", 0);
+	}
 	
-	if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+	uiLayoutAbsoluteBlock(layout);
+
+	if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 		float quat[4];
 		/* convert to euler, passing through quats... */
-		AxisAngleToQuat(quat, &pchan->quat[1], pchan->quat[0]);
+		AxisAngleToQuat(quat, pchan->rotAxis, pchan->rotAngle);
 		QuatToEul(quat, tfp->ob_eul);
 	}
-	else if (pchan->rotmode == PCHAN_ROT_QUAT)
+	else if (pchan->rotmode == ROT_MODE_QUAT)
 		QuatToEul(pchan->quat, tfp->ob_eul);
 	else
 		VecCopyf(tfp->ob_eul, pchan->eul);
@@ -580,12 +597,14 @@ void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, CTX_data_edit_object(C)); // XXX fix
 }
 
-static void v3d_editarmature_buts(uiBlock *block, View3D *v3d, Object *ob, float lim)
+static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
+	uiBlock *block= uiLayoutGetBlock(layout);
 	bArmature *arm= ob->data;
 	EditBone *ebone;
-	uiBut *but;
 	TransformProperties *tfp= v3d->properties_storage;
+	uiLayout *row;
+	PointerRNA eboneptr;
 	
 	ebone= arm->edbo->first;
 
@@ -596,6 +615,13 @@ static void v3d_editarmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 
 	if (!ebone)
 		return;
+	
+	row= uiLayoutRow(layout, 0);
+	RNA_pointer_create(&arm->id, &RNA_EditBone, ebone, &eboneptr);
+	uiItemL(row, "", ICON_BONE_DATA);
+	uiItemR(row, "", 0, &eboneptr, "name", 0);
+
+	uiLayoutAbsoluteBlock(layout);
 	
 	uiDefBut(block, LABEL, 0, "Head:",					0, 210, 100, 20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
@@ -624,8 +650,9 @@ static void v3d_editarmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	
 }
 
-static void v3d_editmetaball_buts(uiBlock *block, Object *ob, float lim)
+static void v3d_editmetaball_buts(uiLayout *layout, Object *ob, float lim)
 {
+	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	MetaElem *lastelem= NULL; // XXX
 
 	if(lastelem) {
@@ -683,9 +710,24 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		
 	case B_OBJECTPANELROT:
 		if(ob) {
-			ob->rot[0]= M_PI*tfp->ob_eul[0]/180.0;
-			ob->rot[1]= M_PI*tfp->ob_eul[1]/180.0;
-			ob->rot[2]= M_PI*tfp->ob_eul[2]/180.0;
+			float eul[3];
+			
+			/* make a copy to eul[3], to allow TAB on buttons to work */
+			eul[0]= M_PI*tfp->ob_eul[0]/180.0;
+			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
+			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
+			
+			if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				float quat[4];
+				/* convert to axis-angle, passing through quats  */
+				EulToQuat(eul, quat);
+				QuatToAxisAngle(quat, ob->rotAxis, &ob->rotAngle);
+			}
+			else if (ob->rotmode == ROT_MODE_QUAT)
+				EulToQuat(eul, ob->quat);
+			else
+				VecCopyf(ob->rot, eul);
+				
 			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 		}
 		break;
@@ -860,17 +902,16 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
 			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
 			
-			if (pchan->rotmode == PCHAN_ROT_AXISANGLE) {
+			if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 				float quat[4];
 				/* convert to axis-angle, passing through quats  */
 				EulToQuat(eul, quat);
-				QuatToAxisAngle(quat, &pchan->quat[1], &pchan->quat[0]);
+				QuatToAxisAngle(quat, pchan->rotAxis, &pchan->rotAngle);
 			}
-			else if (pchan->rotmode == PCHAN_ROT_QUAT)
+			else if (pchan->rotmode == ROT_MODE_QUAT)
 				EulToQuat(eul, pchan->quat);
 			else
 				VecCopyf(pchan->eul, eul);
-			
 		}
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:
@@ -880,7 +921,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		}
 		break;
 	case B_TRANSFORMSPACEADD:
-		BIF_manageTransformOrientation(C, 1, 0);
+		BIF_createTransformOrientation(C, NULL, "", 1, 0);
 		break;
 	case B_TRANSFORMSPACECLEAR:
 		BIF_clearTransformOrientation(C);
@@ -993,7 +1034,7 @@ static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 	int xco = 20, yco = 70;
 	int index;
 
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 
 	uiBlockBeginAlign(block);
 	
@@ -1075,6 +1116,8 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	//uiBut *bt;
 	Object *ob= OBACT;
 	TransformProperties *tfp;
+	PointerRNA obptr;
+	uiLayout *col, *row;
 	float lim;
 	
 	if(ob==NULL) return;
@@ -1084,33 +1127,42 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		v3d->properties_storage= MEM_callocN(sizeof(TransformProperties), "TransformProperties");
 	tfp= v3d->properties_storage;
 	
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
-
 // XXX	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-	
+	/*
 	if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
 	}
 	else {
 		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0) {
-			strcpy(ob->parsubstr, "");
 			uiBlockEndAlign(block);
 		}
 	}
+	*/
 
 	lim= 10000.0f*MAX2(1.0, v3d->grid);
 
+	block= uiLayoutGetBlock(pa->layout);
+	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
+
+	col= uiLayoutColumn(pa->layout, 0);
+	row= uiLayoutRow(col, 0);
+	RNA_id_pointer_create(&ob->id, &obptr);
+	uiItemL(row, "", ICON_OBJECT_DATA);
+	uiItemR(row, "", 0, &obptr, "name", 0);
+
 	if(ob==obedit) {
-		if(ob->type==OB_ARMATURE) v3d_editarmature_buts(block, v3d, ob, lim);
-		if(ob->type==OB_MBALL) v3d_editmetaball_buts(block, ob, lim);
-		else v3d_editvertex_buts(C, block, v3d, ob, lim);
+		if(ob->type==OB_ARMATURE) v3d_editarmature_buts(col, v3d, ob, lim);
+		if(ob->type==OB_MBALL) v3d_editmetaball_buts(col, ob, lim);
+		else v3d_editvertex_buts(C, col, v3d, ob, lim);
 	}
 	else if(ob->mode & OB_MODE_POSE) {
-		v3d_posearmature_buts(block, v3d, ob, lim);
+		v3d_posearmature_buts(col, v3d, ob, lim);
 	}
 	else {
 		BoundBox *bb = NULL;
-		
+
+		uiLayoutAbsoluteBlock(col);
+
+		block= uiLayoutAbsoluteBlock(col);
 		uiDefBut(block, LABEL, 0, "Location:",										0, 300, 100, 20, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);	
 		uiDefButF(block, NUM, B_OBJECTPANEL, "X:",									0, 280, 120, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");		
@@ -1124,9 +1176,19 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,		125, 240, 25, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects Z Location value from being Transformed");
 		uiBlockEndAlign(block);
 		
-		tfp->ob_eul[0]= 180.0*ob->rot[0]/M_PI;
-		tfp->ob_eul[1]= 180.0*ob->rot[1]/M_PI;
-		tfp->ob_eul[2]= 180.0*ob->rot[2]/M_PI;
+		if (ob->rotmode == ROT_MODE_AXISANGLE) {
+			float quat[4];
+			/* convert to euler, passing through quats... */
+			AxisAngleToQuat(quat, ob->rotAxis, ob->rotAngle);
+			QuatToEul(quat, tfp->ob_eul);
+		}
+		else if (ob->rotmode == ROT_MODE_QUAT)
+			QuatToEul(ob->quat, tfp->ob_eul);
+		else
+			VecCopyf(tfp->ob_eul, ob->rot);
+		tfp->ob_eul[0]*= 180.0/M_PI;
+		tfp->ob_eul[1]*= 180.0/M_PI;
+		tfp->ob_eul[2]*= 180.0/M_PI;
 		
 		uiBlockBeginAlign(block);
 		if ((ob->parent) && (ob->partype == PARBONE)) {
@@ -1277,7 +1339,7 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 		};
 
 	
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
 	uiBlockBeginAlign(block);
@@ -1445,24 +1507,11 @@ void view3d_buttons_register(ARegionType *art)
 	pt->draw= view3d_panel_transform_spaces;
 	BLI_addtail(&art->paneltypes, pt);
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
-	strcpy(pt->idname, "VIEW3D_PT_gpencil");
-	strcpy(pt->label, "Greas Pencil");
-	pt->draw= view3d_panel_gpencil;
-	BLI_addtail(&art->paneltypes, pt);*/
-
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel bonesketch spaces");
 	strcpy(pt->idname, "VIEW3D_PT_bonesketch_spaces");
 	strcpy(pt->label, "Bone Sketching");
 	pt->draw= view3d_panel_bonesketch_spaces;
 	pt->poll= view3d_panel_bonesketch_spaces_poll;
-	BLI_addtail(&art->paneltypes, pt);
-
-	/*
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel redo");
-	strcpy(pt->idname, "VIEW3D_PT_redo");
-	strcpy(pt->label, "Last Operator");
-	pt->draw= view3d_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 */
 	// XXX view3d_panel_preview(C, ar, 0);

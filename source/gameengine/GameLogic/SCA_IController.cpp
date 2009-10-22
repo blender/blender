@@ -33,6 +33,8 @@
 #include "PyObjectPlus.h"
 #include "../Ketsji/KX_PythonSeq.h" /* not nice, only need for KX_PythonSeq_CreatePyObject */
 
+#include <stdio.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -196,6 +198,8 @@ void SCA_IController::ApplyState(unsigned int state)
 	}
 }
 
+#ifndef DISABLE_PYTHON
+
 /* Python api */
 
 PyTypeObject SCA_IController::Type = {
@@ -247,3 +251,4 @@ PyObject* SCA_IController::pyattr_get_actuators(void *self_v, const KX_PYATTRIBU
 {
 	return KX_PythonSeq_CreatePyObject((static_cast<SCA_IController*>(self_v))->m_proxy, KX_PYGENSEQ_CONT_TYPE_ACTUATORS);	
 }
+#endif // DISABLE_PYTHON

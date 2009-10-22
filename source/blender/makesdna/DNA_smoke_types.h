@@ -45,7 +45,7 @@ typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct FLUID_3D *fluid;
 	struct Group *fluid_group;
-	struct Group *eff_group; // effector group for e.g. wind force
+	struct Group *eff_group; // UNUSED
 	struct Group *coll_group; // collision objects group
 	struct WTURBULENCE *wt; // WTURBULENCE object, if active
 	struct GPUTexture *tex;
@@ -75,6 +75,7 @@ typedef struct SmokeDomainSettings {
 	int v3dnum;
 	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */
 	struct ListBase ptcaches[2];
+	struct EffectorWeights *effector_weights;
 } SmokeDomainSettings;
 
 

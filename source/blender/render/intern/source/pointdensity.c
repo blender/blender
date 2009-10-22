@@ -92,6 +92,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 {
 	DerivedMesh* dm;
 	ParticleKey state;
+	ParticleSimulationData sim = {re->scene, ob, psys, NULL};
 	ParticleData *pa=NULL;
 	float cfra = bsystem_time(re->scene, ob, (float)re->scene->r.cfra, 0.0);
 	int i, childexists;
@@ -120,7 +121,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	Mat4Invert(ob->imat, ob->obmat);
 	
 	total_particles = psys->totpart+psys->totchild;
-	psys->lattice=psys_get_lattice(re->scene,ob,psys);
+	psys->lattice=psys_get_lattice(&sim);
 	
 	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
 	alloc_point_data(pd, total_particles, data_used);
@@ -133,7 +134,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	for (i=0, pa=psys->particles; i < total_particles; i++, pa++) {
 
 		state.time = cfra;
-		if(psys_get_particle_state(re->scene, ob, psys, i, &state, 0)) {
+		if(psys_get_particle_state(&sim, i, &state, 0)) {
 			
 			VECCOPY(partco, state.co);
 			

@@ -114,7 +114,7 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 void object_handle_update(struct Scene *scene, struct Object *ob);
 
 float give_timeoffset(struct Object *ob);
-int give_obdata_texspace(struct Object *ob, int **texflag, float **loc, float **size, float **rot);
+int give_obdata_texspace(struct Object *ob, short **texflag, float **loc, float **size, float **rot);
 
 int object_insert_ptcache(struct Object *ob);
 // void object_delete_ptcache(struct Object *ob, int index);

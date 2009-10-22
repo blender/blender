@@ -34,19 +34,19 @@
 #
 
 # Force the correct redefinition
-LEVEL_1_C_WARNINGS = -FIX_NAN_WARN
-LEVEL_1_CPP_WARNINGS = -FIX_NAN_WARN
-LEVEL_2_C_WARNINGS = -FIX_NAN_WARN
-LEVEL_2_CPP_WARNINGS = -FIX_NAN_WARN
-FIX_STUBS_WARNINGS = -FIX_NAN_WARN
+LEVEL_1_C_WARNINGS = -FIX_NAN_WARN1A
+LEVEL_1_CPP_WARNINGS = -FIX_NAN_WARN1B
+LEVEL_2_C_WARNINGS = -FIX_NAN_WARN2A
+LEVEL_2_CPP_WARNINGS = -FIX_NAN_WARN2B
+FIX_STUBS_WARNINGS = -FIX_NAN_WARN3
 
 ########################################################################
 # Level 1: basic C warnings.
-ifeq ($(CC),gcc)
+ifeq (gcc, $(findstring gcc,$(CC)))
     LEVEL_1_C_WARNINGS = -Wall
     LEVEL_1_C_WARNINGS += -Wno-char-subscripts
 else
-  ifeq ($(CC),cc)
+  ifeq (cc, $(findstring cc,$(CC)))
     ifeq ($(OS),irix)
       # MIPSpro Compilers
       #
@@ -71,11 +71,11 @@ else
 endif
 
 # Level 1: basic CPP warnings.
-ifeq ($(CCC),g++)
+ifeq (g++, $(findstring g++,$(CCC)))
     LEVEL_1_CPP_WARNINGS = -Wall
     LEVEL_1_CPP_WARNINGS += -Wno-reorder
 else
-  ifeq ($(CCC),CC)
+  ifeq (CC, $(findstring CC,$(CCC)))
     ifeq ($(OS),irix)
       # MIPSpro Compilers
       #  see warning descriptions above
@@ -91,7 +91,7 @@ endif
 ########################################################################
 # Level 2: paranoia level C warnings.
 # DO NOT REUSE LEVEL_1_ DEFINES.
-ifeq ($(CC),gcc)
+ifeq (gcc, $(findstring gcc,$(CC)))
     LEVEL_2_C_WARNINGS = -Wall
     LEVEL_2_C_WARNINGS += -W
     # deliberately enable char-subscript warnings
@@ -107,7 +107,7 @@ ifeq ($(CC),gcc)
     LEVEL_2_C_WARNINGS += -Wnested-externs
     LEVEL_2_C_WARNINGS += -Wredundant-decls 
 else
-  ifeq ($(CC),cc)
+  ifeq (cc, $(findstring cc,$(CC)))
     ifeq ($(OS),irix)
       # MIPSpro Compilers
       #  see warning descriptions above
@@ -126,7 +126,7 @@ endif
 
 # Level 2: paranoia level CPP warnings.
 # DO NOT REUSE LEVEL_1_ DEFINES.
-ifeq ($(CCC),g++)
+ifeq (g++, $(findstring g++,$(CCC)))
     LEVEL_2_CPP_WARNINGS = -Wall
     LEVEL_2_CPP_WARNINGS += -W
     # deliberately enable char-subscript warnings
@@ -144,7 +144,7 @@ ifeq ($(CCC),g++)
     LEVEL_2_CPP_WARNINGS += -Wsign-promo
     LEVEL_2_CPP_WARNINGS += -Wsynth
 else
-  ifeq ($(CCC),CC)
+  ifeq (CC, $(findstring CC,$(CCC)))
     ifeq ($(OS),irix)
       # MIPSpro Compilers
       #  see warning descriptions above
@@ -159,7 +159,7 @@ endif
 
 ########################################################################
 # stubs warning fix
-ifeq ($(CC),gcc)
+ifeq (gcc, $(findstring gcc,$(CC)))
     FIX_STUBS_WARNINGS = -Wno-unused
 else
     FIX_STUBS_WARNINGS =

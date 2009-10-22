@@ -620,7 +620,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 	PropertySubType subtype= rna_ensure_property(prop)->subtype;
 
 	/* get string to use for array index */
-	if ((index < 4) && (subtype == PROP_QUATERNION))
+	if ((index < 4) && ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE))
 		return quatitem[index];
 	else if((index < 4) && ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION))
 		return vectoritem[index];
@@ -727,7 +727,7 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 
 	*free= 0;
 
-	if(eprop->itemf) {
+	if(eprop->itemf && C) {
 		int tot= 0;
 		*item= eprop->itemf(C, ptr, free);
 
@@ -1409,10 +1409,17 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value)
 {
-	PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	if(pprop->set)
-		pprop->set(ptr, ptr_value);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		/* not supported */
+	}
+	else {
+		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+
+		if(pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL))
+			pprop->set(ptr, ptr_value);
+	}
 }
 
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
@@ -2219,6 +2226,9 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 	prop= NULL;
 	curptr= *ptr;
 
+	if(path==NULL)
+		return 0;
+
 	while(*path) {
 		/* look up property name in current struct */
 		token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
@@ -2380,12 +2390,11 @@ char *RNA_path_back(const char *path)
 	return result;
 }
 
-char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 {
-	char *ptrpath=NULL, *path;
-	const char *propname;
+	char *ptrpath=NULL;
 
-	if(!ptr->id.data || !ptr->data || !prop)
+	if(!ptr->id.data || !ptr->data)
 		return NULL;
 	
 	if(!RNA_struct_is_ID(ptr->type)) {
@@ -2411,6 +2420,20 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		else
 			return NULL;
 	}
+	
+	return ptrpath;
+}
+
+char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+{
+	const char *propname;
+	char *ptrpath, *path;
+
+	if(!ptr->id.data || !ptr->data || !prop)
+		return NULL;
+	
+	/* path from ID to the struct holding this property */
+	ptrpath= RNA_path_from_ID_to_struct(ptr);
 
 	propname= RNA_property_identifier(prop);
 
@@ -2762,7 +2785,10 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name)
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
 
 	if(prop) {
-		return (rna_idproperty_find(ptr, name) != NULL);
+		if(prop->flag & PROP_IDPROPERTY)
+			return (rna_idproperty_find(ptr, name) != NULL);
+		else
+			return 1;
 	}
 	else {
 		// printf("RNA_property_is_set: %s.%s not found.\n", ptr->type->identifier, name);

@@ -53,6 +53,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_effect.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -126,6 +127,7 @@ struct SmokeModifierData;
 // forward declerations
 static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
 void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
+static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs);
 
 #define TRI_UVOFFSET (1./4.)
 
@@ -279,151 +281,157 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		{
 			// init collision points
 			SmokeCollSettings *scs = smd->coll;
-			MVert *mvert = dm->getVertArray(dm);
-			MFace *mface = dm->getTessFaceArray(dm);
-			int i = 0, divs = 0;
-			int *tridivs = NULL;
-			float cell_len = 1.0 / 50.0; // for res = 50
-			int newdivs = 0;
-			int quads = 0, facecounter = 0;
 
 			// copy obmat
 			Mat4CpyMat4(scs->mat, ob->obmat);
 			Mat4CpyMat4(scs->mat_old, ob->obmat);
 
-			// count quads
-			for(i = 0; i < dm->getNumFaces(dm); i++)
-			{
-				if(mface[i].v4)
-					quads++;
-			}
-
-			calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumFaces(dm), dm->getNumFaces(dm) + quads, &tridivs, cell_len);
-
-			// count triangle divisions
-			for(i = 0; i < dm->getNumFaces(dm) + quads; i++)
-			{
-				divs += (tridivs[3 * i] + 1) * (tridivs[3 * i + 1] + 1) * (tridivs[3 * i + 2] + 1);
-			}
-
-			// printf("divs: %d\n", divs);
-
-			scs->points = MEM_callocN(sizeof(float) * (dm->getNumVerts(dm) + divs) * 3, "SmokeCollPoints");
-
-			for(i = 0; i < dm->getNumVerts(dm); i++)
-			{
-				float tmpvec[3];
-				VECCOPY(tmpvec, mvert[i].co);
-				Mat4MulVecfl (ob->obmat, tmpvec);
-				VECCOPY(&scs->points[i * 3], tmpvec);
-			}
-			
-			for(i = 0, facecounter = 0; i < dm->getNumFaces(dm); i++)
-			{
-				int again = 0;
-				do
-				{
-					int j, k;
-					int divs1 = tridivs[3 * facecounter + 0];
-					int divs2 = tridivs[3 * facecounter + 1];
-					//int divs3 = tridivs[3 * facecounter + 2];
-					float side1[3], side2[3], trinormorg[3], trinorm[3];
-					
-					if(again == 1 && mface[i].v4)
-					{
-						VECSUB(side1,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
-						VECSUB(side2,  mvert[ mface[i].v4 ].co, mvert[ mface[i].v1 ].co);
-					}
-					else
-					{
-						VECSUB(side1,  mvert[ mface[i].v2 ].co, mvert[ mface[i].v1 ].co);
-						VECSUB(side2,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
-					}
-
-					Crossf(trinormorg, side1, side2);
-					Normalize(trinormorg);
-					VECCOPY(trinorm, trinormorg);
-					VecMulf(trinorm, 0.25 * cell_len);
-
-					for(j = 0; j <= divs1; j++)
-					{
-						for(k = 0; k <= divs2; k++)
-						{
-							float p1[3], p2[3], p3[3], p[3]={0,0,0}; 
-							const float uf = (float)(j + TRI_UVOFFSET) / (float)(divs1 + 0.0);
-							const float vf = (float)(k + TRI_UVOFFSET) / (float)(divs2 + 0.0);
-							float tmpvec[3];
-							
-							if(uf+vf > 1.0) 
-							{
-								// printf("bigger - divs1: %d, divs2: %d\n", divs1, divs2);
-								continue;
-							}
-
-							VECCOPY(p1, mvert[ mface[i].v1 ].co);
-							if(again == 1 && mface[i].v4)
-							{
-								VECCOPY(p2, mvert[ mface[i].v3 ].co);
-								VECCOPY(p3, mvert[ mface[i].v4 ].co);
-							}
-							else
-							{
-								VECCOPY(p2, mvert[ mface[i].v2 ].co);
-								VECCOPY(p3, mvert[ mface[i].v3 ].co);
-							}
-
-							VecMulf(p1, (1.0-uf-vf));
-							VecMulf(p2, uf);
-							VecMulf(p3, vf);
-							
-							VECADD(p, p1, p2);
-							VECADD(p, p, p3);
-
-							if(newdivs > divs)
-								printf("mem problem\n");
-
-							// mMovPoints.push_back(p + trinorm);
-							VECCOPY(tmpvec, p);
-							VECADD(tmpvec, tmpvec, trinorm);
-							Mat4MulVecfl (ob->obmat, tmpvec);
-							VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
-							newdivs++;
-
-							if(newdivs > divs)
-								printf("mem problem\n");
-
-							// mMovPoints.push_back(p - trinorm);
-							VECCOPY(tmpvec, p);
-							VECSUB(tmpvec, tmpvec, trinorm);
-							Mat4MulVecfl (ob->obmat, tmpvec);
-							VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
-							newdivs++;
-						}
-					}
-
-					if(again == 0 && mface[i].v4)
-						again++;
-					else
-						again = 0;
-
-					facecounter++;
-
-				} while(again!=0);
-			}
-
-			scs->numpoints = dm->getNumVerts(dm) + newdivs;
-
-			MEM_freeN(tridivs);
+			fill_scs_points(ob, dm, scs);
 		}
 
 		if(!smd->coll->bvhtree)
 		{
-			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getTessFaceArray(dm), dm->getNumFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
+			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getTessFaceArray(dm), dm->getNumTessFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
 		}
 		return 1;
 	}
 
 	return 1;
+}
+
+static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
+{
+	MVert *mvert = dm->getVertArray(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
+	int i = 0, divs = 0;
+	int *tridivs = NULL;
+	float cell_len = 1.0 / 50.0; // for res = 50
+	int newdivs = 0;
+	int quads = 0, facecounter = 0;
+
+	// count quads
+	for(i = 0; i < dm->getNumTessFaces(dm); i++)
+	{
+		if(mface[i].v4)
+			quads++;
+	}
+
+	calcTriangleDivs(ob, mvert, dm->getNumVerts(dm), mface,  dm->getNumTessFaces(dm), dm->getNumTessFaces(dm) + quads, &tridivs, cell_len);
+
+	// count triangle divisions
+	for(i = 0; i < dm->getNumTessFaces(dm) + quads; i++)
+	{
+		divs += (tridivs[3 * i] + 1) * (tridivs[3 * i + 1] + 1) * (tridivs[3 * i + 2] + 1);
+	}
+
+	// printf("divs: %d\n", divs);
+
+	scs->points = MEM_callocN(sizeof(float) * (dm->getNumVerts(dm) + divs) * 3, "SmokeCollPoints");
+
+	for(i = 0; i < dm->getNumVerts(dm); i++)
+	{
+		float tmpvec[3];
+		VECCOPY(tmpvec, mvert[i].co);
+		Mat4MulVecfl (ob->obmat, tmpvec);
+		VECCOPY(&scs->points[i * 3], tmpvec);
+	}
+	
+	for(i = 0, facecounter = 0; i < dm->getNumTessFaces(dm); i++)
+	{
+		int again = 0;
+		do
+		{
+			int j, k;
+			int divs1 = tridivs[3 * facecounter + 0];
+			int divs2 = tridivs[3 * facecounter + 1];
+			//int divs3 = tridivs[3 * facecounter + 2];
+			float side1[3], side2[3], trinormorg[3], trinorm[3];
+			
+			if(again == 1 && mface[i].v4)
+			{
+				VECSUB(side1,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
+				VECSUB(side2,  mvert[ mface[i].v4 ].co, mvert[ mface[i].v1 ].co);
+			}
+			else
+			{
+				VECSUB(side1,  mvert[ mface[i].v2 ].co, mvert[ mface[i].v1 ].co);
+				VECSUB(side2,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
+			}
+
+			Crossf(trinormorg, side1, side2);
+			Normalize(trinormorg);
+			VECCOPY(trinorm, trinormorg);
+			VecMulf(trinorm, 0.25 * cell_len);
+
+			for(j = 0; j <= divs1; j++)
+			{
+				for(k = 0; k <= divs2; k++)
+				{
+					float p1[3], p2[3], p3[3], p[3]={0,0,0}; 
+					const float uf = (float)(j + TRI_UVOFFSET) / (float)(divs1 + 0.0);
+					const float vf = (float)(k + TRI_UVOFFSET) / (float)(divs2 + 0.0);
+					float tmpvec[3];
+					
+					if(uf+vf > 1.0) 
+					{
+						// printf("bigger - divs1: %d, divs2: %d\n", divs1, divs2);
+						continue;
+					}
+
+					VECCOPY(p1, mvert[ mface[i].v1 ].co);
+					if(again == 1 && mface[i].v4)
+					{
+						VECCOPY(p2, mvert[ mface[i].v3 ].co);
+						VECCOPY(p3, mvert[ mface[i].v4 ].co);
+					}
+					else
+					{
+						VECCOPY(p2, mvert[ mface[i].v2 ].co);
+						VECCOPY(p3, mvert[ mface[i].v3 ].co);
+					}
+
+					VecMulf(p1, (1.0-uf-vf));
+					VecMulf(p2, uf);
+					VecMulf(p3, vf);
+					
+					VECADD(p, p1, p2);
+					VECADD(p, p, p3);
+
+					if(newdivs > divs)
+						printf("mem problem\n");
+
+					// mMovPoints.push_back(p + trinorm);
+					VECCOPY(tmpvec, p);
+					VECADD(tmpvec, tmpvec, trinorm);
+					Mat4MulVecfl (ob->obmat, tmpvec);
+					VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
+					newdivs++;
+
+					if(newdivs > divs)
+						printf("mem problem\n");
+
+					// mMovPoints.push_back(p - trinorm);
+					VECCOPY(tmpvec, p);
+					VECSUB(tmpvec, tmpvec, trinorm);
+					Mat4MulVecfl (ob->obmat, tmpvec);
+					VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
+					newdivs++;
+				}
+			}
+
+			if(again == 0 && mface[i].v4)
+				again++;
+			else
+				again = 0;
+
+			facecounter++;
+
+		} while(again!=0);
+	}
+
+	scs->numpoints = dm->getNumVerts(dm) + newdivs;
+
+	MEM_freeN(tridivs);
 }
 
 /*! init triangle divisions */
@@ -539,6 +547,10 @@ static void smokeModifier_freeDomain(SmokeModifierData *smd)
 
 		if(smd->domain->wt)
 			smoke_turbulence_free(smd->domain->wt);
+
+		if(smd->domain->effector_weights)
+				MEM_freeN(smd->domain->effector_weights);
+		smd->domain->effector_weights = NULL;
 
 		BKE_ptcache_free_list(&(smd->domain->ptcaches[0]));
 		smd->domain->point_cache[0] = NULL;
@@ -707,6 +719,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->diss_speed = 5;
 			// init 3dview buffer
 			smd->domain->viewsettings = 0;
+			smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 		}
 		else if(smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
@@ -832,8 +845,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 							size_t i = 0;									
 							size_t index = 0;									
 							int badcell = 0;																		
-							if(pa->alive == PARS_KILLED) continue;									
-							else if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;									
+							if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;									
 							else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0) continue;									
 							else if(pa->flag & (PARS_UNEXIST+PARS_NO_DISP)) continue;																		
 							// VECCOPY(pos, pa->state.co);									
@@ -932,21 +944,52 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 	}
 
 	// do effectors
-	/*
-	if(sds->eff_group)
 	{
-		for(go = sds->eff_group->gobject.first; go; go = go->next) 
+		ListBase *effectors = pdInitEffectors(scene, ob, NULL, sds->effector_weights);
+
+		if(effectors)
 		{
-			if(go->ob)
-			{
-				if(ob->pd)
-				{
-					
-				}					
+			float *density = smoke_get_density(sds->fluid);
+			float *force_x = smoke_get_force_x(sds->fluid);
+			float *force_y = smoke_get_force_y(sds->fluid);
+			float *force_z = smoke_get_force_z(sds->fluid);
+			float *velocity_x = smoke_get_velocity_x(sds->fluid);
+			float *velocity_y = smoke_get_velocity_y(sds->fluid);
+			float *velocity_z = smoke_get_velocity_z(sds->fluid);
+			int x, y, z;
+
+			// precalculate wind forces
+			for(x = 0; x < sds->res[0]; x++)
+				for(y = 0; y < sds->res[1]; y++)
+					for(z = 0; z < sds->res[2]; z++)
+			{	
+				EffectedPoint epoint;
+				float voxelCenter[3] = {0,0,0} , vel[3] = {0,0,0} , retvel[3] = {0,0,0};
+				unsigned int index = smoke_get_index(x, sds->res[0], y, sds->res[1], z);
+
+				if(density[index] < FLT_EPSILON)					
+					continue;	
+
+				vel[0] = velocity_x[index];
+				vel[1] = velocity_y[index];
+				vel[2] = velocity_z[index];
+
+				voxelCenter[0] = sds->p0[0] + sds->dx *  x + sds->dx * 0.5;
+				voxelCenter[1] = sds->p0[1] + sds->dx *  y + sds->dx * 0.5;
+				voxelCenter[2] = sds->p0[2] + sds->dx *  z + sds->dx * 0.5;
+
+				pd_point_from_loc(scene, voxelCenter, vel, index, &epoint);
+				pdDoEffectors(effectors, NULL, sds->effector_weights, &epoint, retvel, NULL);
+
+				// TODO dg - do in force!
+				force_x[index] = MIN2(MAX2(-1.0, retvel[0] * 0.2), 1.0); 
+				force_y[index] = MIN2(MAX2(-1.0, retvel[1] * 0.2), 1.0); 
+				force_z[index] = MIN2(MAX2(-1.0, retvel[2] * 0.2), 1.0);
 			}
 		}
+
+		pdEndEffectors(&effectors);
 	}
-	*/
 
 	// do collisions	
 	if(1)
@@ -1184,7 +1227,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		// simulate the actual smoke (c++ code in intern/smoke)
 		// DG: interesting commenting this line + deactivating loading of noise files
 		if(framenr!=startframe)
+		{
+			if(sds->flags & MOD_SMOKE_DISSOLVE)
+				smoke_dissolve(sds->fluid, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
 			smoke_step(sds->fluid, smd->time);
+		}
 
 		// create shadows before writing cache so we get nice shadows for sstartframe, too
 		if(get_lamp(scene, light))
@@ -1195,7 +1242,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if(sds->wt)
 		{
 			if(framenr!=startframe)
+			{
+				if(sds->flags & MOD_SMOKE_DISSOLVE)
+					smoke_dissolve_wavelet(sds->wt, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
 				smoke_turbulence_step(sds->wt, sds->fluid);
+			}
 
 			cache_wt->flag |= PTCACHE_SIMULATION_VALID;
 			cache_wt->simframe= framenr;

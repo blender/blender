@@ -374,12 +374,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				// Only generate a single expose event
 				// per read of the event queue.
 
-				g_event = new 
+				g_event = new
 				GHOST_Event(
 					getMilliSeconds(),
 					GHOST_kEventWindowUpdate,
 					window
-				);			
+				);
 			}
 			break;
 		}
@@ -388,14 +388,42 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XMotionEvent &xme = xe->xmotion;
 			
-			g_event = new 
-			GHOST_EventCursor(
-				getMilliSeconds(),
-				GHOST_kEventCursorMove,
-				window,
-				xme.x_root,
-				xme.y_root
-			);
+			if(window->getCursorWarp()) {
+				/* Calculate offscreen location and re-center the mouse */
+				GHOST_TInt32 x_warp, y_warp,  x_new, y_new, x_accum, y_accum;
+
+				window->getCursorWarpPos(x_warp, y_warp);
+				getCursorPosition(x_new, y_new);
+
+				if(x_warp != x_new || y_warp != y_new) {
+					window->getCursorWarpAccum(x_accum, y_accum);
+					x_accum += x_new - x_warp;
+					y_accum += y_new - y_warp;
+
+					window->setCursorWarpAccum(x_accum, y_accum);
+					setCursorPosition(x_warp, y_warp); /* reset */
+
+					g_event = new
+					GHOST_EventCursor(
+						getMilliSeconds(),
+						GHOST_kEventCursorMove,
+						window,
+						x_warp + x_accum,
+						y_warp + y_accum
+					);
+
+				}
+			}
+			else {
+				g_event = new
+				GHOST_EventCursor(
+					getMilliSeconds(),
+					GHOST_kEventCursorMove,
+					window,
+					xme.x_root,
+					xme.y_root
+				);
+			}
 			break;
 		}
 
@@ -444,10 +472,15 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 			XButtonEvent & xbe = xe->xbutton;
 			GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
-
 			switch (xbe.button) {
 				case Button1 : gbmask = GHOST_kButtonMaskLeft; break;
 				case Button3 : gbmask = GHOST_kButtonMaskRight; break;
+				/* It seems events 6 and 7 are for horizontal scrolling.
+				 * you can re-order button mapping like this... (swaps 6,7 with 8,9)
+				 *   xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7" 
+				 */
+				case 8 : gbmask = GHOST_kButtonMaskButton4; break; /* Button4 is the wheel */
+				case 9 : gbmask = GHOST_kButtonMaskButton5; break; /* Button5 is a wheel too */
 				default:
 				case Button2 : gbmask = GHOST_kButtonMaskMiddle; break;
 			}
@@ -684,12 +717,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			{
 				XProximityNotifyEvent* data = (XProximityNotifyEvent*)xe;
 				if(data->deviceid == window->GetXTablet().StylusID)
-					window->GetXTablet().CommonData.Active= 1;
+					window->GetXTablet().CommonData.Active= GHOST_kTabletModeStylus;
 				else if(data->deviceid == window->GetXTablet().EraserID)
-					window->GetXTablet().CommonData.Active= 2;
+					window->GetXTablet().CommonData.Active= GHOST_kTabletModeEraser;
 			}
 			else if(xe->type == window->GetXTablet().ProxOutEvent)
-				window->GetXTablet().CommonData.Active= 0;
+				window->GetXTablet().CommonData.Active= GHOST_kTabletModeNone;
 
 			break;
 		}

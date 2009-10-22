@@ -52,7 +52,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
 			"scene", "selected_objects", "selected_bases",
-			"selected_editable_objects", "selected_editable_bases"
+			"selected_editable_objects", "selected_editable_bases",
 			"active_base", "active_object", "edit_object",
 			"sculpt_object", "vertex_paint_object", "weight_paint_object",
 			"texture_paint_object", "brush", "particle_edit_object", NULL};

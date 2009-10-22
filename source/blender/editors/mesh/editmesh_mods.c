@@ -1047,26 +1047,6 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-#if 0 //moved to bmeshutils_mods.c
-void MESH_OT_loop_multi_select(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Multi Select Loops";
-	ot->description= "Select a loop of connected edges by connection type.";
-	ot->idname= "MESH_OT_loop_multi_select";
-	
-	/* api callbacks */
-	ot->exec= loop_multiselect;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-	RNA_def_boolean(ot->srna, "ring", 0, "Ring", "");
-}
-#endif
-		
 /* ************************* */
 /* ************************* */
 
@@ -1668,6 +1648,11 @@ void EM_toggle_select_all(EditMesh *em) /* exported for UV */
 		EM_set_flag_all(em, SELECT);
 }
 
+void EM_select_all(EditMesh *em)
+{
+	EM_set_flag_all(em, SELECT);
+}
+
 void MESH_OT_bmesh_test(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1851,7 +1836,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
 }
 
 void EM_select_by_material(EditMesh *em, int index) 

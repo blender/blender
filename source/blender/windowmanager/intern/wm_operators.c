@@ -58,6 +58,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h" /* BKE_ST_MAXNAME */
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -269,8 +270,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 	BLI_strncpy(otmacro->idname, idname, OP_MAX_TYPENAME);
 
 	/* do this on first use, since operatordefinitions might have been not done yet */
-//	otmacro->ptr= MEM_callocN(sizeof(PointerRNA), "optype macro ItemPtr");
-//	WM_operator_properties_create(otmacro->ptr, idname);
+	WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
 	
 	BLI_addtail(&ot->macro, otmacro);
 	
@@ -440,6 +440,25 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 		RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
 }
 
+/* similar to the function above except its uses ID properties
+ * used for keymaps and macros */
+void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
+{
+	if(*properties==NULL) {
+		IDPropertyTemplate val = {0};
+		*properties= IDP_New(IDP_GROUP, val, "wmOpItemProp");
+	}
+
+	if(*ptr==NULL) {
+		*ptr= MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr");
+		WM_operator_properties_create(*ptr, opstring);
+	}
+
+	(*ptr)->data= *properties;
+
+}
+
+
 void WM_operator_properties_free(PointerRNA *ptr)
 {
 	IDProperty *properties= ptr->data;
@@ -487,18 +506,24 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
-/* op->invoke */
-int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
+/* Can't be used as an invoke directly, needs message arg (can be NULL) */
+int WM_operator_confirm_message(bContext *C, wmOperator *op, char *message)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
 	pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
-	uiItemO(layout, NULL, 0, op->type->idname);
+	uiItemO(layout, message, 0, op->type->idname);
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
+}
+
+
+int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_operator_confirm_message(C, op, NULL);
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
@@ -516,22 +541,33 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 /* default properties for fileselect */
 void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 {
-	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "FilePath", "Path to file.");
-	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "FileName", "Name of the file.");
+	PropertyRNA *prop;
+
+	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "File Path", "Path to file.");
+	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file.");
 	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
 
-	RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
-	RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
-	RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
-	RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
-	RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
-	RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
-	RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
-	RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+	prop= RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 
-	RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
+	prop= RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
 		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
 		FILE_LOADLIB, FILE_SPECIAL);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* op->poll */
@@ -682,7 +718,7 @@ static void operator_search_cb(const struct bContext *C, void *arg, char *str, u
 	for(; ot; ot= ot->next) {
 		
 		if(BLI_strcasestr(ot->name, str)) {
-			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+			if(WM_operator_poll((bContext*)C, ot)) {
 				char name[256];
 				int len= strlen(ot->name);
 				
@@ -766,6 +802,25 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 	ot->poll= wm_search_menu_poll;
 }
 
+static int wm_call_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	char idname[BKE_ST_MAXNAME];
+	RNA_string_get(op->ptr, "name", idname);
+
+	uiPupMenuInvoke(C, idname);
+
+	return OPERATOR_CANCELLED;
+}
+
+static void WM_OT_call_menu(wmOperatorType *ot)
+{
+	ot->name= "Call Menu";
+	ot->idname= "WM_OT_call_menu";
+
+	ot->invoke= wm_call_menu_invoke;
+
+	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the new sequence strip");
+}
 
 /* ************ window / screen operator definitions ************** */
 
@@ -943,7 +998,7 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return WM_operator_call(C, op);
 	} 
 	else {
-		/* XXX solve where to get last linked library from */
+		/* XXX TODO solve where to get last linked library from */
 		RNA_string_set(op->ptr, "path", G.lib);
 		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
@@ -1064,6 +1119,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	DAG_ids_flush_update(0);
 
 	BLO_blendhandle_close(bh);
+
+	/* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
 	BLI_strncpy(G.lib, dir, FILE_MAX);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -1081,6 +1138,8 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	ot->exec= wm_link_append_exec;
 	ot->poll= WM_operator_winactive;
 	
+	ot->flag |= OPTYPE_UNDO;
+
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
@@ -1360,13 +1419,13 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 
 int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(WM_key_event_is_tweak(event->type))
+	if(ISTWEAK(event->type))
 		op->customdata= WM_gesture_new(C, event, WM_GESTURE_RECT);
 	else
 		op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
 
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
 
@@ -1430,7 +1489,7 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
 	
@@ -1483,7 +1542,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			if(event->val==0) {	/* key release */
+			if(event->val==KM_RELEASE) {	/* key release */
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -1566,7 +1625,7 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 			if(gesture->event_type==event->type) {
 				WM_gesture_end(C, gesture);
 				window->tweak= NULL;
-				
+
 				/* when tweak fails we should give the other keymap entries a chance */
 				event->val= KM_RELEASE;
 			}
@@ -1584,7 +1643,7 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 	
 	if(win->tweak==NULL) {
 		if(CTX_wm_region(C)) {
-			if(event->val) { // pressed
+			if(event->val==KM_PRESS) { // pressed
 				if( ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) )
 					win->tweak= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
 			}
@@ -1607,7 +1666,7 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_LASSO);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
 	
@@ -1622,7 +1681,7 @@ int WM_gesture_lines_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_LINES);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	wm_gesture_tag_redraw(C);
 	
@@ -1684,7 +1743,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			if(event->val==0) {	/* key release */
+			if(event->val==KM_RELEASE) {	/* key release */
 				gesture_lasso_apply(C, op, event->type);
 				return OPERATOR_FINISHED;
 			}
@@ -1929,7 +1988,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					      wm_radial_control_paint, op->customdata);
 
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	WM_event_add_modal_handler(C, op);
 	
 	WM_radial_control_modal(C, op, event);
 	
@@ -1954,7 +2013,7 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
     just sets up the common parts of the radial control op. **/
 void WM_OT_radial_control_partial(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_mode_items[] = {
+	static EnumPropertyItem radial_mode_items[] = {
 		{WM_RADIALCONTROL_SIZE, "SIZE", 0, "Size", ""},
 		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", 0, "Strength", ""},
 		{WM_RADIALCONTROL_ANGLE, "ANGLE", 0, "Angle", ""},
@@ -1967,7 +2026,7 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "new_value", 0, 0, FLT_MAX, "New Value", "", 0, FLT_MAX);
 
 	/* Should be set before calling operator */
-	RNA_def_enum(ot->srna, "mode", prop_mode_items, 0, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", radial_mode_items, 0, "Mode", "");
 
 	/* Internal */
 	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
@@ -1977,17 +2036,19 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 
 /* uses no type defines, fully local testing function anyway... ;) */
 
-static int ten_timer_exec(bContext *C, wmOperator *op)
+static int redraw_timer_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	double stime= PIL_check_seconds_timer();
 	int type = RNA_int_get(op->ptr, "type");
-	int a, time;
-	char tmpstr[128];
+	int iter = RNA_int_get(op->ptr, "iterations");
+	int a;
+	float time;
+	char *infostr= "";
 	
 	WM_cursor_wait(1);
-	
-	for(a=0; a<10; a++) {
+
+	for(a=0; a<iter; a++) {
 		if (type==0) {
 			ED_region_do_draw(C, ar);
 		} 
@@ -2003,13 +2064,35 @@ static int ten_timer_exec(bContext *C, wmOperator *op)
 			wmWindow *win= CTX_wm_window(C);
 			ScrArea *sa;
 			
+			ScrArea *sa_back= CTX_wm_area(C);
+			ARegion *ar_back= CTX_wm_region(C);
+
+			for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next) {
+				ARegion *ar_iter;
+				CTX_wm_area_set(C, sa);
+
+				for(ar_iter= sa->regionbase.first; ar_iter; ar_iter= ar_iter->next) {
+					CTX_wm_region_set(C, ar_iter);
+					ED_region_do_draw(C, ar_iter);
+				}
+			}
+
+			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
+
+			CTX_wm_area_set(C, sa_back);
+			CTX_wm_region_set(C, ar_back);
+		}
+		else if (type==3) {
+			wmWindow *win= CTX_wm_window(C);
+			ScrArea *sa;
+
 			for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next)
 				ED_area_tag_redraw(sa);
 			wm_draw_update(C);
 			
 			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
 		}
-		else if (type==3) {
+		else if (type==4) {
 			Scene *scene= CTX_data_scene(C);
 			
 			if(a & 1) scene->r.cfra--;
@@ -2022,40 +2105,43 @@ static int ten_timer_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	time= (int) ((PIL_check_seconds_timer()-stime)*1000);
+	time= ((PIL_check_seconds_timer()-stime)*1000);
 	
-	if(type==0) sprintf(tmpstr, "10 x Draw Region: %d ms", time);
-	if(type==1) sprintf(tmpstr, "10 x Draw Region and Swap: %d ms", time);
-	if(type==2) sprintf(tmpstr, "10 x Draw Window and Swap: %d ms", time);
-	if(type==3) sprintf(tmpstr, "Anim Step: %d ms", time);
-	if(type==4) sprintf(tmpstr, "10 x Undo/Redo: %d ms", time);
+	if(type==0) infostr= "Draw Region";
+	if(type==1) infostr= "Draw Region and Swap";
+	if(type==2) infostr= "Draw Window";
+	if(type==3) infostr= "Draw Window and Swap";
+	if(type==4) infostr= "Animation Steps";
+	if(type==5) infostr= "Undo/Redo";
 	
 	WM_cursor_wait(0);
 	
-	uiPupMenuNotice(C, tmpstr);
+	BKE_reportf(op->reports, RPT_INFO, "%d x %s: %.2f ms,  average: %.4f", iter, infostr, time, time/iter);
 	
 	return OPERATOR_FINISHED;
 }
 
-static void WM_OT_ten_timer(wmOperatorType *ot)
+static void WM_OT_redraw_timer(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_type_items[] = {
 	{0, "DRAW", 0, "Draw Region", ""},
-	{1, "DRAWSWAP", 0, "Draw Region + Swap", ""},
-	{2, "DRAWWINSWAP", 0, "Draw Window + Swap", ""},
-	{3, "ANIMSTEP", 0, "Anim Step", ""},
-	{4, "UNDO", 0, "Undo/Redo", ""},
+	{1, "DRAW_SWAP", 0, "Draw Region + Swap", ""},
+	{2, "DRAW_WIN", 0, "Draw Window", ""},
+	{3, "DRAW_WIN_SWAP", 0, "Draw Window + Swap", ""},
+	{4, "ANIM_STEP", 0, "Anim Step", ""},
+	{5, "UNDO", 0, "Undo/Redo", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
-	ot->name= "Ten Timer";
-	ot->idname= "WM_OT_ten_timer";
-	ot->description="Ten Timer operator.";
+	ot->name= "Redraw Timer";
+	ot->idname= "WM_OT_redraw_timer";
+	ot->description="Simple redraw timer to test the speed of updating the interface.";
 	
 	ot->invoke= WM_menu_invoke;
-	ot->exec= ten_timer_exec;
+	ot->exec= redraw_timer_exec;
 	ot->poll= WM_operator_winactive;
 	
 	RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
+	RNA_def_int(ot->srna, "iterations", 10, 1,INT_MAX, "Iterations", "Number of times to redraw", 1,1000);
 
 }
 
@@ -2090,15 +2176,17 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
-	WM_operatortype_append(WM_OT_ten_timer);
+	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_search_menu);
+	WM_operatortype_append(WM_OT_call_menu);
 }
 
 /* default keymap for windows and screens, only call once per WM */
-void wm_window_keymap(wmWindowManager *wm)
+void wm_window_keymap(wmKeyConfig *keyconf)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Window", 0, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
+	wmKeyMapItem *km;
 	
 	/* items to make WM work */
 	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);
@@ -2121,13 +2209,63 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 
-	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */
-	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
+	/* Space switching */
+
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "LOGIC_EDITOR");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F3KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "NODE_EDITOR");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "CONSOLE");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F5KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "VIEW_3D");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F6KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "GRAPH_EDITOR");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F7KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "PROPERTIES");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F8KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "SEQUENCE_EDITOR");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "OUTLINER");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "OUTLINER");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F10KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "IMAGE_EDITOR");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "TEXT_EDITOR");
+
+	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(km->ptr, "path", "area.type");
+	RNA_string_set(km->ptr, "value", "DOPESHEET_EDITOR");
 }
 

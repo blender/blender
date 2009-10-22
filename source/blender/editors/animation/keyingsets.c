@@ -78,6 +78,216 @@
 #include "anim_intern.h"
 
 /* ************************************************** */
+/* KEYING SETS - OPERATORS (for use in UI panels) */
+/* These operators are really duplication of existing functionality, but just for completeness,
+ * they're here too, and will give the basic data needed...
+ */
+
+/* poll callback for adding default KeyingSet */
+static int keyingset_poll_default_add (bContext *C)
+{
+	/* as long as there's an active Scene, it's fine */
+	return (CTX_data_scene(C) != NULL);
+}
+
+/* poll callback for editing active KeyingSet */
+static int keyingset_poll_active_edit (bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (scene == NULL)
+		return 0;
+	
+	/* there must be an active KeyingSet (and KeyingSets) */
+	return ((scene->active_keyingset > 0) && (scene->keyingsets.first));
+}
+
+/* poll callback for editing active KeyingSet Path */
+static int keyingset_poll_activePath_edit (bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	
+	if (scene == NULL)
+		return 0;
+	if (scene->active_keyingset <= 0)
+		return 0;
+	else
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* there must be an active KeyingSet and an active path */
+	return ((ks) && (ks->paths.first) && (ks->active_path > 0));
+}
+
+ 
+/* Add a Default (Empty) Keying Set ------------------------- */
+
+static int add_default_keyingset_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	short flag=0, keyingflag=0;
+	
+	/* validate flags 
+	 *	- absolute KeyingSets should be created by default
+	 */
+	flag |= KEYINGSET_ABSOLUTE;
+	
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
+		keyingflag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
+		keyingflag |= INSERTKEY_NEEDED;
+		
+	/* call the API func, and set the active keyingset index */
+	BKE_keyingset_add(&scene->keyingsets, NULL, flag, keyingflag);
+	
+	scene->active_keyingset= BLI_countlist(&scene->keyingsets);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keying_set_add (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Empty Keying Set";
+	ot->idname= "ANIM_OT_keying_set_add";
+	ot->description= "Add a new (empty) Keying Set to the active Scene.";
+	
+	/* callbacks */
+	ot->exec= add_default_keyingset_exec;
+	ot->poll= keyingset_poll_default_add;
+}
+
+/* Remove 'Active' Keying Set ------------------------- */
+
+static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	
+	/* verify the Keying Set to use:
+	 *	- use the active one
+	 *	- return error if it doesn't exist
+	 */
+	if (scene->active_keyingset == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* free KeyingSet's data, then remove it from the scene */
+	BKE_keyingset_free(ks);
+	BLI_freelinkN(&scene->keyingsets, ks);
+	
+	/* the active one should now be the previously second-to-last one */
+	scene->active_keyingset--;
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keying_set_remove (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Removed Active Keying Set";
+	ot->idname= "ANIM_OT_keying_set_remove";
+	ot->description= "Remove the active Keying Set.";
+	
+	/* callbacks */
+	ot->exec= remove_active_keyingset_exec;
+	ot->poll= keyingset_poll_active_edit;
+}
+
+/* Add Empty Keying Set Path ------------------------- */
+
+static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	KS_Path *ksp;
+	
+	/* verify the Keying Set to use:
+	 *	- use the active one
+	 *	- return error if it doesn't exist
+	 */
+	if (scene->active_keyingset == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to add empty path to");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* don't use the API method for this, since that checks on values... */
+	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSetPath Empty");
+	BLI_addtail(&ks->paths, ksp);
+	ks->active_path= BLI_countlist(&ks->paths);
+	
+	ksp->groupmode= KSP_GROUP_KSNAME; // XXX?
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keying_set_path_add (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Empty Keying Set Path";
+	ot->idname= "ANIM_OT_keying_set_path_add";
+	ot->description= "Add empty path to active Keying Set";
+	
+	/* callbacks */
+	ot->exec= add_empty_ks_path_exec;
+	ot->poll= keyingset_poll_active_edit;
+}
+
+/* Remove Active Keying Set Path ------------------------- */
+
+static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	
+	/* if there is a KeyingSet, find the nominated path to remove */
+	if (ks) {
+		KS_Path *ksp= BLI_findlink(&ks->paths, ks->active_path-1);
+		
+		if (ksp) {
+			/* NOTE: sync this code with BKE_keyingset_free() */
+			{
+				/* free RNA-path info */
+				MEM_freeN(ksp->rna_path);
+				
+				/* free path itself */
+				BLI_freelinkN(&ks->paths, ksp);
+			}
+			
+			/* the active path should now be the previously second-to-last active one */
+			ks->active_path--;
+		}
+		else {
+			BKE_report(op->reports, RPT_ERROR, "No active Keying Set Path to remove");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove a path from");
+		return OPERATOR_CANCELLED;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Active Keying Set Path";
+	ot->idname= "ANIM_OT_keying_set_path_remove";
+	ot->description= "Remove active Path from active Keying Set.";
+	
+	/* callbacks */
+	ot->exec= remove_active_ks_path_exec;
+	ot->poll= keyingset_poll_activePath_edit;
+}
+
+/* ************************************************** */
 /* KEYING SETS - OPERATORS (for use in UI menus) */
 
 /* Add to KeyingSet Button Operator ------------------------ */
@@ -128,11 +338,19 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			/* set flags */
-			if (all) 
+			if (all) {
 				pflag |= KSP_FLAG_WHOLE_ARRAY;
+				
+				/* we need to set the index for this to 0, even though it may break in some cases, this is 
+				 * necessary if we want the entire array for most cases to get included without the user
+				 * having to worry about where they clicked
+				 */
+				index= 0;
+			}
 				
 			/* add path to this setting */
 			BKE_keyingset_add_destination(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
+			ks->active_path= BLI_countlist(&ks->paths);
 			success= 1;
 			
 			/* free the temp path created */
@@ -770,7 +988,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	/* Keying Set - "Rotation" ---------- */
 	BI_KS_DEFINE_BEGIN("Rotation", 0)
 		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -786,7 +1004,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("LocRot", 0)
 		BI_KS_PATHS_BEGIN(2)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -794,7 +1012,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("LocRotScale", 0)
 		BI_KS_PATHS_BEGIN(3)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "scale", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
@@ -810,7 +1028,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	/* Keying Set - "Rotation" ---------- */
 	BI_KS_DEFINE_BEGIN("VisualRot", INSERTKEY_MATRIX)
 		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -818,7 +1036,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("VisualLocRot", INSERTKEY_MATRIX)
 		BI_KS_PATHS_BEGIN(2)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END
 };
@@ -898,6 +1116,24 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, char name[])
 	
 	/* no matches found */
 	return NULL;
+}
+
+
+/* Get the active Keying Set for the Scene provided */
+KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
+{
+	if (ELEM(NULL, scene, scene->keyingsets.first))
+		return NULL;
+	
+	/* currently, there are several possibilities here:
+	 *	-   0: no active keying set
+	 *	- > 0: one of the user-defined Keying Sets, but indices start from 0 (hence the -1)
+	 *	- < 0: a builtin keying set (XXX this isn't enabled yet so that we don't get errors on reading back files)
+	 */
+	if (scene->active_keyingset > 0)
+		return BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	else // for now...
+		return NULL; 
 }
 
 /* ******************************************* */
@@ -1043,9 +1279,8 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
  * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
  * Returns the number of channels that keyframes were added to
  */
-int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
+int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
-	Scene *scene= CTX_data_scene(C);
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
@@ -1110,25 +1345,20 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					success+= delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 			}
 			
-			/* send notifiers and set recalc-flags */
-			// TODO: hopefully this doesn't result in execessive flooding of the notifier stack
-			if (C && ksp->id) {
+			/* set recalc-flags */
+			if (ksp->id) {
 				switch (GS(ksp->id->name)) {
 					case ID_OB: /* Object (or Object-Related) Keyframes */
 					{
 						Object *ob= (Object *)ksp->id;
 						
 						ob->recalc |= OB_RECALC;
-						WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, ksp->id);
 					}
 						break;
-					case ID_MA: /* Material Keyframes */
-						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, ksp->id);
-						break;
-					default: /* Any keyframes */
-						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-						break;
 				}
+				
+				/* send notifiers for updates (this doesn't require context to work!) */
+				WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 			}
 		}
 	}
@@ -1145,7 +1375,12 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				int arraylen, i;
 				
 				/* set initial group name */
-				groupname= (cks->id) ? cks->id->name+2 : NULL;
+				if (cks->id == NULL) {
+					printf("ERROR: Skipping 'Common-Key' Source. No valid ID present.\n");
+					continue;
+				}
+				else
+					groupname= cks->id->name+2;
 				
 				/* construct the path */
 				// FIXME: this currently only works with a few hardcoded cases
@@ -1173,14 +1408,24 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 						BLI_dynstr_append(pathds, ".");
 						
 					/* apply some further templates? */
-					if ((ksp->templates & KSP_TEMPLATE_PCHAN_ROT) && (cks->pchan)) {
-						/* if this path is exactly "rotation", and the rotation mode is set to eulers,
-						 * use "euler_rotation" instead so that rotations will be keyed correctly
+					if (ksp->templates & KSP_TEMPLATE_ROT) {
+						/* for builtin Keying Sets, this template makes the best fitting path for the 
+						 * current rotation mode of the Object / PoseChannel to be used
 						 */
-						if (strcmp(ksp->rna_path, "rotation")==0 && (cks->pchan->rotmode > 0))
-							BLI_dynstr_append(pathds, "euler_rotation");
-						else
-							BLI_dynstr_append(pathds, ksp->rna_path);
+						if (strcmp(ksp->rna_path, "rotation")==0) {
+							/* get rotation mode */
+							short rotmode= (cks->pchan)? (cks->pchan->rotmode) : 
+										   (GS(cks->id->name)==ID_OB)? ( ((Object *)cks->id)->rotmode ) :
+										   (0);
+							
+							/* determine path to build */
+							if (rotmode == ROT_MODE_QUAT)
+								BLI_dynstr_append(pathds, "rotation_quaternion");
+							else if (rotmode == ROT_MODE_AXISANGLE)
+								BLI_dynstr_append(pathds, "rotation_axis_angle");
+							else
+								BLI_dynstr_append(pathds, "rotation_euler");
+						}
 					}
 					else {
 						/* just directly use the path */
@@ -1233,25 +1478,20 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				MEM_freeN(path);
 			}
 			
-			/* send notifiers and set recalc-flags */
-			// TODO: hopefully this doesn't result in execessive flooding of the notifier stack
-			if (C && cks->id) {
+			/* set recalc-flags */
+			if (cks->id) {
 				switch (GS(cks->id->name)) {
 					case ID_OB: /* Object (or Object-Related) Keyframes */
 					{
 						Object *ob= (Object *)cks->id;
 						
 						ob->recalc |= OB_RECALC;
-						WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, cks->id);
 					}
 						break;
-					case ID_MA: /* Material Keyframes */
-						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, cks->id);
-						break;
-					default: /* Any keyframes */
-						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-						break;
 				}
+				
+				/* send notifiers for updates (this doesn't require context to work!) */
+				WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 			}
 		}
 	}

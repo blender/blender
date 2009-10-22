@@ -76,7 +76,7 @@
 
 int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
 {
-	ModifierData *md;
+	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
 
 	if(mti->flags&eModifierTypeFlag_Single) {
@@ -87,19 +87,28 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 	}
 
 	if(type == eModifierType_ParticleSystem) {
+		/* don't need to worry about the new modifier's name, since that is set to the number
+		 * of particle systems which shouldn't have too many duplicates 
+		 */
 		object_add_particle_system(scene, ob);
 	}
 	else {
+		/* get new modifier data to add */
+		new_md= modifier_new(type);
+		
 		if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
 			md = ob->modifiers.first;
-
+			
 			while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
 				md = md->next;
-
-			BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
+			
+			BLI_insertlinkbefore(&ob->modifiers, md, new_md);
 		}
 		else
-			BLI_addtail(&ob->modifiers, modifier_new(type));
+			BLI_addtail(&ob->modifiers, new_md);
+		
+		/* make sure modifier data has unique name */
+		modifier_unique_name(&ob->modifiers, new_md);
 		
 		/* special cases */
 		if(type == eModifierType_Softbody) {
@@ -110,8 +119,8 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 		}
 		else if(type == eModifierType_Collision) {
 			if(!ob->pd)
-				ob->pd= object_add_collision_fields();
-
+				ob->pd= object_add_collision_fields(0);
+			
 			ob->pd->deflect= 1;
 			DAG_scene_sort(scene);
 		}
@@ -159,8 +168,8 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
         DAG_scene_sort(scene);
 	}
 	else if(md->type == eModifierType_Surface) {
-		if(ob->pd)
-			ob->pd->flag &= ~PFIELD_SURFACE;
+		if(ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
+			ob->pd->shape = PFIELD_SHAPE_PLANE;
 
         DAG_scene_sort(scene);
 	}
@@ -400,6 +409,7 @@ int ED_object_modifier_copy(ReportList *reports, Object *ob, ModifierData *md)
 	nmd = modifier_new(md->type);
 	modifier_copyData(md, nmd);
 	BLI_insertlink(&ob->modifiers, md, nmd);
+	modifier_unique_name(&ob->modifiers, nmd);
 
 	return 1;
 }
@@ -430,12 +440,12 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
+	Object *ob= CTX_data_active_object(C);
 	EnumPropertyItem *item= NULL, *md_item;
 	ModifierTypeInfo *mti;
-	Object *ob;
 	int totitem= 0, a;
 	
-	if(!C || !(ob= CTX_data_active_object(C))) /* needed for docs */
+	if(!ob)
 		return modifier_type_items;
 
 	for(a=0; modifier_type_items[a].identifier; a++) {
@@ -456,7 +466,6 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *ptr, int *f
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-
 	*free= 1;
 
 	return item;

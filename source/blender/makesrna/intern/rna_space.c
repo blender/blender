@@ -38,8 +38,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_paint.h"
-
+#include "WM_api.h"
 #include "WM_types.h"
 
 EnumPropertyItem space_type_items[] = {
@@ -65,26 +64,35 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_USERPREF, "USER_PREFERENCES", 0, "User Preferences", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-#define DC_RGB {0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors."}
-#define DC_RGBA {SI_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha", "Draw image with RGB colors and alpha transparency."}
-#define DC_ALPHA {SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel."}
-#define DC_Z {SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)."}
+static EnumPropertyItem draw_channels_items[] = {
+	{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors."},
+	{SI_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha", "Draw image with RGB colors and alpha transparency."},
+	{SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel."},
+	{SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)."},
 #ifdef WITH_LCMS
-#define DC_LCMS {SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image."}
-#else
-#define DC_LCMS {0, NULL, 0, NULL, NULL}
+	{SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image."},
 #endif
-#define DC_ZERO {0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem dc_all_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_Z, DC_LCMS, DC_ZERO};
+static EnumPropertyItem transform_orientation_items[] = {
+	{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", "Align the transformation axes to world space"},
+	{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", "Align the transformation axes to the selected objects' local space"},
+	{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", "Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)"},
+	{V3D_MANIP_VIEW, "VIEW", 0, "View", "Align the transformation axes to the window"},
+	{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_paint.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
@@ -139,6 +147,59 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 	}
 }
 
+static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
+{
+	Scene *scene = ((bScreen*)ptr->id.data)->scene;
+	View3D *v3d= (View3D*)ptr->data;
+	
+	if (v3d->twmode < 4)
+		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, NULL);
+	else
+		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, BLI_findlink(&scene->transform_spaces, v3d->twmode - 4));
+}
+
+EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Scene *scene = NULL;
+	ListBase *transform_spaces;
+	TransformOrientation *ts= NULL;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	int i = V3D_MANIP_CUSTOM, totitem= 0;
+
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_GLOBAL);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_NORMAL);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
+	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_VIEW);
+
+	if (ptr->type == &RNA_Space3DView)
+		scene = ((bScreen*)ptr->id.data)->scene;
+	else
+		scene = CTX_data_scene(C); /* can't use scene from ptr->id.data because that enum is also used by operators */
+
+	if(scene) {
+		transform_spaces = &scene->transform_spaces;
+		ts = transform_spaces->first;
+	}
+
+	if(ts)
+	{
+		RNA_enum_item_add_separator(&item, &totitem);
+
+		for(; ts; ts = ts->next) {
+			tmp.identifier = ts->name;
+			tmp.name= ts->name;
+			tmp.value = i++;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
 /* Space Image Editor */
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
@@ -181,33 +242,57 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_image_set(NULL, sima, sc->scene, sc->scene->obedit, (Image*)value.data);
 }
 
-static EnumPropertyItem dc_rgb_items[] = {DC_RGB, DC_LCMS, DC_ZERO};
-static EnumPropertyItem dc_alpha_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_LCMS, DC_ZERO};
-static EnumPropertyItem dc_z_items[] = {DC_RGB, DC_Z, DC_LCMS, DC_ZERO};
-
 static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
-	ImBuf *ibuf= ED_space_image_buffer(sima);
-	int zbuf, alpha;
+	EnumPropertyItem *item= NULL;
+	ImBuf *ibuf;
+	void *lock;
+	int zbuf, alpha, totitem= 0;
 
-	if(C==NULL) {
-		/* needed for doc generation */
-		return dc_all_items;
-	}
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	
 	alpha= ibuf && (ibuf->channels == 4);
 	zbuf= ibuf && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1));
 
+	ED_space_image_release_buffer(sima, lock);
+
 	if(alpha && zbuf)
-		return dc_all_items;
-	else if(alpha)
-		return dc_alpha_items;
-	else if(zbuf)
-		return dc_z_items;
-	else
-		return dc_rgb_items;
+		return draw_channels_items;
+
+	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
+
+	if(alpha) {
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ALPHA);
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_USE_ALPHA);
+	}
+	else if(zbuf) {
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ZBUF);
+	}
+
+#ifdef WITH_LCMS
+	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_COLOR_CORRECTION);
+#endif
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
 }
+
+static void rna_SpaceImageEditor_curves_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+	ImBuf *ibuf;
+	void *lock;
+
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	curvemapping_do_ibuf(sima->cumap, ibuf);
+	ED_space_image_release_buffer(sima, lock);
+
+	WM_event_add_notifier(C, NC_IMAGE, sima->image);
+}
+
 
 /* Space Text Editor */
 
@@ -225,13 +310,6 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 
 	st->text= value.data;
 	st->top= 0;
-}
-
-static void rna_SpaceFileBrowser_params_set(PointerRNA *ptr, PointerRNA value)
-{
-	SpaceFile *sfile= (SpaceFile*)(ptr->data);
-
-	sfile->params= value.data;
 }
 
 /* Space Properties */
@@ -311,10 +389,34 @@ static void rna_View3D_display_background_image_set(PointerRNA *ptr, int value)
 }
 
 /* Space Time */
+
 static void rna_SpaceTime_redraw_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceTime *st= (SpaceTime*)ptr->data;
 	ED_screen_animation_timer_update(C, st->redraws);
+}
+
+/* Space Dopesheet */
+
+static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceAction *saction= (SpaceAction*)(ptr->data);
+	saction->action= value.data;
+}
+
+static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceAction *saction= (SpaceAction*)(ptr->data);
+	Object *obact= CTX_data_active_object(C);
+
+	/* we must set this action to be the one used by active object (if not pinned) */
+	if(obact && saction->pin == 0) {
+		AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+		
+		/* set action */
+		adt->action= saction->action;
+		id_us_plus(&adt->action->id);
+	}
 }
 
 #else
@@ -491,7 +593,8 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -540,19 +643,12 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 		{V3D_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
-	static EnumPropertyItem transform_orientation_items[] = {
-		{V3D_MANIP_GLOBAL, "ORIENT_GLOBAL", 0, "Global", "Align the transformation axes to world space"},
-		{V3D_MANIP_LOCAL, "ORIENT_LOCAL", 0, "Local", "Align the transformation axes to the selected objects' local space"},
-		{V3D_MANIP_NORMAL, "ORIENT_NORMAL", 0, "Normal", "Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)"},
-		{V3D_MANIP_VIEW, "ORIENT_VIEW", 0, "View", "Align the transformation axes to the window"},
-		{V3D_MANIP_CUSTOM, "ORIENT_CUSTOM", 0, "Custom", "Use a custom transform orientation"},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "Space3DView", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
 	
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "camera");
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used in this view (when unlocked from the scene's active camera).");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -572,11 +668,9 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "localview", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "localview", 0);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	prop= RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
 	RNA_def_property_ui_text(prop, "Local View", "Display an isolated sub-set of objects, apart from the scene visibility.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
@@ -666,6 +760,11 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
+	prop= RNA_def_property(srna, "pivot_point_align", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ALIGN);
+	RNA_def_property_ui_text(prop, "Align", "Manipulate object centers only.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
 	prop= RNA_def_property(srna, "manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_USE_MANIPULATOR);
 	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms.");
@@ -689,8 +788,14 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "transform_orientation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "twmode");
 	RNA_def_property_enum_items(prop, transform_orientation_items);
-	RNA_def_property_ui_text(prop, "Transform Orientation", "The alignment of manipulator handles.");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_TransformOrientation_itemf");
+	RNA_def_property_ui_text(prop, "Transform Orientation", "Transformation orientation.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "current_orientation", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "TransformOrientation");
+	RNA_def_property_pointer_funcs(prop, "rna_CurrentOrientation_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Current Transform Orientation", "Current Transformation orientation.");
 
 	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, "RegionView3D", "viewlock", RV3D_LOCKED);
@@ -715,12 +820,14 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 
 	static EnumPropertyItem buttons_context_items[] = {
 		{BCONTEXT_SCENE, "SCENE", ICON_SCENE, "Scene", "Scene"},
+		{BCONTEXT_RENDER, "RENDER", ICON_SCENE_DATA, "Render", "Render"},
 		{BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
 		{BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
-		{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraint", "Constraint"},
-		{BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifier", "Modifier"},
+		{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraints", "Constraints"},
+		{BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifiers", "Modifiers"},
 		{BCONTEXT_DATA, "DATA", 0, "Data", "Data"},
 		{BCONTEXT_BONE, "BONE", ICON_BONE_DATA, "Bone", "Bone"},
+		{BCONTEXT_BONE_CONSTRAINT, "BONE_CONSTRAINT", ICON_CONSTRAINT, "Bone Constraints", "Bone Constraints"},
 		{BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
 		{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
 		{BCONTEXT_PARTICLE, "PARTICLE", ICON_PARTICLES, "Particle", "Particle"},
@@ -779,7 +886,8 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
-	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
@@ -787,7 +895,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "curves", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "cumap");
 	RNA_def_property_ui_text(prop, "Curves", "Color curve mapping to use for displaying the image.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_curves_update");
 
 	prop= RNA_def_property(srna, "image_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pin", 0);
@@ -802,13 +910,14 @@ static void rna_def_space_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "draw_channels", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, dc_all_items);
+	RNA_def_property_enum_items(prop, draw_channels_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceImageEditor_draw_channels_itemf");
 	RNA_def_property_ui_text(prop, "Draw Channels", "Channels of the image to draw.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* uv */
-	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SpaceUVEditor");
 	RNA_def_property_pointer_funcs(prop, "rna_SpaceImageEditor_uvedit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "UV Editor", "UV editor settings.");
@@ -1036,6 +1145,13 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SpaceDopeSheetEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceAction");
 	RNA_def_struct_ui_text(srna, "Space DopeSheet Editor", "DopeSheet space data.");
+
+	/* data */
+	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceDopeSheetEditor_action_set", NULL);
+	RNA_def_property_ui_text(prop, "Action", "Action displayed and edited in this space.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, "rna_SpaceDopeSheetEditor_action_update");
 	
 	/* mode */
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -1197,6 +1313,11 @@ static void rna_def_space_time(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "play_sequencer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_SEQ);
 	RNA_def_property_ui_text(prop, "Sequencer Windows", "");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
+	
+	prop= RNA_def_property(srna, "play_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_NODES);
+	RNA_def_property_ui_text(prop, "Node Windows", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	/* Other options */
@@ -1422,7 +1543,6 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "params", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "params");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceFileBrowser_params_set", NULL);
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser.");
 }
 

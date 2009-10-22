@@ -700,6 +700,27 @@ static void rna_MeshFace_verts_set(PointerRNA *ptr, const int *values)
 	memcpy(&face->v1, values, (face->v4 ? 4 : 3) * sizeof(int));
 }
 
+static int rna_MeshVertex_index_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MVert *vert= (MVert*)ptr->data;
+	return (int)(vert - me->mvert);
+}
+
+static int rna_MeshEdge_index_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MEdge *edge= (MEdge*)ptr->data;
+	return (int)(edge - me->medge);
+}
+
+static int rna_MeshFace_index_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MFace *face= (MFace*)ptr->data;
+	return (int)(face - me->mface);
+}
+
 /* path construction */
 
 static char *rna_VertexGroupElement_path(PointerRNA *ptr)
@@ -873,6 +894,11 @@ static void rna_def_mvert(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_MeshVertex_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "VertexGroupElement");
 	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this vertex is member of.");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_MeshVertex_index_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
 }
 
 static void rna_def_medge(BlenderRNA *brna)
@@ -921,6 +947,21 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SHARP);
 	RNA_def_property_ui_text(prop, "Sharp", "Sharp edge for the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	prop= RNA_def_property(srna, "loose", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_LOOSEEDGE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Loose", "Loose edge");
+
+	prop= RNA_def_property(srna, "fgon", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FGON);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Fgon", "Fgon edge");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_MeshEdge_index_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
 }
 
 static void rna_def_mface(BlenderRNA *brna)
@@ -941,6 +982,12 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshFace_verts_get_length");
 	RNA_def_property_int_funcs(prop, "rna_MeshFace_verts_get", "rna_MeshFace_verts_set", NULL);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
+
+	/* leaving this fixed size array for foreach_set used in import scripts */
+	prop= RNA_def_property(srna, "verts_raw", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "v1");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Vertices", "Fixed size vertex indices array");
 
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
@@ -969,6 +1016,11 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_MeshFace_normal_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "face normal", "local space unit length normal vector for this face");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_MeshFace_index_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
 }
 
 static void rna_def_mtexpoly(BlenderRNA *brna)
@@ -1316,8 +1368,13 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshSticky");
 	RNA_def_property_ui_text(prop, "Sticky", "Sticky texture coordinates.");
 
-	/* UV textures */
+	/* TODO, should this be allowed to be its self? */
+	prop= RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_ui_text(prop, "Texture Mesh", "Use another mesh for texture indicies (vertex indicies must be aligned).");
 
+	/* UV textures */
 	prop= RNA_def_property(srna, "uv_textures", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "pdata.layers", "pdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_uv_textures_begin", 0, 0, 0, "rna_Mesh_uv_textures_length", 0, 0, 0, 0);
@@ -1408,6 +1465,10 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Edges", "Displays selected edges using hilights in the 3d view and UV editor");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
+	prop= RNA_def_property(srna, "all_edges", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_ALLEDGES);
+	RNA_def_property_ui_text(prop, "All Edges", "Displays all edges for wireframe in all view modes in the 3d view");
+
 	prop= RNA_def_property(srna, "draw_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWFACES);
 	RNA_def_property_ui_text(prop, "Draw Faces", "Displays all faces as shades in the 3d view and UV editor");
@@ -1443,7 +1504,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Sharp", "Displays sharp edges, used with the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	
 	prop= RNA_def_property(srna, "draw_edge_lenght", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGELEN);
 	RNA_def_property_ui_text(prop, "Edge Length", "Displays selected edge lengths");
@@ -1463,6 +1523,20 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_PINS);
 	RNA_def_property_ui_text(prop, "Draw Pins", "Displays pinned mesh elements");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+	/* editflag */
+	prop= RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_X);
+	RNA_def_property_ui_text(prop, "X Mirror", "X Axis mirror editing");
+
+	/*
+	prop= RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_Y);
+	RNA_def_property_ui_text(prop, "Y Mirror", "Y Axis mirror editing");
+
+	prop= RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_Z);
+	RNA_def_property_ui_text(prop, "Z Mirror", "Z Axis mirror editing");
+	 */
 
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 

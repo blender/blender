@@ -214,6 +214,7 @@ static int vergaverco(const void *e1, const void *e2)
 #define VERT_TARGET	4
 #define VERT_KEEP	8
 #define VERT_MARK	16
+#define VERT_IN		32
 
 #define EDGE_MARK	1
 
@@ -546,6 +547,61 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
+
+	BLI_array_free(verts);
+}
+
+void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter oiter;
+	BMOperator weldop;
+	BMVert *v, *v2;
+	BMVert **verts=NULL;
+	BLI_array_declare(verts);
+	float dist, distsqr;
+	int i, j, len, keepvert;
+
+	dist = BMO_Get_Float(op, "dist");
+	distsqr = dist*dist;
+
+	i = 0;
+	BMO_ITER(v, &oiter, bm, op, "verts", BM_VERT) {
+		BLI_array_growone(verts);
+		verts[i++] = v;
+	}
+
+	BMO_Init_Op(&weldop, "weldverts");
+
+	/*sort by vertex coordinates added together*/
+	qsort(verts, BLI_array_count(verts), sizeof(void*), vergaverco);
+	
+	BMO_Flag_Buffer(bm, op, "verts", VERT_KEEP, BM_VERT);
+
+	len = BLI_array_count(verts);
+	for (i=0; i<len; i++) {
+		v = verts[i];
+		if (BMO_TestFlag(bm, v, VERT_DOUBLE)) continue;
+		
+		for (j=i+1; j<len; j++) {
+			v2 = verts[j];
+			if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2])
+			     > distsqr) break;
+			
+			/* only allow unselected -> selected */
+			if (BMO_TestFlag(bm, v2, VERT_IN))
+				continue;
+
+			if (VecLenCompare(v->co, v2->co, dist)) {
+				BMO_SetFlag(bm, v2, VERT_DOUBLE);
+				BMO_SetFlag(bm, v, VERT_TARGET);
+			
+				BMO_Insert_MapPointer(bm, &weldop, "targetmap", v2, v);
+			}
+		}
+	}
+
+	BMO_Exec_Op(bm, &weldop);
+	BMO_Finish_Op(bm, &weldop);
 
 	BLI_array_free(verts);
 }

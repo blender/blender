@@ -359,3 +359,17 @@ void BLI_duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */
 	}	
 }
 
+/* create a generic list node containing link to provided data */
+LinkData *BLI_genericNodeN (void *data)
+{
+	LinkData *ld;
+	
+	if (data == NULL)
+		return NULL;
+		
+	/* create new link, and make it hold the given data */
+	ld= MEM_callocN(sizeof(LinkData), "BLI_genericNodeN()");
+	ld->data= data;
+	
+	return ld;
+} 

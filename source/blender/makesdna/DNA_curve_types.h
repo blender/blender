@@ -174,7 +174,7 @@ typedef struct Curve {
 	float size[3];
 	float rot[3];
 
-	int texflag; /* keep an int because of give_obdata_texspace() */
+	short texflag, pad1; /* keep a short because of give_obdata_texspace() */
 
 	short drawflag, twist_mode,  pad[2];
 	float twist_smooth, pad2;
@@ -310,6 +310,7 @@ typedef enum eBezTriple_Interpolation {
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
 typedef enum eBezTriple_KeyframeType {
 	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
+	BEZT_KEYTYPE_EXTREME,		/* 'extreme' keyframe */
 	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
 } eBezTriple_KeyframeType;
 

@@ -425,60 +425,6 @@ static void format_draw_color(char formatchar)
 	}
 }
 
-/*********************** utilities ************************/
-
-int text_check_bracket(char ch)
-{
-	int a;
-	char opens[] = "([{";
-	char close[] = ")]}";
-	
-	for(a=0; a<3; a++) {
-		if(ch==opens[a])
-			return a+1;
-		else if(ch==close[a])
-			return -(a+1);
-	}
-	return 0;
-}
-
-int text_check_delim(char ch) 
-{
-	int a;
-	char delims[] = "():\"\' ~!%^&*-+=[]{};/<>|.#\t,";
-	
-	for(a=0; a<28; a++) {
-		if(ch==delims[a])
-			return 1;
-	}
-	return 0;
-}
-
-int text_check_digit(char ch)
-{
-	if(ch < '0') return 0;
-	if(ch <= '9') return 1;
-	return 0;
-}
-
-int text_check_identifier(char ch)
-{
-	if(ch < '0') return 0;
-	if(ch <= '9') return 1;
-	if(ch < 'A') return 0;
-	if(ch <= 'Z' || ch == '_') return 1;
-	if(ch < 'a') return 0;
-	if(ch <= 'z') return 1;
-	return 0;
-}
-
-int text_check_whitespace(char ch)
-{
-	if(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
-		return 1;
-	return 0;
-}
-
 /************************** draw text *****************************/
 
 /***********************/ /*

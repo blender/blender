@@ -163,7 +163,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	
 	if(op==NULL)
 		return;
-	if(op->type->poll && op->type->poll((bContext *)C)==0)
+	if(WM_operator_poll((bContext*)C, op->type) == 0)
 		return;
 	
 	block= uiLayoutGetBlock(pa->layout);
@@ -208,7 +208,7 @@ static void operator_search_cb(const struct bContext *C, void *arg, char *str, u
 	for(; ot; ot= ot->next) {
 		
 		if(BLI_strcasestr(ot->name, str)) {
-			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+			if(WM_operator_poll((bContext*)C, ot)) {
 				
 				if(0==uiSearchItemAdd(items, ot->name, ot, 0))
 					break;

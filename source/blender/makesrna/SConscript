@@ -7,7 +7,7 @@ o = SConscript('intern/SConscript')
 objs += o
 
 incs = '#/intern/guardedalloc ../blenkernel ../blenlib ../makesdna intern .'
-incs += ' ../windowmanager ../editors/include ../imbuf'
+incs += ' ../windowmanager ../editors/include ../imbuf ../ikplugin'
 incs += ' ../render/extern/include ../bmesh'
 
 defs = []
@@ -39,5 +39,13 @@ if env['WITH_BF_GAMEENGINE']:
 
 if env['BF_UNIT_TEST']:
 	defs.append('UNIT_TEST')
+
+
+if env['OURPLATFORM'] == 'linux2':
+	cflags='-pthread'
+    	incs += ' ../../../extern/binreloc/include'
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+	incs += ' ' + env['BF_PTHREADS_INC']
 
 env.BlenderLib ( 'bf_rna', objs, Split(incs), defines=defs, libtype=['core','player'], priority = [165,20] )

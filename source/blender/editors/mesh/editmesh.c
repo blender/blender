@@ -735,7 +735,6 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 		tot= actkey->totelem;
 	}
 
-	
 	/* make editverts */
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;
@@ -745,10 +744,14 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 		
 		co= mvert->co;
 
+		/* edit the shape key coordinate if available */
+		if(actkey && a < actkey->totelem)
+			co= (float*)actkey->data + 3*a;
+
 		eve= addvertlist(em, co, NULL);
 		evlist[a]= eve;
 		
-		// face select sets selection in next loop
+		/* face select sets selection in next loop */
 		if(!paint_facesel_test(ob))
 			eve->f |= (mvert->flag & 1);
 		
@@ -930,6 +933,8 @@ void load_editMesh(Scene *scene, Object *ob, EditMesh *em)
 	CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
 	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
 	mesh_update_customdata_pointers(me);
+
+	em->mat_nr= ob->actcol-1;
 
 	/* the vertices, use ->tmp.l as counter */
 	eve= em->verts.first;
@@ -1241,6 +1246,7 @@ static EnumPropertyItem prop_separate_types[] = {
 /* return 1: success */
 static int mesh_separate_selected(Scene *scene, Base *editbase)
 {
+#if 0
 	EditMesh *em, *emnew;
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
@@ -1285,10 +1291,14 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	ED_base_object_select(basenew, BA_DESELECT);
 	
 	/* 2 */
-	basenew->object->data= menew= add_mesh(me->id.name);	/* empty */
+	basenew->object->data= menew= add_mesh(me->id.name+2);	/* empty */
+	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 	me->id.us--;
 	emnew = make_editMesh(scene, basenew->object);
 	//emnew= menew->edit_mesh;
+	CustomData_copy(&em->vdata, &emnew->vdata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
+	CustomData_copy(&em->edata, &emnew->edata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
+	CustomData_copy(&em->fdata, &emnew->fdata, CD_MASK_EDITMESH, CD_DEFAULT, 0);
 	
 	/* 3 */
 	/* SPLIT: first make duplicate */
@@ -1331,6 +1341,8 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	/* 5 */
 	load_editMesh(scene, basenew->object, emnew);
 	free_editMesh(emnew);
+	MEM_freeN(menew->edit_mesh);
+	menew->edit_mesh= NULL;
 	
 	/* hashedges are invalid now, make new! */
 	editMesh_set_hash(em);
@@ -1341,11 +1353,13 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	BKE_mesh_end_editmesh(me, em);
 
 	return 1;
+#endif
 }
 
 /* return 1: success */
 static int mesh_separate_material(Scene *scene, Base *editbase)
 {
+#if 0
 	Mesh *me= editbase->object->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me);
 	unsigned char curr_mat;
@@ -1364,6 +1378,7 @@ static int mesh_separate_material(Scene *scene, Base *editbase)
 
 	BKE_mesh_end_editmesh(me, em);
 	return 1;
+#endif
 }
 
 /* return 1: success */

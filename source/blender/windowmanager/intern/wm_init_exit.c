@@ -79,7 +79,7 @@
 #include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_node.h"
-#include "ED_previewrender.h"
+#include "ED_render.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -87,9 +87,11 @@
 #include "UI_interface.h"
 #include "BLF_api.h"
 
+#include "gpu_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_sound.h"
 
 static void wm_init_reports(bContext *C)
@@ -113,6 +115,7 @@ void WM_init(bContext *C)
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
 	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
+	DAG_editors_update_cb(ED_render_id_flush_update); /* depsgraph.c */
 	
 	ED_spacetypes_init();	/* editors/space_api/spacetype.c */
 	
@@ -129,6 +132,8 @@ void WM_init(bContext *C)
 	
 	wm_init_reports(C); /* reports cant be initialized before the wm */
 	
+	GPU_extensions_init();
+
 	UI_init();
 	
 	//	clear_matcopybuf(); /* XXX */
@@ -138,8 +143,6 @@ void WM_init(bContext *C)
 //	init_node_butfuncs();
 	
 	ED_preview_init_dbase();
-	
-	GPU_extensions_init();
 	
 	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
 	
@@ -167,6 +170,7 @@ extern wchar_t *copybufinfo;
 
 	// XXX copy/paste buffer stuff...
 extern void free_anim_copybuf(); 
+extern void free_anim_drivers_copybuf(); 
 extern void free_posebuf(); 
 
 /* called in creator.c even... tsk, split this! */
@@ -187,10 +191,12 @@ void WM_exit(bContext *C)
 			
 			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
+			WM_event_remove_handlers(C, &win->modalhandlers);
 			ED_screen_exit(C, win, win->screen);
 		}
 	}
 	wm_operatortype_free();
+	WM_menutype_free();
 	
 	/* all non-screen and non-space stuff editors did, like editmode */
 	if(C)
@@ -209,10 +215,14 @@ void WM_exit(bContext *C)
 	
 	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
-	wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
+
+	if(C && CTX_wm_manager(C))
+		wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
+		
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();
+	free_anim_drivers_copybuf();
 	free_posebuf();
 //	free_vertexpaint();
 //	free_imagepaint();
@@ -248,6 +258,7 @@ void WM_exit(bContext *C)
 // XXX		UI_filelist_free_icons();
 	}
 	
+	GPU_buffer_pool_free(0);
 	GPU_extensions_exit();
 	
 //	if (copybuf) MEM_freeN(copybuf);

@@ -345,6 +345,27 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	return result;
 }
 
+static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *prop, int *val, const char *error_prefix)
+{
+	char *param= _PyUnicode_AsString(item);
+
+	if (param==NULL) {
+		char *enum_str= pyrna_enum_as_string(ptr, prop);
+		PyErr_Format(PyExc_TypeError, "%.200s expected a string enum type in (%.200s)", error_prefix, enum_str);
+		MEM_freeN(enum_str);
+		return 0;
+	} else {
+		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, val)) {
+			char *enum_str= pyrna_enum_as_string(ptr, prop);
+			PyErr_Format(PyExc_TypeError, "%.200s enum \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
+			MEM_freeN(enum_str);
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
@@ -603,42 +624,52 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		}
 		case PROP_ENUM:
 		{
-			char *param = _PyUnicode_AsString(value);
-			
-			if (param==NULL) {
-				char *enum_str= pyrna_enum_as_string(ptr, prop);
-				PyErr_Format(PyExc_TypeError, "%.200s expected a string enum type in (%.200s)", error_prefix, enum_str);
-				MEM_freeN(enum_str);
-				return -1;
-			} else {
-				int val;
-				if (RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, &val)) {
-					if(data)	*((int*)data)= val;
-					else		RNA_property_enum_set(ptr, prop, val);
-				} else {
-					char *enum_str= pyrna_enum_as_string(ptr, prop);
-					PyErr_Format(PyExc_TypeError, "%.200s enum \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
-					MEM_freeN(enum_str);
+			int val, i;
+
+			if (PyUnicode_Check(value)) {
+				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix))
 					return -1;
+			}
+			else if (PyTuple_Check(value)) {
+				/* tuple of enum items, concatenate all values with OR */
+				val= 0;
+				for (i= 0; i < PyTuple_Size(value); i++) {
+					int tmpval;
+
+					/* PyTuple_GET_ITEM returns a borrowed reference */
+					if (!pyrna_string_to_enum(PyTuple_GET_ITEM(value, i), ptr, prop, &tmpval, error_prefix))
+						return -1;
+
+					val |= tmpval;
 				}
 			}
+			else {
+				char *enum_str= pyrna_enum_as_string(ptr, prop);
+				PyErr_Format(PyExc_TypeError, "%.200s expected a string enum or a tuple of strings in (%.200s)", error_prefix, enum_str);
+				MEM_freeN(enum_str);
+				return -1;
+			}
+
+			if(data)	*((int*)data)= val;
+			else		RNA_property_enum_set(ptr, prop, val);
 			
 			break;
 		}
 		case PROP_POINTER:
 		{
 			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
+			int flag = RNA_property_flag(prop);
 
 			if(!BPy_StructRNA_Check(value) && value != Py_None) {
-				PointerRNA tmp;
-				RNA_pointer_create(NULL, ptype, NULL, &tmp);
-				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(tmp.type));
+				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptype));
+				return -1;
+			} else if((flag & PROP_NEVER_NULL) && value == Py_None) {
+				PyErr_Format(PyExc_TypeError, "property can't be assigned a None value");
 				return -1;
 			} else {
 				BPy_StructRNA *param= (BPy_StructRNA*)value;
 				int raise_error= FALSE;
 				if(data) {
-					int flag = RNA_property_flag(prop);
 
 					if(flag & PROP_RNAPTR) {
 						if(value == Py_None)
@@ -731,7 +762,10 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			break;
 		}
 	}
-	
+
+	/* Run rna property functions */
+	RNA_property_update(BPy_GetContext(), ptr, prop);
+
 	return 0;
 }
 
@@ -1117,6 +1151,31 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA * self, PyObject *ar
 		return NULL;
 
 	return PyBool_FromLong( insert_keyframe((ID *)self->ptr.data, NULL, NULL, path, index, cfra, 0));
+}
+
+static PyObject *pyrna_struct_is_property_set(BPy_StructRNA * self, PyObject *args)
+{
+	char *name;
+
+	if (!PyArg_ParseTuple(args, "s:is_property_set", &name))
+		return NULL;
+
+	return PyBool_FromLong(RNA_property_is_set(&self->ptr, name));
+}
+
+static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA * self, PyObject *args)
+{
+	PropertyRNA *prop;
+	char *name;
+	int hidden;
+
+	if (!PyArg_ParseTuple(args, "s:is_property_hidden", &name))
+		return NULL;
+	
+	prop= RNA_struct_find_property(&self->ptr, name);
+	hidden= (prop)? (RNA_property_flag(prop) & PROP_HIDDEN): 1;
+
+	return PyBool_FromLong(hidden);
 }
 
 
@@ -1711,6 +1770,8 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
+	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
+	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},
 
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
@@ -1993,8 +2054,10 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 
 	/* Check if we gave args that dont exist in the function
 	 * printing the error is slow but it should only happen when developing.
-	 * the if below is quick, checking if it passed less keyword args then we gave */
-	if(kw && (PyDict_Size(kw) > kw_tot)) {
+	 * the if below is quick, checking if it passed less keyword args then we gave.
+	 * (Dont overwrite the error if we have one, otherwise can skip important messages and confuse with args)
+	 */
+	if(err == 0 && kw && (PyDict_Size(kw) > kw_tot)) {
 		PyObject *key, *value;
 		Py_ssize_t pos = 0;
 
@@ -2252,6 +2315,19 @@ PyTypeObject pyrna_prop_Type = {
 	NULL
 };
 
+static struct PyMethodDef pyrna_struct_subtype_methods[] = {
+	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
+
+//	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
+	{NULL, NULL, 0, NULL}
+};
+
 static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
 	PointerRNA ptr;
@@ -2277,6 +2353,17 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "__rna__", item);
 	Py_DECREF(item);
 	/* done with rna instance */
+
+	/* attach functions into the class
+	 * so you can do... bpy.types.Scene.SomeFunction()
+	 */
+	{
+		PyMethodDef *ml;
+
+		for(ml= pyrna_struct_subtype_methods; ml->ml_name; ml++){
+			PyObject_SetAttrString(newclass, ml->ml_name, PyCFunction_New(ml, newclass));
+		}
+	}
 }
 
 /*
@@ -2298,20 +2385,6 @@ PyObject *BPy_GetStructRNA(PyObject *self)
 	}
 }
 */
-
-static struct PyMethodDef pyrna_struct_subtype_methods[] = {
-	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
-
-//	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
-	{NULL, NULL, 0, NULL}
-};
-
 
 PyObject* pyrna_srna_Subtype(StructRNA *srna)
 {
@@ -2362,18 +2435,6 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 			pyrna_subtype_set_rna(newclass, srna);
 
 			Py_DECREF(newclass); /* let srna own */
-
-
-			/* attach functions into the class
-			 * so you can do... bpy.types.Scene.SomeFunction()
-			 */
-			{
-				PyMethodDef *ml;
-				for(ml= pyrna_struct_subtype_methods; ml->ml_name; ml++){
-					PyObject_SetAttrString(newclass, ml->ml_name, PyCFunction_New(ml, newclass));
-				}
-			}
-
 		}
 		else {
 			/* this should not happen */
@@ -2755,7 +2816,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
 	char *id, *name="", *description="";
-	float min=FLT_MIN, max=FLT_MAX, soft_min=FLT_MIN, soft_max=FLT_MAX, def=0.0f;
+	float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, def=0.0f;
 	PropertyRNA *prop;
 	StructRNA *srna;
 

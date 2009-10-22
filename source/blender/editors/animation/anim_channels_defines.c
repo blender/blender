@@ -280,6 +280,14 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 
 /* Settings ------------------------------------------- */
 
+#if 0
+/* channel type has no settings */
+static short acf_generic_none_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+{
+	return 0;
+}
+#endif
+
 /* check if some setting exists for this object-based data-expander (category only) */
 static short acf_generic_dsexpand_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
@@ -334,6 +342,96 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 
 /* *********************************************** */
 /* Type Specific Functions + Defines */
+
+/* Animation Summary ----------------------------------- */
+
+/* backdrop for summary widget */
+static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+{
+	View2D *v2d= &ac->ar->v2d;
+	
+	// FIXME: hardcoded color - same as the 'action' line in NLA
+	glColor3f(0.8f, 0.2f, 0.0f);	// reddish color 
+	
+	/* rounded corners on LHS only 
+	 *	- top and bottom 
+	 *	- special hack: make the top a bit higher, since we are first... 
+	 */
+	uiSetRoundBox((1|8));
+	gl_round_box(GL_POLYGON, 0,  yminc-2, v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc, 8);
+}
+
+/* name for summary entries */
+static void acf_summary_name(bAnimListElem *ale, char *name)
+{
+	if (name)
+		strcpy(name, "DopeSheet Summary");
+}
+
+// TODO: this is really a temp icon I think
+static int acf_summary_icon(bAnimListElem *ale)
+{
+	return ICON_BORDERMOVE;
+}
+
+/* check if some setting exists for this channel */
+static short acf_summary_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+{
+	/* only expanded is supported, as it is used for hiding all stuff which the summary covers */
+	return (setting == ACHANNEL_SETTING_EXPAND);
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_summary_setting_flag(int setting, short *neg)
+{
+	if (setting == ACHANNEL_SETTING_EXPAND) {
+		/* expanded */
+		*neg= 1;
+		return ADS_FLAG_SUMMARY_COLLAPSED;
+	}
+	else {
+		/* unsupported */
+		*neg= 0;
+		return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	bAnimContext *ac= (bAnimContext *)ale->data;
+	
+	/* if data is valid, return pointer to active dopesheet's relevant flag 
+	 *	- this is restricted to DopeSheet/Action Editor only
+	 */
+	if ((ac->sa) && (ac->spacetype == SPACE_ACTION) && (setting == ACHANNEL_SETTING_EXPAND)) {
+		SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+		bDopeSheet *ads= &saction->ads;
+		
+		/* return pointer to DopeSheet's flag */
+		GET_ACF_FLAG_PTR(ads->flag);
+	}
+	else {
+		/* can't return anything useful - unsupported */
+		*type= 0;
+		return 0;
+	}
+}
+
+/* all animation summary (DopeSheet only) type define */
+static bAnimChannelType ACF_SUMMARY = 
+{
+	acf_summary_backdrop,				/* backdrop */
+	acf_generic_indention_0,			/* indent level */
+	NULL,								/* offset */
+	
+	acf_summary_name,					/* name */
+	acf_summary_icon,					/* icon */
+	
+	acf_summary_setting_valid,			/* has setting */
+	acf_summary_setting_flag,			/* flag for setting */
+	acf_summary_setting_ptr				/* pointer for setting */
+};
 
 /* Scene ------------------------------------------- */
 
@@ -461,6 +559,9 @@ static void acf_object_name(bAnimListElem *ale, char *name)
 /* check if some setting exists for this channel */
 static short acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
+	Base *base= (Base *)ale->data;
+	Object *ob= base->object;
+	
 	switch (setting) {
 		/* muted only in NLA */
 		case ACHANNEL_SETTING_MUTE: 
@@ -468,7 +569,7 @@ static short acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 			
 		/* visible only in Graph Editor */
 		case ACHANNEL_SETTING_VISIBLE: 
-			return ((ac) && (ac->spacetype == SPACE_IPO));
+			return ((ac) && (ac->spacetype == SPACE_IPO) && (ob->adt));
 		
 		/* only select and expand supported otherwise */
 		case ACHANNEL_SETTING_SELECT:
@@ -759,7 +860,7 @@ static int acf_fillactd_setting_flag(int setting, short *neg)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
-			return ACT_SELECTED;
+			return ADT_UI_SELECTED;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			*neg= 1;
@@ -774,13 +875,18 @@ static int acf_fillactd_setting_flag(int setting, short *neg)
 static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *type)
 {
 	bAction *act= (bAction *)ale->data;
+	AnimData *adt= ale->adt;
 	
 	/* clear extra return data first */
 	*type= 0;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
-			GET_ACF_FLAG_PTR(act->flag);
+			if (adt) {
+				GET_ACF_FLAG_PTR(adt->flag);
+			}
+			else
+				return 0;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(act->flag);
@@ -901,7 +1007,6 @@ static int acf_fillmatd_setting_flag(int setting, short *neg)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			*neg= 1;
 			return OB_ADS_SHOWMATS;
 		
 		default: /* unsupported */
@@ -945,7 +1050,6 @@ static int acf_fillpartd_setting_flag(int setting, short *neg)
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			*neg= 1;
 			return OB_ADS_SHOWPARTS;
 		
 		default: /* unsupported */
@@ -998,6 +1102,9 @@ static int acf_dsmat_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1016,6 +1123,7 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(ma->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ma->adt)
@@ -1067,6 +1175,9 @@ static int acf_dslam_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1085,6 +1196,7 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(la->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (la->adt)
@@ -1136,6 +1248,9 @@ static int acf_dscam_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1154,6 +1269,7 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(ca->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ca->adt)
@@ -1205,6 +1321,9 @@ static int acf_dscur_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1223,6 +1342,7 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(cu->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (cu->adt)
@@ -1274,6 +1394,9 @@ static int acf_dsskey_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1292,6 +1415,7 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(key->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (key->adt)
@@ -1343,6 +1467,9 @@ static int acf_dswor_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1361,6 +1488,7 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(wo->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (wo->adt)
@@ -1412,6 +1540,9 @@ static int acf_dspart_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
 		
 		default: /* unsupported */
 			return 0;
@@ -1430,6 +1561,7 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(part->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (part->adt)
@@ -1482,6 +1614,9 @@ static int acf_dsmball_setting_flag(int setting, short *neg)
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
 		
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+		
 		default: /* unsupported */
 			return 0;
 	}
@@ -1499,6 +1634,7 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *typ
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(mb->flag);
 			
+		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (mb->adt)
@@ -1525,6 +1661,80 @@ static bAnimChannelType ACF_DSMBALL=
 	acf_dsmball_setting_flag,				/* flag for setting */
 	acf_dsmball_setting_ptr					/* pointer for setting */
 };
+
+/* Armature Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dsarm_icon(bAnimListElem *ale)
+{
+	return ICON_ARMATURE_DATA;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dsarm_setting_flag(int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return ARM_DS_EXPAND;
+			
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	bArmature *arm= (bArmature *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			GET_ACF_FLAG_PTR(arm->flag);
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (arm->adt)
+				GET_ACF_FLAG_PTR(arm->adt->flag)
+			else
+				return NULL;
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* metaball expander type define */
+static bAnimChannelType ACF_DSARM= 
+{
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_1,		/* indent level */
+	acf_generic_basic_offset,		/* offset */
+	
+	acf_generic_idblock_name,		/* name */
+	acf_dsarm_icon,				/* icon */
+	
+	acf_generic_dataexpand_setting_valid,	/* has setting */
+	acf_dsarm_setting_flag,				/* flag for setting */
+	acf_dsarm_setting_ptr					/* pointer for setting */
+};
+
 
 /* ShapeKey Entry  ------------------------------------------- */
 // XXX ... this is currently obsolete...
@@ -1691,6 +1901,8 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= NULL; 				/* AnimData */
 		animchannelTypeInfo[type++]= NULL; 				/* Special */
 		
+		animchannelTypeInfo[type++]= &ACF_SUMMARY;		/* Motion Summary */
+		
 		animchannelTypeInfo[type++]= &ACF_SCENE; 		/* Scene */
 		animchannelTypeInfo[type++]= &ACF_OBJECT; 		/* Object */
 		animchannelTypeInfo[type++]= &ACF_GROUP; 		/* Group */
@@ -1709,6 +1921,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSWOR;		/* World Channel */
 		animchannelTypeInfo[type++]= &ACF_DSPART;		/* Particle Channel */
 		animchannelTypeInfo[type++]= &ACF_DSMBALL;		/* MetaBall Channel */
+		animchannelTypeInfo[type++]= &ACF_DSARM;		/* Armature Channel */
 		
 		animchannelTypeInfo[type++]= NULL;				/* ShapeKey */ // XXX this is no longer used for now...
 		
@@ -1976,7 +2189,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 
 /* ------------------ */
 
-/* callback for widget settings - send notifiers */
+/* callback for (normal) widget settings - send notifiers */
 static void achannel_setting_widget_cb(bContext *C, void *poin, void *poin2)
 {
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);

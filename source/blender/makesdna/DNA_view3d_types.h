@@ -89,9 +89,7 @@ typedef struct RegionView3D {
 	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float pixsize;
 	float ofs[3];
-	short camzoom, viewbut;
-	
-	int lastmode;					/* for modal keymap switching, int because it stores notifier code */
+	short camzoom, viewbut, pad[2];
 	
 	short rflag, viewlock;
 	short persp;
@@ -146,7 +144,7 @@ typedef struct View3D {
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
 	 * OB_SHADED or OB_TEXTURE */
 	short drawtype;
-	short localview;
+	short pad2;
 	short scenelock, around, pad3;
 	short flag, flag2;
 	

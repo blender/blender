@@ -838,8 +838,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			if (mface->v4)
 				tan3 = tangent[f*4 + 3];
 		}
-
- 		ma = give_current_material(blenderobj, mface->mat_nr+1);
+		if(blenderobj)
+			ma = give_current_material(blenderobj, mface->mat_nr+1);
+		else
+			ma = mesh->mat ? mesh->mat[mface->mat_nr]:NULL;
 
 		{
 			bool visible = true;
@@ -1895,7 +1897,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  KX_Scene* kxscene,
 							  KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
-							  PyObject* pythondictionary,
 							  RAS_IRenderTools* rendertools,
 							  RAS_ICanvas* canvas,
 							  KX_BlenderSceneConverter* converter,
@@ -2501,6 +2502,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			gameobj->GetDeformer()->UpdateBuckets();
 	}
 
+	// Set up armature constraints
+	for (i=0;i<sumolist->GetCount();++i)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+		if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
+			((BL_ArmatureObject*)gameobj)->LoadConstraints(converter);
+	}
+
 	bool processCompoundChildren = false;
 
 	// create physics information
@@ -2643,7 +2652,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertControllers(blenderobj,gameobj,logicmgr,pythondictionary,layerMask,isInActiveLayer,converter);
+		BL_ConvertControllers(blenderobj,gameobj,logicmgr, layerMask,isInActiveLayer,converter);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{

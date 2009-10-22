@@ -47,6 +47,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
+#include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_boids.h"
 #include "BKE_particle.h"
@@ -72,112 +73,89 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 {
 	BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid*) rule;
 	BoidSettings *boids = bbd->part->boids;
-	ParticleEffectorCache *ec;
-	Object *priority_ob = NULL;
 	BoidParticle *bpa = pa->boid;
-	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
+	EffectedPoint epoint;
+	ListBase *effectors = bbd->sim->psys->effectors;
+	EffectorCache *cur, *eff = NULL;
+	EffectorData efd, cur_efd;
 	float mul = (rule->type == eBoidRuleType_Avoid ? 1.0 : -1.0);
 	float priority = 0.0f, len = 0.0f;
 	int ret = 0;
 
+	pd_point_from_particle(bbd->sim, pa, &pa->state, &epoint);
+
 	/* first find out goal/predator with highest priority */
-	/* if rule->ob specified use it */
-	if(gabr->ob && (rule->type != eBoidRuleType_Goal || gabr->ob != bpa->ground)) {
-		PartDeflect *pd = gabr->ob->pd;
-		float vec_to_part[3];
+	if(effectors) for(cur = effectors->first; cur; cur=cur->next) {
+		Object *eob = cur->ob;
+		PartDeflect *pd = cur->pd;
 
-		if(pd && pd->forcefield == PFIELD_BOID) {
-			effector_find_co(bbd->scene, pa->prev_state.co, NULL, gabr->ob, pd, loc, vec, NULL, NULL);
-			
-			VecSubf(vec_to_part, pa->prev_state.co, loc);
+		if(gabr->ob && (rule->type != eBoidRuleType_Goal || gabr->ob != bpa->ground)) {
+			if(gabr->ob == eob) {
+				/* TODO: objects without any effector and effectors with multiple points */
+				if(get_effector_data(cur, &efd, &epoint, 0)) {
+					if(cur->pd && cur->pd->forcefield == PFIELD_BOID)
+						priority = mul * pd->f_strength * effector_falloff(cur, &efd, &epoint, bbd->part->effector_weights);
+					else
+						priority = 1.0;
 
-			priority = mul * pd->f_strength * effector_falloff(pd, vec, vec_to_part);
+					eff = cur;
+				}
+				break;
+			}
 		}
-		else
-			priority = 1.0;
+		else if(rule->type == eBoidRuleType_Goal && eob == bpa->ground)
+			; /* skip current object */
+		else if(pd->forcefield == PFIELD_BOID && mul * pd->f_strength > 0.0f && get_effector_data(eff, &efd, &epoint, 0)) {
+			float temp = mul * pd->f_strength * effector_falloff(cur, &cur_efd, &epoint, bbd->part->effector_weights);
 
-		priority = 1.0;
-		priority_ob = gabr->ob;
-	}
-	else for(ec=bbd->psys->effectors.first; ec; ec=ec->next) {
-		if(ec->type & PSYS_EC_EFFECTOR) {
-			Object *eob = ec->ob;
-			PartDeflect *pd = eob->pd;
-
-			/* skip current object */
-			if(rule->type == eBoidRuleType_Goal && eob == bpa->ground)
-				continue;
-
-			if(pd->forcefield == PFIELD_BOID && mul * pd->f_strength > 0.0f) {
-				float vec_to_part[3], temp;
-
-				effector_find_co(bbd->scene, pa->prev_state.co, NULL, eob, pd, loc, vec, NULL, NULL);
-				
-				VecSubf(vec_to_part, pa->prev_state.co, loc);
-
-				temp = mul * pd->f_strength * effector_falloff(pd, vec, vec_to_part);
-
-				if(temp == 0.0f)
-					; /* do nothing */
-				else if(temp > priority) {
-					priority = temp;
-					priority_ob = eob;
-					len = VecLength(vec_to_part);
-				}
-				/* choose closest object with same priority */
-				else if(temp == priority) {
-					float len2 = VecLength(vec_to_part);
-
-					if(len2 < len) {
-						priority_ob = eob;
-						len = len2;
-					}
-				}
+			if(temp == 0.0f)
+				; /* do nothing */
+			else if(temp > priority) {
+				priority = temp;
+				eff = cur;
+				efd = cur_efd;
+				len = efd.distance;
+			}
+			/* choose closest object with same priority */
+			else if(temp == priority && efd.distance < len) {
+				eff = cur;
+				efd = cur_efd;
+				len = efd.distance;
 			}
 		}
 	}
 
 	/* then use that effector */
 	if(priority > (rule->type==eBoidRuleType_Avoid ? gabr->fear_factor : 0.0f)) { /* with avoid, factor is "fear factor" */
-		Object *eob = priority_ob;
+		Object *eob = eff->ob;
 		PartDeflect *pd = eob->pd;
-		float vec_to_part[3];
-		float surface = 0.0f;
-		float nor[3];
+		float surface = pd->shape == PFIELD_SHAPE_SURFACE ? 1.0f : 0.0f;
 
 		if(gabr->options & BRULE_GOAL_AVOID_PREDICT) {
 			/* estimate future location of target */
-			surface = (float)effector_find_co(bbd->scene, pa->prev_state.co, NULL, eob, pd, loc, nor, vec, NULL); 
+			get_effector_data(eff, &efd, &epoint, 1);
 
-			VecSubf(vec_to_part, pa->prev_state.co, loc);
-			len = Normalize(vec_to_part);
-
-			VecMulf(vec, len / (val->max_speed * bbd->timestep));
-			VecAddf(loc, loc, vec);
-			VecSubf(vec_to_part, pa->prev_state.co, loc);
-		}
-		else {
-			surface = (float)effector_find_co(bbd->scene, pa->prev_state.co, NULL, eob, pd, loc, nor, NULL, NULL);
-
-			VecSubf(vec_to_part, pa->prev_state.co, loc);
-			len = VecLength(vec_to_part);
+			VecMulf(efd.vel, efd.distance / (val->max_speed * bbd->timestep));
+			VecAddf(efd.loc, efd.loc, efd.vel);
+			VecSubf(efd.vec_to_point, pa->prev_state.co, efd.loc);
+			efd.distance = VecLength(efd.vec_to_point);
 		}
 
 		if(rule->type == eBoidRuleType_Goal && boids->options & BOID_ALLOW_CLIMB && surface!=0.0f) {
 			if(!bbd->goal_ob || bbd->goal_priority < priority) {
 				bbd->goal_ob = eob;
-				VECCOPY(bbd->goal_co, loc);
-				VECCOPY(bbd->goal_nor, nor);
+				VECCOPY(bbd->goal_co, efd.loc);
+				VECCOPY(bbd->goal_nor, efd.nor);
 			}
 		}
 		else if(rule->type == eBoidRuleType_Avoid && bpa->data.mode == eBoidMode_Climbing &&
 			priority > 2.0f * gabr->fear_factor) {
 			/* detach from surface and try to fly away from danger */
-			VECCOPY(vec_to_part, bpa->gravity);
-			VecMulf(vec_to_part, -1.0f);
+			VECCOPY(efd.vec_to_point, bpa->gravity);
+			VecMulf(efd.vec_to_point, -1.0f);
 		}
 
-		VECCOPY(bbd->wanted_co, vec_to_part);
+		VECCOPY(bbd->wanted_co, efd.vec_to_point);
 		VecMulf(bbd->wanted_co, mul);
 
 		bbd->wanted_speed = val->max_speed * priority;
@@ -188,8 +166,8 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 
 			surface *= pa->size * boids->height;
 
-			if(len2 > 0.0f && len - surface < len2) {
-				len2 = (len - surface)/len2;
+			if(len2 > 0.0f && efd.distance - surface < len2) {
+				len2 = (efd.distance - surface)/len2;
 				bbd->wanted_speed *= pow(len2, boids->landing_smoothness);
 			}
 		}
@@ -204,9 +182,9 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 {
 	BoidRuleAvoidCollision *acbr = (BoidRuleAvoidCollision*) rule;
 	KDTreeNearest *ptn = NULL;
-	ParticleEffectorCache *ec;
 	ParticleTarget *pt;
 	BoidParticle *bpa = pa->boid;
+	ColliderCache *coll;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
 	float co1[3], vel1[3], co2[3], vel2[3];
 	float  len, t, inp, t_min = 2.0f;
@@ -214,7 +192,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 	int ret = 0;
 
 	//check deflector objects first
-	if(acbr->options & BRULE_ACOLL_WITH_DEFLECTORS) {
+	if(acbr->options & BRULE_ACOLL_WITH_DEFLECTORS && bbd->sim->colliders) {
 		ParticleCollision col;
 		BVHTreeRayHit hit;
 		float radius = val->personal_space * pa->size, ray_dir[3];
@@ -228,20 +206,16 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 		hit.dist = col.ray_len = VecLength(ray_dir);
 
 		/* find out closest deflector object */
-		for(ec=bbd->psys->effectors.first; ec; ec=ec->next) {
-			if(ec->type & PSYS_EC_DEFLECT) {
-				Object *eob = ec->ob;
+		for(coll = bbd->sim->colliders->first; coll; coll=coll->next) {
+			/* don't check with current ground object */
+			if(coll->ob == bpa->ground)
+				continue;
 
-				/* don't check with current ground object */
-				if(eob == bpa->ground)
-					continue;
+			col.ob = coll->ob;
+			col.md = coll->collmd;
 
-				col.md = ( CollisionModifierData * ) ( modifiers_findByType ( eob, eModifierType_Collision ) );
-				col.ob_t = eob;
-
-				if(col.md && col.md->bvhtree)
-					BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
-			}
+			if(col.md && col.md->bvhtree)
+				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
 		}
 		/* then avoid that object */
 		if(hit.index>=0) {
@@ -261,12 +235,12 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 	//check boids in own system
 	if(acbr->options & BRULE_ACOLL_WITH_BOIDS)
 	{
-		neighbors = BLI_kdtree_range_search(bbd->psys->tree, acbr->look_ahead * VecLength(pa->prev_state.vel), pa->prev_state.co, pa->prev_state.ave, &ptn);
+		neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, acbr->look_ahead * VecLength(pa->prev_state.vel), pa->prev_state.co, pa->prev_state.ave, &ptn);
 		if(neighbors > 1) for(n=1; n<neighbors; n++) {
 			VECCOPY(co1, pa->prev_state.co);
 			VECCOPY(vel1, pa->prev_state.vel);
-			VECCOPY(co2, (bbd->psys->particles + ptn[n].index)->prev_state.co);
-			VECCOPY(vel2, (bbd->psys->particles + ptn[n].index)->prev_state.vel);
+			VECCOPY(co2, (bbd->sim->psys->particles + ptn[n].index)->prev_state.co);
+			VECCOPY(vel2, (bbd->sim->psys->particles + ptn[n].index)->prev_state.vel);
 
 			VecSubf(loc, co1, co2);
 
@@ -303,8 +277,8 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 	if(ptn){ MEM_freeN(ptn); ptn=NULL; }
 
 	/* check boids in other systems */
-	for(pt=bbd->psys->targets.first; pt; pt=pt->next) {
-		ParticleSystem *epsys = psys_get_target_system(bbd->ob, pt);
+	for(pt=bbd->sim->psys->targets.first; pt; pt=pt->next) {
+		ParticleSystem *epsys = psys_get_target_system(bbd->sim->ob, pt);
 
 		if(epsys) {
 			neighbors = BLI_kdtree_range_search(epsys->tree, acbr->look_ahead * VecLength(pa->prev_state.vel), pa->prev_state.co, pa->prev_state.ave, &ptn);
@@ -362,11 +336,11 @@ static int rule_separate(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Pa
 	ParticleTarget *pt;
 	float len = 2.0f * val->personal_space * pa->size + 1.0f;
 	float vec[3] = {0.0f, 0.0f, 0.0f};
-	int neighbors = BLI_kdtree_range_search(bbd->psys->tree, 2.0f * val->personal_space * pa->size, pa->prev_state.co, NULL, &ptn);
+	int neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, 2.0f * val->personal_space * pa->size, pa->prev_state.co, NULL, &ptn);
 	int ret = 0;
 
 	if(neighbors > 1 && ptn[1].dist!=0.0f) {
-		VecSubf(vec, pa->prev_state.co, bbd->psys->particles[ptn[1].index].state.co);
+		VecSubf(vec, pa->prev_state.co, bbd->sim->psys->particles[ptn[1].index].state.co);
 		VecMulf(vec, (2.0f * val->personal_space * pa->size - ptn[1].dist) / ptn[1].dist);
 		VecAddf(bbd->wanted_co, bbd->wanted_co, vec);
 		bbd->wanted_speed = val->max_speed;
@@ -376,8 +350,8 @@ static int rule_separate(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Pa
 	if(ptn){ MEM_freeN(ptn); ptn=NULL; }
 
 	/* check other boid systems */
-	for(pt=bbd->psys->targets.first; pt; pt=pt->next) {
-		ParticleSystem *epsys = psys_get_target_system(bbd->ob, pt);
+	for(pt=bbd->sim->psys->targets.first; pt; pt=pt->next) {
+		ParticleSystem *epsys = psys_get_target_system(bbd->sim->ob, pt);
 
 		if(epsys) {
 			neighbors = BLI_kdtree_range_search(epsys->tree, 2.0f * val->personal_space * pa->size, pa->prev_state.co, NULL, &ptn);
@@ -400,14 +374,14 @@ static int rule_flock(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 {
 	KDTreeNearest ptn[11];
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
-	int neighbors = BLI_kdtree_find_n_nearest(bbd->psys->tree, 11, pa->state.co, pa->prev_state.ave, ptn);
+	int neighbors = BLI_kdtree_find_n_nearest(bbd->sim->psys->tree, 11, pa->state.co, pa->prev_state.ave, ptn);
 	int n;
 	int ret = 0;
 
 	if(neighbors > 1) {
 		for(n=1; n<neighbors; n++) {
-			VecAddf(loc, loc, bbd->psys->particles[ptn[n].index].prev_state.co);
-			VecAddf(vec, vec, bbd->psys->particles[ptn[n].index].prev_state.vel);
+			VecAddf(loc, loc, bbd->sim->psys->particles[ptn[n].index].prev_state.co);
+			VecAddf(vec, vec, bbd->sim->psys->particles[ptn[n].index].prev_state.vel);
 		}
 
 		VecMulf(loc, 1.0f/((float)neighbors - 1.0f));
@@ -429,8 +403,8 @@ static int rule_follow_leader(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 	BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader*) rule;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
 	float mul, len;
-	int n = (flbr->queue_size <= 1) ? bbd->psys->totpart : flbr->queue_size;
-	int i, ret = 0, p = pa - bbd->psys->particles;
+	int n = (flbr->queue_size <= 1) ? bbd->sim->psys->totpart : flbr->queue_size;
+	int i, ret = 0, p = pa - bbd->sim->psys->particles;
 
 	if(flbr->ob) {
 		float vec2[3], t;
@@ -475,8 +449,8 @@ static int rule_follow_leader(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 
 		/* not blocking so try to follow leader */
 		if(p && flbr->options & BRULE_LEADER_IN_LINE) {
-			VECCOPY(vec, bbd->psys->particles[p-1].prev_state.vel);
-			VECCOPY(loc, bbd->psys->particles[p-1].prev_state.co);
+			VECCOPY(vec, bbd->sim->psys->particles[p-1].prev_state.vel);
+			VECCOPY(loc, bbd->sim->psys->particles[p-1].prev_state.co);
 		}
 		else {
 			VECCOPY(loc, flbr->oloc);
@@ -496,10 +470,10 @@ static int rule_follow_leader(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 		float vec2[3], t, t_min = 3.0f;
 
 		/* first check we're not blocking any leaders */
-		for(i = 0; i< bbd->psys->totpart; i+=n){
-			VECCOPY(vec, bbd->psys->particles[i].prev_state.vel);
+		for(i = 0; i< bbd->sim->psys->totpart; i+=n){
+			VECCOPY(vec, bbd->sim->psys->particles[i].prev_state.vel);
 
-			VecSubf(loc, pa->prev_state.co, bbd->psys->particles[i].prev_state.co);
+			VecSubf(loc, pa->prev_state.co, bbd->sim->psys->particles[i].prev_state.co);
 
 			mul = Inpf(vec, vec);
 
@@ -539,12 +513,12 @@ static int rule_follow_leader(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 
 		/* not blocking so try to follow leader */
 		if(flbr->options & BRULE_LEADER_IN_LINE) {
-			VECCOPY(vec, bbd->psys->particles[p-1].prev_state.vel);
-			VECCOPY(loc, bbd->psys->particles[p-1].prev_state.co);
+			VECCOPY(vec, bbd->sim->psys->particles[p-1].prev_state.vel);
+			VECCOPY(loc, bbd->sim->psys->particles[p-1].prev_state.co);
 		}
 		else {
-			VECCOPY(vec, bbd->psys->particles[p - p%n].prev_state.vel);
-			VECCOPY(loc, bbd->psys->particles[p - p%n].prev_state.co);
+			VECCOPY(vec, bbd->sim->psys->particles[p - p%n].prev_state.vel);
+			VECCOPY(loc, bbd->sim->psys->particles[p - p%n].prev_state.co);
 		}
 		
 		/* fac is seconds behind leader */
@@ -584,7 +558,7 @@ static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 
 		/* leveling */
 		if(asbr->level > 0.0f) {
-			Projf(vec, bbd->wanted_co, bbd->psys->part->acc);
+			Projf(vec, bbd->wanted_co, bbd->sim->psys->part->acc);
 			VecMulf(vec, asbr->level);
 			VecSubf(bbd->wanted_co, bbd->wanted_co, vec);
 		}
@@ -601,7 +575,7 @@ static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 		
 		/* leveling */
 		if(asbr->level > 0.0f) {
-			Projf(vec, bbd->wanted_co, bbd->psys->part->acc);
+			Projf(vec, bbd->wanted_co, bbd->sim->psys->part->acc);
 			VecMulf(vec, asbr->level);
 			VecSubf(bbd->wanted_co, bbd->wanted_co, vec);
 		}
@@ -627,9 +601,9 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 	int n, ret = 0;
 
 	/* calculate own group strength */
-	int neighbors = BLI_kdtree_range_search(bbd->psys->tree, fbr->distance, pa->prev_state.co, NULL, &ptn);
+	int neighbors = BLI_kdtree_range_search(bbd->sim->psys->tree, fbr->distance, pa->prev_state.co, NULL, &ptn);
 	for(n=0; n<neighbors; n++) {
-		bpa = bbd->psys->particles[ptn[n].index].boid;
+		bpa = bbd->sim->psys->particles[ptn[n].index].boid;
 		health += bpa->data.health;
 	}
 
@@ -638,8 +612,8 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 	if(ptn){ MEM_freeN(ptn); ptn=NULL; }
 
 	/* add other friendlies and calculate enemy strength and find closest enemy */
-	for(pt=bbd->psys->targets.first; pt; pt=pt->next) {
-		ParticleSystem *epsys = psys_get_target_system(bbd->ob, pt);
+	for(pt=bbd->sim->psys->targets.first; pt; pt=pt->next) {
+		ParticleSystem *epsys = psys_get_target_system(bbd->sim->ob, pt);
 		if(epsys) {
 			epars = epsys->particles;
 
@@ -756,24 +730,27 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 	if(bpa->data.mode == eBoidMode_Climbing) {
 		SurfaceModifierData *surmd = NULL;
 		float x[3], v[3];
-
+		
 		surmd = (SurfaceModifierData *)modifiers_findByType ( bpa->ground, eModifierType_Surface );
 
 		/* take surface velocity into account */
-		effector_find_co(bbd->scene, pa->state.co, surmd, NULL, NULL, x, NULL, v, NULL);
+		closest_point_on_surface(surmd, pa->state.co, x, NULL, v);
 		VecAddf(x, x, v);
 
 		/* get actual position on surface */
-		effector_find_co(bbd->scene, x, surmd, NULL, NULL, ground_co, ground_nor, NULL, NULL);
+		closest_point_on_surface(surmd, x, ground_co, ground_nor, NULL);
 
 		return bpa->ground;
 	}
 	else {
 		float zvec[3] = {0.0f, 0.0f, 2000.0f};
 		ParticleCollision col;
+		ColliderCache *coll;
 		BVHTreeRayHit hit;
-		ParticleEffectorCache *ec;
 		float radius = 0.0f, t, ray_dir[3];
+
+		if(!bbd->sim->colliders)
+			return NULL;
 
 		VECCOPY(col.co1, pa->state.co);
 		VECCOPY(col.co2, pa->state.co);
@@ -785,16 +762,12 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		hit.dist = col.ray_len = VecLength(ray_dir);
 
 		/* find out upmost deflector object */
-		for(ec=bbd->psys->effectors.first; ec; ec=ec->next) {
-			if(ec->type & PSYS_EC_DEFLECT) {
-				Object *eob = ec->ob;
+		for(coll = bbd->sim->colliders->first; coll; coll = coll->next){
+			col.ob = coll->ob;
+			col.md = coll->collmd;
 
-				col.md = ( CollisionModifierData * ) ( modifiers_findByType ( eob, eModifierType_Collision ) );
-				col.ob_t = eob;
-
-				if(col.md && col.md->bvhtree)
-					BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
-			}
+			if(col.md && col.md->bvhtree)
+				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
 		}
 		/* then use that object */
 		if(hit.index>=0) {
@@ -802,7 +775,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 			VecLerpf(ground_co, col.co1, col.co2, t);
 			VECCOPY(ground_nor, col.nor);
 			Normalize(ground_nor);
-			return col.ob;
+			return col.hit_ob;
 		}
 		else {
 			/* default to z=0 */
@@ -941,7 +914,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	bbd->wanted_co[0]=bbd->wanted_co[1]=bbd->wanted_co[2]=bbd->wanted_speed=0.0f;
 
 	/* create random seed for every particle & frame */
-	BLI_srandom(bbd->psys->seed + p);
+	BLI_srandom(bbd->sim->psys->seed + p);
 	rand = BLI_rand();
 	BLI_srandom((int)bbd->cfra + rand);
 
@@ -1068,6 +1041,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	BoidSettings *boids = bbd->part->boids;
 	BoidParticle *bpa = pa->boid;
 	BoidValues val;
+	EffectedPoint epoint;
 	float acc[3] = {0.0f, 0.0f, 0.0f}, tan_acc[3], nor_acc[3];
 	float dvec[3], bvec[3];
 	float new_dir[3], new_speed;
@@ -1075,9 +1049,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	float wanted_dir[3];
 	float q[4], mat[3][3]; /* rotation */
 	float ground_co[3] = {0.0f, 0.0f, 0.0f}, ground_nor[3] = {0.0f, 0.0f, 1.0f};
-	float force[3] = {0.0f, 0.0f, 0.0f}, tvel[3] = {0.0f, 0.0f, 1.0f};
+	float force[3] = {0.0f, 0.0f, 0.0f};
 	float pa_mass=bbd->part->mass, dtime=bbd->dfra*bbd->timestep;
-	int p = pa - bbd->psys->particles;
 
 	set_boid_values(&val, boids, pa);
 
@@ -1208,7 +1181,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	}
 
 	/* account for effectors */
-	do_effectors(p, pa, &pa->state, bbd->scene, bbd->ob, bbd->psys, pa->state.co, force, tvel, bbd->dfra, bbd->cfra);
+	pd_point_from_particle(bbd->sim, pa, &pa->state, &epoint);
+	pdDoEffectors(bbd->sim->psys->effectors, bbd->sim->colliders, bbd->part->effector_weights, &epoint, force, NULL);
 
 	if(ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)) {
 		float length = Normalize(force);

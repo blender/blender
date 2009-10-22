@@ -42,7 +42,7 @@ struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
 struct bNodeStack;
-struct uiBlock;
+struct uiLayout;
 struct rctf;
 struct ListBase;
 struct RenderData;
@@ -52,6 +52,7 @@ struct Tex;
 struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
+struct PointerRNA;
 
 /* ************** NODE TYPE DEFINITIONS ***** */
 
@@ -82,7 +83,7 @@ typedef struct bNodeType {
 	void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **);
 	
 	/* this line is set on startup of blender */
-	int (*butfunc)(struct uiBlock *, struct bNodeTree *, struct bNode *, struct rctf *);
+	void (*uifunc)(struct uiLayout *, struct PointerRNA *ptr);
 
 	void (*initfunc)(struct bNode *);
 	void (*freestoragefunc)(struct bNode *);
@@ -180,6 +181,7 @@ int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
+int				nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 
 void			NodeTagChanged(struct bNodeTree *ntree, struct bNode *node);
@@ -425,7 +427,7 @@ extern struct ListBase node_all_textures;
 /* API */
 int  ntreeTexTagAnimated(struct bNodeTree *ntree);
 void ntreeTexSetPreviewFlag(int);
-void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, short thread, struct Tex *tex, short which_output, int cfra);
+void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, short thread, struct Tex *tex, short which_output, int cfra, int preview);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
 char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 

@@ -596,17 +596,15 @@ static TextLine *txt_new_line(char *str)
 	return tmp;
 }
 
-static TextLine *txt_new_linen(char *str, int n)
+static TextLine *txt_new_linen(const char *str, int n)
 {
 	TextLine *tmp;
 
-	if(!str) str= "";
-	
 	tmp= (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= MEM_mallocN(n+1, "textline_string");
 	tmp->format= NULL;
 	
-	BLI_strncpy(tmp->line, str, n+1);
+	BLI_strncpy(tmp->line, (str)? str: "", n+1);
 	
 	tmp->len= strlen(tmp->line);
 	tmp->next= tmp->prev= NULL;
@@ -2833,4 +2831,61 @@ TextMarker *txt_next_marker(Text *text, TextMarker *marker) {
 			return tmp;
 	}
 	return NULL; /* Only if marker==NULL */
+}
+
+
+/*******************************/
+/* Character utility functions */
+/*******************************/
+
+int text_check_bracket(char ch)
+{
+	int a;
+	char opens[] = "([{";
+	char close[] = ")]}";
+
+	for(a=0; a<(sizeof(opens)-1); a++) {
+		if(ch==opens[a])
+			return a+1;
+		else if(ch==close[a])
+			return -(a+1);
+	}
+	return 0;
+}
+
+int text_check_delim(char ch)
+{
+	int a;
+	char delims[] = "():\"\' ~!%^&*-+=[]{};/<>|.#\t,";
+
+	for(a=0; a<(sizeof(delims)-1); a++) {
+		if(ch==delims[a])
+			return 1;
+	}
+	return 0;
+}
+
+int text_check_digit(char ch)
+{
+	if(ch < '0') return 0;
+	if(ch <= '9') return 1;
+	return 0;
+}
+
+int text_check_identifier(char ch)
+{
+	if(ch < '0') return 0;
+	if(ch <= '9') return 1;
+	if(ch < 'A') return 0;
+	if(ch <= 'Z' || ch == '_') return 1;
+	if(ch < 'a') return 0;
+	if(ch <= 'z') return 1;
+	return 0;
+}
+
+int text_check_whitespace(char ch)
+{
+	if(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
+		return 1;
+	return 0;
 }

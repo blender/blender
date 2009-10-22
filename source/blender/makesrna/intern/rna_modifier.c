@@ -85,6 +85,7 @@ EnumPropertyItem modifier_type_items[] ={
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
+#include "BKE_modifier.h"
 
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -164,9 +165,23 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 	}
 }
 
+void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
+{
+	ModifierData *md= ptr->data;
+	
+	/* copy the new name into the name slot */
+	BLI_strncpy(md->name, value, sizeof(md->name));
+	
+	/* make sure the name is truly unique */
+	if (ptr->id.data) {
+		Object *ob= ptr->id.data;
+		modifier_unique_name(&ob->modifiers, md);
+	}
+}
+
 static char *rna_Modifier_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("modifiers[%s]", ((ModifierData*)ptr->data)->name);  // XXX not unique
+	return BLI_sprintfN("modifiers[\"%s\"]", ((ModifierData*)ptr->data)->name);
 }
 
 static void rna_Modifier_update(bContext *C, PointerRNA *ptr)
@@ -930,12 +945,14 @@ static void rna_def_modifier_softbody(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SoftbodyModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SOFT);
 
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SoftBodySettings");
 	RNA_def_property_pointer_funcs(prop, "rna_SoftBodyModifier_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Body Settings", "");
 
-	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_pointer_funcs(prop, "rna_SoftBodyModifier_point_cache_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Body Point Cache", "");
@@ -1551,15 +1568,18 @@ static void rna_def_modifier_cloth(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ClothModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_CLOTH);
 	
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "sim_parms");
 	RNA_def_property_ui_text(prop, "Cloth Settings", "");
 	
-	prop= RNA_def_property(srna, "collision_settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "collision_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_parms");
 	RNA_def_property_ui_text(prop, "Cloth Collision Settings", "");
 	
-	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 }
 
@@ -1609,16 +1629,11 @@ static void rna_def_modifier_collision(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "CollisionModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PHYSICS);
 
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "CollisionSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_CollisionModifier_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Settings", "");
-	
-	prop= RNA_def_property(srna, "absorption", PROP_INT, PROP_PERCENTAGE);
-	RNA_def_property_int_sdna(prop, NULL, "absorption");
-	RNA_def_property_ui_range(prop, 0, 100, 1, 2);
-	RNA_def_property_ui_text(prop, "Absorption %", "How much of effector force gets lost during collision with this object (in percent).");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_bevel(BlenderRNA *brna)
@@ -1679,7 +1694,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_mode_items[] = {
+	static EnumPropertyItem shrink_type_items[] = {
 		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACEPOINT", 0, "Nearest Surface Point", ""},
 		{MOD_SHRINKWRAP_PROJECT, "PROJECT", 0, "Project", ""},
 		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", 0, "Nearest Vertex", ""},
@@ -1692,7 +1707,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shrinkType");
-	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_enum_items(prop, shrink_type_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1780,7 +1795,8 @@ static void rna_def_modifier_fluidsim(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "FluidsimModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_FLUIDSIM);
 
-	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "fss");
 	RNA_def_property_ui_text(prop, "Settings", "Settings for how this object is used in the fluid simulation.");
 }
@@ -1790,7 +1806,7 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_mode_items[] = {
+	static EnumPropertyItem modifier_mask_mode_items[] = {
 		{MOD_MASK_MODE_VGROUP, "VERTEX_GROUP", 0, "Vertex Group", ""},
 		{MOD_MASK_MODE_ARM, "ARMATURE", 0, "Armature", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -1801,7 +1817,7 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_MOD_MASK);
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_enum_items(prop, modifier_mask_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1829,7 +1845,7 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_mode_items[] = {
+	static EnumPropertyItem simple_deform_mode_items[] = {
 		{MOD_SIMPLEDEFORM_MODE_TWIST, "TWIST", 0, "Twist", ""},
 		{MOD_SIMPLEDEFORM_MODE_BEND, "BEND", 0, "Bend", ""},
 		{MOD_SIMPLEDEFORM_MODE_TAPER, "TAPER", 0, "Taper", ""},
@@ -1842,7 +1858,7 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SIMPLEDEFORM);
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_enum_items(prop, simple_deform_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1910,6 +1926,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	
 	/* strings */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Modifier_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Modifier name.");
 	RNA_def_struct_name_property(srna, prop);
 	

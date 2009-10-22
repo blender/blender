@@ -55,7 +55,7 @@ KX_ObjectActuator(
 	const short damping,
 	const KX_LocalFlags& flag
 ) : 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, KX_ACT_OBJECT),
 	m_force(force),
 	m_torque(torque),
 	m_dloc(dloc),
@@ -317,7 +317,7 @@ bool KX_ObjectActuator::isValid(KX_ObjectActuator::KX_OBJECT_ACT_VEC_TYPE type)
 	return res;
 }
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -640,5 +640,7 @@ int KX_ObjectActuator::pyattr_set_reference(void *self, const struct KX_PYATTRIB
 	
 	return PY_SET_ATTR_SUCCESS;
 }
+
+#endif // DISABLE_PYTHON
 
 /* eof */

@@ -2672,7 +2672,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "mergedist", 0.0001, 0.0001, 100.0, 
+	RNA_def_float(ot->srna, "mergedist", 0.0001f, 0.000001f, 50.0f, 
 		"Merge Distance", 
 		"Minimum distance between elements to merge.", 0.00001, 10.0);
 }
@@ -2985,24 +2985,70 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		else BMINDEX_SET(e, 0);
 	}
 
-	/*expand edge selection*/
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	/*handle case of one vert selected.  we identify
+	  the closest edge around that vert to the mouse cursor,
+	  then rip the two adjacent edges in the vert fan.*/
+	if (em->bm->totvertsel == 1 && em->bm->totedgesel == 0 && em->bm->totfacesel == 0) {
+		/*find selected vert*/
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
+			if (BM_TestHFlag(v, BM_SELECT))
+				break;
+
+		/*this should be impossible, but sanity checks are a good thing*/
+		if (!v)
+			return OPERATOR_CANCELLED;
+
+		/*find closest edge to mouse cursor*/
 		e2 = NULL;
-		i = 0;
-		BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
-			if (BMINDEX_GET(e)) {
+		BM_ITER(e, &iter, em->bm, BM_EDGES_OF_VERT, v) {
+			d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, event->mval);
+			if (d < dist) {
+				dist = d;
 				e2 = e;
-				i++;
 			}
 		}
-		
-		if (i == 1 && e2->loop) {
-			l = BM_OtherFaceLoop(e2, e2->loop->f, v);
-			l = (BMLoop*)l->radial.next->data;
-			l = BM_OtherFaceLoop(l->e, l->f, v);
 
-			if (l)
-				BM_Select(em->bm, l->e, 1);
+		if (!e2)
+			return OPERATOR_CANCELLED;
+
+		/*rip two adjacent edges*/
+		if (BM_Edge_FaceCount(e2) == 1) {
+			l = e2->loop;
+			e = BM_OtherFaceLoop(e2, l->f, v);
+
+			BMINDEX_SET(e, 1);
+			BM_SetHFlag(e, BM_SELECT);
+		} else if (BM_Edge_FaceCount(e2) == 2) {
+			l = e2->loop;
+			e = BM_OtherFaceLoop(e2, l->f, v);
+			BMINDEX_SET(e, 1);
+			BM_SetHFlag(e, BM_SELECT);
+			
+			l = e2->loop->radial.next->data;
+			e = BM_OtherFaceLoop(e2, l->f, v);
+			BMINDEX_SET(e, 1);
+			BM_SetHFlag(e, BM_SELECT);
+		}
+	} else {
+		/*expand edge selection*/
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			e2 = NULL;
+			i = 0;
+			BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
+				if (BMINDEX_GET(e)) {
+					e2 = e;
+					i++;
+				}
+			}
+			
+			if (i == 1 && e2->loop) {
+				l = BM_OtherFaceLoop(e2, e2->loop->f, v);
+				l = (BMLoop*)l->radial.next->data;
+				l = BM_OtherFaceLoop(l->e, l->f, v);
+
+				if (l)
+					BM_Select(em->bm, l->e, 1);
+			}
 		}
 	}
 

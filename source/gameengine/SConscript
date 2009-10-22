@@ -14,9 +14,11 @@ SConscript(['BlenderRoutines/SConscript',
             'Rasterizer/SConscript',
             'Rasterizer/RAS_OpenGLRasterizer/SConscript',
             'SceneGraph/SConscript',
-            'Physics/Bullet/SConscript',
-            'VideoTexture/SConscript'
+            'Physics/Bullet/SConscript'
             ])
+
+if env['WITH_BF_PYTHON']:
+    SConscript(['VideoTexture/SConscript'])
 
 if env['WITH_BF_PLAYER']:
     SConscript(['GamePlayer/SConscript'])

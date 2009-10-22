@@ -56,7 +56,7 @@ typedef struct Brush {
 	
 	short flag, blend;			/* general purpose flag, blend mode */
 	int size;					/* brush diameter */
-	float innerradius;			/* inner radius after which the falloff starts */
+	float jitter;				/* jitter the position of the brush */
 	float spacing;				/* spacing of paint operations */
 	int smooth_stroke_radius;		/* turning radius (in pixels) for smooth stroke */
 	float smooth_stroke_factor;		/* higher values limit fast changes in the stroke direction */
@@ -76,7 +76,7 @@ typedef struct Brush {
 #define BRUSH_TORUS				2
 #define BRUSH_ALPHA_PRESSURE	4
 #define BRUSH_SIZE_PRESSURE		8
-#define BRUSH_RAD_PRESSURE		16
+#define BRUSH_JITTER_PRESSURE	16 /* was BRUSH_RAD_PRESSURE */
 #define BRUSH_SPACING_PRESSURE	32
 #define BRUSH_FIXED_TEX			64
 #define BRUSH_RAKE		128

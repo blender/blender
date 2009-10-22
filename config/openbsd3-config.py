@@ -151,4 +151,3 @@ BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR='../build/openbsd3'
 BF_INSTALLDIR='../install/openbsd3'
-BF_DOCDIR='../install/doc'

@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 #include "RNA_enum_types.h"
@@ -55,6 +56,26 @@ static int rna_AnimData_action_editable(PointerRNA *ptr)
 		return 0;
 	else
 		return 1;
+}
+
+static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
+{
+	AnimData *adt= (AnimData*)(ptr->data);
+	adt->action= value.data;
+}
+
+/* ****************************** */
+
+static StructRNA *rna_ksPath_id_typef(PointerRNA *ptr)
+{
+	KS_Path *ksp= (KS_Path*)ptr->data;
+	return ID_code_to_RNA_type(ksp->idtype);
+}
+
+static int rna_ksPath_id_editable(PointerRNA *ptr)
+{
+	KS_Path *ksp= (KS_Path*)ptr->data;
+	return (ksp->idtype)? PROP_EDITABLE : 0;
 }
 
 static void rna_ksPath_RnaPath_get(PointerRNA *ptr, char *value)
@@ -90,6 +111,50 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 		ksp->rna_path= NULL;
 }
 
+/* ****************************** */
+
+static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr)
+{
+	KeyingSet *ks= (KeyingSet *)ptr->data;
+	
+	/* only editable if there are some paths to change to */
+	return (ks->paths.first != NULL);
+}
+
+static PointerRNA rna_KeyingSet_active_ksPath_get(PointerRNA *ptr)
+{
+	KeyingSet *ks= (KeyingSet *)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_KeyingSetPath, BLI_findlink(&ks->paths, ks->active_path-1));
+}
+
+static void rna_KeyingSet_active_ksPath_set(PointerRNA *ptr, PointerRNA value)
+{
+	KeyingSet *ks= (KeyingSet *)ptr->data;
+	KS_Path *ksp= (KS_Path*)value.data;
+	ks->active_path= BLI_findindex(&ks->paths, ksp) + 1;
+}
+
+static int rna_KeyingSet_active_ksPath_index_get(PointerRNA *ptr)
+{
+	KeyingSet *ks= (KeyingSet *)ptr->data;
+	return MAX2(ks->active_path-1, 0);
+}
+
+static void rna_KeyingSet_active_ksPath_index_set(PointerRNA *ptr, int value)
+{
+	KeyingSet *ks= (KeyingSet *)ptr->data;
+	ks->active_path= value+1;
+}
+
+static void rna_KeyingSet_active_ksPath_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	KeyingSet *ks= (KeyingSet *)ptr->data;
+
+	*min= 0;
+	*max= BLI_countlist(&ks->paths)-1;
+	*max= MAX2(0, *max);
+}
+
 #else
 
 
@@ -104,7 +169,17 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	
 	/* ID */
 	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_ksPath_id_editable");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_ksPath_id_typef");
 	RNA_def_property_ui_text(prop, "ID-Block", "ID-Block that keyframes for Keying Set should be added to (for Absolute Keying Sets only).");
+	
+	prop= RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "idtype");
+	RNA_def_property_enum_items(prop, id_type_items);
+	RNA_def_property_enum_default(prop, ID_OB);
+	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
 	
 	/* Group */
 	prop= RNA_def_property(srna, "group", PROP_STRING, PROP_NONE);
@@ -118,12 +193,11 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_string_funcs(prop, "rna_ksPath_RnaPath_get", "rna_ksPath_RnaPath_length", "rna_ksPath_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property setting.");
+	RNA_def_struct_name_property(srna, prop); // XXX this is the best indicator for now...
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
-	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific setting if applicable.");
 	
 	/* Flags */
@@ -150,6 +224,18 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "paths", NULL);
 	RNA_def_property_struct_type(prop, "KeyingSetPath");
 	RNA_def_property_ui_text(prop, "Paths", "Keying Set Paths to define settings that get keyframed together.");
+	
+	prop= RNA_def_property(srna, "active_path", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "KeyingSetPath");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_KeyingSet_active_ksPath_editable");
+	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_active_ksPath_get", "rna_KeyingSet_active_ksPath_set", NULL);
+	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes.");
+	
+	prop= RNA_def_property(srna, "active_path_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "active_path");
+	RNA_def_property_int_funcs(prop, "rna_KeyingSet_active_ksPath_index_get", "rna_KeyingSet_active_ksPath_index_set", "rna_KeyingSet_active_ksPath_index_range");
+	RNA_def_property_ui_text(prop, "Active Path Index", "Current Keying Set index.");
 	
 	/* Flags */
 	prop= RNA_def_property(srna, "builtin", PROP_BOOLEAN, PROP_NONE);
@@ -202,8 +288,11 @@ void rna_def_animdata(BlenderRNA *brna)
 	
 	/* Active Action */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock.");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_AnimData_action_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE); /* this flag as well as the dynamic test must be defined for this to be editable... */
 	RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
+	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock.");
+
 	
 	/* Active Action Settings */
 	prop= RNA_def_property(srna, "action_extrapolation", PROP_ENUM, PROP_NONE);

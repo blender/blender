@@ -36,6 +36,9 @@
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h" /* for config load/saving */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -50,7 +53,7 @@ KX_GameActuator::KX_GameActuator(SCA_IObject *gameobj,
 								   const STR_String& loadinganimationname,
 								   KX_Scene* scene,
 								   KX_KetsjiEngine* ketsjiengine)
-								   : SCA_IActuator(gameobj)
+								   : SCA_IActuator(gameobj, KX_ACT_GAME)
 {
 	m_mode = mode;
 	m_filename = filename;
@@ -125,6 +128,7 @@ bool KX_GameActuator::Update()
 		}
 	case KX_GAME_SAVECFG:
 		{
+#ifndef DISABLE_PYTHON
 			if (m_ketsjiengine)
 			{
 				char mashal_path[512];
@@ -152,9 +156,11 @@ bool KX_GameActuator::Update()
 					delete [] marshal_buffer;
 			}
 			break;
+#endif // DISABLE_PYTHON
 		}
 	case KX_GAME_LOADCFG:
 		{
+#ifndef DISABLE_PYTHON
 			if (m_ketsjiengine)
 			{
 				char mashal_path[512];
@@ -189,6 +195,7 @@ bool KX_GameActuator::Update()
 				}
 			}
 			break;
+#endif // DISABLE_PYTHON
 		}
 	default:
 		; /* do nothing? this is an internal error !!! */
@@ -198,8 +205,7 @@ bool KX_GameActuator::Update()
 }
 
 
-
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -238,3 +244,5 @@ PyAttributeDef KX_GameActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mode", KX_GAME_NODEF+1, KX_GAME_MAX-1, true, KX_GameActuator, m_mode),
 	{ NULL }	//Sentinel
 };
+
+#endif // DISABLE_PYTHON

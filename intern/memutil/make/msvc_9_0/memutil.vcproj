@@ -119,6 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"

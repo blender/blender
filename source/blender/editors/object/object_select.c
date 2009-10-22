@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -80,7 +82,7 @@ void ED_base_object_select(Base *base, short mode)
 	if (base) {
 		if (mode==BA_SELECT) {
 			if (!(base->object->restrictflag & OB_RESTRICT_SELECT))
-				if (mode==BA_SELECT) base->flag |= SELECT;
+				base->flag |= SELECT;
 		}
 		else if (mode==BA_DESELECT) {
 			base->flag &= ~SELECT;
@@ -103,13 +105,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 		/* XXX old signals, remember to handle notifiers now! */
 		//		select_actionchannel_by_name(base->object->action, "Object", 1);
 		
-		/* disable temporal locks */
-		for(tbase=FIRSTBASE; tbase; tbase= tbase->next) {
-			if(base!=tbase && (tbase->object->shapeflag & OB_SHAPE_TEMPLOCK)) {
-				tbase->object->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-				DAG_id_flush_update(&tbase->object->id, OB_RECALC_DATA);
-			}
-		}
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	}
 	else
@@ -169,7 +164,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 /*********************** Selection by Links *********************/
 
 static EnumPropertyItem prop_select_linked_types[] = {
-	{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
+	//{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
 	{2, "OBDATA", 0, "Ob Data", ""},
 	{3, "MATERIAL", 0, "Material", ""},
 	{4, "TEXTURE", 0, "Texture", ""},

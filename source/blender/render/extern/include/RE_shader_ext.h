@@ -30,6 +30,7 @@
 #ifndef RE_SHADER_EXT_H
 #define RE_SHADER_EXT_H
 
+#include "RE_raytrace.h" /* For RE_RAYCOUNTER */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is for shading and texture exports            */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -56,6 +57,7 @@ typedef struct ShadeResult
 	float refr[3];
 	float nor[3];
 	float winspeed[4];
+	float rayhits[4];
 } ShadeResult;
 
 /* only here for quick copy */
@@ -128,7 +130,6 @@ typedef struct ShadeInput
 	
 	/* individual copies: */
 	int har; /* hardness */
-	float layerfac;
 	
 	/* texture coordinates */
 	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4];
@@ -177,6 +178,10 @@ typedef struct ShadeInput
 	int layflag, passflag, combinedflag;
 	struct Group *light_override;
 	struct Material *mat_override;
+	
+#ifdef RE_RAYCOUNTER
+	RayCounter raycounter;
+#endif
 	
 } ShadeInput;
 

@@ -52,6 +52,7 @@ typedef struct BVHNode
 {
 	struct BVHNode **children;
 	struct BVHNode *parent; // some user defined traversed need that
+	struct BVHNode *skip[2];
 	float *bv;		// Bounding volume of all nodes, max 13 axis
 	int index;		// face, edge, vertex index
 	char totnode;	// how many nodes are used, used for speedup
@@ -101,6 +102,8 @@ typedef struct BVHRayCastData
 
 	BVHTreeRay    ray;
 	float ray_dot_axis[13];
+	float idot_axis[13];
+	int index[6];
 
 	BVHTreeRayHit hit;
 } BVHRayCastData;
@@ -353,6 +356,23 @@ static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int a
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNode *right)
+{
+	int i;
+	
+	node->skip[0] = left;
+	node->skip[1] = right;
+	
+	for (i = 0; i < node->totnode; i++)
+	{
+		if(i+1 < node->totnode)
+			build_skip_links(tree, node->children[i], left, node->children[i+1] );
+		else
+			build_skip_links(tree, node->children[i], left, right );
+
+		left = node->children[i];
+	}
+}
 
 /*
  * BVHTree bounding volumes functions
@@ -939,6 +959,7 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	for(i = 0; i < tree->totbranch; i++)
 		tree->nodes[tree->totleaf + i] = branches_array + i;
 
+	build_skip_links(tree, tree->nodes[tree->totleaf], NULL, NULL);
 	//bvhtree_info(tree);
 }
 
@@ -1405,6 +1426,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nea
  * raycast is done by performing a DFS on the BVHTree and saving the closest hit
  */
 
+
 //Determines the distance that the ray must travel to hit the bounding volume of the given node
 static float ray_nearest_hit(BVHRayCastData *data, float *bv)
 {
@@ -1443,13 +1465,40 @@ static float ray_nearest_hit(BVHRayCastData *data, float *bv)
 	return low;
 }
 
+//Determines the distance that the ray must travel to hit the bounding volume of the given node
+//Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
+//[http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
+//
+//TODO this doens't has data->ray.radius in consideration
+static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *node)
+{
+	const float *bv = node->bv;
+	float dist;
+	
+	float t1x = (bv[data->index[0]] - data->ray.origin[0]) * data->idot_axis[0];
+	float t2x = (bv[data->index[1]] - data->ray.origin[0]) * data->idot_axis[0];
+	float t1y = (bv[data->index[2]] - data->ray.origin[1]) * data->idot_axis[1];
+	float t2y = (bv[data->index[3]] - data->ray.origin[1]) * data->idot_axis[1];
+	float t1z = (bv[data->index[4]] - data->ray.origin[2]) * data->idot_axis[2];
+	float t2z = (bv[data->index[5]] - data->ray.origin[2]) * data->idot_axis[2];
+
+	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return FLT_MAX;
+	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return FLT_MAX;
+	if(t1x > data->hit.dist || t1y > data->hit.dist || t1z > data->hit.dist) return FLT_MAX;
+
+	dist = t1x;
+	if (t1y > dist) dist = t1y;
+    if (t1z > dist) dist = t1z;
+	return dist;
+}
+
 static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 {
 	int i;
 
 	//ray-bv is really fast.. and simple tests revealed its worth to test it
 	//before calling the ray-primitive functions
-	float dist = ray_nearest_hit(data, node->bv);
+	float dist = fast_ray_nearest_hit(data, node);
 	if(dist >= data->hit.dist) return;
 
 	if(node->totnode == 0)
@@ -1483,6 +1532,37 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	}
 }
 
+static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
+{
+	while(node)
+	{
+		float dist = fast_ray_nearest_hit(data, node);
+		if(dist >= data->hit.dist)
+		{
+			node = node->skip[1];
+			continue;
+		}
+
+		if(node->totnode == 0)
+		{
+			if(data->callback)
+				data->callback(data->userdata, node->index, &data->ray, &data->hit);
+			else
+			{
+				data->hit.index	= node->index;
+				data->hit.dist  = dist;
+				VECADDFAC(data->hit.co, data->ray.origin, data->ray.direction, dist);
+			}
+			
+			node = node->skip[1];
+		}
+		else
+		{
+			node = node->children[0];
+		}	
+	}
+}
+
 int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
 {
 	int i;
@@ -1503,9 +1583,16 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 	for(i=0; i<3; i++)
 	{
 		data.ray_dot_axis[i] = INPR( data.ray.direction, KDOP_AXES[i]);
+		data.idot_axis[i] = 1.0f / data.ray_dot_axis[i];
 
 		if(fabs(data.ray_dot_axis[i]) < FLT_EPSILON)
+		{
 			data.ray_dot_axis[i] = 0.0;
+		}
+		data.index[2*i] = data.idot_axis[i] < 0.0 ? 1 : 0;
+		data.index[2*i+1] = 1 - data.index[2*i];
+		data.index[2*i]	  += 2*i;
+		data.index[2*i+1] += 2*i;
 	}
 
 
@@ -1518,7 +1605,10 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 	}
 
 	if(root)
+	{
 		dfs_raycast(&data, root);
+//		iterative_raycast(&data, root);
+ 	}
 
 
 	if(hit)

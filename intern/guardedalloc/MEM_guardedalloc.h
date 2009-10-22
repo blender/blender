@@ -27,8 +27,6 @@
  */
 
 /**
-
- * $Id$
  * Copyright (C) 2001 NaN Technologies B.V.
  * Guarded memory (de)allocation
  *

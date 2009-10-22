@@ -417,6 +417,8 @@ typedef struct StrandPart {
 	intptr_t *rectdaps;
 	int rectx, recty;
 	int sample;
+	int shadow;
+	float (*jit)[2];
 
 	StrandSegment *segment;
 	float t[3], s[3];
@@ -525,7 +527,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 		}
 	}
 	else {
-		bufferz= spart->rectz[offset];
+		bufferz= (spart->rectz)? spart->rectz[offset]: 0x7FFFFFFF;
 		if(spart->rectmask)
 			maskz= spart->rectmask[offset];
 	}
@@ -560,8 +562,10 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 				CHECK_ASSIGN(0);
 			}
 
-			strand_shade_refcount(cache, sseg->v[1]);
-			strand_shade_refcount(cache, sseg->v[2]);
+			if(cache) {
+				strand_shade_refcount(cache, sseg->v[1]);
+				strand_shade_refcount(cache, sseg->v[2]);
+			}
 			spart->totapixbuf[offset]++;
 		}
 	}
@@ -596,23 +600,16 @@ static void do_scanconvert_strand(Render *re, StrandPart *spart, ZSpan *zspan, f
 	VECCOPY(jco3, co3);
 	VECCOPY(jco4, co4);
 
-	if(re->osa) {
-		jx= -re->jit[sample][0];
-		jy= -re->jit[sample][1];
+	if(spart->jit) {
+		jx= -spart->jit[sample][0];
+		jy= -spart->jit[sample][1];
 
 		jco1[0] += jx; jco1[1] += jy;
 		jco2[0] += jx; jco2[1] += jy;
 		jco3[0] += jx; jco3[1] += jy;
 		jco4[0] += jx; jco4[1] += jy;
-	}
-	else if(re->i.curblur) {
-		jx= -re->jit[re->i.curblur-1][0];
-		jy= -re->jit[re->i.curblur-1][1];
 
-		jco1[0] += jx; jco1[1] += jy;
-		jco2[0] += jx; jco2[1] += jy;
-		jco3[0] += jx; jco3[1] += jy;
-		jco4[0] += jx; jco4[1] += jy;
+		/* XXX mblur? */
 	}
 
 	spart->sample= sample;
@@ -756,7 +753,7 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 }
 
 /* render call to fill in strands */
-int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand *apixbuf, ListBase *apsmbase, StrandShadeCache *cache)
+int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int sample, float (*jit)[2], float clipcrop, int shadow, StrandShadeCache *cache)
 {
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
@@ -768,7 +765,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	StrandSegment sseg;
 	StrandSortSegment *sortsegments = NULL, *sortseg, *firstseg;
 	MemArena *memarena;
-	float z[4], bounds[4], winmat[4][4];
+	float z[4], bounds[4], obwinmat[4][4];
 	int a, b, c, i, totsegment, clip[4];
 
 	if(re->test_break(re->tbh))
@@ -788,27 +785,31 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	spart.rectz= pa->rectz;
 	spart.rectmask= pa->rectmask;
 	spart.cache= cache;
+	spart.shadow= shadow;
+	spart.jit= jit;
 
-	zbuf_alloc_span(&zspan, pa->rectx, pa->recty, re->clipcrop);
+	zbuf_alloc_span(&zspan, pa->rectx, pa->recty, clipcrop);
 
 	/* needed for transform from hoco to zbuffer co */
-	zspan.zmulx= ((float)re->winx)/2.0;
-	zspan.zmuly= ((float)re->winy)/2.0;
+	zspan.zmulx= ((float)winx)/2.0;
+	zspan.zmuly= ((float)winy)/2.0;
 	
 	zspan.zofsx= -pa->disprect.xmin;
 	zspan.zofsy= -pa->disprect.ymin;
 
 	/* to center the sample position */
-	zspan.zofsx -= 0.5f;
-	zspan.zofsy -= 0.5f;
+	if(!shadow) {
+		zspan.zofsx -= 0.5f;
+		zspan.zofsy -= 0.5f;
+	}
 
 	zspan.apsmbase= apsmbase;
 
 	/* clipping setup */
-	bounds[0]= (2*pa->disprect.xmin - re->winx-1)/(float)re->winx;
-	bounds[1]= (2*pa->disprect.xmax - re->winx+1)/(float)re->winx;
-	bounds[2]= (2*pa->disprect.ymin - re->winy-1)/(float)re->winy;
-	bounds[3]= (2*pa->disprect.ymax - re->winy+1)/(float)re->winy;
+	bounds[0]= (2*pa->disprect.xmin - winx-1)/(float)winx;
+	bounds[1]= (2*pa->disprect.xmax - winx+1)/(float)winx;
+	bounds[2]= (2*pa->disprect.ymin - winy-1)/(float)winy;
+	bounds[3]= (2*pa->disprect.ymax - winy+1)/(float)winy;
 
 	memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
 	firstseg= NULL;
@@ -819,14 +820,14 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	for(obi=re->instancetable.first, i=0; obi; obi=obi->next, i++) {
 		obr= obi->obr;
 
-		if(!obr->strandbuf || !(obr->strandbuf->lay & rl->lay))
+		if(!obr->strandbuf || !(obr->strandbuf->lay & lay))
 			continue;
 
 		/* compute matrix and try clipping whole object */
 		if(obi->flag & R_TRANSFORMED)
-			zbuf_make_winmat(re, obi->mat, winmat);
+			Mat4MulMat4(obwinmat, obi->mat, winmat);
 		else
-			zbuf_make_winmat(re, NULL, winmat);
+			Mat4CpyMat4(obwinmat, winmat);
 
 		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
 			continue;
@@ -843,14 +844,14 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 				svert= strand->vert;
 
 				/* keep clipping and z depth for 4 control points */
-				clip[1]= strand_test_clip(winmat, &zspan, bounds, svert->co, &z[1]);
-				clip[2]= strand_test_clip(winmat, &zspan, bounds, (svert+1)->co, &z[2]);
+				clip[1]= strand_test_clip(obwinmat, &zspan, bounds, svert->co, &z[1]);
+				clip[2]= strand_test_clip(obwinmat, &zspan, bounds, (svert+1)->co, &z[2]);
 				clip[0]= clip[1]; z[0]= z[1];
 
 				for(b=0; b<strand->totvert-1; b++, svert++) {
 					/* compute 4th point clipping and z depth */
 					if(b < strand->totvert-2) {
-						clip[3]= strand_test_clip(winmat, &zspan, bounds, (svert+2)->co, &z[3]);
+						clip[3]= strand_test_clip(obwinmat, &zspan, bounds, (svert+2)->co, &z[3]);
 					}
 					else {
 						clip[3]= clip[2]; z[3]= z[2];
@@ -900,7 +901,11 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 
 			obi= &re->objectinstance[sortseg->obi];
 			obr= obi->obr;
-			zbuf_make_winmat(re, NULL, winmat);
+
+			if(obi->flag & R_TRANSFORMED)
+				Mat4MulMat4(obwinmat, obi->mat, winmat);
+			else
+				Mat4CpyMat4(obwinmat, winmat);
 
 			sseg.obi= obi;
 			sseg.strand= RE_findOrAddStrand(obr, sortseg->strand);
@@ -917,7 +922,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 
 			spart.segment= &sseg;
 
-			render_strand_segment(re, winmat, &spart, &zspan, 1, &sseg);
+			render_strand_segment(re, obwinmat, &spart, &zspan, 1, &sseg);
 		}
 	}
 

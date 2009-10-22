@@ -287,6 +287,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 	return false; // was DT_CONTINUE but this was defined in sumo as false.
 }
 
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -345,5 +346,6 @@ PyObject* KX_TouchSensor::pyattr_get_object_hit_list(void *self_v, const KX_PYAT
 	return self->m_colliders->GetProxy();
 }
 
+#endif
 
 /* eof */

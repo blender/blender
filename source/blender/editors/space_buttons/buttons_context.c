@@ -52,6 +52,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_screen.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 
@@ -116,6 +117,7 @@ static int buttons_context_path_scene(ButsContextPath *path)
 static int buttons_context_path_world(ButsContextPath *path)
 {
 	Scene *scene;
+	World *world;
 	PointerRNA *ptr= &path->ptr[path->len-1];
 
 	/* if we already have a (pinned) world, we're done */
@@ -125,11 +127,14 @@ static int buttons_context_path_world(ButsContextPath *path)
 	/* if we have a scene, use the scene's world */
 	else if(buttons_context_path_scene(path)) {
 		scene= path->ptr[path->len-1].data;
+		world= scene->world;
+		
+		if(world) {
+			RNA_id_pointer_create(&scene->world->id, &path->ptr[path->len]);
+			path->len++;
 
-		RNA_id_pointer_create(&scene->world->id, &path->ptr[path->len]);
-		path->len++;
-
-		return 1;
+			return 1;
+		}
 	}
 
 	/* no path to a world possible */
@@ -342,7 +347,6 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 	Lamp *la;
 	Brush *br;
 	World *wo;
-	MTex *mtex;
 	Tex *tex;
 	PointerRNA *ptr= &path->ptr[path->len-1];
 
@@ -355,8 +359,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		br= path->ptr[path->len-1].data;
 
 		if(br) {
-			mtex= br->mtex[(int)br->texact];
-			tex= (mtex)? mtex->tex: NULL;
+			tex= give_current_brush_texture(br);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
@@ -368,8 +371,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		wo= path->ptr[path->len-1].data;
 
 		if(wo) {
-			mtex= wo->mtex[(int)wo->texact];
-			tex= (mtex)? mtex->tex: NULL;
+			tex= give_current_world_texture(wo);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
@@ -381,8 +383,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		ma= path->ptr[path->len-1].data;
 
 		if(ma) {
-			mtex= ma->mtex[(int)ma->texact];
-			tex= (mtex)? mtex->tex: NULL;
+			tex= give_current_material_texture(ma);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
@@ -394,8 +395,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		la= path->ptr[path->len-1].data;
 
 		if(la) {
-			mtex= la->mtex[(int)la->texact];
-			tex= (mtex)? mtex->tex: NULL;
+			tex= give_current_lamp_texture(la);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
@@ -437,6 +437,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	 * tracing back recursively */
 	switch(mainb) {
 		case BCONTEXT_SCENE:
+		case BCONTEXT_RENDER:
 			found= buttons_context_path_scene(path);
 			break;
 		case BCONTEXT_WORLD:
@@ -463,6 +464,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_texture(C, path);
 			break;
 		case BCONTEXT_BONE:
+		case BCONTEXT_BONE_CONSTRAINT:
 			found= buttons_context_path_bone(path);
 			if(!found)
 				found= buttons_context_path_data(path, OB_ARMATURE);
@@ -552,8 +554,8 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		static const char *dir[] = {
 			"world", "object", "mesh", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
-			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
-			"cloth", "soft_body", "fluid", "smoke", "smoke_hr", "collision", "brush", NULL};
+			"texture", "texture_slot", "bone", "edit_bone", "particle_system", "particle_system_editable",
+			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -656,6 +658,13 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		set_pointer_type(path, result, &RNA_ParticleSystem);
 		return 1;
 	}
+	else if(CTX_data_equals(member, "particle_system_editable")) {
+		if(PE_poll(C))
+			set_pointer_type(path, result, &RNA_ParticleSystem);
+		else
+			CTX_data_pointer_set(result, NULL, &RNA_ParticleSystem, NULL);
+		return 1;
+	}	
 	else if(CTX_data_equals(member, "cloth")) {
 		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
 
@@ -775,7 +784,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 			name= RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf));
 
 			if(name) {
-				if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene)
+				if(!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE) && ptr->type == &RNA_Scene)
 					uiItemL(row, "", icon); /* save some space */
 				else
 					uiItemL(row, name, icon);

@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "string.h"
+
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -39,6 +41,7 @@
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_screen.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -128,16 +131,69 @@ void WM_operator_stack_clear(bContext *C)
 
 /* ****************************************** */
 
+static ListBase menutypes = {NULL, NULL}; /* global menutype list */
+
+MenuType *WM_menutype_find(const char *idname, int quiet)
+{
+	MenuType* mt;
+
+	if (idname[0]) {
+		for(mt=menutypes.first; mt; mt=mt->next)
+			if(strcmp(idname, mt->idname)==0)
+				return mt;
+	}
+
+	if(!quiet)
+		printf("search for unknown menutype %s\n", idname);
+
+	return NULL;
+}
+
+int WM_menutype_add(MenuType* mt)
+{
+	BLI_addtail(&menutypes, mt);
+	return 1;
+}
+
+void WM_menutype_freelink(MenuType* mt)
+{
+	BLI_freelinkN(&menutypes, mt);
+}
+
+void WM_menutype_free(void)
+{
+	MenuType* mt= menutypes.first, *mt_next;
+
+	while(mt) {
+		mt_next= mt->next;
+
+		if(mt->ext.free)
+			mt->ext.free(mt->ext.data);
+
+		WM_menutype_freelink(mt);
+
+		mt= mt_next;
+	}
+}
+
+/* ****************************************** */
+
 void WM_keymap_init(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 
+	if(!wm->defaultconf)
+		wm->defaultconf= WM_keyconfig_add(wm, "Blender");
+	
 	if(wm && CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
-		wm_window_keymap(wm);
-		ED_spacetypes_keymap(wm);
+		/* create default key config */
+		wm_window_keymap(wm->defaultconf);
+		ED_spacetypes_keymap(wm->defaultconf);
 
 		wm->initialized |= WM_INIT_KEYMAP;
 	}
+
+	WM_keyconfig_userdef(wm);
 }
 
 void wm_check(bContext *C)
@@ -151,15 +207,16 @@ void wm_check(bContext *C)
 	}
 	if(wm==NULL) return;
 	if(wm->windows.first==NULL) return;
+
+	/* case: fileread */
+	if((wm->initialized & WM_INIT_WINDOW) == 0)
+		WM_keymap_init(C);
 	
 	/* case: no open windows at all, for old file reads */
 	wm_window_add_ghostwindows(wm);
 	
 	/* case: fileread */
 	if((wm->initialized & WM_INIT_WINDOW) == 0) {
-		
-		WM_keymap_init(C);
-		
 		ED_screens_initialize(wm);
 		wm->initialized |= WM_INIT_WINDOW;
 	}
@@ -211,8 +268,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
 	wmWindow *win;
 	wmOperator *op;
-	wmKeyMap *km;
-	wmKeymapItem *kmi;
+	wmKeyConfig *keyconf;
 	
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
@@ -226,19 +282,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 		WM_operator_free(op);
 	}
 
-	while((km= wm->keymaps.first)) {
-		for(kmi=km->keymap.first; kmi; kmi=kmi->next) {
-			if(kmi->ptr) {
-				WM_operator_properties_free(kmi->ptr);
-				MEM_freeN(kmi->ptr);
-			}
-		}
-
-		BLI_freelistN(&km->keymap);
-		BLI_remlink(&wm->keymaps, km);
-		MEM_freeN(km);
+	while((keyconf=wm->keyconfigs.first)) {
+		BLI_remlink(&wm->keyconfigs, keyconf);
+		WM_keyconfig_free(keyconf);
 	}
-	
+
 	BLI_freelistN(&wm->queue);
 	
 	BLI_freelistN(&wm->paintcursors);

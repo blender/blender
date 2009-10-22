@@ -2185,6 +2185,8 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data = ((bKinematicConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
 				data->poletar = newlibadr(fd, id->lib, data->poletar);
+				con->lin_error = 0.f;
+				con->rot_error = 0.f;
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -2332,6 +2334,7 @@ static void lib_link_armature(FileData *fd, Main *main)
 
 	while(arm) {
 		if(arm->id.flag & LIB_NEEDLINK) {
+			if (arm->adt) lib_link_animdata(fd, &arm->id, arm->adt);
 			arm->id.flag -= LIB_NEEDLINK;
 		}
 		arm= arm->id.next;
@@ -2358,6 +2361,7 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
 	arm->sketch = NULL;
+	arm->adt= newdataadr(fd, arm->adt);
 	
 	bone=arm->bonebase.first;
 	while (bone) {
@@ -3030,6 +3034,7 @@ static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointC
 static void lib_link_particlesettings(FileData *fd, Main *main)
 {
 	ParticleSettings *part;
+	ParticleDupliWeight *dw;
 
 	part= main->particle.first;
 	while(part) {
@@ -3041,6 +3046,14 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
 			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
+
+			if(part->effector_weights)
+				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
+
+			dw = part->dupliweights.first;
+			for(; dw; dw=dw->next)
+				dw->ob = newlibadr(fd, part->id.lib, dw->ob);
+
 			if(part->boids) {
 				BoidState *state = part->boids->states.first;
 				BoidRule *rule;
@@ -3075,6 +3088,13 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
+
+	if(part->effector_weights)
+		part->effector_weights = newdataadr(fd, part->effector_weights);
+	else
+		part->effector_weights = BKE_add_effector_weights(part->eff_group);
+
+	link_list(fd, &part->dupliweights);
 
 	part->boids= newdataadr(fd, part->boids);
 
@@ -3152,18 +3172,19 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		}
 
 
-		psys->child=newdataadr(fd,psys->child);
-		psys->effectors.first=psys->effectors.last=0;
+		psys->child = newdataadr(fd,psys->child);
+		psys->effectors = NULL;
 
 		link_list(fd, &psys->targets);
 
 		psys->edit = NULL;
 		psys->free_edit = NULL;
-		psys->pathcache = 0;
-		psys->childcache = 0;
-		psys->pathcachebufs.first = psys->pathcachebufs.last = 0;
-		psys->childcachebufs.first = psys->childcachebufs.last = 0;
-		psys->reactevents.first = psys->reactevents.last = 0;
+		psys->pathcache = NULL;
+		psys->childcache = NULL;
+		psys->pathcachebufs.first = psys->pathcachebufs.last = NULL;
+		psys->childcachebufs.first = psys->childcachebufs.last = NULL;
+		psys->frand = NULL;
+		psys->pdd = NULL;
 
 		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache);
 
@@ -3779,6 +3800,11 @@ static void lib_link_object(FileData *fd, Main *main)
 				else if(act->type==ACT_STATE) {
 					/* bStateActuator *statea = act->data; */
 				}
+				else if(act->type==ACT_ARMATURE) {
+					bArmatureActuator *arma= act->data;
+					arma->target= newlibadr(fd, ob->id.lib, arma->target);
+					arma->subtarget= newlibadr(fd, ob->id.lib, arma->subtarget);
+				}
 				act= act->next;
 			}
 			
@@ -3797,6 +3823,17 @@ static void lib_link_object(FileData *fd, Main *main)
 					smd->domain->coll_group = newlibadr_us(fd, ob->id.lib, smd->domain->coll_group);
 					smd->domain->eff_group = newlibadr_us(fd, ob->id.lib, smd->domain->eff_group);
 					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
+
+					smd->domain->effector_weights->group = newlibadr(fd, ob->id.lib, smd->domain->effector_weights->group);
+				}
+			}
+
+			{
+				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+				
+				if(clmd) 
+				{
+					clmd->sim_parms->effector_weights->group = newlibadr(fd, ob->id.lib, clmd->sim_parms->effector_weights->group);
 				}
 			}
 			
@@ -3804,6 +3841,9 @@ static void lib_link_object(FileData *fd, Main *main)
 			if(ob->pd)
 				if(ob->pd->tex)
 					ob->pd->tex=newlibadr_us(fd, ob->id.lib, ob->pd->tex);
+
+			if(ob->soft)
+				ob->soft->effector_weights->group = newlibadr(fd, ob->id.lib, ob->soft->effector_weights->group);
 
 			lib_link_particlesystems(fd, ob, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
@@ -3839,6 +3879,10 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
+	}
+	pose->ikdata = NULL;
+	if (pose->ikparam != NULL) {
+		pose->ikparam= newdataadr(fd, pose->ikparam);
 	}
 }
 
@@ -3880,6 +3924,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				if(clmd->sim_parms->presets > 10)
 					clmd->sim_parms->presets = 0;
 			}
+
+			if(clmd->sim_parms->effector_weights)
+				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
+			else
+				clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 			
 		}
 		else if (md->type==eModifierType_Fluidsim) {
@@ -3905,6 +3954,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->tex_shadow = NULL;
 				smd->domain->tex_wt = NULL;
 
+				if(smd->domain->effector_weights)
+					smd->domain->effector_weights = newdataadr(fd, smd->domain->effector_weights);
+				else
+					smd->domain->effector_weights = BKE_add_effector_weights(NULL);
+
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]));
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[1]), &(smd->domain->point_cache[1]));
 			}
@@ -3920,12 +3974,15 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			{
 				smd->flow = NULL;
 				smd->domain = NULL;
-				smd->coll = NULL;
-				/*
 				smd->coll = newdataadr(fd, smd->coll);
-				smd->coll->points = NULL;
-				smd->coll->numpoints = 0;
-				*/
+				if(smd->coll)
+				{
+					smd->coll->points = NULL;
+					smd->coll->numpoints = 0;
+				}
+				else
+					smd->type = 0;
+
 			}
 		}
 		else if (md->type==eModifierType_Collision) {
@@ -4027,7 +4084,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	/* weak weak... this was only meant as draw flag, now is used in give_base too */
 	ob->flag &= ~OB_FROMGROUP;
-
+	
+	/* editmode doesn't get saved in files, so should get cleared when reloading... */
+	ob->mode &= ~(OB_MODE_EDIT|OB_MODE_PARTICLE_EDIT);
+	
 	ob->disp.first=ob->disp.last= NULL;
 	
 	ob->adt= newdataadr(fd, ob->adt);
@@ -4101,6 +4161,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 
 	ob->pd= newdataadr(fd, ob->pd);
+	if(ob->pd)
+		ob->pd->rng=NULL;
 	ob->soft= newdataadr(fd, ob->soft);
 	if(ob->soft) {
 		SoftBody *sb= ob->soft;		
@@ -4117,6 +4179,11 @@ static void direct_link_object(FileData *fd, Object *ob)
 				sb->keys[a]= newdataadr(fd, sb->keys[a]);
 			}
 		}
+
+		if(sb->effector_weights)
+			sb->effector_weights = newdataadr(fd, sb->effector_weights);
+		else
+			sb->effector_weights = BKE_add_effector_weights(NULL);
 
 		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
 	}
@@ -4196,6 +4263,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 		BLI_addhead(&ob->modifiers, hmd);
 		BLI_remlink(&ob->hooks, hook);
+		
+		modifier_unique_name(&ob->modifiers, (ModifierData*)hmd);
 
 		MEM_freeN(hook);
 	}
@@ -4266,9 +4335,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 
 				/* base->object= newlibadr_us(fd, sce->id.lib, base->object); */
 				base->object= newlibadr_us(fd, sce->id.lib, base->object);
-				
-				/* when save during radiotool, needs cleared */
-				base->flag &= ~OB_RADIO;
 				
 				if(base->object==NULL) {
 					printf("LIB ERROR: base removed\n");
@@ -4537,6 +4603,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->timers.first= win->timers.last= NULL;
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
+		win->modalhandlers.first= win->modalhandlers.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
 		win->gesture.first= win->gesture.last= NULL;
 
@@ -4546,10 +4613,12 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	}
 	
 	wm->operators.first= wm->operators.last= NULL;
-	wm->keymaps.first= wm->keymaps.last= NULL;
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
 	BKE_reports_init(&wm->reports, RPT_STORE);
+
+	wm->keyconfigs.first= wm->keyconfigs.last= NULL;
+	wm->defaultconf= NULL;
 
 	wm->jobs.first= wm->jobs.last= NULL;
 	
@@ -4851,7 +4920,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 							v3d->layact= v3d->localvd->layact;
 							MEM_freeN(v3d->localvd); 
 							v3d->localvd= NULL;
-							v3d->localview= 0;
 						}
 						*/
 					}
@@ -4994,7 +5062,6 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 			rv3d->ri= NULL;
 			rv3d->sms= NULL;
 			rv3d->smooth_timer= NULL;
-			rv3d->lastmode= 0;
 		}
 	}
 	
@@ -5378,6 +5445,33 @@ static char *dataname(short id_code)
 	
 }
 
+static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocname)
+{
+	bhead = blo_nextbhead(fd, bhead);
+
+	while(bhead && bhead->code==DATA) {
+		void *data;
+#if 0		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
+		short *sp= fd->filesdna->structs[bhead->SDNAnr];
+		char *allocname = fd->filesdna->types[ sp[0] ];
+		char *tmp= malloc(100);
+		
+		strcpy(tmp, allocname);
+		data= read_struct(fd, bhead, tmp);
+#endif
+		data= read_struct(fd, bhead, allocname);
+		
+		if (data) {
+			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
+		}
+
+		bhead = blo_nextbhead(fd, bhead);
+	}
+
+	return bhead;
+}
+
 static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID **id_r)
 {
 	/* this routine reads a libblock and its direct data. Use link functions
@@ -5419,32 +5513,11 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		return blo_nextbhead(fd, bhead);
 	}
 
-	bhead = blo_nextbhead(fd, bhead);
-
 	/* need a name for the mallocN, just for debugging and sane prints on leaks */
 	allocname= dataname(GS(id->name));
 	
-		/* read all data */
-	
-	while(bhead && bhead->code==DATA) {
-		void *data;
-#if 0		
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
-		short *sp= fd->filesdna->structs[bhead->SDNAnr];
-		char *allocname = fd->filesdna->types[ sp[0] ];
-		char *tmp= malloc(100);
-		
-		strcpy(tmp, allocname);
-		data= read_struct(fd, bhead, tmp);
-#endif
-		data= read_struct(fd, bhead, allocname);
-		
-		if (data) {
-			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
-		}
-
-		bhead = blo_nextbhead(fd, bhead);
-	}
+	/* read all data into fd->datamap */
+	bhead= read_data_into_oldnewmap(fd, bhead, allocname);
 
 	/* init pointers direct data */
 	switch( GS(id->name) ) {
@@ -6308,7 +6381,70 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 	}		
 }
 
+static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
+{
+	MTex *mtex;
+	float varfac, colfac;
+	int a, neg;
 
+	if(!mtex_array)
+		return;
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(mtex_array[a]) {
+			mtex= mtex_array[a];
+
+			neg= mtex->maptoneg;
+			varfac= mtex->varfac;
+			colfac= mtex->colfac;
+
+			if(neg & MAP_DISP) mtex->dispfac= -mtex->dispfac;
+			if(neg & MAP_NORM) mtex->norfac= -mtex->norfac;
+			if(neg & MAP_WARP) mtex->warpfac= -mtex->warpfac;
+
+			mtex->colspecfac= (neg & MAP_COLSPEC)? -colfac: colfac;
+			mtex->mirrfac= (neg & MAP_COLMIR)? -colfac: colfac;
+			mtex->alphafac= (neg & MAP_ALPHA)? -varfac: varfac;
+			mtex->difffac= (neg & MAP_REF)? -varfac: varfac;
+			mtex->specfac= (neg & MAP_SPEC)? -varfac: varfac;
+			mtex->emitfac= (neg & MAP_EMIT)? -varfac: varfac;
+			mtex->hardfac= (neg & MAP_HAR)? -varfac: varfac;
+			mtex->raymirrfac= (neg & MAP_RAYMIRR)? -varfac: varfac;
+			mtex->translfac= (neg & MAP_TRANSLU)? -varfac: varfac;
+			mtex->ambfac= (neg & MAP_AMB)? -varfac: varfac;
+			mtex->colemitfac= (neg & MAP_EMISSION_COL)? -colfac: colfac;
+			mtex->colreflfac= (neg & MAP_REFLECTION_COL)? -colfac: colfac;
+			mtex->coltransfac= (neg & MAP_TRANSMISSION_COL)? -colfac: colfac;
+			mtex->densfac= (neg & MAP_DENSITY)? -varfac: varfac;
+			mtex->scatterfac= (neg & MAP_SCATTERING)? -varfac: varfac;
+			mtex->reflfac= (neg & MAP_REFLECTION)? -varfac: varfac;
+
+			mtex->timefac= (neg & MAP_PA_TIME)? -varfac: varfac;
+			mtex->lengthfac= (neg & MAP_PA_LENGTH)? -varfac: varfac;
+			mtex->clumpfac= (neg & MAP_PA_CLUMP)? -varfac: varfac;
+			mtex->kinkfac= (neg & MAP_PA_KINK)? -varfac: varfac;
+			mtex->roughfac= (neg & MAP_PA_ROUGH)? -varfac: varfac;
+			mtex->padensfac= (neg & MAP_PA_DENS)? -varfac: varfac;
+			mtex->lifefac= (neg & MAP_PA_LIFE)? -varfac: varfac;
+			mtex->sizefac= (neg & MAP_PA_SIZE)? -varfac: varfac;
+			mtex->ivelfac= (neg & MAP_PA_IVEL)? -varfac: varfac;
+			mtex->pvelfac= (neg & MAP_PA_PVEL)? -varfac: varfac;
+
+			mtex->shadowfac= (neg & LAMAP_SHAD)? -colfac: colfac;
+
+			mtex->zenupfac= (neg & WOMAP_ZENUP)? -colfac: colfac;
+			mtex->zendownfac= (neg & WOMAP_ZENDOWN)? -colfac: colfac;
+			mtex->blendfac= (neg & WOMAP_BLEND)? -varfac: varfac;
+
+			if(idtype == ID_MA)
+				mtex->colfac= (neg & MAP_COL)? -colfac: colfac;
+			else if(idtype == ID_LA)
+				mtex->colfac= (neg & LAMAP_COL)? -colfac: colfac;
+			else if(idtype == ID_WO)
+				mtex->colfac= (neg & WOMAP_HORIZ)? -colfac: colfac;
+		}
+	}
+}
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -7690,6 +7826,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						smd->flags |= eSubsurfModifierFlag_ControlEdges;
 					
 					BLI_addtail(&ob->modifiers, smd);
+					
+					modifier_unique_name(&ob->modifiers, (ModifierData*)smd);
 				}
 			}
 			
@@ -9518,10 +9656,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 */
 		//do_versions_ipos_to_animato(main);
 		
-		/* toolsettings */
-		for(scene= main->scene.first; scene; scene= scene->id.next)
-			scene->r.audio = scene->audio;
-		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
 		 */
@@ -9535,7 +9669,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
 
 			/* move to cameras */
-			if(sce->r.scemode & R_PANORAMA) {
+			if(sce->r.mode & R_PANORAMA) {
 				for(base=sce->base.first; base; base=base->next) {
 					ob= newlibadr(fd, lib, base->object);
 
@@ -9545,7 +9679,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 
-				sce->r.scemode &= ~R_PANORAMA;
+				sce->r.mode &= ~R_PANORAMA;
 			}
 		}
 		/* and texture trees */
@@ -9731,16 +9865,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (ma->vol.stepsize < 0.0001f) {
 				ma->vol.density = 1.0f;
 				ma->vol.emission = 0.0f;
-				ma->vol.absorption = 1.0f;
 				ma->vol.scattering = 1.0f;
 				ma->vol.emission_col[0] = ma->vol.emission_col[1] = ma->vol.emission_col[2] = 1.0f;
-				ma->vol.absorption_col[0] = ma->vol.absorption_col[1] = ma->vol.absorption_col[2] = 0.0f;
 				ma->vol.density_scale = 1.0f;
 				ma->vol.depth_cutoff = 0.01f;
 				ma->vol.stepsize_type = MA_VOL_STEP_RANDOMIZED;
 				ma->vol.stepsize = 0.2f;
-				ma->vol.shade_stepsize = 0.2f;
-				ma->vol.shade_type = MA_VOL_SHADE_SINGLE;
+				ma->vol.shade_type = MA_VOL_SHADE_SHADED;
 				ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
 				ma->vol.precache_resolution = 50;
 			}
@@ -9857,26 +9988,129 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 4)) {
 		Scene *sce;
 		Object *ob;
+		Material *ma;
+		Lamp *la;
+		World *wo;
+		Tex *tex;
+		ParticleSettings *part;
+		int do_gravity = 0;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next)
 			if(sce->unit.scale_length == 0.0f)
 				sce->unit.scale_length= 1.0f;
 		
 		for(ob = main->object.first; ob; ob = ob->id.next) {
+			/* fluid-sim stuff */
+			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+			if (fluidmd) fluidmd->fss->fmd = fluidmd;
+			
+			/* rotation modes were added, but old objects would now default to being 'quaternion based' */
+			ob->rotmode= ROT_MODE_EUL;
+		}
+		
+		for(ma = main->mat.first; ma; ma=ma->id.next) {
+			if(ma->vol.reflection == 0.f) {
+				ma->vol.reflection = 1.f;
+				ma->vol.transmission_col[0] = ma->vol.transmission_col[1] = ma->vol.transmission_col[2] = 1.0f;
+				ma->vol.reflection_col[0] = ma->vol.reflection_col[1] = ma->vol.reflection_col[2] = 1.0f;
+			}
+
+			do_version_mtex_factor_2_50(ma->mtex, ID_MA);
+		}
+
+		for(la = main->lamp.first; la; la=la->id.next)
+			do_version_mtex_factor_2_50(la->mtex, ID_LA);
+
+		for(wo = main->world.first; wo; wo=wo->id.next)
+			do_version_mtex_factor_2_50(wo->mtex, ID_WO);
+
+		for(tex = main->tex.first; tex; tex=tex->id.next)
+			if(tex->vd)
+				if(tex->vd->extend == 0)
+					tex->vd->extend = TEX_CLIP;
+		
+		for(sce= main->scene.first; sce; sce= sce->id.next)
+		{
+			if(sce->audio.main == 0.0)
+				sce->audio.main = 1.0;
+
+			sce->r.ffcodecdata.audio_mixrate = sce->audio.mixrate;
+			sce->r.ffcodecdata.audio_volume = sce->audio.main;
+			sce->audio.distance_model = 2.0;
+			sce->audio.doppler_factor = 1.0;
+			sce->audio.speed_of_sound = 343.3;
+		}
+
+		/* Add default gravity to scenes */
+		for(sce= main->scene.first; sce; sce= sce->id.next) {
+			if((sce->physics_settings.flag & PHYS_GLOBAL_GRAVITY) == 0
+				&& VecLength(sce->physics_settings.gravity) == 0.0f) {
+
+				sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
+				sce->physics_settings.gravity[2] = -9.81f;
+				sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
+				do_gravity = 1;
+			}
+		}
+
+		/* Assign proper global gravity weights for dynamics (only z-coordinate is taken into account) */
+		if(do_gravity) for(part= main->particle.first; part; part= part->id.next)
+			part->effector_weights->global_gravity = part->acc[2]/-9.81f;
+
+		for(ob = main->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 
-			/* add backwards pointer for fluidsim modifier RNA access */
-			for (md=ob->modifiers.first; md; md = md->next) {
-				if (md->type == eModifierType_Fluidsim) {
-					FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
-					fluidmd->fss->fmd = fluidmd;
+			if(do_gravity) {
+				for(md= ob->modifiers.first; md; md= md->next) {
+					ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+					if(clmd)
+						clmd->sim_parms->effector_weights->global_gravity = clmd->sim_parms->gravity[2]/-9.81;
+				}
+
+				if(ob->soft)
+					ob->soft->effector_weights->global_gravity = ob->soft->grav/9.81;
+			}
+
+			/* Normal wind shape is plane */
+			if(ob->pd) {
+				if(ob->pd->forcefield == PFIELD_WIND)
+					ob->pd->shape = PFIELD_SHAPE_PLANE;
+				
+				if(ob->pd->flag & PFIELD_PLANAR)
+					ob->pd->shape = PFIELD_SHAPE_PLANE;
+				else if(ob->pd->flag & PFIELD_SURFACE)
+					ob->pd->shape = PFIELD_SHAPE_SURFACE;
+			}
+		}
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 6)) {
+		Object *ob;
+		Lamp *la;
+		
+		/* New variables for axis-angle rotations and/or quaternion rotations were added, and need proper initialisation */
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			/* new variables for all objects */
+			ob->quat[0]= 1.0f;
+			ob->rotAxis[1]= 1.0f;
+			
+			/* bones */
+			if (ob->pose) {
+				bPoseChannel *pchan;
+				
+				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					/* just need to initalise rotation axis properly... */
+					pchan->rotAxis[1]= 1.0f;
 				}
 			}
 		}
+
+		for(la = main->lamp.first; la; la=la->id.next)
+			la->compressthresh= 0.05f;
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -9922,22 +10156,38 @@ static void lib_link_all(FileData *fd, Main *main)
 
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
-	Link *link;
+	UserDef *user;
+	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 
-	bfd->user= read_struct(fd, bhead, "user def");
-	bfd->user->themes.first= bfd->user->themes.last= NULL;
-	// XXX
-	bfd->user->uifonts.first= bfd->user->uifonts.last= NULL;
-	bfd->user->uistyles.first= bfd->user->uistyles.last= NULL;
+	bfd->user= user= read_struct(fd, bhead, "user def");
 
-	bhead = blo_nextbhead(fd, bhead);
+	/* read all data into fd->datamap */
+	bhead= read_data_into_oldnewmap(fd, bhead, "user def");
 
-		/* read all attached data */
-	while(bhead && bhead->code==DATA) {
-		link= read_struct(fd, bhead, "user def data");
-		BLI_addtail(&bfd->user->themes, link);
-		bhead = blo_nextbhead(fd, bhead);
+	link_list(fd, &user->themes);
+	link_list(fd, &user->keymaps);
+
+	for(keymap=user->keymaps.first; keymap; keymap=keymap->next) {
+		keymap->modal_items= NULL;
+		keymap->poll= NULL;
+
+		link_list(fd, &keymap->items);
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
+			kmi->properties= newdataadr(fd, kmi->properties);
+			if(kmi->properties)
+				IDP_DirectLinkProperty(kmi->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			kmi->ptr= NULL;
+		}
 	}
+
+	// XXX
+	user->uifonts.first= user->uifonts.last= NULL;
+	user->uistyles.first= user->uistyles.last= NULL;
+
+	/* free fd->datamap again */
+	oldnewmap_free_unused(fd->datamap);
+	oldnewmap_clear(fd->datamap);
 
 	return bhead;
 }
@@ -10592,6 +10842,9 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 {
 	Bone *curBone;
 
+	if(arm->adt)
+		expand_animdata(fd, mainvar, arm->adt);
+
 	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
 		expand_bones(fd, mainvar, curBone);
 	}
@@ -10740,10 +10993,18 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 			bObjectActuator *oa= act->data;
 			expand_doit(fd, mainvar, oa->reference);
 		}
+		else if(act->type==ACT_ADD_OBJECT) {
+			bAddObjectActuator *aoa= act->data;
+			expand_doit(fd, mainvar, aoa->ob);
+		}
 		else if(act->type==ACT_SCENE) {
 			bSceneActuator *sa= act->data;
 			expand_doit(fd, mainvar, sa->camera);
 			expand_doit(fd, mainvar, sa->scene);
+		}
+		else if(act->type==ACT_2DFILTER) {
+			bTwoDFilterActuator *tdfa= act->data;
+			expand_doit(fd, mainvar, tdfa->text);
 		}
 		else if(act->type==ACT_ACTION) {
 			bActionActuator *aa= act->data;
@@ -10760,6 +11021,14 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		else if(act->type==ACT_MESSAGE) {
 			bMessageActuator *ma= act->data;
 			expand_doit(fd, mainvar, ma->toObject);
+		}
+		else if(act->type==ACT_PARENT) {
+			bParentActuator *pa= act->data;
+			expand_doit(fd, mainvar, pa->ob);
+		}
+		else if(act->type==ACT_ARMATURE) {
+			bArmatureActuator *arma= act->data;
+			expand_doit(fd, mainvar, arma->target);
 		}
 		act= act->next;
 	}

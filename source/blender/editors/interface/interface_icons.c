@@ -47,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
 #include "BKE_utildefines.h"
@@ -58,7 +59,7 @@
 #include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
-#include "ED_previewrender.h"
+#include "ED_render.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -85,23 +86,45 @@ typedef struct IconImage {
 
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
+#define ICON_TYPE_PREVIEW	0
+#define ICON_TYPE_TEXTURE	1
+#define ICON_TYPE_BUFFER	2
+#define ICON_TYPE_VECTOR	3
+
 typedef struct DrawInfo {
+	int type;
+
+	union {
+		/* type specific data */
+		struct {
+			VectorDrawFunc func;
+		} vector;
+		struct {
+			IconImage* image;
+		} buffer;
+		struct {
+			int x, y, w, h;
+		} texture;
+	} data;
+} DrawInfo;
+
+typedef struct IconTexture {
+	GLuint id;
 	int w;
 	int h;
-	float aspect;
-	VectorDrawFunc drawFunc; /* If drawFunc is defined then it is a vector icon, otherwise use rect */		
-	IconImage* icon;
-} DrawInfo;
+	float invw;
+	float invh;
+} IconTexture;
 
 /* ******************* STATIC LOCAL VARS ******************* */
 /* static here to cache results of icon directory scan, so it's not 
  * scanning the filesystem each time the menu is drawn */
 static struct ListBase iconfilelist = {0, 0};
-
+static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
 /* **************************************************** */
 
-static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size)
+static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type)
 {
 	Icon *new_icon = NULL;
 	IconImage *iimg = NULL;
@@ -115,23 +138,28 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 	new_icon->type = 0;	
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
-	di->drawFunc = 0;
-	di->w = size;
-	di->h = size;
-	di->aspect = 1.0f;
-	
-	iimg = MEM_mallocN(sizeof(IconImage), "icon_img");
-	iimg->rect = MEM_mallocN(size*size*sizeof(unsigned int), "icon_rect");
-	iimg->w = size;
-	iimg->h = size;
+	di->type= type;
 
-	/* Here we store the rect in the icon - same as before */
-	imgsize = bbuf->x;
-	for (y=0; y<size; y++) {
-		memcpy(&iimg->rect[y*size], &bbuf->rect[(y+yofs)*imgsize+xofs], size*sizeof(int));
+	if(type == ICON_TYPE_TEXTURE) {
+		di->data.texture.x= xofs;
+		di->data.texture.y= yofs;
+		di->data.texture.w= size;
+		di->data.texture.h= size;
 	}
+	else if(type == ICON_TYPE_BUFFER) {
+		iimg = MEM_mallocN(sizeof(IconImage), "icon_img");
+		iimg->rect = MEM_mallocN(size*size*sizeof(unsigned int), "icon_rect");
+		iimg->w = size;
+		iimg->h = size;
 
-	di->icon = iimg;
+		/* Here we store the rect in the icon - same as before */
+		imgsize = bbuf->x;
+		for (y=0; y<size; y++) {
+			memcpy(&iimg->rect[y*size], &bbuf->rect[(y+yofs)*imgsize+xofs], size*sizeof(int));
+		}
+
+		di->data.buffer.image = iimg;
+	}
 
 	new_icon->drawinfo_free = UI_icons_free_drawinfo;
 	new_icon->drawinfo = di;
@@ -150,11 +178,8 @@ static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 	new_icon->type = 0;
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
-	di->drawFunc =drawFunc;
-	di->w = ICON_DEFAULT_HEIGHT;
-	di->h = ICON_DEFAULT_HEIGHT;
-	di->aspect = 1.0f;
-	di->icon = NULL;
+	di->type= ICON_TYPE_VECTOR;
+	di->data.vector.func =drawFunc;
 
 	new_icon->drawinfo_free = 0;
 	new_icon->drawinfo = di;
@@ -430,7 +455,7 @@ static void init_internal_icons()
 {
 	bTheme *btheme= U.themes.first;
 	ImBuf *bbuf= NULL;
-	int x, y;
+	int x, y, icontype;
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	char filenamestr[FILE_MAXFILE+16];	// 16 == strlen(".blender/icons/")+1
 	
@@ -450,17 +475,54 @@ static void init_internal_icons()
 				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
 				IMB_freeImBuf(bbuf);
 				bbuf= NULL;
+			}
 		}
-	}
 	}
 	if(bbuf==NULL)
 		bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
 
+	if(bbuf) {
+		/* free existing texture if any */
+		if(icongltex.id) {
+			glDeleteTextures(1, &icongltex.id);
+			icongltex.id= 0;
+		}
+
+		/* we only use a texture for cards with non-power of two */
+		if(GLEW_ARB_texture_non_power_of_two) {
+			glGenTextures(1, &icongltex.id);
+
+			if(icongltex.id) {
+				icongltex.w = bbuf->x;
+				icongltex.h = bbuf->y;
+				icongltex.invw = 1.0f/bbuf->x;
+				icongltex.invh = 1.0f/bbuf->y;
+
+				glBindTexture(GL_TEXTURE_2D, icongltex.id);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bbuf->x, bbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, bbuf->rect);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glBindTexture(GL_TEXTURE_2D, 0);
+
+				if(glGetError() == GL_OUT_OF_MEMORY) {
+					glDeleteTextures(1, &icongltex.id);
+					icongltex.id= 0;
+				}
+			}
+		}
+	}
+
+	if(icongltex.id)
+		icontype= ICON_TYPE_TEXTURE;
+	else
+		icontype= ICON_TYPE_BUFFER;
+	
 	for (y=0; y<ICON_GRID_ROWS; y++) {
 		for (x=0; x<ICON_GRID_COLS; x++) {
 			def_internal_icon(bbuf, BIFICONID_FIRST + y*ICON_GRID_COLS + x,
 				x*(ICON_GRID_W+ICON_GRID_MARGIN)+ICON_GRID_MARGIN,
-				y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN, ICON_GRID_W);
+				y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN, ICON_GRID_W,
+				icontype);
 		}
 	}
 
@@ -587,6 +649,11 @@ ListBase *UI_iconfile_list(void)
 
 void UI_icons_free()
 {
+	if(icongltex.id) {
+		glDeleteTextures(1, &icongltex.id);
+		icongltex.id= 0;
+	}
+
 	free_iconfile_list(&iconfilelist);
 	BKE_icons_free();
 }
@@ -595,12 +662,14 @@ void UI_icons_free_drawinfo(void *drawinfo)
 {
 	DrawInfo *di = drawinfo;
 
-	if (di)
-	{
-		if (di->icon) {
-			MEM_freeN(di->icon->rect);
-			MEM_freeN(di->icon);
+	if(di) {
+		if(di->type == ICON_TYPE_BUFFER) {
+			if(di->data.buffer.image) {
+				MEM_freeN(di->data.buffer.image->rect);
+				MEM_freeN(di->data.buffer.image);
+			}
 		}
+
 		MEM_freeN(di);
 	}
 }
@@ -610,12 +679,7 @@ static DrawInfo *icon_create_drawinfo()
 	DrawInfo *di = NULL;
 
 	di = MEM_callocN(sizeof(DrawInfo), "di_icon");
-	
-	di->drawFunc = 0;
-	di->w = ICON_DEFAULT_HEIGHT;
-	di->h = ICON_DEFAULT_HEIGHT;
-	di->icon = NULL;
-	di->aspect = 1.0f;
+	di->type= ICON_TYPE_PREVIEW;
 
 	return di;
 }
@@ -639,7 +703,7 @@ int UI_icon_get_width(int icon_id)
 	}
 
 	if (di)
-		return di->w;
+		return ICON_DEFAULT_HEIGHT;
 
 	return 0;
 }
@@ -664,7 +728,7 @@ int UI_icon_get_height(int icon_id)
 	}
 	
 	if (di)
-		return di->h;
+		return ICON_DEFAULT_HEIGHT;
 
 	return 0;
 }
@@ -674,56 +738,6 @@ void UI_icons_init(int first_dyn_id)
 	init_iconfile_list(&iconfilelist);
 	BKE_icons_init(first_dyn_id);
 	init_internal_icons();
-}
-
-static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned int *rect)
-{
-	struct ImBuf *ima;
-	unsigned int *drect, *srect;
-	float scaledx, scaledy;
-	short ex, ey, dx, dy;
-
-	/* paranoia test */
-	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
-		return;
-	
-	/* waste of cpu cyles... but the imbuf API has no other way to scale fast (ton) */
-	ima = IMB_dupImBuf(ibuf);
-	
-	if (!ima) 
-		return;
-	
-	if (ima->x > ima->y) {
-		scaledx = (float)w;
-		scaledy =  ( (float)ima->y/(float)ima->x )*(float)w;
-	}
-	else {			
-		scaledx =  ( (float)ima->x/(float)ima->y )*(float)h;
-		scaledy = (float)h;
-	}
-	
-	ex = (short)scaledx;
-	ey = (short)scaledy;
-	
-	dx = (w - ex) / 2;
-	dy = (h - ey) / 2;
-	
-	IMB_scalefastImBuf(ima, ex, ey);
-	
-	/* if needed, convert to 32 bits */
-	if(ima->rect==NULL)
-		IMB_rect_from_float(ima);
-
-	srect = ima->rect;
-	drect = rect;
-
-	drect+= dy*w+dx;
-	for (;ey > 0; ey--){		
-		memcpy(drect,srect, ex * sizeof(int));
-		drect += w;
-		srect += ima->x;
-	}
-	IMB_freeImBuf(ima);
 }
 
 /* Render size for preview images at level miplevel */
@@ -751,113 +765,39 @@ static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel)
 	}
 }
 
-/* create single icon from jpg, png etc. */
-static void icon_from_image(Scene *scene, Image *img, int miplevel)
-{
-	ImBuf *ibuf= NULL;
-	ImageUser iuser;
-	PreviewImage *pi;
-	unsigned int pr_size;
-	short image_loaded = 0;
-
-	/* img->ok is zero when Image cannot load */
-	if (img==NULL || img->ok==0)
-		return;
-
-	/* setup dummy image user */
-	memset(&iuser, 0, sizeof(ImageUser));
-	iuser.ok= iuser.framenr= 1;
-	iuser.scene= scene;
-	
-	/* elubie: this needs to be changed: here image is always loaded if not
-	   already there. Very expensive for large images. Need to find a way to 
-	   only get existing ibuf */
-	
-	ibuf = BKE_image_get_ibuf(img, &iuser);
-	if(ibuf==NULL || ibuf->rect==NULL) {
-		return;
-	}
-	
-	pi = BKE_previewimg_get((ID*)img); 	
-	
-	if(!pi) {
-		printf("preview image could'nt be allocated");
-		return;
-	}
-	/* we can only create the preview rect here, since loading possibly deallocated
-	   old preview */
-	icon_create_mipmap(pi, miplevel);
-
-	pr_size = img->preview->w[miplevel]*img->preview->h[miplevel]*sizeof(unsigned int);
-
-	image_loaded = 1;
-	icon_copy_rect(ibuf, img->preview->w[miplevel], img->preview->h[miplevel], img->preview->rect[miplevel]);	
-}
-
-static void set_alpha(char* cp, int sizex, int sizey, char alpha) 
-{
-	int x,y;
-	for(y=0; y<sizey; y++) {
-		for(x=0; x<sizex; x++, cp+=4) {
-			cp[3]= alpha;
-		}
-	}
-}
-
 /* only called when icon has changed */
 /* only call with valid pointer from UI_icon_draw */
-static void icon_set_image(Scene *scene, ID *id, PreviewImage* prv_img, int miplevel)
+static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, int miplevel)
 {
-	RenderInfo ri;	
-	unsigned int pr_size = 0;
-	
 	if (!prv_img) {
 		printf("No preview image for this ID: %s\n", id->name);
 		return;
 	}	
 
-	/* no drawing (see last parameter doDraw, just calculate preview image 
-		- hopefully small enough to be fast */
-	if (GS(id->name) == ID_IM)
-		icon_from_image(scene, (struct Image*)id, miplevel);
-	else {	
-		/* create the preview rect */
-		icon_create_mipmap(prv_img, miplevel);
+	/* create the preview rect */
+	icon_create_mipmap(prv_img, miplevel);
 
-		ri.curtile= 0;
-		ri.tottile= 0;
-		ri.pr_rectx = prv_img->w[miplevel];
-		ri.pr_recty = prv_img->h[miplevel];
-		pr_size = ri.pr_rectx*ri.pr_recty*sizeof(unsigned int);
-		ri.rect = MEM_callocN(pr_size, "pr icon rect");
-
-		ED_preview_iconrender(scene, id, ri.rect, ri.pr_rectx, ri.pr_recty);
-
-		/* world is rendered with alpha=0, so it wasn't displayed 
-		   this could be render option for sky to, for later */
-		if (GS(id->name) == ID_WO) { 
-			set_alpha( (char*) ri.rect, ri.pr_rectx, ri.pr_recty, 255);
-		} 
-		else if (GS(id->name) == ID_MA) {
-			Material* mat = (Material*)id;
-			if (mat->material_type == MA_TYPE_HALO) {
-				set_alpha( (char*) ri.rect, ri.pr_rectx, ri.pr_recty, 255);
-			}
-		}
-
-		memcpy(prv_img->rect[miplevel], ri.rect, pr_size);
-
-		/* and clean up */
-		MEM_freeN(ri.rect);
-	}
+	ED_preview_icon_job(C, prv_img, id, prv_img->rect[miplevel],
+		prv_img->w[miplevel], prv_img->h[miplevel]);
 }
 
-static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect)
+static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect, float alpha, float *rgb)
 {
-	
+	/* modulate color */
+	if(alpha != 1.0f)
+		glPixelTransferf(GL_ALPHA_SCALE, alpha);
+
+	if(rgb) {
+		glPixelTransferf(GL_RED_SCALE, rgb[0]);
+		glPixelTransferf(GL_GREEN_SCALE, rgb[1]);
+		glPixelTransferf(GL_BLUE_SCALE, rgb[2]);
+	}
+
+	/* position */
 	glRasterPos2f(x, y);
 	// XXX ui_rasterpos_safe(x, y, aspect);
 	
+	/* draw */
 	if((w<1 || h<1)) {
 		// XXX - TODO 2.5 verify whether this case can happen
 		// and only print in debug
@@ -865,23 +805,68 @@ static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw,
 	}
 	/* rect contains image in 'rendersize', we only scale if needed */
 	else if(rw!=w && rh!=h) {
-		ImBuf *ima;
 		if(w>2000 || h>2000) { /* something has gone wrong! */
 			printf("insane icon size w=%d h=%d\n",w,h);
-			return;
 		}
-		/* first allocate imbuf for scaling and copy preview into it */
-		ima = IMB_allocImBuf(rw, rh, 32, IB_rect, 0);
-		memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
-		
-		/* scale it */
-		IMB_scaleImBuf(ima, w, h);
-		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
-		
-		IMB_freeImBuf(ima);
+		else {
+			ImBuf *ima;
+
+			/* first allocate imbuf for scaling and copy preview into it */
+			ima = IMB_allocImBuf(rw, rh, 32, IB_rect, 0);
+			memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
+			
+			/* scale it */
+			IMB_scaleImBuf(ima, w, h);
+			glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
+			
+			IMB_freeImBuf(ima);
+		}
 	}
 	else
 		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+
+	/* restore color */
+	if(alpha != 0.0f)
+		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+	
+	if(rgb) {
+		glPixelTransferf(GL_RED_SCALE, 1.0f);
+		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+	}
+}
+
+static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy, int iw, int ih, float alpha, float *rgb)
+{
+	float x1, x2, y1, y2;
+
+	if(rgb) glColor4f(rgb[0], rgb[1], rgb[2], alpha);
+	else glColor4f(1.0f, 1.0f, 1.0f, alpha);
+
+	x1= ix*icongltex.invw;
+	x2= (ix + ih)*icongltex.invw;
+	y1= iy*icongltex.invh;
+	y2= (iy + ih)*icongltex.invh;
+
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, icongltex.id);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(x1, y1);
+	glVertex2f(x, y);
+
+	glTexCoord2f(x2, y1);
+	glVertex2f(x+w, y);
+
+	glTexCoord2f(x2, y2);
+	glVertex2f(x+w, y+h);
+
+	glTexCoord2f(x1, y2);
+	glVertex2f(x, y+h);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_TEXTURE_2D);
 }
 
 /* Drawing size for preview images at level miplevel */
@@ -894,10 +879,12 @@ static int preview_size(int miplevel)
 	return 0;
 }
 
-static void icon_draw_size(float x, float y, int icon_id, float aspect, int miplevel, int draw_size, int nocreate)
+static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, float *rgb, int miplevel, int draw_size, int nocreate)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
+	IconImage *iimg;
+	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
 	
@@ -905,7 +892,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, int mipl
 		printf("icon_draw_mipmap: Internal error, no icon for icon ID: %d\n", icon_id);
 		return;
 	}
-	
+
 	di = (DrawInfo*)icon->drawinfo;
 	
 	if (!di) {
@@ -915,36 +902,43 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, int mipl
 		icon->drawinfo_free = UI_icons_free_drawinfo;		
 	}
 	
-	di->aspect = aspect;
 	/* scale width and height according to aspect */
-	di->w = (int)(draw_size/di->aspect + 0.5f);
-	di->h = (int)(draw_size/di->aspect + 0.5f);
+	w = (int)(draw_size/aspect + 0.5f);
+	h = (int)(draw_size/aspect + 0.5f);
 	
-	if (di->drawFunc) {
+	if(di->type == ICON_TYPE_VECTOR) {
 		/* vector icons use the uiBlock transformation, they are not drawn
 		with untransformed coordinates like the other icons */
-		di->drawFunc(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
+		di->data.vector.func(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	} 
-	else if (di->icon) {
-		/* it is a builtin icon */		
-		if (!di->icon->rect) return; /* something has gone wrong! */
-
-		icon_draw_rect(x,y,di->w, di->h, di->aspect, di->icon->w, di->icon->h, di->icon->rect);
+	else if(di->type == ICON_TYPE_TEXTURE) {
+		icon_draw_texture(x, y, w, h, di->data.texture.x, di->data.texture.y,
+			di->data.texture.w, di->data.texture.h, alpha, rgb);
 	}
-	else {
+	else if(di->type == ICON_TYPE_BUFFER) {
+		/* it is a builtin icon */		
+		iimg= di->data.buffer.image;
+
+		if(!iimg->rect) return; /* something has gone wrong! */
+
+		icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb);
+	}
+	else if(di->type == ICON_TYPE_PREVIEW) {
 		PreviewImage* pi = BKE_previewimg_get((ID*)icon->obj); 
 
-		if (pi) {			
+		if(pi) {			
 			/* no create icon on this level in code */
+			if(!pi->rect[miplevel]) return; /* something has gone wrong! */
 			
-			if (!pi->rect[miplevel]) return; /* something has gone wrong! */
-			
-			icon_draw_rect(x,y,di->w, di->h, di->aspect, pi->w[miplevel], pi->h[miplevel], pi->rect[miplevel]);		
+			/* preview images use premul alpha ... */
+			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			icon_draw_rect(x, y, w, h, aspect, pi->w[miplevel], pi->h[miplevel], pi->rect[miplevel], 1.0f, NULL);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
 }
 
-void ui_id_icon_render(Scene *scene, ID *id)
+void ui_id_icon_render(bContext *C, ID *id)
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
 		
@@ -952,13 +946,13 @@ void ui_id_icon_render(Scene *scene, ID *id)
 		if ((pi->changed[0] ||!pi->rect[0])) /* changed only ever set by dynamic icons */
 		{
 			/* create the preview rect if necessary */				
-			icon_set_image(scene, id, pi, 0);
+			icon_set_image(C, id, pi, 0);
 			pi->changed[0] = 0;
 		}
 	}
 }
 
-int ui_id_icon_get(Scene *scene, ID *id)
+int ui_id_icon_get(bContext *C, ID *id)
 {
 	int iconid= 0;
 	
@@ -972,7 +966,7 @@ int ui_id_icon_get(Scene *scene, ID *id)
 		case ID_LA: /* fall through */
 			iconid= BKE_icon_getid(id);
 			/* checks if not exists, or changed */
-			ui_id_icon_render(scene, id);
+			ui_id_icon_render(C, id);
 			break;
 		default:
 			break;
@@ -981,50 +975,35 @@ int ui_id_icon_get(Scene *scene, ID *id)
 	return iconid;
 }
 
-static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int miplevel, int nocreate)
+static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, float alpha, int miplevel, int nocreate)
 {
 	int draw_size = preview_size(miplevel);
-	icon_draw_size(x,y,icon_id, aspect, miplevel, draw_size, nocreate);
+	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, miplevel, draw_size, nocreate);
 }
 
-
-void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect)
+void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alpha)
 {
-	icon_draw_mipmap(x,y,icon_id, aspect, PREVIEW_MIPMAP_ZERO, 0);
+	icon_draw_mipmap(x, y, icon_id, aspect, alpha, PREVIEW_MIPMAP_ZERO, 0);
+}
+
+void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, float *rgb)
+{
+	int draw_size = preview_size(PREVIEW_MIPMAP_ZERO);
+	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, PREVIEW_MIPMAP_ZERO, draw_size, 0);
 }
 
 void UI_icon_draw(float x, float y, int icon_id)
 {
-	UI_icon_draw_aspect(x, y, icon_id, 1.0f);
+	UI_icon_draw_aspect(x, y, icon_id, 1.0f, 1.0f);
 }
 
-void UI_icon_draw_size_blended(float x, float y, int size, int icon_id, int shade)
+void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
 {
-	if(shade < 0) {
-		float r= (128+shade)/128.0f;
-		glPixelTransferf(GL_ALPHA_SCALE, r);
-	}
-
-	icon_draw_size(x,y,icon_id, 1.0f, 0, size, 1);
-
-	if(shade < 0)
-		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, 0, size, 1);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate)
 {
-	icon_draw_mipmap(x,y,icon_id, 1.0f, PREVIEW_MIPMAP_LARGE, nocreate);
+	icon_draw_mipmap(x, y, icon_id, 1.0f, 1.0f, PREVIEW_MIPMAP_LARGE, nocreate);
 }
 
-void UI_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade)
-{
-	if(shade < 0) {
-		float r= (128+shade)/128.0f;
-		glPixelTransferf(GL_ALPHA_SCALE, r);
-	}
-
-	UI_icon_draw_aspect(x, y, icon_id, aspect);
-
-	if(shade < 0)
-		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-}

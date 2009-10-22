@@ -77,7 +77,7 @@ typedef struct MetaBall {
 
 	char flag, flag2;			/* flag is enum for updates, flag2 is bitflags for settings */
 	short totcol;
-	int texflag; /* used to store MB_AUTOSPACE */
+	short texflag, pad; /* used to store MB_AUTOSPACE */
 	
 	/* texture space, copied as one block in editobject.c */
 	float loc[3];

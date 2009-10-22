@@ -60,10 +60,10 @@ typedef enum {
 	BRUSH_PRESET_MAX
 } BrushCurvePreset;
 void brush_curve_preset(struct Brush *b, BrushCurvePreset preset);
-float brush_curve_strength(struct Brush *br, float p, const float len);
+float brush_curve_strength_clamp(struct Brush *br, float p, const float len);
+float brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 
 /* sampling */
-float brush_sample_falloff(struct Brush *brush, float dist);
 void brush_sample_tex(struct Brush *brush, float *xy, float *rgba);
 void brush_imbuf_new(struct Brush *brush, short flt, short texfalloff, int size,
 	struct ImBuf **imbuf);

@@ -100,6 +100,8 @@ static void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses.");
+
+	RNA_api_action(srna);
 }
 
 /* --------- */

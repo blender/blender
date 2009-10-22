@@ -91,7 +91,7 @@ CValue* SCA_ANDController::GetReplica()
 	return replica;
 }
 
-
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -127,5 +127,5 @@ PyMethodDef SCA_ANDController::Methods[] = {
 PyAttributeDef SCA_ANDController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-
+#endif // DISABLE_PYTHON
 /* eof */

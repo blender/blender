@@ -55,40 +55,6 @@ typedef struct TransformModeItem
 
 static float VecOne[3] = {1, 1, 1};
 
-/* need constants for this */
-EnumPropertyItem proportional_mode_types[] = {
-		{0, "OFF", 0, "Off", ""},
-		{1, "ON", 0, "On", ""},
-		{2, "CONNECTED", 0, "Connected", ""},
-		{0, NULL, 0, NULL, NULL}
-};
-
-EnumPropertyItem snap_mode_types[] = {
-		{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", ""},
-		{SCE_SNAP_TARGET_CENTER,  "CENTER", 0, "Center", ""},
-		{SCE_SNAP_TARGET_MEDIAN,  "MEDIAN", 0, "Median", ""},
-		{SCE_SNAP_TARGET_ACTIVE,  "ACTIVE", 0, "Active", ""},
-		{0, NULL, 0, NULL, NULL}
-};
-
-EnumPropertyItem proportional_falloff_types[] = {
-		{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
-		{PROP_ROOT, "ROOT", 0, "Root", ""},
-		{PROP_SHARP, "SHARP", 0, "Sharp", ""},
-		{PROP_LIN, "LINEAR", 0, "Linear", ""},
-		{PROP_CONST, "CONSTANT", 0, "Constant", ""},
-		{PROP_RANDOM, "RANDOM", 0, "Random", ""},
-		{0, NULL, 0, NULL, NULL}
-};
-
-EnumPropertyItem orientation_items[]= {
-	{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""},
-	{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""},
-	{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""},
-	{V3D_MANIP_VIEW, "VIEW", 0, "View", ""},
-	{0, NULL, 0, NULL, NULL}};
-
 char OP_TRANSLATION[] = "TFM_OT_translate";
 char OP_ROTATION[] = "TFM_OT_rotate";
 char OP_TOSPHERE[] = "TFM_OT_tosphere";
@@ -99,6 +65,7 @@ char OP_SHRINK_FATTEN[] = "TFM_OT_shrink_fatten";
 char OP_TILT[] = "TFM_OT_tilt";
 char OP_TRACKBALL[] = "TFM_OT_trackball";
 char OP_MIRROR[] = "TFM_OT_mirror";
+char OP_EDGE_SLIDE[] = "TFM_OT_edge_slide";
 
 
 TransformModeItem transform_modes[] =
@@ -113,6 +80,7 @@ TransformModeItem transform_modes[] =
 	{OP_TILT, TFM_TILT},
 	{OP_TRACKBALL, TFM_TRACKBALL},
 	{OP_MIRROR, TFM_MIRROR},
+	{OP_EDGE_SLIDE, TFM_EDGE_SLIDE},
 	{NULL, 0}
 };
 
@@ -121,6 +89,8 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
 	int orientation = RNA_enum_get(op->ptr, "orientation");
 
 	BIF_selectTransformOrientationValue(C, orientation);
+	
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -138,28 +108,111 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_CANCELLED;
 }
 
-static EnumPropertyItem *select_orientation_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	*free= 1;
-	return BIF_enumTransformOrientation(C);
-}
-
 void TFM_OT_select_orientation(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name   = "Select Orientation";
-	ot->description= "Select orientation type.";
+	ot->description= "Select transformation orientation.";
 	ot->idname = "TFM_OT_select_orientation";
+	ot->flag   = OPTYPE_UNDO;
 
 	/* api callbacks */
 	ot->invoke = select_orientation_invoke;
 	ot->exec   = select_orientation_exec;
 	ot->poll   = ED_operator_areaactive;
 
-	prop= RNA_def_enum(ot->srna, "orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
-	RNA_def_enum_funcs(prop, select_orientation_itemf);
+	prop= RNA_def_property(ot->srna, "orientation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation.");
+	RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
+}
+
+
+static int delete_orientation_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
+
+	BIF_removeTransformOrientationIndex(C, selected_index);
+	
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+
+	return OPERATOR_FINISHED;
+}
+
+static int delete_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return delete_orientation_exec(C, op);
+}
+
+static int delete_orientation_poll(bContext *C)
+{
+	int selected_index = -1;
+	View3D *v3d = CTX_wm_view3d(C);
+	
+	if (ED_operator_areaactive(C) == 0)
+		return 0;
+	
+	
+	if(v3d) {
+		selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
+	}
+	
+	return selected_index >= 0;
+}
+
+void TFM_OT_delete_orientation(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Delete Orientation";
+	ot->description= "Delete transformation orientation.";
+	ot->idname = "TFM_OT_delete_orientation";
+	ot->flag   = OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->invoke = delete_orientation_invoke;
+	ot->exec   = delete_orientation_exec;
+	ot->poll   = delete_orientation_poll;
+}
+
+static int create_orientation_exec(bContext *C, wmOperator *op)
+{
+	char name[36];
+	int use = RNA_boolean_get(op->ptr, "use");
+	int overwrite = RNA_boolean_get(op->ptr, "overwrite");
+	
+	RNA_string_get(op->ptr, "name", name);
+
+	BIF_createTransformOrientation(C, op->reports, name, use, overwrite);
+
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return create_orientation_exec(C, op);
+}
+
+void TFM_OT_create_orientation(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Create Orientation";
+	ot->description= "Create transformation orientation from selection.";
+	ot->idname = "TFM_OT_create_orientation";
+	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->invoke = create_orientation_invoke;
+	ot->exec   = create_orientation_exec;
+	ot->poll   = ED_operator_areaactive;
+	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_string(ot->srna, "name", "", 35, "Name", "Text to insert at the cursor position.");
+	RNA_def_boolean(ot->srna, "use", 0, "Use after creation", "Select orientation after its creation");
+	RNA_def_boolean(ot->srna, "overwrite", 0, "Overwrite previous", "Overwrite previously created orientation with same name");
 }
 
 static void transformops_exit(bContext *C, wmOperator *op)
@@ -270,7 +323,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		TransInfo *t = op->customdata;
 
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		WM_event_add_modal_handler(C, op);
 
 		t->flag |= T_MODAL; // XXX meh maybe somewhere else
 
@@ -280,15 +333,15 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void Properties_Proportional(struct wmOperatorType *ot)
 {
-	RNA_def_enum(ot->srna, "proportional", proportional_mode_types, 0, "Proportional Editing", "");
-	RNA_def_enum(ot->srna, "proportional_editing_falloff", prop_mode_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
+	RNA_def_enum(ot->srna, "proportional", proportional_editing_items, 0, "Proportional Editing", "");
+	RNA_def_enum(ot->srna, "proportional_editing_falloff", proportional_falloff_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
 }
 
 void Properties_Snapping(struct wmOperatorType *ot, short align)
 {
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap to Point", "");
-	RNA_def_enum(ot->srna, "snap_mode", snap_mode_types, 0, "Mode", "");
+	RNA_def_enum(ot->srna, "snap_mode", snap_mode_items, 0, "Mode", "");
 	RNA_def_float_vector(ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
 
 	if (align)
@@ -303,8 +356,9 @@ void Properties_Constraints(struct wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
-	prop= RNA_def_enum(ot->srna, "constraint_orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
-	RNA_def_enum_funcs(prop, select_orientation_itemf);
+	prop= RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation.");
+	RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
 }
 
 void TFM_OT_translate(struct wmOperatorType *ot)
@@ -523,7 +577,7 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_float_percentage(ot->srna, "value", 0, 0, 1, "Percentage", "", 0, 1);
+	RNA_def_float_factor(ot->srna, "value", 0, 0, 1, "Factor", "", 0, 1);
 
 	Properties_Proportional(ot);
 
@@ -547,6 +601,26 @@ void TFM_OT_mirror(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 	Properties_Constraints(ot);
+}
+
+void TFM_OT_edge_slide(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Edge Slide";
+	ot->description= "Slide an edge loop along a mesh."; 
+	ot->idname = OP_EDGE_SLIDE;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	/* api callbacks */
+	ot->invoke = transform_invoke;
+	ot->exec   = transform_exec;
+	ot->modal  = transform_modal;
+	ot->cancel  = transform_cancel;
+	ot->poll   = ED_operator_editmesh;
+
+	RNA_def_float_factor(ot->srna, "value", 0, -1.0f, 1.0f, "Factor", "", -1.0f, 1.0f);
+
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
 void TFM_OT_transform(struct wmOperatorType *ot)
@@ -578,6 +652,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 			{TFM_BEVEL, "BEVEL", 0, "Bevel", ""},
 			{TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
 			{TFM_ALIGN, "ALIGN", 0, "Align", ""},
+			{TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
 			{0, NULL, 0, NULL, NULL}
 	};
 
@@ -617,16 +692,19 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TFM_OT_tilt);
 	WM_operatortype_append(TFM_OT_trackball);
 	WM_operatortype_append(TFM_OT_mirror);
+	WM_operatortype_append(TFM_OT_edge_slide);
 
 	WM_operatortype_append(TFM_OT_select_orientation);
+	WM_operatortype_append(TFM_OT_create_orientation);
+	WM_operatortype_append(TFM_OT_delete_orientation);
 }
 
-void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *keymap, int spaceid)
+void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid)
 {
-	wmKeymapItem *km;
+	wmKeyMapItem *km;
 	
 	/* transform.c, only adds modal map once, checks if it's there */
-	transform_modal_keymap(wm);
+	transform_modal_keymap(keyconf);
 	
 	switch(spaceid)
 	{
@@ -650,6 +728,11 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 			km = WM_keymap_add_item(keymap, "TFM_OT_tilt", TKEY, KM_PRESS, 0, 0);
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_select_orientation", SPACEKEY, KM_PRESS, KM_ALT, 0);
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_create_orientation", SPACEKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+			RNA_boolean_set(km->ptr, "use", 1);
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
 			break;
 		case SPACE_ACTION:
@@ -721,7 +804,7 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 
 			km = WM_keymap_add_item(keymap, "TFM_OT_resize", SKEY, KM_PRESS, 0, 0);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, 0, 0);
+			km = WM_keymap_add_item(keymap, "TFM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 			break;
 		default:
 			break;

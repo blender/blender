@@ -44,6 +44,7 @@ struct wmWindowManager;
 #define OPTYPE_UNDO			2	/* do undo push after after */
 #define OPTYPE_BLOCKING		4	/* let blender grab all input from the WM (X11) */
 #define OPTYPE_MACRO		8
+#define OPTYPE_GRAB_POINTER	16	/* */
 
 /* context to call operator in for WM_operator_name_call */
 /* rna_ui.c contains EnumPropertyItem's of these, keep in sync */
@@ -183,9 +184,12 @@ typedef struct wmNotifier {
 #define	ND_SHADING_DRAW		(31<<16)
 
 	/* NC_LAMP Lamp */
-#define	ND_LIGHTING			(44<<16)
-#define	ND_LIGHTING_DRAW	(45<<16)
-#define ND_SKY				(46<<16)
+#define	ND_LIGHTING			(40<<16)
+#define	ND_LIGHTING_DRAW	(41<<16)
+#define ND_SKY				(42<<16)
+
+	/* NC_WORLD World */
+#define	ND_WORLD_DRAW		(45<<16)
 
 	/* NC_TEXT Text */
 #define ND_CURSOR			(50<<16)
@@ -276,12 +280,8 @@ typedef struct wmGesture {
 } wmGesture;
 
 /* ************** custom wmEvent data ************** */
-
-#define DEV_STYLUS	1
-#define DEV_ERASER  2
-
 typedef struct wmTabletData {
-	int Active;			/* 0=None, 1=Stylus, 2=Eraser */
+	int Active;			/* 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER */
 	float Pressure;		/* range 0.0 (not touching) to 1.0 (full pressure) */
 	float Xtilt;		/* range 0.0 (upright) to 1.0 (tilted fully against the tablet surface) */
 	float Ytilt;		/* as above */

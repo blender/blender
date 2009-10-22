@@ -178,7 +178,7 @@ static void handle_view3d_lock(bContext *C)
 	View3D *v3d= CTX_wm_view3d(C);
 	
 	if (v3d != NULL && sa != NULL) {
-		if(v3d->localview==0 && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
+		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
 			
 			/* copy to scene */
 			scene->lay= v3d->lay;
@@ -196,27 +196,38 @@ static int layers_exec(bContext *C, wmOperator *op)
 	View3D *v3d= sa->spacedata.first;
 	int nr= RNA_int_get(op->ptr, "nr");
 	
-	if(nr<=0)
+	if(nr < 0)
 		return OPERATOR_CANCELLED;
-	nr--;
 	
-	if(RNA_boolean_get(op->ptr, "extend"))
-		v3d->lay |= (1<<nr);
-	else 
-		v3d->lay = (1<<nr);
 	
-	/* set active layer, ensure to always have one */
-	if(v3d->lay & (1<<nr))
-	   v3d->layact= 1<<nr;
-	else if((v3d->lay & v3d->layact)==0) {
-		int bit= 0;
+	if(nr == 0) {
+		/* all layers */
+		v3d->lay |= (1<<20)-1;
+
+		if(!v3d->layact)
+			v3d->layact= 1;
+	}
+	else {
+		nr--;
+
+		if(RNA_boolean_get(op->ptr, "extend"))
+			v3d->lay |= (1<<nr);
+		else
+			v3d->lay = (1<<nr);
 		
-		while(bit<32) {
-			if(v3d->lay & (1<<bit)) {
-				v3d->layact= 1<<bit;
-				break;
+		/* set active layer, ensure to always have one */
+		if(v3d->lay & (1<<nr))
+		   v3d->layact= 1<<nr;
+		else if((v3d->lay & v3d->layact)==0) {
+			int bit= 0;
+
+			while(bit<32) {
+				if(v3d->lay & (1<<bit)) {
+					v3d->layact= 1<<bit;
+					break;
+				}
+				bit++;
 			}
-			bit++;
 		}
 	}
 	
@@ -264,8 +275,8 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "", 0, 20);
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "The layer number to set, zero for all layers", 0, 20);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Add this layer to the current view layers");
 }
 
 #if 0
@@ -1802,8 +1813,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
         ED_area_tag_redraw(sa);
 		break;
 	case B_NDOF:
+        ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_MODE:
+        ED_area_tag_redraw(sa);
 		break;		
 	case B_VIEW_BUTSEDIT:
 		break;
@@ -1949,7 +1962,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlock *block;
 	int a, xco=0, maxco=0, yco= 0;
 	
-	block= uiLayoutFreeBlock(layout);
+	block= uiLayoutAbsoluteBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) 
@@ -2074,7 +2087,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
  		}
  		
 		/* LAYERS */
-		if(obedit==NULL && v3d->localview==0) {
+		if(obedit==NULL && v3d->localvd==NULL) {
 			int ob_lay = ob ? ob->lay : 0;
 			uiBlockBeginAlign(block);
 			for(a=0; a<5; a++) {
@@ -2113,7 +2126,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 				xco+= XIC+10;
 			}
 			uiBlockEndAlign(block);
-			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
+			header_xco_step(ar, &xco, &yco, &maxco, 10);
 		}
 
 		/* Snap */
@@ -2129,10 +2142,14 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
 					xco+= XIC;
 				}
+				if (ts->snap_mode == SCE_SNAP_MODE_FACE) {
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PROJECT, B_REDR, ICON_RETOPO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Project elements instead of snapping them");
+					xco+= XIC;
+				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
-				xco+= XIC;
+				xco+= XIC + 10;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");
-				xco+= XIC+70;
+				xco+= 70;
 			} else {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
 				xco+= XIC;
@@ -2154,10 +2171,11 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
 			xco+= XIC;
 			uiBlockEndAlign(block);
+			header_xco_step(ar, &xco, &yco, &maxco, 10);
 			if(v3d->drawtype > OB_WIRE) {
 				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
-				xco+= XIC;
 			}
+			xco+= XIC;
 			uiBlockEndAlign(block);
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 		}

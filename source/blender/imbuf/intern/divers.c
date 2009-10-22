@@ -190,7 +190,11 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		to = (unsigned char *) ibuf->rect;
 	}
 	
-	if (profile == IB_PROFILE_SRGB && (channels == 3 || channels == 4)) {
+	if(channels==1) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof++)
+			to[1]= to[2]= to[3]= to[0] = FTOCHAR(tof[0]);
+	}
+	else if (profile == IB_PROFILE_SRGB) {
 		if(channels == 3) {
 			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=3) {
 				srgb[0]= linearrgb_to_srgb(tof[0]);
@@ -207,12 +211,8 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 			floatbuf_to_srgb_byte(tof, to, 0, ibuf->x, 0, ibuf->y, ibuf->x);
 		}
 	}
-	else if(ELEM(profile, IB_PROFILE_NONE, IB_PROFILE_LINEAR_RGB) && (dither==0.0f || channels!=4)) {
-		if(channels==1) {
-			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof++)
-				to[1]= to[2]= to[3]= to[0] = FTOCHAR(tof[0]);
-		}
-		else if(channels==3) {
+	else if(ELEM(profile, IB_PROFILE_NONE, IB_PROFILE_LINEAR_RGB) && dither==0.0f) {
+		if(channels==3) {
 			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=3) {
 				to[0] = FTOCHAR(tof[0]);
 				to[1] = FTOCHAR(tof[1]);

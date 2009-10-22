@@ -176,7 +176,7 @@ void KX_RadarSensor::SynchronizeTransform()
 /* Python Functions															 */
 /* ------------------------------------------------------------------------- */
 
-/* none */
+#ifndef DISABLE_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python Integration Hooks                                                  */
@@ -216,3 +216,4 @@ PyAttributeDef KX_RadarSensor::Attributes[] = {
 	{NULL} //Sentinel
 };
 
+#endif // DISABLE_PYTHON

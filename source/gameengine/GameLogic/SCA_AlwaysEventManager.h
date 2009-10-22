@@ -34,8 +34,6 @@
 using namespace std;
 class SCA_AlwaysEventManager : public SCA_EventManager
 {
-	
-	class SCA_LogicManager* m_logicmgr;
 public:
 	SCA_AlwaysEventManager(class SCA_LogicManager* logicmgr);
 	virtual void NextFrame();

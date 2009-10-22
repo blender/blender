@@ -559,6 +559,36 @@ void default_mtex(MTex *mtex)
 	mtex->norfac= 1.0;
 	mtex->varfac= 1.0;
 	mtex->dispfac=0.2;
+	mtex->colspecfac= 1.0f;
+	mtex->mirrfac= 1.0f;
+	mtex->alphafac= 1.0f;
+	mtex->difffac= 1.0f;
+	mtex->specfac= 1.0f;
+	mtex->emitfac= 1.0f;
+	mtex->hardfac= 1.0f;
+	mtex->raymirrfac= 1.0f;
+	mtex->translfac= 1.0f;
+	mtex->ambfac= 1.0f;
+	mtex->colemitfac= 1.0f;
+	mtex->colreflfac= 1.0f;
+	mtex->coltransfac= 1.0f;
+	mtex->densfac= 1.0f;
+	mtex->scatterfac= 1.0f;
+	mtex->reflfac= 1.0f;
+	mtex->shadowfac= 1.0f;
+	mtex->zenupfac= 1.0f;
+	mtex->zendownfac= 1.0f;
+	mtex->blendfac= 1.0f;
+	mtex->timefac= 1.0f;
+	mtex->lengthfac= 1.0f;
+	mtex->clumpfac= 1.0f;
+	mtex->kinkfac= 1.0f;
+	mtex->roughfac= 1.0f;
+	mtex->padensfac= 1.0f;
+	mtex->lifefac= 1.0f;
+	mtex->sizefac= 1.0f;
+	mtex->ivelfac= 1.0f;
+	mtex->pvelfac= 1.0f;
 	mtex->normapspace= MTEX_NSPACE_TANGENT;
 }
 
@@ -779,70 +809,242 @@ void autotexname(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *give_current_texture(Object *ob, int act)
+Tex *give_current_object_texture(Object *ob)
 {
-	Material ***matarar, *ma;
-	Lamp *la = 0;
-	MTex *mtex = 0;
-	Tex *tex = 0;
-	bNode *node;
+	Material *ma;
+	Tex *tex= NULL;
 	
 	if(ob==0) return 0;
 	if(ob->totcol==0 && !(ob->type==OB_LAMP)) return 0;
 	
 	if(ob->type==OB_LAMP) {
-		la=(Lamp *)ob->data;
-		if(la) {
-			mtex= la->mtex[(int)(la->texact)];
-			if(mtex) tex= mtex->tex;
-		}
+		tex= give_current_lamp_texture(ob->data);
 	} else {
-		if(act>ob->totcol) act= ob->totcol;
-		else if(act==0) act= 1;
-		
-		if(ob->matbits[act-1]) {	/* in object */
-			ma= ob->mat[act-1];
-		}
-		else {								/* in data */
-			matarar= give_matarar(ob);
-			
-			if(matarar && *matarar) ma= (*matarar)[act-1];
-			else ma= 0;
-		}
-
-		if(ma && ma->use_nodes && ma->nodetree) {
-			node= nodeGetActiveID(ma->nodetree, ID_TE);
-
-			if(node) {
-				tex= (Tex *)node->id;
-				ma= NULL;
-			}
-			else {
-				node= nodeGetActiveID(ma->nodetree, ID_MA);
-				if(node)
-					ma= (Material*)node->id;
-			}
-		}
-		if(ma) {
-			mtex= ma->mtex[(int)(ma->texact)];
-			if(mtex) tex= mtex->tex;
-		}
+		ma= give_current_material(ob, ob->actcol);
+		tex= give_current_material_texture(ma);
 	}
 	
 	return tex;
 }
 
-Tex *give_current_world_texture(Scene *scene)
+Tex *give_current_lamp_texture(Lamp *la)
 {
-	MTex *mtex = 0;
-	Tex *tex = 0;
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+
+	if(la) {
+		mtex= la->mtex[(int)(la->texact)];
+		if(mtex) tex= mtex->tex;
+	}
+
+	return tex;
+}
+
+void set_current_lamp_texture(Lamp *la, Tex *newtex)
+{
+	int act= la->texact;
+
+	if(la->mtex[act] && la->mtex[act]->tex)
+		id_us_min(&la->mtex[act]->tex->id);
+
+	if(newtex) {
+		if(!la->mtex[act]) {
+			la->mtex[act]= add_mtex();
+			la->mtex[act]->texco= TEXCO_GLOB;
+		}
+		
+		la->mtex[act]->tex= newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if(la->mtex[act]) {
+		MEM_freeN(la->mtex[act]);
+		la->mtex[act]= NULL;
+	}
+}
+
+Tex *give_current_material_texture(Material *ma)
+{
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+	bNode *node;
 	
-	if(!(scene->world)) return 0;
+	if(ma && ma->use_nodes && ma->nodetree) {
+		node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+		if(node) {
+			tex= (Tex *)node->id;
+			ma= NULL;
+		}
+		else {
+			node= nodeGetActiveID(ma->nodetree, ID_MA);
+			if(node)
+				ma= (Material*)node->id;
+		}
+	}
+	if(ma) {
+		mtex= ma->mtex[(int)(ma->texact)];
+		if(mtex) tex= mtex->tex;
+	}
 	
-	mtex= scene->world->mtex[(int)(scene->world->texact)];
+	return tex;
+}
+
+int give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
+{
+	switch(GS(id->name)) {
+	case ID_MA:
+		*mtex_ar=		((Material *)id)->mtex;
+		if(act) *act=	(((Material *)id)->texact);
+		break;
+	case ID_WO:
+		*mtex_ar=		((World *)id)->mtex;
+		if(act) *act=	(((World *)id)->texact);
+		break;
+	case ID_LA:
+		*mtex_ar=		((Lamp *)id)->mtex;
+		if(act) *act=	(((Lamp *)id)->texact);
+		break;
+	case ID_BR:
+		*mtex_ar=		((Brush *)id)->mtex;
+		if(act) *act=	(((Brush *)id)->texact);
+		break;
+	default:
+		*mtex_ar = NULL;
+		if(act) *act=	0;
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+void set_active_mtex(ID *id, short act)
+{
+	if(act<0)				act= 0;
+	else if(act>=MAX_MTEX)	act= MAX_MTEX-1;
+
+	switch(GS(id->name)) {
+	case ID_MA:
+		((Material *)id)->texact= act;
+		break;
+	case ID_WO:
+		((World *)id)->texact= act;
+		break;
+	case ID_LA:
+		((Lamp *)id)->texact= act;
+		break;
+	case ID_BR:
+		((Brush *)id)->texact= act;
+		break;
+	}
+}
+
+void set_current_material_texture(Material *ma, Tex *newtex)
+{
+	Tex *tex= NULL;
+	bNode *node;
+	
+	if(ma && ma->use_nodes && ma->nodetree) {
+		node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+		if(node) {
+			tex= (Tex *)node->id;
+			id_us_min(&tex->id);
+			node->id= &newtex->id;
+			id_us_plus(&newtex->id);
+			ma= NULL;
+		}
+		else {
+			node= nodeGetActiveID(ma->nodetree, ID_MA);
+			if(node)
+				ma= (Material*)node->id;
+		}
+	}
+	if(ma) {
+		int act= (int)ma->texact;
+
+		tex= (ma->mtex[act])? ma->mtex[act]->tex: NULL;
+		id_us_min(&tex->id);
+
+		if(newtex) {
+			if(!ma->mtex[act])
+				ma->mtex[act]= add_mtex();
+			
+			ma->mtex[act]->tex= newtex;
+			id_us_plus(&newtex->id);
+		}
+		else if(ma->mtex[act]) {
+			MEM_freeN(ma->mtex[act]);
+			ma->mtex[act]= NULL;
+		}
+	}
+}
+
+Tex *give_current_world_texture(World *world)
+{
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+	
+	if(!world) return 0;
+	
+	mtex= world->mtex[(int)(world->texact)];
 	if(mtex) tex= mtex->tex;
 	
 	return tex;
+}
+
+void set_current_world_texture(World *wo, Tex *newtex)
+{
+	int act= wo->texact;
+
+	if(wo->mtex[act] && wo->mtex[act]->tex)
+		id_us_min(&wo->mtex[act]->tex->id);
+
+	if(newtex) {
+		if(!wo->mtex[act]) {
+			wo->mtex[act]= add_mtex();
+			wo->mtex[act]->texco= TEXCO_VIEW;
+		}
+		
+		wo->mtex[act]->tex= newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if(wo->mtex[act]) {
+		MEM_freeN(wo->mtex[act]);
+		wo->mtex[act]= NULL;
+	}
+}
+
+Tex *give_current_brush_texture(Brush *br)
+{
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+
+	if(br) {
+		mtex= br->mtex[(int)(br->texact)];
+		if(mtex) tex= mtex->tex;
+	}
+
+	return tex;
+}
+
+void set_current_brush_texture(Brush *br, Tex *newtex)
+{
+	int act= br->texact;
+
+	if(br->mtex[act] && br->mtex[act]->tex)
+		id_us_min(&br->mtex[act]->tex->id);
+
+	if(newtex) {
+		if(!br->mtex[act])
+			br->mtex[act]= add_mtex();
+		
+		br->mtex[act]->tex= newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if(br->mtex[act]) {
+		MEM_freeN(br->mtex[act]);
+		br->mtex[act]= NULL;
+	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -984,6 +1186,7 @@ struct VoxelData *BKE_add_voxeldata(void)
 	vd->interp_type= TEX_VD_LINEAR;
 	vd->file_format= TEX_VD_SMOKE;
 	vd->int_multiplier = 1.0;
+	vd->extend = TEX_CLIP;
 	vd->object = NULL;
 	
 	return vd;

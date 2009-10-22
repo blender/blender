@@ -187,10 +187,21 @@ void GHOST_WindowManager::setWindowInactive(const GHOST_IWindow* window)
 }
 
 
-	std::vector<GHOST_IWindow *> &
-GHOST_WindowManager::
-getWindows(
-){
+std::vector<GHOST_IWindow *> &GHOST_WindowManager::getWindows()
+{
 	return m_windows;
 }
 
+
+bool GHOST_WindowManager::getAnyModifiedState()
+{
+	bool isAnyModified = false;
+	std::vector<GHOST_IWindow*>::iterator iter;
+	
+	for (iter = m_windows.begin(); iter != m_windows.end(); iter++) {
+		if ((*iter)->getModifiedState())
+			isAnyModified = true;
+	}
+
+	return isAnyModified;
+}

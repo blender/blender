@@ -117,6 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python3.1;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Rasterizer;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
@@ -498,6 +499,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_BasicEventManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_DelaySensor.cpp"
 				>
 			</File>
@@ -656,6 +661,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ANDController.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_BasicEventManager.h"
 				>
 			</File>
 			<File

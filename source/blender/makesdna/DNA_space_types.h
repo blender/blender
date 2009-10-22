@@ -139,7 +139,7 @@ typedef struct SpaceSeq {
 	View2D v2d; /* deprecated, copied to region */
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb;
+	short mainb;	/* weird name for the sequencer subtype (seq, image, luma... etc) */
 	short render_size;
 	short chanshown;
 	short zebra;
@@ -569,18 +569,20 @@ typedef struct SpaceUserPref {
 
 
 /* buts->mainb new */
-#define BCONTEXT_SCENE		0
-#define BCONTEXT_WORLD		1
-#define BCONTEXT_OBJECT		2
-#define BCONTEXT_DATA		3
-#define BCONTEXT_MATERIAL	4
-#define BCONTEXT_TEXTURE	5
-#define BCONTEXT_PARTICLE	6
-#define BCONTEXT_PHYSICS	7
-#define BCONTEXT_BONE		9
-#define BCONTEXT_MODIFIER	10
-#define BCONTEXT_CONSTRAINT 12
-#define BCONTEXT_TOT		13
+#define BCONTEXT_RENDER				0
+#define BCONTEXT_SCENE				1
+#define BCONTEXT_WORLD				2
+#define BCONTEXT_OBJECT				3
+#define BCONTEXT_DATA				4
+#define BCONTEXT_MATERIAL			5
+#define BCONTEXT_TEXTURE			6
+#define BCONTEXT_PARTICLE			7
+#define BCONTEXT_PHYSICS			8
+#define BCONTEXT_BONE				9
+#define BCONTEXT_MODIFIER			10
+#define BCONTEXT_CONSTRAINT			12
+#define BCONTEXT_BONE_CONSTRAINT	13
+#define BCONTEXT_TOT				14
 
 /* sbuts->flag */
 #define SB_PRV_OSA			1
@@ -833,6 +835,7 @@ enum {
 #define TIME_SEQ				32
 #define TIME_ALL_IMAGE_WIN		64
 #define TIME_CONTINUE_PHYSICS	128
+#define TIME_NODES				256
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0

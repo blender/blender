@@ -28,10 +28,10 @@
 
 struct bContext;
 struct Object;
-struct wmWindowManager;
+struct wmKeyConfig;
 
 void ED_operatortypes_metaball(void);
-void ED_keymap_metaball(struct wmWindowManager *wm);
+void ED_keymap_metaball(struct wmKeyConfig *keyconf);
 
 struct MetaElem *add_metaball_primitive(struct bContext *C, int type, int newname);
 

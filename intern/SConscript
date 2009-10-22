@@ -10,6 +10,7 @@ SConscript(['audaspace/SConscript',
             'memutil/SConscript/',
             'decimation/SConscript',
             'iksolver/SConscript',
+            'itasc/SConscript',
             'boolop/SConscript',
             'opennl/SConscript',
             'smoke/SConscript'])

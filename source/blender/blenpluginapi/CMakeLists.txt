@@ -30,6 +30,10 @@ SET(INC
 	. .. ../../../intern/guardedalloc ../blenlib ../imbuf ../makesdna
 )
 
+IF(WIN32)
+	SET(INC ${INC} ${PTHREADS_INC})
+ENDIF(WIN32)
+
 IF(WITH_QUICKTIME)
 	SET(INC ${INC} ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)

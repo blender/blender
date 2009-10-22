@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="blenpluginapi"
 	ProjectGUID="{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}"
+	RootNamespace="blenpluginapi"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -42,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -115,8 +116,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -191,7 +193,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -266,7 +268,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -340,7 +342,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -415,7 +417,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\source\blender;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenpluginapi"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
