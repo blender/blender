@@ -1631,7 +1631,9 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 		PE_mouse_particles(C, event->mval, extend);
-	else 
+	else if(obact && paint_facesel_test(obact))
+		face_select(C, obact, event->mval, extend);
+	else
 		mouse_select(C, event->mval, extend, center, enumerate);
 
 	/* allowing tweaks */

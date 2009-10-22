@@ -197,7 +197,7 @@ unsigned int rgba_to_mcol(float r, float g, float b, float a)
 	
 }
 
-static unsigned int vpaint_get_current_col(VPaint *vp)
+unsigned int vpaint_get_current_col(VPaint *vp)
 {
 	Brush *brush = paint_brush(&vp->paint);
 	return rgba_to_mcol(brush->rgb[0], brush->rgb[1], brush->rgb[2], 1.0f);
@@ -269,20 +269,13 @@ static void do_shared_vertexcol(Mesh *me)
 	MEM_freeN(scolmain);
 }
 
-void make_vertexcol(Scene *scene, int shade)	/* single ob */
+static void make_vertexcol(Object *ob)	/* single ob */
 {
-	Object *ob;
 	Mesh *me;
-
-	if(scene->obedit) {
-		error("Unable to perform function in Edit Mode");
-		return;
-	}
-	
-	ob= OBACT;
 	if(!ob || ob->id.lib) return;
 	me= get_mesh(ob);
 	if(me==0) return;
+	if(me->edit_mesh) return;
 
 	/* copies from shadedisplist to mcol */
 	if(!me->mcol) {
@@ -290,10 +283,11 @@ void make_vertexcol(Scene *scene, int shade)	/* single ob */
 		mesh_update_customdata_pointers(me);
 	}
 
-	if(shade)
-		shadeMeshMCol(scene, ob, me);
-	else
-		memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
+	//if(shade)
+	//	shadeMeshMCol(scene, ob, me);
+	//else
+
+	memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
 	
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	
@@ -330,22 +324,20 @@ static void copy_wpaint_prev (VPaint *wp, MDeformVert *dverts, int dcount)
 }
 
 
-void clear_vpaint(Scene *scene, int selected)
+void vpaint_fill(Object *ob, unsigned int paintcol)
 {
 	Mesh *me;
 	MFace *mf;
-	Object *ob;
-	unsigned int paintcol, *mcol;
-	int i;
+	unsigned int *mcol;
+	int i, selected;
 
-	ob= OBACT;
 	me= get_mesh(ob);
 	if(me==0 || me->totface==0) return;
 
 	if(!me->mcol)
-		make_vertexcol(scene, 0);
+		make_vertexcol(ob);
 
-	paintcol= vpaint_get_current_col(scene->toolsettings->vpaint);
+	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
 	mf = me->mface;
 	mcol = (unsigned int*)me->mcol;
@@ -363,30 +355,34 @@ void clear_vpaint(Scene *scene, int selected)
 
 
 /* fills in the selected faces with the current weight and vertex group */
-void clear_wpaint_selectedfaces(Scene *scene)
+void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
-	ToolSettings *ts= scene->toolsettings;
-	VPaint *wp= ts->wpaint;
-	float paintweight= ts->vgroup_weight;
 	Mesh *me;
 	MFace *mface;
-	Object *ob;
 	MDeformWeight *dw, *uw;
 	int *indexar;
 	int index, vgroup;
 	unsigned int faceverts[5]={0,0,0,0,0};
 	unsigned char i;
 	int vgroup_mirror= -1;
+	int selected;
 	
-	ob= OBACT;
 	me= ob->data;
 	if(me==0 || me->totface==0 || me->dvert==0 || !me->mface) return;
 	
+	selected= (me->editflag & ME_EDIT_PAINT_MASK);
+
 	indexar= get_indexarray();
-	for(index=0, mface=me->mface; index<me->totface; index++, mface++) {
-		if((mface->flag & ME_FACE_SEL)==0)
-			indexar[index]= 0;
-		else
+	if(selected) {
+		for(index=0, mface=me->mface; index<me->totface; index++, mface++) {
+			if((mface->flag & ME_FACE_SEL)==0)
+				indexar[index]= 0;
+			else
+				indexar[index]= index+1;
+		}
+	}
+	else {
+		for(index=0; index<me->totface; index++)
 			indexar[index]= index+1;
 	}
 	
@@ -1528,6 +1524,32 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
+static int weight_paint_set_exec(bContext *C, wmOperator *op)
+{
+	struct Scene *scene= CTX_data_scene(C);
+	Object *obact = CTX_data_active_object(C);
+
+	wpaint_fill(scene->toolsettings->wpaint, obact, scene->toolsettings->vgroup_weight);
+	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_weight_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Weight Set";
+	ot->idname= "PAINT_OT_weight_set";
+
+	/* api callbacks */
+	ot->exec= weight_paint_set_exec;
+	ot->poll= facemask_paint_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+}
+
 /* ************ set / clear vertex paint mode ********** */
 
 
@@ -1551,7 +1573,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		return OPERATOR_FINISHED;
 	}
 	
-	if(me && me->mcol==NULL) make_vertexcol(scene, 0);
+	if(me && me->mcol==NULL) make_vertexcol(ob);
 	
 	/* toggle: end vpaint */
 	if(ob->mode & OB_MODE_VERTEX_PAINT) {
@@ -1642,7 +1664,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
 	
-	if(me->mcol==NULL) make_vertexcol(CTX_data_scene(C), 0);
+	if(me->mcol==NULL) make_vertexcol(ob);
 	if(me->mcol==NULL) return OPERATOR_CANCELLED;
 	
 	/* make mode data storage */

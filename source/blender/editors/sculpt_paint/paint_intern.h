@@ -40,20 +40,21 @@ struct wmEvent;
 struct wmOperator;
 struct wmOperatorType;
 struct ARegion;
+struct VPaint;
 
 /* paint_stroke.c */
 typedef int (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke, struct PointerRNA *itemptr);
 typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
 
-struct PaintStroke *paint_stroke_new(bContext *C, StrokeTestStart test_start,
+struct PaintStroke *paint_stroke_new(struct bContext *C, StrokeTestStart test_start,
 				     StrokeUpdateStep update_step, StrokeDone done);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
 struct ViewContext *paint_stroke_view_context(struct PaintStroke *stroke);
 void *paint_stroke_mode_data(struct PaintStroke *stroke);
 void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
-int paint_poll(bContext *C);
+int paint_poll(struct bContext *C);
 void paint_cursor_start(struct bContext *C, int (*poll)(struct bContext *C));
 
 /* paint_vertex.c */
@@ -61,15 +62,19 @@ int weight_paint_poll(struct bContext *C);
 int vertex_paint_poll(struct bContext *C);
 int vertex_paint_mode_poll(struct bContext *C);
 
-void clear_vpaint(Scene *scene, int selected);
+void vpaint_fill(struct Object *ob, unsigned int paintcol);
+void wpaint_fill(struct VPaint *wp, struct Object *ob, float paintweight);
 
 void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);
+void PAINT_OT_weight_set(struct wmOperatorType *ot);
 
 void PAINT_OT_vertex_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
+
+unsigned int vpaint_get_current_col(struct VPaint *vp);
 
 /* paint_image.c */
 int image_texture_paint_poll(struct bContext *C);
@@ -88,6 +93,8 @@ void imapaint_pick_uv(struct Scene *scene, struct Object *ob, struct Mesh *mesh,
 
 void paint_sample_color(struct Scene *scene, struct ARegion *ar, int x, int y);
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
+
+int facemask_paint_poll(struct bContext *C);
 
 #endif /* ED_PAINT_INTERN_H */
 

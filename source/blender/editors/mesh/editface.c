@@ -82,8 +82,6 @@
 #include "mesh_intern.h"
 
 /* ***************** XXX **************** */
-static int sample_backbuf_rect() {return 0;}
-static int sample_backbuf() {return 0;}
 static void error() {}
 static int pupmenu() {return 0;}
 /* ***************** XXX **************** */
@@ -118,25 +116,30 @@ void object_facesel_flush_dm(Object *ob)
 }
 
 /* returns 0 if not found, otherwise 1 */
-int facesel_face_pick(View3D *v3d, Mesh *me, short *mval, unsigned int *index, short rect)
+int facesel_face_pick(struct bContext *C, Mesh *me, short *mval, unsigned int *index, short rect)
 {
+	ViewContext vc;
+	view3d_set_viewcontext(C, &vc);
+
 	if (!me || me->totface==0)
 		return 0;
 
-	if (v3d->flag & V3D_NEEDBACKBUFDRAW) {
+// XXX 	if (v3d->flag & V3D_NEEDBACKBUFDRAW) {
 // XXX drawview.c!		check_backbuf();
 // XXX		persp(PERSP_VIEW);
-	}
+// XXX 	}
 
 	if (rect) {
 		/* sample rect to increase changes of selecting, so that when clicking
 		   on an edge in the backbuf, we can still select a face */
+
 		int dist;
-		*index = sample_backbuf_rect(mval, 3, 1, me->totface+1, &dist,0,NULL);
+		*index = view3d_sample_backbuf_rect(&vc, mval, 3, 1, me->totface+1, &dist,0,NULL, NULL);
 	}
-	else
+	else {
 		/* sample only on the exact position */
-		*index = sample_backbuf(mval[0], mval[1]);
+		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
+	}
 
 	if ((*index)<=0 || (*index)>(unsigned int)me->totface)
 		return 0;
@@ -646,32 +649,25 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 // XXX notifier!		object_tface_flags_changed(OBACT, 1);
 }
 
-void face_select(Scene *scene, View3D *v3d)
+int face_select(struct bContext *C, Object *ob, short mval[2], int extend)
 {
-	Object *ob;
 	Mesh *me;
 	MFace *mface, *msel;
-	short mval[2];
 	unsigned int a, index;
-	int shift= 0; // XXX
 	
 	/* Get the face under the cursor */
-	ob = OBACT;
-	if (!(ob->lay & v3d->lay)) {
-		error("The active object is not in this layer");
-	}
 	me = get_mesh(ob);
-// XXX	getmouseco_areawin(mval);
 
-	if (!facesel_face_pick(v3d, me, mval, &index, 1)) return;
+	if (!facesel_face_pick(C, me, mval, &index, 1))
+		return 0;
 	
 	msel= (((MFace*)me->mface)+index);
-	if (msel->flag & ME_HIDE) return;
+	if (msel->flag & ME_HIDE) return 0;
 	
 	/* clear flags */
 	mface = me->mface;
 	a = me->totface;
-	if ((shift)==0) {
+	if (!extend) {
 		while (a--) {
 			mface->flag &= ~ME_FACE_SEL;
 			mface++;
@@ -680,7 +676,7 @@ void face_select(Scene *scene, View3D *v3d)
 	
 	me->act_face = (int)index;
 
-	if (shift) {
+	if (extend) {
 		if (msel->flag & ME_FACE_SEL)
 			msel->flag &= ~ME_FACE_SEL;
 		else
@@ -690,8 +686,11 @@ void face_select(Scene *scene, View3D *v3d)
 	
 	/* image window redraw */
 	
-	object_facesel_flush_dm(OBACT);
+	object_facesel_flush_dm(ob);
 // XXX notifier!		object_tface_flags_changed(OBACT, 1);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
+	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
+	return 1;
 }
 
 void face_borderselect(Scene *scene, ScrArea *sa, ARegion *ar)

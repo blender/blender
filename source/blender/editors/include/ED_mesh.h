@@ -165,6 +165,7 @@ void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
 
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
+int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
 
 /* object_vgroup.c */
 

@@ -5252,3 +5252,8 @@ void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
 }
 
 
+int facemask_paint_poll(bContext *C)
+{
+	Object *obact = CTX_data_active_object(C);
+	return paint_facesel_test(obact);
+}
