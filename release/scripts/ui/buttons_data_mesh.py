@@ -105,7 +105,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 	__label__ = "Shape Keys"
 	
 	def poll(self, context):
-		return (context.object and context.object.type in ('MESH', 'LATTICE'))
+		return (context.object and context.object.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE'))
 
 	def draw(self, context):
 		layout = self.layout
@@ -122,9 +122,9 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		subcol = col.column(align=True)
 		subcol.itemO("object.shape_key_add", icon='ICON_ZOOMIN', text="")
 		subcol.itemO("object.shape_key_remove", icon='ICON_ZOOMOUT', text="")
-		subcol.itemO("object.shape_key_mirror", icon='ICON_MOD_MIRROR', text="")
 
 		if kb:
+			subcol.itemO("object.shape_key_mirror", icon='ICON_MOD_MIRROR', text="")
 			
 			col.itemS()
 
@@ -160,7 +160,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 					sub.itemR(kb, "slider_min", text="Min")
 					sub.itemR(kb, "slider_max", text="Max")
 					
-					sub = split.column()
+					sub = split.column(align=True)
 					sub.itemL(text="Blend:")
 					sub.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
 					sub.item_pointerR(kb, "relative_key", key, "keys", text="")
@@ -224,3 +224,4 @@ bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
+
