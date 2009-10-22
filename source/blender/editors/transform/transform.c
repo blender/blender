@@ -3942,10 +3942,8 @@ static int createSlideVerts(TransInfo *t)
 	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
 	GHash *vertgh;
 	TransDataSlideVert *tempsv;
-	float perc = 0, percp = 0,vertdist; // XXX, projectMat[4][4];
-	float shiftlabda= 0.0f,len = 0.0f;
-	int i, j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
-	int wasshift = 0;
+	float vertdist; // XXX, projectMat[4][4];
+	int i, j, numsel, numadded=0, timesthrough = 0, vertsel=0;
 	/* UV correction vars */
 	GHash **uvarray= NULL;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
@@ -3956,8 +3954,7 @@ static int createSlideVerts(TransInfo *t)
 	float projectMat[4][4];
 	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
 	float vec[3];
-	//short mval[2], mvalo[2];
-	float labda = 0.0f, totvec=0.0;
+	float totvec=0.0;
 
 	if (!v3d) {
 		/*ok, let's try to survive this*/
@@ -3965,8 +3962,7 @@ static int createSlideVerts(TransInfo *t)
 	} else {
 		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
 	}
-
-	//mvalo[0] = -1; mvalo[1] = -1;
+	
 	numsel =0;
 
 	// Get number of selected edges and clear some flags
@@ -4468,23 +4464,20 @@ int doEdgeSlide(TransInfo *t, float perc)
 	Mesh *me= t->obedit->data;
 	EditMesh *em = me->edit_mesh;
 	SlideData *sld = t->customData;
-	EditEdge *first=NULL,*last=NULL, *temp = NULL;
 	EditVert *ev, *nearest = sld->nearest;
 	EditVert *centerVert, *upVert, *downVert;
-	LinkNode *edgelist = sld->edgelist, *vertlist=sld->vertlist, *look;
+	LinkNode *vertlist=sld->vertlist, *look;
 	GHash *vertgh = sld->vhash;
 	TransDataSlideVert *tempsv;
-	float shiftlabda= 0.0f,len = 0.0f;
-	int i = 0, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
-	int wasshift = 0;
+	float len = 0.0f;
+	int prop=1, flip=0;
 	/* UV correction vars */
 	GHash **uvarray= sld->uvhash;
 	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
 	int uvlay_idx;
-	TransDataSlideUv *slideuvs=sld->slideuv, *suv=sld->slideuv, *suv_last=NULL;
+	TransDataSlideUv *suv=sld->slideuv;
 	float uv_tmp[2];
 	LinkNode *fuv_link;
-	float labda = 0.0f;
 
 	len = 0.0f;
 
@@ -4579,7 +4572,6 @@ int doEdgeSlide(TransInfo *t, float perc)
 
 int EdgeSlide(TransInfo *t, short mval[2])
 {
-	TransData *td = t->data;
 	char str[50];
 	float final;
 

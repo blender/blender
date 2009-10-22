@@ -238,6 +238,19 @@ void BKE_animdata_make_local(AnimData *adt)
 
 /* Path Validation -------------------------------------------- */
 
+/* Check if a given RNA Path is valid, by tracing it from the given ID, and seeing if we can resolve it */
+static short check_rna_path_is_valid (ID *owner_id, char *path)
+{
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop=NULL;
+	
+	/* make initial RNA pointer to start resolving from */
+	RNA_id_pointer_create(owner_id, &id_ptr);
+	
+	/* try to resolve */
+	return RNA_path_resolve(&id_ptr, path, &ptr, &prop); 
+}
+
 /* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate 
  * NOTE: we assume that oldName and newName have [" "] padding around them
  */
@@ -249,39 +262,49 @@ static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, cha
 	int oldNameLen= strlen(oldName);
 	
 	/* only start fixing the path if the prefix and oldName feature in the path,
-	 * and prefix occurs immediately before oldName (the +2 should take care of any [")
+	 * and prefix occurs immediately before oldName
 	 */
 	if ( (prefixPtr && oldNamePtr) && (prefixPtr+prefixLen == oldNamePtr) ) {
-		DynStr *ds= BLI_dynstr_new();
-		char *postfixPtr= oldNamePtr+oldNameLen;
-		char *newPath = NULL;
-		char oldChar;
-		
-		/* add the part of the string that goes up to the start of the prefix */
-		if (prefixPtr > oldpath) {
-			oldChar= prefixPtr[0]; 
-			prefixPtr[0]= 0;
-			BLI_dynstr_append(ds, oldpath);
-			prefixPtr[0]= oldChar;
+		/* if we haven't aren't able to resolve the path now, try again after fixing it */
+		if (check_rna_path_is_valid(owner_id, oldpath) == 0) {		
+			DynStr *ds= BLI_dynstr_new();
+			char *postfixPtr= oldNamePtr+oldNameLen;
+			char *newPath = NULL;
+			char oldChar;
+			
+			/* add the part of the string that goes up to the start of the prefix */
+			if (prefixPtr > oldpath) {
+				oldChar= prefixPtr[0]; 
+				prefixPtr[0]= 0;
+				BLI_dynstr_append(ds, oldpath);
+				prefixPtr[0]= oldChar;
+			}
+			
+			/* add the prefix */
+			BLI_dynstr_append(ds, prefix);
+			
+			/* add the new name (complete with brackets) */
+			BLI_dynstr_append(ds, newName);
+			
+			/* add the postfix */
+			BLI_dynstr_append(ds, postfixPtr);
+			
+			/* create new path, and cleanup old data */
+			newPath= BLI_dynstr_get_cstring(ds);
+			BLI_dynstr_free(ds);
+			
+			/* check if the new path will solve our problems */
+			// TODO: will need to check whether this step really helps in practice
+			if (check_rna_path_is_valid(owner_id, newPath)) {
+				/* free the old path, and return the new one, since we've solved the issues */
+				MEM_freeN(oldpath);
+				return newPath;
+			}
+			else {
+				/* still couldn't resolve the path... so, might as well just leave it alone */
+				MEM_freeN(newPath);
+			}
 		}
-		
-		/* add the prefix */
-		BLI_dynstr_append(ds, prefix);
-		
-		/* add the new name (complete with brackets) */
-		BLI_dynstr_append(ds, newName);
-		
-		/* add the postfix */
-		BLI_dynstr_append(ds, postfixPtr);
-		
-		/* create new path, and cleanup old data */
-		newPath= BLI_dynstr_get_cstring(ds);
-		BLI_dynstr_free(ds);
-		
-		MEM_freeN(oldpath);
-		
-		/* return the new path */
-		return newPath;
 	}
 	
 	/* the old path doesn't need to be changed */
