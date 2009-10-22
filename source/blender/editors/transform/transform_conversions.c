@@ -4039,7 +4039,6 @@ static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *
 	return tot;
 }
 
-
 static void freeSeqData(TransInfo *t)
 {
 	Editing *ed= seq_give_editing(t->scene, FALSE);
@@ -4058,15 +4057,49 @@ static void freeSeqData(TransInfo *t)
 
 		if (!(t->state == TRANS_CANCEL)) {
 
+#if 0		// default 2.4 behavior
+
 			/* flush to 2d vector from internally used 3d vector */
 			for(a=0; a<t->total; a++, td++) {
-				seq= ((TransDataSeq *)td->extra)->seq;
 				if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
+				seq= ((TransDataSeq *)td->extra)->seq;
 					shuffle_seq(seqbasep, seq);
 				}
 
 				seq_prev= seq;
 			}
+
+#else		// durian hack
+			{
+				int overlap= 0;
+
+				for(a=0; a<t->total; a++, td++) {
+					seq_prev= NULL;
+					seq= ((TransDataSeq *)td->extra)->seq;
+					if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
+						overlap= 1;
+						break;
+					}
+					seq_prev= seq;
+				}
+
+				if(overlap) {
+					for(seq= seqbasep->first; seq; seq= seq->next)
+						seq->tmp= NULL;
+
+					td= t->data;
+					seq_prev= NULL;
+					for(a=0; a<t->total; a++, td++) {
+						seq= ((TransDataSeq *)td->extra)->seq;
+						if ((seq != seq_prev)) {
+							seq->tmp= 1;
+						}
+					}
+
+					shuffle_seq_time(seqbasep);
+				}
+			}
+#endif
 
 			for(seq= seqbasep->first; seq; seq= seq->next) {
 				/* We might want to build a list of effects that need to be updated during transform */

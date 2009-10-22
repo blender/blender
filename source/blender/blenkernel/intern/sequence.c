@@ -3341,18 +3341,25 @@ int seq_tx_test(Sequence * seq)
 	return (seq->type < SEQ_EFFECT) || (get_sequence_effect_num_inputs(seq->type) == 0);
 }
 
+static int seq_overlap(Sequence *seq1, Sequence *seq2)
+{
+	if(seq1 != seq2)
+		if(seq1->machine==seq2->machine)
+			if(((seq1->enddisp <= seq2->startdisp) || (seq1->startdisp >= seq2->enddisp))==0)
+				return 1;
+
+	return 0;
+}
+
 int seq_test_overlap(ListBase * seqbasep, Sequence *test)
 {
 	Sequence *seq;
 
 	seq= seqbasep->first;
 	while(seq) {
-		if(seq!=test) {
-			if(test->machine==seq->machine) {
-				if( (test->enddisp <= seq->startdisp) || (test->startdisp >= seq->enddisp) );
-				else return 1;
-			}
-		}
+		if(seq_overlap(test, seq))
+			return 1;
+
 		seq= seq->next;
 	}
 	return 0;
@@ -3409,6 +3416,76 @@ int shuffle_seq(ListBase * seqbasep, Sequence *test)
 		return 1;
 	}
 }
+
+static int shuffle_seq_time_offset_test(ListBase * seqbasep, char dir)
+{
+	int offset= 0;
+	Sequence *seq, *seq_other;
+
+	for(seq= seqbasep->first; seq; seq= seq->next) {
+		if(seq->tmp) {
+			for(seq_other= seqbasep->first; seq_other; seq_other= seq_other->next) {
+				if(seq_overlap(seq, seq_other)) {
+					if(dir=='L') {
+						offset= MIN2(offset, seq_other->startdisp - seq->enddisp);
+					}
+					else {
+						offset= MAX2(offset, seq_other->enddisp - seq->startdisp);
+					}
+				}
+			}
+		}
+	}
+	return offset;
+}
+
+static int shuffle_seq_time_offset(ListBase * seqbasep, char dir)
+{
+	int ofs= 0;
+	int tot_ofs= 0;
+	Sequence *seq;
+	while( (ofs= shuffle_seq_time_offset_test(seqbasep, dir)) ) {
+		for(seq= seqbasep->first; seq; seq= seq->next) {
+			if(seq->tmp) {
+				/* seq_test_overlap only tests display values */
+				seq->startdisp +=	ofs;
+				seq->enddisp +=		ofs;
+			}
+		}
+
+		tot_ofs+= ofs;
+	}
+
+	for(seq= seqbasep->first; seq; seq= seq->next) {
+		if(seq->tmp)
+			calc_sequence_disp(seq); /* corrects dummy startdisp/enddisp values */
+	}
+
+	return tot_ofs;
+}
+
+int shuffle_seq_time(ListBase * seqbasep)
+{
+	/* note: seq->tmp is used to tag strips to move */
+
+	Sequence *seq;
+
+	int offset_l = shuffle_seq_time_offset(seqbasep, 'L');
+	int offset_r = shuffle_seq_time_offset(seqbasep, 'R');
+	int offset = (-offset_l < offset_r) ?  offset_l:offset_r;
+
+	if(offset) {
+		for(seq= seqbasep->first; seq; seq= seq->next) {
+			if(seq->tmp) {
+				seq_translate(seq, offset);
+				seq->flag &= ~SEQ_OVERLAP;
+			}
+		}
+	}
+
+	return offset? 0:1;
+}
+
 
 void seq_update_sound(struct Sequence *seq)
 {
