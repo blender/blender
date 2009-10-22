@@ -156,7 +156,29 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
 rna_path_prop = bpy.props.StringProperty(attr="path", name="Context Attributes", description="rna context string", maxlen= 1024, default= "")
 rna_reverse_prop = bpy.props.BoolProperty(attr="reverse", name="Reverse", description="Cycle backwards", default= False)
 
+class NullPathMember:
+	pass
+
+def context_path_validate(context, path):
+	import sys
+	try:
+		value = eval("context.%s" % path)
+	except AttributeError:
+		if "'NoneType'" in str(sys.exc_info()[1]):
+			# One of the items in the rna path is None, just ignore this
+			value = NullPathMember
+		else:
+			# We have a real error in the rna path, dont ignore that
+			raise
+	
+	return value
+		
+	
+
 def execute_context_assign(self, context):
+	if context_path_validate(context, self.path) == NullPathMember:
+		return ('PASS_THROUGH',)
+	
 	exec("context.%s=self.value" % self.path)
 	return ('FINISHED',)
 
@@ -201,6 +223,10 @@ class WM_OT_context_toggle(bpy.types.Operator):
 	__label__ = "Context Toggle"
 	__props__ = [rna_path_prop]
 	def execute(self, context):
+		
+		if context_path_validate(context, self.path) == NullPathMember:
+			return ('PASS_THROUGH',)
+		
 		exec("context.%s=not (context.%s)" % (self.path, self.path)) # security nuts will complain.
 		return ('FINISHED',)
 
@@ -214,6 +240,10 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 		bpy.props.StringProperty(attr="value_2", name="Value", description="Toggle enum", maxlen= 1024, default= "")
 	]
 	def execute(self, context):
+		
+		if context_path_validate(context, self.path) == NullPathMember:
+			return ('PASS_THROUGH',)
+		
 		exec("context.%s = ['%s', '%s'][context.%s!='%s']" % (self.path, self.value_1, self.value_2, self.path, self.value_2)) # security nuts will complain.
 		return ('FINISHED',)
 
@@ -223,7 +253,12 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
 	__label__ = "Context Int Cycle"
 	__props__ = [rna_path_prop, rna_reverse_prop]
 	def execute(self, context):
-		self.value = eval("context.%s" % self.path)
+		
+		value = context_path_validate(context, self.path)
+		if value == NullPathMember:
+			return ('PASS_THROUGH',)
+		
+		self.value = value
 		if self.reverse:	self.value -= 1
 		else:		self.value += 1
 		execute_context_assign(self, context)
@@ -242,7 +277,12 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 	__label__ = "Context Enum Cycle"
 	__props__ = [rna_path_prop, rna_reverse_prop]
 	def execute(self, context):
-		orig_value = eval("context.%s" % self.path) # security nuts will complain.
+		
+		value = context_path_validate(context, self.path)
+		if value == NullPathMember:
+			return ('PASS_THROUGH',)
+		
+		orig_value = value
 		
 		# Have to get rna enum values
 		rna_struct_str, rna_prop_str =  self.path.rsplit('.', 1)
