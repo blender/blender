@@ -154,6 +154,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 			sub.alignment = 'RIGHT'
 
 			subrow = sub.row(align=True)
+			subrow.active= enable_edit_value
 			subrow.itemR(ob, "shape_key_lock", icon='ICON_UNPINNED', text="")
 			subrow.itemR(kb, "mute", icon='ICON_MUTE_IPO_OFF', text="")
 			subrow.itemO("object.shape_key_clear", icon='ICON_X', text="")
@@ -163,31 +164,30 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 			sub.itemR(ob, "shape_key_edit_mode", text="")
 
 			row = layout.row()
-			row.enabled = enable_edit_value
 			row.itemR(kb, "name")
 
 			if key.relative:
 				if ob.active_shape_key_index != 0:
 					row = layout.row()
-					row.enabled = enable_edit_value
+					row.active = enable_edit_value
 					row.itemR(kb, "value")
 					
 					split = layout.split()
 					sub = split.column(align=True)
-					sub.enabled = enable_edit_value
+					sub.active = enable_edit_value
 					sub.itemL(text="Range:")
 					sub.itemR(kb, "slider_min", text="Min")
 					sub.itemR(kb, "slider_max", text="Max")
 					
 					sub = split.column(align=True)
-					sub.enabled = enable_edit_value
+					sub.active = enable_edit_value
 					sub.itemL(text="Blend:")
 					sub.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
 					sub.item_pointerR(kb, "relative_key", key, "keys", text="")
 					
 			else:
 				row = layout.row()
-				row.enabled = enable_edit
+				row.active = enable_edit_value
 				row.itemR(key, "slurph")
 
 class DATA_PT_uv_texture(DataButtonsPanel):

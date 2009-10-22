@@ -785,6 +785,7 @@ void make_editMesh(Scene *scene, Object *ob)
 		/* undo-ing in past for previous editmode sessions gives corrupt 'keyindex' values */
 		undo_editmode_clear();
 		keyco= actkey->data;
+		em->shapenr= ob->shapenr;
 	}
 
 	/* make editverts */
@@ -1184,7 +1185,8 @@ void load_editMesh(Scene *scene, Object *ob)
 
 	/* are there keys? */
 	if(me->key) {
-		KeyBlock *currkey, *actkey = ob_get_keyblock(ob);
+		KeyBlock *currkey;
+		KeyBlock *actkey= BLI_findlink(&me->key->block, em->shapenr-1);
 
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */

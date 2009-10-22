@@ -121,6 +121,21 @@ void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ptr->id.data);
 }
 
+void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
+{
+	Object *ob= ptr->id.data;
+	Scene *scene= CTX_data_scene(C);
+	int editmode= (scene->obedit == ob && ob->type == OB_MESH);
+
+	if(editmode) {
+		/* exit/enter editmode to get new shape */
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO);
+		ED_object_enter_editmode(C, EM_WAITCURSOR);
+	}
+
+	rna_Object_update_data(C, ptr);
+}
+
 static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
@@ -1657,7 +1672,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_shape_key_index_get", "rna_Object_active_shape_key_index_set", "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index.");
-	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_Object_active_shape_update");
 
 	RNA_api_object(srna);
 }

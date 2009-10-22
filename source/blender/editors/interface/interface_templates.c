@@ -1960,7 +1960,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	Object *ob;
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
-	uiLayout *split, *overlap, *sub;
+	uiLayout *split, *overlap, *sub, *row;
 	char *name, *namebuf;
 	int icon;
 
@@ -1971,7 +1971,8 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 	if(itemptr->type == &RNA_ShapeKey) {
 		ob= (Object*)activeptr->data;
-		uiLayoutSetEnabled(sub, ob->mode != OB_MODE_EDIT);
+		if(ob->mode == OB_MODE_EDIT && !(ob->type == OB_MESH))
+			uiLayoutSetEnabled(sub, 0);
 	}
 
 	but= uiDefButR(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
@@ -2005,11 +2006,13 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 		uiItemL(split, name, icon);
 
-		if(i == 0) uiItemL(split, "", 0);
-		else uiItemR(split, "", 0, itemptr, "value", 0);
-		if(ob->mode == OB_MODE_EDIT && !(ob->shapeflag & OB_SHAPE_EDIT_MODE))
-			uiLayoutSetEnabled(split, 0);
-		//uiItemR(split, "", ICON_MUTE_IPO_OFF, itemptr, "mute", 0);
+		row= uiLayoutRow(split, 1);
+		if(i == 0) uiItemL(row, "", 0);
+		else uiItemR(row, "", 0, itemptr, "value", 0);
+
+		if(ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH))
+			uiLayoutSetActive(row, 0);
+		//uiItemR(row, "", ICON_MUTE_IPO_OFF, itemptr, "mute", 0);
 	}
 	else
 		uiItemL(sub, name, icon);

@@ -173,6 +173,8 @@ typedef struct EditMesh
 	short mat_nr;
 	/* stats */
 	int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
+	/* shape key being edited */
+	int shapenr;
 	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate

@@ -480,7 +480,6 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 static int editmode_toggle_exec(bContext *C, wmOperator *op)
 {
-	
 	if(!CTX_data_edit_object(C))
 		ED_object_enter_editmode(C, EM_WAITCURSOR);
 	else
