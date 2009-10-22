@@ -87,9 +87,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-/* XXX */
-extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-
 /* *************************** */
 /* Utility Drawing Defines */
 
@@ -881,7 +878,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 					draw_fcurve_vertices(sipo, ar, fcu);
 				}
 				else {
-					/* samples: should we only draw two indicators at either end as indicators? */
+					/* samples: only draw two indicators at either end as indicators */
 					draw_fcurve_samples(sipo, ar, fcu);
 				}
 			}

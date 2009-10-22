@@ -1551,7 +1551,8 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_graphkeys_mirror_types[] = {
-	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
+	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame", ""},
+	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value", ""},
 	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", ""},
 	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
 	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
@@ -1593,6 +1594,10 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 			bed.f1= (float)marker->frame;
 		else
 			return;
+	}
+	else if (mode == GRAPHKEYS_MIRROR_VALUE) {
+		SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+		bed.f1= (sipo) ? sipo->cursorVal : 0.0f;
 	}
 	
 	/* filter data */

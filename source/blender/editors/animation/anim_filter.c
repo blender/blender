@@ -373,9 +373,18 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
  *
  * 	- id: ID block which should have an AnimData pointer following it immediately, to use
  *	- adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
- *	- nlaOk: line or block of code to execute for NLA case
+ *	- nlaOk: line or block of code to execute for NLA tracks+strips case
  *	- driversOk: line or block of code to execute for Drivers case
  *	- keysOk: line or block of code for Keyframes case
+ *
+ * The checks for the various cases are as follows:
+ *	0) top level: checks for animdata and also that all the F-Curves for the block will be visible
+ *	1) animdata check: for filtering animdata blocks only
+ *	2A) nla tracks: include animdata block's data as there are NLA tracks+strips there
+ *	2B) actions to convert to nla: include animdata block's data as there is an action that can be 
+ *		converted to a new NLA strip, and the filtering options allow this
+ *	3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
+ *	4) normal keyframes: only when there is an active action
  */
 #define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, keysOk) \
 	{\

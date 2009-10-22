@@ -669,6 +669,19 @@ static short mirror_bezier_marker(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+static short mirror_bezier_value(BeztEditData *bed, BezTriple *bezt)
+{
+	float diff;
+	
+	/* value to mirror over is stored in the custom data -> first float value slot */
+	if (bezt->f2 & SELECT) {
+		diff= (bed->f1 - bezt->vec[1][1]);
+		bezt->vec[1][1]= (bed->f1 + diff);
+	}
+	
+	return 0;
+}
+
 /* Note: for markers case, need to set global vars (eww...) */
 // calchandles_fcurve
 BeztEditFunc ANIM_editkeyframes_mirror(short type)
@@ -682,6 +695,8 @@ BeztEditFunc ANIM_editkeyframes_mirror(short type)
 			return mirror_bezier_xaxis;
 		case MIRROR_KEYS_MARKER: /* mirror over marker */
 			return mirror_bezier_marker; 
+		case MIRROR_KEYS_VALUE: /* mirror over given value */
+			return mirror_bezier_value;
 		default: /* just in case */
 			return mirror_bezier_yaxis;
 			break;

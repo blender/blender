@@ -159,55 +159,11 @@ static void graph_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_un
 	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
 }
 
-static void graph_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_VALUE);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_FRAME);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_SECOND);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_MARKER);
-}
-
-static void graph_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_CFRA);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_YAXIS);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_XAXIS);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_MARKER);
-}
-
-static void graph_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_FREE);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_AUTO);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_VECT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_ALIGN);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_AUTO_ANIM); // xxx?
-}
-
-static void graph_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_CONST);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_LIN);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_BEZ);
-}
-
-static void graph_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
-	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
-}
-
 static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemMenuF(layout, "Transform", 0, graph_edit_transformmenu, NULL);
-	uiItemMenuF(layout, "Snap", 0, graph_edit_snapmenu, NULL);
-	uiItemMenuF(layout, "Mirror", 0, graph_edit_mirrormenu, NULL);
+	uiItemMenuEnumO(layout, "Snap", 0, "GRAPH_OT_snap", "type");
+	uiItemMenuEnumO(layout, "Mirror", 0, "GRAPH_OT_mirror", "type");
 	
 	uiItemS(layout);
 	
@@ -221,9 +177,9 @@ static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Handle Type", 0, graph_edit_handlesmenu, NULL);
-	uiItemMenuF(layout, "Interpolation Mode", 0, graph_edit_ipomenu, NULL);
-	uiItemMenuF(layout, "Extrapolation Mode", 0, graph_edit_expomenu, NULL);
+	uiItemMenuEnumO(layout, "Handle Type", 0, "GRAPH_OT_handle_type", "type");
+	uiItemMenuEnumO(layout, "Interpolation Mode", 0, "GRAPH_OT_interpolation_type", "type");
+	uiItemMenuEnumO(layout, "Extrapolation Mode", 0, "GRAPH_OT_extrapolation_type", "type");
 	
 	uiItemS(layout);
 	

@@ -139,20 +139,12 @@ static void nla_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unus
 	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
 }
 
-static void nla_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemEnumO(layout, NULL, 0, "NLA_OT_snap", "type", NLAEDIT_SNAP_CFRA);
-	uiItemEnumO(layout, NULL, 0, "NLA_OT_snap", "type", NLAEDIT_SNAP_NEAREST_FRAME);
-	uiItemEnumO(layout, NULL, 0, "NLA_OT_snap", "type", NLAEDIT_SNAP_NEAREST_SECOND);
-	uiItemEnumO(layout, NULL, 0, "NLA_OT_snap", "type", NLAEDIT_SNAP_NEAREST_MARKER);
-}
-
 static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
 	
 	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu, NULL);
-	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu, NULL);
+	uiItemMenuEnumO(layout, "Snap", 0, "NLA_OT_snap", "type");
 	
 	uiItemS(layout);
 	
@@ -248,13 +240,13 @@ void nla_header_buttons(const bContext *C, ARegion *ar)
 	/* auto-snap selector */
 	if (snla->flag & SNLA_DRAWTIME) {
 		uiDefButS(block, MENU, B_REDR,
-				"Auto-Snap Keyframes %t|No Time-Snap %x0|Nearest Second %x2|Nearest Marker %x3", 
+				"Auto-Snap %t|No Time-Snap %x0|Nearest Second %x2|Nearest Marker %x3", 
 				xco,yco,90,YIC, &snla->autosnap, 0, 1, 0, 0, 
 				"Auto-snapping mode for times when transforming");
 	}
 	else {
 		uiDefButS(block, MENU, B_REDR, 
-				"Auto-Snap Keyframes %t|No Time-Snap %x0|Nearest Frame %x2|Nearest Marker %x3", 
+				"Auto-Snap %t|No Time-Snap %x0|Nearest Frame %x2|Nearest Marker %x3", 
 				xco,yco,90,YIC, &snla->autosnap, 0, 1, 0, 0, 
 				"Auto-snapping mode for times when transforming");
 	}
