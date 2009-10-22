@@ -110,6 +110,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		
 		layout.itemS()
 		
+		layout.itemO("view3d.localview", text="View Global/Local")
 		layout.itemO("view3d.view_center")
 		layout.itemO("view3d.view_all")
 		
