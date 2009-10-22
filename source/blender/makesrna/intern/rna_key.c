@@ -50,6 +50,17 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+static Key *rna_ShapeKey_find_key(ID *id)
+{
+	switch(GS(id->name)) {
+		case ID_CU: return ((Curve*)id)->key;
+		case ID_KE: return (Key*)id;
+		case ID_LT: return ((Lattice*)id)->key;
+		case ID_ME: return ((Mesh*)id)->key;
+		default: return NULL;
+	}
+}
+
 void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 {
 	KeyBlock *kb= ptr->data;
@@ -63,7 +74,7 @@ void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 	
 	/* make sure the name is truly unique */
 	if (ptr->id.data) {
-		Key *key= ptr->id.data;
+		Key *key= rna_ShapeKey_find_key(ptr->id.data);
 		BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), 32);
 	}
 	
@@ -84,17 +95,6 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
 
 	*min= data->slidermin;
 	*max= data->slidermax;
-}
-
-static Key *rna_ShapeKey_find_key(ID *id)
-{
-	switch(GS(id->name)) {
-		case ID_CU: return ((Curve*)id)->key;
-		case ID_KE: return (Key*)id;
-		case ID_LT: return ((Lattice*)id)->key;
-		case ID_ME: return ((Mesh*)id)->key;
-		default: return NULL;
-	}
 }
 
 static PointerRNA rna_ShapeKey_relative_key_get(PointerRNA *ptr)

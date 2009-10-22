@@ -884,7 +884,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 int BPY_button_eval(bContext *C, char *expr, double *value)
 {
 	PyGILState_STATE gilstate;
-	PyObject *dict, *retval;
+	PyObject *dict, *mod, *retval;
 	int error_ret = 0;
 	
 	if (!value || !expr || expr[0]=='\0') return -1;
@@ -892,6 +892,20 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	bpy_context_set(C, &gilstate);
 	
 	dict= CreateGlobalDictionary(C);
+	
+	/* import some modules: builtins,math*/
+	PyDict_SetItemString(dict, "__builtins__", PyEval_GetBuiltins());
+
+	mod = PyImport_ImportModule("math");
+	if (mod) {
+		PyDict_Merge(dict, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
+		
+		/* Only keep for backwards compat! - just import all math into root, they are standard */
+		PyDict_SetItemString(dict, "math", mod);
+		PyDict_SetItemString(dict, "m", mod);
+		Py_DECREF(mod);
+	} 
+	
 	retval = PyRun_String(expr, Py_eval_input, dict, dict);
 	
 	if (retval == NULL) {

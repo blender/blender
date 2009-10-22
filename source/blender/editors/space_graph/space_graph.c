@@ -151,8 +151,8 @@ static SpaceLink *graph_new(const bContext *C)
 	
 	ar->v2d.cur= ar->v2d.tot;
 	
-	ar->v2d.min[0]= 0.01f;
-	ar->v2d.min[1]= 0.01f;
+	ar->v2d.min[0]= 0.001f;
+	ar->v2d.min[1]= 0.001f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
 	ar->v2d.max[1]= 50000.0f;
