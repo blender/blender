@@ -1260,7 +1260,9 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 
 		if(keyVerts) {
 			/* split coords from key data, the latter also includes
-			   tilts, which is passed through in the modifier stack */
+			   tilts, which is passed through in the modifier stack.
+			   this is also the reason curves do not use a virtual
+			   shape key modifier yet. */
 			deformedVerts= curve_getKeyVertexCos(cu, nurb, keyVerts);
 			originalVerts= MEM_dupallocN(deformedVerts);
 		}

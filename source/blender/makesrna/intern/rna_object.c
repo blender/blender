@@ -1642,6 +1642,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_update(prop, 0, "rna_Object_update_data");
 
+	prop= RNA_def_property(srna, "shape_key_edit_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_EDIT_MODE);
+	RNA_def_property_ui_text(prop, "Shape Key Edit Mode", "Apply shape keys in edit mode (for Meshes only).");
+	RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
+	RNA_def_property_update(prop, 0, "rna_Object_update_data");
+
 	prop= RNA_def_property(srna, "active_shape_key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ShapeKey");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_shape_key_get", NULL, NULL);

@@ -1503,11 +1503,11 @@ static void ui_litem_layout_row(uiLayout *litem)
 		/* align right/center */
 		offset= 0;
 		if(litem->alignment == UI_LAYOUT_ALIGN_RIGHT) {
-			if(fixedw == 0 && freew < w-fixedw)
+			if(freew > 0 && freew < w-fixedw)
 				offset= (w - fixedw) - freew;
 		}
 		else if(litem->alignment == UI_LAYOUT_ALIGN_CENTER) {
-			if(fixedw == 0 && freew < w-fixedw)
+			if(freew > 0 && freew < w-fixedw)
 				offset= ((w - fixedw) - freew)/2;
 		}
 

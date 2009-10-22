@@ -3828,6 +3828,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 		pind.keyed = keyed;
 		pind.cache = cached ? psys->pointcache : NULL;
 		pind.epoint = NULL;
+		pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
 		pind.dm = psys->hair_out_dm;
 		init_particle_interpolation(sim->ob, psys, pa, &pind);
 		do_particle_interpolation(psys, p, pa, t, frs_sec, &pind, state);

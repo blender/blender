@@ -500,7 +500,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 		{UI_LAYOUT_ALIGN_EXPAND, "EXPAND", 0, "Expand", ""},
 		{UI_LAYOUT_ALIGN_LEFT, "LEFT", 0, "Left", ""},
 		{UI_LAYOUT_ALIGN_CENTER, "CENTER", 0, "Center", ""},
-		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", 0, "RIght", ""},
+		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", 0, "Right", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	/* see WM_types.h */

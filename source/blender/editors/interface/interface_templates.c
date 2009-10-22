@@ -506,7 +506,7 @@ static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
 	ModifierData *md= md_v;
-	int i, cageIndex = modifiers_getCageIndex(ob, NULL );
+	int i, cageIndex = modifiers_getCageIndex(ob, NULL, 0);
 
 	/* undo button operation */
 	md->mode ^= eModifierMode_OnCage;
@@ -715,7 +715,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr)
 	uiBlockSetButLock(uiLayoutGetBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	
 	/* find modifier and draw it */
-	cageIndex = modifiers_getCageIndex(ob, &lastCageIndex);
+	cageIndex = modifiers_getCageIndex(ob, &lastCageIndex, 0);
 
 	// XXX virtual modifiers are not accesible for python
 	vmd = modifiers_getVirtualModifierList(ob);
@@ -1955,12 +1955,29 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon)
 	return rnaicon;
 }
 
-static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon)
+static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, char *activepropname)
 {
+	Object *ob;
 	uiBlock *block= uiLayoutGetBlock(layout);
-	uiLayout *split;
+	uiBut *but;
+	uiLayout *split, *overlap, *sub;
 	char *name, *namebuf;
 	int icon;
+
+	overlap= uiLayoutOverlap(layout);
+
+	/* list item behind label & other buttons */
+	sub= uiLayoutRow(overlap, 0);
+
+	if(itemptr->type == &RNA_ShapeKey) {
+		ob= (Object*)activeptr->data;
+		uiLayoutSetEnabled(sub, ob->mode != OB_MODE_EDIT);
+	}
+
+	but= uiDefButR(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+	uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+
+	sub= uiLayoutRow(overlap, 0);
 
 	/* retrieve icon and name */
 	icon= list_item_icon_get(C, itemptr, rnaicon);
@@ -1974,24 +1991,28 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
 	if(itemptr->type == &RNA_MeshTextureFaceLayer || itemptr->type == &RNA_MeshColorLayer) {
-		uiItemL(layout, name, icon);
+		uiItemL(sub, name, icon);
 		uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "active_render", 0, 0, 0, 0, 0, NULL);
 	}
 	else if(itemptr->type == &RNA_MaterialTextureSlot) {
-		uiItemL(layout, name, icon);
+		uiItemL(sub, name, icon);
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, ptr, "use_textures", i, 0, 0, 0, 0,  NULL);
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
-		split= uiLayoutSplit(layout, 0.75f);
+		ob= (Object*)activeptr->data;
+
+		split= uiLayoutSplit(sub, 0.75f);
 
 		uiItemL(split, name, icon);
 
 		if(i == 0) uiItemL(split, "", 0);
 		else uiItemR(split, "", 0, itemptr, "value", 0);
+		if(ob->mode == OB_MODE_EDIT && !(ob->shapeflag & OB_SHAPE_EDIT_MODE))
+			uiLayoutSetEnabled(split, 0);
 		//uiItemR(split, "", ICON_MUTE_IPO_OFF, itemptr, "mute", 0);
 	}
 	else
-		uiItemL(layout, name, icon);
+		uiItemL(sub, name, icon);
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
@@ -2006,7 +2027,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 	PropertyRNA *prop= NULL, *activeprop;
 	PropertyType type, activetype;
 	StructRNA *ptype;
-	uiLayout *box, *row, *col, *subrow, *overlap;
+	uiLayout *box, *row, *col;
 	uiBlock *block;
 	uiBut *but;
 	Panel *pa;
@@ -2151,16 +2172,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 		if(ptr->data && prop) {
 			/* create list items */
 			RNA_PROP_BEGIN(ptr, itemptr, prop) {
-				if(i >= pa->list_scroll && i<pa->list_scroll+items) {
-					overlap= uiLayoutOverlap(col);
-
-					subrow= uiLayoutRow(overlap, 0);
-					but= uiDefButR(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
-					uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
-
-					subrow= uiLayoutRow(overlap, 0);
-					list_item_row(C, subrow, ptr, &itemptr, i, rnaicon);
-				}
+				if(i >= pa->list_scroll && i<pa->list_scroll+items)
+					list_item_row(C, col, ptr, &itemptr, i, rnaicon, activeptr, activepropname);
 
 				i++;
 			}

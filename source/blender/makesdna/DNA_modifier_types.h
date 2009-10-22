@@ -63,6 +63,7 @@ typedef enum ModifierType {
 	eModifierType_Multires,
 	eModifierType_Surface,
 	eModifierType_Smoke,
+	eModifierType_ShapeKey,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -662,5 +663,9 @@ typedef struct SimpleDeformModifierData {
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #define MOD_UVPROJECT_MAX				10
+
+typedef struct ShapeKeyModifierData {
+	ModifierData modifier;
+} ShapeKeyModifierData;
 
 #endif

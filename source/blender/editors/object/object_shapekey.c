@@ -544,6 +544,13 @@ static int ED_object_shape_key_mirror(bContext *C, Scene *scene, Object *ob)
 
 /********************** shape key operators *********************/
 
+static int shape_key_mode_poll(bContext *C)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	ID *data= (ob)? ob->data: NULL;
+	return (ob && !ob->id.lib && data && !data->lib && ob->mode != OB_MODE_EDIT);
+}
+
 static int shape_key_poll(bContext *C)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
@@ -569,7 +576,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shape_key_add";
 	
 	/* api callbacks */
-	ot->poll= shape_key_poll;
+	ot->poll= shape_key_mode_poll;
 	ot->exec= shape_key_add_exec;
 
 	/* flags */
@@ -594,7 +601,7 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shape_key_remove";
 	
 	/* api callbacks */
-	ot->poll= shape_key_poll;
+	ot->poll= shape_key_mode_poll;
 	ot->exec= shape_key_remove_exec;
 
 	/* flags */
@@ -652,7 +659,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shape_key_mirror";
 
 	/* api callbacks */
-	ot->poll= shape_key_poll;
+	ot->poll= shape_key_mode_poll;
 	ot->exec= shape_key_mirror_exec;
 
 	/* flags */
@@ -710,7 +717,7 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shape_key_move";
 
 	/* api callbacks */
-	ot->poll= shape_key_poll;
+	ot->poll= shape_key_mode_poll;
 	ot->exec= shape_key_move_exec;
 
 	/* flags */

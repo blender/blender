@@ -36,6 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
@@ -497,38 +498,41 @@ static void rel_flerp(int aantal, float *in, float *ref, float *out, float fac)
 	}
 }
 
-static void *key_block_get_data(Key *key, KeyBlock *kb)
+static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **freedata)
 {
-	/* editmode shape key apply test */
-#if 0
-	EditVert *eve;
-	Mesh *me;
-	float (*co)[3];
-	int a;
-
-	if(kb != key->refkey) {
+	if(kb == actkb) {
+		/* this hack makes it possible to edit shape keys in
+		   edit mode with shape keys blending applied */
 		if(GS(key->from->name) == ID_ME) {
+			Mesh *me;
+			EditVert *eve;
+			float (*co)[3];
+			int a;
+
 			me= (Mesh*)key->from;
 
-			if(me->edit_mesh) {
+			if(me->edit_mesh && me->edit_mesh->totvert == kb->totelem) {
 				a= 0;
-				co= kb->data;
+				co= MEM_callocN(sizeof(float)*3*me->edit_mesh->totvert, "key_block_get_data");
 
 				for(eve=me->edit_mesh->verts.first; eve; eve=eve->next, a++)
 					VECCOPY(co[a], eve->co);
+
+				*freedata= (char*)co;
+				return (char*)co;
 			}
 		}
 	}
-#endif
 
+	*freedata= NULL;
 	return kb->data;
 }
 
-static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *kb, float *weights, int mode)
+static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *actkb, KeyBlock *kb, float *weights, int mode)
 {
 	float ktot = 0.0, kd = 0.0;
 	int elemsize, poinsize = 0, a, *ofsp, ofs[32], flagflo=0;
-	char *k1, *kref;
+	char *k1, *kref, *freek1, *freekref;
 	char *cp, elemstr[8];
 
 	if(key->from==NULL) return;
@@ -553,9 +557,6 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 
 	if(end>tot) end= tot;
 	
-	k1= key_block_get_data(key, kb);
-	kref= key_block_get_data(key, key->refkey);
-	
 	if(tot != kb->totelem) {
 		ktot= 0.0;
 		flagflo= 1;
@@ -564,6 +565,9 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 		}
 		else return;
 	}
+
+	k1= key_block_get_data(key, actkb, kb, &freek1);
+	kref= key_block_get_data(key, actkb, key->refkey, &freekref);
 
 	/* this exception is needed for slurphing */
 	if(start!=0) {
@@ -638,9 +642,12 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 		
 		if(mode==KEY_BEZTRIPLE) a+=2;
 	}
+
+	if(freek1) MEM_freeN(freek1);
+	if(freekref) MEM_freeN(freekref);
 }
 
-static void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end, char *out, int tot)
+static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, int start, int end, char *out, int tot)
 {
 	Nurb *nu;
 	char *poin;
@@ -655,7 +662,7 @@ static void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end, char *out, in
 			a1= MAX2(a, start);
 			a2= MIN2(a+step, end);
 			
-			if(a1<a2) cp_key(a1, a2, tot, poin, cu->key, kb, NULL, KEY_BPOINT);
+			if(a1<a2) cp_key(a1, a2, tot, poin, key, actkb, kb, NULL, KEY_BPOINT);
 		}
 		else if(nu->bezt) {
 			step= 3*nu->pntsu;
@@ -664,7 +671,7 @@ static void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end, char *out, in
 			a1= MAX2(a, start);
 			a2= MIN2(a+step, end);
 
-			if(a1<a2) cp_key(a1, a2, tot, poin, cu->key, kb, NULL, KEY_BEZTRIPLE);
+			if(a1<a2) cp_key(a1, a2, tot, poin, key, actkb, kb, NULL, KEY_BEZTRIPLE);
 		}
 		else
 			step= 0;
@@ -672,11 +679,12 @@ static void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end, char *out, in
 }
 
 
-void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode)
+void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, KeyBlock *actkb, int mode)
 {
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
+	char *freefrom, *freereffrom;
 	
 	if(key->from==NULL) return;
 	
@@ -707,7 +715,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
 
 	/* step 1 init */
-	cp_key(start, end, tot, basispoin, key, key->refkey, NULL, mode);
+	cp_key(start, end, tot, basispoin, key, actkb, key->refkey, NULL, mode);
 	
 	/* step 2: do it */
 	
@@ -719,13 +727,14 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 			if(!(kb->flag & KEYBLOCK_MUTE) && icuval!=0.0f && kb->totelem==tot) {
 				KeyBlock *refb;
 				float weight, *weights= kb->weights;
-				
-				poin= basispoin;
-				from= key_block_get_data(key, kb);
+
 				/* reference now can be any block */
 				refb= BLI_findlink(&key->block, kb->relative);
 				if(refb==NULL) continue;
-				reffrom= key_block_get_data(key, refb);
+				
+				poin= basispoin;
+				from= key_block_get_data(key, actkb, kb, &freefrom);
+				reffrom= key_block_get_data(key, actkb, refb, &freereffrom);
 				
 				poin+= start*ofs[0];
 				reffrom+= key->elemsize*start;	// key elemsize yes!
@@ -769,19 +778,22 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 					if(mode==KEY_BEZTRIPLE) b+= 2;
 					if(weights) weights++;
 				}
+
+				if(freefrom) MEM_freeN(freefrom);
+				if(freereffrom) MEM_freeN(freereffrom);
 			}
 		}
 	}
 }
 
 
-static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, float *t, int mode)
+static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *actkb, KeyBlock **k, float *t, int mode)
 {
 	float k1tot = 0.0, k2tot = 0.0, k3tot = 0.0, k4tot = 0.0;
 	float k1d = 0.0, k2d = 0.0, k3d = 0.0, k4d = 0.0;
 	int a, ofs[32], *ofsp;
 	int flagdo= 15, flagflo=0, elemsize, poinsize=0;
-	char *k1, *k2, *k3, *k4;
+	char *k1, *k2, *k3, *k4, *freek1, *freek2, *freek3, *freek4;
 	char *cp, elemstr[8];;
 
 	if(key->from==0) return;
@@ -806,10 +818,10 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 	
 	if(end>tot) end= tot;
 
-	k1= key_block_get_data(key, k[0]);
-	k2= key_block_get_data(key, k[1]);
-	k3= key_block_get_data(key, k[2]);
-	k4= key_block_get_data(key, k[3]);
+	k1= key_block_get_data(key, actkb, k[0], &freek1);
+	k2= key_block_get_data(key, actkb, k[1], &freek2);
+	k3= key_block_get_data(key, actkb, k[2], &freek3);
+	k4= key_block_get_data(key, actkb, k[3], &freek4);
 
 	/*  test for more or less points (per key!) */
 	if(tot != k[0]->totelem) {
@@ -975,6 +987,11 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 		
 		if(mode==KEY_BEZTRIPLE) a+= 2;
 	}
+
+	if(freek1) MEM_freeN(freek1);
+	if(freek2) MEM_freeN(freek2);
+	if(freek3) MEM_freeN(freek3);
+	if(freek4) MEM_freeN(freek4);
 }
 
 static float *get_weights_array(Object *ob, char *vgroup)
@@ -1026,7 +1043,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 
 static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 {
-	KeyBlock *k[4];
+	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
 	float cfra, ctime, t[4], delta;
 	int a, flag = 0, step;
 	
@@ -1059,9 +1076,9 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			flag= setkeys(ctime, &key->block, k, t, 0);
 
 			if(flag==0)
-				do_key(a, a+step, tot, (char *)out, key, k, t, 0);
+				do_key(a, a+step, tot, (char *)out, key, actkb, k, t, 0);
 			else
-				cp_key(a, a+step, tot, (char *)out, key, k[2], NULL, 0);
+				cp_key(a, a+step, tot, (char *)out, key, actkb, k[2], NULL, 0);
 		}
 	}
 	else {
@@ -1071,7 +1088,7 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			for(kb= key->block.first; kb; kb= kb->next)
 				kb->weights= get_weights_array(ob, kb->vgroup);
 
-			do_rel_key(0, tot, tot, (char *)out, key, 0);
+			do_rel_key(0, tot, tot, (char *)out, key, actkb, 0);
 			
 			for(kb= key->block.first; kb; kb= kb->next) {
 				if(kb->weights) MEM_freeN(kb->weights);
@@ -1094,14 +1111,14 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			flag= setkeys(ctime, &key->block, k, t, 0);
 
 			if(flag==0)
-				do_key(0, tot, tot, (char *)out, key, k, t, 0);
+				do_key(0, tot, tot, (char *)out, key, actkb, k, t, 0);
 			else
-				cp_key(0, tot, tot, (char *)out, key, k[2], NULL, 0);
+				cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, 0);
 		}
 	}
 }
 
-static void do_cu_key(Curve *cu, KeyBlock **k, float *t, char *out, int tot)
+static void do_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float *t, char *out, int tot)
 {
 	Nurb *nu;
 	char *poin;
@@ -1111,19 +1128,19 @@ static void do_cu_key(Curve *cu, KeyBlock **k, float *t, char *out, int tot)
 		if(nu->bp) {
 			step= nu->pntsu*nu->pntsv;
 			poin= out - a*sizeof(float)*4;
-			do_key(a, a+step, tot, poin, cu->key, k, t, KEY_BPOINT);
+			do_key(a, a+step, tot, poin, key, actkb, k, t, KEY_BPOINT);
 		}
 		else if(nu->bezt) {
 			step= 3*nu->pntsu;
 			poin= out - a*sizeof(float)*10;
-			do_key(a, a+step, tot, poin, cu->key, k, t, KEY_BEZTRIPLE);
+			do_key(a, a+step, tot, poin, key, actkb, k, t, KEY_BEZTRIPLE);
 		}
 		else
 			step= 0;
 	}
 }
 
-static void do_rel_cu_key(Curve *cu, float ctime, char *out, int tot)
+static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, float ctime, char *out, int tot)
 {
 	Nurb *nu;
 	char *poin;
@@ -1133,12 +1150,12 @@ static void do_rel_cu_key(Curve *cu, float ctime, char *out, int tot)
 		if(nu->bp) {
 			step= nu->pntsu*nu->pntsv;
 			poin= out - a*sizeof(float)*3;
-			do_rel_key(a, a+step, tot, out, cu->key, KEY_BPOINT);
+			do_rel_key(a, a+step, tot, out, key, actkb, KEY_BPOINT);
 		}
 		else if(nu->bezt) {
 			step= 3*nu->pntsu;
 			poin= out - a*sizeof(float)*10;
-			do_rel_key(a, a+step, tot, poin, cu->key, KEY_BEZTRIPLE);
+			do_rel_key(a, a+step, tot, poin, key, actkb, KEY_BEZTRIPLE);
 		}
 		else
 			step= 0;
@@ -1148,7 +1165,7 @@ static void do_rel_cu_key(Curve *cu, float ctime, char *out, int tot)
 static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 {
 	Curve *cu= ob->data;
-	KeyBlock *k[4];
+	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
 	float cfra, ctime, t[4], delta;
 	int a, flag = 0, step = 0;
 	
@@ -1187,7 +1204,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 		ctime= bsystem_time(scene, NULL, (float)scene->r.cfra, 0.0);
 		
 		if(key->type==KEY_RELATIVE) {
-			do_rel_cu_key(cu, ctime, out, tot);
+			do_rel_cu_key(cu, cu->key, actkb, ctime, out, tot);
 		}
 		else {
 #if 0 // XXX old animation system
@@ -1199,8 +1216,8 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			
 			flag= setkeys(ctime, &key->block, k, t, 0);
 			
-			if(flag==0) do_cu_key(cu, k, t, out, tot);
-			else cp_cu_key(cu, k[2], 0, tot, out, tot);
+			if(flag==0) do_cu_key(cu, key, actkb, k, t, out, tot);
+			else cp_cu_key(cu, key, actkb, k[2], 0, tot, out, tot);
 		}
 	}
 }
@@ -1208,7 +1225,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 {
 	Lattice *lt= ob->data;
-	KeyBlock *k[4];
+	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
 	float delta, cfra, ctime, t[4];
 	int a, flag;
 	
@@ -1231,9 +1248,9 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			flag= setkeys(ctime, &key->block, k, t, 0);
 
 			if(flag==0)
-				do_key(a, a+1, tot, (char *)out, key, k, t, 0);
+				do_key(a, a+1, tot, (char *)out, key, actkb, k, t, 0);
 			else
-				cp_key(a, a+1, tot, (char *)out, key, k[2], NULL, 0);
+				cp_key(a, a+1, tot, (char *)out, key, actkb, k[2], NULL, 0);
 		}		
 	}
 	else {
@@ -1243,7 +1260,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			for(kb= key->block.first; kb; kb= kb->next)
 				kb->weights= get_weights_array(ob, kb->vgroup);
 			
-			do_rel_key(0, tot, tot, (char *)out, key, 0);
+			do_rel_key(0, tot, tot, (char *)out, key, actkb, 0);
 			
 			for(kb= key->block.first; kb; kb= kb->next) {
 				if(kb->weights) MEM_freeN(kb->weights);
@@ -1263,9 +1280,9 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			flag= setkeys(ctime, &key->block, k, t, 0);
 
 			if(flag==0)
-				do_key(0, tot, tot, (char *)out, key, k, t, 0);
+				do_key(0, tot, tot, (char *)out, key, actkb, k, t, 0);
 			else
-				cp_key(0, tot, tot, (char *)out, key, k[2], NULL, 0);
+				cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, 0);
 		}
 	}
 	
@@ -1276,6 +1293,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 float *do_ob_key(Scene *scene, Object *ob)
 {
 	Key *key= ob_get_key(ob);
+	KeyBlock *actkb= ob_get_keyblock(ob);
 	char *out;
 	int tot= 0, size= 0;
 	
@@ -1336,12 +1354,12 @@ float *do_ob_key(Scene *scene, Object *ob)
 		if(ELEM(ob->type, OB_MESH, OB_LATTICE)) {
 			float *weights= get_weights_array(ob, kb->vgroup);
 
-			cp_key(0, tot, tot, (char*)out, key, kb, weights, 0);
+			cp_key(0, tot, tot, (char*)out, key, actkb, kb, weights, 0);
 
 			if(weights) MEM_freeN(weights);
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF))
-			cp_cu_key(ob->data, kb, 0, tot, out, tot);
+			cp_cu_key(ob->data, key, actkb, kb, 0, tot, out, tot);
 	}
 	else {
 		/* do shapekey local drivers */
