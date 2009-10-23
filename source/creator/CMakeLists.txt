@@ -173,6 +173,7 @@ IF(WITH_INSTALL)
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND find ${TARGETDIR} -name .svn -prune -exec rm -rf {} "\;"
+			COMMAND find ${TARGETDIR} -name __MACOSX -prune -exec rm -rf {} "\;"
 		)
     
     

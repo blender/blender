@@ -1046,11 +1046,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 {
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+	
+	if (!window) return GHOST_kFailure;
+	
 	GHOST_TabletData& ct=((GHOST_WindowCocoa*)window)->GetCocoaTabletData();
 	
 	switch (eventType) {
 		case NSTabletPoint:
-			ct.Pressure = [event tangentialPressure];
+			ct.Pressure = [event pressure];
 			ct.Xtilt = [event tilt].x;
 			ct.Ytilt = [event tilt].y;
 			break;
