@@ -165,7 +165,7 @@ static KeyBlock *add_keyblock(Scene *scene, Key *key)
 static void insert_meshkey(Scene *scene, Object *ob)
 {
 	Mesh *me= ob->data;
-	Key *key= me->key;;
+	Key *key= me->key;
 	KeyBlock *kb;
 	int newkey= 0;
 
