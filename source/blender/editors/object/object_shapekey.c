@@ -80,41 +80,6 @@
 
 #include "object_intern.h"
 
-#if 0 // XXX old animation system
-static void default_key_ipo(Scene *scene, Key *key)
-{
-	IpoCurve *icu;
-	BezTriple *bezt;
-	
-	key->ipo= add_ipo(scene, "KeyIpo", ID_KE);
-	
-	icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
-			
-	icu->blocktype= ID_KE;
-	icu->adrcode= KEY_SPEED;
-	icu->flag= IPO_VISIBLE|IPO_SELECT|IPO_AUTO_HORIZ;
-	set_icu_vars(icu);
-	
-	BLI_addtail( &(key->ipo->curve), icu);
-	
-	icu->bezt= bezt= MEM_callocN(2*sizeof(BezTriple), "defaultipo");
-	icu->totvert= 2;
-	
-	bezt->hide= IPO_BEZ;
-	bezt->f1=bezt->f2= bezt->f3= SELECT;
-	bezt->h1= bezt->h2= HD_AUTO;
-	bezt++;
-	bezt->vec[1][0]= 100.0;
-	bezt->vec[1][1]= 1.0;
-	bezt->hide= IPO_BEZ;
-	bezt->f1=bezt->f2= bezt->f3= SELECT;
-	bezt->h1= bezt->h2= HD_AUTO;
-	
-	calchandles_ipocurve(icu);
-}
-#endif // XXX old animation system
-	
-
 /************************* Mesh ************************/
 
 void mesh_to_key(Mesh *me, KeyBlock *kb)
@@ -197,24 +162,30 @@ static KeyBlock *add_keyblock(Scene *scene, Key *key)
 	return kb;
 }
 
-void insert_meshkey(Scene *scene, Mesh *me, short rel)
+static void insert_meshkey(Scene *scene, Object *ob)
 {
-	Key *key;
+	Mesh *me= ob->data;
+	Key *key= me->key;;
 	KeyBlock *kb;
+	int newkey= 0;
 
-	if(me->key==NULL) {
-		me->key= add_key( (ID *)me);
-
-		if(rel)
-			me->key->type = KEY_RELATIVE;
-//		else
-//			default_key_ipo(scene, me->key); // XXX old animation system
+	if(key == NULL) {
+		key= me->key= add_key((ID *)me);
+		key->type= KEY_RELATIVE;
+		newkey= 1;
 	}
-	key= me->key;
 	
 	kb= add_keyblock(scene, key);
 	
-	mesh_to_key(me, kb);
+	if(newkey) {
+		/* create from mesh */
+		mesh_to_key(me, kb);
+	}
+	else {
+		/* copy from current values */
+		kb->data= do_ob_key(scene, ob);
+		kb->totelem= me->totvert;
+	}
 }
 
 /************************* Lattice ************************/
@@ -255,24 +226,31 @@ void key_to_latt(KeyBlock *kb, Lattice *lt)
 	for(a=0; a<tot; a++, fp+=3, bp++) {
 		VECCOPY(bp->vec, fp);
 	}
-	
 }
 
-/* exported to python... hrms, should not, use object levels! (ton) */
-void insert_lattkey(Scene *scene, Lattice *lt, short rel)
+static void insert_lattkey(Scene *scene, Object *ob)
 {
-	Key *key;
+	Lattice *lt= ob->data;
+	Key *key= lt->key;
 	KeyBlock *kb;
+	int newkey= 0;
 	
-	if(lt->key==NULL) {
-		lt->key= add_key( (ID *)lt);
-//		default_key_ipo(scene, lt->key); // XXX old animation system
+	if(key==NULL) {
+		key= lt->key= add_key( (ID *)lt);
+		key->type= KEY_RELATIVE;
 	}
-	key= lt->key;
-	
+
 	kb= add_keyblock(scene, key);
 	
-	latt_to_key(lt, kb);
+	if(newkey) {
+		/* create from lattice */
+		latt_to_key(lt, kb);
+	}
+	else {
+		/* copy from current values */
+		kb->totelem= lt->pntsu*lt->pntsv*lt->pntsw;
+		kb->data= do_ob_key(scene, ob);
+	}
 }
 
 /************************* Curve ************************/
@@ -379,25 +357,32 @@ void key_to_curve(KeyBlock *kb, Curve  *cu, ListBase *nurb)
 }
 
 
-void insert_curvekey(Scene *scene, Curve *cu, short rel) 
+static void insert_curvekey(Scene *scene, Object *ob)
 {
-	Key *key;
+	Curve *cu= ob->data;
+	Key *key= cu->key;
 	KeyBlock *kb;
 	ListBase *lb= (cu->editnurb)? cu->editnurb: &cu->nurb;
+	int newkey= 0;
 	
-	if(cu->key==NULL) {
-		cu->key= add_key( (ID *)cu);
-
-		if(rel)
-			cu->key->type = KEY_RELATIVE;
-//		else
-//			default_key_ipo(scene, cu->key);	// XXX old animation system
+	if(key==NULL) {
+		key= cu->key= add_key( (ID *)cu);
+		key->type = KEY_RELATIVE;
+		newkey= 1;
 	}
-	key= cu->key;
 	
 	kb= add_keyblock(scene, key);
 	
-	curve_to_key(cu, kb, lb);
+	if(newkey) {
+		/* create from curve */
+		curve_to_key(cu, kb, lb);
+	}
+	else {
+		/* copy from current values */
+		kb->totelem= count_curveverts(lb);
+		kb->data= do_ob_key(scene, ob);
+	}
+
 }
 
 /*********************** add shape key ***********************/
@@ -406,9 +391,9 @@ static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob)
 {
 	Key *key;
 
-	if(ob->type==OB_MESH) insert_meshkey(scene, ob->data, 1);
-	else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(scene, ob->data, 1);
-	else if(ob->type==OB_LATTICE) insert_lattkey(scene, ob->data, 1);
+	if(ob->type==OB_MESH) insert_meshkey(scene, ob);
+	else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(scene, ob);
+	else if(ob->type==OB_LATTICE) insert_lattkey(scene, ob);
 
 	key= ob_get_key(ob);
 	ob->shapenr= BLI_countlist(&key->block);
