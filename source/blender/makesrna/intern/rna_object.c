@@ -183,7 +183,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob= (Object*)ptr->data;
 	ID *id= value.data;
 
-	if(ob->type == OB_EMPTY || id == NULL)
+	if(ob->type == OB_EMPTY || id == NULL || ob->mode & OB_MODE_EDIT)
 		return;
 	
 	if(ob->type == OB_MESH) {
