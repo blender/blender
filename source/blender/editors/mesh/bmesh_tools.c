@@ -2990,9 +2990,10 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	  then rip the two adjacent edges in the vert fan.*/
 	if (em->bm->totvertsel == 1 && em->bm->totedgesel == 0 && em->bm->totfacesel == 0) {
 		/*find selected vert*/
-		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_TestHFlag(v, BM_SELECT))
 				break;
+		}
 
 		/*this should be impossible, but sanity checks are a good thing*/
 		if (!v)
