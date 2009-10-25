@@ -1305,8 +1305,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	//BLI_strncpy(name, G.sce, FILE_MAX);
 	//untitled(name);
 
-	// XXX: temporary
-	RNA_string_set(op->ptr, "filename", "/tmp/test.dae");
+	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
 	
 	WM_event_add_fileselect(C, op);
 
@@ -1318,8 +1317,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(RNA_property_is_set(op->ptr, "filename"))
-		RNA_string_get(op->ptr, "filename", filename);
+	if(RNA_property_is_set(op->ptr, "path"))
+		RNA_string_get(op->ptr, "path", filename);
 	else {
 		BLI_strncpy(filename, G.sce, FILE_MAX);
 		untitled(filename);
@@ -1335,7 +1334,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_collada_export(wmOperatorType *ot)
 {
-	ot->name= "Collada Export";
+	ot->name= "Export COLLADA";
 	ot->idname= "WM_OT_collada_export";
 	
 	ot->invoke= wm_collada_export_invoke;
@@ -1344,13 +1343,12 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
 }
 
 static int wm_collada_import_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	// XXX: temporary
-	RNA_string_set(op->ptr, "filename", "/tmp/test.dae");
+	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
 	
 	WM_event_add_fileselect(C, op);
 
@@ -1362,8 +1360,8 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(RNA_property_is_set(op->ptr, "filename"))
-		RNA_string_get(op->ptr, "filename", filename);
+	if(RNA_property_is_set(op->ptr, "path"))
+		RNA_string_get(op->ptr, "path", filename);
 	else {
 		BLI_strncpy(filename, G.sce, FILE_MAX);
 		untitled(filename);
@@ -1379,7 +1377,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_collada_import(wmOperatorType *ot)
 {
-	ot->name= "Collada Import";
+	ot->name= "Import COLLADA";
 	ot->idname= "WM_OT_collada_import";
 	
 	ot->invoke= wm_collada_import_invoke;
@@ -1388,7 +1386,7 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
 }
 
 #endif

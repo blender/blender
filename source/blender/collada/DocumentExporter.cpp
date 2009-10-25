@@ -82,12 +82,11 @@ extern "C"
 #include <vector>
 #include <algorithm> // std::find
 
-// TODO: this can handy in BLI_arith.b
+// arithb.c now has QuatToAxisAngle too
+#if 0
 // This function assumes that quat is normalized.
 // The following document was used as reference:
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
-
-
 void QuatToAxisAngle(float *q, float *axis, float *angle)
 {
 	// quat to axis angle
@@ -106,6 +105,7 @@ void QuatToAxisAngle(float *q, float *axis, float *angle)
 		axis[2] = q[3] / divisor;
 	}
 }
+#endif
 
 char *CustomData_get_layer_name(const struct CustomData *data, int type, int n)
 {
@@ -2031,7 +2031,7 @@ public:
 					continue;
 				
 				// if rotation mode is euler - no need to convert it
-				if (pchan->rotmode == PCHAN_ROT_XYZ) {
+				if (pchan->rotmode == ROT_MODE_EUL) {
 					
 					std::vector<FCurve*> &rotfcurves = rotfcurves_actionGroup_map[grp];
 					

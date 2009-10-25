@@ -505,7 +505,7 @@ private:
 					name = get_joint_name(joint_by_uid[(*it).joint_uid]);
 				}
 
-				add_defgroup_name(ob, (char*)name);
+				ED_vgroup_add_name(ob, (char*)name);
 			}
 
 			// <vcount> - number of joints per vertex - joints_per_vertex
@@ -529,7 +529,7 @@ private:
 					if (joint != -1) {
 						bDeformGroup *def = (bDeformGroup*)BLI_findlink(&ob->defbase, joint);
 
-						add_vert_to_defgroup(ob, def, vertex, weights[joint_weight], WEIGHT_REPLACE);
+						ED_vgroup_vert_add(ob, def, vertex, weights[joint_weight], WEIGHT_REPLACE);
 					}
 				}
 			}
@@ -709,7 +709,7 @@ private:
 
 	void set_euler_rotmode()
 	{
-		// just set rotmode = PCHAN_ROT_XYZ on pose channel for each joint
+		// just set rotmode = ROT_MODE_EUL on pose channel for each joint
 
 		std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>::iterator it;
 
@@ -726,7 +726,7 @@ private:
 					bPoseChannel *pchan = skin.get_pose_channel_from_node(joint);
 
 					if (pchan) {
-						pchan->rotmode = PCHAN_ROT_XYZ;
+						pchan->rotmode = ROT_MODE_EUL;
 					}
 					else {
 						fprintf(stderr, "Cannot find pose channel for %s.\n", get_joint_name(joint));
@@ -813,9 +813,9 @@ private:
 		fix_leaf_bones();
 
 		// exit armature edit mode
-		ED_armature_from_edit(scene, ob_arm);
+		ED_armature_from_edit(ob_arm);
 		ED_armature_edit_free(ob_arm);
-		DAG_object_flush_update(scene, ob_arm, OB_RECALC_OB|OB_RECALC_DATA);
+		DAG_id_flush_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
 
 		set_leaf_bone_shapes(ob_arm);
 
@@ -2213,7 +2213,7 @@ public:
 				free_fcurve(eulcu[i]);
 			}
 
-			get_pose_channel(ob->pose, grp->name)->rotmode = PCHAN_ROT_QUAT;
+			get_pose_channel(ob->pose, grp->name)->rotmode = ROT_MODE_QUAT;
 
 			for (i = 0; i < 4; i++)
 				action_groups_add_channel(act, grp, quatcu[i]);
@@ -2221,7 +2221,7 @@ public:
 
 		bPoseChannel *pchan;
 		for (pchan = (bPoseChannel*)ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-			pchan->rotmode = PCHAN_ROT_QUAT;
+			pchan->rotmode = ROT_MODE_QUAT;
 		}
 	}	
 };
